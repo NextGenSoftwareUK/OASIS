@@ -87,6 +87,7 @@ namespace NextGenSoftware.Holochain.HoloNET.Client.Core
             WebSocket = new ClientWebSocket();
             WebSocket.Options.KeepAliveInterval = TimeSpan.FromSeconds(Config.KeepAliveSeconds == 0 ? KeepAliveSecondsDefault : Config.KeepAliveSeconds);
             EndPoint = holochainURI;
+            Config.ErrorHandlingBehaviour = ErrorHandlingBehaviour.OnlyThrowExceptionIfNoErrorHandlerSubscribedToOnErrorEvent;
 
             _cancellationToken = _cancellationTokenSource.Token; //TODO: do something with this!
         }
@@ -101,11 +102,12 @@ namespace NextGenSoftware.Holochain.HoloNET.Client.Core
                 //NetworkServiceProvider.Connect(new Uri(EndPoint));
                 //TODO: need to be able to await this.
 
-                if (NetworkServiceProvider.NetSocketState == NetSocketState.Open)
+                //if (NetworkServiceProvider.NetSocketState == NetSocketState.Open)
+                if (WebSocket.State == WebSocketState.Open)
                 {
                     Logger.Log(string.Concat("Connected to ", EndPoint), LogType.Info);
                     OnConnected?.Invoke(this, new ConnectedEventArgs(EndPoint));
-                    await StartListen();
+                    StartListen();
                 }
             }
             catch (Exception e)
