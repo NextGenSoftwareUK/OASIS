@@ -20,6 +20,7 @@ namespace NextGenSoftware.Holochain.HoloNET.Client.TestHarness
         {
             HoloNETClient holoNETClient = new HoloNETClient("ws://localhost:8888");
             holoNETClient.Config.NeverTimeOut = true;
+            //holoNETClient.Config.ErrorHandlingBehaviour = ErrorHandlingBehaviour.OnlyThrowExceptionIfNoErrorHandlerSubscribedToOnErrorEvent
 
             holoNETClient.OnConnected += HoloNETClient_OnConnected;
             holoNETClient.OnDataReceived += HoloNETClient_OnDataReceived;
@@ -30,14 +31,17 @@ namespace NextGenSoftware.Holochain.HoloNET.Client.TestHarness
             holoNETClient.OnError += HoloNETClient_OnError;
 
             await holoNETClient.Connect();
-            await holoNETClient.GetHolochainInstancesAsync();
-            await holoNETClient.CallZomeFunctionAsync("1", "test-instance", "our_world_core", "test", ZomeCallback, new { message = new { content = "blah!" } });
-            await holoNETClient.CallZomeFunctionAsync("2", "test-instance", "our_world_core", "test2", ZomeCallback, new { message = "blah!" });
 
-            // Load testing
-            for (int i = 0; i < 100; i++)
-                await holoNETClient.CallZomeFunctionAsync(i.ToString(), "test-instance", "our_world_core", "test", ZomeCallback, new { message = new { content = "blah!" } });
+            if (holoNETClient.State == System.Net.WebSockets.WebSocketState.Open)
+            {
+                await holoNETClient.GetHolochainInstancesAsync();
+                await holoNETClient.CallZomeFunctionAsync("1", "test-instance", "our_world_core", "test", ZomeCallback, new { message = new { content = "blah!" } });
+                await holoNETClient.CallZomeFunctionAsync("2", "test-instance", "our_world_core", "test2", ZomeCallback, new { message = "blah!" });
 
+                // Load testing
+                for (int i = 0; i < 100; i++)
+                    await holoNETClient.CallZomeFunctionAsync(i.ToString(), "test-instance", "our_world_core", "test", ZomeCallback, new { message = new { content = "blah!" } });
+            }
 
           //  for (int i = 100; i < 200; i++)
           //     holoNETClient.CallZomeFunctionAsync(i.ToString(), "test-instance", "our_world_core", "test", ZomeCallback, new { message = new { content = "blah!" } });
