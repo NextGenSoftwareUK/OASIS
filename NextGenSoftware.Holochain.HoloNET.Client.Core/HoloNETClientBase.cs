@@ -96,6 +96,9 @@ namespace NextGenSoftware.Holochain.HoloNET.Client.Core
         {
             try
             {
+                if (Logger == null)
+                    throw new HoloNETException("ERROR@ No Logger Has Been Specified! Please set a Logger with the Logger Property.");
+
                 Logger.Log(string.Concat("Connecting to ", EndPoint, "..."), LogType.Info);
 
                 await WebSocket.ConnectAsync(new Uri(EndPoint), CancellationToken.None);

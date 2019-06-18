@@ -8,7 +8,8 @@ namespace NextGenSoftware.Holochain.HoloNET.Client.Unity
         public HoloNETClient(string holochainURI) : base(holochainURI)
         {
             //TODO: Add Unity Compat Logger Here (hopefully the Unity NLogger Download/Asset I found)
-           // this.Logger = new NLogger();
+            // this.Logger = new NLogger();
+            this.Logger = new DumbyLogger();
         }
 
 
