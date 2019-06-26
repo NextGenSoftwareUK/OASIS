@@ -34,7 +34,7 @@ namespace NextGenSoftware.OASIS.API.Core
             {
                 if (_parent == null)
                 {
-                    _parent = new Holon();
+                  //  _parent = new Holon();
                     //TODO: Get parent holon from graph here.
                 }
 
