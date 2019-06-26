@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace NextGenSoftware.OASIS.API.Core
 {
@@ -9,10 +10,12 @@ namespace NextGenSoftware.OASIS.API.Core
     // will be implemented soon (IPFSOASIS & HoloOASIS).
     public interface IOASISSTORAGE
     {
-        IProfile GetProfile(Guid Id);
-        bool SaveProfile(IProfile profile);
-        bool AddKarmaToProfile(IProfile profile, int karma);
-        bool RemoveKarmaFromProfile(IProfile profile, int karma);
+        Task<IProfile> LoadProfileAsync(string profileEntryHash);
+        //Task<IProfile> LoadProfileAsync(Guid Id);
+        //Task<bool> SaveProfileAsync(IProfile profile);
+        Task SaveProfileAsync(IProfile profile);
+        Task<bool> AddKarmaToProfileAsync(IProfile profile, int karma);
+        Task<bool> RemoveKarmaFromProfileAsync(IProfile profile, int karma);
 
         //TODO: Lots more to come! ;-)
     }

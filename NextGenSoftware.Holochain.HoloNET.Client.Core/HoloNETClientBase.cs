@@ -19,6 +19,7 @@ namespace NextGenSoftware.Holochain.HoloNET.Client.Core
         private const int ReconnectionAttemptsDefault = 5;
         private const int ReconnectionIntervalSecondsDefault = 5;
 
+        private TaskCompletionSource<GetInstancesCallBackEventArgs> _taskCompletionSourceGetInstance = new TaskCompletionSource<GetInstancesCallBackEventArgs>();
         private readonly CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
         private readonly CancellationToken _cancellationToken;
         private Dictionary<string, string> _instanceLookup = new Dictionary<string, string>();
@@ -97,7 +98,7 @@ namespace NextGenSoftware.Holochain.HoloNET.Client.Core
             try
             {
                 if (Logger == null)
-                    throw new HoloNETException("ERROR@ No Logger Has Been Specified! Please set a Logger with the Logger Property.");
+                    throw new HoloNETException("ERROR: No Logger Has Been Specified! Please set a Logger with the Logger Property.");
 
                 Logger.Log(string.Concat("Connecting to ", EndPoint, "..."), LogType.Info);
 
@@ -230,12 +231,7 @@ namespace NextGenSoftware.Holochain.HoloNET.Client.Core
                         else
                         {
                             using (var cts = new CancellationTokenSource((Config.TimeOutSeconds == 0 ? TimeOutSecondsDefault : Config.TimeOutSeconds) * 1000))
-                            {
                                 result = await WebSocket.ReceiveAsync(new ArraySegment<byte>(buffer), cts.Token);
-
-                                //TODO: Handle timeout.
-                                //TODO: Handle cancellation token being cancelled.
-                            }
                         }
 
                         if (result.MessageType == WebSocketMessageType.Close)
@@ -277,6 +273,7 @@ namespace NextGenSoftware.Holochain.HoloNET.Client.Core
                         if (_cachInstancesReturnData)
                             _instancesCache = args;
 
+                       // _taskCompletionSourceGetInstance.SetResult(args);
                         OnGetInstancesCallBack?.Invoke(this, args);
                     }
                     else
@@ -352,12 +349,15 @@ namespace NextGenSoftware.Holochain.HoloNET.Client.Core
         //}
 
 
+        //public async Task<GetInstancesCallBackEventArgs> GetHolochainInstancesAsync(bool cachReturnData = false)
         public async Task GetHolochainInstancesAsync(bool cachReturnData = false)
         {
             _currentId++;
+            //return await GetHolochainInstancesAsync(_currentId.ToString(), cachReturnData);
             await GetHolochainInstancesAsync(_currentId.ToString(), cachReturnData);
         }
 
+        //public async Task<GetInstancesCallBackEventArgs> GetHolochainInstancesAsync(string id, bool cachReturnData = false)
         public async Task GetHolochainInstancesAsync(string id, bool cachReturnData = false)
         {
             //TODO: Are there other admin functions we can wrap around?
@@ -369,7 +369,7 @@ namespace NextGenSoftware.Holochain.HoloNET.Client.Core
                 OnGetInstancesCallBack(this, _instancesCache);
                 Logger.Log("Caching Enabled so returning data from cach...", LogType.Warn);
                 Logger.Log(string.Concat("Id: ", _instancesCache.Id, ", Instances: ", string.Join(", ", _instancesCache.Instances), ", Is Call Successful: ", _instancesCache.IsCallSuccessful ? "True" : "False", ", JSON Raw Data: ", _instancesCache.RawJSONData), LogType.Info);
-                return;
+                //return null;
             }
 
             _cachInstancesReturnData = cachReturnData;
@@ -382,6 +382,8 @@ namespace NextGenSoftware.Holochain.HoloNET.Client.Core
                     method = "info/instances"
                 }
             ));
+
+            //return await _taskCompletionSourceGetInstance.Task;
 
             Logger.Log("GetHolochainInstances EXIT", LogType.Debug);
         }
