@@ -73,7 +73,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
             switch (e.ZomeFunction)
             {
                 case LOAD_PROFILE_FUNC:
-                    OnPlayerProfileLoaded?.Invoke(this, new ProfileLoadedEventArgs { Profile = JsonConvert.DeserializeObject<IProfile>(e.ZomeReturnData) });
+                    OnPlayerProfileLoaded?.Invoke(this, new ProfileLoadedEventArgs { Profile = JsonConvert.DeserializeObject<Profile>(string.Concat("{", e.ZomeReturnData, "}")) });
                     //_taskCompletionSourceIProfile.SetResult(JsonConvert.DeserializeObject<IProfile>(e.ZomeReturnData));
                     break;
 
