@@ -286,7 +286,8 @@ namespace NextGenSoftware.Holochain.HoloNET.Client.Core
                         if (rawZomeReturnData.Substring(2, 2).ToUpper() == "OK")
                         {
                             isZomeCallSuccessful = true;
-                            zomeReturnData = rawZomeReturnData.Substring(7, rawZomeReturnData.Length - 10);
+                            zomeReturnData = rawZomeReturnData.Substring(7, rawZomeReturnData.Length - 9);
+                            //zomeReturnData = rawZomeReturnData.Substring(6, rawZomeReturnData.Length - 8);
                         }
                         //else if (rawZomeReturnData.Substring(0,3).ToUpper() == "ERR")
                         else
@@ -392,12 +393,11 @@ namespace NextGenSoftware.Holochain.HoloNET.Client.Core
         {
             for (int i = 0; i < (Config.ReconnectionAttempts == 0 ? ReconnectionAttemptsDefault : Config.ReconnectionAttempts); i++)
             {
-                Logger.Log(string.Concat("Attempting to reconnect... Attempt ", +i), LogType.Info);
-                await Connect();
-
                 if (WebSocket.State == WebSocketState.Open)
                     break;
 
+                Logger.Log(string.Concat("Attempting to reconnect... Attempt ", +i), LogType.Info);
+                await Connect();
                 await Task.Delay(Config.ReconnectionIntervalSeconds == 0 ? ReconnectionIntervalSecondsDefault : Config.ReconnectionIntervalSeconds);
             }
         }
