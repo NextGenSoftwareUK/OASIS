@@ -8,8 +8,8 @@ namespace NextGenSoftware.OASIS.API.Core
     // This will involve peer to peer communcation.
     public interface IOASISNET
     {
-        List<Player> GetPlayersNearMe();
-        List<Holon> GetHolonsNearMe(HolonType Type);
+        List<IPlayer> GetPlayersNearMe();
+        List<IHolon> GetHolonsNearMe(HolonType Type);
 
 
     }

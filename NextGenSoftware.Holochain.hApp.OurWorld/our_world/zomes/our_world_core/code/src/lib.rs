@@ -34,19 +34,26 @@ pub struct MyEntry {
 #[derive(Serialize, Deserialize, Debug, DefaultJson,Clone)]
 pub struct Profile 
 {
+	Id: String,
+	Username: String,
+	Email: String,
+	HcAddressHash : String,
+	Password: String,
     Title: String,
 	FirstName: String,
 	LastName: String,
 	DOB: String,
 	PlayerAddress: String,
-	Karma: String,
-	Level: String
+	Karma: i32,
+	Level: i32
 }
 
 pub fn handle_save_profile(entry: Profile) -> ZomeApiResult<Address> {
     let entry = Entry::App("profile".into(), entry.into());
     let address = hdk::commit_entry(&entry)?;
+	//entry.HcAddressHash = address;
     Ok(address)
+	//Ok(entry);
 }
 
 //pub fn handle_load_profile(address: Address) -> ZomeApiResult<Option<Entry>> {
@@ -55,6 +62,10 @@ pub fn handle_save_profile(entry: Profile) -> ZomeApiResult<Address> {
 
 pub fn handle_load_profile(address: Address) -> ZomeApiResult<Profile> {
     hdk::utils::get_as_type(address)
+}
+
+//pub fn handle_load_profiles() -> ZomeApiResult<Vec<Profile>> {
+//    hdk::utils::get_links_and_load_type(Baseaddress?, LinkMatch::Exactly, LinkMatch::Exactly)
 }
 
 //pub fn handle_get_profiles() -> serde_json::Value {

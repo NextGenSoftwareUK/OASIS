@@ -4,11 +4,8 @@ using System.Text;
 
 namespace NextGenSoftware.OASIS.API.Core
 {
-    public class Holon : IHolon
+    public interface IPlayer : IHolon
     {
-        public Guid Id { get; set; }
-
-        public HolonType HolonType { get; set; }
-
+        
     }
 }

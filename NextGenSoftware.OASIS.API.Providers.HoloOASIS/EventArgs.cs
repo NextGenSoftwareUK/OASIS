@@ -1,7 +1,7 @@
-﻿using NextGenSoftware.OASIS.API.Core;
+﻿//using NextGenSoftware.OASIS.API.Core;
 using System;
 
-namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
+namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Core
 {
     public class ProfileLoadedEventArgs : EventArgs
     {
@@ -10,7 +10,8 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
 
     public class ProfileSavedEventArgs : EventArgs
     {
-        public string ProfileEntryHash { get; set; }
+        //public string ProfileEntryHash { get; set; }
+        public IProfile Profile { get; set; }
     }
 
     public class ErrorEventArgs : EventArgs

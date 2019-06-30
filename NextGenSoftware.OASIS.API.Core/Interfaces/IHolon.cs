@@ -4,11 +4,11 @@ using System.Text;
 
 namespace NextGenSoftware.OASIS.API.Core
 {
-    public class Holon : IHolon
+    public interface IHolon
     {
-        public Guid Id { get; set; }
+        Guid Id { get; set; }
 
-        public HolonType HolonType { get; set; }
+        HolonType HolonType { get; set; }
 
     }
 }

@@ -63,9 +63,15 @@ Project("{9092AA53-FB77-4645-B42D-1CCCA6BD08BD}") = "NextGenSoftware.OASIS.ARC.C
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.Holochain.HoloNET.Client.Unity", "NextGenSoftware.Holochain.HoloNET.Client.Unity\NextGenSoftware.Holochain.HoloNET.Client.Unity.csproj", "{9FC5C90E-F741-40F3-BCF3-837ECA5201B0}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.Providers.HoloOASIS.Desktop", "NextGenSoftware.OASIS.API.Providers.HoloOASIS\NextGenSoftware.OASIS.API.Providers.HoloOASIS.Desktop.csproj", "{92B2E1A7-A6F7-4310-B9CD-74F57791D1B9}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.Providers.HoloOASIS.Core", "NextGenSoftware.OASIS.API.Providers.HoloOASIS\NextGenSoftware.OASIS.API.Providers.HoloOASIS.Core.csproj", "{92B2E1A7-A6F7-4310-B9CD-74F57791D1B9}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.Providers.HoloOASIS.TestHarness", "NextGenSoftware.OASIS.API.Providers.HoloOASIS.TestHarness\NextGenSoftware.OASIS.API.Providers.HoloOASIS.TestHarness.csproj", "{703F8880-7815-4B49-B0A0-4EBF923AB0FC}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.Providers.HoloOASIS.TestHarness", "NextGenSoftware.OASIS.API.Providers.HoloOASIS.TestHarness\NextGenSoftware.OASIS.API.Providers.HoloOASIS.TestHarness.csproj", "{703F8880-7815-4B49-B0A0-4EBF923AB0FC}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.FrontEnd.Unity", "NextGenSoftware.OASIS.API.FrontEnd.Unity\NextGenSoftware.OASIS.API.FrontEnd.Unity.csproj", "{3AA65896-B6DC-440B-B07E-19DAA644B4E0}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.Providers.HoloOASIS.Desktop", "NextGenSoftware.OASIS.API.Providers.HoloOASIS.Desktop\NextGenSoftware.OASIS.API.Providers.HoloOASIS.Desktop.csproj", "{32CA9D8A-FD85-40CF-93E7-8B5C1AB01C2B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.Providers.HoloOASIS.Unity", "NextGenSoftware.OASIS.API.Providers.HoloOASIS.Unity\NextGenSoftware.OASIS.API.Providers.HoloOASIS.Unity.csproj", "{2C7B6BD3-F808-48D7-B311-0CF3531FF812}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -146,6 +152,24 @@ Global
 		{703F8880-7815-4B49-B0A0-4EBF923AB0FC}.Linux|Any CPU.Build.0 = Debug|Any CPU
 		{703F8880-7815-4B49-B0A0-4EBF923AB0FC}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{703F8880-7815-4B49-B0A0-4EBF923AB0FC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3AA65896-B6DC-440B-B07E-19DAA644B4E0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3AA65896-B6DC-440B-B07E-19DAA644B4E0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3AA65896-B6DC-440B-B07E-19DAA644B4E0}.Linux|Any CPU.ActiveCfg = Debug|Any CPU
+		{3AA65896-B6DC-440B-B07E-19DAA644B4E0}.Linux|Any CPU.Build.0 = Debug|Any CPU
+		{3AA65896-B6DC-440B-B07E-19DAA644B4E0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3AA65896-B6DC-440B-B07E-19DAA644B4E0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{32CA9D8A-FD85-40CF-93E7-8B5C1AB01C2B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{32CA9D8A-FD85-40CF-93E7-8B5C1AB01C2B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{32CA9D8A-FD85-40CF-93E7-8B5C1AB01C2B}.Linux|Any CPU.ActiveCfg = Debug|Any CPU
+		{32CA9D8A-FD85-40CF-93E7-8B5C1AB01C2B}.Linux|Any CPU.Build.0 = Debug|Any CPU
+		{32CA9D8A-FD85-40CF-93E7-8B5C1AB01C2B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{32CA9D8A-FD85-40CF-93E7-8B5C1AB01C2B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2C7B6BD3-F808-48D7-B311-0CF3531FF812}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2C7B6BD3-F808-48D7-B311-0CF3531FF812}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2C7B6BD3-F808-48D7-B311-0CF3531FF812}.Linux|Any CPU.ActiveCfg = Debug|Any CPU
+		{2C7B6BD3-F808-48D7-B311-0CF3531FF812}.Linux|Any CPU.Build.0 = Debug|Any CPU
+		{2C7B6BD3-F808-48D7-B311-0CF3531FF812}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2C7B6BD3-F808-48D7-B311-0CF3531FF812}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

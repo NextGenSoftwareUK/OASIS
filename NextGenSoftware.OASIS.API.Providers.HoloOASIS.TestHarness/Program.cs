@@ -1,4 +1,5 @@
-﻿using NextGenSoftware.OASIS.API.Core;
+﻿using NextGenSoftware.OASIS.API.Providers.HoloOASIS.Core;
+
 using System;
 using System.Threading.Tasks;
 
@@ -6,8 +7,8 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.TestHarness
 {
     class Program
     {
-        static HoloOASIS _holoOASIS = new HoloOASIS("ws://localhost:8888");
-        static Profile _savedProfile;
+        static Desktop.HoloOASIS _holoOASIS = new Desktop.HoloOASIS("ws://localhost:8888");
+        static Core.Profile _savedProfile;
 
         static async Task Main(string[] args)
         {
@@ -41,7 +42,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.TestHarness
 
         private static void _holoOASIS_OnHoloOASISError(object sender, ErrorEventArgs e)
         {
-            Console.WriteLine("Error Occured. Reason: " + e.Reason + ", HoloNET Reason: " + e.HoloNETErrorDetails.Reason + ", HoloNET Details: " + e.HoloNETErrorDetails.ErrorDetails.ToString());
+            Console.WriteLine(string.Concat("Error Occured. Reason: ", e.Reason, (e.HoloNETErrorDetails != null ? string.Concat(", HoloNET Reason: ", e.HoloNETErrorDetails.Reason) : ""), (e.HoloNETErrorDetails != null ? string.Concat(", HoloNET Details: ", e.HoloNETErrorDetails.ErrorDetails.ToString()) : ""), "\n"));
         }
 
         private static void HoloNETClient_OnConnected(object sender, Holochain.HoloNET.Client.Core.ConnectedEventArgs e)
@@ -52,15 +53,21 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.TestHarness
         private static void _holoOASIS_OnPlayerProfileSaved(object sender, ProfileSavedEventArgs e)
         {
             Console.WriteLine("Profile Saved.");
-            Console.WriteLine("Profile Entry Hash: " + e.ProfileEntryHash);
+            Console.WriteLine("Profile Entry Hash: " + e.Profile.HcAddressHash);
             Console.WriteLine("Loading Profile...");
-            _holoOASIS.LoadProfileAsync(e.ProfileEntryHash);
+            //_savedProfile.Id = new Guid(e.ProfileEntryHash);
+            _holoOASIS.LoadProfileAsync(e.Profile.HcAddressHash);
         }
 
         private static void _holoOASIS_OnPlayerProfileLoaded(object sender, ProfileLoadedEventArgs e)
         {
             Console.WriteLine("Profile Loaded.");
+            Console.WriteLine(string.Concat("Id: ", e.Profile.Id));
+            Console.WriteLine(string.Concat("HC Address Hash: ", e.Profile.HcAddressHash));
             Console.WriteLine(string.Concat("Name: ", e.Profile.Title, " ", e.Profile.FirstName, " ", e.Profile.LastName));
+            Console.WriteLine(string.Concat("Username: ", e.Profile.Username));
+            Console.WriteLine(string.Concat("Password: ", e.Profile.Password));
+            Console.WriteLine(string.Concat("Email: ", e.Profile.Email));
             Console.WriteLine(string.Concat("DOB: ", e.Profile.DOB));
             Console.WriteLine(string.Concat("Address: ", e.Profile.PlayerAddress));
             Console.WriteLine(string.Concat("Karma: ", e.Profile.Karma));
@@ -73,7 +80,10 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.TestHarness
             Console.WriteLine("Saving Profile...");
 
             //_holoOASIS.HoloNETClient.OnConnected += HoloNETClient_OnConnected;
-            _savedProfile = new Profile { FirstName = "David", LastName = "Ellams", DOB = "11/04/1980", Id = Guid.NewGuid(), Title = "Mr", PlayerAddress = "blahahahaha", Karma = "999" };
+            //_savedProfile = new Profile { FirstName = "David", LastName = "Ellams", DOB = "11/04/1980", Id = Guid.NewGuid(), Title = "Mr", PlayerAddress = "blahahahaha", Karma = 999 };
+            _savedProfile = new Core.Profile { Username = "dellams", Email = "david@nextgensoftware.co.uk", Password = "1234", FirstName = "David", LastName = "Ellams", DOB = "11/04/1980", Id = Guid.NewGuid(), Title = "Mr", PlayerAddress = "blahahahaha" };
+            _savedProfile.AddKarma(999);
+
             _holoOASIS.SaveProfileAsync(_savedProfile);
         }
     }
