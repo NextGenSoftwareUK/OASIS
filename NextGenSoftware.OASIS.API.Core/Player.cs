@@ -4,7 +4,7 @@ using System.Text;
 
 namespace NextGenSoftware.OASIS.API.Core
 {
-    public class Player : Holon
+    public class Player : Holon, IPlayer
     {
         public Player()
         {

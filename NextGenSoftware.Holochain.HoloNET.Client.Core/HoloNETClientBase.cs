@@ -100,18 +100,21 @@ namespace NextGenSoftware.Holochain.HoloNET.Client.Core
                 if (Logger == null)
                     throw new HoloNETException("ERROR: No Logger Has Been Specified! Please set a Logger with the Logger Property.");
 
-                Logger.Log(string.Concat("Connecting to ", EndPoint, "..."), LogType.Info);
-
-                await WebSocket.ConnectAsync(new Uri(EndPoint), CancellationToken.None);
-                //NetworkServiceProvider.Connect(new Uri(EndPoint));
-                //TODO: need to be able to await this.
-
-                //if (NetworkServiceProvider.NetSocketState == NetSocketState.Open)
-                if (WebSocket.State == WebSocketState.Open)
+                if (WebSocket.State != WebSocketState.Open)
                 {
-                    Logger.Log(string.Concat("Connected to ", EndPoint), LogType.Info);
-                    OnConnected?.Invoke(this, new ConnectedEventArgs(EndPoint));
-                    StartListen();
+                    Logger.Log(string.Concat("Connecting to ", EndPoint, "..."), LogType.Info);
+
+                    await WebSocket.ConnectAsync(new Uri(EndPoint), CancellationToken.None);
+                    //NetworkServiceProvider.Connect(new Uri(EndPoint));
+                    //TODO: need to be able to await this.
+
+                    //if (NetworkServiceProvider.NetSocketState == NetSocketState.Open)
+                    if (WebSocket.State == WebSocketState.Open)
+                    {
+                        Logger.Log(string.Concat("Connected to ", EndPoint), LogType.Info);
+                        OnConnected?.Invoke(this, new ConnectedEventArgs(EndPoint));
+                        StartListen();
+                    }
                 }
             }
             catch (Exception e)
@@ -291,7 +294,8 @@ namespace NextGenSoftware.Holochain.HoloNET.Client.Core
                         }
                         //else if (rawZomeReturnData.Substring(0,3).ToUpper() == "ERR")
                         else
-                            zomeReturnData = rawZomeReturnData.Substring(8, rawZomeReturnData.Length - 11);
+                            zomeReturnData = rawZomeReturnData.Substring(1, rawZomeReturnData.Length - 2);
+                        //zomeReturnData = rawZomeReturnData.Substring(8, rawZomeReturnData.Length - 11);
 
                         ZomeFunctionCallBackEventArgs args = new ZomeFunctionCallBackEventArgs(id, this.EndPoint, GetItemFromCache(id, _instanceLookup), GetItemFromCache(id, _zomeLookup), GetItemFromCache(id, _funcLookup), isZomeCallSuccessful, rawZomeReturnData, zomeReturnData, rawData, result);
                         Logger.Log(string.Concat("Zome result data detected. Id: ", args.Id, ", Instance: ", args.Instance, ", Zome: ", args.Zome, ", Zome Function: ", args.ZomeFunction, ", Is Zome Call Successful: ", args.IsCallSuccessful ? "True" : "False", ", Raw Zome Return Data: ", args.RawZomeReturnData, ", Zome Return Data: ", args.ZomeReturnData, ", JSON Raw Data: ", args.RawJSONData), LogType.Info);
