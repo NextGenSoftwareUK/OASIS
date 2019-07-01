@@ -1,4 +1,5 @@
 ﻿//using NextGenSoftware.OASIS.API.Core;
+using NextGenSoftware.Holochain.HoloNET.Client.Core;
 using System;
 
 namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Core
@@ -14,12 +15,12 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Core
         public IProfile Profile { get; set; }
     }
 
-    public class ErrorEventArgs : EventArgs
+    public class HoloOASISErrorEventArgs : EventArgs
     {
         public string EndPoint { get; set; }
         public string Reason { get; set; }
         public Exception ErrorDetails { get; set; }
 
-        public Holochain.HoloNET.Client.Core.ErrorEventArgs HoloNETErrorDetails { get; set; }
+        public HoloNETErrorEventArgs HoloNETErrorDetails { get; set; }
     }
 }

@@ -8,6 +8,8 @@ namespace NextGenSoftware.OASIS.API.Core
     {
         Guid Id { get; set; }
 
+        string ProviderKey { get; set; }
+
         HolonType HolonType { get; set; }
 
     }

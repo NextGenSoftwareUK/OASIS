@@ -6,58 +6,58 @@ namespace NextGenSoftware.Holochain.HoloNET.Client.Core
 {
     public class ConnectedEventArgs : EventArgs
     {
-        public ConnectedEventArgs(string endPoint)
-        {
-            EndPoint = endPoint;
-        }
+        //public ConnectedEventArgs(string endPoint)
+        //{
+        //    EndPoint = endPoint;
+        //}
 
-        public string EndPoint { get; private set; }
+        public string EndPoint { get; set; }
     }
 
     public class DisconnectedEventArgs : EventArgs
     {
-        public DisconnectedEventArgs(string endPoint, string reason)
-        {
-            EndPoint = endPoint;
-            Reason = reason;
-        }
+        //public DisconnectedEventArgs(string endPoint, string reason)
+        //{
+        //    EndPoint = endPoint;
+        //    Reason = reason;
+        //}
 
-        public string EndPoint { get; private set; }
-        public string Reason { get; private set; }
+        public string EndPoint { get; set; }
+        public string Reason { get; set; }
     }
 
-    public class ErrorEventArgs : EventArgs
+    public class HoloNETErrorEventArgs : EventArgs
     {
-        public ErrorEventArgs(string endPoint, string reason, Exception errorDetails)
-        {
-            EndPoint = endPoint;
-            Reason = reason;
-            ErrorDetails = errorDetails;
-        }
+        //public HoloNETErrorEventArgs(string endPoint, string reason, Exception errorDetails)
+        //{
+        //    EndPoint = endPoint;
+        //    Reason = reason;
+        //    ErrorDetails = errorDetails;
+        //}
 
-        public ErrorEventArgs(string endPoint, string reason)
-        {
-            EndPoint = endPoint;
-            Reason = reason;
-        }
+        //public HoloNETErrorEventArgs(string endPoint, string reason)
+        //{
+        //    EndPoint = endPoint;
+        //    Reason = reason;
+        //}
 
-        public string EndPoint { get; private set; }
-        public string Reason { get; private set; }
-        public Exception ErrorDetails { get; private set; }
+        public string EndPoint { get; set; }
+        public string Reason { get; set; }
+        public Exception ErrorDetails { get; set; }
     }
 
     public class DataReceivedEventArgs : EventArgs
     {
-        public DataReceivedEventArgs(string endPoint, string rawJSONData, WebSocketReceiveResult webSocketResult)
-        {
-            EndPoint = endPoint;
-            RawJSONData = rawJSONData;
-            WebSocketResult = webSocketResult;
-        }
+        //public DataReceivedEventArgs(string endPoint, string rawJSONData, WebSocketReceiveResult webSocketResult)
+        //{
+        //    EndPoint = endPoint;
+        //    RawJSONData = rawJSONData;
+        //    WebSocketResult = webSocketResult;
+        //}
 
-        public string EndPoint { get; private set; }
-        public string RawJSONData { get; private set; }
-        public WebSocketReceiveResult WebSocketResult { get; private set; }
+        public string EndPoint { get; set; }
+        public string RawJSONData { get; set; }
+        public WebSocketReceiveResult WebSocketResult { get; set; }
     }
 
     public class ZomeFunctionCallBackEventArgs : CallBackBaseEventArgs
@@ -71,7 +71,7 @@ namespace NextGenSoftware.Holochain.HoloNET.Client.Core
             RawZomeReturnData = rawZomeReturnData;
             ZomeReturnData = zomeReturnData;
         }
-       
+
         public string Instance { get; private set; }
         public string Zome { get; private set; }
         public string ZomeFunction { get; private set; }
