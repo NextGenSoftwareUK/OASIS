@@ -53,7 +53,7 @@ namespace NextGenSoftware.Holochain.HoloNET.Client.Core
         public delegate void GetInstancesCallBack(object sender, GetInstancesCallBackEventArgs e);
         public event GetInstancesCallBack OnGetInstancesCallBack;
 
-        public delegate void Error(object sender, ErrorEventArgs e);
+        public delegate void Error(object sender, HoloNETErrorEventArgs e);
         public event Error OnError;
 
         // Properties
@@ -100,7 +100,7 @@ namespace NextGenSoftware.Holochain.HoloNET.Client.Core
                 if (Logger == null)
                     throw new HoloNETException("ERROR: No Logger Has Been Specified! Please set a Logger with the Logger Property.");
 
-                if (WebSocket.State != WebSocketState.Open)
+                if (WebSocket.State != WebSocketState.Open && WebSocket.State != WebSocketState.Aborted)
                 {
                     Logger.Log(string.Concat("Connecting to ", EndPoint, "..."), LogType.Info);
 
@@ -112,7 +112,7 @@ namespace NextGenSoftware.Holochain.HoloNET.Client.Core
                     if (WebSocket.State == WebSocketState.Open)
                     {
                         Logger.Log(string.Concat("Connected to ", EndPoint), LogType.Info);
-                        OnConnected?.Invoke(this, new ConnectedEventArgs(EndPoint));
+                        OnConnected?.Invoke(this, new ConnectedEventArgs { EndPoint = EndPoint });
                         StartListen();
                     }
                 }
@@ -241,7 +241,7 @@ namespace NextGenSoftware.Holochain.HoloNET.Client.Core
                         {
                             string msg = "Closing because received close message from Holochain."; //TODO: Move all strings to constants at top or resources.strings
                             await WebSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, msg, CancellationToken.None);
-                            OnDisconnected?.Invoke(this, new DisconnectedEventArgs(this.EndPoint, msg));
+                            OnDisconnected?.Invoke(this, new DisconnectedEventArgs { EndPoint = EndPoint, Reason = msg });
                             Logger.Log(msg, LogType.Info);
 
                             //AttemptReconnect(); //TODO: Not sure re-connect here?
@@ -256,7 +256,7 @@ namespace NextGenSoftware.Holochain.HoloNET.Client.Core
 
                     string rawData = stringResult.ToString();
                     Logger.Log(string.Concat("Received Data: ", rawData), LogType.Info);
-                    OnDataReceived?.Invoke(this, new DataReceivedEventArgs(EndPoint, rawData, result));
+                    OnDataReceived?.Invoke(this, new DataReceivedEventArgs { EndPoint = EndPoint, RawJSONData = rawData, WebSocketResult = result });
 
                     JObject data = JObject.Parse(rawData);
                     string id = data["id"].ToString();
@@ -320,14 +320,14 @@ namespace NextGenSoftware.Holochain.HoloNET.Client.Core
             catch (TaskCanceledException ex)
             {
                 string msg = string.Concat("Connection timed out after ", (Config.TimeOutSeconds == 0 ? TimeOutSecondsDefault : Config.TimeOutSeconds), " seconds.");
-                OnDisconnected?.Invoke(this, new DisconnectedEventArgs(this.EndPoint, msg));
+                OnDisconnected?.Invoke(this, new DisconnectedEventArgs { EndPoint = EndPoint, Reason = msg });
                 HandleError(msg, ex);
                 await AttemptReconnect();
             }
 
             catch (Exception ex)
             {
-                OnDisconnected?.Invoke(this, new DisconnectedEventArgs(this.EndPoint, string.Concat("Error occured: ", ex)));
+                OnDisconnected?.Invoke(this, new DisconnectedEventArgs { EndPoint = EndPoint, Reason = string.Concat("Error occured: ", ex) });
                 HandleError("Disconnected because an error occured.", ex);
                 await AttemptReconnect();
             }
@@ -416,7 +416,7 @@ namespace NextGenSoftware.Holochain.HoloNET.Client.Core
             message = string.Concat(message, "\nError Details: ", exception != null ? exception.ToString() : "");
             Logger.Log(message, LogType.Error);
 
-            OnError?.Invoke(this, new ErrorEventArgs(this.EndPoint, message, exception));
+            OnError?.Invoke(this, new HoloNETErrorEventArgs { EndPoint = EndPoint, Reason = message, ErrorDetails = exception });
 
             switch (Config.ErrorHandlingBehaviour)
             {

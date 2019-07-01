@@ -23,7 +23,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.TestHarness
 
            // await _holoOASIS.Initialize();
 
-            Task.Delay(10000);
+           // Task.Delay(10000);
             Console.ReadKey();
 
             /*
@@ -40,7 +40,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.TestHarness
             }*/
         }
 
-        private static void _holoOASIS_OnHoloOASISError(object sender, ErrorEventArgs e)
+        private static void _holoOASIS_OnHoloOASISError(object sender, HoloOASISErrorEventArgs e)
         {
             Console.WriteLine(string.Concat("Error Occured. Reason: ", e.Reason, (e.HoloNETErrorDetails != null ? string.Concat(", HoloNET Reason: ", e.HoloNETErrorDetails.Reason) : ""), (e.HoloNETErrorDetails != null ? string.Concat(", HoloNET Details: ", e.HoloNETErrorDetails.ErrorDetails.ToString()) : ""), "\n"));
         }
@@ -81,7 +81,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.TestHarness
 
             //_holoOASIS.HoloNETClient.OnConnected += HoloNETClient_OnConnected;
             //_savedProfile = new Profile { FirstName = "David", LastName = "Ellams", DOB = "11/04/1980", Id = Guid.NewGuid(), Title = "Mr", PlayerAddress = "blahahahaha", Karma = 999 };
-            _savedProfile = new Core.Profile { Username = "dellams", Email = "david@nextgensoftware.co.uk", Password = "1234", FirstName = "David", LastName = "Ellams", DOB = "11/04/1980", Id = Guid.NewGuid(), Title = "Mr", PlayerAddress = "blahahahaha" };
+            _savedProfile = new Profile { Username = "dellams", Email = "david@nextgensoftware.co.uk", Password = "1234", FirstName = "David", LastName = "Ellams", DOB = "11/04/1980", Id = Guid.NewGuid(), Title = "Mr", PlayerAddress = "blahahahaha" };
             _savedProfile.AddKarma(999);
 
             _holoOASIS.SaveProfileAsync(_savedProfile);

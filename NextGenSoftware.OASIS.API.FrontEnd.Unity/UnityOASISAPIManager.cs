@@ -24,7 +24,7 @@ namespace NextGenSoftware.OASIS.API.FrontEnd.Unity
 
         public async Task LoadProfileAsync(string username, string password)
         {
-            IProfile profile = await ProfileManager.LoadProfile(username, password);
+            IProfile profile = await ProfileManager.LoadProfileAsync(username, password);
 
             if (profile != null)
             {

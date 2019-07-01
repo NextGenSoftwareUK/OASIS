@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
+using static NextGenSoftware.OASIS.API.Core.ProfileManager;
 
 namespace NextGenSoftware.OASIS.API.Core
 {
@@ -14,9 +15,11 @@ namespace NextGenSoftware.OASIS.API.Core
         Task<IProfile> LoadProfileAsync(string username, string password);
 
         //Task<bool> SaveProfileAsync(IProfile profile);
-        Task<bool> SaveProfileAsync(IProfile profile);
+        Task<IProfile> SaveProfileAsync(IProfile profile);
         Task<bool> AddKarmaToProfileAsync(IProfile profile, int karma);
         Task<bool> RemoveKarmaFromProfileAsync(IProfile profile, int karma);
+
+        event StorageProviderError OnStorageProviderError;
 
         //TODO: Lots more to come! ;-)
     }

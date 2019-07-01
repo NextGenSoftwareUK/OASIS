@@ -38,6 +38,7 @@ pub struct Profile
 	Username: String,
 	Email: String,
 	HcAddressHash : String,
+	ProviderKey : String,
 	Password: String,
     Title: String,
 	FirstName: String,
@@ -66,7 +67,7 @@ pub fn handle_load_profile(address: Address) -> ZomeApiResult<Profile> {
 
 //pub fn handle_load_profiles() -> ZomeApiResult<Vec<Profile>> {
 //    hdk::utils::get_links_and_load_type(Baseaddress?, LinkMatch::Exactly, LinkMatch::Exactly)
-}
+//}
 
 //pub fn handle_get_profiles() -> serde_json::Value {
  //  match hdk::get_links(&hdk::AGENT_ADDRESS, None, "has profiles") {
