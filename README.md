@@ -14,6 +14,7 @@ HoloOASIS uses HoloNET to implement a Storage Provider for the OASIS System.
 We will soon also begin work on the .NET HDK to open up the amazing Holochain to the massive .NET & Unity ecosystem's, which will help turbocharge the holochain ecosystem they are trying to build...
 
 https://chat.holochain.org/appsup/channels/net-hdk 
+
 https://github.com/dellams/Holochain-.NET-HDK 
 
 ## Next Steps
@@ -30,3 +31,14 @@ We are working full-time on this project so we have no other income so if you va
 https://www.gofundme.com/f/ourworldthegame
 
 Every little helps, even if you can only manage £1 it can still help make all the difference! Thank you! :)
+
+
+## Devs/Contributions Welcome! :)
+
+We would love to have some much needed dev resource on this vital project not only for Holochain but also for the world so if you are intersted please contact us on either ourworld@nextgensoftware.co.uk or david@nextgensoftware.co.uk. Thank you, we look forward to hearing from you! :)
+
+Read more on this project on our website below:
+
+http://www.ourworldthegame.com
+
+http://www.nextgensoftware.co.uk
