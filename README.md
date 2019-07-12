@@ -32,6 +32,45 @@ https://www.gofundme.com/f/ourworldthegame
 
 Every little helps, even if you can only manage £1 it can still help make all the difference! Thank you! :)
 
+We would really appreciate if you could donate anything you can afford, even if it's just a pound, if everyone did that then we would be able to massively accelerate this very urgent and important project for a world in need right now. I think everyone can justify a pound if it meant saving the world don't you think? 
+
+It's even better to spend a pound on this project rather than buying a lottery ticket since you have more chance of being hit by a car than winning the jackpot, then even by some fluke you did win, there is no point having millions if there is no world left to enjoy it on. 
+
+Think about it...
+
+If you can't afford to contribute, then that's fine, you can still help by getting the word out there!
+
+Our Facebook page is here:
+
+https://www.facebook.com/ourworldthegame 
+
+ Please make sure you LIKE it and spread the word and get as many of your friends and family to LIKE it too, many thanks & much appreciated! :)
+
+Every reward above £100 will automatically get your name added to the credits for the app/network which will be seen by billions...
+
+Please ready more on the website:
+http://www.ourworldthegame.com
+
+What will be your legacy? 
+
+Do you want to be in on the ground floor of the upcoming platform that will take the world by storm?
+The platform that is going to win many rewards for the ground-breaking work it will do. Do you want to be a hero of your own life story? 
+
+Want to tell your kids and grandkids that you helped make it happen and go down in history as a hero?
+
+What kind of world do you want to leave to the next generation? 
+
+Want to be part of something greater than yourself?  
+
+How can you do your part to create a better world? 
+
+This is HOW you do your part...
+
+Be the change you wish to see in the world...
+
+NOTE: WE HAVE ONLY DISCLOSED ABOUT 10% OF WHAT OUR WORLD / THE OASIS IS, IF YOU WISH TO GET INVOLVED OR INVEST THEN WE WILL BE HAPPY TO SHARE MORE, PLEASE GET IN TOUCH, WE LOOK FORWARD TO HEARING FROM YOU...
+
+TOGETHER WE CAN CREATE A BETTER WORLD.
 
 ## Devs/Contributions Welcome! :)
 
