@@ -104,24 +104,24 @@ Every reward above £100 will automatically get your name added to the credits f
 Please ready more on the website:
 http://www.ourworldthegame.com
 
-* What will be your legacy? 
+* **What will be your legacy? **
 
-* Do you want to be in on the ground floor of the upcoming platform that will take the world by storm?
-The platform that is going to win many rewards for the ground-breaking work it will do. Do you want to be a hero of your own life story? 
+* **Do you want to be in on the ground floor of the upcoming platform that will take the world by storm?
+The platform that is going to win many rewards for the ground-breaking work it will do. Do you want to be a hero of your own life story?**
 
-* Want to tell your kids and grandkids that you helped make it happen and go down in history as a hero?
+* **Want to tell your kids and grandkids that you helped make it happen and go down in history as a hero? **
 
-* What kind of world do you want to leave to the next generation? 
+* **What kind of world do you want to leave to the next generation?**
 
-* Want to be part of something greater than yourself?  
+* **Want to be part of something greater than yourself? **
 
-* How can you do your part to create a better world? 
+* **How can you do your part to create a better world?**
 
-* This is HOW you do your part...
+* **This is HOW you do your part...**
 
-* Be the change you wish to see in the world...
+* **Be the change you wish to see in the world...**
 
-NOTE: WE HAVE ONLY DISCLOSED ABOUT 10% OF WHAT OUR WORLD / THE OASIS IS, IF YOU WISH TO GET INVOLVED OR INVEST THEN WE WILL BE HAPPY TO SHARE MORE, PLEASE GET IN TOUCH, WE LOOK FORWARD TO HEARING FROM YOU...
+**NOTE: WE HAVE ONLY DISCLOSED ABOUT 10% OF WHAT OUR WORLD / THE OASIS IS, IF YOU WISH TO GET INVOLVED OR INVEST THEN WE WILL BE HAPPY TO SHARE MORE, PLEASE GET IN TOUCH, WE LOOK FORWARD TO HEARING FROM YOU...**
 
 **TOGETHER WE CAN CREATE A BETTER WORLD.**
 
