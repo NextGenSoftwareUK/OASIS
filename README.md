@@ -44,39 +44,51 @@ Our Facebook page is here:
 
 https://www.facebook.com/ourworldthegame 
 
- Please make sure you LIKE it and spread the word and get as many of your friends and family to LIKE it too, many thanks & much appreciated! :)
+Please make sure you LIKE it and spread the word and get as many of your friends and family to LIKE it too, many thanks & much appreciated! :)
 
 Every reward above £100 will automatically get your name added to the credits for the app/network which will be seen by billions...
 
 Please ready more on the website:
 http://www.ourworldthegame.com
 
-What will be your legacy? 
+* What will be your legacy? 
 
-Do you want to be in on the ground floor of the upcoming platform that will take the world by storm?
+* Do you want to be in on the ground floor of the upcoming platform that will take the world by storm?
 The platform that is going to win many rewards for the ground-breaking work it will do. Do you want to be a hero of your own life story? 
 
-Want to tell your kids and grandkids that you helped make it happen and go down in history as a hero?
+* Want to tell your kids and grandkids that you helped make it happen and go down in history as a hero?
 
-What kind of world do you want to leave to the next generation? 
+* What kind of world do you want to leave to the next generation? 
 
-Want to be part of something greater than yourself?  
+* Want to be part of something greater than yourself?  
 
-How can you do your part to create a better world? 
+* How can you do your part to create a better world? 
 
-This is HOW you do your part...
+* This is HOW you do your part...
 
-Be the change you wish to see in the world...
+* Be the change you wish to see in the world...
 
 NOTE: WE HAVE ONLY DISCLOSED ABOUT 10% OF WHAT OUR WORLD / THE OASIS IS, IF YOU WISH TO GET INVOLVED OR INVEST THEN WE WILL BE HAPPY TO SHARE MORE, PLEASE GET IN TOUCH, WE LOOK FORWARD TO HEARING FROM YOU...
 
-TOGETHER WE CAN CREATE A BETTER WORLD.
+**TOGETHER WE CAN CREATE A BETTER WORLD.**
 
 ## Devs/Contributions Welcome! :)
 
 We would love to have some much needed dev resource on this vital project not only for Holochain but also for the world so if you are intersted please contact us on either ourworld@nextgensoftware.co.uk or david@nextgensoftware.co.uk. Thank you, we look forward to hearing from you! :)
 
-Read more on this project on our website below:
+## Other Ways To Get Involved
+
+If you cannot code or donate, then no problem, you can help in other ways! :) You can share our website/posts, give us valuable feedback on our site, etc as well as submit ideas for Our World. We are also looking for people to join for every department/area such as PR, Sales, Support, Admin, Accounting, Management, Strategy, Opertations, etc  
+
+So if you feel you want to help or get involved please contact us on ourworld@nextgensoftware.co.uk, we would love to hear from you! :)
+
+You can also get involved on our forum here:
+
+http://www.ourworldthegame.com/forum
+
+## Websites
+
+Read more on this project on our websites below:
 
 http://www.ourworldthegame.com
 
