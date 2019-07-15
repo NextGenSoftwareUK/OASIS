@@ -162,16 +162,16 @@ Every reward above £100 will automatically get your name added to the credits f
 Please ready more on the website:
 http://www.ourworldthegame.com
 
-* **What will be your legacy? **
+* **What will be your legacy?**
 
 * **Do you want to be in on the ground floor of the upcoming platform that will take the world by storm?
 The platform that is going to win many rewards for the ground-breaking work it will do. Do you want to be a hero of your own life story?**
 
-* **Want to tell your kids and grandkids that you helped make it happen and go down in history as a hero? **
+* **Want to tell your kids and grandkids that you helped make it happen and go down in history as a hero?**
 
 * **What kind of world do you want to leave to the next generation?**
 
-* **Want to be part of something greater than yourself? **
+* **Want to be part of something greater than yourself?**
 
 * **How can you do your part to create a better world?**
 
