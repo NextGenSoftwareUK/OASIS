@@ -9,19 +9,64 @@ Next, it will port Noomap to Unity and will implement a Synergy Engine allowing 
 
 ## HoloNET
 
-If there is demand for HoloNET and people wish to contribute we may consider splitting it out into it's own repo...
+This allows .NET to talk to Holochain, which is where the profile/avatar is stored on a private decentralised, distributed network. This will be gifted forward to the Holochain community If there is demand for HoloNET and people wish to contribute we may consider splitting it out into it's own repo...
+
+This is also how Holochain can talk to Unity because Unity uses C#/.NET as it's backend scripting language/tech.
+
+This will help massively turbo charge the holochain ecosystem by opening it up to the massive .NET and Unity communities and open up many more possibilities of the things that can be built on top of Holochain. You can build almost anything you can imagine with .NET and/or Unity from websites, desktop apps, smartphone apps, services, AAA Games and lots more! They can target every device and platform out there from XBox, PS4, Wii, PC, Linux, Mac, iOS, Android, Windows Phone, iPad, Tablets, SmartTV, VR/AR/XR, MagicLeap, etc
+
+We feel this is the gateway to taking Holochain mainstream! ;-)
+
+### How To Use HoloNET
+
+You start by instaniating a new HoloNETClient class found in the NextGenSoftware.Holochain.HoloNET.Client project passing in the holochain websocket URI to the constructor as seen below:
+
+Next, you can subscribe to a number of different events:
+
+OnConnected
+OnDisconnected
+OnError
+OnGetInstancesCallback
+OnDataReceived
+OnZomeCallBack
+OnSignalCallBack
+
+Now you can call the Connect() method to connect to Holochain.
+
+Once you received a OnConnected event callback you can now call the GetInstances() method to get back a list of instances the holochain conductor you connected is currently running.
+
+Now you can use the instance(s) as a parm to your future Zome calls...
+
+Now you can call one of the CallZomeFunction() overloads:
+
+
 
 ## HoloOASIS
 
-HoloOASIS uses HoloNET to implement a Storage Provider for the OASIS System.
+HoloOASIS uses HoloNET to implement a Storage Provider (IOASISStorage) for the OASIS System. It will soon also implement a Network Provider (IOASISNET) for the OASIS System that will leverage Holochain to create it's own private de-centralised distributed network called ONET (as seen on the OASIS Architecture Diagram below).
+
+This is a good example to see how to use HoloNET in a real world game/platform (OASIS/Our World).
+
+## HoloUnity
+
+We will soon be creating a Asset for the Unity Asset Store that will include HoloNET along with Unity wrappers and examples of how to use HoloNET inside Unity.
+
+In the codebase you will find a project called NextGenSoftware.OASIS.API.FrontEnd.Unity, which shows how the ProfileManager found inside the OASIS API Core (NextGenSoftware.OASIS.API.Core) is used. When you instantiate the ProfileManager you inject into a Storage Provider that implements the IOASISStorage interface. Currently the only provider implemented is the HoloOASIS Provider.
+
+The actual Our World Unity code is not currently stored in this repo due to size restrictions but we may consider using GitHub LGE later on. We are also looking at GitLab and other alternatives to see if they allow greater storage capabilities free out of the box (since we are currently working on a very tight budget but you could change that by donating below! ;-) ).
 
 ## .NET HDK
 
 We will soon also begin work on the .NET HDK to open up the amazing Holochain to the massive .NET & Unity ecosystem's, which will help turbocharge the holochain ecosystem they are trying to build...
 
+.NET supports compiling to WASM so we know this is possible... ;-)
+
+We are looking for devs who would be interested in this exciting mini-project, so if you are interested please get in touch either on the channel below or by emailing us on ourworld@nextgensoftware.co.uk or david@nextgensoftware.co.uk. We look forward to hearing from you! :)
+
 https://chat.holochain.org/appsup/channels/net-hdk 
 
 https://github.com/dellams/Holochain-.NET-HDK 
+
 
 ## Architecture Diagram
 
@@ -39,14 +84,26 @@ The components are split into 6 sub-systems:
 * Network (IOASISNET Interface)
 * Renderer (IOASIS2DRenderer & IOASIS3DRenderer Interfaces)
 * XR
-* Hapic Feedback
+* Haptic Feedback
 * Input
 
 Currently HoloOASIS implements the IOASISStorage interface. In future it will also implement the IOASISNET interface.
 
 ## Our World/OASIS Will Act As The Bridge For All
 
-As you can see from the architecture diagram, the system will act as the bridge for all platforms and devices due to it being very open and modular by design. In future there will be support for IPFS & Ethereum plus many more. This will help users of both legacy apps/games/websites and blockchain slowly migrate to holochain since it will help expose it to them all. The OASIS API will help as a stepping stone as well as help Everything talk to Everything for maximum compatibility.
+As you can see from the architecture diagram, the system will act as the bridge for all platforms and devices due to it being very open and modular by design. In future there will be support for IPFS & Ethereum plus many more. This will help users of both legacy apps/games/websites and blockchain slowly migrate to holochain since it will help expose it to them all. The OASIS API will act as a stepping stone as well as help Everything talk to Everything for maximum compatibility.
+
+## Implement Your Own Storage/Network/Renderer Provider
+
+Thanks to the system being very open/modular by design you can easily implement your own Storage/Network/Renderer Provider by simply implementing the IOASISStorage/IOASTNET/IOASIS2DRenderer/IOASIS3DRenderer interfaces respectively. For example you could create a MongoDB, MySQL or SQL Server Storage Provider. This also ensures forward compatibility since if a new storage medium or network protocol comes out in the future you can easily write a new provider for them without having to change any of the existing system. 
+
+The same applies if a new 3D Engine comes out you want to use.
+
+## Switch To A Different Provider In RealTime
+
+The system can even switch to a different Storage/Network Provider in real-time as a fall-over if one storage/network provider goes down for example. It could even use more than one Storage/Network provider since certain providers may be better suited for a given task than another, this way you get the best of both worlds as well as ensure maximum compatibility and uptime.
+
+The same applies for the Renderer Provider, it could use one provider to render 2D and another for 3D, it could even use more than one for for both 2D and/or 3D.
 
 ## Next Steps
 
@@ -83,7 +140,8 @@ We are working full-time on this project so we have no other income so if you va
 
 https://www.gofundme.com/f/ourworldthegame
 
-Every little helps, even if you can only manage £1 it can still help make all the difference! Thank you! :)
+Every
+ little helps, even if you can only manage £1 it can still help make all the difference! Thank you! :)
 
 We would really appreciate if you could donate anything you can afford, even if it's just a pound, if everyone did that then we would be able to massively accelerate this very urgent and important project for a world in need right now. I think everyone can justify a pound if it meant saving the world don't you think? 
 
@@ -104,16 +162,16 @@ Every reward above £100 will automatically get your name added to the credits f
 Please ready more on the website:
 http://www.ourworldthegame.com
 
-* **What will be your legacy?**
+* **What will be your legacy? **
 
 * **Do you want to be in on the ground floor of the upcoming platform that will take the world by storm?
 The platform that is going to win many rewards for the ground-breaking work it will do. Do you want to be a hero of your own life story?**
 
-* **Want to tell your kids and grandkids that you helped make it happen and go down in history as a hero?**
+* **Want to tell your kids and grandkids that you helped make it happen and go down in history as a hero? **
 
 * **What kind of world do you want to leave to the next generation?**
 
-* **Want to be part of something greater than yourself?**
+* **Want to be part of something greater than yourself? **
 
 * **How can you do your part to create a better world?**
 
