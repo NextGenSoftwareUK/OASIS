@@ -67,6 +67,7 @@ https://chat.holochain.org/appsup/channels/net-hdk
 
 https://github.com/dellams/Holochain-.NET-HDK 
 
+A placeholder has also been added for the work to begin in this repo in the project Holochain.NextGenSoftware.HoloNET.HDK. Just as with NextGenSoftware.Holochain.HoloNET.Client, this project may be split out into its own repo and then linked to this one as a sub-module in future...
 
 ## Architecture Diagram
 
