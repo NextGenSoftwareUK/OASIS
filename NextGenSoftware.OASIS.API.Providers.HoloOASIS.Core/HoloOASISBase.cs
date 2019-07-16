@@ -176,7 +176,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Core
                 //await HoloNETClient.CallZomeFunctionAsync(_hcinstance, OURWORLD_ZOME, LOAD_PROFILE_FUNC, new { username, password });
 
                 //TODO: TEMP HARDCODED JUST TO TEST WITH!
-                await HoloNETClient.CallZomeFunctionAsync(_hcinstance, OURWORLD_ZOME, LOAD_PROFILE_FUNC, new { address = "QmXwRgNCegfFdBjHPDomEsgKaqDEKKj9ntWhn2246KBK5F" });
+                await HoloNETClient.CallZomeFunctionAsync(_hcinstance, OURWORLD_ZOME, LOAD_PROFILE_FUNC, new { address = "QmR6A1gkSmCsxnbDF7V9Eswnd4Kw9SWhuf8r4R643eDshg" });
                 return await _taskCompletionSourceLoadProfile.Task;
             }
 
@@ -263,7 +263,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Core
 
         private void HandleError(string reason, Exception errorDetails, HoloNETErrorEventArgs holoNETEventArgs)
         {
-            OnStorageProviderError?.Invoke(this, new ProfileManagerErrorEventArgs { EndPoint = this.HoloNETClient.EndPoint, Reason = reason, ErrorDetails = errorDetails });
+            OnStorageProviderError?.Invoke(this, new ProfileManagerErrorEventArgs { EndPoint = this.HoloNETClient.EndPoint, Reason = string.Concat(reason, holoNETEventArgs != null ? string.Concat(" - HoloNET Error: ", holoNETEventArgs.Reason, " - ", holoNETEventArgs.ErrorDetails.ToString()) : ""),  ErrorDetails = errorDetails });
             OnHoloOASISError?.Invoke(this, new HoloOASISErrorEventArgs() { EndPoint = HoloNETClient.EndPoint, Reason = reason, ErrorDetails = errorDetails, HoloNETErrorDetails = holoNETEventArgs });
         }
     }

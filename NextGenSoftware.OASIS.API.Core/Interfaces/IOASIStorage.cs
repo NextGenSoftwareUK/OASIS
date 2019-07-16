@@ -11,6 +11,7 @@ namespace NextGenSoftware.OASIS.API.Core
     // will be implemented soon (IPFSOASIS & HoloOASIS).
     public interface IOASISStorage
     {
+        Task<IProfile> LoadProfileAsync(string providerKey);
         Task<IProfile> LoadProfileAsync(Guid Id);
         Task<IProfile> LoadProfileAsync(string username, string password);
 

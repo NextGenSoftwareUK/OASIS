@@ -25,6 +25,11 @@ namespace NextGenSoftware.OASIS.API.Core
             OnProfileManagerError?.Invoke(this, e);
         }
 
+        public async Task<IProfile> LoadProfileAsync(string providerKey)
+        {
+            return await OASISStorageProvider.LoadProfileAsync(providerKey);
+        }
+
         public async Task<IProfile> LoadProfileAsync(Guid id)
         {
             return await OASISStorageProvider.LoadProfileAsync(id);
