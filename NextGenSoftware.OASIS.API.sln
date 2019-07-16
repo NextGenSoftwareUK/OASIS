@@ -77,6 +77,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.C
 EndProject
 Project("{9092AA53-FB77-4645-B42D-1CCCA6BD08BD}") = "NextGenSoftware.OASIS.API.Core.ARC.Membrane.NodeJS", "NextGenSoftware.OASIS.API.Core.ARC.Membrane.NodeJS\NextGenSoftware.OASIS.API.Core.ARC.Membrane.NodeJS.njsproj", "{F2125D70-99DD-4C16-BDB8-C09E26513811}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.Holochain.HoloNET.HDK", "NextGenSoftware.Holochain.HoloNET.HDK\NextGenSoftware.Holochain.HoloNET.HDK.csproj", "{7A53C90E-0DFE-4E54-B339-E9966F6563F4}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -186,6 +188,12 @@ Global
 		{F2125D70-99DD-4C16-BDB8-C09E26513811}.Linux|Any CPU.Build.0 = Release|Any CPU
 		{F2125D70-99DD-4C16-BDB8-C09E26513811}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F2125D70-99DD-4C16-BDB8-C09E26513811}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7A53C90E-0DFE-4E54-B339-E9966F6563F4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7A53C90E-0DFE-4E54-B339-E9966F6563F4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7A53C90E-0DFE-4E54-B339-E9966F6563F4}.Linux|Any CPU.ActiveCfg = Debug|Any CPU
+		{7A53C90E-0DFE-4E54-B339-E9966F6563F4}.Linux|Any CPU.Build.0 = Debug|Any CPU
+		{7A53C90E-0DFE-4E54-B339-E9966F6563F4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7A53C90E-0DFE-4E54-B339-E9966F6563F4}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
