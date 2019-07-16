@@ -6,7 +6,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\NextGenSoftware.Holochain.HoloNET.Client.Unity\NextGenSoftware.Holochain.HoloNET.Client.Unity.csproj" />
-    <ProjectReference Include="..\NextGenSoftware.OASIS.API.Providers.HoloOASIS\NextGenSoftware.OASIS.API.Providers.HoloOASIS.Core.csproj" />
+    <ProjectReference Include="..\NextGenSoftware.OASIS.API.Providers.HoloOASIS.Core\NextGenSoftware.OASIS.API.Providers.HoloOASIS.Core.csproj" />
   </ItemGroup>
 
   <ItemGroup>

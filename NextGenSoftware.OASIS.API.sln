@@ -57,13 +57,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "target", "target", "{5ADDA8
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.Holochain.hApp.OurWorld", "NextGenSoftware.Holochain.hApp.OurWorld\NextGenSoftware.Holochain.hApp.OurWorld.csproj", "{DFB7DC31-2226-41EE-B3D5-1887AB2C762C}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.Core.ARC.Membrane", "NextGenSoftware.OASIS.ARC.Core\NextGenSoftware.OASIS.API.Core.ARC.Membrane.csproj", "{9D9BDA23-834E-4C70-8D0A-E6355677B135}"
-EndProject
-Project("{9092AA53-FB77-4645-B42D-1CCCA6BD08BD}") = "NextGenSoftware.OASIS.API.Core.ARC.Membrane.NodeJS", "NextGenSoftware.OASIS.ARC.Core.NodeJS\NextGenSoftware.OASIS.API.Core.ARC.Membrane.NodeJS.njsproj", "{F2125D70-99DD-4C16-BDB8-C09E26513811}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.Holochain.HoloNET.Client.Unity", "NextGenSoftware.Holochain.HoloNET.Client.Unity\NextGenSoftware.Holochain.HoloNET.Client.Unity.csproj", "{9FC5C90E-F741-40F3-BCF3-837ECA5201B0}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.Providers.HoloOASIS.Core", "NextGenSoftware.OASIS.API.Providers.HoloOASIS\NextGenSoftware.OASIS.API.Providers.HoloOASIS.Core.csproj", "{92B2E1A7-A6F7-4310-B9CD-74F57791D1B9}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.Providers.HoloOASIS.TestHarness", "NextGenSoftware.OASIS.API.Providers.HoloOASIS.TestHarness\NextGenSoftware.OASIS.API.Providers.HoloOASIS.TestHarness.csproj", "{703F8880-7815-4B49-B0A0-4EBF923AB0FC}"
 EndProject
@@ -71,9 +65,17 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.F
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.Providers.HoloOASIS.Desktop", "NextGenSoftware.OASIS.API.Providers.HoloOASIS.Desktop\NextGenSoftware.OASIS.API.Providers.HoloOASIS.Desktop.csproj", "{32CA9D8A-FD85-40CF-93E7-8B5C1AB01C2B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.Providers.HoloOASIS.Unity", "NextGenSoftware.OASIS.API.Providers.HoloOASIS.Unity\NextGenSoftware.OASIS.API.Providers.HoloOASIS.Unity.csproj", "{2C7B6BD3-F808-48D7-B311-0CF3531FF812}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.Providers.HoloOASIS.Unity", "NextGenSoftware.OASIS.API.Providers.HoloOASIS.Unity\NextGenSoftware.OASIS.API.Providers.HoloOASIS.Unity.csproj", "{2C7B6BD3-F808-48D7-B311-0CF3531FF812}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.Core.TestHarness", "NextGenSoftware.OASIS.API.Core.TestHarness\NextGenSoftware.OASIS.API.Core.TestHarness.csproj", "{3CFB81E4-97D2-43E8-8F17-C4CA11E97772}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.Core.TestHarness", "NextGenSoftware.OASIS.API.Core.TestHarness\NextGenSoftware.OASIS.API.Core.TestHarness.csproj", "{3CFB81E4-97D2-43E8-8F17-C4CA11E97772}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Assembly-CSharp", "..\..\..\CODE\Our World Smartphone Prototype AR - 2018.2.1f1\Our World Smartphone Protoype Android\Assembly-CSharp.csproj", "{2B20B832-33D8-AC00-6C48-30FA2B26CC17}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.Providers.HoloOASIS.Core", "NextGenSoftware.OASIS.API.Providers.HoloOASIS.Core\NextGenSoftware.OASIS.API.Providers.HoloOASIS.Core.csproj", "{7A33FBFF-2CA4-4C65-B04A-3A3AA694CAB1}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.Core.ARC.Membrane", "NextGenSoftware.OASIS.API.Core.ARC.Membrane\NextGenSoftware.OASIS.API.Core.ARC.Membrane.csproj", "{E209D94E-8D60-4089-912A-8FFF30509080}"
+EndProject
+Project("{9092AA53-FB77-4645-B42D-1CCCA6BD08BD}") = "NextGenSoftware.OASIS.API.Core.ARC.Membrane.NodeJS", "NextGenSoftware.OASIS.API.Core.ARC.Membrane.NodeJS\NextGenSoftware.OASIS.API.Core.ARC.Membrane.NodeJS.njsproj", "{F2125D70-99DD-4C16-BDB8-C09E26513811}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -124,30 +126,12 @@ Global
 		{DFB7DC31-2226-41EE-B3D5-1887AB2C762C}.Linux|Any CPU.Build.0 = Debug|Any CPU
 		{DFB7DC31-2226-41EE-B3D5-1887AB2C762C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DFB7DC31-2226-41EE-B3D5-1887AB2C762C}.Release|Any CPU.Build.0 = Release|Any CPU
-		{9D9BDA23-834E-4C70-8D0A-E6355677B135}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{9D9BDA23-834E-4C70-8D0A-E6355677B135}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{9D9BDA23-834E-4C70-8D0A-E6355677B135}.Linux|Any CPU.ActiveCfg = Debug|Any CPU
-		{9D9BDA23-834E-4C70-8D0A-E6355677B135}.Linux|Any CPU.Build.0 = Debug|Any CPU
-		{9D9BDA23-834E-4C70-8D0A-E6355677B135}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{9D9BDA23-834E-4C70-8D0A-E6355677B135}.Release|Any CPU.Build.0 = Release|Any CPU
-		{F2125D70-99DD-4C16-BDB8-C09E26513811}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{F2125D70-99DD-4C16-BDB8-C09E26513811}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{F2125D70-99DD-4C16-BDB8-C09E26513811}.Linux|Any CPU.ActiveCfg = Release|Any CPU
-		{F2125D70-99DD-4C16-BDB8-C09E26513811}.Linux|Any CPU.Build.0 = Release|Any CPU
-		{F2125D70-99DD-4C16-BDB8-C09E26513811}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{F2125D70-99DD-4C16-BDB8-C09E26513811}.Release|Any CPU.Build.0 = Release|Any CPU
 		{9FC5C90E-F741-40F3-BCF3-837ECA5201B0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{9FC5C90E-F741-40F3-BCF3-837ECA5201B0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9FC5C90E-F741-40F3-BCF3-837ECA5201B0}.Linux|Any CPU.ActiveCfg = Debug|Any CPU
 		{9FC5C90E-F741-40F3-BCF3-837ECA5201B0}.Linux|Any CPU.Build.0 = Debug|Any CPU
 		{9FC5C90E-F741-40F3-BCF3-837ECA5201B0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9FC5C90E-F741-40F3-BCF3-837ECA5201B0}.Release|Any CPU.Build.0 = Release|Any CPU
-		{92B2E1A7-A6F7-4310-B9CD-74F57791D1B9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{92B2E1A7-A6F7-4310-B9CD-74F57791D1B9}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{92B2E1A7-A6F7-4310-B9CD-74F57791D1B9}.Linux|Any CPU.ActiveCfg = Debug|Any CPU
-		{92B2E1A7-A6F7-4310-B9CD-74F57791D1B9}.Linux|Any CPU.Build.0 = Debug|Any CPU
-		{92B2E1A7-A6F7-4310-B9CD-74F57791D1B9}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{92B2E1A7-A6F7-4310-B9CD-74F57791D1B9}.Release|Any CPU.Build.0 = Release|Any CPU
 		{703F8880-7815-4B49-B0A0-4EBF923AB0FC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{703F8880-7815-4B49-B0A0-4EBF923AB0FC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{703F8880-7815-4B49-B0A0-4EBF923AB0FC}.Linux|Any CPU.ActiveCfg = Debug|Any CPU
@@ -178,6 +162,30 @@ Global
 		{3CFB81E4-97D2-43E8-8F17-C4CA11E97772}.Linux|Any CPU.Build.0 = Debug|Any CPU
 		{3CFB81E4-97D2-43E8-8F17-C4CA11E97772}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3CFB81E4-97D2-43E8-8F17-C4CA11E97772}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2B20B832-33D8-AC00-6C48-30FA2B26CC17}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2B20B832-33D8-AC00-6C48-30FA2B26CC17}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2B20B832-33D8-AC00-6C48-30FA2B26CC17}.Linux|Any CPU.ActiveCfg = Release|Any CPU
+		{2B20B832-33D8-AC00-6C48-30FA2B26CC17}.Linux|Any CPU.Build.0 = Release|Any CPU
+		{2B20B832-33D8-AC00-6C48-30FA2B26CC17}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2B20B832-33D8-AC00-6C48-30FA2B26CC17}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7A33FBFF-2CA4-4C65-B04A-3A3AA694CAB1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7A33FBFF-2CA4-4C65-B04A-3A3AA694CAB1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7A33FBFF-2CA4-4C65-B04A-3A3AA694CAB1}.Linux|Any CPU.ActiveCfg = Debug|Any CPU
+		{7A33FBFF-2CA4-4C65-B04A-3A3AA694CAB1}.Linux|Any CPU.Build.0 = Debug|Any CPU
+		{7A33FBFF-2CA4-4C65-B04A-3A3AA694CAB1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7A33FBFF-2CA4-4C65-B04A-3A3AA694CAB1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E209D94E-8D60-4089-912A-8FFF30509080}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E209D94E-8D60-4089-912A-8FFF30509080}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E209D94E-8D60-4089-912A-8FFF30509080}.Linux|Any CPU.ActiveCfg = Debug|Any CPU
+		{E209D94E-8D60-4089-912A-8FFF30509080}.Linux|Any CPU.Build.0 = Debug|Any CPU
+		{E209D94E-8D60-4089-912A-8FFF30509080}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E209D94E-8D60-4089-912A-8FFF30509080}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F2125D70-99DD-4C16-BDB8-C09E26513811}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F2125D70-99DD-4C16-BDB8-C09E26513811}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F2125D70-99DD-4C16-BDB8-C09E26513811}.Linux|Any CPU.ActiveCfg = Release|Any CPU
+		{F2125D70-99DD-4C16-BDB8-C09E26513811}.Linux|Any CPU.Build.0 = Release|Any CPU
+		{F2125D70-99DD-4C16-BDB8-C09E26513811}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F2125D70-99DD-4C16-BDB8-C09E26513811}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

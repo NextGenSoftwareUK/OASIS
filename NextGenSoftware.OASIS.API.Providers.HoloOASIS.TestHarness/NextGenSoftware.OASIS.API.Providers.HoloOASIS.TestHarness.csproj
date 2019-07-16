@@ -6,8 +6,8 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\NextGenSoftware.OASIS.API.Providers.HoloOASIS.Core\NextGenSoftware.OASIS.API.Providers.HoloOASIS.Core.csproj" />
     <ProjectReference Include="..\NextGenSoftware.OASIS.API.Providers.HoloOASIS.Desktop\NextGenSoftware.OASIS.API.Providers.HoloOASIS.Desktop.csproj" />
-    <ProjectReference Include="..\NextGenSoftware.OASIS.API.Providers.HoloOASIS\NextGenSoftware.OASIS.API.Providers.HoloOASIS.Core.csproj" />
   </ItemGroup>
 
 </Project>

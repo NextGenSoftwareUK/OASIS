@@ -40,7 +40,8 @@ namespace NextGenSoftware.OASIS.API.Core.TestHarness
             }
 
             Console.WriteLine("\nLoading Profile...");
-            IProfile profile = await profileManager.LoadProfileAsync("dellams", "1234");
+            //IProfile profile = await profileManager.LoadProfileAsync("dellams", "1234");
+            IProfile profile = await profileManager.LoadProfileAsync("QmR6A1gkSmCsxnbDF7V9Eswnd4Kw9SWhuf8r4R643eDshg");
 
             if (profile != null)
             {
@@ -65,12 +66,12 @@ namespace NextGenSoftware.OASIS.API.Core.TestHarness
 
         private static void ProfileManager_OnProfileManagerError(object sender, ProfileManagerErrorEventArgs e)
         {
-            Console.WriteLine(string.Concat("\nProfileManager Error. EndPoint: ", e.EndPoint, ", Reason: ", e.Reason, ", Error Details: ", e.ErrorDetails));
+            Console.WriteLine(string.Concat("\nProfileManager Error. EndPoint: ", e.EndPoint, ", Reason: ", e.Reason, ", Error Details: ", e.ErrorDetails.ToString()));
         }
 
         private static void OASISStorageProvider_OnStorageProviderError(object sender, ProfileManagerErrorEventArgs e)
         {
-            Console.WriteLine(string.Concat("\nOASIS Storage Provider Error. EndPoint: ", e.EndPoint, ", Reason: ", e.Reason, ", Error Details: ", e.ErrorDetails));
+            Console.WriteLine(string.Concat("\nOASIS Storage Provider Error. EndPoint: ", e.EndPoint, ", Reason: ", e.Reason, ", Error Details: ", e.ErrorDetails.ToString()));
         }
     }
 }
