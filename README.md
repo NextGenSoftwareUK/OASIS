@@ -26,18 +26,21 @@ We feel this is the gateway to taking Holochain mainstream! ;-)
 
 You start by instaniating a new HoloNETClient class found in the NextGenSoftware.Holochain.HoloNET.Client project passing in the holochain websocket URI to the constructor as seen below:
 
+````c#
 code(HoloNETClient holoNETClient = new HoloNETClient("ws://localhost:8888");)
-
+```
 
 Next, you can subscribe to a number of different events:
 
- holoNETClient.OnConnected += HoloNETClient_OnConnected;
- holoNETClient.OnDataReceived += HoloNETClient_OnDataReceived;
- holoNETClient.OnZomeFunctionCallBack += HoloNETClient_OnZomeFunctionCallBack;
- holoNETClient.OnGetInstancesCallBack += HoloNETClient_OnGetInstancesCallBack;
- holoNETClient.OnSignalsCallBack += HoloNETClient_OnSignalsCallBack;
- holoNETClient.OnDisconnected += HoloNETClient_OnDisconnected;
- holoNETClient.OnError += HoloNETClient_OnError;
+````c#
+holoNETClient.OnConnected += HoloNETClient_OnConnected;
+holoNETClient.OnDataReceived += HoloNETClient_OnDataReceived;
+holoNETClient.OnZomeFunctionCallBack += HoloNETClient_OnZomeFunctionCallBack;
+holoNETClient.OnGetInstancesCallBack += HoloNETClient_OnGetInstancesCallBack;
+holoNETClient.OnSignalsCallBack += HoloNETClient_OnSignalsCallBack;
+holoNETClient.OnDisconnected += HoloNETClient_OnDisconnected;
+holoNETClient.OnError += HoloNETClient_OnError;
+```
 
 Now you can call the Connect() method to connect to Holochain.
 
@@ -136,8 +139,6 @@ A placeholder has also been added for the work to begin in this repo in the proj
 ## Architecture Diagram
 
 The Architecture diagram can be found on our website below but it is also in the root of the repo cunningly named OASIS Architecture Diagram.png
-
-https://github.com/dellams/OASIS-API-And-HoloNET/blob/master/OASIS%20Arcitecture.png
 
 ![alt text](https://github.com/dellams/OASIS-API-And-HoloNET/blob/master/OASIS%20Arcitecture.png "OASIS Architecture Diagram")
 
