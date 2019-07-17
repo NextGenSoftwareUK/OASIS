@@ -20,7 +20,24 @@ We feel this is the gateway to taking Holochain mainstream! ;-)
 
 ### How To Use HoloNET
 
+**NOTE: This documentation is a WIP, it will be completed soon, please bare with us, thank you! :)**
+
 You start by instaniating a new HoloNETClient class found in the NextGenSoftware.Holochain.HoloNET.Client project passing in the holochain websocket URI to the constructor as seen below:
+
+Next, you can subscribe to a number of different events:
+
+
+Now you can call the Connect() method to connect to Holochain.
+
+Once you received a OnConnected event callback you can now call the GetInstances() method to get back a list of instances the holochain conductor you connected is currently running.
+
+Now you can use the instance(s) as a parm to your future Zome calls...
+
+Now you can call one of the CallZomeFunction() overloads:
+
+Please see below for more detail on the data you get back from this call as well as the other methods and events you can use...
+
+#### Events
 
 Next, you can subscribe to a number of different events:
 
@@ -30,6 +47,11 @@ Next, you can subscribe to a number of different events:
 * **OnGetInstancesCallBack** - Fired when the hc conductor has returned the list of hc instances it is currently running.
 * **OnDataReceived** - Fired when any data is received from the hc conductor. This returns the raw JSON data.
 * **OnZomeFunctionCallBack** - Fired when the hc conductor returns the response from a zome function call. This returns the raw JSON data as well as the actual parsed data returned from the zome function. It also returns the id, instance, zome and zome function that made the call.
+        
+* **OnSignalsCallBack** - Fired when the hc conductor sends signals data. NOTE: This is still waiting for hc to flresh out the details for how this will work. Currently this returns the raw signals data.
+
+
+##### OnZomeFunctionCallBack
 
  private static void HoloNETClient_OnZomeFunctionCallBack(object sender, ZomeFunctionCallBackEventArgs e)
         {
@@ -46,18 +68,21 @@ Next, you can subscribe to a number of different events:
  | **ZomeReturnData:**    | The parsed data that the zome function returned.   |
  | **RawZomeReturnData:** | The raw JSON data that the zome function returned. |
  | **RawJSONData:**       | The raw JSON data that the hc conductor returned.  |
-        
-* **OnSignalsCallBack** - Fired when the hc conductor sends signals data. NOTE: This is still waiting for hc to flresh out the details for how this will work. Currently this returns the raw signals data.
-
-Now you can call the Connect() method to connect to Holochain.
-
-Once you received a OnConnected event callback you can now call the GetInstances() method to get back a list of instances the holochain conductor you connected is currently running.
-
-Now you can use the instance(s) as a parm to your future Zome calls...
-
-Now you can call one of the CallZomeFunction() overloads:
 
 
+#### Methods
+
+HoloNETClient contains the following methods:
+
+* **Connect()**
+* **CallZomeFunctionAsync()**
+* **ClearCache()**
+* **Disconnect()**
+* **GetHolochainInstancesAsync()**
+* **SendMessageAsync()**
+* **SendMessageAsync()**
+
+**More to come soon...
 
 ## HoloOASIS
 
