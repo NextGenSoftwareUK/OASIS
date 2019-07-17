@@ -35,15 +35,15 @@ Next, you can subscribe to a number of different events:
             Console.WriteLine(string.Concat("ZomeFunction CallBack: Id: ", e.Id, ", Instance: ", e.Instance, ", Zome: ", e.Zome, ", ZomeFunction: ", e.ZomeFunction, ", Data: ",  e.ZomeReturnData, ", Raw Zome Return Data: ", e.RawZomeReturnData, ", Raw JSON Data: ", e.RawJSONData, ", IsCallSuccessful: ", e.IsCallSuccessful? "true" : "false"));
             Console.WriteLine("");
         }
- | Param                  | Desc
- |----------------------- |---------------------------------------------------
- | **Id:**                | The id that made the request.
- | **Instance:**          | The hc instance that made the request.
- | **Zome:**              | The zome that made the request.
- | **ZomeFunction:**      | The zome function that made the request.
- | **ZomeReturnData:**    | The parsed data that the zome function returned.
- | **RawZomeReturnData:** | The raw JSON data that the zome function returned.
- | **RawJSONData:**       | The raw JSON data that the hc conductor returned.
+ | Param                  | Desc                                               |
+ |----------------------- |----------------------------------------------------|
+ | **Id:**                | The id that made the request.                      |
+ | **Instance:**          | The hc instance that made the request.             |
+ | **Zome:**              | The zome that made the request.                    |
+ | **ZomeFunction:**      | The zome function that made the request.           |
+ | **ZomeReturnData:**    | The parsed data that the zome function returned.   |
+ | **RawZomeReturnData:** | The raw JSON data that the zome function returned. |
+ | **RawJSONData:**       | The raw JSON data that the hc conductor returned.  |
         
 * **OnSignalsCallBack** - Fired when the hc conductor sends signals data. NOTE: This is still waiting for hc to flresh out the details for how this will work. Currently this returns the raw signals data.
 
