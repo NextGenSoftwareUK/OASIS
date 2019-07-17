@@ -57,7 +57,7 @@ namespace NextGenSoftware.Holochain.HoloNET.Client.TestHarness
 
         private static void HoloNETClient_OnSignalsCallBack(object sender, SignalsCallBackEventArgs e)
         {
-            Console.WriteLine("OnSignalsCallBack: Id: " + e.Id + ", Data: " + e.RawJSONData);
+            Console.WriteLine(string.Concat("OnSignalsCallBack: Id: ", e.Id , ", Data: ", e.RawJSONData));
             Console.WriteLine("");
         }
 
@@ -67,33 +67,33 @@ namespace NextGenSoftware.Holochain.HoloNET.Client.TestHarness
             Console.WriteLine("");
         }
 
-        private static void HoloNETClient_OnError(object sender, ErrorEventArgs e)
+        private static void HoloNETClient_OnError(object sender, HoloNETErrorEventArgs e)
         {
-            Console.WriteLine("Error Occured. Resason: " + e.Reason + ", EndPoint: " + e.EndPoint + ", Details: " + e.ErrorDetails.ToString());
+            Console.WriteLine(string.Concat("Error Occured. Resason: ", e.Reason,  ", EndPoint: ", e.EndPoint, ", Details: ", e.ErrorDetails.ToString()));
             Console.WriteLine("");
         }
 
         private static void ZomeCallback(object sender, ZomeFunctionCallBackEventArgs e)
         {
-            Console.WriteLine("ZomeCallbackDelegate: Id: " + e.Id + ", Instance: " + e.Instance + ", ZomeFunction: " + e.ZomeFunction + ", Data: " + e.ZomeReturnData);
+            Console.WriteLine(string.Concat("ZomeCallbackDelegate: Id: ", e.Id, ", Instance: ", e.Instance, ", Zome: ", e.Zome, ", ZomeFunction: ", e.ZomeFunction, ", Data: ", e.ZomeReturnData, ", Raw Zome Return Data: ", e.RawZomeReturnData, ", Raw JSON Data: ", e.RawJSONData, ", IsCallSuccessful: ", e.IsCallSuccessful ? "true" : "false"));
             Console.WriteLine("");
         }
 
         private static void HoloNETClient_OnDisconnected(object sender, DisconnectedEventArgs e)
         {
-            Console.WriteLine("Disconnected. Resason: " + e.Reason);
+            Console.WriteLine(string.Concat("Disconnected. Resason: ", e.Reason));
             Console.WriteLine("");
         }
 
         private static void HoloNETClient_OnZomeFunctionCallBack(object sender, ZomeFunctionCallBackEventArgs e)
         {
-            Console.WriteLine("ZomeFunction CallBack: Id: " + e.Id + ", Instance: " + e.Instance + ", ZomeFunction: " + e.ZomeFunction + ", Data: "+ e.ZomeReturnData);
+            Console.WriteLine(string.Concat("ZomeFunction CallBack: Id: ", e.Id, ", Instance: ", e.Instance, ", Zome: ", e.Zome, ", ZomeFunction: ", e.ZomeFunction, ", Data: ",  e.ZomeReturnData, ", Raw Zome Return Data: ", e.RawZomeReturnData, ", Raw JSON Data: ", e.RawJSONData, ", IsCallSuccessful: ", e.IsCallSuccessful? "true" : "false"));
             Console.WriteLine("");
         }
 
         private static void HoloNETClient_OnDataReceived(object sender, DataReceivedEventArgs e)
         {
-            Console.WriteLine("Data Received: " + e.RawJSONData);
+            Console.WriteLine(string.Concat("Data Received: ",  e.RawJSONData));
             Console.WriteLine("");
         }
 
@@ -104,100 +104,3 @@ namespace NextGenSoftware.Holochain.HoloNET.Client.TestHarness
         }
     }
 }
-
-
-
-/*
-using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Net;
-using Jayrock.Json;
-using System.IO;
-using Jayrock.Json.Conversion.Import;
-
-
-namespace HttpServiceJSONCall
-{
-    class JSONService
-    {
-        string url;
-        public JSONService(string url_)
-        {
-            url = url_;
-        }
-
-
-        object CallInternal(string method_, object[] params_)
-        {
-            JsonObject jsonrequest = new JsonObject();
-            jsonrequest["id"] = 0;
-            jsonrequest["method"] = method_;
-            jsonrequest["params"] = params_;
-            HttpWebRequest webRequest = (HttpWebRequest)WebRequest.Create(url);
-            webRequest.Method = "POST";
-            TextWriter writer = new StreamWriter(webRequest.GetRequestStream());
-            writer.Write(jsonrequest.ToString());
-            writer.Close();
-            WebResponse response = webRequest.GetResponse();
-            ImportContext import = new ImportContext();
-            JsonReader reader = new JsonTextReader(new StreamReader(response.GetResponseStream()));
-            object jsonresponse_ = import.ImportAny(reader);
-            if (!(jsonresponse_ is JsonObject))
-                throw new Exception("Something weird happened to the request, check the foobar or something" );
-
-
-
-            JsonObject jsonresponse = (JsonObject)jsonresponse_;
-
-
-            if (jsonresponse["error"] != null)
-                throw new Exception(jsonresponse["error"].ToString());
-
-
-            return jsonresponse["result"];
-        }
-
-
-        public object Call(string method)
-        {
-            return CallInternal(method, null);
-        }
-
-
-        public object Call(string method, object p1)
-        {
-            return CallInternal(method, new object[] { p1 });
-        }
-
-
-        public object Call(string method, object p1, object p2)
-        {
-            return CallInternal(method, new object[] { p1, p2 });
-        }
-
-
-        public object Call(string method, object p1, object p2, object p3)
-        {
-            return CallInternal(method, new object[] { p1, p2, p3 });
-        }
-
-
-        public object Call(string method, object p1, object p2, object p3, object p4
-)
-        {
-            return CallInternal(method, new object[] { p1, p2, p3, p4 });
-        }
-    }
-    class Program
-    {
-        static void Main(string[] args)
-        {
-            JSONService service = new JSONService(
-"http://localhost:2380/TSA/Services/Test.ashx");
-            object res = service.Call("ReverseString", "test string");
-            Console.WriteLine(res);
-            Console.ReadLine();
-        }
-    }
-}*/
