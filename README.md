@@ -36,7 +36,7 @@ Next, you can subscribe to a number of different events:
             Console.WriteLine("");
         }
  | Param                  | Desc                                               |
- |----------------------- |----------------------------------------------------|
+ | ---------------------- | -------------------------------------------------- |
  | **Id:**                | The id that made the request.                      |
  | **Instance:**          | The hc instance that made the request.             |
  | **Zome:**              | The zome that made the request.                    |
