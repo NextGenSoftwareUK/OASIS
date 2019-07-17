@@ -1,4 +1,5 @@
-# OASIS API / Our World / HoloNET Altha v.0.0.1
+# OASIS API / Our World / HoloNET Altha v0.0.1
+
 The core OASIS (Open Advanced Sensory Immersion System) API that powers Our World and manages the central profile/avatar/karma system that other satellite apps/games plug into it and share. This also includes HoloNET that allows .NET to talk to Holochain, which is where the profile/avatar is stored on a private decentralised, distributed network. This will be gifted forward to the Holochain community along with the HoloUnity3D SDK/Lib/Asset coming soon... ;-)
 
 The first phase of Our World will be a de-centralised distributed XR Gamified 3D Map replacement for Google Maps along with the Avatar/Profile/Karma & OASIS API system. The satellite apps/games will be able to create their own 2D/3D object to appear on the real-time 3D map.
@@ -19,42 +20,103 @@ We feel this is the gateway to taking Holochain mainstream! ;-)
 
 ### How To Use HoloNET
 
-You start by instaniating a new HoloNETClient class found in the NextGenSoftware.Holochain.HoloNET.Client project passing in the holochain websocket URI to the constructor as seen below:
+
+**NOTE: This documentation is a WIP, it will be completed soon, please bare with us, thank you! :)**
+
+
+You start by instaniating a new HoloNETClient class found in the `NextGenSoftware.Holochain.HoloNET.Client` project passing in the holochain websocket URI to the constructor as seen below:
+
+````c#
+HoloNETClient holoNETClient = new HoloNETClient("ws://localhost:8888");
+````
 
 Next, you can subscribe to a number of different events:
 
-* **OnConnected** - Fired when the client has successfully connected to the Holochain conductor.
-* **OnDisconnected** - Fired when the client disconnected from the Holochain conductor.
-* **OnError** - Fired when an error occurs, check the params for the cause of the error.
-* **OnGetInstancesCallBack** - Fired when the hc conductor has returned the list of hc instances it is currently running.
-* **OnDataReceived** - Fired when any data is received from the hc conductor. This returns the raw JSON data.
-* **OnZomeFunctionCallBack** - Fired when the hc conductor returns the response from a zome function call. This returns the raw JSON data as well as the actual parsed data returned from the zome function. It also returns the id, instance, zome and zome function that made the call.
+````c#
+holoNETClient.OnConnected += HoloNETClient_OnConnected;
+holoNETClient.OnDataReceived += HoloNETClient_OnDataReceived;
+holoNETClient.OnZomeFunctionCallBack += HoloNETClient_OnZomeFunctionCallBack;
+holoNETClient.OnGetInstancesCallBack += HoloNETClient_OnGetInstancesCallBack;
+holoNETClient.OnSignalsCallBack += HoloNETClient_OnSignalsCallBack;
+holoNETClient.OnDisconnected += HoloNETClient_OnDisconnected;
+holoNETClient.OnError += HoloNETClient_OnError;
+````
 
+Now you can call the `Connect()` method to connect to Holochain.
+
+````c#
+await holoNETClient.Connect();
+````
+
+Once you received a `OnConnected` event callback you can now call the `GetInstances()` method to get back a list of instances the holochain conductor you connected is currently running.
+
+````c#
+if (holoNETClient.State == System.Net.WebSockets.WebSocketState.Open)
+{
+        await holoNETClient.GetHolochainInstancesAsync();
+}
+````
+
+Now you can use the instance(s) as a parm to your future Zome calls...
+
+Now you can call one of the `CallZomeFunctionAsync()` overloads:
+
+````c#
+await holoNETClient.CallZomeFunctionAsync("1", "test-instance", "our_world_core", "test", ZomeCallback, new { message = new { content = "blah!" } });
+````
+
+Please see below for more details on the various overloads available for this call as well as the data you get back from this call and the other methods and events you can use...
+
+#### Events
+
+You can subscribe to a number of different events:
+
+| Event                  | Desc                                                                                                     |
+| ---------------------- | -------------------------------------------------------------------------------------------------------- |
+| OnConnected            | Fired when the client has successfully connected to the Holochain conductor.                             |
+| OnDisconnected         | Fired when the client disconnected from the Holochain conductor.                                         |
+| OnError                | Fired when an error occurs, check the params for the cause of the error.                                 |
+| OnGetInstancesCallBack | Fired when the hc conductor has returned the list of hc instances it is currently running.               |
+| OnDataReceived         | Fired when any data is received from the hc conductor. This returns the raw JSON data.                   |
+| OnZomeFunctionCallBack | Fired when the hc conductor returns the response from a zome function call. This returns the raw JSON    |   |                        | data as well as the actual parsed data returned from the zome function. It also returns the id, instance,|   |                        | zome and zome function that made the call.                                                               |
+| OnSignalsCallBack      | Fired when the hc conductor sends signals data. NOTE: This is still waiting for hc to flresh out the     |   |                        | details for how this will work. Currently this returns the raw signals data.                             | 
+
+
+
+##### OnZomeFunctionCallBack
+
+````c#
  private static void HoloNETClient_OnZomeFunctionCallBack(object sender, ZomeFunctionCallBackEventArgs e)
         {
             Console.WriteLine(string.Concat("ZomeFunction CallBack: Id: ", e.Id, ", Instance: ", e.Instance, ", Zome: ", e.Zome, ", ZomeFunction: ", e.ZomeFunction, ", Data: ",  e.ZomeReturnData, ", Raw Zome Return Data: ", e.RawZomeReturnData, ", Raw JSON Data: ", e.RawJSONData, ", IsCallSuccessful: ", e.IsCallSuccessful? "true" : "false"));
             Console.WriteLine("");
         }
-        
- **Id:** The id that made the request.
- **Instance:** The hc instance that made the request.
- **Zome:** The zome that made the request.
- **ZomeFunction:** The zome function that made the request.
- **ZomeReturnData:** The parsed data that the zome function returned.
- **RawZomeReturnData:** The raw JSON data that the zome function returned.
- **RawJSONData:** The raw JSON data that the hc conductor returned.
-        
-* **OnSignalsCallBack** - Fired when the hc conductor sends signals data. NOTE: This is still waiting for hc to flresh out the details for how this will work. Currently this returns the raw signals data.
+````
 
-Now you can call the Connect() method to connect to Holochain.
-
-Once you received a OnConnected event callback you can now call the GetInstances() method to get back a list of instances the holochain conductor you connected is currently running.
-
-Now you can use the instance(s) as a parm to your future Zome calls...
-
-Now you can call one of the CallZomeFunction() overloads:
+ | Param              | Desc                                               |
+ | ------------------ | -------------------------------------------------- |
+ | Id                 | The id that made the request.                      |
+ | Instance           | The hc instance that made the request.             |
+ | Zome               | The zome that made the request.                    |
+ | ZomeFunction       | The zome function that made the request.           |
+ | ZomeReturnData     | The parsed data that the zome function returned.   |
+ | RawZomeReturnData  | The raw JSON data that the zome function returned. |
+ | RawJSONData        | The raw JSON data that the hc conductor returned.  |
 
 
+#### Methods
+
+HoloNETClient contains the following methods:
+
+* `Connect()`
+* `CallZomeFunctionAsync()`
+* `ClearCache()`
+* `Disconnect()`
+* `GetHolochainInstancesAsync()`
+* `SendMessageAsync()`
+* `SendMessageAsync()`
+
+**More to come soon...**
 
 ## HoloOASIS
 
@@ -88,7 +150,7 @@ A placeholder has also been added for the work to begin in this repo in the proj
 
 The Architecture diagram can be found on our website below but it is also in the root of the repo cunningly named OASIS Architecture Diagram.png
 
-https://github.com/dellams/OASIS-API-And-HoloNET/blob/master/OASIS%20Arcitecture.png
+![alt text](https://github.com/dellams/OASIS-API-And-HoloNET/blob/master/OASIS%20Arcitecture.png "OASIS Architecture Diagram")
 
 ## Open Modular Design
 
