@@ -1,4 +1,4 @@
-# OASIS API / Our World / HoloNET
+# OASIS API / Our World / HoloNET Altha v.0.0.1
 The core OASIS (Open Advanced Sensory Immersion System) API that powers Our World and manages the central profile/avatar/karma system that other satellite apps/games plug into it and share. This also includes HoloNET that allows .NET to talk to Holochain, which is where the profile/avatar is stored on a private decentralised, distributed network. This will be gifted forward to the Holochain community along with the HoloUnity3D SDK/Lib/Asset coming soon... ;-)
 
 The first phase of Our World will be a de-centralised distributed XR Gamified 3D Map replacement for Google Maps along with the Avatar/Profile/Karma & OASIS API system. The satellite apps/games will be able to create their own 2D/3D object to appear on the real-time 3D map.
@@ -23,13 +23,28 @@ You start by instaniating a new HoloNETClient class found in the NextGenSoftware
 
 Next, you can subscribe to a number of different events:
 
-OnConnected
-OnDisconnected
-OnError
-OnGetInstancesCallback
-OnDataReceived
-OnZomeCallBack
-OnSignalCallBack
+* **OnConnected** - Fired when the client has successfully connected to the Holochain conductor.
+* **OnDisconnected** - Fired when the client disconnected from the Holochain conductor.
+* **OnError** - Fired when an error occurs, check the params for the cause of the error.
+* **OnGetInstancesCallBack** - Fired when the hc conductor has returned the list of hc instances it is currently running.
+* **OnDataReceived** - Fired when any data is received from the hc conductor. This returns the raw JSON data.
+* **OnZomeFunctionCallBack** - Fired when the hc conductor returns the response from a zome function call. This returns the raw JSON data as well as the actual parsed data returned from the zome function. It also returns the id, instance, zome and zome function that made the call.
+
+ private static void HoloNETClient_OnZomeFunctionCallBack(object sender, ZomeFunctionCallBackEventArgs e)
+        {
+            Console.WriteLine(string.Concat("ZomeFunction CallBack: Id: ", e.Id, ", Instance: ", e.Instance, ", Zome: ", e.Zome, ", ZomeFunction: ", e.ZomeFunction, ", Data: ",  e.ZomeReturnData, ", Raw Zome Return Data: ", e.RawZomeReturnData, ", Raw JSON Data: ", e.RawJSONData, ", IsCallSuccessful: ", e.IsCallSuccessful? "true" : "false"));
+            Console.WriteLine("");
+        }
+        
+ **Id:** The id that made the request.
+ **Instance:** The hc instance that made the request.
+ **Zome:** The zome that made the request.
+ **ZomeFunction:** The zome function that made the request.
+ **ZomeReturnData:** The parsed data that the zome function returned.
+ **RawZomeReturnData:** The raw JSON data that the zome function returned.
+ **RawJSONData:** The raw JSON data that the hc conductor returned.
+        
+* **OnSignalsCallBack** - Fired when the hc conductor sends signals data. NOTE: This is still waiting for hc to flresh out the details for how this will work. Currently this returns the raw signals data.
 
 Now you can call the Connect() method to connect to Holochain.
 
@@ -65,7 +80,7 @@ We are looking for devs who would be interested in this exciting mini-project, s
 
 https://chat.holochain.org/appsup/channels/net-hdk 
 
-https://github.com/dellams/Holochain-.NET-HDK 
+https://github.com/NextGenSoftwareUK/Holochain-.NET-HDK
 
 A placeholder has also been added for the work to begin in this repo in the project Holochain.NextGenSoftware.HoloNET.HDK. Just as with NextGenSoftware.Holochain.HoloNET.Client, this project may be split out into its own repo and then linked to this one as a sub-module in future...
 
