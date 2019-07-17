@@ -95,13 +95,13 @@ You can subscribe to a number of different events:
 
  | Param              | Desc                                               |
  | ------------------ | -------------------------------------------------- |
- | Id:                | The id that made the request.                      |
- | Instance:          | The hc instance that made the request.             |
- | Zome:              | The zome that made the request.                    |
- | ZomeFunction:      | The zome function that made the request.           |
- | ZomeReturnData:    | The parsed data that the zome function returned.   |
- | RawZomeReturnData: | The raw JSON data that the zome function returned. |
- | RawJSONData:       | The raw JSON data that the hc conductor returned.  |
+ | Id                 | The id that made the request.                      |
+ | Instance           | The hc instance that made the request.             |
+ | Zome               | The zome that made the request.                    |
+ | ZomeFunction       | The zome function that made the request.           |
+ | ZomeReturnData     | The parsed data that the zome function returned.   |
+ | RawZomeReturnData  | The raw JSON data that the zome function returned. |
+ | RawJSONData        | The raw JSON data that the hc conductor returned.  |
 
 
 #### Methods
