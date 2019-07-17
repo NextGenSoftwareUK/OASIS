@@ -28,7 +28,7 @@ You start by instaniating a new HoloNETClient class found in the NextGenSoftware
 
 ````c#
 code(HoloNETClient holoNETClient = new HoloNETClient("ws://localhost:8888");)
-```
+````
 
 Next, you can subscribe to a number of different events:
 
@@ -40,7 +40,7 @@ holoNETClient.OnGetInstancesCallBack += HoloNETClient_OnGetInstancesCallBack;
 holoNETClient.OnSignalsCallBack += HoloNETClient_OnSignalsCallBack;
 holoNETClient.OnDisconnected += HoloNETClient_OnDisconnected;
 holoNETClient.OnError += HoloNETClient_OnError;
-```
+````
 
 Now you can call the Connect() method to connect to Holochain.
 
