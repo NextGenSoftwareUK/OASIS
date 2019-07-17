@@ -81,14 +81,28 @@ You can subscribe to a number of different events:
 | `OnZomeFunctionCallBack` | Fired when the hc conductor returns the response from a zome function call. This returns the raw JSON    | |                          | data as well as the actual parsed data returned from the zome function. It also returns the id, instance,| |                          | zome and zome function that made the call.                                                               |
 | `OnSignalsCallBack`      | Fired when the hc conductor sends signals data. NOTE: This is still waiting for hc to flresh out the     | |                          | details for how this will work. Currently this returns the raw signals data.                             | 
 
-* `OnConnected` - Fired when the client has successfully connected to the Holochain conductor.
-* `OnDisconnected` - Fired when the client disconnected from the Holochain conductor.
-* `OnError` - Fired when an error occurs, check the params for the cause of the error.
-* `OnGetInstancesCallBack` - Fired when the hc conductor has returned the list of hc instances it is currently running.
-* `OnDataReceived` - Fired when any data is received from the hc conductor. This returns the raw JSON data.
-* `OnZomeFunctionCallBack` - Fired when the hc conductor returns the response from a zome function call. This returns the raw JSON data as well as the actual parsed data returned from the zome function. It also returns the id, instance, zome and zome function that made the call.
-        
-* `OnSignalsCallBack` - Fired when the hc conductor sends signals data. NOTE: This is still waiting for hc to flresh out the details for how this will work. Currently this returns the raw signals data.
+
+| Event                      | Desc                                                                                                     |
+| ------------------------   | -------------------------------------------------------------------------------------------------------- 
+| **OnConnected**            | Fired when the client has successfully connected to the Holochain conductor.                            | 
+| **OnDisconnected**         | Fired when the client disconnected from the Holochain conductor.                                        | 
+| **OnError**                | Fired when an error occurs, check the params for the cause of the error.                                | 
+| **OnGetInstancesCallBack** | Fired when the hc conductor has returned the list of hc instances it is currently running.              | 
+| **OnDataReceived**         | Fired when any data is received from the hc conductor. This returns the raw JSON data.                  | 
+| **OnZomeFunctionCallBack** | Fired when the hc conductor returns the response from a zome function call. This returns the raw JSON   | |                            | data as well as the actual parsed data returned from the zome function. It also returns the id,         |  |                            | instance, zome and zome function that made the call.                                                    |
+| **OnSignalsCallBack**      | Fired when the hc conductor sends signals data. NOTE: This is still waiting for hc to flresh out the    | |                            | details for how this will work. Currently this returns the raw signals data.                            | 
+
+
+| Event                  | Desc                                                                                                     |
+| ---------------------- | -------------------------------------------------------------------------------------------------------- |
+| OnConnected            | Fired when the client has successfully connected to the Holochain conductor.                             |
+| OnDisconnected         | Fired when the client disconnected from the Holochain conductor.                                         |
+| OnError                | Fired when an error occurs, check the params for the cause of the error.                                 |
+| OnGetInstancesCallBack | Fired when the hc conductor has returned the list of hc instances it is currently running.               |
+| OnDataReceived         | Fired when any data is received from the hc conductor. This returns the raw JSON data.                   |
+| OnZomeFunctionCallBack | Fired when the hc conductor returns the response from a zome function call. This returns the raw JSON    |   |                        | data as well as the actual parsed data returned from the zome function. It also returns the id, instance,|   |                        | zome and zome function that made the call.                                                               |
+| OnSignalsCallBack      | Fired when the hc conductor sends signals data. NOTE: This is still waiting for hc to flresh out the     |   |                        | details for how this will work. Currently this returns the raw signals data.                             | 
+
 
 
 ##### OnZomeFunctionCallBack
