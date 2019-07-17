@@ -139,6 +139,8 @@ The Architecture diagram can be found on our website below but it is also in the
 
 https://github.com/dellams/OASIS-API-And-HoloNET/blob/master/OASIS%20Arcitecture.png
 
+![alt text](https://github.com/dellams/OASIS-API-And-HoloNET/blob/master/OASIS%20Arcitecture.png "OASIS Architecture Diagram")
+
 ## Open Modular Design
 
 As you can see from the diagram the OASIS architecture is very modular, open and extensible meaning any component can easily be swapped out for another without having to make any changes to the rest of the system. It will use MEF (Managed Extensibility Framework) so the components can even be swapped out without having to re-compile any of the existing code, you simply drop the new component into a hot folder that the system will pick up on the next time you restart.
