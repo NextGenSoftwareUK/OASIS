@@ -20,22 +20,43 @@ We feel this is the gateway to taking Holochain mainstream! ;-)
 
 ### How To Use HoloNET
 
+
 **NOTE: This documentation is a WIP, it will be completed soon, please bare with us, thank you! :)**
+
 
 You start by instaniating a new HoloNETClient class found in the NextGenSoftware.Holochain.HoloNET.Client project passing in the holochain websocket URI to the constructor as seen below:
 
+code(HoloNETClient holoNETClient = new HoloNETClient("ws://localhost:8888");)
+
+
 Next, you can subscribe to a number of different events:
 
+ holoNETClient.OnConnected += HoloNETClient_OnConnected;
+ holoNETClient.OnDataReceived += HoloNETClient_OnDataReceived;
+ holoNETClient.OnZomeFunctionCallBack += HoloNETClient_OnZomeFunctionCallBack;
+ holoNETClient.OnGetInstancesCallBack += HoloNETClient_OnGetInstancesCallBack;
+ holoNETClient.OnSignalsCallBack += HoloNETClient_OnSignalsCallBack;
+ holoNETClient.OnDisconnected += HoloNETClient_OnDisconnected;
+ holoNETClient.OnError += HoloNETClient_OnError;
 
 Now you can call the Connect() method to connect to Holochain.
 
+ await holoNETClient.Connect();
+
 Once you received a OnConnected event callback you can now call the GetInstances() method to get back a list of instances the holochain conductor you connected is currently running.
+
+if (holoNETClient.State == System.Net.WebSockets.WebSocketState.Open)
+{
+        await holoNETClient.GetHolochainInstancesAsync();
+}
 
 Now you can use the instance(s) as a parm to your future Zome calls...
 
 Now you can call one of the CallZomeFunction() overloads:
 
-Please see below for more detail on the data you get back from this call as well as the other methods and events you can use...
+await holoNETClient.CallZomeFunctionAsync("1", "test-instance", "our_world_core", "test", ZomeCallback, new { message = new { content = "blah!" } });
+
+Please see below for more details on the various overloads available for this call as well as the data you get back from this call and the other methods and events you can use...
 
 #### Events
 
@@ -82,7 +103,7 @@ HoloNETClient contains the following methods:
 * **SendMessageAsync()**
 * **SendMessageAsync()**
 
-**More to come soon...
+**More to come soon...**
 
 ## HoloOASIS
 
