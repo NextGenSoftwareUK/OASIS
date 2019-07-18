@@ -133,12 +133,7 @@ public async Task CallZomeFunctionAsync(string id, string instanceId, string zom
 
 
 | Param                               | Desc                                                                                           |  | ----------------------------------- | ---------------------------------------------------------------------------------------------- | 
-| id                                  | The unique id you wish to assign for this call (NOTE: There is an overload that omits this     |  |                                     | param, use this overload if you wish HoloNET to auto-generate and manage the id's for you).    |  | instanceId                          | The instance running on the holochain conductor you wish to target.                            | 
-| zome                                | The name of the zome you wish to target.                                                       | 
-| function                            | The name of the zome function you wish to call.                                                | 
-| callback                            | A delegate to call once the zome function returns                                              | 
-| paramsObject                        | A basic CLR object containing the params the zome function is expecting.                       | 
-                                          
+| id                                  | The unique id you wish to assign for this call (NOTE: There is an overload that omits this     |  |                                     | param, use this overload if you wish HoloNET to auto-generate and manage the id's for you).    |                                            
 
 **More to come soon...**
 
