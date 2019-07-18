@@ -132,8 +132,8 @@ public async Task CallZomeFunctionAsync(string id, string instanceId, string zom
 ````
 
 
-| Param                               | Desc                                                                                           |  | ----------------------------------- | ---------------------------------------------------------------------------------------------- | 
-| id                                  | The unique id you wish to assign for this call (NOTE: There is an overload that omits this     |  |                                     | param, use this overload if you wish HoloNET to auto-generate and manage the id's for you).    |                                            
+| Param                               | Desc                                                                                           |  | ----------------------------------- | ---------------------------------------------------------------------------------------------- |
+| id                                  | fffff                                                                                          |                  
 
 **More to come soon...**
 
