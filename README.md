@@ -132,14 +132,15 @@ public async Task CallZomeFunctionAsync(string id, string instanceId, string zom
 ````
 
 | Param                               | Desc                                                                                            
-| ----------------------------------- | ----------------------------------------------------------------------------------------------|
-| id                                  | The unique id you wish to assign for this call (NOTE: There is an overload that omits this    |  |                                     | param, use this overload if you wish HoloNET to auto-generate and manage the id's for you).   | 
-| instance                            | The instance running on the holochain conductor you wish to target.                           |
-| zome                                | The name of the zome you wish to target.                                                      |
-| function                            | The name of the zome function you wish to call.                                               |
-| delegate                            | A delegate to call once the zome function returns.                                            |
-| paramsObject                        | A basic CLR object containing the params the zome function is expecting.                      |
-| matchIdToInstanceZomeFuncInCallback | A basic CLR object containing the params the zome function is expecting.                      |
+| ----------------------------------- | ---------------------------------------------------------------------------------------------- |
+| id                                  | The unique id you wish to assign for this call (NOTE: There is an overload that omits this     |  |                                     | param, use this overload if you wish HoloNET to auto-generate and manage the id's for you).    | 
+| instance                            | The instance running on the holochain conductor you wish to target.                            |
+| zome                                | The name of the zome you wish to target.                                                       |
+| function                            | The name of the zome function you wish to call.                                                |
+| delegate                            | A delegate to call once the zome function returns.                                             |
+| paramsObject                        | A basic CLR object containing the params the zome function is expecting.                       |
+| matchIdToInstanceZomeFuncInCallback | This is an optional param, which defaults to true. Set this to true if you wish HoloNET to give| |                                     | the instance, zome \& zome function that made the call in the callback/event. If this is false | |                                     | then only the id will be given in the |  callback. This uses a small internal cache to match up| |                                     | the id to the given instance/zome/function. Set this to false if you wish to | save a tiny     | |                                     | amount of memory by not utilizing this cache.                                                  |
+| cachReturnData                      | This is an optional param, which defaults to false. Set this to true if you wish HoloNET to    | |                                     | cache the JSON response retrieved from holochain. Subsequent calls will return this cached     |  |                                     | data rather than calling the Holochain |conductor again. Use this for static data that is not  |  |                                     | going to change for performance gains.                                                         |
 
 **More to come soon...**
 
