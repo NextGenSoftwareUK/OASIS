@@ -131,9 +131,11 @@ This is the main method you will be using to invoke zome functions on your given
 public async Task CallZomeFunctionAsync(string id, string instanceId, string zome, string function, ZomeFunctionCallBack callback, object paramsObject, bool matchIdToInstanceZomeFuncInCallback = true, bool cachReturnData = false)
 ````
 
-
-| Param                               | Desc                                                                                           |  | ----------------------------------- | ---------------------------------------------------------------------------------------------- |
-| id                                  | fffff                                                                                          |                  
+| Param                  | Desc                                                                                                     |
+| ---------------------- | -------------------------------------------------------------------------------------------------------- |
+| id                     | Fired when the client has successfully connected to the Holochain conductor.                             |
+| instance               | Fired when the client disconnected from the Holochain conductor.                                         |
+| zome                   | Fired when an error occurs, check the params for the cause of the error.                                 |
 
 **More to come soon...**
 
