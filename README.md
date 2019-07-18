@@ -131,11 +131,15 @@ This is the main method you will be using to invoke zome functions on your given
 public async Task CallZomeFunctionAsync(string id, string instanceId, string zome, string function, ZomeFunctionCallBack callback, object paramsObject, bool matchIdToInstanceZomeFuncInCallback = true, bool cachReturnData = false)
 ````
 
-| Param                  | Desc                                                                                                     |
-| ---------------------- | -------------------------------------------------------------------------------------------------------- |
-| id                     | Fired when the client has successfully connected to the Holochain conductor.                             |
-| instance               | Fired when the client disconnected from the Holochain conductor.                                         |
-| zome                   | Fired when an error occurs, check the params for the cause of the error.                                 |
+| Param                               | Desc                                                                                            
+| ----------------------------------- | ----------------------------------------------------------------------------------------------|
+| id                                  | The unique id you wish to assign for this call (NOTE: There is an overload that omits this    |  |                                     | param, use this overload if you wish HoloNET to auto-generate and manage the id's for you).   | 
+| instance                            | The instance running on the holochain conductor you wish to target.                           |
+| zome                                | The name of the zome you wish to target.                                                      |
+| function                            | The name of the zome function you wish to call.                                               |
+| delegate                            | A delegate to call once the zome function returns.                                            |
+| paramsObject                        | A basic CLR object containing the params the zome function is expecting.                      |
+| matchIdToInstanceZomeFuncInCallback | A basic CLR object containing the params the zome function is expecting.                      |
 
 **More to come soon...**
 
