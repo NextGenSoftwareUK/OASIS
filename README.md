@@ -67,6 +67,13 @@ await holoNETClient.CallZomeFunctionAsync("1", "test-instance", "our_world_core"
 
 Please see below for more details on the various overloads available for this call as well as the data you get back from this call and the other methods and events you can use...
 
+#### The Power of .NET Async Methods
+
+You will notice that the above calls have the `await` keyword prefixing them. This is how you call an `async` method in C#. All of HoloNET, HoloOASIS & OASIS API methods are async methods. This simply means that they do not block the calling thread so if this is running on a UI thread it will not freeze the UI. Using the `await` keyword allows you to call an `async` method as if it was a syncronsous one. This means it will not call the next line until the async method has returned. The power of this is that you no longer need to use lots of messy callback functions cluttering up your code as has been the pass with async programming. The code path is also a lot easier to follow and manitain.
+
+Read more here:
+https://docs.microsoft.com/en-us/dotnet/csharp/programming-guide/concepts/async/
+
 #### Events
 
 You can subscribe to a number of different events:
@@ -115,6 +122,24 @@ HoloNETClient contains the following methods:
 * `GetHolochainInstancesAsync()`
 * `SendMessageAsync()`
 * `SendMessageAsync()`
+
+##### CallZomeFunctionAsync
+
+This is the main method you will be using to invoke zome functions on your given zome. It has a number of handy overloads making it easier and more powerful to call your zome functions and manage the returned data.
+
+````c#
+public async Task CallZomeFunctionAsync(string id, string instanceId, string zome, string function, ZomeFunctionCallBack callback, object paramsObject, bool matchIdToInstanceZomeFuncInCallback = true, bool cachReturnData = false)
+````
+
+
+| Param                               | Desc                                                                                           |  | ------------------------------------------------------------------------------------------------------------------------------------ | 
+| id                                  | The unique id you wish to assign for this call (NOTE: There is an overload that omits this     |  |                                     | param, use this overload if you wish HoloNET to auto-generate and manage the id's for you).    |  | instanceId                          | The instance running on the holochain conductor you wish to target.                            | 
+| zome                                | The name of the zome you wish to target.                                                       | 
+| function                            | The name of the zome function you wish to call.                                                | 
+| callback                            | A delegate to call once the zome function returns                                              | 
+| paramsObject                        | A basic CLR object containing the params the zome function is expecting.                       | 
+| matchIdToInstanceZomeFuncInCallback | This is an optional param, which defaults to true. Set this to true if you wish HoloNET to give| |                                     | the instance, zome \\& zome function that made the call in the callback/event. If this is false| |                                     | then only the id will be given in the | callback. This uses a small internal cache to match up | |                                     | the id to the given instance/zome/function. Set this to false if you wish to save a tiny amount| |                                     | of memory by not utilizing this cache.                                                         | 
+| cachReturnData                      | This is an optional param, which defaults to false. Set this to true if you wish HoloNET to    | |                                     | cache the JSON response retrieved from holochain. Subsequent calls will return this cached data| |                                     | rather than calling the Holochain conductor again. Use this for static data that is not going  | |                                     | to change for performance gains.                                                               |                                           
 
 **More to come soon...**
 
