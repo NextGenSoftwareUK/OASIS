@@ -89,7 +89,7 @@ You can subscribe to a number of different events:
 | OnGetInstancesCallBack | Fired when the hc conductor has returned the list of hc instances it is currently running.               |
 | OnDataReceived         | Fired when any data is received from the hc conductor. This returns the raw JSON data.                   |
 | OnZomeFunctionCallBack | Fired when the hc conductor returns the response from a zome function call. This returns the raw JSON    |   |                        | data as well as the actual parsed data returned from the zome function. It also returns the id, instance,|   |                        | zome and zome function that made the call.                                                               |
-| OnSignalsCallBack      | Fired when the hc conductor sends signals data. NOTE: This is still waiting for hc to flresh out the     |   |                        | details for how this will work. Currently this returns the raw signals data.                             | 
+| OnSignalsCallBack      | Fired when the hc conductor sends signals data. NOTE: This is still waiting for hc to flresh out the    details for how this will work. Currently this returns the raw signals data.                             | 
 
 
 
@@ -143,7 +143,32 @@ public async Task CallZomeFunctionAsync(string id, string instanceId, string zom
 | delegate                            | A delegate to call once the zome function returns.                                             |
 | paramsObject                        | A basic CLR object containing the params the zome function is expecting.                       |
 | matchIdToInstanceZomeFuncInCallback | This is an optional param, which defaults to true. Set this to true if you wish HoloNET to give the instance, zome  zome function that made the call in the callback/event. If this is false then only the id will be given in the callback. This uses a small internal cache to match up                  the id to the given instance/zome/function. Set this to false if you wish to save a tiny amount of memory by not utilizing this cache.                                                  |
+| cachReturnData                      | This is an optional param, which defaults to false. Set this to true if you wish HoloNET to    cache the JSON response retrieved from holochain. Subsequent calls will return this cached data rather than calling the Holochain conductor again. Use this for static data that is not going to change for performance gains.                                                         
 
+
+|Param|Desc  |
+|--|--|
+|dsdsdsdssdsdsdsdsddsdss fdfdf       d fd fd fd fd dff d  | dfdf dfd fd dfdfdfdf fd fdf dfd fd fd fdfdfd fdfd fdfdf dfdfdfdfdfdfdfdfdfdfdfdfdfdfdfddfd fdfdfdfdfdfdfdffd dsdsdsd
+|ffdfdfdfdfdfdf | fdfdfdfdfdfdfdfdfdfdfdfdfdfdfdfdfdf 
+|fdfdfdfdfdfdfdfdfdfdf | fdfdfdfdfdfdfdfdfdfsfjsdh sh fshdfhsdjhjhjhjhjhdjhsdfdfdfdfdfdfdhfjhdf fdfdhjhfdjhfjdhfdhfdhfjdfj
+
+    enter code here
+
+ 
+
+> Blockquote
+
+ - [ ] gfg f g
+ - [ ] fg fgfgfgf
+ - [ ] gfgfg
+ - [ ] fgfg
+ - hhh
+ - jhjhhj
+ - ~~
+
+
+
+~~
 
 **More to come soon...**
 
