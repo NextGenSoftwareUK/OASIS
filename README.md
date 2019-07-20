@@ -16,7 +16,7 @@ This is also how Holochain can talk to Unity because Unity uses C#/.NET as it's 
 
 This will help massively turbo charge the holochain ecosystem by opening it up to the massive .NET and Unity communities and open up many more possibilities of the things that can be built on top of Holochain. You can build almost anything you can imagine with .NET and/or Unity from websites, desktop apps, smartphone apps, services, AAA Games and lots more! They can target every device and platform out there from XBox, PS4, Wii, PC, Linux, Mac, iOS, Android, Windows Phone, iPad, Tablets, SmartTV, VR/AR/XR, MagicLeap, etc
 
-We feel this is the gateway to taking Holochain mainstream! ;-)
+**We are a BIG fan of Holochain and are very passionate about it and see a BIG future for it! We feel this is the gateway to taking Holochain mainstream! ;-)**
 
 ### How To Use HoloNET
 
@@ -190,7 +190,7 @@ The middle layer will also soon interface with the amazing ARC (Augmented Realit
 http://noomap.info/
 http://iwg.life/s7foundation/
 
-ARC is currently being built in NodeJS and untilises a Semantic Graph to store and represent it's data, it will also contain a revountery AI system. We cannot say more on this at the moment because Chris wants to keep this project under the radar at the moment...
+ARC is currently being built in NodeJS and untilises a Semantic Graph to store and represent it's data, it will also contain a revolutionary AI system. We cannot say more on this at the moment because Chris wants to keep this project under the radar at the moment...
 
 ### Node.JS Integration
 
@@ -223,20 +223,29 @@ The Architecture diagram can be found on our website below but it is also in the
 
 As you can see from the diagram the OASIS architecture is very modular, open and extensible meaning any component can easily be swapped out for another without having to make any changes to the rest of the system. It will use MEF (Managed Extensibility Framework) so the components can even be swapped out without having to re-compile any of the existing code, you simply drop the new component into a hot folder that the system will pick up on the next time you restart.
 
-The components are split into 6 sub-systems:
+The components are split into 11 sub-systems/layers:
 
 * Storage (IOASISStorage Interface)
 * Network (IOASISNET Interface)
 * Renderer (IOASIS2DRenderer & IOASIS3DRenderer Interfaces)
-* XR
+* XR/Eye Tracking
 * Haptic Feedback
+* Realtime Emotional Feedback System
+* Face Recognition
+* Motion Tracking
 * Input
+* OAPP Templates
+* OASIS Engine/API
 
 Currently HoloOASIS implements the IOASISStorage interface. In future it will also implement the IOASISNET interface.
 
-## Our World/OASIS Will Act As The Bridge For All
+**PLEASE MAKE SURE YOU READ THE DESCRIPTION BOXES ON THE DIAGRAM FOR MORE INFO ON HOW THE SYSTEM WILL WORK.**
 
-As you can see from the architecture diagram, the system will act as the bridge for all platforms and devices due to it being very open and modular by design. In future there will be support for IPFS & Ethereum plus many more. This will help users of both legacy apps/games/websites and blockchain slowly migrate to holochain since it will help expose it to them all. The OASIS API will act as a stepping stone as well as help Everything talk to Everything for maximum compatibility.
+**NOTE: This is still a WIP, so the above is likely to evolve and change as we progress...**
+
+## Our World/OASIS Will Act As The Bridge For All (Legasy, IPFS, Holochain, Ethereum, SOLID & More!)
+
+As you can see from the architecture diagram, the system will act as the bridge for all platforms and devices due to it being very open and modular by design. In future there will be support for IPFS, Ethereum, SOLID plus many more. This will help users of both legacy apps/games/websites and blockchain slowly migrate to holochain since it will help expose it to them all. The OASIS API will act as a stepping stone as well as help Everything talk to Everything for maximum compatibility.
 
 ## Implement Your Own Storage/Network/Renderer Provider
 
@@ -249,6 +258,18 @@ The same applies if a new 3D Engine comes out you want to use.
 The system can even switch to a different Storage/Network Provider in real-time as a fall-over if one storage/network provider goes down for example. It could even use more than one Storage/Network provider since certain providers may be better suited for a given task than another, this way you get the best of both worlds as well as ensure maximum compatibility and uptime.
 
 The same applies for the Renderer Provider, it could use one provider to render 2D and another for 3D, it could even use more than one for for both 2D and/or 3D.
+
+## Our World Overview
+
+
+
+## Road Map
+
+**Version 1 - Smartphone Platform - The AR version** - Map of present day - In correlation with Time - **IN ACTIVE DEVELOPMENT**. We hope to have an early prototype of this around 2020 Q1/Q2 with more evolved prototypes being released throughout the year. Depending on how many resources/devs we can attract we hope to have a first altha release by 2021, possibly 2022.
+
+**Version 2 - Desktop/Console Platforms - The VR Version** - Game version that starts in Past with a true history of Earth. Not Time Correlated. We hope work on this can begin by 2020 (if additional funds/resources can be secured by then) and will be done in parallel with the Smartphone version. Remember these are not seperate products, and fully integrate with each other where players share the same immersive persistent real-time open world.
+
+**Version 3 - The XR/IR Version** - The XR version that becomes the immersive, self reflective reality that combines both aspects of console and smartphone versions (The OASIS). We hope we will secure MASSIVE funds by 2021/2022 latest so this can begin dev around that time, this is Ready Player One OASIS time with life like graphics and things you can only begin to imagine right now! ;-)
 
 ## Next Steps
 
