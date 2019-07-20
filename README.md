@@ -261,6 +261,93 @@ The same applies for the Renderer Provider, it could use one provider to render 
 
 ## Our World Overview
 
+Our World is an exciting immersive next generation 3D XR educational game/platform/social network/ecosystem teaching people on how to look after themselves, each other and the planet using the latest cutting-edge technology. It teaches people the importance of real-life face to face connections with human beings and encourages them to get out into nature using Augmented Reality similar to Pokémon Go but on a much more evolved scale. This is our flagship product and is our top priority due to the massive positive impact it will make upon the world...
+
+It is the XR Gamification layer of the new interplanetary operation system, which is being built by the elite technical wizards stationed around the world. This will one day replace the current tech giants such as Google, FaceBook, etc and act as the technical layer of the New Earth, which is birthing now. It is a 5th dimensional and ascension training platform, teaching people vital life lessons as well as acting as a real-time simulation of the real world.
+
+As well as helping to make the world a better place, this game will be pushing the boundaries of what is currently possible with technology. It will feature augmented reality, virtual reality, motion detection, voice recognition and real-time emotional feedback. It will use technology in ways that has not been done before and in areas where it has been done, it will innovate and take it to the next level...
+
+### Open World/New Ecosystm/Asset Store/Internet/Operating System/Social Network
+
+It is much more than just a free open world game where you can build and create anything you can imagine and at the same time be immersed in an epic storyline. it is an entirely new ecosystem/asset store/internet/Operating System/social network, it is the future way we will be interacting with each other and the world through the use of technology. Smaller satellite apps/game will plug into it and share your central profile/avatar where you gain karma for doing good deeds such as helping your local communities, etc and lose karma for being selfish and not helping others since it mirrors the real world where you have free will. There is nothing else out there like this, nothing even comes close, this will change everything... There is a reason we are called NextGen Software! ;-)
+
+Our World is built on top of the de-centralised, distributed nextgen internet known as Holochain.
+
+### First AAA MMO Game To Run On Holochain
+
+Our World will be the first AAA MMO game and 2D/3D Social Network to run on HoloChain and the Blockchain. It will also be the first to integrate a social network with a MMO game/platform as well as all of these technologies and devices together. As with the rest of the game, it will be leading the way in what can be done with this NextGen Technology for the benefit and upliftment of humanity. 
+
+### Smartphone Version
+
+The smartphone version will be a geolocation game featuring Augmented Reality similar to Pokemon Go but on a much more evolved scale (yes, we were designing this long before Pokemon Go came out!).
+
+### Console Version
+
+The console/desktop version will be similar to a Sandbox and MMORPG (Massive Multiplayer Online Role Playing Game) but will be nothing like any other games such as World Of WarCraft & MineCraft. It will in fact define its own genre setting the new bar for others to follow, this truly has never been done before and will take the world by storm! The one thing it will share with them is that it will be a massive open world that billions of players can explore and build together... 
+
+Both versions will share the same online world/multiverse where users logged in through the smartphone versions will be able to interact with the console/desktop versions in real-time within a massive scale persistent Multiverse.
+
+### Virtual Ecommerce
+
+As well as smaller apps/games being allowed to plug into Our World either sharing just the central avatar/profile (data) or full UI integration, content creators/businesses can also create shops (where people can purchase real items in VR that are then delivered to your door so in effect is virtual e-commerce), buildings or even entire zones/lands/worlds. They can rent virtual spaces within the game. Please contact us on ourworld@nextgensoftware.co.uk if you wish to receive special early adopter discounts...
+
+### The Tech Industry Have A Morale & Social Resonsability
+
+The software industry has the power to transform lives through engaging people with innovative products that help them to grow and develop.  Recent popular examples include health apps, mindfulness apps and mind training games.
+
+We wish to take this to the next level and help make the world a better place by using technology for good, by bringing people together and to support, guide and educate everyone on how we can all live happier, fulfilling lives and at the same time how we can help save our planet.
+
+People learn at a young age how to act and behave and this shapes the future generations and the world they will create. Due to the majority of games these days involving violence, sex, gambling, drugs & crime, this is conditioning the youth of today to the sort of world they will create tomorrow.
+
+With the advent of Virtual Reality now making these violent games even more immersive and realistic where the boundaries between games and reality is shrinking by the day, it is imperative we take some social and moral responsibility and start using technology to help create a better world by improving people's life's as well as respecting the environment and planet that sustains us.
+
+Kids today are playing very violent games such as Call Of Duty which are used as brainwashing techniques to desensitise us to violence and also act as a training and recruitment tool for the military (which they have now admitted). The same goes for flight simulators being used to train and recruit drone pilots.
+
+We hope you will agree this is totally unacceptable and is part of why there is so much war, violence, etc in today’s world. It is time we start using technology to teach people the correct life lessons. Our World acts as a simulation for the real world and teaches them how to create a better world in the simulation and then shows how they can then implement these important lessons in real life. Read more on our previous blog post about violence in video games:
+
+https://www.ourworldthegame.com/single-post/2018/03/14/Good-they-are-finally-start-to-take-the-violence-in-video-games-seriously 
+
+Gambling is being forced onto kids more and more in the form of loot boxes where real money is asked for to receive a random prize and now it’s got so bad that money is actually needed to progress within the game. Everything seems to be geared around how much people can be exploited and how much money can be sucked out of them, this is even more wrong for kids. Read more on our previous post about this below:
+
+https://www.ourworldthegame.com/single-post/2017/11/29/Do-you-think-its-right-kids-are-gambling-in-games 
+
+We wish to reach the kids who are glued to their phones and consoles and never go outside, this game will encourage them to get out into parks and interact with people in fun creative ways face to face instead of through their phones.
+
+### Teach Kids The Right Life Lessons
+
+The game will also be teaching people especially kids important vital life lessons and show how they can then implement them in the real world. Part of the way this will be done is by merging the real world with Our World using the latest cutting-edge technology such as Augmented Reality. We wish to get kids and everyone else off their devices and back into nature and to start having real face to face interactions again. We wish to use technology for the upliftment and benefit of humanity and the planet and not just as an escape mechanism or a way to exploit people by selling their data to the highest bidder.
+
+### Remember How Powerful YOU Are!
+
+Our World reminds people how powerful they are and empowers them to be the person they have always wanted to be, to live their life to their FULL potential without any limitations. Everyone has a gift for the world and with Our World we can help them find it. We want to empower people to take responsibility for our beautiful planet, which is currently in crisis and so needs EVERYONE to help make a difference. The entire world is the Our World team, we want everyone to get involved so they can feel they are part of something greater than themselves and at the same time ensure there is a future for our kids and grandkids.
+
+### Bringing People Together
+
+We wish to bring people together, build online communities, encourage people to reach out and help strangers for the greater good of all. To encourage people to come and work together and to show how everyone benefits if they put their differences aside and start all rowing together. It will model the real world and also act as a simulation and training environment for how to make the real world a better place.
+
+### We are Building The Evolved Benevolent Version Of The OASIS
+
+We are building the evolved benevolent version of the OASIS featured in the popular Ready Player One novel and Spielberg film. The OASIS is only about 40% of what Our World is to give you an idea of the sheer size and magnitude of this project! It is aimed at saving the world rather than leading to its destruction due to the neglect it faced when everyone escaped into the OASIS. Ready Player One has proven so popular that Spielberg & Warner Brothers have now released the blockbuster film, which we hope will help promote Our World further. It is about someone with Autism who creates a revolutionary 3D VR Platform which takes the world by storm because it is so far ahead of everything else out there. The creator of the 3D VR platform known as the OASIS grew up in the 80's, is obsessed with the 80's and had guitar lessons as a kid, which also describes our founder David Ellams. 
+
+Read more in our previous post here:
+
+https://www.ourworldthegame.com/single-post/2017/09/08/Our-World-Is-The-Benevolent-Evolved-Sister-of-The-Ready-Player-One-OASIS-VR-Platform 
+
+### Asscension/God Training & Mirror Of Reality Technology
+
+These are the Last Days of Mortal Man through this God Training Programme.
+
+The self-reflective immersive XR game that has been created as ascension technology to help the user to discover their higher self through learning important lessons in how to be, think and feel as a human being. Through “karma” each individual can build themselves to be a better version of themselves that on a sub conscious level will teach them how this can be applied in the real world. The game truly is a mirror for reality. 
+
+Some important points about its potential capabilities and why it could be truly unique:
+
+**Bio Scan technology**- through mapping of brain waves, it can suggest activities and exercises that correlate to the analysis it receives teaching the user to be more mindful about health and wellbeing.
+
+**Life cycle** - There will be time constraints on how long each player can be in Our World for. The vital energy will correlate with reality meaning they will not be burn themselves out locked in the game. Teaching the individual once again the important lessons of having a balanced lifestyle. The character, like the player needs to be looked after.
+
+**Virtual Advertising** - Companies can use the advertising and be awarded prime spots based on their own karma value meaning that those that act more responsibly and consciously in real life (such as giving to charity, being green, looking after their employees, etc) will have access to the most prime spots, as opposed to those who pay the most.
+
+**Time Bending Treasures** - Messages and gifts can be buried as Easter eggs for others to collect at later dates bending the nature of time. 
 
 
 ## Road Map
