@@ -188,6 +188,7 @@ The front-end is built in Unity, the middle layer is built in C#/.NET and the ba
 The middle layer will also soon interface with the amazing ARC (Augmented Reality Computer) operating system being built by my good friend and cosmic brother Chris Lacombe over at S7 Foundation (previously called Noomap). He is also the creator of Noomap, a 3D fractal mind mapping tool that has some communtites very excited! :)
 
 http://noomap.info/
+
 http://iwg.life/s7foundation/
 
 ARC is currently being built in NodeJS and untilises a Semantic Graph to store and represent it's data, it will also contain a revolutionary AI system. We cannot say more on this at the moment because Chris wants to keep this project under the radar at the moment...
@@ -350,6 +351,9 @@ Some important points about its potential capabilities and why it could be truly
 **Time Bending Treasures** - Messages and gifts can be buried as Easter eggs for others to collect at later dates bending the nature of time. 
 
 
+**READ MORE ON THE [WEBSITE](http://www.ourworldthegame.com "Our World") OR [CROWD FUNDING](https://www.gofundme.com/f/ourworldthegame) PAGES**
+
+
 ## Road Map
 
 **Version 1 - Smartphone Platform - The AR version** - Map of present day - In correlation with Time - **IN ACTIVE DEVELOPMENT**. We hope to have an early prototype of this around 2020 Q1/Q2 with more evolved prototypes being released throughout the year. Depending on how many resources/devs we can attract we hope to have a first altha release by 2021, possibly 2022.
@@ -393,14 +397,13 @@ We are working full-time on this project so we have no other income so if you va
 
 https://www.gofundme.com/f/ourworldthegame
 
-Every
- little helps, even if you can only manage £1 it can still help make all the difference! Thank you! :)
+**Every little helps, even if you can only manage £1 it can still help make all the difference! Thank you! :)
 
 We would really appreciate if you could donate anything you can afford, even if it's just a pound, if everyone did that then we would be able to massively accelerate this very urgent and important project for a world in need right now. I think everyone can justify a pound if it meant saving the world don't you think? 
 
 It's even better to spend a pound on this project rather than buying a lottery ticket since you have more chance of being hit by a car than winning the jackpot, then even by some fluke you did win, there is no point having millions if there is no world left to enjoy it on. 
 
-Think about it...
+Think about it...**
 
 If you can't afford to contribute, then that's fine, you can still help by getting the word out there!
 
