@@ -141,7 +141,8 @@ public async Task CallZomeFunctionAsync(string id, string instanceId, string zom
 | function                            | The name of the zome function you wish to call.                                                |
 | delegate                            | A delegate to call once the zome function returns.                                             |
 | paramsObject                        | A basic CLR object containing the params the zome function is expecting.                       |
-| matchIdToInstanceZomeFuncInCallback | This is an optional param, which defaults to true. Set this to true if you wish HoloNET to give| |                                     | the instance, zome \& zome function that made the call in the callback/event. If this is false | |                                     | then only the id will be given in the |  callback. This uses a small internal cache to match up| |                                     | the id to the given instance/zome/function. Set this to false if you wish to | save a tiny     | |                                     | amount of memory by not utilizing this cache.                                                  |
+| matchIdToInstanceZomeFuncInCallback | This is an optional param, which defaults to true. Set this to true if you wish HoloNET to give |                                     | the instance, zome \& zome function that made the call in the callback/event. If this is false  |                                     | then only the id will be given in the |  callback. This uses a small internal cache to match up |                                     | the id to the given instance/zome/function. Set this to false if you wish to | save a tiny     
+|                                     | amount of memory by not utilizing this cache.                                                  |
 
 
 **More to come soon...**
