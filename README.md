@@ -240,7 +240,7 @@ It will also run on IPFS, the Ethereum blockchain, DAOStack ARC & H4OME.
 
 NextGen Software & Our World themselves will also be a DAO (Distributed Anonymous Organisation) registered with DAOStack meaning we can self-govern and cut out the expensive middlemen such as banks, lawyers, accountants, managers, contracts etc. This technology will allow us to realise our long-held dreams of running a flat decentralised organisation where every voice is heard, respected and is counted as an equal. This also prevents fraud, mistakes and corruption from occurring as is all too common now days.
 
-**NOTE: The design is evolving all the time so the above is subjet to change...
+**NOTE: The design is evolving all the time so the above is subjet to change...**
 
 ## Open Modular Design
 
@@ -281,6 +281,64 @@ The same applies if a new 3D Engine comes out you want to use.
 The system can even switch to a different Storage/Network Provider in real-time as a fall-over if one storage/network provider goes down for example. It could even use more than one Storage/Network provider since certain providers may be better suited for a given task than another, this way you get the best of both worlds as well as ensure maximum compatibility and uptime.
 
 The same applies for the Renderer Provider, it could use one provider to render 2D and another for 3D, it could even use more than one for for both 2D and/or 3D.
+
+## Platforms
+
+We will have both a Smartphone App version and a PC/Console version. We are aiming to get this released on as many platform’s as possible including iOS, Android, Windows Phone, iPad, Windows Tablet, Android Tablet, XBOX ONE, PS4 & PC.
+
+Some of the hardware we will be pushing to the limits are below:
+
+**Augmented Reality**
+* Magic Leap
+* Microsoft HoloLens
+* Google Glass
+* Google Tango
+* Apple ARKit
+* Google ARCore
+* Others
+ 
+ **Virtual Reality**
+* Oculus Rift
+* HTC Vive
+* Samsung Gear VR
+* Samsung Odyssey VR
+* PlayStation VR
+* Others
+ 
+**Emotional Feedback**
+* NeuroSky/MyndPlay
+* Others
+ 
+**Motion Detection/Voice Recognition/Eye Tracking**
+* Kinect
+* Leap Motion
+* Others
+
+**Haptic Feedback**
+* Hapto VR 
+* Others
+
+If you check out the demos of the above, you will start to get an idea of the apps & games we are building. However, of course we are pushing these to the next level by building the next generation apps & games for today. The game is much bigger than just a game, it is more like a massive educational platform, with a LOT more revolutionary ideas, which at this time we cannot make public.
+
+#### PC/Console Version
+
+Our World will have continuous expansions, add-ons and sub-games added to keep players immersed and wanting more and more. Our World is revolutionary and contains many elements never done before and so will not have any competition in the new genres it will be creating…
+
+#### Smartphone Version
+
+The smartphone version is a free app with in-app purchases. This is why Our World will be free to download and have many in-app purchases not only for items you can use but also for expansion packs and sub-games. All of which will leave the player wanting more and more…
+
+## NextGen Hardware
+
+Current devices such as phones, tablets, laptops, etc emit harmful EMF (Electro Magnetic Field) radiation. This includes Wi Fi and 3G/4G/5G. The faster and more powerful they become the more dangerous they are to us. We are electromagnetic beings and so we are sensitive to this radiation. 
+
+We plan to tackle this with our nextgen devices, which not only shield you from these harmful effects but actually heal you. They will also never need charging using the latest nextgen technology (Torus Energy & Zero Point Energy). They will also have nextgen performance and usability and be fully integrated with our nextgen software.
+
+We will provide fully integrated software/firmware/hardware solutions that are free of any spyware/backdoors/surveillance as sadly is the case today with most of the devices out there. We have already begun talking to various providers of Open Source hardware/operating systems for smartphone devices but this is something we will be moving onto at a later date, maybe by around 2021...
+
+Read more on our blog post here:
+https://www.ourworldthegame.com/single-post/2018/01/31/NextGen-Hardware---Devices-That-Heal-You-Never-Need-Charging 
+
 
 ## Our World Overview
 
@@ -482,60 +540,6 @@ https://www.ourworldthegame.com/single-post/2017/09/04/Golden-Opportunity-Of-a-L
 
 It only seems to be a week or two before another terrorist attack or mass shooting or disaster after disaster. How much more suffering does there have to be before the people unite together to say enough is enough?
 
-### Platforms
-
-We will have both a Smartphone App version and a PC/Console version. We are aiming to get this released on as many platform’s as possible including iOS, Android, Windows Phone, iPad, Windows Tablet, Android Tablet, XBOX ONE, PS4 & PC.
-
-Some of the hardware we will be pushing to the limits are below:
-
-**Augmented Reality**
-* Magic Leap
-* Microsoft HoloLens
-* Google Glass
-* Google Tango
-* Apple ARKit
-* Google ARCore
-* Others
- 
- **Virtual Reality**
-* Oculus Rift
-* HTC Vive
-* Samsung Gear VR
-* Samsung Odyssey VR
-* PlayStation VR
-* Others
- 
-**Emotional Feedback**
-* NeuroSky/MyndPlay
-* Others
- 
-**Motion Detection/Voice Recognition/Eye Tracking**
-* Kinect
-* Leap Motion
-* Others
-
-**Haptic Feedback**
-* Hapto VR 
-* Others
-
-If you check out the demos of the above, you will start to get an idea of the apps & games we are building. However, of course we are pushing these to the next level by building the next generation apps & games for today. The game is much bigger than just a game, it is more like a massive educational platform, with a LOT more revolutionary ideas, which at this time we cannot make public.
-
-#### PC/Console Version
-
-Our World will have continuous expansions, add-ons and sub-games added to keep players immersed and wanting more and more. Our World is revolutionary and contains many elements never done before and so will not have any competition in the new genres it will be creating…
-
-#### Smartphone Version
-
-The smartphone version is a free app with in-app purchases. This is why Our World will be free to download and have many in-app purchases not only for items you can use but also for expansion packs and sub-games. All of which will leave the player wanting more and more…
-
-### NextGen Hardware
-
-Current devices such as phones, tablets, laptops, etc emit harmful EMF (Electro Magnetic Field) radiation. This includes Wi Fi and 3G/4G/5G. The faster and more powerful they become the more dangerous they are to us. We are electromagnetic beings and so we are sensitive to this radiation. 
-
-We plan to tackle this with our nextgen devices, which not only shield you from these harmful effects but actually heal you. They will also never need charging using the latest nextgen technology (Torus Energy & Zero Point Energy). They will also have nextgen performance and usability and be fully integrated with our nextgen software.
-
-Read more on our blog post here:
-https://www.ourworldthegame.com/single-post/2018/01/31/NextGen-Hardware---Devices-That-Heal-You-Never-Need-Charging 
 
 
 **READ MORE ON THE [WEBSITE](http://www.ourworldthegame.com "Our World") OR [CROWD FUNDING](https://www.gofundme.com/f/ourworldthegame) PAGES**
