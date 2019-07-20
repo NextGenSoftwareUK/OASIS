@@ -214,11 +214,33 @@ ARC, Noomap & IWG will be fully integrated into the OASIS Architecture. The IWG 
 Because the OASIS Architecture makes use of .NET, Unity, NodeJS & Holochain we have access to 3 massive well established ecosystems along with all their devs & resources. This will massively help turbocharge the holochain ecosystem as well as help raise awareness of it...
 
 
-## OASIS Architecture Diagram
+## The OASIS Architecture
 
 The Architecture diagram can be found on our website below but it is also in the root of the repo cunningly named OASIS Architecture Diagram.png
 
 ![alt text](https://github.com/dellams/OASIS-API-And-HoloNET/blob/master/OASIS%20Arcitecture.png "OASIS Architecture Diagram")
+
+Our World will run on our own propriety game engine called OASIS 2.0 (Open Advanced Sensory Immersion System).
+
+Our World will run on a secure, distributed and de-centralized architecture where user’s data will be stored on their machine and not a central server enabling the user to own their data, meaning it cannot be sold or exploited as others do. It will do this by running on a new nextgen Internet known as Holochain.
+
+Our World will run on its own private secure network called ONET (OASIS Network) on top of HoloChain offering yet more security and performance benefits. It will not suffer from any bottlenecks as is the case with the current centralised server architecture in current games causing lag, which is very frustrating to gamers and can mean life or death in games.
+
+Our World/OASIS & ONET can even distribute the computing power across the gamers machines so if some machines are struggling, they can borrow processing power from fellow gamers with more powerful rigs (if they give permission of course!). Sounding like the OASIS from Ready Player One (book version) yet? ;-)
+
+It will also run on IPFS, the Ethereum blockchain, DAOStack ARC & H4OME.
+
+**Our World is also a HApp (H4OME App), a HoloChain App & a DApp (Ethereum Distributed App) implementing all of their respective interfaces.**
+
+**It will also allow any HApp, HoloChain App or DApp to plug into Our World where they can share their data (as well as connect to the central avatar/profile) or even their full UI within the Our World VR/AR/XR world/universe. It will also allow any other legacy apps/games/systems to plug in using a HTTP API that implements the OAPI (OASIS API). It will act as the bridge between all the upcoming nextgen technology as well as supporting legacy systems until they are also migrated to the new nextgen internet**
+
+**All of these apps that plug into the OASIS Engine (Our World) will be known as OApps (OASIS Apps). As well as these OApps being able to share their data/UI with any other OApp, they can also take advantage of the OASIS Asset Store where users can buy various add-ons for your app/game.**
+
+**By supporting everything Our World/OASIS will help act as a bridge between the old and the new world.**
+
+NextGen Software & Our World themselves will also be a DAO (Distributed Anonymous Organisation) registered with DAOStack meaning we can self-govern and cut out the expensive middlemen such as banks, lawyers, accountants, managers, contracts etc. This technology will allow us to realise our long-held dreams of running a flat decentralised organisation where every voice is heard, respected and is counted as an equal. This also prevents fraud, mistakes and corruption from occurring as is all too common now days.
+
+**NOTE: The design is evolving all the time so the above is subjet to change...
 
 ## Open Modular Design
 
@@ -505,30 +527,6 @@ Our World will have continuous expansions, add-ons and sub-games added to keep p
 #### Smartphone Version
 
 The smartphone version is a free app with in-app purchases. This is why Our World will be free to download and have many in-app purchases not only for items you can use but also for expansion packs and sub-games. All of which will leave the player wanting more and more…
-
-
-### NextGen Architecture
-
-Our World will run on our own propriety game engine called OASIS 2.0 (Open Advanced Sensory Immersion System).
-
-Our World will run on a secure, distributed and de-centralized architecture where user’s data will be stored on their machine and not a central server enabling the user to own their data, meaning it cannot be sold or exploited as others do. It will do this by running on a new nextgen Internet known as Holochain.
-
-Our World will run on its own private secure network called ONET (OASIS Network) on top of HoloChain offering yet more security and performance benefits. It will not suffer from any bottlenecks as is the case with the current centralised server architecture in current games causing lag, which is very frustrating to gamers and can mean life or death in games.
-
-Our World/OASIS & ONET can even distribute the computing power across the gamers machines so if some machines are struggling, they can borrow processing power from fellow gamers with more powerful rigs (if they give permission of course!). Sounding like the OASIS from Ready Player One (book version) yet? ;-)
-
-It will also run on IPFS, the Ethereum blockchain, DAOStack ARC & H4OME.
-
-Our World is also a HApp (H4OME App), a HoloChain App & a DApp (Ethereum Distributed App) implementing all of their respective interfaces.
-
-It will also allow any HApp, HoloChain App or DApp to plug into Our World where they can share their data (as well as connect to the central avatar/profile) or even their full UI within the Our World VR/AR world/universe. It will also allow any other legacy apps/games/systems to plug in using a HTTP API that implements the OAPI (OASIS API). It will act as the bridge between all the upcoming nextgen technology as well as supporting legacy systems until they are also migrated to the new nextgen internet.
-
-All of these apps that plug into the OASIS Engine (Our World) will be known as OApps (OASIS Apps). As well as these OApps be able to share their data/UI with any other OApp, they can also take advantage of the OASIS Asset Store where users can buy various add-ons for your app/game.
-
-By supporting everything Our World/OASIS will help act as a bridge between the old and the new world.
-
-NextGen Software & Our World themselves will also be a DAO (Distributed Anonymous Organisation) registered with DAOStack meaning we can self-govern and cut out the expensive middlemen such as banks, lawyers, accountants, managers, contracts etc. This technology will allow us to realise our long-held dreams of running a flat decentralised organisation where every voice is heard, respected and is counted as an equal. This also prevents fraud, mistakes and corruption from occurring as is all too common now days.
-
 
 ### NextGen Hardware
 
