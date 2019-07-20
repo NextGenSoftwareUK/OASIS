@@ -262,15 +262,31 @@ The same applies for the Renderer Provider, it could use one provider to render 
 
 ## Our World Overview
 
-Our World is an exciting immersive next generation 3D XR educational game/platform/social network/ecosystem teaching people on how to look after themselves, each other and the planet using the latest cutting-edge technology. It teaches people the importance of real-life face to face connections with human beings and encourages them to get out into nature using Augmented Reality similar to Pokémon Go but on a much more evolved scale. This is our flagship product and is our top priority due to the massive positive impact it will make upon the world...
+### Introduction
 
-It is the XR Gamification layer of the new interplanetary operation system, which is being built by the elite technical wizards stationed around the world. This will one day replace the current tech giants such as Google, FaceBook, etc and act as the technical layer of the New Earth, which is birthing now. It is a 5th dimensional and ascension training platform, teaching people vital life lessons as well as acting as a real-time simulation of the real world.
+Imagine playing a game more fun and immersive than Pokémon Go, Minecraft, World of Warcraft and Second Life combined? A game that is not only a lot of fun to play but also teaches you how to look after your wellbeing as well as looking after our beautiful planet. A game that changes the way we think and interact with each other and the world so together we can create a better world for all of us. One where we can come together and help each other for the greater good of all.
+
+Imagine a world where there are no more wars, poverty or suffering.
+
+Imagine a world where there is only peace, love & unity where we all co-exist living as one human race in harmony with each other and our beautiful planet.
+
+This does not just have to be a dream; together we can create this world…
+
+Let us introduce you to Our World, the game that will change the world. As well as helping to make the world a better place, this game will be pushing the boundaries of what is currently possible with technology. It will feature augmented reality, virtual reality, motion detection, voice recognition and real-time emotional feedback. It will use technology in ways that has not been done before and in areas where it has been done, it will innovate and take it to the next level...
+
+**Our World is an exciting immersive next generation 3D XR educational game/platform/social network/ecosystem teaching people on how to look after themselves, each other and the planet using the latest cutting-edge technology. It teaches people the importance of real-life face to face connections with human beings and encourages them to get out into nature using Augmented Reality similar to Pokémon Go but on a much more evolved scale. This is our flagship product and is our top priority due to the massive positive impact it will make upon the world...**
+
+### XR Gamification Layer Of The New Interplanetary Operating System
+
+**It is the XR Gamification layer of the new interplanetary operating system, which is being built by the elite technical wizards stationed around the world. This will one day replace the current tech giants such as Google, FaceBook, etc and act as the technical layer of the New Earth, which is birthing now. It is a 5th dimensional and ascension training platform, teaching people vital life lessons as well as acting as a real-time simulation of the real world.**
 
 As well as helping to make the world a better place, this game will be pushing the boundaries of what is currently possible with technology. It will feature augmented reality, virtual reality, motion detection, voice recognition and real-time emotional feedback. It will use technology in ways that has not been done before and in areas where it has been done, it will innovate and take it to the next level...
 
 ### Open World/New Ecosystm/Asset Store/Internet/Operating System/Social Network
 
 It is much more than just a free open world game where you can build and create anything you can imagine and at the same time be immersed in an epic storyline. it is an entirely new ecosystem/asset store/internet/Operating System/social network, it is the future way we will be interacting with each other and the world through the use of technology. Smaller satellite apps/game will plug into it and share your central profile/avatar where you gain karma for doing good deeds such as helping your local communities, etc and lose karma for being selfish and not helping others since it mirrors the real world where you have free will. There is nothing else out there like this, nothing even comes close, this will change everything... There is a reason we are called NextGen Software! ;-)
+
+The game teaches people true unity consciousness where everyone benefits if people put their differences aside and work together. Our World is also an ecosystem and a virtual e-commerce platform and so, so, so much more, it will create a whole new genre and blaze a new path for others to try and follow…
 
 Our World is built on top of the de-centralised, distributed nextgen internet known as Holochain.
 
@@ -288,9 +304,42 @@ The console/desktop version will be similar to a Sandbox and MMORPG (Massive Mul
 
 Both versions will share the same online world/multiverse where users logged in through the smartphone versions will be able to interact with the console/desktop versions in real-time within a massive scale persistent Multiverse.
 
+### Synergy Engine
+
+Our World implements the Synergy Engine helping to solve the world’s problems by matching solutions to problems. It also teaches the co-creation wheel and a new holistic approach to living and technology to help co-create a better world. 
+
+### Engrossing Storyline
+
+You can run around an open world completing quests in whatever order you choose but it will also contain an engrossing storyline, which will change depending on what choices both you and the collective take as a whole. The story is about the final epic battle for Earth between the forces of darkness and the light that has been raging across Galaxies & Universes for eons. You will fight demons, zombies, monsters, killer robots controlled by a dark evil AI and more. The main difference to other games is that you will not fight fellow humans (although the dark AI is trying to manipulate mankind in to doing just that), instead you will unite together against the new common enemy that is threatening the very existence of mankind and the planet. You will be free to build your own homes, communities, base defences, vehicles & ships (or purchase or win) either using traditional means, nextgen technology or even magic. The same goes for combat, you can choose to use pure strength, skill and melee, technology or magic. You can be whoever you want to be. You can even choose not to fight and instead focus on supporting the economy, farming, healing, R&D, construction, leadership, etc. The choice is yours...
+
+As you proceed through the game you will discover that this dark evil AI has taken over the minds of many humans who are in positions of power & influence across the globe such as Governments, banking, corporations, educational institutions, pharmaceutical & the military and is using them as puppets for its evil plans for world domination. This secret society is known as The Dark Order. The dark AI (also known as The Beast) is manipulating humanity to create technology and robotic bodies for it to control to form its army of machines. It is also trying to get every human implanted with a chip so it can track and control them, this is known as the Mark Of The Beast. It is also trying to manipulate them to open a portal to other dimensions to bring forth its dark army in the final phase of its plan. It plans to exterminate 90% of the population and enslave the rest. Your mission along with the rest of mankind is to stop this before it is too late...
+
+### OASIS Asset Store
+
+Objects created (vehicles, building, etc) can be shared and even sold on the OASIS Asset Store. Objects created on other popular platforms such as Google Blocks and Microsoft's 3D Creator can also be imported and used in Our World.
+
 ### Virtual Ecommerce
 
 As well as smaller apps/games being allowed to plug into Our World either sharing just the central avatar/profile (data) or full UI integration, content creators/businesses can also create shops (where people can purchase real items in VR that are then delivered to your door so in effect is virtual e-commerce), buildings or even entire zones/lands/worlds. They can rent virtual spaces within the game. Please contact us on ourworld@nextgensoftware.co.uk if you wish to receive special early adopter discounts...
+
+### We Accept Karma, Your Money Is No Good Here!
+
+Businesses can also sponsor or advertise in the game but unlike traditional models, money does not buy you the best spots, the companies collective karma does. The greener & the more they do good for the world including giving to charities, looking after their employees, the environment, etc the more karma they get. Advertising spots will be limited since we do not wish to bombard users with adverts so this will be an incentive for companies worldwide to improve and start focusing on what is important, and that's people and the environment, not money. As may be clear by now, the focus and goals of Our World is to create a better world, not to make as much money as possible. But we of course will still make more than enough (billions) to continue to expand & grow, the rest will go to good causes and charities such as our sister company Yoga4Autism.
+
+### Our World Is Only The Beginning...
+
+Our World is only the beginning... once we have learnt to resolve our problems and live in peace and harmony with each other and the planet then we will be ready to reach out and explore other worlds within our Universe and beyond...
+
+**We cannot try to run from our problems and escape to other worlds (virtual or real), we need to stay and heal Our World first...
+Once we have done that then we can transform Our World into the OASIS, a paradise on Earth...**
+
+**Our World is just the first world of an infinite number of worlds, stars, systems, galaxies & universes to explore...**
+
+**This multiverse is called The OASIS, which can only be reached through the OASIS we are co-creating on Our World.**
+
+The OASIS will only be open to us once we have resolved our issues here, humanity must prove they are worthy to join the Galactic Societies waiting for us out there... How can we meet, interact and get on with other races out there when we cannot even get on with each other here?
+
+It is time to stop running from our problems and face them united together...
 
 ### The Tech Industry Have A Morale & Social Resonsability
 
@@ -351,7 +400,73 @@ Some important points about its potential capabilities and why it could be truly
 **Time Bending Treasures** - Messages and gifts can be buried as Easter eggs for others to collect at later dates bending the nature of time. 
 
 
-**READ MORE ON THE [WEBSITE](http://www.ourworldthegame.com "Our World") OR [CROWD FUNDING](https://www.gofundme.com/f/ourworldthegame) PAGES**
+### 7 Years Of Planning & R&D
+
+We actually started researching, planning & designing this over seven years (we have also been busy networking, building partnerships, etc) ago but we could not yet afford the large amount of money it would take to create this. On top of this, the technology did not yet exist to create the vision, but this is now changing. When Pokémon Go was released featuring more primitive versions of some of the technology featured in Our World, we realised we really need to get this game into production.
+
+### Early Prototype
+
+We need your investment/help so we can continue development of the cutting-edge prototype we have been working on for the last couple of years. This is the first Unity game to be powered by the revolutionary decentralised distributed network called Holochain. This means that your profile and data is stored locally on your device giving you back control of your own data. See screenshots here:
+
+https://www.ourworldthegame.com/single-post/2018/08/14/First-look-at-our-Smartphone-Prototype
+
+We can then demo this to interested parties so we can get more investment to get the first version of this game released. This game will have continuous development with frequent upgrades and add-ons. It is so vast, that the development roadmap is never ending.
+
+### We Are What You Have All Been Waiting For...
+
+http://www.ccsinsight.com/press/company-news/2251-augmented-and-virtual-reality-devices-to-become-a-4-billion-plus-business-in-three-years 
+
+ An exert from the above article states:
+
+“VR (virtual reality) and AR (augmented reality) are exciting – Google Glass coming and going, Facebook’s $2 billion for Oculus, Google’s $542 million into Magic Leap, not to mention Microsoft’s delightful HoloLens. There are amazing early stage platforms and apps, but VR/AR in 2015 feels a bit like the smartphone market before the iPhone. We’re waiting for someone to say “One more thing…” in a way that has everyone thinking “so that’s where the market’s going!”
+
+Well, we are what everyone has been waiting for, to take this technology to the next level, hence our name!
+
+Pokémon Go has already started to lose users as we predicted due to not being nowhere near immersive enough so to keep users engaged in the game. Our World is set to be one of the most immersive games ever made so it will not suffer from this problem.
+
+http://www.bbc.co.uk/news/technology-37176782 
+ 
+ 
+### Large Social Media Following
+
+With over 5628 likes on our Facebook page ( http://www.facebook.com/ourworldthegame ), which is growing daily, this very important project is being very well received and we constantly receive glowing feedback of how much of a wonderful good idea this is, one that is needed more than ever in today’s world!
+
+We are currently building the smartphone prototype and hope to have this done by 2020 Q2. We are also looking for any other developers, designers, 3D modellers and anyone else who wish to get involved so please get in touch if this is YOU...
+
+### UN Contacts
+
+We are in talks with Be Earth, which is a UN IGO (United Nations Intergovernmental Organisation). Read more about this in this post:
+
+https://www.ourworldthegame.com/single-post/2018/01/27/Our-Word-partners-with-the-Be-Earth-UN-IGO-United-Nations-Intergovernmental-Organisation 
+
+### Buckminster's World Peace Game
+
+Our World is Buckminster Fuller's World Peace Game, please read more here:
+
+https://www.ourworldthegame.com/single-post/2018/01/21/Our-World-Is-The-Buckminster-Fuller-World-Peace-Game 
+
+### NextGen Hardware
+
+We will also be building NextGen Hardware that not only doesn't harm you like exiting devices do, they will actually heal/energise you and will never need charging! Read more below:
+
+https://www.ourworldthegame.com/single-post/2018/01/31/NextGen-Hardware---Devices-That-Heal-You-Never-Need-Charging 
+
+### Golden Investment Opportunity
+
+According to the latest research the VR/AR Market is set for VERY explosive growth with estimates of $674bn by 2025. The mobile app industry has been growing exponentially for a number of years now and is set to continue to accelerate. The mobile app market was valued last year at over 27 billion dollars and is set to reach 77 billion this year.
+
+So, make sure you get in on the ground floor of the next Apple, which will be the GOLDEN OPPORTUNITY of a lifetime! 
+
+https://www.ourworldthegame.com/single-post/2018/03/08/Get-In-On-The-Ground-Floor-Of-The-Next-Apple 
+
+https://www.ourworldthegame.com/single-post/2017/09/04/Golden-Opportunity-Of-a-Lifetime-For-Investors 
+
+### Help Cocreate A Better World...
+
+It only seems to be a week or two before another terrorist attack or mass shooting or disaster after disaster. How much more suffering does there have to be before the people unite together to say enough is enough?
+
+
+**READ MORE ON THE [WEBSITE](http://www.ourworldthegame.com "Our World") OR [CROWD FUNDING](https://www.gofundme.com/f/ourworldthegame GoFundMe Crowd Funding) PAGES**
 
 
 ## Road Map
@@ -397,13 +512,13 @@ We are working full-time on this project so we have no other income so if you va
 
 https://www.gofundme.com/f/ourworldthegame
 
-**Every little helps, even if you can only manage £1 it can still help make all the difference! Thank you! :)
+**Every little helps, even if you can only manage £1 it can still help make all the difference! Thank you! :)**
 
-We would really appreciate if you could donate anything you can afford, even if it's just a pound, if everyone did that then we would be able to massively accelerate this very urgent and important project for a world in need right now. I think everyone can justify a pound if it meant saving the world don't you think? 
+**We would really appreciate if you could donate anything you can afford, even if it's just a pound, if everyone did that then we would be able to massively accelerate this very urgent and important project for a world in need right now. I think everyone can justify a pound if it meant saving the world don't you think?**
 
-It's even better to spend a pound on this project rather than buying a lottery ticket since you have more chance of being hit by a car than winning the jackpot, then even by some fluke you did win, there is no point having millions if there is no world left to enjoy it on. 
+**It's even better to spend a pound on this project rather than buying a lottery ticket since you have more chance of being hit by a car than winning the jackpot, then even by some fluke you did win, there is no point having millions if there is no world left to enjoy it on.**
 
-Think about it...**
+**Think about it...**
 
 If you can't afford to contribute, then that's fine, you can still help by getting the word out there!
 
