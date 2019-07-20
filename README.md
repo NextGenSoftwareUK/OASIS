@@ -172,7 +172,48 @@ https://github.com/NextGenSoftwareUK/Holochain-.NET-HDK
 
 A placeholder has also been added for the work to begin in this repo in the project Holochain.NextGenSoftware.HoloNET.HDK. Just as with NextGenSoftware.Holochain.HoloNET.Client, this project may be split out into its own repo and then linked to this one as a sub-module in future...
 
-## Architecture Diagram
+We have been tracking a number of different solutions to allow .NET to compile to WASM and the most promising so far is CoreRT (a AOT (Ahead Of Time) Compiler for .NET Core):
+
+https://github.com/dotnet/corert/blob/master/Documentation/how-to-build-WebAssembly.md
+
+This will allow managed C# code to be compiled into any native language including WASM.
+
+
+## The Power Of Holochain, .NET, Unity & NodeJS Combined!
+
+The front-end is built in Unity, the middle layer is built in C#/.NET and the back-end is built-in Holochain. 
+
+### ARC & Noomap Integration
+
+The middle layer will also soon interface with the amazing ARC (Augmented Reality Computer) operating system being built by my good friend and cosmic brother Chris Lacombe over at S7 Foundation (previously called Noomap). He is also the creator of Noomap, a 3D fractal mind mapping tool that has some communtites very excited! :)
+
+http://noomap.info/
+http://iwg.life/s7foundation/
+
+ARC is currently being built in NodeJS and untilises a Semantic Graph to store and represent it's data, it will also contain a revountery AI system. We cannot say more on this at the moment because Chris wants to keep this project under the radar at the moment...
+
+### Node.JS Integration
+
+The OASIS Architecture will interface to ARC/Node.JS using Edge.js:
+
+https://github.com/tjanczuk/edge
+
+This will allow both .NET and NodeJS to run in the same process and make cross function calls as if they were native.
+
+We are working very closely with Chris & S7 to fully synergise & intrgrate ARC & Noomap into the OASIS Architecture & Our World.
+
+
+## ARC, Noomap & IWG (Infinite World Game) Will Be Fully Integrated
+
+ARC, Noomap & IWG will be fully integrated into the OASIS Architecture. The IWG is VERY similar to Our World and has a LOT of overlap and is something we are currenty exporing and synergising but it looks like they will for a start share the same central avatar/profile/karma system that is currently being built in this very repo.
+
+
+## Turbocharge the Holochain ecosystem!
+
+Because the OASIS Architecture makes use of .NET, Unity, NodeJS & Holochain we have access to 3 massive well established ecosystems along with all their devs & resources. This will massively help turbocharge the holochain ecosystem as well as help raise awareness of it...
+
+
+## OASIS Architecture Diagram
 
 The Architecture diagram can be found on our website below but it is also in the root of the repo cunningly named OASIS Architecture Diagram.png
 
