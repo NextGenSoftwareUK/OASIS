@@ -1,6 +1,6 @@
 # OASIS API / Our World / HoloNET Altha v0.0.1
 
-![alt text](https://github.com/dellams/OASIS-API-And-HoloNET/blob/master/OASIS%20Arcitecture.png "OASIS Architecture Diagram")
+![alt text](https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-And-HoloNET/blob/master/FinalLogo.jpg "Our World")
 
 The core OASIS (Open Advanced Sensory Immersion System) API that powers Our World and manages the central profile/avatar/karma system that other satellite apps/games plug into it and share. This also includes HoloNET that allows .NET to talk to Holochain, which is where the profile/avatar is stored on a private decentralised, distributed network. This will be gifted forward to the Holochain community along with the HoloUnity3D SDK/Lib/Asset coming soon... ;-)
 
