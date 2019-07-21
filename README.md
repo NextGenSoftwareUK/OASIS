@@ -183,6 +183,12 @@ This overload is similar to the one above except it omits the `id` and `matchIdT
 
 ##### ClearCache
 
+Call this method to clear all of HoloNETClient's internal cache. This includes the JSON responses that have been cached using the `GetHolochainInstances` & `CallZomeFunction` methods if the `cacheData` parm was set to true for any of the calls.
+
+````c#
+public void ClearCache()
+````
+
 ##### Disconnect
 
 This method disconnects the client from Holochain conductor. It raises the `OnDisconnected` event once it is has successfully disconnected. Please see the [Events](#events) section above for more info on how to use this event.
