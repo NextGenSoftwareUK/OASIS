@@ -123,6 +123,31 @@ namespace NextGenSoftware.Holochain.HoloNET.Client.Core
             }
         }
 
+        public async Task Disconnect()
+        {
+            try
+            {
+                if (Logger == null)
+                    throw new HoloNETException("ERROR: No Logger Has Been Specified! Please set a Logger with the Logger Property.");
+
+                if (WebSocket.State != WebSocketState.Closed && WebSocket.State != WebSocketState.Aborted && WebSocket.State != WebSocketState.CloseSent && WebSocket.State != WebSocketState.CloseReceived)
+                {
+                    Logger.Log(string.Concat("Disconnecting from ", EndPoint, "..."), LogType.Info);
+                    await WebSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Client manually disconnected.", CancellationToken.None);
+
+                    if (WebSocket.State == WebSocketState.Closed)
+                    {
+                        Logger.Log(string.Concat("Disconnected from ", EndPoint), LogType.Info);
+                        OnDisconnected?.Invoke(this, new DisconnectedEventArgs { EndPoint = EndPoint,Reason = "Disconnected Method Called." });
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                HandleError(string.Concat("Error occured disconnecting from ", EndPoint), e);
+            }
+        }
+
         public async Task CallZomeFunctionAsync(string instanceId, string zome, string function, object paramsObject, bool cachReturnData = false)
         {
             _currentId++;
@@ -131,7 +156,6 @@ namespace NextGenSoftware.Holochain.HoloNET.Client.Core
 
         public async Task CallZomeFunctionAsync(string id, string instanceId, string zome, string function, object paramsObject, bool matchIdToInstanceZomeFuncInCallback = true, bool cachReturnData = false)
         {
-            _currentId++;
             await CallZomeFunctionAsync(id, instanceId, zome, function, null, paramsObject, matchIdToInstanceZomeFuncInCallback, cachReturnData);
         }
 
@@ -185,9 +209,9 @@ namespace NextGenSoftware.Holochain.HoloNET.Client.Core
             Logger.Log("CallZomeFunctionAsync EXIT", LogType.Debug);
         }
 
-        public async Task SendMessageAsync(string message)
+        public async Task SendMessageAsync(string jsonMessage)
         {
-            Logger.Log(string.Concat("Sending Message: ", message), LogType.Info);
+            Logger.Log(string.Concat("Sending Message: ", jsonMessage), LogType.Info);
 
             if (WebSocket.State != WebSocketState.Open)
             {
@@ -196,7 +220,7 @@ namespace NextGenSoftware.Holochain.HoloNET.Client.Core
             }
 
             int sendChunkSize = Config.SendChunkSize == 0 ? SendChunkSizeDefault : Config.SendChunkSize;
-            var messageBuffer = Encoding.UTF8.GetBytes(message);
+            var messageBuffer = Encoding.UTF8.GetBytes(jsonMessage);
             var messagesCount = (int)Math.Ceiling((double)messageBuffer.Length / sendChunkSize);
 
             for (var i = 0; i < messagesCount; i++)
