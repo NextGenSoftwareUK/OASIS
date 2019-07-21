@@ -792,11 +792,17 @@ In Love,Light & Hope,
 David Ellams BSc(Hons)
 
 Proud & Liberated Aspie
+
 Founder & Managing Director
+
 NextGen Software Ltd
+
 NextGen World Ltd
+
 Yoga4Autism Ltd
 
 http://www.ourworldthegame.com
+
 http://www.nextgensoftware.co.uk
+
 http://www.yoga4autism.com
