@@ -41,6 +41,8 @@ namespace NextGenSoftware.Holochain.HoloNET.Client.TestHarness
                 // Load testing
                 for (int i = 0; i < 100; i++)
                     await holoNETClient.CallZomeFunctionAsync(i.ToString(), "test-instance", "our_world_core", "test", ZomeCallback, new { message = new { content = "blah!" } });
+
+                await holoNETClient.Disconnect();
             }
 
           //  for (int i = 100; i < 200; i++)

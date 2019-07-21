@@ -6,60 +6,27 @@ namespace NextGenSoftware.Holochain.HoloNET.Client.Core
 {
     public class ConnectedEventArgs : EventArgs
     {
-        //public ConnectedEventArgs(string endPoint)
-        //{
-        //    EndPoint = endPoint;
-        //}
-
         public string EndPoint { get; set; }
     }
 
     public class DisconnectedEventArgs : EventArgs
     {
-        //public DisconnectedEventArgs(string endPoint, string reason)
-        //{
-        //    EndPoint = endPoint;
-        //    Reason = reason;
-        //}
-
         public string EndPoint { get; set; }
         public string Reason { get; set; }
     }
 
     public class HoloNETErrorEventArgs : EventArgs
     {
-        //public HoloNETErrorEventArgs(string endPoint, string reason, Exception errorDetails)
-        //{
-        //    EndPoint = endPoint;
-        //    Reason = reason;
-        //    ErrorDetails = errorDetails;
-        //}
-
-        //public HoloNETErrorEventArgs(string endPoint, string reason)
-        //{
-        //    EndPoint = endPoint;
-        //    Reason = reason;
-        //}
-
         public string EndPoint { get; set; }
         public string Reason { get; set; }
         public Exception ErrorDetails { get; set; }
     }
-
     public class DataReceivedEventArgs : EventArgs
     {
-        //public DataReceivedEventArgs(string endPoint, string rawJSONData, WebSocketReceiveResult webSocketResult)
-        //{
-        //    EndPoint = endPoint;
-        //    RawJSONData = rawJSONData;
-        //    WebSocketResult = webSocketResult;
-        //}
-
         public string EndPoint { get; set; }
         public string RawJSONData { get; set; }
         public WebSocketReceiveResult WebSocketResult { get; set; }
     }
-
     public class ZomeFunctionCallBackEventArgs : CallBackBaseEventArgs
     {
         public ZomeFunctionCallBackEventArgs(string id, string endPoint, string instance, string zome, string zomeFunction, bool isCallSuccessful, string rawZomeReturnData, string zomeReturnData, string rawJSONData, WebSocketReceiveResult webSocketResult)
