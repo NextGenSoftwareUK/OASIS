@@ -781,6 +781,16 @@ http://www.ourworldthegame.com/forum
 
 Read more on this project on our websites below:
 
-http://www.ourworldthegame.com
+In Love,Light & Hope,
 
+David Ellams BSc(Hons)
+
+Proud & Liberated Aspie
+Founder & Managing Director
+NextGen Software Ltd
+NextGen World Ltd
+Yoga4Autism Ltd
+
+http://www.ourworldthegame.com
 http://www.nextgensoftware.co.uk
+http://www.yoga4autism.com
