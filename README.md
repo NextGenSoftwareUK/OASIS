@@ -78,6 +78,7 @@ Read more here:
 https://docs.microsoft.com/en-us/dotnet/csharp/programming-guide/concepts/async/
 
 #### Events
+<a name="events"></a>
 
 You can subscribe to a number of different events:
 
@@ -125,9 +126,19 @@ HoloNETClient contains the following methods:
 * `GetHolochainInstancesAsync()`
 * `SendMessageAsync()`
 
+##### Connect
+
+This method simply connects to the Holochain conductor. It raises the `OnConnected` event once it is has successfully established a connection. Please see the [Events](#events) section above for more info on how to use this event.
+
+```c#
+public async Task Connect()
+```
+
 ##### CallZomeFunctionAsync
 
 This is the main method you will be using to invoke zome functions on your given zome. It has a number of handy overloads making it easier and more powerful to call your zome functions and manage the returned data.
+
+This method raises the `OnCallZomeFunctionCallBack` event once it has received a response from the Holochain conductor. Please see the [Events](#events) section above for more info on how to use this event.
 
 ###### Overload 1
 
@@ -170,6 +181,72 @@ public async Task CallZomeFunctionAsync(string instanceId, string zome, string f
 
 This overload is similar to the one above except it omits the `id` and `matchIdToInstanceZomeFuncInCallback` param's forcing HoloNET to auto-generate and manage the id's itself. It is also missing the `callback` param. For this overload you would subscribe to the `OnZomeFunctionCallBack` event. You can of course subscribe to this event for the other overloads too, it just means you will then get two callbacks, one for the event handler for `OnZomeFunctionalCallBack` and one for the callback delegate you pass in as a param to this method. The choice is yours on how you wish to use this method...
 
+##### ClearCache
+
+##### Disconnect
+
+This method disconnects the client from Holochain conductor. It raises the `OnDisconnected` event once it is has successfully disconnected. Please see the [Events](#events) section above for more info on how to use this event.
+
+```c#
+public async Task Disconnect()
+```
+NOTE: Currently when you call this method, you will receive the follow error:
+
+> "The remote party closed the WebSocket connection without completing
+> the close handshake."
+
+This looks like an issue with the Holochain conductor and we will be raising this bug with them to see if it is something they need to address...
+
+##### GetHolochainInstancesAsync
+
+This method will return a string array containing the instances that the holochain conductor is currently running. You will need to store the instance(s) in a variable to pass into the `CallZomeFunctionAsync` later. 
+
+We did consider managing this part automatically but because we wanted to keep HoloNET as flexible as possible allowing you to make calls to multiple instances at once it made sense for the user to manage the instance id's themselves. But as with everything we are very open to any feedback or suggestions on this...
+
+This method raises the `OnGetHolochainInstancesCallBack` event once it has received a response from the Holochain conductor. Please see the [Events](#events) section above for more info on how to use this event.
+
+There are two overloads for this method:
+
+###### Overload 1
+
+````c#
+public async Task GetHolochainInstancesAsync(string id, bool cachReturnData = false)
+````
+
+###### Overload 2
+
+````c#
+public async Task GetHolochainInstancesAsync(bool cachReturnData = false)
+````
+
+| Param | Desc  |
+|--|--|
+|id|The unique id you wish to assign for this call (NOTE: Use the overload that omits this                                       param if you wish HoloNET to auto-generate and manage the id's for you).   |
+|cachReturnData | This is an optional param, which defaults to false. Set this to true if you wish HoloNET to    cache the JSON response retrieved from holochain. Subsequent calls will return this cached data rather than calling the Holochain conductor again. Use this for static data that is not going to change for performance gains. This would be a good method to enable caching if you know the instances are not going to change.  
+
+##### SendMessageAsync
+
+This method allows you to send your own raw JSON request to holochain. This method raises the `OnSendMessageCallBack` event once it has received a response from the Holochain conductor. Please see the [Events](#events) section above for more info on how to use this event.
+
+You would rarely need to use this and we highly recommend you use the `CallZomeFunction` method instead.
+
+````c#
+public async Task SendMessageAsync(string jsonMessage)
+ ````
+
+| Param |Desc  |
+|--|--|
+| jsonMessage | The raw JSON message you wish to send to the Holochain conductor.  |
+
+#### Properties
+
+HoloNETClient contains the following properties:
+
+* `Config`
+* `Logger`
+* `NetworkServiceProvider`
+* `NetworkServiceProviderMode`
+
 **More to come soon...**
 
 ## HoloOASIS
@@ -184,7 +261,9 @@ We will soon be creating a Asset for the Unity Asset Store that will include Hol
 
 In the codebase you will find a project called NextGenSoftware.OASIS.API.FrontEnd.Unity, which shows how the ProfileManager found inside the OASIS API Core (NextGenSoftware.OASIS.API.Core) is used. When you instantiate the ProfileManager you inject into a Storage Provider that implements the IOASISStorage interface. Currently the only provider implemented is the HoloOASIS Provider.
 
-The actual Our World Unity code is not currently stored in this repo due to size restrictions but we may consider using GitHub LGE later on. We are also looking at GitLab and other alternatives to see if they allow greater storage capabilities free out of the box (since we are currently working on a very tight budget but you could change that by donating below! ;-) ).
+The actual Our World Unity code is not currently stored in this repo due to size restrictions but we may consider using GitHub LFS (Large File Storage) later on. We are also looking at GitLab and other alternatives to see if they allow greater storage capabilities free out of the box (since we are currently working on a very tight budget but you could change that by donating below! ;-) ).
+
+As with the rest of the project, if you have any suggestions we would love to hear from you! :)
 
 ## .NET HDK
 
@@ -268,7 +347,7 @@ It will also run on IPFS, the Ethereum blockchain, DAOStack ARC & H4OME.
 
 NextGen Software & Our World themselves will also be a DAO (Distributed Anonymous Organisation) registered with DAOStack meaning we can self-govern and cut out the expensive middlemen such as banks, lawyers, accountants, managers, contracts etc. This technology will allow us to realise our long-held dreams of running a flat decentralised organisation where every voice is heard, respected and is counted as an equal. This also prevents fraud, mistakes and corruption from occurring as is all too common now days.
 
-**NOTE: The design is evolving all the time so the above is subjet to change...**
+**NOTE: The design is evolving all the time so the above is subject to change...**
 
 ## Open Modular Design
 
@@ -309,6 +388,32 @@ The same applies if a new 3D Engine comes out you want to use.
 The system can even switch to a different Storage/Network Provider in real-time as a fall-over if one storage/network provider goes down for example. It could even use more than one Storage/Network provider since certain providers may be better suited for a given task than another, this way you get the best of both worlds as well as ensure maximum compatibility and uptime.
 
 The same applies for the Renderer Provider, it could use one provider to render 2D and another for 3D, it could even use more than one for for both 2D and/or 3D.
+
+## Fully Integrated Unified Interface
+
+**Our World is much more than just a game or platform. It is also a social network, ecosystem, asset store, operating system, app store, e-commerce & soooooo much more! ;-) It is the XR Gamified Layer of the new interplanetary operating system and the new internet (Web 3.0 - The Spacial Web).  It is the future cyberspace we will all be fully immersed in...**
+
+It combines everything out there into one unified fully integrated interface. You never need to leave the XR/IR interface, you can launch all your apps, surf the net, check your email, make video calls, check your social feeds, play games, use real-time 3D geo-location maps of the world, shop, run your business and do everything you can currently do with existing technology but on a much more evolved fully integrated XR way... If you want to get an idea of what this looks like then watch Ready Player One, the OASIS that features in that is about 40% of what Our World is and we have been designing it long before we had even heard of Ready Player One.
+
+### NextGen Social Network
+
+The social network part of Our World will be a fully de-centralised distributed social network that has your privacy concerns built into the design. You store and own your data on the ONET (powered by Holochain) and choose what you share and to who so it is never stored on any central server where it can be sold to advertisers, etc as is the case with Facebook, Google,etc. 
+
+#### OASIS Avatar/Profile/Karma Integration
+
+What's more, this is fully integrated into the rest of the system and the OASIS Avatar/Profile/Karma system. So your profile will contain your 3D avatar and you will gain karma if you help people on the network. Of course if you are abusive then you will lose karma so this is a good incentive to behave yourselves and be kind and loving to your fellow earthlings... ;-)
+
+#### Noomap Integration
+
+This is also of course linked to your Me Holon in Noomap along with all your passions, interests, etc as described earlier.
+
+It will also be deeply integrated into every other aspect of the system as mentioned earlier (shopping, business, games, email, etc).
+
+#### Deep Integration Into Other Networks/Systems
+
+We plan to also deeply integrate into any other aligned freedom loving social network such as Gab, etc so you can share your profile data between the various networks. You no longer need to have many logins and apps, you just have ONE central portal to do ALL you need to in a very cool evolved XR way...
+
+If only you could see what we see... there is a reason why we are called NextGen Software! ;-)
 
 ## Platforms
 
@@ -426,7 +531,7 @@ As you proceed through the game you will discover that this dark evil AI has tak
 
 Objects created (vehicles, building, etc) can be shared and even sold on the OASIS Asset Store. Objects created on other popular platforms such as Google Blocks and Microsoft's 3D Creator can also be imported and used in Our World.
 
-### Virtual Ecommerce
+### Virtual E-commerce
 
 As well as smaller apps/games being allowed to plug into Our World either sharing just the central avatar/profile (data) or full UI integration, content creators/businesses can also create shops (where people can purchase real items in VR that are then delivered to your door so in effect is virtual e-commerce), buildings or even entire zones/lands/worlds. They can rent virtual spaces within the game. Please contact us on ourworld@nextgensoftware.co.uk if you wish to receive special early adopter discounts...
 
