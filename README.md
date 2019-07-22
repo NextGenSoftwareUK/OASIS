@@ -271,6 +271,33 @@ The actual Our World Unity code is not currently stored in this repo due to size
 
 As with the rest of the project, if you have any suggestions we would love to hear from you! :)
 
+## The OASIS API & Karma System
+
+The OASIS API will allow [Everything to talk to Everything](#bridge) else and will act as the worlds universal API/protcol. At the centre of this is the central profile/avatar where the user's data will be stored. Part of this data will include the karma they have earnt in Our World as well as the karma they have earnt in any of the inter-connected satillite apps/games that use the OASIS API.
+
+The karma will be grouped into the following categories:
+
+* **Our World** - Earnt by completing quests within Our Word itself.
+* **Self Help/Improvement** - Earnt by improving your wellbeing by progressing in meditation, yoga, mindfulness, exercise apps/games/websites (includes Our World) etc.
+* **Helping People** - Earnt by helping people in Our World or in any other app/game/website. This could include counselling, healing, giving advice on a social network, donating, etc
+* **Helping The Enviroment** - Earnt by helping the enviroment such as planting a tree, saving the rain forest, campaigning to save your local park, picking up litter, cleaning up the ocean, etc
+* **Helping Animals**
+* **Contributing Towards A Good Cause - Content** - Writing content for any good cause.
+* **Contributing Towards A Good Cause - Sharing** - Sharing a good cause (including any content such as blogs, etc).
+* **Contributing Towards A Good Cause - Admin** - Doing admin work for a good cause. If it is non-paid then you earn even more karma.
+* **Contributing Towards A Good Cause - Creator/Organiser** - Organising/creating a good cause (this will give you more karma than the other good cause categories)
+* **Contributing Towards A Good Cause - Funder** - Donate to a good cause/charity.
+* **Contributing Towards A Good Cause - Speaker** - Do public speaking for a good cause.
+* **Contributing Towards A Good Cause - Peaceful Protestor/Activist** - Attending a peaceful protest to being about positive change in the world.
+* Other
+
+The list above is subject to change with more cateogires likely to be added later as the system evolves and matures...
+
+You will be able to see how the karma you have earnt is broken down into these categories on the users profile/avatar. Various quests, special powers, abilities, items, locations, etc will unlock once you have reached a certain minimum karma level. If you fall below that level by losing karma then they will become locked again. The minimum karma level would normally be your total karma level but it could also be a combination of the various karma categories above. For example to enter a special mystic temple in Our World you may need a total karma level of 1000, karma level of 500 in Self Help/Improvement & 500 karma level for Our World. You could need a karma level of 300 for Helping Animals to access a secret animal sanctuary within Our World.
+
+You will also be able to view the karma levels of other users, this can help you reach out to them to help improve their karma in cateogries they are lacking in by inviting them on a Quest with you or your group. You 
+
+
 ## .NET HDK
 
 We will soon also begin work on the .NET HDK to open up the amazing Holochain to the massive .NET & Unity ecosystem's, which will help turbocharge the holochain ecosystem they are trying to build...
@@ -343,9 +370,9 @@ Our World/OASIS & ONET can even distribute the computing power across the gamers
 
 It will also run on IPFS, the Ethereum blockchain, DAOStack ARC & H4OME.
 
-**Our World is also a HApp (H4OME App), a HoloChain App & a DApp (Ethereum Distributed App) implementing all of their respective interfaces.**
+**Our World is also a HApp (H4OME App), a HoloChain App & a DApp (Ethereum Distributed App), SOLID app implementing all of their respective interfaces.**
 
-**It will also allow any HApp, HoloChain App or DApp to plug into Our World where they can share their data (as well as connect to the central avatar/profile) or even their full UI within the Our World VR/AR/XR world/universe. It will also allow any other legacy apps/games/systems to plug in using a HTTP API that implements the OAPI (OASIS API). It will act as the bridge between all the upcoming nextgen technology as well as supporting legacy systems until they are also migrated to the new nextgen internet**
+**It will also allow any HApp, HoloChain App, DApp, SOLID App to plug into Our World where they can share their data (as well as connect to the central avatar/profile) or even their full UI within the Our World VR/AR/XR/IR (Infinite Reality) world/universe. It will also allow any other legacy apps/games/systems to plug in using a HTTP API that implements the OAPI (OASIS API). It will act as the bridge between all the upcoming nextgen technology as well as supporting legacy systems until they are also migrated to the new nextgen internet**
 
 **All of these apps that plug into the OASIS Engine (Our World) will be known as OApps (OASIS Apps). As well as these OApps being able to share their data/UI with any other OApp, they can also take advantage of the OASIS Asset Store where users can buy various add-ons for your app/game.**
 
@@ -355,7 +382,7 @@ NextGen Software & Our World themselves will also be a DAO (Distributed Anonymou
 
 **NOTE: The design is evolving all the time so the above is subject to change...**
 
-## Open Modular Design
+### Open Modular Design
 
 As you can see from the diagram the OASIS architecture is very modular, open and extensible meaning any component can easily be swapped out for another without having to make any changes to the rest of the system. It will use MEF (Managed Extensibility Framework) so the components can even be swapped out without having to re-compile any of the existing code, you simply drop the new component into a hot folder that the system will pick up on the next time you restart.
 
@@ -380,18 +407,19 @@ Currently HoloOASIS implements the IOASISStorage interface. In future it will al
 **NOTE: This is still a WIP, so the above is likely to evolve and change as we progress...**
 
 ## Our World/OASIS Will Act As The Bridge For All (Legasy, IPFS, Holochain, Ethereum, SOLID, Fediverse, Mastodon, Diaspora, WebFinger, ActivityPub, XMPP & More!)
+<a name="bridge"></a>
 
 As you can see from the architecture diagram, the system will act as the bridge for all platforms and devices due to it being very open and modular by design. In future there will be support for IPFS, Ethereum, SOLID, Fediverse, Mastodon, Diaspora, WebFinger, ActivityPub, XMPP plus many more. This will help users of both legacy apps/games/websites and blockchain slowly migrate to holochain since it will help expose it to them all. The OASIS API will act as a stepping stone as well as help Everything talk to Everything for maximum compatibility.
 
 **Goodbye silos and walled gardens, hello full integration through ONE universal unified interface!**
 
-## Implement Your Own Storage/Network/Renderer Provider
+### Implement Your Own Storage/Network/Renderer Provider
 
 Thanks to the system being very open/modular by design you can easily implement your own Storage/Network/Renderer Provider by simply implementing the IOASISStorage/IOASTNET/IOASIS2DRenderer/IOASIS3DRenderer interfaces respectively. For example you could create a MongoDB, MySQL or SQL Server Storage Provider. This also ensures forward compatibility since if a new storage medium or network protocol comes out in the future you can easily write a new provider for them without having to change any of the existing system. 
 
 The same applies if a new 3D Engine comes out you want to use.
 
-## Switch To A Different Provider In RealTime
+### Switch To A Different Provider In RealTime
 
 The system can even switch to a different Storage/Network Provider in real-time as a fall-over if one storage/network provider goes down for example. It could even use more than one Storage/Network provider since certain providers may be better suited for a given task than another, this way you get the best of both worlds as well as ensure maximum compatibility and uptime.
 
