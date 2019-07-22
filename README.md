@@ -379,9 +379,11 @@ Currently HoloOASIS implements the IOASISStorage interface. In future it will al
 
 **NOTE: This is still a WIP, so the above is likely to evolve and change as we progress...**
 
-## Our World/OASIS Will Act As The Bridge For All (Legasy, IPFS, Holochain, Ethereum, SOLID & More!)
+## Our World/OASIS Will Act As The Bridge For All (Legasy, IPFS, Holochain, Ethereum, SOLID, Fediverse, Mastodon, Diaspora, WebFinger, ActivityPub, XMPP & More!)
 
-As you can see from the architecture diagram, the system will act as the bridge for all platforms and devices due to it being very open and modular by design. In future there will be support for IPFS, Ethereum, SOLID plus many more. This will help users of both legacy apps/games/websites and blockchain slowly migrate to holochain since it will help expose it to them all. The OASIS API will act as a stepping stone as well as help Everything talk to Everything for maximum compatibility.
+As you can see from the architecture diagram, the system will act as the bridge for all platforms and devices due to it being very open and modular by design. In future there will be support for IPFS, Ethereum, SOLID, Fediverse, Mastodon, Diaspora, WebFinger, ActivityPub, XMPP plus many more. This will help users of both legacy apps/games/websites and blockchain slowly migrate to holochain since it will help expose it to them all. The OASIS API will act as a stepping stone as well as help Everything talk to Everything for maximum compatibility.
+
+**Goodbye silos and walled gardens, hello full integration through ONE universal unified interface!**
 
 ## Implement Your Own Storage/Network/Renderer Provider
 
@@ -415,11 +417,16 @@ This is also of course linked to your Me Holon in Noomap along with all your pas
 
 It will also be deeply integrated into every other aspect of the system as mentioned earlier (shopping, business, games, email, etc).
 
-#### Deep Integration Into Other Networks/Systems
+#### Deep Integration Into Other Networks/Protocols/Platforms (Such as Gab, Mastodon, Diaspora, WebFinger, SOLID, Ethereum, Fediverse, ActivityPub, XMPP & More!)
 
-We plan to also deeply integrate into any other aligned freedom loving social network such as Gab, etc so you can share your profile data between the various networks. You no longer need to have many logins and apps, you just have ONE central portal to do ALL you need to in a very cool evolved XR way...
+We plan to also deeply integrate into any other aligned open freedom loving networks/platforms/protocols such as Gab, Mastodon, Diaspora, WebFinger, SOLID, Ethereum, Fediverse, ActivityPub, XMPP etc so you can share your profile data between the various networks. You no longer need to have many logins and apps, you just have ONE central portal to do ALL you need to in a very cool evolved XR way...
+
+You can also choose to store your data on any other platform/server such as a SOLID Pod or Matteron Server but either way you will be able to share data between Holochain, SOLID, Etherum, Fediverse (ActivePub) and any other open standard protocol/platform using the OASIS API.
+
+**Our vision is to connect everything to everything through one universal fully integrated interface.**
 
 If only you could see what we see... there is a reason why we are called NextGen Software! ;-)
+
 
 ## Platforms
 
