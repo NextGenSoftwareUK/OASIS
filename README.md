@@ -281,7 +281,7 @@ The karma will be grouped into the following categories:
 * **Self Help/Improvement** - Earnt by improving your wellbeing by progressing in meditation, yoga, mindfulness, exercise apps/games/websites (includes Our World) etc.
 * **Helping People** - Earnt by helping people in Our World or in any other app/game/website. This could include counselling, healing, giving advice on a social network, donating, etc
 * **Helping The Enviroment** - Earnt by helping the enviroment such as planting a tree, saving the rain forest, campaigning to save your local park, picking up litter, cleaning up the ocean, etc
-* **Helping Animals**
+* **Helping Animals** - Earnt by 
 * **Contributing Towards A Good Cause - Content** - Writing content for any good cause.
 * **Contributing Towards A Good Cause - Sharing** - Sharing a good cause (including any content such as blogs, etc).
 * **Contributing Towards A Good Cause - Admin** - Doing admin work for a good cause. If it is non-paid then you earn even more karma.
@@ -293,10 +293,37 @@ The karma will be grouped into the following categories:
 
 The list above is subject to change with more cateogires likely to be added later as the system evolves and matures...
 
+Sometimes you may earn karma in multiple categories for one action such as by donating to a animal shelter you will earn karma for both **Helping Animals** and for **Contibuting Towards A Good Cause - Funder**. 
+
 You will be able to see how the karma you have earnt is broken down into these categories on the users profile/avatar. Various quests, special powers, abilities, items, locations, etc will unlock once you have reached a certain minimum karma level. If you fall below that level by losing karma then they will become locked again. The minimum karma level would normally be your total karma level but it could also be a combination of the various karma categories above. For example to enter a special mystic temple in Our World you may need a total karma level of 1000, karma level of 500 in Self Help/Improvement & 500 karma level for Our World. You could need a karma level of 300 for Helping Animals to access a secret animal sanctuary within Our World.
 
 You will also be able to view the karma levels of other users, this can help you reach out to them to help improve their karma in cateogries they are lacking in by inviting them on a Quest with you or your group. You 
 
+### Open Karma Committe/Community Concensors
+
+There will be a Open Karma Committe who will decide the algorithms for karma allocation through concensors with the community. The community can vote for any proposals the committe publish and only ones which receive enough votes will be made "OASIS Law". The community can also vote in representives to sit on the commitee so it is as open and democratic as possible.
+
+**We wish to empower the community to feel into their own hearts for what is right for them. We want them to own the system. **
+
+### Satillite Apps/Games/Websites
+
+As already mentioned, many satillite apps/games/websites will plug into Our World using the OASIS API. They can choose to just share the central avatar/profile and the karma system or they can choose to also define the 2D Sprite or 3D object that will appear in Our World at the geolocation specified thrugh the API. This will be the visual representation of the app/game/website/organisation and when the player either walks into or interacts with (click, touch, etc) it will display info and meta data passed through the API. The player can then choose to launch the app/game/website from within Our World.
+
+A list of possible apps/games/websites can be found below:
+
+* Noomap
+* Seeds
+* AppsForGood
+* Ocean
+* PreSearch
+* Uplift
+* 
+
+We are in the process of reaching out to these to see if they wish to be one of the early adopters of the OASIS API. 
+
+**Early adopters will receive a special status and highlighting so they will stand out from the crowd in listings (website), on the map (smartphone version) & in the 3D VR world (Desktop & consoles). So if you wish to take advantage of this offer or know of anyone else who could please get in touch on ourworld@nextgensoftware.co.uk. We would love to hear from you! :)**
+
+Please see the [Social Network](#socialnetwork) section for more info...
 
 ## .NET HDK
 
@@ -431,6 +458,7 @@ The same applies for the Renderer Provider, it could use one provider to render 
 
 It combines everything out there into one unified fully integrated interface. You never need to leave the XR/IR interface, you can launch all your apps, surf the net, check your email, make video calls, check your social feeds, play games, use real-time 3D geo-location maps of the world, shop, run your business and do everything you can currently do with existing technology but on a much more evolved fully integrated XR way... If you want to get an idea of what this looks like then watch Ready Player One, the OASIS that features in that is about 40% of what Our World is and we have been designing it long before we had even heard of Ready Player One.
 
+<a name="socialnetwork"></a>
 ### NextGen Social Network
 
 The social network part of Our World will be a fully de-centralised distributed social network that has your privacy concerns built into the design. You store and own your data on the ONET (powered by Holochain) and choose what you share and to who so it is never stored on any central server where it can be sold to advertisers, etc as is the case with Facebook, Google,etc. 
@@ -438,6 +466,14 @@ The social network part of Our World will be a fully de-centralised distributed 
 #### OASIS Avatar/Profile/Karma Integration
 
 What's more, this is fully integrated into the rest of the system and the OASIS Avatar/Profile/Karma system. So your profile will contain your 3D avatar and you will gain karma if you help people on the network. Of course if you are abusive then you will lose karma so this is a good incentive to behave yourselves and be kind and loving to your fellow earthlings... ;-)
+
+#### Our World/OASIS API/Social Network Website
+
+As well as the smartphone & desktop/console versions of Our World/OASIS, there will also be a tradional website, which will be the social network part of the system where people can view people's profiles/avatars, their karma, chat, find people with similar passions & interests. You can also help other people in need and gain karma, etc. They can also view the various satillite apps/games/websites that are linked and integrated into the OASIS System. Just like the smartphone & console/desktop versions they can also launch the satillite app/game/website from the website.
+
+There will also be a AR & VR version of the social network fully integrated into the smartphone and desktop/console versions of Our World.
+
+Please see the [OASIS API/Karma System](#oasisapi) section for more info.
 
 #### Noomap Integration
 
@@ -807,6 +843,12 @@ The platform that is going to win many rewards for the ground-breaking work it w
 ## Devs/Contributions Welcome! :)
 
 We would love to have some much needed dev resource on this vital project not only for Holochain but also for the world so if you are interested please contact us on either ourworld@nextgensoftware.co.uk or david@nextgensoftware.co.uk. Thank you, we look forward to hearing from you! :)
+
+## NextGen Developer Training Programmes
+
+## The Power Of Autism
+
+## Better Than A Fornite Clone! ;-)
 
 ## Other Ways To Get Involved
 
