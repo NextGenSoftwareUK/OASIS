@@ -271,6 +271,7 @@ The actual Our World Unity code is not currently stored in this repo due to size
 
 As with the rest of the project, if you have any suggestions we would love to hear from you! :)
 
+<a name="oasisapi"></a>
 ## The OASIS API & Karma System
 
 The OASIS API will allow [Everything to talk to Everything](#bridge) else and will act as the worlds universal API/protcol. At the centre of this is the central profile/avatar where the user's data will be stored. Part of this data will include the karma they have earnt in Our World as well as the karma they have earnt in any of the inter-connected satillite apps/games that use the OASIS API.
@@ -309,7 +310,7 @@ There will be a Open Karma Committe who will decide the algorithms for karma all
 
 As already mentioned, many satillite apps/games/websites will plug into Our World using the OASIS API. They can choose to just share the central avatar/profile and the karma system or they can choose to also define the 2D Sprite or 3D object that will appear in Our World at the geolocation specified thrugh the API. This will be the visual representation of the app/game/website/organisation and when the player either walks into or interacts with (click, touch, etc) it will display info and meta data passed through the API. The player can then choose to launch the app/game/website from within Our World.
 
-A list of possible apps/games/websites can be found below:
+A list of of possible early adopters can be found below:
 
 * Noomap
 * Seeds
@@ -319,7 +320,7 @@ A list of possible apps/games/websites can be found below:
 * Uplift
 * 
 
-We are in the process of reaching out to these to see if they wish to be one of the early adopters of the OASIS API. 
+We are in the process of reaching out to these to see if they wish to be one of the early adopters of the OASIS API. This list will grow over time, in time there will be thousands and even millions as our vision to connect everyone to everyone through the OASIS API/Our World becomes more and more of a reality.
 
 **Early adopters will receive a special status and highlighting so they will stand out from the crowd in listings (website), on the map (smartphone version) & in the 3D VR world (Desktop & consoles). So if you wish to take advantage of this offer or know of anyone else who could please get in touch on ourworld@nextgensoftware.co.uk. We would love to hear from you! :)**
 
