@@ -278,13 +278,29 @@ The OASIS API will allow [Everything to talk to Everything](#bridge) else and wi
 
 The karma will be grouped into the following categories:
 
+| Karma Type  | Desc |
+|--|--|
+| Our World | Earnt by completing quests within Our Word itself.  |
+| Self Help/Improvement | Earnt by helping people in Our World or in any other app/game/website. This could include counselling, healing, giving advice on a social network, donating, etc
+| Helping People | Earnt by helping people in Our World or in any other app/game/website. This could include counselling, healing, giving advice on a social network, donating, etc
+| Helping The Environment | Earnt by helping the environment such as planting a tree, saving the rain forest, campaigning to save your local park, picking up litter, cleaning up the ocean, etc
+| Helping Animals | Earnt by helping animals such as donating to a animal shelter or charity.
+| Contributing Towards A Good Cause - Contributor | Writing content for any good cause. This could also creating audio (podcast,etc) or video (YouTube,etc)
+| Contributing Towards A Good Cause - Sharer | Sharing a good cause (including any content such as blogs, video etc).
+| Contributing Towards A Good Cause - Administrator | Doing admin work for a good cause. If it is non-paid then you earn even more karma.
+| Contributing Towards A Good Cause - Creator/Organiser | Organising/creating a good cause (this will give you more karma than the other good cause categories) | 
+| Contributing Towards A Good Cause - Funder | Donate to a good cause/charity.
+| Contributing Towards A Good Cause - Speaker | Do public speaking for a good cause.
+| Contributing Towards A Good Cause - Peaceful Protestor/Activist| Attending a peaceful protest to being about positive change in the world. |
+| Other | Anything else not covered above.
+
 * **Our World** - Earnt by completing quests within Our Word itself.
 * **Self Help/Improvement** - Earnt by improving your wellbeing by progressing in meditation, yoga, mindfulness, exercise apps/games/websites (includes Our World) etc.
 * **Helping People** - Earnt by helping people in Our World or in any other app/game/website. This could include counselling, healing, giving advice on a social network, donating, etc
-* **Helping The Enviroment** - Earnt by helping the enviroment such as planting a tree, saving the rain forest, campaigning to save your local park, picking up litter, cleaning up the ocean, etc
-* **Helping Animals** - Earnt by 
+* **Helping The Environment** - Earnt by helping the environment such as planting a tree, saving the rain forest, campaigning to save your local park, picking up litter, cleaning up the ocean, etc
+* **Helping Animals** - Earnt by helping animals such as donating to a animal shelter or charity.
 * **Contributing Towards A Good Cause - Content** - Writing content for any good cause.
-* **Contributing Towards A Good Cause - Sharing** - Sharing a good cause (including any content such as blogs, etc).
+* **Contributing Towards A Good Cause - Sharing** - Sharing a good cause (including any content such as blogs, video etc).
 * **Contributing Towards A Good Cause - Admin** - Doing admin work for a good cause. If it is non-paid then you earn even more karma.
 * **Contributing Towards A Good Cause - Creator/Organiser** - Organising/creating a good cause (this will give you more karma than the other good cause categories)
 * **Contributing Towards A Good Cause - Funder** - Donate to a good cause/charity.
