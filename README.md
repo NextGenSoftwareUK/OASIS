@@ -21,6 +21,10 @@ Next, it will port Noomap to Unity and will implement a Synergy Engine allowing 
 
 ## Harry Call To Action Apps
 
+## Protocols/Platforms/Networks Supported
+
+If you of any other open protocols/platforms/networks that you feel are part of the new internet (Web 3.9) we are all co-creating then please do get in touch on ourworld@nextgensoftware.co.uk and let us know, thank you! :)
+
 ## HoloNET
 
 This allows .NET to talk to Holochain, which is where the profile/avatar is stored on a private decentralised, distributed network. This will be gifted forward to the Holochain community If there is demand for HoloNET and people wish to contribute we may consider splitting it out into it's own repo...
