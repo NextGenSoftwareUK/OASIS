@@ -1,5 +1,6 @@
 
 
+
 # OASIS API / Our World / HoloNET Altha v0.0.1
 
 ![alt text](https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-And-HoloNET/blob/master/FinalLogo.jpg "Our World")
@@ -92,6 +93,60 @@ You can subscribe to a number of different events:
 | OnDataReceived         | Fired when any data is received from the hc conductor. This returns the raw JSON data.                   |
 | OnZomeFunctionCallBack | Fired when the hc conductor returns the response from a zome function call. This returns the raw JSON data as well as the actual parsed data returned from the zome function. It also returns the id, instance, zome and zome function that made the call.                                                               |
 | OnSignalsCallBack      | Fired when the hc conductor sends signals data. NOTE: This is still waiting for hc to flresh out the    details for how this will work. Currently this returns the raw signals data.                             | 
+
+##### OnConnected
+Fired when the client has successfully connected to the Holochain conductor. 
+
+````c#
+holoNETClient.OnConnected += HoloNETClient_OnConnected;
+
+private static void HoloNETClient_OnConnected(object sender, ConnectedEventArgs e)
+        {
+            Console.WriteLine(string.Concat("Connected to ", e.EndPoint));
+            Console.WriteLine("");
+        }
+````
+
+|Parameter|Description  |
+|--|--|
+|EndPoint | The URI EndPoint of the Holochain conductor.
+##### OnDisconnected
+Fired when the client has successfully disconnected from the Holochain conductor. 
+
+````c#
+holoNETClient.OnDisconnected += HoloNETClient_OnDisconnected;
+
+ private static void HoloNETClient_OnDisconnected(object sender, DisconnectedEventArgs e)
+        {
+            Console.WriteLine(string.Concat("Disconnected from ", e.EndPoint, ". Resason: ", e.Reason));
+            Console.WriteLine("");
+        }
+````
+
+|Parameter|Description  |
+|--|--|
+|EndPoint | The URI EndPoint of the Holochain conductor.
+|Reason | The reason for the disconnection.
+
+##### OnError
+Fired when an error occurs, check the params for the cause of the error.       
+
+````c#
+holoNETClient.OnError += HoloNETClient_OnError;
+
+ private static void HoloNETClient_OnError(object sender, HoloNETErrorEventArgs e)
+        {
+            Console.WriteLine(string.Concat("Error Occured. Resason: ", e.Reason,  ", EndPoint: ", e.EndPoint, ", Details: ", e.ErrorDetails.ToString()));
+            Console.WriteLine("");
+        }
+````
+
+|Parameter|Description  |
+|--|--|
+|EndPoint | The URI EndPoint of the Holochain conductor.
+| Reason | The reason for the error.
+| ErrorDetails | A more detailed description of the error, this normally includes a stacktrace to help you track down the cause.
+
 
 ##### OnGetInstancesCallBack
 Fired when the hc conductor has returned the list of hc instances it is currently running.
