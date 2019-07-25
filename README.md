@@ -1132,7 +1132,7 @@ http://www.nextgensoftware.co.uk
 
 You can manually download using the links below:
  
-<a href="https://docs.wixstatic.com/ugd/4280d8_ad8787bd42b1471bae73003bfbf111f7.pdf"><NextGen Developer Training Programme</a>
+<a href="https://docs.wixstatic.com/ugd/4280d8_ad8787bd42b1471bae73003bfbf111f7.pdf">NextGen Developer Training Programme</a>
 
 <a href="https://docs.wixstatic.com/ugd/4280d8_999d98ba615e4fa6ab4383a415ee24c5.pdf">Junior NextGen Developer Training Programme</a>
 
@@ -1196,17 +1196,11 @@ In Love,Light & Hope,
 David Ellams BSc(Hons)
 
 Proud & Liberated Aspie
-
 Founder & Managing Director
-
 NextGen Software Ltd
-
 NextGen World Ltd
-
 Yoga4Autism Ltd
 
 http://www.ourworldthegame.com
-
 http://www.nextgensoftware.co.uk
-
 http://www.yoga4autism.com
