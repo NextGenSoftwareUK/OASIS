@@ -1175,7 +1175,7 @@ Please contact us on ourworld@nextgensoftware.co.uk if you wish to get involved.
 There was recently a blog post from Holochain talking about how the community wanted to make a Fortnite clone using Holochain. But we say why do you want to make a clone of yet another game promotting and gloryifing violence? Wouldn't you rather co-create a game that helps make the world a better place and ensures a future for the next generation by teaching them the right life lessons?
 
 Read more on one of our recent blog posts:
-
+https://www.ourworldthegame.com/single-post/2019/02/22/Why-Our-World-Is-Powered-By-Holochain
 
 ## Other Ways To Get Involved
 
