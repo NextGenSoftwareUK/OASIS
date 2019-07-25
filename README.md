@@ -1128,10 +1128,12 @@ We intend to be the template for how all future software houses, training compan
 
 Check out the training PDF downloads under the cunningly named Training section on our website:
 
- http://www.nextgensoftware.co.uk 
+http://www.nextgensoftware.co.uk 
+
 You can manually download using the links below:
  
 <a href="https://docs.wixstatic.com/ugd/4280d8_ad8787bd42b1471bae73003bfbf111f7.pdf"><NextGen Developer Training Programme</a>
+
 <a href="https://docs.wixstatic.com/ugd/4280d8_999d98ba615e4fa6ab4383a415ee24c5.pdf">Junior NextGen Developer Training Programme</a>
 
 
