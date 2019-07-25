@@ -82,7 +82,7 @@ https://docs.microsoft.com/en-us/dotnet/csharp/programming-guide/concepts/async/
 
 You can subscribe to a number of different events:
 
-| Event                  | Desc                                                                                                     |
+| Event                  | Description                                                                                              |
 | ---------------------- | -------------------------------------------------------------------------------------------------------- |
 | OnConnected            | Fired when the client has successfully connected to the Holochain conductor.                             |
 | OnDisconnected         | Fired when the client disconnected from the Holochain conductor.                                         |
@@ -104,7 +104,7 @@ You can subscribe to a number of different events:
         }
 ````
 
- | Param              | Desc                                               |
+ | Parameter          | Description                                        |
  | ------------------ | -------------------------------------------------- |
  | Id                 | The id that made the request.                      |
  | Instance           | The hc instance that made the request.             |
@@ -146,7 +146,7 @@ This method raises the `OnCallZomeFunctionCallBack` event once it has received a
 public async Task CallZomeFunctionAsync(string id, string instanceId, string zome, string function, ZomeFunctionCallBack callback, object paramsObject, bool matchIdToInstanceZomeFuncInCallback = true, bool cachReturnData = false)
 ````
 
-| Param                               | Desc                                                                                            
+| Parameter                           | Description                                                                                    
 | ----------------------------------- | ---------------------------------------------------------------------------------------------- |
 | id                                  | The unique id you wish to assign for this call (NOTE: There is an overload that omits this     |  |                                     | param, use this overload if you wish HoloNET to auto-generate and manage the id's for you).    | 
 | instance                            | The instance running on the holochain conductor you wish to target.                            |
@@ -225,7 +225,7 @@ public async Task GetHolochainInstancesAsync(string id, bool cachReturnData = fa
 public async Task GetHolochainInstancesAsync(bool cachReturnData = false)
 ````
 
-| Param | Desc  |
+| Parameter| Description  |
 |--|--|
 |id|The unique id you wish to assign for this call (NOTE: Use the overload that omits this                                       param if you wish HoloNET to auto-generate and manage the id's for you).   |
 |cachReturnData | This is an optional param, which defaults to false. Set this to true if you wish HoloNET to    cache the JSON response retrieved from holochain. Subsequent calls will return this cached data rather than calling the Holochain conductor again. Use this for static data that is not going to change for performance gains. This would be a good method to enable caching if you know the instances are not going to change.  
@@ -240,7 +240,7 @@ You would rarely need to use this and we highly recommend you use the `CallZomeF
 public async Task SendMessageAsync(string jsonMessage)
  ````
 
-| Param |Desc  |
+| Paramameter |Description  |
 |--|--|
 | jsonMessage | The raw JSON message you wish to send to the Holochain conductor.  |
 
@@ -278,7 +278,7 @@ The OASIS API will allow [Everything to talk to Everything](#bridge) else and wi
 
 The karma will be grouped into the following categories:
 
-| Karma Type  | Desc |
+| Karma Type  | Description |
 |--|--|
 | Our World | Earnt by completing quests within Our Word itself.  |
 | Self Help/Improvement | Earnt by helping people in Our World or in any other app/game/website. This could include counselling, healing, giving advice on a social network, donating, etc
@@ -293,20 +293,6 @@ The karma will be grouped into the following categories:
 | Contributing Towards A Good Cause - Speaker | Do public speaking for a good cause.
 | Contributing Towards A Good Cause - Peaceful Protestor/Activist| Attending a peaceful protest to being about positive change in the world. |
 | Other | Anything else not covered above.
-
-* **Our World** - Earnt by completing quests within Our Word itself.
-* **Self Help/Improvement** - Earnt by improving your wellbeing by progressing in meditation, yoga, mindfulness, exercise apps/games/websites (includes Our World) etc.
-* **Helping People** - Earnt by helping people in Our World or in any other app/game/website. This could include counselling, healing, giving advice on a social network, donating, etc
-* **Helping The Environment** - Earnt by helping the environment such as planting a tree, saving the rain forest, campaigning to save your local park, picking up litter, cleaning up the ocean, etc
-* **Helping Animals** - Earnt by helping animals such as donating to a animal shelter or charity.
-* **Contributing Towards A Good Cause - Content** - Writing content for any good cause.
-* **Contributing Towards A Good Cause - Sharing** - Sharing a good cause (including any content such as blogs, video etc).
-* **Contributing Towards A Good Cause - Admin** - Doing admin work for a good cause. If it is non-paid then you earn even more karma.
-* **Contributing Towards A Good Cause - Creator/Organiser** - Organising/creating a good cause (this will give you more karma than the other good cause categories)
-* **Contributing Towards A Good Cause - Funder** - Donate to a good cause/charity.
-* **Contributing Towards A Good Cause - Speaker** - Do public speaking for a good cause.
-* **Contributing Towards A Good Cause - Peaceful Protestor/Activist** - Attending a peaceful protest to being about positive change in the world.
-* Other
 
 The list above is subject to change with more cateogires likely to be added later as the system evolves and matures...
 
