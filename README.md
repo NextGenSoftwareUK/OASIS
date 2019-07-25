@@ -109,7 +109,7 @@ private static void HoloNETClient_OnGetInstancesCallBack(object sender, GetInsta
 |Parameter|Description  |
 |--|--|
 |EndPoint | The URI EndPoint of the Holochain conductor.
-|WebSocketResult| Contains more detailed technical information of the underlying websocket. This includes the number of bytes received, whether the message was fully received & whether the message is UTF-8 or binary. Please <a href="[https://docs.microsoft.com/en-us/dotnet/api/system.net.websockets.websocketreceiveresult?view=netframework-4.8](https://docs.microsoft.com/en-us/dotnet/api/system.net.websockets.websocketreceiveresult?view=netframework-4.8)">see here</a> for more info.
+|WebSocketResult| Contains more detailed technical information of the underlying websocket. This includes the number of bytes received, whether the message was fully received & whether the message is UTF-8 or binary. Please <a href="https://docs.microsoft.com/en-us/dotnet/api/system.net.websockets.websocketreceiveresult?view=netframework-4.8">see here</a> for more info.
 | Id                 | The id that made the request.                      
 | DNA | The DNA of the instance running on the Holochain conductor.
 | Agent | The name of the agent running on the Holochain conductor.
