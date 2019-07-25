@@ -133,7 +133,7 @@ private static void HoloNETClient_OnDataReceived(object sender, DataReceivedEven
 |Parameter|Description  |
 |--|--|
 |EndPoint | The URI EndPoint of the Holochain conductor.
-|WebSocketResult| Contains more detailed technical information of the underlying websocket. This includes the number of bytes received, whether the message was fully received & whether the message is UTF-8 or binary. Please <a href="[https://docs.microsoft.com/en-us/dotnet/api/system.net.websockets.websocketreceiveresult?view=netframework-4.8](https://docs.microsoft.com/en-us/dotnet/api/system.net.websockets.websocketreceiveresult?view=netframework-4.8)">see here</a> for more info.
+|WebSocketResult| Contains more detailed technical information of the underlying websocket. This includes the number of bytes received, whether the message was fully received & whether the message is UTF-8 or binary. Please <a href="https://docs.microsoft.com/en-us/dotnet/api/system.net.websockets.websocketreceiveresult?view=netframework-4.8">see here</a> for more info.
 |RawJSONData  | The raw JSON data returned from the Holochain conductor. |
 
 
@@ -154,7 +154,7 @@ private static void HoloNETClient_OnZomeFunctionCallBack(object sender, ZomeFunc
  | Parameter          | Description                                        |
  | ------------------ | -------------------------------------------------- |
 |EndPoint | The URI EndPoint of the Holochain conductor.
-|WebSocketResult| Contains more detailed technical information of the underlying websocket. This includes the number of bytes received, whether the message was fully received & whether the message is UTF-8 or binary. Please <a href="[https://docs.microsoft.com/en-us/dotnet/api/system.net.websockets.websocketreceiveresult?view=netframework-4.8](https://docs.microsoft.com/en-us/dotnet/api/system.net.websockets.websocketreceiveresult?view=netframework-4.8)">see here</a> for more info.
+|WebSocketResult| Contains more detailed technical information of the underlying websocket. This includes the number of bytes received, whether the message was fully received & whether the message is UTF-8 or binary. Please <a href="https://docs.microsoft.com/en-us/dotnet/api/system.net.websockets.websocketreceiveresult?view=netframework-4.8">see here</a> for more info.
  | Id                 | The id that made the request.                      |
  | Instance           | The hc instance that made the request.             |
  | Zome               | The zome that made the request.                    |
@@ -179,7 +179,7 @@ private static void HoloNETClient_OnSignalsCallBack(object sender, SignalsCallBa
  | Parameter          | Description                                        |
  | ------------------ | -------------------------------------------------- |
 |EndPoint | The URI EndPoint of the Holochain conductor.
-|WebSocketResult| Contains more detailed technical information of the underlying websocket. This includes the number of bytes received, whether the message was fully received & whether the message is UTF-8 or binary. Please <a href="[https://docs.microsoft.com/en-us/dotnet/api/system.net.websockets.websocketreceiveresult?view=netframework-4.8](https://docs.microsoft.com/en-us/dotnet/api/system.net.websockets.websocketreceiveresult?view=netframework-4.8)">see here</a> for more info.
+|WebSocketResult| Contains more detailed technical information of the underlying websocket. This includes the number of bytes received, whether the message was fully received & whether the message is UTF-8 or binary. Please <a href="https://docs.microsoft.com/en-us/dotnet/api/system.net.websockets.websocketreceiveresult?view=netframework-4.8">see here</a> for more info.
  | Id                 | The id that made the request.                     
  | RawJSONData        | The raw JSON data that the hc conductor returned.  |
 
