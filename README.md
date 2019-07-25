@@ -13,6 +13,12 @@ Next it will implement the ARC (Augmented Reality Computer) Membrane allowing th
 
 Next, it will port Noomap to Unity and will implement a Synergy Engine allowing people to easily find and match solutions/desires/passions and to also find various solution providers, which again will be fully integrated with the 3D Map & Avatar/Karma system.
 
+## HSTP (Hyper Spacial Transport Protocol)
+
+## HoloSource Liscence
+
+## Harry Call To Action Apps
+
 ## HoloNET
 
 This allows .NET to talk to Holochain, which is where the profile/avatar is stored on a private decentralised, distributed network. This will be gifted forward to the Holochain community If there is demand for HoloNET and people wish to contribute we may consider splitting it out into it's own repo...
