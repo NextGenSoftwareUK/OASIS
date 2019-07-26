@@ -59,13 +59,13 @@ namespace NextGenSoftware.Holochain.HoloNET.Client.TestHarness
 
         private static void HoloNETClient_OnSignalsCallBack(object sender, SignalsCallBackEventArgs e)
         {
-            Console.WriteLine(string.Concat("OnSignalsCallBack: Id: ", e.Id , ", Data: ", e.RawJSONData));
+            Console.WriteLine(string.Concat("OnSignalsCallBack: EndPoint: ", e.EndPoint, ", Id: ", e.Id , ", Data: ", e.RawJSONData));
             Console.WriteLine("");
         }
 
         private static void HoloNETClient_OnGetInstancesCallBack(object sender, GetInstancesCallBackEventArgs e)
         {
-            Console.WriteLine(string.Concat("OnGetInstancesCallBack: Id: ", e.Id, ", Instances: ", string.Join(",", e.Instances), ", DNA: ", e.DNA, ", Agent: ", e.Agent, ", Data: ", e.RawJSONData));
+            Console.WriteLine(string.Concat("OnGetInstancesCallBack: EndPoint: ", e.EndPoint, ", Id: ", e.Id, ", Instances: ", string.Join(",", e.Instances), ", DNA: ", e.DNA, ", Agent: ", e.Agent, ", Data: ", e.RawJSONData));
             Console.WriteLine("");
         }
 
@@ -83,25 +83,25 @@ namespace NextGenSoftware.Holochain.HoloNET.Client.TestHarness
 
         private static void HoloNETClient_OnDisconnected(object sender, DisconnectedEventArgs e)
         {
-            Console.WriteLine(string.Concat("Disconnected. Resason: ", e.Reason));
+            Console.WriteLine(string.Concat("Disconnected from ", e.EndPoint, ". Resason: ", e.Reason));
             Console.WriteLine("");
         }
 
         private static void HoloNETClient_OnZomeFunctionCallBack(object sender, ZomeFunctionCallBackEventArgs e)
         {
-            Console.WriteLine(string.Concat("ZomeFunction CallBack: Id: ", e.Id, ", Instance: ", e.Instance, ", Zome: ", e.Zome, ", ZomeFunction: ", e.ZomeFunction, ", Data: ",  e.ZomeReturnData, ", Raw Zome Return Data: ", e.RawZomeReturnData, ", Raw JSON Data: ", e.RawJSONData, ", IsCallSuccessful: ", e.IsCallSuccessful? "true" : "false"));
+            Console.WriteLine(string.Concat("ZomeFunction CallBack: EndPoint: ", e.EndPoint, ", Id: ", e.Id, ", Instance: ", e.Instance, ", Zome: ", e.Zome, ", ZomeFunction: ", e.ZomeFunction, ", Data: ",  e.ZomeReturnData, ", Raw Zome Return Data: ", e.RawZomeReturnData, ", Raw JSON Data: ", e.RawJSONData, ", IsCallSuccessful: ", e.IsCallSuccessful? "true" : "false"));
             Console.WriteLine("");
         }
 
         private static void HoloNETClient_OnDataReceived(object sender, DataReceivedEventArgs e)
         {
-            Console.WriteLine(string.Concat("Data Received: ",  e.RawJSONData));
+            Console.WriteLine(string.Concat("Data Received: EndPoint: ", e.EndPoint, "RawJSONData: ", e.RawJSONData));
             Console.WriteLine("");
         }
 
         private static void HoloNETClient_OnConnected(object sender, ConnectedEventArgs e)
         {
-            Console.WriteLine("Connected");
+            Console.WriteLine(string.Concat("Connected to ", e.EndPoint));
             Console.WriteLine("");
         }
     }
