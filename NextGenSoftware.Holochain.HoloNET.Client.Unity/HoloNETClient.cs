@@ -11,7 +11,5 @@ namespace NextGenSoftware.Holochain.HoloNET.Client.Unity
             // this.Logger = new NLogger();
             this.Logger = new DumbyLogger();
         }
-
-
     }
 }
