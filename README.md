@@ -126,18 +126,18 @@ The projects within this repo should be pretty self explanatory from their names
 |[NextGenSoftware.Holochain.HoloNET.Client.Desktop](#holonet)| The desktop implementation of the HoloNETClient using NLog as the Logger.
 |[NextGenSoftware.Holochain.HoloNET.Client.Unity](#holonet)| The Unity implementation of the HoloNETClient. This will use a Unity compatible logger soon...
 |[NextGenSoftware.Holochain.HoloNET.Client.TestHarness](#holonet)| The Test Harness for the HoloNETClient. This includes load tests for Holochain. So far looking good, the conductor is very fast! ;-)
-|[NextGenSoftware.Holochain.HoloNET.HDK](#.net-hdk)| A placeholder for the .NET HDK (Holochain Development Kit). 
-|[NextGenSoftware.OASIS.API.Core](#oasis-api-and-the-karma-system)| The core code for the OASIS API itself. This is where the Providers are injected and is the core part of the system.
-|[NextGenSoftware.OASIS.API.Core.ARC.Membrane](#arc-integration)| This will contain a DeviceManager,PsyberManager & MappingManager allowing ARC to talk to any device and access all of it's hardware such as Bluetooth. It will also provide a wrapper around Unity allowing ARC to render it's 2D & 3D UI to Unity. It will also allow ARC to access the Our World 3D Map.
-|[NextGenSoftware.OASIS.API.Core.ARC.Membrane.NodeJS]((#arc-integration)| This is for testing purposes to simulate the ARC Core (written in NodeJS). It will test calls to the DeviceManager, PsyberManager & MappingManager.
-|[NextGenSoftware.OASIS.API.Core.TestHarness](#oasis-api-and-the-karma-system)| This is a Test Harness for the main OASIS API.
-|[NextGenSoftware.OASIS.API.FrontEnd.Web](#oasis-api-and-the-karma-system)| This is the Web front-end for the OASIS API and will show the user's Avatar/Profile along with their Karma levels (and where the karma came from). It will also show what Satellite apps/games/websites that are using the API. This will form the foundation of the NextGen Social Network (a sub-component of Our World).
-|[NextGenSoftware.OASIS.API.FrontEnd.Unity](#holo-unity)| This shows how the OASIS API is used in Unity to render the users profile data to the 3D Avatar.
+|[NextGenSoftware.Holochain.HoloNET.HDK](#net-hdk)| A placeholder for the .NET HDK (Holochain Development Kit). 
+|[NextGenSoftware.OASIS.API.Core](#the-oasis-api---karma-system)| The core code for the OASIS API itself. This is where the Providers are injected and is the core part of the system.
+|[NextGenSoftware.OASIS.API.Core.ARC.Membrane](#arc---noomap-integration)| This will contain a DeviceManager,PsyberManager & MappingManager allowing ARC to talk to any device and access all of it's hardware such as Bluetooth. It will also provide a wrapper around Unity allowing ARC to render it's 2D & 3D UI to Unity. It will also allow ARC to access the Our World 3D Map.
+|[NextGenSoftware.OASIS.API.Core.ARC.Membrane.NodeJS]((#arc---noomap-integration)| This is for testing purposes to simulate the ARC Core (written in NodeJS). It will test calls to the DeviceManager, PsyberManager & MappingManager.
+|[NextGenSoftware.OASIS.API.Core.TestHarness](#the-oasis-api---karma-system)| This is a Test Harness for the main OASIS API.
+|[NextGenSoftware.OASIS.API.FrontEnd.Web](#the-oasis-api---karma-system)| This is the Web front-end for the OASIS API and will show the user's Avatar/Profile along with their Karma levels (and where the karma came from). It will also show what Satellite apps/games/websites that are using the API. This will form the foundation of the NextGen Social Network (a sub-component of Our World).
+|[NextGenSoftware.OASIS.API.FrontEnd.Unity](#holounity)| This shows how the OASIS API is used in Unity to render the users profile data to the 3D Avatar.
 |NextGenSoftware.OASIS.API.WebAPI| This will expose the OASIS API as a RESTful service over HTTP. In future there will also be a websocket HTTP & websocket JSON RPC 2.0 interface.
-|[NextGenSoftware.OASIS.API.Providers.HoloOASIS.Core](#holo-oasis)| This contains the core code for the HoloOASIS Provider, that wraps around the HoloNETClient to talk to Holochain. This implements the IOASISStorage interface allowing the OASIS API to read & write the users profile data to Holochain.
-|[NextGenSoftware.OASIS.API.Providers.HoloOASIS.Desktop](#holo-oasis)| This is the desktop implementation of the HoloOASIS Provider and uses the desktop version of the HoloNETClient.
-|[NextGenSoftware.OASIS.API.Providers.HoloOASIS.Unity](#holo-oasis)| This is the Unity implementation of the HoloOASIS Provider and uses the Unity version of the HoloNETClient.
-|[NextGenSoftware.OASIS.API.Providers.HoloOASIS.TestHarness](#holo-oasis)| This is the Test Harness of the HoloOASIS Provider.
+|[NextGenSoftware.OASIS.API.Providers.HoloOASIS.Core](#holooasis)| This contains the core code for the HoloOASIS Provider, that wraps around the HoloNETClient to talk to Holochain. This implements the IOASISStorage interface allowing the OASIS API to read & write the users profile data to Holochain.
+|[NextGenSoftware.OASIS.API.Providers.HoloOASIS.Desktop](#holooasis)| This is the desktop implementation of the HoloOASIS Provider and uses the desktop version of the HoloNETClient.
+|[NextGenSoftware.OASIS.API.Providers.HoloOASIS.Unity](#holooasis)| This is the Unity implementation of the HoloOASIS Provider and uses the Unity version of the HoloNETClient.
+|[NextGenSoftware.OASIS.API.Providers.HoloOASIS.TestHarness](#holooasis)| This is the Test Harness of the HoloOASIS Provider.
 
 
 ## HoloNET
