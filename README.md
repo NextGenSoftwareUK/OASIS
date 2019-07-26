@@ -2,6 +2,7 @@
 
 
 
+
 # OASIS API / Our World / HoloNET Altha v0.0.1
 
 ![alt text](https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-And-HoloNET/blob/master/FinalLogo.jpg "Our World")
@@ -640,19 +641,108 @@ The External enum was to be used by any other external implementation that imple
 
 ## HoloOASIS
 
-HoloOASIS uses HoloNET to implement a Storage Provider (IOASISStorage) for the OASIS System. It will soon also implement a Network Provider (IOASISNET) for the OASIS System that will leverage Holochain to create it's own private de-centralised distributed network called ONET (as seen on the OASIS Architecture Diagram below).
+`HoloOASIS` uses [HoloNET](#holonet) to implement a Storage Provider (`IOASISStorage`) for the OASIS System. It will soon also implement a Network Provider (`IOASISNET`) for the OASIS System that will leverage Holochain to create it's own private de-centralised distributed network called `ONET` (as seen on the [OASIS Architecture Diagram](#oasis-architecture) below).
 
-This is a good example to see how to use HoloNET in a real world game/platform (OASIS/Our World).
+This is a good example to see how to use [HoloNET](#holonet) in a real world game/platform (OASIS/Our World).
+
+### Using HoloOASIS
+
+You start by instantiating a new HoloOASIS class from either the `NextGenSoftware.OASIS.API.Providers.HoloOASIS.Desktop` project or the `NextGenSoftware.OASIS.API.Providers.HoloOASIS.Unity` project.
+
+````c#
+Desktop.HoloOASIS _holoOASIS = new Desktop.HoloOASIS("ws://localhost:8888");
+````
+
+You pass into the constructor the URI to the Holochain conductor.
+
+Next, wire up the events:
+
+````c#
+_holoOASIS.HoloNETClient.OnConnected += HoloNETClient_OnConnected;
+_holoOASIS.OnInitialized += _holoOASIS_OnInitialized;
+_holoOASIS.OnPlayerProfileLoaded += _holoOASIS_OnPlayerProfileLoaded;
+_holoOASIS.OnPlayerProfileSaved += _holoOASIS_OnPlayerProfileSaved;
+_holoOASIS.OnHoloOASISError += _holoOASIS_OnHoloOASISError;
+````
+
+Once HoloOASIS has finished initializing after the `OnInitialzed` event has fired you can create a new user Profile by creating a new Profile object and populating it with the required properties.
+
+You can also add karma by calling the `AddKarma` method on the `Profile` object.
+
+Finally you call the `SaveProfileAsync` method passing in the `Profile` object to save the profile to your local chain on Holochain.
+
+````c#
+private static void _holoOASIS_OnInitialized(object sender, EventArgs e)
+{
+            Console.WriteLine("Initialized.");
+            Console.WriteLine("Saving Profile...");
+
+            _savedProfile = new Profile { Username = "dellams", Email = "david@nextgensoftware.co.uk", Password = "1234", FirstName = "David", LastName = "Ellams", DOB = "11/04/1980", Id = Guid.NewGuid(), Title = "Mr", PlayerAddress = "blahahahaha" };
+            _savedProfile.AddKarma(999);
+
+            _holoOASIS.SaveProfileAsync(_savedProfile);
+}
+````
+
+To load the `Profile` object back from your local chain on Holochain you simply call the `LoadProfileAsync` method passing in the desired profiles Holochain hash, which is returned as a param in the `OnPlayerProfileSaved` event handler.
+
+````c#
+private static void _holoOASIS_OnPlayerProfileSaved(object sender, ProfileSavedEventArgs e)
+{
+            Console.WriteLine("Profile Saved.");
+            Console.WriteLine("Profile Entry Hash: " + e.Profile.HcAddressHash);
+            Console.WriteLine("Loading Profile...");
+            //_savedProfile.Id = new Guid(e.ProfileEntryHash);
+            _holoOASIS.LoadProfileAsync(e.Profile.HcAddressHash);
+}
+````
+
+### Events
+
+### Methods
+
+### Properties
+
+**More to come soon...**
 
 ## HoloUnity
 
-We will soon be creating a Asset for the Unity Asset Store that will include HoloNET along with Unity wrappers and examples of how to use HoloNET inside Unity.
+We will soon be creating a Asset for the Unity Asset Store that will include `HoloNET` along with Unity wrappers and examples of how to use `HoloNET` inside Unity.
 
-In the codebase you will find a project called NextGenSoftware.OASIS.API.FrontEnd.Unity, which shows how the ProfileManager found inside the OASIS API Core (NextGenSoftware.OASIS.API.Core) is used. When you instantiate the ProfileManager you inject into a Storage Provider that implements the IOASISStorage interface. Currently the only provider implemented is the HoloOASIS Provider.
+In the codebase you will find a project called `NextGenSoftware.OASIS.API.FrontEnd.Unity`, which shows how the `ProfileManager` found inside the `OASIS API Core` (`NextGenSoftware.OASIS.API.Core`) is used. When you instantiate the `ProfileManager` you inject into a Storage Provider that implements the `IOASISStorage` interface. Currently the only provider implemented is the `HoloOASIS` Provider.
 
 The actual Our World Unity code is not currently stored in this repo due to size restrictions but we may consider using GitHub LFS (Large File Storage) later on. We are also looking at GitLab and other alternatives to see if they allow greater storage capabilities free out of the box (since we are currently working on a very tight budget but you could change that by donating below! ;-) ).
 
-As with the rest of the project, if you have any suggestions we would love to hear from you! :)
+**As with the rest of the project, if you have any suggestions we would love to hear from you! :)**
+
+### Using HoloUnity
+
+You start by instantiating the `ProfileManager` class found within the `NextGenSoftware.OASIS.API.Core` project.
+
+````c#
+// Inject in the HoloOASIS Storage Provider (this could be moved to a config file later so the 
+// providers can be sweapped without having to re-compile.
+ProfileManager = new ProfileManager(new HoloOASIS("ws://localhost:8888"));
+````
+
+Now, load the users Profile:
+
+````c#
+IProfile profile = await ProfileManager.LoadProfileAsync(username, password);
+
+if (profile != null)
+{
+	//TODO: Bind profile info to Unity Avatar UI here.
+}
+````
+
+### Events
+
+### Methods
+
+### Properties
+
+**More to come soon...**
 
 <a name="oasisapi"></a>
 ## The OASIS API & Karma System
