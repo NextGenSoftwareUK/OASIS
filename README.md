@@ -1272,27 +1272,7 @@ We also offer FREE training with our NextGen Developer Training Programme where 
 
 We want to help the people that the world has turned their back on, people who no longer believe in themselves, we are here to tell them that we believe in them and in time we will help them believe in themselves again. We are here to tell them to forget what society says you can or cannot do, for you can do whatever you want to, you can follow your heart and achieve your dreams. We want to empower people to be their own boss and we actively encourage their creativity and imagination and that anything is possible. We want to give them free reign to work on or create whatever they like or heart desires.
 
-We believe everyone has a gift to share with the world and we want to help find it and hone it further so they can be the best they possibly can be without any limitations, the sky really is the limit! :)
-
-In fact there are no limits, only infinite possibilities! If they can think or dream of it, then we can help them make it into a reality.  We want to help people reach their full potential and become the best possible person they can be.
-
-We will offer them real world commercial experience working on real-world cutting-edge projects. Most of our projects are light years ahead of everyone else, you can be part of our crack elite team developing them... 
-
-This way their time is used more effectively and only used to make real projects come alive, projects that can help people and make a difference to the world. Rather than being wasted on boring dull exercises and demo projects that never get to the see the light of day, this way they feel more productive and feel they really are contributing something and really are making a difference, even whilst training! 
-
-We want to enable them all and their families to live very happy and fulfilling lives, sometimes dreams really do come true.
-
-They will also get to work on bleeding edge technology which is not mainstream yet such as our NextGen Real-time Emotional Feedback System (NGREFS) plus so much more... 
-
-The course also contains mindfulness, meditation, yoga, nutrition, exercise and healthy living which are all a compulsory part of the course and for when they work with us (we prefer with rather than for) once they have completed the training. We hope to get this into every school, college, job centre, back to work scheme and charities, etc. For example The Salvation Army are currently offering a new Awaken course to help get people back to work, we want to team up with them to offer our training too.
-
-We hope to encourage all employees of NextGen to practice yoga and meditation daily as part of their daily work schedule, thus reinforcing creativity and optimum performance. We do not want stressed or overworked employees, that does not help anyone and that is when mistakes start to happen and performance will degrade. We are a strong believer in that if you look after your employees they will look after you. If they start to get stressed, they can have a ten minute time-out to do some yoga or meditation in our yoga studio downstairs. We do not believe in rigid work patterns; they can pick the hours to fit their needs. 
-
-They get to choose what they want to work on or they can even come up with their own original ideas and get an opportunity to work on them. The training course will in itself attract a lot of attention and will help market itself. I can foresee us being interviewed and asked why we are offering something so amazing for free, and we will say because it is not always about the money, it is about helping people. When we are asked what the secret to our success is, we will respond with one word: "Love". "If everyone started to focus more on this and in helping people then the world would be a much better place and all problems would disappear overnight, we hope to be a template for how businesses should be run, we will lead the way of how things will be done from now onwards...
-
-In the future we plan to also use state of the art training techniques using the latest R&D hardware where we can tailor the course to suit the individual.
-
-We intend to be the template for how all future software houses, training companies and businesses as a whole should operate. We will be writing books on Mindful Programming, Mindful Business, Mindful Marketing, Mindful Sales, etc. Where helping people is the focus over profit margins and destroying people’s life's and the planet for selfish greed, which will only destroy all of us in the end. We want there to be a planet for our kids to grow up in...
+Read more on the <a href="http://www.ourworldthegame.com">Our World</a> website.
 
 Check out the training PDF downloads under the cunningly named Training section on our website:
 
@@ -1311,32 +1291,7 @@ This game, website and promotional videos were all designed and created by our f
 
 This is why he created <a href="http://www.yoga4autism.com">Yoga4Autism</a> to help teach other people the power of yoga thus enabling them to live happy fulfilling life's to their FULL potential without any limitations as he now enjoys. He then wishes to give them all FREE training & jobs to help create a better world and to show the world what people with autism and so-called "disabilities" can REALLY do...
 
-"Hi, my name is David Ellams BSc(Hons) and I am a very experienced Senior Developer/Architect based in London and highly sought after. I have been in the industry for over 16 years now, I have a 1st class honors degree in Computing And Informatics and a wealth of experience and skills in most things IT related, especially in software development.
-
-I have been programming since the age of 8, when I got my first computer, the good old ZX Spectrum, ever since then I have been hooked to coding, especially games. As well as creating games, I have enjoyed playing them my whole life so I am also a gaming expert and know the industry very well. I have vast experience in all things technical including coding websites, desktop software, back-end services, apps, game and much more as seen on my CV.
-
-My degree is rated as the hardest degree the University offers. The School Of Computing is rated as the 5th best in the UK by The Times newspaper and I also came top of my class.
-
-Nokia UK complimented my high degree of expertise and commented that I was the best contractor they had seen and was the only one taken on with just a telephone interview. I spent a weekend learning their Windows Phone platform (I didn’t even own a smartphone back then) and I then knew more about their phone and platform than they did! They kept asking me questions all the time when I was there. My boss even told me to slow down because I was making everyone else look bad!
-
-I have been told time and time again at every role that I was one of the best developers they have seen, I frequently more than ace interviews and technical tests, and I am normally the only one who scores 100% on these tests.
-
-My degree not only gives you a broad range of computing skills, it also gives you very valuable business analytical skills allowing you to go into a business, analyse their business processes and then make proposals on how they can be made more efficient through IT.
-I am way ahead of the curve, I see ideas many years before others do, for example the search suggestions that Google and YouTube use when you start entering your search term, I came up with about 5 years before they did as one of my first jobs out of University back in 2002. It was for an internal KB system written in classic ASP using a new technology called AJAX meaning instead of having to press the Search button to submit the search form to the server and then wait for the response, you can do searches in the background as you typed. I thought it would be too slow to work but it worked beautifully. I then thought nothing more of it until I saw Google, YouTube and everyone else start implementing it. 
-
-This is just one example of countless ideas that I have invented many years before the big players have. I have an IQ of 160, which I am told makes me a genius and is the same as Einstein and Stephen Hawking. I did not even finish the test because I ran out of time due to my dyslexia and dyspraxia, which means I am sometimes a slower reader and take more time to absorb the information. IQ tests are however not a very accurate way to measure someone’s true potential because it only measures the left brain which is the logical and language processing centres. The left brain acts as a serial processor but the right brain is much more powerful and acts as a parallel processor, it is like a quantum computer and is responsible for our creativity, image processing, music, art, etc. I am also highly creative (I think up new ideas for apps, games, etc almost on a daily basis) as well as being highly analytical (left brain), this is what makes me so good at my job.
-
-I have worked with or for all the big names such as KPMG, Nokia, Microsoft, The Daily Mail Group (DMG), BBC, European Parliament, HSBC, HM Land Registry, News International (The Times, The Sunday Times & The Sun), Business Link, Environmental Agency, Ordnance Survey, BP, Wiltshire Farm Foods, Regus, Crystal Reports, TD Waterhouse, Natwest, Royal Bank of Scotland, Hargreaves Lansdown, Aon, National Blood Service, William Hill, Optimus, NHS, DVLA, Camelot, IRIS Software, Syngenta, JPMC (JP Morgan Chas & Co), Volvo, TwoFour, Stralfors, Mears, Landmark (part of the DMGT (Daily Mail) group),  British American Tobacco Company, DSCallards, a UK Government Charity & Kantar World Panel plus many more as can be seen on my CV here:
-
-https://www.linkedin.com/in/david-ellams-77132142/ 
-
-I only say all of this not to boast but to show you’re investing in the best of the best and to prove my credentials as well as showing what someone with autism can do. I receive over 30 emails and over 5 calls a day with job matches from agencies due to being so highly sought after.
-
-I have never been run by money and gave my money to charities and to my poor family and friends but this was not enough for me so in 2010 I created NextGen Software Ltd to start creating apps & games to help make the world a better place. I wanted to use my gifts for good rather than helping the rich get richer and the poor get poorer. I am run by love because I know money cannot buy happiness
-I burnt out in 2013 working long contracting hours in the day and then working on Yoga4Autism & NextGen Software in the evening and weekend without ever having a break. I was so driven to help make the world a better place. I was bedridden and could not walk or talk for months, it then took over two years using yoga to rebuild my strength and energy. This is a testament to one of the many positive traits of autism in that we never give up and have unlimited determination. I am an advocate for Autism and I enjoy giving inspiring & empowering talks at shows, schools, homes, etc giving hope where there was previously none, painting autism in a positive light, which is needed when it has previously been seen as a negative. I now wish to help others who are where I use to be, then offer them all free training and jobs to help make the world a better place for all..."
-
-This game and the games/apps to follow will show the world what people on the spectrum are capable off. We are also looking for other people on the spectrum (who will also be as gifted as David in the IT field) who wish to help create this revolutionary game...  The plan is to free them with the yoga, meditation and mindfulness and then offer them free training and jobs...
-Please contact us on ourworld@nextgensoftware.co.uk if you wish to get involved.
+Read more on the <a href="http://www.ourworldthegame.com">Our World</a> website.
 
 ## Better Than A Fornite Clone! ;-)
 
