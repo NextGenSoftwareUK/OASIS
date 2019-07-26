@@ -483,10 +483,12 @@ public async Task SendMessageAsync(string jsonMessage)
 
 HoloNETClient contains the following properties:
 
-* `Config`
-* `Logger`
-* `NetworkServiceProvider`
-* `NetworkServiceProviderMode`
+| Property | Description  |
+|--|--|
+| [Config](#config)  | This property contains a struct called `HoloNETConfig` containing the sub-properties: TimeOutSeconds, NeverTimeOut, KeepAliveSeconds, ReconnectionAttempts, ReconnectionIntervalSeconds, SendChunkSize, ReceiveChunkSizeDefault & ErrorHandlingBehaviour.
+| [Logger](#logger) | Property to inject in a `ILogger` implementation. |
+| [NetworkServiceProvider](#networkserviceprovider) | This is a property where the network service provider can be injected. The provider needs to implement the `IHoloNETClientNET` interface.  |
+| [NetworkServiceProviderMode](#networkserviceprovidermode) |This is a simple enum, which currently has these values: Websockets, HTTP & External. |
 
 ##### Config
 
@@ -505,6 +507,9 @@ This property contains a struct called `HoloNETConfig` containing the following 
 |
 
 ##### Logger
+
+Property to inject in a `ILogger` implementation.
+
 `HoloNETClientBase` is an abstract class meaning it cannot be instantiated directly. You must inherit from it to use it.  This is where all the code for the HoloNETClient is.
  
 `NextGenSoftware.Holochain.HoloNET.Client.Desktop` and `NextGenSoftware.Holochain.HoloNET.Client.Unity` projects both contain a `HoloNETClient` class that do just this.
@@ -709,18 +714,6 @@ Below is a list of the protocols/networks/platforms that the OASIS API will supp
 | [Gab](https://gab.com) | Distributed social network promoting free speech | No
 | [Mastodon](https://joinmastodon.org/) | Distributed twitter style network of micro blogging servers using the Fediverse. | No
 | [Diaspora](https://diasporafoundation.org/) | Another distributed social network | No
-
-* HSTP (Hyper Spacial Transport Protocol)
-* WebFinger
-* ActivityPub
-* XMPP
-* SOLID
-* Holochain
-* Ethereum
-* Fediverse
-* Gab
-* Mastodon
-* Diaspora
 
 If you know of any other open protocols/platforms/networks that you feel are part of the new internet (Web 3.0) we are all co-creating then please do get in touch on ourworld@nextgensoftware.co.uk and let us know, thank you! :)
 
