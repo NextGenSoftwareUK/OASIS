@@ -157,13 +157,13 @@ holoNETClient.OnDisconnected += HoloNETClient_OnDisconnected;
 holoNETClient.OnError += HoloNETClient_OnError;
 ````
 
-Now you can call the `Connect()` method to connect to Holochain.
+Now you can call the [Connect](#connect) method to connect to Holochain.
 
 ````c#
 await holoNETClient.Connect();
 ````
 
-Once you received a `OnConnected` event callback you can now call the `GetInstances()` method to get back a list of instances the holochain conductor you connected is currently running.
+Once you received a [OnConnected](#onconnected) event callback you can now call the [GetHolochainInstancesAsync](#getholochaininstancesasync) method to get back a list of instances the holochain conductor you connected is currently running.
 
 ````c#
 if (holoNETClient.State == System.Net.WebSockets.WebSocketState.Open)
@@ -174,7 +174,7 @@ if (holoNETClient.State == System.Net.WebSockets.WebSocketState.Open)
 
 Now you can use the instance(s) as a parm to your future Zome calls...
 
-Now you can call one of the `CallZomeFunctionAsync()` overloads:
+Now you can call one of the [CallZomeFunctionAsync()](#callzomefunctionasync) overloads:
 
 ````c#
 await holoNETClient.CallZomeFunctionAsync("1", "test-instance", "our_world_core", "test", ZomeCallback, new { message = new { content = "blah!" } });
@@ -196,13 +196,13 @@ You can subscribe to a number of different events:
 
 | Event                  | Description                                                                                              |
 | ---------------------- | -------------------------------------------------------------------------------------------------------- |
-| OnConnected            | Fired when the client has successfully connected to the Holochain conductor.                             |
-| OnDisconnected         | Fired when the client disconnected from the Holochain conductor.                                         |
-| OnError                | Fired when an error occurs, check the params for the cause of the error.                                 |
-| OnGetInstancesCallBack | Fired when the hc conductor has returned the list of hc instances it is currently running.               |
-| OnDataReceived         | Fired when any data is received from the hc conductor. This returns the raw JSON data.                   |
-| OnZomeFunctionCallBack | Fired when the hc conductor returns the response from a zome function call. This returns the raw JSON data as well as the actual parsed data returned from the zome function. It also returns the id, instance, zome and zome function that made the call.                                                               |
-| OnSignalsCallBack      | Fired when the hc conductor sends signals data. NOTE: This is still waiting for hc to flresh out the    details for how this will work. Currently this returns the raw signals data.                             | 
+| [OnConnected](#onconnected)            | Fired when the client has successfully connected to the Holochain conductor.                             |
+| [OnDisconnected](#ondisconnected)         | Fired when the client disconnected from the Holochain conductor.                                         |
+| [OnError](#onerror)                | Fired when an error occurs, check the params for the cause of the error.                                 |
+| [OnGetInstancesCallBack](#ongetinstancescallback) | Fired when the hc conductor has returned the list of hc instances it is currently running.               |
+| [OnDataReceived](#ondatareceived)         | Fired when any data is received from the hc conductor. This returns the raw JSON data.                   |
+| [OnZomeFunctionCallBack](#onzomefunctioncallback) | Fired when the hc conductor returns the response from a zome function call. This returns the raw JSON data as well as the actual parsed data returned from the zome function. It also returns the id, instance, zome and zome function that made the call.                                                               |
+| [OnSignalsCallBack](#onsignalscallback)      | Fired when the hc conductor sends signals data. NOTE: This is still waiting for hc to flresh out the    details for how this will work. Currently this returns the raw signals data.                             | 
 
 ##### OnConnected
 Fired when the client has successfully connected to the Holochain conductor. 
@@ -356,19 +356,17 @@ HoloNETClient contains the following methods:
 
 |Method|Description  |
 |--|--|
-|[Connect](#connect)  | This method simply connects to the Holochain conductor. It raises the [OnConnected](#OnConnected) event once it is has successfully established a connection. Please see the [Events](#events) section above for more info on how to use this event.
-|[CallZomeFunctionAsync](#CallZomeFunctionAsync)| This is the main method you will be using to invoke zome functions on your given zome. It has a number of handy overloads making it easier and more powerful to call your zome functions and manage the returned data. This method raises the [OnCallZomeFunctionCallBack](#OnCallZomeFunctionCallBack) event once it has received a response from the Holochain conductor. Please see the [Events](#events) section above for more info on how to use this event.
-|[ClearCache](#clearcache) | Call this method to clear all of HoloNETClient's internal cache. This includes the JSON responses that have been cached using the [GetHolochainInstances](#GetHolochainInstances) & [CallZomeFunction](#CallZomeFunction) methods if the `cacheData` parm was set to true for any of the calls. |
-|[Disconnect](#disconnect) | This method disconnects the client from Holochain conductor. It raises the [OnDisconnected](#OnDisconnected) event once it is has successfully disconnected. Please see the [Events](#events) section above for more info on how to use this event. |
-|[GetHolochainInstancesAsync](#GetHolochainInstancesAsync) | This method will return a string array containing the instances that the holochain conductor is currently running. You will need to store the instance(s) in a variable to pass into the [CallZomeFunctionAsync](#CallZomeFunctionAsync) later. This method raises the [OnGetHolochainInstancesCallBack](#OnGetHolochainInstancesCallBack) event once it has received a response from the Holochain conductor. Please see the [Events](#events) section above for more info on how to use this event.|
-|[SendMessageAsync](#SendMessageAsync) |This method allows you to send your own raw JSON request to holochain. This method raises the [OnSendMessageCallBack](#OnSendMessageCallBack) event once it has received a response from the Holochain conductor. Please see the [Events](#events) section above for more info on how to use this event.
-
-You would rarely need to use this and we highly recommend you use the `CallZomeFunction` method instead.
+|[Connect](#connect)  | This method simply connects to the Holochain conductor. It raises the [OnConnected](#onconnected) event once it is has successfully established a connection. Please see the [Events](#events) section above for more info on how to use this event.
+|[CallZomeFunctionAsync](#callzomefunctionasync)| This is the main method you will be using to invoke zome functions on your given zome. It has a number of handy overloads making it easier and more powerful to call your zome functions and manage the returned data. This method raises the [OnZomeFunctionCallBack](#onzomefunctioncallback) event once it has received a response from the Holochain conductor. Please see the [Events](#events) section above for more info on how to use this event.
+|[ClearCache](#clearcache) | Call this method to clear all of HoloNETClient's internal cache. This includes the JSON responses that have been cached using the [GetHolochainInstancesAsync](#getholochaininstancesasync) & [CallZomeFunctionAsync](#callzomefunctionasync) methods if the `cacheData` parm was set to true for any of the calls. |
+|[Disconnect](#disconnect) | This method disconnects the client from Holochain conductor. It raises the [OnDisconnected](#ondisconnected) event once it is has successfully disconnected. Please see the [Events](#events) section above for more info on how to use this event. |
+|[GetHolochainInstancesAsync](#getholochaininstancesasync) | This method will return a string array containing the instances that the holochain conductor is currently running. You will need to store the instance(s) in a variable to pass into the [CallZomeFunctionAsync](#callzomefunctionasync) later. This method raises the [OnGetInstancesCallBack](#ongetinstancescallback) event once it has received a response from the Holochain conductor. Please see the [Events](#events) section above for more info on how to use this event.|
+|[SendMessageAsync](#sendmessageasync) |This method allows you to send your own raw JSON request to holochain. This method raises the [OnDataReceived](#ondatareceived) event once it has received a response from the Holochain conductor. Please see the [Events](#events) section above for more info on how to use this event. You would rarely need to use this and we highly recommend you use the [CallZomeFunctionAsync](#callzomefunctionasync) method instead.
 
 
 ##### Connect
 
-This method simply connects to the Holochain conductor. It raises the `OnConnected` event once it is has successfully established a connection. Please see the [Events](#events) section above for more info on how to use this event.
+This method simply connects to the Holochain conductor. It raises the [OnConnected](#onconnected) event once it is has successfully established a connection. Please see the [Events](#events) section above for more info on how to use this event.
 
 ```c#
 public async Task Connect()
@@ -378,7 +376,7 @@ public async Task Connect()
 
 This is the main method you will be using to invoke zome functions on your given zome. It has a number of handy overloads making it easier and more powerful to call your zome functions and manage the returned data.
 
-This method raises the `OnCallZomeFunctionCallBack` event once it has received a response from the Holochain conductor. Please see the [Events](#events) section above for more info on how to use this event.
+This method raises the [OnZomeFunctionCallBack](#onzomefunctioncallback) event once it has received a response from the Holochain conductor. Please see the [Events](#events) section above for more info on how to use this event.
 
 ###### Overload 1
 
@@ -423,7 +421,7 @@ This overload is similar to the one above except it omits the `id` and `matchIdT
 
 ##### ClearCache
 
-Call this method to clear all of HoloNETClient's internal cache. This includes the JSON responses that have been cached using the `GetHolochainInstances` & `CallZomeFunction` methods if the `cacheData` parm was set to true for any of the calls.
+Call this method to clear all of HoloNETClient's internal cache. This includes the JSON responses that have been cached using the [GetHolochainInstancesAsync](#getholochaininstancesasync) & [CallZomeFunctionAsync](#callzomefunctionasync) methods if the `cacheData` parm was set to true for any of the calls.
 
 ````c#
 public void ClearCache()
@@ -431,7 +429,7 @@ public void ClearCache()
 
 ##### Disconnect
 
-This method disconnects the client from Holochain conductor. It raises the `OnDisconnected` event once it is has successfully disconnected. Please see the [Events](#events) section above for more info on how to use this event.
+This method disconnects the client from Holochain conductor. It raises the [OnDisconnected](#ondisconnected) event once it is has successfully disconnected. Please see the [Events](#events) section above for more info on how to use this event.
 
 ```c#
 public async Task Disconnect()
@@ -445,11 +443,11 @@ This looks like an issue with the Holochain conductor and we will be raising thi
 
 ##### GetHolochainInstancesAsync
 
-This method will return a string array containing the instances that the holochain conductor is currently running. You will need to store the instance(s) in a variable to pass into the `CallZomeFunctionAsync` later. 
+This method will return a string array containing the instances that the holochain conductor is currently running. You will need to store the instance(s) in a variable to pass into the [CallZomeFunctionAsync](#callzomefunctionasync) later. 
 
 We did consider managing this part automatically but because we wanted to keep HoloNET as flexible as possible allowing you to make calls to multiple instances at once it made sense for the user to manage the instance id's themselves. But as with everything we are very open to any feedback or suggestions on this...
 
-This method raises the `OnGetHolochainInstancesCallBack` event once it has received a response from the Holochain conductor. Please see the [Events](#events) section above for more info on how to use this event.
+This method raises the [OnGetHolochainInstancesCallBack](#ongetinstancescallback) event once it has received a response from the Holochain conductor. Please see the [Events](#events) section above for more info on how to use this event.
 
 There are two overloads for this method:
 
@@ -472,9 +470,9 @@ public async Task GetHolochainInstancesAsync(bool cachReturnData = false)
 
 ##### SendMessageAsync
 
-This method allows you to send your own raw JSON request to holochain. This method raises the `OnSendMessageCallBack` event once it has received a response from the Holochain conductor. Please see the [Events](#events) section above for more info on how to use this event.
+This method allows you to send your own raw JSON request to holochain. This method raises the [OnDataRecived](#ondatareceived) event once it has received a response from the Holochain conductor. Please see the [Events](#events) section above for more info on how to use this event.
 
-You would rarely need to use this and we highly recommend you use the `CallZomeFunction` method instead.
+You would rarely need to use this and we highly recommend you use the [CallZomeFunctionAsync](#callzomefunctionasync) method instead.
 
 ````c#
 public async Task SendMessageAsync(string jsonMessage)
@@ -491,7 +489,7 @@ HoloNETClient contains the following properties:
 | Property | Description  |
 |--|--|
 | [Config](#config)  | This property contains a struct called `HoloNETConfig` containing the sub-properties: TimeOutSeconds, NeverTimeOut, KeepAliveSeconds, ReconnectionAttempts, ReconnectionIntervalSeconds, SendChunkSize, ReceiveChunkSizeDefault & ErrorHandlingBehaviour.
-| [Logger](#logger) | Property to inject in a `ILogger` implementation. |
+| [Logger](#logger) | Property to inject in a [ILogger](#ilogger) implementation. |
 | [NetworkServiceProvider](#networkserviceprovider) | This is a property where the network service provider can be injected. The provider needs to implement the `IHoloNETClientNET` interface.  |
 | [NetworkServiceProviderMode](#networkserviceprovidermode) |This is a simple enum, which currently has these values: Websockets, HTTP & External. |
 
@@ -558,6 +556,7 @@ namespace NextGenSoftware.Holochain.HoloNET.Client.Unity
 
 The desktop version uses a wrapper around the popular `NLog` logging framework, but unfortunately Unity does not support NLog so this is why this has had to be split out. We are currently looking into a good Logging Solution for Unity. We have found a possible port of NLog for Unity that so far is looking promising but this is still a different dll/library so the code must still remain as it is. This is also good practice to decouple the code as much as possible especially external dependencies such as logging.
 
+<a name="ilogger"></a>
 The ILogger interface is very simple:
 
 ````c#
@@ -721,6 +720,32 @@ Below is a list of the protocols/networks/platforms that the OASIS API will supp
 | [Diaspora](https://diasporafoundation.org/) | Another distributed social network | No
 
 If you know of any other open protocols/platforms/networks that you feel are part of the new internet (Web 3.0) we are all co-creating then please do get in touch on ourworld@nextgensoftware.co.uk and let us know, thank you! :)
+
+## Project Structure
+
+The projects within this repo should be pretty self explanatory from their names but below is a brief description of each of them:
+
+|Project  | Description |
+|--|--|
+|NextGenSoftware.Holochain.hApp.OurWorld  |The Holochain hApp implemented using the Rust HDK. In future this will be ported to use the new .NET HDK once we have created it!  |
+|NextGenSoftware.Holochain.HoloNET.Client.Core| The core code for the HoloNETClient containing the HoloNETClientBase abstract class.
+|NextGenSoftware.Holochain.HoloNET.Client.Desktop| The desktop implementation of the HoloNETClient using NLog as the Logger.
+|NextGenSoftware.Holochain.HoloNET.Client.Unity| The Unity implementation of the HoloNETClient. This will use a Unity compatible logger soon...
+|NextGenSoftware.Holochain.HoloNET.Client.TestHarness| The Test Harness for the HoloNETClient. This includes load tests for Holochain. So far looking good, the conductor is very fast! ;-)
+|NextGenSoftware.Holochain.HoloNET.HDK| A placeholder for the .NET HDK (Holochain Development Kit). 
+|NextGenSoftware.OASIS.API.Core| The core code for the OASIS API itself. This is where the Providers are injected and is the core part of the system.
+|NextGenSoftware.OASIS.API.Core.ARC.Membrane| This will contain a DeviceManager,PsyberManager & MappingManager allowing ARC to talk to any device and access all of it's hardware such as Bluetooth. It will also provide a wrapper around Unity allowing ARC to render it's 2D & 3D UI to Unity. It will also allow ARC to access the Our World 3D Map.
+|NextGenSoftware.OASIS.API.Core.ARC.Membrane.NodeJS| This is for testing purposes to simulate the ARC Core (written in NodeJS). It will test calls to the DeviceManager, PsyberManager & MappingManager.
+|NextGenSoftware.OASIS.API.Core.TestHarness| This is a Test Harness for the main OASIS API.
+|NextGenSoftware.OASIS.API.FrontEnd.Web| This is the Web front-end for the OASIS API and will show the user's Avatar/Profile along with their Karma levels (and where the karma came from). It will also show what Satellite apps/games/websites that are using the API. This will form the foundation of the NextGen Social Network (a sub-component of Our World).
+|NextGenSoftware.OASIS.API.FrontEnd.Unity| This shows how the OASIS API is used in Unity to render the users profile data to the 3D Avatar.
+|NextGenSoftware.OASIS.API.WebAPI| This will expose the OASIS API as a RESTful service over HTTP. In future there will also be a websocket HTTP & websocket JSON RPC 2.0 interface.
+|NextGenSoftware.OASIS.API.Providers.HoloOASIS.Core| This contains the core code for the HoloOASIS Provider, that wraps around the HoloNETClient to talk to Holochain. This implements the IOASISStorage interface allowing the OASIS API to read & write the users profile data to Holochain.
+|NextGenSoftware.OASIS.API.Providers.HoloOASIS.Desktop| This is the desktop implementation of the HoloOASIS Provider and uses the desktop version of the HoloNETClient.
+|NextGenSoftware.OASIS.API.Providers.HoloOASIS.Unity| This is the Unity implementation of the HoloOASIS Provider and uses the Unity version of the HoloNETClient.
+|NextGenSoftware.OASIS.API.Providers.HoloOASIS.TestHarness| This is the Test Harness of the HoloOASIS Provider.
+
+
 
 ## .NET HDK
 
