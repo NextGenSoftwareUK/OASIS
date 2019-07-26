@@ -115,12 +115,29 @@ Next it will implement the ARC (Augmented Reality Computer) Membrane allowing th
 
 Next, it will port Noomap to Unity and will implement a Synergy Engine allowing people to easily find and match solutions/desires/passions and to also find various solution providers, which again will be fully integrated with the 3D Map & Avatar/Karma system.
 
+## Project Structure
 
+The projects within this repo should be pretty self explanatory from their names but below is a brief description of each of them:
 
-## HoloSource Liscence
-
-## Harry Call To Action Apps
-
+|Project  | Description |
+|--|--|
+|NextGenSoftware.Holochain.hApp.OurWorld  |The Holochain hApp implemented using the Rust HDK. In future this will be ported to use the new .NET HDK once we have created it!  |
+|NextGenSoftware.Holochain.HoloNET.Client.Core| The core code for the HoloNETClient containing the HoloNETClientBase abstract class.
+|NextGenSoftware.Holochain.HoloNET.Client.Desktop| The desktop implementation of the HoloNETClient using NLog as the Logger.
+|NextGenSoftware.Holochain.HoloNET.Client.Unity| The Unity implementation of the HoloNETClient. This will use a Unity compatible logger soon...
+|NextGenSoftware.Holochain.HoloNET.Client.TestHarness| The Test Harness for the HoloNETClient. This includes load tests for Holochain. So far looking good, the conductor is very fast! ;-)
+|NextGenSoftware.Holochain.HoloNET.HDK| A placeholder for the .NET HDK (Holochain Development Kit). 
+|NextGenSoftware.OASIS.API.Core| The core code for the OASIS API itself. This is where the Providers are injected and is the core part of the system.
+|NextGenSoftware.OASIS.API.Core.ARC.Membrane| This will contain a DeviceManager,PsyberManager & MappingManager allowing ARC to talk to any device and access all of it's hardware such as Bluetooth. It will also provide a wrapper around Unity allowing ARC to render it's 2D & 3D UI to Unity. It will also allow ARC to access the Our World 3D Map.
+|NextGenSoftware.OASIS.API.Core.ARC.Membrane.NodeJS| This is for testing purposes to simulate the ARC Core (written in NodeJS). It will test calls to the DeviceManager, PsyberManager & MappingManager.
+|NextGenSoftware.OASIS.API.Core.TestHarness| This is a Test Harness for the main OASIS API.
+|NextGenSoftware.OASIS.API.FrontEnd.Web| This is the Web front-end for the OASIS API and will show the user's Avatar/Profile along with their Karma levels (and where the karma came from). It will also show what Satellite apps/games/websites that are using the API. This will form the foundation of the NextGen Social Network (a sub-component of Our World).
+|NextGenSoftware.OASIS.API.FrontEnd.Unity| This shows how the OASIS API is used in Unity to render the users profile data to the 3D Avatar.
+|NextGenSoftware.OASIS.API.WebAPI| This will expose the OASIS API as a RESTful service over HTTP. In future there will also be a websocket HTTP & websocket JSON RPC 2.0 interface.
+|NextGenSoftware.OASIS.API.Providers.HoloOASIS.Core| This contains the core code for the HoloOASIS Provider, that wraps around the HoloNETClient to talk to Holochain. This implements the IOASISStorage interface allowing the OASIS API to read & write the users profile data to Holochain.
+|NextGenSoftware.OASIS.API.Providers.HoloOASIS.Desktop| This is the desktop implementation of the HoloOASIS Provider and uses the desktop version of the HoloNETClient.
+|NextGenSoftware.OASIS.API.Providers.HoloOASIS.Unity| This is the Unity implementation of the HoloOASIS Provider and uses the Unity version of the HoloNETClient.
+|NextGenSoftware.OASIS.API.Providers.HoloOASIS.TestHarness| This is the Test Harness of the HoloOASIS Provider.
 
 
 ## HoloNET
@@ -721,31 +738,6 @@ Below is a list of the protocols/networks/platforms that the OASIS API will supp
 
 If you know of any other open protocols/platforms/networks that you feel are part of the new internet (Web 3.0) we are all co-creating then please do get in touch on ourworld@nextgensoftware.co.uk and let us know, thank you! :)
 
-## Project Structure
-
-The projects within this repo should be pretty self explanatory from their names but below is a brief description of each of them:
-
-|Project  | Description |
-|--|--|
-|NextGenSoftware.Holochain.hApp.OurWorld  |The Holochain hApp implemented using the Rust HDK. In future this will be ported to use the new .NET HDK once we have created it!  |
-|NextGenSoftware.Holochain.HoloNET.Client.Core| The core code for the HoloNETClient containing the HoloNETClientBase abstract class.
-|NextGenSoftware.Holochain.HoloNET.Client.Desktop| The desktop implementation of the HoloNETClient using NLog as the Logger.
-|NextGenSoftware.Holochain.HoloNET.Client.Unity| The Unity implementation of the HoloNETClient. This will use a Unity compatible logger soon...
-|NextGenSoftware.Holochain.HoloNET.Client.TestHarness| The Test Harness for the HoloNETClient. This includes load tests for Holochain. So far looking good, the conductor is very fast! ;-)
-|NextGenSoftware.Holochain.HoloNET.HDK| A placeholder for the .NET HDK (Holochain Development Kit). 
-|NextGenSoftware.OASIS.API.Core| The core code for the OASIS API itself. This is where the Providers are injected and is the core part of the system.
-|NextGenSoftware.OASIS.API.Core.ARC.Membrane| This will contain a DeviceManager,PsyberManager & MappingManager allowing ARC to talk to any device and access all of it's hardware such as Bluetooth. It will also provide a wrapper around Unity allowing ARC to render it's 2D & 3D UI to Unity. It will also allow ARC to access the Our World 3D Map.
-|NextGenSoftware.OASIS.API.Core.ARC.Membrane.NodeJS| This is for testing purposes to simulate the ARC Core (written in NodeJS). It will test calls to the DeviceManager, PsyberManager & MappingManager.
-|NextGenSoftware.OASIS.API.Core.TestHarness| This is a Test Harness for the main OASIS API.
-|NextGenSoftware.OASIS.API.FrontEnd.Web| This is the Web front-end for the OASIS API and will show the user's Avatar/Profile along with their Karma levels (and where the karma came from). It will also show what Satellite apps/games/websites that are using the API. This will form the foundation of the NextGen Social Network (a sub-component of Our World).
-|NextGenSoftware.OASIS.API.FrontEnd.Unity| This shows how the OASIS API is used in Unity to render the users profile data to the 3D Avatar.
-|NextGenSoftware.OASIS.API.WebAPI| This will expose the OASIS API as a RESTful service over HTTP. In future there will also be a websocket HTTP & websocket JSON RPC 2.0 interface.
-|NextGenSoftware.OASIS.API.Providers.HoloOASIS.Core| This contains the core code for the HoloOASIS Provider, that wraps around the HoloNETClient to talk to Holochain. This implements the IOASISStorage interface allowing the OASIS API to read & write the users profile data to Holochain.
-|NextGenSoftware.OASIS.API.Providers.HoloOASIS.Desktop| This is the desktop implementation of the HoloOASIS Provider and uses the desktop version of the HoloNETClient.
-|NextGenSoftware.OASIS.API.Providers.HoloOASIS.Unity| This is the Unity implementation of the HoloOASIS Provider and uses the Unity version of the HoloNETClient.
-|NextGenSoftware.OASIS.API.Providers.HoloOASIS.TestHarness| This is the Test Harness of the HoloOASIS Provider.
-
-
 
 ## .NET HDK
 
@@ -1309,6 +1301,16 @@ So if you feel you want to help or get involved please contact us on ourworld@ne
 You can also get involved on our forum here:
 
 http://www.ourworldthegame.com/forum
+
+## HoloSource Liscence
+
+This repo uses a new type of Open Source where more control is needed over the codebase to make sure things do not go off on a tangent that is not beneficial to the original intention and vision of this very important critical project to help save the world and make it a better place for all. Too much is at stake to stop this falling into the wrong hands so to speak! ;-)
+
+This means permission will need to be requested for any forks, etc 
+
+The whole point of opening up this codebase to the public is we wish to empower the whole world to take responsability for our beautiful planet and this is why the whole world is the Our World team. It will be one of the biggest most ambitious projects the world has ever seen and this is why it needs to be open to all...
+
+**Ready to do your part? ;-)**
 
 ## Websites
 
