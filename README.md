@@ -354,12 +354,17 @@ private static void HoloNETClient_OnSignalsCallBack(object sender, SignalsCallBa
 
 HoloNETClient contains the following methods:
 
-* `Connect()`
-* `CallZomeFunctionAsync()`
-* `ClearCache()`
-* `Disconnect()`
-* `GetHolochainInstancesAsync()`
-* `SendMessageAsync()`
+|Method|Description  |
+|--|--|
+|[Connect](#connect)  | This method simply connects to the Holochain conductor. It raises the [OnConnected](#OnConnected) event once it is has successfully established a connection. Please see the [Events](#events) section above for more info on how to use this event.
+|[CallZomeFunctionAsync](#CallZomeFunctionAsync)| This is the main method you will be using to invoke zome functions on your given zome. It has a number of handy overloads making it easier and more powerful to call your zome functions and manage the returned data. This method raises the [OnCallZomeFunctionCallBack](#OnCallZomeFunctionCallBack) event once it has received a response from the Holochain conductor. Please see the [Events](#events) section above for more info on how to use this event.
+|[ClearCache](#clearcache) | Call this method to clear all of HoloNETClient's internal cache. This includes the JSON responses that have been cached using the [GetHolochainInstances](#GetHolochainInstances) & [CallZomeFunction](#CallZomeFunction) methods if the `cacheData` parm was set to true for any of the calls. |
+|[Disconnect](#disconnect) | This method disconnects the client from Holochain conductor. It raises the [OnDisconnected](#OnDisconnected) event once it is has successfully disconnected. Please see the [Events](#events) section above for more info on how to use this event. |
+|[GetHolochainInstancesAsync](#GetHolochainInstancesAsync) | This method will return a string array containing the instances that the holochain conductor is currently running. You will need to store the instance(s) in a variable to pass into the [CallZomeFunctionAsync](#CallZomeFunctionAsync) later. This method raises the [OnGetHolochainInstancesCallBack](#OnGetHolochainInstancesCallBack) event once it has received a response from the Holochain conductor. Please see the [Events](#events) section above for more info on how to use this event.|
+|[SendMessageAsync](#SendMessageAsync) |This method allows you to send your own raw JSON request to holochain. This method raises the [OnSendMessageCallBack](#OnSendMessageCallBack) event once it has received a response from the Holochain conductor. Please see the [Events](#events) section above for more info on how to use this event.
+
+You would rarely need to use this and we highly recommend you use the `CallZomeFunction` method instead.
+
 
 ##### Connect
 
