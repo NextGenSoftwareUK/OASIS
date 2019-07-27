@@ -1,4 +1,4 @@
-# OASIS API / Our World / HoloNET Altha v0.0.1
+# OASIS API / Our World / HoloNET / .NET HDK Altha v0.0.1
 
 ![alt text](https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-And-HoloNET/blob/master/FinalLogo.jpg "Our World")
 - [OASIS API / Our World / HoloNET Altha v0.0.1](#oasis-api---our-world---holonet-altha-v001)
@@ -1424,3 +1424,4 @@ Yoga4Autism Ltd
 http://www.ourworldthegame.com <br/>
 http://www.nextgensoftware.co.uk <br/>
 http://www.yoga4autism.com
+https://chat.holochain.org/appsup/channels/our-world-netclient 
