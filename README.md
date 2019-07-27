@@ -6,11 +6,9 @@
 # OASIS API / Our World / HoloNET Altha v0.0.1
 
 ![alt text](https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-And-HoloNET/blob/master/FinalLogo.jpg "Our World")
-
 - [OASIS API / Our World / HoloNET Altha v0.0.1](#oasis-api---our-world---holonet-altha-v001)
   * [Introduction](#introduction)
-  * [HoloSource Liscence](#holosource-liscence)
-  * [Harry Call To Action Apps](#harry-call-to-action-apps)
+  * [Project Structure](#project-structure)
   * [HoloNET](#holonet)
     + [How To Use HoloNET](#how-to-use-holonet)
       - [The Power of .NET Async Methods](#the-power-of-net-async-methods)
@@ -41,7 +39,15 @@
         * [NetworkServiceProvider](#networkserviceprovider)
         * [NetworkServiceProviderMode](#networkserviceprovidermode)
   * [HoloOASIS](#holooasis)
+    + [Using HoloOASIS](#using-holooasis)
+    + [Events](#events-1)
+    + [Methods](#methods-1)
+    + [Properties](#properties-1)
   * [HoloUnity](#holounity)
+    + [Using HoloUnity](#using-holounity)
+    + [Events](#events-2)
+    + [Methods](#methods-2)
+    + [Properties](#properties-2)
   * [The OASIS API & Karma System](#the-oasis-api---karma-system)
     + [Open Karma Committe/Community Concensors](#open-karma-committe-community-concensors)
     + [Satillite Apps/Games/Websites](#satillite-apps-games-websites)
@@ -102,9 +108,9 @@
   * [The Power Of Autism](#the-power-of-autism)
   * [Better Than A Fornite Clone! ;-)](#better-than-a-fornite-clone-----)
   * [Other Ways To Get Involved](#other-ways-to-get-involved)
+  * [HoloSource Liscence](#holosource-liscence)
   * [Websites](#websites)
 
-<small><i><a href='http://ecotrust-canada.github.io/markdown-toc/'>Table of contents generated with markdown-toc</a></i></small>
 
 ## Introduction
 
