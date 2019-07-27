@@ -1,8 +1,3 @@
-
-
-
-
-
 # OASIS API / Our World / HoloNET Altha v0.0.1
 
 ![alt text](https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-And-HoloNET/blob/master/FinalLogo.jpg "Our World")
