@@ -1423,5 +1423,5 @@ Yoga4Autism Ltd
 
 http://www.ourworldthegame.com <br/>
 http://www.nextgensoftware.co.uk <br/>
-http://www.yoga4autism.com
+http://www.yoga4autism.com <br/>
 https://chat.holochain.org/appsup/channels/our-world-netclient 
