@@ -168,7 +168,7 @@ This will help massively turbo charge the holochain ecosystem by opening it up t
 **NOTE: This documentation is a WIP, it will be completed soon, please bare with us, thank you! :)**
 
 
-You start by instaniating a new HoloNETClient class found in the `NextGenSoftware.Holochain.HoloNET.Client` project passing in the holochain websocket URI to the constructor as seen below:
+You start by instaniating a new HoloNETClient class found in the [NextGenSoftware.Holochain.HoloNET.Client](#project-structure) project passing in the holochain websocket URI to the constructor as seen below:
 
 ````c#
 HoloNETClient holoNETClient = new HoloNETClient("ws://localhost:8888");
@@ -658,7 +658,7 @@ This is a good example to see how to use [HoloNET](#holonet) in a real world gam
 
 ### Using HoloOASIS
 
-You start by instantiating a new HoloOASIS class from either the `NextGenSoftware.OASIS.API.Providers.HoloOASIS.Desktop` project or the `NextGenSoftware.OASIS.API.Providers.HoloOASIS.Unity` project.
+You start by instantiating a new HoloOASIS class from either the [NextGenSoftware.OASIS.API.Providers.HoloOASIS.Desktop](#project-structure) project or the [NextGenSoftware.OASIS.API.Providers.HoloOASIS.Unity](#project-structure) project.
 
 ````c#
 Desktop.HoloOASIS _holoOASIS = new Desktop.HoloOASIS("ws://localhost:8888");
@@ -718,9 +718,9 @@ private static void _holoOASIS_OnPlayerProfileSaved(object sender, ProfileSavedE
 
 ## HoloUnity
 
-We will soon be creating a Asset for the Unity Asset Store that will include `HoloNET` along with Unity wrappers and examples of how to use `HoloNET` inside Unity.
+We will soon be creating a Asset for the Unity Asset Store that will include [HoloNET](#holonet) along with Unity wrappers and examples of how to use [HoloNET](#holonet) inside Unity.
 
-In the codebase you will find a project called `NextGenSoftware.OASIS.API.FrontEnd.Unity`, which shows how the `ProfileManager` found inside the `OASIS API Core` (`NextGenSoftware.OASIS.API.Core`) is used. When you instantiate the `ProfileManager` you inject into a Storage Provider that implements the `IOASISStorage` interface. Currently the only provider implemented is the `HoloOASIS` Provider.
+In the codebase you will find a project called [NextGenSoftware.OASIS.API.FrontEnd.Unity](#project-structure), which shows how the `ProfileManager` found inside the `OASIS API Core` ([NextGenSoftware.OASIS.API.Core](#project-structure)) is used. When you instantiate the `ProfileManager` you inject into a Storage Provider that implements the `IOASISStorage` interface. Currently the only provider implemented is the [HoloOASIS](#holooasis) Provider.
 
 The actual Our World Unity code is not currently stored in this repo due to size restrictions but we may consider using GitHub LFS (Large File Storage) later on. We are also looking at GitLab and other alternatives to see if they allow greater storage capabilities free out of the box (since we are currently working on a very tight budget but you could change that by donating below! ;-) ).
 
@@ -728,7 +728,7 @@ The actual Our World Unity code is not currently stored in this repo due to size
 
 ### Using HoloUnity
 
-You start by instantiating the `ProfileManager` class found within the `NextGenSoftware.OASIS.API.Core` project.
+You start by instantiating the `ProfileManager` class found within the [NextGenSoftware.OASIS.API.Core](#project-structure) project.
 
 ````c#
 // Inject in the HoloOASIS Storage Provider (this could be moved to a config file later so the 
