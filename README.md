@@ -856,6 +856,8 @@ Our World will automatcially support all of the platforms/networks/protocols lis
 
 Any other OAPP (that uses the OASIS API) can also choose to share your profile/avatar/karma with any of the supported platforms/networks/protocols. The user will have fully access and control of where their data can be stored/shared along with grandular permissions such as which apps/sites/users/groups/roles/networks/platforms can see what.
 
+**More to come soon...**
+
 ## .NET HDK
 
 We will soon also begin work on the .NET HDK to open up the amazing Holochain to the massive .NET & Unity ecosystem's, which will help turbocharge the holochain ecosystem they are trying to build...
