@@ -104,7 +104,7 @@
   * [Better Than A Fornite Clone! ;-)](#better-than-a-fornite-clone-----)
   * [Other Ways To Get Involved](#other-ways-to-get-involved)
   * [HoloSource Liscence](#holosource-liscence)
-  * [Websites](#websites)
+  * [Links](#links)
 
 
 ## Introduction
@@ -782,6 +782,10 @@ You will be able to see how the karma you have earnt is broken down into these c
 
 You will also be able to view the karma levels of other users, this can help you reach out to them to help improve their karma in cateogries they are lacking in by inviting them on a Quest with you or your group. You 
 
+### Gain Karma When You Earn HoloFuel For Sharing Your Nodes Resources To Power Our World
+
+You can also gain karma for sharing your node's resources such as CPU, memory, bandwith, etc
+
 ### Open Karma Committe/Community Concensors
 
 There will be a Open Karma Committe who will decide the algorithms for karma allocation through concensors with the community. The community can vote for any proposals the committe publish and only ones which receive enough votes will be made "OASIS Law". The community can also vote in representives to sit on the commitee so it is as open and democratic as possible.
@@ -820,6 +824,8 @@ Please see the [Social Network](#socialnetwork) section for more info...
 
 The OASIS API is a global universal API that aims to connect everything to everything to eliminate walled gardens/silos. There are a number of open protocols/platforms/networks that the OASIS API will support. The majority of these are aimed at building a truly decentralised distributed internet (Web 3.0) and this is also the aim of the OASIS API.
 
+The OASIS API aims to support as many platforms/networks/protocols as possible so the Karma System can be deeply integrated across the web in every application, device, etc.
+
 Below is a list of the protocols/networks/platforms that the OASIS API will support (expect this list to grow in time):
 
 |Protocol/Platform/Network| Description | Support Implemented  |
@@ -838,6 +844,17 @@ Below is a list of the protocols/networks/platforms that the OASIS API will supp
 
 If you know of any other open protocols/platforms/networks that you feel are part of the new internet (Web 3.0) we are all co-creating then please do get in touch on ourworld@nextgensoftware.co.uk and let us know, thank you! :)
 
+### OASIS API Redundancy (Can Store Copies Of Your Data On Any Decentralised Network/Platform You Choose)
+
+The OASIS API has built in redundancy in that you can choose to store copies of your data on any decentralised network/platform. When calling the OASIS API you can speceify which network/platform you wish to use (the ones avaliable will be dependent on whether a Provider has yet been implemented for it, so far only Holochain is supported.) The default provider will be Holochain since the long term goal of the OASIS API is to get people to slowly migrate across to Holochain.
+
+### The OASIS API Enables You To Earn Karma Anywhere
+
+Our World will automatcially support all of the platforms/networks/protocols listed above so your profile/avatar/karma will be avaialble to any apps that use their platforms/networks/protocols. This will also make it easier to earn karma in a wider range of apps by supporting as many platforms/networks/protocols as possible. 
+
+### User Has FULL Control Of Their Data
+
+Any other OAPP (that uses the OASIS API) can also choose to share your profile/avatar/karma with any of the supported platforms/networks/protocols. The user will have fully access and control of where their data can be stored/shared along with grandular permissions such as which apps/sites/users/groups/roles/networks/platforms can see what.
 
 ## .NET HDK
 
