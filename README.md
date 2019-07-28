@@ -1412,7 +1412,7 @@ The whole point of opening up this codebase to the public is we wish to empower 
 
 **Ready to do your part? ;-)**
 
-## Websites
+## Links
 
 Read more on this project on our websites below:
 
@@ -1428,5 +1428,7 @@ Yoga4Autism Ltd
 
 http://www.ourworldthegame.com <br/>
 http://www.nextgensoftware.co.uk <br/>
-http://www.yoga4autism.com <br/>
-https://chat.holochain.org/appsup/channels/our-world-netclient 
+http://www.yoga4autism.com <br/> 
+
+https://chat.holochain.org/appsup/channels/our-world-netclient <br/>
+https://chat.holochain.org/appsup/channels/net-hdk 
