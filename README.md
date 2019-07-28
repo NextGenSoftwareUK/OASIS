@@ -44,7 +44,7 @@
     + [Events](#events-2)
     + [Methods](#methods-2)
     + [Properties](#properties-2)
-  * [The OASIS API & Karma System](#the-oasis-api---karma-system)
+  * [The OASIS API & Karma System](#oasisapi)
     + [Gain Karma When You Earn HoloFuel For Sharing Your Nodes Resources To Power Our World](#gain-karma-when-you-earn-holofuel-for-sharing-your-nodes-resources-to-power-our-world)
     + [Open Karma Committe/Community Concensors](#open-karma-committe-community-concensors)
     + [Satillite Apps/Games/Websites](#satillite-apps-games-websites)
@@ -139,7 +139,7 @@ The projects within this repo should be pretty self explanatory from their names
 |[NextGenSoftware.Holochain.HoloNET.Client.Unity](#holonet)| The Unity implementation of the HoloNETClient. This will use a Unity compatible logger soon...
 |[NextGenSoftware.Holochain.HoloNET.Client.TestHarness](#holonet)| The Test Harness for the HoloNETClient. This includes load tests for Holochain. So far looking good, the conductor is very fast! ;-)
 |[NextGenSoftware.Holochain.HoloNET.HDK](#net-hdk)| A placeholder for the .NET HDK (Holochain Development Kit). 
-|[NextGenSoftware.OASIS.API.Core](#the-oasis-api---karma-system)| The core code for the OASIS API itself. This is where the Providers are injected and is the core part of the system.
+|[NextGenSoftware.OASIS.API.Core](#oasisapi)| The core code for the OASIS API itself. This is where the Providers are injected and is the core part of the system.
 |[NextGenSoftware.OASIS.API.Core.ARC.Membrane](#arc---noomap-integration)| This will contain a DeviceManager,PsyberManager & MappingManager allowing ARC to talk to any device and access all of it's hardware such as Bluetooth. It will also provide a wrapper around Unity allowing ARC to render it's 2D & 3D UI to Unity. It will also allow ARC to access the Our World 3D Map.
 |[NextGenSoftware.OASIS.API.Core.ARC.Membrane.NodeJS]((#arc---noomap-integration)| This is for testing purposes to simulate the ARC Core (written in NodeJS). It will test calls to the DeviceManager, PsyberManager & MappingManager.
 |[NextGenSoftware.OASIS.API.Core.TestHarness](#the-oasis-api---karma-system)| This is a Test Harness for the main OASIS API.
