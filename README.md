@@ -802,7 +802,12 @@ A list of of possible early adopters can be found below:
 * <a href="http://www.4ocean.com">4Ocean</a>
 * <a href="preseach.io">PreSearch</a>
 * <a href="https://mindlife.net">Uplift/MindLife</a>
-
+* <a href="https://www.mapotic.com">Mapotic</a>
+* <a href="https://docs.google.com/document/d/1LgBQX42jIOFkfnbHf1swP3GwDd0O-jzpjYYv63OjDRg/edit#heading=h.ofqm4bivlrj4">Global Brain Application</a>
+* <a href="https://alptha.joatu.org">Joatu</a>
+* <a href="https://cryptpad.fr/pad">Holo-REA</a>
+* <a href="https://holacracy.org">Holacracy</a>
+* <a href="https://www.headspace.com">Headspace</a> 
  
 We are in the process of reaching out to these to see if they wish to be one of the early adopters of the OASIS API. This list will grow over time, in time there will be thousands and even millions as our vision to connect everyone to everyone through the OASIS API/Our World becomes more and more of a reality.
 
