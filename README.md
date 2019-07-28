@@ -1,7 +1,7 @@
 # OASIS API / Our World / HoloNET / .NET HDK Altha v0.0.1
 
 ![alt text](https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-And-HoloNET/blob/master/FinalLogo.jpg "Our World")
-- [OASIS API / Our World / HoloNET Altha v0.0.1](#oasis-api---our-world---holonet-altha-v001)
+
   * [Introduction](#introduction)
   * [Project Structure](#project-structure)
   * [HoloNET](#holonet)
@@ -44,9 +44,13 @@
     + [Methods](#methods-2)
     + [Properties](#properties-2)
   * [The OASIS API & Karma System](#the-oasis-api---karma-system)
+    + [Gain Karma When You Earn HoloFuel For Sharing Your Nodes Resources To Power Our World](#gain-karma-when-you-earn-holofuel-for-sharing-your-nodes-resources-to-power-our-world)
     + [Open Karma Committe/Community Concensors](#open-karma-committe-community-concensors)
     + [Satillite Apps/Games/Websites](#satillite-apps-games-websites)
     + [Protocols/Platforms/Networks Supported](#protocols-platforms-networks-supported)
+    + [OASIS API Redundancy (Can Store Copies Of Your Data On Any Decentralised Network/Platform You Choose)](#oasis-api-redundancy--can-store-copies-of-your-data-on-any-decentralised-network-platform-you-choose-)
+    + [The OASIS API Enables You To Earn Karma Anywhere](#the-oasis-api-enables-you-to-earn-karma-anywhere)
+    + [User Has FULL Control Of Their Data](#user-has-full-control-of-their-data)
   * [.NET HDK](#net-hdk)
   * [The Power Of Holochain, .NET, Unity & NodeJS Combined!](#the-power-of-holochain--net--unity---nodejs-combined-)
     + [ARC & Noomap Integration](#arc---noomap-integration)
@@ -105,6 +109,7 @@
   * [Other Ways To Get Involved](#other-ways-to-get-involved)
   * [HoloSource Liscence](#holosource-liscence)
   * [Links](#links)
+
 
 
 ## Introduction
