@@ -652,7 +652,7 @@ The External enum was to be used by any other external implementation that imple
 
 ## HoloOASIS
 
-`HoloOASIS` uses [HoloNET](#holonet) to implement a Storage Provider (`IOASISStorage`) for the OASIS System. It will soon also implement a Network Provider (`IOASISNET`) for the OASIS System that will leverage Holochain to create it's own private de-centralised distributed network called `ONET` (as seen on the [OASIS Architecture Diagram](#oasis-architecture) below).
+`HoloOASIS` uses [HoloNET](#holonet) to implement a Storage Provider (`IOASISStorage`) for the OASIS System. It will soon also implement a Network Provider (`IOASISNET`) for the OASIS System that will leverage Holochain to create it's own private de-centralised distributed network called `ONET` (as seen on the [OASIS Architecture Diagram](#the-oasis-architecture) below).
 
 This is a good example to see how to use [HoloNET](#holonet) in a real world game/platform (OASIS/Our World).
 
