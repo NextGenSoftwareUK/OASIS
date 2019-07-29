@@ -1010,9 +1010,12 @@ We are in the process of reaching out to these to see if they wish to be one of 
 Please see the [Social Network](#socialnetwork) section for more info...
 
 
-### Protocols/Platforms/Networks Supported
+## The Universal API To Connect Everything To Everything (No More Silos/Walled Gardens)
 
-The OASIS API is a global universal API that aims to connect everything to everything to eliminate walled gardens/silos. There are a number of open protocols/platforms/networks that the OASIS API will support. The majority of these are aimed at building a truly decentralised distributed internet (Web 3.0) and this is also the aim of the OASIS API.
+**The OASIS API is a global universal API that aims to connect everything to everything to eliminate walled gardens/silos.** There are a number of open protocols/platforms/networks that the OASIS API will support. The majority of these are aimed at building a truly decentralised distributed internet (Web 3.0) and this is also the aim of the OASIS API.
+
+
+### Protocols/Platforms/Networks Supported
 
 The OASIS API aims to support as many platforms/networks/protocols as possible so the Karma System can be deeply integrated across the web in every application, device, etc.
 
