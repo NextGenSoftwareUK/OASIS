@@ -136,6 +136,8 @@ Next it will implement the ARC (Augmented Reality Computer) Membrane allowing th
 
 Next, it will port Noomap to Unity and will implement a Synergy Engine allowing people to easily find and match solutions/desires/passions and to also find various solution providers, which again will be fully integrated with the 3D Map & Avatar/Karma system.
 
+<br>
+
 ## Project Structure
 
 The projects within this repo should be pretty self explanatory from their names but below is a brief description of each of them:
