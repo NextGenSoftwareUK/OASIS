@@ -1,4 +1,5 @@
 
+
 # OASIS API / Our World / HoloNET / .NET HDK Altha v0.0.1
 
 ![alt text](https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-And-HoloNET/blob/master/FinalLogo.jpg "Our World")
@@ -435,6 +436,7 @@ public async Task Connect()
 This is the main method you will be using to invoke zome functions on your given zome. It has a number of handy overloads making it easier and more powerful to call your zome functions and manage the returned data.
 
 This method raises the [OnZomeFunctionCallBack](#onzomefunctioncallback) event once it has received a response from the Holochain conductor. Please see the [Events](#events) section above for more info on how to use this event.
+
 <br>
 
 ##### Overload 1
@@ -464,6 +466,7 @@ public async Task CallZomeFunctionAsync(string id, string instanceId, string zom
  ````
 
 This overload is similar to the one above except it omits the `id` and `matchIdToInstanceZomeFuncInCallback` param's forcing HoloNET to auto-generate and manage the id's itself. 
+
 <br>
 
 ##### Overload 3
@@ -473,6 +476,7 @@ public async Task CallZomeFunctionAsync(string id, string instanceId, string zom
  ````
 
 This overload is similar to the first one, except it is missing the `callback` param. For this overload you would subscribe to the `OnZomeFunctionCallBack` event. You can of course subscribe to this event for the other overloads too, it just means you will then get two callbacks, one for the event handler for `OnZomeFunctionalCallBack` and one for the callback delegate you pass in as a param to this method. The choice is yours on how you wish to use this method...
+
 <br>
 
 ##### Overload 4
@@ -482,6 +486,7 @@ public async Task CallZomeFunctionAsync(string instanceId, string zome, string f
  ````
 
 This overload is similar to the one above except it omits the `id` and `matchIdToInstanceZomeFuncInCallback` param's forcing HoloNET to auto-generate and manage the id's itself. It is also missing the `callback` param. For this overload you would subscribe to the `OnZomeFunctionCallBack` event. You can of course subscribe to this event for the other overloads too, it just means you will then get two callbacks, one for the event handler for `OnZomeFunctionalCallBack` and one for the callback delegate you pass in as a param to this method. The choice is yours on how you wish to use this method...
+
 <br>
 
 #### ClearCache
@@ -506,6 +511,7 @@ NOTE: Currently when you call this method, you will receive the follow error:
 > the close handshake."
 
 This looks like an issue with the Holochain conductor and we will be raising this bug with them to see if it is something they need to address...
+
 <br>
 
 #### GetHolochainInstancesAsync
@@ -556,6 +562,7 @@ public async Task SendMessageAsync(string jsonMessage)
 ### Properties
 
 HoloNETClient contains the following properties:
+
 <br>
 
 | Property | Description  |
@@ -582,7 +589,7 @@ This property contains a struct called `HoloNETConfig` containing the following 
 |SendChunkSize| The size of the buffer to use when sending data to the Holochain conductor. The default is 1024 bytes.
 |ReceiveChunkSizeDefault| The size of the buffer to use when receiving data from the Holochain conductor. The default is 1024 bytes. |
 | ErrorHandlingBehaviour | An enum that specifies what to do when anm error occurs. The options are: `AlwaysThrowExceptionOnError`, `OnlyThrowExceptionIfNoErrorHandlerSubscribedToOnErrorEvent` & `NeverThrowExceptions`). The default is `OnlyThrowExceptionIfNoErrorHandlerSubscribedToOnErrorEvent` meaning it will only throw an error if the `OnError` event has not been subscribed to. This delegates error handling to the caller. If no event has been subscribed then HoloNETClient will throw an error. `AlwaysThrowExceptionOnError` will always throw an error even if the `OnError` event has been subscribed to. The `NeverThrowException` enum option will never throw an error even if the `OnError` event has not been subscribed to. Regardless of what enum is selected, the error will always be logged using whatever `ILogger` has been injected into the [Logger]("#logger") property. 
-|
+
 <br>
 
 #### Logger
@@ -652,6 +659,7 @@ namespace NextGenSoftware.Holochain.HoloNET.Client.Core
     }
 }
 ````
+
 <br>
 
 #### NetworkServiceProvider
@@ -678,6 +686,7 @@ The interface currently looks like this:
 The two currently planned providers will be WebSockets & HTTP but if for whatever reason Holochain decide they need to use another protocol then a new one can easily be implemented without having to refactor any existing code.
 
 Currently the WebSocket JSON RPC implementation is deeply integrated into the HoloNETClient so this needs splitting out into its own project. We hope to get this done soon... We can then also at the same time implement the HTTP implementation. 
+
 <br>
 
 #### NetworkServiceProviderMode
@@ -698,6 +707,8 @@ The plan was to have WebSockets and HTTP built into the current implemntation (b
 The External enum was to be used by any other external implementation that implements the `IHoloNETClientNET` and would be for future use if Holochain decide they wish to use another protocol.
 
 **More to come soon...**
+
+<br>
 
 ## HoloOASIS
 
