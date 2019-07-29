@@ -212,14 +212,15 @@ await holoNETClient.CallZomeFunctionAsync("1", "test-instance", "our_world_core"
 
 Please see below for more details on the various overloads available for this call as well as the data you get back from this call and the other methods and events you can use...
 
-#### The Power of .NET Async Methods
+### The Power of .NET Async Methods
 
 You will notice that the above calls have the `await` keyword prefixing them. This is how you call an `async` method in C#. All of HoloNET, HoloOASIS & OASIS API methods are async methods. This simply means that they do not block the calling thread so if this is running on a UI thread it will not freeze the UI. Using the `await` keyword allows you to call an `async` method as if it was a syncronsous one. This means it will not call the next line until the async method has returned. The power of this is that you no longer need to use lots of messy callback functions cluttering up your code as has been the pass with async programming. The code path is also a lot easier to follow and manitain.
 
 Read more here:
 https://docs.microsoft.com/en-us/dotnet/csharp/programming-guide/concepts/async/
+<br>
 
-#### Events
+### Events
 <a name="events"></a>
 
 You can subscribe to a number of different events:
@@ -233,8 +234,9 @@ You can subscribe to a number of different events:
 | [OnDataReceived](#ondatareceived)         | Fired when any data is received from the hc conductor. This returns the raw JSON data.                   |
 | [OnZomeFunctionCallBack](#onzomefunctioncallback) | Fired when the hc conductor returns the response from a zome function call. This returns the raw JSON data as well as the actual parsed data returned from the zome function. It also returns the id, instance, zome and zome function that made the call.                                                               |
 | [OnSignalsCallBack](#onsignalscallback)      | Fired when the hc conductor sends signals data. NOTE: This is still waiting for hc to flresh out the    details for how this will work. Currently this returns the raw signals data.                             | 
+<br>
 
-##### OnConnected
+#### OnConnected
 Fired when the client has successfully connected to the Holochain conductor. 
 
 ````c#
@@ -246,11 +248,14 @@ private static void HoloNETClient_OnConnected(object sender, ConnectedEventArgs 
             Console.WriteLine("");
         }
 ````
+<br>
 
 |Parameter|Description  |
 |--|--|
 |EndPoint | The URI EndPoint of the Holochain conductor.
-##### OnDisconnected
+<br>
+
+#### OnDisconnected
 Fired when the client has successfully disconnected from the Holochain conductor. 
 
 ````c#
@@ -262,13 +267,15 @@ holoNETClient.OnDisconnected += HoloNETClient_OnDisconnected;
             Console.WriteLine("");
         }
 ````
+<br>
 
 |Parameter|Description  |
 |--|--|
 |EndPoint | The URI EndPoint of the Holochain conductor.
 |Reason | The reason for the disconnection.
+<br>
 
-##### OnError
+#### OnError
 Fired when an error occurs, check the params for the cause of the error.       
 
 ````c#
@@ -280,6 +287,7 @@ holoNETClient.OnError += HoloNETClient_OnError;
             Console.WriteLine("");
         }
 ````
+<br>
 
 |Parameter|Description  |
 |--|--|
@@ -287,8 +295,9 @@ holoNETClient.OnError += HoloNETClient_OnError;
 | Reason | The reason for the error.
 | ErrorDetails | A more detailed description of the error, this normally includes a stacktrace to help you track down the cause.
 
+<br>
 
-##### OnGetInstancesCallBack
+#### OnGetInstancesCallBack
 Fired when the hc conductor has returned the list of hc instances it is currently running.
 
 ````c#
@@ -300,6 +309,7 @@ private static void HoloNETClient_OnGetInstancesCallBack(object sender, GetInsta
             Console.WriteLine("");
 }
 ````
+<br>
 
 |Parameter|Description  |
 |--|--|
@@ -312,8 +322,9 @@ private static void HoloNETClient_OnGetInstancesCallBack(object sender, GetInsta
 |RawJSONData  | The raw JSON data returned from the Holochain conductor. |
 
 
+<br>
 
-##### OnDataReceived
+#### OnDataReceived
 Fired when any data is received from the hc conductor. This returns the raw JSON data.  
 
 ````c#
@@ -324,6 +335,7 @@ private static void HoloNETClient_OnDataReceived(object sender, DataReceivedEven
       Console.WriteLine(string.Concat("Data Received: EndPoint: ", e.EndPoint, "RawJSONData: ", e.RawJSONData));
 }
 ````
+<br>
 
 |Parameter|Description  |
 |--|--|
@@ -331,8 +343,9 @@ private static void HoloNETClient_OnDataReceived(object sender, DataReceivedEven
 |WebSocketResult| Contains more detailed technical information of the underlying websocket. This includes the number of bytes received, whether the message was fully received & whether the message is UTF-8 or binary. Please <a href="https://docs.microsoft.com/en-us/dotnet/api/system.net.websockets.websocketreceiveresult?view=netframework-4.8">see here</a> for more info.
 |RawJSONData  | The raw JSON data returned from the Holochain conductor. |
 
+<br>
 
-##### OnZomeFunctionCallBack
+#### OnZomeFunctionCallBack
 
 Fired when the hc conductor returns the response from a zome function call. This returns the raw JSON data as well as the actual parsed data returned from the zome function. It also returns the id, instance, zome and zome function that made the call.                      
 
@@ -345,6 +358,7 @@ private static void HoloNETClient_OnZomeFunctionCallBack(object sender, ZomeFunc
             Console.WriteLine("");
 }
 ````             
+<br>
 
  | Parameter          | Description                                        |
  | ------------------ | -------------------------------------------------- |
@@ -357,9 +371,11 @@ private static void HoloNETClient_OnZomeFunctionCallBack(object sender, ZomeFunc
  | ZomeReturnData     | The parsed data that the zome function returned.   |
  | RawZomeReturnData  | The raw JSON data that the zome function returned. |
  | RawJSONData        | The raw JSON data that the hc conductor returned.  |
+<br>
 
-##### OnSignalsCallBack
+#### OnSignalsCallBack
 Fired when the hc conductor sends signals data. NOTE: This is still waiting for Holochain to flesh out the details for how this will work. Currently this returns the raw signals data.
+<br>
 
 ````c#
 holoNETClient.OnSignalsCallBack += HoloNETClient_OnSignalsCallBack;
@@ -370,6 +386,7 @@ private static void HoloNETClient_OnSignalsCallBack(object sender, SignalsCallBa
             Console.WriteLine("");
         }
 ````   
+<br>
 
  | Parameter          | Description                                        |
  | ------------------ | -------------------------------------------------- |
@@ -379,10 +396,12 @@ private static void HoloNETClient_OnSignalsCallBack(object sender, SignalsCallBa
  | RawJSONData        | The raw JSON data that the hc conductor returned.  |
 
 
+<br>
 
-#### Methods
+### Methods
 
 HoloNETClient contains the following methods:
+<br>
 
 |Method|Description  |
 |--|--|
@@ -393,26 +412,30 @@ HoloNETClient contains the following methods:
 |[GetHolochainInstancesAsync](#getholochaininstancesasync) | This method will return a string array containing the instances that the holochain conductor is currently running. You will need to store the instance(s) in a variable to pass into the [CallZomeFunctionAsync](#callzomefunctionasync) later. This method raises the [OnGetInstancesCallBack](#ongetinstancescallback) event once it has received a response from the Holochain conductor. Please see the [Events](#events) section above for more info on how to use this event.|
 |[SendMessageAsync](#sendmessageasync) |This method allows you to send your own raw JSON request to holochain. This method raises the [OnDataReceived](#ondatareceived) event once it has received a response from the Holochain conductor. Please see the [Events](#events) section above for more info on how to use this event. You would rarely need to use this and we highly recommend you use the [CallZomeFunctionAsync](#callzomefunctionasync) method instead.
 
+<br>
 
-##### Connect
+#### Connect
 
 This method simply connects to the Holochain conductor. It raises the [OnConnected](#onconnected) event once it is has successfully established a connection. Please see the [Events](#events) section above for more info on how to use this event.
 
 ```c#
 public async Task Connect()
 ```
+<br>
 
-##### CallZomeFunctionAsync
+#### CallZomeFunctionAsync
 
 This is the main method you will be using to invoke zome functions on your given zome. It has a number of handy overloads making it easier and more powerful to call your zome functions and manage the returned data.
 
 This method raises the [OnZomeFunctionCallBack](#onzomefunctioncallback) event once it has received a response from the Holochain conductor. Please see the [Events](#events) section above for more info on how to use this event.
+<br>
 
-###### Overload 1
+##### Overload 1
 
 ````c#
 public async Task CallZomeFunctionAsync(string id, string instanceId, string zome, string function, ZomeFunctionCallBack callback, object paramsObject, bool matchIdToInstanceZomeFuncInCallback = true, bool cachReturnData = false)
 ````
+<br>
 
 | Parameter                           | Description                                                                                    
 | ----------------------------------- | ---------------------------------------------------------------------------------------------- |
@@ -425,39 +448,45 @@ public async Task CallZomeFunctionAsync(string id, string instanceId, string zom
 | matchIdToInstanceZomeFuncInCallback | This is an optional param, which defaults to true. Set this to true if you wish HoloNET to give the instance, zome  zome function that made the call in the callback/event. If this is false then only the id will be given in the callback. This uses a small internal cache to match up                  the id to the given instance/zome/function. Set this to false if you wish to save a tiny amount of memory by not utilizing this cache. If it is false then the `Instance`, `Zome` and `ZomeFunction` params will be missing in the ZomeCallBack,you will need to manually match the `id` to the call yourself.                                                  |
 | cachReturnData                      | This is an optional param, which defaults to false. Set this to true if you wish HoloNET to    cache the JSON response retrieved from holochain. Subsequent calls will return this cached data rather than calling the Holochain conductor again. Use this for static data that is not going to change for performance gains.                                                         
 
-###### Overload 2
+<br>
+
+#####  Overload 2
 
 ````c#
  public async Task CallZomeFunctionAsync(string instanceId, string zome, string function, ZomeFunctionCallBack callback, object paramsObject, bool cachReturnData = false)
  ````
 
 This overload is similar to the one above except it omits the `id` and `matchIdToInstanceZomeFuncInCallback` param's forcing HoloNET to auto-generate and manage the id's itself. 
+<br>
 
-###### Overload 3
+##### Overload 3
 
 ````c#
 public async Task CallZomeFunctionAsync(string id, string instanceId, string zome, string function, object paramsObject, bool matchIdToInstanceZomeFuncInCallback = true, bool cachReturnData = false)
  ````
 
 This overload is similar to the first one, except it is missing the `callback` param. For this overload you would subscribe to the `OnZomeFunctionCallBack` event. You can of course subscribe to this event for the other overloads too, it just means you will then get two callbacks, one for the event handler for `OnZomeFunctionalCallBack` and one for the callback delegate you pass in as a param to this method. The choice is yours on how you wish to use this method...
+<br>
 
-###### Overload 4
+##### Overload 4
 
 ````c#
 public async Task CallZomeFunctionAsync(string instanceId, string zome, string function, object paramsObject, bool cachReturnData = false)
  ````
 
 This overload is similar to the one above except it omits the `id` and `matchIdToInstanceZomeFuncInCallback` param's forcing HoloNET to auto-generate and manage the id's itself. It is also missing the `callback` param. For this overload you would subscribe to the `OnZomeFunctionCallBack` event. You can of course subscribe to this event for the other overloads too, it just means you will then get two callbacks, one for the event handler for `OnZomeFunctionalCallBack` and one for the callback delegate you pass in as a param to this method. The choice is yours on how you wish to use this method...
+<br>
 
-##### ClearCache
+#### ClearCache
 
 Call this method to clear all of HoloNETClient's internal cache. This includes the JSON responses that have been cached using the [GetHolochainInstancesAsync](#getholochaininstancesasync) & [CallZomeFunctionAsync](#callzomefunctionasync) methods if the `cacheData` parm was set to true for any of the calls.
 
 ````c#
 public void ClearCache()
 ````
+<br>
 
-##### Disconnect
+#### Disconnect
 
 This method disconnects the client from Holochain conductor. It raises the [OnDisconnected](#ondisconnected) event once it is has successfully disconnected. Please see the [Events](#events) section above for more info on how to use this event.
 
@@ -470,8 +499,9 @@ NOTE: Currently when you call this method, you will receive the follow error:
 > the close handshake."
 
 This looks like an issue with the Holochain conductor and we will be raising this bug with them to see if it is something they need to address...
+<br>
 
-##### GetHolochainInstancesAsync
+#### GetHolochainInstancesAsync
 
 This method will return a string array containing the instances that the holochain conductor is currently running. You will need to store the instance(s) in a variable to pass into the [CallZomeFunctionAsync](#callzomefunctionasync) later. 
 
@@ -481,24 +511,26 @@ This method raises the [OnGetHolochainInstancesCallBack](#ongetinstancescallback
 
 There are two overloads for this method:
 
-###### Overload 1
+##### Overload 1
 
 ````c#
 public async Task GetHolochainInstancesAsync(string id, bool cachReturnData = false)
 ````
 
-###### Overload 2
+##### Overload 2
 
 ````c#
 public async Task GetHolochainInstancesAsync(bool cachReturnData = false)
 ````
+<br>
 
 | Parameter| Description  |
 |--|--|
 |id|The unique id you wish to assign for this call (NOTE: Use the overload that omits this                                       param if you wish HoloNET to auto-generate and manage the id's for you).   |
 |cachReturnData | This is an optional param, which defaults to false. Set this to true if you wish HoloNET to    cache the JSON response retrieved from holochain. Subsequent calls will return this cached data rather than calling the Holochain conductor again. Use this for static data that is not going to change for performance gains. This would be a good method to enable caching if you know the instances are not going to change.  
+<br>
 
-##### SendMessageAsync
+#### SendMessageAsync
 
 This method allows you to send your own raw JSON request to holochain. This method raises the [OnDataRecived](#ondatareceived) event once it has received a response from the Holochain conductor. Please see the [Events](#events) section above for more info on how to use this event.
 
@@ -507,14 +539,17 @@ You would rarely need to use this and we highly recommend you use the [CallZomeF
 ````c#
 public async Task SendMessageAsync(string jsonMessage)
  ````
+<br>
 
 | Paramameter |Description  |
 |--|--|
 | jsonMessage | The raw JSON message you wish to send to the Holochain conductor.  |
+<br>
 
-#### Properties
+### Properties
 
 HoloNETClient contains the following properties:
+<br>
 
 | Property | Description  |
 |--|--|
@@ -523,9 +558,12 @@ HoloNETClient contains the following properties:
 | [NetworkServiceProvider](#networkserviceprovider) | This is a property where the network service provider can be injected. The provider needs to implement the `IHoloNETClientNET` interface.  |
 | [NetworkServiceProviderMode](#networkserviceprovidermode) |This is a simple enum, which currently has these values: Websockets, HTTP & External. |
 
-##### Config
+<br>
+
+#### Config
 
 This property contains a struct called `HoloNETConfig` containing the following sub-properties:
+<br>
 
 |Property|Description  |
 |--|--|
@@ -538,8 +576,9 @@ This property contains a struct called `HoloNETConfig` containing the following 
 |ReceiveChunkSizeDefault| The size of the buffer to use when receiving data from the Holochain conductor. The default is 1024 bytes. |
 | ErrorHandlingBehaviour | An enum that specifies what to do when anm error occurs. The options are: `AlwaysThrowExceptionOnError`, `OnlyThrowExceptionIfNoErrorHandlerSubscribedToOnErrorEvent` & `NeverThrowExceptions`). The default is `OnlyThrowExceptionIfNoErrorHandlerSubscribedToOnErrorEvent` meaning it will only throw an error if the `OnError` event has not been subscribed to. This delegates error handling to the caller. If no event has been subscribed then HoloNETClient will throw an error. `AlwaysThrowExceptionOnError` will always throw an error even if the `OnError` event has been subscribed to. The `NeverThrowException` enum option will never throw an error even if the `OnError` event has not been subscribed to. Regardless of what enum is selected, the error will always be logged using whatever `ILogger` has been injected into the [Logger]("#logger") property. 
 |
+<br>
 
-##### Logger
+#### Logger
 
 Property to inject in a `ILogger` implementation.
 
@@ -606,8 +645,9 @@ namespace NextGenSoftware.Holochain.HoloNET.Client.Core
     }
 }
 ````
+<br>
 
-##### NetworkServiceProvider
+#### NetworkServiceProvider
 
 This is a property where the network service provider can be injected. The provider needs to implement the `IHoloNETClientNET` interface. 
 
@@ -631,8 +671,9 @@ The interface currently looks like this:
 The two currently planned providers will be WebSockets & HTTP but if for whatever reason Holochain decide they need to use another protocol then a new one can easily be implemented without having to refactor any existing code.
 
 Currently the WebSocket JSON RPC implementation is deeply integrated into the HoloNETClient so this needs splitting out into its own project. We hope to get this done soon... We can then also at the same time implement the HTTP implementation. 
+<br>
 
-##### NetworkServiceProviderMode
+#### NetworkServiceProviderMode
 
 This is a simple enum, which currently has these values:
 
@@ -676,7 +717,7 @@ _holoOASIS.OnPlayerProfileLoaded += _holoOASIS_OnPlayerProfileLoaded;
 _holoOASIS.OnPlayerProfileSaved += _holoOASIS_OnPlayerProfileSaved;
 _holoOASIS.OnHoloOASISError += _holoOASIS_OnHoloOASISError;
 ````
-
+<br>
 Once HoloOASIS has finished initializing after the `OnInitialzed` event has fired you can create a new user Profile by creating a new Profile object and populating it with the required properties.
 
 You can also add karma by calling the `AddKarma` method on the `Profile` object.
@@ -695,7 +736,7 @@ private static void _holoOASIS_OnInitialized(object sender, EventArgs e)
             _holoOASIS.SaveProfileAsync(_savedProfile);
 }
 ````
-
+<br>
 To load the `Profile` object back from your local chain on Holochain you simply call the `LoadProfileAsync` method passing in the desired profiles Holochain hash, which is returned as a param in the `OnPlayerProfileSaved` event handler.
 
 ````c#
@@ -721,6 +762,93 @@ HoloOASIS contains the following events:
 | OnHoloOASISError|Fired when an error occurs within the provider. 
 | OnStorageProviderError|This implements part of the IOASISStorage interface. This is a way for the OASIS Providers to bubble up any errors to the ProfileManager contained in the [NextGenSoftware.OASIS.API.Core](#oasisapi) |
 
+#### OnInitialized 
+
+Fired when the HoloOASIS Provider has initialized. This is after the embedded [HoloNETClient](#holonet) has finished connecting to the Holochain Conductor.
+
+````c#
+_holoOASIS.OnInitialized += _holoOASIS_OnInitialized;
+
+private static void _holoOASIS_OnInitialized(object sender, EventArgs e)
+{
+            Console.WriteLine("Initialized.");
+            Console.WriteLine("Saving Profile...");
+
+            _savedProfile = new Profile { Username = "dellams", Email = "david@nextgensoftware.co.uk", Password = "1234", FirstName = "David", LastName = "Ellams", DOB = "11/04/1980", Id = Guid.NewGuid(), Title = "Mr", PlayerAddress = "blahahahaha" };
+            _savedProfile.AddKarma(999);
+
+            _holoOASIS.SaveProfileAsync(_savedProfile);
+}
+````
+<br>
+
+#### OnPlayerProfileSaved
+
+Fired when the users profile has finished saving.
+
+````c#
+_holoOASIS.OnPlayerProfileSaved += _holoOASIS_OnPlayerProfileSaved;
+
+private static void _holoOASIS_OnPlayerProfileSaved(object sender, ProfileSavedEventArgs e)
+{
+            Console.WriteLine("Profile Saved.");
+            Console.WriteLine("Profile Entry Hash: " + e.Profile.HcAddressHash);
+            Console.WriteLine("Loading Profile...");
+            //_savedProfile.Id = new Guid(e.ProfileEntryHash);
+            _holoOASIS.LoadProfileAsync(e.Profile.HcAddressHash);
+}
+````
+<br>
+
+|Parameter|Description |
+|--|--|
+|Profile  | The profile object that has just been saved.  |
+<br>
+
+#### OnPlayerProfileLoaded
+Fired when the users profile has finished loading.
+
+````c#
+ _holoOASIS.OnPlayerProfileLoaded += _holoOASIS_OnPlayerProfileLoaded;
+
+ private static void _holoOASIS_OnPlayerProfileLoaded(object sender, ProfileLoadedEventArgs e)
+        {
+            Console.WriteLine("Profile Loaded.");
+            Console.WriteLine(string.Concat("Id: ", e.Profile.Id));
+            Console.WriteLine(string.Concat("HC Address Hash: ", e.Profile.HcAddressHash));
+            Console.WriteLine(string.Concat("Name: ", e.Profile.Title, " ", e.Profile.FirstName, " ", e.Profile.LastName));
+            Console.WriteLine(string.Concat("Username: ", e.Profile.Username));
+            Console.WriteLine(string.Concat("Password: ", e.Profile.Password));
+            Console.WriteLine(string.Concat("Email: ", e.Profile.Email));
+            Console.WriteLine(string.Concat("DOB: ", e.Profile.DOB));
+            Console.WriteLine(string.Concat("Address: ", e.Profile.PlayerAddress));
+            Console.WriteLine(string.Concat("Karma: ", e.Profile.Karma));
+            Console.WriteLine(string.Concat("Level: ", e.Profile.Level));
+        }
+````
+<br>
+
+#### OnHoloOASISError
+
+Fired when an error occurs within the provider.
+
+````c#
+ _holoOASIS.OnHoloOASISError += _holoOASIS_OnHoloOASISError;
+
+private static void _holoOASIS_OnHoloOASISError(object sender, HoloOASISErrorEventArgs e)
+        {
+            Console.WriteLine(string.Concat("Error Occured. Reason: ", e.Reason, (e.HoloNETErrorDetails != null ? string.Concat(", HoloNET Reason: ", e.HoloNETErrorDetails.Reason) : ""), (e.HoloNETErrorDetails != null ? string.Concat(", HoloNET Details: ", e.HoloNETErrorDetails.ErrorDetails.ToString()) : ""), "\n"));
+        }
+````
+<br>
+
+|Parameter|Description  |
+|--|--|
+| EndPoint | The URI EndPoint of the Holochain conductor.
+| Reason | The reason for the error.  |
+| ErrorDetails| More detailed technical details including stack trace.
+| HoloNETErrorDetails| If the error was caused by HoloNET, then the error details returned from HoloNET will appear here.
+
 
 ### Methods
 
@@ -744,7 +872,7 @@ HoloOASIS contains the following properties:
 
 |Property|Description  |
 |--|--|
-|  |  |
+| HoloNETClient | This contains a ref to the [HoloNETClient](#holonet). You can use this property to access the underlying [HoloNETClient](#holonet) including all [events](#events), [methods](#methods) & [properties](#properties). |
 
 
 **More to come soon...**
