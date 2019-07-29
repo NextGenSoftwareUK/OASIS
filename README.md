@@ -160,6 +160,7 @@ The projects within this repo should be pretty self explanatory from their names
 |[NextGenSoftware.OASIS.API.Providers.HoloOASIS.Unity](#holooasis)| This is the Unity implementation of the HoloOASIS Provider and uses the Unity version of the HoloNETClient.
 |[NextGenSoftware.OASIS.API.Providers.HoloOASIS.TestHarness](#holooasis)| This is the Test Harness of the HoloOASIS Provider.
 
+<br>
 
 ## HoloNET
 
@@ -170,6 +171,8 @@ This is also how Holochain can talk to Unity because Unity uses C#/.NET as it's 
 This will help massively turbo charge the holochain ecosystem by opening it up to the massive .NET and Unity communities and open up many more possibilities of the things that can be built on top of Holochain. You can build almost anything you can imagine with .NET and/or Unity from websites, desktop apps, smartphone apps, services, AAA Games and lots more! They can target every device and platform out there from XBox, PS4, Wii, PC, Linux, Mac, iOS, Android, Windows Phone, iPad, Tablets, SmartTV, VR/AR/XR, MagicLeap, etc
 
 **We are a BIG fan of Holochain and are very passionate about it and see a BIG future for it! We feel this is the gateway to taking Holochain mainstream! ;-)**
+
+<br>
 
 ### How To Use HoloNET
 
@@ -220,12 +223,15 @@ await holoNETClient.CallZomeFunctionAsync("1", "test-instance", "our_world_core"
 
 Please see below for more details on the various overloads available for this call as well as the data you get back from this call and the other methods and events you can use...
 
+<br>
+
 ### The Power of .NET Async Methods
 
 You will notice that the above calls have the `await` keyword prefixing them. This is how you call an `async` method in C#. All of HoloNET, HoloOASIS & OASIS API methods are async methods. This simply means that they do not block the calling thread so if this is running on a UI thread it will not freeze the UI. Using the `await` keyword allows you to call an `async` method as if it was a syncronsous one. This means it will not call the next line until the async method has returned. The power of this is that you no longer need to use lots of messy callback functions cluttering up your code as has been the pass with async programming. The code path is also a lot easier to follow and manitain.
 
 Read more here:
 https://docs.microsoft.com/en-us/dotnet/csharp/programming-guide/concepts/async/
+
 <br>
 
 ### Events
