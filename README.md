@@ -1,3 +1,4 @@
+
 # OASIS API / Our World / HoloNET / .NET HDK Altha v0.0.1
 
 ![alt text](https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-And-HoloNET/blob/master/FinalLogo.jpg "Our World")
@@ -44,7 +45,7 @@
     + [Events](#events-2)
     + [Methods](#methods-2)
     + [Properties](#properties-2)
-  * [The OASIS API & Karma System](#oasisapi)
+  * [The OASIS API & Karma System](#the-oasis-api---karma-system)
     + [Gain Karma When You Earn HoloFuel For Sharing Your Nodes Resources To Power Our World](#gain-karma-when-you-earn-holofuel-for-sharing-your-nodes-resources-to-power-our-world)
     + [Open Karma Committe/Community Concensors](#open-karma-committe-community-concensors)
     + [Satillite Apps/Games/Websites](#satillite-apps-games-websites)
@@ -139,7 +140,7 @@ The projects within this repo should be pretty self explanatory from their names
 |[NextGenSoftware.Holochain.HoloNET.Client.Unity](#holonet)| The Unity implementation of the HoloNETClient. This will use a Unity compatible logger soon...
 |[NextGenSoftware.Holochain.HoloNET.Client.TestHarness](#holonet)| The Test Harness for the HoloNETClient. This includes load tests for Holochain. So far looking good, the conductor is very fast! ;-)
 |[NextGenSoftware.Holochain.HoloNET.HDK](#net-hdk)| A placeholder for the .NET HDK (Holochain Development Kit). 
-|[NextGenSoftware.OASIS.API.Core](#oasisapi)| The core code for the OASIS API itself. This is where the Providers are injected and is the core part of the system.
+|[NextGenSoftware.OASIS.API.Core](#the-oasis-api---karma-system)| The core code for the OASIS API itself. This is where the Providers are injected and is the core part of the system.
 |[NextGenSoftware.OASIS.API.Core.ARC.Membrane](#arc---noomap-integration)| This will contain a DeviceManager,PsyberManager & MappingManager allowing ARC to talk to any device and access all of it's hardware such as Bluetooth. It will also provide a wrapper around Unity allowing ARC to render it's 2D & 3D UI to Unity. It will also allow ARC to access the Our World 3D Map.
 |[NextGenSoftware.OASIS.API.Core.ARC.Membrane.NodeJS]((#arc---noomap-integration)| This is for testing purposes to simulate the ARC Core (written in NodeJS). It will test calls to the DeviceManager, PsyberManager & MappingManager.
 |[NextGenSoftware.OASIS.API.Core.TestHarness](#the-oasis-api---karma-system)| This is a Test Harness for the main OASIS API.
@@ -652,9 +653,9 @@ The External enum was to be used by any other external implementation that imple
 
 ## HoloOASIS
 
-`HoloOASIS` uses [HoloNET](#holonet) to implement a Storage Provider (`IOASISStorage`) for the OASIS System. It will soon also implement a Network Provider (`IOASISNET`) for the OASIS System that will leverage Holochain to create it's own private de-centralised distributed network called `ONET` (as seen on the [OASIS Architecture Diagram](#the-oasis-architecture) below).
+`HoloOASIS` uses the [HoloNETClient](#holonet) to implement a Storage Provider (`IOASISStorage`) for the OASIS System. It will soon also implement a Network Provider (`IOASISNET`) for the OASIS System that will leverage Holochain to create it's own private de-centralised distributed network called `ONET` (as seen on the [OASIS Architecture Diagram](#the-oasis-architecture) below).
 
-This is a good example to see how to use [HoloNET](#holonet) in a real world game/platform (OASIS/Our World).
+This is a good example to see how to use [HoloNETClient](#holonet) in a real world game/platform (OASIS/Our World).
 
 ### Using HoloOASIS
 
@@ -710,9 +711,41 @@ private static void _holoOASIS_OnPlayerProfileSaved(object sender, ProfileSavedE
 
 ### Events
 
+HoloOASIS contains the following events:
+
+|Event|Description |
+|--|--|
+| OnInitialized |Fired when the HoloOASIS Provider has initialized. This is after the embedded [HoloNETClient](#holonet) has finished connecting to the Holochain Conductor.  |
+| OnPlayerProfileSaved|Fired when the users profile has finished saving. |
+| OnPlayerProfileLoaded|Fired when the users profile has finished loading. |
+| OnHoloOASISError|Fired when an error occurs within the provider. 
+| OnStorageProviderError|This implements part of the IOASISStorage interface. This is a way for the OASIS Providers to bubble up any errors to the ProfileManager contained in the [NextGenSoftware.OASIS.API.Core](#oasisapi) |
+
+
 ### Methods
 
+HoloOASIS contains the following methods:
+
+| Method |Description  |
+|--|--|
+| AddKarmaToProfileAsync |This implements part of the IOASISStorage interface. Call this method to add karma to the users profile/avatar.  |
+|ConvertProfileToHoloOASISProfile | Internal utility method that converts a `OASIS.API.Core.Profile` object to a `HoloOASIS.Profile` object. The `HoloOASIS.Profile` object extends the `OASIS.API.Core.Profile` object by adding the `HcAddressHash` property to store the address hash returned from Holochain when adding new entries to the chain.
+| GetHolonsNearMe | This implements part of the IOASISNET interface. This has not been implemented yet and is just a stub. This method will get a list of the Holons (items/objects) near the user/avatar.
+|GetPlayersNearMe|This implements part of the IOASISNET interface. This has not been implemented yet and is just a stub. This method will get a list of the players/avatars near the player's user/avatar.
+|HandleError| This is a private method where all errors are funneled and handled.
+|Initialize| Call this method to initilize the provider. Internally this will call the [Connect](#connect) method on the [HoloNETClient](#holonet) class.
+|LoadProfileAsync| Call this method to load the users profile/avatar data and return it in a `Profile` object. This has 3 overloads.
+|RemoveKarmaFromProfileAsync| Call this method to remove karma from the users profile/avatar.
+| SaveProfileAsync | Call this method to save the user's profile/avatar.
+
 ### Properties
+
+HoloOASIS contains the following properties:
+
+|Property|Description  |
+|--|--|
+|  |  |
+
 
 **More to come soon...**
 
@@ -1434,6 +1467,8 @@ This repo uses a new type of Open Source where more control is needed over the c
 This means permission will need to be requested for any forks, etc 
 
 The whole point of opening up this codebase to the public is we wish to empower the whole world to take responsability for our beautiful planet and this is why the whole world is the Our World team. It will be one of the biggest most ambitious projects the world has ever seen and this is why it needs to be open to all...
+
+<a href="https://docs.google.com/document/d/1I3qbBnfVPLrGxv5paDAaCFSBxkb_34vkhA6fc8iNMew/edit#heading=h.s2ub9y5otad7">Read More Here</a>
 
 **Ready to do your part? ;-)**
 
