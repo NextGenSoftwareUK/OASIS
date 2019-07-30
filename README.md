@@ -5,6 +5,7 @@
 ![alt text](https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-And-HoloNET/blob/master/FinalLogo.jpg "Our World")
 
 ## Contents
+  - [OASIS API / Our World / HoloNET / .NET HDK Altha v0.0.1](#oasis-api---our-world---holonet---net-hdk-altha-v001)
   * [Contents](#contents)
   * [Introduction](#introduction)
   * [Project Structure](#project-structure)
@@ -46,15 +47,24 @@
       - [OnHoloOASISError](#onholooasiserror)
     + [Methods](#methods-1)
     + [Properties](#properties-1)
-  * [HoloUnity](#holounity)
-    + [Using HoloUnity](#using-holounity)
+  * [OASIS API Core](#oasis-api-core)
+      - [Using The OASIS API Core](#using-the-oasis-api-core)
+    + [Interfaces](#interfaces)
+      - [IOASISStorage](#ioasisstorage)
+      - [IOASISNET](#ioasisnet)
     + [Events](#events-2)
     + [Methods](#methods-2)
     + [Properties](#properties-2)
+  * [HoloUnity](#holounity)
+    + [Using HoloUnity](#using-holounity)
+    + [Events](#events-3)
+    + [Methods](#methods-3)
+    + [Properties](#properties-3)
   * [The OASIS API & Karma System](#the-oasis-api---karma-system)
     + [Gain Karma When You Earn HoloFuel For Sharing Your Nodes Resources To Power Our World](#gain-karma-when-you-earn-holofuel-for-sharing-your-nodes-resources-to-power-our-world)
     + [Open Karma Committe/Community Concensors](#open-karma-committe-community-concensors)
     + [Satillite Apps/Games/Websites](#satillite-apps-games-websites)
+  * [The Universal API To Connect Everything To Everything (No More Silos/Walled Gardens)](#the-universal-api-to-connect-everything-to-everything--no-more-silos-walled-gardens-)
     + [Protocols/Platforms/Networks Supported](#protocols-platforms-networks-supported)
     + [OASIS API Redundancy (Can Store Copies Of Your Data On Any Decentralised Network/Platform You Choose)](#oasis-api-redundancy--can-store-copies-of-your-data-on-any-decentralised-network-platform-you-choose-)
     + [The OASIS API Enables You To Earn Karma Anywhere](#the-oasis-api-enables-you-to-earn-karma-anywhere)
@@ -63,7 +73,7 @@
   * [The Power Of Holochain, .NET, Unity & NodeJS Combined!](#the-power-of-holochain--net--unity---nodejs-combined-)
     + [ARC & Noomap Integration](#arc---noomap-integration)
     + [Node.JS Integration](#nodejs-integration)
-  * [ARC, Noomap & IWG (Infinite](#arc--noomap---iwg--infinite)
+  * [ARC, Noomap & IWG (Infinite World Game) Will Be Fully Integrated](#arc--noomap---iwg--infinite-world-game--will-be-fully-integrated)
   * [Turbocharge the Holochain ecosystem!](#turbocharge-the-holochain-ecosystem-)
   * [The OASIS Architecture](#the-oasis-architecture)
     + [Open Modular Design](#open-modular-design)
@@ -117,6 +127,7 @@
   * [Other Ways To Get Involved](#other-ways-to-get-involved)
   * [HoloSource Liscence](#holosource-liscence)
   * [Links](#links)
+
 
 
 
