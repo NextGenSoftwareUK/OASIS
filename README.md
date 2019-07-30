@@ -901,17 +901,7 @@ HoloOASIS contains the following properties:
 
 **More to come soon...**
 
-## HoloUnity
-
-We will soon be creating a Asset for the Unity Asset Store that will include [HoloNET](#holonet) along with Unity wrappers and examples of how to use [HoloNET](#holonet) inside Unity.
-
-In the codebase you will find a project called [NextGenSoftware.OASIS.API.FrontEnd.Unity](#project-structure), which shows how the `ProfileManager` found inside the `OASIS API Core` ([NextGenSoftware.OASIS.API.Core](#project-structure)) is used. When you instantiate the `ProfileManager` you inject into a Storage Provider that implements the [IOASISStorage](#ioasisstorage) interface. Currently the only provider implemented is the [HoloOASIS](#holooasis) Provider.
-
-The actual Our World Unity code is not currently stored in this repo due to size restrictions but we may consider using GitHub LFS (Large File Storage) later on. We are also looking at GitLab and other alternatives to see if they allow greater storage capabilities free out of the box (since we are currently working on a very tight budget but you could change that by donating below! ;-) ).
-
-**As with the rest of the project, if you have any suggestions we would love to hear from you! :)**
-
-### OASIS API Core
+## OASIS API Core
 
 This is where the main OASIS API is located and contains all of the interfaces that the various providers implement along with the base objects & managers to power the OASIS API.
 
@@ -1034,6 +1024,15 @@ Currently the [HoloOASIS](#holooasis) Provider defines some stubs for this inter
 **More to come soon...**
 
 
+## HoloUnity
+
+We will soon be creating a Asset for the Unity Asset Store that will include [HoloNET](#holonet) along with Unity wrappers and examples of how to use [HoloNET](#holonet) inside Unity.
+
+In the codebase you will find a project called [NextGenSoftware.OASIS.API.FrontEnd.Unity](#project-structure), which shows how the `ProfileManager` found inside the `OASIS API Core` ([NextGenSoftware.OASIS.API.Core](#project-structure)) is used. When you instantiate the `ProfileManager` you inject into a Storage Provider that implements the [IOASISStorage](#ioasisstorage) interface. Currently the only provider implemented is the [HoloOASIS](#holooasis) Provider.
+
+The actual Our World Unity code is not currently stored in this repo due to size restrictions but we may consider using GitHub LFS (Large File Storage) later on. We are also looking at GitLab and other alternatives to see if they allow greater storage capabilities free out of the box (since we are currently working on a very tight budget but you could change that by donating below! ;-) ).
+
+**As with the rest of the project, if you have any suggestions we would love to hear from you! :)**
 
 ### Using HoloUnity
 
