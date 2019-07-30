@@ -1,4 +1,5 @@
 
+
 # OASIS API / Our World / HoloNET / .NET HDK Altha v0.0.1
 
 ![alt text](https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-And-HoloNET/blob/master/FinalLogo.jpg "Our World")
@@ -155,7 +156,7 @@ The projects within this repo should be pretty self explanatory from their names
 |[NextGenSoftware.OASIS.API.FrontEnd.Web](#the-oasis-api---karma-system)| This is the Web front-end for the OASIS API and will show the user's Avatar/Profile along with their Karma levels (and where the karma came from). It will also show what Satellite apps/games/websites that are using the API. This will form the foundation of the NextGen Social Network (a sub-component of Our World).
 |[NextGenSoftware.OASIS.API.FrontEnd.Unity](#holounity)| This shows how the OASIS API is used in Unity to render the users profile data to the 3D Avatar.
 |NextGenSoftware.OASIS.API.WebAPI| This will expose the OASIS API as a RESTful service over HTTP. In future there will also be a websocket HTTP & websocket JSON RPC 2.0 interface.
-|[NextGenSoftware.OASIS.API.Providers.HoloOASIS.Core](#holooasis)| This contains the core code for the HoloOASIS Provider, that wraps around the HoloNETClient to talk to Holochain. This implements the IOASISStorage interface allowing the OASIS API to read & write the users profile data to Holochain.
+|[NextGenSoftware.OASIS.API.Providers.HoloOASIS.Core](#holooasis)| This contains the core code for the HoloOASIS Provider, that wraps around the HoloNETClient to talk to Holochain. This implements the [IOASISStorage](#ioasisstorage)interface allowing the OASIS API to read & write the users profile data to Holochain. It also implements the [IOASISNET](#ioasisnet) interface allowing it to share the user's profile/avatar as well as find Holons and players in their local area.
 |[NextGenSoftware.OASIS.API.Providers.HoloOASIS.Desktop](#holooasis)| This is the desktop implementation of the HoloOASIS Provider and uses the desktop version of the HoloNETClient.
 |[NextGenSoftware.OASIS.API.Providers.HoloOASIS.Unity](#holooasis)| This is the Unity implementation of the HoloOASIS Provider and uses the Unity version of the HoloNETClient.
 |[NextGenSoftware.OASIS.API.Providers.HoloOASIS.TestHarness](#holooasis)| This is the Test Harness of the HoloOASIS Provider.
@@ -718,7 +719,7 @@ The External enum was to be used by any other external implementation that imple
 
 ## HoloOASIS
 
-`HoloOASIS` uses the [HoloNETClient](#holonet) to implement a Storage Provider (`IOASISStorage`) for the OASIS System. It will soon also implement a Network Provider (`IOASISNET`) for the OASIS System that will leverage Holochain to create it's own private de-centralised distributed network called `ONET` (as seen on the [OASIS Architecture Diagram](#the-oasis-architecture) below).
+`HoloOASIS` uses the [HoloNETClient](#holonet) to implement a Storage Provider ([IOASISStorage](#ioasisstorage)) for the OASIS System. It will soon also implement a Network Provider ([IOASISNET](#ioasisnet)) for the OASIS System that will leverage Holochain to create it's own private de-centralised distributed network called `ONET` (as seen on the [OASIS Architecture Diagram](#the-oasis-architecture) below).
 
 This is a good example to see how to use [HoloNETClient](#holonet) in a real world game/platform (OASIS/Our World).
 
@@ -784,7 +785,7 @@ HoloOASIS contains the following events:
 | OnPlayerProfileSaved|Fired when the users profile has finished saving. |
 | OnPlayerProfileLoaded|Fired when the users profile has finished loading. |
 | OnHoloOASISError|Fired when an error occurs within the provider. 
-| OnStorageProviderError|This implements part of the IOASISStorage interface. This is a way for the OASIS Providers to bubble up any errors to the ProfileManager contained in the [NextGenSoftware.OASIS.API.Core](#oasisapi) |
+| OnStorageProviderError|This implements part of the [IOASISStorage](#ioasisstorage) interface. This is a way for the OASIS Providers to bubble up any errors to the ProfileManager contained in the [NextGenSoftware.OASIS.API.Core](#oasisapi) |
 
 #### OnInitialized 
 
@@ -880,7 +881,7 @@ HoloOASIS contains the following methods:
 
 | Method |Description  |
 |--|--|
-| AddKarmaToProfileAsync |This implements part of the IOASISStorage interface. Call this method to add karma to the users profile/avatar.  |
+| AddKarmaToProfileAsync |This implements part of the [IOASISStorage](#ioasisstorage) interface. Call this method to add karma to the users profile/avatar.  |
 |ConvertProfileToHoloOASISProfile | Internal utility method that converts a `OASIS.API.Core.Profile` object to a `HoloOASIS.Profile` object. The `HoloOASIS.Profile` object extends the `OASIS.API.Core.Profile` object by adding the `HcAddressHash` property to store the address hash returned from Holochain when adding new entries to the chain.
 | GetHolonsNearMe | This implements part of the IOASISNET interface. This has not been implemented yet and is just a stub. This method will get a list of the Holons (items/objects) near the user/avatar.
 |GetPlayersNearMe|This implements part of the IOASISNET interface. This has not been implemented yet and is just a stub. This method will get a list of the players/avatars near the player's user/avatar.
@@ -1265,8 +1266,8 @@ As you can see from the diagram the OASIS architecture is very modular, open and
 
 The components are split into 11 sub-systems/layers:
 
-* Storage (IOASISStorage Interface)
-* Network (IOASISNET Interface)
+* Storage ([IOASISStorage](#ioasisstorage) Interface)
+* Network ([IOASISNET](#ioasisnet) Interface)
 * Renderer (IOASIS2DRenderer & IOASIS3DRenderer Interfaces)
 * XR/Eye Tracking
 * Haptic Feedback
@@ -1275,9 +1276,9 @@ The components are split into 11 sub-systems/layers:
 * Motion Tracking
 * Input
 * OAPP Templates
-* OASIS Engine/API
+* [OASIS Engine/API](#oasisapicore)
 
-Currently HoloOASIS implements the IOASISStorage interface. In future it will also implement the IOASISNET interface.
+Currently [HoloOASIS](#holooasis) implements the [IOASISStorage](#ioasisstorage) interface. In future it will also implement the [IOASISNET](#ioasisnet) interface.
 
 **PLEASE MAKE SURE YOU READ THE DESCRIPTION BOXES ON THE DIAGRAM FOR MORE INFO ON HOW THE SYSTEM WILL WORK.**
 
@@ -1292,7 +1293,7 @@ As you can see from the architecture diagram, the system will act as the bridge 
 
 ### Implement Your Own Storage/Network/Renderer Provider
 
-Thanks to the system being very open/modular by design you can easily implement your own Storage/Network/Renderer Provider by simply implementing the IOASISStorage/IOASTNET/IOASIS2DRenderer/IOASIS3DRenderer interfaces respectively. For example you could create a MongoDB, MySQL or SQL Server Storage Provider. This also ensures forward compatibility since if a new storage medium or network protocol comes out in the future you can easily write a new provider for them without having to change any of the existing system. 
+Thanks to the system being very open/modular by design you can easily implement your own Storage/Network/Renderer Provider by simply implementing the [IOASISStorage](#ioasisstorage) / [IOASTNET](#ioasisnet) / IOASIS2DRenderer / IOASIS3DRenderer interfaces respectively. For example you could create a MongoDB, MySQL or SQL Server Storage Provider. This also ensures forward compatibility since if a new storage medium or network protocol comes out in the future you can easily write a new provider for them without having to change any of the existing system. 
 
 The same applies if a new 3D Engine comes out you want to use.
 
