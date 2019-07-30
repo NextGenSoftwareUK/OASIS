@@ -62,7 +62,7 @@
     + [Gain Karma When You Earn HoloFuel For Sharing Your Nodes Resources To Power Our World](#gain-karma-when-you-earn-holofuel-for-sharing-your-nodes-resources-to-power-our-world)
     + [Open Karma Committe/Community Concensors](#open-karma-committe-community-concensors)
     + [Satillite Apps/Games/Websites](#satillite-apps-games-websites)
-  * [The Universal API To Connect Everything To Everything (No More Silos/Walled Gardens)](#the-universal-api-to-connect-everything-to-everything--no-more-silos-walled-gardens-)
+    + [The Universal API To Connect Everything To Everything (No More Silos/Walled Gardens)](#the-universal-api-to-connect-everything-to-everything--no-more-silos-walled-gardens-)
     + [Protocols/Platforms/Networks Supported](#protocols-platforms-networks-supported)
     + [OASIS API Redundancy (Can Store Copies Of Your Data On Any Decentralised Network/Platform You Choose)](#oasis-api-redundancy--can-store-copies-of-your-data-on-any-decentralised-network-platform-you-choose-)
     + [The OASIS API Enables You To Earn Karma Anywhere](#the-oasis-api-enables-you-to-earn-karma-anywhere)
@@ -125,7 +125,6 @@
   * [Other Ways To Get Involved](#other-ways-to-get-involved)
   * [HoloSource Liscence](#holosource-liscence)
   * [Links](#links)
-
 
 
 
@@ -1146,7 +1145,7 @@ Please see the [Social Network](#socialnetwork) section for more info...
 
 ### The Universal API To Connect Everything To Everything (No More Silos/Walled Gardens)
 
-**The OASIS API is a global universal API that aims to connect everything to everything to eliminate walled gardens/silos.** There are a number of open protocols/platforms/networks that the OASIS API will support. The majority of these are aimed at building a truly decentralised distributed internet (Web 3.0) and this is also the aim of the OASIS API.
+**The OASIS API is a global universal API that aims to connect everything to everything to eliminate walled gardens/silos.** There are a number of open protocols/platforms/networks that the OASIS API will support. The majority of these are aimed at building a truly decentralised distributed internet (Web 3.0) and this is also the aim of the OASIS API. 
 
 
 ### Protocols/Platforms/Networks Supported
