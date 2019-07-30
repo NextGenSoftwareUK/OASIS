@@ -1,3 +1,4 @@
+
 # OASIS API / Our World / HoloNET / .NET HDK Altha v0.0.1
 
 ![alt text](https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-And-HoloNET/blob/master/FinalLogo.jpg "Our World")
@@ -904,11 +905,135 @@ HoloOASIS contains the following properties:
 
 We will soon be creating a Asset for the Unity Asset Store that will include [HoloNET](#holonet) along with Unity wrappers and examples of how to use [HoloNET](#holonet) inside Unity.
 
-In the codebase you will find a project called [NextGenSoftware.OASIS.API.FrontEnd.Unity](#project-structure), which shows how the `ProfileManager` found inside the `OASIS API Core` ([NextGenSoftware.OASIS.API.Core](#project-structure)) is used. When you instantiate the `ProfileManager` you inject into a Storage Provider that implements the `IOASISStorage` interface. Currently the only provider implemented is the [HoloOASIS](#holooasis) Provider.
+In the codebase you will find a project called [NextGenSoftware.OASIS.API.FrontEnd.Unity](#project-structure), which shows how the `ProfileManager` found inside the `OASIS API Core` ([NextGenSoftware.OASIS.API.Core](#project-structure)) is used. When you instantiate the `ProfileManager` you inject into a Storage Provider that implements the [IOASISStorage](#ioasisstorage) interface. Currently the only provider implemented is the [HoloOASIS](#holooasis) Provider.
 
 The actual Our World Unity code is not currently stored in this repo due to size restrictions but we may consider using GitHub LFS (Large File Storage) later on. We are also looking at GitLab and other alternatives to see if they allow greater storage capabilities free out of the box (since we are currently working on a very tight budget but you could change that by donating below! ;-) ).
 
 **As with the rest of the project, if you have any suggestions we would love to hear from you! :)**
+
+### OASIS API Core
+
+This is where the main OASIS API is located and contains all of the interfaces that the various providers implement along with the base objects & managers to power the OASIS API.
+
+It is located in the `NextGenSoftware.OASIS.API.Core` project.
+
+#### Using The OASIS API Core
+
+The API is still being developed so at the time of writing,  only the`ProfileManager` is available.
+
+You start by instantiating the `ProfileManager` class:
+
+````c#
+// Inject in the HoloOASIS Storage Provider (this could be moved to a config file later so the 
+// providers can be sweapped without having to re-compile.
+ProfileManager = new ProfileManager(new HoloOASIS("ws://localhost:8888"));
+````
+
+The `ProfileManager` takes one param for the constructor of type [IOASISStorage](#ioasisstorage). This is where you inject in a Provider that implements the [IOASISStorage](#ioasisstorage) interface. Currently the only provider that has implemented this is the [HoloOASIS](#holooasis) provider. but expect more to follow soon...
+
+````c#
+public ProfileManager(IOASISStorage OASISStorageProvider)
+{
+            this.OASISStorageProvider = OASISStorageProvider;
+            this.OASISStorageProvider.OnStorageProviderError += OASISStorageProvider_OnStorageProviderError;
+}
+````
+
+Part of the [IOASISStorage](#ioasisstorage) interface has an event called OnStorageProviderError, which the provider fires to send errors back to the `ProfileManager`.
+
+Once the `ProfileManager` has been instantiated. you can load the users Profile using the `LoadProfileAsync` method:
+
+````c#
+IProfile profile = await ProfileManager.LoadProfileAsync(username, password);
+
+if (profile != null)
+{
+	//TODO: Bind profile info to Unity Avatar UI here.
+}
+````
+
+### Interfaces
+
+The OASIS API currently has the following interfaces defined:
+
+|Interface|Description  |
+|--|--|
+|[IOASISStorage](#ioasisstorage)  | This is what a Storage Provider implements so the OASIS API can read & write the users profile/avatar to the storage medium/network. Currently only the HoloOASIS provider exists but more will follow soon...the first will be EthereumOASIS & SOLIDOASIS so the API can talk to both Ethereum & SOLID.  |
+|[IOASISNET](#ioasisnet)| This is what a Network Provider implements so the OASIS API can share the users profile/avatar as well as fine Holons and players near them. 
+
+**NOTE: Currently the interfaces are pretty basic, but expect a LOT more to be added in the future...  Additional interfaces will also be added such as the IOASISRenderer interface.**
+
+#### IOASISStorage  
+
+This is what a Storage Provider implements so the OASIS API can read & write the users profile/avatar to the storage medium/network. Currently only the [HoloOASIS](#holooasis) provider exists but more will follow soon...the first will be EthereumOASIS & SOLIDOASIS so the API can talk to both Ethereum & SOLID.
+
+````c#
+namespace NextGenSoftware.OASIS.API.Core
+{
+    // This interface is responsible for persisting data/state to storage, this could be a local DB or other local 
+    // storage or through a distributed/decentralised provider such as IPFS or Holochain (these two implementations 
+    // will be implemented soon (IPFSOASIS & HoloOASIS).
+    public interface IOASISStorage
+    {
+        Task<IProfile> LoadProfileAsync(string providerKey);
+        Task<IProfile> LoadProfileAsync(Guid Id);
+        Task<IProfile> LoadProfileAsync(string username, string password);
+
+        //Task<bool> SaveProfileAsync(IProfile profile);
+        Task<IProfile> SaveProfileAsync(IProfile profile);
+        Task<bool> AddKarmaToProfileAsync(IProfile profile, int karma);
+        Task<bool> RemoveKarmaFromProfileAsync(IProfile profile, int karma);
+
+        event StorageProviderError OnStorageProviderError;
+
+        //TODO: Lots more to come! ;-)
+    }
+}
+````
+<br>
+
+| Item|Description  |
+|--|--|
+| LoadProfileAsync | Loads the users profile/avatar. This has 3 overloads, one takes a providerKey (a unique key that the provider can use to identify a profile, [HoloOASIS](#holooasis) uses the address hash for this), one takes a username & password and the final one takes a Guid for the profileID, which is a unique id for the profile irrespective of which provider is providing it.  |
+| SaveProfileAsync | Saves the users profile/avatar. 
+| AddKarmaToProfileAsync | Add karma to the users profile/avatar.
+| RemoveKarmaFromProfileAsync | Remove karma from the users profile/avatar.
+| StorageProviderError | An event the provider fires when an erroroccurs that the `ProfileManager` can then handle.
+
+#### IOASISNET
+
+This is what a Network Provider implements so the OASIS API can share the users profile/avatar as well as fine Holons and players near them. 
+
+````c#
+namespace NextGenSoftware.OASIS.API.Core
+{
+    // This interface provides methods to discover and interact with other nodes/peers on the distributed/decentralised network (ONET)
+    // This will involve peer to peer communcation.
+    public interface IOASISNET
+    {
+        List<IPlayer> GetPlayersNearMe();
+        List<IHolon> GetHolonsNearMe(HolonType Type);
+    }
+}
+````
+
+Currently the [HoloOASIS](#holooasis) Provider defines some stubs for this interface, which will be fully implemented soon...
+
+| Item | Description  |
+|--|--|
+| GetPlayersNearMe  | Gets a list of players near the user's current location.  |
+| GetHolonsNearMe | Get a list of holons near the user's current location.
+
+
+### Events
+
+### Methods
+
+### Properties
+
+**More to come soon...**
+
+
 
 ### Using HoloUnity
 
