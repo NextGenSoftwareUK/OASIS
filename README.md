@@ -1437,11 +1437,25 @@ It is much more than just a free open world game where you can build and create 
 
 The game teaches people true unity consciousness where everyone benefits if people put their differences aside and work together. Our World is also an ecosystem and a virtual e-commerce platform and so, so, so much more, it will create a whole new genre and blaze a new path for others to try and follow…
 
-Our World is built on top of the de-centralised, distributed nextgen internet known as Holochain.
+Our World has now merged with our NextGen Social Network project, which was always planned to be the prequel to Our World, so it made sense to simply merge them together.
+
+### Synergy Engine
+
+Our World implements the Synergy Engine helping to solve the world’s problems by matching solutions to problems. It also teaches the co-creation wheel and a new holistic approach to living and technology to help co-create a better world. 
+
+Our World implements the Synergy Engine helping to solve the world’s problems by matching solutions to problems. It also teaches the co-creation wheel and a new holistic approach to living and technology to help co-create a better world. 
 
 ### First AAA MMO Game To Run On Holochain
 
+Our World is built on top of the de-centralised, distributed nextgen internet known as Holochain.
+
 Our World will be the first AAA MMO game and 2D/3D Social Network to run on HoloChain and the Blockchain. It will also be the first to integrate a social network with a MMO game/platform as well as all of these technologies and devices together. As with the rest of the game, it will be leading the way in what can be done with this NextGen Technology for the benefit and upliftment of humanity. 
+
+Read more here:
+
+https://www.ourworldthegame.com/single-post/2019/02/22/Why-Our-World-Is-Powered-By-Holochain 
+
+We will soon be launching our ICO to sell our OASIS Coin, more news on this soon...
 
 ### Smartphone Version
 
@@ -1452,10 +1466,6 @@ The smartphone version will be a geolocation game featuring Augmented Reality si
 The console/desktop version will be similar to a Sandbox and MMORPG (Massive Multiplayer Online Role Playing Game) but will be nothing like any other games such as World Of WarCraft & MineCraft. It will in fact define its own genre setting the new bar for others to follow, this truly has never been done before and will take the world by storm! The one thing it will share with them is that it will be a massive open world that billions of players can explore and build together... 
 
 Both versions will share the same online world/multiverse where users logged in through the smartphone versions will be able to interact with the console/desktop versions in real-time within a massive scale persistent Multiverse.
-
-### Synergy Engine
-
-Our World implements the Synergy Engine helping to solve the world’s problems by matching solutions to problems. It also teaches the co-creation wheel and a new holistic approach to living and technology to help co-create a better world. 
 
 ### Engrossing Storyline
 
@@ -1558,6 +1568,14 @@ We actually started researching, planning & designing this over seven years (we 
 We need your investment/help so we can continue development of the cutting-edge prototype we have been working on for the last couple of years. This is the first Unity game to be powered by the revolutionary decentralised distributed network called Holochain. This means that your profile and data is stored locally on your device giving you back control of your own data. See screenshots here:
 
 https://www.ourworldthegame.com/single-post/2018/08/14/First-look-at-our-Smartphone-Prototype
+
+Check out the latest progress made with the protoype below:
+
+https://www.ourworldthegame.com/single-post/2019/06/02/OASIS-ArchitectureHoloNETHolochainHoloWebBrowserPrototypeUpdate 
+
+https://www.ourworldthegame.com/single-post/2019/07/03/BIG-UPDATE---Lots-Of-Progress-Made-On-Prototype- 
+
+https://www.ourworldthegame.com/single-post/2019/08/03/Our-World-OASIS-API-HoloNET-Goes-Open-Source- 
 
 We can then demo this to interested parties so we can get more investment to get the first version of this game released. This game will have continuous development with frequent upgrades and add-ons. It is so vast, that the development roadmap is never ending.
 
