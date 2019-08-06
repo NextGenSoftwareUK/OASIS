@@ -1791,28 +1791,33 @@ NextGen Software Ltd <br/>
 NextGen World Ltd <br/>
 Yoga4Autism Ltd 
 
-**Sites:**
+**Sites**
 
 http://www.ourworldthegame.com <br/>
 http://www.nextgensoftware.co.uk <br/>
 http://www.yoga4autism.com <br/> 
 
-**Social:**
+**Social**
 
 http://www.facebook.com/ourworldthegame <br/> 
 http://www.twitter.com/ourworldthegame <br/> 
 https://www.youtube.com/channel/UC0_O4RwdY3lq1m3-K-njUxA
 
-**Blog/Forum:**
+**Blog/Forum**
 
 http://www.ourworldthegame.com/blog <br/> 
 http://www.ourworldthegame.com/forum
 
-**Holochain Community Chat Channels:**
+**Holochain Community Chat Channels**
 
 https://chat.holochain.org/appsup/channels/our-world-netclient <br/>
 https://chat.holochain.org/appsup/channels/net-hdk 
 
-**Funding:**
+**NextGen DeveloperTraining  Programmes**
 
-https://www.gofundme.com/ourworldthegame <br/> 
+<a href="https://docs.wixstatic.com/ugd/4280d8_ad8787bd42b1471bae73003bfbf111f7.pdf">NextGen Developer Training Programme</a>
+<a href="https://docs.wixstatic.com/ugd/4280d8_999d98ba615e4fa6ab4383a415ee24c5.pdf">Junior NextGen Developer Training Programme</a>
+
+**Funding**
+
+**https://www.gofundme.com/ourworldthegame** <br/> 
