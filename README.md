@@ -181,6 +181,10 @@ This will help massively turbo charge the holochain ecosystem by opening it up t
 
 **We are a BIG fan of Holochain and are very passionate about it and see a BIG future for it! We feel this is the gateway to taking Holochain mainstream! ;-)**
 
+**Although the rest of this repo is [HoloSourced](#holosource-liscence) (see below) in that you need to be granted permission to fork and use it, HoloNET is totally free and Open Sourced to be used anyway you wish. If you find it helpful, we would REALLY appreciate a donation to our crowd funding page, because this is our full-time job and so have no other income and will help keep us alive so we can continue to improve it for you all, thank you! :)**
+
+**https://www.gofundme.com/ourworldthegame**
+
 <br>
 
 ### How To Use HoloNET
@@ -1782,6 +1786,11 @@ The whole point of opening up this codebase to the public is we wish to empower 
 <a href="https://docs.google.com/document/d/1I3qbBnfVPLrGxv5paDAaCFSBxkb_34vkhA6fc8iNMew/edit#heading=h.s2ub9y5otad7">Read More Here</a>
 
 **Ready to do your part? ;-)**
+
+**Although the rest of this repo is HoloSourced in that you need to be granted permission to fork and use it, HoloNET is totally free and Open Sourced to be used anyway you wish. If you find it helpful, we would REALLY appreciate a donation to our crowd funding page, because this is our full-time job and so have no other income and will help keep us alive so we can continue to improve it for you all, thank you! :)**
+
+**https://www.gofundme.com/ourworldthegame**
+
 
 ## Links
 
