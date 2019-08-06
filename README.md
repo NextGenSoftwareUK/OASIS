@@ -1783,14 +1783,15 @@ Read more on this project on our websites below:
 
 In Love,Light & Hope,
 
-David Ellams BSc(Hons)
+David Ellams BSc(Hons)<br/> 
+https://www.linkedin.com/in/david-ellams-77132142/ 
 
 Proud & Liberated Aspie <br/>
 Founder & Managing Director <br/>
 NextGen Software Ltd <br/>
 NextGen World Ltd <br/>
 Yoga4Autism Ltd 
-
+<br/> 
 **Sites**
 
 http://www.ourworldthegame.com <br/>
@@ -1815,7 +1816,7 @@ https://chat.holochain.org/appsup/channels/net-hdk
 
 **NextGen DeveloperTraining  Programmes**
 
-<a href="https://docs.wixstatic.com/ugd/4280d8_ad8787bd42b1471bae73003bfbf111f7.pdf">NextGen Developer Training Programme</a>
+<a href="https://docs.wixstatic.com/ugd/4280d8_ad8787bd42b1471bae73003bfbf111f7.pdf">NextGen Developer Training Programme</a <br/> 
 <a href="https://docs.wixstatic.com/ugd/4280d8_999d98ba615e4fa6ab4383a415ee24c5.pdf">Junior NextGen Developer Training Programme</a>
 
 **Funding**
