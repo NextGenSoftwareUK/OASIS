@@ -1455,6 +1455,10 @@ Our World implements the Synergy Engine helping to solve the world’s problems 
 
 Our World implements the Synergy Engine helping to solve the world’s problems by matching solutions to problems. It also teaches the co-creation wheel and a new holistic approach to living and technology to help co-create a better world. 
 
+### Resource Based Economy
+
+Our World teaches people the benefits of a <a href="https://www.thevenusproject.com/resource-based-economy/">Resource Based Economy</a> (coined by Jacque Fresco, the founder of <a href="https://www.thevenusproject.com/">The Venus Project</a>) where the world's resources are freely available to everyone and people exchange products and services without the need for money. For this to be achieved all resources must be declared as the common heritage of all Earth’s inhabitants. Equipped with the latest scientific and technological marvels mankind could reach extremely high productivity levels and create abundance of resources. This also prevents money being hoarded through greed and corruption and can no longer be used to control & divide people. A Resource Based Economy is actually fully integrated into Our World.
+
 ### First AAA MMO Game To Run On Holochain
 
 Our World is built on top of the de-centralised, distributed nextgen internet known as Holochain.
