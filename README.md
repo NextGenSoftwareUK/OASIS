@@ -1626,6 +1626,11 @@ Our World is Buckminster Fuller's World Peace Game, please read more here:
 
 https://www.ourworldthegame.com/single-post/2018/01/21/Our-World-Is-The-Buckminster-Fuller-World-Peace-Game 
 
+### The NextGen Office
+
+Check out the NextGen Offices we plan to build:
+
+https://www.ourworldthegame.com/single-post/2019/08/10/The-NextGen-Office
 
 ### Golden Investment Opportunity
 
