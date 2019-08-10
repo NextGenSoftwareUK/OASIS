@@ -1628,7 +1628,7 @@ https://www.ourworldthegame.com/single-post/2018/01/21/Our-World-Is-The-Buckmins
 
 ### The NextGen Office
 
-Check out the NextGen Offices we plan to build:
+Our NextGen Offices that we plan to build one day will be deeply integrated with nature so streams, trees, etc will be inside a bit like <a href="https://www.centerparcs.com">Center Parcs</a> in UK. They will also be built to Sacred Geometry specifications so they are actually healing to work inside one. They will also contain healing crystals & orgonite so it actually heals and energizes you while you work...  They are also similar to the ones the <a href="https://www.thevenusproject.com">Venus Project</a> intend to build. Read more below:
 
 https://www.ourworldthegame.com/single-post/2019/08/10/The-NextGen-Office
 
