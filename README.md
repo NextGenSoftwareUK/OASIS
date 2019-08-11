@@ -1139,6 +1139,7 @@ A list of of possible early adopters can be found below:
 * <a href="https://cryptpad.fr/pad">Holo-REA</a>
 * <a href="https://holacracy.org">Holacracy</a>
 * <a href="https://www.headspace.com">Headspace</a> 
+* <a href="https://bridgit.io/">Bridge It</a> 
  
 We are in the process of reaching out to these to see if they wish to be one of the early adopters of the OASIS API. This list will grow over time, in time there will be thousands and even millions as our vision to connect everyone to everyone through the OASIS API/Our World becomes more and more of a reality.
 
@@ -1173,6 +1174,14 @@ Below is a list of the protocols/networks/platforms that the OASIS API will supp
 | [Diaspora](https://diasporafoundation.org/) | Another distributed social network | Coming Soon...
 
 If you know of any other open protocols/platforms/networks that you feel are part of the new internet (Web 3.0) we are all co-creating then please do get in touch on ourworld@nextgensoftware.co.uk and let us know, thank you! :)
+
+### OASIS Open Standards
+
+The OASIS API is all about pushing the Open Source & Open Community standards. As almost a sign we were on the right path we recently discovered this site:
+
+https://www.oasis-open.org
+
+They are all about pushing the same agenda except we are actually implementing a API to achieve our shared goals of getting everything to talk to everything else. It's very interesting we both chose the name OASIS, a coincidence or not? ;-) We are obviously in the process of reaching out to them to see how we can work together...
 
 ### OASIS API Redundancy (Can Store Copies Of Your Data On Any Decentralised Network/Platform You Choose)
 
