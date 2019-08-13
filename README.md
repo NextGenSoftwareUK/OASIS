@@ -1045,7 +1045,7 @@ In the codebase you will find a project called [NextGenSoftware.OASIS.API.FrontE
 
 The actual Our World Unity code is not currently stored in this repo due to size restrictions but we may consider using GitHub LFS (Large File Storage) later on. We are also looking at GitLab and other alternatives to see if they allow greater storage capabilities free out of the box (since we are currently working on a very tight budget but you could change that by donating below! ;-) ).
 
-![alt text]("https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-And-HoloNET/blob/master/Holochain Talking To Unity.jpg" "Holochain talking to Unity")
+![alt text](https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/blob/master/HolochainTalkingToUnity.jpg "Holochain talking to Unity")
 
 Here is a preview of the OASIS API/Avatar/Karma System... more to come soon... ;-)
 
