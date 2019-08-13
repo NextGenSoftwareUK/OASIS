@@ -1079,7 +1079,6 @@ async Task Start()
     {
         await LoadProfile();    
     }
-````
 
 private async Task LoadProfile()
     {
