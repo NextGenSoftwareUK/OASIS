@@ -1072,6 +1072,81 @@ if (profile != null)
 }
 ````
 
+The full code for the screenshot above that loads the users profile/avatar data from holochain and displays it in Unity is below:
+
+````c#
+async Task Start()
+    {
+        await LoadProfile();    
+    }
+````
+
+private async Task LoadProfile()
+    {
+        // Inject in the HoloOASIS Storage Provider (this could be moved to a config file later so the 
+        // providers can be sweapped without having to re-compile.
+        ProfileManager = new ProfileManager(new HoloOASIS("ws://localhost:8888"));
+        ProfileManager.OnProfileManagerError += ProfileManager_OnProfileManagerError;
+        ProfileManager.OASISStorageProvider.OnStorageProviderError += OASISStorageProvider_OnStorageProviderError;
+
+        //StorageProvider = new HoloOASIS("ws://localhost:8888");
+
+        //IProfile profile = await ProfileManager.LoadProfileAsync("dellams", "1234");
+        IProfile profile = await ProfileManager.LoadProfileAsync("QmR6A1gkSmCsxnbDF7V9Eswnd4Kw9SWhuf8r4R643eDshg");
+
+        if (profile != null)
+        {
+            (ProfileFullName.GetComponent<TextMeshProUGUI>()).text = string.Concat(profile.Title, " ", profile.FirstName, " ", profile.LastName);
+            (ProfileUsername.GetComponent<TextMeshProUGUI>()).text = profile.Username;
+            (ProfileDOB.GetComponent<TextMeshProUGUI>()).text = profile.DOB;
+            (ProfileEmail.GetComponent<TextMeshProUGUI>()).text = profile.Email;
+            //(ProfileAddress.GetComponent<TextMeshProUGUI>()).text = profile.PlayerAddress;
+            (ProfileKarma.GetComponent<TextMeshProUGUI>()).text = profile.Karma.ToString();
+            (ProfileLevel.GetComponent<TextMeshProUGUI>()).text = profile.Level.ToString();
+        }
+    }
+````
+
+Instead of using the OASIS `ProfileManager` to load the data, we could use [HoloNETClient](#holonet) directly, the code would then look like this:
+
+````c#
+async Task Start()
+    {
+        HoloNETClient holoNETClient = new HoloNETClient("ws://localhost:8888");
+        holoNETClient.OnZomeFunctionCallBack += HoloNETClient_OnZomeFunctionCallBack;
+        holoNETClient.OnConnected += HoloNETClient_OnConnected;
+        holoNETClient.OnError += HoloNETClient_OnError;
+        holoNETClient.OnDataReceived += HoloNETClient_OnDataReceived;
+
+
+        await holoNETClient.Connect();
+        await holoNETClient.CallZomeFunctionAsync("test-instance", "our_world_core", "load_profile", new { address = "QmVtt5dEZEyTUioyh59XfFc3KWuaifK92Mc2KTXGauSbS9" });
+    }
+
+private void HoloNETClient_OnZomeFunctionCallBack(object sender, ZomeFunctionCallBackEventArgs e)
+    {
+        Debug.Log(string.Concat("ZomeFunction CallBack: EndPoint: ", e.EndPoint, ", Id: ", e.Id, ", Instance: ", e.Instance, ", Zome: ", e.Zome, ", ZomeFunction: ", e.ZomeFunction, ", Data: ", e.ZomeReturnData, ", Raw Zome Return Data: ", e.RawZomeReturnData, ", Raw JSON Data: ", e.RawJSONData, ", IsCallSuccessful: ", e.IsCallSuccessful ? "true" : "false"));
+
+        Profile profile = JsonConvert.DeserializeObject<Profile>(string.Concat("{", e.ZomeReturnData, "}"));
+
+        if (profile != null)
+        {
+            (ProfileFullName.GetComponent<TextMeshProUGUI>()).text = string.Concat(profile.Title, " ", profile.FirstName, " ", profile.LastName);
+            (ProfileUsername.GetComponent<TextMeshProUGUI>()).text = profile.Username;
+            (ProfileDOB.GetComponent<TextMeshProUGUI>()).text = profile.DOB;
+            (ProfileEmail.GetComponent<TextMeshProUGUI>()).text = profile.Email;
+            //(ProfileAddress.GetComponent<TextMeshProUGUI>()).text = profile.PlayerAddress;
+            (ProfileKarma.GetComponent<TextMeshProUGUI>()).text = profile.Karma.ToString();
+            (ProfileLevel.GetComponent<TextMeshProUGUI>()).text = profile.Level.ToString();
+        }
+    }
+````
+
+This is how other Unity developers would connect to Holochain using HoloNETClient, because they may not be using the OASIS API. 
+
+Of course if they wanted use the OASIS API then the first code listing is how it would be done.
+
+
 ### Events
 
 ### Methods
