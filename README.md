@@ -1094,19 +1094,19 @@ public class OASISAvatarManager : MonoBehaviour
 
     async Task Start()
     {
-        await LoadProfile();    
-    }
-
-    private async Task LoadProfile()
-    {
-        // Inject in the HoloOASIS Storage Provider (this could be moved to a config file later so the 
+    	// Inject in the HoloOASIS Storage Provider (this could be moved to a config file later so the 
         // providers can be sweapped without having to re-compile.
         ProfileManager = new ProfileManager(new HoloOASIS("ws://localhost:8888"));
         ProfileManager.OnProfileManagerError += ProfileManager_OnProfileManagerError;
         ProfileManager.OASISStorageProvider.OnStorageProviderError += OASISStorageProvider_OnStorageProviderError;
 
         //StorageProvider = new HoloOASIS("ws://localhost:8888");
+	
+        await LoadProfile();    
+    }
 
+    private async Task LoadProfile()
+    {
         //IProfile profile = await ProfileManager.LoadProfileAsync("dellams", "1234");
         IProfile profile = await ProfileManager.LoadProfileAsync("QmR6A1gkSmCsxnbDF7V9Eswnd4Kw9SWhuf8r4R643eDshg");
 
@@ -1136,7 +1136,7 @@ public class OASISAvatarManager : MonoBehaviour
     void Update ()
     {
 		
-	}
+    }
 }
 
 ````
@@ -1166,8 +1166,16 @@ public class OASISAvatarManager : MonoBehaviour
 
     async Task Start()
     {
-        //await LoadProfile();    
-
+    	/*
+    	// Inject in the HoloOASIS Storage Provider (this could be moved to a config file later so the 
+        // providers can be sweapped without having to re-compile.
+        ProfileManager = new ProfileManager(new HoloOASIS("ws://localhost:8888"));
+        ProfileManager.OnProfileManagerError += ProfileManager_OnProfileManagerError;
+        ProfileManager.OASISStorageProvider.OnStorageProviderError += OASISStorageProvider_OnStorageProviderError;
+	
+        await LoadProfile();
+	*/
+	
         HoloNETClient holoNETClient = new HoloNETClient("ws://localhost:8888");
         holoNETClient.OnZomeFunctionCallBack += HoloNETClient_OnZomeFunctionCallBack;
         holoNETClient.OnConnected += HoloNETClient_OnConnected;
@@ -1214,12 +1222,6 @@ public class OASISAvatarManager : MonoBehaviour
     /*
     private async Task LoadProfile()
     {
-        // Inject in the HoloOASIS Storage Provider (this could be moved to a config file later so the 
-        // providers can be sweapped without having to re-compile.
-        ProfileManager = new ProfileManager(new HoloOASIS("ws://localhost:8888"));
-        ProfileManager.OnProfileManagerError += ProfileManager_OnProfileManagerError;
-        ProfileManager.OASISStorageProvider.OnStorageProviderError += OASISStorageProvider_OnStorageProviderError;
-
         //StorageProvider = new HoloOASIS("ws://localhost:8888");
 
         //IProfile profile = await ProfileManager.LoadProfileAsync("dellams", "1234");
@@ -1252,7 +1254,7 @@ public class OASISAvatarManager : MonoBehaviour
     void Update ()
     {
 		
-	}
+    }
 }
 ````
 
