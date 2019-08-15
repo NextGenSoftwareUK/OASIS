@@ -21,7 +21,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.TestHarness
             _holoOASIS.OnPlayerProfileSaved += _holoOASIS_OnPlayerProfileSaved;
             _holoOASIS.OnHoloOASISError += _holoOASIS_OnHoloOASISError;
 
-           // await _holoOASIS.Initialize();
+          //  await _holoOASIS.Initialize();
 
            // Task.Delay(10000);
             Console.ReadKey();
@@ -79,8 +79,6 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.TestHarness
             Console.WriteLine("Initialized.");
             Console.WriteLine("Saving Profile...");
 
-            //_holoOASIS.HoloNETClient.OnConnected += HoloNETClient_OnConnected;
-            //_savedProfile = new Profile { FirstName = "David", LastName = "Ellams", DOB = "11/04/1980", Id = Guid.NewGuid(), Title = "Mr", PlayerAddress = "blahahahaha", Karma = 999 };
             _savedProfile = new Profile { Username = "dellams", Email = "david@nextgensoftware.co.uk", Password = "1234", FirstName = "David", LastName = "Ellams", DOB = "11/04/1980", Id = Guid.NewGuid(), Title = "Mr", PlayerAddress = "blahahahaha" };
             _savedProfile.AddKarma(999);
 
