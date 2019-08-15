@@ -1,13 +1,139 @@
 
 
-
-# OASIS API / Our World / HoloNET Altha v0.0.1
+# OASIS API / Our World / HoloNET / HoloUnity / .NET HDK Altha v0.0.1
 
 ![alt text](https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-And-HoloNET/blob/master/FinalLogo.jpg "Our World")
+
+## Contents
+  * [Introduction](#introduction)
+  * [Project Structure](#project-structure)
+  * [HoloNET](#holonet)
+    + [How To Use HoloNET](#how-to-use-holonet)
+    + [The Power of .NET Async Methods](#the-power-of-net-async-methods)
+    + [Events](#events)
+      - [OnConnected](#onconnected)
+      - [OnDisconnected](#ondisconnected)
+      - [OnError](#onerror)
+      - [OnGetInstancesCallBack](#ongetinstancescallback)
+      - [OnDataReceived](#ondatareceived)
+      - [OnZomeFunctionCallBack](#onzomefunctioncallback)
+      - [OnSignalsCallBack](#onsignalscallback)
+    + [Methods](#methods)
+      - [Connect](#connect)
+      - [CallZomeFunctionAsync](#callzomefunctionasync)
+        * [Overload 1](#overload-1)
+        * [Overload 2](#overload-2)
+        * [Overload 3](#overload-3)
+        * [Overload 4](#overload-4)
+      - [ClearCache](#clearcache)
+      - [Disconnect](#disconnect)
+      - [GetHolochainInstancesAsync](#getholochaininstancesasync)
+        * [Overload 1](#overload-1-1)
+        * [Overload 2](#overload-2-1)
+      - [SendMessageAsync](#sendmessageasync)
+    + [Properties](#properties)
+      - [Config](#config)
+      - [Logger](#logger)
+      - [NetworkServiceProvider](#networkserviceprovider)
+      - [NetworkServiceProviderMode](#networkserviceprovidermode)
+  * [HoloOASIS](#holooasis)
+    + [Using HoloOASIS](#using-holooasis)
+    + [Events](#events-1)
+      - [OnInitialized](#oninitialized)
+      - [OnPlayerProfileSaved](#onplayerprofilesaved)
+      - [OnPlayerProfileLoaded](#onplayerprofileloaded)
+      - [OnHoloOASISError](#onholooasiserror)
+    + [Methods](#methods-1)
+    + [Properties](#properties-1)
+  * [OASIS API Core](#oasis-api-core)
+      - [Using The OASIS API Core](#using-the-oasis-api-core)
+    + [Interfaces](#interfaces)
+      - [IOASISStorage](#ioasisstorage)
+      - [IOASISNET](#ioasisnet)
+    + [Events](#events-2)
+    + [Methods](#methods-2)
+    + [Properties](#properties-2)
+  * [HoloUnity](#holounity)
+    + [Using HoloUnity](#using-holounity)
+    + [Events](#events-3)
+    + [Methods](#methods-3)
+    + [Properties](#properties-3)
+  * [The OASIS API & Karma System](#the-oasis-api---karma-system)
+    + [Gain Karma When You Earn HoloFuel For Sharing Your Nodes Resources To Power Our World](#gain-karma-when-you-earn-holofuel-for-sharing-your-nodes-resources-to-power-our-world)
+    + [Open Karma Committe/Community Concensors](#open-karma-committe-community-concensors)
+    + [Satillite Apps/Games/Websites](#satillite-apps-games-websites)
+    + [The Universal API To Connect Everything To Everything (No More Silos/Walled Gardens)](#the-universal-api-to-connect-everything-to-everything--no-more-silos-walled-gardens-)
+    + [Protocols/Platforms/Networks Supported](#protocols-platforms-networks-supported)
+    + [OASIS API Redundancy (Can Store Copies Of Your Data On Any Decentralised Network/Platform You Choose)](#oasis-api-redundancy--can-store-copies-of-your-data-on-any-decentralised-network-platform-you-choose-)
+    + [The OASIS API Enables You To Earn Karma Anywhere](#the-oasis-api-enables-you-to-earn-karma-anywhere)
+    + [User Has FULL Control Of Their Data](#user-has-full-control-of-their-data)
+  * [.NET HDK](#net-hdk)
+  * [The Power Of Holochain, .NET, Unity & NodeJS Combined!](#the-power-of-holochain--net--unity---nodejs-combined-)
+    + [ARC & Noomap Integration](#arc---noomap-integration)
+    + [Node.JS Integration](#nodejs-integration)
+  * [ARC, Noomap & IWG (Infinite World Game) Will Be Fully Integrated](#arc--noomap---iwg--infinite-world-game--will-be-fully-integrated)
+  * [Turbocharge the Holochain ecosystem!](#turbocharge-the-holochain-ecosystem-)
+  * [The OASIS Architecture](#the-oasis-architecture)
+    + [Open Modular Design](#open-modular-design)
+  * [Our World/OASIS Will Act As The Bridge For All (Legasy, IPFS, Holochain, Ethereum, SOLID, Fediverse, Mastodon, Diaspora, WebFinger, ActivityPub, XMPP & More!)](#our-world-oasis-will-act-as-the-bridge-for-all--legasy--ipfs--holochain--ethereum--solid--fediverse--mastodon--diaspora--webfinger--activitypub--xmpp---more--)
+    + [Implement Your Own Storage/Network/Renderer Provider](#implement-your-own-storage-network-renderer-provider)
+    + [Switch To A Different Provider In RealTime](#switch-to-a-different-provider-in-realtime)
+  * [Fully Integrated Unified Interface](#fully-integrated-unified-interface)
+    + [NextGen Social Network](#nextgen-social-network)
+      - [OASIS Avatar/Profile/Karma Integration](#oasis-avatar-profile-karma-integration)
+      - [Our World/OASIS API/Social Network Website](#our-world-oasis-api-social-network-website)
+      - [Noomap Integration](#noomap-integration)
+      - [Deep Integration Into Other Networks/Protocols/Platforms (Such as Gab, Mastodon, Diaspora, WebFinger, SOLID, Ethereum, Fediverse, ActivityPub, XMPP & More!)](#deep-integration-into-other-networks-protocols-platforms--such-as-gab--mastodon--diaspora--webfinger--solid--ethereum--fediverse--activitypub--xmpp---more--)
+  * [Platforms](#platforms)
+      - [PC/Console Version](#pc-console-version)
+      - [Smartphone Version](#smartphone-version)
+  * [NextGen Hardware](#nextgen-hardware)
+  * [Our World Overview](#our-world-overview)
+    + [Introduction](#introduction-1)
+    + [XR Gamification Layer Of The New Interplanetary Operating System](#xr-gamification-layer-of-the-new-interplanetary-operating-system)
+    + [Open World/New Ecosystm/Asset Store/Internet/Operating System/Social Network](#open-world-new-ecosystm-asset-store-internet-operating-system-social-network)
+    + [First AAA MMO Game To Run On Holochain](#first-aaa-mmo-game-to-run-on-holochain)
+    + [Smartphone Version](#smartphone-version-1)
+    + [Console Version](#console-version)
+    + [Synergy Engine](#synergy-engine)
+    + [Engrossing Storyline](#engrossing-storyline)
+    + [OASIS Asset Store](#oasis-asset-store)
+    + [Virtual E-commerce](#virtual-e-commerce)
+    + [We Accept Karma, Your Money Is No Good Here!](#we-accept-karma--your-money-is-no-good-here-)
+    + [Our World Is Only The Beginning...](#our-world-is-only-the-beginning)
+    + [The Tech Industry Have A Morale & Social Resonsability](#the-tech-industry-have-a-morale---social-resonsability)
+    + [Teach Kids The Right Life Lessons](#teach-kids-the-right-life-lessons)
+    + [Remember How Powerful YOU Are!](#remember-how-powerful-you-are-)
+    + [Bringing People Together](#bringing-people-together)
+    + [We are Building The Evolved Benevolent Version Of The OASIS](#we-are-building-the-evolved-benevolent-version-of-the-oasis)
+    + [Asscension/God Training & Mirror Of Reality Technology](#asscension-god-training---mirror-of-reality-technology)
+    + [7 Years Of Planning & R&D](#7-years-of-planning---r-d)
+    + [Early Prototype](#early-prototype)
+    + [We Are What You Have All Been Waiting For...](#we-are-what-you-have-all-been-waiting-for)
+    + [Large Social Media Following](#large-social-media-following)
+    + [UN Contacts](#un-contacts)
+    + [Buckminster's World Peace Game](#buckminster-s-world-peace-game)
+    + [Golden Investment Opportunity](#golden-investment-opportunity)
+    + [Help Cocreate A Better World...](#help-cocreate-a-better-world)
+  * [Road Map](#road-map)
+  * [Next Steps](#next-steps)
+  * [Donations Welcome! :)](#donations-welcome----)
+  * [Devs/Contributions Welcome! :)](#devs-contributions-welcome----)
+  * [NextGen Developer Training Programmes For EVERYONE! (Including Special Needs & Disadvantaged People)](#nextgen-developer-training-programmes-for-everyone---including-special-needs---disadvantaged-people-)
+  * [The Power Of Autism](#the-power-of-autism)
+  * [Better Than A Fornite Clone! ;-)](#better-than-a-fornite-clone-----)
+  * [Other Ways To Get Involved](#other-ways-to-get-involved)
+  * [HoloSource Liscence](#holosource-liscence)
+  * [Links](#links)
+
 
 
 
 ## Introduction
+
+**NOTE: This documentation & code is a WIP and is still currently being written so please make sure you check back often...**
+
+**We would love to hear from you rgarding feedback on any of the vision, docs, code or would like to submit ideas. Even better, if you would like to get actively involved by coding, spreading the word, finding funding or any other role then please get in touch right NOW! :) Email us ourworld@nextgensoftware.co.uk. Thank you.**
 
 The core OASIS (Open Advanced Sensory Immersion System) API that powers Our World and manages the central profile/avatar/karma system that other satellite apps/games plug into it and share. This also includes HoloNET that allows .NET to talk to Holochain, which is where the profile/avatar is stored on a private decentralised, distributed network. This will be gifted forward to the Holochain community along with the HoloUnity3D SDK/Lib/Asset coming soon... ;-)
 
@@ -17,15 +143,33 @@ Next it will implement the ARC (Augmented Reality Computer) Membrane allowing th
 
 Next, it will port Noomap to Unity and will implement a Synergy Engine allowing people to easily find and match solutions/desires/passions and to also find various solution providers, which again will be fully integrated with the 3D Map & Avatar/Karma system.
 
-## HSTP (Hyper Spacial Transport Protocol)
+<br>
 
-## HoloSource Liscence
+## Project Structure
 
-## Harry Call To Action Apps
+The projects within this repo should be pretty self explanatory from their names but below is a brief description of each of them:
 
-## Protocols/Platforms/Networks Supported
+|Project  | Description |
+|--|--|
+|NextGenSoftware.Holochain.hApp.OurWorld  |The Holochain hApp implemented using the Rust HDK. In future this will be ported to use the new .NET HDK once we have created it!  |
+|[NextGenSoftware.Holochain.HoloNET.Client.Core](#holonet)| The core code for the HoloNETClient containing the HoloNETClientBase abstract class.
+|[NextGenSoftware.Holochain.HoloNET.Client.Desktop](#holonet)| The desktop implementation of the HoloNETClient using NLog as the Logger.
+|[NextGenSoftware.Holochain.HoloNET.Client.Unity](#holonet)| The Unity implementation of the HoloNETClient. This will use a Unity compatible logger soon...
+|[NextGenSoftware.Holochain.HoloNET.Client.TestHarness](#holonet)| The Test Harness for the HoloNETClient. This includes load tests for Holochain. So far looking good, the conductor is very fast! ;-)
+|[NextGenSoftware.Holochain.HoloNET.HDK](#net-hdk)| A placeholder for the .NET HDK (Holochain Development Kit). 
+|[NextGenSoftware.OASIS.API.Core](#the-oasis-api---karma-system)| The core code for the OASIS API itself. This is where the Providers are injected and is the core part of the system.
+|[NextGenSoftware.OASIS.API.Core.ARC.Membrane](#arc---noomap-integration)| This will contain a DeviceManager,PsyberManager & MappingManager allowing ARC to talk to any device and access all of it's hardware such as Bluetooth. It will also provide a wrapper around Unity allowing ARC to render it's 2D & 3D UI to Unity. It will also allow ARC to access the Our World 3D Map.
+|[NextGenSoftware.OASIS.API.Core.ARC.Membrane.NodeJS]((#arc---noomap-integration)| This is for testing purposes to simulate the ARC Core (written in NodeJS). It will test calls to the DeviceManager, PsyberManager & MappingManager.
+|[NextGenSoftware.OASIS.API.Core.TestHarness](#the-oasis-api---karma-system)| This is a Test Harness for the main OASIS API.
+|[NextGenSoftware.OASIS.API.FrontEnd.Web](#the-oasis-api---karma-system)| This is the Web front-end for the OASIS API and will show the user's Avatar/Profile along with their Karma levels (and where the karma came from). It will also show what Satellite apps/games/websites that are using the API. This will form the foundation of the NextGen Social Network (a sub-component of Our World).
+|[NextGenSoftware.OASIS.API.FrontEnd.Unity](#holounity)| This shows how the OASIS API is used in Unity to render the users profile data to the 3D Avatar.
+|NextGenSoftware.OASIS.API.WebAPI| This will expose the OASIS API as a RESTful service over HTTP. In future there will also be a websocket HTTP & websocket JSON RPC 2.0 interface.
+|[NextGenSoftware.OASIS.API.Providers.HoloOASIS.Core](#holooasis)| This contains the core code for the HoloOASIS Provider, that wraps around the HoloNETClient to talk to Holochain. This implements the [IOASISStorage](#ioasisstorage)interface allowing the OASIS API to read & write the users profile data to Holochain. It also implements the [IOASISNET](#ioasisnet) interface allowing it to share the user's profile/avatar as well as find Holons and players in their local area.
+|[NextGenSoftware.OASIS.API.Providers.HoloOASIS.Desktop](#holooasis)| This is the desktop implementation of the HoloOASIS Provider and uses the desktop version of the HoloNETClient.
+|[NextGenSoftware.OASIS.API.Providers.HoloOASIS.Unity](#holooasis)| This is the Unity implementation of the HoloOASIS Provider and uses the Unity version of the HoloNETClient.
+|[NextGenSoftware.OASIS.API.Providers.HoloOASIS.TestHarness](#holooasis)| This is the Test Harness of the HoloOASIS Provider.
 
-If you of any other open protocols/platforms/networks that you feel are part of the new internet (Web 3.9) we are all co-creating then please do get in touch on ourworld@nextgensoftware.co.uk and let us know, thank you! :)
+<br>
 
 ## HoloNET
 
@@ -37,13 +181,19 @@ This will help massively turbo charge the holochain ecosystem by opening it up t
 
 **We are a BIG fan of Holochain and are very passionate about it and see a BIG future for it! We feel this is the gateway to taking Holochain mainstream! ;-)**
 
+**Although the rest of this repo is [HoloSourced](#holosource-liscence) (see below) in that you need to be granted permission to fork and use it, HoloNET is totally free and Open Sourced to be used anyway you wish. If you find it helpful, we would REALLY appreciate a donation to our crowd funding page, because this is our full-time job and so have no other income and will help keep us alive so we can continue to improve it for you all, thank you! :)**
+
+**https://www.gofundme.com/ourworldthegame**
+
+<br>
+
 ### How To Use HoloNET
 
 
 **NOTE: This documentation is a WIP, it will be completed soon, please bare with us, thank you! :)**
 
 
-You start by instaniating a new HoloNETClient class found in the `NextGenSoftware.Holochain.HoloNET.Client` project passing in the holochain websocket URI to the constructor as seen below:
+You start by instaniating a new HoloNETClient class found in the [NextGenSoftware.Holochain.HoloNET.Client](#project-structure) project passing in the holochain websocket URI to the constructor as seen below:
 
 ````c#
 HoloNETClient holoNETClient = new HoloNETClient("ws://localhost:8888");
@@ -61,13 +211,13 @@ holoNETClient.OnDisconnected += HoloNETClient_OnDisconnected;
 holoNETClient.OnError += HoloNETClient_OnError;
 ````
 
-Now you can call the `Connect()` method to connect to Holochain.
+Now you can call the [Connect](#connect) method to connect to Holochain.
 
 ````c#
 await holoNETClient.Connect();
 ````
 
-Once you received a `OnConnected` event callback you can now call the `GetInstances()` method to get back a list of instances the holochain conductor you connected is currently running.
+Once you received a [OnConnected](#onconnected) event callback you can now call the [GetHolochainInstancesAsync](#getholochaininstancesasync) method to get back a list of instances the holochain conductor you connected is currently running.
 
 ````c#
 if (holoNETClient.State == System.Net.WebSockets.WebSocketState.Open)
@@ -78,7 +228,7 @@ if (holoNETClient.State == System.Net.WebSockets.WebSocketState.Open)
 
 Now you can use the instance(s) as a parm to your future Zome calls...
 
-Now you can call one of the `CallZomeFunctionAsync()` overloads:
+Now you can call one of the [CallZomeFunctionAsync()](#callzomefunctionasync) overloads:
 
 ````c#
 await holoNETClient.CallZomeFunctionAsync("1", "test-instance", "our_world_core", "test", ZomeCallback, new { message = new { content = "blah!" } });
@@ -86,29 +236,34 @@ await holoNETClient.CallZomeFunctionAsync("1", "test-instance", "our_world_core"
 
 Please see below for more details on the various overloads available for this call as well as the data you get back from this call and the other methods and events you can use...
 
-#### The Power of .NET Async Methods
+<br>
+
+### The Power of .NET Async Methods
 
 You will notice that the above calls have the `await` keyword prefixing them. This is how you call an `async` method in C#. All of HoloNET, HoloOASIS & OASIS API methods are async methods. This simply means that they do not block the calling thread so if this is running on a UI thread it will not freeze the UI. Using the `await` keyword allows you to call an `async` method as if it was a syncronsous one. This means it will not call the next line until the async method has returned. The power of this is that you no longer need to use lots of messy callback functions cluttering up your code as has been the pass with async programming. The code path is also a lot easier to follow and manitain.
 
 Read more here:
 https://docs.microsoft.com/en-us/dotnet/csharp/programming-guide/concepts/async/
 
-#### Events
+<br>
+
+### Events
 <a name="events"></a>
 
 You can subscribe to a number of different events:
 
 | Event                  | Description                                                                                              |
 | ---------------------- | -------------------------------------------------------------------------------------------------------- |
-| OnConnected            | Fired when the client has successfully connected to the Holochain conductor.                             |
-| OnDisconnected         | Fired when the client disconnected from the Holochain conductor.                                         |
-| OnError                | Fired when an error occurs, check the params for the cause of the error.                                 |
-| OnGetInstancesCallBack | Fired when the hc conductor has returned the list of hc instances it is currently running.               |
-| OnDataReceived         | Fired when any data is received from the hc conductor. This returns the raw JSON data.                   |
-| OnZomeFunctionCallBack | Fired when the hc conductor returns the response from a zome function call. This returns the raw JSON data as well as the actual parsed data returned from the zome function. It also returns the id, instance, zome and zome function that made the call.                                                               |
-| OnSignalsCallBack      | Fired when the hc conductor sends signals data. NOTE: This is still waiting for hc to flresh out the    details for how this will work. Currently this returns the raw signals data.                             | 
+| [OnConnected](#onconnected)            | Fired when the client has successfully connected to the Holochain conductor.                             |
+| [OnDisconnected](#ondisconnected)         | Fired when the client disconnected from the Holochain conductor.                                         |
+| [OnError](#onerror)                | Fired when an error occurs, check the params for the cause of the error.                                 |
+| [OnGetInstancesCallBack](#ongetinstancescallback) | Fired when the hc conductor has returned the list of hc instances it is currently running.               |
+| [OnDataReceived](#ondatareceived)         | Fired when any data is received from the hc conductor. This returns the raw JSON data.                   |
+| [OnZomeFunctionCallBack](#onzomefunctioncallback) | Fired when the hc conductor returns the response from a zome function call. This returns the raw JSON data as well as the actual parsed data returned from the zome function. It also returns the id, instance, zome and zome function that made the call.                                                               |
+| [OnSignalsCallBack](#onsignalscallback)      | Fired when the hc conductor sends signals data. NOTE: This is still waiting for hc to flresh out the    details for how this will work. Currently this returns the raw signals data.                             | 
+<br>
 
-##### OnConnected
+#### OnConnected
 Fired when the client has successfully connected to the Holochain conductor. 
 
 ````c#
@@ -120,11 +275,14 @@ private static void HoloNETClient_OnConnected(object sender, ConnectedEventArgs 
             Console.WriteLine("");
         }
 ````
+<br>
 
 |Parameter|Description  |
 |--|--|
 |EndPoint | The URI EndPoint of the Holochain conductor.
-##### OnDisconnected
+<br>
+
+#### OnDisconnected
 Fired when the client has successfully disconnected from the Holochain conductor. 
 
 ````c#
@@ -136,13 +294,15 @@ holoNETClient.OnDisconnected += HoloNETClient_OnDisconnected;
             Console.WriteLine("");
         }
 ````
+<br>
 
 |Parameter|Description  |
 |--|--|
 |EndPoint | The URI EndPoint of the Holochain conductor.
 |Reason | The reason for the disconnection.
+<br>
 
-##### OnError
+#### OnError
 Fired when an error occurs, check the params for the cause of the error.       
 
 ````c#
@@ -154,6 +314,7 @@ holoNETClient.OnError += HoloNETClient_OnError;
             Console.WriteLine("");
         }
 ````
+<br>
 
 |Parameter|Description  |
 |--|--|
@@ -161,8 +322,9 @@ holoNETClient.OnError += HoloNETClient_OnError;
 | Reason | The reason for the error.
 | ErrorDetails | A more detailed description of the error, this normally includes a stacktrace to help you track down the cause.
 
+<br>
 
-##### OnGetInstancesCallBack
+#### OnGetInstancesCallBack
 Fired when the hc conductor has returned the list of hc instances it is currently running.
 
 ````c#
@@ -174,6 +336,7 @@ private static void HoloNETClient_OnGetInstancesCallBack(object sender, GetInsta
             Console.WriteLine("");
 }
 ````
+<br>
 
 |Parameter|Description  |
 |--|--|
@@ -186,8 +349,9 @@ private static void HoloNETClient_OnGetInstancesCallBack(object sender, GetInsta
 |RawJSONData  | The raw JSON data returned from the Holochain conductor. |
 
 
+<br>
 
-##### OnDataReceived
+#### OnDataReceived
 Fired when any data is received from the hc conductor. This returns the raw JSON data.  
 
 ````c#
@@ -198,6 +362,7 @@ private static void HoloNETClient_OnDataReceived(object sender, DataReceivedEven
       Console.WriteLine(string.Concat("Data Received: EndPoint: ", e.EndPoint, "RawJSONData: ", e.RawJSONData));
 }
 ````
+<br>
 
 |Parameter|Description  |
 |--|--|
@@ -205,8 +370,9 @@ private static void HoloNETClient_OnDataReceived(object sender, DataReceivedEven
 |WebSocketResult| Contains more detailed technical information of the underlying websocket. This includes the number of bytes received, whether the message was fully received & whether the message is UTF-8 or binary. Please <a href="https://docs.microsoft.com/en-us/dotnet/api/system.net.websockets.websocketreceiveresult?view=netframework-4.8">see here</a> for more info.
 |RawJSONData  | The raw JSON data returned from the Holochain conductor. |
 
+<br>
 
-##### OnZomeFunctionCallBack
+#### OnZomeFunctionCallBack
 
 Fired when the hc conductor returns the response from a zome function call. This returns the raw JSON data as well as the actual parsed data returned from the zome function. It also returns the id, instance, zome and zome function that made the call.                      
 
@@ -219,6 +385,7 @@ private static void HoloNETClient_OnZomeFunctionCallBack(object sender, ZomeFunc
             Console.WriteLine("");
 }
 ````             
+<br>
 
  | Parameter          | Description                                        |
  | ------------------ | -------------------------------------------------- |
@@ -231,9 +398,11 @@ private static void HoloNETClient_OnZomeFunctionCallBack(object sender, ZomeFunc
  | ZomeReturnData     | The parsed data that the zome function returned.   |
  | RawZomeReturnData  | The raw JSON data that the zome function returned. |
  | RawJSONData        | The raw JSON data that the hc conductor returned.  |
+<br>
 
-##### OnSignalsCallBack
+#### OnSignalsCallBack
 Fired when the hc conductor sends signals data. NOTE: This is still waiting for Holochain to flesh out the details for how this will work. Currently this returns the raw signals data.
+<br>
 
 ````c#
 holoNETClient.OnSignalsCallBack += HoloNETClient_OnSignalsCallBack;
@@ -244,6 +413,7 @@ private static void HoloNETClient_OnSignalsCallBack(object sender, SignalsCallBa
             Console.WriteLine("");
         }
 ````   
+<br>
 
  | Parameter          | Description                                        |
  | ------------------ | -------------------------------------------------- |
@@ -253,37 +423,47 @@ private static void HoloNETClient_OnSignalsCallBack(object sender, SignalsCallBa
  | RawJSONData        | The raw JSON data that the hc conductor returned.  |
 
 
+<br>
 
-#### Methods
+### Methods
 
 HoloNETClient contains the following methods:
+<br>
 
-* `Connect()`
-* `CallZomeFunctionAsync()`
-* `ClearCache()`
-* `Disconnect()`
-* `GetHolochainInstancesAsync()`
-* `SendMessageAsync()`
+|Method|Description  |
+|--|--|
+|[Connect](#connect)  | This method simply connects to the Holochain conductor. It raises the [OnConnected](#onconnected) event once it is has successfully established a connection. Please see the [Events](#events) section above for more info on how to use this event.
+|[CallZomeFunctionAsync](#callzomefunctionasync)| This is the main method you will be using to invoke zome functions on your given zome. It has a number of handy overloads making it easier and more powerful to call your zome functions and manage the returned data. This method raises the [OnZomeFunctionCallBack](#onzomefunctioncallback) event once it has received a response from the Holochain conductor. Please see the [Events](#events) section above for more info on how to use this event.
+|[ClearCache](#clearcache) | Call this method to clear all of HoloNETClient's internal cache. This includes the JSON responses that have been cached using the [GetHolochainInstancesAsync](#getholochaininstancesasync) & [CallZomeFunctionAsync](#callzomefunctionasync) methods if the `cacheData` parm was set to true for any of the calls. |
+|[Disconnect](#disconnect) | This method disconnects the client from Holochain conductor. It raises the [OnDisconnected](#ondisconnected) event once it is has successfully disconnected. Please see the [Events](#events) section above for more info on how to use this event. |
+|[GetHolochainInstancesAsync](#getholochaininstancesasync) | This method will return a string array containing the instances that the holochain conductor is currently running. You will need to store the instance(s) in a variable to pass into the [CallZomeFunctionAsync](#callzomefunctionasync) later. This method raises the [OnGetInstancesCallBack](#ongetinstancescallback) event once it has received a response from the Holochain conductor. Please see the [Events](#events) section above for more info on how to use this event.|
+|[SendMessageAsync](#sendmessageasync) |This method allows you to send your own raw JSON request to holochain. This method raises the [OnDataReceived](#ondatareceived) event once it has received a response from the Holochain conductor. Please see the [Events](#events) section above for more info on how to use this event. You would rarely need to use this and we highly recommend you use the [CallZomeFunctionAsync](#callzomefunctionasync) method instead.
 
-##### Connect
+<br>
 
-This method simply connects to the Holochain conductor. It raises the `OnConnected` event once it is has successfully established a connection. Please see the [Events](#events) section above for more info on how to use this event.
+#### Connect
+
+This method simply connects to the Holochain conductor. It raises the [OnConnected](#onconnected) event once it is has successfully established a connection. Please see the [Events](#events) section above for more info on how to use this event.
 
 ```c#
 public async Task Connect()
 ```
+<br>
 
-##### CallZomeFunctionAsync
+#### CallZomeFunctionAsync
 
 This is the main method you will be using to invoke zome functions on your given zome. It has a number of handy overloads making it easier and more powerful to call your zome functions and manage the returned data.
 
-This method raises the `OnCallZomeFunctionCallBack` event once it has received a response from the Holochain conductor. Please see the [Events](#events) section above for more info on how to use this event.
+This method raises the [OnZomeFunctionCallBack](#onzomefunctioncallback) event once it has received a response from the Holochain conductor. Please see the [Events](#events) section above for more info on how to use this event.
 
-###### Overload 1
+<br>
+
+##### Overload 1
 
 ````c#
 public async Task CallZomeFunctionAsync(string id, string instanceId, string zome, string function, ZomeFunctionCallBack callback, object paramsObject, bool matchIdToInstanceZomeFuncInCallback = true, bool cachReturnData = false)
 ````
+<br>
 
 | Parameter                           | Description                                                                                    
 | ----------------------------------- | ---------------------------------------------------------------------------------------------- |
@@ -296,7 +476,9 @@ public async Task CallZomeFunctionAsync(string id, string instanceId, string zom
 | matchIdToInstanceZomeFuncInCallback | This is an optional param, which defaults to true. Set this to true if you wish HoloNET to give the instance, zome  zome function that made the call in the callback/event. If this is false then only the id will be given in the callback. This uses a small internal cache to match up                  the id to the given instance/zome/function. Set this to false if you wish to save a tiny amount of memory by not utilizing this cache. If it is false then the `Instance`, `Zome` and `ZomeFunction` params will be missing in the ZomeCallBack,you will need to manually match the `id` to the call yourself.                                                  |
 | cachReturnData                      | This is an optional param, which defaults to false. Set this to true if you wish HoloNET to    cache the JSON response retrieved from holochain. Subsequent calls will return this cached data rather than calling the Holochain conductor again. Use this for static data that is not going to change for performance gains.                                                         
 
-###### Overload 2
+<br>
+
+#####  Overload 2
 
 ````c#
  public async Task CallZomeFunctionAsync(string instanceId, string zome, string function, ZomeFunctionCallBack callback, object paramsObject, bool cachReturnData = false)
@@ -304,7 +486,9 @@ public async Task CallZomeFunctionAsync(string id, string instanceId, string zom
 
 This overload is similar to the one above except it omits the `id` and `matchIdToInstanceZomeFuncInCallback` param's forcing HoloNET to auto-generate and manage the id's itself. 
 
-###### Overload 3
+<br>
+
+##### Overload 3
 
 ````c#
 public async Task CallZomeFunctionAsync(string id, string instanceId, string zome, string function, object paramsObject, bool matchIdToInstanceZomeFuncInCallback = true, bool cachReturnData = false)
@@ -312,7 +496,9 @@ public async Task CallZomeFunctionAsync(string id, string instanceId, string zom
 
 This overload is similar to the first one, except it is missing the `callback` param. For this overload you would subscribe to the `OnZomeFunctionCallBack` event. You can of course subscribe to this event for the other overloads too, it just means you will then get two callbacks, one for the event handler for `OnZomeFunctionalCallBack` and one for the callback delegate you pass in as a param to this method. The choice is yours on how you wish to use this method...
 
-###### Overload 4
+<br>
+
+##### Overload 4
 
 ````c#
 public async Task CallZomeFunctionAsync(string instanceId, string zome, string function, object paramsObject, bool cachReturnData = false)
@@ -320,17 +506,20 @@ public async Task CallZomeFunctionAsync(string instanceId, string zome, string f
 
 This overload is similar to the one above except it omits the `id` and `matchIdToInstanceZomeFuncInCallback` param's forcing HoloNET to auto-generate and manage the id's itself. It is also missing the `callback` param. For this overload you would subscribe to the `OnZomeFunctionCallBack` event. You can of course subscribe to this event for the other overloads too, it just means you will then get two callbacks, one for the event handler for `OnZomeFunctionalCallBack` and one for the callback delegate you pass in as a param to this method. The choice is yours on how you wish to use this method...
 
-##### ClearCache
+<br>
 
-Call this method to clear all of HoloNETClient's internal cache. This includes the JSON responses that have been cached using the `GetHolochainInstances` & `CallZomeFunction` methods if the `cacheData` parm was set to true for any of the calls.
+#### ClearCache
+
+Call this method to clear all of HoloNETClient's internal cache. This includes the JSON responses that have been cached using the [GetHolochainInstancesAsync](#getholochaininstancesasync) & [CallZomeFunctionAsync](#callzomefunctionasync) methods if the `cacheData` parm was set to true for any of the calls.
 
 ````c#
 public void ClearCache()
 ````
+<br>
 
-##### Disconnect
+#### Disconnect
 
-This method disconnects the client from Holochain conductor. It raises the `OnDisconnected` event once it is has successfully disconnected. Please see the [Events](#events) section above for more info on how to use this event.
+This method disconnects the client from Holochain conductor. It raises the [OnDisconnected](#ondisconnected) event once it is has successfully disconnected. Please see the [Events](#events) section above for more info on how to use this event.
 
 ```c#
 public async Task Disconnect()
@@ -342,59 +531,72 @@ NOTE: Currently when you call this method, you will receive the follow error:
 
 This looks like an issue with the Holochain conductor and we will be raising this bug with them to see if it is something they need to address...
 
-##### GetHolochainInstancesAsync
+<br>
 
-This method will return a string array containing the instances that the holochain conductor is currently running. You will need to store the instance(s) in a variable to pass into the `CallZomeFunctionAsync` later. 
+#### GetHolochainInstancesAsync
+
+This method will return a string array containing the instances that the holochain conductor is currently running. You will need to store the instance(s) in a variable to pass into the [CallZomeFunctionAsync](#callzomefunctionasync) later. 
 
 We did consider managing this part automatically but because we wanted to keep HoloNET as flexible as possible allowing you to make calls to multiple instances at once it made sense for the user to manage the instance id's themselves. But as with everything we are very open to any feedback or suggestions on this...
 
-This method raises the `OnGetHolochainInstancesCallBack` event once it has received a response from the Holochain conductor. Please see the [Events](#events) section above for more info on how to use this event.
+This method raises the [OnGetHolochainInstancesCallBack](#ongetinstancescallback) event once it has received a response from the Holochain conductor. Please see the [Events](#events) section above for more info on how to use this event.
 
 There are two overloads for this method:
 
-###### Overload 1
+##### Overload 1
 
 ````c#
 public async Task GetHolochainInstancesAsync(string id, bool cachReturnData = false)
 ````
 
-###### Overload 2
+##### Overload 2
 
 ````c#
 public async Task GetHolochainInstancesAsync(bool cachReturnData = false)
 ````
+<br>
 
 | Parameter| Description  |
 |--|--|
 |id|The unique id you wish to assign for this call (NOTE: Use the overload that omits this                                       param if you wish HoloNET to auto-generate and manage the id's for you).   |
 |cachReturnData | This is an optional param, which defaults to false. Set this to true if you wish HoloNET to    cache the JSON response retrieved from holochain. Subsequent calls will return this cached data rather than calling the Holochain conductor again. Use this for static data that is not going to change for performance gains. This would be a good method to enable caching if you know the instances are not going to change.  
+<br>
 
-##### SendMessageAsync
+#### SendMessageAsync
 
-This method allows you to send your own raw JSON request to holochain. This method raises the `OnSendMessageCallBack` event once it has received a response from the Holochain conductor. Please see the [Events](#events) section above for more info on how to use this event.
+This method allows you to send your own raw JSON request to holochain. This method raises the [OnDataRecived](#ondatareceived) event once it has received a response from the Holochain conductor. Please see the [Events](#events) section above for more info on how to use this event.
 
-You would rarely need to use this and we highly recommend you use the `CallZomeFunction` method instead.
+You would rarely need to use this and we highly recommend you use the [CallZomeFunctionAsync](#callzomefunctionasync) method instead.
 
 ````c#
 public async Task SendMessageAsync(string jsonMessage)
  ````
+<br>
 
 | Paramameter |Description  |
 |--|--|
 | jsonMessage | The raw JSON message you wish to send to the Holochain conductor.  |
+<br>
 
-#### Properties
+### Properties
 
 HoloNETClient contains the following properties:
 
-* `Config`
-* `Logger`
-* `NetworkServiceProvider`
-* `NetworkServiceProviderMode`
+<br>
 
-##### Config
+| Property | Description  |
+|--|--|
+| [Config](#config)  | This property contains a struct called `HoloNETConfig` containing the sub-properties: TimeOutSeconds, NeverTimeOut, KeepAliveSeconds, ReconnectionAttempts, ReconnectionIntervalSeconds, SendChunkSize, ReceiveChunkSizeDefault & ErrorHandlingBehaviour.
+| [Logger](#logger) | Property to inject in a [ILogger](#ilogger) implementation. |
+| [NetworkServiceProvider](#networkserviceprovider) | This is a property where the network service provider can be injected. The provider needs to implement the `IHoloNETClientNET` interface.  |
+| [NetworkServiceProviderMode](#networkserviceprovidermode) |This is a simple enum, which currently has these values: Websockets, HTTP & External. |
+
+<br>
+
+#### Config
 
 This property contains a struct called `HoloNETConfig` containing the following sub-properties:
+<br>
 
 |Property|Description  |
 |--|--|
@@ -406,9 +608,13 @@ This property contains a struct called `HoloNETConfig` containing the following 
 |SendChunkSize| The size of the buffer to use when sending data to the Holochain conductor. The default is 1024 bytes.
 |ReceiveChunkSizeDefault| The size of the buffer to use when receiving data from the Holochain conductor. The default is 1024 bytes. |
 | ErrorHandlingBehaviour | An enum that specifies what to do when anm error occurs. The options are: `AlwaysThrowExceptionOnError`, `OnlyThrowExceptionIfNoErrorHandlerSubscribedToOnErrorEvent` & `NeverThrowExceptions`). The default is `OnlyThrowExceptionIfNoErrorHandlerSubscribedToOnErrorEvent` meaning it will only throw an error if the `OnError` event has not been subscribed to. This delegates error handling to the caller. If no event has been subscribed then HoloNETClient will throw an error. `AlwaysThrowExceptionOnError` will always throw an error even if the `OnError` event has been subscribed to. The `NeverThrowException` enum option will never throw an error even if the `OnError` event has not been subscribed to. Regardless of what enum is selected, the error will always be logged using whatever `ILogger` has been injected into the [Logger]("#logger") property. 
-|
 
-##### Logger
+<br>
+
+#### Logger
+
+Property to inject in a `ILogger` implementation.
+
 `HoloNETClientBase` is an abstract class meaning it cannot be instantiated directly. You must inherit from it to use it.  This is where all the code for the HoloNETClient is.
  
 `NextGenSoftware.Holochain.HoloNET.Client.Desktop` and `NextGenSoftware.Holochain.HoloNET.Client.Unity` projects both contain a `HoloNETClient` class that do just this.
@@ -452,6 +658,7 @@ namespace NextGenSoftware.Holochain.HoloNET.Client.Unity
 
 The desktop version uses a wrapper around the popular `NLog` logging framework, but unfortunately Unity does not support NLog so this is why this has had to be split out. We are currently looking into a good Logging Solution for Unity. We have found a possible port of NLog for Unity that so far is looking promising but this is still a different dll/library so the code must still remain as it is. This is also good practice to decouple the code as much as possible especially external dependencies such as logging.
 
+<a name="ilogger"></a>
 The ILogger interface is very simple:
 
 ````c#
@@ -472,7 +679,9 @@ namespace NextGenSoftware.Holochain.HoloNET.Client.Core
 }
 ````
 
-##### NetworkServiceProvider
+<br>
+
+#### NetworkServiceProvider
 
 This is a property where the network service provider can be injected. The provider needs to implement the `IHoloNETClientNET` interface. 
 
@@ -497,7 +706,9 @@ The two currently planned providers will be WebSockets & HTTP but if for whateve
 
 Currently the WebSocket JSON RPC implementation is deeply integrated into the HoloNETClient so this needs splitting out into its own project. We hope to get this done soon... We can then also at the same time implement the HTTP implementation. 
 
-##### NetworkServiceProviderMode
+<br>
+
+#### NetworkServiceProviderMode
 
 This is a simple enum, which currently has these values:
 
@@ -516,21 +727,549 @@ The External enum was to be used by any other external implementation that imple
 
 **More to come soon...**
 
+<br>
+
 ## HoloOASIS
 
-HoloOASIS uses HoloNET to implement a Storage Provider (IOASISStorage) for the OASIS System. It will soon also implement a Network Provider (IOASISNET) for the OASIS System that will leverage Holochain to create it's own private de-centralised distributed network called ONET (as seen on the OASIS Architecture Diagram below).
+`HoloOASIS` uses the [HoloNETClient](#holonet) to implement a Storage Provider ([IOASISStorage](#ioasisstorage)) for the OASIS System. It will soon also implement a Network Provider ([IOASISNET](#ioasisnet)) for the OASIS System that will leverage Holochain to create it's own private de-centralised distributed network called `ONET` (as seen on the [OASIS Architecture Diagram](#the-oasis-architecture) below).
 
-This is a good example to see how to use HoloNET in a real world game/platform (OASIS/Our World).
+This is a good example to see how to use [HoloNETClient](#holonet) in a real world game/platform (OASIS/Our World).
+
+### Using HoloOASIS
+
+You start by instantiating a new HoloOASIS class from either the [NextGenSoftware.OASIS.API.Providers.HoloOASIS.Desktop](#project-structure) project or the [NextGenSoftware.OASIS.API.Providers.HoloOASIS.Unity](#project-structure) project.
+
+````c#
+Desktop.HoloOASIS _holoOASIS = new Desktop.HoloOASIS("ws://localhost:8888");
+````
+
+You pass into the constructor the URI to the Holochain conductor.
+
+Next, wire up the events:
+
+````c#
+_holoOASIS.HoloNETClient.OnConnected += HoloNETClient_OnConnected;
+_holoOASIS.OnInitialized += _holoOASIS_OnInitialized;
+_holoOASIS.OnPlayerProfileLoaded += _holoOASIS_OnPlayerProfileLoaded;
+_holoOASIS.OnPlayerProfileSaved += _holoOASIS_OnPlayerProfileSaved;
+_holoOASIS.OnHoloOASISError += _holoOASIS_OnHoloOASISError;
+````
+<br>
+Once HoloOASIS has finished initializing after the `OnInitialzed` event has fired you can create a new user Profile by creating a new Profile object and populating it with the required properties.
+
+You can also add karma by calling the `AddKarma` method on the `Profile` object.
+
+Finally you call the `SaveProfileAsync` method passing in the `Profile` object to save the profile to your local chain on Holochain.
+
+````c#
+private static void _holoOASIS_OnInitialized(object sender, EventArgs e)
+{
+            Console.WriteLine("Initialized.");
+            Console.WriteLine("Saving Profile...");
+
+            _savedProfile = new Profile { Username = "dellams", Email = "david@nextgensoftware.co.uk", Password = "1234", FirstName = "David", LastName = "Ellams", DOB = "11/04/1980", Id = Guid.NewGuid(), Title = "Mr", PlayerAddress = "blahahahaha" };
+            _savedProfile.AddKarma(999);
+
+            _holoOASIS.SaveProfileAsync(_savedProfile);
+}
+````
+<br>
+To load the `Profile` object back from your local chain on Holochain you simply call the `LoadProfileAsync` method passing in the desired profiles Holochain hash, which is returned as a param in the `OnPlayerProfileSaved` event handler.
+
+````c#
+private static void _holoOASIS_OnPlayerProfileSaved(object sender, ProfileSavedEventArgs e)
+{
+            Console.WriteLine("Profile Saved.");
+            Console.WriteLine("Profile Entry Hash: " + e.Profile.HcAddressHash);
+            Console.WriteLine("Loading Profile...");
+            //_savedProfile.Id = new Guid(e.ProfileEntryHash);
+            _holoOASIS.LoadProfileAsync(e.Profile.HcAddressHash);
+}
+````
+
+### Events
+
+HoloOASIS contains the following events:
+
+|Event|Description |
+|--|--|
+| OnInitialized |Fired when the HoloOASIS Provider has initialized. This is after the embedded [HoloNETClient](#holonet) has finished connecting to the Holochain Conductor.  |
+| OnPlayerProfileSaved|Fired when the users profile has finished saving. |
+| OnPlayerProfileLoaded|Fired when the users profile has finished loading. |
+| OnHoloOASISError|Fired when an error occurs within the provider. 
+| OnStorageProviderError|This implements part of the [IOASISStorage](#ioasisstorage) interface. This is a way for the OASIS Providers to bubble up any errors to the ProfileManager contained in the [NextGenSoftware.OASIS.API.Core](#oasisapi) |
+
+#### OnInitialized 
+
+Fired when the HoloOASIS Provider has initialized. This is after the embedded [HoloNETClient](#holonet) has finished connecting to the Holochain Conductor.
+
+````c#
+_holoOASIS.OnInitialized += _holoOASIS_OnInitialized;
+
+private static void _holoOASIS_OnInitialized(object sender, EventArgs e)
+{
+            Console.WriteLine("Initialized.");
+            Console.WriteLine("Saving Profile...");
+
+            _savedProfile = new Profile { Username = "dellams", Email = "david@nextgensoftware.co.uk", Password = "1234", FirstName = "David", LastName = "Ellams", DOB = "11/04/1980", Id = Guid.NewGuid(), Title = "Mr", PlayerAddress = "blahahahaha" };
+            _savedProfile.AddKarma(999);
+
+            _holoOASIS.SaveProfileAsync(_savedProfile);
+}
+````
+<br>
+
+#### OnPlayerProfileSaved
+
+Fired when the users profile has finished saving.
+
+````c#
+_holoOASIS.OnPlayerProfileSaved += _holoOASIS_OnPlayerProfileSaved;
+
+private static void _holoOASIS_OnPlayerProfileSaved(object sender, ProfileSavedEventArgs e)
+{
+            Console.WriteLine("Profile Saved.");
+            Console.WriteLine("Profile Entry Hash: " + e.Profile.HcAddressHash);
+            Console.WriteLine("Loading Profile...");
+            //_savedProfile.Id = new Guid(e.ProfileEntryHash);
+            _holoOASIS.LoadProfileAsync(e.Profile.HcAddressHash);
+}
+````
+<br>
+
+|Parameter|Description |
+|--|--|
+|Profile  | The profile object that has just been saved.  |
+<br>
+
+#### OnPlayerProfileLoaded
+Fired when the users profile has finished loading.
+
+````c#
+ _holoOASIS.OnPlayerProfileLoaded += _holoOASIS_OnPlayerProfileLoaded;
+
+ private static void _holoOASIS_OnPlayerProfileLoaded(object sender, ProfileLoadedEventArgs e)
+        {
+            Console.WriteLine("Profile Loaded.");
+            Console.WriteLine(string.Concat("Id: ", e.Profile.Id));
+            Console.WriteLine(string.Concat("HC Address Hash: ", e.Profile.HcAddressHash));
+            Console.WriteLine(string.Concat("Name: ", e.Profile.Title, " ", e.Profile.FirstName, " ", e.Profile.LastName));
+            Console.WriteLine(string.Concat("Username: ", e.Profile.Username));
+            Console.WriteLine(string.Concat("Password: ", e.Profile.Password));
+            Console.WriteLine(string.Concat("Email: ", e.Profile.Email));
+            Console.WriteLine(string.Concat("DOB: ", e.Profile.DOB));
+            Console.WriteLine(string.Concat("Address: ", e.Profile.PlayerAddress));
+            Console.WriteLine(string.Concat("Karma: ", e.Profile.Karma));
+            Console.WriteLine(string.Concat("Level: ", e.Profile.Level));
+        }
+````
+<br>
+
+#### OnHoloOASISError
+
+Fired when an error occurs within the provider.
+
+````c#
+ _holoOASIS.OnHoloOASISError += _holoOASIS_OnHoloOASISError;
+
+private static void _holoOASIS_OnHoloOASISError(object sender, HoloOASISErrorEventArgs e)
+        {
+            Console.WriteLine(string.Concat("Error Occured. Reason: ", e.Reason, (e.HoloNETErrorDetails != null ? string.Concat(", HoloNET Reason: ", e.HoloNETErrorDetails.Reason) : ""), (e.HoloNETErrorDetails != null ? string.Concat(", HoloNET Details: ", e.HoloNETErrorDetails.ErrorDetails.ToString()) : ""), "\n"));
+        }
+````
+<br>
+
+|Parameter|Description  |
+|--|--|
+| EndPoint | The URI EndPoint of the Holochain conductor.
+| Reason | The reason for the error.  |
+| ErrorDetails| More detailed technical details including stack trace.
+| HoloNETErrorDetails| If the error was caused by HoloNET, then the error details returned from HoloNET will appear here.
+
+
+### Methods
+
+HoloOASIS contains the following methods:
+
+| Method |Description  |
+|--|--|
+| AddKarmaToProfileAsync |This implements part of the [IOASISStorage](#ioasisstorage) interface. Call this method to add karma to the users profile/avatar.  |
+|ConvertProfileToHoloOASISProfile | Internal utility method that converts a `OASIS.API.Core.Profile` object to a `HoloOASIS.Profile` object. The `HoloOASIS.Profile` object extends the `OASIS.API.Core.Profile` object by adding the `HcAddressHash` property to store the address hash returned from Holochain when adding new entries to the chain.
+| GetHolonsNearMe | This implements part of the IOASISNET interface. This has not been implemented yet and is just a stub. This method will get a list of the Holons (items/objects) near the user/avatar.
+|GetPlayersNearMe|This implements part of the IOASISNET interface. This has not been implemented yet and is just a stub. This method will get a list of the players/avatars near the player's user/avatar.
+|HandleError| This is a private method where all errors are funneled and handled.
+|Initialize| Call this method to initilize the provider. Internally this will call the [Connect](#connect) method on the [HoloNETClient](#holonet) class.
+|LoadProfileAsync| Call this method to load the users profile/avatar data and return it in a `Profile` object. This has 3 overloads.
+|RemoveKarmaFromProfileAsync| Call this method to remove karma from the users profile/avatar.
+| SaveProfileAsync | Call this method to save the user's profile/avatar.
+
+### Properties
+
+HoloOASIS contains the following properties:
+
+|Property|Description  |
+|--|--|
+| HoloNETClient | This contains a ref to the [HoloNETClient](#holonet). You can use this property to access the underlying [HoloNETClient](#holonet) including all [events](#events), [methods](#methods) & [properties](#properties). |
+
+
+**More to come soon...**
+
+## OASIS API Core
+
+This is where the main OASIS API is located and contains all of the interfaces that the various providers implement along with the base objects & managers to power the OASIS API.
+
+It is located in the `NextGenSoftware.OASIS.API.Core` project.
+
+#### Using The OASIS API Core
+
+The API is still being developed so at the time of writing,  only the`ProfileManager` is available.
+
+You start by instantiating the `ProfileManager` class:
+
+````c#
+// Inject in the HoloOASIS Storage Provider (this could be moved to a config file later so the 
+// providers can be sweapped without having to re-compile.
+ProfileManager = new ProfileManager(new HoloOASIS("ws://localhost:8888"));
+````
+
+The `ProfileManager` takes one param for the constructor of type [IOASISStorage](#ioasisstorage). This is where you inject in a Provider that implements the [IOASISStorage](#ioasisstorage) interface. Currently the only provider that has implemented this is the [HoloOASIS](#holooasis) provider. but expect more to follow soon...
+
+````c#
+public ProfileManager(IOASISStorage OASISStorageProvider)
+{
+            this.OASISStorageProvider = OASISStorageProvider;
+            this.OASISStorageProvider.OnStorageProviderError += OASISStorageProvider_OnStorageProviderError;
+}
+````
+
+Part of the [IOASISStorage](#ioasisstorage) interface has an event called OnStorageProviderError, which the provider fires to send errors back to the `ProfileManager`.
+
+Once the `ProfileManager` has been instantiated. you can load the users Profile using the `LoadProfileAsync` method:
+
+````c#
+IProfile profile = await ProfileManager.LoadProfileAsync(username, password);
+
+if (profile != null)
+{
+	//TODO: Bind profile info to Unity Avatar UI here.
+}
+````
+
+### Interfaces
+
+The OASIS API currently has the following interfaces defined:
+
+|Interface|Description  |
+|--|--|
+|[IOASISStorage](#ioasisstorage)  | This is what a Storage Provider implements so the OASIS API can read & write the users profile/avatar to the storage medium/network. Currently only the HoloOASIS provider exists but more will follow soon...the first will be EthereumOASIS & SOLIDOASIS so the API can talk to both Ethereum & SOLID.  |
+|[IOASISNET](#ioasisnet)| This is what a Network Provider implements so the OASIS API can share the users profile/avatar as well as fine Holons and players near them. 
+
+**NOTE: Currently the interfaces are pretty basic, but expect a LOT more to be added in the future...  Additional interfaces will also be added such as the IOASISRenderer interface.**
+
+#### IOASISStorage  
+
+This is what a Storage Provider implements so the OASIS API can read & write the users profile/avatar to the storage medium/network. Currently only the [HoloOASIS](#holooasis) provider exists but more will follow soon...the first will be EthereumOASIS & SOLIDOASIS so the API can talk to both Ethereum & SOLID.
+
+````c#
+namespace NextGenSoftware.OASIS.API.Core
+{
+    // This interface is responsible for persisting data/state to storage, this could be a local DB or other local 
+    // storage or through a distributed/decentralised provider such as IPFS or Holochain (these two implementations 
+    // will be implemented soon (IPFSOASIS & HoloOASIS).
+    public interface IOASISStorage
+    {
+        Task<IProfile> LoadProfileAsync(string providerKey);
+        Task<IProfile> LoadProfileAsync(Guid Id);
+        Task<IProfile> LoadProfileAsync(string username, string password);
+
+        //Task<bool> SaveProfileAsync(IProfile profile);
+        Task<IProfile> SaveProfileAsync(IProfile profile);
+        Task<bool> AddKarmaToProfileAsync(IProfile profile, int karma);
+        Task<bool> RemoveKarmaFromProfileAsync(IProfile profile, int karma);
+
+        event StorageProviderError OnStorageProviderError;
+
+        //TODO: Lots more to come! ;-)
+    }
+}
+````
+<br>
+
+| Item|Description  |
+|--|--|
+| LoadProfileAsync | Loads the users profile/avatar. This has 3 overloads, one takes a providerKey (a unique key that the provider can use to identify a profile, [HoloOASIS](#holooasis) uses the address hash for this), one takes a username & password and the final one takes a Guid for the profileID, which is a unique id for the profile irrespective of which provider is providing it.  |
+| SaveProfileAsync | Saves the users profile/avatar. 
+| AddKarmaToProfileAsync | Add karma to the users profile/avatar.
+| RemoveKarmaFromProfileAsync | Remove karma from the users profile/avatar.
+| StorageProviderError | An event the provider fires when an erroroccurs that the `ProfileManager` can then handle.
+
+#### IOASISNET
+
+This is what a Network Provider implements so the OASIS API can share the users profile/avatar as well as fine Holons and players near them. 
+
+````c#
+namespace NextGenSoftware.OASIS.API.Core
+{
+    // This interface provides methods to discover and interact with other nodes/peers on the distributed/decentralised network (ONET)
+    // This will involve peer to peer communcation.
+    public interface IOASISNET
+    {
+        List<IPlayer> GetPlayersNearMe();
+        List<IHolon> GetHolonsNearMe(HolonType Type);
+    }
+}
+````
+
+Currently the [HoloOASIS](#holooasis) Provider defines some stubs for this interface, which will be fully implemented soon...
+
+| Item | Description  |
+|--|--|
+| GetPlayersNearMe  | Gets a list of players near the user's current location.  |
+| GetHolonsNearMe | Get a list of holons near the user's current location.
+
+
+### Events
+
+### Methods
+
+### Properties
+
+**More to come soon...**
+
 
 ## HoloUnity
 
-We will soon be creating a Asset for the Unity Asset Store that will include HoloNET along with Unity wrappers and examples of how to use HoloNET inside Unity.
+We will soon be creating a Asset for the Unity Asset Store that will include [HoloNET](#holonet) along with Unity wrappers and examples of how to use [HoloNET](#holonet) inside Unity.
 
-In the codebase you will find a project called NextGenSoftware.OASIS.API.FrontEnd.Unity, which shows how the ProfileManager found inside the OASIS API Core (NextGenSoftware.OASIS.API.Core) is used. When you instantiate the ProfileManager you inject into a Storage Provider that implements the IOASISStorage interface. Currently the only provider implemented is the HoloOASIS Provider.
+In the codebase you will find a project called [NextGenSoftware.OASIS.API.FrontEnd.Unity](#project-structure), which shows how the `ProfileManager` found inside the `OASIS API Core` ([NextGenSoftware.OASIS.API.Core](#project-structure)) is used. When you instantiate the `ProfileManager` you inject into a Storage Provider that implements the [IOASISStorage](#ioasisstorage) interface. Currently the only provider implemented is the [HoloOASIS](#holooasis) Provider.
 
 The actual Our World Unity code is not currently stored in this repo due to size restrictions but we may consider using GitHub LFS (Large File Storage) later on. We are also looking at GitLab and other alternatives to see if they allow greater storage capabilities free out of the box (since we are currently working on a very tight budget but you could change that by donating below! ;-) ).
 
-As with the rest of the project, if you have any suggestions we would love to hear from you! :)
+![alt text](https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/blob/master/HolochainTalkingToUnity.jpg "Holochain talking to Unity")
+
+Here is a preview of the OASIS API/Avatar/Karma System... more to come soon... ;-)
+
+**As with the rest of the project, if you have any suggestions we would love to hear from you! :)**
+
+### Using HoloUnity
+
+You start by instantiating the `ProfileManager` class found within the [NextGenSoftware.OASIS.API.Core](#project-structure) project.
+
+````c#
+// Inject in the HoloOASIS Storage Provider (this could be moved to a config file later so the 
+// providers can be sweapped without having to re-compile.
+ProfileManager = new ProfileManager(new HoloOASIS("ws://localhost:8888"));
+````
+
+Now, load the users Profile:
+
+````c#
+IProfile profile = await ProfileManager.LoadProfileAsync(username, password);
+
+if (profile != null)
+{
+	//TODO: Bind profile info to Unity Avatar UI here.
+}
+````
+
+The full code for the screenshot above that loads the users profile/avatar data from holochain and displays it in Unity is below:
+
+````c#
+using NextGenSoftware.OASIS.API.Core;
+using NextGenSoftware.OASIS.API.Providers.HoloOASIS.Unity;
+using UnityEngine;
+using TMPro;
+using System.Threading.Tasks;
+
+public class OASISAvatarManager : MonoBehaviour
+{
+    ProfileManager ProfileManager { get; set; }  //If the ProfileManager is going to contain additional business logic not contained in the providers then use this.
+    public GameObject ProfileUsername;
+    public GameObject ProfileFullName;
+    public GameObject ProfileDOB;
+    public GameObject ProfileEmail;
+    public GameObject ProfileAddress;
+    public GameObject ProfileKarma;
+    public GameObject ProfileLevel;
+
+    async Task Start()
+    {
+    	// Inject in the HoloOASIS Storage Provider (this could be moved to a config file later so the 
+        // providers can be sweapped without having to re-compile.
+        ProfileManager = new ProfileManager(new HoloOASIS("ws://localhost:8888"));
+        ProfileManager.OnProfileManagerError += ProfileManager_OnProfileManagerError;
+        ProfileManager.OASISStorageProvider.OnStorageProviderError += OASISStorageProvider_OnStorageProviderError;
+
+        //StorageProvider = new HoloOASIS("ws://localhost:8888");
+	
+        await LoadProfile();    
+    }
+
+    private async Task LoadProfile()
+    {
+        //IProfile profile = await ProfileManager.LoadProfileAsync("dellams", "1234");
+        IProfile profile = await ProfileManager.LoadProfileAsync("QmR6A1gkSmCsxnbDF7V9Eswnd4Kw9SWhuf8r4R643eDshg");
+
+        if (profile != null)
+        {
+            (ProfileFullName.GetComponent<TextMeshProUGUI>()).text = string.Concat(profile.Title, " ", profile.FirstName, " ", profile.LastName);
+            (ProfileUsername.GetComponent<TextMeshProUGUI>()).text = profile.Username;
+            (ProfileDOB.GetComponent<TextMeshProUGUI>()).text = profile.DOB;
+            (ProfileEmail.GetComponent<TextMeshProUGUI>()).text = profile.Email;
+            //(ProfileAddress.GetComponent<TextMeshProUGUI>()).text = profile.PlayerAddress;
+            (ProfileKarma.GetComponent<TextMeshProUGUI>()).text = profile.Karma.ToString();
+            (ProfileLevel.GetComponent<TextMeshProUGUI>()).text = profile.Level.ToString();
+        }
+    }
+
+    private void OASISStorageProvider_OnStorageProviderError(object sender, ProfileManagerErrorEventArgs e)
+    {
+        Debug.Log("Error occured in the OASIS Storage Provider: " + e.Reason + ", Error Details: " + e.ErrorDetails);
+    }
+
+    private void ProfileManager_OnProfileManagerError(object sender, ProfileManagerErrorEventArgs e)
+    {
+        Debug.Log("Error occured in the OASIS Profile Manager: " + e.Reason + ", Error Details: " + e.ErrorDetails);
+    }
+
+    // Update is called once per frame
+    void Update ()
+    {
+		
+    }
+}
+
+````
+
+Instead of using the OASIS `ProfileManager` to load the data, we could use [HoloNETClient](#holonet) directly, the code would then look like this:
+
+````c#
+using NextGenSoftware.OASIS.API.Core;
+//using NextGenSoftware.OASIS.API.Providers.HoloOASIS.Unity;
+using NextGenSoftware.Holochain.HoloNET.Client.Unity;
+using NextGenSoftware.Holochain.HoloNET.Client.Core;
+using UnityEngine;
+using TMPro;
+using Newtonsoft.Json;
+using System.Threading.Tasks;
+
+public class OASISAvatarManager : MonoBehaviour
+{
+    ProfileManager ProfileManager { get; set; }  //If the ProfileManager is going to contain additional business logic not contained in the providers then use this.
+    public GameObject ProfileUsername;
+    public GameObject ProfileFullName;
+    public GameObject ProfileDOB;
+    public GameObject ProfileEmail;
+    public GameObject ProfileAddress;
+    public GameObject ProfileKarma;
+    public GameObject ProfileLevel;
+
+    async Task Start()
+    {
+    	/*
+    	// Inject in the HoloOASIS Storage Provider (this could be moved to a config file later so the 
+        // providers can be sweapped without having to re-compile.
+        ProfileManager = new ProfileManager(new HoloOASIS("ws://localhost:8888"));
+        ProfileManager.OnProfileManagerError += ProfileManager_OnProfileManagerError;
+        ProfileManager.OASISStorageProvider.OnStorageProviderError += OASISStorageProvider_OnStorageProviderError;
+	
+        await LoadProfile();
+	*/
+	
+        HoloNETClient holoNETClient = new HoloNETClient("ws://localhost:8888");
+        holoNETClient.OnZomeFunctionCallBack += HoloNETClient_OnZomeFunctionCallBack;
+        holoNETClient.OnConnected += HoloNETClient_OnConnected;
+        holoNETClient.OnError += HoloNETClient_OnError;
+        holoNETClient.OnDataReceived += HoloNETClient_OnDataReceived;
+
+        await holoNETClient.Connect();
+        await holoNETClient.CallZomeFunctionAsync("test-instance", "our_world_core", "load_profile", new { address = "QmVtt5dEZEyTUioyh59XfFc3KWuaifK92Mc2KTXGauSbS9" });
+    }
+
+    private void HoloNETClient_OnDataReceived(object sender, DataReceivedEventArgs e)
+    {
+        Debug.Log(string.Concat("Data Received: EndPoint: ", e.EndPoint, "RawJSONData: ", e.RawJSONData));
+    }
+
+    private void HoloNETClient_OnError(object sender, HoloNETErrorEventArgs e)
+    {
+        Debug.Log(string.Concat("Error Occured. Resason: ", e.Reason, ", EndPoint: ", e.EndPoint, ", Details: ", e.ErrorDetails.ToString()));
+    }
+
+    private void HoloNETClient_OnConnected(object sender, ConnectedEventArgs e)
+    {
+        Debug.Log("Connected to Holochain Conductor: " + e.EndPoint);
+    }
+
+    private void HoloNETClient_OnZomeFunctionCallBack(object sender, ZomeFunctionCallBackEventArgs e)
+    {
+        Debug.Log(string.Concat("ZomeFunction CallBack: EndPoint: ", e.EndPoint, ", Id: ", e.Id, ", Instance: ", e.Instance, ", Zome: ", e.Zome, ", ZomeFunction: ", e.ZomeFunction, ", Data: ", e.ZomeReturnData, ", Raw Zome Return Data: ", e.RawZomeReturnData, ", Raw JSON Data: ", e.RawJSONData, ", IsCallSuccessful: ", e.IsCallSuccessful ? "true" : "false"));
+
+        Profile profile = JsonConvert.DeserializeObject<Profile>(string.Concat("{", e.ZomeReturnData, "}"));
+
+        if (profile != null)
+        {
+            (ProfileFullName.GetComponent<TextMeshProUGUI>()).text = string.Concat(profile.Title, " ", profile.FirstName, " ", profile.LastName);
+            (ProfileUsername.GetComponent<TextMeshProUGUI>()).text = profile.Username;
+            (ProfileDOB.GetComponent<TextMeshProUGUI>()).text = profile.DOB;
+            (ProfileEmail.GetComponent<TextMeshProUGUI>()).text = profile.Email;
+            //(ProfileAddress.GetComponent<TextMeshProUGUI>()).text = profile.PlayerAddress;
+            (ProfileKarma.GetComponent<TextMeshProUGUI>()).text = profile.Karma.ToString();
+            (ProfileLevel.GetComponent<TextMeshProUGUI>()).text = profile.Level.ToString();
+        }
+    }
+
+    /*
+    private async Task LoadProfile()
+    {
+        //StorageProvider = new HoloOASIS("ws://localhost:8888");
+
+        //IProfile profile = await ProfileManager.LoadProfileAsync("dellams", "1234");
+        IProfile profile = await ProfileManager.LoadProfileAsync("QmR6A1gkSmCsxnbDF7V9Eswnd4Kw9SWhuf8r4R643eDshg");
+
+        if (profile != null)
+        {
+            (ProfileFullName.GetComponent<TextMeshProUGUI>()).text = string.Concat(profile.Title, " ", profile.FirstName, " ", profile.LastName);
+            (ProfileUsername.GetComponent<TextMeshProUGUI>()).text = profile.Username;
+            (ProfileDOB.GetComponent<TextMeshProUGUI>()).text = profile.DOB;
+            (ProfileEmail.GetComponent<TextMeshProUGUI>()).text = profile.Email;
+            //(ProfileAddress.GetComponent<TextMeshProUGUI>()).text = profile.PlayerAddress;
+            (ProfileKarma.GetComponent<TextMeshProUGUI>()).text = profile.Karma.ToString();
+            (ProfileLevel.GetComponent<TextMeshProUGUI>()).text = profile.Level.ToString();
+        }
+    }
+
+    private void OASISStorageProvider_OnStorageProviderError(object sender, ProfileManagerErrorEventArgs e)
+    {
+        Debug.Log("Error occured in the OASIS Storage Provider: " + e.Reason + ", Error Details: " + e.ErrorDetails);
+    }
+
+    private void ProfileManager_OnProfileManagerError(object sender, ProfileManagerErrorEventArgs e)
+    {
+        Debug.Log("Error occured in the OASIS Profile Manager: " + e.Reason + ", Error Details: " + e.ErrorDetails);
+    }
+    */
+
+    // Update is called once per frame
+    void Update ()
+    {
+		
+    }
+}
+````
+
+This is how other Unity developers would connect to Holochain using HoloNETClient, because they may not be using the OASIS API. 
+
+Of course if they wanted use the OASIS API then the first code listing is how it would be done.
+
+
+### Events
+
+### Methods
+
+### Properties
+
+**More to come soon...**
 
 <a name="oasisapi"></a>
 ## The OASIS API & Karma System
@@ -565,6 +1304,10 @@ You will be able to see how the karma you have earnt is broken down into these c
 
 You will also be able to view the karma levels of other users, this can help you reach out to them to help improve their karma in cateogries they are lacking in by inviting them on a Quest with you or your group. You 
 
+### Gain Karma When You Earn HoloFuel For Sharing Your Nodes Resources To Power Our World
+
+You can also gain karma for sharing your node's resources such as CPU, memory, bandwith, etc
+
 ### Open Karma Committe/Community Concensors
 
 There will be a Open Karma Committe who will decide the algorithms for karma allocation through concensors with the community. The community can vote for any proposals the committe publish and only ones which receive enough votes will be made "OASIS Law". The community can also vote in representives to sit on the commitee so it is as open and democratic as possible.
@@ -585,13 +1328,69 @@ A list of of possible early adopters can be found below:
 * <a href="http://www.4ocean.com">4Ocean</a>
 * <a href="preseach.io">PreSearch</a>
 * <a href="https://mindlife.net">Uplift/MindLife</a>
-
+* <a href="https://www.mapotic.com">Mapotic</a>
+* <a href="https://docs.google.com/document/d/1LgBQX42jIOFkfnbHf1swP3GwDd0O-jzpjYYv63OjDRg/edit#heading=h.ofqm4bivlrj4">Global Brain Application</a>
+* <a href="https://alptha.joatu.org">Joatu</a>
+* <a href="https://cryptpad.fr/pad">Holo-REA</a>
+* <a href="https://holacracy.org">Holacracy</a>
+* <a href="https://www.headspace.com">Headspace</a> 
+* <a href="https://bridgit.io/">Bridge It</a> 
  
 We are in the process of reaching out to these to see if they wish to be one of the early adopters of the OASIS API. This list will grow over time, in time there will be thousands and even millions as our vision to connect everyone to everyone through the OASIS API/Our World becomes more and more of a reality.
 
 **Early adopters will receive a special status and highlighting so they will stand out from the crowd in listings (website), on the map (smartphone version) & in the 3D VR world (Desktop & consoles). So if you wish to take advantage of this offer or know of anyone else who could please get in touch on ourworld@nextgensoftware.co.uk. We would love to hear from you! :)**
 
 Please see the [Social Network](#socialnetwork) section for more info...
+
+
+### The Universal API To Connect Everything To Everything (No More Silos/Walled Gardens)
+
+**The OASIS API is a global universal API that aims to connect everything to everything to eliminate walled gardens/silos.** There are a number of open protocols/platforms/networks that the OASIS API will support. The majority of these are aimed at building a truly decentralised distributed internet (Web 3.0) and this is also the aim of the OASIS API. 
+
+
+### Protocols/Platforms/Networks Supported
+
+The OASIS API aims to support as many platforms/networks/protocols as possible so the Karma System can be deeply integrated across the web in every application, device, etc.
+
+Below is a list of the protocols/networks/platforms that the OASIS API will support (expect this list to grow in time):
+
+|Protocol/Platform/Network| Description | Support Implemented  |
+|--|--|--|
+|[HSTP (Hyper Spacial Transport Protocol)](https://www.verses.io/)  | The new protocol for the new Spacial Web (Web 3.0) | Coming Soon... |
+| [WebFinger](https://webfinger.net/) | WebFinger is used to discover information about people or other entities on the Internet that are identified by a URI using standard Hypertext Transfer Protocol (HTTP) methods over a secure transport. A WebFinger resource returns a JavaScript Object Notation (JSON) object describing the entity that is queried. The JSON object is referred to as the JSON Resource Descriptor (JRD).| Coming Soon...
+| [ActivityPub](https://activitypub.rocks/) |ActivityPub is an open, decentralized social networking protocol based on Pump.io's ActivityPump protocol. It provides a client/server API for creating, updating and deleting content, as well as a federated server-to-server API for delivering notifications and content | Coming Soon...
+| [XMPP](https://xmpp.org/) | Etensible Messaging and Presence Protocol is an open XML technology for real-time communication, which powers a wide range of applications including instant messaging, presence and collaboration.  | Coming Soon...
+| [SOLID](https://solid.inrupt.com/) | Inventor of the Internet, Sir Tim Berners-Lee new protocol for Web 3.0 to give users control of their data as well as remove silos/walled gardens using Pods & Linked Data. | Coming Soon...
+| [Holochain](https://holochain.org/) | Leading the way for the new decentralised distributed internet | Yes |
+| [Ethereum](https://www.ethereum.org/) | One of the leading Blockchain implementations that is very popular. | Coming Soon...
+| [Fediverse](https://fediverse.party/) | It is a common name for federated social networks running on free open software on a myriad of servers across the world. Historically, this term has included only microblogging platforms supporting a set of protocols called OStatus. This didn't do justice to a large number of projects that federate, share same values and are reasonably popular. With the appearance and wide adoption of a new standard protocol called ActivityPub it makes no sense to further divide the federated world into “OStatus” and “non-OStatus” projects. This guide unites all interoperable federated networks under one term “Fediverse”. | Coming Soon...
+| [Gab](https://gab.com) | Distributed social network promoting free speech | Coming Soon...
+| [Mastodon](https://joinmastodon.org/) | Distributed twitter style network of micro blogging servers using the Fediverse. | Coming Soon...
+| [Diaspora](https://diasporafoundation.org/) | Another distributed social network | Coming Soon...
+
+If you know of any other open protocols/platforms/networks that you feel are part of the new internet (Web 3.0) we are all co-creating then please do get in touch on ourworld@nextgensoftware.co.uk and let us know, thank you! :)
+
+### OASIS Open Standards
+
+The OASIS API is all about pushing the Open Source & Open Community standards. As almost a sign we were on the right path we recently discovered this site:
+
+https://www.oasis-open.org
+
+They are all about pushing the same agenda except we are actually implementing a API to achieve our shared goals of getting everything to talk to everything else. It's very interesting we both chose the name OASIS, a coincidence or not? ;-) We are obviously in the process of reaching out to them to see how we can work together...
+
+### OASIS API Redundancy (Can Store Copies Of Your Data On Any Decentralised Network/Platform You Choose)
+
+The OASIS API has built in redundancy in that you can choose to store copies of your data on any decentralised network/platform. When calling the OASIS API you can speceify which network/platform you wish to use (the ones avaliable will be dependent on whether a Provider has yet been implemented for it, so far only Holochain is supported.) The default provider will be Holochain since the long term goal of the OASIS API is to get people to slowly migrate across to Holochain.
+
+### The OASIS API Enables You To Earn Karma Anywhere
+
+Our World will automatcially support all of the platforms/networks/protocols listed above so your profile/avatar/karma will be avaialble to any apps that use their platforms/networks/protocols. This will also make it easier to earn karma in a wider range of apps by supporting as many platforms/networks/protocols as possible. 
+
+### User Has FULL Control Of Their Data
+
+Any other OAPP (that uses the OASIS API) can also choose to share your profile/avatar/karma with any of the supported platforms/networks/protocols. The user will have fully access and control of where their data can be stored/shared along with grandular permissions such as which apps/sites/users/groups/roles/networks/platforms can see what.
+
+**More to come soon...**
 
 ## .NET HDK
 
@@ -683,8 +1482,8 @@ As you can see from the diagram the OASIS architecture is very modular, open and
 
 The components are split into 11 sub-systems/layers:
 
-* Storage (IOASISStorage Interface)
-* Network (IOASISNET Interface)
+* Storage ([IOASISStorage](#ioasisstorage) Interface)
+* Network ([IOASISNET](#ioasisnet) Interface)
 * Renderer (IOASIS2DRenderer & IOASIS3DRenderer Interfaces)
 * XR/Eye Tracking
 * Haptic Feedback
@@ -693,9 +1492,9 @@ The components are split into 11 sub-systems/layers:
 * Motion Tracking
 * Input
 * OAPP Templates
-* OASIS Engine/API
+* [OASIS Engine/API](#oasisapicore)
 
-Currently HoloOASIS implements the IOASISStorage interface. In future it will also implement the IOASISNET interface.
+Currently [HoloOASIS](#holooasis) implements the [IOASISStorage](#ioasisstorage) interface. In future it will also implement the [IOASISNET](#ioasisnet) interface.
 
 **PLEASE MAKE SURE YOU READ THE DESCRIPTION BOXES ON THE DIAGRAM FOR MORE INFO ON HOW THE SYSTEM WILL WORK.**
 
@@ -710,7 +1509,7 @@ As you can see from the architecture diagram, the system will act as the bridge 
 
 ### Implement Your Own Storage/Network/Renderer Provider
 
-Thanks to the system being very open/modular by design you can easily implement your own Storage/Network/Renderer Provider by simply implementing the IOASISStorage/IOASTNET/IOASIS2DRenderer/IOASIS3DRenderer interfaces respectively. For example you could create a MongoDB, MySQL or SQL Server Storage Provider. This also ensures forward compatibility since if a new storage medium or network protocol comes out in the future you can easily write a new provider for them without having to change any of the existing system. 
+Thanks to the system being very open/modular by design you can easily implement your own Storage/Network/Renderer Provider by simply implementing the [IOASISStorage](#ioasisstorage) / [IOASTNET](#ioasisnet) / IOASIS2DRenderer / IOASIS3DRenderer interfaces respectively. For example you could create a MongoDB, MySQL or SQL Server Storage Provider. This also ensures forward compatibility since if a new storage medium or network protocol comes out in the future you can easily write a new provider for them without having to change any of the existing system. 
 
 The same applies if a new 3D Engine comes out you want to use.
 
@@ -832,11 +1631,17 @@ This does not just have to be a dream; together we can create this world…
 
 Let us introduce you to Our World, the game that will change the world. As well as helping to make the world a better place, this game will be pushing the boundaries of what is currently possible with technology. It will feature augmented reality, virtual reality, motion detection, voice recognition and real-time emotional feedback. It will use technology in ways that has not been done before and in areas where it has been done, it will innovate and take it to the next level...
 
-**Our World is an exciting immersive next generation 3D XR educational game/platform/social network/ecosystem teaching people on how to look after themselves, each other and the planet using the latest cutting-edge technology. It teaches people the importance of real-life face to face connections with human beings and encourages them to get out into nature using Augmented Reality similar to Pokémon Go but on a much more evolved scale. This is our flagship product and is our top priority due to the massive positive impact it will make upon the world...**
+The software industry has a morale & social responsibility to use technology to help create a better world rather than lead to further decline. It has the power to transform lives through engaging people with innovative products that help them to grow and develop. Recent popular examples include health apps, mindfulness apps and mind training games.
 
-### XR Gamification Layer Of The New Interplanetary Operating System
+We wish to take this to the next level and help make the world a better place by using technology for good, by bringing people together and to support, guide and educate everyone on how we can all live happier, fulfilling lives and at the same time how we can help save our planet.
 
-**It is the XR Gamification layer of the new interplanetary operating system, which is being built by the elite technical wizards stationed around the world. This will one day replace the current tech giants such as Google, FaceBook, etc and act as the technical layer of the New Earth, which is birthing now. It is a 5th dimensional and ascension training platform, teaching people vital life lessons as well as acting as a real-time simulation of the real world.**
+We will do this by creating a suite of nextgen apps & games using the latest cutting-edge technology such as Virtual Reality, Augmented Reality, Real-time emotional feedback, face/voice recognition, motion detection and so much more.
+
+**Our World is an exciting immersive next generation 3D XR/IR (Infinite Reality) educational game/platform/social network/ecosystem teaching people on how to look after themselves, each other and the planet using the latest cutting-edge technology. It teaches people the importance of real-life face to face connections with human beings and encourages them to get out into nature using Augmented Reality similar to Pokémon Go but on a much more evolved scale. This is our flagship product and is our top priority due to the massive positive impact it will make upon the world...**
+
+### XR/IR Gamification Layer Of The New Interplanetary Operating System & The New Internet (Web 3.0)
+ 
+**It is the XR/IR Gamification layer of the new interplanetary operating system & the new internet (Web 3.0), which is being built by the elite technical wizards stationed around the world. This will one day replace the current tech giants such as Google, FaceBook, etc and act as the technical layer of the New Earth, which is birthing now.  Unlike the current tech giants who's only aim is to ruthlessly maximize profits at the expense of people and the planet (as well as spying, exploitation, censorship & social engineering), our technology is based on true love & unity consciousness where money and profits are not our aim or intention, our aim and intention is to heal the entire planet & human race so we can all live in harmony with each other.  It is a 5th dimensional and ascension training platform, teaching people vital life lessons as well as acting as a real-time simulation of the real world.**
 
 As well as helping to make the world a better place, this game will be pushing the boundaries of what is currently possible with technology. It will feature augmented reality, virtual reality, motion detection, voice recognition and real-time emotional feedback. It will use technology in ways that has not been done before and in areas where it has been done, it will innovate and take it to the next level...
 
@@ -846,11 +1651,29 @@ It is much more than just a free open world game where you can build and create 
 
 The game teaches people true unity consciousness where everyone benefits if people put their differences aside and work together. Our World is also an ecosystem and a virtual e-commerce platform and so, so, so much more, it will create a whole new genre and blaze a new path for others to try and follow…
 
-Our World is built on top of the de-centralised, distributed nextgen internet known as Holochain.
+Our World has now merged with our NextGen Social Network project, which was always planned to be the prequel to Our World, so it made sense to simply merge them together.
+
+### Synergy Engine
+
+Our World implements the Synergy Engine helping to solve the world’s problems by matching solutions to problems. It also teaches the co-creation wheel and a new holistic approach to living and technology to help co-create a better world. 
+
+Our World implements the Synergy Engine helping to solve the world’s problems by matching solutions to problems. It also teaches the co-creation wheel and a new holistic approach to living and technology to help co-create a better world. 
+
+### Resource Based Economy
+
+Our World teaches people the benefits of a <a href="https://www.thevenusproject.com/resource-based-economy/">Resource Based Economy</a> (coined by Jacque Fresco, the founder of <a href="https://www.thevenusproject.com/">The Venus Project</a>) where the world's resources are freely available to everyone and people exchange products and services without the need for money. For this to be achieved all resources must be declared as the common heritage of all Earth’s inhabitants. Equipped with the latest scientific and technological marvels mankind could reach extremely high productivity levels and create abundance of resources. This also prevents money being hoarded through greed and corruption and can no longer be used to control & divide people. A Resource Based Economy is actually fully integrated into Our World.
 
 ### First AAA MMO Game To Run On Holochain
 
+Our World is built on top of the de-centralised, distributed nextgen internet known as Holochain.
+
 Our World will be the first AAA MMO game and 2D/3D Social Network to run on HoloChain and the Blockchain. It will also be the first to integrate a social network with a MMO game/platform as well as all of these technologies and devices together. As with the rest of the game, it will be leading the way in what can be done with this NextGen Technology for the benefit and upliftment of humanity. 
+
+Read more here:
+
+https://www.ourworldthegame.com/single-post/2019/02/22/Why-Our-World-Is-Powered-By-Holochain 
+
+We will soon be launching our ICO to sell our OASIS Coin, more news on this soon...
 
 ### Smartphone Version
 
@@ -861,10 +1684,6 @@ The smartphone version will be a geolocation game featuring Augmented Reality si
 The console/desktop version will be similar to a Sandbox and MMORPG (Massive Multiplayer Online Role Playing Game) but will be nothing like any other games such as World Of WarCraft & MineCraft. It will in fact define its own genre setting the new bar for others to follow, this truly has never been done before and will take the world by storm! The one thing it will share with them is that it will be a massive open world that billions of players can explore and build together... 
 
 Both versions will share the same online world/multiverse where users logged in through the smartphone versions will be able to interact with the console/desktop versions in real-time within a massive scale persistent Multiverse.
-
-### Synergy Engine
-
-Our World implements the Synergy Engine helping to solve the world’s problems by matching solutions to problems. It also teaches the co-creation wheel and a new holistic approach to living and technology to help co-create a better world. 
 
 ### Engrossing Storyline
 
@@ -968,6 +1787,14 @@ We need your investment/help so we can continue development of the cutting-edge 
 
 https://www.ourworldthegame.com/single-post/2018/08/14/First-look-at-our-Smartphone-Prototype
 
+Check out the latest progress made with the protoype below:
+
+https://www.ourworldthegame.com/single-post/2019/06/02/OASIS-ArchitectureHoloNETHolochainHoloWebBrowserPrototypeUpdate 
+
+https://www.ourworldthegame.com/single-post/2019/07/03/BIG-UPDATE---Lots-Of-Progress-Made-On-Prototype- 
+
+https://www.ourworldthegame.com/single-post/2019/08/03/Our-World-OASIS-API-HoloNET-Goes-Open-Source- 
+
 We can then demo this to interested parties so we can get more investment to get the first version of this game released. This game will have continuous development with frequent upgrades and add-ons. It is so vast, that the development roadmap is never ending.
 
 ### We Are What You Have All Been Waiting For...
@@ -1003,6 +1830,11 @@ Our World is Buckminster Fuller's World Peace Game, please read more here:
 
 https://www.ourworldthegame.com/single-post/2018/01/21/Our-World-Is-The-Buckminster-Fuller-World-Peace-Game 
 
+### The NextGen Office
+
+Our NextGen Offices that we plan to build one day will be deeply integrated with nature so streams, trees, etc will be inside a bit like <a href="https://www.centerparcs.com">Center Parcs</a> in UK. They will also be built to Sacred Geometry specifications so they are actually healing to work inside one. They will also contain healing crystals & orgonite so it actually heals and energizes you while you work...  They are also similar to the ones the <a href="https://www.thevenusproject.com">Venus Project</a> intend to build. Read more below:
+
+https://www.ourworldthegame.com/single-post/2019/08/10/The-NextGen-Office
 
 ### Golden Investment Opportunity
 
@@ -1029,7 +1861,7 @@ It only seems to be a week or two before another terrorist attack or mass shooti
 
 **Version 2 - Desktop/Console Platforms - The VR Version** - Game version that starts in Past with a true history of Earth. Not Time Correlated. We hope work on this can begin by 2020 (if additional funds/resources can be secured by then) and will be done in parallel with the Smartphone version. Remember these are not seperate products, and fully integrate with each other where players share the same immersive persistent real-time open world.
 
-**Version 3 - The XR/IR Version** - The XR version that becomes the immersive, self reflective reality that combines both aspects of console and smartphone versions (The OASIS). We hope we will secure MASSIVE funds by 2021/2022 latest so this can begin dev around that time, this is Ready Player One OASIS time with life like graphics and things you can only begin to imagine right now! ;-)
+**Version 3 - The XR/IR Version (The OASIS)** - The XR version that becomes the immersive, self reflective reality that combines both aspects of console and smartphone versions. We hope we will secure MASSIVE funds by 2021/2022 latest so this can begin dev around that time, this is Ready Player One OASIS time with life like graphics and things you can only begin to imagine right now! ;-)
 
 ## Next Steps
 
@@ -1118,27 +1950,7 @@ We also offer FREE training with our NextGen Developer Training Programme where 
 
 We want to help the people that the world has turned their back on, people who no longer believe in themselves, we are here to tell them that we believe in them and in time we will help them believe in themselves again. We are here to tell them to forget what society says you can or cannot do, for you can do whatever you want to, you can follow your heart and achieve your dreams. We want to empower people to be their own boss and we actively encourage their creativity and imagination and that anything is possible. We want to give them free reign to work on or create whatever they like or heart desires.
 
-We believe everyone has a gift to share with the world and we want to help find it and hone it further so they can be the best they possibly can be without any limitations, the sky really is the limit! :)
-
-In fact there are no limits, only infinite possibilities! If they can think or dream of it, then we can help them make it into a reality.  We want to help people reach their full potential and become the best possible person they can be.
-
-We will offer them real world commercial experience working on real-world cutting-edge projects. Most of our projects are light years ahead of everyone else, you can be part of our crack elite team developing them... 
-
-This way their time is used more effectively and only used to make real projects come alive, projects that can help people and make a difference to the world. Rather than being wasted on boring dull exercises and demo projects that never get to the see the light of day, this way they feel more productive and feel they really are contributing something and really are making a difference, even whilst training! 
-
-We want to enable them all and their families to live very happy and fulfilling lives, sometimes dreams really do come true.
-
-They will also get to work on bleeding edge technology which is not mainstream yet such as our NextGen Real-time Emotional Feedback System (NGREFS) plus so much more... 
-
-The course also contains mindfulness, meditation, yoga, nutrition, exercise and healthy living which are all a compulsory part of the course and for when they work with us (we prefer with rather than for) once they have completed the training. We hope to get this into every school, college, job centre, back to work scheme and charities, etc. For example The Salvation Army are currently offering a new Awaken course to help get people back to work, we want to team up with them to offer our training too.
-
-We hope to encourage all employees of NextGen to practice yoga and meditation daily as part of their daily work schedule, thus reinforcing creativity and optimum performance. We do not want stressed or overworked employees, that does not help anyone and that is when mistakes start to happen and performance will degrade. We are a strong believer in that if you look after your employees they will look after you. If they start to get stressed, they can have a ten minute time-out to do some yoga or meditation in our yoga studio downstairs. We do not believe in rigid work patterns; they can pick the hours to fit their needs. 
-
-They get to choose what they want to work on or they can even come up with their own original ideas and get an opportunity to work on them. The training course will in itself attract a lot of attention and will help market itself. I can foresee us being interviewed and asked why we are offering something so amazing for free, and we will say because it is not always about the money, it is about helping people. When we are asked what the secret to our success is, we will respond with one word: "Love". "If everyone started to focus more on this and in helping people then the world would be a much better place and all problems would disappear overnight, we hope to be a template for how businesses should be run, we will lead the way of how things will be done from now onwards...
-
-In the future we plan to also use state of the art training techniques using the latest R&D hardware where we can tailor the course to suit the individual.
-
-We intend to be the template for how all future software houses, training companies and businesses as a whole should operate. We will be writing books on Mindful Programming, Mindful Business, Mindful Marketing, Mindful Sales, etc. Where helping people is the focus over profit margins and destroying people’s life's and the planet for selfish greed, which will only destroy all of us in the end. We want there to be a planet for our kids to grow up in...
+Read more on the <a href="http://www.ourworldthegame.com">Our World</a> website.
 
 Check out the training PDF downloads under the cunningly named Training section on our website:
 
@@ -1157,32 +1969,7 @@ This game, website and promotional videos were all designed and created by our f
 
 This is why he created <a href="http://www.yoga4autism.com">Yoga4Autism</a> to help teach other people the power of yoga thus enabling them to live happy fulfilling life's to their FULL potential without any limitations as he now enjoys. He then wishes to give them all FREE training & jobs to help create a better world and to show the world what people with autism and so-called "disabilities" can REALLY do...
 
-"Hi, my name is David Ellams BSc(Hons) and I am a very experienced Senior Developer/Architect based in London and highly sought after. I have been in the industry for over 16 years now, I have a 1st class honors degree in Computing And Informatics and a wealth of experience and skills in most things IT related, especially in software development.
-
-I have been programming since the age of 8, when I got my first computer, the good old ZX Spectrum, ever since then I have been hooked to coding, especially games. As well as creating games, I have enjoyed playing them my whole life so I am also a gaming expert and know the industry very well. I have vast experience in all things technical including coding websites, desktop software, back-end services, apps, game and much more as seen on my CV.
-
-My degree is rated as the hardest degree the University offers. The School Of Computing is rated as the 5th best in the UK by The Times newspaper and I also came top of my class.
-
-Nokia UK complimented my high degree of expertise and commented that I was the best contractor they had seen and was the only one taken on with just a telephone interview. I spent a weekend learning their Windows Phone platform (I didn’t even own a smartphone back then) and I then knew more about their phone and platform than they did! They kept asking me questions all the time when I was there. My boss even told me to slow down because I was making everyone else look bad!
-
-I have been told time and time again at every role that I was one of the best developers they have seen, I frequently more than ace interviews and technical tests, and I am normally the only one who scores 100% on these tests.
-
-My degree not only gives you a broad range of computing skills, it also gives you very valuable business analytical skills allowing you to go into a business, analyse their business processes and then make proposals on how they can be made more efficient through IT.
-I am way ahead of the curve, I see ideas many years before others do, for example the search suggestions that Google and YouTube use when you start entering your search term, I came up with about 5 years before they did as one of my first jobs out of University back in 2002. It was for an internal KB system written in classic ASP using a new technology called AJAX meaning instead of having to press the Search button to submit the search form to the server and then wait for the response, you can do searches in the background as you typed. I thought it would be too slow to work but it worked beautifully. I then thought nothing more of it until I saw Google, YouTube and everyone else start implementing it. 
-
-This is just one example of countless ideas that I have invented many years before the big players have. I have an IQ of 160, which I am told makes me a genius and is the same as Einstein and Stephen Hawking. I did not even finish the test because I ran out of time due to my dyslexia and dyspraxia, which means I am sometimes a slower reader and take more time to absorb the information. IQ tests are however not a very accurate way to measure someone’s true potential because it only measures the left brain which is the logical and language processing centres. The left brain acts as a serial processor but the right brain is much more powerful and acts as a parallel processor, it is like a quantum computer and is responsible for our creativity, image processing, music, art, etc. I am also highly creative (I think up new ideas for apps, games, etc almost on a daily basis) as well as being highly analytical (left brain), this is what makes me so good at my job.
-
-I have worked with or for all the big names such as KPMG, Nokia, Microsoft, The Daily Mail Group (DMG), BBC, European Parliament, HSBC, HM Land Registry, News International (The Times, The Sunday Times & The Sun), Business Link, Environmental Agency, Ordnance Survey, BP, Wiltshire Farm Foods, Regus, Crystal Reports, TD Waterhouse, Natwest, Royal Bank of Scotland, Hargreaves Lansdown, Aon, National Blood Service, William Hill, Optimus, NHS, DVLA, Camelot, IRIS Software, Syngenta, JPMC (JP Morgan Chas & Co), Volvo, TwoFour, Stralfors, Mears, Landmark (part of the DMGT (Daily Mail) group),  British American Tobacco Company, DSCallards, a UK Government Charity & Kantar World Panel plus many more as can be seen on my CV here:
-
-https://www.linkedin.com/in/david-ellams-77132142/ 
-
-I only say all of this not to boast but to show you’re investing in the best of the best and to prove my credentials as well as showing what someone with autism can do. I receive over 30 emails and over 5 calls a day with job matches from agencies due to being so highly sought after.
-
-I have never been run by money and gave my money to charities and to my poor family and friends but this was not enough for me so in 2010 I created NextGen Software Ltd to start creating apps & games to help make the world a better place. I wanted to use my gifts for good rather than helping the rich get richer and the poor get poorer. I am run by love because I know money cannot buy happiness
-I burnt out in 2013 working long contracting hours in the day and then working on Yoga4Autism & NextGen Software in the evening and weekend without ever having a break. I was so driven to help make the world a better place. I was bedridden and could not walk or talk for months, it then took over two years using yoga to rebuild my strength and energy. This is a testament to one of the many positive traits of autism in that we never give up and have unlimited determination. I am an advocate for Autism and I enjoy giving inspiring & empowering talks at shows, schools, homes, etc giving hope where there was previously none, painting autism in a positive light, which is needed when it has previously been seen as a negative. I now wish to help others who are where I use to be, then offer them all free training and jobs to help make the world a better place for all..."
-
-This game and the games/apps to follow will show the world what people on the spectrum are capable off. We are also looking for other people on the spectrum (who will also be as gifted as David in the IT field) who wish to help create this revolutionary game...  The plan is to free them with the yoga, meditation and mindfulness and then offer them free training and jobs...
-Please contact us on ourworld@nextgensoftware.co.uk if you wish to get involved.
+Read more on the <a href="http://www.ourworldthegame.com">Our World</a> website.
 
 ## Better Than A Fornite Clone! ;-)
 
@@ -1201,20 +1988,67 @@ You can also get involved on our forum here:
 
 http://www.ourworldthegame.com/forum
 
-## Websites
+## HoloSource Liscence
+
+This repo uses a new type of Open Source where more control is needed over the codebase to make sure things do not go off on a tangent that is not beneficial to the original intention and vision of this very important critical project to help save the world and make it a better place for all. Too much is at stake to stop this falling into the wrong hands so to speak! ;-)
+
+This means permission will need to be requested for any forks, etc 
+
+The whole point of opening up this codebase to the public is we wish to empower the whole world to take responsability for our beautiful planet and this is why the whole world is the Our World team. It will be one of the biggest most ambitious projects the world has ever seen and this is why it needs to be open to all...
+
+<a href="https://docs.google.com/document/d/1I3qbBnfVPLrGxv5paDAaCFSBxkb_34vkhA6fc8iNMew/edit#heading=h.s2ub9y5otad7">Read More Here</a>
+
+**Ready to do your part? ;-)**
+
+**Although the rest of this repo is HoloSourced in that you need to be granted permission to fork and use it, HoloNET is totally free and Open Sourced to be used anyway you wish. If you find it helpful, we would REALLY appreciate a donation to our crowd funding page, because this is our full-time job and so have no other income and will help keep us alive so we can continue to improve it for you all, thank you! :)**
+
+**https://www.gofundme.com/ourworldthegame**
+
+
+## Links
 
 Read more on this project on our websites below:
 
 In Love,Light & Hope,
 
-David Ellams BSc(Hons)
+David Ellams BSc(Hons)<br/> 
+https://www.linkedin.com/in/david-ellams-77132142/ 
 
 Proud & Liberated Aspie <br/>
 Founder & Managing Director <br/>
 NextGen Software Ltd <br/>
 NextGen World Ltd <br/>
 Yoga4Autism Ltd 
+<br/> 
+<br/> 
+
+**Sites**
 
 http://www.ourworldthegame.com <br/>
 http://www.nextgensoftware.co.uk <br/>
-http://www.yoga4autism.com
+http://www.yoga4autism.com <br/> 
+
+**Social**
+
+http://www.facebook.com/ourworldthegame <br/> 
+http://www.twitter.com/ourworldthegame <br/> 
+https://www.youtube.com/channel/UC0_O4RwdY3lq1m3-K-njUxA
+
+**Blog/Forum**
+
+http://www.ourworldthegame.com/blog <br/> 
+http://www.ourworldthegame.com/forum
+
+**Holochain Community Chat Channels**
+
+https://chat.holochain.org/appsup/channels/our-world-netclient <br/>
+https://chat.holochain.org/appsup/channels/net-hdk 
+
+**NextGen DeveloperTraining  Programmes**
+
+<a href="https://docs.wixstatic.com/ugd/4280d8_ad8787bd42b1471bae73003bfbf111f7.pdf">NextGen Developer Training Programme</a> <br/> 
+<a href="https://docs.wixstatic.com/ugd/4280d8_999d98ba615e4fa6ab4383a415ee24c5.pdf">Junior NextGen Developer Training Programme</a>
+
+**Funding**
+
+**https://www.gofundme.com/ourworldthegame** <br/> 
