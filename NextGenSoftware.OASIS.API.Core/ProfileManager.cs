@@ -50,7 +50,7 @@ namespace NextGenSoftware.OASIS.API.Core
             return await OASISStorageProvider.AddKarmaToProfileAsync(profile, karma);
         }
 
-        public async Task<bool> RemoveKarmaToProfileAsync(IProfile profile, int karma)
+        public async Task<bool> RemoveKarmaFromProfileAsync(IProfile profile, int karma)
         {
             return await OASISStorageProvider.RemoveKarmaFromProfileAsync(profile, karma);
         }

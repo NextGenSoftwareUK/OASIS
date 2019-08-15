@@ -241,6 +241,11 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Core
 
         #endregion
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="profile"></param>
+        /// <returns></returns>
         private Profile ConvertProfileToHoloOASISProfile(API.Core.IProfile profile)
         {
             return new Profile
@@ -261,6 +266,13 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Core
             };
         }
 
+        /// <summary>
+        /// Handles any errors thrown by HoloNET or HoloOASIS. It fires the OnHoloOASISError error handler if there are any 
+        /// subscriptions. The same applies to the OnStorageProviderError event implemented as part of the IOASISStorage interface.
+        /// </summary>
+        /// <param name="reason"></param>
+        /// <param name="errorDetails"></param>
+        /// <param name="holoNETEventArgs"></param>
         private void HandleError(string reason, Exception errorDetails, HoloNETErrorEventArgs holoNETEventArgs)
         {
             OnStorageProviderError?.Invoke(this, new ProfileManagerErrorEventArgs { EndPoint = this.HoloNETClient.EndPoint, Reason = string.Concat(reason, holoNETEventArgs != null ? string.Concat(" - HoloNET Error: ", holoNETEventArgs.Reason, " - ", holoNETEventArgs.ErrorDetails.ToString()) : ""),  ErrorDetails = errorDetails });

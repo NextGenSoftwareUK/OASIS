@@ -10,7 +10,5 @@ namespace NextGenSoftware.OASIS.API.Core
     {
         List<IPlayer> GetPlayersNearMe();
         List<IHolon> GetHolonsNearMe(HolonType Type);
-
-
     }
 }
