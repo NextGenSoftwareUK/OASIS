@@ -7,6 +7,8 @@ using Newtonsoft.Json.Linq;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Linq;
+using System.IO;
+using System.Diagnostics;
 
 namespace NextGenSoftware.Holochain.HoloNET.Client.Core
 {
@@ -18,7 +20,9 @@ namespace NextGenSoftware.Holochain.HoloNET.Client.Core
         private const int TimeOutSecondsDefault = 30;
         private const int ReconnectionAttemptsDefault = 5;
         private const int ReconnectionIntervalSecondsDefault = 5;
+        private const int SecondsToWaitForConductorToStartDefault = 5;
 
+       // private bool _useInternalHolochainConductor = false;
         private TaskCompletionSource<GetInstancesCallBackEventArgs> _taskCompletionSourceGetInstance = new TaskCompletionSource<GetInstancesCallBackEventArgs>();
         private readonly CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
         private readonly CancellationToken _cancellationToken;
@@ -85,6 +89,7 @@ namespace NextGenSoftware.Holochain.HoloNET.Client.Core
 
         public HoloNETClientBase(string holochainURI)
         {
+          //  _useInternalHolochainConductor = useInternalHolochainConductor;
             WebSocket = new ClientWebSocket();
             WebSocket.Options.KeepAliveInterval = TimeSpan.FromSeconds(Config.KeepAliveSeconds == 0 ? KeepAliveSecondsDefault : Config.KeepAliveSeconds);
             EndPoint = holochainURI;
@@ -102,6 +107,36 @@ namespace NextGenSoftware.Holochain.HoloNET.Client.Core
 
                 if (WebSocket.State != WebSocketState.Open && WebSocket.State != WebSocketState.Aborted)
                 {
+                    //if (Config.HolochainConductorBehaviour == HolochainConductorBehaviour.AutoStartExternalConductor || Config.HolochainConductorBehaviour == HolochainConductorBehaviour.UseInternalConductor)
+                    if (Config.HolochainConductorBehaviour == HolochainConductorBehaviour.AutoStartExternalConductor)
+                    {
+                        //Make sure the condctor is not already running
+                        if (!Process.GetProcesses().Any(x => x.ProcessName == "hc"))
+                        {
+                            //If no path to the conductor has been given then default to the current working directory.
+                            if (string.IsNullOrEmpty(Config.FullPathToExternalHolochainConductor))
+                                Config.FullPathToExternalHolochainConductor = string.Concat(Directory.GetCurrentDirectory(), "\\hc.exe"); //default to the current path
+
+                            if (Config.SecondsToWaitForHolochainConductorToStart == 0)
+                                Config.SecondsToWaitForHolochainConductorToStart = SecondsToWaitForConductorToStartDefault;
+
+                            DirectoryInfo info = new DirectoryInfo(Config.FullPathToHolochainAppDNA);
+                            Logger.Log("Starting Holochain Conductor...", LogType.Info);
+
+                            Process pProcess = new Process();
+                            pProcess.StartInfo.WorkingDirectory = info.Parent.Parent.FullName;
+                            pProcess.StartInfo.FileName = Config.FullPathToExternalHolochainConductor;
+                            pProcess.StartInfo.Arguments = "run";
+                            pProcess.StartInfo.UseShellExecute = true;
+                            pProcess.StartInfo.RedirectStandardOutput = false;
+                            pProcess.StartInfo.WindowStyle = ProcessWindowStyle.Normal;
+                            pProcess.StartInfo.CreateNoWindow = false; 
+                            pProcess.Start();
+
+                            await Task.Delay(Config.SecondsToWaitForHolochainConductorToStart); // Give the conductor 5 seconds to start up...
+                        }
+                    }
+
                     Logger.Log(string.Concat("Connecting to ", EndPoint, "..."), LogType.Info);
 
                     await WebSocket.ConnectAsync(new Uri(EndPoint), CancellationToken.None);

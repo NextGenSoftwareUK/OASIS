@@ -79,7 +79,13 @@ Project("{9092AA53-FB77-4645-B42D-1CCCA6BD08BD}") = "NextGenSoftware.OASIS.API.C
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.Holochain.HoloNET.HDK", "NextGenSoftware.Holochain.HoloNET.HDK\NextGenSoftware.Holochain.HoloNET.HDK.csproj", "{7A53C90E-0DFE-4E54-B339-E9966F6563F4}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.Providers.EthereumOASIS", "NextGenSoftware.OASIS.API.Providers.EthereumOASIS\NextGenSoftware.OASIS.API.Providers.EthereumOASIS.csproj", "{1EB41E98-EBF8-436A-B5C3-CE711C539075}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.Providers.EthereumOASIS", "NextGenSoftware.OASIS.API.Providers.EthereumOASIS\NextGenSoftware.OASIS.API.Providers.EthereumOASIS.csproj", "{1EB41E98-EBF8-436A-B5C3-CE711C539075}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.Providers.SOLIDOASIS", "NextGenSoftware.OASIS.API.Providers.SOLIDOASIS\NextGenSoftware.OASIS.API.Providers.SOLIDOASIS.csproj", "{7981A3E8-B355-40AB-97E9-EBEEF8D65FE0}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.Providers.IPFSOASIS", "NextGenSoftware.OASIS.API.Providers.IPFSOASIS\NextGenSoftware.OASIS.API.Providers.IPFSOASIS.csproj", "{5946D69A-6113-475A-8233-3017C963B16A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.Providers.AcitvityPub", "NextGenSoftware.OASIS.API.Providers.AcitvityPub\NextGenSoftware.OASIS.API.Providers.AcitvityPub.csproj", "{B0A76E6A-8FC3-42FA-8C16-DDAF78173187}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -202,6 +208,24 @@ Global
 		{1EB41E98-EBF8-436A-B5C3-CE711C539075}.Linux|Any CPU.Build.0 = Debug|Any CPU
 		{1EB41E98-EBF8-436A-B5C3-CE711C539075}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1EB41E98-EBF8-436A-B5C3-CE711C539075}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7981A3E8-B355-40AB-97E9-EBEEF8D65FE0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7981A3E8-B355-40AB-97E9-EBEEF8D65FE0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7981A3E8-B355-40AB-97E9-EBEEF8D65FE0}.Linux|Any CPU.ActiveCfg = Debug|Any CPU
+		{7981A3E8-B355-40AB-97E9-EBEEF8D65FE0}.Linux|Any CPU.Build.0 = Debug|Any CPU
+		{7981A3E8-B355-40AB-97E9-EBEEF8D65FE0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7981A3E8-B355-40AB-97E9-EBEEF8D65FE0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5946D69A-6113-475A-8233-3017C963B16A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5946D69A-6113-475A-8233-3017C963B16A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5946D69A-6113-475A-8233-3017C963B16A}.Linux|Any CPU.ActiveCfg = Debug|Any CPU
+		{5946D69A-6113-475A-8233-3017C963B16A}.Linux|Any CPU.Build.0 = Debug|Any CPU
+		{5946D69A-6113-475A-8233-3017C963B16A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5946D69A-6113-475A-8233-3017C963B16A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B0A76E6A-8FC3-42FA-8C16-DDAF78173187}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B0A76E6A-8FC3-42FA-8C16-DDAF78173187}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B0A76E6A-8FC3-42FA-8C16-DDAF78173187}.Linux|Any CPU.ActiveCfg = Debug|Any CPU
+		{B0A76E6A-8FC3-42FA-8C16-DDAF78173187}.Linux|Any CPU.Build.0 = Debug|Any CPU
+		{B0A76E6A-8FC3-42FA-8C16-DDAF78173187}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B0A76E6A-8FC3-42FA-8C16-DDAF78173187}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

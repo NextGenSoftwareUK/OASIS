@@ -3,9 +3,9 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
+namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
 {
-    public class EthereumOASIS : IOASISStorage, IOASISNET
+    public class IPFSOASIS : IOASISStorage, IOASISNET
     {
         public event ProfileManager.StorageProviderError OnStorageProviderError;
 
