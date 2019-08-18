@@ -3,6 +3,7 @@ using NextGenSoftware.Holochain.HoloNET.Client.Core;
 using NextGenSoftware.OASIS.API.Core;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Threading.Tasks;
 
 namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Core
@@ -16,8 +17,8 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Core
         private int _currentId = 0;
         private Dictionary<string, Profile> _savingProfiles = new Dictionary<string, Profile>();
         private string _hcinstance;
-        private TaskCompletionSource<IProfile> _taskCompletionSourceLoadProfile = new TaskCompletionSource<IProfile>();
-        private TaskCompletionSource<IProfile> _taskCompletionSourceSaveProfile = new TaskCompletionSource<IProfile>();
+        private TaskCompletionSource<NextGenSoftware.OASIS.API.Providers.HoloOASIS.Core.IProfile> _taskCompletionSourceLoadProfile = new TaskCompletionSource<NextGenSoftware.OASIS.API.Providers.HoloOASIS.Core.IProfile>();
+        private TaskCompletionSource<NextGenSoftware.OASIS.API.Providers.HoloOASIS.Core.IProfile> _taskCompletionSourceSaveProfile = new TaskCompletionSource<NextGenSoftware.OASIS.API.Providers.HoloOASIS.Core.IProfile>();
         private TaskCompletionSource<string> _taskCompletionSourceGetInstance = new TaskCompletionSource<string>();
 
         public delegate void Initialized(object sender, EventArgs e);
@@ -55,6 +56,10 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Core
             HoloNETClient.OnSignalsCallBack += HoloOASIS_OnSignalsCallBack;
             HoloNETClient.OnZomeFunctionCallBack += HoloOASIS_OnZomeFunctionCallBack;
 
+            HoloNETClient.Config.HolochainConductorBehaviour = HolochainConductorBehaviour.AutoStartExternalConductor;
+            HoloNETClient.Config.FullPathToExternalHolochainConductor = string.Concat(Directory.GetCurrentDirectory(), "\\hc.exe");
+            HoloNETClient.Config.FullPathToHolochainAppDNA = string.Concat(Directory.GetCurrentDirectory(), "\\our_world\\dist\\our_world.dna.json"); 
+            
             await HoloNETClient.Connect();
            // await HoloNETClient.GetHolochainInstancesAsync();
             //GetInstancesCallBackEventArgs args = await HoloNETClient.GetHolochainInstancesAsync();
