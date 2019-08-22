@@ -1273,10 +1273,9 @@ Of course if they wanted use the OASIS API then the first code listing is how it
 
 <a name="oasisapi"></a>
 ## The OASIS API & Karma System
+We believe that the OASIS API & Karama System should be baked into the core of the new internet (Web 3.0) that we are co-creating and will allow [Everything to talk to Everything](https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK#bridge) else and will act as the worlds universal API/protocol. At the center of this is the central profile/avatar where the user's data will be stored. Part of this data will include the karma they have earnt in Our World as well as the karma they have earnt in any of the inter-connected satellite apps/games that use the OASIS API.
 
-We beleive that the OASIS API & Karam System should be baked into the core of the new internet (Web 3.0) that we are co-creating and will allow [Everything to talk to Everything](#bridge) else and will act as the worlds universal API/protcol. At the centre of this is the central profile/avatar where the user's data will be stored. Part of this data will include the karma they have earnt in Our World as well as the karma they have earnt in any of the inter-connected satillite apps/games that use the OASIS API.
-
-This will increase peoples awareness of the good or bad karma they are collecting and will help them become more concious of their moment by moment actions. This will help them strive to become a better person and to reach their full potential doing as much good as they can in the world. This will help manifest a better world for us all that much faster, when everyone is doing all they can to help co-create it.
+This will increase peoples awareness of the good or bad karma they are collecting and will help them become more conscious of their moment by moment actions. This will help them strive to become a better person and to reach their full potential doing as much good as they can in the world. This will help manifest a better world for us all that much faster, when everyone is doing all they can to help co-create it.
 
 The karma will be grouped into the following categories:
 
@@ -1293,16 +1292,16 @@ The karma will be grouped into the following categories:
 | Contributing Towards A Good Cause - Creator/Organiser | Organising/creating a good cause (this will give you more karma than the other good cause categories) | 
 | Contributing Towards A Good Cause - Funder | Donate to a good cause/charity.
 | Contributing Towards A Good Cause - Speaker | Do public speaking for a good cause.
-| Contributing Towards A Good Cause - Peaceful Protestor/Activist| Attending a peaceful protest to being about positive change in the world. |
+| Contributing Towards A Good Cause - Peaceful Protester/Activist| Attending a peaceful protest to being about positive change in the world. |
 | Other | Anything else not covered above.
 
-The list above is subject to change with more cateogires likely to be added later as the system evolves and matures...
+The list above is subject to change with more categories likely to be added later as the system evolves and matures...
 
-Sometimes you may earn karma in multiple categories for one action such as by donating to a animal shelter you will earn karma for both **Helping Animals** and for **Contibuting Towards A Good Cause - Funder**. 
+Sometimes you may earn karma in multiple categories for one action such as by donating to a animal shelter you will earn karma for both **Helping Animals** and for **Contributing Towards A Good Cause - Funder**. 
 
 You will be able to see how the karma you have earnt is broken down into these categories on the users profile/avatar. Various quests, special powers, abilities, items, locations, etc will unlock once you have reached a certain minimum karma level. If you fall below that level by losing karma then they will become locked again. The minimum karma level would normally be your total karma level but it could also be a combination of the various karma categories above. For example to enter a special mystic temple in Our World you may need a total karma level of 1000, karma level of 500 in Self Help/Improvement & 500 karma level for Our World. You could need a karma level of 300 for Helping Animals to access a secret animal sanctuary within Our World.
 
-You will also be able to view the karma levels of other users, this can help you reach out to them to help improve their karma in cateogries they are lacking in by inviting them on a Quest with you or your group. 
+You will also be able to view the karma levels of other users, this can help you reach out to them to help improve their karma in categories they are lacking in by inviting them on a Quest with you or your group. 
 
 ### Our World Is The XR/IR Unified Interface To The Holochain Ecosystem
 
@@ -1310,17 +1309,17 @@ Our World is like a XR/IR Unified Interface into all of these hApps (this is the
 
 ### Gain Karma When You Earn HoloFuel For Sharing Your Nodes Resources To Power Our World
 
-You can also gain karma for sharing your node's resources such as CPU, memory, bandwith, etc
+You can also gain karma for sharing your node's resources such as CPU, memory, bandwidth, etc
 
-### Open Karma Committe/Community Concensors
+### Open Karma Committee/Community Concensors
 
-There will be a Open Karma Committe who will decide the algorithms for karma allocation through concensors with the community. The community can vote for any proposals the committe publish and only ones which receive enough votes will be made "OASIS Law". The community can also vote in representives to sit on the commitee so it is as open and democratic as possible.
+There will be a Open Karma Committer who will decide the algorithms for karma allocation through concensors with the community. The community can vote for any proposals the committee publish and only ones which receive enough votes will be made "OASIS Law". The community can also vote in representatives to sit on the committee so it is as open and democratic as possible.
 
 **We wish to empower the community to feel into their own hearts for what is right for them. We want them to own the system. **
 
-### Satillite Apps/Games/Websites
+### Satellite Apps/Games/Websites
 
-As already mentioned, many satillite apps/games/websites will plug into Our World using the OASIS API. They can choose to just share the central avatar/profile and the karma system or they can choose to also define the 2D Sprite or 3D object that will appear in Our World at the geolocation specified thrugh the API. This will be the visual representation of the app/game/website/organisation and when the player either walks into or interacts with (click, touch, etc) it will display info and meta data passed through the API. The player can then choose to launch the app/game/website from within Our World.
+As already mentioned, many satellite apps/games/websites will plug into Our World using the OASIS API. They can choose to just share the central avatar/profile and the karma system or they can choose to also define the 2D Sprite or 3D object that will appear in Our World at the geo-location specified through the API. This will be the visual representation of the app/game/website/organisation and when the player either walks into or interacts with (click, touch, etc) it will display info and meta data passed through the API. The player can then choose to launch the app/game/website from within Our World.
 
 A list of of possible early adopters can be found below:
 
@@ -1363,11 +1362,11 @@ Below is a list of the protocols/networks/platforms that the OASIS API will supp
 |[HSTP (Hyper Spacial Transport Protocol)](https://www.verses.io/)  | The new protocol for the new Spacial Web (Web 3.0) | Coming Soon... |
 | [WebFinger](https://webfinger.net/) | WebFinger is used to discover information about people or other entities on the Internet that are identified by a URI using standard Hypertext Transfer Protocol (HTTP) methods over a secure transport. A WebFinger resource returns a JavaScript Object Notation (JSON) object describing the entity that is queried. The JSON object is referred to as the JSON Resource Descriptor (JRD).| Coming Soon...
 | [ActivityPub](https://activitypub.rocks/) |ActivityPub is an open, decentralized social networking protocol based on Pump.io's ActivityPump protocol. It provides a client/server API for creating, updating and deleting content, as well as a federated server-to-server API for delivering notifications and content | Coming Soon...
-| [XMPP](https://xmpp.org/) | Etensible Messaging and Presence Protocol is an open XML technology for real-time communication, which powers a wide range of applications including instant messaging, presence and collaboration.  | Coming Soon...
+| [XMPP](https://xmpp.org/) | Extensible Messaging and Presence Protocol is an open XML technology for real-time communication, which powers a wide range of applications including instant messaging, presence and collaboration.  | Coming Soon...
 | [SOLID](https://solid.inrupt.com/) | Inventor of the Internet, Sir Tim Berners-Lee new protocol for Web 3.0 to give users control of their data as well as remove silos/walled gardens using Pods & Linked Data. | Coming Soon...
 | [Holochain](https://holochain.org/) | Leading the way for the new decentralised distributed internet | Yes |
 | [Ethereum](https://www.ethereum.org/) | One of the leading Blockchain implementations that is very popular. | Coming Soon...
-| [Fediverse](https://fediverse.party/) | It is a common name for federated social networks running on free open software on a myriad of servers across the world. Historically, this term has included only microblogging platforms supporting a set of protocols called OStatus. This didn't do justice to a large number of projects that federate, share same values and are reasonably popular. With the appearance and wide adoption of a new standard protocol called ActivityPub it makes no sense to further divide the federated world into “OStatus” and “non-OStatus” projects. This guide unites all interoperable federated networks under one term “Fediverse”. | Coming Soon...
+| [Fediverse](https://fediverse.party/) | It is a common name for federated social networks running on free open software on a myriad of servers across the world. Historically, this term has included only micro-blogging platforms supporting a set of protocols called OStatus. This didn't do justice to a large number of projects that federate, share same values and are reasonably popular. With the appearance and wide adoption of a new standard protocol called ActivityPub it makes no sense to further divide the federated world into “OStatus” and “non-OStatus” projects. This guide unites all interoperable federated networks under one term “Fediverse”. | Coming Soon...
 | [Gab](https://gab.com) | Distributed social network promoting free speech | Coming Soon...
 | [Mastodon](https://joinmastodon.org/) | Distributed twitter style network of micro blogging servers using the Fediverse. | Coming Soon...
 | [Diaspora](https://diasporafoundation.org/) | Another distributed social network | Coming Soon...
@@ -1384,15 +1383,15 @@ They are all about pushing the same agenda except we are actually implementing a
 
 ### OASIS API Redundancy (Can Store Copies Of Your Data On Any Decentralised Network/Platform You Choose)
 
-The OASIS API has built in redundancy in that you can choose to store copies of your data on any decentralised network/platform. When calling the OASIS API you can speceify which network/platform you wish to use (the ones avaliable will be dependent on whether a Provider has yet been implemented for it, so far only Holochain is supported.) The default provider will be Holochain since the long term goal of the OASIS API is to get people to slowly migrate across to Holochain.
+The OASIS API has built in redundancy in that you can choose to store copies of your data on any decentralised network/platform. When calling the OASIS API you can specify which network/platform you wish to use (the ones available will be dependent on whether a Provider has yet been implemented for it, so far only Holochain is supported.) The default provider will be Holochain since the long term goal of the OASIS API is to get people to slowly migrate across to Holochain.
 
 ### The OASIS API Enables You To Earn Karma Anywhere
 
-Our World will automatcially support all of the platforms/networks/protocols listed above so your profile/avatar/karma will be avaialble to any apps that use their platforms/networks/protocols. This will also make it easier to earn karma in a wider range of apps by supporting as many platforms/networks/protocols as possible. 
+Our World will automatically support all of the platforms/networks/protocols listed above so your profile/avatar/karma will be available to any apps that use their platforms/networks/protocols. This will also make it easier to earn karma in a wider range of apps by supporting as many platforms/networks/protocols as possible. 
 
 ### User Has FULL Control Of Their Data
 
-Any other OAPP (that uses the OASIS API) can also choose to share your profile/avatar/karma with any of the supported platforms/networks/protocols. The user will have fully access and control of where their data can be stored/shared along with grandular permissions such as which apps/sites/users/groups/roles/networks/platforms can see what.
+Any other OAPP (that uses the OASIS API) can also choose to share your profile/avatar/karma with any of the supported platforms/networks/protocols. The user will have fully access and control of where their data can be stored/shared along with granular permissions such as which apps/sites/users/groups/roles/networks/platforms can see what.
 
 **More to come soon...**
 
