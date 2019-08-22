@@ -1302,7 +1302,11 @@ Sometimes you may earn karma in multiple categories for one action such as by do
 
 You will be able to see how the karma you have earnt is broken down into these categories on the users profile/avatar. Various quests, special powers, abilities, items, locations, etc will unlock once you have reached a certain minimum karma level. If you fall below that level by losing karma then they will become locked again. The minimum karma level would normally be your total karma level but it could also be a combination of the various karma categories above. For example to enter a special mystic temple in Our World you may need a total karma level of 1000, karma level of 500 in Self Help/Improvement & 500 karma level for Our World. You could need a karma level of 300 for Helping Animals to access a secret animal sanctuary within Our World.
 
-You will also be able to view the karma levels of other users, this can help you reach out to them to help improve their karma in cateogries they are lacking in by inviting them on a Quest with you or your group. You 
+You will also be able to view the karma levels of other users, this can help you reach out to them to help improve their karma in cateogries they are lacking in by inviting them on a Quest with you or your group. 
+
+### Our World Is The XR/IR Unified Interface To The Holochain Ecosystem
+
+Our World is like a XR/IR Unified Interface into all of these hApps (this is the Operating System part of it), it's a bit like the XR UI front-end to Holochain where you can view and launch any apps from inside it but they integrate much more deeper than that through the OASIS API/Profile/Avatar/Karma system where they all share the central avatar/profile and can all add/subtract the profiles/avatars karma.
 
 ### Gain Karma When You Earn HoloFuel For Sharing Your Nodes Resources To Power Our World
 
