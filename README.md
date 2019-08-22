@@ -1,5 +1,6 @@
 
 
+
 # OASIS API / Our World / HoloNET / HoloUnity / .NET HDK Altha v0.0.1
 
 ![alt text](https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-And-HoloNET/blob/master/FinalLogo.jpg "Our World")
@@ -1317,28 +1318,35 @@ There will be a Open Karma Committer who will decide the algorithms for karma al
 
 **We wish to empower the community to feel into their own hearts for what is right for them. We want them to own the system. **
 
-### Satellite Apps/Games/Websites
+### Satellite Apps/Games/Websites (Consumers)
 
 As already mentioned, many satellite apps/games/websites will plug into Our World using the OASIS API. They can choose to just share the central avatar/profile and the karma system or they can choose to also define the 2D Sprite or 3D object that will appear in Our World at the geo-location specified through the API. This will be the visual representation of the app/game/website/organisation and when the player either walks into or interacts with (click, touch, etc) it will display info and meta data passed through the API. The player can then choose to launch the app/game/website from within Our World.
 
 A list of of possible early adopters can be found below:
 
-* <a href="http://iwg.life/s7foundation/">Noomap</a>
-* <a href="http://www.joinseeds.com">Seeds</a>
-* <a href="https://www.moneyofgood.org/">Money Of Good</a>
-* <a href="http://www.appsforgood.org">Apps For Good</a>
-* <a href="voiceofhumanity.org">Voice Of Humanity</a>
-* <a href="http://www.4ocean.com">4Ocean</a>
-* <a href="preseach.io">PreSearch</a>
-* <a href="https://mindlife.net">Uplift/MindLife</a>
-* <a href="https://www.mapotic.com">Mapotic</a>
-* <a href="https://docs.google.com/document/d/1LgBQX42jIOFkfnbHf1swP3GwDd0O-jzpjYYv63OjDRg/edit#heading=h.ofqm4bivlrj4">Global Brain Application</a>
-* <a href="https://alptha.joatu.org">Joatu</a>
-* <a href="https://cryptpad.fr/pad">Holo-REA</a>
-* <a href="https://holacracy.org">Holacracy</a>
-* <a href="https://www.headspace.com">Headspace</a> 
-* <a href="https://bridgit.io/">Bridge It</a> 
- 
+|Consumer|Description| Integrated |
+|--|--|--|
+|<a href="http://iwg.life/s7foundation/">Noomap</a>  |3D fractal mapping technology where you can map everything including your thoughts, passions, desires & so much more!  | Coming soon... |
+| <a href="http://www.joinseeds.com">Seeds</a>| A payment platform and financial ecosystem to empower humanity and heal our planet. | Coming soon... |
+| <a href="https://www.moneyofgood.org/">Money Of Good</a>|Money of Good is a social program that uses revolutionary proof-of-meditation technology to offer people the chance to earn money as a reward for practicing meditation, improving their health, rising consciousness and fostering a new economic model much more equitable and sustainable. | Coming soon... |
+| <a href="http://www.appsforgood.org">Apps For Good</a>| Creative tech courses for you to deliver in your classroom | Coming soon... |
+| <a href="voiceofhumanity.org">Voice Of Humanity</a>| | Coming soon... |
+| <a href="http://www.4ocean.com">4Ocean</a>| Cleaning the ocean from the profits made of the sale of bracelets, | Coming soon... |
+| <a href="preseach.io">PreSearch</a> | Presearch is a decentralized search engine, powered by the community. | Coming soon... |
+|  <a href="https://mindlife.net">Uplift/MindLife</a> |UpLift is an App delivering a comprehensive series of interactive self-help interventions. Designed and developed by MindLife UK, the App helps people to improve their resilience, confidence and mental capital. | Coming soon... |
+| <a href="https://www.mapotic.com">Mapotic</a>|Mapotic is the intuitive mapping platform that empowers you to share knowledge about the places you know and love | Coming soon...|
+| <a href="https://docs.google.com/document/d/1LgBQX42jIOFkfnbHf1swP3GwDd0O-jzpjYYv63OjDRg/edit#heading=h.ofqm4bivlrj4">Global Brain Application</a>|Developing a GloCal Holistic Collaboration and Mapping Tool/UI named here as Global Brain Application | Coming soon... |
+| <a href="https://alptha.joatu.org">Joatu</a>|Junto is a new breed of social media that integrates a more consciously designed interface, distributed technology, and a non-profit approach to create a space where people can truly be themselves. | Coming soon... |
+| <a href="https://www.sacred.capital">Sacred Capital</a> |Our staking protocol allows network effects to accrue to reputation. We achieve this through a process known as 'Contextual Chaos'. This means you can port reputation across eco-systems in an appropriate and contextual manner.The result? Applications that facilitate new behaviour patterns of collaboration, interaction and sharing. This is the new economy coming alive in it's truest, varied, diverse colours!  | Coming soon...|
+| <a href="https://cryptpad.fr/pad">Holo-REA</a> |The HoloREA team wants to create a framework for developing economic networks on Holochain. HoloREA will build some apps, but also intends the framework to be usable by any other apps that work in economic networks, supply chains, or joint ventures. | Coming soon...|
+| <a href="https://humm.earth/">Humm Earth</a> |Influence-free, beautifully simple peer-to-peer publishing: think of Humm as fully distributed WordPress + Patreon, made for the writers and content creators of the future, powering independent hApps and an intentional community. | Coming soon...|
+| <a href="[https://forum.holochain.org/c/projects/comet](https://forum.holochain.org/c/projects/comet)">Comet</a> |Comet is a distributed, Reddit alternative. Posts are created with tags instead of “subreddits,” and are voted on in relation to these tags. Votes can be fractional amounts; the score of a post/comment is determined on a per-person basis, depending on how they have previously voted on the other voters’ content. | Coming soon...|
+|  <a href="https://www.headspace.com">Headspace</a> | Leading meditation app. | Coming soon...|
+|  <a href="https://www.superbetter.com">Super Better</a> |SuperBetter builds resilience - the ability to stay strong, motivated and optimistic even in the face of change and difficult challenges. Playing SuperBetter unlocks heroic potential to overcome tough situations and achieve goals that matter most. | Coming soon...|
+| <a href="https://bridgit.io/">Bridge It</a> |A web overlay that advances the way the world views, shares, and engages with information on the web through community participation. | Coming soon...|
+
+**More coming soon...**
+
 We are in the process of reaching out to these to see if they wish to be one of the early adopters of the OASIS API. This list will grow over time, in time there will be thousands and even millions as our vision to connect everyone to everyone through the OASIS API/Our World becomes more and more of a reality.
 
 **Early adopters will receive a special status and highlighting so they will stand out from the crowd in listings (website), on the map (smartphone version) & in the 3D VR world (Desktop & consoles). So if you wish to take advantage of this offer or know of anyone else who could please get in touch on ourworld@nextgensoftware.co.uk. We would love to hear from you! :)**
@@ -1351,7 +1359,7 @@ Please see the [Social Network](#socialnetwork) section for more info...
 **The OASIS API is a global universal API that aims to connect everything to everything to eliminate walled gardens/silos.** There are a number of open protocols/platforms/networks that the OASIS API will support. The majority of these are aimed at building a truly decentralised distributed internet (Web 3.0) and this is also the aim of the OASIS API. 
 
 
-### Protocols/Platforms/Networks Supported
+### Protocols/Platforms/Networks Supported (Providers)
 
 The OASIS API aims to support as many platforms/networks/protocols as possible so the Karma System can be deeply integrated across the web in every application, device, etc.
 
@@ -1359,6 +1367,7 @@ Below is a list of the protocols/networks/platforms that the OASIS API will supp
 
 |Protocol/Platform/Network| Description | Support Implemented  |
 |--|--|--|
+|[CEPTR Protocol For Pluggable Protocols](http://ceptr.org/projects/pcubed)|Complete interoperability: No more silos and brittle APIs. Self-Describing protocols and a universal parsing system allows anything to talk to anything. This is where the OASIS API is a stepping stone to get to this point by providing backwards compatibility with what is already out there.|Coming soon... | 
 |[HSTP (Hyper Spacial Transport Protocol)](https://www.verses.io/)  | The new protocol for the new Spacial Web (Web 3.0) | Coming Soon... |
 | [WebFinger](https://webfinger.net/) | WebFinger is used to discover information about people or other entities on the Internet that are identified by a URI using standard Hypertext Transfer Protocol (HTTP) methods over a secure transport. A WebFinger resource returns a JavaScript Object Notation (JSON) object describing the entity that is queried. The JSON object is referred to as the JSON Resource Descriptor (JRD).| Coming Soon...
 | [ActivityPub](https://activitypub.rocks/) |ActivityPub is an open, decentralized social networking protocol based on Pump.io's ActivityPump protocol. It provides a client/server API for creating, updating and deleting content, as well as a federated server-to-server API for delivering notifications and content | Coming Soon...
@@ -1371,7 +1380,9 @@ Below is a list of the protocols/networks/platforms that the OASIS API will supp
 | [Mastodon](https://joinmastodon.org/) | Distributed twitter style network of micro blogging servers using the Fediverse. | Coming Soon...
 | [Diaspora](https://diasporafoundation.org/) | Another distributed social network | Coming Soon...
 
-If you know of any other open protocols/platforms/networks that you feel are part of the new internet (Web 3.0) we are all co-creating then please do get in touch on ourworld@nextgensoftware.co.uk and let us know, thank you! :)
+**More coming soon...**
+
+If you know of any other open protocols/platforms/networks that you feel are part of the new internet (Web 3.0) we are all co-creating then please do get in touch on [ourworld@nextgensoftware.co.uk](mailto:ourworld@nextgensoftware.co.uk) and let us know, thank you! :)
 
 ### OASIS Open Standards
 
@@ -1644,7 +1655,7 @@ We will do this by creating a suite of nextgen apps & games using the latest cut
 
 ### XR/IR Gamification Layer Of The New Interplanetary Operating System & The New Internet (Web 3.0)
  
-**It is the XR/IR Gamification layer of the new interplanetary operating system & the new internet (Web 3.0), which is being built by the elite technical wizards stationed around the world. This will one day replace the current tech giants such as Google, FaceBook, etc and act as the technical layer of the New Earth, which is birthing now.  Unlike the current tech giants who's only aim is to ruthlessly maximize profits at the expense of people and the planet (as well as spying, exploitation, censorship & social engineering), our technology is based on true love & unity consciousness where money and profits are not our aim or intention, our aim and intention is to heal the entire planet & human race so we can all live in harmony with each other.  It is a 5th dimensional and ascension training platform, teaching people vital life lessons as well as acting as a real-time simulation of the real world.**
+**It is the XR/IR Gamification layer of the new interplanetary operating system & the new internet (Web 3.0), which is being built by the elite technical wizards stationed around the world. This will one day replace the current tech giants such as Google, FaceBook, etc and act as the technical layer of the New Earth, which is birthing now.  Unlike the current tech giants who's only aim is to ruthlessly maximize profits at the expense of people and the planet (as well as spying, exploitation, censorship & social engineering), our technology is based on true love & unity consciousness where money and profits are not our aim or intention, our aim and intention is to heal the entire planet & human race so we can all live in harmony with each other.  It is a 5th dimensional and ascension training platform, teaching people vital life lessons as well as acting as a real-time simulation of the real world.**
 
 As well as helping to make the world a better place, this game will be pushing the boundaries of what is currently possible with technology. It will feature augmented reality, virtual reality, motion detection, voice recognition and real-time emotional feedback. It will use technology in ways that has not been done before and in areas where it has been done, it will innovate and take it to the next level...
 
@@ -1660,7 +1671,7 @@ Our World has now merged with our NextGen Social Network project, which was alwa
 
 Our World implements the Synergy Engine helping to solve the world’s problems by matching solutions to problems. It also teaches the co-creation wheel and a new holistic approach to living and technology to help co-create a better world. 
 
-Our World implements the Synergy Engine helping to solve the world’s problems by matching solutions to problems. It also teaches the co-creation wheel and a new holistic approach to living and technology to help co-create a better world. 
+Our World implements the Synergy Engine helping to solve the world’s problems by matching solutions to problems. It also teaches the co-creation wheel and a new holistic approach to living and technology to help co-create a better world. 
 
 ### Resource Based Economy
 
@@ -1674,7 +1685,7 @@ Our World will be the first AAA MMO game and 2D/3D Social Network to run on Holo
 
 Read more here:
 
-https://www.ourworldthegame.com/single-post/2019/02/22/Why-Our-World-Is-Powered-By-Holochain 
+https://www.ourworldthegame.com/single-post/2019/02/22/Why-Our-World-Is-Powered-By-Holochain 
 
 We will soon be launching our ICO to sell our OASIS Coin, more news on this soon...
 
@@ -1792,11 +1803,11 @@ https://www.ourworldthegame.com/single-post/2018/08/14/First-look-at-our-Smartph
 
 Check out the latest progress made with the protoype below:
 
-https://www.ourworldthegame.com/single-post/2019/06/02/OASIS-ArchitectureHoloNETHolochainHoloWebBrowserPrototypeUpdate 
+https://www.ourworldthegame.com/single-post/2019/06/02/OASIS-ArchitectureHoloNETHolochainHoloWebBrowserPrototypeUpdate 
 
-https://www.ourworldthegame.com/single-post/2019/07/03/BIG-UPDATE---Lots-Of-Progress-Made-On-Prototype- 
+https://www.ourworldthegame.com/single-post/2019/07/03/BIG-UPDATE---Lots-Of-Progress-Made-On-Prototype- 
 
-https://www.ourworldthegame.com/single-post/2019/08/03/Our-World-OASIS-API-HoloNET-Goes-Open-Source- 
+https://www.ourworldthegame.com/single-post/2019/08/03/Our-World-OASIS-API-HoloNET-Goes-Open-Source- 
 
 We can then demo this to interested parties so we can get more investment to get the first version of this game released. This game will have continuous development with frequent upgrades and add-ons. It is so vast, that the development roadmap is never ending.
 
@@ -1835,7 +1846,7 @@ https://www.ourworldthegame.com/single-post/2018/01/21/Our-World-Is-The-Buckmins
 
 ### The NextGen Office
 
-Our NextGen Offices that we plan to build one day will be deeply integrated with nature so streams, trees, etc will be inside a bit like <a href="https://www.centerparcs.com">Center Parcs</a> in UK. They will also be built to Sacred Geometry specifications so they are actually healing to work inside one. They will also contain healing crystals & orgonite so it actually heals and energizes you while you work...  They are also similar to the ones the <a href="https://www.thevenusproject.com">Venus Project</a> intend to build. Read more below:
+Our NextGen Offices that we plan to build one day will be deeply integrated with nature so streams, trees, etc will be inside a bit like <a href="https://www.centerparcs.com">Center Parcs</a> in UK. They will also be built to Sacred Geometry specifications so they are actually healing to work inside one. They will also contain healing crystals & orgonite so it actually heals and energizes you while you work...  They are also similar to the ones the <a href="https://www.thevenusproject.com">Venus Project</a> intend to build. Read more below:
 
 https://www.ourworldthegame.com/single-post/2019/08/10/The-NextGen-Office
 
@@ -2047,7 +2058,7 @@ http://www.ourworldthegame.com/forum
 https://chat.holochain.org/appsup/channels/our-world-netclient <br/>
 https://chat.holochain.org/appsup/channels/net-hdk 
 
-**NextGen DeveloperTraining  Programmes**
+**NextGen DeveloperTraining  Programmes**
 
 <a href="https://docs.wixstatic.com/ugd/4280d8_ad8787bd42b1471bae73003bfbf111f7.pdf">NextGen Developer Training Programme</a> <br/> 
 <a href="https://docs.wixstatic.com/ugd/4280d8_999d98ba615e4fa6ab4383a415ee24c5.pdf">Junior NextGen Developer Training Programme</a>
