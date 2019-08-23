@@ -1440,11 +1440,12 @@ https://github.com/dotnet/corert/blob/master/Documentation/how-to-build-WebAssem
 
 This will allow managed C# code to be compiled into any native language including WASM.
 
-
+<a name="the-power-of-holochain--net--unity---nodejs-combined-"></a>
 ## The Power Of Holochain, .NET, Unity & NodeJS Combined!
 
 The front-end is built in Unity, the middle layer is built in C#/.NET and the back-end is built-in Holochain. 
 
+<a name="arc---noomap-integration"></a>
 ### ARC & Noomap Integration
 
 The middle layer will also soon interface with the amazing ARC (Augmented Reality Computer) operating system being built by my good friend and cosmic brother Chris Lacombe over at S7 Foundation (previously called Noomap). He is also the creator of Noomap, a 3D fractal mind mapping tool that has some communtites very excited! :)
@@ -1465,12 +1466,12 @@ This will allow both .NET and NodeJS to run in the same process and make cross f
 
 We are working very closely with Chris & S7 to fully synergise & intrgrate ARC & Noomap into the OASIS Architecture & Our World.
 
-
+<a name="arc--noomap---iwg--infinite-world-game--will-be-fully-integrated"></a>
 ## ARC, Noomap & IWG (Infinite World Game) Will Be Fully Integrated
 
 ARC, Noomap & IWG will be fully integrated into the OASIS Architecture. The IWG is VERY similar to Our World and has a LOT of overlap and is something we are currenty exporing and synergising but it looks like they will for a start share the same central avatar/profile/karma system that is currently being built in this very repo.
 
-
+<a name="turbocharge-the-holochain-ecosystem-"></a>
 ## Turbocharge the Holochain ecosystem!
 
 Because the OASIS Architecture makes use of .NET, Unity, NodeJS & Holochain we have access to 3 massive well established ecosystems along with all their devs & resources. This will massively help turbocharge the holochain ecosystem as well as help raise awareness of it...
@@ -1528,13 +1529,15 @@ Currently [HoloOASIS](#holooasis) implements the [IOASISStorage](#ioasisstorage)
 
 **NOTE: This is still a WIP, so the above is likely to evolve and change as we progress...**
 
-## Our World/OASIS Will Act As The Bridge For All (Legasy, IPFS, Holochain, Ethereum, SOLID, Fediverse, Mastodon, Diaspora, WebFinger, ActivityPub, XMPP & More!)
+<a name="our-world-oasis-will-act-as-the-bridge-for-all--legasy--ipfs--holochain--ethereum--solid--fediverse--mastodon--diaspora--webfinger--activitypub--xmpp---more--"></a>
 <a name="bridge"></a>
+## Our World/OASIS Will Act As The Bridge For All (Legasy, IPFS, Holochain, Ethereum, SOLID, Fediverse, Mastodon, Diaspora, WebFinger, ActivityPub, XMPP & More!)
 
-As you can see from the architecture diagram, the system will act as the bridge for all platforms and devices due to it being very open and modular by design. In future there will be support for IPFS, Ethereum, SOLID, Fediverse, Mastodon, Diaspora, WebFinger, ActivityPub, XMPP plus many more. This will help users of both legacy apps/games/websites and blockchain slowly migrate to holochain since it will help expose it to them all. The OASIS API will act as a stepping stone as well as help Everything talk to Everything for maximum compatibility.
+As you can see from the architecture diagram, the system will act as the for all platforms and devices due to it being very open and modular by design. In future there will be support for IPFS, Ethereum, SOLID, Fediverse, Mastodon, Diaspora, WebFinger, ActivityPub, XMPP plus many more. This will help users of both legacy apps/games/websites and blockchain slowly migrate to holochain since it will help expose it to them all. The OASIS API will act as a stepping stone as well as help Everything talk to Everything for maximum compatibility.
 
 **Goodbye silos and walled gardens, hello full integration through ONE universal unified interface!**
 
+<a name="implement-your-own-storage-network-renderer-provider"></a>
 ### Implement Your Own Storage/Network/Renderer Provider
 
 Thanks to the system being very open/modular by design you can easily implement your own Storage/Network/Renderer Provider by simply implementing the [IOASISStorage](#ioasisstorage) / [IOASTNET](#ioasisnet) / IOASIS2DRenderer / IOASIS3DRenderer interfaces respectively. For example you could create a MongoDB, MySQL or SQL Server Storage Provider. This also ensures forward compatibility since if a new storage medium or network protocol comes out in the future you can easily write a new provider for them without having to change any of the existing system. 
@@ -1558,10 +1561,12 @@ It combines everything out there into one unified fully integrated interface. Yo
 
 The social network part of Our World will be a fully de-centralised distributed social network that has your privacy concerns built into the design. You store and own your data on the ONET (powered by Holochain) and choose what you share and to who so it is never stored on any central server where it can be sold to advertisers, etc as is the case with Facebook, Google,etc. 
 
+<a name="oasis-avatar-profile-karma-integration"></a>
 #### OASIS Avatar/Profile/Karma Integration
 
 What's more, this is fully integrated into the rest of the system and the OASIS Avatar/Profile/Karma system. So your profile will contain your 3D avatar and you will gain karma if you help people on the network. Of course if you are abusive then you will lose karma so this is a good incentive to behave yourselves and be kind and loving to your fellow earthlings... ;-)
 
+<a name="our-world-oasis-api-social-network-website"></a>
 #### Our World/OASIS API/Social Network Website
 
 As well as the smartphone & desktop/console versions of Our World/OASIS, there will also be a tradional website, which will be the social network part of the system where people can view people's profiles/avatars, their karma, chat, find people with similar passions & interests. You can also help other people in need and gain karma, etc. They can also view the various satillite apps/games/websites that are linked and integrated into the OASIS System. Just like the smartphone & console/desktop versions they can also launch the satillite app/game/website from the website.
@@ -1576,6 +1581,7 @@ This is also of course linked to your Me Holon in Noomap along with all your pas
 
 It will also be deeply integrated into every other aspect of the system as mentioned earlier (shopping, business, games, email, etc).
 
+<a name="deep-integration-into-other-networks-protocols-platforms--such-as-gab--mastodon--diaspora--webfinger--solid--ethereum--fediverse--activitypub--xmpp---more--"></a>
 #### Deep Integration Into Other Networks/Protocols/Platforms (Such as Gab, Mastodon, Diaspora, WebFinger, SOLID, Ethereum, Fediverse, ActivityPub, XMPP & More!)
 
 We plan to also deeply integrate into any other aligned open freedom loving networks/platforms/protocols such as Gab, Mastodon, Diaspora, WebFinger, SOLID, Ethereum, Fediverse, ActivityPub, XMPP etc so you can share your profile data between the various networks. You no longer need to have many logins and apps, you just have ONE central portal to do ALL you need to in a very cool evolved XR way...
@@ -1625,6 +1631,7 @@ Some of the hardware we will be pushing to the limits are below:
 
 If you check out the demos of the above, you will start to get an idea of the apps & games we are building. However, of course we are pushing these to the next level by building the next generation apps & games for today. The game is much bigger than just a game, it is more like a massive educational platform, with a LOT more revolutionary ideas, which at this time we cannot make public.
 
+<a name="pc-console-version"></a>
 #### PC/Console Version
 
 Our World will have continuous expansions, add-ons and sub-games added to keep players immersed and wanting more and more. Our World is revolutionary and contains many elements never done before and so will not have any competition in the new genres it will be creating…
@@ -1667,12 +1674,14 @@ We will do this by creating a suite of nextgen apps & games using the latest cut
 
 **Our World is an exciting immersive next generation 3D XR/IR (Infinite Reality) educational game/platform/social network/ecosystem teaching people on how to look after themselves, each other and the planet using the latest cutting-edge technology. It teaches people the importance of real-life face to face connections with human beings and encourages them to get out into nature using Augmented Reality similar to Pokémon Go but on a much more evolved scale. This is our flagship product and is our top priority due to the massive positive impact it will make upon the world...**
 
+<a name="xr-ir-gamification-layer-of-the-new-interplanetary-operating-system---the-new-internet--web-30-"></a>
 ### XR/IR Gamification Layer Of The New Interplanetary Operating System & The New Internet (Web 3.0)
  
 **It is the XR/IR Gamification layer of the new interplanetary operating system & the new internet (Web 3.0), which is being built by the elite technical wizards stationed around the world. This will one day replace the current tech giants such as Google, FaceBook, etc and act as the technical layer of the New Earth, which is birthing now.  Unlike the current tech giants who's only aim is to ruthlessly maximize profits at the expense of people and the planet (as well as spying, exploitation, censorship & social engineering), our technology is based on true love & unity consciousness where money and profits are not our aim or intention, our aim and intention is to heal the entire planet & human race so we can all live in harmony with each other.  It is a 5th dimensional and ascension training platform, teaching people vital life lessons as well as acting as a real-time simulation of the real world.**
 
 As well as helping to make the world a better place, this game will be pushing the boundaries of what is currently possible with technology. It will feature augmented reality, virtual reality, motion detection, voice recognition and real-time emotional feedback. It will use technology in ways that has not been done before and in areas where it has been done, it will innovate and take it to the next level...
 
+<a name="open-world-new-ecosystm-asset-store-internet-operating-system-social-network"></a>
 ### Open World/New Ecosystm/Asset Store/Internet/Operating System/Social Network
 
 It is much more than just a free open world game where you can build and create anything you can imagine and at the same time be immersed in an epic storyline. it is an entirely new ecosystem/asset store/internet/Operating System/social network, it is the future way we will be interacting with each other and the world through the use of technology. Smaller satellite apps/game will plug into it and share your central profile/avatar where you gain karma for doing good deeds such as helping your local communities, etc and lose karma for being selfish and not helping others since it mirrors the real world where you have free will. There is nothing else out there like this, nothing even comes close, this will change everything... There is a reason we are called NextGen Software! ;-)
@@ -1727,6 +1736,7 @@ Objects created (vehicles, building, etc) can be shared and even sold on the OAS
 
 As well as smaller apps/games being allowed to plug into Our World either sharing just the central avatar/profile (data) or full UI integration, content creators/businesses can also create shops (where people can purchase real items in VR that are then delivered to your door so in effect is virtual e-commerce), buildings or even entire zones/lands/worlds. They can rent virtual spaces within the game. Please contact us on ourworld@nextgensoftware.co.uk if you wish to receive special early adopter discounts...
 
+<a name="we-accept-karma--your-money-is-no-good-here-"></a>
 ### We Accept Karma, Your Money Is No Good Here!
 
 Businesses can also sponsor or advertise in the game but unlike traditional models, money does not buy you the best spots, the companies collective karma does. The greener & the more they do good for the world including giving to charities, looking after their employees, the environment, etc the more karma they get. Advertising spots will be limited since we do not wish to bombard users with adverts so this will be an incentive for companies worldwide to improve and start focusing on what is important, and that's people and the environment, not money. As may be clear by now, the focus and goals of Our World is to create a better world, not to make as much money as possible. But we of course will still make more than enough (billions) to continue to expand & grow, the rest will go to good causes and charities such as our sister company Yoga4Autism.
@@ -1746,7 +1756,7 @@ The OASIS will only be open to us once we have resolved our issues here, humanit
 
 It is time to stop running from our problems and face them united together...
 
-### The Tech Industry Have A Morale & Social Resonsability
+### The Tech Industry Have A Morale & Social Responsibility
 
 The software industry has the power to transform lives through engaging people with innovative products that help them to grow and develop.  Recent popular examples include health apps, mindfulness apps and mind training games.
 
@@ -1788,7 +1798,8 @@ Read more in our previous post here:
 
 https://www.ourworldthegame.com/single-post/2017/09/08/Our-World-Is-The-Benevolent-Evolved-Sister-of-The-Ready-Player-One-OASIS-VR-Platform 
 
-### Asscension/God Training & Mirror Of Reality Technology
+<a name="ascension-god-training---mirror-of-reality-technology"></a>
+### Ascension/God Training & Mirror Of Reality Technology
 
 These are the Last Days of Mortal Man through this God Training Programme.
 
@@ -1804,7 +1815,7 @@ Some important points about its potential capabilities and why it could be truly
 
 **Time Bending Treasures** - Messages and gifts can be buried as Easter eggs for others to collect at later dates bending the nature of time. 
 
-
+<a name="7-years-of-planning---r-d"></a>
 ### 7 Years Of Planning & R&D
 
 We actually started researching, planning & designing this over seven years (we have also been busy networking, building partnerships, etc) ago but we could not yet afford the large amount of money it would take to create this. On top of this, the technology did not yet exist to create the vision, but this is now changing. When Pokémon Go was released featuring more primitive versions of some of the technology featured in Our World, we realised we really need to get this game into production.
@@ -1852,6 +1863,7 @@ We are in talks with Be Earth, which is a UN IGO (United Nations Intergovernment
 
 https://www.ourworldthegame.com/single-post/2018/01/27/Our-Word-partners-with-the-Be-Earth-UN-IGO-United-Nations-Intergovernmental-Organisation 
 
+<a name="buckminster-s-world-peace-game"></a>
 ### Buckminster's World Peace Game
 
 Our World is Buckminster Fuller's World Peace Game, please read more here:
@@ -1920,6 +1932,7 @@ Not in priority order:
 * Port Noomap to Unity.
 * Plus LOTS & LOTS more to come! ;-)
 
+<a name="donations-welcome----"></a>
 ## Donations Welcome! :)
 
 We are working full-time on this project so we have no other income so if you value it, we would really appreciate a donation to our crowd funding page below:
@@ -1930,7 +1943,9 @@ https://www.gofundme.com/f/ourworldthegame
 
 **We would really appreciate if you could donate anything you can afford, even if it's just a pound, if everyone did that then we would be able to massively accelerate this very urgent and important project for a world in need right now. I think everyone can justify a pound if it meant saving the world don't you think?**
 
-**It's even better to spend a pound on this project rather than buying a lottery ticket since you have more chance of being hit by a car than winning the jackpot, then even by some fluke you did win, there is no point having millions if there is no world left to enjoy it on.**
+**It's even better to spend a pound on this project rather than buying a lottery ticket since you have very little chance of winning the jackpot, then even by some fluke you did win, there is no point having millions if there is no world left to enjoy it on.**
+
+**It is time people start to priortise the future of our planet above all else...**
 
 **Think about it...**
 
@@ -1968,10 +1983,12 @@ The platform that is going to win many rewards for the ground-breaking work it w
 
 **TOGETHER WE CAN CREATE A BETTER WORLD.**
 
+<a name="devs-contributions-welcome----"></a>
 ## Devs/Contributions Welcome! :)
 
 We would love to have some much needed dev resource on this vital project not only for Holochain but also for the world so if you are interested please contact us on either ourworld@nextgensoftware.co.uk or david@nextgensoftware.co.uk. Thank you, we look forward to hearing from you! :)
 
+<a name="nextgen-developer-training-programmes-for-everyone---including-special-needs---disadvantaged-people-"></a>
 ## NextGen Developer Training Programmes For EVERYONE! (Including Special Needs & Disadvantaged People)
 
 We also offer FREE training with our NextGen Developer Training Programme where I will teach everything I know from my many years of experience working in the industry. We know that people on the Autistic Spectrum are just as gifted with computers as I am (I was given the label of Asperger’s, Dyspraxia & Dyslexia) so they will be able to help me take what’s possible with technology to the next level. 
