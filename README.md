@@ -1282,7 +1282,7 @@ Of course if they wanted use the OASIS API then the first code listing is how it
 
 **More to come soon...**
 
-<a name="oasisapi"></a>
+<a name="the-oasis-api---karma-system"></a>
 ## The OASIS API & Karma System
 We believe that the OASIS API & Karama System should be baked into the core of the new internet (Web 3.0) that we are co-creating and will allow [Everything to talk to Everything](https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK#bridge) else and will act as the worlds universal API/protocol. At the center of this is the central profile/avatar where the user's data will be stored. Part of this data will include the karma they have earnt in Our World as well as the karma they have earnt in any of the inter-connected satellite apps/games that use the OASIS API.
 
@@ -1330,7 +1330,7 @@ There will be a Open Karma Committer who will decide the algorithms for karma al
 
 **We wish to empower the community to feel into their own hearts for what is right for them. We want them to own the system. **
 
-<a name="the-universal-api-to-connect-everything-to-everything--no-more-silos-walled-gardens-"></a>
+<a name="satellite-apps-games-websites--consumers-"></a>
 ### Satellite Apps/Games/Websites (Consumers)
 
 As already mentioned, many satellite apps/games/websites will plug into Our World using the OASIS API. They can choose to just share the central avatar/profile and the karma system or they can choose to also define the 2D Sprite or 3D object that will appear in Our World at the geo-location specified through the API. This will be the visual representation of the app/game/website/organisation and when the player either walks into or interacts with (click, touch, etc) it will display info and meta data passed through the API. The player can then choose to launch the app/game/website from within Our World.
