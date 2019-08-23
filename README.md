@@ -6,6 +6,7 @@
 ![alt text](https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-And-HoloNET/blob/master/FinalLogo.jpg "Our World")
 
 ## Contents
+  * [Contents](#contents)
   * [Introduction](#introduction)
   * [Project Structure](#project-structure)
   * [HoloNET](#holonet)
@@ -60,11 +61,13 @@
     + [Methods](#methods-3)
     + [Properties](#properties-3)
   * [The OASIS API & Karma System](#the-oasis-api---karma-system)
+    + [Our World Is The XR/IR Unified Interface To The Holochain Ecosystem](#our-world-is-the-xr-ir-unified-interface-to-the-holochain-ecosystem)
     + [Gain Karma When You Earn HoloFuel For Sharing Your Nodes Resources To Power Our World](#gain-karma-when-you-earn-holofuel-for-sharing-your-nodes-resources-to-power-our-world)
-    + [Open Karma Committe/Community Concensors](#open-karma-committe-community-concensors)
-    + [Satillite Apps/Games/Websites](#satillite-apps-games-websites)
+    + [Open Karma Committee/Community Concensors](#open-karma-committee-community-concensors)
+    + [Satellite Apps/Games/Websites (Consumers)](#satellite-apps-games-websites--consumers-)
     + [The Universal API To Connect Everything To Everything (No More Silos/Walled Gardens)](#the-universal-api-to-connect-everything-to-everything--no-more-silos-walled-gardens-)
-    + [Protocols/Platforms/Networks Supported](#protocols-platforms-networks-supported)
+    + [Protocols/Platforms/Networks Supported (Providers)](#protocols-platforms-networks-supported--providers-)
+    + [OASIS Open Standards](#oasis-open-standards)
     + [OASIS API Redundancy (Can Store Copies Of Your Data On Any Decentralised Network/Platform You Choose)](#oasis-api-redundancy--can-store-copies-of-your-data-on-any-decentralised-network-platform-you-choose-)
     + [The OASIS API Enables You To Earn Karma Anywhere](#the-oasis-api-enables-you-to-earn-karma-anywhere)
     + [User Has FULL Control Of Their Data](#user-has-full-control-of-their-data)
@@ -91,12 +94,13 @@
   * [NextGen Hardware](#nextgen-hardware)
   * [Our World Overview](#our-world-overview)
     + [Introduction](#introduction-1)
-    + [XR Gamification Layer Of The New Interplanetary Operating System](#xr-gamification-layer-of-the-new-interplanetary-operating-system)
+    + [XR/IR Gamification Layer Of The New Interplanetary Operating System & The New Internet (Web 3.0)](#xr-ir-gamification-layer-of-the-new-interplanetary-operating-system---the-new-internet--web-30-)
     + [Open World/New Ecosystm/Asset Store/Internet/Operating System/Social Network](#open-world-new-ecosystm-asset-store-internet-operating-system-social-network)
+    + [Synergy Engine](#synergy-engine)
+    + [Resource Based Economy](#resource-based-economy)
     + [First AAA MMO Game To Run On Holochain](#first-aaa-mmo-game-to-run-on-holochain)
     + [Smartphone Version](#smartphone-version-1)
     + [Console Version](#console-version)
-    + [Synergy Engine](#synergy-engine)
     + [Engrossing Storyline](#engrossing-storyline)
     + [OASIS Asset Store](#oasis-asset-store)
     + [Virtual E-commerce](#virtual-e-commerce)
@@ -114,6 +118,7 @@
     + [Large Social Media Following](#large-social-media-following)
     + [UN Contacts](#un-contacts)
     + [Buckminster's World Peace Game](#buckminster-s-world-peace-game)
+    + [The NextGen Office](#the-nextgen-office)
     + [Golden Investment Opportunity](#golden-investment-opportunity)
     + [Help Cocreate A Better World...](#help-cocreate-a-better-world)
   * [Road Map](#road-map)
@@ -126,6 +131,7 @@
   * [Other Ways To Get Involved](#other-ways-to-get-involved)
   * [HoloSource Liscence](#holosource-liscence)
   * [Links](#links)
+
 
 
 
