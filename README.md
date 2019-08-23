@@ -1314,6 +1314,7 @@ You will be able to see how the karma you have earnt is broken down into these c
 
 You will also be able to view the karma levels of other users, this can help you reach out to them to help improve their karma in categories they are lacking in by inviting them on a Quest with you or your group. 
 
+<a name="our-world-is-the-xr-ir-unified-interface-to-the-holochain-ecosystem"></a>
 ### Our World Is The XR/IR Unified Interface To The Holochain Ecosystem
 
 Our World is like a XR/IR Unified Interface into all of these hApps (this is the Operating System part of it), it's a bit like the XR UI front-end to Holochain where you can view and launch any apps from inside it but they integrate much more deeper than that through the OASIS API/Profile/Avatar/Karma system where they all share the central avatar/profile and can all add/subtract the profiles/avatars karma.
@@ -1322,12 +1323,14 @@ Our World is like a XR/IR Unified Interface into all of these hApps (this is the
 
 You can also gain karma for sharing your node's resources such as CPU, memory, bandwidth, etc
 
+<a name="open-karma-committee-community-concensors"></a>
 ### Open Karma Committee/Community Concensors
 
 There will be a Open Karma Committer who will decide the algorithms for karma allocation through concensors with the community. The community can vote for any proposals the committee publish and only ones which receive enough votes will be made "OASIS Law". The community can also vote in representatives to sit on the committee so it is as open and democratic as possible.
 
 **We wish to empower the community to feel into their own hearts for what is right for them. We want them to own the system. **
 
+<a name="the-universal-api-to-connect-everything-to-everything--no-more-silos-walled-gardens-"></a>
 ### Satellite Apps/Games/Websites (Consumers)
 
 As already mentioned, many satellite apps/games/websites will plug into Our World using the OASIS API. They can choose to just share the central avatar/profile and the karma system or they can choose to also define the 2D Sprite or 3D object that will appear in Our World at the geo-location specified through the API. This will be the visual representation of the app/game/website/organisation and when the player either walks into or interacts with (click, touch, etc) it will display info and meta data passed through the API. The player can then choose to launch the app/game/website from within Our World.
@@ -1363,12 +1366,12 @@ We are in the process of reaching out to these to see if they wish to be one of 
 
 Please see the [Social Network](#socialnetwork) section for more info...
 
-
+<a name="the-universal-api-to-connect-everything-to-everything--no-more-silos-walled-gardens-"></a>
 ### The Universal API To Connect Everything To Everything (No More Silos/Walled Gardens)
 
 **The OASIS API is a global universal API that aims to connect everything to everything to eliminate walled gardens/silos.** There are a number of open protocols/platforms/networks that the OASIS API will support. The majority of these are aimed at building a truly decentralised distributed internet (Web 3.0) and this is also the aim of the OASIS API. 
 
-
+<a name="protocols-platforms-networks-supported--providers-"></a>
 ### Protocols/Platforms/Networks Supported (Providers)
 
 The OASIS API aims to support as many platforms/networks/protocols as possible so the Karma System can be deeply integrated across the web in every application, device, etc.
@@ -1402,6 +1405,7 @@ https://www.oasis-open.org
 
 They are all about pushing the same agenda except we are actually implementing a API to achieve our shared goals of getting everything to talk to everything else. It's very interesting we both chose the name OASIS, a coincidence or not? ;-) We are obviously in the process of reaching out to them to see how we can work together...
 
+<a name="oasis-api-redundancy--can-store-copies-of-your-data-on-any-decentralised-network-platform-you-choose-"></a>
 ### OASIS API Redundancy (Can Store Copies Of Your Data On Any Decentralised Network/Platform You Choose)
 
 The OASIS API has built in redundancy in that you can choose to store copies of your data on any decentralised network/platform. When calling the OASIS API you can specify which network/platform you wish to use (the ones available will be dependent on whether a Provider has yet been implemented for it, so far only Holochain is supported.) The default provider will be Holochain since the long term goal of the OASIS API is to get people to slowly migrate across to Holochain.
