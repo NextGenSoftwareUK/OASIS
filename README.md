@@ -1315,7 +1315,7 @@ You will be able to see how the karma you have earnt is broken down into these c
 
 You will also be able to view the karma levels of other users, this can help you reach out to them to help improve their karma in categories they are lacking in by inviting them on a Quest with you or your group. 
 
-<a name="#your-karma-level-effects-your-real-life-too-"></a>
+<a name="your-karma-level-effects-your-real-life-too-"></a>
 ### Your Karma Level Effects Your Real Life Too!
 
 Your karma level effects your real life too, for example you may be entitled to free upgrades at shows, flights, events, hotels, etc. You may also be entitled to special discounts in shops, etc and if you have enough karma you can get free holidays, etc too. The higher your karma the more society will reward you. The list is endless of what is possible. We envision that eventually this will be deeply  integrated into all of society. This reflects how the Universe actually works and is part of the real-time simulation aspect of Our World.
