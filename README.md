@@ -105,12 +105,12 @@
     + [Virtual E-commerce](#virtual-e-commerce)
     + [We Accept Karma, Your Money Is No Good Here!](#we-accept-karma--your-money-is-no-good-here-)
     + [Our World Is Only The Beginning...](#our-world-is-only-the-beginning)
-    + [The Tech Industry Have A Morale & Social Resonsability](#the-tech-industry-have-a-morale---social-resonsability)
+    + [The Tech Industry Have A Morale & Social Responsibility](#the-tech-industry-have-a-morale---social-responsibility)
     + [Teach Kids The Right Life Lessons](#teach-kids-the-right-life-lessons)
     + [Remember How Powerful YOU Are!](#remember-how-powerful-you-are-)
     + [Bringing People Together](#bringing-people-together)
     + [We are Building The Evolved Benevolent Version Of The OASIS](#we-are-building-the-evolved-benevolent-version-of-the-oasis)
-    + [Asscension/God Training & Mirror Of Reality Technology](#asscension-god-training---mirror-of-reality-technology)
+    + [Ascension/God Training & Mirror Of Reality Technology](#ascension-god-training---mirror-of-reality-technology)
     + [7 Years Of Planning & R&D](#7-years-of-planning---r-d)
     + [Early Prototype](#early-prototype)
     + [We Are What You Have All Been Waiting For...](#we-are-what-you-have-all-been-waiting-for)
@@ -1755,6 +1755,7 @@ The OASIS will only be open to us once we have resolved our issues here, humanit
 
 It is time to stop running from our problems and face them united together...
 
+<a name="the-tech-industry-have-a-morale---social-responsibility"></a>
 ### The Tech Industry Have A Morale & Social Responsibility
 
 The software industry has the power to transform lives through engaging people with innovative products that help them to grow and develop.  Recent popular examples include health apps, mindfulness apps and mind training games.
@@ -1781,6 +1782,7 @@ We wish to reach the kids who are glued to their phones and consoles and never g
 
 The game will also be teaching people especially kids important vital life lessons and show how they can then implement them in the real world. Part of the way this will be done is by merging the real world with Our World using the latest cutting-edge technology such as Augmented Reality. We wish to get kids and everyone else off their devices and back into nature and to start having real face to face interactions again. We wish to use technology for the upliftment and benefit of humanity and the planet and not just as an escape mechanism or a way to exploit people by selling their data to the highest bidder.
 
+<a name="remember-how-powerful-you-are-"></a>
 ### Remember How Powerful YOU Are!
 
 Our World reminds people how powerful they are and empowers them to be the person they have always wanted to be, to live their life to their FULL potential without any limitations. Everyone has a gift for the world and with Our World we can help them find it. We want to empower people to take responsibility for our beautiful planet, which is currently in crisis and so needs EVERYONE to help make a difference. The entire world is the Our World team, we want everyone to get involved so they can feel they are part of something greater than themselves and at the same time ensure there is a future for our kids and grandkids.
