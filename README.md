@@ -2098,6 +2098,10 @@ http://www.ourworldthegame.com/forum
 https://chat.holochain.org/appsup/channels/our-world-netclient <br/>
 https://chat.holochain.org/appsup/channels/net-hdk 
 
+**Holochain Forum**
+
+https://forum.holochain.org/c/projects/our-world
+
 **NextGen DeveloperTraining  Programmes**
 
 <a href="https://docs.wixstatic.com/ugd/4280d8_ad8787bd42b1471bae73003bfbf111f7.pdf">NextGen Developer Training Programme</a> <br/> 
