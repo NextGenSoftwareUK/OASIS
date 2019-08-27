@@ -141,11 +141,12 @@
 
 **NOTE: This documentation & code is a WIP and is still currently being written so please make sure you check back often...**
 
-**We would love to hear from you rgarding feedback on any of the vision, docs, code or would like to submit ideas. Even better, if you would like to get actively involved by coding, spreading the word, finding funding or any other role then please get in touch right NOW! :) Email us ourworld@nextgensoftware.co.uk. Thank you.**
+**We would love to hear from you regarding feedback on any of the vision, docs, code or would like to submit ideas. Even better, if you would like to get actively involved by coding, spreading the word, finding funding or any other role then please get in touch right NOW! :) Email us ourworld@nextgensoftware.co.uk. Thank you.**
 
 The core OASIS (Open Advanced Sensory Immersion System) API that powers Our World and manages the central profile/avatar/karma system that other satellite apps/games plug into it and share. This allows karma to be earnt in the satellite apps/games by doing good deeds or progressing self help apps for example. This also includes HoloNET that allows .NET to talk to Holochain, which is where the profile/avatar is stored on a private decentralised, distributed network. This will be gifted forward to the Holochain community along with the HoloUnity3D SDK/Lib/Asset coming soon... ;-)
 
-[The OASIS API is a global universal API that aims to connect everything to everything](#the-universal-api-to-connect-everything-to-everything--no-more-silos-walled-gardens-) to eliminate walled gardens/silos. There are a number of open protocols/platforms/networks (such as Gab, Mastodon, Diaspora, WebFinger, SOLID, Holochain, CEPTR Pluggable Protocol, Ethereum, Fediverse, ActivityPub, XMPP & more!) that the OASIS API will support. The majority of these are aimed at building a truly decentralised distributed internet (Web 3.0) and this is also the aim of the OASIS API. 
+[The OASIS API is a global universal API that aims to connect everything to everything](#the-universal-api-to-connect-everything-to-everything--no-more-silos-walled-gardens-) to eliminate walled gardens/silos. There are a number of open protocols/platforms/networks (such as Gab, Mastodon, Diaspora, WebFinger,
+ SOLID, Holochain, CEPTR Pluggable Protocol, Ethereum, Fediverse, ActivityPub, XMPP & more!) that the OASIS API will support. The majority of these are aimed at building a truly decentralised distributed internet (Web 3.0) and this is also the aim of the OASIS API. 
 
 [Our World](#our-world-overview) is an exciting immersive next generation 3D XR/IR (Infinite Reality) educational game/platform/social network/ecosystem teaching people on how to look after themselves, each other and the planet using the latest cutting-edge technology. It teaches people the importance of real-life face to face connections with human beings and encourages them to get out into nature using Augmented Reality similar to Pokémon Go but on a much more evolved scale. This is our flagship product and is our top priority due to the massive positive impact it will make upon the world...
 
@@ -217,7 +218,7 @@ This will help massively turbo charge the holochain ecosystem by opening it up t
 **NOTE: This documentation is a WIP, it will be completed soon, please bare with us, thank you! :)**
 
 
-You start by instaniating a new HoloNETClient class found in the [NextGenSoftware.Holochain.HoloNET.Client](#project-structure) project passing in the holochain websocket URI to the constructor as seen below:
+You start by instantiating a new HoloNETClient class found in the [NextGenSoftware.Holochain.HoloNET.Client](#project-structure) project passing in the holochain websocket URI to the constructor as seen below:
 
 ````c#
 HoloNETClient holoNETClient = new HoloNETClient("ws://localhost:8888");
@@ -228,7 +229,8 @@ Next, you can subscribe to a number of different events:
 ````c#
 holoNETClient.OnConnected += HoloNETClient_OnConnected;
 holoNETClient.OnDataReceived += HoloNETClient_OnDataReceived;
-holoNETClient.OnZomeFunctionCallBack += HoloNETClient_OnZomeFunctionCallBack;
+holoNETClient.OnZomeFunctionCallBack
+ += HoloNETClient_OnZomeFunctionCallBack;
 holoNETClient.OnGetInstancesCallBack += HoloNETClient_OnGetInstancesCallBack;
 holoNETClient.OnSignalsCallBack += HoloNETClient_OnSignalsCallBack;
 holoNETClient.OnDisconnected += HoloNETClient_OnDisconnected;
@@ -264,7 +266,7 @@ Please see below for more details on the various overloads available for this ca
 
 ### The Power of .NET Async Methods
 
-You will notice that the above calls have the `await` keyword prefixing them. This is how you call an `async` method in C#. All of HoloNET, HoloOASIS & OASIS API methods are async methods. This simply means that they do not block the calling thread so if this is running on a UI thread it will not freeze the UI. Using the `await` keyword allows you to call an `async` method as if it was a syncronsous one. This means it will not call the next line until the async method has returned. The power of this is that you no longer need to use lots of messy callback functions cluttering up your code as has been the pass with async programming. The code path is also a lot easier to follow and manitain.
+You will notice that the above calls have the `await` keyword prefixing them. This is how you call an `async` method in C#. All of HoloNET, HoloOASIS & OASIS API methods are async methods. This simply means that they do not block the calling thread so if this is running on a UI thread it will not freeze the UI. Using the `await` keyword allows you to call an `async` method as if it was a synchronous one. This means it will not call the next line until the async method has returned. The power of this is that you no longer need to use lots of messy callback functions cluttering up your code as has been the pass with async programming. The code path is also a lot easier to follow and maintain.
 
 Read more here:
 https://docs.microsoft.com/en-us/dotnet/csharp/programming-guide/concepts/async/
@@ -419,7 +421,8 @@ private static void HoloNETClient_OnZomeFunctionCallBack(object sender, ZomeFunc
  | Instance           | The hc instance that made the request.             |
  | Zome               | The zome that made the request.                    |
  | ZomeFunction       | The zome function that made the request.           |
- | ZomeReturnData     | The parsed data that the zome function returned.   |
+ | ZomeReturnData  
+   | The parsed data that the zome function returned.   |
  | RawZomeReturnData  | The raw JSON data that the zome function returned. |
  | RawJSONData        | The raw JSON data that the hc conductor returned.  |
 <br>
@@ -543,7 +546,8 @@ public void ClearCache()
 
 #### Disconnect
 
-This method disconnects the client from Holochain conductor. It raises the [OnDisconnected](#ondisconnected) event once it is has successfully disconnected. Please see the [Events](#events) section above for more info on how to use this event.
+This method disconnects the client from Holochain conductor. It raises the [OnDisconnected](#ondisconnected) event once it is has
+ successfully disconnected. Please see the [Events](#events) section above for more info on how to use this event.
 
 ```c#
 public async Task Disconnect()
@@ -745,7 +749,7 @@ public enum NetworkServiceProviderMode
     }
 ````
 
-The plan was to have WebSockets and HTTP built into the current implemntation (but will still be injected in from a seperate project). If there is a need a cutdown lite version of HoloNETClient can easily be implemented with just one of them injected in.
+The plan was to have WebSockets and HTTP built into the current implementation (but will still be injected in from a separate project). If there is a need a cut-down lite version of HoloNETClient can easily be implemented with just one of them injected in.
 
 The External enum was to be used by any other external implementation that implements the `IHoloNETClientNET` and would be for future use if Holochain decide they wish to use another protocol.
 
@@ -755,7 +759,8 @@ The External enum was to be used by any other external implementation that imple
 
 ## HoloOASIS
 
-`HoloOASIS` uses the [HoloNETClient](#holonet) to implement a Storage Provider ([IOASISStorage](#ioasisstorage)) for the OASIS System. It will soon also implement a Network Provider ([IOASISNET](#ioasisnet)) for the OASIS System that will leverage Holochain to create it's own private de-centralised distributed network called `ONET` (as seen on the [OASIS Architecture Diagram](#the-oasis-architecture) below).
+`HoloOASIS` uses the [HoloNETClient](#holonet) to implement a Storage Provider ([IOASISStorage](#ioasisstorage)) for the OASIS System. It will soon also implement a Network Provider ([IOASISNET](#ioasisnet))
+ for the OASIS System that will leverage Holochain to create it's own private de-centralised distributed network called `ONET` (as seen on the [OASIS Architecture Diagram](#the-oasis-architecture) below).
 
 This is a good example to see how to use [HoloNETClient](#holonet) in a real world game/platform (OASIS/Our World).
 
@@ -921,7 +926,7 @@ HoloOASIS contains the following methods:
 |ConvertProfileToHoloOASISProfile | Internal utility method that converts a `OASIS.API.Core.Profile` object to a `HoloOASIS.Profile` object. The `HoloOASIS.Profile` object extends the `OASIS.API.Core.Profile` object by adding the `HcAddressHash` property to store the address hash returned from Holochain when adding new entries to the chain.
 | GetHolonsNearMe | This implements part of the IOASISNET interface. This has not been implemented yet and is just a stub. This method will get a list of the Holons (items/objects) near the user/avatar.
 |GetPlayersNearMe|This implements part of the IOASISNET interface. This has not been implemented yet and is just a stub. This method will get a list of the players/avatars near the player's user/avatar.
-|HandleError| This is a private method where all errors are funneled and handled.
+|HandleError| This is a private method where all errors are funnelled and handled.
 |Initialize| Call this method to initilize the provider. Internally this will call the [Connect](#connect) method on the [HoloNETClient](#holonet) class.
 |LoadProfileAsync| Call this method to load the users profile/avatar data and return it in a `Profile` object. This has 3 overloads.
 |RemoveKarmaFromProfileAsync| Call this method to remove karma from the users profile/avatar.
@@ -959,7 +964,8 @@ ProfileManager = new ProfileManager(new HoloOASIS("ws://localhost:8888"));
 The `ProfileManager` takes one param for the constructor of type [IOASISStorage](#ioasisstorage). This is where you inject in a Provider that implements the [IOASISStorage](#ioasisstorage) interface. Currently the only provider that has implemented this is the [HoloOASIS](#holooasis) provider. but expect more to follow soon...
 
 ````c#
-public ProfileManager(IOASISStorage OASISStorageProvider)
+public ProfileManager(IOASISStorage
+ OASISStorageProvider)
 {
             this.OASISStorageProvider = OASISStorageProvider;
             this.OASISStorageProvider.OnStorageProviderError += OASISStorageProvider_OnStorageProviderError;
@@ -1025,17 +1031,17 @@ namespace NextGenSoftware.OASIS.API.Core
 | SaveProfileAsync | Saves the users profile/avatar. 
 | AddKarmaToProfileAsync | Add karma to the users profile/avatar.
 | RemoveKarmaFromProfileAsync | Remove karma from the users profile/avatar.
-| StorageProviderError | An event the provider fires when an erroroccurs that the `ProfileManager` can then handle.
+| StorageProviderError | An event the provider fires when an error occurs that the `ProfileManager` can then handle.
 
 #### IOASISNET
 
-This is what a Network Provider implements so the OASIS API can share the users profile/avatar as well as fine Holons and players near them. 
+This is what a Network Provider implements so the OASIS API can share the users profile/avatar as well as find Holon's and players near them. 
 
 ````c#
 namespace NextGenSoftware.OASIS.API.Core
 {
     // This interface provides methods to discover and interact with other nodes/peers on the distributed/decentralised network (ONET)
-    // This will involve peer to peer communcation.
+    // This will involve peer to peer communication.
     public interface IOASISNET
     {
         List<IPlayer> GetPlayersNearMe();
@@ -1049,7 +1055,7 @@ Currently the [HoloOASIS](#holooasis) Provider defines some stubs for this inter
 | Item | Description  |
 |--|--|
 | GetPlayersNearMe  | Gets a list of players near the user's current location.  |
-| GetHolonsNearMe | Get a list of holons near the user's current location.
+| GetHolonsNearMe | Get a list of holon's near the user's current location.
 
 
 ### Events
@@ -1179,7 +1185,8 @@ using System.Threading.Tasks;
 
 public class OASISAvatarManager : MonoBehaviour
 {
-    ProfileManager ProfileManager { get; set; }  //If the ProfileManager is going to contain additional business logic not contained in the providers then use this.
+    ProfileManager ProfileManager { get; set; }  //If the ProfileManager is going to contain additional
+ business logic not contained in the providers then use this.
     public GameObject ProfileUsername;
     public GameObject ProfileFullName;
     public GameObject ProfileDOB;
@@ -1330,7 +1337,8 @@ You will also be able to view the karma levels of other users, this can help you
 <a name="your-karma-level-effects-your-real-life-too-"></a>
 ### Your Karma Level Effects Your Real Life Too!
 
-Your karma level effects your real life too, for example you may be entitled to free upgrades at shows, flights, events, hotels, etc. You may also be entitled to special discounts in shops, etc and if you have enough karma you can get free holidays, etc too. The higher your karma the more society will reward you. The list is endless of what is possible. We envision that eventually this will be deeply  integrated into all of society. This reflects how the Universe actually works and is part of the real-time simulation aspect of Our World.
+Your karma level effects your real life too, for example you may be entitled to free upgrades at shows, flights, events, hotels, etc. You may also be entitled to special discounts in shops, etc and if you have enough karma you can get free holidays, etc too. The higher your karma the more society will reward you. The list is endless of what is possible. We envision that eventually this will be deeply  integrated into
+ all of society. This reflects how the Universe actually works and is part of the real-time simulation aspect of Our World.
 
 <a name="our-world-is-the-xr-ir-unified-interface-to-the-holochain-ecosystem"></a>
 ### Our World Is The XR/IR Unified Interface To The Holochain Ecosystem
@@ -1402,7 +1410,8 @@ Below is a list of the protocols/networks/platforms that the OASIS API will supp
 |[HSTP (Hyper Spacial Transport Protocol)](https://www.verses.io/)  | The new protocol for the new Spacial Web (Web 3.0) | Coming Soon... |
 | [WebFinger](https://webfinger.net/) | WebFinger is used to discover information about people or other entities on the Internet that are identified by a URI using standard Hypertext Transfer Protocol (HTTP) methods over a secure transport. A WebFinger resource returns a JavaScript Object Notation (JSON) object describing the entity that is queried. The JSON object is referred to as the JSON Resource Descriptor (JRD).| Coming Soon...
 | [ActivityPub](https://activitypub.rocks/) |ActivityPub is an open, decentralized social networking protocol based on Pump.io's ActivityPump protocol. It provides a client/server API for creating, updating and deleting content, as well as a federated server-to-server API for delivering notifications and content | Coming Soon...
-| [XMPP](https://xmpp.org/) | Extensible Messaging and Presence Protocol is an open XML technology for real-time communication, which powers a wide range of applications including instant messaging, presence and collaboration.  | Coming Soon...
+| [XMPP](https://xmpp.org/) | Extensible Messaging and Presence Protocol is an open XML technology for real-time communication,
+ which powers a wide range of applications including instant messaging, presence and collaboration.  | Coming Soon...
 | [SOLID](https://solid.inrupt.com/) | Inventor of the Internet, Sir Tim Berners-Lee new protocol for Web 3.0 to give users control of their data as well as remove silos/walled gardens using Pods & Linked Data. | Coming Soon...
 | [Holochain](https://holochain.org/) | Leading the way for the new decentralised distributed internet | Yes |
 | [Ethereum](https://www.ethereum.org/) | One of the leading Blockchain implementations that is very popular. | Coming Soon...
@@ -1466,13 +1475,13 @@ The front-end is built in Unity, the middle layer is built in C#/.NET and the ba
 <a name="arc---noomap-integration"></a>
 ### ARC & Noomap Integration
 
-The middle layer will also soon interface with the amazing ARC (Augmented Reality Computer) operating system being built by my good friend and cosmic brother Chris Lacombe over at S7 Foundation (previously called Noomap). He is also the creator of Noomap, a 3D fractal mind mapping tool that has some communtites very excited! :)
+The middle layer will also soon interface with the amazing ARC (Augmented Reality Computer) operating system being built by my good friend and cosmic brother Chris Lacombe over at S7 Foundation (previously called Noomap). He is also the creator of Noomap, a 3D fractal mind mapping tool that has some communities very excited! :)
 
 http://noomap.info/
 
 http://iwg.life/s7foundation/
 
-ARC is currently being built in NodeJS and untilises a Semantic Graph to store and represent it's data, it will also contain a revolutionary AI system. We cannot say more on this at the moment because Chris wants to keep this project under the radar at the moment...
+ARC is currently being built in NodeJS and utilises a Semantic Graph to store and represent it's data, it will also contain a revolutionary AI system. We cannot say more on this at the moment because Chris wants to keep this project under the radar at the moment...
 
 ### Node.JS Integration
 
@@ -1487,7 +1496,7 @@ We are working very closely with Chris & S7 to fully synergise & intrgrate ARC &
 <a name="arc--noomap---iwg--infinite-world-game--will-be-fully-integrated"></a>
 ## ARC, Noomap & IWG (Infinite World Game) Will Be Fully Integrated
 
-ARC, Noomap & IWG will be fully integrated into the OASIS Architecture. The IWG is VERY similar to Our World and has a LOT of overlap and is something we are currenty exporing and synergising but it looks like they will for a start share the same central avatar/profile/karma system that is currently being built in this very repo.
+ARC, Noomap & IWG will be fully integrated into the OASIS Architecture. The IWG is VERY similar to Our World and has a LOT of overlap and is something we are currently exploring and synergising but it looks like they will for a start share the same central avatar/profile/karma system that is currently being built in this very repo.
 
 <a name="turbocharge-the-holochain-ecosystem-"></a>
 ## Turbocharge the Holochain ecosystem!
@@ -1517,7 +1526,8 @@ It will also run on IPFS, the Ethereum blockchain, DAOStack ARC & H4OME.
 
 **All of these apps that plug into the OASIS Engine (Our World) will be known as OApps (OASIS Apps). As well as these OApps being able to share their data/UI with any other OApp, they can also take advantage of the OASIS Asset Store where users can buy various add-ons for your app/game.**
 
-**By supporting everything Our World/OASIS will help act as a bridge between the old and the new world.**
+**By supporting
+ everything Our World/OASIS will help act as a bridge between the old and the new world.**
 
 NextGen Software & Our World themselves will also be a DAO (Distributed Anonymous Organisation) registered with DAOStack meaning we can self-govern and cut out the expensive middlemen such as banks, lawyers, accountants, managers, contracts etc. This technology will allow us to realise our long-held dreams of running a flat decentralised organisation where every voice is heard, respected and is counted as an equal. This also prevents fraud, mistakes and corruption from occurring as is all too common now days.
 
@@ -1587,7 +1597,7 @@ What's more, this is fully integrated into the rest of the system and the OASIS 
 <a name="our-world-oasis-api-social-network-website"></a>
 #### Our World/OASIS API/Social Network Website
 
-As well as the smartphone & desktop/console versions of Our World/OASIS, there will also be a tradional website, which will be the social network part of the system where people can view people's profiles/avatars, their karma, chat, find people with similar passions & interests. You can also help other people in need and gain karma, etc. They can also view the various satillite apps/games/websites that are linked and integrated into the OASIS System. Just like the smartphone & console/desktop versions they can also launch the satillite app/game/website from the website.
+As well as the smartphone & desktop/console versions of Our World/OASIS, there will also be a traditional website, which will be the social network part of the system where people can view people's profiles/avatars, their karma, chat, find people with similar passions & interests. You can also help other people in need and gain karma, etc. They can also view the various satellite apps/games/websites that are linked and integrated into the OASIS System. Just like the smartphone & console/desktop versions they can also launch the satellite app/game/website from the website.
 
 There will also be a AR & VR version of the social network fully integrated into the smartphone and desktop/console versions of Our World.
 
@@ -1652,7 +1662,8 @@ If you check out the demos of the above, you will start to get an idea of the ap
 <a name="pc-console-version"></a>
 #### PC/Console Version
 
-Our World will have continuous expansions, add-ons and sub-games added to keep players immersed and wanting more and more. Our World is revolutionary and contains many elements never done before and so will not have any competition in the new genres it will be creating…
+Our World will have continuous expansions, add-ons and
+ sub-games added to keep players immersed and wanting more and more. Our World is revolutionary and contains many elements never done before and so will not have any competition in the new genres it will be creating…
 
 #### Smartphone Version
 
@@ -1736,7 +1747,8 @@ The smartphone version will be a geolocation game featuring Augmented Reality si
 
 ### Console Version
 
-The console/desktop version will be similar to a Sandbox and MMORPG (Massive Multiplayer Online Role Playing Game) but will be nothing like any other games such as World Of WarCraft & MineCraft. It will in fact define its own genre setting the new bar for others to follow, this truly has never been done before and will take the world by storm! The one thing it will share with them is that it will be a massive open world that billions of players can explore and build together... 
+The console/desktop version will be similar to a Sandbox and MMORPG (Massive Multiplayer Online Role Playing Game) but
+ will be nothing like any other games such as World Of WarCraft & MineCraft. It will in fact define its own genre setting the new bar for others to follow, this truly has never been done before and will take the world by storm! The one thing it will share with them is that it will be a massive open world that billions of players can explore and build together... 
 
 Both versions will share the same online world/multiverse where users logged in through the smartphone versions will be able to interact with the console/desktop versions in real-time within a massive scale persistent Multiverse.
 
@@ -1804,7 +1816,8 @@ The game will also be teaching people especially kids important vital life lesso
 <a name="remember-how-powerful-you-are-"></a>
 ### Remember How Powerful YOU Are!
 
-Our World reminds people how powerful they are and empowers them to be the person they have always wanted to be, to live their life to their FULL potential without any limitations. Everyone has a gift for the world and with Our World we can help them find it. We want to empower people to take responsibility for our beautiful planet, which is currently in crisis and so needs EVERYONE to help make a difference. The entire world is the Our World team, we want everyone to get involved so they can feel they are part of something greater than themselves and at the same time ensure there is a future for our kids and grandkids.
+Our World reminds people how powerful they are and empowers them to be the person they have always wanted to be, to live their life to their FULL potential without any limitations. Everyone has a gift for the world and with Our World we can help them find it. We want to empower people to take responsibility for our beautiful planet, which is currently in crisis and so needs EVERYONE to help make a difference. The entire world is the Our World team, we want everyone to get involved
+ so they can feel they are part of something greater than themselves and at the same time ensure there is a future for our kids and grandkids.
 
 ### Bringing People Together
 
@@ -1919,7 +1932,8 @@ It only seems to be a week or two before another terrorist attack or mass shooti
 
 **Version 1 - Smartphone Platform - The AR version** - Map of present day - In correlation with Time - **IN ACTIVE DEVELOPMENT**. We hope to have an early prototype of this around 2020 Q1/Q2 with more evolved prototypes being released throughout the year. Depending on how many resources/devs we can attract we hope to have a first altha release by 2021, possibly 2022.
 
-**Version 2 - Desktop/Console Platforms - The VR Version** - Game version that starts in Past with a true history of Earth. Not Time Correlated. We hope work on this can begin by 2020 (if additional funds/resources can be secured by then) and will be done in parallel with the Smartphone version. Remember these are not seperate products, and fully integrate with each other where players share the same immersive persistent real-time open world.
+**Version 2 - Desktop/Console Platforms - The VR Version** - Game version that starts in Past with a true history of Earth. Not Time Correlated. We hope work on this can begin by 2020 (if additional funds/resources can be secured by then) and will be done
+ in parallel with the Smartphone version. Remember these are not seperate products, and fully integrate with each other where players share the same immersive persistent real-time open world.
 
 **Version 3 - The XR/IR Version (The OASIS)** - The XR version that becomes the immersive, self reflective reality that combines both aspects of console and smartphone versions. We hope we will secure MASSIVE funds by 2021/2022 latest so this can begin dev around that time, this is Ready Player One OASIS time with life like graphics and things you can only begin to imagine right now! ;-)
 
@@ -2054,13 +2068,14 @@ You can also get involved on our forum here:
 
 http://www.ourworldthegame.com/forum
 
-## HoloSource Liscence
+## HoloSource Licence
 
 This repo uses a new type of Open Source where more control is needed over the codebase to make sure things do not go off on a tangent that is not beneficial to the original intention and vision of this very important critical project to help save the world and make it a better place for all. Too much is at stake to stop this falling into the wrong hands so to speak! ;-)
 
 This means permission will need to be requested for any forks, etc 
 
-The whole point of opening up this codebase to the public is we wish to empower the whole world to take responsability for our beautiful planet and this is why the whole world is the Our World team. It will be one of the biggest most ambitious projects the world has ever seen and this is why it needs to be open to all...
+The whole point of opening up this codebase to the public is we wish to empower the whole world to take responsibility for our beautiful planet and this is why the whole world is the
+ Our World team. It will be one of the biggest most ambitious projects the world has ever seen and this is why it needs to be open to all...
 
 <a href="https://docs.google.com/document/d/1I3qbBnfVPLrGxv5paDAaCFSBxkb_34vkhA6fc8iNMew/edit#heading=h.s2ub9y5otad7">Read More Here</a>
 
