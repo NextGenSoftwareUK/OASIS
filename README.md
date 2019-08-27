@@ -1304,6 +1304,11 @@ Of course if they wanted use the OASIS API then the first code listing is how it
 
 <a name="the-oasis-api---karma-system"></a>
 ## The OASIS API & Karma System
+
+Our World is much more than just a free open world game where you can build and create anything you can imagine and at the same time be immersed in an epic storyline. it is an entirely new ecosystem/asset store/internet, it is the future way we will be interacting with each other and the world through the use of technology. Smaller satellite apps/game will plug into it and share your central profile/avatar where you gain karma for doing good deeds such as helping your local communities, etc and lose karma for being selfish and not helping others since it mirrors the real world where you have free will. The karma unlocks certain abilities, special powers & items you can purchase in the game as well as quests and new areas to explore. 
+
+There is nothing else out there like this, nothing even comes close, this will change everything... There is a reason we are called NextGen Software! ;-)
+
 We believe that the OASIS API & Karama System should be baked into the core of the new internet (Web 3.0) that we are co-creating and will allow [Everything to talk to Everything](https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK#bridge) else and will act as the worlds universal API/protocol. At the center of this is the central profile/avatar where the user's data will be stored. Part of this data will include the karma they have earnt in Our World as well as the karma they have earnt in any of the inter-connected satellite apps/games that use the OASIS API.
 
 This will increase peoples awareness of the good or bad karma they are collecting and will help them become more conscious of their moment by moment actions. This will help them strive to become a better person and to reach their full potential doing as much good as they can in the world. This will help manifest a better world for us all that much faster, when everyone is doing all they can to help co-create it.
@@ -1395,7 +1400,7 @@ Please see the [Social Network](#socialnetwork) section for more info...
 <a name="the-universal-api-to-connect-everything-to-everything--no-more-silos-walled-gardens-"></a>
 ### The Universal API To Connect Everything To Everything (No More Silos/Walled Gardens)
 
-**The OASIS API is a global universal API that aims to connect everything to everything to eliminate walled gardens/silos.** There are a number of open protocols/platforms/networks that the OASIS API will support. The majority of these are aimed at building a truly decentralised distributed internet (Web 3.0) and this is also the aim of the OASIS API. 
+**The OASIS API is a global universal API that aims to connect everything to everything to eliminate walled gardens/silos.** There are a number of open protocols/platforms/networks (such as Gab, Mastodon, Diaspora, WebFinger, SOLID, Holochain, CEPTR Pluggable Protocol, Ethereum, Fediverse, ActivityPub, XMPP & more!) that the OASIS API will support. The majority of these are aimed at building a truly decentralised distributed internet (Web 3.0) and this is also the aim of the OASIS API. 
 
 <a name="protocols-platforms-networks-supported--providers-"></a>
 ### Protocols/Platforms/Networks Supported (Providers)
