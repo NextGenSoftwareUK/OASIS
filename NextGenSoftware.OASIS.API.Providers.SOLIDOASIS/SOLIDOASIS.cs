@@ -26,7 +26,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLIDOASIS
 
         public Task<IProfile> LoadProfileAsync(string providerKey)
         {
-            throw new NotImplementedException();
+           
         }
 
         public Task<IProfile> LoadProfileAsync(Guid Id)

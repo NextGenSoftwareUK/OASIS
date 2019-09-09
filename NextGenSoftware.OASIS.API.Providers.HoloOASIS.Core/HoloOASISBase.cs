@@ -56,7 +56,9 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Core
             HoloNETClient.OnSignalsCallBack += HoloOASIS_OnSignalsCallBack;
             HoloNETClient.OnZomeFunctionCallBack += HoloOASIS_OnZomeFunctionCallBack;
 
-            HoloNETClient.Config.HolochainConductorBehaviour = HolochainConductorBehaviour.AutoStartExternalConductor;
+            //HoloNETClient.Config.HolochainConductorBehaviour = HolochainConductorBehaviour.AutoStartExternalConductor;
+            HoloNETClient.Config.AutoStartConductor = true;
+            HoloNETClient.Config.AutoShutdownConductor = true;
             HoloNETClient.Config.FullPathToExternalHolochainConductor = string.Concat(Directory.GetCurrentDirectory(), "\\hc.exe");
             HoloNETClient.Config.FullPathToHolochainAppDNA = string.Concat(Directory.GetCurrentDirectory(), "\\our_world\\dist\\our_world.dna.json"); 
             
