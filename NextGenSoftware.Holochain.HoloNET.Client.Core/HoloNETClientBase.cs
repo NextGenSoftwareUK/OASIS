@@ -108,21 +108,23 @@ namespace NextGenSoftware.Holochain.HoloNET.Client.Core
                 if (WebSocket.State != WebSocketState.Open && WebSocket.State != WebSocketState.Aborted)
                 {
                     //if (Config.HolochainConductorBehaviour == HolochainConductorBehaviour.AutoStartExternalConductor || Config.HolochainConductorBehaviour == HolochainConductorBehaviour.UseInternalConductor)
-                    if (Config.HolochainConductorBehaviour == HolochainConductorBehaviour.AutoStartExternalConductor)
+                   if (Config.AutoStartConductor)
                     {
+                        //If no path to the conductor has been given then default to the current working directory.
+                        if (string.IsNullOrEmpty(Config.FullPathToExternalHolochainConductor))
+                            Config.FullPathToExternalHolochainConductor = string.Concat(Directory.GetCurrentDirectory(), "\\hc.exe"); //default to the current path
+
+                        if (Config.SecondsToWaitForHolochainConductorToStart == 0)
+                            Config.SecondsToWaitForHolochainConductorToStart = SecondsToWaitForConductorToStartDefault;
+
+                        FileInfo conductorInfo = new FileInfo(Config.FullPathToExternalHolochainConductor);
+
                         //Make sure the condctor is not already running
-                        if (!Process.GetProcesses().Any(x => x.ProcessName == "hc"))
+                        if (!Process.GetProcesses().Any(x => x.ProcessName == conductorInfo.Name))
                         {
-                            //If no path to the conductor has been given then default to the current working directory.
-                            if (string.IsNullOrEmpty(Config.FullPathToExternalHolochainConductor))
-                                Config.FullPathToExternalHolochainConductor = string.Concat(Directory.GetCurrentDirectory(), "\\hc.exe"); //default to the current path
-
-                            if (Config.SecondsToWaitForHolochainConductorToStart == 0)
-                                Config.SecondsToWaitForHolochainConductorToStart = SecondsToWaitForConductorToStartDefault;
-
                             DirectoryInfo info = new DirectoryInfo(Config.FullPathToHolochainAppDNA);
                             Logger.Log("Starting Holochain Conductor...", LogType.Info);
-
+.
                             Process pProcess = new Process();
                             pProcess.StartInfo.WorkingDirectory = info.Parent.Parent.FullName;
                             pProcess.StartInfo.FileName = Config.FullPathToExternalHolochainConductor;
@@ -172,6 +174,9 @@ namespace NextGenSoftware.Holochain.HoloNET.Client.Core
 
                     if (WebSocket.State == WebSocketState.Closed)
                     {
+                        // Close any conductors down if necessary.
+                        ShutDownConductors();
+
                         Logger.Log(string.Concat("Disconnected from ", EndPoint), LogType.Info);
                         OnDisconnected?.Invoke(this, new DisconnectedEventArgs { EndPoint = EndPoint,Reason = "Disconnected Method Called." });
                     }
@@ -302,6 +307,8 @@ namespace NextGenSoftware.Holochain.HoloNET.Client.Core
                             await WebSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, msg, CancellationToken.None);
                             OnDisconnected?.Invoke(this, new DisconnectedEventArgs { EndPoint = EndPoint, Reason = msg });
                             Logger.Log(msg, LogType.Info);
+
+                            ShutDownConductors();
 
                             //AttemptReconnect(); //TODO: Not sure re-connect here?
                         }
@@ -489,6 +496,17 @@ namespace NextGenSoftware.Holochain.HoloNET.Client.Core
                             throw new HoloNETException(message, exception, this.EndPoint);
                     }
                     break;
+            }
+        }
+
+        private void ShutDownConductors()
+        {
+            // Close any conductors down if necessary.
+            if (Config.AutoShutdownConductor)
+            {
+                FileInfo conductorInfo = new FileInfo(Config.FullPathToExternalHolochainConductor);
+                foreach (Process process in Process.GetProcessesByName(conductorInfo.Name))
+                    process.Kill();
             }
         }
     }
