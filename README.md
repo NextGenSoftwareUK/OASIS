@@ -1306,8 +1306,6 @@ Of course if they wanted use the OASIS API then the first code listing is how it
 
 Our World is much more than just a free open world game where you can build and create anything you can imagine and at the same time be immersed in an epic storyline. it is an entirely new ecosystem/asset store/internet, it is the future way we will be interacting with each other and the world through the use of technology. Smaller satellite apps/game will plug into it and share your central profile/avatar where you gain karma for doing good deeds such as helping your local communities, etc and lose karma for being selfish and not helping others since it mirrors the real world where you have free will. The karma unlocks certain abilities, special powers & items you can purchase in the game as well as quests and new areas to explore. 
 
-There is nothing else out there like this, nothing even comes close, this will change everything... There is a reason we are called NextGen Software! ;-)
-
 We believe that the OASIS API & Karama System should be baked into the core of the new internet (Web 3.0) that we are co-creating and will allow [Everything to talk to Everything](https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK#bridge) else and will act as the worlds universal API/protocol. At the center of this is the central profile/avatar where the user's data will be stored. Part of this data will include the karma they have earnt in Our World as well as the karma they have earnt in any of the inter-connected satellite apps/games that use the OASIS API.
 
 This will increase peoples awareness of the good or bad karma they are collecting and will help them become more conscious of their moment by moment actions. This will help them strive to become a better person and to reach their full potential doing as much good as they can in the world. This will help manifest a better world for us all that much faster, when everyone is doing all they can to help co-create it.
@@ -1343,6 +1341,27 @@ You will also be able to view the karma levels of other users, this can help you
 
 Your karma level effects your real life too, for example you may be entitled to free upgrades at shows, flights, events, hotels, etc. You may also be entitled to special discounts in shops, etc and if you have enough karma you can get free holidays, etc too. The higher your karma the more society will reward you. The list is endless of what is possible. We envision that eventually this will be deeply  integrated into
  all of society. This reflects how the Universe actually works and is part of the real-time simulation aspect of Our World.
+
+### OAPPS - Write Once, Deploy Everywhere
+
+OAPP's (OASIS Apps) that use the OASIS API can be deployed anywhere across any network, platform, API or protocol. This includes Holochain, every popular blockchain, ActivityPub, IPFS, SOLID & many more... check the growing list of providers supported below..
+
+Gone are the days of having to write multiple dApps and having to spend lots of time setting up your dev enviroment for each one such as the network, wallet, account, etc. The OASIS API can manage all of this for you with one simple to use UI (web, desktop and Unity versions planned). The Unity UI will in fact be Our World and will be the most feature rich through the XR interface.
+
+You can also of course fully manage every feature and option through the API itself so you could even write your own UI to it if you so wished.
+
+### OAPPS - Full Cross-API Support Across All Networks/Platforms/APIs/Protocols
+
+OAPP's that use the OASIS API can access all API functions of the various supported providers (networks/platforms/APIs/Protocols) through a simple asbstraction layer built on top of them.
+
+### One API To Rule Them All - Abstraction Layer Over The New Distributed Decentralised Internet
+
+The OASIS API will allow you to connect into everything including e-commerce, trading, security, social networks, blockchains, holochain networks, etc.
+
+### OASIS API Can Manage All Of Your Tokens/Exchanges/Wallets All In One Place
+
+The OASIS API will allow you to easily manage all of your tokens/exchanges/wallets in one place with a simple to use API. You will also be able to manage them through the OASIS API UI (web, desktop & Unity).
+
 
 <a name="our-world-is-the-xr-ir-unified-interface-to-the-holochain-ecosystem"></a>
 ### Our World Is The XR/IR Unified Interface To The Holochain Ecosystem
