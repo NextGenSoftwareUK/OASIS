@@ -1,8 +1,5 @@
 
-
-
-
-# OASIS API / Our World / HoloNET / HoloUnity / .NET HDK Altha v0.0.1
+# OASIS API / Our World / HoloNET / HoloUnity / .NET HDK Altha v0.1.0
 
 ![alt text](https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-And-HoloNET/blob/master/FinalLogo.jpg "Our World")
 
@@ -63,6 +60,10 @@
     + [Properties](#properties-3)
   * [The OASIS API & Karma System](#the-oasis-api---karma-system)
     + [Your Karma Level Effects Your Real Life Too!](#your-karma-level-effects-your-real-life-too-)
+    + [OAPPS - Write Once, Deploy Everywhere](#oapps---write-once--deploy-everywhere)
+    + [OAPPS - Full Cross-API Support Across All Networks/Platforms/APIs/Protocols](#oapps---full-cross-api-support-across-all-networks-platforms-apis-protocols)
+    + [One API To Rule Them All - Abstraction Layer Over The New Distributed Decentralised Internet](#one-api-to-rule-them-all---abstraction-layer-over-the-new-distributed-decentralised-internet)
+    + [OASIS API Can Manage All Of Your Tokens/Exchanges/Wallets All In One Place](#oasis-api-can-manage-all-of-your-tokens-exchanges-wallets-all-in-one-place)
     + [Our World Is The XR/IR Unified Interface To The Holochain Ecosystem](#our-world-is-the-xr-ir-unified-interface-to-the-holochain-ecosystem)
     + [Gain Karma When You Earn HoloFuel For Sharing Your Nodes Resources To Power Our World](#gain-karma-when-you-earn-holofuel-for-sharing-your-nodes-resources-to-power-our-world)
     + [Open Karma Committee/Community Concensors](#open-karma-committee-community-concensors)
@@ -1360,6 +1361,7 @@ The OASIS API will allow you to connect into everything including e-commerce, tr
 
 ### OASIS API Can Manage All Of Your Tokens/Exchanges/Wallets All In One Place
 
+The OASIS API will allow you to easily manage all of your tokens/exchanges/wallets in one place with a simple to use API. You will also be able to manage them through the OASIS API UI (web, desktop & Unity).
 The OASIS API will allow you to easily manage all of your tokens/exchanges/wallets in one place with a simple to use API. You will also be able to manage them through the OASIS API UI (web, desktop & Unity).
 
 
