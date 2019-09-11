@@ -1340,8 +1340,24 @@ You will also be able to view the karma levels of other users, this can help you
 <a name="your-karma-level-effects-your-real-life-too-"></a>
 ### Your Karma Level Effects Your Real Life Too!
 
-Your karma level effects your real life too, for example you may be entitled to free upgrades at shows, flights, events, hotels, etc. You may also be entitled to special discounts in shops, etc and if you have enough karma you can get free holidays, etc too. The higher your karma the more society will reward you. The list is endless of what is possible. We envision that eventually this will be deeply  integrated into
- all of society. This reflects how the Universe actually works and is part of the real-time simulation aspect of Our World.
+Your karma level effects your real life too, for example you may be entitled to free upgrades at shows, flights, events, hotels, etc. You may also be entitled to special discounts in shops, etc and if you have enough karma you can get free holidays, etc too. The higher your karma the more society will reward you. The list is endless of what is possible. We envision that eventually this will be deeply  integrated into all of society. This reflects how the Universe actually works and is part of the real-time simulation aspect of Our World.
+
+### Gain Karma When You Earn HoloFuel For Sharing Your Nodes Resources To Power Our World
+
+You can also gain karma for sharing your node's resources such as CPU, memory, bandwidth, etc
+
+<a name="open-karma-committee-community-concensors"></a>
+### Open Karma Committee/Community Concensors
+
+There will be a Open Karma Committer who will decide the algorithms for karma allocation through concensors with the community. The community can vote for any proposals the committee publish and only ones which receive enough votes will be made "OASIS Law". The community can also vote in representatives to sit on the committee so it is as open and democratic as possible.
+
+**We wish to empower the community to feel into their own hearts for what is right for them. We want them to own the system. **
+
+<a name="the-universal-api-to-connect-everything-to-everything--no-more-silos-walled-gardens-"></a>
+### The Universal API To Connect Everything To Everything (No More Silos/Walled Gardens)
+
+**The OASIS API is a global universal API that aims to connect everything to everything to eliminate walled gardens/silos.** There are a number of open protocols/platforms/networks (such as Gab, Mastodon, Diaspora, WebFinger, SOLID, Holochain, CEPTR Pluggable Protocol, Ethereum, Fediverse, ActivityPub, XMPP & more!) that the OASIS API will support. The majority of these are aimed at building a truly decentralised distributed internet (Web 3/0/4.0/5.0) and this is also the aim of the OASIS API. 
+
 
 ### OAPPS - Write Once, Deploy Everywhere
 
@@ -1370,16 +1386,6 @@ The OASIS API will allow you to easily manage all of your tokens/exchanges/walle
 
 Our World is like a XR/IR Unified Interface into all of these hApps (this is the Operating System part of it), it's a bit like the XR UI front-end to Holochain where you can view and launch any apps from inside it but they integrate much more deeper than that through the OASIS API/Profile/Avatar/Karma system where they all share the central avatar/profile and can all add/subtract the profiles/avatars karma.
 
-### Gain Karma When You Earn HoloFuel For Sharing Your Nodes Resources To Power Our World
-
-You can also gain karma for sharing your node's resources such as CPU, memory, bandwidth, etc
-
-<a name="open-karma-committee-community-concensors"></a>
-### Open Karma Committee/Community Concensors
-
-There will be a Open Karma Committer who will decide the algorithms for karma allocation through concensors with the community. The community can vote for any proposals the committee publish and only ones which receive enough votes will be made "OASIS Law". The community can also vote in representatives to sit on the committee so it is as open and democratic as possible.
-
-**We wish to empower the community to feel into their own hearts for what is right for them. We want them to own the system. **
 
 <a name="satellite-apps-games-websites--consumers-"></a>
 ### Satellite Apps/Games/Websites (Consumers)
@@ -1417,10 +1423,6 @@ We are in the process of reaching out to these to see if they wish to be one of 
 
 Please see the [Social Network](#socialnetwork) section for more info...
 
-<a name="the-universal-api-to-connect-everything-to-everything--no-more-silos-walled-gardens-"></a>
-### The Universal API To Connect Everything To Everything (No More Silos/Walled Gardens)
-
-**The OASIS API is a global universal API that aims to connect everything to everything to eliminate walled gardens/silos.** There are a number of open protocols/platforms/networks (such as Gab, Mastodon, Diaspora, WebFinger, SOLID, Holochain, CEPTR Pluggable Protocol, Ethereum, Fediverse, ActivityPub, XMPP & more!) that the OASIS API will support. The majority of these are aimed at building a truly decentralised distributed internet (Web 3.0) and this is also the aim of the OASIS API. 
 
 <a name="protocols-platforms-networks-supported--providers-"></a>
 ### Protocols/Platforms/Networks Supported (Providers)
@@ -1440,6 +1442,15 @@ Below is a list of the protocols/networks/platforms that the OASIS API will supp
 | [SOLID](https://solid.inrupt.com/) | Inventor of the Internet, Sir Tim Berners-Lee new protocol for Web 3.0 to give users control of their data as well as remove silos/walled gardens using Pods & Linked Data. | Coming Soon...
 | [Holochain](https://holochain.org/) | Leading the way for the new decentralised distributed internet | Yes |
 | [Ethereum](https://www.ethereum.org/) | One of the leading Blockchain implementations that is very popular. | Coming Soon...
+| [Loom](https://loomx.io/) | Loom Network is a Layer 2 scaling solution for Ethereum that is live in production. It is a network of DPoS sidechains, which allows for highly-scalable games. | Coming Soon...
+| [EOS](https://eos.io//) | EOSIO is a next-generation, open-source blockchain protocol with industry-leading transaction speed and flexible utility. | Coming Soon...
+| [TRON](https://tron.network/) | TRON is one of the largest blockchain-based operating systems in the world. | Coming Soon...
+| [IOST](https://iost.io/) | IOST is building an ultra-high TPS blockchain infrastructure to meet the security and scalability needs of a decentralized economy. | Coming Soon...
+| [BlockStack](https://blockstack.org/) | Blockstack apps protect your digital rights and are powered by the Stacks blockchain.. | Coming Soon...
+| [Stellar](https://www.stellar.org/) | Stellar is an open network for storing and moving money. | Coming Soon...
+| [Nexus](https://nexusearth.com/) | Nexus Earth is an innovative open source blockchain technology, designed to better the world through advanced peer to peer networks and digital currency.. | Coming Soon...
+| [Ripple](https://www.ripple.com/) | Ripple is a real-time gross settlement system, currency exchange and remittance network created by Ripple Labs Inc., a US-based technology company.. | Coming Soon...
+| [TON](https://github.com/ton-blockchain/ton) | Telegram's Open Network Blockchain also looks very promising. | Coming Soon...
 | [Fediverse](https://fediverse.party/) | It is a common name for federated social networks running on free open software on a myriad of servers across the world. Historically, this term has included only micro-blogging platforms supporting a set of protocols called OStatus. This didn't do justice to a large number of projects that federate, share same values and are reasonably popular. With the appearance and wide adoption of a new standard protocol called ActivityPub it makes no sense to further divide the federated world into “OStatus” and “non-OStatus” projects. This guide unites all interoperable federated networks under one term “Fediverse”. | Coming Soon...
 | [Gab](https://gab.com) | Distributed social network promoting free speech | Coming Soon...
 | [Mastodon](https://joinmastodon.org/) | Distributed twitter style network of micro blogging servers using the Fediverse. | Coming Soon...
