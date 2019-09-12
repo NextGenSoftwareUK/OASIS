@@ -1462,7 +1462,7 @@ Below is a list of the protocols/networks/platforms that the OASIS API will supp
 | [Gab](https://gab.com) | Distributed social network promoting free speech | Coming Soon...
 | [Mastodon](https://joinmastodon.org/) | Distributed twitter style network of micro blogging servers using the Fediverse. | Coming Soon...
 | [Diaspora](https://diasporafoundation.org/) | Another distributed social network | Coming Soon... |
-| [ScuttleButt](https://github.com/ssbc/) | A distributed and secure peer to peer social network |
+| [ScuttleButt](https://github.com/ssbc/) | A distributed and secure peer to peer social network | Coming Soon... |
 
 **More coming soon...**
 
