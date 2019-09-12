@@ -5,6 +5,7 @@
 
 ## Contents
 
+  * [Contents](#contents)
   * [Introduction](#introduction)
   * [Project Structure](#project-structure)
   * [HoloNET](#holonet)
@@ -60,20 +61,20 @@
     + [Properties](#properties-3)
   * [The OASIS API & Karma System](#the-oasis-api---karma-system)
     + [Your Karma Level Effects Your Real Life Too!](#your-karma-level-effects-your-real-life-too-)
+    + [Gain Karma When You Earn HoloFuel For Sharing Your Nodes Resources To Power Our World](#gain-karma-when-you-earn-holofuel-for-sharing-your-nodes-resources-to-power-our-world)
+    + [Open Karma Committee/Community Concensors](#open-karma-committee-community-concensors)
+    + [The OASIS API Enables You To Earn Karma Anywhere](#the-oasis-api-enables-you-to-earn-karma-anywhere)
+    + [The Universal API To Connect Everything To Everything (No More Silos/Walled Gardens)](#the-universal-api-to-connect-everything-to-everything--no-more-silos-walled-gardens-)
     + [OAPPS - Write Once, Deploy Everywhere](#oapps---write-once--deploy-everywhere)
     + [OAPPS - Full Cross-API Support Across All Networks/Platforms/APIs/Protocols](#oapps---full-cross-api-support-across-all-networks-platforms-apis-protocols)
     + [One API To Rule Them All - Abstraction Layer Over The New Distributed Decentralised Internet](#one-api-to-rule-them-all---abstraction-layer-over-the-new-distributed-decentralised-internet)
     + [OASIS API Can Manage All Of Your Tokens/Exchanges/Wallets All In One Place](#oasis-api-can-manage-all-of-your-tokens-exchanges-wallets-all-in-one-place)
     + [Our World Is The XR/IR Unified Interface To The Holochain Ecosystem](#our-world-is-the-xr-ir-unified-interface-to-the-holochain-ecosystem)
-    + [Gain Karma When You Earn HoloFuel For Sharing Your Nodes Resources To Power Our World](#gain-karma-when-you-earn-holofuel-for-sharing-your-nodes-resources-to-power-our-world)
-    + [Open Karma Committee/Community Concensors](#open-karma-committee-community-concensors)
     + [Satellite Apps/Games/Websites (Consumers)](#satellite-apps-games-websites--consumers-)
-    + [The Universal API To Connect Everything To Everything (No More Silos/Walled Gardens)](#the-universal-api-to-connect-everything-to-everything--no-more-silos-walled-gardens-)
     + [Protocols/Platforms/Networks Supported (Providers)](#protocols-platforms-networks-supported--providers-)
     + [Calling The OASIS API](#calling-the-oasis-api)
     + [OASIS Open Standards](#oasis-open-standards)
     + [OASIS API Redundancy (Can Store Copies Of Your Data On Any Decentralised Network/Platform You Choose)](#oasis-api-redundancy--can-store-copies-of-your-data-on-any-decentralised-network-platform-you-choose-)
-    + [The OASIS API Enables You To Earn Karma Anywhere](#the-oasis-api-enables-you-to-earn-karma-anywhere)
     + [User Has FULL Control Of Their Data](#user-has-full-control-of-their-data)
   * [.NET HDK](#net-hdk)
   * [The Power Of Holochain, .NET, Unity & NodeJS Combined!](#the-power-of-holochain--net--unity---nodejs-combined-)
@@ -1353,12 +1354,16 @@ There will be a Open Karma Committer who will decide the algorithms for karma al
 
 **We wish to empower the community to feel into their own hearts for what is right for them. We want them to own the system. **
 
+### The OASIS API Enables You To Earn Karma Anywhere
+
+Our World will automatically support all of the platforms/networks/protocols listed above so your profile/avatar/karma will be available to any apps that use their platforms/networks/protocols. This will also make it easier to earn karma in a wider range of apps by supporting as many platforms/networks/protocols as possible. 
+
 <a name="the-universal-api-to-connect-everything-to-everything--no-more-silos-walled-gardens-"></a>
 ### The Universal API To Connect Everything To Everything (No More Silos/Walled Gardens)
 
 **The OASIS API is a global universal API that aims to connect everything to everything to eliminate walled gardens/silos.** There are a number of open protocols/platforms/networks (such as Gab, Mastodon, Diaspora, WebFinger, SOLID, Holochain, CEPTR Pluggable Protocol, Ethereum, Fediverse, ActivityPub, XMPP & more!) that the OASIS API will support. The majority of these are aimed at building a truly decentralised distributed internet (Web 3/0/4.0/5.0) and this is also the aim of the OASIS API. 
 
-
+<a name="oapps---write-once--deploy-everywhere"></a>
 ### OAPPS - Write Once, Deploy Everywhere
 
 OAPP's (OASIS Apps) that use the OASIS API can be deployed anywhere across any network, platform, API or protocol. This includes Holochain, every popular blockchain, ActivityPub, IPFS, SOLID & many more... check the growing list of providers supported below..
@@ -1367,14 +1372,17 @@ Gone are the days of having to write multiple dApps and having to spend lots of 
 
 You can also of course fully manage every feature and option through the API itself so you could even write your own UI to it if you so wished.
 
+<a name="oapps---full-cross-api-support-across-all-networks-platforms-apis-protocols"></a>
 ### OAPPS - Full Cross-API Support Across All Networks/Platforms/APIs/Protocols
 
 OAPP's that use the OASIS API can access all API functions of the various supported providers (networks/platforms/APIs/Protocols) through a simple asbstraction layer built on top of them.
 
+<a name="one-api-to-rule-them-all---abstraction-layer-over-the-new-distributed-decentralised-internet"></a>
 ### One API To Rule Them All - Abstraction Layer Over The New Distributed Decentralised Internet
 
 The OASIS API will allow you to connect into everything including e-commerce, trading, security, social networks, blockchains, holochain networks, etc.
 
+<a name="oasis-api-can-manage-all-of-your-tokens-exchanges-wallets-all-in-one-place"></a>
 ### OASIS API Can Manage All Of Your Tokens/Exchanges/Wallets All In One Place
 
 The OASIS API will allow you to easily manage all of your tokens/exchanges/wallets in one place with a simple to use API. You will also be able to manage them through the OASIS API UI (web, desktop & Unity).
@@ -1484,9 +1492,6 @@ They are all about pushing the same agenda except we are actually implementing a
 
 The OASIS API has built in redundancy in that you can choose to store copies of your data on any decentralised network/platform. When calling the OASIS API you can specify which network/platform you wish to use (the ones available will be dependent on whether a Provider has yet been implemented for it, so far only Holochain is supported.) The default provider will be Holochain since the long term goal of the OASIS API is to get people to slowly migrate across to Holochain.
 
-### The OASIS API Enables You To Earn Karma Anywhere
-
-Our World will automatically support all of the platforms/networks/protocols listed above so your profile/avatar/karma will be available to any apps that use their platforms/networks/protocols. This will also make it easier to earn karma in a wider range of apps by supporting as many platforms/networks/protocols as possible. 
 
 ### User Has FULL Control Of Their Data
 
