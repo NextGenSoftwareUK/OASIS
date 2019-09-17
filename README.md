@@ -1312,7 +1312,7 @@ We believe that the OASIS API & Karama System should be baked into the core of t
 
 This will increase peoples awareness of the good or bad karma they are collecting and will help them become more conscious of their moment by moment actions. This will help them strive to become a better person and to reach their full potential doing as much good as they can in the world. This will help manifest a better world for us all that much faster, when everyone is doing all they can to help co-create it.
 
-**The OASIS API & Our World are expressions of true Unity Conciousness manifested within the technical sphere.**
+**The OASIS API & Our World are expressions of true Unity Consciousness manifested within the technical sphere.**
 
 The karma will be grouped into the following categories:
 
@@ -1351,7 +1351,7 @@ You can also gain karma for sharing your node's resources such as CPU, memory, b
 
 ### The OASIS API Will Use The Reputation Interchange From Sacred Capital
 
-We have partnered with Sacred Capitial to use the Reputation Interchange to help power the Karma system across the Holochain Ecosystem and beyond...
+We have partnered with Sacred Capital (another great Holochain project) to use the Reputation Interchange to help power the Karma system across the Holochain Ecosystem and beyond...
 
 https://www.sacred.capital/
 
@@ -1377,21 +1377,24 @@ Our World will automatically support all of the platforms/networks/protocols lis
 
 OAPP's (OASIS Apps) that use the OASIS API can be deployed anywhere across any network, platform, API or protocol. This includes Holochain, every popular blockchain, ActivityPub, IPFS, SOLID & many more... check the growing list of providers supported below..
 
-Gone are the days of having to write multiple dApps and having to spend lots of time setting up your dev enviroment for each one such as the network, wallet, account, etc. The OASIS API can manage all of this for you with one simple to use UI (web, desktop and Unity versions planned). The Unity UI will in fact be Our World and will be the most feature rich through the XR interface.
+Gone are the days of having to write multiple dApps and having to spend lots of time setting up your dev environment for each one such as the network, wallet, account, etc. The OASIS API can manage all of this for you with one simple to use UI (web, desktop and Unity versions planned). The Unity UI will in fact be Our World and will be the most feature rich through the XR interface.
 
 You can also of course fully manage every feature and option through the API itself so you could even write your own UI to it if you so wished.
 
 <a name="oapps---full-cross-api-support-across-all-networks-platforms-apis-protocols"></a>
 ### OAPPS - Full Cross-API Support Across All Networks/Platforms/APIs/Protocols
 
-OAPP's that use the OASIS API can access all API functions of the various supported providers (networks/platforms/APIs/Protocols) through a simple asbstraction layer built on top of them.
+OAPP's that use the OASIS API can access all API functions of the various supported providers (networks/platforms/APIs/Protocols) through a simple asbstraction layer built on top of them. Gone are the days of having to learn many API's, you only need to learn one... the OASIS API and it will take care of the rest for you... happy days! :) 
+
+You can of course still call through to a specefic provider API if you still need to or need greater control over that specefic provider.
 
 ### OAPPS - Full support (create/deploy/consume) for Smart Contracts (SOLIDITY) across ANY supported Provider (Network/platform/API/protocol)
 
 Smart Contracts will be supported across any of the supported providers (network/platform/API/protocol), so you only need to write the contract once for your OAPP and then deploy your OAPP once and it will then take care of deploying and running your app/smart contract across all supported providers (network/platform/API/protocol).
 
 <a name="one-api-to-rule-them-all---abstraction-layer-over-the-new-distributed-decentralised-internet"></a>
-### One API To Rule Them All - Abstraction Layer Over The New Distributed Decentralised Internet (IoT)
+###
+ One API To Rule Them All - Abstraction Layer Over The New Distributed Decentralised Internet (IoT)
 
 The OASIS API will allow you to connect into everything including e-commerce, trading, security, social networks, blockchains, holochain networks, etc.
 
@@ -1462,7 +1465,8 @@ Below is a list of the protocols/networks/platforms that the OASIS API will supp
 | [SOLID](https://solid.inrupt.com/) | Inventor of the Internet, Sir Tim Berners-Lee new protocol for Web 3.0 to give users control of their data as well as remove silos/walled gardens using Pods & Linked Data. | Coming Soon...
 | [Holochain](https://holochain.org/) | Leading the way for the new decentralised distributed internet | Yes |
 | [Ethereum](https://www.ethereum.org/) | One of the leading Blockchain implementations that is very popular. | Coming Soon...
-| [Loom](https://loomx.io/) | Loom Network is a Layer 2 scaling solution for Ethereum that is live in production. It is a network of DPoS sidechains, which allows for highly-scalable games. | Coming Soon...
+| [Loom](https://loomx.io/) | Loom
+ Network is a Layer 2 scaling solution for Ethereum that is live in production. It is a network of DPoS sidechains, which allows for highly-scalable games. | Coming Soon...
 | [EOS](https://eos.io//) | EOSIO is a next-generation, open-source blockchain protocol with industry-leading transaction speed and flexible utility. | Coming Soon...
 | [TRON](https://tron.network/) | TRON is one of the largest blockchain-based operating systems in the world. | Coming Soon...
 | [IOST](https://iost.io/) | IOST is building an ultra-high TPS blockchain infrastructure to meet the security and scalability needs of a decentralized economy. | Coming Soon...
@@ -1480,7 +1484,7 @@ Below is a list of the protocols/networks/platforms that the OASIS API will supp
 
 **More coming soon...**
 
-If you know of any other open protocols/platforms/networks that you feel are part of the new internet (Web 3.0) we are all co-creating then please do get in touch on [ourworld@nextgensoftware.co.uk](mailto:ourworld@nextgensoftware.co.uk) and let us know, thank you! :)
+If you know of any other open protocols/platforms/networks that you feel are part of the new internet (Web 3.0+) we are all co-creating then please do get in touch on [ourworld@nextgensoftware.co.uk](mailto:ourworld@nextgensoftware.co.uk) and let us know, thank you! :)
 
 ### Calling The OASIS API
 
