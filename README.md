@@ -5,7 +5,6 @@
 
 ## Contents
 
-  * [Contents](#contents)
   * [Introduction](#introduction)
   * [Project Structure](#project-structure)
   * [HoloNET](#holonet)
@@ -62,12 +61,14 @@
   * [The OASIS API & Karma System](#the-oasis-api---karma-system)
     + [Your Karma Level Effects Your Real Life Too!](#your-karma-level-effects-your-real-life-too-)
     + [Gain Karma When You Earn HoloFuel For Sharing Your Nodes Resources To Power Our World](#gain-karma-when-you-earn-holofuel-for-sharing-your-nodes-resources-to-power-our-world)
+    + [The OASIS API Will Use Reputation Interchange from Sacred Capital](#the-oasis-api-will-use-reputation-interchange-from-sacred-capital)
     + [Open Karma Committee/Community Concensors](#open-karma-committee-community-concensors)
     + [The OASIS API Enables You To Earn Karma Anywhere](#the-oasis-api-enables-you-to-earn-karma-anywhere)
     + [The Universal API To Connect Everything To Everything (No More Silos/Walled Gardens)](#the-universal-api-to-connect-everything-to-everything--no-more-silos-walled-gardens-)
     + [OAPPS - Write Once, Deploy Everywhere](#oapps---write-once--deploy-everywhere)
     + [OAPPS - Full Cross-API Support Across All Networks/Platforms/APIs/Protocols](#oapps---full-cross-api-support-across-all-networks-platforms-apis-protocols)
-    + [One API To Rule Them All - Abstraction Layer Over The New Distributed Decentralised Internet](#one-api-to-rule-them-all---abstraction-layer-over-the-new-distributed-decentralised-internet)
+    + [OAPPS - Full support for Smart Contracts across ANY supported Provider (Network/platform/API/protocol)](#oapps---full-support-for-smart-contracts-across-any-supported-provider--network-platform-api-protocol-)
+    + [One API To Rule Them All - Abstraction Layer Over The New Distributed Decentralised Internet (IoT)](#one-api-to-rule-them-all---abstraction-layer-over-the-new-distributed-decentralised-internet--iot-)
     + [OASIS API Can Manage All Of Your Tokens/Exchanges/Wallets All In One Place](#oasis-api-can-manage-all-of-your-tokens-exchanges-wallets-all-in-one-place)
     + [Our World Is The XR/IR Unified Interface To The Holochain Ecosystem](#our-world-is-the-xr-ir-unified-interface-to-the-holochain-ecosystem)
     + [Satellite Apps/Games/Websites (Consumers)](#satellite-apps-games-websites--consumers-)
@@ -136,7 +137,6 @@
   * [Other Ways To Get Involved](#other-ways-to-get-involved)
   * [HoloSource Licence](#holosource-licence)
   * [Links](#links)
-
 
 ## Introduction
 
