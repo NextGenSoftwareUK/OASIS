@@ -61,13 +61,13 @@
   * [The OASIS API & Karma System](#the-oasis-api---karma-system)
     + [Your Karma Level Effects Your Real Life Too!](#your-karma-level-effects-your-real-life-too-)
     + [Gain Karma When You Earn HoloFuel For Sharing Your Nodes Resources To Power Our World](#gain-karma-when-you-earn-holofuel-for-sharing-your-nodes-resources-to-power-our-world)
-    + [The OASIS API Will Use Reputation Interchange from Sacred Capital](#the-oasis-api-will-use-reputation-interchange-from-sacred-capital)
+    + [The OASIS API Will Use The Reputation Interchange From Sacred Capital](#the-oasis-api-will-use-the-reputation-interchange-from-sacred-capital)
     + [Open Karma Committee/Community Concensors](#open-karma-committee-community-concensors)
     + [The OASIS API Enables You To Earn Karma Anywhere](#the-oasis-api-enables-you-to-earn-karma-anywhere)
     + [The Universal API To Connect Everything To Everything (No More Silos/Walled Gardens)](#the-universal-api-to-connect-everything-to-everything--no-more-silos-walled-gardens-)
     + [OAPPS - Write Once, Deploy Everywhere](#oapps---write-once--deploy-everywhere)
     + [OAPPS - Full Cross-API Support Across All Networks/Platforms/APIs/Protocols](#oapps---full-cross-api-support-across-all-networks-platforms-apis-protocols)
-    + [OAPPS - Full support for Smart Contracts across ANY supported Provider (Network/platform/API/protocol)](#oapps---full-support-for-smart-contracts-across-any-supported-provider--network-platform-api-protocol-)
+    + [OAPPS - Full support (create/deploy/consume) for Smart Contracts (SOLIDITY) across ANY supported Provider (Network/platform/API/protocol)](#oapps---full-support--create-deploy-consume--for-smart-contracts--solidity--across-any-supported-provider--network-platform-api-protocol-)
     + [One API To Rule Them All - Abstraction Layer Over The New Distributed Decentralised Internet (IoT)](#one-api-to-rule-them-all---abstraction-layer-over-the-new-distributed-decentralised-internet--iot-)
     + [OASIS API Can Manage All Of Your Tokens/Exchanges/Wallets All In One Place](#oasis-api-can-manage-all-of-your-tokens-exchanges-wallets-all-in-one-place)
     + [Our World Is The XR/IR Unified Interface To The Holochain Ecosystem](#our-world-is-the-xr-ir-unified-interface-to-the-holochain-ecosystem)
@@ -1349,7 +1349,7 @@ Your karma level effects your real life too, for example you may be entitled to 
 
 You can also gain karma for sharing your node's resources such as CPU, memory, bandwidth, etc
 
-### The OASIS API Will Use Reputation Interchange from Sacred Capital
+### The OASIS API Will Use The Reputation Interchange From Sacred Capital
 
 We have partnered with Sacred Capitial to use the Reputation Interchange to help power the Karma system across the Holochain Ecosystem and beyond...
 
@@ -1386,7 +1386,7 @@ You can also of course fully manage every feature and option through the API its
 
 OAPP's that use the OASIS API can access all API functions of the various supported providers (networks/platforms/APIs/Protocols) through a simple asbstraction layer built on top of them.
 
-### OAPPS - Full support for Smart Contracts across ANY supported Provider (Network/platform/API/protocol)
+### OAPPS - Full support (create/deploy/consume) for Smart Contracts (SOLIDITY) across ANY supported Provider (Network/platform/API/protocol)
 
 Smart Contracts will be supported across any of the supported providers (network/platform/API/protocol), so you only need to write the contract once for your OAPP and then deploy your OAPP once and it will then take care of deploying and running your app/smart contract across all supported providers (network/platform/API/protocol).
 
