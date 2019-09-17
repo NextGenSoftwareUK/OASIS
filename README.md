@@ -1349,6 +1349,13 @@ Your karma level effects your real life too, for example you may be entitled to 
 
 You can also gain karma for sharing your node's resources such as CPU, memory, bandwidth, etc
 
+### The OASIS API Will Use Reputation Interchange from Sacred Capital
+
+We have partnered with Sacred Capitial to use the Reputation Interchange to help power the Karma system across the Holochain Ecosystem and beyond...
+
+https://www.sacred.capital/
+
+
 <a name="open-karma-committee-community-concensors"></a>
 ### Open Karma Committee/Community Concensors
 
@@ -1379,8 +1386,12 @@ You can also of course fully manage every feature and option through the API its
 
 OAPP's that use the OASIS API can access all API functions of the various supported providers (networks/platforms/APIs/Protocols) through a simple asbstraction layer built on top of them.
 
+### OAPPS - Full support for Smart Contracts across ANY supported Provider (Network/platform/API/protocol)
+
+Smart Contracts will be supported across any of the supported providers (network/platform/API/protocol), so you only need to write the contract once for your OAPP and then deploy your OAPP once and it will then take care of deploying and running your app/smart contract across all supported providers (network/platform/API/protocol).
+
 <a name="one-api-to-rule-them-all---abstraction-layer-over-the-new-distributed-decentralised-internet"></a>
-### One API To Rule Them All - Abstraction Layer Over The New Distributed Decentralised Internet
+### One API To Rule Them All - Abstraction Layer Over The New Distributed Decentralised Internet (IoT)
 
 The OASIS API will allow you to connect into everything including e-commerce, trading, security, social networks, blockchains, holochain networks, etc.
 
@@ -1465,6 +1476,7 @@ Below is a list of the protocols/networks/platforms that the OASIS API will supp
 | [Mastodon](https://joinmastodon.org/) | Distributed twitter style network of micro blogging servers using the Fediverse. | Coming Soon...
 | [Diaspora](https://diasporafoundation.org/) | Another distributed social network | Coming Soon... |
 | [ScuttleButt](https://github.com/ssbc/) | A distributed and secure peer to peer social network | Coming Soon... |
+| [Hedera Hashgraph](https://www.hedera.com/) | Hedera is a decentralized public network where anyone can carve out a piece of cyberspace to transact, play, and socialize in a secure, trusted environment. | Coming Soon... |
 
 **More coming soon...**
 
