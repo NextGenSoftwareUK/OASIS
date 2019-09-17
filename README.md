@@ -1353,7 +1353,7 @@ You can also gain karma for sharing your node's resources such as CPU, memory, b
 
 We have partnered with Sacred Capital (another great Holochain project) to use the Reputation Interchange to help power the Karma system across the Holochain Ecosystem and beyond...
 
-https://www.sacred.capital/
+https://www.sacred.capital
 
 
 <a name="open-karma-committee-community-concensors"></a>
@@ -1388,11 +1388,12 @@ OAPP's that use the OASIS API can access all API functions of the various suppor
 
 You can of course still call through to a specefic provider API if you still need to or need greater control over that specefic provider.
 
+<a name="oapps---full-support--create-deploy-consume--for-smart-contracts--solidity--across-any-supported-provider--network-platform-api-protocol-"></a>
 ### OAPPS - Full support (create/deploy/consume) for Smart Contracts (SOLIDITY) across ANY supported Provider (Network/platform/API/protocol)
 
 Smart Contracts will be supported across any of the supported providers (network/platform/API/protocol), so you only need to write the contract once for your OAPP and then deploy your OAPP once and it will then take care of deploying and running your app/smart contract across all supported providers (network/platform/API/protocol).
 
-<a name="one-api-to-rule-them-all---abstraction-layer-over-the-new-distributed-decentralised-internet"></a>
+<a name="one-api-to-rule-them-all---abstraction-layer-over-the-new-distributed-decentralised-internet--iot-"></a>
 ###
  One API To Rule Them All - Abstraction Layer Over The New Distributed Decentralised Internet (IoT)
 
