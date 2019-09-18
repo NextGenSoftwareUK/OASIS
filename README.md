@@ -1419,7 +1419,7 @@ As already mentioned, many satellite apps/games/websites will plug into Our Worl
 
 A list of of possible early adopters can be found below:
 
-|Consumer|Description| Holochain App | Integrated | 
+|Consumer|Description| Holochain App (hApp) | Integrated | 
 |--|--|--|--|
 | <a href="https://www.sacred.capital">Sacred Capital</a> |Our staking protocol allows network effects to accrue to reputation. We achieve this through a process known as 'Contextual Chaos'. This means you can port reputation across eco-systems in an appropriate and contextual manner.The result? Applications that facilitate new behaviour patterns of collaboration, interaction and sharing. This is the new economy coming alive in it's truest, varied, diverse colours! |Yes | Coming soon|
 | <a href="https://cryptpad.fr/pad">Holo-REA</a> |The HoloREA team wants to create a framework for developing economic networks on Holochain. HoloREA will build some apps, but also intends the framework to be usable by any other apps that work in economic networks, supply chains, or joint ventures.| Yes| Coming soon|
