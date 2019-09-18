@@ -1423,19 +1423,19 @@ A list of of possible early adopters can be found below:
 |--|--|--|--|
 |<a href="http://iwg.life/s7foundation/">Noomap</a>  |3D fractal mapping technology where you can map everything including your thoughts, passions, desires & so much more! |Not Yet | Coming soon |
 |  <a href="https://mindlife.net">Uplift/MindLife</a> |UpLift is an App delivering a comprehensive series of interactive self-help interventions. Designed and developed by MindLife UK, the App helps people to improve their resilience, confidence and mental capital. |No| Coming soon |
-| <a href="http://www.joinseeds.com">Seeds</a>| A payment platform and financial ecosystem to empower humanity and heal our planet. | TBC |
 | <a href="https://www.moneyofgood.org/">Money Of Good</a>|Money of Good is a social program that uses revolutionary proof-of-meditation technology to offer people the chance to earn money as a reward for practicing meditation, improving their health, rising consciousness and fostering a new economic model much more equitable and sustainable. |Yes |TBC |
-| <a href="http://www.appsforgood.org">Apps For Good</a>| Creative tech courses for you to deliver in your classroom | TBC |
-| <a href="voiceofhumanity.org">Voice Of Humanity</a>| |No | Coming soon... |
-| <a href="http://www.4ocean.com">4Ocean</a>| Cleaning the ocean from the profits made of the sale of bracelets |No | TBC |
-| <a href="preseach.io">PreSearch</a> | Presearch is a decentralized search engine, powered by the community. |No| TBC |
-| <a href="https://www.mapotic.com">Mapotic</a>|Mapotic is the intuitive mapping platform that empowers you to share knowledge about the places you know and love |No | TBC|
-| <a href="https://docs.google.com/document/d/1LgBQX42jIOFkfnbHf1swP3GwDd0O-jzpjYYv63OjDRg/edit#heading=h.ofqm4bivlrj4">Global Brain Application</a>|Developing a GloCal Holistic Collaboration and Mapping Tool/UI named here as Global Brain Application |Yes? |TBC |
 | <a href="https://alptha.joatu.org">Joatu</a>|Junto is a new breed of social media that integrates a more consciously designed interface, distributed technology, and a non-profit approach to create a space where people can truly be themselves.|Yes | TBC |
 | <a href="https://www.sacred.capital">Sacred Capital</a> |Our staking protocol allows network effects to accrue to reputation. We achieve this through a process known as 'Contextual Chaos'. This means you can port reputation across eco-systems in an appropriate and contextual manner.The result? Applications that facilitate new behaviour patterns of collaboration, interaction and sharing. This is the new economy coming alive in it's truest, varied, diverse colours! |Yes | Coming soon|
 | <a href="https://cryptpad.fr/pad">Holo-REA</a> |The HoloREA team wants to create a framework for developing economic networks on Holochain. HoloREA will build some apps, but also intends the framework to be usable by any other apps that work in economic networks, supply chains, or joint ventures.| Yes| Coming soon|
 | <a href="https://humm.earth/">Humm Earth</a> |Influence-free, beautifully simple peer-to-peer publishing: think of Humm as fully distributed WordPress + Patreon, made for the writers and content creators of the future, powering independent hApps and an intentional community. |Yes | TBC|
 | <a href="[https://forum.holochain.org/c/projects/comet](https://forum.holochain.org/c/projects/comet)">Comet</a> |Comet is a distributed, Reddit alternative. Posts are created with tags instead of “subreddits,” and are voted on in relation to these tags. Votes can be fractional amounts; the score of a post/comment is determined on a per-person basis, depending on how they have previously voted on the other voters’ content. |Yes | TBC|
+| <a href="https://docs.google.com/document/d/1LgBQX42jIOFkfnbHf1swP3GwDd0O-jzpjYYv63OjDRg/edit#heading=h.ofqm4bivlrj4">Global Brain Application</a>|Developing a GloCal Holistic Collaboration and Mapping Tool/UI named here as Global Brain Application |Yes? |TBC |
+| <a href="http://www.joinseeds.com">Seeds</a>| A payment platform and financial ecosystem to empower humanity and heal our planet. | TBC |
+| <a href="http://www.appsforgood.org">Apps For Good</a>| Creative tech courses for you to deliver in your classroom | TBC |
+| <a href="voiceofhumanity.org">Voice Of Humanity</a>| |No | TBC |
+| <a href="http://www.4ocean.com">4Ocean</a>| Cleaning the ocean from the profits made of the sale of bracelets |No | TBC |
+| <a href="preseach.io">PreSearch</a> | Presearch is a decentralized search engine, powered by the community. |No| TBC |
+| <a href="https://www.mapotic.com">Mapotic</a>|Mapotic is the intuitive mapping platform that empowers you to share knowledge about the places you know and love |No | TBC|
 |  <a href="https://www.headspace.com">Headspace</a> | Leading meditation app. |No | TBC|
 |  <a href="https://www.superbetter.com">Super Better</a> |SuperBetter builds resilience - the ability to stay strong, motivated and optimistic even in the face of change and difficult challenges. Playing SuperBetter unlocks heroic potential to overcome tough situations and achieve goals that matter most. |No | TBC|
 | <a href="https://bridgit.io/">Bridge It</a> |A web overlay that advances the way the world views, shares, and engages with information on the web through community participation.|No | TBC|
