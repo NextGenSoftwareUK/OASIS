@@ -1482,6 +1482,7 @@ Below is a list of the protocols/networks/platforms that the OASIS API will supp
 | [Diaspora](https://diasporafoundation.org/) | Another distributed social network | Coming Soon... |
 | [ScuttleButt](https://github.com/ssbc/) | A distributed and secure peer to peer social network | Coming Soon... |
 | [Hedera Hashgraph](https://www.hedera.com/) | Hedera is a decentralized public network where anyone can carve out a piece of cyberspace to transact, play, and socialize in a secure, trusted environment. | Coming Soon... |
+| [DFINITY](https://dfinity.org) | DFINITY is building an open, decentralized compute platform designed to host the next generation of software and services with vastly improved performance |
 
 **More coming soon...**
 
