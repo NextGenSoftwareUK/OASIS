@@ -1457,7 +1457,7 @@ The OASIS API aims to support as many platforms/networks/protocols as possible s
 Below is a list of the protocols/networks/platforms that the OASIS API will support (expect this list to grow in time):
 
 |Protocol/Platform/Network| Description | Support Implemented  | Provider Name |
-|--|--|--|
+|--|--|--|--|
 | [Holochain](https://holochain.org/) | Leading the way for the new decentralised distributed internet | Yes | [HoloOASIS](#holooasis)
 | [SOLID](https://solid.inrupt.com/) | Inventor of the Internet, Sir Tim Berners-Lee new protocol for Web 3.0 to give users control of their data as well as remove silos/walled gardens using Pods & Linked Data. | In Development... | SOLIDOASIS
 | [Ethereum](https://www.ethereum.org/) | One of the leading Blockchain implementations that is very popular. | In Development...| EthereumOASIS
