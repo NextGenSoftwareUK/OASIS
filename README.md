@@ -1420,7 +1420,7 @@ As already mentioned, many satellite apps/games/websites will plug into Our Worl
 A list of of possible early adopters can be found below:
 
 |Consumer|Description| Holochain App | Integrated | 
-|--|--|--|
+|--|--|--|--|
 |<a href="http://iwg.life/s7foundation/">Noomap</a>  |3D fractal mapping technology where you can map everything including your thoughts, passions, desires & so much more! |Not Yet | Coming soon |
 |  <a href="https://mindlife.net">Uplift/MindLife</a> |UpLift is an App delivering a comprehensive series of interactive self-help interventions. Designed and developed by MindLife UK, the App helps people to improve their resilience, confidence and mental capital. |No| Coming soon |
 | <a href="http://www.joinseeds.com">Seeds</a>| A payment platform and financial ecosystem to empower humanity and heal our planet. | TBC |
@@ -1459,9 +1459,9 @@ Below is a list of the protocols/networks/platforms that the OASIS API will supp
 |Protocol/Platform/Network| Description | Support Implemented  | Provider Name |
 |--|--|--|--|
 | [Holochain](https://holochain.org/) | Leading the way for the new decentralised distributed internet | Yes | [HoloOASIS](#holooasis)
-| [SOLID](https://solid.inrupt.com/) | Inventor of the Internet, Sir Tim Berners-Lee new protocol for Web 3.0 to give users control of their data as well as remove silos/walled gardens using Pods & Linked Data. | In Development | SOLIDOASIS
-| [Ethereum](https://www.ethereum.org/) | One of the leading Blockchain implementations that is very popular. | In Development| EthereumOASIS
-| [IPFS](https://ipfs.io) | The InterPlanetary File System is a protocol and peer-to-peer network for storing and sharing data in a distributed file system. IPFS uses content-addressing to uniquely identify each file in a global namespace connecting all computing devices.| In Development | IPFSOASIS
+| [SOLID](https://solid.inrupt.com/) | Inventor of the Internet, Sir Tim Berners-Lee new protocol for Web 3.0 to give users control of their data as well as remove silos/walled gardens using Pods & Linked Data. | In Dev | SOLIDOASIS
+| [Ethereum](https://www.ethereum.org/) | One of the leading Blockchain implementations that is very popular. | In Dev| EthereumOASIS
+| [IPFS](https://ipfs.io) | The InterPlanetary File System is a protocol and peer-to-peer network for storing and sharing data in a distributed file system. IPFS uses content-addressing to uniquely identify each file in a global namespace connecting all computing devices.| In Dev | IPFSOASIS
 |[CEPTR Protocol For Pluggable Protocols](http://ceptr.org/projects/pcubed)|Complete interoperability: No more silos and brittle APIs. Self-Describing protocols and a universal parsing system allows anything to talk to anything. This is where the OASIS API is a stepping stone to get to this point by providing backwards compatibility with what is already out there.|Coming soon | 
 |[HSTP (Hyper Spacial Transport Protocol)](https://www.verses.io/)  | The new protocol for the new Spacial Web (Web 3.0) | Coming Soon |
 | [WebFinger](https://webfinger.net/) | WebFinger is used to discover information about people or other entities on the Internet that are identified by a URI using standard Hypertext Transfer Protocol (HTTP) methods over a secure transport. A WebFinger resource returns a JavaScript Object Notation (JSON) object describing the entity that is queried. The JSON object is referred to as the JSON Resource Descriptor (JRD).| Coming Soon
