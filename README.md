@@ -1,4 +1,5 @@
 
+
 # OASIS API / Our World / HoloNET / HoloUnity / .NET HDK Altha v0.1.0
 
 ![alt text](https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-And-HoloNET/blob/master/FinalLogo.jpg "Our World")
@@ -1499,6 +1500,15 @@ If you know of any other open protocols/platforms/networks that you feel are par
 
 Below is a list of all the Holochain zomes/services used by Our World/The OASIS API:
 
+| Zome/Service | Description  | Integrated
+|--|--|--|
+| <a href="https://www.sacred.capital">Sacred Capital</a> |Our staking protocol allows network effects to accrue to reputation. We achieve this through a process known as 'Contextual Chaos'. This means you can port reputation across eco-systems in an appropriate and contextual manner.The result? Applications that facilitate new behavior patterns of collaboration, interaction and sharing. This is the new economy coming alive in it's truest, varied, diverse colours! We will be using their Reputation Interchange to help power the Karma System | Coming Soon|
+| <a href="https://cryptpad.fr/pad">Holo-REA</a> |The HoloREA team wants to create a framework for developing economic networks on Holochain. HoloREA will build some apps, but also intends the framework to be usable by any other apps that work in economic networks, supply chains, or joint ventures.  We will be using their framework to help power the in-app transactions as well as the supply chain & e-commerce components of Our World.| Coming Soon|
+| [Orion Protocol](https://orionprotocol.io) | Cross chain trading, omni-exchange accessibility and liquidity. We will be using this to allow the OASIS API to talk to all available crypto exchanges. | Coming Soon
+| [FileStorage Zome](https://github.com/holochain/file-storage-zome) | This Zome allows files to be stored within Holochain. | Coming Soon
+| [Chat hApp](https://github.com/holochain/holochain-basic-chat) | This hApp facilitates real-time chat within Holochain. | Coming Soon
+| [Cool Cats hApp](https://github.com/pythagorean/coolcats) | This is a basic Twitter style clone and will help power part of the social network component of Our World. | Coming Soon
+| Points Of Interest Zome](https://github.com/vanarchist/holochain-point-of-interest) | Will be used to help store the Points Of Interest on the Our World 3D Map.
 
 
 ### Calling The OASIS API
