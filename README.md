@@ -71,107 +71,6 @@
     + [One API To Rule Them All - Abstraction Layer Over The New Distributed Decentralised Internet (IoT)](#one-api-to-rule-them-all---abstraction-layer-over-the-new-distributed-decentralised-internet--iot-)
     + [OASIS API Can Manage All Of Your Tokens/Exchanges/Wallets All In One Place](#oasis-api-can-manage-all-of-your-tokens-exchanges-wallets-all-in-one-place)
     + [One Single Login For All Your Apps/Games/Websites/Services/Everything!](#one-single-login-for-all-your-apps-games-websites-services-everything-)
-61
-  * [The OASIS API & Karma System](#the-oasis-api---karma-system)
-62
-    + [Your Karma Level Effects Your Real Life Too!](#your-karma-level-effects-your-real-life-too-)
-63
-    + [Gain Karma When You Earn HoloFuel For Sharing Your Nodes Resources To Power Our World](#gain-karma-when-you-earn-holofuel-for-sharing-your-nodes-resources-to-power-our-world)
-64
-    + [The OASIS API Will Use The Reputation Interchange From Sacred Capital](#the-oasis-api-will-use-the-reputation-interchange-from-sacred-capital)
-65
-    + [Open Karma Committee/Community Concensors](#open-karma-committee-community-concensors)
-66
-    + [The OASIS API Enables You To Earn Karma Anywhere](#the-oasis-api-enables-you-to-earn-karma-anywhere)
-67
-    + [The Universal API To Connect Everything To Everything (No More Silos/Walled Gardens)](#the-universal-api-to-connect-everything-to-everything--no-more-silos-walled-gardens-)
-68
-    + [OAPPS - Write Once, Deploy Everywhere](#oapps---write-once--deploy-everywhere)
-69
-    + [OAPPS - Full Cross-API Support Across All Networks/Platforms/APIs/Protocols](#oapps---full-cross-api-support-across-all-networks-platforms-apis-protocols)
-70
-    + [OAPPS - Full support (create/deploy/consume) for Smart Contracts (SOLIDITY) across ANY supported Provider (Network/platform/API/protocol)](#oapps---full-support--create-deploy-consume--for-smart-contracts--solidity--across-any-supported-provider--network-platform-api-protocol-)
-71
-    + [One API To Rule Them All - Abstraction Layer Over The New Distributed Decentralised Internet (IoT)](#one-api-to-rule-them-all---abstraction-layer-over-the-new-distributed-decentralised-internet--iot-)
-72
-    + [OASIS API Can Manage All Of Your Tokens/Exchanges/Wallets All In One Place](#oasis-api-can-manage-all-of-your-tokens-exchanges-wallets-all-in-one-place)
-73
-    + [One Single Login For All Your Apps/Games/Websites/Services/Everything!](#one-single-login-for-all-your-apps-games-websites-services-everything-)
-74
-    + [Our World Is The XR/IR Unified Interface To The Holochain Ecosystem](#our-world-is-the-xr-ir-unified-interface-to-the-holochain-ecosystem)
-75
-    + [Satellite Apps/Games/Websites (Consumers)](#satellite-apps-games-websites--consumers-)
-76
-    + [Protocols/Platforms/Networks Supported (Providers)](#protocols-platforms-networks-supported--providers-)
-77
-    + [Calling The OASIS API](#calling-the-oasis-api)
-78
-    + [OASIS Open Standards](#oasis-open-standards)
-79
-    + [OASIS API Redundancy (Can Store Copies Of Your Data On Any Decentralised Network/Platform You Choose)](#oasis-api-redundancy--can-store-copies-of-your-data-on-any-decentralised-network-platform-you-choose-)
-80
-    + [User Has FULL Control Of Their Data](#user-has-full-control-of-their-data)
-81
-  * [.NET HDK](#net-hdk)
-82
-  * [The Power Of Holochain, .NET, Unity & NodeJS Combined!](#the-power-of-holochain--net--unity---nodejs-combined-)
-83
-    + [ARC & Noomap Integration](#arc---noomap-integration)
-84
-    + [Node.JS Integration](#nodejs-integration)
-85
-  * [ARC, Noomap & IWG (Infinite World Game) Will Be Fully Integrated](#arc--noomap---iwg--infinite-world-game--will-be-fully-integrated)
-86
-  * [Turbocharge the Holochain ecosystem!](#turbocharge-the-holochain-ecosystem-)
-87
-  * [The OASIS Architecture](#the-oasis-architecture)
-88
-    + [Open Modular Design](#open-modular-design)
-89
-  * [Our World/OASIS Will Act As The Bridge For All (Legasy, IPFS, Holochain, Ethereum, SOLID, Fediverse, Mastodon, Diaspora, WebFinger, ActivityPub, XMPP & More!)](#our-world-oasis-will-act-as-the-bridge-for-all--legasy--ipfs--holochain--ethereum--solid--fediverse--mastodon--diaspora--webfinger--activitypub--xmpp---more--)
-90
-    + [Implement Your Own Storage/Network/Renderer Provider](#implement-your-own-storage-network-renderer-provider)
-91
-    + [Switch To A Different Provider In RealTime](#switch-to-a-different-provider-in-realtime)
-92
-  * [Fully Integrated Unified Interface](#fully-integrated-unified-interface)
-93
-    + [NextGen Social Network](#nextgen-social-network)
-94
-      - [OASIS Avatar/Profile/Karma Integration](#oasis-avatar-profile-karma-integration)
-95
-      - [Our World/OASIS API/Social Network Website](#our-world-oasis-api-social-network-website)
-96
-      - [Noomap Integration](#noomap-integration)
-97
-      - [Deep Integration Into Other Networks/Protocols/Platforms (Such as Gab, Mastodon, Diaspora, WebFinger, SOLID, Ethereum, Fediverse, ActivityPub, XMPP & More!)](#deep-integration-into-other-networks-protocols-platforms--such-as-gab--mastodon--diaspora--webfinger--solid--ethereum--fediverse--activitypub--xmpp---more--)
-98
-  * [Platforms](#platforms)
-99
-      - [PC/Console Version](#pc-console-version)
-100
-      - [Smartphone Version](#smartphone-version)
-101
-  * [NextGen Hardware](#nextgen-hardware)
-102
-  * [Our World Overview](#our-world-overview)
-103
-    + [Introduction](#introduction-1)
-104
-    + [XR/IR Gamification Layer Of The New Interplanetary Operating System & The New Internet (Web 3.0)](#xr-ir-gamification-layer-of-the-new-interplanetary-operating-system---the-new-internet--web-30-)
-105
-    + [Open World/New Ecosystm/Asset Store/Internet/Operating System/Social Network](#open-world-new-ecosystm-asset-store-internet-operating-system-social-network)
-106
-    + [Synergy Engine](#synergy-engine)
-107
-    + [Resource Based Economy](#resource-based-economy)
-108
-    + [First AAA MMO Game To Run On Holochain](#first-aaa-mmo-game-to-run-on-holochain)
-109
-    + [Smartphone Version](#smartphone-version-1)
-110
-    + [Console Version](#console-version)
-
     + [Our World Is The XR/IR Unified Interface To The Holochain Ecosystem](#our-world-is-the-xr-ir-unified-interface-to-the-holochain-ecosystem)
     + [Satellite Apps/Games/Websites (Consumers)](#satellite-apps-games-websites--consumers-)
     + [Protocols/Platforms/Networks Supported (Providers)](#protocols-platforms-networks-supported--providers-)
@@ -239,7 +138,7 @@
   * [Other Ways To Get Involved](#other-ways-to-get-involved)
   * [HoloSource Licence](#holosource-licence)
   * [Links](#links)
-  
+
 
 ## Introduction
 
@@ -1546,6 +1445,7 @@ A list of of possible early adopters can be found below:
 |  <a href="https://www.headspace.com">Headspace</a> | Leading meditation app. |No | TBC|
 |  <a href="https://www.superbetter.com">Super Better</a> |SuperBetter builds resilience - the ability to stay strong, motivated and optimistic even in the face of change and difficult challenges. Playing SuperBetter unlocks heroic potential to overcome tough situations and achieve goals that matter most. |No | TBC|
 | <a href="https://bridgit.io/">Bridge It</a> |A web overlay that advances the way the world views, shares, and engages with information on the web through community participation.|No | TBC|
+| <a href="https://delegatecall.com">Delegate Call<a/> | Fully Blockchain based Q&A. Earn tokens for answering questions. This is built on Loom (which sits on top of Etherum) + Unity game engine. You earn karma for particpating, answering questions, etc so this is a REALLY good fit for the OASIS API and will automatically integrate with the Karma System with very little effort.| No|TBC
 
 **More coming soon...**
 
@@ -1594,6 +1494,12 @@ Below is a list of the protocols/networks/platforms that the OASIS API will supp
 **More coming soon...**
 
 If you know of any other open protocols/platforms/networks that you feel are part of the new internet (Web 3.0+) we are all co-creating then please do get in touch on [ourworld@nextgensoftware.co.uk](mailto:ourworld@nextgensoftware.co.uk) and let us know, thank you! :)
+
+### Holochain Zomes/Services Used
+
+Below is a list of all the Holochain zomes/services used by Our World/The OASIS API:
+
+
 
 ### Calling The OASIS API
 
