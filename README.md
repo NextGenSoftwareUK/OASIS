@@ -75,6 +75,7 @@
     + [Our World Is The XR/IR Unified Interface To The Holochain Ecosystem](#our-world-is-the-xr-ir-unified-interface-to-the-holochain-ecosystem)
     + [Satellite Apps/Games/Websites (Consumers)](#satellite-apps-games-websites--consumers-)
     + [Protocols/Platforms/Networks Supported (Providers)](#protocols-platforms-networks-supported--providers-)
+    + [Holochain Zomes/Services Used](#holochain-zomes-services-used)
     + [Calling The OASIS API](#calling-the-oasis-api)
     + [OASIS Open Standards](#oasis-open-standards)
     + [OASIS API Redundancy (Can Store Copies Of Your Data On Any Decentralised Network/Platform You Choose)](#oasis-api-redundancy--can-store-copies-of-your-data-on-any-decentralised-network-platform-you-choose-)
@@ -1508,7 +1509,7 @@ Below is a list of all the Holochain zomes/services used by Our World/The OASIS 
 | [FileStorage Zome](https://github.com/holochain/file-storage-zome) | This Zome allows files to be stored within Holochain. | Coming Soon
 | [Chat hApp](https://github.com/holochain/holochain-basic-chat) | This hApp facilitates real-time chat within Holochain. | Coming Soon
 | [Cool Cats hApp](https://github.com/pythagorean/coolcats) | This is a basic Twitter style clone and will help power part of the social network component of Our World. | Coming Soon
-| Points Of Interest Zome](https://github.com/vanarchist/holochain-point-of-interest) | Will be used to help store the Points Of Interest on the Our World 3D Map.
+| [Points Of Interest Zome](https://github.com/vanarchist/holochain-point-of-interest) | Will be used to help store the Points Of Interest on the Our World 3D Map. | Coming Soon
 
 
 ### Calling The OASIS API
