@@ -2208,10 +2208,10 @@ http://www.yoga4autism.com <br/>
 
 **Social**
 
-**Facebook:** http://www.facebook.com/ourworldthegame <br/> 
-**Twitter:**  http://www.twitter.com/ourworldthegame <br/> 
-**YouTube:**  https://www.youtube.com/channel/UC0_O4RwdY3lq1m3-K-njUxA <br/> 
-**Telegram:** https://t.me/ourworldthegamechat
+<pre>Facebook: </pre>http://www.facebook.com/ourworldthegame <br/> 
+<pre>Twitter:  </pre>http://www.twitter.com/ourworldthegame <br/> 
+<pre>YouTube:  </pre>https://www.youtube.com/channel/UC0_O4RwdY3lq1m3-K-njUxA <br/> 
+<pre>Telegram: </pre>https://t.me/ourworldthegamechat
 
 **Blog/Forum**
 
