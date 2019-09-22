@@ -1,5 +1,6 @@
 
 
+
 # OASIS API / Our World / HoloNET / HoloUnity / .NET HDK Altha v0.1.0
 
 ![alt text](https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-And-HoloNET/blob/master/FinalLogo.jpg "Our World")
@@ -2207,6 +2208,14 @@ http://www.nextgensoftware.co.uk <br/>
 http://www.yoga4autism.com <br/> 
 
 **Social**
+
+|  |  |
+|--|--|
+|Facebook| http://www.facebook.com/ourworldthegame  |
+|Twitter | http://www.twitter.com/ourworldthegame
+|YouTube:| https://www.youtube.com/channel/UC0_O4RwdY3lq1m3-K-njUxA  
+|Telegram:| https://t.me/ourworldthegamechat
+
 
 Facebook:&nbsp;&nbsp; http://www.facebook.com/ourworldthegame <br/> 
 Twitter:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;  http://www.twitter.com/ourworldthegame <br/> 
