@@ -1,8 +1,7 @@
 
 
 
-
-# OASIS API / Our World / HoloNET / HoloUnity / .NET HDK Altha v0.0.1
+# OASIS API / Our World / HoloNET / HoloUnity / .NET HDK Altha v0.1.0
 
 ![alt text](https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-And-HoloNET/blob/master/FinalLogo.jpg "Our World")
 
@@ -63,16 +62,24 @@
     + [Properties](#properties-3)
   * [The OASIS API & Karma System](#the-oasis-api---karma-system)
     + [Your Karma Level Effects Your Real Life Too!](#your-karma-level-effects-your-real-life-too-)
-    + [Our World Is The XR/IR Unified Interface To The Holochain Ecosystem](#our-world-is-the-xr-ir-unified-interface-to-the-holochain-ecosystem)
     + [Gain Karma When You Earn HoloFuel For Sharing Your Nodes Resources To Power Our World](#gain-karma-when-you-earn-holofuel-for-sharing-your-nodes-resources-to-power-our-world)
+    + [The OASIS API Will Use The Reputation Interchange From Sacred Capital](#the-oasis-api-will-use-the-reputation-interchange-from-sacred-capital)
     + [Open Karma Committee/Community Concensors](#open-karma-committee-community-concensors)
-    + [Satellite Apps/Games/Websites (Consumers)](#satellite-apps-games-websites--consumers-)
+    + [The OASIS API Enables You To Earn Karma Anywhere](#the-oasis-api-enables-you-to-earn-karma-anywhere)
     + [The Universal API To Connect Everything To Everything (No More Silos/Walled Gardens)](#the-universal-api-to-connect-everything-to-everything--no-more-silos-walled-gardens-)
+    + [OAPPS - Write Once, Deploy Everywhere](#oapps---write-once--deploy-everywhere)
+    + [OAPPS - Full Cross-API Support Across All Networks/Platforms/APIs/Protocols](#oapps---full-cross-api-support-across-all-networks-platforms-apis-protocols)
+    + [OAPPS - Full support (create/deploy/consume) for Smart Contracts (SOLIDITY) across ANY supported Provider (Network/platform/API/protocol)](#oapps---full-support--create-deploy-consume--for-smart-contracts--solidity--across-any-supported-provider--network-platform-api-protocol-)
+    + [One API To Rule Them All - Abstraction Layer Over The New Distributed Decentralised Internet (IoT)](#one-api-to-rule-them-all---abstraction-layer-over-the-new-distributed-decentralised-internet--iot-)
+    + [OASIS API Can Manage All Of Your Tokens/Exchanges/Wallets All In One Place](#oasis-api-can-manage-all-of-your-tokens-exchanges-wallets-all-in-one-place)
+    + [One Single Login For All Your Apps/Games/Websites/Services/Everything!](#one-single-login-for-all-your-apps-games-websites-services-everything-)
+    + [Our World Is The XR/IR Unified Interface To The Holochain Ecosystem](#our-world-is-the-xr-ir-unified-interface-to-the-holochain-ecosystem)
+    + [Satellite Apps/Games/Websites (Consumers)](#satellite-apps-games-websites--consumers-)
     + [Protocols/Platforms/Networks Supported (Providers)](#protocols-platforms-networks-supported--providers-)
+    + [Holochain Zomes/Services Used](#holochain-zomes-services-used)
     + [Calling The OASIS API](#calling-the-oasis-api)
     + [OASIS Open Standards](#oasis-open-standards)
     + [OASIS API Redundancy (Can Store Copies Of Your Data On Any Decentralised Network/Platform You Choose)](#oasis-api-redundancy--can-store-copies-of-your-data-on-any-decentralised-network-platform-you-choose-)
-    + [The OASIS API Enables You To Earn Karma Anywhere](#the-oasis-api-enables-you-to-earn-karma-anywhere)
     + [User Has FULL Control Of Their Data](#user-has-full-control-of-their-data)
   * [.NET HDK](#net-hdk)
   * [The Power Of Holochain, .NET, Unity & NodeJS Combined!](#the-power-of-holochain--net--unity---nodejs-combined-)
@@ -1306,11 +1313,11 @@ Of course if they wanted use the OASIS API then the first code listing is how it
 
 Our World is much more than just a free open world game where you can build and create anything you can imagine and at the same time be immersed in an epic storyline. it is an entirely new ecosystem/asset store/internet, it is the future way we will be interacting with each other and the world through the use of technology. Smaller satellite apps/game will plug into it and share your central profile/avatar where you gain karma for doing good deeds such as helping your local communities, etc and lose karma for being selfish and not helping others since it mirrors the real world where you have free will. The karma unlocks certain abilities, special powers & items you can purchase in the game as well as quests and new areas to explore. 
 
-There is nothing else out there like this, nothing even comes close, this will change everything... There is a reason we are called NextGen Software! ;-)
-
-We believe that the OASIS API & Karama System should be baked into the core of the new internet (Web 3.0) that we are co-creating and will allow [Everything to talk to Everything](https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK#bridge) else and will act as the worlds universal API/protocol. At the center of this is the central profile/avatar where the user's data will be stored. Part of this data will include the karma they have earnt in Our World as well as the karma they have earnt in any of the inter-connected satellite apps/games that use the OASIS API.
+We believe that the OASIS API & Karama System should be baked into the core of the new internet (Web 3.0+) that we are co-creating and will allow [Everything to talk to Everything](https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK#bridge) else and will act as the worlds universal API/protocol. At the center of this is the central profile/avatar where the user's data will be stored. Part of this data will include the karma they have earnt in Our World as well as the karma they have earnt in any of the inter-connected satellite apps/games that use the OASIS API.
 
 This will increase peoples awareness of the good or bad karma they are collecting and will help them become more conscious of their moment by moment actions. This will help them strive to become a better person and to reach their full potential doing as much good as they can in the world. This will help manifest a better world for us all that much faster, when everyone is doing all they can to help co-create it.
+
+**The OASIS API & Our World are expressions of true Unity Consciousness manifested within the technical sphere.**
 
 The karma will be grouped into the following categories:
 
@@ -1341,24 +1348,77 @@ You will also be able to view the karma levels of other users, this can help you
 <a name="your-karma-level-effects-your-real-life-too-"></a>
 ### Your Karma Level Effects Your Real Life Too!
 
-Your karma level effects your real life too, for example you may be entitled to free upgrades at shows, flights, events, hotels, etc. You may also be entitled to special discounts in shops, etc and if you have enough karma you can get free holidays, etc too. The higher your karma the more society will reward you. The list is endless of what is possible. We envision that eventually this will be deeply  integrated into
- all of society. This reflects how the Universe actually works and is part of the real-time simulation aspect of Our World.
-
-<a name="our-world-is-the-xr-ir-unified-interface-to-the-holochain-ecosystem"></a>
-### Our World Is The XR/IR Unified Interface To The Holochain Ecosystem
-
-Our World is like a XR/IR Unified Interface into all of these hApps (this is the Operating System part of it), it's a bit like the XR UI front-end to Holochain where you can view and launch any apps from inside it but they integrate much more deeper than that through the OASIS API/Profile/Avatar/Karma system where they all share the central avatar/profile and can all add/subtract the profiles/avatars karma.
+Your karma level effects your real life too, for example you may be entitled to free upgrades at shows, flights, events, hotels, etc. You may also be entitled to special discounts in shops, etc and if you have enough karma you can get free holidays, etc too. The higher your karma the more society will reward you. The list is endless of what is possible. We envision that eventually this will be deeply  integrated into all of society. This reflects how the Universe actually works and is part of the real-time simulation aspect of Our World.
 
 ### Gain Karma When You Earn HoloFuel For Sharing Your Nodes Resources To Power Our World
 
 You can also gain karma for sharing your node's resources such as CPU, memory, bandwidth, etc
+
+### The OASIS API Will Use The Reputation Interchange From Sacred Capital
+
+We have partnered with Sacred Capital (another great Holochain project) to use the Reputation Interchange to help power the Karma system across the Holochain Ecosystem and beyond...
+
+https://www.sacred.capital
+
 
 <a name="open-karma-committee-community-concensors"></a>
 ### Open Karma Committee/Community Concensors
 
 There will be a Open Karma Committer who will decide the algorithms for karma allocation through concensors with the community. The community can vote for any proposals the committee publish and only ones which receive enough votes will be made "OASIS Law". The community can also vote in representatives to sit on the committee so it is as open and democratic as possible.
 
-**We wish to empower the community to feel into their own hearts for what is right for them. We want them to own the system. **
+**We wish to empower the community to feel into their own hearts for what is right for them. We want them to own the system.**
+
+### The OASIS API Enables You To Earn Karma Anywhere
+
+Our World will automatically support all of the platforms/networks/protocols listed above so your profile/avatar/karma will be available to any apps that use their platforms/networks/protocols. This will also make it easier to earn karma in a wider range of apps by supporting as many platforms/networks/protocols as possible. 
+
+<a name="the-universal-api-to-connect-everything-to-everything--no-more-silos-walled-gardens-"></a>
+### The Universal API To Connect Everything To Everything (No More Silos/Walled Gardens)
+
+**The OASIS API is a global universal API that aims to connect everything to everything to eliminate walled gardens/silos.** There are a number of open protocols/platforms/networks (such as Gab, Mastodon, Diaspora, WebFinger, SOLID, Holochain, CEPTR Pluggable Protocol, Ethereum, Fediverse, ActivityPub, XMPP & more!) that the OASIS API will support. The majority of these are aimed at building a truly decentralised distributed internet (Web 3/0/4.0/5.0) and this is also the aim of the OASIS API. 
+
+<a name="oapps---write-once--deploy-everywhere"></a>
+### OAPPS - Write Once, Deploy Everywhere
+
+OAPP's (OASIS Apps) that use the OASIS API can be deployed anywhere across any network, platform, API or protocol. This includes Holochain, every popular blockchain, ActivityPub, IPFS, SOLID & many more... check the growing list of providers supported below..
+
+Gone are the days of having to write multiple dApps and having to spend lots of time setting up your dev environment for each one such as the network, wallet, account, etc. The OASIS API can manage all of this for you with one simple to use UI (web, desktop and Unity versions planned). The Unity UI will in fact be Our World and will be the most feature rich through the XR interface.
+
+You can also of course fully manage every feature and option through the API itself so you could even write your own UI to it if you so wished.
+
+<a name="oapps---full-cross-api-support-across-all-networks-platforms-apis-protocols"></a>
+### OAPPS - Full Cross-API Support Across All Networks/Platforms/APIs/Protocols
+
+OAPP's that use the OASIS API can access all API functions of the various supported providers (networks/platforms/APIs/Protocols) through a simple asbstraction layer built on top of them. Gone are the days of having to learn many API's, you only need to learn one... the OASIS API and it will take care of the rest for you... happy days! :) 
+
+You can of course still call through to a specefic provider API if you still need to or need greater control over that specefic provider.
+
+<a name="oapps---full-support--create-deploy-consume--for-smart-contracts--solidity--across-any-supported-provider--network-platform-api-protocol-"></a>
+### OAPPS - Full support (create/deploy/consume) for Smart Contracts (SOLIDITY) across ANY supported Provider (Network/platform/API/protocol)
+
+Smart Contracts will be supported across any of the supported providers (network/platform/API/protocol), so you only need to write the contract once for your OAPP and then deploy your OAPP once and it will then take care of deploying and running your app/smart contract across all supported providers (network/platform/API/protocol).
+
+<a name="one-api-to-rule-them-all---abstraction-layer-over-the-new-distributed-decentralised-internet--iot-"></a>
+### One API To Rule Them All - Abstraction Layer Over The New Distributed Decentralised Internet (IoT)
+
+The OASIS API will allow you to connect into everything including e-commerce, trading, security, social networks, blockchains, holochain networks, etc.
+
+<a name="oasis-api-can-manage-all-of-your-tokens-exchanges-wallets-all-in-one-place"></a>
+### OASIS API Can Manage All Of Your Tokens/Exchanges/Wallets All In One Place
+
+The OASIS API will allow you to easily manage all of your tokens/exchanges/wallets in one place with a simple to use API. You will also be able to manage them through the OASIS API UI (web, desktop & Unity).
+The OASIS API will allow you to easily manage all of your tokens/exchanges/wallets in one place with a simple to use API. You will also be able to manage them through the OASIS API UI (web, desktop & Unity).
+
+<a name="one-single-login-for-all-your-apps-games-websites-services-everything-"></a>
+### One Single Login For All Your Apps/Games/Websites/Services/Everything!
+
+Your central profile/avatar from Our World is shared through the OASIS API to all your connecting satillite apps/games/websites/services, which means you only need to login once on any device and never again! Gone are the days of having to remember countless logins for all your different apps/games/websites/services. Happy days! :)
+
+<a name="our-world-is-the-xr-ir-unified-interface-to-the-holochain-ecosystem"></a>
+### Our World Is The XR/IR Unified Interface To The Holochain Ecosystem
+
+Our World is like a XR/IR Unified Interface into all of these hApps (this is the Operating System part of it), it's a bit like the XR UI front-end to Holochain where you can view and launch any apps from inside it but they integrate much more deeper than that through the OASIS API/Profile/Avatar/Karma system where they all share the central avatar/profile and can all add/subtract the profiles/avatars karma.
+
 
 <a name="satellite-apps-games-websites--consumers-"></a>
 ### Satellite Apps/Games/Websites (Consumers)
@@ -1367,26 +1427,28 @@ As already mentioned, many satellite apps/games/websites will plug into Our Worl
 
 A list of of possible early adopters can be found below:
 
-|Consumer|Description| Integrated |
-|--|--|--|
-|<a href="http://iwg.life/s7foundation/">Noomap</a>  |3D fractal mapping technology where you can map everything including your thoughts, passions, desires & so much more!  | Coming soon... |
-| <a href="http://www.joinseeds.com">Seeds</a>| A payment platform and financial ecosystem to empower humanity and heal our planet. | Coming soon... |
-| <a href="https://www.moneyofgood.org/">Money Of Good</a>|Money of Good is a social program that uses revolutionary proof-of-meditation technology to offer people the chance to earn money as a reward for practicing meditation, improving their health, rising consciousness and fostering a new economic model much more equitable and sustainable. | Coming soon... |
-| <a href="http://www.appsforgood.org">Apps For Good</a>| Creative tech courses for you to deliver in your classroom | Coming soon... |
-| <a href="voiceofhumanity.org">Voice Of Humanity</a>| | Coming soon... |
-| <a href="http://www.4ocean.com">4Ocean</a>| Cleaning the ocean from the profits made of the sale of bracelets, | Coming soon... |
-| <a href="preseach.io">PreSearch</a> | Presearch is a decentralized search engine, powered by the community. | Coming soon... |
-|  <a href="https://mindlife.net">Uplift/MindLife</a> |UpLift is an App delivering a comprehensive series of interactive self-help interventions. Designed and developed by MindLife UK, the App helps people to improve their resilience, confidence and mental capital. | Coming soon... |
-| <a href="https://www.mapotic.com">Mapotic</a>|Mapotic is the intuitive mapping platform that empowers you to share knowledge about the places you know and love | Coming soon...|
-| <a href="https://docs.google.com/document/d/1LgBQX42jIOFkfnbHf1swP3GwDd0O-jzpjYYv63OjDRg/edit#heading=h.ofqm4bivlrj4">Global Brain Application</a>|Developing a GloCal Holistic Collaboration and Mapping Tool/UI named here as Global Brain Application | Coming soon... |
-| <a href="https://alptha.joatu.org">Joatu</a>|Junto is a new breed of social media that integrates a more consciously designed interface, distributed technology, and a non-profit approach to create a space where people can truly be themselves. | Coming soon... |
-| <a href="https://www.sacred.capital">Sacred Capital</a> |Our staking protocol allows network effects to accrue to reputation. We achieve this through a process known as 'Contextual Chaos'. This means you can port reputation across eco-systems in an appropriate and contextual manner.The result? Applications that facilitate new behaviour patterns of collaboration, interaction and sharing. This is the new economy coming alive in it's truest, varied, diverse colours!  | Coming soon...|
-| <a href="https://cryptpad.fr/pad">Holo-REA</a> |The HoloREA team wants to create a framework for developing economic networks on Holochain. HoloREA will build some apps, but also intends the framework to be usable by any other apps that work in economic networks, supply chains, or joint ventures. | Coming soon...|
-| <a href="https://humm.earth/">Humm Earth</a> |Influence-free, beautifully simple peer-to-peer publishing: think of Humm as fully distributed WordPress + Patreon, made for the writers and content creators of the future, powering independent hApps and an intentional community. | Coming soon...|
-| <a href="[https://forum.holochain.org/c/projects/comet](https://forum.holochain.org/c/projects/comet)">Comet</a> |Comet is a distributed, Reddit alternative. Posts are created with tags instead of “subreddits,” and are voted on in relation to these tags. Votes can be fractional amounts; the score of a post/comment is determined on a per-person basis, depending on how they have previously voted on the other voters’ content. | Coming soon...|
-|  <a href="https://www.headspace.com">Headspace</a> | Leading meditation app. | Coming soon...|
-|  <a href="https://www.superbetter.com">Super Better</a> |SuperBetter builds resilience - the ability to stay strong, motivated and optimistic even in the face of change and difficult challenges. Playing SuperBetter unlocks heroic potential to overcome tough situations and achieve goals that matter most. | Coming soon...|
-| <a href="https://bridgit.io/">Bridge It</a> |A web overlay that advances the way the world views, shares, and engages with information on the web through community participation. | Coming soon...|
+|Consumer|Description| Holochain App (hApp) | Integrated | 
+|--|--|--|--|
+| <a href="https://www.sacred.capital">Sacred Capital</a> |Our staking protocol allows network effects to accrue to reputation. We achieve this through a process known as 'Contextual Chaos'. This means you can port reputation across eco-systems in an appropriate and contextual manner.The result? Applications that facilitate new behaviour patterns of collaboration, interaction and sharing. This is the new economy coming alive in it's truest, varied, diverse colours! |Yes | Coming soon|
+| <a href="https://cryptpad.fr/pad">Holo-REA</a> |The HoloREA team wants to create a framework for developing economic networks on Holochain. HoloREA will build some apps, but also intends the framework to be usable by any other apps that work in economic networks, supply chains, or joint ventures.| Yes| Coming soon|
+|<a href="http://iwg.life/s7foundation/">Noomap</a>  |3D fractal mapping technology where you can map everything including your thoughts, passions, desires & so much more! |Not Yet | Coming soon |
+|<a href="https://growora.com">Growora</a>  |Our mission is to provide free education to the world by enabling those who teach, the financial freedom to share their wisdom & knowledge. Teachers & students are rewarded karma for helping other people so this will easily plug straight into the OASIS API Karma System. |No | Coming soon |
+|  <a href="https://mindlife.net">Uplift/MindLife</a> |UpLift is an App delivering a comprehensive series of interactive self-help interventions. Designed and developed by MindLife UK, the App helps people to improve their resilience, confidence and mental capital. |No| Coming soon |
+| <a href="https://www.moneyofgood.org/">Money Of Good</a>|Money of Good is a social program that uses revolutionary proof-of-meditation technology to offer people the chance to earn money as a reward for practicing meditation, improving their health, rising consciousness and fostering a new economic model much more equitable and sustainable. |Yes |TBC |
+| <a href="https://alptha.joatu.org">Joatu</a>|Junto is a new breed of social media that integrates a more consciously designed interface, distributed technology, and a non-profit approach to create a space where people can truly be themselves.|Yes | TBC |
+| <a href="https://humm.earth/">Humm Earth</a> |Influence-free, beautifully simple peer-to-peer publishing: think of Humm as fully distributed WordPress + Patreon, made for the writers and content creators of the future, powering independent hApps and an intentional community. |Yes | TBC|
+| <a href="[https://forum.holochain.org/c/projects/comet](https://forum.holochain.org/c/projects/comet)">Comet</a> |Comet is a distributed, Reddit alternative. Posts are created with tags instead of “subreddits,” and are voted on in relation to these tags. Votes can be fractional amounts; the score of a post/comment is determined on a per-person basis, depending on how they have previously voted on the other voters’ content. |Yes | TBC|
+| <a href="https://docs.google.com/document/d/1LgBQX42jIOFkfnbHf1swP3GwDd0O-jzpjYYv63OjDRg/edit#heading=h.ofqm4bivlrj4">Global Brain Application</a>|Developing a GloCal Holistic Collaboration and Mapping Tool/UI named here as Global Brain Application |Yes? |TBC |
+| <a href="http://www.joinseeds.com">Seeds</a>| A payment platform and financial ecosystem to empower humanity and heal our planet. |No|TBC |
+| <a href="http://www.appsforgood.org">Apps For Good</a>| Creative tech courses for you to deliver in your classroom | No |TBC |
+| <a href="voiceofhumanity.org">Voice Of Humanity</a>| |No | TBC |
+| <a href="http://www.4ocean.com">4Ocean</a>| Cleaning the ocean from the profits made of the sale of bracelets |No | TBC |
+| <a href="preseach.io">PreSearch</a> | Presearch is a decentralized search engine, powered by the community. |No| TBC |
+| <a href="https://www.mapotic.com">Mapotic</a>|Mapotic is the intuitive mapping platform that empowers you to share knowledge about the places you know and love |No | TBC|
+|  <a href="https://www.headspace.com">Headspace</a> | Leading meditation app. |No | TBC|
+|  <a href="https://www.superbetter.com">Super Better</a> |SuperBetter builds resilience - the ability to stay strong, motivated and optimistic even in the face of change and difficult challenges. Playing SuperBetter unlocks heroic potential to overcome tough situations and achieve goals that matter most. |No | TBC|
+| <a href="https://bridgit.io/">Bridge It</a> |A web overlay that advances the way the world views, shares, and engages with information on the web through community participation.|No | TBC|
+| <a href="https://delegatecall.com">Delegate Call<a/> | Fully Blockchain based Q&A. Earn tokens for answering questions. This is built on Loom (which sits on top of Etherum) + Unity game engine. You earn karma for particpating, answering questions, etc so this is a REALLY good fit for the OASIS API and will automatically integrate with the Karma System with very little effort.| No|TBC
 
 **More coming soon...**
 
@@ -1396,10 +1458,6 @@ We are in the process of reaching out to these to see if they wish to be one of 
 
 Please see the [Social Network](#socialnetwork) section for more info...
 
-<a name="the-universal-api-to-connect-everything-to-everything--no-more-silos-walled-gardens-"></a>
-### The Universal API To Connect Everything To Everything (No More Silos/Walled Gardens)
-
-**The OASIS API is a global universal API that aims to connect everything to everything to eliminate walled gardens/silos.** There are a number of open protocols/platforms/networks (such as Gab, Mastodon, Diaspora, WebFinger, SOLID, Holochain, CEPTR Pluggable Protocol, Ethereum, Fediverse, ActivityPub, XMPP & more!) that the OASIS API will support. The majority of these are aimed at building a truly decentralised distributed internet (Web 3.0) and this is also the aim of the OASIS API. 
 
 <a name="protocols-platforms-networks-supported--providers-"></a>
 ### Protocols/Platforms/Networks Supported (Providers)
@@ -1408,25 +1466,53 @@ The OASIS API aims to support as many platforms/networks/protocols as possible s
 
 Below is a list of the protocols/networks/platforms that the OASIS API will support (expect this list to grow in time):
 
-|Protocol/Platform/Network| Description | Support Implemented  |
-|--|--|--|
-|[CEPTR Protocol For Pluggable Protocols](http://ceptr.org/projects/pcubed)|Complete interoperability: No more silos and brittle APIs. Self-Describing protocols and a universal parsing system allows anything to talk to anything. This is where the OASIS API is a stepping stone to get to this point by providing backwards compatibility with what is already out there.|Coming soon... | 
-|[HSTP (Hyper Spacial Transport Protocol)](https://www.verses.io/)  | The new protocol for the new Spacial Web (Web 3.0) | Coming Soon... |
-| [WebFinger](https://webfinger.net/) | WebFinger is used to discover information about people or other entities on the Internet that are identified by a URI using standard Hypertext Transfer Protocol (HTTP) methods over a secure transport. A WebFinger resource returns a JavaScript Object Notation (JSON) object describing the entity that is queried. The JSON object is referred to as the JSON Resource Descriptor (JRD).| Coming Soon...
-| [ActivityPub](https://activitypub.rocks/) |ActivityPub is an open, decentralized social networking protocol based on Pump.io's ActivityPump protocol. It provides a client/server API for creating, updating and deleting content, as well as a federated server-to-server API for delivering notifications and content | Coming Soon...
-| [XMPP](https://xmpp.org/) | Extensible Messaging and Presence Protocol is an open XML technology for real-time communication,
- which powers a wide range of applications including instant messaging, presence and collaboration.  | Coming Soon...
-| [SOLID](https://solid.inrupt.com/) | Inventor of the Internet, Sir Tim Berners-Lee new protocol for Web 3.0 to give users control of their data as well as remove silos/walled gardens using Pods & Linked Data. | Coming Soon...
-| [Holochain](https://holochain.org/) | Leading the way for the new decentralised distributed internet | Yes |
-| [Ethereum](https://www.ethereum.org/) | One of the leading Blockchain implementations that is very popular. | Coming Soon...
-| [Fediverse](https://fediverse.party/) | It is a common name for federated social networks running on free open software on a myriad of servers across the world. Historically, this term has included only micro-blogging platforms supporting a set of protocols called OStatus. This didn't do justice to a large number of projects that federate, share same values and are reasonably popular. With the appearance and wide adoption of a new standard protocol called ActivityPub it makes no sense to further divide the federated world into “OStatus” and “non-OStatus” projects. This guide unites all interoperable federated networks under one term “Fediverse”. | Coming Soon...
-| [Gab](https://gab.com) | Distributed social network promoting free speech | Coming Soon...
-| [Mastodon](https://joinmastodon.org/) | Distributed twitter style network of micro blogging servers using the Fediverse. | Coming Soon...
-| [Diaspora](https://diasporafoundation.org/) | Another distributed social network | Coming Soon...
+|Protocol/Platform/Network| Description | Support Implemented  | Provider Name |
+|--|--|--|--|
+| [Holochain](https://holochain.org/) | Leading the way for the new decentralised distributed internet | Yes | [HoloOASIS](#holooasis)
+| [SOLID](https://solid.inrupt.com/) | Inventor of the Internet, Sir Tim Berners-Lee new protocol for Web 3.0 to give users control of their data as well as remove silos/walled gardens using Pods & Linked Data. | In Dev | SOLIDOASIS
+| [Ethereum](https://www.ethereum.org/) | One of the leading Blockchain implementations that is very popular. | In Dev| EthereumOASIS
+| [IPFS](https://ipfs.io) | The InterPlanetary File System is a protocol and peer-to-peer network for storing and sharing data in a distributed file system. IPFS uses content-addressing to uniquely identify each file in a global namespace connecting all computing devices.| In Dev | IPFSOASIS
+|[CEPTR Protocol For Pluggable Protocols](http://ceptr.org/projects/pcubed)|Complete interoperability: No more silos and brittle APIs. Self-Describing protocols and a universal parsing system allows anything to talk to anything. This is where the OASIS API is a stepping stone to get to this point by providing backwards compatibility with what is already out there.|Coming soon | 
+|[HSTP (Hyper Spacial Transport Protocol)](https://www.verses.io/)  | The new protocol for the new Spacial Web (Web 3.0) | Coming Soon |
+| [WebFinger](https://webfinger.net/) | WebFinger is used to discover information about people or other entities on the Internet that are identified by a URI using standard Hypertext Transfer Protocol (HTTP) methods over a secure transport. A WebFinger resource returns a JavaScript Object Notation (JSON) object describing the entity that is queried. The JSON object is referred to as the JSON Resource Descriptor (JRD).| Coming Soon
+| [ActivityPub](https://activitypub.rocks/) |ActivityPub is an open, decentralized social networking protocol based on Pump.io's ActivityPump protocol. It provides a client/server API for creating, updating and deleting content, as well as a federated server-to-server API for delivering notifications and content | Coming Soon
+| [XMPP](https://xmpp.org/) | Extensible Messaging and Presence Protocol is an open XML technology for real-time communication, which powers a wide range of applications including instant messaging, presence and collaboration.  | Coming Soon
+| [Loom](https://loomx.io/) | Loom Network is a Layer 2 scaling solution for Ethereum that is live in production. It is a network of DPoS sidechains, which allows for highly-scalable games. | Coming Soon
+| [EOS](https://eos.io//) | EOSIO is a next-generation, open-source blockchain protocol with industry-leading transaction speed and flexible utility. | Coming Soon
+| [TRON](https://tron.network/) | TRON is one of the largest blockchain-based operating systems in the world. | Coming Soon
+| [IOST](https://iost.io/) | IOST is building an ultra-high TPS blockchain infrastructure to meet the security and scalability needs of a decentralized economy. | Coming Soon
+| [BlockStack](https://blockstack.org/) | Blockstack apps protect your digital rights and are powered by the Stacks blockchain.. | Coming Soon
+| [Fediverse](https://fediverse.party/) | It is a common name for federated social networks running on free open software on a myriad of servers across the world. Historically, this term has included only micro-blogging platforms supporting a set of protocols called OStatus. This didn't do justice to a large number of projects that federate, share same values and are reasonably popular. With the appearance and wide adoption of a new standard protocol called ActivityPub it makes no sense to further divide the federated world into “OStatus” and “non-OStatus” projects. This guide unites all interoperable federated networks under one term “Fediverse”. | Coming Soon
+| [Gab](https://gab.com) | Distributed social network promoting free speech | Coming Soon
+| [Mastodon](https://joinmastodon.org/) | Distributed twitter style network of micro blogging servers using the Fediverse. | Coming Soon
+| [Diaspora](https://diasporafoundation.org/) | Another distributed social network | Coming Soon|
+| [ScuttleButt](https://github.com/ssbc/) | A distributed and secure peer to peer social network | Coming Soon |
+| [Stellar](https://www.stellar.org/) | Stellar is an open network for storing and moving money. | TBC
+| [Nexus](https://nexusearth.com/) | Nexus Earth is an innovative open source blockchain technology, designed to better the world through advanced peer to peer networks and digital currency.. | TBC
+| [Ripple](https://www.ripple.com/) | Ripple is a real-time gross settlement system, currency exchange and remittance network created by Ripple Labs Inc., a US-based technology company.. | TBC
+| [TON](https://github.com/ton-blockchain/ton) | Telegram's Open Network Blockchain also looks very promising. | TBC
+| [Hedera Hashgraph](https://www.hedera.com/) | Hedera is a decentralized public network where anyone can carve out a piece of cyberspace to transact, play, and socialize in a secure, trusted environment. | TBC |
+| [DFINITY](https://dfinity.org) | DFINITY is building an open, decentralized compute platform designed to host the next generation of software and services with vastly improved performance | TBC |
 
 **More coming soon...**
 
-If you know of any other open protocols/platforms/networks that you feel are part of the new internet (Web 3.0) we are all co-creating then please do get in touch on [ourworld@nextgensoftware.co.uk](mailto:ourworld@nextgensoftware.co.uk) and let us know, thank you! :)
+If you know of any other open protocols/platforms/networks that you feel are part of the new internet (Web 3.0+) we are all co-creating then please do get in touch on [ourworld@nextgensoftware.co.uk](mailto:ourworld@nextgensoftware.co.uk) and let us know, thank you! :)
+
+<a name="holochain-zomes-services-used"></a>
+### Holochain Zomes/Services Used
+
+Below is a list of all the Holochain zomes/services used by Our World/The OASIS API:
+
+| Zome/Service | Description  | Integrated
+|--|--|--|
+| <a href="https://www.sacred.capital">Sacred Capital</a> |Our staking protocol allows network effects to accrue to reputation. We achieve this through a process known as 'Contextual Chaos'. This means you can port reputation across eco-systems in an appropriate and contextual manner.The result? Applications that facilitate new behavior patterns of collaboration, interaction and sharing. This is the new economy coming alive in it's truest, varied, diverse colours! We will be using their Reputation Interchange to help power the Karma System | Coming Soon|
+| <a href="https://cryptpad.fr/pad">Holo-REA</a> |The HoloREA team wants to create a framework for developing economic networks on Holochain. HoloREA will build some apps, but also intends the framework to be usable by any other apps that work in economic networks, supply chains, or joint ventures.  We will be using their framework to help power the in-app transactions as well as the supply chain & e-commerce components of Our World.| Coming Soon|
+| [Orion Protocol](https://orionprotocol.io) | Cross chain trading, omni-exchange accessibility and liquidity. We will be using this to allow the OASIS API to talk to all available crypto exchanges. | Coming Soon
+| [FileStorage Zome](https://github.com/holochain/file-storage-zome) | This Zome allows files to be stored within Holochain. | Coming Soon
+| [Chat hApp](https://github.com/holochain/holochain-basic-chat) | This hApp facilitates real-time chat within Holochain. | Coming Soon
+| [Cool Cats hApp](https://github.com/pythagorean/coolcats) | This is a basic Twitter style clone and will help power part of the social network component of Our World. | Coming Soon
+| [Points Of Interest Zome](https://github.com/vanarchist/holochain-point-of-interest) | Will be used to help store the Points Of Interest on the Our World 3D Map. | Coming Soon
+
 
 ### Calling The OASIS API
 
@@ -1452,9 +1538,6 @@ They are all about pushing the same agenda except we are actually implementing a
 
 The OASIS API has built in redundancy in that you can choose to store copies of your data on any decentralised network/platform. When calling the OASIS API you can specify which network/platform you wish to use (the ones available will be dependent on whether a Provider has yet been implemented for it, so far only Holochain is supported.) The default provider will be Holochain since the long term goal of the OASIS API is to get people to slowly migrate across to Holochain.
 
-### The OASIS API Enables You To Earn Karma Anywhere
-
-Our World will automatically support all of the platforms/networks/protocols listed above so your profile/avatar/karma will be available to any apps that use their platforms/networks/protocols. This will also make it easier to earn karma in a wider range of apps by supporting as many platforms/networks/protocols as possible. 
 
 ### User Has FULL Control Of Their Data
 
@@ -2126,9 +2209,13 @@ http://www.yoga4autism.com <br/>
 
 **Social**
 
-http://www.facebook.com/ourworldthegame <br/> 
-http://www.twitter.com/ourworldthegame <br/> 
-https://www.youtube.com/channel/UC0_O4RwdY3lq1m3-K-njUxA
+|Type  |Link  |
+|--|--|
+|Facebook| http://www.facebook.com/ourworldthegame  |
+|Twitter | http://www.twitter.com/ourworldthegame
+|YouTube:| https://www.youtube.com/channel/UC0_O4RwdY3lq1m3-K-njUxA  
+|Telegram:| https://t.me/ourworldthegamechat
+
 
 **Blog/Forum**
 
