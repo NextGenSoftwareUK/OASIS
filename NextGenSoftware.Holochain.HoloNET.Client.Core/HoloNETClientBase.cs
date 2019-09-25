@@ -107,8 +107,7 @@ namespace NextGenSoftware.Holochain.HoloNET.Client.Core
 
                 if (WebSocket.State != WebSocketState.Open && WebSocket.State != WebSocketState.Aborted)
                 {
-                    //if (Config.HolochainConductorBehaviour == HolochainConductorBehaviour.AutoStartExternalConductor || Config.HolochainConductorBehaviour == HolochainConductorBehaviour.UseInternalConductor)
-                   if (Config.AutoStartConductor)
+                    if (Config.AutoStartConductor)
                     {
                         //If no path to the conductor has been given then default to the current working directory.
                         if (string.IsNullOrEmpty(Config.FullPathToExternalHolochainConductor))
@@ -119,12 +118,13 @@ namespace NextGenSoftware.Holochain.HoloNET.Client.Core
 
                         FileInfo conductorInfo = new FileInfo(Config.FullPathToExternalHolochainConductor);
 
+
                         //Make sure the condctor is not already running
                         if (!Process.GetProcesses().Any(x => x.ProcessName == conductorInfo.Name))
                         {
                             DirectoryInfo info = new DirectoryInfo(Config.FullPathToHolochainAppDNA);
                             Logger.Log("Starting Holochain Conductor...", LogType.Info);
-.
+
                             Process pProcess = new Process();
                             pProcess.StartInfo.WorkingDirectory = info.Parent.Parent.FullName;
                             pProcess.StartInfo.FileName = Config.FullPathToExternalHolochainConductor;
@@ -132,7 +132,7 @@ namespace NextGenSoftware.Holochain.HoloNET.Client.Core
                             pProcess.StartInfo.UseShellExecute = true;
                             pProcess.StartInfo.RedirectStandardOutput = false;
                             pProcess.StartInfo.WindowStyle = ProcessWindowStyle.Normal;
-                            pProcess.StartInfo.CreateNoWindow = false; 
+                            pProcess.StartInfo.CreateNoWindow = false;
                             pProcess.Start();
 
                             await Task.Delay(Config.SecondsToWaitForHolochainConductorToStart); // Give the conductor 5 seconds to start up...

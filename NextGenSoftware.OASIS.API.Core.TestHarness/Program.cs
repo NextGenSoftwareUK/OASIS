@@ -1,5 +1,6 @@
 ﻿using NextGenSoftware.OASIS.API.Providers.HoloOASIS.Desktop;
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace NextGenSoftware.OASIS.API.Core.TestHarness
@@ -10,17 +11,19 @@ namespace NextGenSoftware.OASIS.API.Core.TestHarness
         {
             Console.WriteLine("NextGenSoftware.OASIS.API.Core Test Harness v1.0");
             Console.WriteLine("");
+
+            OASISAPIManager OASISAPIManager = new OASISAPIManager(new List<IOASISProvider> { new HoloOASIS("ws://localhost:8888") });
             
-            ProfileManager profileManager = new ProfileManager(new HoloOASIS("ws://localhost:8888"));
-            profileManager.OnProfileManagerError += ProfileManager_OnProfileManagerError;
-            profileManager.OASISStorageProvider.OnStorageProviderError += OASISStorageProvider_OnStorageProviderError;
+            //ProfileManager profileManager = new ProfileManager(new HoloOASIS("ws://localhost:8888"));
+            //profileManager.OnProfileManagerError += ProfileManager_OnProfileManagerError;
+            //profileManager.OASISStorageProvider.OnStorageProviderError += OASISStorageProvider_OnStorageProviderError;
 
 
 
             Console.WriteLine("\nSaving Profile...");
             Profile newProfile = new Profile { Username = "dellams", Email = "david@nextgensoftware.co.uk", Password = "1234", FirstName = "David", LastName = "Ellams", DOB = "11/04/1980", Id = Guid.NewGuid(), Title = "Mr", PlayerAddress = "blahahahaha" };
             newProfile.AddKarma(999);
-            Providers.HoloOASIS.Core.Profile savedProfile = (Providers.HoloOASIS.Core.Profile)await profileManager.SaveProfileAsync(newProfile);
+            Providers.HoloOASIS.Core.Profile savedProfile = (Providers.HoloOASIS.Core.Profile)await OASISAPIManager.ProfileManager.SaveProfileAsync(newProfile);
             //IProfile savedProfile = await profileManager.SaveProfileAsync(newProfile);
 
             if (savedProfile != null)
@@ -41,7 +44,7 @@ namespace NextGenSoftware.OASIS.API.Core.TestHarness
 
             Console.WriteLine("\nLoading Profile...");
             //IProfile profile = await profileManager.LoadProfileAsync("dellams", "1234");
-            IProfile profile = await profileManager.LoadProfileAsync("QmR6A1gkSmCsxnbDF7V9Eswnd4Kw9SWhuf8r4R643eDshg");
+            IProfile profile = await OASISAPIManager.ProfileManager.LoadProfileAsync("QmR6A1gkSmCsxnbDF7V9Eswnd4Kw9SWhuf8r4R643eDshg");
 
             if (profile != null)
             {

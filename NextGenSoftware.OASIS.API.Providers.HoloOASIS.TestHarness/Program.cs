@@ -21,7 +21,9 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.TestHarness
             _holoOASIS.OnPlayerProfileSaved += _holoOASIS_OnPlayerProfileSaved;
             _holoOASIS.OnHoloOASISError += _holoOASIS_OnHoloOASISError;
 
-          //  await _holoOASIS.Initialize();
+            //  await _holoOASIS.Initialize();
+
+            _holoOASIS.ActivateProvider();
 
            // Task.Delay(10000);
             Console.ReadKey();
