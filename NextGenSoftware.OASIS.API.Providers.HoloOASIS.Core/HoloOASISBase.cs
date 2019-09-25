@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Core
 {
-    public abstract class HoloOASISBase : IOASISNET, IOASISStorage
+    public abstract class HoloOASISBase : OASISProvider, IOASISNET, IOASISStorage
     {
         private const string OURWORLD_ZOME = "our_world_core";
         private const string LOAD_PROFILE_FUNC = "load_profile";
@@ -35,10 +35,13 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Core
         public event ProfileManager.StorageProviderError OnStorageProviderError;
 
         public HoloNETClientBase HoloNETClient { get; private set; }
-
+       
 
         public HoloOASISBase(HoloNETClientBase holoNETClient)
         {
+            this.Name = "HoloOASIS";
+            this.Description = "Holochain Provider";
+            this.Type = ProviderType.HoloOASIS;
             this.HoloNETClient = holoNETClient;
           //  _holochainURI = holochainURI;
             Initialize();
@@ -46,8 +49,6 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Core
 
         public async Task Initialize()
         {
-            //HoloNETClient = new HoloNETClientBase(_holochainURI);
-
             HoloNETClient.OnConnected += HoloOASIS_OnConnected;
             HoloNETClient.OnDisconnected += HoloOASIS_OnDisconnected;
             HoloNETClient.OnError += HoloNETClient_OnError;
@@ -56,17 +57,12 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Core
             HoloNETClient.OnSignalsCallBack += HoloOASIS_OnSignalsCallBack;
             HoloNETClient.OnZomeFunctionCallBack += HoloOASIS_OnZomeFunctionCallBack;
 
-            //HoloNETClient.Config.HolochainConductorBehaviour = HolochainConductorBehaviour.AutoStartExternalConductor;
             HoloNETClient.Config.AutoStartConductor = true;
             HoloNETClient.Config.AutoShutdownConductor = true;
             HoloNETClient.Config.FullPathToExternalHolochainConductor = string.Concat(Directory.GetCurrentDirectory(), "\\hc.exe");
             HoloNETClient.Config.FullPathToHolochainAppDNA = string.Concat(Directory.GetCurrentDirectory(), "\\our_world\\dist\\our_world.dna.json"); 
             
-            await HoloNETClient.Connect();
-           // await HoloNETClient.GetHolochainInstancesAsync();
-            //GetInstancesCallBackEventArgs args = await HoloNETClient.GetHolochainInstancesAsync();
-            //_hcinstance = args.Instances[0];
-            //_hcinstance = await GetHolochainInstancesAsync().Result.Instances[0];
+            //await HoloNETClient.Connect();
         }
 
         private void HoloNETClient_OnError(object sender, HoloNETErrorEventArgs e)
@@ -284,6 +280,18 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Core
         {
             OnStorageProviderError?.Invoke(this, new ProfileManagerErrorEventArgs { EndPoint = this.HoloNETClient.EndPoint, Reason = string.Concat(reason, holoNETEventArgs != null ? string.Concat(" - HoloNET Error: ", holoNETEventArgs.Reason, " - ", holoNETEventArgs.ErrorDetails.ToString()) : ""),  ErrorDetails = errorDetails });
             OnHoloOASISError?.Invoke(this, new HoloOASISErrorEventArgs() { EndPoint = HoloNETClient.EndPoint, Reason = reason, ErrorDetails = errorDetails, HoloNETErrorDetails = holoNETEventArgs });
+        }
+
+        public async override void ActivateProvider()
+        {
+            await HoloNETClient.Connect();
+            base.ActivateProvider();
+        }
+
+        public async override void DeActivateProvider()
+        {
+            await HoloNETClient.Disconnect();
+            base.DeActivateProvider();
         }
     }
 }
