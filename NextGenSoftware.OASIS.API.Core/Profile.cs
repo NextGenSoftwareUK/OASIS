@@ -35,15 +35,68 @@ namespace NextGenSoftware.OASIS.API.Core
             }
         }
 
-        public bool AddKarma(int karmaToAdd)
+        public bool AddKarma(int karmaToAdd, KarmaType karmaType)
         {
-            this.Karma += karmaToAdd;
+            this.Karma += karmaToAdd + GetKarmaForType(karmaType);
+
+            /*
+            switch (karmaType)
+            {
+                case KarmaType.ContributingTowardsAGoodCauseAdministrator:
+                    this.Karma += karmaToAdd + 3;
+                    break;
+
+                case KarmaType.ContributingTowardsAGoodCauseSpeaker:
+                    this.Karma += karmaToAdd + 8;
+                    break;
+
+                case KarmaType.ContributingTowardsAGoodCauseContributor:
+                    this.Karma += karmaToAdd + 5;
+                    break;
+
+                case KarmaType.ContributingTowardsAGoodCauseCreatorOrganiser:
+                    this.Karma += karmaToAdd + 10;
+                    break;
+
+                case KarmaType.ContributingTowardsAGoodCauseFunder:
+                    this.Karma += karmaToAdd + 8;
+                    break;
+
+                case KarmaType.ContributingTowardsAGoodCausePeacefulProtesterActivist:
+                    this.Karma += karmaToAdd + 5;
+                    break;
+
+                case KarmaType.ContributingTowardsAGoodCauseSharer:
+                    this.Karma += karmaToAdd + 3;
+                    break;
+
+                case KarmaType.HelpingAnimals:
+                    this.Karma += karmaToAdd + 5;
+                    break;
+
+                case KarmaType.HelpingTheEnvironment:
+                    this.Karma += karmaToAdd + 5;
+                    break;
+
+                case KarmaType.Other:
+                    this.Karma += karmaToAdd + 2;
+                    break;
+
+                case KarmaType.OurWorld:
+                    this.Karma += karmaToAdd + 5;
+                    break;
+
+                case KarmaType.SelfHelpImprovement:
+                    this.Karma += karmaToAdd + 2;
+                    break;
+            }
+            */
             return true;
         }
 
-        public bool SubstractKarma(int karmaToRemove)
+        public bool SubstractKarma(int karmaToRemove, KarmaType karmaType)
         {
-            this.Karma -= karmaToRemove;
+            this.Karma -= karmaToRemove - GetKarmaForType(karmaType);
             return true;
         }
 
@@ -55,6 +108,52 @@ namespace NextGenSoftware.OASIS.API.Core
         public Profile()
         {
             this.HolonType = HolonType.Profile;
+        }
+
+        private int GetKarmaForType(KarmaType karmaType)
+        {
+            switch (karmaType)
+            {
+                case KarmaType.ContributingTowardsAGoodCauseAdministrator:
+                    return  3;
+
+                case KarmaType.ContributingTowardsAGoodCauseSpeaker:
+                    return 8;
+
+                case KarmaType.ContributingTowardsAGoodCauseContributor:
+                    return 5;
+
+                case KarmaType.ContributingTowardsAGoodCauseCreatorOrganiser:
+                    return 10;
+
+                case KarmaType.ContributingTowardsAGoodCauseFunder:
+                    return 8;                   
+
+                case KarmaType.ContributingTowardsAGoodCausePeacefulProtesterActivist:
+                    return 5;
+
+                case KarmaType.ContributingTowardsAGoodCauseSharer:
+                    return 3;
+
+                case KarmaType.HelpingAnimals:
+                    return 5;
+
+                case KarmaType.HelpingTheEnvironment:
+                    return 5;
+
+                case KarmaType.Other:
+                    return 2;
+
+                case KarmaType.OurWorld:
+                    return 5;
+
+                case KarmaType.SelfHelpImprovement:
+                    return 2;
+
+                default:
+                    return 0;
+            }
+                
         }
     }
 }
