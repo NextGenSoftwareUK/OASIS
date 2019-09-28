@@ -8,9 +8,35 @@ namespace NextGenSoftware.OASIS.API.Core
     public class ProfileManager
     {
         private ProfileManagerConfig _config;
+        private IOASISStorage _defaultProvider;
 
         public List<IOASISStorage> OASISStorageProviders { get; set; }
-        public IOASISStorage DefaultProvider { get; set; }
+
+        public ProviderType DefaultProviderType { get; set; }
+        public IOASISStorage DefaultProvider
+        {
+            get
+            {
+                return _defaultProvider;
+            }
+            set
+            //{
+            //    if (typeof(value) == typeof(HoloOASIS))
+                //switch (typeof(value))
+                //{
+                //    case typeof(HoloOASIS):
+
+
+                //}
+
+                _defaultProvider = value;
+            }
+
+        public Task<IProfile> LoadProfileAsync(Guid id)
+        {
+            throw new NotImplementedException();
+        }
+    }
 
         public ProfileManagerConfig Config
         {

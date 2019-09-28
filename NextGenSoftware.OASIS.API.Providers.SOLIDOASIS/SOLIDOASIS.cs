@@ -1,13 +1,21 @@
-﻿using NextGenSoftware.OASIS.API.Core;
+﻿using Microsoft.AspNetCore.Mvc.RazorPages;
+using NextGenSoftware.OASIS.API.Core;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace NextGenSoftware.OASIS.API.Providers.SOLIDOASIS
 {
-    public class SOLIDOASIS : IOASISStorage, IOASISNET
+    public class SOLIDOASIS : OASISProvider, IOASISStorage, IOASISNET
     {
         public event ProfileManager.StorageProviderError OnStorageProviderError;
+
+        public SOLIDOASIS()
+        {
+            this.Name = "SOLIDOASIS";
+            this.Description = "SOLID Provider";
+            this.Type = ProviderType.SOLIDOASIS;
+        }
 
         public Task<bool> AddKarmaToProfileAsync(IProfile profile, int karma)
         {
@@ -26,7 +34,10 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLIDOASIS
 
         public Task<IProfile> LoadProfileAsync(string providerKey)
         {
-           
+            //TODO: Call into JS SOLID Code here.
+            //Page.ClientScript.RegisterStartupScript(this.GetType(), "CallMyFunction", "MyFunction()", true);
+
+            return null;
         }
 
         public Task<IProfile> LoadProfileAsync(Guid Id)
@@ -47,6 +58,18 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLIDOASIS
         public Task<IProfile> SaveProfileAsync(IProfile profile)
         {
             throw new NotImplementedException();
+        }
+
+        public async override void ActivateProvider()
+        {
+            //TODO: Login/Connect to SOLID POD here.
+            base.ActivateProvider();
+        }
+
+        public async override void DeActivateProvider()
+        {
+            //TODO: Logout of SOLID POD here.
+            base.DeActivateProvider();
         }
     }
 }

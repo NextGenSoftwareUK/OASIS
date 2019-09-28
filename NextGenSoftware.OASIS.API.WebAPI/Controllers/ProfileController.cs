@@ -5,7 +5,12 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 
 using NextGenSoftware.OASIS.API.Core;
+using NextGenSoftware.OASIS.API.Providers.AcitvityPubOASIS;
+using NextGenSoftware.OASIS.API.Providers.BlockStackOASIS;
+using NextGenSoftware.OASIS.API.Providers.EthereumOASIS;
 using NextGenSoftware.OASIS.API.Providers.HoloOASIS.Desktop;
+using NextGenSoftware.OASIS.API.Providers.IPFSOASIS;
+using NextGenSoftware.OASIS.API.Providers.SOLIDOASIS;
 
 namespace NextGenSoftware.OASIS.API.WebAPI.Controllers
 {
@@ -20,7 +25,7 @@ namespace NextGenSoftware.OASIS.API.WebAPI.Controllers
             get
             {
                 if (_profileManager == null)
-                    _profileManager = new ProfileManager(new HoloOASIS("ws://localhost:8888"));
+                    _profileManager = new ProfileManager(new List<IOASISStorage>() { new HoloOASIS("ws://localhost:8888") });
 
                 return _profileManager;
             }
@@ -46,6 +51,63 @@ namespace NextGenSoftware.OASIS.API.WebAPI.Controllers
         {
             return await ProfileManager.LoadProfileAsync(id);
         }
+
+        // GET api/values/5
+        [HttpGet("{id}")]
+        public async Task<IProfile> Get(Guid id, ProviderType providerType)
+        {
+            if (ProfileManager.DefaultProviderType != providerType)
+            {
+                switch (providerType)
+                {
+                    case ProviderType.ActivityPubOASIS:
+                        ProfileManager.DefaultProvider = new AcitvityPubOASIS();
+                        break;
+
+                    case ProviderType.BlockStackOASIS:
+                        ProfileManager.DefaultProvider = new BlockStackOASIS();
+                        break;
+
+                    case ProviderType.EOSOASIS:
+                        //ProfileManager.DefaultProvider = new EOSOASIS();
+                        break;
+
+                    case ProviderType.EthereumOASIS:
+                        ProfileManager.DefaultProvider = new EthereumOASIS();
+                        break;
+
+                    case ProviderType.HoloOASIS:
+                        ProfileManager.DefaultProvider = new HoloOASIS(("ws://localhost:8888"));
+                        break;
+
+                    case ProviderType.IPFSOASIS:
+                        ProfileManager.DefaultProvider = new IPFSOASIS;
+                        break;
+
+                    case ProviderType.LoonOASIS:
+                        //ProfileManager.DefaultProvider = new LoonOASIS();
+                        break;
+
+                    case ProviderType.ScuttleBugOASIS:
+                        //ProfileManager.DefaultProvider = new ScuttleBugOASIS();
+                        break;
+
+                    case ProviderType.SOLIDOASIS:
+                        ProfileManager.DefaultProvider = new SOLIDOASIS();
+                        break;
+
+                    case ProviderType.StellarOASIS:
+                        //ProfileManager.DefaultProvider = new ScuttleBugOASIS();
+                        break;
+                }
+
+                ProfileManager.DefaultProviderType = providerType;
+            }
+
+            //ProfileManager.DefaultProvider = providerType;
+            return await ProfileManager.LoadProfileAsync(id);
+        }
+
 
         [HttpGet("{id}")]
         public async Task<IProfile> Get(string providerKey)

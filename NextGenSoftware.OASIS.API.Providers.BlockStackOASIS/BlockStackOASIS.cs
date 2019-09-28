@@ -3,9 +3,9 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace NextGenSoftware.OASIS.API.Providers.AcitvityPub
+namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
 {
-    public class AcitvityPub : IOASISStorage, IOASISNET
+    public class BlockStackOASIS : OASISProvider, IOASISStorage, IOASISNET
     {
         public event ProfileManager.StorageProviderError OnStorageProviderError;
 
