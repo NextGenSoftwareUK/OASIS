@@ -1,42 +1,19 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using System.Linq;
 
 namespace NextGenSoftware.OASIS.API.Core
 {
     public class ProfileManager
     {
         private ProfileManagerConfig _config;
-        private IOASISStorage _defaultProvider;
 
         public List<IOASISStorage> OASISStorageProviders { get; set; }
-
-        public ProviderType DefaultProviderType { get; set; }
-        public IOASISStorage DefaultProvider
-        {
-            get
-            {
-                return _defaultProvider;
-            }
-            set
-            //{
-            //    if (typeof(value) == typeof(HoloOASIS))
-                //switch (typeof(value))
-                //{
-                //    case typeof(HoloOASIS):
-
-
-                //}
-
-                _defaultProvider = value;
-            }
-
+        
         public Task<IProfile> LoadProfileAsync(Guid id)
         {
             throw new NotImplementedException();
         }
-    }
 
         public ProfileManagerConfig Config
         {
@@ -66,8 +43,6 @@ namespace NextGenSoftware.OASIS.API.Core
                 provider.OnStorageProviderError += OASISStorageProvider_OnStorageProviderError;
                 provider.ActivateProvider();
             }
-
-            DefaultProvider = OASISStorageProviders.FirstOrDefault(x => x.Type == ProviderType.HoloOASIS);
         }
 
         private void OASISStorageProvider_OnStorageProviderError(object sender, ProfileManagerErrorEventArgs e)
@@ -78,32 +53,42 @@ namespace NextGenSoftware.OASIS.API.Core
 
         public async Task<IProfile> LoadProfileAsync(string providerKey)
         {
-            return await DefaultProvider.LoadProfileAsync(providerKey);
+            return await ProviderManager.CurrentStorageProvider.LoadProfileAsync(providerKey);
         }
 
         public async Task<IProfile> LoadProfileAsync(Guid id)
         {
-            return await DefaultProvider.LoadProfileAsync(id);
+            return await ProviderManager.CurrentStorageProvider.LoadProfileAsync(id);
         }
 
         public async Task<IProfile> LoadProfileAsync(string username, string password)
         {
-            return await DefaultProvider.LoadProfileAsync(username, password);
+            return await ProviderManager.CurrentStorageProvider.LoadProfileAsync(username, password);
         }
 
         public async Task<IProfile> SaveProfileAsync(IProfile profile)
         {
-            return await DefaultProvider.SaveProfileAsync(profile);
+            return await ProviderManager.CurrentStorageProvider.SaveProfileAsync(profile);
         }
 
-        public async Task<bool> AddKarmaToProfileAsync(IProfile profile, int karma)
+        //public async Task<bool> AddKarmaToProfileAsync(IProfile profile, int karma)
+        //{
+        //    return await DefaultProvider.AddKarmaToProfileAsync(profile, karma);
+        //}
+
+        //public async Task<bool> RemoveKarmaFromProfileAsync(IProfile profile, int karma)
+        //{
+        //    return await DefaultProvider.RemoveKarmaFromProfileAsync(profile, karma);
+        //}
+
+        public async Task<KarmaAkashicRecord> AddKarmaToProfileAsync(IProfile profile, KarmaType karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc)
         {
-            return await DefaultProvider.AddKarmaToProfileAsync(profile, karma);
+            return await ProviderManager.CurrentStorageProvider.AddKarmaToProfileAsync(profile, karmaType, karmaSourceType, karamSourceTitle, karmaSourceDesc);
         }
 
-        public async Task<bool> RemoveKarmaFromProfileAsync(IProfile profile, int karma)
+        public async Task<KarmaAkashicRecord> RemoveKarmaFromProfileAsync(IProfile profile, KarmaType karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc)
         {
-            return await DefaultProvider.RemoveKarmaFromProfileAsync(profile, karma);
+            return await ProviderManager.CurrentStorageProvider.SubtractKarmaFromProfileAsync(profile, karmaType, karmaSourceType, karamSourceTitle, karmaSourceDesc);
         }
     }
 }

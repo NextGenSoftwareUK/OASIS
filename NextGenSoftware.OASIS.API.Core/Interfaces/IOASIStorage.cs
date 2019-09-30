@@ -17,8 +17,8 @@ namespace NextGenSoftware.OASIS.API.Core
 
         //Task<bool> SaveProfileAsync(IProfile profile);
         Task<IProfile> SaveProfileAsync(IProfile profile);
-        Task<bool> AddKarmaToProfileAsync(IProfile profile, int karma);
-        Task<bool> RemoveKarmaFromProfileAsync(IProfile profile, int karma);
+        Task<KarmaAkashicRecord> AddKarmaToProfileAsync(API.Core.IProfile profile, KarmaType karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc);
+        Task<KarmaAkashicRecord> SubtractKarmaFromProfileAsync(API.Core.IProfile profile, KarmaType karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc);
 
         event StorageProviderError OnStorageProviderError;
 

@@ -218,15 +218,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Core
             return null;
         }
 
-        public Task<bool> AddKarmaToProfileAsync(API.Core.IProfile profile, int karma)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<bool> RemoveKarmaFromProfileAsync(API.Core.IProfile profile, int karma)
-        {
-            throw new NotImplementedException();
-        }
+        
 
         #endregion
 

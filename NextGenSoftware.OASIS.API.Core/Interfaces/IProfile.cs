@@ -1,7 +1,11 @@
-﻿namespace NextGenSoftware.OASIS.API.Core
+﻿using System;
+using System.Collections.Generic;
+
+namespace NextGenSoftware.OASIS.API.Core
 {
     public interface IProfile : IHolon
     {
+        Guid UserId { get; set; } //TODO: Remember to add this to the HC Rust code...
         string Username { get; set; }
         string Password { get; set; }
         string Email { get; set; }
@@ -13,8 +17,12 @@
         int Karma { get; }
         int Level { get; }
 
-        bool AddKarma(int karmaToAdd);
-        bool SubstractKarma(int karmaToRemove);
+        //bool AddKarma(int karmaToAdd);
+        //bool SubstractKarma(int karmaToRemove);
+
+        KarmaAkashicRecord KarmaEarnt(KarmaType karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc);
+        KarmaAkashicRecord KarmaLost(KarmaType karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc);
+        List<KarmaAkashicRecord> KarmaAkashicRecords { get; set; }
         bool Save();
     }
 }
