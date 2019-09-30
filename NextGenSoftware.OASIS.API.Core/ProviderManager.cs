@@ -4,33 +4,12 @@ using System.Linq;
 
 namespace NextGenSoftware.OASIS.API.Core
 {
-    public enum ProviderCat
-    {
-        Storage,
-        Network,
-        Renderer
-    }
-
-    public enum ProviderType
-    {
-        HoloOASIS,
-        EthereumOASIS,
-        EOSOASIS,
-        LoonOASIS,
-        StellarOASIS,
-        BlockStackOASIS,
-        SOLIDOASIS,
-        IPFSOASIS,
-        ActivityPubOASIS,
-        ScuttleBugOASIS,
-        All,
-        None
-    }
-
     public class ProviderManager
     {
-        public ProviderType CurrentProvider { get; private set; }
-        
+        public static ProviderType CurrentStorageProviderType { get; private set; }
+
+        public static IOASISStorage CurrentStorageProvider { get; private set; } //TODO: Need to work this out because in future there can be more than one provider active at a time (even more than one storage provider)
+
         public List<IOASISProvider> RegisteredProviders { get; set; }
 
         public void RegisterProvider(IOASISProvider provider)
@@ -58,9 +37,16 @@ namespace NextGenSoftware.OASIS.API.Core
             return storageProviders;
         }
 
-        public void SwitchProvider(ProviderType provider)
+        //TODO: In future more than one StorageProvider will be active at a time so we need to work out how to handle this...
+        public void SwitchStorageProvider(ProviderType providerType)
         {
-            this.CurrentProvider = provider;
+            IOASISProvider provider = RegisteredProviders.FirstOrDefault(x => x.Type == providerType);
+
+            if (provider != null && provider.Category == ProviderCat.Storage)
+            {
+                ProviderManager.CurrentStorageProviderType = providerType;
+                ProviderManager.CurrentStorageProvider = (IOASISStorage)provider;
+            }
         }
 
         public void ActivateProvider(ProviderType type)
@@ -68,9 +54,15 @@ namespace NextGenSoftware.OASIS.API.Core
             IOASISProvider provider = RegisteredProviders.FirstOrDefault(x => x.Type == type);
 
             if (provider != null)
-            {
                 provider.ActivateProvider();
-            }
+        }
+
+        public void DeaAtivateProvider(ProviderType type)
+        {
+            IOASISProvider provider = RegisteredProviders.FirstOrDefault(x => x.Type == type);
+
+            if (provider != null)
+                provider.DeActivateProvider();
         }
     }
 }

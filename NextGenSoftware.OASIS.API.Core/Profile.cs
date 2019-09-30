@@ -1,11 +1,12 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace NextGenSoftware.OASIS.API.Core
 {
     public class Profile : Holon, IProfile
-   // public class Profile :  IProfile
     {
-        //  public Guid Id { get; set; }
+        public Guid UserId { get; set; } //TODO: Remember to add this to the HC Rust code...
         public string Username { get; set; }
         public string Password { get; set; }
         public string Email { get; set; }
@@ -14,8 +15,8 @@ namespace NextGenSoftware.OASIS.API.Core
         public string LastName { get; set; }
         public string DOB { get; set; }
         public string PlayerAddress { get; set; }
-       // public int Karma { get; private set; }
-        public int Karma { get; set; }
+        public int Karma { get; private set; }
+       // public int Karma { get; set; }
         public int Level
         {
             get
@@ -35,73 +36,31 @@ namespace NextGenSoftware.OASIS.API.Core
             }
         }
 
-        public bool AddKarma(int karmaToAdd, KarmaType karmaType)
+        // A record of all the karma the user has earnt/lost along with when and where from.
+        public List<KarmaAkashicRecord> KarmaAkashicRecords { get; set; }
+
+        public KarmaAkashicRecord KarmaEarnt(KarmaType karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc)
         {
-            this.Karma += karmaToAdd + GetKarmaForType(karmaType);
+            KarmaAkashicRecord record = new KarmaAkashicRecord { KarmaEarntOrLost = KarmaEarntOrLost.Earnt, Date = DateTime.Now, Karma = GetKarmaForType(karmaType), KarmaSource = karmaSourceType, KarmaSourceTitle = karamSourceTitle, KarmaSourceDesc = karmaSourceDesc, KarmaType = karmaType, UserId = UserId, Provider = ProviderManager.CurrentProvider };
+            this.Karma += GetKarmaForType(karmaType);
+            this.KarmaAkashicRecords.Add(record);
 
-            /*
-            switch (karmaType)
-            {
-                case KarmaType.ContributingTowardsAGoodCauseAdministrator:
-                    this.Karma += karmaToAdd + 3;
-                    break;
-
-                case KarmaType.ContributingTowardsAGoodCauseSpeaker:
-                    this.Karma += karmaToAdd + 8;
-                    break;
-
-                case KarmaType.ContributingTowardsAGoodCauseContributor:
-                    this.Karma += karmaToAdd + 5;
-                    break;
-
-                case KarmaType.ContributingTowardsAGoodCauseCreatorOrganiser:
-                    this.Karma += karmaToAdd + 10;
-                    break;
-
-                case KarmaType.ContributingTowardsAGoodCauseFunder:
-                    this.Karma += karmaToAdd + 8;
-                    break;
-
-                case KarmaType.ContributingTowardsAGoodCausePeacefulProtesterActivist:
-                    this.Karma += karmaToAdd + 5;
-                    break;
-
-                case KarmaType.ContributingTowardsAGoodCauseSharer:
-                    this.Karma += karmaToAdd + 3;
-                    break;
-
-                case KarmaType.HelpingAnimals:
-                    this.Karma += karmaToAdd + 5;
-                    break;
-
-                case KarmaType.HelpingTheEnvironment:
-                    this.Karma += karmaToAdd + 5;
-                    break;
-
-                case KarmaType.Other:
-                    this.Karma += karmaToAdd + 2;
-                    break;
-
-                case KarmaType.OurWorld:
-                    this.Karma += karmaToAdd + 5;
-                    break;
-
-                case KarmaType.SelfHelpImprovement:
-                    this.Karma += karmaToAdd + 2;
-                    break;
-            }
-            */
-            return true;
+            return record;
         }
 
-        public bool SubstractKarma(int karmaToRemove, KarmaType karmaType)
+        public KarmaAkashicRecord KarmaLost(KarmaType karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc)
         {
-            this.Karma -= karmaToRemove - GetKarmaForType(karmaType);
-            return true;
+            KarmaAkashicRecord record = new KarmaAkashicRecord { KarmaEarntOrLost = KarmaEarntOrLost.Lost, Date = DateTime.Now, Karma = GetKarmaForType(karmaType), KarmaSource = karmaSourceType, KarmaSourceTitle = karamSourceTitle, KarmaSourceDesc = karmaSourceDesc, KarmaType = karmaType, UserId = UserId, Provider = ProviderManager.CurrentProvider };
+            this.Karma -= GetKarmaForType(karmaType);
+            this.KarmaAkashicRecords.Add(record);
+
+            return record;
         }
 
-        public bool Save()
+        public async Task<bool> Save()
         {
+            //TODO: This will break if the current provider is not a storage provider... need to work out best way to handle this? Or let it throw an error?
+            await ((IOASISStorage)ProviderManager.CurrentStorageProvider).SaveProfileAsync(this);
             return true;
         }
 
