@@ -5,13 +5,14 @@ using System.Threading.Tasks;
 
 namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
 {
-    public class BlockStackOASIS : OASISProvider, IOASISStorage, IOASISNET
+    public class BlockStackOASIS : OASISStorageBase, IOASISStorage, IOASISNET
     {
-        public event ProfileManager.StorageProviderError OnStorageProviderError;
-
-        public Task<bool> AddKarmaToProfileAsync(IProfile profile, int karma)
+        public BlockStackOASIS()
         {
-            throw new NotImplementedException();
+            this.ProviderName = "BlockStackOASIS";
+            this.ProviderDescription = "BlockStack Provider";
+            this.ProviderType = ProviderType.BlockStackOASIS;
+            this.ProviderCategory = ProviderCategory.StorageAndNetwork;
         }
 
         public List<IHolon> GetHolonsNearMe(HolonType Type)
@@ -24,27 +25,22 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
             throw new NotImplementedException();
         }
 
-        public Task<IProfile> LoadProfileAsync(string providerKey)
+        public override Task<IProfile> LoadProfileAsync(string providerKey)
         {
             throw new NotImplementedException();
         }
 
-        public Task<IProfile> LoadProfileAsync(Guid Id)
+        public override Task<IProfile> LoadProfileAsync(Guid Id)
         {
             throw new NotImplementedException();
         }
 
-        public Task<IProfile> LoadProfileAsync(string username, string password)
+        public override Task<IProfile> LoadProfileAsync(string username, string password)
         {
             throw new NotImplementedException();
         }
 
-        public Task<bool> RemoveKarmaFromProfileAsync(IProfile profile, int karma)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<IProfile> SaveProfileAsync(IProfile profile)
+        public override Task<IProfile> SaveProfileAsync(IProfile profile)
         {
             throw new NotImplementedException();
         }

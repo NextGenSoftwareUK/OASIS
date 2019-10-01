@@ -20,7 +20,7 @@ namespace NextGenSoftware.OASIS.API.Core
         Task<KarmaAkashicRecord> AddKarmaToProfileAsync(API.Core.IProfile profile, KarmaType karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc);
         Task<KarmaAkashicRecord> SubtractKarmaFromProfileAsync(API.Core.IProfile profile, KarmaType karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc);
 
-        event StorageProviderError OnStorageProviderError;
+        event StorageProviderError StorageProviderError;
 
         //TODO: Lots more to come! ;-)
     }

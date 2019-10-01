@@ -5,13 +5,14 @@ using System.Threading.Tasks;
 
 namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
 {
-    public class EthereumOASIS : IOASISStorage, IOASISNET
+    public class EthereumOASIS : OASISStorageBase, IOASISStorage, IOASISNET
     {
-        public event ProfileManager.StorageProviderError OnStorageProviderError;
-
-        public Task<bool> AddKarmaToProfileAsync(IProfile profile, int karma)
+        public EthereumOASIS()
         {
-            throw new NotImplementedException();
+            this.ProviderName = "EthereumOASIS";
+            this.ProviderDescription = "Ethereum Provider";
+            this.ProviderType = ProviderType.EthereumOASIS;
+            this.ProviderCategory = ProviderCategory.StorageAndNetwork;
         }
 
         public List<IHolon> GetHolonsNearMe(HolonType Type)
@@ -24,27 +25,22 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             throw new NotImplementedException();
         }
 
-        public Task<IProfile> LoadProfileAsync(string providerKey)
+        public override Task<IProfile> LoadProfileAsync(string providerKey)
         {
             throw new NotImplementedException();
         }
 
-        public Task<IProfile> LoadProfileAsync(Guid Id)
+        public override Task<IProfile> LoadProfileAsync(Guid Id)
         {
             throw new NotImplementedException();
         }
 
-        public Task<IProfile> LoadProfileAsync(string username, string password)
+        public override Task<IProfile> LoadProfileAsync(string username, string password)
         {
             throw new NotImplementedException();
         }
-
-        public Task<bool> RemoveKarmaFromProfileAsync(IProfile profile, int karma)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<IProfile> SaveProfileAsync(IProfile profile)
+        
+        public override Task<IProfile> SaveProfileAsync(IProfile profile)
         {
             throw new NotImplementedException();
         }

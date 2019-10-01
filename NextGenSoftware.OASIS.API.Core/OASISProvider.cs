@@ -3,22 +3,22 @@ namespace NextGenSoftware.OASIS.API.Core
 {
     public class OASISProvider : IOASISProvider
     {
-        public string Name { get; set; }
-        public string Description { get; set; }
+        public string ProviderName { get; set; }
+        public string ProviderDescription { get; set; }
 
-        public ProviderCat Category { get; set; }
+        public ProviderCategory ProviderCategory { get; set; }
 
-        public ProviderType Type { get; set; }
-        public bool Activated { get; set; }
+        public ProviderType ProviderType { get; set; }
+        public bool ProviderActivated { get; set; }
 
         virtual public void ActivateProvider()
         {
-            Activated = true;
+            ProviderActivated = true;
         }
 
         virtual public void DeActivateProvider()
         {
-            Activated = false;
+            ProviderActivated = false;
         }
     }
 }

@@ -6,20 +6,16 @@ using System.Threading.Tasks;
 
 namespace NextGenSoftware.OASIS.API.Providers.SOLIDOASIS
 {
-    public class SOLIDOASIS : OASISProvider, IOASISStorage, IOASISNET
+    public class SOLIDOASIS : OASISStorageBase, IOASISStorage, IOASISNET
     {
-        public event ProfileManager.StorageProviderError OnStorageProviderError;
+        //public event ProfileManager.StorageProviderError OnStorageProviderError;
 
         public SOLIDOASIS()
         {
-            this.Name = "SOLIDOASIS";
-            this.Description = "SOLID Provider";
-            this.Type = ProviderType.SOLIDOASIS;
-        }
-
-        public Task<bool> AddKarmaToProfileAsync(IProfile profile, int karma)
-        {
-            throw new NotImplementedException();
+            this.ProviderName = "SOLIDOASIS";
+            this.ProviderDescription = "SOLID Provider";
+            this.ProviderType = ProviderType.SOLIDOASIS;
+            this.ProviderCategory = ProviderCategory.StorageAndNetwork;
         }
 
         public List<IHolon> GetHolonsNearMe(HolonType Type)
@@ -32,7 +28,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLIDOASIS
             throw new NotImplementedException();
         }
 
-        public Task<IProfile> LoadProfileAsync(string providerKey)
+        public override Task<IProfile> LoadProfileAsync(string providerKey)
         {
             //TODO: Call into JS SOLID Code here.
             //Page.ClientScript.RegisterStartupScript(this.GetType(), "CallMyFunction", "MyFunction()", true);
@@ -40,22 +36,17 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLIDOASIS
             return null;
         }
 
-        public Task<IProfile> LoadProfileAsync(Guid Id)
+        public override Task<IProfile> LoadProfileAsync(Guid Id)
         {
             throw new NotImplementedException();
         }
 
-        public Task<IProfile> LoadProfileAsync(string username, string password)
+        public override Task<IProfile> LoadProfileAsync(string username, string password)
         {
             throw new NotImplementedException();
         }
 
-        public Task<bool> RemoveKarmaFromProfileAsync(IProfile profile, int karma)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<IProfile> SaveProfileAsync(IProfile profile)
+        public override Task<IProfile> SaveProfileAsync(IProfile profile)
         {
             throw new NotImplementedException();
         }

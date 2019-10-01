@@ -25,7 +25,7 @@ namespace NextGenSoftware.OASIS.API.WebAPI.Controllers
             get
             {
                 if (_profileManager == null)
-                    _profileManager = new ProfileManager(new List<IOASISStorage>() { new HoloOASIS("ws://localhost:8888") });
+                    _profileManager = new ProfileManager(new HoloOASIS("ws://localhost:8888"));
 
                 return _profileManager;
             }
@@ -56,6 +56,11 @@ namespace NextGenSoftware.OASIS.API.WebAPI.Controllers
         [HttpGet("{id}")]
         public async Task<IProfile> Get(Guid id, ProviderType providerType)
         {
+            //TODO: This will fail if the requested provider has not been registered with the ProviderManager (soon this will bn automatic with MEF if the provider dll is in the providers hot folder).
+            return await ProfileManager.LoadProfileAsync(id, providerType);
+
+
+            /*
             if (ProfileManager.DefaultProviderType != providerType)
             {
                 switch (providerType)
@@ -106,6 +111,7 @@ namespace NextGenSoftware.OASIS.API.WebAPI.Controllers
 
             //ProfileManager.DefaultProvider = providerType;
             return await ProfileManager.LoadProfileAsync(id);
+            */
         }
 
 

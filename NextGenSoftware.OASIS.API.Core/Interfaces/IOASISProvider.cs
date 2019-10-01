@@ -3,12 +3,12 @@ namespace NextGenSoftware.OASIS.API.Core
 {
     public interface IOASISProvider
     {
-        string Name { get; set; }
-        string Description { get; set; }
-        ProviderCat Category { get; set; }
-        ProviderType Type { get; set; }
+        string ProviderName { get; set; }
+        string ProviderDescription { get; set; }
+        ProviderCategory ProviderCategory { get; set; }
+        ProviderType ProviderType { get; set; }
         //bool Activated { get; private set; } //TODO: Use this when upgrade to C# 8.0 (.NET Core 3.0).
-        bool Activated { get; set; }
+        bool ProviderActivated { get; }
         //virtual void ActivateProvider();
         //virtual void DeActivateProvider();
         void ActivateProvider();

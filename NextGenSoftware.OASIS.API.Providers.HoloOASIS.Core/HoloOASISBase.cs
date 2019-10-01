@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Core
 {
-    public abstract class HoloOASISBase : OASISProvider, IOASISNET, IOASISStorage
+    public abstract class HoloOASISBase : OASISStorageBase, IOASISNET, IOASISStorage
     {
         private const string OURWORLD_ZOME = "our_world_core";
         private const string LOAD_PROFILE_FUNC = "load_profile";
@@ -21,6 +21,8 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Core
         private TaskCompletionSource<NextGenSoftware.OASIS.API.Providers.HoloOASIS.Core.IProfile> _taskCompletionSourceSaveProfile = new TaskCompletionSource<NextGenSoftware.OASIS.API.Providers.HoloOASIS.Core.IProfile>();
         private TaskCompletionSource<string> _taskCompletionSourceGetInstance = new TaskCompletionSource<string>();
 
+       // public event ProfileManager.StorageProviderError OnStorageProviderError;
+
         public delegate void Initialized(object sender, EventArgs e);
         public event Initialized OnInitialized;
 
@@ -32,16 +34,16 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Core
 
         public delegate void HoloOASISError(object sender, HoloOASISErrorEventArgs e);
         public event HoloOASISError OnHoloOASISError;
-        public event ProfileManager.StorageProviderError OnStorageProviderError;
 
         public HoloNETClientBase HoloNETClient { get; private set; }
        
 
         public HoloOASISBase(HoloNETClientBase holoNETClient)
         {
-            this.Name = "HoloOASIS";
-            this.Description = "Holochain Provider";
-            this.Type = ProviderType.HoloOASIS;
+            this.ProviderName = "HoloOASIS";
+            this.ProviderDescription = "Holochain Provider";
+            this.ProviderType = ProviderType.HoloOASIS;
+            this.ProviderCategory = ProviderCategory.StorageAndNetwork;
             this.HoloNETClient = holoNETClient;
           //  _holochainURI = holochainURI;
             Initialize();
@@ -142,7 +144,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Core
 
         #region IOASISStorage Implementation
 
-        public async Task<API.Core.IProfile> LoadProfileAsync(string profileEntryHash)
+        public override async Task<API.Core.IProfile> LoadProfileAsync(string profileEntryHash)
         {
             await _taskCompletionSourceGetInstance.Task;
 
@@ -155,7 +157,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Core
             return null;
         }
 
-        public async Task<API.Core.IProfile> LoadProfileAsync(Guid id)
+        public override async Task<API.Core.IProfile> LoadProfileAsync(Guid id)
         {
             await _taskCompletionSourceGetInstance.Task;
 
@@ -169,7 +171,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Core
             return null;
         }
 
-        public async Task<API.Core.IProfile> LoadProfileAsync(string username, string password)
+        public override async Task<API.Core.IProfile> LoadProfileAsync(string username, string password)
         {
             await _taskCompletionSourceGetInstance.Task;
 
@@ -186,7 +188,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Core
             return null;
         }
 
-        public async Task<API.Core.IProfile> SaveProfileAsync(API.Core.IProfile profile)
+        public override async Task<API.Core.IProfile> SaveProfileAsync(API.Core.IProfile profile)
         {
             await _taskCompletionSourceGetInstance.Task;
 
@@ -270,7 +272,8 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Core
         /// <param name="holoNETEventArgs"></param>
         private void HandleError(string reason, Exception errorDetails, HoloNETErrorEventArgs holoNETEventArgs)
         {
-            OnStorageProviderError?.Invoke(this, new ProfileManagerErrorEventArgs { EndPoint = this.HoloNETClient.EndPoint, Reason = string.Concat(reason, holoNETEventArgs != null ? string.Concat(" - HoloNET Error: ", holoNETEventArgs.Reason, " - ", holoNETEventArgs.ErrorDetails.ToString()) : ""),  ErrorDetails = errorDetails });
+            //OnStorageProviderError?.Invoke(this, new ProfileManagerErrorEventArgs { EndPoint = this.HoloNETClient.EndPoint, Reason = string.Concat(reason, holoNETEventArgs != null ? string.Concat(" - HoloNET Error: ", holoNETEventArgs.Reason, " - ", holoNETEventArgs.ErrorDetails.ToString()) : ""), ErrorDetails = errorDetails });
+            OnStorageProviderError(HoloNETClient.EndPoint, string.Concat(reason, holoNETEventArgs != null ? string.Concat(" - HoloNET Error: ", holoNETEventArgs.Reason, " - ", holoNETEventArgs.ErrorDetails.ToString()) : ""), errorDetails);
             OnHoloOASISError?.Invoke(this, new HoloOASISErrorEventArgs() { EndPoint = HoloNETClient.EndPoint, Reason = reason, ErrorDetails = errorDetails, HoloNETErrorDetails = holoNETEventArgs });
         }
 

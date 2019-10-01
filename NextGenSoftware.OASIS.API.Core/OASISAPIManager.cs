@@ -1,6 +1,5 @@
-﻿using System;
+﻿
 using System.Collections.Generic;
-using System.Threading.Tasks;
 
 namespace NextGenSoftware.OASIS.API.Core
 {
@@ -8,23 +7,17 @@ namespace NextGenSoftware.OASIS.API.Core
     {
         public ProfileManager ProfileManager { get; set; }
         public MapManager MapManager { get; set; }
-        public ProviderManager ProviderManager { get; set; }
 
-        //public OASISAPIManager(IOASISStorage OASISStorageProvider, IOASISNET OASISNETProvider)
-        //public OASISAPIManager(IOASISStorage OASISStorageProvider)
         public OASISAPIManager(List<IOASISProvider> OASISProviders)
+        //public OASISAPIManager()
         {
+            ProviderManager.RegisterProviders(OASISProviders); //TODO: Soon you will not need to pass these in since MEF will taKe care of this for us.
             this.MapManager = new MapManager();
-            this.ProviderManager = new ProviderManager();
-            this.ProviderManager.RegisteredProviders.AddRange(OASISProviders);
-
+            
             // TODO: Soon you will not need to inject in a provider because the mappings below will be used instead...
-            //this.ProfileManager = new ProfileManager(OASISStorageProvider);
-            this.ProfileManager = new ProfileManager(ProviderManager.GetStorageProviders());
-
+            this.ProfileManager = new ProfileManager(ProviderManager.GetStorageProvider(ProviderType.HoloOASIS));
 
             //TODO: Move the mappings to an external config wrapper than is injected into the OASISAPIManager constructor above...
-
             // Give HoloOASIS Store permission for the Name field (the field will only be stored on Holochain).
             this.ProfileManager.Config.FieldToProviderMappings.Name.Add(new ProfileManagerConfig.FieldToProviderMappingAccess { Access = ProfileManagerConfig.ProviderAccess.Store, Provider = ProviderType.HoloOASIS });
 

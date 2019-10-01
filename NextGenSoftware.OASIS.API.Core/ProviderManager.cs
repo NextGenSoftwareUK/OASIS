@@ -6,60 +6,138 @@ namespace NextGenSoftware.OASIS.API.Core
 {
     public class ProviderManager
     {
+        private static List<IOASISProvider> _registeredProviders = new List<IOASISProvider>();
+
         public static ProviderType CurrentStorageProviderType { get; private set; }
 
-        public static IOASISStorage CurrentStorageProvider { get; private set; } //TODO: Need to work this out because in future there can be more than one provider active at a time (even more than one storage provider)
+        public static IOASISStorage CurrentStorageProvider { get; private set; } //TODO: Need to work this out because in future there can be more than one provider active at a time.
 
-        public List<IOASISProvider> RegisteredProviders { get; set; }
+        
 
-        public void RegisterProvider(IOASISProvider provider)
+        //TODO: In future the registered providers will be dynamically loaded from MEF by watching a hot folder for compiled provider dlls (and other ways in future...)
+        public static void RegisterProvider(IOASISProvider provider)
         {
-            RegisteredProviders.Add(provider);
+            if (!_registeredProviders.Any(x => x.ProviderName == provider.ProviderName))
+                _registeredProviders.Add(provider);
         }
 
-        public void UnRegisterProvider(IOASISProvider provider)
+        public static void RegisterProviders(List<IOASISProvider> providers)
         {
-            RegisteredProviders.Remove(provider);
+            foreach (IOASISProvider provider in providers)
+                RegisterProvider(provider);
         }
 
-        public List<IOASISProvider> GetProvidersOfCat(ProviderCat category)
+        public static void UnRegisterProvider(IOASISProvider provider)
         {
-            return RegisteredProviders.Where(x => x.Category == category).ToList();
+            _registeredProviders.Remove(provider);
         }
 
-        public List<IOASISStorage> GetStorageProviders()
+        public static void UnRegisterProviders(List<IOASISProvider> providers)
+        {
+            foreach (IOASISProvider provider in providers)
+                _registeredProviders.Remove(provider);
+        }
+
+        public static List<IOASISProvider> GetAllProviders()
+        {
+            return _registeredProviders;
+        }
+
+        public static List<IOASISProvider> GetProvidersOfCategory(ProviderCategory category)
+        {
+            return _registeredProviders.Where(x => x.ProviderCategory == category).ToList();
+        }
+
+        public static List<IOASISStorage> GetStorageProviders()
         {
             List<IOASISStorage> storageProviders = new List<IOASISStorage>();
 
-            foreach (IOASISProvider provider in RegisteredProviders.Where(x => x.Category == ProviderCat.Storage).ToList())
+            foreach (IOASISProvider provider in _registeredProviders.Where(x => x.ProviderCategory == ProviderCategory.Storage || x.ProviderCategory == ProviderCategory.StorageAndNetwork).ToList())
                 storageProviders.Add((IOASISStorage)provider);  
 
             return storageProviders;
         }
 
-        //TODO: In future more than one StorageProvider will be active at a time so we need to work out how to handle this...
-        public void SwitchStorageProvider(ProviderType providerType)
+        public static List<IOASISNET> GetNetworkProviders()
         {
-            IOASISProvider provider = RegisteredProviders.FirstOrDefault(x => x.Type == providerType);
+            List<IOASISNET> networkProviders = new List<IOASISNET>();
 
-            if (provider != null && provider.Category == ProviderCat.Storage)
+            foreach (IOASISProvider provider in _registeredProviders.Where(x => x.ProviderCategory == ProviderCategory.Network || x.ProviderCategory == ProviderCategory.StorageAndNetwork).ToList())
+                networkProviders.Add((IOASISNET)provider);
+
+            return networkProviders;
+        }
+
+        public static List<IOASISRenderer> GetRendererProviders()
+        {
+            List<IOASISRenderer> rendererProviders = new List<IOASISRenderer>();
+
+            foreach (IOASISProvider provider in _registeredProviders.Where(x => x.ProviderCategory == ProviderCategory.Renderer).ToList())
+                rendererProviders.Add((IOASISRenderer)provider);
+
+            return rendererProviders;
+        }
+
+        public static IOASISProvider GetProvider(ProviderType type)
+        {
+            return _registeredProviders.FirstOrDefault(x => x.ProviderType == type);
+        }
+
+        public static IOASISStorage GetStorageProvider(ProviderType type)
+        {
+            return (IOASISStorage)_registeredProviders.FirstOrDefault(x => x.ProviderType == type && x.ProviderCategory == ProviderCategory.Storage);
+        }
+
+        public static IOASISNET GetNetworkProvider(ProviderType type)
+        {
+            return (IOASISNET)_registeredProviders.FirstOrDefault(x => x.ProviderType == type && x.ProviderCategory == ProviderCategory.Network);
+        }
+
+        public static IOASISRenderer GetRendererProvider(ProviderType type)
+        {
+            return (IOASISRenderer)_registeredProviders.FirstOrDefault(x => x.ProviderType == type && x.ProviderCategory == ProviderCategory.Renderer);
+        }
+
+        // Highly recommend this one is used.
+        public static IOASISProvider GetAndActivateProvider(ProviderType type)
+        {
+            IOASISProvider provider = _registeredProviders.FirstOrDefault(x => x.ProviderType == type);
+
+            if (provider != null)
+                provider.ActivateProvider();
+
+            return provider;
+        }
+
+        public static bool IsProviderRegistered(IOASISProvider provider)
+        {
+            return _registeredProviders.Any(x => x.ProviderName == provider.ProviderName);
+        }
+
+        //TODO: In future more than one StorageProvider will be active at a time so we need to work out how to handle this...
+        public static void SwitchCurrentStorageProvider(ProviderType providerType)
+        {
+            IOASISProvider provider = _registeredProviders.FirstOrDefault(x => x.ProviderType == providerType);
+
+            if (provider != null && (provider.ProviderCategory == ProviderCategory.Storage || provider.ProviderCategory == ProviderCategory.StorageAndNetwork))
             {
                 ProviderManager.CurrentStorageProviderType = providerType;
                 ProviderManager.CurrentStorageProvider = (IOASISStorage)provider;
+                ProviderManager.CurrentStorageProvider.ActivateProvider();
             }
         }
 
-        public void ActivateProvider(ProviderType type)
+        public static void ActivateProvider(ProviderType type)
         {
-            IOASISProvider provider = RegisteredProviders.FirstOrDefault(x => x.Type == type);
+            IOASISProvider provider = _registeredProviders.FirstOrDefault(x => x.ProviderType == type);
 
             if (provider != null)
                 provider.ActivateProvider();
         }
 
-        public void DeaAtivateProvider(ProviderType type)
+        public static void DeaAtivateProvider(ProviderType type)
         {
-            IOASISProvider provider = RegisteredProviders.FirstOrDefault(x => x.Type == type);
+            IOASISProvider provider = _registeredProviders.FirstOrDefault(x => x.ProviderType == type);
 
             if (provider != null)
                 provider.DeActivateProvider();
