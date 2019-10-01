@@ -1,6 +1,6 @@
 ﻿
 
-namespace NextGenSoftware.OASIS.API.Core.Interfaces
+namespace NextGenSoftware.OASIS.API.Core
 {
     public interface IOASISRenderer : IOASISProvider
     {

@@ -15,8 +15,8 @@ namespace NextGenSoftware.OASIS.API.Core
         public string LastName { get; set; }
         public string DOB { get; set; }
         public string PlayerAddress { get; set; }
-        public int Karma { get; private set; }
-       // public int Karma { get; set; }
+       // public int Karma { get; private set; }
+        public int Karma { get; set; } //TODO: This really needs to have a private setter but in the HoloOASIS provider it needs to copy the object along with each property... would prefer another work around if possible?
         public int Level
         {
             get
@@ -39,27 +39,32 @@ namespace NextGenSoftware.OASIS.API.Core
         // A record of all the karma the user has earnt/lost along with when and where from.
         public List<KarmaAkashicRecord> KarmaAkashicRecords { get; set; }
 
-        public KarmaAkashicRecord KarmaEarnt(KarmaType karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc)
+        public async Task<KarmaAkashicRecord> KarmaEarnt(KarmaType karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc, bool autoSave = true)
         {
-            KarmaAkashicRecord record = new KarmaAkashicRecord { KarmaEarntOrLost = KarmaEarntOrLost.Earnt, Date = DateTime.Now, Karma = GetKarmaForType(karmaType), KarmaSource = karmaSourceType, KarmaSourceTitle = karamSourceTitle, KarmaSourceDesc = karmaSourceDesc, KarmaType = karmaType, UserId = UserId, Provider = ProviderManager.CurrentProvider };
+            KarmaAkashicRecord record = new KarmaAkashicRecord { KarmaEarntOrLost = KarmaEarntOrLost.Earnt, Date = DateTime.Now, Karma = GetKarmaForType(karmaType), KarmaSource = karmaSourceType, KarmaSourceTitle = karamSourceTitle, KarmaSourceDesc = karmaSourceDesc, KarmaType = karmaType, UserId = UserId, Provider = ProviderManager.CurrentStorageProviderType };
             this.Karma += GetKarmaForType(karmaType);
             this.KarmaAkashicRecords.Add(record);
+
+            if (autoSave)
+                await Save();
 
             return record;
         }
 
-        public KarmaAkashicRecord KarmaLost(KarmaType karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc)
+        public async Task<KarmaAkashicRecord> KarmaLost(KarmaType karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc, bool autoSave = true)
         {
-            KarmaAkashicRecord record = new KarmaAkashicRecord { KarmaEarntOrLost = KarmaEarntOrLost.Lost, Date = DateTime.Now, Karma = GetKarmaForType(karmaType), KarmaSource = karmaSourceType, KarmaSourceTitle = karamSourceTitle, KarmaSourceDesc = karmaSourceDesc, KarmaType = karmaType, UserId = UserId, Provider = ProviderManager.CurrentProvider };
+            KarmaAkashicRecord record = new KarmaAkashicRecord { KarmaEarntOrLost = KarmaEarntOrLost.Lost, Date = DateTime.Now, Karma = GetKarmaForType(karmaType), KarmaSource = karmaSourceType, KarmaSourceTitle = karamSourceTitle, KarmaSourceDesc = karmaSourceDesc, KarmaType = karmaType, UserId = UserId, Provider = ProviderManager.CurrentStorageProviderType };
             this.Karma -= GetKarmaForType(karmaType);
             this.KarmaAkashicRecords.Add(record);
+
+            if (autoSave)
+                await Save();
 
             return record;
         }
 
         public async Task<bool> Save()
         {
-            //TODO: This will break if the current provider is not a storage provider... need to work out best way to handle this? Or let it throw an error?
             await ((IOASISStorage)ProviderManager.CurrentStorageProvider).SaveProfileAsync(this);
             return true;
         }

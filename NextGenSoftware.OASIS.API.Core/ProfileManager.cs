@@ -34,6 +34,7 @@ namespace NextGenSoftware.OASIS.API.Core
 
         public delegate void StorageProviderError(object sender, ProfileManagerErrorEventArgs e);
 
+        /*
         public ProfileManager(List<IOASISStorage> OASISStorageProviders)
         {
             this.OASISStorageProviders = OASISStorageProviders;
@@ -43,6 +44,15 @@ namespace NextGenSoftware.OASIS.API.Core
                 provider.OnStorageProviderError += OASISStorageProvider_OnStorageProviderError;
                 provider.ActivateProvider();
             }
+        }*/
+
+       //TODO: In future more than one storage provider can be active at a time where each call can specify which provider to use.
+        public ProfileManager(IOASISStorage OASISStorageProvider)
+        {
+            if (!ProviderManager.IsProviderRegistered(OASISStorageProvider))
+                ProviderManager.RegisterProvider(OASISStorageProvider);
+
+            ProviderManager.SwitchCurrentStorageProvider(OASISStorageProvider.ProviderType);
         }
 
         private void OASISStorageProvider_OnStorageProviderError(object sender, ProfileManagerErrorEventArgs e)
@@ -51,43 +61,51 @@ namespace NextGenSoftware.OASIS.API.Core
             OnProfileManagerError?.Invoke(this, e);
         }
 
-        public async Task<IProfile> LoadProfileAsync(string providerKey)
+        public async Task<IProfile> LoadProfileAsync(string providerKey, ProviderType provider = ProviderType.Default)
         {
+            if (provider != ProviderType.Default)
+                return await ((IOASISStorage)ProviderManager.GetAndActivateProvider(provider)).LoadProfileAsync(providerKey);
+
             return await ProviderManager.CurrentStorageProvider.LoadProfileAsync(providerKey);
         }
 
-        public async Task<IProfile> LoadProfileAsync(Guid id)
+        public async Task<IProfile> LoadProfileAsync(Guid id, ProviderType provider = ProviderType.Default)
         {
+            if (provider != ProviderType.Default)
+                return await ((IOASISStorage)ProviderManager.GetAndActivateProvider(provider)).LoadProfileAsync(id);
+
             return await ProviderManager.CurrentStorageProvider.LoadProfileAsync(id);
         }
 
-        public async Task<IProfile> LoadProfileAsync(string username, string password)
+        public async Task<IProfile> LoadProfileAsync(string username, string password, ProviderType provider = ProviderType.Default)
         {
+            if (provider != ProviderType.Default)
+                return await ((IOASISStorage)ProviderManager.GetAndActivateProvider(provider)).LoadProfileAsync(username, password);
+
             return await ProviderManager.CurrentStorageProvider.LoadProfileAsync(username, password);
         }
 
-        public async Task<IProfile> SaveProfileAsync(IProfile profile)
+        public async Task<IProfile> SaveProfileAsync(IProfile profile, ProviderType provider = ProviderType.Default)
         {
+            if (provider != ProviderType.Default)
+                return await ((IOASISStorage)ProviderManager.GetAndActivateProvider(provider)).SaveProfileAsync(profile);
+
             return await ProviderManager.CurrentStorageProvider.SaveProfileAsync(profile);
         }
 
-        //public async Task<bool> AddKarmaToProfileAsync(IProfile profile, int karma)
-        //{
-        //    return await DefaultProvider.AddKarmaToProfileAsync(profile, karma);
-        //}
-
-        //public async Task<bool> RemoveKarmaFromProfileAsync(IProfile profile, int karma)
-        //{
-        //    return await DefaultProvider.RemoveKarmaFromProfileAsync(profile, karma);
-        //}
-
-        public async Task<KarmaAkashicRecord> AddKarmaToProfileAsync(IProfile profile, KarmaType karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc)
+        public async Task<KarmaAkashicRecord> AddKarmaToProfileAsync(IProfile profile, KarmaType karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc, ProviderType provider = ProviderType.Default)
         {
+            if (provider != ProviderType.Default)
+                return await ((IOASISStorage)ProviderManager.GetAndActivateProvider(provider)).AddKarmaToProfileAsync(profile, karmaType, karmaSourceType, karamSourceTitle, karmaSourceDesc);
+
             return await ProviderManager.CurrentStorageProvider.AddKarmaToProfileAsync(profile, karmaType, karmaSourceType, karamSourceTitle, karmaSourceDesc);
         }
 
-        public async Task<KarmaAkashicRecord> RemoveKarmaFromProfileAsync(IProfile profile, KarmaType karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc)
+        public async Task<KarmaAkashicRecord> RemoveKarmaFromProfileAsync(IProfile profile, KarmaType karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc, ProviderType provider = ProviderType.Default)
         {
+            if (provider != ProviderType.Default)
+                return await ((IOASISStorage)ProviderManager.GetAndActivateProvider(provider)).SubtractKarmaFromProfileAsync(profile, karmaType, karmaSourceType, karamSourceTitle, karmaSourceDesc);
+
             return await ProviderManager.CurrentStorageProvider.SubtractKarmaFromProfileAsync(profile, karmaType, karmaSourceType, karamSourceTitle, karmaSourceDesc);
         }
     }

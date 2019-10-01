@@ -1,4 +1,5 @@
-﻿using NextGenSoftware.OASIS.API.Providers.HoloOASIS.Core;
+﻿using NextGenSoftware.OASIS.API.Core;
+using NextGenSoftware.OASIS.API.Providers.HoloOASIS.Core;
 
 using System;
 using System.Threading.Tasks;
@@ -76,15 +77,14 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.TestHarness
             Console.WriteLine(string.Concat("Level: ", e.Profile.Level));
         }
 
-        private static void _holoOASIS_OnInitialized(object sender, EventArgs e)
+        private static async void _holoOASIS_OnInitialized(object sender, EventArgs e)
         {
             Console.WriteLine("Initialized.");
             Console.WriteLine("Saving Profile...");
 
-            _savedProfile = new Profile { Username = "dellams", Email = "david@nextgensoftware.co.uk", Password = "1234", FirstName = "David", LastName = "Ellams", DOB = "11/04/1980", Id = Guid.NewGuid(), Title = "Mr", PlayerAddress = "blahahahaha" };
-            _savedProfile.AddKarma(999);
-
-            _holoOASIS.SaveProfileAsync(_savedProfile);
+            _savedProfile = new NextGenSoftware.OASIS.API.Providers.HoloOASIS.Core.Profile { Username = "dellams", Email = "david@nextgensoftware.co.uk", Password = "1234", FirstName = "David", LastName = "Ellams", DOB = "11/04/1980", Id = Guid.NewGuid(), Title = "Mr", PlayerAddress = "blahahahaha" };
+            await _savedProfile.KarmaEarnt(KarmaType.HelpingTheEnvironment, KarmaSourceType.hApp, "Our World", "XR Educational Game To Make The World A Better Place", false);
+            await _holoOASIS.SaveProfileAsync(_savedProfile);
         }
     }
 }

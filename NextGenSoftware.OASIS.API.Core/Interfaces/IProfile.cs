@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace NextGenSoftware.OASIS.API.Core
 {
@@ -20,9 +21,9 @@ namespace NextGenSoftware.OASIS.API.Core
         //bool AddKarma(int karmaToAdd);
         //bool SubstractKarma(int karmaToRemove);
 
-        KarmaAkashicRecord KarmaEarnt(KarmaType karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc);
-        KarmaAkashicRecord KarmaLost(KarmaType karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc);
+        Task<KarmaAkashicRecord> KarmaEarnt(KarmaType karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc, bool autoSave = true);
+        Task<KarmaAkashicRecord> KarmaLost(KarmaType karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc, bool autoSave = true);
         List<KarmaAkashicRecord> KarmaAkashicRecords { get; set; }
-        bool Save();
+        Task<bool> Save();
     }
 }

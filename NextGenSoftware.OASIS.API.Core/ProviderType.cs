@@ -14,6 +14,7 @@ namespace NextGenSoftware.OASIS.API.Core
         ActivityPubOASIS,
         ScuttleBugOASIS,
         All,
-        None
+        None,
+        Default
     }
 }
