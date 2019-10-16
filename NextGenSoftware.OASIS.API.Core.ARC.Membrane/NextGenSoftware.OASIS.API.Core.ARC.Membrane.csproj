@@ -1,11 +1,21 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFramework>netstandard2.1</TargetFramework>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Edge.js" Version="8.2.1" />
+    <None Remove="addNumbers.js" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="addNumbers.js">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\NextGenSoftware.NodeManager\NextGenSoftware.NodeManager.csproj" />
   </ItemGroup>
 
 </Project>

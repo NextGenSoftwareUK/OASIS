@@ -1,4 +1,5 @@
 ﻿
+using NextGenSoftware.OASIS.API.Core.Apollo.Server;
 using System.Collections.Generic;
 
 namespace NextGenSoftware.OASIS.API.Core
@@ -8,7 +9,7 @@ namespace NextGenSoftware.OASIS.API.Core
         public ProfileManager ProfileManager { get; set; }
         public MapManager MapManager { get; set; }
 
-        public OASISAPIManager(List<IOASISProvider> OASISProviders)
+        public OASISAPIManager(List<IOASISProvider> OASISProviders, bool startApolloServer = true)
         //public OASISAPIManager()
         {
             ProviderManager.RegisterProviders(OASISProviders); //TODO: Soon you will not need to pass these in since MEF will taKe care of this for us.
@@ -31,6 +32,10 @@ namespace NextGenSoftware.OASIS.API.Core
             //Give Ethereum read-only access to the DOB field.
             this.ProfileManager.Config.FieldToProviderMappings.DOB.Add(new ProfileManagerConfig.FieldToProviderMappingAccess { Access = ProfileManagerConfig.ProviderAccess.ReadOnly, Provider = ProviderType.EthereumOASIS });
 
+            if (startApolloServer)
+            {
+                ApolloServer.StartServer();
+            }
         }
 
         /*
