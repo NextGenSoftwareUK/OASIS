@@ -87,7 +87,17 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.P
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.Providers.AcitvityPubOASIS", "NextGenSoftware.OASIS.API.Providers.AcitvityPub\NextGenSoftware.OASIS.API.Providers.AcitvityPubOASIS.csproj", "{B0A76E6A-8FC3-42FA-8C16-DDAF78173187}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.Providers.BlockStackOASIS", "NextGenSoftware.OASIS.API.Providers.BlockStackOASIS\NextGenSoftware.OASIS.API.Providers.BlockStackOASIS.csproj", "{A012AF72-81F6-43F3-8419-E6281BAF23CA}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.Providers.BlockStackOASIS", "NextGenSoftware.OASIS.API.Providers.BlockStackOASIS\NextGenSoftware.OASIS.API.Providers.BlockStackOASIS.csproj", "{A012AF72-81F6-43F3-8419-E6281BAF23CA}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.Core.ARC.Membrane.TestHarness", "NextGenSoftware.OASIS.API.Core.ARC.Membrane.TestHarness\NextGenSoftware.OASIS.API.Core.ARC.Membrane.TestHarness.csproj", "{F399DEB2-A4F6-4D63-8FF1-9D1DE6BAA4C1}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.NodeManager", "NextGenSoftware.NodeManager\NextGenSoftware.NodeManager.csproj", "{0246EAB8-091F-4229-86EC-09708805BEEB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.Core.Apollo.Server", "NextGenSoftware.OASIS.API.Core.Apollo.Server\NextGenSoftware.OASIS.API.Core.Apollo.Server.csproj", "{83ACF13E-FDCB-4747-AEE3-661DF299F485}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.Core.Apollo.Server.TestHarness", "NextGenSoftware.OASIS.API.Core.Apollo.Server.TestHarness\NextGenSoftware.OASIS.API.Core.Apollo.Server.TestHarness.csproj", "{2C7FBA94-8F34-4B2F-AF21-CF9A70BD2D2C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.Core.Apollo.Client", "NextGenSoftware.OASIS.API.Core.Apollo.Client\NextGenSoftware.OASIS.API.Core.Apollo.Client.csproj", "{EC38BFFC-6883-4854-9E43-3039289A9C38}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -234,6 +244,36 @@ Global
 		{A012AF72-81F6-43F3-8419-E6281BAF23CA}.Linux|Any CPU.Build.0 = Debug|Any CPU
 		{A012AF72-81F6-43F3-8419-E6281BAF23CA}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A012AF72-81F6-43F3-8419-E6281BAF23CA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F399DEB2-A4F6-4D63-8FF1-9D1DE6BAA4C1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F399DEB2-A4F6-4D63-8FF1-9D1DE6BAA4C1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F399DEB2-A4F6-4D63-8FF1-9D1DE6BAA4C1}.Linux|Any CPU.ActiveCfg = Debug|Any CPU
+		{F399DEB2-A4F6-4D63-8FF1-9D1DE6BAA4C1}.Linux|Any CPU.Build.0 = Debug|Any CPU
+		{F399DEB2-A4F6-4D63-8FF1-9D1DE6BAA4C1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F399DEB2-A4F6-4D63-8FF1-9D1DE6BAA4C1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0246EAB8-091F-4229-86EC-09708805BEEB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0246EAB8-091F-4229-86EC-09708805BEEB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0246EAB8-091F-4229-86EC-09708805BEEB}.Linux|Any CPU.ActiveCfg = Debug|Any CPU
+		{0246EAB8-091F-4229-86EC-09708805BEEB}.Linux|Any CPU.Build.0 = Debug|Any CPU
+		{0246EAB8-091F-4229-86EC-09708805BEEB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0246EAB8-091F-4229-86EC-09708805BEEB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{83ACF13E-FDCB-4747-AEE3-661DF299F485}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{83ACF13E-FDCB-4747-AEE3-661DF299F485}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{83ACF13E-FDCB-4747-AEE3-661DF299F485}.Linux|Any CPU.ActiveCfg = Debug|Any CPU
+		{83ACF13E-FDCB-4747-AEE3-661DF299F485}.Linux|Any CPU.Build.0 = Debug|Any CPU
+		{83ACF13E-FDCB-4747-AEE3-661DF299F485}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{83ACF13E-FDCB-4747-AEE3-661DF299F485}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2C7FBA94-8F34-4B2F-AF21-CF9A70BD2D2C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2C7FBA94-8F34-4B2F-AF21-CF9A70BD2D2C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2C7FBA94-8F34-4B2F-AF21-CF9A70BD2D2C}.Linux|Any CPU.ActiveCfg = Debug|Any CPU
+		{2C7FBA94-8F34-4B2F-AF21-CF9A70BD2D2C}.Linux|Any CPU.Build.0 = Debug|Any CPU
+		{2C7FBA94-8F34-4B2F-AF21-CF9A70BD2D2C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2C7FBA94-8F34-4B2F-AF21-CF9A70BD2D2C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EC38BFFC-6883-4854-9E43-3039289A9C38}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EC38BFFC-6883-4854-9E43-3039289A9C38}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EC38BFFC-6883-4854-9E43-3039289A9C38}.Linux|Any CPU.ActiveCfg = Debug|Any CPU
+		{EC38BFFC-6883-4854-9E43-3039289A9C38}.Linux|Any CPU.Build.0 = Debug|Any CPU
+		{EC38BFFC-6883-4854-9E43-3039289A9C38}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EC38BFFC-6883-4854-9E43-3039289A9C38}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
