@@ -3,7 +3,7 @@
 
 # OASIS API / Our World / HoloNET / HoloUnity / .NET HDK Altha v0.1.0
 
-![alt text](https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-And-HoloNET/blob/master/FinalLogo.jpg "Our World")
+![alt text](https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-And-HoloNET/blob/master/images/FinalLogo.jpg "Our World")
 
 ## Contents
 
@@ -1606,7 +1606,7 @@ Because the OASIS Architecture makes use of .NET, Unity, NodeJS & Holochain we h
 
 The Architecture diagram can be found on our website below but it is also in the root of the repo cunningly named OASIS Architecture Diagram.png
 
-![alt text](https://github.com/dellams/OASIS-API-And-HoloNET/blob/master/OASIS%20Arcitecture.png "OASIS Architecture Diagram")
+![alt text](https://github.com/dellams/OASIS-API-And-HoloNET/blob/master/images/OASIS%20Arcitecture.png "OASIS Architecture Diagram")
 
 Our World will run on our own propriety game engine called OASIS 2.0 (Open Advanced Sensory Immersion System).
 
