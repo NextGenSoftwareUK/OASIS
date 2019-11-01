@@ -18,6 +18,19 @@ const client = new ApolloClient({
   link
 })
 
+module.exports = function (callback, query) 
+{
+    var result = first + second;
+
+    callback(/* error */ null, executeGraphQLQuery(query));
+};
+
+
+function executeGraphQLQuery(query)
+{
+    return "test result";
+}
+
 /*
 ReactDOM.render(
   <ApolloProvider client={client}>

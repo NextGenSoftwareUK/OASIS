@@ -28,9 +28,9 @@ namespace NextGenSoftware.OASIS.API.Core.Apollo.Client
             }
         }
 
-        public async Task<string> ExecuteGraphQLQuery(string query)
+        public static async Task<string> ExecuteGraphQLQuery(string query)
         {
-            return await NodeManager.NodeManager.CallNodeMethod("./CallApolloClient", query);
+            return await NodeManager.NodeManager.CallNodeMethod("./client/src/index", query);
         }
 
         public static void ShutdownClient()

@@ -34,8 +34,8 @@ namespace NextGenSoftware.OASIS.API.Core.Apollo.Server
             apolloProcess.Close();
 
             //TODO: Need to find the actual node server we are using, we do not want to kill all of them!
-            // foreach (Process process in Process.GetProcessesByName("npm"))
-            //      process.Kill();
+            foreach (Process process in Process.GetProcessesByName("npm"))
+                process.Kill();
         }
     }
 }
