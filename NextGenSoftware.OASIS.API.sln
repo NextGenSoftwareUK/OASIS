@@ -99,6 +99,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.C
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.Core.Apollo.Client", "NextGenSoftware.OASIS.API.Core.Apollo.Client\NextGenSoftware.OASIS.API.Core.Apollo.Client.csproj", "{EC38BFFC-6883-4854-9E43-3039289A9C38}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.Core.Apollo.Client.TestHarness", "NextGenSoftware.OASIS.API.Core.Apollo.Client.TestHarness\NextGenSoftware.OASIS.API.Core.Apollo.Client.TestHarness.csproj", "{769DDA09-EA9C-40C5-9A61-FAD00A951D04}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -274,6 +276,12 @@ Global
 		{EC38BFFC-6883-4854-9E43-3039289A9C38}.Linux|Any CPU.Build.0 = Debug|Any CPU
 		{EC38BFFC-6883-4854-9E43-3039289A9C38}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{EC38BFFC-6883-4854-9E43-3039289A9C38}.Release|Any CPU.Build.0 = Release|Any CPU
+		{769DDA09-EA9C-40C5-9A61-FAD00A951D04}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{769DDA09-EA9C-40C5-9A61-FAD00A951D04}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{769DDA09-EA9C-40C5-9A61-FAD00A951D04}.Linux|Any CPU.ActiveCfg = Debug|Any CPU
+		{769DDA09-EA9C-40C5-9A61-FAD00A951D04}.Linux|Any CPU.Build.0 = Debug|Any CPU
+		{769DDA09-EA9C-40C5-9A61-FAD00A951D04}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{769DDA09-EA9C-40C5-9A61-FAD00A951D04}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
