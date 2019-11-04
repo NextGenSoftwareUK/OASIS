@@ -3,7 +3,7 @@
 
 # OASIS API / Our World / HoloNET / HoloUnity / .NET HDK Altha v0.1.0
 
-![alt text](https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-And-HoloNET/blob/master/images/FinalLogo.jpg "Our World")
+![alt text](https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/blob/master/Images/FinalLogo.jpg "Our World")
 
 ## Contents
 
