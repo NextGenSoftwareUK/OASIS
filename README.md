@@ -1604,7 +1604,7 @@ Because the OASIS Architecture makes use of .NET, Unity, NodeJS & Holochain we h
 
 ## The OASIS Architecture
 
-The Architecture diagram can be found on our website below but it is also in the root of the repo cunningly named OASIS Architecture Diagram.png
+The Architecture diagram can be found below or on our website (http://www.ourworldthegame.com) but it is also in the images folder of the repo cunningly named OASIS Architecture Diagram.png
 
 ![alt text](https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/blob/master/Images/OASIS%20Arcitecture.png "OASIS Architecture Diagram")
 
