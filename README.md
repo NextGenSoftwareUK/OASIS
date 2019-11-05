@@ -1467,7 +1467,7 @@ A list of of possible early adopters can be found below:
 |  <a href="https://www.superbetter.com">Super Better</a> |SuperBetter builds resilience - the ability to stay strong, motivated and optimistic even in the face of change and difficult challenges. Playing SuperBetter unlocks heroic potential to overcome tough situations and achieve goals that matter most. |No | TBC|
 | <a href="https://bridgit.io/">Bridge It</a> |A web overlay that advances the way the world views, shares, and engages with information on the web through community participation.|No | TBC|
 | <a href="https://delegatecall.com">Delegate Call<a/> | Fully Blockchain based Q&A. Earn tokens for answering questions. This is built on Loom (which sits on top of Etherum) + Unity game engine. You earn karma for particpating, answering questions, etc so this is a REALLY good fit for the OASIS API and will automatically integrate with the Karma System with very little effort.| No|TBC
-| <a href="https://www.gitcoin.com">Git Coin<a/> | At Gitcoin, we build products that allow for better incentivized collaboration in the realm of open source software | No | TBC
+| <a href="https://www.gitcoin.com">Git Coin<a/> | GitCoin brings together freelance reosurcing and crowdfunding allowing you to not only attrack the funding for your open source projects but also the devs, so is perfect for the open source Our World/OASIS API code base! :) They also have kudos badges, which are perfect to integrate with the OASIS API Karma System, so we will be apporaching them in future to explore this further... | No | TBC
 
 **More coming soon...**
 
