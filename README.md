@@ -74,7 +74,7 @@
     + [OASIS API Can Manage All Of Your Tokens/Exchanges/Wallets All In One Place](#oasis-api-can-manage-all-of-your-tokens-exchanges-wallets-all-in-one-place)
     + [One Single Login For All Your Apps/Games/Websites/Services/Everything!](#one-single-login-for-all-your-apps-games-websites-services-everything-)
     + [Our World Is The XR/IR Unified Interface To The Holochain Ecosystem](#our-world-is-the-xr-ir-unified-interface-to-the-holochain-ecosystem)
-    + [Satellite Apps/Games/Websites (Consumers)](#satellite-apps-games-websites--consumers-)
+    + [Satellite Apps/Games/Websites/Services (Consumers)](#satellite-apps-games-websites--consumers-)
     + [Protocols/Platforms/Networks Supported (Providers)](#protocols-platforms-networks-supported--providers-)
     + [Holochain Zomes/Services Used](#holochain-zomes-services-used)
     + [Calling The OASIS API](#calling-the-oasis-api)
@@ -1439,7 +1439,7 @@ Our World is like a XR/IR Unified Interface into all of these hApps (this is the
 
 
 <a name="satellite-apps-games-websites--consumers-"></a>
-### Satellite Apps/Games/Websites (Consumers)
+### Satellite Apps/Games/Websites/Services (Consumers)
 
 As already mentioned, many satellite apps/games/websites will plug into Our World using the OASIS API. They can choose to just share the central avatar/profile and the karma system or they can choose to also define the 2D Sprite or 3D object that will appear in Our World at the geo-location specified through the API. This will be the visual representation of the app/game/website/organisation and when the player either walks into or interacts with (click, touch, etc) it will display info and meta data passed through the API. The player can then choose to launch the app/game/website from within Our World.
 
