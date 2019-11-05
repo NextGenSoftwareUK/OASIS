@@ -184,7 +184,7 @@ The projects within this repo should be pretty self explanatory from their names
 |[NextGenSoftware.Holochain.HoloNET.Client.Unity](#holonet)| The Unity implementation of the HoloNETClient. This will use a Unity compatible logger soon...
 |[NextGenSoftware.Holochain.HoloNET.Client.TestHarness](#holonet)| The Test Harness for the HoloNETClient. This includes load tests for Holochain. So far looking good, the conductor is very fast! ;-)
 |[NextGenSoftware.Holochain.HoloNET.HDK](#net-hdk)| A placeholder for the .NET HDK (Holochain Development Kit). 
-|NextGenSoftware.NodeManager| A library to allow .NET code to call Node.js methods and retuen data from them.
+|NextGenSoftware.NodeManager| A library to allow .NET code to call Node.js methods and retuen data from them. This is currently used by the ARC Membrane and Apollo Client/Server projects.
 |[NextGenSoftware.OASIS.API.Core](#the-oasis-api---karma-system)| The core code for the OASIS API itself. This is where the Providers are injected and is the core part of the system.
 |NextGenSoftware.OASIS.API.Core.Apollo.Client| Uses the NextGenSoftware.NodeManager library to call the Node.js Apollo GraphQL Client. This in turn calls the NextGenSoftware.OASIS.API.Core.Apollo.Server library, which wraps around the NextGenSoftware.OASIS.API.Core.WebAPI (REST API).
 |NextGenSoftware.OASIS.API.Core.Apollo.Client.TestHarness| The test harness for the Apollo Client library.
@@ -197,15 +197,15 @@ The projects within this repo should be pretty self explanatory from their names
 |[NextGenSoftware.OASIS.API.FrontEnd.Unity](#holounity)| This shows how the OASIS API is used in Unity to render the users profile data to the 3D Avatar.
 |NextGenSoftware.OASIS.API.WebAPI| This will expose the OASIS API as a RESTful service over HTTP. In future there will also be a websocket HTTP & websocket JSON RPC 2.0 interface.
 |NextGenSoftware.OASIS.API.WebAP.IntegrationTests|Integration tests for the OASIS REST Web API.
-|NextGenSoftware.OASIS.API.Providers.AcitvityPub| Placeholder for the upcoming ActivityPub OASIS Provider.
-|NextGenSoftware.OASIS.API.Providers.BlockStack| Placeholder for the upcoming BlockStack OASIS Provider.
-|NextGenSoftware.OASIS.API.Providers.EthereumOASIS| Placeholder for the upcoming Ethereum OASIS Provider.
+|NextGenSoftware.OASIS.API.Providers.AcitvityPub| OASIS Provider for ActivityPub.
+|NextGenSoftware.OASIS.API.Providers.BlockStack| OASIS Provider for BlockStack..
+|NextGenSoftware.OASIS.API.Providers.EthereumOASIS| OASIS Provider for Ethereum.
 |[NextGenSoftware.OASIS.API.Providers.HoloOASIS.Core](#holooasis)| This contains the core code for the HoloOASIS Provider, that wraps around the HoloNETClient to talk to Holochain. This implements the [IOASISStorage](#ioasisstorage)interface allowing the OASIS API to read & write the users profile data to Holochain. It also implements the [IOASISNET](#ioasisnet) interface allowing it to share the user's profile/avatar as well as find Holons and players in their local area.
 |[NextGenSoftware.OASIS.API.Providers.HoloOASIS.Desktop](#holooasis)| This is the desktop implementation of the HoloOASIS Provider and uses the desktop version of the HoloNETClient.
 |[NextGenSoftware.OASIS.API.Providers.HoloOASIS.Unity](#holooasis)| This is the Unity implementation of the HoloOASIS Provider and uses the Unity version of the HoloNETClient.
 |[NextGenSoftware.OASIS.API.Providers.HoloOASIS.TestHarness](#holooasis)| This is the Test Harness of the HoloOASIS Provider.
-|NextGenSoftware.OASIS.API.Providers.IPFSOASIS| Placeholder for the upcoming IPFS OASIS Provider.
-|NextGenSoftware.OASIS.API.Providers.SOLIDOASIS| Placeholder for the upcoming SOLID OASIS Provider.
+|NextGenSoftware.OASIS.API.Providers.IPFSOASIS| OASIS Provider for IPFS.
+|NextGenSoftware.OASIS.API.Providers.SOLIDOASIS| OASIS Provider for SOLID.
 
 <br>
 
@@ -1467,8 +1467,7 @@ A list of of possible early adopters can be found below:
 |  <a href="https://www.superbetter.com">Super Better</a> |SuperBetter builds resilience - the ability to stay strong, motivated and optimistic even in the face of change and difficult challenges. Playing SuperBetter unlocks heroic potential to overcome tough situations and achieve goals that matter most. |No | TBC|
 | <a href="https://bridgit.io/">Bridge It</a> |A web overlay that advances the way the world views, shares, and engages with information on the web through community participation.|No | TBC|
 | <a href="https://delegatecall.com">Delegate Call<a/> | Fully Blockchain based Q&A. Earn tokens for answering questions. This is built on Loom (which sits on top of Etherum) + Unity game engine. You earn karma for particpating, answering questions, etc so this is a REALLY good fit for the OASIS API and will automatically integrate with the Karma System with very little effort.| No|TBC
-| <a href="https://www.gitcoin.com">Git Coin<a/> | At Gitcoin, we build products that allow for better
-incentivized collaboration in the realm of open source software | No | TBC
+| <a href="https://www.gitcoin.com">Git Coin<a/> | At Gitcoin, we build products that allow for better incentivized collaboration in the realm of open source software | No | TBC
 
 **More coming soon...**
 
