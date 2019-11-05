@@ -184,14 +184,21 @@ The projects within this repo should be pretty self explanatory from their names
 |[NextGenSoftware.Holochain.HoloNET.Client.Unity](#holonet)| The Unity implementation of the HoloNETClient. This will use a Unity compatible logger soon...
 |[NextGenSoftware.Holochain.HoloNET.Client.TestHarness](#holonet)| The Test Harness for the HoloNETClient. This includes load tests for Holochain. So far looking good, the conductor is very fast! ;-)
 |[NextGenSoftware.Holochain.HoloNET.HDK](#net-hdk)| A placeholder for the .NET HDK (Holochain Development Kit). 
+|NextGenSoftware.NodeManager| A library to allow .NET code to call Node.js methods and retuen data from them.
 |[NextGenSoftware.OASIS.API.Core](#the-oasis-api---karma-system)| The core code for the OASIS API itself. This is where the Providers are injected and is the core part of the system.
+|NextGenSoftware.OASIS.API.Core.Apollo.Client| Uses the NextGenSoftware.NodeManager library to call the Node.js Apollo GraphQL Client. This in turn calls the NextGenSoftware.OASIS.API.Core.Apollo.Server library, which wraps around the NextGenSoftware.OASIS.API.Core.WebAPI (REST API).
+|NextGenSoftware.OASIS.API.Core.Apollo.Client.TestHarness| The test harness for the Apollo Client library.
+|NextGenSoftware.OASIS.API.Core.Apollo.Server| Uses the NextGenSoftware.NodeManager library to call the Node.js Apollo GraphQL Server, which wraps around the NextGenSoftware.OASIS.API.Core.WebAPI (REST API).
+|NextGenSoftware.OASIS.API.Core.Apollo.Server.TestHarness| The test harness for the Apollo Server library.
 |[NextGenSoftware.OASIS.API.Core.ARC.Membrane](#arc---noomap-integration)| This will contain a DeviceManager,PsyberManager & MappingManager allowing ARC to talk to any device and access all of it's hardware such as Bluetooth. It will also provide a wrapper around Unity allowing ARC to render it's 2D & 3D UI to Unity. It will also allow ARC to access the Our World 3D Map.
 |[NextGenSoftware.OASIS.API.Core.ARC.Membrane.NodeJS](#arc---noomap-integration)| This is for testing purposes to simulate the ARC Core (written in NodeJS). It will test calls to the DeviceManager, PsyberManager & MappingManager.
 |[NextGenSoftware.OASIS.API.Core.TestHarness](#the-oasis-api---karma-system)| This is a Test Harness for the main OASIS API.
 |[NextGenSoftware.OASIS.API.FrontEnd.Web](#the-oasis-api---karma-system)| This is the Web front-end for the OASIS API and will show the user's Avatar/Profile along with their Karma levels (and where the karma came from). It will also show what Satellite apps/games/websites that are using the API. This will form the foundation of the NextGen Social Network (a sub-component of Our World).
 |[NextGenSoftware.OASIS.API.FrontEnd.Unity](#holounity)| This shows how the OASIS API is used in Unity to render the users profile data to the 3D Avatar.
 |NextGenSoftware.OASIS.API.WebAPI| This will expose the OASIS API as a RESTful service over HTTP. In future there will also be a websocket HTTP & websocket JSON RPC 2.0 interface.
+|NextGenSoftware.OASIS.API.WebAP.IntegrationTests|Integration tests for the OASIS REST Web API.
 |NextGenSoftware.OASIS.API.Providers.AcitvityPub| Placeholder for the upcoming ActivityPub OASIS Provider.
+|NextGenSoftware.OASIS.API.Providers.BlockStack| Placeholder for the upcoming BlockStack OASIS Provider.
 |NextGenSoftware.OASIS.API.Providers.EthereumOASIS| Placeholder for the upcoming Ethereum OASIS Provider.
 |[NextGenSoftware.OASIS.API.Providers.HoloOASIS.Core](#holooasis)| This contains the core code for the HoloOASIS Provider, that wraps around the HoloNETClient to talk to Holochain. This implements the [IOASISStorage](#ioasisstorage)interface allowing the OASIS API to read & write the users profile data to Holochain. It also implements the [IOASISNET](#ioasisnet) interface allowing it to share the user's profile/avatar as well as find Holons and players in their local area.
 |[NextGenSoftware.OASIS.API.Providers.HoloOASIS.Desktop](#holooasis)| This is the desktop implementation of the HoloOASIS Provider and uses the desktop version of the HoloNETClient.
@@ -620,7 +627,7 @@ HoloNETClient contains the following properties:
 
 | Property | Description  |
 |--|--|
-| [Config](#config)  | This property contains a struct called `HoloNETConfig` containing the sub-properties: TimeOutSeconds, NeverTimeOut, KeepAliveSeconds, ReconnectionAttempts, ReconnectionIntervalSeconds, SendChunkSize, ReceiveChunkSizeDefault & ErrorHandlingBehaviour.
+| [Config](#config)  | This property contains a struct called `HoloNETConfig` containing the sub-properties: TimeOutSeconds, NeverTimeOut, KeepAliveSeconds, ReconnectionAttempts, ReconnectionIntervalSeconds, SendChunkSize, ReceiveChunkSizeDefault, ErrorHandlingBehaviour, FullPathToExternalHolochainConductor, FullPathToHolochainAppDNA, SecondsToWaitForHolochainConductorToStart, AutoStartConductor & AutoShutdownConductor
 | [Logger](#logger) | Property to inject in a [ILogger](#ilogger) implementation. |
 | [NetworkServiceProvider](#networkserviceprovider) | This is a property where the network service provider can be injected. The provider needs to implement the `IHoloNETClientNET` interface.  |
 | [NetworkServiceProviderMode](#networkserviceprovidermode) |This is a simple enum, which currently has these values: Websockets, HTTP & External. |
@@ -642,6 +649,14 @@ This property contains a struct called `HoloNETConfig` containing the following 
 |SendChunkSize| The size of the buffer to use when sending data to the Holochain conductor. The default is 1024 bytes.
 |ReceiveChunkSizeDefault| The size of the buffer to use when receiving data from the Holochain conductor. The default is 1024 bytes. |
 | ErrorHandlingBehaviour | An enum that specifies what to do when anm error occurs. The options are: `AlwaysThrowExceptionOnError`, `OnlyThrowExceptionIfNoErrorHandlerSubscribedToOnErrorEvent` & `NeverThrowExceptions`). The default is `OnlyThrowExceptionIfNoErrorHandlerSubscribedToOnErrorEvent` meaning it will only throw an error if the `OnError` event has not been subscribed to. This delegates error handling to the caller. If no event has been subscribed then HoloNETClient will throw an error. `AlwaysThrowExceptionOnError` will always throw an error even if the `OnError` event has been subscribed to. The `NeverThrowException` enum option will never throw an error even if the `OnError` event has not been subscribed to. Regardless of what enum is selected, the error will always be logged using whatever `ILogger` has been injected into the [Logger]("#logger") property. 
+| FullPathToExternalHolochainConductor| The full path to the conductor exe (hc.exe) that HoloNET will autostart.|
+| FullPathToHolochainAppDNA | The full path to the hApp (Holochain App) DNA file that is the compiled WASM (compiled byt the conductor build options). |
+| SecondsToWaitForHolochainConductorToStart | The seconds to wait for the Holochain Conductor to start before attempting to connect to it.|
+| AutoStartConductor | Set this to true if you with HoloNET to auto-start the Holochain Conductor defined in the FullPathToExternalHolochainConductor parameter. Default is true. |
+| AutoShutdownConductor | Set this to true if you wish HoloNET to auto-shutdown the Holochain Conductor after it disconnects. Default is true.
+
+
+ 
 
 <br>
 
@@ -1372,6 +1387,9 @@ There will be a Open Karma Committer who will decide the algorithms for karma al
 
 Our World will automatically support all of the platforms/networks/protocols listed above so your profile/avatar/karma will be available to any apps that use their platforms/networks/protocols. This will also make it easier to earn karma in a wider range of apps by supporting as many platforms/networks/protocols as possible. 
 
+### Machine Learning Algorithms, Models & AI
+Our World uses Machine Learning Alogrithms & Models to rate how positive comments are and then reward karma for positive comments and lose karma for negative comments. This is used in the social media part and chat, etc... We plan to make use of machine learning in many other parts of Our World as well as developing other advanced AI components in collaboration with the S7 Foundation.
+
 <a name="the-universal-api-to-connect-everything-to-everything--no-more-silos-walled-gardens-"></a>
 ### The Universal API To Connect Everything To Everything (No More Silos/Walled Gardens)
 
@@ -1449,6 +1467,7 @@ A list of of possible early adopters can be found below:
 |  <a href="https://www.superbetter.com">Super Better</a> |SuperBetter builds resilience - the ability to stay strong, motivated and optimistic even in the face of change and difficult challenges. Playing SuperBetter unlocks heroic potential to overcome tough situations and achieve goals that matter most. |No | TBC|
 | <a href="https://bridgit.io/">Bridge It</a> |A web overlay that advances the way the world views, shares, and engages with information on the web through community participation.|No | TBC|
 | <a href="https://delegatecall.com">Delegate Call<a/> | Fully Blockchain based Q&A. Earn tokens for answering questions. This is built on Loom (which sits on top of Etherum) + Unity game engine. You earn karma for particpating, answering questions, etc so this is a REALLY good fit for the OASIS API and will automatically integrate with the Karma System with very little effort.| No|TBC
+| <a href="https://www.gitcoin.com">Git Coin<a/> | rrrr | No | TBC
 
 **More coming soon...**
 
@@ -1512,7 +1531,8 @@ Below is a list of all the Holochain zomes/services used by Our World/The OASIS 
 | [Chat hApp](https://github.com/holochain/holochain-basic-chat) | This hApp facilitates real-time chat within Holochain. | Coming Soon
 | [Cool Cats hApp](https://github.com/pythagorean/coolcats) | This is a basic Twitter style clone and will help power part of the social network component of Our World. | Coming Soon
 | [Points Of Interest Zome](https://github.com/vanarchist/holochain-point-of-interest) | Will be used to help store the Points Of Interest on the Our World 3D Map. | Coming Soon
-
+|InvestorEngine| Will be an excellent platform that can help generate some much needed funds for Our World! ;-) |
+|CleFree - To copyright Our World on their blockchain tech (they currently use blockstack but will switch to holochain when its in beta).
 
 ### Calling The OASIS API
 
@@ -1816,6 +1836,14 @@ It is much more than just a free open world game where you can build and create 
 The game teaches people true unity consciousness where everyone benefits if people put their differences aside and work together. Our World is also an ecosystem and a virtual e-commerce platform and so, so, so much more, it will create a whole new genre and blaze a new path for others to try and follow…
 
 Our World has now merged with our NextGen Social Network project, which was always planned to be the prequel to Our World, so it made sense to simply merge them together.
+
+### Infinite Alternate Reality Game (IARG)
+
+Our World is also a Infinite Alternate Reality Game where the line between virtual and reality blurs into one.
+
+### Our World Integrates The Commons Engine & Mutual Crypto Currency
+
+Our World will fully integrate the Commons Engine & Mutual Crypto Currency to educate the world in a fun gamified way how society can work much fairer and more effectively doing away with the current unfair fiat system that is controlled by the greedy banks, corportations & governments.
 
 ### Synergy Engine
 
