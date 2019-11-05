@@ -649,11 +649,11 @@ This property contains a struct called `HoloNETConfig` containing the following 
 |SendChunkSize| The size of the buffer to use when sending data to the Holochain conductor. The default is 1024 bytes.
 |ReceiveChunkSizeDefault| The size of the buffer to use when receiving data from the Holochain conductor. The default is 1024 bytes. |
 | ErrorHandlingBehaviour | An enum that specifies what to do when anm error occurs. The options are: `AlwaysThrowExceptionOnError`, `OnlyThrowExceptionIfNoErrorHandlerSubscribedToOnErrorEvent` & `NeverThrowExceptions`). The default is `OnlyThrowExceptionIfNoErrorHandlerSubscribedToOnErrorEvent` meaning it will only throw an error if the `OnError` event has not been subscribed to. This delegates error handling to the caller. If no event has been subscribed then HoloNETClient will throw an error. `AlwaysThrowExceptionOnError` will always throw an error even if the `OnError` event has been subscribed to. The `NeverThrowException` enum option will never throw an error even if the `OnError` event has not been subscribed to. Regardless of what enum is selected, the error will always be logged using whatever `ILogger` has been injected into the [Logger]("#logger") property. 
-| FullPathToExternalHolochainConductor| The full path to the conductor exe (hc.exe) that HoloNET will autostart.|
+| FullPathToExternalHolochainConductor| The full path to the conductor exe (hc.exe) that HoloNET will auto-start.|
 | FullPathToHolochainAppDNA | The full path to the hApp (Holochain App) DNA file that is the compiled WASM (compiled byt the conductor build options). |
-| SecondsToWaitForHolochainConductorToStart | The seconds to wait for the Holochain Conductor to start before attempting to connect to it.|
-| AutoStartConductor | Set this to true if you with HoloNET to auto-start the Holochain Conductor defined in the FullPathToExternalHolochainConductor parameter. Default is true. |
-| AutoShutdownConductor | Set this to true if you wish HoloNET to auto-shutdown the Holochain Conductor after it disconnects. Default is true.
+| SecondsToWaitForHolochainConductorToStart | The seconds to wait for the Holochain Conductor to start before attempting to [connect](#connect) to it.|
+| AutoStartConductor | Set this to true if you with HoloNET to auto-start the Holochain Conductor defined in the `FullPathToExternalHolochainConductor` parameter. Default is true. |
+| AutoShutdownConductor | Set this to true if you wish HoloNET to auto-shutdown the Holochain Conductor after it [disconnects](#disconnect). Default is true.
 
 
  
@@ -1467,7 +1467,8 @@ A list of of possible early adopters can be found below:
 |  <a href="https://www.superbetter.com">Super Better</a> |SuperBetter builds resilience - the ability to stay strong, motivated and optimistic even in the face of change and difficult challenges. Playing SuperBetter unlocks heroic potential to overcome tough situations and achieve goals that matter most. |No | TBC|
 | <a href="https://bridgit.io/">Bridge It</a> |A web overlay that advances the way the world views, shares, and engages with information on the web through community participation.|No | TBC|
 | <a href="https://delegatecall.com">Delegate Call<a/> | Fully Blockchain based Q&A. Earn tokens for answering questions. This is built on Loom (which sits on top of Etherum) + Unity game engine. You earn karma for particpating, answering questions, etc so this is a REALLY good fit for the OASIS API and will automatically integrate with the Karma System with very little effort.| No|TBC
-| <a href="https://www.gitcoin.com">Git Coin<a/> | rrrr | No | TBC
+| <a href="https://www.gitcoin.com">Git Coin<a/> | At Gitcoin, we build products that allow for better
+incentivized collaboration in the realm of open source software | No | TBC
 
 **More coming soon...**
 
