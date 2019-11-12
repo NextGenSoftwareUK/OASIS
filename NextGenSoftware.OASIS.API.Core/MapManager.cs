@@ -3,37 +3,52 @@ namespace NextGenSoftware.OASIS.API.Core
 {
     public class MapManager
     {
-        public void Draw3DObjectOnMap(object obj, float x, float y)
+        public bool Draw2DSpriteOnMap(float x, float y)
+        {
+            return true;
+        }
+
+        public bool Draw3DObjectOnMap(object obj, float x, float y)
+        {
+            return true;
+        }
+
+        public bool Draw2DSpriteOnMap(object sprite, float x, float y)
+        {
+            return true;
+        }
+
+        public bool Draw2DSpriteOnHUD(object sprite, float x, float y)
+        {
+            return true;
+        }
+
+        public bool SelectBuildingOnMap(float x, float y)
+        {
+            return true;
+        }
+
+        public bool HighlightBuildingOnMap(float x, float y)
+        {
+            return true;
+        }
+
+        public bool DrawRouteOnMap(float startX, float startY, float endX, float endY)
+        {
+            return true;
+        }
+
+        public bool DrawRouteOnMap(float[] xPoints, float[] yPoints)
+        {
+            return true;
+        }
+
+        public void ZoomMapOut()
         {
 
         }
 
-        public void Draw2DSpriteOnMap(object sprite, float x, float y)
-        {
-
-        }
-
-        public void HighlightBuilding()
-        {
-
-        }
-
-        public void SelectBuilding()
-        {
-
-        }
-
-        public void CreateRoute()
-        {
-
-        }
-
-        public void ZoomOut()
-        {
-
-        }
-
-        public void ZoomIn()
+        public void ZoomMapIn()
         {
 
         }

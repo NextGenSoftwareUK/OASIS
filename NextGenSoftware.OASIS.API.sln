@@ -93,13 +93,15 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.C
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.NodeManager", "NextGenSoftware.NodeManager\NextGenSoftware.NodeManager.csproj", "{0246EAB8-091F-4229-86EC-09708805BEEB}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.Core.Apollo.Server", "NextGenSoftware.OASIS.API.Core.Apollo.Server\NextGenSoftware.OASIS.API.Core.Apollo.Server.csproj", "{83ACF13E-FDCB-4747-AEE3-661DF299F485}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.Core.Apollo.Server", "NextGenSoftware.OASIS.API.Core.Apollo.Server\NextGenSoftware.OASIS.API.Core.Apollo.Server.csproj", "{83ACF13E-FDCB-4747-AEE3-661DF299F485}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.Core.Apollo.Server.TestHarness", "NextGenSoftware.OASIS.API.Core.Apollo.Server.TestHarness\NextGenSoftware.OASIS.API.Core.Apollo.Server.TestHarness.csproj", "{2C7FBA94-8F34-4B2F-AF21-CF9A70BD2D2C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.Core.Apollo.Server.TestHarness", "NextGenSoftware.OASIS.API.Core.Apollo.Server.TestHarness\NextGenSoftware.OASIS.API.Core.Apollo.Server.TestHarness.csproj", "{2C7FBA94-8F34-4B2F-AF21-CF9A70BD2D2C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.Core.Apollo.Client", "NextGenSoftware.OASIS.API.Core.Apollo.Client\NextGenSoftware.OASIS.API.Core.Apollo.Client.csproj", "{EC38BFFC-6883-4854-9E43-3039289A9C38}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.Core.Apollo.Client", "NextGenSoftware.OASIS.API.Core.Apollo.Client\NextGenSoftware.OASIS.API.Core.Apollo.Client.csproj", "{EC38BFFC-6883-4854-9E43-3039289A9C38}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.Core.Apollo.Client.TestHarness", "NextGenSoftware.OASIS.API.Core.Apollo.Client.TestHarness\NextGenSoftware.OASIS.API.Core.Apollo.Client.TestHarness.csproj", "{769DDA09-EA9C-40C5-9A61-FAD00A951D04}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.Core.Apollo.Client.TestHarness", "NextGenSoftware.OASIS.API.Core.Apollo.Client.TestHarness\NextGenSoftware.OASIS.API.Core.Apollo.Client.TestHarness.csproj", "{769DDA09-EA9C-40C5-9A61-FAD00A951D04}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.WebAP.IntegrationTests", "NextGenSoftware.OASIS.API.WebAP.IntegrationTests\NextGenSoftware.OASIS.API.WebAP.IntegrationTests.csproj", "{B008D639-1D6C-4641-A221-E6A91226EC8B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -282,6 +284,12 @@ Global
 		{769DDA09-EA9C-40C5-9A61-FAD00A951D04}.Linux|Any CPU.Build.0 = Debug|Any CPU
 		{769DDA09-EA9C-40C5-9A61-FAD00A951D04}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{769DDA09-EA9C-40C5-9A61-FAD00A951D04}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B008D639-1D6C-4641-A221-E6A91226EC8B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B008D639-1D6C-4641-A221-E6A91226EC8B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B008D639-1D6C-4641-A221-E6A91226EC8B}.Linux|Any CPU.ActiveCfg = Debug|Any CPU
+		{B008D639-1D6C-4641-A221-E6A91226EC8B}.Linux|Any CPU.Build.0 = Debug|Any CPU
+		{B008D639-1D6C-4641-A221-E6A91226EC8B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B008D639-1D6C-4641-A221-E6A91226EC8B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
