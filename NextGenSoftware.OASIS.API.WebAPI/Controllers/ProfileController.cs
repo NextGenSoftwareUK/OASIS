@@ -1,17 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 
 using NextGenSoftware.OASIS.API.Core;
-using NextGenSoftware.OASIS.API.Providers.AcitvityPubOASIS;
-using NextGenSoftware.OASIS.API.Providers.BlockStackOASIS;
-using NextGenSoftware.OASIS.API.Providers.EthereumOASIS;
 using NextGenSoftware.OASIS.API.Providers.HoloOASIS.Desktop;
-using NextGenSoftware.OASIS.API.Providers.IPFSOASIS;
-using NextGenSoftware.OASIS.API.Providers.SOLIDOASIS;
-    
+//using NextGenSoftware.OASIS.API.Providers.AcitvityPubOASIS;
+//using NextGenSoftware.OASIS.API.Providers.BlockStackOASIS;
+//using NextGenSoftware.OASIS.API.Providers.EthereumOASIS;
+//using NextGenSoftware.OASIS.API.Providers.IPFSOASIS;
+//using NextGenSoftware.OASIS.API.Providers.SOLIDOASIS;
+
 namespace NextGenSoftware.OASIS.API.WebAPI.Controllers
 {
     [Route("api/[controller]")]
@@ -25,7 +24,7 @@ namespace NextGenSoftware.OASIS.API.WebAPI.Controllers
             get
             {
                 if (_profileManager == null)
-                    _profileManager = new ProfileManager(new HoloOASIS("ws://localhost:8888"));
+                    _profileManager = new ProfileManager(new HoloOASIS("ws://localhost:8888")); //Default to HoloOASIS Provider.
 
                 return _profileManager;
             }
@@ -138,21 +137,21 @@ namespace NextGenSoftware.OASIS.API.WebAPI.Controllers
         }
 
         // POST api/values
-        [HttpPost]
-        public void Post([FromBody] string value)
-        {
-        }
+        //[HttpPost]
+        //public void Post([FromBody] string value)
+        //{
+        //}
 
-        // PUT api/values/5
-        [HttpPut("{id}")]
-        public void Put(int id, [FromBody] string value)
-        {
-        }
+        //// PUT api/values/5
+        //[HttpPut("{id}")]
+        //public void Put(int id, [FromBody] string value)
+        //{
+        //}
 
-        // DELETE api/values/5
-        [HttpDelete("{id}")]
-        public void Delete(int id)
-        {
-        }
+        //// DELETE api/values/5
+        //[HttpDelete("{id}")]
+        //public void Delete(int id)
+        //{
+        //}
     }
 }

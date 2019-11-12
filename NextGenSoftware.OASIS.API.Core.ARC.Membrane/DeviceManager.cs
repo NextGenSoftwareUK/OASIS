@@ -5,8 +5,18 @@ using NextGenSoftware.NodeManager;
 
 namespace NextGenSoftware.OASIS.ARC.Core
 {
-    public class DeviceAPIManager
+    public class DeviceManager
     {
+        public bool ConnectToBluetoothDevice(string deviceId)
+        {
+            return true;
+        }
+
+        public bool ScanQRCode()
+        {
+            return true;
+        }
+
         public async Task<string> CallNodeAddNumbers()
         {
             return await NodeManager.NodeManager.CallNodeMethod("./addNumbers", 1, 2);
