@@ -2264,9 +2264,6 @@ https://forum.holochain.org/c/projects/our-world
 <a href="https://docs.wixstatic.com/ugd/4280d8_ad8787bd42b1471bae73003bfbf111f7.pdf">NextGen Developer Training Programme</a> <br/> 
 <a href="https://docs.wixstatic.com/ugd/4280d8_999d98ba615e4fa6ab4383a415ee24c5.pdf">Junior NextGen Developer Training Programme</a>
 
-**Funding**
-
-**https://www.gofundme.com/ourworldthegame** <br/> 
 
 **Executive Summary:**
 
@@ -2287,3 +2284,7 @@ https://docs.wixstatic.com/ugd/4280d8_698b48f342804534ac73829628799d33.xlsx?dn=N
 **Pitch Deck:**
 
 https://d4de5c45-0ca1-451c-86a7-ce397b9225cd.filesusr.com/ugd/4280d8_50d17252aa3247eaae80013d0e0bf70d.pptx?dn=NextGen%20Software%20PitchDeck%20Lite.pptx
+
+**Funding**
+
+**https://www.gofundme.com/ourworldthegame** <br/> 
