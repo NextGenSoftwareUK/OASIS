@@ -1565,6 +1565,100 @@ Any other OAPP (that uses the OASIS API) can also choose to share your profile/a
 
 **More to come soon...**
 
+
+## The OASIS Network (ONET)
+
+The OASIS Network (ONET) is the distributed de-centralised network allowing the various providers that the OASIS API supports to be fully distributed globally across a large decentralised network. This builds on top of design principles from Holocahin in that it is fully distributed and there is no centralisation or bottlenecks (other than of course potential ones caused by Blockchains but the design should hopefully help alleviate these as much as possible). 
+
+
+### REST API, GraphQL & WebSockets Supported
+
+- Clients connect to various ONODE Providers through their selected ONODE CORE Gateway.
+
+- Clients connect through their web browser using either REST, WS or GraphQL similar to Holoports except they only use WS as far as I know.
+
+- If the client is an app or unity game it will connect directly using the REST, WS or GraphQL API's. 
+
+
+### Can Run On The Holo Network
+
+- It can use Holo Hosting to run ONODE's (OASIS API REST Service/GraphQL Server/WS endpoint) along with any ONODE Providers such as Blockchain, SOLID, IPFS, AcitivtyPub, legacy, etc
+
+
+### Earn Karma & HoloFuel For Running a ONODE
+
+- People earn Karma & HoloFuel for running the ONODE's (the more node's they run the more karma & HoloFuel they can earn).
+
+
+### ONODE Setup
+
+- ONODE Setup wizard for HoloPorts, Windows, Mac, Linux, XBOX ONE, PS4, etc. (will allow CPU, memory, disk & network storage/loads to be fully distributed)
+
+- Windows will be first, quickly followed by Linux & Mac thanks to .NET CORE making it easy to deploy to them. HoloPorts (NixOS) will also be a priority once these have stabilised & the Altha Open TestNet has been successful and is stable. We may wait till the beta mainnet but will know closer to the time...
+
+- ONODE Setup will install a lightweight webserver running REST API, Apollo Server (Node.js) & WebSocket Endpoint. It will also connect and configure ONODE Providers for whatever is found running on the ONODE device such as Holochain, Ethereum, IPFS, ActivityPub, SOLID, etc.
+
+- There will be an option to download and install various Providers when installing, as well as the option to connect & configure a provider later.
+
+- Can run remote distributed providers so they do not all need to be on the same device. This will help distribute the CPU, Memory, Network & Disk loads (Blockchains can be very high!)
+
+- People also earn Krama & HoloFuel for running the distributed providers.
+
+
+### Detailed Management Console
+
+- There will be a detailed Management Console allowing the user to view network traffic, where the data is being stored (both for the user & node), OAPP's installed, Providers Installed/Connected (both local & remote), uptime, karma/holofuel earnt & lots more!
+
+
+### ONODE CORE & ONODE Providers
+
+- A ONODE CORE Gateway can run multiple ONODE Providers either locally or remotely.
+
+- Can run only one ONODE CORE instance but you can run multiple instances of the ONODE Providers, which may be able to help reduce various Blockchain bottlenecks, etc. Holochain does not suffer from these issues.
+
+- ONODE Core can manage and load balance the various Providers keeping throughput as optimal as possible.
+
+- When adding a ONODE Provider you can select whether it is local or remote.
+
+- When installing & setting up a OASIS ONODE you can select if it will be a ONODE CORE or a ONODE Provider. If it will be a ONODE Provider then you need to enter the address of the ONODE CORE to connect to. ONODE CORE are a bit like controllers or gateways.
+
+
+### Encourages People To Self-Organise, Co-operate, Co-ordinate & Promotes A Decentralised Distributed Mindset.
+
+-  Reason it makes sense for people to self-organise & not everyone run a ONODE CORE is because the OAPP's that want to share to multiple providers will pick the ONODE's with the most providers as possible and it would be rare for a ONODE CORE to run all of the providers on the same device due to the large amount of resources this would take (running multiple blockchain networks nodes would require huge amounts of storage space just for starters). So this will encourage a decentralised distributed architecture along with co-ordination, co-operations, team work and a distributed de-centralised mindset. :)
+
+- Another incentive is that you actually earn more Karma & HoloFuel for running a distributed ONODE Provider over a local one. The same goes for the ONODE CORE, who will earn more karma/holofuel for connecting to and using distributed ONODE Providers over a local one.
+
+- Distributed ONODE's are likely to be faster and have less bottlenecks. We want to move away from a centralisation mindset! ;-)
+
+### Sharing & Storing Your Data
+
+- If a client wishes to share their profile/data to other providers this can be done without having to install any ONODE Providers on their device but if they wish to store the data locally on their device then of course they will need to install the respective ONODE Providers.
+
+- Your profile will only be available to you on your devices across your apps.
+
+- Will add a FileOASIS Storage Provider to serialise and save your profile to your local device such as smartphone if you do not have the space or processing power to install/run any other providers such as hc, blockchain, etc. This will likely still go through the ONODE Core Gateway (the hope is to make this as lightweight as possible so can run no problem on your phone). HC is also pretty lightweight so hopefully this will also be on phones in future then the FileOASIS Provider may not be needed because your profile would be stored in your local chain instead.
+
+- You will be able to choose right down to individual field level what you wish to be stored/shared on each provider.
+
+- You can share to one of the following: Public, Friends, Family, Colleagues, CustomList.
+
+- When a profile is shared, it is similar to store but will be in a ReadOnly state and will appear in the appropriate list (family, friends, etc) on their respective OAPP's that use the OASIS API.
+
+### UI Components
+
+- As well as the REST API, GraphQL & WS API's there will be React, Angular & Pure/Vanilla JS components to render:
+
+  - Your Profile/Avatar (including karma and how you got it, where & what OAPP).
+  - Family/Friends/Co-workers lists.
+  - Simple Messaging.
+  - Launch Our World.
+  - Launch OAPP (list of installed OAPP's).
+  - If there is a location (such as a business, organisation, etc) for how you earnt your karma then there will be a "Show In Our World Map" option.
+  - If a OAPP has a location associated with it then it will also have a "Show In Our World Map".
+  
+**More to come soon...**
+  
 ## .NET HDK
 
 We will soon also begin work on the .NET HDK to open up the amazing Holochain to the massive .NET & Unity ecosystem's, which will help turbocharge the holochain ecosystem they are trying to build...
