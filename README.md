@@ -91,7 +91,7 @@
     + [ONODE CORE & ONODE Providers](#onode-core---onode-providers)
     + [Encourages People To Self-Organise, Co-operate, Co-ordinate & Promotes A Decentralised Distributed Mindset.](#encourages-people-to-self-organise--co-operate--co-ordinate---promotes-a-decentralised-distributed-mindset)
     + [Sharing & Storing Your Data](#sharing---storing-your-data)
-    + [UI Components](#ui-components)
+  + [UI Web Components](#ui-components)
   * [.NET HDK](#net-hdk)
   * [The Power Of Holochain, .NET, Unity & NodeJS Combined!](#the-power-of-holochain--net--unity---nodejs-combined-)
     + [ARC & Noomap Integration](#arc---noomap-integration)
@@ -1658,11 +1658,11 @@ The OASIS Network (ONET) is the distributed de-centralised network allowing the 
 
 - When a profile is shared, it is similar to store but will be in a ReadOnly state and will appear in the appropriate list (family, friends, etc) on their respective OAPP's that use the OASIS API.
 
-### UI Components
+## Web UI Components
 
-- As well as the REST API, GraphQL & WS API's there will be React, Angular & Pure/Vanilla JS components to render:
+Each OAPP will have access to a number of templates, scarrolding & Web components (including React, Angular,  Pure/Vanilla JS & more!) to render:
 
-  - Your Profile/Avatar (including karma and how you got it, where & what OAPP).
+  - Your Profile/Avatar (Embeedded 3D WebGL Model) - includes karma and how you got it, where & what OAPP.
   - Family/Friends/Co-workers lists.
   - Simple Messaging.
   - Launch Our World.
