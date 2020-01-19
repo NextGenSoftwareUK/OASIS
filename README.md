@@ -1658,7 +1658,7 @@ The OASIS Network (ONET) is the distributed de-centralised network allowing the 
 
 - When a profile is shared, it is similar to store but will be in a ReadOnly state and will appear in the appropriate list (family, friends, etc) on their respective OAPP's that use the OASIS API.
 
-## Web UI Components
+## OAPP Web UI Components
 
 Each OAPP will have access to a number of templates, scarrolding & Web components (including React, Angular,  Pure/Vanilla JS & more!) to render:
 
