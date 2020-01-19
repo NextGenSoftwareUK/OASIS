@@ -91,7 +91,7 @@
     + [ONODE CORE & ONODE Providers](#onode-core---onode-providers)
     + [Encourages People To Self-Organise, Co-operate, Co-ordinate & Promotes A Decentralised Distributed Mindset.](#encourages-people-to-self-organise--co-operate--co-ordinate---promotes-a-decentralised-distributed-mindset)
     + [Sharing & Storing Your Data](#sharing---storing-your-data)
-  + [UI Web Components](#ui-components)
+  * [Web UI Components](#web-ui-components)
   * [.NET HDK](#net-hdk)
   * [The Power Of Holochain, .NET, Unity & NodeJS Combined!](#the-power-of-holochain--net--unity---nodejs-combined-)
     + [ARC & Noomap Integration](#arc---noomap-integration)
