@@ -7,9 +7,6 @@
 
 ## Contents
 
-- [OASIS API / Our World / HoloNET / HoloUnity / .NET HDK Altha v0.1.0](#oasis-api---our-world---holonet---holounity---net-hdk-altha-v010)
-
-  * [Contents](#contents)
   * [Introduction](#introduction)
   * [Project Structure](#project-structure)
   * [HoloNET](#holonet)
