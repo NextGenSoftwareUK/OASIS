@@ -1578,12 +1578,12 @@ Any other OAPP (that uses the OASIS API) can also choose to share your profile/a
 
 **More to come soon...**
 
-
+<a name="the-oasis-network--onet-"></a>
 ## The OASIS Network (ONET)
 
 The OASIS Network (ONET) is the distributed de-centralised network allowing the various providers that the OASIS API supports to be fully distributed globally across a large decentralised network. This builds on top of design principles from Holocahin in that it is fully distributed and there is no centralisation or bottlenecks (other than of course potential ones caused by Blockchains but the design should hopefully help alleviate these as much as possible). 
 
-
+<a name="rest-api--graphql---websockets-supported"></a>
 ### REST API, GraphQL & WebSockets Supported
 
 - Clients connect to various ONODE Providers through their selected ONODE CORE Gateway.
@@ -1592,12 +1592,12 @@ The OASIS Network (ONET) is the distributed de-centralised network allowing the 
 
 - If the client is an app or unity game it will connect directly using the REST, WS or GraphQL API's. 
 
-
+<a name="rest-api--graphql---websockets-supported"></a>
 ### Can Run On The Holo Network
 
 - It can use Holo Hosting to run ONODE's (OASIS API REST Service/GraphQL Server/WS endpoint) along with any ONODE Providers such as Blockchain, SOLID, IPFS, AcitivtyPub, legacy, etc
 
-
+<a name="earn-karma---holofuel-for-running-a-onode"></a>
 ### Earn Karma & HoloFuel For Running a ONODE
 
 - People earn Karma & HoloFuel for running the ONODE's (the more node's they run the more karma & HoloFuel they can earn).
@@ -1622,7 +1622,7 @@ The OASIS Network (ONET) is the distributed de-centralised network allowing the 
 
 - There will be a detailed Management Console allowing the user to view network traffic, where the data is being stored (both for the user & node), OAPP's installed, Providers Installed/Connected (both local & remote), uptime, karma/holofuel earnt & lots more!
 
-
+<a name="onode-core---onode-providers"></a>
 ### ONODE CORE & ONODE Providers
 
 - A ONODE CORE Gateway can run multiple ONODE Providers either locally or remotely.
@@ -1635,7 +1635,7 @@ The OASIS Network (ONET) is the distributed de-centralised network allowing the 
 
 - When installing & setting up a OASIS ONODE you can select if it will be a ONODE CORE or a ONODE Provider. If it will be a ONODE Provider then you need to enter the address of the ONODE CORE to connect to. ONODE CORE are a bit like controllers or gateways.
 
-
+<a name="encourages-people-to-self-organise--co-operate--co-ordinate---promotes-a-decentralised-distributed-mindset"></a>
 ### Encourages People To Self-Organise, Co-operate, Co-ordinate & Promotes A Decentralised Distributed Mindset.
 
 -  Reason it makes sense for people to self-organise & not everyone run a ONODE CORE is because the OAPP's that want to share to multiple providers will pick the ONODE's with the most providers as possible and it would be rare for a ONODE CORE to run all of the providers on the same device due to the large amount of resources this would take (running multiple blockchain networks nodes would require huge amounts of storage space just for starters). So this will encourage a decentralised distributed architecture along with co-ordination, co-operations, team work and a distributed de-centralised mindset. :)
@@ -1644,6 +1644,7 @@ The OASIS Network (ONET) is the distributed de-centralised network allowing the 
 
 - Distributed ONODE's are likely to be faster and have less bottlenecks. We want to move away from a centralisation mindset! ;-)
 
+<a name="sharing---storing-your-data"></a>
 ### Sharing & Storing Your Data
 
 - If a client wishes to share their profile/data to other providers this can be done without having to install any ONODE Providers on their device but if they wish to store the data locally on their device then of course they will need to install the respective ONODE Providers.
