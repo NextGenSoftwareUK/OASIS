@@ -1783,7 +1783,7 @@ Currently [HoloOASIS](#holooasis) implements the [IOASISStorage](#ioasisstorage)
 
 Below are the copies of the description boxes found on the diagram, which some may find easier to read...
 
-### GENERAL
+### General
 
 This is an example implementation of the OASIS/OAPP Stack using the Unity game engine, HTC Vive VR headset, Oculus Rift VR headset, Apple ARKit, Google ARCore & Haptor VR Haptic feedback gloves. The smartphone version will be using Unity so its stack will look similar to this. The desktop/console version will likely be using the Cry Engine.
 
@@ -1802,7 +1802,7 @@ As well as the smartphone and console/desktop version of Our World, there will a
 The minimum API which a OAPP needs to implement to interact with the OASIS/Our World system. This will enable them to just access the central profile/avatar and also grant additional karma for good deeds, etc.
 
 
-### OUR WORLD
+### Our World
 
 Our World is an example of the first OAPP. It is also the UI for the OASIS ecosystem which all OAPP's plug into. If the OAPP has implemented the UI interfaces above it will appear in Our World. The UI can be implemented as anything they wish ranging from a simple object, shop, area, city, region, country, continent, planet, Galaxy or even a whole meta-verse such as X The Game or Infinite World Game. A number of default implementations and helper methods will be provided to make it as easy as possible to plug various OAPP's into Our World, H4OME will likely be the quickest and easiest way using its simple drag n drop interface so no programming knowledge will be required.
 
