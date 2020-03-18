@@ -109,7 +109,7 @@
     + [OAPP (Legacy Apps/websites)](#oapp--legacy-apps-websites-)
     + [OAPP/DAPP](#oapp-dapp)
     + [OAPP/hAPP](#oapp-happ)
-    + [OAPP/HAPP](#oapp-happ)
+    + [OAPP/HAPP](#oapp-happ2)
     + [Business OAPP](#business-oapp)
     + [H4OME / ARC](#h4ome---arc)
   * [Our World/OASIS Will Act As The Bridge For All (Legasy, IPFS, Holochain, Ethereum, SOLID, Fediverse, Mastodon, Diaspora, WebFinger, ActivityPub, XMPP & More!)](#our-world-oasis-will-act-as-the-bridge-for-all--legasy--ipfs--holochain--ethereum--solid--fediverse--mastodon--diaspora--webfinger--activitypub--xmpp---more--)
@@ -1803,53 +1803,53 @@ As you can see the system is highly modular so it supports any combination of co
 
 An OAPP has the choice to implement whatever interfaces they wish. They can choose to implement the various renderer, AR,VR, HapicFeedback, Input interfaces, etc (which Our World implements) or just the IOAPP interface, which will expose just the central avatar/profile where they can commit additional karma if they do good deeds in the app. A number of default implementations/templates will be provided for H4OME (HAPP), Holochain (hAPP), Ethereum (DAPP) and a simple HTTP Client, all of which will be implemented as extendable base classes & boiler plate/scaffolding code so the app developer can easily extend the out of the box basic functionality. This will enable developers to be as productive as possible within the OASIS System. They can also optionally choose to implement additional methods/interfaces if they wish to display a UI within Our World. In time simple wizards will also be provided to guide the developer through the creation of their app using simple step by step instructions.
 
-
+<a name="oasiswebportal--noomap-interface"></a>
 ### OASISWEBPORTAL/ NOOMAP INTERFACE
 
 As well as the smartphone and console/desktop version of Our World, there will also be a web portal, which will be a nextgen social network and will also interact with the central profile/avatar. Part of this will also include the Match Need System allowing them to search the Internet for products/services/info that will help improve their wellbeing where the results will be tailored to their current wellbeing requirements stored in their profile/central avatar.The user will be able to choose to visualise this in a traditional 2D interface or a nextgen 3D/VR interace partly powered by Noomap/S7 Foundation technology & WebGL. It will also use the IOAPP interface to communicate to the OASIS Engine/Profile/Avatar. It will also be an example of how to use the  HTTPOASISAPP template, since it will be built on top of it.
 
-
+<a name="ioapp--oapp-"></a>
 ### IOAPP (OAPP)
 
 The minimum API which a OAPP needs to implement to interact with the OASIS/Our World system. This will enable them to just access the central profile/avatar and also grant additional karma for good deeds, etc.
 
-
+<a name="our-world"></a>
 ### Our World
 
 Our World is an example of the first OAPP. It is also the UI for the OASIS ecosystem which all OAPP's plug into. If the OAPP has implemented the UI interfaces above it will appear in Our World. The UI can be implemented as anything they wish ranging from a simple object, shop, area, city, region, country, continent, planet, Galaxy or even a whole meta-verse such as X The Game or Infinite World Game. A number of default implementations and helper methods will be provided to make it as easy as possible to plug various OAPP's into Our World, H4OME will likely be the quickest and easiest way using its simple drag n drop interface so no programming knowledge will be required.
 
 Our World is a OAPP, hAPP, DAPP & HAPP meaning it can talk to all networks (ONET, H4OME & Ethereum) and other apps. It acts as the bridge and central nexus point between all apps & networks. Additional networks & apps may be added in future...
 
-
+<a name="oapi--oasis-api-"></a>
 ### OAPI (OASIS API)
 
 Through the OAPI, an app/website can gain access to the central profile/avatar of a user and grant them additional karma for doing good deeds or making progress within the positive uplifting app/website. Only positive uplifting apps/websites will be granted access to the OAPI and the OASIS System. This will be yet another incentive for developers to start focusing on positive, benevolent uplifting apps/websites/games.
 
 The OAPP API by default hides away complexities such as networking and storage but these can still be accessed by power users.
 
-
+<a name="onet--oasis-network-"></a>
 ### ONET (OASIS Network)
 
 The various OAPP's communicate over a private, secure desentralised & distributed network called ONET. A client/node can even choose to share some of their spare processing power to other less powerful clients/nodes in the network, they of course gain additional karma for doing this. This way the crowd is the cloud and acts as a distributed cloud. The network is powered by Holohain. 
 
-
+<a name="oapp--legacy-apps-websites-"></a>
 ### OAPP (Legacy Apps/websites)
 
 A OAPP does not need to implement the full UI stack above, it can just use and share the central profile/avatar through the OAPI and will talk directly to the OASIS Engine (where the profile/avatar is stored).
 
 This make it fully backward compatible with existing apps, websites, etc.
 
-
+<a name="oapp-dapp"></a>
 ### OAPP/DAPP
 
 An Ethereum DAPP (Distributed App) can also be a OAPP if it implements the OAPI, this means it can talk to both other DAPPs on the Ethereum Blockchain as well as other OAPPs on the ONET Holochain. Our World is the first example of this being a OAPP, DAPP & HAPP.
 
-
+<a name="oapp-happ"></a>
 ### OAPP/hAPP
 
 Other Holochain Apps (hAPP) can also be an OAPP and can easily communicate with the ONET/OAPI since Holochain apps can communicate to multiple Holochain networks (ONET is a Holochain network).
 
-
+<a name="oapp-happ2"></a>
 ### OAPP/HAPP
 
 An OAPP can also be a HAPP, which means it can plug into both the H4OME & OASIS Systems. This will be the most common use case. This could work by there being some sort of Publish/Export as OAPP option within H4OME or simply a OASIS Engine compatible checkbox within H4OME. This will then ensure the HAPP also implements the OAPI for sharing the central profile Avatar within Our World. If the HAPP also wishes to have a UI within Our World then it will also need to implement the UI stack above, which can be jointly developed by NextGen Software & S7 Foundation (please see the H4OME OASIS implementation Diagram for an example of this).
@@ -1859,7 +1859,7 @@ An OAPP can also be a HAPP, which means it can plug into both the H4OME & OASIS 
 
 Businesses can also implement OAPP's if they qualify as a benevolent organisation doing good for the people and the planet. They also have a central profile, which also has karma, the more good deeds they do for the people and the planet, the more karma they earn. The higher their karma the bigger and better location of virtual space they will be allocated within Our World. The higher their karma the more premium advertising space they will also be allocated, which will be very limited within Our World since we do not wish to bombard users with adverts as others do. Unlike others, money is not the currency Our World, karma is so they cannot buy their way in. This will encourage organisations to do more to help solve the worlds problems.
 
-
+<a name="h4ome---arc"></a>
 ### H4OME / ARC
 
 H4OME is currently being built by the S7 Foundation, a partner for Our World & NextGen Software. It allows users to create Holonic Apps (HAPPS) using a quick and easy to use drag n drop interface. It allows blocks of code/functionality to be coupled together so works like a 4th Generation Programming Language. The blocks are currently written in Javascript. It is built on top of Holochain, IPFS & Ethereum just like the OASIS Engine so they are a very good fit for each other.
