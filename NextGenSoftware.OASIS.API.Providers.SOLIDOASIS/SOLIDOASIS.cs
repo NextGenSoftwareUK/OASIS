@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc.RazorPages;
+﻿//using Microsoft.AspNetCore.Mvc.RazorPages;
 using NextGenSoftware.OASIS.API.Core;
 using System;
 using System.Collections.Generic;
@@ -61,6 +61,11 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLIDOASIS
         {
             //TODO: Logout of SOLID POD here.
             base.DeActivateProvider();
+        }
+
+        public override Task<ISearchResults> SearchAsync(string searchTerm)
+        {
+            throw new NotImplementedException();
         }
     }
 }

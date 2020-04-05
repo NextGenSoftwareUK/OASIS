@@ -288,5 +288,10 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Core
             await HoloNETClient.Disconnect();
             base.DeActivateProvider();
         }
+
+        public override Task<ISearchResults> SearchAsync(string searchTerm)
+        {
+            throw new System.NotImplementedException();
+        }
     }
 }

@@ -44,5 +44,10 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
         {
             throw new NotImplementedException();
         }
+
+        public override Task<ISearchResults> SearchAsync(string searchTerm)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

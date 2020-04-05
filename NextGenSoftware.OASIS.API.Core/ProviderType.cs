@@ -13,6 +13,7 @@ namespace NextGenSoftware.OASIS.API.Core
         IPFSOASIS,
         ActivityPubOASIS,
         ScuttleBugOASIS,
+        MongoDBOASIS,
         All,
         None,
         Default

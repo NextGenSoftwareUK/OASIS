@@ -1,7 +1,7 @@
 ﻿
 namespace NextGenSoftware.OASIS.API.Core
 {
-    public class OASISProvider : IOASISProvider
+    public abstract class OASISProvider : IOASISProvider
     {
         public string ProviderName { get; set; }
         public string ProviderDescription { get; set; }

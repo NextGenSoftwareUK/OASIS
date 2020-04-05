@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 namespace NextGenSoftware.OASIS.API.Core
 {
-    public class ProfileManager
+    public class ProfileManager : OASISManager
     {
         private ProfileManagerConfig _config;
 
@@ -47,12 +47,12 @@ namespace NextGenSoftware.OASIS.API.Core
         }*/
 
        //TODO: In future more than one storage provider can be active at a time where each call can specify which provider to use.
-        public ProfileManager(IOASISStorage OASISStorageProvider)
+        public ProfileManager(IOASISStorage OASISStorageProvider) : base(OASISStorageProvider)
         {
-            if (!ProviderManager.IsProviderRegistered(OASISStorageProvider))
-                ProviderManager.RegisterProvider(OASISStorageProvider);
+            //if (!ProviderManager.IsProviderRegistered(OASISStorageProvider))
+            //    ProviderManager.RegisterProvider(OASISStorageProvider);
 
-            ProviderManager.SwitchCurrentStorageProvider(OASISStorageProvider.ProviderType);
+            //ProviderManager.SwitchCurrentStorageProvider(OASISStorageProvider.ProviderType);
         }
 
         private void OASISStorageProvider_OnStorageProviderError(object sender, ProfileManagerErrorEventArgs e)

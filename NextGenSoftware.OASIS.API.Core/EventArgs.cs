@@ -11,4 +11,11 @@ namespace NextGenSoftware.OASIS.API.Core
         public Exception ErrorDetails { get; set; }
 
     }
+
+    public class OASISErrorEventArgs : EventArgs
+    {
+        public string Reason { get; set; }
+        public Exception ErrorDetails { get; set; }
+
+    }
 }

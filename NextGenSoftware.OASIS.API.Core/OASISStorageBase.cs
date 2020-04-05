@@ -29,5 +29,9 @@ namespace NextGenSoftware.OASIS.API.Core
         public abstract Task<IProfile> LoadProfileAsync(string username, string password);
 
         public abstract Task<IProfile> SaveProfileAsync(IProfile profile);
+
+        public abstract Task<ISearchResults> SearchAsync(string searchTerm);
+
+
     }
 }

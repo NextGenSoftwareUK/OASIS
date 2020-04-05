@@ -7,9 +7,9 @@ namespace NextGenSoftware.OASIS.API.Core.ARC.Membrane.TestHarness
     {
         static void Main(string[] args)
         {
-            DeviceAPIManager deviceAPIManager = new DeviceAPIManager();
+            DeviceManager deviceManager = new DeviceManager();
             
-            string result = deviceAPIManager.CallNodeAddNumbers().Result;
+            string result = deviceManager.CallNodeAddNumbers().Result;
             Console.WriteLine(string.Concat("Result: ", result));
 
             //result = deviceAPIManager.CallNodeAddNumbersExternal().Result;

@@ -49,10 +49,5 @@ namespace NextGenSoftware.OASIS.API.Providers.AcitvityPubOASIS
         {
             throw new NotImplementedException();
         }
-
-        public override Task<ISearchResults> SearchAsync(string searchTerm)
-        {
-            throw new NotImplementedException();
-        }
     }
 }
