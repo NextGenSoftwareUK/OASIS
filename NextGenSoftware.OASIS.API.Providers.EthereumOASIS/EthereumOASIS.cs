@@ -44,5 +44,10 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
         {
             throw new NotImplementedException();
         }
+
+        public override Task<ISearchResults> SearchAsync(string searchTerm)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

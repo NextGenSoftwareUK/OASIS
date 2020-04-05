@@ -15,7 +15,7 @@ namespace NextGenSoftware.OASIS.API.Core.Apollo.Client.TestHarness
 
             Console.WriteLine("Client Started.");
 
-            ApolloClient.ExecuteQuery("test query");
+            ApolloClient.ExecuteGraphQLQuery("test query");
 
             Console.WriteLine("Press any key to shutdown the client...");
 

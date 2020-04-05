@@ -15,8 +15,9 @@ namespace NextGenSoftware.OASIS.API.WebAP.IntegrationTests
         public TestWebOASISAPI()
         {
             // Arrange
-            _server = new TestServer(new WebHostBuilder()
-               .UseStartup<Startup>());
+            //_server = new TestServer(new WebHostBuilder()
+            //   .UseStartup<Startup>());
+
             _client = _server.CreateClient();
         }
 

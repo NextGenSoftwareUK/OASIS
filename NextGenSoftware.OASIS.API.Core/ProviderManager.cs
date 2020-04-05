@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace NextGenSoftware.OASIS.API.Core
 {
-    public class ProviderManager
+    public class ProviderManager 
     {
         private static List<IOASISProvider> _registeredProviders = new List<IOASISProvider>();
 
