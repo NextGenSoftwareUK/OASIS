@@ -66,6 +66,7 @@
     + [The OASIS API Will Use The Reputation Interchange From Sacred Capital](#the-oasis-api-will-use-the-reputation-interchange-from-sacred-capital)
     + [Open Karma Committee/Community Concensors](#open-karma-committee-community-concensors)
     + [The OASIS API Enables You To Earn Karma Anywhere](#the-oasis-api-enables-you-to-earn-karma-anywhere)
+    + [Machine Learning Algorithms, Models & AI](#machine-learning-algorithms--models---ai)
     + [The Universal API To Connect Everything To Everything (No More Silos/Walled Gardens)](#the-universal-api-to-connect-everything-to-everything--no-more-silos-walled-gardens-)
     + [OAPPS - Write Once, Deploy Everywhere](#oapps---write-once--deploy-everywhere)
     + [OAPPS - Full Cross-API Support Across All Networks/Platforms/APIs/Protocols](#oapps---full-cross-api-support-across-all-networks-platforms-apis-protocols)
@@ -74,13 +75,23 @@
     + [OASIS API Can Manage All Of Your Tokens/Exchanges/Wallets All In One Place](#oasis-api-can-manage-all-of-your-tokens-exchanges-wallets-all-in-one-place)
     + [One Single Login For All Your Apps/Games/Websites/Services/Everything!](#one-single-login-for-all-your-apps-games-websites-services-everything-)
     + [Our World Is The XR/IR Unified Interface To The Holochain Ecosystem](#our-world-is-the-xr-ir-unified-interface-to-the-holochain-ecosystem)
-    + [Satellite Apps/Games/Websites/Services (Consumers)](#satellite-apps-games-websites--consumers-)
+    + [Satellite Apps/Games/Websites/Services (Consumers)](#satellite-apps-games-websites-services--consumers-)
     + [Protocols/Platforms/Networks Supported (Providers)](#protocols-platforms-networks-supported--providers-)
     + [Holochain Zomes/Services Used](#holochain-zomes-services-used)
     + [Calling The OASIS API](#calling-the-oasis-api)
     + [OASIS Open Standards](#oasis-open-standards)
     + [OASIS API Redundancy (Can Store Copies Of Your Data On Any Decentralised Network/Platform You Choose)](#oasis-api-redundancy--can-store-copies-of-your-data-on-any-decentralised-network-platform-you-choose-)
     + [User Has FULL Control Of Their Data](#user-has-full-control-of-their-data)
+  * [The OASIS Network (ONET)](#the-oasis-network--onet-)
+    + [REST API, GraphQL & WebSockets Supported](#rest-api--graphql---websockets-supported)
+    + [Can Run On The Holo Network](#can-run-on-the-holo-network)
+    + [Earn Karma & HoloFuel For Running a ONODE](#earn-karma---holofuel-for-running-a-onode)
+    + [ONODE Setup](#onode-setup)
+    + [Detailed Management Console](#detailed-management-console)
+    + [ONODE CORE & ONODE Providers](#onode-core---onode-providers)
+    + [Encourages People To Self-Organise, Co-operate, Co-ordinate & Promotes A Decentralised Distributed Mindset.](#encourages-people-to-self-organise--co-operate--co-ordinate---promotes-a-decentralised-distributed-mindset)
+    + [Sharing & Storing Your Data](#sharing---storing-your-data)
+  * [OAPP Web UI Components](#oapp-web-ui-components)
   * [.NET HDK](#net-hdk)
   * [The Power Of Holochain, .NET, Unity & NodeJS Combined!](#the-power-of-holochain--net--unity---nodejs-combined-)
     + [ARC & Noomap Integration](#arc---noomap-integration)
@@ -89,6 +100,18 @@
   * [Turbocharge the Holochain ecosystem!](#turbocharge-the-holochain-ecosystem-)
   * [The OASIS Architecture](#the-oasis-architecture)
     + [Open Modular Design](#open-modular-design)
+    + [General](#general)
+    + [OASISWEBPORTAL/ NOOMAP INTERFACE](#oasiswebportal--noomap-interface)
+    + [IOAPP (OAPP)](#ioapp--oapp-)
+    + [Our World](#our-world)
+    + [OAPI (OASIS API)](#oapi--oasis-api-)
+    + [ONET (OASIS Network)](#onet--oasis-network-)
+    + [OAPP (Legacy Apps/websites)](#oapp--legacy-apps-websites-)
+    + [OAPP/DAPP](#oapp-dapp)
+    + [OAPP/hAPP](#oapp-happ)
+    + [OAPP/HAPP](#oapp-happ2)
+    + [Business OAPP](#business-oapp)
+    + [H4OME / ARC](#h4ome---arc)
   * [Our World/OASIS Will Act As The Bridge For All (Legasy, IPFS, Holochain, Ethereum, SOLID, Fediverse, Mastodon, Diaspora, WebFinger, ActivityPub, XMPP & More!)](#our-world-oasis-will-act-as-the-bridge-for-all--legasy--ipfs--holochain--ethereum--solid--fediverse--mastodon--diaspora--webfinger--activitypub--xmpp---more--)
     + [Implement Your Own Storage/Network/Renderer Provider](#implement-your-own-storage-network-renderer-provider)
     + [Switch To A Different Provider In RealTime](#switch-to-a-different-provider-in-realtime)
@@ -106,6 +129,8 @@
     + [Introduction](#introduction-1)
     + [XR/IR Gamification Layer Of The New Interplanetary Operating System & The New Internet (Web 3.0)](#xr-ir-gamification-layer-of-the-new-interplanetary-operating-system---the-new-internet--web-30-)
     + [Open World/New Ecosystm/Asset Store/Internet/Operating System/Social Network](#open-world-new-ecosystm-asset-store-internet-operating-system-social-network)
+    + [Infinite Alternate Reality Game (IARG)](#infinite-alternate-reality-game--iarg-)
+    + [Our World Integrates The Commons Engine & Mutual Crypto Currency](#our-world-integrates-the-commons-engine---mutual-crypto-currency)
     + [Synergy Engine](#synergy-engine)
     + [Resource Based Economy](#resource-based-economy)
     + [First AAA MMO Game To Run On Holochain](#first-aaa-mmo-game-to-run-on-holochain)
@@ -1565,6 +1590,101 @@ Any other OAPP (that uses the OASIS API) can also choose to share your profile/a
 
 **More to come soon...**
 
+<a name="the-oasis-network--onet-"></a>
+## The OASIS Network (ONET)
+
+The OASIS Network (ONET) is the distributed de-centralised network allowing the various providers that the OASIS API supports to be fully distributed globally across a large decentralised network. This builds on top of design principles from Holocahin in that it is fully distributed and there is no centralisation or bottlenecks (other than of course potential ones caused by Blockchains but the design should hopefully help alleviate these as much as possible). 
+
+<a name="rest-api--graphql---websockets-supported"></a>
+### REST API, GraphQL & WebSockets Supported
+
+- Clients connect to various ONODE Providers through their selected ONODE CORE Gateway.
+
+- Clients connect through their web browser using either REST, WS or GraphQL similar to Holoports except they only use WS as far as I know.
+
+- If the client is an app or unity game it will connect directly using the REST, WS or GraphQL API's. 
+
+<a name="rest-api--graphql---websockets-supported"></a>
+### Can Run On The Holo Network
+
+- It can use Holo Hosting to run ONODE's (OASIS API REST Service/GraphQL Server/WS endpoint) along with any ONODE Providers such as Blockchain, SOLID, IPFS, AcitivtyPub, legacy, etc
+
+<a name="earn-karma---holofuel-for-running-a-onode"></a>
+### Earn Karma & HoloFuel For Running a ONODE
+
+- People earn Karma & HoloFuel for running the ONODE's (the more node's they run the more karma & HoloFuel they can earn).
+
+
+### ONODE Setup
+
+- ONODE Setup wizard for HoloPorts, Windows, Mac, Linux, XBOX ONE, PS4, etc. (will allow CPU, memory, disk & network storage/loads to be fully distributed)
+
+- Windows will be first, quickly followed by Linux & Mac thanks to .NET CORE making it easy to deploy to them. HoloPorts (NixOS) will also be a priority once these have stabilised & the Altha Open TestNet has been successful and is stable. We may wait till the beta mainnet but will know closer to the time...
+
+- ONODE Setup will install a lightweight webserver running REST API, Apollo Server (Node.js) & WebSocket Endpoint. It will also connect and configure ONODE Providers for whatever is found running on the ONODE device such as Holochain, Ethereum, IPFS, ActivityPub, SOLID, etc.
+
+- There will be an option to download and install various Providers when installing, as well as the option to connect & configure a provider later.
+
+- Can run remote distributed providers so they do not all need to be on the same device. This will help distribute the CPU, Memory, Network & Disk loads (Blockchains can be very high!)
+
+- People also earn Krama & HoloFuel for running the distributed providers.
+
+
+### Detailed Management Console
+
+- There will be a detailed Management Console allowing the user to view network traffic, where the data is being stored (both for the user & node), OAPP's installed, Providers Installed/Connected (both local & remote), uptime, karma/holofuel earnt & lots more!
+
+<a name="onode-core---onode-providers"></a>
+### ONODE CORE & ONODE Providers
+
+- A ONODE CORE Gateway can run multiple ONODE Providers either locally or remotely.
+
+- Can run only one ONODE CORE instance but you can run multiple instances of the ONODE Providers, which may be able to help reduce various Blockchain bottlenecks, etc. Holochain does not suffer from these issues.
+
+- ONODE Core can manage and load balance the various Providers keeping throughput as optimal as possible.
+
+- When adding a ONODE Provider you can select whether it is local or remote.
+
+- When installing & setting up a OASIS ONODE you can select if it will be a ONODE CORE or a ONODE Provider. If it will be a ONODE Provider then you need to enter the address of the ONODE CORE to connect to. ONODE CORE are a bit like controllers or gateways.
+
+<a name="encourages-people-to-self-organise--co-operate--co-ordinate---promotes-a-decentralised-distributed-mindset"></a>
+### Encourages People To Self-Organise, Co-operate, Co-ordinate & Promotes A Decentralised Distributed Mindset.
+
+-  Reason it makes sense for people to self-organise & not everyone run a ONODE CORE is because the OAPP's that want to share to multiple providers will pick the ONODE's with the most providers as possible and it would be rare for a ONODE CORE to run all of the providers on the same device due to the large amount of resources this would take (running multiple blockchain networks nodes would require huge amounts of storage space just for starters). So this will encourage a decentralised distributed architecture along with co-ordination, co-operations, team work and a distributed de-centralised mindset. :)
+
+- Another incentive is that you actually earn more Karma & HoloFuel for running a distributed ONODE Provider over a local one. The same goes for the ONODE CORE, who will earn more karma/holofuel for connecting to and using distributed ONODE Providers over a local one.
+
+- Distributed ONODE's are likely to be faster and have less bottlenecks. We want to move away from a centralisation mindset! ;-)
+
+<a name="sharing---storing-your-data"></a>
+### Sharing & Storing Your Data
+
+- If a client wishes to share their profile/data to other providers this can be done without having to install any ONODE Providers on their device but if they wish to store the data locally on their device then of course they will need to install the respective ONODE Providers.
+
+- Your profile will only be available to you on your devices across your apps.
+
+- Will add a FileOASIS Storage Provider to serialise and save your profile to your local device such as smartphone if you do not have the space or processing power to install/run any other providers such as hc, blockchain, etc. This will likely still go through the ONODE Core Gateway (the hope is to make this as lightweight as possible so can run no problem on your phone). HC is also pretty lightweight so hopefully this will also be on phones in future then the FileOASIS Provider may not be needed because your profile would be stored in your local chain instead.
+
+- You will be able to choose right down to individual field level what you wish to be stored/shared on each provider.
+
+- You can share to one of the following: Public, Friends, Family, Colleagues, CustomList.
+
+- When a profile is shared, it is similar to store but will be in a ReadOnly state and will appear in the appropriate list (family, friends, etc) on their respective OAPP's that use the OASIS API.
+
+## OAPP Web UI Components
+
+Each OAPP will have access to a number of templates, scarrolding & Web components (including React, Angular,  Pure/Vanilla JS & more!) to render:
+
+  - Your Profile/Avatar (Embeedded 3D WebGL Model) - includes karma and how you got it, where & what OAPP.
+  - Family/Friends/Co-workers lists.
+  - Simple Messaging.
+  - Launch Our World.
+  - Launch OAPP (list of installed OAPP's).
+  - If there is a location (such as a business, organisation, etc) for how you earnt your karma then there will be a "Show In Our World Map" option.
+  - If a OAPP has a location associated with it then it will also have a "Show In Our World Map".
+  
+**More to come soon...**
+  
 ## .NET HDK
 
 We will soon also begin work on the .NET HDK to open up the amazing Holochain to the massive .NET & Unity ecosystem's, which will help turbocharge the holochain ecosystem they are trying to build...
@@ -1669,9 +1789,81 @@ The components are split into 11 sub-systems/layers:
 * OAPP Templates
 * [OASIS Engine/API](#oasisapicore)
 
-Currently [HoloOASIS](#holooasis) implements the [IOASISStorage](#ioasisstorage) interface. In future it will also implement the [IOASISNET](#ioasisnet) interface.
+Currently [HoloOASIS](#holooasis) implements the [IOASISStorage](#ioasisstorage) and [IOASISNET](#ioasisnet) interfaces.
 
 **PLEASE MAKE SURE YOU READ THE DESCRIPTION BOXES ON THE DIAGRAM FOR MORE INFO ON HOW THE SYSTEM WILL WORK.**
+
+Below are the copies of the description boxes found on the diagram, which some may find easier to read...
+
+### General
+
+This is an example implementation of the OASIS/OAPP Stack using the Unity game engine, HTC Vive VR headset, Oculus Rift VR headset, Apple ARKit, Google ARCore & Haptor VR Haptic feedback gloves. The smartphone version will be using Unity so its stack will look similar to this. The desktop/console version will likely be using the Cry Engine.
+
+As you can see the system is highly modular so it supports any combination of components and allows for each to be swapped out for another without having to re-write the core game logic. The system can also be easily extended and adapted in future without expensive time consuming re-writes, it also will not break existing components and apps since the core API's will remain the same. This is done by following the standard good practise design principles such as SOLID. This also allows for each component to be developed and tested independently and removes any inter-dependencies making the system more stable, robust and easier to maintain. You are not forced to implement all of the interfaces below, only those you wish to use, the system is highly redundant and will still continue to work with whatever has been implemented and configured.
+
+An OAPP has the choice to implement whatever interfaces they wish. They can choose to implement the various renderer, AR,VR, HapicFeedback, Input interfaces, etc (which Our World implements) or just the IOAPP interface, which will expose just the central avatar/profile where they can commit additional karma if they do good deeds in the app. A number of default implementations/templates will be provided for H4OME (HAPP), Holochain (hAPP), Ethereum (DAPP) and a simple HTTP Client, all of which will be implemented as extendable base classes & boiler plate/scaffolding code so the app developer can easily extend the out of the box basic functionality. This will enable developers to be as productive as possible within the OASIS System. They can also optionally choose to implement additional methods/interfaces if they wish to display a UI within Our World. In time simple wizards will also be provided to guide the developer through the creation of their app using simple step by step instructions.
+
+<a name="oasiswebportal--noomap-interface"></a>
+### OASISWEBPORTAL/ NOOMAP INTERFACE
+
+As well as the smartphone and console/desktop version of Our World, there will also be a web portal, which will be a nextgen social network and will also interact with the central profile/avatar. Part of this will also include the Match Need System allowing them to search the Internet for products/services/info that will help improve their wellbeing where the results will be tailored to their current wellbeing requirements stored in their profile/central avatar.The user will be able to choose to visualise this in a traditional 2D interface or a nextgen 3D/VR interace partly powered by Noomap/S7 Foundation technology & WebGL. It will also use the IOAPP interface to communicate to the OASIS Engine/Profile/Avatar. It will also be an example of how to use the  HTTPOASISAPP template, since it will be built on top of it.
+
+<a name="ioapp--oapp-"></a>
+### IOAPP (OAPP)
+
+The minimum API which a OAPP needs to implement to interact with the OASIS/Our World system. This will enable them to just access the central profile/avatar and also grant additional karma for good deeds, etc.
+
+<a name="our-world"></a>
+### Our World
+
+Our World is an example of the first OAPP. It is also the UI for the OASIS ecosystem which all OAPP's plug into. If the OAPP has implemented the UI interfaces above it will appear in Our World. The UI can be implemented as anything they wish ranging from a simple object, shop, area, city, region, country, continent, planet, Galaxy or even a whole meta-verse such as X The Game or Infinite World Game. A number of default implementations and helper methods will be provided to make it as easy as possible to plug various OAPP's into Our World, H4OME will likely be the quickest and easiest way using its simple drag n drop interface so no programming knowledge will be required.
+
+Our World is a OAPP, hAPP, DAPP & HAPP meaning it can talk to all networks (ONET, H4OME & Ethereum) and other apps. It acts as the bridge and central nexus point between all apps & networks. Additional networks & apps may be added in future...
+
+<a name="oapi--oasis-api-"></a>
+### OAPI (OASIS API)
+
+Through the OAPI, an app/website can gain access to the central profile/avatar of a user and grant them additional karma for doing good deeds or making progress within the positive uplifting app/website. Only positive uplifting apps/websites will be granted access to the OAPI and the OASIS System. This will be yet another incentive for developers to start focusing on positive, benevolent uplifting apps/websites/games.
+
+The OAPP API by default hides away complexities such as networking and storage but these can still be accessed by power users.
+
+<a name="onet--oasis-network-"></a>
+### ONET (OASIS Network)
+
+The various OAPP's communicate over a private, secure desentralised & distributed network called ONET. A client/node can even choose to share some of their spare processing power to other less powerful clients/nodes in the network, they of course gain additional karma for doing this. This way the crowd is the cloud and acts as a distributed cloud. The network is powered by Holohain. 
+
+<a name="oapp--legacy-apps-websites-"></a>
+### OAPP (Legacy Apps/websites)
+
+A OAPP does not need to implement the full UI stack above, it can just use and share the central profile/avatar through the OAPI and will talk directly to the OASIS Engine (where the profile/avatar is stored).
+
+This make it fully backward compatible with existing apps, websites, etc.
+
+<a name="oapp-dapp"></a>
+### OAPP/DAPP
+
+An Ethereum DAPP (Distributed App) can also be a OAPP if it implements the OAPI, this means it can talk to both other DAPPs on the Ethereum Blockchain as well as other OAPPs on the ONET Holochain. Our World is the first example of this being a OAPP, DAPP & HAPP.
+
+<a name="oapp-happ"></a>
+### OAPP/hAPP
+
+Other Holochain Apps (hAPP) can also be an OAPP and can easily communicate with the ONET/OAPI since Holochain apps can communicate to multiple Holochain networks (ONET is a Holochain network).
+
+<a name="oapp-happ2"></a>
+### OAPP/HAPP
+
+An OAPP can also be a HAPP, which means it can plug into both the H4OME & OASIS Systems. This will be the most common use case. This could work by there being some sort of Publish/Export as OAPP option within H4OME or simply a OASIS Engine compatible checkbox within H4OME. This will then ensure the HAPP also implements the OAPI for sharing the central profile Avatar within Our World. If the HAPP also wishes to have a UI within Our World then it will also need to implement the UI stack above, which can be jointly developed by NextGen Software & S7 Foundation (please see the H4OME OASIS implementation Diagram for an example of this).
+
+
+### Business OAPP
+
+Businesses can also implement OAPP's if they qualify as a benevolent organisation doing good for the people and the planet. They also have a central profile, which also has karma, the more good deeds they do for the people and the planet, the more karma they earn. The higher their karma the bigger and better location of virtual space they will be allocated within Our World. The higher their karma the more premium advertising space they will also be allocated, which will be very limited within Our World since we do not wish to bombard users with adverts as others do. Unlike others, money is not the currency Our World, karma is so they cannot buy their way in. This will encourage organisations to do more to help solve the worlds problems.
+
+<a name="h4ome---arc"></a>
+### H4OME / ARC
+
+H4OME is currently being built by the S7 Foundation, a partner for Our World & NextGen Software. It allows users to create Holonic Apps (HAPPS) using a quick and easy to use drag n drop interface. It allows blocks of code/functionality to be coupled together so works like a 4th Generation Programming Language. The blocks are currently written in Javascript. It is built on top of Holochain, IPFS & Ethereum just like the OASIS Engine so they are a very good fit for each other.
+
 
 **NOTE: This is still a WIP, so the above is likely to evolve and change as we progress...**
 
@@ -2263,6 +2455,27 @@ https://forum.holochain.org/c/projects/our-world
 
 <a href="https://docs.wixstatic.com/ugd/4280d8_ad8787bd42b1471bae73003bfbf111f7.pdf">NextGen Developer Training Programme</a> <br/> 
 <a href="https://docs.wixstatic.com/ugd/4280d8_999d98ba615e4fa6ab4383a415ee24c5.pdf">Junior NextGen Developer Training Programme</a>
+
+
+**Executive Summary:**
+
+https://docs.wixstatic.com/ugd/4280d8_8b62b661334c43af8e4476d1a1b2afcb.pdf
+
+**Business Plan Summary:**
+
+https://docs.wixstatic.com/ugd/4280d8_9f8ed61eaf904905a6f94fcebf8650ef.pdf
+
+**Business Plan Detailed:**
+
+https://docs.wixstatic.com/ugd/4280d8_cb55d40e7e1b457c879383561e051fff.pdf
+
+**Financials:**
+
+https://docs.wixstatic.com/ugd/4280d8_698b48f342804534ac73829628799d33.xlsx?dn=NextGen%20Software%20Financials.xlsx
+
+**Pitch Deck:**
+
+https://d4de5c45-0ca1-451c-86a7-ce397b9225cd.filesusr.com/ugd/4280d8_50d17252aa3247eaae80013d0e0bf70d.pptx?dn=NextGen%20Software%20PitchDeck%20Lite.pptx
 
 **Funding**
 
