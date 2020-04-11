@@ -1,8 +1,10 @@
 ﻿
+using System.Collections.Generic;
+
 namespace NextGenSoftware.OASIS.API.Core
 {
     public class SearchResults : Holon, ISearchResults
     {
-        public string SearchResult { get; set; }
+        public List<string> SearchResult { get; set; }
     }
 }

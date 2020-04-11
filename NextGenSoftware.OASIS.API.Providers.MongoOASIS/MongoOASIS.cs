@@ -72,14 +72,33 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoOASIS
         {
             try
             {
-              FilterDefinition<SearchData> filter = Builders<SearchData>.Filter.Eq("searchData", searchTerm);
-                SearchData data = await _db.SearchData.Find(filter).FirstOrDefaultAsync();
+
+                //_db.SearchData.Find({ cuisine: "Hamburgers" } );
+                //_db.SearchData.Find(new FilterDefinition<SearchData>() { })
+
+                //FilterDefinition<SearchData> filter = Builders<SearchData>.Filter.Eq("searchData", searchTerm);
+                //FilterDefinition<SearchData> filter = Builders<SearchData>.Filter.Regex("searchData", new BsonRegularExpression("/" + searchTerm + "/G[a-b].*/i"));
+                FilterDefinition<SearchData> filter = Builders<SearchData>.Filter.Regex("searchData", new BsonRegularExpression("/" + searchTerm.ToLower() + "/"));
+                //FilterDefinition<SearchData> filter = Builders<SearchData>.Filter.AnyIn("searchData", searchTerm);
+                List<SearchData> data = await _db.SearchData.Find(filter).ToListAsync();
+
+
+                
+                //Query.Matches("name", "Joe")
 
                 if (data != null)
-                    return new SearchResults { SearchResult = data.searchData };
+                {
+                    List<string> results = new List<string>();
+
+                    foreach (SearchData dataObj in data)
+                        results.Add( dataObj.searchData );
+
+                    return new SearchResults() { SearchResult = results };
+                }
                 else
                     return null;
-
+                
+                //System.InvalidOperationException: The serializer for field 'searchData' must implement IBsonArraySerializer and provide item serialization info.
                 //return await db.SearchData.Find(filter).FirstOrDefaultAsync();
             }
             catch
