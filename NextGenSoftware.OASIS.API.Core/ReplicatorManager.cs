@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using static NextGenSoftware.OASIS.API.Core.ProfileManager;
 
 namespace NextGenSoftware.OASIS.API.Core
 {
@@ -55,12 +56,14 @@ namespace NextGenSoftware.OASIS.API.Core
         }*/
 
        //TODO: In future more than one storage provider can be active at a time where each call can specify which provider to use.
-        public ProfileManager(IOASISStorage OASISStorageProvider) : base(OASISStorageProvider)
+        public ReplicatorManager(IOASISStorage OASISStorageProvider) : base(OASISStorageProvider)
         {
             //if (!ProviderManager.IsProviderRegistered(OASISStorageProvider))
             //    ProviderManager.RegisterProvider(OASISStorageProvider);
 
             //ProviderManager.SwitchCurrentStorageProvider(OASISStorageProvider.ProviderType);
+
+         //   return null;
         }
 
         private void OASISStorageProvider_OnStorageProviderError(object sender, ProfileManagerErrorEventArgs e)

@@ -149,11 +149,11 @@ namespace NextGenSoftware.OASIS.API.WebAPI.Controllers
         //QmR6A1gkSmCsxnbDF7V9Eswnd4Kw9SWhuf8r4R643eDshg
 
         // PUT api/values/5
-        [HttpPut("{search}")]
-        public void Put(int id, [FromBody] string value)
-        {
-            SearchManager.SearchAsync(value);
-        }
+        //[HttpPut("{search}")]
+        //public void Put(int id, [FromBody] string value)
+        //{
+        //    SearchManager.SearchAsync(value);
+        //}
 
         // POST api/values
         //[HttpPost]
