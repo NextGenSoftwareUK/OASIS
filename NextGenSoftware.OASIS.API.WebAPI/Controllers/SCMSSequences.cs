@@ -12,10 +12,10 @@ namespace NextGenSoftware.OASIS.API.WebAPI.Controllers
 
     //[EnableCors(origins: "http://mywebclient.azurewebsites.net", headers: "*", methods: "*")]
     [EnableCors()]
-    public class SmartContractManagementController : ControllerBase
+    public class SCMSSequences : ControllerBase
     {
         SmartContractManagementRepository _smartContractRepository = new SmartContractManagementRepository();
-        private IEnumerable<Sequence> _sequences = null;
+        //private IEnumerable<Sequence> _sequences = null;
 
         //  private ISmartContractManagementService _smartContractManagementService;
 
@@ -24,20 +24,35 @@ namespace NextGenSoftware.OASIS.API.WebAPI.Controllers
         //    _smartContractManagementService = smartContractService;
         //}
 
+
         
-       [HttpGet("{scms}")]
-       //[HttpGet("GetAllSequences")]
-       //public async Task<IActionResult> GetAllSequences()
-       //public async Task<IActionResult> Get()
-       public async Task<IEnumerable<Sequence>> Get()
-       {
-           //var sequences = await _smartContractManagementService.GetAllSequences();
+    //[HttpGet("{GetAllSequences}")]
+    [HttpGet]
+    //[HttpGet("GetAllSequences")]
+    //public async Task<IActionResult> GetAllSequences()
+    //public async Task<IActionResult> Get()
+    public async Task<IEnumerable<Sequence>> GetAllSequences()
+   {
+       var sequences = await _smartContractRepository.GetAllSequences();
+       return await Task.Run(() => sequences.ToList());
+   }
 
-           var _sequences = await _smartContractRepository.GetAllSequences();
-           return await Task.Run(() => _sequences.ToList());
+        /*
+    //[HttpGet("{GetAllPhases}")]
+    [HttpGet]
+    [Route("[action]/{phases}")]
+    //[HttpGet("GetAllSequences")]
+    //public async Task<IActionResult> GetAllSequences()
+    //public async Task<IActionResult> Get()
+    public async Task<IEnumerable<Phase>> GetAllPhases()
+    {
+        //var sequences = await _smartContractManagementService.GetAllSequences();
 
-           //return sequences;
-       }
+        var phases = await _smartContractRepository.GetAllPhases();
+        return await Task.Run(() => phases.ToList());
+
+        //return sequences;
+    }*/
 
         /*
         [HttpGet("{smartcontractmanagement}")]

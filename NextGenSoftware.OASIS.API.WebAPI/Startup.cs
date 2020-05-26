@@ -68,6 +68,19 @@ namespace NextGenSoftware.OASIS.API.WebAPI
             {
                 endpoints.MapControllers();
             });
+
+            /*
+            app.UseEndpoints(endpoints =>
+            {
+                endpoints.MapControllerRoute(
+                    name: "default",
+                    pattern: "{controller=Home}/{action=Index}/{id?}");
+
+                //endpoints.MapControllerRoute(name: "phases",
+                //    pattern: "phases/",
+                //    //pattern: "phases/{*article}",
+                //    defaults: new { controller = "SmartContractManagement", action = "GetAllPhases" });
+            });*/
         }
     }
 }
