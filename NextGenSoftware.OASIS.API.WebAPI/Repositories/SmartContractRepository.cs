@@ -31,12 +31,26 @@ namespace NextGenSoftware.OASIS.API.WebAPI
                 throw;
             }
         }
+
         public async Task<IEnumerable<Sequence>> GetAllSequences()
         {
             try
             {
                 //return await db.Sequence.Find(_ => true).ToListAsync();
                 return await db.Sequence.AsQueryable().ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+        }
+
+        public async Task<IEnumerable<Phase>> GetAllPhases()
+        {
+            try
+            {
+                //return await db.Sequence.Find(_ => true).ToListAsync();
+                return await db.Phase.AsQueryable().ToListAsync();
             }
             catch (Exception ex)
             {
