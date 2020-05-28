@@ -22,5 +22,8 @@ namespace NextGenSoftware.OASIS.API.WebAPI
 
         public int PhaseNo { get; set; }
         public string PhaseTitle { get; set; }
+        public string ScopeDescription { get; set; }
+
+        
     }
 }
