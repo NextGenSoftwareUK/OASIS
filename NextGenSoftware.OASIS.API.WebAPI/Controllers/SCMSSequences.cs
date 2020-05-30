@@ -14,7 +14,7 @@ namespace NextGenSoftware.OASIS.API.WebAPI.Controllers
     [EnableCors()]
     public class SCMSSequences : ControllerBase
     {
-        SmartContractManagementRepository _smartContractRepository = new SmartContractManagementRepository();
+        SCMSRepository _scmsRepository = new SCMSRepository();
         //private IEnumerable<Sequence> _sequences = null;
 
         //  private ISmartContractManagementService _smartContractManagementService;
@@ -33,7 +33,7 @@ namespace NextGenSoftware.OASIS.API.WebAPI.Controllers
     //public async Task<IActionResult> Get()
     public async Task<IEnumerable<Sequence>> GetAllSequences()
    {
-       var sequences = await _smartContractRepository.GetAllSequences();
+       var sequences = await _scmsRepository.GetAllSequences();
        return await Task.Run(() => sequences.ToList());
    }
 

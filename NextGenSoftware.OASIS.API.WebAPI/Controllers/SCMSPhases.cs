@@ -14,12 +14,12 @@ namespace NextGenSoftware.OASIS.API.WebAPI.Controllers
     [EnableCors()]
     public class SCMSPhases : ControllerBase
     {
-        SmartContractManagementRepository _smartContractRepository = new SmartContractManagementRepository();
+        SCMSRepository _scmsRepository = new SCMSRepository();
 
         [HttpGet]
         public async Task<IEnumerable<Phase>> GetAllPhases()
         {
-            var phases = await _smartContractRepository.GetAllPhases();
+            var phases = await _scmsRepository.GetAllPhases();
             return await Task.Run(() => phases.ToList());
         }
     }

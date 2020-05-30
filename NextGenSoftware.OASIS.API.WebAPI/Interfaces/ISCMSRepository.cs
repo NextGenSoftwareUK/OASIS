@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 
 namespace NextGenSoftware.OASIS.API.WebAPI
 {
-    public interface ISmartContractManagementRepository
+    public interface ISCMSRepository
     {
         Task AddSequence(Sequence sequence);
         Task Update(Sequence sequence);
