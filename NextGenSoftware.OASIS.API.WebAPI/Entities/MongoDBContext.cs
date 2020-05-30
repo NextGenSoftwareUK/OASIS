@@ -36,5 +36,21 @@ namespace NextGenSoftware.OASIS.API.WebAPI
                 return _mongoDb.GetCollection<Phase>("Phase");
             }
         }
+
+        public IMongoCollection<Contract> Contract
+        {
+            get
+            {
+                return _mongoDb.GetCollection<Contract>("Contract");
+            }
+        }
+
+        public IMongoCollection<Contact> Contact
+        {
+            get
+            {
+                return _mongoDb.GetCollection<Contact>("Contact");
+            }
+        }
     }
 }

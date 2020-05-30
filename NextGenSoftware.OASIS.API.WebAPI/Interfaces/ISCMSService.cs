@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 
 namespace NextGenSoftware.OASIS.API.WebAPI
 {
-    public interface ISmartContractManagementService
+    public interface ISCMSService
     {
         Task<IEnumerable<Sequence>> GetAllSequences();
     }
