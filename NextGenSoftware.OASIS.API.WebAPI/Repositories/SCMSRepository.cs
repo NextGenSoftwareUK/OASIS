@@ -156,5 +156,247 @@ namespace NextGenSoftware.OASIS.API.WebAPI
         {
             throw new System.NotImplementedException();
         }
+
+        public async Task<Delivery> GetDelivery(string id)
+        {
+            try
+            {
+                FilterDefinition<Delivery> filter = Builders<Delivery>.Filter.Eq("Id", id);
+                return await db.Delivery.Find(filter).FirstOrDefaultAsync();
+            }
+            catch
+            {
+                throw;
+            }
+        }
+
+        public async Task<IEnumerable<Delivery>> GetAllDeliveries()
+        {
+            try
+            {
+                return await db.Delivery.AsQueryable().ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+        }
+
+        public async Task<DeliveryItem> GetDeliveryItem(string id)
+        {
+            try
+            {
+                FilterDefinition<DeliveryItem> filter = Builders<DeliveryItem>.Filter.Eq("Id", id);
+                return await db.DeliveryItem.Find(filter).FirstOrDefaultAsync();
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+        }
+
+        public async Task<IEnumerable<DeliveryItem>> GetAllDeliveryItems()
+        {
+            try
+            {
+                return await db.DeliveryItem.AsQueryable().ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+        }
+
+        public async Task<Drawing> GetDrawing(string id)
+        {
+            throw new NotImplementedException();
+        }
+
+        public async Task<IEnumerable<Drawing>> GetAllDrawings()
+        {
+            try
+            {
+                return await db.Delivery.AsQueryable().ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+        }
+
+        public async Task<File> GetFile(string id)
+        {
+            try
+            {
+                FilterDefinition<DeliveryItem> filter = Builders<DeliveryItem>.Filter.Eq("Id", id);
+                return await db.DeliveryItem.Find(filter).FirstOrDefaultAsync();
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+        }
+
+        public async Task<IEnumerable<File>> GetAllFiles()
+        {
+            try
+            {
+                return await db.Delivery.AsQueryable().ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+        }
+
+        public async Task<Handover> GetHandover(string id)
+        {
+            try
+            {
+                FilterDefinition<DeliveryItem> filter = Builders<DeliveryItem>.Filter.Eq("Id", id);
+                return await db.DeliveryItem.Find(filter).FirstOrDefaultAsync();
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+        }
+
+        public async Task<IEnumerable<Handover>> GetAllHandovers()
+        {
+            try
+            {
+                return await db.Delivery.AsQueryable().ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+        }
+
+        public async Task<Link> GetLink(string id)
+        {
+            try
+            {
+                FilterDefinition<DeliveryItem> filter = Builders<DeliveryItem>.Filter.Eq("Id", id);
+                return await db.DeliveryItem.Find(filter).FirstOrDefaultAsync();
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+        }
+
+        public async Task<IEnumerable<Link>> GetAllLinks()
+        {
+            try
+            {
+                return await db.Delivery.AsQueryable().ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+        }
+
+        public async Task<Log> GetLog(string id)
+        {
+            try
+            {
+                FilterDefinition<DeliveryItem> filter = Builders<DeliveryItem>.Filter.Eq("Id", id);
+                return await db.DeliveryItem.Find(filter).FirstOrDefaultAsync();
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+        }
+
+        public async Task<IEnumerable<Log>> GetAllLogs()
+        {
+            try
+            {
+                return await db.Delivery.AsQueryable().ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+        }
+
+        public async Task<Material> GetMaterial(string id)
+        {
+            try
+            {
+                FilterDefinition<DeliveryItem> filter = Builders<DeliveryItem>.Filter.Eq("Id", id);
+                return await db.DeliveryItem.Find(filter).FirstOrDefaultAsync();
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+        }
+
+        public async Task<IEnumerable<Material>> GetAllMaterials()
+        {
+            try
+            {
+                return await db.Delivery.AsQueryable().ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+        }
+
+        public async Task<Note> GetNote(string id)
+        {
+            try
+            {
+                FilterDefinition<DeliveryItem> filter = Builders<DeliveryItem>.Filter.Eq("Id", id);
+                return await db.DeliveryItem.Find(filter).FirstOrDefaultAsync();
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+        }
+
+        public async Task<IEnumerable<Note>> GetAllNotes()
+        {
+            try
+            {
+                return await db.Delivery.AsQueryable().ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+        }
+
+        public async Task<Trigger> GetTrigger(string id)
+        {
+            try
+            {
+                FilterDefinition<DeliveryItem> filter = Builders<DeliveryItem>.Filter.Eq("Id", id);
+                return await db.DeliveryItem.Find(filter).FirstOrDefaultAsync();
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+        }
+
+        public async Task<IEnumerable<Trigger>> GetAllTriggers()
+        {
+            try
+            {
+                return await db.Delivery.AsQueryable().ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+        }
     }
 }

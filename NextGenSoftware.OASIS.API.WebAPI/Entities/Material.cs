@@ -1,15 +1,16 @@
-using MongoDB.Bson;  
+
+using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
-using System;
 
 namespace NextGenSoftware.OASIS.API.WebAPI
 {
-    public class Drawing : BaseEntity
+    public class Material : BaseEntity
     {
         [BsonRepresentation(BsonType.ObjectId)]
-        public string PhaseID { get; set; }
+        public string PhaseId { get; set; }
 
         [BsonRepresentation(BsonType.ObjectId)]
         public string FileId { get; set; }
+
     }
 }

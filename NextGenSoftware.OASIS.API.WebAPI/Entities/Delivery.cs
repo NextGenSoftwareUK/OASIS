@@ -4,13 +4,8 @@ using System;
 
 namespace NextGenSoftware.OASIS.API.WebAPI
 {
-    public class Delivery
+    public class Delivery : BaseEntity
     {
-        [BsonId]  
-        [BsonRepresentation(BsonType.ObjectId)]  
-        public string Id { get; set; }
-        //public int Id { get; set; }
-
         [BsonRepresentation(BsonType.ObjectId)]
         public string PhaseId { get; set; }
 
