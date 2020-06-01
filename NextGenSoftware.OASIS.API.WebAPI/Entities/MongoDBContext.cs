@@ -52,5 +52,85 @@ namespace NextGenSoftware.OASIS.API.WebAPI
                 return _mongoDb.GetCollection<Contact>("Contact");
             }
         }
+
+        public IMongoCollection<Delivery> Delivery
+        {
+            get
+            {
+                return _mongoDb.GetCollection<Delivery>("Delivery");
+            }
+        }
+
+        public IMongoCollection<DeliveryItem> DeliveryItem
+        {
+            get
+            {
+                return _mongoDb.GetCollection<DeliveryItem>("DeliveryItem");
+            }
+        }
+
+        public IMongoCollection<Drawing> Drawing
+        {
+            get
+            {
+                return _mongoDb.GetCollection<Drawing>("Drawing");
+            }
+        }
+
+        public IMongoCollection<File> File
+        {
+            get
+            {
+                return _mongoDb.GetCollection<File>("File");
+            }
+        }
+
+        public IMongoCollection<Handover> Handover
+        {
+            get
+            {
+                return _mongoDb.GetCollection<Handover>("Handover");
+            }
+        }
+
+        public IMongoCollection<Link> Link
+        {
+            get
+            {
+                return _mongoDb.GetCollection<Link>("Link");
+            }
+        }
+
+        public IMongoCollection<Log> Log
+        {
+            get
+            {
+                return _mongoDb.GetCollection<Log>("Log");
+            }
+        }
+
+        public IMongoCollection<Material> Material
+        {
+            get
+            {
+                return _mongoDb.GetCollection<Material>("Material");
+            }
+        }
+
+        public IMongoCollection<Note> Note
+        {
+            get
+            {
+                return _mongoDb.GetCollection<Note>("Note");
+            }
+        }
+
+        public IMongoCollection<Trigger> Trigger
+        {
+            get
+            {
+                return _mongoDb.GetCollection<Trigger>("Trigger");
+            }
+        }
     }
 }

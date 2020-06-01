@@ -4,12 +4,8 @@ using System;
 
 namespace NextGenSoftware.OASIS.API.WebAPI
 {
-    public class Drawing
+    public class Drawing : BaseEntity
     {
-        [BsonId]  
-        [BsonRepresentation(BsonType.ObjectId)]  
-        public string Id { get; set; }
-
         [BsonRepresentation(BsonType.ObjectId)]
         public string PhaseID { get; set; }
 

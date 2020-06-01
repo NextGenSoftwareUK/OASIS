@@ -4,7 +4,7 @@ using System;
 
 namespace NextGenSoftware.OASIS.API.WebAPI
 {
-    public class Phase
+    public class Phase : BaseEntity
     {
         [BsonId]  
         [BsonRepresentation(BsonType.ObjectId)]  

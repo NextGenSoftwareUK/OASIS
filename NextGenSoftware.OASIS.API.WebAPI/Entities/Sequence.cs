@@ -4,7 +4,7 @@ using System;
 
 namespace NextGenSoftware.OASIS.API.WebAPI
 {
-    public class Sequence
+    public class Sequence : BaseEntity
     {
         [BsonId]  
         [BsonRepresentation(BsonType.ObjectId)]  
