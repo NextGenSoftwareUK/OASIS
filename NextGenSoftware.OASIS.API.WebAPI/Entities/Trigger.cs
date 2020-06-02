@@ -18,6 +18,7 @@ namespace NextGenSoftware.OASIS.API.WebAPI
         public TriggerAction Action1 { get; set; }
         public TriggerAction Action2 { get; set; }
         public TriggerAction Action3 { get; set; }
+        public string Description { get; set; }
     }
 
     public enum TriggerWhenCondition
