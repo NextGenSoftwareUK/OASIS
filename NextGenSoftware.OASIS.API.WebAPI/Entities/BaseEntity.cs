@@ -17,10 +17,10 @@ namespace NextGenSoftware.OASIS.API.WebAPI
         public DateTime CreatedDate { get; set; }
 
         [BsonRepresentation(BsonType.ObjectId)]
-        public string ModifledByUserId { get; set; }
+        public string ModifiedByUserId { get; set; }
 
         [BsonRepresentation(BsonType.DateTime)]
-        public DateTime ModifledDate { get; set; }
+        public DateTime ModifiedDate { get; set; }
 
         [BsonRepresentation(BsonType.ObjectId)]
         public string DeletedByUserId { get; set; }

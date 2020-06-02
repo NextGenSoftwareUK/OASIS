@@ -216,7 +216,7 @@ namespace NextGenSoftware.OASIS.API.WebAPI
         {
             try
             {
-                return await db.Delivery.AsQueryable().ToListAsync();
+                return await db.Drawing.AsQueryable().ToListAsync();
             }
             catch (Exception ex)
             {
@@ -228,8 +228,8 @@ namespace NextGenSoftware.OASIS.API.WebAPI
         {
             try
             {
-                FilterDefinition<DeliveryItem> filter = Builders<DeliveryItem>.Filter.Eq("Id", id);
-                return await db.DeliveryItem.Find(filter).FirstOrDefaultAsync();
+                FilterDefinition<File> filter = Builders<File>.Filter.Eq("Id", id);
+                return await db.File.Find(filter).FirstOrDefaultAsync();
             }
             catch (Exception ex)
             {
@@ -241,7 +241,7 @@ namespace NextGenSoftware.OASIS.API.WebAPI
         {
             try
             {
-                return await db.Delivery.AsQueryable().ToListAsync();
+                return await db.File.AsQueryable().ToListAsync();
             }
             catch (Exception ex)
             {
@@ -253,8 +253,8 @@ namespace NextGenSoftware.OASIS.API.WebAPI
         {
             try
             {
-                FilterDefinition<DeliveryItem> filter = Builders<DeliveryItem>.Filter.Eq("Id", id);
-                return await db.DeliveryItem.Find(filter).FirstOrDefaultAsync();
+                FilterDefinition<Handover> filter = Builders<Handover>.Filter.Eq("Id", id);
+                return await db.Handover.Find(filter).FirstOrDefaultAsync();
             }
             catch (Exception ex)
             {
@@ -266,7 +266,7 @@ namespace NextGenSoftware.OASIS.API.WebAPI
         {
             try
             {
-                return await db.Delivery.AsQueryable().ToListAsync();
+                return await db.Handover.AsQueryable().ToListAsync();
             }
             catch (Exception ex)
             {
@@ -278,8 +278,8 @@ namespace NextGenSoftware.OASIS.API.WebAPI
         {
             try
             {
-                FilterDefinition<DeliveryItem> filter = Builders<DeliveryItem>.Filter.Eq("Id", id);
-                return await db.DeliveryItem.Find(filter).FirstOrDefaultAsync();
+                FilterDefinition<Link> filter = Builders<Link>.Filter.Eq("Id", id);
+                return await db.Link.Find(filter).FirstOrDefaultAsync();
             }
             catch (Exception ex)
             {
@@ -291,7 +291,7 @@ namespace NextGenSoftware.OASIS.API.WebAPI
         {
             try
             {
-                return await db.Delivery.AsQueryable().ToListAsync();
+                return await db.Link.AsQueryable().ToListAsync();
             }
             catch (Exception ex)
             {
@@ -303,8 +303,8 @@ namespace NextGenSoftware.OASIS.API.WebAPI
         {
             try
             {
-                FilterDefinition<DeliveryItem> filter = Builders<DeliveryItem>.Filter.Eq("Id", id);
-                return await db.DeliveryItem.Find(filter).FirstOrDefaultAsync();
+                FilterDefinition<Log> filter = Builders<Log>.Filter.Eq("Id", id);
+                return await db.Log.Find(filter).FirstOrDefaultAsync();
             }
             catch (Exception ex)
             {
@@ -316,7 +316,7 @@ namespace NextGenSoftware.OASIS.API.WebAPI
         {
             try
             {
-                return await db.Delivery.AsQueryable().ToListAsync();
+                return await db.Log.AsQueryable().ToListAsync();
             }
             catch (Exception ex)
             {
@@ -328,8 +328,8 @@ namespace NextGenSoftware.OASIS.API.WebAPI
         {
             try
             {
-                FilterDefinition<DeliveryItem> filter = Builders<DeliveryItem>.Filter.Eq("Id", id);
-                return await db.DeliveryItem.Find(filter).FirstOrDefaultAsync();
+                FilterDefinition<Material> filter = Builders<Material>.Filter.Eq("Id", id);
+                return await db.Material.Find(filter).FirstOrDefaultAsync();
             }
             catch (Exception ex)
             {
@@ -341,7 +341,7 @@ namespace NextGenSoftware.OASIS.API.WebAPI
         {
             try
             {
-                return await db.Delivery.AsQueryable().ToListAsync();
+                return await db.Material.AsQueryable().ToListAsync();
             }
             catch (Exception ex)
             {
@@ -353,8 +353,8 @@ namespace NextGenSoftware.OASIS.API.WebAPI
         {
             try
             {
-                FilterDefinition<DeliveryItem> filter = Builders<DeliveryItem>.Filter.Eq("Id", id);
-                return await db.DeliveryItem.Find(filter).FirstOrDefaultAsync();
+                FilterDefinition<Note> filter = Builders<Note>.Filter.Eq("Id", id);
+                return await db.Note.Find(filter).FirstOrDefaultAsync();
             }
             catch (Exception ex)
             {
@@ -366,7 +366,7 @@ namespace NextGenSoftware.OASIS.API.WebAPI
         {
             try
             {
-                return await db.Delivery.AsQueryable().ToListAsync();
+                return await db.Note.AsQueryable().ToListAsync();
             }
             catch (Exception ex)
             {
@@ -378,8 +378,8 @@ namespace NextGenSoftware.OASIS.API.WebAPI
         {
             try
             {
-                FilterDefinition<DeliveryItem> filter = Builders<DeliveryItem>.Filter.Eq("Id", id);
-                return await db.DeliveryItem.Find(filter).FirstOrDefaultAsync();
+                FilterDefinition<Trigger> filter = Builders<Trigger>.Filter.Eq("Id", id);
+                return await db.Trigger.Find(filter).FirstOrDefaultAsync();
             }
             catch (Exception ex)
             {
@@ -391,7 +391,7 @@ namespace NextGenSoftware.OASIS.API.WebAPI
         {
             try
             {
-                return await db.Delivery.AsQueryable().ToListAsync();
+                return await db.Trigger.AsQueryable().ToListAsync();
             }
             catch (Exception ex)
             {

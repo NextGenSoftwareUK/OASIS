@@ -6,11 +6,6 @@ namespace NextGenSoftware.OASIS.API.WebAPI
 {
     public class Sequence : BaseEntity
     {
-        [BsonId]  
-        [BsonRepresentation(BsonType.ObjectId)]  
-        public string Id { get; set; }
-        //public int Id { get; set; }
-
         [BsonRepresentation(BsonType.ObjectId)]
         public string ContractId { get; set; }
 
