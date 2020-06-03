@@ -11,6 +11,9 @@ namespace NextGenSoftware.OASIS.API.WebAPI
 
         [BsonRepresentation(BsonType.ObjectId)]
         public string MaterialId { get; set; }
-        public int Quanitiy { get; set; }
+
+        public Material Material { get; set; }
+
+        public int Quantity { get; set; }
     }
 }

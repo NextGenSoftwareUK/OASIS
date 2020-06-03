@@ -1,6 +1,7 @@
 using MongoDB.Bson;  
 using MongoDB.Bson.Serialization.Attributes;
 using System;
+using System.Collections.Generic;
 
 namespace NextGenSoftware.OASIS.API.WebAPI
 {
@@ -20,16 +21,16 @@ namespace NextGenSoftware.OASIS.API.WebAPI
 
         public int Status { get; set; }
 
-        [BsonId]
         [BsonRepresentation(BsonType.ObjectId)]
         public string SentToPhaseId { get; set; }
 
-        [BsonId]
         [BsonRepresentation(BsonType.ObjectId)]
         public string SignedByUserId { get; set; }
 
-        [BsonId]
         [BsonRepresentation(BsonType.ObjectId)]
-        public string FileId { get; set; }
+        public string DeliveryNoteFileId { get; set; }
+
+        public List<DeliveryItem> DeliveryItems { get; set; }
+        
     }
 }

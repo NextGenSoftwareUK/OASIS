@@ -9,6 +9,8 @@ namespace NextGenSoftware.OASIS.API.WebAPI
         [BsonRepresentation(BsonType.ObjectId)]
         public string SequenceId { get; set; }
 
+        public Sequence Sequence { get; set; }
+
         [BsonRepresentation(BsonType.DateTime)]
         public DateTime StartDate { get; set; }
         

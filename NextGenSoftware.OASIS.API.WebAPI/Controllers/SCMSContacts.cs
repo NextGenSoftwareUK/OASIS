@@ -10,15 +10,20 @@ namespace NextGenSoftware.OASIS.API.WebAPI.Controllers
     [ApiController]
 
     [EnableCors()]
-    public class SCMSContracts : ControllerBase
+    public class SCMSContacts : ControllerBase
     {
         SCMSRepository _scmsRepository = new SCMSRepository();
 
         [HttpGet]
-        public async Task<IEnumerable<Contract>> GetAllContacts()
+        public async Task<IEnumerable<Contact>> GetAllContacts()
         {
-            var contracts = await _scmsRepository.GetAllContracts();
-            return await Task.Run(() => contracts.ToList());
+            return await Task.Run(() => _scmsRepository.GetAllContacts());
+        }
+
+        [HttpGet("GetAllContacts/{sequenceNo}/{phaseNo}")]
+        public async Task<IEnumerable<Contact>> GetAllContacts(int SequenceNo, int PhaseNo)
+        {
+            return await Task.Run(() => _scmsRepository.GetAllContacts(SequenceNo, PhaseNo));
         }
     }
 }

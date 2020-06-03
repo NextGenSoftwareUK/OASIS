@@ -4,20 +4,38 @@ namespace NextGenSoftware.OASIS.API.WebAPI
 {
     public class MongoDbContext
     {
-        private readonly IMongoDatabase _mongoDb;
+        private IMongoDatabase _mongoDbOASIS;
+        private IMongoDatabase _mongoDbBEB;
+
+        public IMongoDatabase MongoDbBEB 
+        {
+            get
+            {
+                return _mongoDbBEB;
+            }
+        }
+
+        public IMongoDatabase MongoDbOASIS
+        {
+            get
+            {
+                return _mongoDbOASIS;
+            }
+        }
+
         public MongoDbContext()
         {
-            //MongoClient mongoClient = new MongoClient("mongodb+srv://dbadmin:PlRuNP9u4rG2nRdN@oasisapi-oipck.mongodb.net/test?retryWrites=true&w=majority");
-            //_mongoDb = mongoClient.GetDatabase("OASISAPI");
+            MongoClient mongoClient = new MongoClient("mongodb+srv://dbadmin:PlRuNP9u4rG2nRdN@oasisapi-oipck.mongodb.net/test?retryWrites=true&w=majority");
+            _mongoDbOASIS = mongoClient.GetDatabase("OASISAPI");
 
-            MongoClient mongoClient = new MongoClient("mongodb+srv://dbadmin:mz0u0VKsg0Hi6JOT@beb-wfqsj.mongodb.net/test?authSource=admin&replicaSet=BEB-shard-0&w=majority&readPreference=primary&appname=MongoDB%20Compass&retryWrites=true&ssl=true");
-            _mongoDb = mongoClient.GetDatabase("BEB");
+            mongoClient = new MongoClient("mongodb+srv://dbadmin:mz0u0VKsg0Hi6JOT@beb-wfqsj.mongodb.net/test?authSource=admin&replicaSet=BEB-shard-0&w=majority&readPreference=primary&appname=MongoDB%20Compass&retryWrites=true&ssl=true");
+            _mongoDbBEB = mongoClient.GetDatabase("BEB");
         }
         public IMongoCollection<User> User
         {
             get
             {
-                return _mongoDb.GetCollection<User>("User");
+                return _mongoDbOASIS.GetCollection<User>("User");
             }
         }
 
@@ -25,7 +43,7 @@ namespace NextGenSoftware.OASIS.API.WebAPI
         {
             get
             {
-                return _mongoDb.GetCollection<Sequence>("Sequence");
+                return _mongoDbBEB.GetCollection<Sequence>("Sequence");
             }
         }
 
@@ -33,7 +51,7 @@ namespace NextGenSoftware.OASIS.API.WebAPI
         {
             get
             {
-                return _mongoDb.GetCollection<Phase>("Phase");
+                return _mongoDbBEB.GetCollection<Phase>("Phase");
             }
         }
 
@@ -41,7 +59,7 @@ namespace NextGenSoftware.OASIS.API.WebAPI
         {
             get
             {
-                return _mongoDb.GetCollection<Contract>("Contract");
+                return _mongoDbBEB.GetCollection<Contract>("Contract");
             }
         }
 
@@ -49,7 +67,7 @@ namespace NextGenSoftware.OASIS.API.WebAPI
         {
             get
             {
-                return _mongoDb.GetCollection<Contact>("Contact");
+                return _mongoDbBEB.GetCollection<Contact>("Contact");
             }
         }
 
@@ -57,7 +75,7 @@ namespace NextGenSoftware.OASIS.API.WebAPI
         {
             get
             {
-                return _mongoDb.GetCollection<Delivery>("Delivery");
+                return _mongoDbBEB.GetCollection<Delivery>("Delivery");
             }
         }
 
@@ -65,7 +83,7 @@ namespace NextGenSoftware.OASIS.API.WebAPI
         {
             get
             {
-                return _mongoDb.GetCollection<DeliveryItem>("DeliveryItem");
+                return _mongoDbBEB.GetCollection<DeliveryItem>("DeliveryItem");
             }
         }
 
@@ -73,7 +91,7 @@ namespace NextGenSoftware.OASIS.API.WebAPI
         {
             get
             {
-                return _mongoDb.GetCollection<Drawing>("Drawing");
+                return _mongoDbBEB.GetCollection<Drawing>("Drawing");
             }
         }
 
@@ -81,7 +99,7 @@ namespace NextGenSoftware.OASIS.API.WebAPI
         {
             get
             {
-                return _mongoDb.GetCollection<File>("File");
+                return _mongoDbBEB.GetCollection<File>("File");
             }
         }
 
@@ -89,7 +107,7 @@ namespace NextGenSoftware.OASIS.API.WebAPI
         {
             get
             {
-                return _mongoDb.GetCollection<Handover>("Handover");
+                return _mongoDbBEB.GetCollection<Handover>("Handover");
             }
         }
 
@@ -97,7 +115,7 @@ namespace NextGenSoftware.OASIS.API.WebAPI
         {
             get
             {
-                return _mongoDb.GetCollection<Link>("Link");
+                return _mongoDbBEB.GetCollection<Link>("Link");
             }
         }
 
@@ -105,7 +123,7 @@ namespace NextGenSoftware.OASIS.API.WebAPI
         {
             get
             {
-                return _mongoDb.GetCollection<Log>("Log");
+                return _mongoDbBEB.GetCollection<Log>("Log");
             }
         }
 
@@ -113,7 +131,7 @@ namespace NextGenSoftware.OASIS.API.WebAPI
         {
             get
             {
-                return _mongoDb.GetCollection<Material>("Material");
+                return _mongoDbBEB.GetCollection<Material>("Material");
             }
         }
 
@@ -121,7 +139,7 @@ namespace NextGenSoftware.OASIS.API.WebAPI
         {
             get
             {
-                return _mongoDb.GetCollection<Note>("Note");
+                return _mongoDbBEB.GetCollection<Note>("Note");
             }
         }
 
@@ -129,7 +147,7 @@ namespace NextGenSoftware.OASIS.API.WebAPI
         {
             get
             {
-                return _mongoDb.GetCollection<Trigger>("Trigger");
+                return _mongoDbBEB.GetCollection<Trigger>("Trigger");
             }
         }
     }
