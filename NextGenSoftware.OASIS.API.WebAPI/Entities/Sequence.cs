@@ -9,6 +9,8 @@ namespace NextGenSoftware.OASIS.API.WebAPI
         [BsonRepresentation(BsonType.ObjectId)]
         public string ContractId { get; set; }
 
+        public Contract Contract { get; set; }
+
         [BsonRepresentation(BsonType.DateTime)]
         public DateTime StartDate { get; set; }
         
