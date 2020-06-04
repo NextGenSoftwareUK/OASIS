@@ -21,6 +21,7 @@ namespace NextGenSoftware.OASIS.API.WebAPI.Controllers
         }
 
         [HttpGet("GetAllContacts/{sequenceNo}/{phaseNo}")]
+        //[HttpGet("/{sequenceNo}/{phaseNo}")]
         public async Task<IEnumerable<Contact>> GetAllContacts(int SequenceNo, int PhaseNo)
         {
             return await Task.Run(() => _scmsRepository.GetAllContacts(SequenceNo, PhaseNo));

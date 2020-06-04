@@ -31,8 +31,8 @@ namespace NextGenSoftware.OASIS.API.WebAPI
         public string PhaseTitle { get; set; }
         public string ScopeDescription { get; set; }
 
-        [BsonRepresentation(BsonType.ObjectId)]
-        public string BIMModelFileId { get; set; }
+      //  [BsonRepresentation(BsonType.ObjectId)]
+       // public string BIMModelFileId { get; set; }
 
 
     }

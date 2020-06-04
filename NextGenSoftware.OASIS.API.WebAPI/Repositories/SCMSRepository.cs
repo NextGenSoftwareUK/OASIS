@@ -229,6 +229,7 @@ namespace NextGenSoftware.OASIS.API.WebAPI
                             contact.CreatedDate = user.CreatedDate;
                             contact.DeletedByUserId = user.DeletedByUserId;
                             contact.DeletedDate = user.DeletedDate;
+                            contact.Email = user.Email;
                             contact.DOB = user.DOB;
                             contact.Landline = user.LastName;
                             contact.Mobile = user.Mobile;
