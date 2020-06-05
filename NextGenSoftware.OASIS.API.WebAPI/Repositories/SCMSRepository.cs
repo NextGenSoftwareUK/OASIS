@@ -398,6 +398,150 @@ namespace NextGenSoftware.OASIS.API.WebAPI
             }
         }
 
+        public async Task<IEnumerable<Drawing>> GetAllDrawings(int SequenceNo, int PhaseNo, bool includePhaseObject = false, bool includeFileObject = true)
+        {
+            try
+            {
+                List<Drawing> filteredDrawings = new List<Drawing>();
+
+                FilterDefinition<Phase> phaseFilter = Builders<Phase>.Filter.Eq("PhaseNo", PhaseNo);
+                var filteredPhases = await db.Phase.Find(phaseFilter).ToListAsync();
+
+                FilterDefinition<Sequence> sequenceFilter = Builders<Sequence>.Filter.Eq("SequenceNo", SequenceNo);
+                var filteredSequences = await db.Sequence.Find(sequenceFilter).ToListAsync();
+
+                var drawings = db.MongoDbBEB.GetCollection<Drawing>("Drawing");
+
+                foreach (Drawing drawing in drawings.AsQueryable())
+                {
+                    foreach (Phase phase in filteredPhases)
+                    {
+                        if (phase.Id == drawing.PhaseId)
+                        {
+                            if (includePhaseObject)
+                                drawing.Phase = phase;
+
+                            foreach (Sequence sequence in filteredSequences)
+                            {
+                                if (phase.SequenceId == sequence.Id)
+                                {
+                                    filteredDrawings.Add(drawing);
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // Load the child File objects.
+                if (includeFileObject)
+                {
+                    foreach (Drawing drawing in filteredDrawings)
+                        drawing.File = await GetFile(drawing.FileId);
+                }
+
+
+                //Use to pull back the whole Phase object too but that adds a lot more to the payload send back so we only want the File object
+                /*
+                var drawings = db.MongoDbBEB.GetCollection<Drawing>("Drawing");
+
+                var resultOfJoin = drawings.Aggregate();
+
+                if (includeFileObject)
+                    resultOfJoin = (IAggregateFluent<Drawing>)resultOfJoin.Lookup("File", "FileId", "_id", @as: "File").Unwind("File");
+
+                if (includePhaseObject)
+                    resultOfJoin = (IAggregateFluent<Drawing>)resultOfJoin.Lookup("Phase", "PhaseId", "_id", @as: "Phase").Unwind("Phase");
+                
+                var drawingsExtended = resultOfJoin.As<Drawing>().ToList();
+                */
+
+                /*
+                var resultOfJoin = drawings.Aggregate()
+                   // .Lookup("Phase", "PhaseId", "_id", @as: "Phase")
+                    .Lookup("File", "FileId", "_id", @as: "File")
+                   //.Lookup("Phase.Sequence", "Phase.SequenceId", "_id", @as: "Sequence")  //TODO: Need to find out why this doesn't work?!
+                 //  .Unwind("Phase")
+                   .Unwind("File")
+                    //.Unwind("Sequence")
+                    .As<Drawing>()
+                    .ToList();
+                    */
+
+                /*
+                foreach (Drawing drawing in resultOfJoin)
+                {
+                    if (drawing.Phase.PhaseNo == PhaseNo)
+                    {
+                        foreach (Sequence sequence in filteredSequences)
+                        {
+                            if (drawing.Phase.SequenceId == sequence.Id)
+                            {
+                                filteredDrawings.Add(drawing);
+                                break;
+                            }
+                        }
+                    }
+
+                    //if (contact.Phase.PhaseNo == PhaseNo && contact.Phase.Sequence.SequenceNo == SequenceNo.ToString())
+                    //    filteredContacts.Add(contact);
+                }
+                
+                if (!includePhaseObject)
+                {
+                    FilterDefinition<Phase> phaseFilter = Builders<Phase>.Filter.Eq("PhaseNo", PhaseNo);
+                    var filteredPhases = await db.Phase.Find(phaseFilter).ToListAsync();
+
+                    foreach (Drawing drawing in drawingsExtended)
+                    {
+                        foreach (Phase phase in filteredPhases)
+                        {
+                            if (phase.Id == drawing.PhaseId)
+                            {
+                                foreach (Sequence sequence in filteredSequences)
+                                {
+                                    if (phase.SequenceId == sequence.Id)
+                                    {
+                                        filteredDrawings.Add(drawing);
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    //If Phase has been loaded already (later we will try and get the join above to also load sequences)
+                    foreach (Drawing drawing in drawingsExtended)
+                    {
+                        if (drawing.Phase.PhaseNo == PhaseNo)
+                        {
+                            foreach (Sequence sequence in filteredSequences)
+                            {
+                                if (drawing.Phase.SequenceId == sequence.Id)
+                                {
+                                    filteredDrawings.Add(drawing);
+                                    break;
+                                }
+                            }
+                        }   
+                    }
+                }
+                */
+
+                // Load the child File objects.
+                //foreach (Drawing drawing in filteredDrawings)
+                //  drawing.File = await GetFile(drawing.FileId);
+
+                return filteredDrawings;
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+        }
+
         public async Task<File> GetFile(string id)
         {
             try
