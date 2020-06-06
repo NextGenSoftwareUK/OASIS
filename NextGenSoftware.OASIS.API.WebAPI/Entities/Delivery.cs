@@ -14,23 +14,32 @@ namespace NextGenSoftware.OASIS.API.WebAPI
         public DateTime DueDate { get; set; }
 
         [BsonRepresentation(BsonType.DateTime)]
-        public DateTime SentDate { get; set; }
+        public DateTime DispatchedDate { get; set; }
 
         [BsonRepresentation(BsonType.DateTime)]
         public DateTime DeliveredDate { get; set; }
 
-        public int Status { get; set; }
+        public DeliveryStatus Status { get; set; }
 
         [BsonRepresentation(BsonType.ObjectId)]
         public string SentToPhaseId { get; set; }
 
         [BsonRepresentation(BsonType.ObjectId)]
         public string SignedByUserId { get; set; }
+        public string SignedByUserFullName { get; }
 
         [BsonRepresentation(BsonType.ObjectId)]
         public string DeliveryNoteFileId { get; set; }
 
         public List<DeliveryItem> DeliveryItems { get; set; }
         
+    }
+
+    public enum DeliveryStatus
+    {
+        WaitingToDispatch,
+        Dispatched,
+        Late,
+        Delivered
     }
 }
