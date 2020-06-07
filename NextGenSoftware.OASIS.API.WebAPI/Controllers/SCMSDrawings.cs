@@ -20,10 +20,10 @@ namespace NextGenSoftware.OASIS.API.WebAPI.Controllers
             return await Task.Run(() => _scmsRepository.GetAllDrawings());
         }
 
-        [HttpGet("GetAllDrawingsForSequenceAndPhase/{sequenceNo}/{phaseNo}/{includePhaseObject}/{includeFileObject}")]
-        public async Task<IEnumerable<Drawing>> GetAllDrawingsForSequenceAndPhase(int SequenceNo, int PhaseNo, bool includePhaseObject = false, bool includeFileObject = true)
+        [HttpGet("GetAllDrawingsForSequenceAndPhase/{sequenceNo}/{phaseNo}/{loadPhase}/{loadFile}")]
+        public async Task<IEnumerable<Drawing>> GetAllDrawingsForSequenceAndPhase(int SequenceNo, int PhaseNo, bool loadPhase = false, bool loadFile = true)
         {
-            return await Task.Run(() => _scmsRepository.GetAllDrawings(SequenceNo, PhaseNo, includePhaseObject, includeFileObject));
+            return await Task.Run(() => _scmsRepository.GetAllDrawings(SequenceNo, PhaseNo, loadPhase, loadFile));
         }
 
         [HttpGet("GetAllDrawingsForSequenceAndPhase/{sequenceNo}/{phaseNo}")]

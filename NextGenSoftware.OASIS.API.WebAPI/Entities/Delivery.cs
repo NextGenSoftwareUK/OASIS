@@ -23,10 +23,11 @@ namespace NextGenSoftware.OASIS.API.WebAPI
 
         [BsonRepresentation(BsonType.ObjectId)]
         public string SentToPhaseId { get; set; }
+        public Phase SentToPhase { get; set; }
 
         [BsonRepresentation(BsonType.ObjectId)]
         public string SignedByUserId { get; set; }
-        public string SignedByUserFullName { get; }
+        public string SignedByUserFullName { get; set; }
 
         [BsonRepresentation(BsonType.ObjectId)]
         public string DeliveryNoteFileId { get; set; }
