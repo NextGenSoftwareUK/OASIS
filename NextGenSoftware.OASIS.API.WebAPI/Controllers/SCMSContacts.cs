@@ -22,9 +22,16 @@ namespace NextGenSoftware.OASIS.API.WebAPI.Controllers
 
         [HttpGet("GetAllContactsForSequenceAndPhase/{sequenceNo}/{phaseNo}")]
         //[HttpGet("/{sequenceNo}/{phaseNo}")]
-        public async Task<IEnumerable<Contact>> GetAllContactsForSequenceAndPhase(int SequenceNo, int PhaseNo)
+        public async Task<IEnumerable<Contact>> GetAllContactsForSequenceAndPhase(int sequenceNo, int phaseNo)
         {
-            return await Task.Run(() => _scmsRepository.GetAllContacts(SequenceNo, PhaseNo));
+            return await Task.Run(() => _scmsRepository.GetAllContacts(sequenceNo, phaseNo, false));
+        }
+
+        [HttpGet("GetAllContactsForSequenceAndPhase/{sequenceNo}/{phaseNo}/{loadPhase}")]
+        //[HttpGet("/{sequenceNo}/{phaseNo}")]
+        public async Task<IEnumerable<Contact>> GetAllContactsForSequenceAndPhase(int sequenceNo, int phaseNo, bool loadPhase = false)
+        {
+            return await Task.Run(() => _scmsRepository.GetAllContacts(sequenceNo, phaseNo, loadPhase));
         }
     }
 }

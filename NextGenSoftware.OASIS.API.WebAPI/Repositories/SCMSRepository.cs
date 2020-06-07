@@ -47,12 +47,38 @@ namespace NextGenSoftware.OASIS.API.WebAPI
             }
         }
 
+        public async Task<IEnumerable<Sequence>> GetSequencesBySequenceNo(int SequenceNo)
+        {
+            try
+            {
+                FilterDefinition<Sequence> sequenceFilter = Builders<Sequence>.Filter.Eq("SequenceNo", SequenceNo);
+                return await db.Sequence.Find(sequenceFilter).ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+        }
+
         public async Task<Phase> GetPhase(string id)
         {
             try
             {
                 FilterDefinition<Phase> filter = Builders<Phase>.Filter.Eq("Id", id);
                 return await db.Phase.Find(filter).FirstOrDefaultAsync();
+            }
+            catch
+            {
+                throw;
+            }
+        }
+
+        public async Task<IEnumerable<Phase>> GetPhasesByPhaseNo(int phaseNo)
+        {
+            try
+            {
+                FilterDefinition<Phase> phaseFilter = Builders<Phase>.Filter.Eq("PhaseNo", phaseNo.ToString());
+                return await db.Phase.Find(phaseFilter).ToListAsync();
             }
             catch
             {
@@ -90,7 +116,6 @@ namespace NextGenSoftware.OASIS.API.WebAPI
         {
             try
             {
-                //return await db.Sequence.Find(_ => true).ToListAsync();
                 return await db.Contract.AsQueryable().ToListAsync();
             }
             catch (Exception ex)
@@ -112,48 +137,20 @@ namespace NextGenSoftware.OASIS.API.WebAPI
             }
         }
 
-        public async Task<IEnumerable<Contact>> GetAllContacts()
+        public async Task<IEnumerable<Contact>> GetAllContacts(bool loadPhase = false)
         {
             try
             {
-                var contacts = db.Contact.AsQueryable().ToListAsync();
-                var users = db.User.AsQueryable().ToListAsync();
+                var contacts = await db.Contact.AsQueryable().ToListAsync();
 
-                foreach (Contact contact in contacts.Result)
+                if (loadPhase)
                 {
-                    foreach (User user in users.Result)
-                    { 
-                        if (contact.UserId == user.Id)
-                        {
-                            contact.FirstName = user.FirstName;
-                            contact.LastName = user.LastName;
-                            contact.Address = user.Address;
-                            contact.Country = user.Country;
-                            contact.County = user.County;
-                            contact.CreatedByUserId = user.CreatedByUserId;
-                            contact.CreatedDate = user.CreatedDate;
-                            contact.DeletedByUserId = user.DeletedByUserId;
-                            contact.DeletedDate = user.DeletedDate;
-                            contact.DOB = user.DOB;
-                            contact.Landline = user.LastName;
-                            contact.Mobile = user.Mobile;
-                            contact.ModifledByUserId = user.ModifledByUserId;
-                            contact.ModifledDate = user.ModifledDate;
-                            contact.Password = user.Password;
-                            contact.Postcode = user.Postcode;
-                            contact.Title = user.Title;
-                            contact.Town = user.Town;
-                            contact.Username = user.Username;
-                            contact.UserType = user.UserType;
-                            contact.Version = user.Version;
-                            break;
-                        }
-                    }
+                    foreach (Contact contact in contacts.AsQueryable())
+                        contact.Phase = await GetPhase(contact.PhaseId);
                 }
 
-                //return await db.Sequence.Find(_ => true).ToListAsync();
-                //return await db.Contact.AsQueryable().ToListAsync();
-                return contacts.Result;
+                contacts = LoadUserDataIntoContacts(contacts);
+                return contacts;
             }
             catch (Exception ex)
             {
@@ -161,22 +158,44 @@ namespace NextGenSoftware.OASIS.API.WebAPI
             }
         }
         
-        
-        public async Task<IEnumerable<Contact>> GetAllContacts(int SequenceNo, int PhaseNo)
+        public async Task<IEnumerable<Contact>> GetAllContacts(int SequenceNo, int PhaseNo, bool loadPhase = false)
         {
             try
             {
-                FilterDefinition<Sequence> sequenceFilter = Builders<Sequence>.Filter.Eq("SequenceNo", SequenceNo);
-                var filteredSequences = await db.Sequence.Find(sequenceFilter).ToListAsync();
+                List<Contact> filteredContacts = new List<Contact>();
+                var contacts = await db.Contact.AsQueryable().ToListAsync();
+                var filteredPhases = await GetPhasesByPhaseNo(PhaseNo);
+                var filteredSequences = await GetSequencesBySequenceNo(SequenceNo);
 
+                foreach (Contact contact in contacts.AsQueryable())
+                {
+                    foreach (Phase phase in filteredPhases)
+                    {
+                        if (phase.Id == contact.PhaseId)
+                        {
+                            if (loadPhase)
+                                contact.Phase = phase;
+
+                            foreach (Sequence sequence in filteredSequences)
+                            {
+                                if (phase.SequenceId == sequence.Id)
+                                {
+                                    filteredContacts.Add(contact);
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+
+                filteredContacts = LoadUserDataIntoContacts(filteredContacts);
+
+                /*
                 //var contacts = await db.Contact.Find({"VIP": true, "Country": "Germany"});
                 List<Contact> filteredContacts = new List<Contact>();
                 //FilterDefinition<Contact> filter = Builders<Contact>.Filter.Eq("SequenceNo", SequenceNo);
 
             //    var contacts = await db.Contact.Find(filter).ToListAsync();
-                
-
-          
 
               //  string connectionString = "mongodb://localhost:27017";
               //  var client = new MongoClient(connectionString);
@@ -209,11 +228,12 @@ namespace NextGenSoftware.OASIS.API.WebAPI
                     //if (contact.Phase.PhaseNo == PhaseNo && contact.Phase.Sequence.SequenceNo == SequenceNo.ToString())
                     //    filteredContacts.Add(contact);
                 }
+                */
 
-                // var contacts = db.Contact.AsQueryable().ToListAsync();
+
+                /*
                 var users = db.User.AsQueryable().ToListAsync();
 
-                //foreach (Contact contact in contacts.Result)
                 foreach (Contact contact in filteredContacts)
                 {
                     foreach (User user in users.Result)
@@ -245,7 +265,7 @@ namespace NextGenSoftware.OASIS.API.WebAPI
                             break;
                         }
                     }
-                }
+                }*/
 
                 //return await db.Sequence.Find(_ => true).ToListAsync();
                 //return await db.Contact.AsQueryable().ToListAsync();
@@ -258,6 +278,45 @@ namespace NextGenSoftware.OASIS.API.WebAPI
             }
         }
         
+        private List<Contact> LoadUserDataIntoContacts(List<Contact> contacts)
+        {
+            var users = db.User.AsQueryable().ToListAsync();
+
+            foreach (Contact contact in contacts)
+            {
+                foreach (User user in users.Result)
+                {
+                    if (contact.UserId == user.Id)
+                    {
+                        contact.FirstName = user.FirstName;
+                        contact.LastName = user.LastName;
+                        contact.Address = user.Address;
+                        contact.Country = user.Country;
+                        contact.County = user.County;
+                        contact.CreatedByUserId = user.CreatedByUserId;
+                        contact.CreatedDate = user.CreatedDate;
+                        contact.DeletedByUserId = user.DeletedByUserId;
+                        contact.DeletedDate = user.DeletedDate;
+                        contact.Email = user.Email;
+                        contact.DOB = user.DOB;
+                        contact.Landline = user.LastName;
+                        contact.Mobile = user.Mobile;
+                        contact.ModifledByUserId = user.ModifledByUserId;
+                        contact.ModifledDate = user.ModifledDate;
+                        contact.Password = user.Password;
+                        contact.Postcode = user.Postcode;
+                        contact.Title = user.Title;
+                        contact.Town = user.Town;
+                        contact.Username = user.Username;
+                        contact.UserType = user.UserType;
+                        contact.Version = user.Version;
+                        break;
+                    }
+                }
+            }
+            
+            return contacts;
+        }
 
         public async Task Update(User User)
         {
@@ -293,12 +352,47 @@ namespace NextGenSoftware.OASIS.API.WebAPI
             throw new System.NotImplementedException();
         }
 
-        public async Task<Delivery> GetDelivery(string id)
+        public async Task<Delivery> GetDelivery(string id, bool loadDeliveryItems = true, bool loadSignedByUser = true, bool loadSentToPhase = true, bool loadMaterial = true, bool loadFile = true)
         {
             try
             {
                 FilterDefinition<Delivery> filter = Builders<Delivery>.Filter.Eq("Id", id);
-                return await db.Delivery.Find(filter).FirstOrDefaultAsync();
+                Delivery delivery = await db.Delivery.Find(filter).FirstOrDefaultAsync();
+
+                if (loadDeliveryItems)
+                    delivery.DeliveryItems = GetDeliveryItemsForDelivery(delivery.Id).Result.ToList();
+
+                if (loadSignedByUser)
+                {
+                    User user = await GetUser(delivery.SignedByUserId);
+
+                    if (user != null)
+                        delivery.SignedByUserFullName = user.FullName;
+                }
+
+                if (loadSentToPhase)
+                    delivery.SentToPhase = await GetPhase(delivery.SentToPhaseId);
+
+                if (delivery.SentToPhase != null)
+                    delivery.SentToPhase.Sequence = await GetSequence(delivery.SentToPhase.SequenceId);
+
+                foreach (DeliveryItem deliveryItem in delivery.DeliveryItems)
+                {
+                    if (loadMaterial)
+                    {
+                        Material material = await GetMaterial(deliveryItem.MaterialId);
+
+                        if (material != null)
+                        {
+                            deliveryItem.Material = material;
+                            
+                            if (loadFile)
+                                material.File = await GetFile(material.FileId);
+                        }
+                    }
+                }
+
+                return delivery;
             }
             catch
             {
@@ -306,40 +400,52 @@ namespace NextGenSoftware.OASIS.API.WebAPI
             }
         }
 
-        public async Task<IEnumerable<Delivery>> GetAllDeliveries()
+        public async Task<IEnumerable<Delivery>> GetAllDeliveries(bool loadDeliveryItems = true, bool loadSignedByUser = true, bool loadSentToPhase = true, bool loadMaterial = true, bool loadFile = true)
         {
             try
             {
-                // await db.Delivery.AsQueryable().ToListAsync();
-                var deliveries = db.Delivery.AsQueryable().ToListAsync();
-                var deliveryItems = db.DeliveryItem.AsQueryable().ToListAsync();
+                var deliveries = await db.Delivery.AsQueryable().ToListAsync();
+               
+                for (int i = 0; i < deliveries.Count; i++)
+                    deliveries[i] = await GetDelivery(deliveries[i].Id, loadDeliveryItems,  loadSignedByUser, loadSentToPhase, loadMaterial, loadFile);
 
-                foreach (Delivery delivery in deliveries.Result)
+                return deliveries;
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+        }
+
+        public async Task<IEnumerable<Delivery>> GetAllDeliveries(int sequenceNo, int phaseNo, bool loadDeliveryItems = true, bool loadSignedByUser = true, bool loadSentToPhase = true, bool loadMaterial = true, bool loadFile = true)
+        {
+            try
+            {
+                List<Delivery> filteredDeliveries = new List<Delivery>();
+                var deliveries = await db.Delivery.AsQueryable().ToListAsync();
+                var filteredPhases = await GetPhasesByPhaseNo(phaseNo);
+                var filteredSequences = await GetSequencesBySequenceNo(sequenceNo);
+
+                for (int i=0; i < deliveries.Count(); i++)
                 {
-                    delivery.DeliveryItems = new List<DeliveryItem>();
-
-                    foreach (DeliveryItem deliveryItem in deliveryItems.Result)
+                    foreach (Phase phase in filteredPhases)
                     {
-                        if (deliveryItem.DeliveryId == delivery.Id)
+                        if (phase.Id == deliveries[i].PhaseId)
                         {
-                            delivery.DeliveryItems.Add(deliveryItem);
-
-                            FilterDefinition<Material> filter = Builders<Material>.Filter.Eq("Id", deliveryItem.MaterialId);
-                            Material material = await db.Material.Find(filter).FirstOrDefaultAsync();
-
-                            if (material != null)
+                            foreach (Sequence sequence in filteredSequences)
                             {
-                                deliveryItem.Material = material;
-
-                                FilterDefinition<File> fileFilter = Builders<File>.Filter.Eq("Id", material.FileId);
-                                File file = await db.File.Find(fileFilter).FirstOrDefaultAsync();
-                                material.File = file;
+                                if (phase.SequenceId == sequence.Id)
+                                {
+                                    deliveries[i] = await GetDelivery(deliveries[i].Id, loadDeliveryItems, loadSignedByUser, loadSentToPhase, loadMaterial, loadFile);
+                                    filteredDeliveries.Add(deliveries[i]);
+                                    break;
+                                }
                             }
                         }
                     }
                 }
 
-                return deliveries.Result;
+                return filteredDeliveries;
 
                 // var deliveries = db.GetCollection<Delivery>("Instances");
 
@@ -381,16 +487,12 @@ namespace NextGenSoftware.OASIS.API.WebAPI
             }
         }
 
-        public async Task<Drawing> GetDrawing(string id)
-        {
-            throw new NotImplementedException();
-        }
-
-        public async Task<IEnumerable<Drawing>> GetAllDrawings()
+        public async Task<IEnumerable<DeliveryItem>> GetDeliveryItemsForDelivery(string deliveryId)
         {
             try
             {
-                return await db.Drawing.AsQueryable().ToListAsync();
+                FilterDefinition<DeliveryItem> sequenceFilter = Builders<DeliveryItem>.Filter.Eq("DeliveryId", deliveryId);
+                return await db.DeliveryItem.Find(sequenceFilter).ToListAsync();
             }
             catch (Exception ex)
             {
@@ -398,19 +500,66 @@ namespace NextGenSoftware.OASIS.API.WebAPI
             }
         }
 
-        public async Task<IEnumerable<Drawing>> GetAllDrawings(int SequenceNo, int PhaseNo, bool includePhaseObject = false, bool includeFileObject = true)
+        public async Task<User> GetUser(string id)
+        {
+            FilterDefinition<User> filter = Builders<User>.Filter.Eq("Id", id);
+            return await db.User.Find(filter).FirstOrDefaultAsync();
+        }
+
+        public async Task<IEnumerable<User>> GetAllUsers()
+        {
+            try
+            {
+                return await db.User.AsQueryable().ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+        }
+
+        public async Task<Drawing> GetDrawing(string id)
+        {
+            FilterDefinition<Drawing> filter = Builders<Drawing>.Filter.Eq("Id", id);
+            return await db.Drawing.Find(filter).FirstOrDefaultAsync();
+        }
+
+        public async Task<IEnumerable<Drawing>> GetAllDrawings(bool loadPhase = false, bool loadFile = true)
+        {
+            try
+            {
+                var drawings = await db.Drawing.AsQueryable().ToListAsync();
+
+                if (loadPhase || loadFile)
+                {
+                    foreach (Drawing drawing in drawings)
+                    {
+                        if (loadPhase)
+                            drawing.Phase = await GetPhase(drawing.PhaseId);
+
+                        if (loadFile)
+                            drawing.File = await GetFile(drawing.FileId);
+                    }
+                }
+                
+                return drawings;
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+        }
+
+        public async Task<IEnumerable<Drawing>> GetAllDrawings(int SequenceNo, int PhaseNo, bool loadPhase = false, bool loadFile= true)
         {
             try
             {
                 List<Drawing> filteredDrawings = new List<Drawing>();
 
-                FilterDefinition<Phase> phaseFilter = Builders<Phase>.Filter.Eq("PhaseNo", PhaseNo);
-                var filteredPhases = await db.Phase.Find(phaseFilter).ToListAsync();
-
-                FilterDefinition<Sequence> sequenceFilter = Builders<Sequence>.Filter.Eq("SequenceNo", SequenceNo);
-                var filteredSequences = await db.Sequence.Find(sequenceFilter).ToListAsync();
-
-                var drawings = db.MongoDbBEB.GetCollection<Drawing>("Drawing");
+                var filteredPhases = await GetPhasesByPhaseNo(PhaseNo);
+                var filteredSequences = await GetSequencesBySequenceNo(SequenceNo);
+                var drawings = await db.Drawing.AsQueryable().ToListAsync();
+                //var drawings = await GetAllDrawings();
 
                 foreach (Drawing drawing in drawings.AsQueryable())
                 {
@@ -418,7 +567,7 @@ namespace NextGenSoftware.OASIS.API.WebAPI
                     {
                         if (phase.Id == drawing.PhaseId)
                         {
-                            if (includePhaseObject)
+                            if (loadPhase)
                                 drawing.Phase = phase;
 
                             foreach (Sequence sequence in filteredSequences)
@@ -431,14 +580,18 @@ namespace NextGenSoftware.OASIS.API.WebAPI
                             }
                         }
                     }
+
+                    if (loadFile)
+                        drawing.File = await GetFile(drawing.FileId);
                 }
 
                 // Load the child File objects.
-                if (includeFileObject)
+                /*
+                if (loadFile)
                 {
                     foreach (Drawing drawing in filteredDrawings)
                         drawing.File = await GetFile(drawing.FileId);
-                }
+                }*/
 
 
                 //Use to pull back the whole Phase object too but that adds a lot more to the payload send back so we only want the File object
