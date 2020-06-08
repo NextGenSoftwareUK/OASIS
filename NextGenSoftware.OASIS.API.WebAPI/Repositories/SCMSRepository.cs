@@ -352,7 +352,8 @@ namespace NextGenSoftware.OASIS.API.WebAPI
             throw new System.NotImplementedException();
         }
 
-        public async Task<Delivery> GetDelivery(string id, bool loadDeliveryItems = true, bool loadSignedByUser = true, bool loadSentToPhase = true, bool loadMaterial = true, bool loadFile = true)
+        //public async Task<Delivery> GetDelivery(string id, bool loadDeliveryItems = true, bool loadSignedByUser = true, bool loadSentToPhase = true, bool loadMaterial = true, bool loadFile = true)
+        public async Task<Delivery> GetDelivery(string id, bool loadDeliveryItems = true, bool loadSignedByUser = true, bool loadSentToPhase = true, bool loadFile = true)
         {
             try
             {
@@ -376,19 +377,26 @@ namespace NextGenSoftware.OASIS.API.WebAPI
                 if (delivery.SentToPhase != null)
                     delivery.SentToPhase.Sequence = await GetSequence(delivery.SentToPhase.SequenceId);
 
-                foreach (DeliveryItem deliveryItem in delivery.DeliveryItems)
+                if (delivery.DeliveryItems != null)
                 {
-                    if (loadMaterial)
+                    foreach (DeliveryItem deliveryItem in delivery.DeliveryItems)
                     {
-                        Material material = await GetMaterial(deliveryItem.MaterialId);
+                        if (loadFile)
+                            deliveryItem.File = await GetFile(deliveryItem.FileId);
 
-                        if (material != null)
+                        /*
+                        if (loadMaterial)
                         {
-                            deliveryItem.Material = material;
-                            
-                            if (loadFile)
-                                material.File = await GetFile(material.FileId);
-                        }
+                            Material material = await GetMaterial(deliveryItem.MaterialId);
+
+                            if (material != null)
+                            {
+                                deliveryItem.Material = material;
+
+                                if (loadFile)
+                                    material.File = await GetFile(material.FileId);
+                            }
+                        }*/
                     }
                 }
 
@@ -400,14 +408,16 @@ namespace NextGenSoftware.OASIS.API.WebAPI
             }
         }
 
-        public async Task<IEnumerable<Delivery>> GetAllDeliveries(bool loadDeliveryItems = true, bool loadSignedByUser = true, bool loadSentToPhase = true, bool loadMaterial = true, bool loadFile = true)
+        //public async Task<IEnumerable<Delivery>> GetAllDeliveries(bool loadDeliveryItems = true, bool loadSignedByUser = true, bool loadSentToPhase = true, bool loadMaterial = true, bool loadFile = true)
+        public async Task<IEnumerable<Delivery>> GetAllDeliveries(bool loadDeliveryItems = true, bool loadSignedByUser = true, bool loadSentToPhase = true,  bool loadFile = true)
         {
             try
             {
                 var deliveries = await db.Delivery.AsQueryable().ToListAsync();
                
                 for (int i = 0; i < deliveries.Count; i++)
-                    deliveries[i] = await GetDelivery(deliveries[i].Id, loadDeliveryItems,  loadSignedByUser, loadSentToPhase, loadMaterial, loadFile);
+                    deliveries[i] = await GetDelivery(deliveries[i].Id, loadDeliveryItems, loadSignedByUser, loadSentToPhase, loadFile);
+                //deliveries[i] = await GetDelivery(deliveries[i].Id, loadDeliveryItems,  loadSignedByUser, loadSentToPhase, loadMaterial, loadFile);
 
                 return deliveries;
             }
@@ -417,7 +427,8 @@ namespace NextGenSoftware.OASIS.API.WebAPI
             }
         }
 
-        public async Task<IEnumerable<Delivery>> GetAllDeliveries(int sequenceNo, int phaseNo, bool loadDeliveryItems = true, bool loadSignedByUser = true, bool loadSentToPhase = true, bool loadMaterial = true, bool loadFile = true)
+        //public async Task<IEnumerable<Delivery>> GetAllDeliveries(int sequenceNo, int phaseNo, bool loadDeliveryItems = true, bool loadSignedByUser = true, bool loadSentToPhase = true, bool loadMaterial = true, bool loadFile = true)
+        public async Task<IEnumerable<Delivery>> GetAllDeliveries(int sequenceNo, int phaseNo, bool loadDeliveryItems = true, bool loadSignedByUser = true, bool loadSentToPhase = true, bool loadFile = true)
         {
             try
             {
@@ -436,7 +447,8 @@ namespace NextGenSoftware.OASIS.API.WebAPI
                             {
                                 if (phase.SequenceId == sequence.Id)
                                 {
-                                    deliveries[i] = await GetDelivery(deliveries[i].Id, loadDeliveryItems, loadSignedByUser, loadSentToPhase, loadMaterial, loadFile);
+                                    //deliveries[i] = await GetDelivery(deliveries[i].Id, loadDeliveryItems, loadSignedByUser, loadSentToPhase, loadMaterial, loadFile);
+                                    deliveries[i] = await GetDelivery(deliveries[i].Id, loadDeliveryItems, loadSignedByUser, loadSentToPhase, loadFile);
                                     filteredDeliveries.Add(deliveries[i]);
                                     break;
                                 }
