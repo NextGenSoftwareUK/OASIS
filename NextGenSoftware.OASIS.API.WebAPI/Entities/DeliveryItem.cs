@@ -9,10 +9,15 @@ namespace NextGenSoftware.OASIS.API.WebAPI
         [BsonRepresentation(BsonType.ObjectId)]
         public string DeliveryId { get; set; }
 
-        [BsonRepresentation(BsonType.ObjectId)]
-        public string MaterialId { get; set; }
+        //[BsonRepresentation(BsonType.ObjectId)]
+        //public string MaterialId { get; set; }
 
-        public Material Material { get; set; }
+        //public Material Material { get; set; }
+
+        [BsonRepresentation(BsonType.ObjectId)]
+        public string FileId { get; set; }
+
+        public File File { get; set; }
 
         public int Quantity { get; set; }
     }
