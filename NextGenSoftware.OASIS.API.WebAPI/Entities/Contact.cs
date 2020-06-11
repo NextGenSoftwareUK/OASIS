@@ -37,7 +37,7 @@ namespace NextGenSoftware.OASIS.API.WebAPI
     //TODO: More types will be added later.
     public enum BEBUserType
     {
-        Management,
-        SkilledLabour
+        Management,  //0
+        SkilledLabour //1 
     }
 }

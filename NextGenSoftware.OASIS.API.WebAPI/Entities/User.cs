@@ -32,7 +32,7 @@ namespace NextGenSoftware.OASIS.API.WebAPI
     //TODO: More types will be added later.
     public enum UserType
     {
-        Admin,
-        Standard
+        Admin, //0
+        Standard //1
     }
 }
