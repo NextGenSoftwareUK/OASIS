@@ -9,7 +9,7 @@ namespace NextGenSoftware.OASIS.API.WebAPI
 
     public enum FileType
     {
-        PDF,
+        PDF, 
         WordDoc,
         Image,
         Video,

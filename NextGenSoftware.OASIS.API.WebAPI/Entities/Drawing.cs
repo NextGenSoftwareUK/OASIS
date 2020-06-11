@@ -23,14 +23,11 @@ namespace NextGenSoftware.OASIS.API.WebAPI
             {
                 switch (DrawingStatus)
                 {
-                    case DrawingStatus.Ammend:
-                        return "Ammend";
-
                     case DrawingStatus.Approved:
                         return "Approved";
 
-                    case DrawingStatus.Declined:
-                        return "Declined";
+                    case DrawingStatus.Rejected:
+                        return "Rejected";
 
                     default:
                         return "Approved";
@@ -41,8 +38,8 @@ namespace NextGenSoftware.OASIS.API.WebAPI
 
     public enum DrawingStatus
     {
-        Approved,
-        Declined,
-        Ammend
+        Approved, //green = 0
+        Rejected, // red = 1
+        MinorChanges //yellow = 2
     }
 }
