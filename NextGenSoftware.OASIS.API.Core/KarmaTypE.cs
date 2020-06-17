@@ -7,6 +7,7 @@ namespace NextGenSoftware.OASIS.API.Core
     public enum KarmaType
     {
         OurWorld,
+        Nutrition,
         SelfHelpImprovement,
         HelpingPeople,
         HelpingTheEnvironment,
