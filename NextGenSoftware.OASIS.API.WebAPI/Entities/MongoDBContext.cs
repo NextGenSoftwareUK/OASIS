@@ -25,10 +25,12 @@ namespace NextGenSoftware.OASIS.API.WebAPI
 
         public MongoDbContext()
         {
-            MongoClient mongoClient = new MongoClient("mongodb+srv://dbadmin:PlRuNP9u4rG2nRdN@oasisapi-oipck.mongodb.net/test?retryWrites=true&w=majority");
+            MongoClient mongoClient = new MongoClient("mongodb+srv://dbadmin:PlRuNP9u4rG2nRdN@oasisapi-oipck.mongodb.net/OASISAPI?retryWrites=true&w=majority");
             _mongoDbOASIS = mongoClient.GetDatabase("OASISAPI");
 
-            mongoClient = new MongoClient("mongodb+srv://dbadmin:mz0u0VKsg0Hi6JOT@beb-wfqsj.mongodb.net/test?authSource=admin&replicaSet=BEB-shard-0&w=majority&readPreference=primary&appname=MongoDB%20Compass&retryWrites=true&ssl=true");
+            //mongoClient = new MongoClient("mongodb+srv://dbadmin:mz0u0VKsg0Hi6JOT@beb-wfqsj.mongodb.net/test?authSource=admin&replicaSet=BEB-shard-0&w=majority&readPreference=primary&appname=MongoDB%20Compass&retryWrites=true&ssl=true");
+            //mongoClient = new MongoClient("mongodb+srv://dbadmin:mz0u0VKsg0Hi6JOT@beb-wfqsj.mongodb.net/test?retryWrites=true&w=majority");
+            mongoClient = new MongoClient("mongodb+srv://dbadmin:mz0u0VKsg0Hi6JOT@beb-wfqsj.mongodb.net/BEB?retryWrites=true&w=majority");
             _mongoDbBEB = mongoClient.GetDatabase("BEB");
         }
         public IMongoCollection<User> User
