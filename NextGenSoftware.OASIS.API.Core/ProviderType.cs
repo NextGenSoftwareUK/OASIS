@@ -14,6 +14,10 @@ namespace NextGenSoftware.OASIS.API.Core
         ActivityPubOASIS,
         ScuttleBugOASIS,
         MongoDBOASIS,
+        ChainLinkOASIS,
+        ThreeFoldOASIS,
+        PLANOASIS,
+        HoloWebOASIS,
         All,
         None,
         Default
