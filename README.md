@@ -1,7 +1,7 @@
 
 
 
-# OASIS API / Our World / HoloNET / HoloUnity / .NET HDK Altha v0.1.0
+# OASIS API / Our World / HoloNET / HoloUnity / .NET HDK Altha v0.1.1
 
 ![alt text](https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/blob/master/Images/FinalLogo.jpg "Our World")
 
@@ -1513,6 +1513,8 @@ Below is a list of the protocols/networks/platforms that the OASIS API will supp
 |Protocol/Platform/Network| Description | Support Implemented  | Provider Name |
 |--|--|--|--|
 | [Holochain](https://holochain.org/) | Leading the way for the new decentralised distributed internet | Yes | [HoloOASIS](#holooasis)
+| [ThreeFold](https://threefold.io//) | A true peer-to-peer internet. Empowering equality, autonomy and sustainability with game-changing technology built with a collaborative ecosystem. Live and distributed in 21 countries and expanding.| In Dev | ThreeFoldOASIS
+| [Chainlink](https://chain.link/) | The Chainlink network provides reliable tamper-proof inputs and outputs for complex smart contracts on any blockchain.| In Dev | ChainlinkOASIS
 | [SOLID](https://solid.inrupt.com/) | Inventor of the Internet, Sir Tim Berners-Lee new protocol for Web 3.0 to give users control of their data as well as remove silos/walled gardens using Pods & Linked Data. | In Dev | SOLIDOASIS
 | [Ethereum](https://www.ethereum.org/) | One of the leading Blockchain implementations that is very popular. | In Dev| EthereumOASIS
 | [IPFS](https://ipfs.io) | The InterPlanetary File System is a protocol and peer-to-peer network for storing and sharing data in a distributed file system. IPFS uses content-addressing to uniquely identify each file in a global namespace connecting all computing devices.| In Dev | IPFSOASIS
@@ -1520,6 +1522,9 @@ Below is a list of the protocols/networks/platforms that the OASIS API will supp
 |[HSTP (Hyper Spacial Transport Protocol)](https://www.verses.io/)  | The new protocol for the new Spacial Web (Web 3.0) | Coming Soon |
 | [WebFinger](https://webfinger.net/) | WebFinger is used to discover information about people or other entities on the Internet that are identified by a URI using standard Hypertext Transfer Protocol (HTTP) methods over a secure transport. A WebFinger resource returns a JavaScript Object Notation (JSON) object describing the entity that is queried. The JSON object is referred to as the JSON Resource Descriptor (JRD).| Coming Soon
 | [ActivityPub](https://activitypub.rocks/) |ActivityPub is an open, decentralized social networking protocol based on Pump.io's ActivityPump protocol. It provides a client/server API for creating, updating and deleting content, as well as a federated server-to-server API for delivering notifications and content | Coming Soon
+| [HoloWeb](https://holoweb.io//) | A true peer-to-peer internet. Empowering equality, autonomy and sustainability with game-changing technology built with a collaborative ecosystem. Live and distributed in 21 countries and expanding.| Coming Soon| 
+|[PLAN](https://holoweb.io//) | A true peer-to-peer internet. Empowering equality, autonomy and sustainability with game-changing technology built with a collaborative ecosystem. Live and distributed in 21 countries and expanding.| Coming Soon| 
+|[Core Network](https://core.network/) | Unify your social network silos into a single visual dashboard. Own your data.  Create and curate content, share privately or publicly, for free or for cryptocurrency.  Develop learning experiences.  Create community currencies.  Track impact, create communities, and reach your people, unfettered by paywalls.  Experience a futuristic VR-first dashboard, which gracefully degrades to standard mobile and desktop browsers. | Coming Soon| 
 | [XMPP](https://xmpp.org/) | Extensible Messaging and Presence Protocol is an open XML technology for real-time communication, which powers a wide range of applications including instant messaging, presence and collaboration.  | Coming Soon
 | [Loom](https://loomx.io/) | Loom Network is a Layer 2 scaling solution for Ethereum that is live in production. It is a network of DPoS sidechains, which allows for highly-scalable games. | Coming Soon
 | [EOS](https://eos.io//) | EOSIO is a next-generation, open-source blockchain protocol with industry-leading transaction speed and flexible utility. | Coming Soon
