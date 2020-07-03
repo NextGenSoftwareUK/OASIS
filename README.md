@@ -231,6 +231,13 @@ The projects within this repo should be pretty self explanatory from their names
 |[NextGenSoftware.OASIS.API.Providers.HoloOASIS.TestHarness](#holooasis)| This is the Test Harness of the HoloOASIS Provider.
 |NextGenSoftware.OASIS.API.Providers.IPFSOASIS| OASIS Provider for IPFS.
 |NextGenSoftware.OASIS.API.Providers.SOLIDOASIS| OASIS Provider for SOLID.
+|NextGenSoftware.OASIS.API.Providers.EthereumOASIS| OASIS Provider for Ethereum.
+|NextGenSoftware.OASIS.API.Providers.AcitvityPubOASIS| OASIS Provider for AcitvityPub.
+|NextGenSoftware.OASIS.API.Providers.BlockStackOASIS| OASIS Provider for BlockStack.
+|NextGenSoftware.OASIS.API.Providers.ChainLinkOASIS| OASIS Provider for Chainlink (Smart Contracts for all blockchains).
+|NextGenSoftware.OASIS.API.Providers.MongoOASIS| OASIS Provider for MongoDB.
+|NextGenSoftware.OASIS.API.Providers.PLANOASIS| OASIS Provider for PLAN.
+|NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS| OASIS Provider for ThreeFold.
 
 <br>
 
