@@ -236,7 +236,6 @@ The projects within this repo should be pretty self explanatory from their names
 |NextGenSoftware.OASIS.API.Providers.MongoOASIS| OASIS Provider for MongoDB.
 |NextGenSoftware.OASIS.API.Providers.PLANOASIS| OASIS Provider for PLAN.
 |NextGenSoftware.OASIS.API.Providers.HoloWeb| OASIS Provider for HoloWeb.
-|NextGenSoftware.NodeManager| Allows .NET to call and invoke Node.js methods (used by NextGenSoftware.OASIS.API.Core.ARC.Membrane and in future also by NextGenSoftware.OASIS.API.Core.Apollo.Client and NextGenSoftware.OASIS.API.Core.Apollo.Server).
 
 <br>
 
