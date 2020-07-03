@@ -215,20 +215,18 @@ The projects within this repo should be pretty self explanatory from their names
 |NextGenSoftware.OASIS.API.Core.Apollo.Client.TestHarness| The test harness for the Apollo Client library.
 |NextGenSoftware.OASIS.API.Core.Apollo.Server| Uses the NextGenSoftware.NodeManager library to call the Node.js Apollo GraphQL Server, which wraps around the NextGenSoftware.OASIS.API.Core.WebAPI (REST API).
 |NextGenSoftware.OASIS.API.Core.Apollo.Server.TestHarness| The test harness for the Apollo Server library.
-|[NextGenSoftware.OASIS.API.Core.ARC.Membrane](#arc---noomap-integration)| This will contain a DeviceManager,PsyberManager & MappingManager allowing ARC to talk to any device and access all of it's hardware such as Bluetooth. It will also provide a wrapper around Unity allowing ARC to render it's 2D & 3D UI to Unity. It will also allow ARC to access the Our World 3D Map.
+|[NextGenSoftware.OASIS.API.Core.ARC.Membrane](#arc---noomap-integration)| This contains the DeviceManager,PsyberManager & MappingManager allowing ARC to talk to any device and access all of it's hardware such as Bluetooth. It will also provide a wrapper around Unity allowing ARC to render it's 2D & 3D UI to Unity. It will also allow ARC to access the Our World 3D Map.
 |[NextGenSoftware.OASIS.API.Core.ARC.Membrane.NodeJS](#arc---noomap-integration)| This is for testing purposes to simulate the ARC Core (written in NodeJS). It will test calls to the DeviceManager, PsyberManager & MappingManager.
 |[NextGenSoftware.OASIS.API.Core.TestHarness](#the-oasis-api---karma-system)| This is a Test Harness for the main OASIS API.
 |[NextGenSoftware.OASIS.API.FrontEnd.Web](#the-oasis-api---karma-system)| This is the Web front-end for the OASIS API and will show the user's Avatar/Profile along with their Karma levels (and where the karma came from). It will also show what Satellite apps/games/websites that are using the API. This will form the foundation of the NextGen Social Network (a sub-component of Our World).
 |[NextGenSoftware.OASIS.API.FrontEnd.Unity](#holounity)| This shows how the OASIS API is used in Unity to render the users profile data to the 3D Avatar.
 |NextGenSoftware.OASIS.API.WebAPI| This will expose the OASIS API as a RESTful service over HTTP. In future there will also be a websocket HTTP & websocket JSON RPC 2.0 interface.
 |NextGenSoftware.OASIS.API.WebAP.IntegrationTests|Integration tests for the OASIS REST Web API.
-|NextGenSoftware.OASIS.API.Providers.AcitvityPub| OASIS Provider for ActivityPub.
-|NextGenSoftware.OASIS.API.Providers.BlockStack| OASIS Provider for BlockStack..
-|NextGenSoftware.OASIS.API.Providers.EthereumOASIS| OASIS Provider for Ethereum.
 |[NextGenSoftware.OASIS.API.Providers.HoloOASIS.Core](#holooasis)| This contains the core code for the HoloOASIS Provider, that wraps around the HoloNETClient to talk to Holochain. This implements the [IOASISStorage](#ioasisstorage)interface allowing the OASIS API to read & write the users profile data to Holochain. It also implements the [IOASISNET](#ioasisnet) interface allowing it to share the user's profile/avatar as well as find Holons and players in their local area.
 |[NextGenSoftware.OASIS.API.Providers.HoloOASIS.Desktop](#holooasis)| This is the desktop implementation of the HoloOASIS Provider and uses the desktop version of the HoloNETClient.
 |[NextGenSoftware.OASIS.API.Providers.HoloOASIS.Unity](#holooasis)| This is the Unity implementation of the HoloOASIS Provider and uses the Unity version of the HoloNETClient.
 |[NextGenSoftware.OASIS.API.Providers.HoloOASIS.TestHarness](#holooasis)| This is the Test Harness of the HoloOASIS Provider.
+|NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS| OASIS Provider for ThreeFold.
 |NextGenSoftware.OASIS.API.Providers.IPFSOASIS| OASIS Provider for IPFS.
 |NextGenSoftware.OASIS.API.Providers.SOLIDOASIS| OASIS Provider for SOLID.
 |NextGenSoftware.OASIS.API.Providers.EthereumOASIS| OASIS Provider for Ethereum.
@@ -237,7 +235,8 @@ The projects within this repo should be pretty self explanatory from their names
 |NextGenSoftware.OASIS.API.Providers.ChainLinkOASIS| OASIS Provider for Chainlink (Smart Contracts for all blockchains).
 |NextGenSoftware.OASIS.API.Providers.MongoOASIS| OASIS Provider for MongoDB.
 |NextGenSoftware.OASIS.API.Providers.PLANOASIS| OASIS Provider for PLAN.
-|NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS| OASIS Provider for ThreeFold.
+|NextGenSoftware.OASIS.API.Providers.HoloWeb| OASIS Provider for HoloWeb.
+|NextGenSoftware.NodeManager| Allows .NET to call and invoke Node.js methods (used by NextGenSoftware.OASIS.API.Core.ARC.Membrane and in future also by NextGenSoftware.OASIS.API.Core.Apollo.Client and NextGenSoftware.OASIS.API.Core.Apollo.Server).
 
 <br>
 
@@ -1500,6 +1499,7 @@ A list of of possible early adopters can be found below:
 | <a href="https://bridgit.io/">Bridge It</a> |A web overlay that advances the way the world views, shares, and engages with information on the web through community participation.|No | TBC|
 | <a href="https://delegatecall.com">Delegate Call<a/> | Fully Blockchain based Q&A. Earn tokens for answering questions. This is built on Loom (which sits on top of Etherum) + Unity game engine. You earn karma for particpating, answering questions, etc so this is a REALLY good fit for the OASIS API and will automatically integrate with the Karma System with very little effort.| No|TBC
 | <a href="https://www.gitcoin.com">Git Coin<a/> | GitCoin brings together freelance reosurcing and crowdfunding allowing you to not only attrack the funding for your open source projects but also the devs, so is perfect for the open source Our World/OASIS API code base! :) They also have kudos badges, which are perfect to integrate with the OASIS API Karma System, so we will be apporaching them in future to explore this further... | No | TBC
+| <a href="https://www.joinseeds.com/">SEEDS<a/> | A payment platform and financial ecosystem to empower humanity and heal our planet. The karma system will be deeply integrated into their reputation system.| No | TBC
 
 **More coming soon...**
 
