@@ -102,14 +102,9 @@
   * [The NextGen Office](#the-nextgen-office)
   * [Golden Investment Opportunity](#golden-investment-opportunity)
   * [Help Cocreate A Better World...](#help-cocreate-a-better-world)
-- [Road Map](#road-map)
-- [Next Steps](#next-steps)
-- [Donations Welcome! :)](#donations-welcome----)
-- [Devs/Contributions Welcome! :)](#devs-contributions-welcome----)
 - [NextGen Developer Training Programmes For EVERYONE! (Including Special Needs & Disadvantaged People)](#nextgen-developer-training-programmes-for-everyone---including-special-needs---disadvantaged-people-)
 - [The Power Of Autism](#the-power-of-autism)
 - [Better Than A Fornite Clone! ;-)](#better-than-a-fornite-clone-----)
-- [Other Ways To Get Involved](#other-ways-to-get-involved)
 - [HoloNET](#holonet)
   * [How To Use HoloNET](#how-to-use-holonet)
   * [The Power of .NET Async Methods](#the-power-of-net-async-methods)
@@ -161,6 +156,11 @@
   * [Events](#events-3)
   * [Methods](#methods-3)
   * [Properties](#properties-3)
+- [Road Map](#road-map)
+- [Next Steps](#next-steps)
+- [Donations Welcome! :)](#donations-welcome----)
+- [Devs/Contributions Welcome! :)](#devs-contributions-welcome----)
+- [Other Ways To Get Involved](#other-ways-to-get-involved)
 - [HoloSource Licence](#holosource-licence)
 - [Links](#links)
 
@@ -1136,98 +1136,9 @@ https://www.ourworldthegame.com/single-post/2017/09/04/Golden-Opportunity-Of-a-L
 It only seems to be a week or two before another terrorist attack or mass shooting or disaster after disaster. How much more suffering does there have to be before the people unite together to say enough is enough?
 
 
-
 **READ MORE ON THE [WEBSITE](http://www.ourworldthegame.com "Our World") OR [CROWD FUNDING](https://www.gofundme.com/f/ourworldthegame) PAGES**
 
 
-## Road Map
-
-**Version 1 - Smartphone Platform - The AR version** - Map of present day - In correlation with Time - **IN ACTIVE DEVELOPMENT**. We hope to have an early prototype of this around 2020 Q1/Q2 with more evolved prototypes being released throughout the year. Depending on how many resources/devs we can attract we hope to have a first altha release by 2021, possibly 2022.
-
-**Version 2 - Desktop/Console Platforms - The VR Version** - Game version that starts in Past with a true history of Earth. Not Time Correlated. We hope work on this can begin by 2020 (if additional funds/resources can be secured by then) and will be done
- in parallel with the Smartphone version. Remember these are not seperate products, and fully integrate with each other where players share the same immersive persistent real-time open world.
-
-**Version 3 - The XR/IR Version (The OASIS)** - The XR version that becomes the immersive, self reflective reality that combines both aspects of console and smartphone versions. We hope we will secure MASSIVE funds by 2021/2022 latest so this can begin dev around that time, this is Ready Player One OASIS time with life like graphics and things you can only begin to imagine right now! ;-)
-
-## Next Steps
-
-Not in priority order:
-
-* Add HTTP support to HoloNET.
-* Implement IOASISNET interface for HoloOASIS Provider.
-* Add built-in HC Conductor to HoloNET so it can fire up it's own conductor without needing to do this manually.
-* Add a ZomeProxyGenerator tool so it can auto-generate a C# Zome Proxy that wraps around HoloNET calls (the code would be similar to what is in HoloOASIS)
-* Continue with Unity integration and development of HoloUnity, which will then also be gifted forward to the wonderful holochain community... :)
-* Refactor HoloNET to split out the websocket JSON RPC 2.0 implementation from the holochain specific logic so the websocket JSON RPC code can be re-used with the OASIS API websocket implementation coming soon...
-* Implement OASIS API Websocket JSON RPC 2.0 implementation.
-* Implement OASIS API Websocket HTTP implementation.
-* Implement OASIS API HTTP Restful WebAPI implementation.
-* Finish implementing avatar screen in Unity.
-* Place avatar on 3D map using users current location (geolocation) from their device GPS.
-* Implement Mapping/Routing API for 3D Map in Unity.
-* Implement Places Of Interest (Holons) on 3D Map.
-* Implement ARC Membrane API.
-* Implement Unity Nlogger.
-* Implement animated cars, planes, water, etc on 3D Map.
-* Fix bug so when zooming out on 3D Map it shows the full globe instead of going white.
-* Implement demo satellite apps/games/websites to show how OASIS API works.
-* Implement OASIS API in a number of real apps/games/websites that are waiting and ready...
-* Implement Quests on 3D Map (geolocation).
-* Implement AR Mode in parks, etc.
-* Implement Synergy Engine matching solution providers to requesters.
-* Port Noomap to Unity.
-* Plus LOTS & LOTS more to come! ;-)
-
-<a name="donations-welcome----"></a>
-## Donations Welcome! :)
-
-We are working full-time on this project so we have no other income so if you value it, we would really appreciate a donation to our crowd funding page below:
-
-https://www.gofundme.com/f/ourworldthegame
-
-**Every little helps, even if you can only manage £1 it can still help make all the difference! Thank you! :)**
-
-**We would really appreciate if you could donate anything you can afford, even if it's just a pound, if everyone did that then we would be able to massively accelerate this very urgent and important project for a world in need right now. I think everyone can justify a pound if it meant saving the world don't you think?**
-
-**It's even better to spend a pound on this project rather than buying a lottery ticket since you have very little chance of winning the jackpot, then even by some fluke you did win, there is no point having millions if there is no world left to enjoy it on.**
-
-**It is time people start to priortise the future of our planet above all else...**
-
-**Think about it...**
-
-If you can't afford to contribute, then that's fine, you can still help by getting the word out there!
-
-Our Facebook page is here:
-
-https://www.facebook.com/ourworldthegame 
-
-Please make sure you LIKE it and spread the word and get as many of your friends and family to LIKE it too, many thanks & much appreciated! :)
-
-Every reward above £100 will automatically get your name added to the credits for the app/network which will be seen by billions...
-
-Please ready more on the website:
-http://www.ourworldthegame.com
-
-* **What will be your legacy?**
-
-* **Do you want to be in on the ground floor of the upcoming platform that will take the world by storm?
-The platform that is going to win many rewards for the ground-breaking work it will do. Do you want to be a hero of your own life story?**
-
-* **Want to tell your kids and grandkids that you helped make it happen and go down in history as a hero?**
-
-* **What kind of world do you want to leave to the next generation?**
-
-* **Want to be part of something greater than yourself?**
-
-* **How can you do your part to create a better world?**
-
-* **This is HOW you do your part...**
-
-* **Be the change you wish to see in the world...**
-
-**NOTE: WE HAVE ONLY DISCLOSED ABOUT 10% OF WHAT OUR WORLD / THE OASIS IS, IF YOU WISH TO GET INVOLVED OR INVEST THEN WE WILL BE HAPPY TO SHARE MORE, PLEASE GET IN TOUCH, WE LOOK FORWARD TO HEARING FROM YOU...**
-
-**TOGETHER WE CAN CREATE A BETTER WORLD.**
 
 <a name="nextgen-developer-training-programmes-for-everyone---including-special-needs---disadvantaged-people-"></a>
 ## NextGen Developer Training Programmes For EVERYONE! (Including Special Needs & Disadvantaged People)
@@ -2379,6 +2290,95 @@ Of course if they wanted use the OASIS API then the first code listing is how it
 ### Properties
 
 **More to come soon...**
+
+## Road Map
+
+**Version 1 - Smartphone Platform - The AR version** - Map of present day - In correlation with Time - **IN ACTIVE DEVELOPMENT**. We hope to have an early prototype of this around 2020 Q1/Q2 with more evolved prototypes being released throughout the year. Depending on how many resources/devs we can attract we hope to have a first altha release by 2021, possibly 2022.
+
+**Version 2 - Desktop/Console Platforms - The VR Version** - Game version that starts in Past with a true history of Earth. Not Time Correlated. We hope work on this can begin by 2020 (if additional funds/resources can be secured by then) and will be done
+ in parallel with the Smartphone version. Remember these are not seperate products, and fully integrate with each other where players share the same immersive persistent real-time open world.
+
+**Version 3 - The XR/IR Version (The OASIS)** - The XR version that becomes the immersive, self reflective reality that combines both aspects of console and smartphone versions. We hope we will secure MASSIVE funds by 2021/2022 latest so this can begin dev around that time, this is Ready Player One OASIS time with life like graphics and things you can only begin to imagine right now! ;-)
+
+## Next Steps
+
+Not in priority order:
+
+* Add HTTP support to HoloNET.
+* Implement IOASISNET interface for HoloOASIS Provider.
+* Add built-in HC Conductor to HoloNET so it can fire up it's own conductor without needing to do this manually.
+* Add a ZomeProxyGenerator tool so it can auto-generate a C# Zome Proxy that wraps around HoloNET calls (the code would be similar to what is in HoloOASIS)
+* Continue with Unity integration and development of HoloUnity, which will then also be gifted forward to the wonderful holochain community... :)
+* Refactor HoloNET to split out the websocket JSON RPC 2.0 implementation from the holochain specific logic so the websocket JSON RPC code can be re-used with the OASIS API websocket implementation coming soon...
+* Implement OASIS API Websocket JSON RPC 2.0 implementation.
+* Implement OASIS API Websocket HTTP implementation.
+* Implement OASIS API HTTP Restful WebAPI implementation.
+* Finish implementing avatar screen in Unity.
+* Place avatar on 3D map using users current location (geolocation) from their device GPS.
+* Implement Mapping/Routing API for 3D Map in Unity.
+* Implement Places Of Interest (Holons) on 3D Map.
+* Implement ARC Membrane API.
+* Implement Unity Nlogger.
+* Implement animated cars, planes, water, etc on 3D Map.
+* Fix bug so when zooming out on 3D Map it shows the full globe instead of going white.
+* Implement demo satellite apps/games/websites to show how OASIS API works.
+* Implement OASIS API in a number of real apps/games/websites that are waiting and ready...
+* Implement Quests on 3D Map (geolocation).
+* Implement AR Mode in parks, etc.
+* Implement Synergy Engine matching solution providers to requesters.
+* Port Noomap to Unity.
+* Plus LOTS & LOTS more to come! ;-)
+
+<a name="donations-welcome----"></a>
+## Donations Welcome! :)
+
+We are working full-time on this project so we have no other income so if you value it, we would really appreciate a donation to our crowd funding page below:
+
+https://www.gofundme.com/f/ourworldthegame
+
+**Every little helps, even if you can only manage £1 it can still help make all the difference! Thank you! :)**
+
+**We would really appreciate if you could donate anything you can afford, even if it's just a pound, if everyone did that then we would be able to massively accelerate this very urgent and important project for a world in need right now. I think everyone can justify a pound if it meant saving the world don't you think?**
+
+**It's even better to spend a pound on this project rather than buying a lottery ticket since you have very little chance of winning the jackpot, then even by some fluke you did win, there is no point having millions if there is no world left to enjoy it on.**
+
+**It is time people start to priortise the future of our planet above all else...**
+
+**Think about it...**
+
+If you can't afford to contribute, then that's fine, you can still help by getting the word out there!
+
+Our Facebook page is here:
+
+https://www.facebook.com/ourworldthegame 
+
+Please make sure you LIKE it and spread the word and get as many of your friends and family to LIKE it too, many thanks & much appreciated! :)
+
+Every reward above £100 will automatically get your name added to the credits for the app/network which will be seen by billions...
+
+Please ready more on the website:
+http://www.ourworldthegame.com
+
+* **What will be your legacy?**
+
+* **Do you want to be in on the ground floor of the upcoming platform that will take the world by storm?
+The platform that is going to win many rewards for the ground-breaking work it will do. Do you want to be a hero of your own life story?**
+
+* **Want to tell your kids and grandkids that you helped make it happen and go down in history as a hero?**
+
+* **What kind of world do you want to leave to the next generation?**
+
+* **Want to be part of something greater than yourself?**
+
+* **How can you do your part to create a better world?**
+
+* **This is HOW you do your part...**
+
+* **Be the change you wish to see in the world...**
+
+**NOTE: WE HAVE ONLY DISCLOSED ABOUT 10% OF WHAT OUR WORLD / THE OASIS IS, IF YOU WISH TO GET INVOLVED OR INVEST THEN WE WILL BE HAPPY TO SHARE MORE, PLEASE GET IN TOUCH, WE LOOK FORWARD TO HEARING FROM YOU...**
+
+**TOGETHER WE CAN CREATE A BETTER WORLD.**
 
 <a name="devs-contributions-welcome----"></a>
 ## Devs/Contributions Welcome! :)
