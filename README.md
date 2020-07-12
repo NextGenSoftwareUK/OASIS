@@ -1229,11 +1229,6 @@ The platform that is going to win many rewards for the ground-breaking work it w
 
 **TOGETHER WE CAN CREATE A BETTER WORLD.**
 
-<a name="devs-contributions-welcome----"></a>
-## Devs/Contributions Welcome! :)
-
-We would love to have some much needed dev resource on this vital project not only for Holochain but also for the world so if you are interested please contact us on either ourworld@nextgensoftware.co.uk or david@nextgensoftware.co.uk. Thank you, we look forward to hearing from you! :)
-
 <a name="nextgen-developer-training-programmes-for-everyone---including-special-needs---disadvantaged-people-"></a>
 ## NextGen Developer Training Programmes For EVERYONE! (Including Special Needs & Disadvantaged People)
 
@@ -1269,16 +1264,6 @@ There was recently a blog post from Holochain talking about how the community wa
 
 Read more on one of our recent blog posts: </br>
 https://www.ourworldthegame.com/single-post/2019/02/22/Why-Our-World-Is-Powered-By-Holochain
-
-## Other Ways To Get Involved
-
-If you cannot code or donate, then no problem, you can help in other ways! :) You can share our website/posts, give us valuable feedback on our site, etc as well as submit ideas for Our World. We are also looking for people to join for every department/area such as PR, Sales, Support, Admin, Accounting, Management, Strategy, Operations, etc  
-
-So if you feel you want to help or get involved please contact us on ourworld@nextgensoftware.co.uk, we would love to hear from you! :)
-
-You can also get involved on our forum here:
-
-http://www.ourworldthegame.com/forum
 
 
 ## HoloNET
@@ -2395,7 +2380,20 @@ Of course if they wanted use the OASIS API then the first code listing is how it
 
 **More to come soon...**
 
+<a name="devs-contributions-welcome----"></a>
+## Devs/Contributions Welcome! :)
 
+We would love to have some much needed dev resource on this vital project not only for Holochain but also for the world so if you are interested please contact us on either ourworld@nextgensoftware.co.uk or david@nextgensoftware.co.uk. Thank you, we look forward to hearing from you! :)
+
+## Other Ways To Get Involved
+
+If you cannot code or donate, then no problem, you can help in other ways! :) You can share our website/posts, give us valuable feedback on our site, etc as well as submit ideas for Our World. We are also looking for people to join for every department/area such as PR, Sales, Support, Admin, Accounting, Management, Strategy, Operations, etc  
+
+So if you feel you want to help or get involved please contact us on ourworld@nextgensoftware.co.uk, we would love to hear from you! :)
+
+You can also get involved on our forum here:
+
+http://www.ourworldthegame.com/forum
 
 
 ## HoloSource Licence
