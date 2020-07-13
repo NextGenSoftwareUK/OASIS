@@ -227,6 +227,9 @@ The projects within this repo should be pretty self explanatory from their names
 |NextGenSoftware.OASIS.API.Providers.IPFSOASIS| OASIS Provider for IPFS.
 |NextGenSoftware.OASIS.API.Providers.SOLIDOASIS| OASIS Provider for SOLID.
 |NextGenSoftware.OASIS.API.Providers.EthereumOASIS| OASIS Provider for Ethereum.
+|NextGenSoftware.OASIS.API.Providers.EOSIOOASIS| OASIS Provider for EOSIO.
+|NextGenSoftware.OASIS.API.Providers.TelosOASIS| OASIS Provider for Telos.
+|NextGenSoftware.OASIS.API.Providers.SEEDSOASIS| OASIS Provider for SEEDS.
 |NextGenSoftware.OASIS.API.Providers.AcitvityPubOASIS| OASIS Provider for AcitvityPub.
 |NextGenSoftware.OASIS.API.Providers.BlockStackOASIS| OASIS Provider for BlockStack.
 |NextGenSoftware.OASIS.API.Providers.ChainLinkOASIS| OASIS Provider for Chainlink (Smart Contracts for all blockchains).
@@ -406,6 +409,9 @@ Below is a list of the protocols/networks/platforms that the OASIS API will supp
 | [Chainlink](https://chain.link/) | The Chainlink network provides reliable tamper-proof inputs and outputs for complex smart contracts on any blockchain.| In Dev | ChainlinkOASIS
 | [SOLID](https://solid.inrupt.com/) | Inventor of the Internet, Sir Tim Berners-Lee new protocol for Web 3.0 to give users control of their data as well as remove silos/walled gardens using Pods & Linked Data. | In Dev | SOLIDOASIS
 | [Ethereum](https://www.ethereum.org/) | One of the leading Blockchain implementations that is very popular. | In Dev| EthereumOASIS
+| [EOSIO](https://eos.io//) | EOSIO is a next-generation, open-source blockchain protocol with industry-leading transaction speed and flexible utility. | In Dev | EOSIOOASIS
+| [Telos](https://telosnetwork.io/) | The Telos Blockchain was launched in December of 2018 in response to what the founders saw as an opportunity to build, and improve upon the EOSIO software. | In Dev | TelosOASIS
+| [SEEDS](https://www.joinseeds.com/) | A payment platform and financial ecosystem to empower humanity and heal our planet. | In Dev | SEEDSOASIS
 | [IPFS](https://ipfs.io) | The InterPlanetary File System is a protocol and peer-to-peer network for storing and sharing data in a distributed file system. IPFS uses content-addressing to uniquely identify each file in a global namespace connecting all computing devices.| In Dev | IPFSOASIS
 |[CEPTR Protocol For Pluggable Protocols](http://ceptr.org/projects/pcubed)|Complete interoperability: No more silos and brittle APIs. Self-Describing protocols and a universal parsing system allows anything to talk to anything. This is where the OASIS API is a stepping stone to get to this point by providing backwards compatibility with what is already out there.|Coming soon | 
 |[HSTP (Hyper Spacial Transport Protocol)](https://www.verses.io/)  | The new protocol for the new Spacial Web (Web 3.0) | Coming Soon |
@@ -416,7 +422,6 @@ Below is a list of the protocols/networks/platforms that the OASIS API will supp
 |[Core Network](https://core.network/) | Unify your social network silos into a single visual dashboard. Own your data.  Create and curate content, share privately or publicly, for free or for cryptocurrency.  Develop learning experiences.  Create community currencies.  Track impact, create communities, and reach your people, unfettered by paywalls.  Experience a futuristic VR-first dashboard, which gracefully degrades to standard mobile and desktop browsers. | Coming Soon| 
 | [XMPP](https://xmpp.org/) | Extensible Messaging and Presence Protocol is an open XML technology for real-time communication, which powers a wide range of applications including instant messaging, presence and collaboration.  | Coming Soon
 | [Loom](https://loomx.io/) | Loom Network is a Layer 2 scaling solution for Ethereum that is live in production. It is a network of DPoS sidechains, which allows for highly-scalable games. | Coming Soon
-| [EOS](https://eos.io//) | EOSIO is a next-generation, open-source blockchain protocol with industry-leading transaction speed and flexible utility. | Coming Soon
 | [TRON](https://tron.network/) | TRON is one of the largest blockchain-based operating systems in the world. | Coming Soon
 | [IOST](https://iost.io/) | IOST is building an ultra-high TPS blockchain infrastructure to meet the security and scalability needs of a decentralized economy. | Coming Soon
 | [BlockStack](https://blockstack.org/) | Blockstack apps protect your digital rights and are powered by the Stacks blockchain.. | Coming Soon
