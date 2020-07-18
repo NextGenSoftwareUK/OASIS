@@ -6,6 +6,8 @@ namespace NextGenSoftware.OASIS.API.Core
         HoloOASIS,
         EthereumOASIS,
         EOSOASIS,
+        TelosOASIS,
+        SEEDSOASIS,
         LoonOASIS,
         StellarOASIS,
         BlockStackOASIS,
