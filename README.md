@@ -235,7 +235,9 @@ The projects within this repo should be pretty self explanatory from their names
 |NextGenSoftware.OASIS.API.Providers.ChainLinkOASIS| OASIS Provider for Chainlink (Smart Contracts for all blockchains).
 |NextGenSoftware.OASIS.API.Providers.MongoOASIS| OASIS Provider for MongoDB.
 |NextGenSoftware.OASIS.API.Providers.PLANOASIS| OASIS Provider for PLAN.
-|NextGenSoftware.OASIS.API.Providers.HoloWeb| OASIS Provider for HoloWeb.
+|NextGenSoftware.OASIS.API.Providers.HoloWebOASIS| OASIS Provider for HoloWeb.
+|NextGenSoftware.OASIS.API.Providers.HashgraphOASIS| OASIS Provider for Hashgraph.
+|NextGenSoftware.OASIS.API.Providers.ScuttlebuttOASIS| OASIS Provider for Scuttlebutt.
 
 <br>
 
@@ -413,12 +415,14 @@ Below is a list of the protocols/networks/platforms that the OASIS API will supp
 | [Telos](https://telosnetwork.io/) | The Telos Blockchain was launched in December of 2018 in response to what the founders saw as an opportunity to build, and improve upon the EOSIO software. | In Dev | TelosOASIS
 | [SEEDS](https://www.joinseeds.com/) | A payment platform and financial ecosystem to empower humanity and heal our planet. | In Dev | SEEDSOASIS
 | [IPFS](https://ipfs.io) | The InterPlanetary File System is a protocol and peer-to-peer network for storing and sharing data in a distributed file system. IPFS uses content-addressing to uniquely identify each file in a global namespace connecting all computing devices.| In Dev | IPFSOASIS
+| [Hedera Hashgraph](https://www.hedera.com/) | Hedera is a decentralized public network where anyone can carve out a piece of cyberspace to transact, play, and socialize in a secure, trusted environment. | In Dev  | HashgraphOASIS
+| [ScuttleButt](https://github.com/ssbc/) | A distributed and secure peer to peer social network | In Dev | ScuttleButtOASIS
+| [HoloWeb](https://holoweb.io//) | We’re reinventing the way the web works, and taking a stand for our sovereignty in cyberspace.| In Dev | HoloWebOASIS
+|PLAN | https://www.plan-systems.org/ | Solving for privacy, ease of collaboration, and accessibility for all. We believe people profoundly benefit from having the tools to connect with each other, manage common resources, and to engage in meaningful projects. | In Dev | PLANOASIS
 |[CEPTR Protocol For Pluggable Protocols](http://ceptr.org/projects/pcubed)|Complete interoperability: No more silos and brittle APIs. Self-Describing protocols and a universal parsing system allows anything to talk to anything. This is where the OASIS API is a stepping stone to get to this point by providing backwards compatibility with what is already out there.|Coming soon | 
 |[HSTP (Hyper Spacial Transport Protocol)](https://www.verses.io/)  | The new protocol for the new Spacial Web (Web 3.0) | Coming Soon |
 | [WebFinger](https://webfinger.net/) | WebFinger is used to discover information about people or other entities on the Internet that are identified by a URI using standard Hypertext Transfer Protocol (HTTP) methods over a secure transport. A WebFinger resource returns a JavaScript Object Notation (JSON) object describing the entity that is queried. The JSON object is referred to as the JSON Resource Descriptor (JRD).| Coming Soon
 | [ActivityPub](https://activitypub.rocks/) |ActivityPub is an open, decentralized social networking protocol based on Pump.io's ActivityPump protocol. It provides a client/server API for creating, updating and deleting content, as well as a federated server-to-server API for delivering notifications and content | Coming Soon
-| [HoloWeb](https://holoweb.io//) | We’re reinventing the way the web works, and taking a stand for our sovereignty in cyberspace.| Coming Soon| 
-|PLAN | | Coming Soon| 
 |[Core Network](https://core.network/) | Unify your social network silos into a single visual dashboard. Own your data.  Create and curate content, share privately or publicly, for free or for cryptocurrency.  Develop learning experiences.  Create community currencies.  Track impact, create communities, and reach your people, unfettered by paywalls.  Experience a futuristic VR-first dashboard, which gracefully degrades to standard mobile and desktop browsers. | Coming Soon| 
 | [XMPP](https://xmpp.org/) | Extensible Messaging and Presence Protocol is an open XML technology for real-time communication, which powers a wide range of applications including instant messaging, presence and collaboration.  | Coming Soon
 | [Loom](https://loomx.io/) | Loom Network is a Layer 2 scaling solution for Ethereum that is live in production. It is a network of DPoS sidechains, which allows for highly-scalable games. | Coming Soon
@@ -429,12 +433,10 @@ Below is a list of the protocols/networks/platforms that the OASIS API will supp
 | [Gab](https://gab.com) | Distributed social network promoting free speech | Coming Soon
 | [Mastodon](https://joinmastodon.org/) | Distributed twitter style network of micro blogging servers using the Fediverse. | Coming Soon
 | [Diaspora](https://diasporafoundation.org/) | Another distributed social network | Coming Soon|
-| [ScuttleButt](https://github.com/ssbc/) | A distributed and secure peer to peer social network | Coming Soon |
 | [Stellar](https://www.stellar.org/) | Stellar is an open network for storing and moving money. | TBC
 | [Nexus](https://nexusearth.com/) | Nexus Earth is an innovative open source blockchain technology, designed to better the world through advanced peer to peer networks and digital currency.. | TBC
 | [Ripple](https://www.ripple.com/) | Ripple is a real-time gross settlement system, currency exchange and remittance network created by Ripple Labs Inc., a US-based technology company.. | TBC
 | [TON](https://github.com/ton-blockchain/ton) | Telegram's Open Network Blockchain also looks very promising. | TBC
-| [Hedera Hashgraph](https://www.hedera.com/) | Hedera is a decentralized public network where anyone can carve out a piece of cyberspace to transact, play, and socialize in a secure, trusted environment. | TBC |
 | [DFINITY](https://dfinity.org) | DFINITY is building an open, decentralized compute platform designed to host the next generation of software and services with vastly improved performance | TBC |
 
 **More coming soon...**
