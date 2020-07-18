@@ -123,6 +123,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.P
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.Providers.SEEDSOASIS", "NextGenSoftware.OASIS.API.Providers.SEEDSOASIS\NextGenSoftware.OASIS.API.Providers.SEEDSOASIS.csproj", "{AACDBEC1-F337-4228-8A3B-B473E1A7352D}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.Providers.HashgraphOASIS", "NextGenSoftware.OASIS.API.Providers.HashgraphOASIS\NextGenSoftware.OASIS.API.Providers.HashgraphOASIS.csproj", "{77F40B1C-BB07-47F1-890F-6CD493D5A0AB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.Providers.ScuttlebuttOASIS", "NextGenSoftware.OASIS.API.Providers.ScuttlebuttOASIS\NextGenSoftware.OASIS.API.Providers.ScuttlebuttOASIS.csproj", "{B0E187E1-F913-40D1-A5EE-0F371087F8B4}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -370,6 +374,18 @@ Global
 		{AACDBEC1-F337-4228-8A3B-B473E1A7352D}.Linux|Any CPU.Build.0 = Debug|Any CPU
 		{AACDBEC1-F337-4228-8A3B-B473E1A7352D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{AACDBEC1-F337-4228-8A3B-B473E1A7352D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{77F40B1C-BB07-47F1-890F-6CD493D5A0AB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{77F40B1C-BB07-47F1-890F-6CD493D5A0AB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{77F40B1C-BB07-47F1-890F-6CD493D5A0AB}.Linux|Any CPU.ActiveCfg = Debug|Any CPU
+		{77F40B1C-BB07-47F1-890F-6CD493D5A0AB}.Linux|Any CPU.Build.0 = Debug|Any CPU
+		{77F40B1C-BB07-47F1-890F-6CD493D5A0AB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{77F40B1C-BB07-47F1-890F-6CD493D5A0AB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B0E187E1-F913-40D1-A5EE-0F371087F8B4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B0E187E1-F913-40D1-A5EE-0F371087F8B4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B0E187E1-F913-40D1-A5EE-0F371087F8B4}.Linux|Any CPU.ActiveCfg = Debug|Any CPU
+		{B0E187E1-F913-40D1-A5EE-0F371087F8B4}.Linux|Any CPU.Build.0 = Debug|Any CPU
+		{B0E187E1-F913-40D1-A5EE-0F371087F8B4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B0E187E1-F913-40D1-A5EE-0F371087F8B4}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
