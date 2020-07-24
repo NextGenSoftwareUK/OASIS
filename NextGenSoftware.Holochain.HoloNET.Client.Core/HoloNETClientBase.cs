@@ -336,14 +336,17 @@ namespace NextGenSoftware.Holochain.HoloNET.Client.Core
                     if (data.ContainsKey("type"))
                     {
                         //Connection Info.
-                        Logger.Log(string.Concat("Debug Info Detected. Raw JSON Data: ", rawData), LogType.Info);
+                        Logger.Log(string.Concat("Conductor Debug Info Detected. Raw JSON Data: ", rawData), LogType.Info);
+
+                        //TODO: Finish adding rest of debug properties.
+                        OnConductorDebugCallBack?.Invoke(this, new ConductorDebugCallBackEventArgs { EndPoint = EndPoint, RawJSONData = rawData, WebSocketResult = result, });
                     }
                     else if (data.ContainsKey("signal"))
                     {
                         Logger.Log(string.Concat("Signals data detected. Id: ", id, ", Raw JSON Data: ", rawData), LogType.Info);
-                        OnSignalsCallBack?.Invoke(this, new SignalsCallBackEventArgs(id, EndPoint, true, rawData, result));
-
-                        //TODO: Handle Signals here when hc fully implement them...
+                        
+                        //TODO: Finish parsing JSON.
+                        OnSignalsCallBack?.Invoke(this, new SignalsCallBackEventArgs(id, EndPoint, true, rawData, SignalsCallBackEventArgs.SignalTypes.User, "", null, result));
                     }
                     else if (data.SelectToken("result[0].agent") != null)
                     {
