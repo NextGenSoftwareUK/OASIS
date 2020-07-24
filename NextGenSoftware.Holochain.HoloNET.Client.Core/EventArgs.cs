@@ -64,14 +64,37 @@ namespace NextGenSoftware.Holochain.HoloNET.Client.Core
 
     public class SignalsCallBackEventArgs : CallBackBaseEventArgs
     {
-        public SignalsCallBackEventArgs(string id, string endPoint, bool isCallSuccessful, string rawJSONData, WebSocketReceiveResult webSocketResult)
+        public SignalsCallBackEventArgs(string id, string endPoint, bool isCallSuccessful, string rawJSONData, SignalTypes signalType, string name, object args, WebSocketReceiveResult webSocketResult)
             : base(id, endPoint, isCallSuccessful, rawJSONData, webSocketResult)
         {
-            
+            this.SignalType = signalType;
+            this.Name = name;
+            this.Arguments = args;
+        }
+
+        public enum SignalTypes
+        {
+            User
         }
 
         //TODO: Check Signals Return Data And Add Properties Here
-        //public SignalType SignalType { get; set; }
+       public SignalTypes SignalType { get; set; }
+       public string Name { get; set; }
+       public object Arguments { get; set; }
+    }
+
+    public class ConductorDebugCallBackEventArgs 
+    {
+        public string Type { get; set; }
+        public int NumberHeldEntries { get; set; }
+        public int NumberHeldAspects { get; set; }
+        public int NumberPendingValidations { get; set; }
+        public int NumberDelayedValidations { get; set; }
+        public int NumberRunningZomeCalls { get; set; }
+        public bool Offline { get; set; }
+        public string EndPoint { get; set; }
+        public string RawJSONData { get; set; }
+        public WebSocketReceiveResult WebSocketResult { get; set; }
     }
 
     public abstract class CallBackBaseEventArgs : EventArgs
