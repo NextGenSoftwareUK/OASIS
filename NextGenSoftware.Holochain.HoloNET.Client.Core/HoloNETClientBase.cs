@@ -54,6 +54,9 @@ namespace NextGenSoftware.Holochain.HoloNET.Client.Core
         public delegate void SignalsCallBack(object sender, SignalsCallBackEventArgs e);
         public event SignalsCallBack OnSignalsCallBack;
 
+        public delegate void ConductorDebugCallBack(object sender, ConductorDebugCallBackEventArgs e);
+        public event ConductorDebugCallBack OnConductorDebugCallBack;
+
         public delegate void GetInstancesCallBack(object sender, GetInstancesCallBackEventArgs e);
         public event GetInstancesCallBack OnGetInstancesCallBack;
 
@@ -325,9 +328,17 @@ namespace NextGenSoftware.Holochain.HoloNET.Client.Core
                     OnDataReceived?.Invoke(this, new DataReceivedEventArgs { EndPoint = EndPoint, RawJSONData = rawData, WebSocketResult = result });
 
                     JObject data = JObject.Parse(rawData);
-                    string id = data["id"].ToString();
+                    string id = "";
+                    
+                    if (data.ContainsKey("id"))
+                        id = data["id"].ToString();
 
-                    if (data.ContainsKey("signal"))
+                    if (data.ContainsKey("type"))
+                    {
+                        //Connection Info.
+                        Logger.Log(string.Concat("Debug Info Detected. Raw JSON Data: ", rawData), LogType.Info);
+                    }
+                    else if (data.ContainsKey("signal"))
                     {
                         Logger.Log(string.Concat("Signals data detected. Id: ", id, ", Raw JSON Data: ", rawData), LogType.Info);
                         OnSignalsCallBack?.Invoke(this, new SignalsCallBackEventArgs(id, EndPoint, true, rawData, result));
@@ -348,18 +359,22 @@ namespace NextGenSoftware.Holochain.HoloNET.Client.Core
                     else
                     {
                         //Zome Return Call.
-                        string rawZomeReturnData = data["result"].ToString();
+                        string rawZomeReturnData = "";
+
+                        if (data.ContainsKey("result"))
+                            rawZomeReturnData = data["result"].ToString();
+
                         string zomeReturnData = string.Empty;
                         bool isZomeCallSuccessful = false;
 
-                        if (rawZomeReturnData.Substring(2, 2).ToUpper() == "OK")
+                        if (rawZomeReturnData.Length >= 4 && rawZomeReturnData.Substring(2, 2).ToUpper() == "OK")
                         {
                             isZomeCallSuccessful = true;
                             zomeReturnData = rawZomeReturnData.Substring(7, rawZomeReturnData.Length - 9);
                             //zomeReturnData = rawZomeReturnData.Substring(6, rawZomeReturnData.Length - 8);
                         }
                         //else if (rawZomeReturnData.Substring(0,3).ToUpper() == "ERR")
-                        else
+                        else if (rawZomeReturnData.Length > 1)
                             zomeReturnData = rawZomeReturnData.Substring(1, rawZomeReturnData.Length - 2);
                         //zomeReturnData = rawZomeReturnData.Substring(8, rawZomeReturnData.Length - 11);
 
