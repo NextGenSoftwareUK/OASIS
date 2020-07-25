@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json.Linq;
+using System;
 using System.Collections.Generic;
 using System.Net.WebSockets;
 
@@ -64,7 +65,7 @@ namespace NextGenSoftware.Holochain.HoloNET.Client.Core
 
     public class SignalsCallBackEventArgs : CallBackBaseEventArgs
     {
-        public SignalsCallBackEventArgs(string id, string endPoint, bool isCallSuccessful, string rawJSONData, SignalTypes signalType, string name, object args, WebSocketReceiveResult webSocketResult)
+        public SignalsCallBackEventArgs(string id, string endPoint, bool isCallSuccessful, string rawJSONData, SignalTypes signalType, string name, JToken args, WebSocketReceiveResult webSocketResult)
             : base(id, endPoint, isCallSuccessful, rawJSONData, webSocketResult)
         {
             this.SignalType = signalType;
@@ -80,7 +81,7 @@ namespace NextGenSoftware.Holochain.HoloNET.Client.Core
         //TODO: Check Signals Return Data And Add Properties Here
        public SignalTypes SignalType { get; set; }
        public string Name { get; set; }
-       public object Arguments { get; set; }
+       public JToken Arguments { get; set; }
     }
 
     public class ConductorDebugCallBackEventArgs 
