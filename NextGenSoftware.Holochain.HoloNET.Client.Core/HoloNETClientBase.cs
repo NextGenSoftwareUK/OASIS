@@ -335,21 +335,21 @@ namespace NextGenSoftware.Holochain.HoloNET.Client.Core
 
                     if (data.ContainsKey("type"))
                     {
-                        //Connection Info.
-                        Logger.Log(string.Concat("Conductor Debug Info Detected. Raw JSON Data: ", rawData), LogType.Info);
-
-                        //TODO: Finish adding rest of debug properties.
-                        OnConductorDebugCallBack?.Invoke(this, new ConductorDebugCallBackEventArgs { EndPoint = EndPoint, RawJSONData = rawData, WebSocketResult = result, });
+                        // Conducor Debug Info.
+                        ConductorDebugCallBackEventArgs args = new ConductorDebugCallBackEventArgs { EndPoint = EndPoint, RawJSONData = rawData, NumberDelayedValidations = Convert.ToInt32(data.SelectToken("instance_stats.test-instance.number_delayed_validations").ToString()), NumberHeldAspects = Convert.ToInt32(data.SelectToken("instance_stats.test-instance.number_held_aspects").ToString()), NumberHeldEntries = Convert.ToInt32(data.SelectToken("instance_stats.test-instance.number_held_entries").ToString()), NumberPendingValidations = Convert.ToInt32(data.SelectToken("instance_stats.test-instance.number_pending_validations").ToString()), NumberRunningZomeCalls = Convert.ToInt32(data.SelectToken("instance_stats.test-instance.number_running_zome_calls").ToString()), Offline = Convert.ToBoolean(data.SelectToken("instance_stats.test-instance.offline").ToString()), Type = data.SelectToken("type").ToString(), WebSocketResult = result };
+                        Logger.Log(string.Concat("Conductor Debug Info Detected. Raw JSON Data: ", rawData, "NumberDelayedValidations: ", args.NumberDelayedValidations, "NumberDelayedValidations: ", args.NumberHeldAspects, "NumberHeldEntries: ", args.NumberHeldEntries, "NumberPendingValidations: ", args.NumberPendingValidations, "NumberRunningZomeCalls; ", args.NumberRunningZomeCalls, "Offline: ", args.Offline, "Type: ", args.Type), LogType.Info);
+                        OnConductorDebugCallBack?.Invoke(this, args);
                     }
                     else if (data.ContainsKey("signal"))
                     {
-                        Logger.Log(string.Concat("Signals data detected. Id: ", id, ", Raw JSON Data: ", rawData), LogType.Info);
-                        
-                        //TODO: Finish parsing JSON.
-                        OnSignalsCallBack?.Invoke(this, new SignalsCallBackEventArgs(id, EndPoint, true, rawData, SignalsCallBackEventArgs.SignalTypes.User, "", null, result));
+                        //Signals.
+                        SignalsCallBackEventArgs args = new SignalsCallBackEventArgs(id, EndPoint, true, rawData, (SignalsCallBackEventArgs.SignalTypes)Enum.Parse(typeof(SignalsCallBackEventArgs.SignalTypes), data.SelectToken("signal_type").ToString(), true), data.SelectToken("name").ToString(), data.SelectToken("arguments"), result);
+                        Logger.Log(string.Concat("Signals data detected. Id: ", id, ", Raw JSON Data: ", rawData, "Name: ", args.Name, "SignalType: ", args.SignalType, "Arguments: ", args.Arguments), LogType.Info);
+                        OnSignalsCallBack?.Invoke(this, args);
                     }
                     else if (data.SelectToken("result[0].agent") != null)
                     {
+                        // Get Instance Info.
                         GetInstancesCallBackEventArgs args = new GetInstancesCallBackEventArgs(id, EndPoint, true, data["result"].ToString(), new List<string>() { data.SelectToken("result[0].id").ToString() }, data.SelectToken("result[0].dna").ToString(), data.SelectToken("result[0].agent").ToString(), result);
                         Logger.Log(string.Concat("Get Instances data detected. Id: ", id, ", EndPoint: ", EndPoint, ", agent: ", args.Agent, ", DNA: ", args.DNA, ", Instances: ", string.Join(",", args.Instances), ", Raw JSON Data: ", rawData), LogType.Info);
 

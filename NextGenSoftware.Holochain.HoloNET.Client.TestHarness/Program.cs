@@ -32,6 +32,7 @@ namespace NextGenSoftware.Holochain.HoloNET.Client.TestHarness
             holoNETClient.OnSignalsCallBack += HoloNETClient_OnSignalsCallBack;
             holoNETClient.OnDisconnected += HoloNETClient_OnDisconnected;
             holoNETClient.OnError += HoloNETClient_OnError;
+            holoNETClient.OnConductorDebugCallBack += HoloNETClient_OnConductorDebugCallBack;
 
             await holoNETClient.Connect();
 
@@ -60,9 +61,15 @@ namespace NextGenSoftware.Holochain.HoloNET.Client.TestHarness
             //holoNET.Connect("ws://127.0.0.1.:8888");
         }
 
+        private static void HoloNETClient_OnConductorDebugCallBack(object sender, ConductorDebugCallBackEventArgs e)
+        {
+            Console.WriteLine(string.Concat("OnConductorDebugCallBack: EndPoint: ", e.EndPoint, ", Data: ", e.RawJSONData, ", NumberDelayedValidations: ", e.NumberDelayedValidations, ", NumberHeldAspects: ", e.NumberHeldAspects, ", NumberHeldEntries: ", e.NumberHeldEntries, ", NumberPendingValidations: ", e.NumberPendingValidations, ", NumberRunningZomeCalls: ", e.NumberRunningZomeCalls, ", Offline: ", e.Offline, ", Type: ", e.Type));
+            Console.WriteLine("");
+        }
+
         private static void HoloNETClient_OnSignalsCallBack(object sender, SignalsCallBackEventArgs e)
         {
-            Console.WriteLine(string.Concat("OnSignalsCallBack: EndPoint: ", e.EndPoint, ", Id: ", e.Id , ", Data: ", e.RawJSONData));
+            Console.WriteLine(string.Concat("OnSignalsCallBack: EndPoint: ", e.EndPoint, ", Id: ", e.Id , ", Data: ", e.RawJSONData, "Name: ", e.Name, "SignalType: ", Enum.GetName(typeof(SignalsCallBackEventArgs.SignalTypes), e.SignalType), "Arguments: ", e.Arguments));
             Console.WriteLine("");
         }
 
