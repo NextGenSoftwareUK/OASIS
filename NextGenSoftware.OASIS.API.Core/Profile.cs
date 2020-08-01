@@ -74,50 +74,128 @@ namespace NextGenSoftware.OASIS.API.Core
             this.HolonType = HolonType.Profile;
         }
 
-        private int GetKarmaForType(KarmaType karmaType)
+        private int GetKarmaForType(KarmaTypePositive karmaType)
         {
             switch (karmaType)
             {
-                case KarmaType.ContributingTowardsAGoodCauseAdministrator:
-                    return  3;
+                case KarmaTypePositive.BeAHero:
+                    return 7;
 
-                case KarmaType.ContributingTowardsAGoodCauseSpeaker:
+                case KarmaTypePositive.BeASuperHero:
                     return 8;
 
-                case KarmaType.ContributingTowardsAGoodCauseContributor:
+                case KarmaTypePositive.BeATeamPlayer:
                     return 5;
 
-                case KarmaType.ContributingTowardsAGoodCauseCreatorOrganiser:
+                case KarmaTypePositive.BeingDetermined:
+                    return 5;
+
+                case KarmaTypePositive.BeingFast:
+                    return 5;
+
+                case KarmaTypePositive.ContributingTowardsAGoodCauseAdministrator:
+                    return  3;
+
+                case KarmaTypePositive.ContributingTowardsAGoodCauseSpeaker:
+                    return 8;
+
+                case KarmaTypePositive.ContributingTowardsAGoodCauseContributor:
+                    return 5;
+
+                case KarmaTypePositive.ContributingTowardsAGoodCauseCreatorOrganiser:
                     return 10;
 
-                case KarmaType.ContributingTowardsAGoodCauseFunder:
+                case KarmaTypePositive.ContributingTowardsAGoodCauseFunder:
                     return 8;                   
 
-                case KarmaType.ContributingTowardsAGoodCausePeacefulProtesterActivist:
+                case KarmaTypePositive.ContributingTowardsAGoodCausePeacefulProtesterActivist:
                     return 5;
 
-                case KarmaType.ContributingTowardsAGoodCauseSharer:
+                case KarmaTypePositive.ContributingTowardsAGoodCauseSharer:
                     return 3;
 
-                case KarmaType.HelpingAnimals:
+                case KarmaTypePositive.HelpingAnimals:
                     return 5;
 
-                case KarmaType.HelpingTheEnvironment:
+                case KarmaTypePositive.HelpingTheEnvironment:
                     return 5;
 
-                case KarmaType.Other:
+                case KarmaTypePositive.Other:
                     return 2;
 
-                case KarmaType.OurWorld:
+                case KarmaTypePositive.OurWorld:
                     return 5;
 
-                case KarmaType.SelfHelpImprovement:
+                case KarmaTypePositive.SelfHelpImprovement:
                     return 2;
 
                 default:
                     return 0;
             }
                 
+        }
+
+        private int GetKarmaForType(KarmaTypeNegative karmaType)
+        {
+            switch (karmaType)
+            {
+                case KarmaTypeNegative.AttackPhysciallyOtherPersonOrPeople:
+                    return 10;
+
+                case KarmaTypeNegative.AttackVerballyOtherPersonOrPeople:
+                    return 5;
+
+                case KarmaTypeNegative.BeingSelfish:
+                    return 3;
+
+                case KarmaTypeNegative.DisrespectPersonOrPeople:
+                    return 4;
+
+                case KarmaTypeNegative.DropLitter:
+                    return 9;
+
+                case KarmaTypeNegative.HarmingAnimals:
+                    return 10;
+
+                case KarmaTypeNegative.HarmingChildren:
+                    return 9;
+
+                case KarmaTypeNegative.HarmingNature:
+                    return 10;
+
+                case KarmaTypeNegative.NotTeamPlayer:
+                    return 3;
+
+                case KarmaTypeNegative.NutritionEatDiary:
+                    return 6;
+
+                case KarmaTypeNegative.NutritionEatDrinkUnhealthy:
+                    return 3;
+
+                case KarmaTypeNegative.NutritionEatMeat:
+                    return 7;
+
+                case KarmaTypeNegative.Other:
+                    return 1;
+
+                case KarmaTypeNegative.OurWorldAttackOtherPlayer:
+                    return 7;
+
+                case KarmaTypeNegative.OurWorldBeSelfish:
+                    return 4;
+
+                case KarmaTypeNegative.OurWorldDisrespectOtherPlayer:
+                    return 5;
+
+                case KarmaTypeNegative.OurWorldDropLitter:
+                    return 7;
+
+                case KarmaTypeNegative.OurWorldNotTeamPlayer:
+                    return 3;
+
+                default:
+                    return 0;
+            }
         }
     }
 }
