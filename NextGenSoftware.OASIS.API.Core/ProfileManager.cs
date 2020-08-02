@@ -93,7 +93,7 @@ namespace NextGenSoftware.OASIS.API.Core
             return await ProviderManager.CurrentStorageProvider.SaveProfileAsync(profile);
         }
 
-        public async Task<KarmaAkashicRecord> AddKarmaToProfileAsync(IProfile profile, KarmaType karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc, ProviderType provider = ProviderType.Default)
+        public async Task<KarmaAkashicRecord> AddKarmaToProfileAsync(IProfile profile, KarmaTypePositive karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc, ProviderType provider = ProviderType.Default)
         {
             if (provider != ProviderType.Default)
                 return await ((IOASISStorage)ProviderManager.GetAndActivateProvider(provider)).AddKarmaToProfileAsync(profile, karmaType, karmaSourceType, karamSourceTitle, karmaSourceDesc);
@@ -101,7 +101,7 @@ namespace NextGenSoftware.OASIS.API.Core
             return await ProviderManager.CurrentStorageProvider.AddKarmaToProfileAsync(profile, karmaType, karmaSourceType, karamSourceTitle, karmaSourceDesc);
         }
 
-        public async Task<KarmaAkashicRecord> RemoveKarmaFromProfileAsync(IProfile profile, KarmaType karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc, ProviderType provider = ProviderType.Default)
+        public async Task<KarmaAkashicRecord> RemoveKarmaFromProfileAsync(IProfile profile, KarmaTypeNegative karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc, ProviderType provider = ProviderType.Default)
         {
             if (provider != ProviderType.Default)
                 return await ((IOASISStorage)ProviderManager.GetAndActivateProvider(provider)).SubtractKarmaFromProfileAsync(profile, karmaType, karmaSourceType, karamSourceTitle, karmaSourceDesc);
