@@ -39,9 +39,9 @@ namespace NextGenSoftware.OASIS.API.Core
         // A record of all the karma the user has earnt/lost along with when and where from.
         public List<KarmaAkashicRecord> KarmaAkashicRecords { get; set; }
 
-        public async Task<KarmaAkashicRecord> KarmaEarnt(KarmaType karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc, bool autoSave = true)
+        public async Task<KarmaAkashicRecord> KarmaEarnt(KarmaTypePositive karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc, bool autoSave = true)
         {
-            KarmaAkashicRecord record = new KarmaAkashicRecord { KarmaEarntOrLost = KarmaEarntOrLost.Earnt, Date = DateTime.Now, Karma = GetKarmaForType(karmaType), KarmaSource = karmaSourceType, KarmaSourceTitle = karamSourceTitle, KarmaSourceDesc = karmaSourceDesc, KarmaType = karmaType, UserId = UserId, Provider = ProviderManager.CurrentStorageProviderType };
+            KarmaAkashicRecord record = new KarmaAkashicRecord { KarmaEarntOrLost = KarmaEarntOrLost.Earnt, Date = DateTime.Now, Karma = GetKarmaForType(karmaType), KarmaSource = karmaSourceType, KarmaSourceTitle = karamSourceTitle, KarmaSourceDesc = karmaSourceDesc, KarmaTypePositive = karmaType, UserId = UserId, Provider = ProviderManager.CurrentStorageProviderType };
             this.Karma += GetKarmaForType(karmaType);
             this.KarmaAkashicRecords.Add(record);
 
@@ -51,9 +51,9 @@ namespace NextGenSoftware.OASIS.API.Core
             return record;
         }
 
-        public async Task<KarmaAkashicRecord> KarmaLost(KarmaType karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc, bool autoSave = true)
+        public async Task<KarmaAkashicRecord> KarmaLost(KarmaTypeNegative karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc, bool autoSave = true)
         {
-            KarmaAkashicRecord record = new KarmaAkashicRecord { KarmaEarntOrLost = KarmaEarntOrLost.Lost, Date = DateTime.Now, Karma = GetKarmaForType(karmaType), KarmaSource = karmaSourceType, KarmaSourceTitle = karamSourceTitle, KarmaSourceDesc = karmaSourceDesc, KarmaType = karmaType, UserId = UserId, Provider = ProviderManager.CurrentStorageProviderType };
+            KarmaAkashicRecord record = new KarmaAkashicRecord { KarmaEarntOrLost = KarmaEarntOrLost.Lost, Date = DateTime.Now, Karma = GetKarmaForType(karmaType), KarmaSource = karmaSourceType, KarmaSourceTitle = karamSourceTitle, KarmaSourceDesc = karmaSourceDesc, KarmaTypeNegative = karmaType, UserId = UserId, Provider = ProviderManager.CurrentStorageProviderType };
             this.Karma -= GetKarmaForType(karmaType);
             this.KarmaAkashicRecords.Add(record);
 

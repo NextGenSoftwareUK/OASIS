@@ -7,12 +7,12 @@ namespace NextGenSoftware.OASIS.API.Core
     {
         public event ProfileManager.StorageProviderError StorageProviderError;
 
-        public Task<KarmaAkashicRecord> AddKarmaToProfileAsync(API.Core.IProfile profile, KarmaType karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc)
+        public Task<KarmaAkashicRecord> AddKarmaToProfileAsync(API.Core.IProfile profile, KarmaTypePositive karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc)
         {
             return profile.KarmaEarnt(karmaType, karmaSourceType, karamSourceTitle, karmaSourceDesc);
         }
 
-        public Task<KarmaAkashicRecord> SubtractKarmaFromProfileAsync(API.Core.IProfile profile, KarmaType karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc)
+        public Task<KarmaAkashicRecord> SubtractKarmaFromProfileAsync(API.Core.IProfile profile, KarmaTypeNegative karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc)
         {
             return profile.KarmaLost(karmaType, karmaSourceType, karamSourceTitle, karmaSourceDesc);
         }

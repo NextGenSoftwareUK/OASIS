@@ -21,8 +21,8 @@ namespace NextGenSoftware.OASIS.API.Core
         //bool AddKarma(int karmaToAdd);
         //bool SubstractKarma(int karmaToRemove);
 
-        Task<KarmaAkashicRecord> KarmaEarnt(KarmaType karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc, bool autoSave = true);
-        Task<KarmaAkashicRecord> KarmaLost(KarmaType karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc, bool autoSave = true);
+        Task<KarmaAkashicRecord> KarmaEarnt(KarmaTypePositive karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc, bool autoSave = true);
+        Task<KarmaAkashicRecord> KarmaLost(KarmaTypeNegative karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc, bool autoSave = true);
         List<KarmaAkashicRecord> KarmaAkashicRecords { get; set; }
         Task<bool> Save();
     }

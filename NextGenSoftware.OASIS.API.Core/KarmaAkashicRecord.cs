@@ -7,7 +7,8 @@ namespace NextGenSoftware.OASIS.API.Core
     {
         public Guid UserId { get; set; }
         public DateTime Date { get; set; }
-        public KarmaType KarmaType { get; set; }
+        public KarmaTypePositive KarmaTypePositive { get; set; }
+        public KarmaTypeNegative KarmaTypeNegative { get; set; }
         public int Karma { get; set; } //Calculated from the KarmaType.
         public KarmaSourceType KarmaSource { get; set; } //App, dApp, hApp, Website or Game.
         public ProviderType Provider { get; set; }

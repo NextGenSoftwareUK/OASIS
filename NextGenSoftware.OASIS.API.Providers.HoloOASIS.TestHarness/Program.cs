@@ -83,7 +83,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.TestHarness
             Console.WriteLine("Saving Profile...");
 
             _savedProfile = new NextGenSoftware.OASIS.API.Providers.HoloOASIS.Core.Profile { Username = "dellams", Email = "david@nextgensoftware.co.uk", Password = "1234", FirstName = "David", LastName = "Ellams", DOB = "11/04/1980", Id = Guid.NewGuid(), Title = "Mr", PlayerAddress = "blahahahaha" };
-            await _savedProfile.KarmaEarnt(KarmaType.HelpingTheEnvironment, KarmaSourceType.hApp, "Our World", "XR Educational Game To Make The World A Better Place", false);
+            await _savedProfile.KarmaEarnt(KarmaTypePositive.HelpingTheEnvironment, KarmaSourceType.hApp, "Our World", "XR Educational Game To Make The World A Better Place", false);
             await _holoOASIS.SaveProfileAsync(_savedProfile);
         }
     }
