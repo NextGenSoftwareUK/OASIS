@@ -112,6 +112,28 @@ namespace NextGenSoftware.Holochain.HoloNET.Client.Core
                 {
                     if (Config.AutoStartConductor)
                     {
+                        DirectoryInfo info = new DirectoryInfo(Config.FullPathToHolochainAppDNA);
+                        Logger.Log("Starting Holochain Conductor...", LogType.Info);
+
+                        Process pProcess = new Process();
+                        pProcess.StartInfo.WorkingDirectory = @"C:\holochain-holonix-v0.0.80-9-g6a1542d";
+                        pProcess.StartInfo.FileName = "wsl";
+                       // pProcess.StartInfo.Arguments = "run";
+                        pProcess.StartInfo.UseShellExecute = false;
+                        pProcess.StartInfo.RedirectStandardOutput = false;
+                        pProcess.StartInfo.RedirectStandardInput = true;
+                        pProcess.StartInfo.WindowStyle = ProcessWindowStyle.Normal;
+                        pProcess.StartInfo.CreateNoWindow = false;
+                        pProcess.Start();
+
+                        await Task.Delay(Config.SecondsToWaitForHolochainConductorToStart); // Give the conductor 5 seconds to start up...
+
+                        // pProcess.StandardInput.WriteLine("nix-shell https://holochain.love");
+                        pProcess.StandardInput.WriteLine("nix-shell holochain-holonix-6a1542d");
+
+                        await Task.Delay(Config.SecondsToWaitForHolochainConductorToStart); // Give the conductor 5 seconds to start up...
+
+                        /*
                         //If no path to the conductor has been given then default to the current working directory.
                         if (string.IsNullOrEmpty(Config.FullPathToExternalHolochainConductor))
                             Config.FullPathToExternalHolochainConductor = string.Concat(Directory.GetCurrentDirectory(), "\\hc.exe"); //default to the current path
@@ -139,7 +161,7 @@ namespace NextGenSoftware.Holochain.HoloNET.Client.Core
                             pProcess.Start();
 
                             await Task.Delay(Config.SecondsToWaitForHolochainConductorToStart); // Give the conductor 5 seconds to start up...
-                        }
+                        }*/
                     }
 
                     Logger.Log(string.Concat("Connecting to ", EndPoint, "..."), LogType.Info);
@@ -245,7 +267,8 @@ namespace NextGenSoftware.Holochain.HoloNET.Client.Core
                     jsonrpc = "2.0",
                     id,
                     method = "call",
-                    @params = new { instance_id = instanceId, zome, function, @params = paramsObject }
+                    @params = new { instance_id = instanceId, zome, function, args = paramsObject }
+                    //@params = new { instance_id = instanceId, zome, function, @params = paramsObject }
                 }
             ));
 
@@ -324,16 +347,21 @@ namespace NextGenSoftware.Holochain.HoloNET.Client.Core
                     } while (!result.EndOfMessage);
 
                     string rawData = stringResult.ToString();
-                    Logger.Log(string.Concat("Received Data: ", rawData), LogType.Info);
-                    OnDataReceived?.Invoke(this, new DataReceivedEventArgs { EndPoint = EndPoint, RawJSONData = rawData, WebSocketResult = result });
-
                     JObject data = JObject.Parse(rawData);
+
+                    bool isConductorDebugInfo = false;
                     string id = "";
+
+                    if (data.ContainsKey("type"))
+                        isConductorDebugInfo = true;
+
+                    Logger.Log(string.Concat("Received Data: ", rawData), LogType.Info);
+                    OnDataReceived?.Invoke(this, new DataReceivedEventArgs { EndPoint = EndPoint, RawJSONData = rawData, WebSocketResult = result, IsConductorDebugInfo = isConductorDebugInfo });
                     
                     if (data.ContainsKey("id"))
                         id = data["id"].ToString();
 
-                    if (data.ContainsKey("type"))
+                    if (isConductorDebugInfo)
                     {
                         // Conducor Debug Info.
                         ConductorDebugCallBackEventArgs args = new ConductorDebugCallBackEventArgs { EndPoint = EndPoint, RawJSONData = rawData, NumberDelayedValidations = Convert.ToInt32(data.SelectToken("instance_stats.test-instance.number_delayed_validations").ToString()), NumberHeldAspects = Convert.ToInt32(data.SelectToken("instance_stats.test-instance.number_held_aspects").ToString()), NumberHeldEntries = Convert.ToInt32(data.SelectToken("instance_stats.test-instance.number_held_entries").ToString()), NumberPendingValidations = Convert.ToInt32(data.SelectToken("instance_stats.test-instance.number_pending_validations").ToString()), NumberRunningZomeCalls = Convert.ToInt32(data.SelectToken("instance_stats.test-instance.number_running_zome_calls").ToString()), Offline = Convert.ToBoolean(data.SelectToken("instance_stats.test-instance.offline").ToString()), Type = data.SelectToken("type").ToString(), WebSocketResult = result };

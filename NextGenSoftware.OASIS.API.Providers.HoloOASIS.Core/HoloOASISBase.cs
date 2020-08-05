@@ -59,10 +59,10 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Core
             HoloNETClient.OnSignalsCallBack += HoloOASIS_OnSignalsCallBack;
             HoloNETClient.OnZomeFunctionCallBack += HoloOASIS_OnZomeFunctionCallBack;
 
-            HoloNETClient.Config.AutoStartConductor = true;
-            HoloNETClient.Config.AutoShutdownConductor = true;
-            HoloNETClient.Config.FullPathToExternalHolochainConductor = string.Concat(Directory.GetCurrentDirectory(), "\\hc.exe");
-            HoloNETClient.Config.FullPathToHolochainAppDNA = string.Concat(Directory.GetCurrentDirectory(), "\\our_world\\dist\\our_world.dna.json"); 
+           // HoloNETClient.Config.AutoStartConductor = true;
+          //  HoloNETClient.Config.AutoShutdownConductor = true;
+          //  HoloNETClient.Config.FullPathToExternalHolochainConductor = string.Concat(Directory.GetCurrentDirectory(), "\\hc.exe");
+         //   HoloNETClient.Config.FullPathToHolochainAppDNA = string.Concat(Directory.GetCurrentDirectory(), "\\our_world\\dist\\our_world.dna.json"); 
             
             //await HoloNETClient.Connect();
         }
@@ -83,10 +83,10 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Core
                 switch (e.ZomeFunction)
                 {
                     case LOAD_PROFILE_FUNC:
-                        OnPlayerProfileLoaded?.Invoke(this, new ProfileLoadedEventArgs { Profile = JsonConvert.DeserializeObject<Profile>(string.Concat("{", e.ZomeReturnData, "}")) });
+                        OnPlayerProfileLoaded?.Invoke(this, new ProfileLoadedEventArgs { Profile = JsonConvert.DeserializeObject<HcProfile>(string.Concat("{", e.ZomeReturnData, "}")) });
 
                         //TODO: Want to use these eventually so the async methods can return the results without having to use events/callbacks!
-                        _taskCompletionSourceLoadProfile.SetResult(JsonConvert.DeserializeObject<Profile>(string.Concat("{", e.ZomeReturnData, "}")));
+                        _taskCompletionSourceLoadProfile.SetResult(JsonConvert.DeserializeObject<HcProfile>(string.Concat("{", e.ZomeReturnData, "}")));
                         break;
 
                     case SAVE_PROFILE_FUNC:
@@ -194,10 +194,10 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Core
 
             if (HoloNETClient.State == System.Net.WebSockets.WebSocketState.Open && !string.IsNullOrEmpty(_hcinstance))
             {
-                if (profile.Id == Guid.Empty)
-                    profile.Id = Guid.NewGuid();
+                if (profile.id == Guid.Empty)
+                    profile.id = Guid.NewGuid();
 
-                Profile hcProfile = profile as Profile;
+                HcProfile hcProfile = profile as HcProfile;
 
                 if (hcProfile == null)
                     hcProfile = ConvertProfileToHoloOASISProfile(profile);
@@ -243,16 +243,16 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Core
         /// </summary>
         /// <param name="profile"></param>
         /// <returns></returns>
-        private Profile ConvertProfileToHoloOASISProfile(API.Core.IProfile profile)
+        private HcProfile ConvertProfileToHoloOASISProfile(API.Core.IProfile profile)
         {
-            return new Profile
+            return new HcProfile
             {
-                DOB = profile.DOB,
-                Email = profile.Email,
+                dob = profile.DOB,
+                email = profile.Email,
                 FirstName = profile.FirstName,
                 HcAddressHash = string.Empty,
                 HolonType = profile.HolonType,
-                Id = profile.Id,
+                id = profile.id,
                 Karma = profile.Karma,
                 LastName = profile.LastName,
                 Password = profile.Password,

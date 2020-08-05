@@ -27,6 +27,8 @@ namespace NextGenSoftware.Holochain.HoloNET.Client.Core
         public string EndPoint { get; set; }
         public string RawJSONData { get; set; }
         public WebSocketReceiveResult WebSocketResult { get; set; }
+
+        public bool IsConductorDebugInfo { get; set; }
     }
     public class ZomeFunctionCallBackEventArgs : CallBackBaseEventArgs
     {
