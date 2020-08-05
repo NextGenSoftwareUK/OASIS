@@ -43,6 +43,10 @@ namespace NextGenSoftware.OASIS.API.Core
         {
             KarmaAkashicRecord record = new KarmaAkashicRecord { KarmaEarntOrLost = KarmaEarntOrLost.Earnt, Date = DateTime.Now, Karma = GetKarmaForType(karmaType), KarmaSource = karmaSourceType, KarmaSourceTitle = karamSourceTitle, KarmaSourceDesc = karmaSourceDesc, KarmaTypePositive = karmaType, UserId = UserId, Provider = ProviderManager.CurrentStorageProviderType };
             this.Karma += GetKarmaForType(karmaType);
+
+            if (this.KarmaAkashicRecords == null)
+                this.KarmaAkashicRecords = new List<KarmaAkashicRecord>();
+
             this.KarmaAkashicRecords.Add(record);
 
             if (autoSave)
@@ -55,6 +59,10 @@ namespace NextGenSoftware.OASIS.API.Core
         {
             KarmaAkashicRecord record = new KarmaAkashicRecord { KarmaEarntOrLost = KarmaEarntOrLost.Lost, Date = DateTime.Now, Karma = GetKarmaForType(karmaType), KarmaSource = karmaSourceType, KarmaSourceTitle = karamSourceTitle, KarmaSourceDesc = karmaSourceDesc, KarmaTypeNegative = karmaType, UserId = UserId, Provider = ProviderManager.CurrentStorageProviderType };
             this.Karma -= GetKarmaForType(karmaType);
+
+            if (this.KarmaAkashicRecords == null)
+                this.KarmaAkashicRecords = new List<KarmaAkashicRecord>();
+
             this.KarmaAkashicRecords.Add(record);
 
             if (autoSave)
