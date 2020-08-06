@@ -7,6 +7,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Core
     //    string HcAddressHash { get; set; }
     //}
 
+    
     public interface IHcProfile
     {
         Guid id { get; set; }

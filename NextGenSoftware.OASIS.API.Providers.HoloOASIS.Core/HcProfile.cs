@@ -1,13 +1,15 @@
 ﻿
+using NextGenSoftware.OASIS.API.Core;
 using System;
 
 namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Core
 {
-    //public class Profile : API.Core.Profile, IProfile    
+    //public class Profile : API.Core.Profile, IProfile
     //{
     //    public string HcAddressHash { get; set; }
     //}
 
+    
     public class HcProfile : IHcProfile
     {
         public Guid id { get; set; }
@@ -24,5 +26,9 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Core
         public int karma { get; set; } //TODO: This really needs to have a private setter but in the HoloOASIS provider it needs to copy the object along with each property... would prefer another work around if possible?
         public int level { get; set; }
         public string hc_address_hash { get; set; }
+
+        public string provider_key { get; set; }
+
+        public HolonType holon_type { get; set; }
     }
 }

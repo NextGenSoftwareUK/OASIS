@@ -230,6 +230,7 @@ namespace NextGenSoftware.Holochain.HoloNET.Client.Core
             await CallZomeFunctionAsync(_currentId.ToString(), instanceId, zome, function, callback, paramsObject, true, cachReturnData);
         }
 
+        //public async Task CallZomeFunctionAsync(string id, string instanceId, string zome, string function, ZomeFunctionCallBack callback, object paramsObject, bool autoConvertFieldsToHCStandard = false, bool matchIdToInstanceZomeFuncInCallback = true, bool cachReturnData = false)
         public async Task CallZomeFunctionAsync(string id, string instanceId, string zome, string function, ZomeFunctionCallBack callback, object paramsObject, bool matchIdToInstanceZomeFuncInCallback = true, bool cachReturnData = false)
         {
             Logger.Log("CallZomeFunctionAsync ENTER", LogType.Debug);
@@ -261,6 +262,16 @@ namespace NextGenSoftware.Holochain.HoloNET.Client.Core
             if (callback != null)
                 _callbackLookup[id] = callback;
 
+
+            //if (autoConvertFieldsToHCStandard)
+            //{
+            //    string json = JsonConvert.SerializeObject(paramsObject);
+            //    JObject data = JObject.Parse(json);
+            //    //data.Next.Replace(new JToken()
+
+            //    data.SelectToken("instance_stats.test-instance.number_delayed_validations").ToString()),
+            //}
+
             await SendMessageAsync(JsonConvert.SerializeObject(
                 new
                 {
@@ -278,6 +289,12 @@ namespace NextGenSoftware.Holochain.HoloNET.Client.Core
         public async Task SendMessageAsync(string jsonMessage)
         {
             Logger.Log(string.Concat("Sending Message: ", jsonMessage), LogType.Info);
+
+            //if (autoConvertFieldsToHCStandard)
+            //{
+            //    JObject data = JObject.Parse(jsonMessage);
+            //    data.SelectToken("instance_stats.test-instance.number_delayed_validations").ToString()),
+            //}
 
             if (WebSocket.State != WebSocketState.Open)
             {

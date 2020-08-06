@@ -15,10 +15,14 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Core
         private const string SAVE_PROFILE_FUNC = "save_profile";
 
         private int _currentId = 0;
-        private Dictionary<string, Profile> _savingProfiles = new Dictionary<string, Profile>();
+        private Dictionary<string, HcProfile> _savingProfiles = new Dictionary<string, HcProfile>();
         private string _hcinstance;
-        private TaskCompletionSource<NextGenSoftware.OASIS.API.Providers.HoloOASIS.Core.IProfile> _taskCompletionSourceLoadProfile = new TaskCompletionSource<NextGenSoftware.OASIS.API.Providers.HoloOASIS.Core.IProfile>();
-        private TaskCompletionSource<NextGenSoftware.OASIS.API.Providers.HoloOASIS.Core.IProfile> _taskCompletionSourceSaveProfile = new TaskCompletionSource<NextGenSoftware.OASIS.API.Providers.HoloOASIS.Core.IProfile>();
+        //private TaskCompletionSource<NextGenSoftware.OASIS.API.Providers.HoloOASIS.Core.IProfile> _taskCompletionSourceLoadProfile = new TaskCompletionSource<NextGenSoftware.OASIS.API.Providers.HoloOASIS.Core.IProfile>();
+        //private TaskCompletionSource<NextGenSoftware.OASIS.API.Providers.HoloOASIS.Core.IProfile> _taskCompletionSourceSaveProfile = new TaskCompletionSource<NextGenSoftware.OASIS.API.Providers.HoloOASIS.Core.IProfile>();
+
+        private TaskCompletionSource<Profile> _taskCompletionSourceLoadProfile = new TaskCompletionSource<Profile>();
+        private TaskCompletionSource<Profile> _taskCompletionSourceSaveProfile = new TaskCompletionSource<Profile>();
+
         private TaskCompletionSource<string> _taskCompletionSourceGetInstance = new TaskCompletionSource<string>();
 
        // public event ProfileManager.StorageProviderError OnStorageProviderError;
@@ -83,10 +87,11 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Core
                 switch (e.ZomeFunction)
                 {
                     case LOAD_PROFILE_FUNC:
-                        OnPlayerProfileLoaded?.Invoke(this, new ProfileLoadedEventArgs { Profile = JsonConvert.DeserializeObject<HcProfile>(string.Concat("{", e.ZomeReturnData, "}")) });
+                        HcProfile hcProfile = JsonConvert.DeserializeObject<HcProfile>(string.Concat("{", e.ZomeReturnData, "}"));
+                        OnPlayerProfileLoaded?.Invoke(this, new ProfileLoadedEventArgs {HcProfile = hcProfile, Profile = ConvertHcProfileToProfile(hcProfile) });
 
                         //TODO: Want to use these eventually so the async methods can return the results without having to use events/callbacks!
-                        _taskCompletionSourceLoadProfile.SetResult(JsonConvert.DeserializeObject<HcProfile>(string.Concat("{", e.ZomeReturnData, "}")));
+                         _taskCompletionSourceLoadProfile.SetResult(ConvertHcProfileToProfile(JsonConvert.DeserializeObject<HcProfile>(string.Concat("{", e.ZomeReturnData, "}"))));
                         break;
 
                     case SAVE_PROFILE_FUNC:
@@ -96,15 +101,17 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Core
                         //if (string.IsNullOrEmpty(_savingProfiles[e.Id].HcAddressHash))
                         //{
                         //    //TODO: Forced to re-save the object with the address (wouldn't that create a new hash entry?!)
-                        _savingProfiles[e.Id].HcAddressHash = e.ZomeReturnData;
-                        _savingProfiles[e.Id].ProviderKey = e.ZomeReturnData; //Generic field for providers to store their key (in this case the address hash)
+                        _savingProfiles[e.Id].hc_address_hash = e.ZomeReturnData;
+                        _savingProfiles[e.Id].provider_key = e.ZomeReturnData; //Generic field for providers to store their key (in this case the address hash)
 
                         //    SaveProfileAsync(_savingProfiles[e.Id]);
                         //}
                         //else
                         //{
-                        OnPlayerProfileSaved?.Invoke(this, new ProfileSavedEventArgs { Profile = _savingProfiles[e.Id] });
-                        _taskCompletionSourceSaveProfile.SetResult(_savingProfiles[e.Id]);
+
+                        Profile profile = ConvertHcProfileToProfile(_savingProfiles[e.Id]);
+                        OnPlayerProfileSaved?.Invoke(this, new ProfileSavedEventArgs { Profile = profile, HcProfile = _savingProfiles[e.Id] });
+                        _taskCompletionSourceSaveProfile.SetResult(profile);
                         _savingProfiles.Remove(e.Id);
                         //}
 
@@ -188,16 +195,17 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Core
             return null;
         }
 
+        /*
         public override async Task<API.Core.IProfile> SaveProfileAsync(API.Core.IProfile profile)
         {
             await _taskCompletionSourceGetInstance.Task;
 
             if (HoloNETClient.State == System.Net.WebSockets.WebSocketState.Open && !string.IsNullOrEmpty(_hcinstance))
             {
-                if (profile.id == Guid.Empty)
-                    profile.id = Guid.NewGuid();
+                if (profile.Id == Guid.Empty)
+                    profile.Id = Guid.NewGuid();
 
-                HcProfile hcProfile = profile as HcProfile;
+                Profile hcProfile = profile as Profile;
 
                 if (hcProfile == null)
                     hcProfile = ConvertProfileToHoloOASISProfile(profile);
@@ -219,12 +227,45 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Core
 
             return null;
         }
+        */
 
-        
+        public override async Task<IProfile> SaveProfileAsync(API.Core.IProfile profile)
+        {
+            await _taskCompletionSourceGetInstance.Task;
 
-        #endregion
+            if (HoloNETClient.State == System.Net.WebSockets.WebSocketState.Open && !string.IsNullOrEmpty(_hcinstance))
+            {
+                if (profile.Id == Guid.Empty)
+                    profile.Id = Guid.NewGuid();
 
-        #region IOASISNET Implementation
+                HcProfile hcProfile = profile as HcProfile;
+
+                if (hcProfile == null)
+                    hcProfile = ConvertProfileToHoloOASISProfile(profile);
+                else
+                {
+                    // Rust/HC does not like null strings so need to set to empty string.
+                    if (hcProfile.hc_address_hash == null)
+                        hcProfile.hc_address_hash = string.Empty;
+
+                    if (hcProfile.provider_key == null)
+                        hcProfile.provider_key = string.Empty;
+                }
+
+                _currentId++;
+                //_savingProfiles[_currentId.ToString()] = ConvertProfileToHoloOASISProfile(hcProfile);
+                _savingProfiles[_currentId.ToString()] = hcProfile;
+                await HoloNETClient.CallZomeFunctionAsync(_currentId.ToString(), _hcinstance, OURWORLD_ZOME, SAVE_PROFILE_FUNC, new { entry = hcProfile });
+                return await _taskCompletionSourceSaveProfile.Task;
+            }
+
+            return null;
+        }
+
+
+            #endregion
+
+            #region IOASISNET Implementation
 
         public List<IHolon> GetHolonsNearMe(HolonType type)
         {
@@ -243,23 +284,62 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Core
         /// </summary>
         /// <param name="profile"></param>
         /// <returns></returns>
+        //private Profile ConvertProfileToHoloOASISProfile(API.Core.IProfile profile)
+        //{
+        //    return new Profile
+        //    {
+        //        DOB = profile.DOB,
+        //        Email = profile.Email,
+        //        FirstName = profile.FirstName,
+        //        HcAddressHash = string.Empty,
+        //        HolonType = profile.HolonType,
+        //        Id = profile.Id,
+        //        Karma = profile.Karma,
+        //        LastName = profile.LastName,
+        //        Password = profile.Password,
+        //        PlayerAddress = profile.PlayerAddress,
+        //        ProviderKey = profile.ProviderKey == null ? string.Empty : profile.ProviderKey,
+        //        Title = profile.Title,
+        //        Username = profile.Username
+        //    };
+        //}
+
         private HcProfile ConvertProfileToHoloOASISProfile(API.Core.IProfile profile)
         {
             return new HcProfile
             {
                 dob = profile.DOB,
                 email = profile.Email,
-                FirstName = profile.FirstName,
-                HcAddressHash = string.Empty,
-                HolonType = profile.HolonType,
-                id = profile.id,
-                Karma = profile.Karma,
-                LastName = profile.LastName,
-                Password = profile.Password,
-                PlayerAddress = profile.PlayerAddress,
-                ProviderKey = profile.ProviderKey == null ? string.Empty : profile.ProviderKey,
-                Title = profile.Title,
-                Username = profile.Username
+                first_name = profile.FirstName,
+                hc_address_hash = string.Empty,
+                holon_type = profile.HolonType,
+                id = profile.Id,
+                karma = profile.Karma,
+                last_name = profile.LastName,
+                password = profile.Password,
+                player_address = profile.PlayerAddress,
+                provider_key = profile.ProviderKey == null ? string.Empty : profile.ProviderKey,
+                title = profile.Title,
+                username = profile.Username
+            };
+        }
+
+        private Profile ConvertHcProfileToProfile(HcProfile profile)
+        {
+            return new Profile
+            {
+                DOB = profile.dob,
+                Email = profile.email,
+                FirstName = profile.first_name,
+                HolonType = profile.holon_type,
+                Id = profile.id,
+                Karma = profile.karma,
+                LastName = profile.last_name,
+                Password = profile.password,
+                PlayerAddress = profile.player_address,
+                ProviderKey = profile.provider_key,
+                Title = profile.title,
+                Username = profile.username
             };
         }
 
