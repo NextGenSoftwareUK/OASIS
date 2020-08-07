@@ -1,6 +1,6 @@
-﻿using NextGenSoftware.Holochain.HoloNET.Client.Core;
+﻿using NextGenSoftware.Holochain.HDK.HoloNET.Client.Core;
 
-namespace NextGenSoftware.Holochain.HoloNET.Client.Unity
+namespace NextGenSoftware.Holochain.HDK.HoloNET.Client.Unity
 {
     public class DumbyLogger : ILogger
     {
