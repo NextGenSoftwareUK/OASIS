@@ -1,6 +1,6 @@
-﻿using NextGenSoftware.Holochain.HoloNET.Client.Core;
+﻿using NextGenSoftware.Holochain.HDK.HoloNET.Client.Core;
 
-namespace NextGenSoftware.Holochain.HoloNET.Client.Desktop
+namespace NextGenSoftware.Holochain.HDK.HoloNET.Client.Desktop
 {
     public class NLogger : ILogger
     {

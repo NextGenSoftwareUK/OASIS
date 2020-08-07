@@ -25,7 +25,7 @@ namespace NextGenSoftware.OASIS.API.Core.TestHarness
             
             
             await newProfile.KarmaEarnt(KarmaTypePositive.HelpingTheEnvironment, KarmaSourceType.hApp, "Our World", "XR Educational Game To Make The World A Better Place");
-            Providers.HoloOASIS.Core.Profile savedProfile = (Providers.HoloOASIS.Core.Profile)await OASISAPIManager.ProfileManager.SaveProfileAsync(newProfile);
+            Profile savedProfile = (Profile)await OASISAPIManager.ProfileManager.SaveProfileAsync(newProfile);
             //IProfile savedProfile = await profileManager.SaveProfileAsync(newProfile);
 
             if (savedProfile != null)
@@ -33,7 +33,7 @@ namespace NextGenSoftware.OASIS.API.Core.TestHarness
                 Console.WriteLine("Profile Saved.\n");
                 Console.WriteLine(string.Concat("Id: ", savedProfile.Id));
                 Console.WriteLine(string.Concat("Provider Key: ", savedProfile.ProviderKey));
-                Console.WriteLine(string.Concat("HC Address Hash: ", savedProfile.HcAddressHash)); //But we can still view the HC Hash if we wish by casting to the provider profile object as we have above.
+               // Console.WriteLine(string.Concat("HC Address Hash: ", savedProfile.HcAddressHash)); //But we can still view the HC Hash if we wish by casting to the provider profile object as we have above. - UPDATE: We do not need this, the ProviderKey shows the same info (hash in this case).
                 Console.WriteLine(string.Concat("Name: ", savedProfile.Title, " ", savedProfile.FirstName, " ", savedProfile.LastName));
                 Console.WriteLine(string.Concat("Username: ", savedProfile.Username));
                 Console.WriteLine(string.Concat("Password: ", savedProfile.Password));

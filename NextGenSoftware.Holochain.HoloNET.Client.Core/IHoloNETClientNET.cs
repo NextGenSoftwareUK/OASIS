@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace NextGenSoftware.Holochain.HoloNET.Client.Core
+namespace NextGenSoftware.Holochain.HDK.HoloNET.Client.Core
 {
     public interface IHoloNETClientNET
     {
