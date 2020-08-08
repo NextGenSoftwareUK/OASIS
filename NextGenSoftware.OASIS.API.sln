@@ -77,7 +77,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.C
 EndProject
 Project("{9092AA53-FB77-4645-B42D-1CCCA6BD08BD}") = "NextGenSoftware.OASIS.API.Core.ARC.Membrane.NodeJS", "NextGenSoftware.OASIS.API.Core.ARC.Membrane.NodeJS\NextGenSoftware.OASIS.API.Core.ARC.Membrane.NodeJS.njsproj", "{F2125D70-99DD-4C16-BDB8-C09E26513811}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.Holochain.HDK.Core", "NextGenSoftware.Holochain.HoloNET.HDK\NextGenSoftware.Holochain.HDK.Core.csproj", "{7A53C90E-0DFE-4E54-B339-E9966F6563F4}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.Holochain.NETHDK.Core", "NextGenSoftware.Holochain.HoloNET.HDK\NextGenSoftware.Holochain.NETHDK.Core.csproj", "{7A53C90E-0DFE-4E54-B339-E9966F6563F4}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.Providers.EthereumOASIS", "NextGenSoftware.OASIS.API.Providers.EthereumOASIS\NextGenSoftware.OASIS.API.Providers.EthereumOASIS.csproj", "{1EB41E98-EBF8-436A-B5C3-CE711C539075}"
 EndProject
@@ -127,7 +127,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.P
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.Providers.ScuttlebuttOASIS", "NextGenSoftware.OASIS.API.Providers.ScuttlebuttOASIS\NextGenSoftware.OASIS.API.Providers.ScuttlebuttOASIS.csproj", "{B0E187E1-F913-40D1-A5EE-0F371087F8B4}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.Holochain.HDK.CLI", "NextGenSoftware.Holochain.HDK.Core.CLI\NextGenSoftware.Holochain.HDK.CLI.csproj", "{39CE6542-6F50-416F-AEC7-7198F66AD095}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.Holochain.HDK.CLI", "NextGenSoftware.Holochain.HDK.Core.CLI\NextGenSoftware.Holochain.HDK.CLI.csproj", "{39CE6542-6F50-416F-AEC7-7198F66AD095}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

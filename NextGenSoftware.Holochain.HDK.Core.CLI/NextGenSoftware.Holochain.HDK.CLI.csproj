@@ -6,7 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\NextGenSoftware.Holochain.HoloNET.HDK\NextGenSoftware.Holochain.HDK.Core.csproj" />
+    <ProjectReference Include="..\NextGenSoftware.Holochain.HoloNET.HDK\NextGenSoftware.Holochain.NETHDK.Core.csproj" />
   </ItemGroup>
 
 </Project>

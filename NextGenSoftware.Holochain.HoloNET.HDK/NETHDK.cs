@@ -1,9 +1,9 @@
 ﻿using System;
 using System.IO;
 
-namespace NextGenSoftware.Holochain.HDK.Core
+namespace NextGenSoftware.Holochain.NETHDK.Core
 {
-    public class HDK
+    public class NETHDK
     {
         public void Build(string classFolder)
         {
