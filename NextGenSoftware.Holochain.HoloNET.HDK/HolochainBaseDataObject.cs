@@ -1,5 +1,5 @@
 ﻿
-namespace NextGenSoftware.Holochain.HDK.Core
+namespace NextGenSoftware.Holochain.NETHDK.Core
 {
     public abstract class HolochainBaseDataObject
     {
