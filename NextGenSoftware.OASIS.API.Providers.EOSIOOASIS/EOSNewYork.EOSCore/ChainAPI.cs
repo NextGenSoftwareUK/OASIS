@@ -89,13 +89,18 @@ namespace EOSNewYork.EOSCore
         {
             return GetCurrencyBalanceAsync(account, code, symbol).Result;
         }
-        public async Task<TableRows> GetTableRowsAsync(string scope, string code, string table, string json, int lowerBound, int upperBound, int limit)
+        public async Task<TableRows> GetTableRowsAsync(string scope, string code, string table, string json, string lowerBound, string upperBound, int limit,
+            int index_position = 0, string key_type = "")
         {
-            return await new EOS_Object<TableRows>(HOST).GetObjectsFromAPIAsync(new TableRowsParam { scope = scope, code = code, table = table, json = json, lower_bound = lowerBound, upper_bound = upperBound, limit = limit });
+            return await new EOS_Object<TableRows>(HOST).GetObjectsFromAPIAsync(
+                new TableRowsParam { scope = scope, code = code, table = table, json = json, lower_bound = lowerBound, upper_bound = upperBound, limit = limit,
+                    index_position = index_position, key_type = key_type}
+                );
         }
-        public TableRows GetTableRows(string scope, string code, string table, string json, int lowerBound, int upperBound, int limit)
+        public TableRows GetTableRows(string scope, string code, string table, string json, string lowerBound, string upperBound, int limit,
+            int index_position = 0, string key_type = "")
         {
-            return GetTableRowsAsync(scope, code, table, json, lowerBound, upperBound, limit).Result;
+            return GetTableRowsAsync(scope, code, table, json, lowerBound, upperBound, limit, index_position, key_type).Result;
         }
         public async Task<Info> GetInfoAsync()
         {
