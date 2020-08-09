@@ -67,23 +67,30 @@ public:
     //accounts table
     //scope: self
     TABLE account{
-        name account_name; //eosio account
+        string userid;
+    name username; //eosio account
     string password;
     string email;
     string title;
     string firstname;
     string lastname;
     string dob;
-    string player_address;
+    string playeraddr;
     uint32_t karma;
     uint32_t level;
 
-    uint64_t primary_key() const {
+    string primary_key() const {
+        return userid;
+    }
+    string by_user_name() const {
         return username.value;
     }
-    EOSLIB_SERIALIZE(account, (username)(password)(email)(title)
-        (firstname)(lastname)(dob)(player_address)(karma)(level) };
 
-    typedef multi_index<name("accounts"), account> accounts_table;
+    EOSLIB_SERIALIZE(account, (userid)(username)(password)(email)(title)
+        (firstname)(lastname)(dob)(playeraddr)(karma)(level) };
+
+    typedef multi_index<name("accounts"), account
+        indexed_by<name("byusername"), const_mem_fun<account, string, &account::by_user_name>>
+    > accounts_table;
 
         };

@@ -59,7 +59,7 @@ ACTION oasis::setversion(string new_version) {
 
 //======================== account actions ========================
 
-ACTION oasis::openacct(name eosio_acc) {
+ACTION oasis::openacct(string userid, name eosio_acc) {
 
     //open configs singleton, get config
     config_singleton configs(get_self(), get_self().value);
@@ -82,7 +82,8 @@ ACTION oasis::openacct(name eosio_acc) {
     //emplace new OASIS account
     //ram payer: contract
     accounts.emplace(get_self(), [&](auto& col) {
-        col.account_name = eosio_acc;
+        col.userid = userid;
+        col.username = eosio_acc;
         });
 
     //update total accounts
@@ -132,8 +133,8 @@ ACTION oasis::setacct(name eosio_acc, string field_name, string new_value) {
             col.dob = new_value;
             break;
 
-        case "player_address":
-            col.player_address = new_value;
+        case "playeraddr":
+            col.playeraddr = new_value;
             break;
 
         default:
