@@ -1,12 +1,22 @@
 ﻿
-using NextGenSoftware.Holochain.HDK.Core;
+using NextGenSoftware.Holochain.NETHDK.Core;
 
-namespace NextGenSoftware.Holochain.HDK.CLI.ProxyClasses
+namespace NextGenSoftware.Holochain.NETHDK.CLI.ProxyClasses
 {
-    public class Test : HolochainBaseDataObject
+    public class TestZome : HolochainBaseZome
     {
-        public string TestString { get; set; }
-        public int TestInt { get; set; }
-        public bool TestBool { get; set; }
+        public class Test : HolochainBaseDataObject
+        {
+            public string TestString { get; set; }
+            public int TestInt { get; set; }
+            public bool TestBool { get; set; }
+        }
+
+        public class Test2 : HolochainBaseDataObject
+        {
+            public string TestString { get; set; }
+            public int TestInt { get; set; }
+            public bool TestBool { get; set; }
+        }
     }
 }

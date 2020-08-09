@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "NextGenSoftware.Holochain.NETHDK.CLI": {
+      "commandName": "Project",
+      "commandLineArgs": "build C:\\Users\\david\\source\\repos\\Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK\\NextGenSoftware.Holochain.HDK.Core.CLI\\ProxyClasses"
+    }
+  }
+}

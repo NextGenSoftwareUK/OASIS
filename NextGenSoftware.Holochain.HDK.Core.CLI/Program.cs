@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Reflection;
 
-namespace NextGenSoftware.Holochain.HDK.CLI
+namespace NextGenSoftware.Holochain.NETHDK.CLI
 {
     class Program
     {
@@ -30,7 +30,8 @@ namespace NextGenSoftware.Holochain.HDK.CLI
 
         static void Build(string classFolder)
         {
-
+            Core.NETHDK hdk = new Core.NETHDK();
+            hdk.Build(classFolder);
         }
     }
 }
