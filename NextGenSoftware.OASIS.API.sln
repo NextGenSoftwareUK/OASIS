@@ -57,7 +57,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "target", "target", "{5ADDA8
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.Holochain.hApp.OurWorld", "NextGenSoftware.Holochain.hApp.OurWorld\NextGenSoftware.Holochain.hApp.OurWorld.csproj", "{DFB7DC31-2226-41EE-B3D5-1887AB2C762C}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.Holochain.HDK.HoloNET.Client.Unity", "NextGenSoftware.Holochain.HoloNET.Client.Unity\NextGenSoftware.Holochain.HDK.HoloNET.Client.Unity.csproj", "{9FC5C90E-F741-40F3-BCF3-837ECA5201B0}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.Holochain.NETHDK.HoloNET.Client.Unity", "NextGenSoftware.Holochain.HoloNET.Client.Unity\NextGenSoftware.Holochain.NETHDK.HoloNET.Client.Unity.csproj", "{9FC5C90E-F741-40F3-BCF3-837ECA5201B0}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.Providers.HoloOASIS.TestHarness", "NextGenSoftware.OASIS.API.Providers.HoloOASIS.TestHarness\NextGenSoftware.OASIS.API.Providers.HoloOASIS.TestHarness.csproj", "{703F8880-7815-4B49-B0A0-4EBF923AB0FC}"
 EndProject
@@ -127,7 +127,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.P
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.Providers.ScuttlebuttOASIS", "NextGenSoftware.OASIS.API.Providers.ScuttlebuttOASIS\NextGenSoftware.OASIS.API.Providers.ScuttlebuttOASIS.csproj", "{B0E187E1-F913-40D1-A5EE-0F371087F8B4}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.Holochain.HDK.CLI", "NextGenSoftware.Holochain.HDK.Core.CLI\NextGenSoftware.Holochain.HDK.CLI.csproj", "{39CE6542-6F50-416F-AEC7-7198F66AD095}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.Holochain.NETHDK.CLI", "NextGenSoftware.Holochain.HDK.Core.CLI\NextGenSoftware.Holochain.NETHDK.CLI.csproj", "{39CE6542-6F50-416F-AEC7-7198F66AD095}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.Holochain.NETHDK.EntityFrameworkCore.Web.MVC", "NextGenSoftware.Holochain.NETHDK.EntityFrameworkCore.Web.MVC\NextGenSoftware.Holochain.NETHDK.EntityFrameworkCore.Web.MVC.csproj", "{BB44EA96-C1B7-45B0-A60D-674D6891C135}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.Holochain.NETHDK.EntityFrameworkCore.Web.Raz", "NextGenSoftware.Holochain.NETHDK.EntityFrameworkCore.Web.Raz\NextGenSoftware.Holochain.NETHDK.EntityFrameworkCore.Web.Raz.csproj", "{79D34B68-4FFE-4CC9-830E-CD1F316E18AE}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -394,6 +398,18 @@ Global
 		{39CE6542-6F50-416F-AEC7-7198F66AD095}.Linux|Any CPU.Build.0 = Debug|Any CPU
 		{39CE6542-6F50-416F-AEC7-7198F66AD095}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{39CE6542-6F50-416F-AEC7-7198F66AD095}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BB44EA96-C1B7-45B0-A60D-674D6891C135}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BB44EA96-C1B7-45B0-A60D-674D6891C135}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BB44EA96-C1B7-45B0-A60D-674D6891C135}.Linux|Any CPU.ActiveCfg = Debug|Any CPU
+		{BB44EA96-C1B7-45B0-A60D-674D6891C135}.Linux|Any CPU.Build.0 = Debug|Any CPU
+		{BB44EA96-C1B7-45B0-A60D-674D6891C135}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BB44EA96-C1B7-45B0-A60D-674D6891C135}.Release|Any CPU.Build.0 = Release|Any CPU
+		{79D34B68-4FFE-4CC9-830E-CD1F316E18AE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{79D34B68-4FFE-4CC9-830E-CD1F316E18AE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{79D34B68-4FFE-4CC9-830E-CD1F316E18AE}.Linux|Any CPU.ActiveCfg = Debug|Any CPU
+		{79D34B68-4FFE-4CC9-830E-CD1F316E18AE}.Linux|Any CPU.Build.0 = Debug|Any CPU
+		{79D34B68-4FFE-4CC9-830E-CD1F316E18AE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{79D34B68-4FFE-4CC9-830E-CD1F316E18AE}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
