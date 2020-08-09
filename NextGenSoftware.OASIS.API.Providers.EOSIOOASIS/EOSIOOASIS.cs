@@ -7,6 +7,8 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
 {
     public class EOSIOOASIS : OASISStorageBase, IOASISStorage, IOASISNET
     {
+        public const string OASIS_EOSIO_ACCOUNT = "oasis";
+
         public EOSIOOASIS()
         {
             this.ProviderName = "EOSIOOASIS";
