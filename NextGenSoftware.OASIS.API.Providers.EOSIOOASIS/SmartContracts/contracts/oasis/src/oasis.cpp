@@ -92,7 +92,7 @@ ACTION oasis::openacct(string userid, name eosio_acc) {
 
 }
 
-ACTION oasis::setacct(name eosio_acc, string field_name, string new_value) {
+ACTION oasis::setstrval(name eosio_acc, string field_name, string new_value) {
 
     //open configs singleton, get config
     config_singleton configs(get_self(), get_self().value);
@@ -143,7 +143,7 @@ ACTION oasis::setacct(name eosio_acc, string field_name, string new_value) {
         });
 }
 
-ACTION oasis::setacct(name eosio_acc, string field_name, unit32_t new_value) {
+ACTION oasis::setintval(name eosio_acc, string field_name, unit32_t new_value) {
 
     //open configs singleton, get config
     config_singleton configs(get_self(), get_self().value);
@@ -162,10 +162,6 @@ ACTION oasis::setacct(name eosio_acc, string field_name, unit32_t new_value) {
         {
         case "karma":
             col.karma = new_value;
-            break;
-
-        case "level":
-            col.level = new_value;
             break;
 
         default:

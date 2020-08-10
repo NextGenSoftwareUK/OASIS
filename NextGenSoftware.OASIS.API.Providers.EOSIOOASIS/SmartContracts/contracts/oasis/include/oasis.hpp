@@ -41,7 +41,15 @@ public:
 
     //open a new OASIS account
     //auth: admin
-    ACTION openacct(name eosio_acc);
+    ACTION openacct(string userid, name eosio_acc);
+
+    //set the account field (string)
+    //auth: account
+    ACTION setstrval(name eosio_acc, string field_name, string new_value);
+
+    //set the account field (int)
+    //auth: account
+    ACTION setintval(name eosio_acc, string field_name, unit32_t new_value);
 
     //======================== contract tables ========================
 
@@ -77,7 +85,6 @@ public:
     string dob;
     string playeraddr;
     uint32_t karma;
-    uint32_t level;
 
     string primary_key() const {
         return userid;
@@ -87,7 +94,7 @@ public:
     }
 
     EOSLIB_SERIALIZE(account, (userid)(username)(password)(email)(title)
-        (firstname)(lastname)(dob)(playeraddr)(karma)(level) };
+        (firstname)(lastname)(dob)(playeraddr)(karma) };
 
     typedef multi_index<name("accounts"), account
         indexed_by<name("byusername"), const_mem_fun<account, string, &account::by_user_name>>
