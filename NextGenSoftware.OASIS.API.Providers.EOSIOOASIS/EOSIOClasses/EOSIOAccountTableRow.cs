@@ -2,9 +2,9 @@
 using NextGenSoftware.OASIS.API.Core;
 using System;
 
-namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
+namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.EOSIOClasses
 {
-    public class OasisAccountTableRow: IEOSTable
+    public class EOSIOAccountTableRow: IEOSTable
     {
         public string userid { get; set; }
         public string username { get; set; }
