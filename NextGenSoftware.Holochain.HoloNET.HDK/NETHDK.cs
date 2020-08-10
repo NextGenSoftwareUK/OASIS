@@ -60,9 +60,12 @@ namespace NextGenSoftware.Holochain.NETHDK.Core
                 }
             }
 
-            //Directory.GetFiles(classFolder)
-
             string libTemplate = new FileInfo(string.Concat(settings.RustTemplateFolder, "\\", settings.RustTemplateLib)).OpenText().ReadToEnd();
+            string createTemplate = new FileInfo(string.Concat(settings.RustTemplateFolder, "\\", settings.RustTemplateCreate)).OpenText().ReadToEnd();
+            string readTemplate = new FileInfo(string.Concat(settings.RustTemplateFolder, "\\", settings.RustTemplateRead)).OpenText().ReadToEnd();
+            string updateTemplate = new FileInfo(string.Concat(settings.RustTemplateFolder, "\\", settings.RustTemplateUpdate)).OpenText().ReadToEnd();
+            string deleteTemplate = new FileInfo(string.Concat(settings.RustTemplateFolder, "\\", settings.RustTemplateDelete)).OpenText().ReadToEnd();
+            string listTemplate = new FileInfo(string.Concat(settings.RustTemplateFolder, "\\", settings.RustTemplateList)).OpenText().ReadToEnd();
             string structTemplate = new FileInfo(string.Concat(settings.RustTemplateFolder, "\\", settings.RustTemplateStruct)).OpenText().ReadToEnd();
             string intTemplate = new FileInfo(string.Concat(settings.RustTemplateFolder, "\\", settings.RustTemplateInt)).OpenText().ReadToEnd();
             string stringTemplate = new FileInfo(string.Concat(settings.RustTemplateFolder, "\\", settings.RustTemplateString)).OpenText().ReadToEnd();
@@ -74,7 +77,12 @@ namespace NextGenSoftware.Holochain.NETHDK.Core
             bool classLineReached = false;
             string classBuffer = "";
             string libBuffer = "";
-
+            string className = "";
+            string classFields = "";
+            string classFieldsClone = "";
+            int nextLineToWrite = 0;
+            bool firstField = true;
+            
             foreach (FileInfo file in files)
             {
                 if (file != null)
@@ -91,23 +99,51 @@ namespace NextGenSoftware.Holochain.NETHDK.Core
                             libBuffer = libTemplate.Replace("zome_name", parts[6].ToSnakeCase());
                         }
 
-                        //if (classLineReached && !buffer.Contains("{") && !buffer.Contains("}"))
                         if (classLineReached && buffer.Contains("string") || buffer.Contains("int") || buffer.Contains("bool"))
                         {
                             string[] parts = buffer.Split(' ');
+                            string fieldName = string.Empty;
 
                             switch (parts[13].ToLower())
                             {
                                 case "string":
-                                    classBuffer = string.Concat(classBuffer, stringTemplate.Replace("variableName", parts[14].ToSnakeCase()), Environment.NewLine);
+                                    {
+                                        if (firstField)
+                                            firstField = false;
+                                        else
+                                            classFieldsClone = string.Concat(classFieldsClone, "\t");
+
+                                        fieldName = parts[14].ToSnakeCase();
+                                        classFieldsClone = string.Concat(classFieldsClone, className, ".", fieldName, "=updated_entry.", fieldName, ";", Environment.NewLine);
+                                        classBuffer = string.Concat(classBuffer, stringTemplate.Replace("variableName", fieldName), ",", Environment.NewLine);
+
+                                    }
                                     break;
 
                                 case "int":
-                                    classBuffer = string.Concat(classBuffer, intTemplate.Replace("variableName", parts[14].ToSnakeCase()), Environment.NewLine);
+                                    {
+                                        if (firstField)
+                                            firstField = false;
+                                        else
+                                            classFieldsClone = string.Concat(classFieldsClone, "\t");
+
+                                        fieldName = parts[14].ToSnakeCase();
+                                        classFieldsClone = string.Concat(classFieldsClone, className, ".", fieldName, "=updated_entry.", fieldName, ";", Environment.NewLine);
+                                        classBuffer = string.Concat(classBuffer, intTemplate.Replace("variableName", fieldName), ",", Environment.NewLine);
+                                    }
                                     break;
 
                                 case "bool":
-                                    classBuffer = string.Concat(classBuffer, boolTemplate.Replace("variableName", parts[14].ToSnakeCase()), Environment.NewLine);
+                                    {
+                                        if (firstField)
+                                            firstField = false;
+                                        else
+                                            classFieldsClone = string.Concat(classFieldsClone, "\t");
+
+                                        fieldName = parts[14].ToSnakeCase();
+                                        classFieldsClone = string.Concat(classFieldsClone, className, ".", fieldName, "=updated_entry.", fieldName, ";", Environment.NewLine);
+                                        classBuffer = string.Concat(classBuffer, boolTemplate.Replace("variableName", fieldName), ",", Environment.NewLine);
+                                    }
                                     break;
                             }
                         }
@@ -115,23 +151,40 @@ namespace NextGenSoftware.Holochain.NETHDK.Core
                         // Write the class out to the rust lib template. 
                         if (classLineReached && buffer.Length > 1 && buffer.Substring(buffer.Length-1 ,1) == "}" && !buffer.Contains("get;"))
                         {
-                            classBuffer = string.Concat(Environment.NewLine, classBuffer, structTemplate.Substring(structTemplate.Length - 1, 1), Environment.NewLine);
+                            if (classBuffer.Length >2)
+                                classBuffer = classBuffer.Remove(classBuffer.Length - 3);
+
+                            classBuffer = string.Concat(Environment.NewLine, classBuffer, Environment.NewLine, structTemplate.Substring(structTemplate.Length - 1, 1), Environment.NewLine);
 
                             int zomeNameIndex = libTemplate.IndexOf("zome_name");
                             int zomeBodyStartIndex = libTemplate.IndexOf("{", zomeNameIndex);
                             libBuffer = libBuffer.Insert(zomeBodyStartIndex + 2, classBuffer);
+                            
+                            if (nextLineToWrite == 0)
+                                nextLineToWrite = zomeBodyStartIndex + classBuffer.Length;
+                            else
+                                nextLineToWrite += classBuffer.Length;
+
+                            //Now insert the CRUD methods for each class.
+                            libBuffer = libBuffer.Insert(nextLineToWrite + 2, string.Concat(Environment.NewLine, createTemplate.Replace("MyEntry", className).Replace("my_entry", className), Environment.NewLine));
+                            libBuffer = libBuffer.Insert(nextLineToWrite + 2, string.Concat(Environment.NewLine, readTemplate.Replace("MyEntry", className).Replace("my_entry", className), Environment.NewLine));
+                            libBuffer = libBuffer.Insert(nextLineToWrite + 2, string.Concat(Environment.NewLine, updateTemplate.Replace("MyEntry", className).Replace("my_entry", className).Replace("//#CopyFields//", classFieldsClone), Environment.NewLine));
+                            libBuffer = libBuffer.Insert(nextLineToWrite + 2, string.Concat(Environment.NewLine, deleteTemplate.Replace("MyEntry", className).Replace("my_entry", className), Environment.NewLine));
+                            //libBuffer = libBuffer.Insert(nextLineToWrite + 2, string.Concat(Environment.NewLine, listTemplate, Environment.NewLine));
+
                             classBuffer = "";
+                            classFieldsClone = "";
+                            className = "";
+                            classLineReached = false;
+                            firstField = true;
                         }
 
                         if (buffer.Contains("HolochainBaseDataObject"))
                         {
                             string[] parts = buffer.Split(' ');
-                            // int length = 
-
-                            //classBuffer = structTemplate.Replace("StructName", parts[10]).Substring(0, structTemplate.Length - 1);
-                            classBuffer = structTemplate.Replace("StructName", parts[10].ToSnakeCase());
+                            className = parts[10].ToSnakeCase();  
+                            classBuffer = structTemplate.Replace("StructName", className); 
                             classBuffer = classBuffer.Substring(0, classBuffer.Length - 1);
-
                             classLineReached = true;
                         }
                     }
@@ -143,7 +196,12 @@ namespace NextGenSoftware.Holochain.NETHDK.Core
         }
 
 
-       
+        //private void ProcessField(string fieldNameRaw, out string classFieldsClone, out string classBuffer, string template, string className)
+        //{
+        //    string fieldName = template.Replace("variableName", fieldNameRaw.ToSnakeCase());
+        //    classFieldsClone = string.Concat(classFieldsClone, className, ".", fieldName, "=updated_entry.", fieldName, ";", Environment.NewLine);
+        //    classBuffer = string.Concat(classBuffer, fieldName, ",", Environment.NewLine);
+        //}
 
         private ConfigSettings LoadConfig()
         {
@@ -178,8 +236,6 @@ namespace NextGenSoftware.Holochain.NETHDK.Core
             public string RustTemplateString = "string.rs";
             public string RustTemplateBool = "bool.rs";
             public string RustTemplateStruct = "struct.rs";
-            
-            //public string ClassFolder = "RustTemplates\\list.rs"; classFolder
         }
     }
 }
