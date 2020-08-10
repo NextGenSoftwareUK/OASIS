@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Runtime.CompilerServices;
 
 namespace EOSNewYork.EOSCore
 {
@@ -11,6 +12,11 @@ namespace EOSNewYork.EOSCore
         public BaseAPI(string host)
         {
             HOST = new Uri(host);
+        }
+
+        public Uri GetHost()
+        {
+            return HOST;
         }
     }
 }
