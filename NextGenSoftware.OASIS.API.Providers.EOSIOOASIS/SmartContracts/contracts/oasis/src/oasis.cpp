@@ -1,11 +1,12 @@
 #include "../include/oasis.hpp"
 
-oasis::oasis(name self, name code, datastream<const char*> ds) : contract(self, code, ds) {}
+oasis::oasis(name self, name code, datastream<const char *> ds) : contract(self, code, ds) {}
 oasis::~oasis() {}
 
 //======================== config actions ========================
 
-ACTION oasis::init(string contract_name, string contract_version, name admin) {
+ACTION oasis::init(string contract_name, string contract_version, name admin)
+{
 
     //authenticate
     require_auth(get_self());
@@ -21,12 +22,12 @@ ACTION oasis::init(string contract_name, string contract_version, name admin) {
     uint32_t total_accounts = 0;
     name oasis_account = name("eco.oasis");
 
-    config initial_conf ={
-        contract_name, //contract_name
+    config initial_conf = {
+        contract_name,    //contract_name
         contract_version, //contract_version
-        admin, //admin
-        total_accounts, //total_accounts
-        oasis_account, //oasis_account
+        admin,            //admin
+        total_accounts,   //total_accounts
+        oasis_account,    //oasis_account
     };
 
     //set new config
@@ -34,13 +35,11 @@ ACTION oasis::init(string contract_name, string contract_version, name admin) {
 
     //send openacct inline
     //NOTE: requires oasis@eosio.code set to active permission
-    action(permission_level{ get_self(), name("active") }, get_self(), name("openacct"), make_tuple(
-        get_self()
-    )).send();
-
+    action(permission_level{get_self(), name("active")}, get_self(), name("openacct"), make_tuple(get_self())).send();
 }
 
-ACTION oasis::setversion(string new_version) {
+ACTION oasis::setversion(string new_version)
+{
 
     //open configs singleton, get config
     config_singleton configs(get_self(), get_self().value);
@@ -54,12 +53,12 @@ ACTION oasis::setversion(string new_version) {
 
     //set new config
     configs.set(conf, get_self());
-
 }
 
 //======================== account actions ========================
 
-ACTION oasis::openacct(string userid, name eosio_acc) {
+ACTION oasis::openacct(string userid, name eosio_acc, string providerkey)
+{
 
     //open configs singleton, get config
     config_singleton configs(get_self(), get_self().value);
@@ -81,18 +80,19 @@ ACTION oasis::openacct(string userid, name eosio_acc) {
 
     //emplace new OASIS account
     //ram payer: contract
-    accounts.emplace(get_self(), [&](auto& col) {
+    accounts.emplace(get_self(), [&](auto &col) {
         col.userid = userid;
         col.username = eosio_acc;
-        });
+        col.providerkey = providerkey;
+    });
 
     //update total accounts
     conf.total_accounts += 1;
     configs.set(conf, get_self());
-
 }
 
-ACTION oasis::setstrval(name eosio_acc, string field_name, string new_value) {
+ACTION oasis::setstrval(name eosio_acc, string field_name, string new_value)
+{
 
     //open configs singleton, get config
     config_singleton configs(get_self(), get_self().value);
@@ -103,10 +103,10 @@ ACTION oasis::setstrval(name eosio_acc, string field_name, string new_value) {
 
     //get account
     accounts_table accounts(get_self(), get_self().value);
-    auto& acct = accounts.get(eosio_acc.value, "account not found");
+    auto &acct = accounts.get(eosio_acc.value, "account not found");
 
     //update account password
-    accounts.modify(acct, same_payer, [&](auto& col) {
+    accounts.modify(acct, same_payer, [&](auto &col) {
         switch (field_name)
         {
         case "password":
@@ -140,10 +140,11 @@ ACTION oasis::setstrval(name eosio_acc, string field_name, string new_value) {
         default:
             break;
         }
-        });
+    });
 }
 
-ACTION oasis::setintval(name eosio_acc, string field_name, unit32_t new_value) {
+ACTION oasis::setintval(name eosio_acc, string field_name, unit32_t new_value)
+{
 
     //open configs singleton, get config
     config_singleton configs(get_self(), get_self().value);
@@ -154,10 +155,10 @@ ACTION oasis::setintval(name eosio_acc, string field_name, unit32_t new_value) {
 
     //get account
     accounts_table accounts(get_self(), get_self().value);
-    auto& acct = accounts.get(eosio_acc.value, "account not found");
+    auto &acct = accounts.get(eosio_acc.value, "account not found");
 
     //update account password
-    accounts.modify(acct, same_payer, [&](auto& col) {
+    accounts.modify(acct, same_payer, [&](auto &col) {
         switch (field_name)
         {
         case "karma":
@@ -167,5 +168,5 @@ ACTION oasis::setintval(name eosio_acc, string field_name, unit32_t new_value) {
         default:
             break;
         }
-        });
+    });
 }
