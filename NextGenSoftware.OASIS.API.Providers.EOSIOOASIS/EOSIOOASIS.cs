@@ -32,9 +32,23 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             throw new NotImplementedException();
         }
 
-        public override Task<IProfile> LoadProfileAsync(string providerKey)
+        public override async Task<IProfile> LoadProfileAsync(string providerKey)
         {
-            throw new NotImplementedException();
+            var chainApi = new ChainAPI();
+
+            var rows = await chainApi.GetTableRowsAsync(OASIS_EOSIO_ACCOUNT, OASIS_EOSIO_ACCOUNT, "accounts", "true", providerKey, providerKey, 1, 3);
+
+            if (rows.rows.Count == 0)
+            {
+                return null;
+            }
+
+            var profileRow = (EOSIOAccountTableRow)rows.rows[0];
+            var profile = profileRow.ToProfile();
+
+            profile.Password = StringCipher.Decrypt(profile.Password, OASIS_PASS_PHRASE);
+
+            return profile;
         }
 
         public override async Task<IProfile> LoadProfileAsync(Guid Id)
