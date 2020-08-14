@@ -1,10 +1,10 @@
 ﻿
-using NextGenSoftware.Holochain.HDK.HoloNET.Client.Core;
-using NextGenSoftware.Holochain.HDK.HoloNET.Client.Desktop;
+using NextGenSoftware.Holochain.HoloNET.Client.Core;
+using NextGenSoftware.Holochain.HoloNET.Client.Desktop;
 using System;
 using System.Threading.Tasks;
 
-namespace NextGenSoftware.Holochain.HDK.HoloNET.Client.TestHarness
+namespace NextGenSoftware.Holochain.HoloNET.Client.TestHarness
 {
     class Program
     {

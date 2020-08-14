@@ -1,7 +1,7 @@
 ﻿
-using NextGenSoftware.Holochain.HDK.HoloNET.Client.Core;
+using NextGenSoftware.Holochain.HoloNET.Client.Core;
 
-namespace NextGenSoftware.Holochain.HDK.HoloNET.Client.Unity
+namespace NextGenSoftware.Holochain.HoloNET.Client.Unity
 {
     public class HoloNETClient : HoloNETClientBase
     {
