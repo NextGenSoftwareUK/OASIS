@@ -41,7 +41,8 @@ public:
 
     //open a new OASIS account
     //auth: admin
-    ACTION openacct(string userid, name eosio_acc);
+    ACTION openacct(string userid, name eosio_acc, string providerkey, string password, string email, string title, string firstname,
+                    string lastname, string dob, string playeraddr, uint32_t karma);
 
     //set the account field (string)
     //auth: account
