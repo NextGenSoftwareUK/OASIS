@@ -1,5 +1,4 @@
-﻿//using NextGenSoftware.OASIS.API.Core;
-using NextGenSoftware.Holochain.HDK.HoloNET.Client.Core;
+﻿using NextGenSoftware.Holochain.HoloNET.Client.Core;
 using NextGenSoftware.OASIS.API.Core;
 using System;
 

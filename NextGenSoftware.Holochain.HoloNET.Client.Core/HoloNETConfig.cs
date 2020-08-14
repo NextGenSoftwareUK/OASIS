@@ -1,7 +1,7 @@
 ﻿
 using System.Configuration;
 
-namespace NextGenSoftware.Holochain.HDK.HoloNET.Client.Core
+namespace NextGenSoftware.Holochain.HoloNET.Client.Core
 {
     public class HoloNETConfig
     {

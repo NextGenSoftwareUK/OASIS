@@ -10,7 +10,7 @@ using System.Linq;
 using System.IO;
 using System.Diagnostics;
 
-namespace NextGenSoftware.Holochain.HDK.HoloNET.Client.Core
+namespace NextGenSoftware.Holochain.HoloNET.Client.Core
 {
     public abstract class HoloNETClientBase
     {

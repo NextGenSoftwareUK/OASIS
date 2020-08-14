@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Net.WebSockets;
 
-namespace NextGenSoftware.Holochain.HDK.HoloNET.Client.Core
+namespace NextGenSoftware.Holochain.HoloNET.Client.Core
 {
     public class ConnectedEventArgs : EventArgs
     {
