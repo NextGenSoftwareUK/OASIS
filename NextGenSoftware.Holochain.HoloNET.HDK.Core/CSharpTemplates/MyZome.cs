@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace NextGenSoftware.Holochain.HoloNET.HDK.Core.CSharpTemplates
 {
-    public class ZomeProxy : HolochainBaseZome
+    public class MyZome : HolochainBaseZome
     {
         private const string MYZOME_ZOME = "my_zome_core";
         private const string LOAD_MYCLASS_FUNC = "load_my_class";
@@ -31,13 +31,13 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core.CSharpTemplates
         public delegate void MyClassLoaded(object sender, MyClassLoadedEventArgs e);
         public event MyClassLoaded OnMyClassLoaded;
 
-        public delegate void ZomeProxyError(object sender, ZomeProxyErrorEventArgs e);
-        public event ZomeProxyError OnZomeProxyError;
+        public delegate void MyZomeError(object sender, MyZomeErrorEventArgs e);
+        public event MyZomeError OnMyZomeError;
 
         public HoloNETClientBase HoloNETClient { get; private set; }
 
 
-        public ZomeProxy(HoloNETClientBase holoNETClient)
+        public MyZome(HoloNETClientBase holoNETClient)
         {
             this.HoloNETClient = holoNETClient;
             Initialize();
@@ -45,13 +45,13 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core.CSharpTemplates
 
         public async Task Initialize()
         {
-            HoloNETClient.OnConnected += ZomeProxy_OnConnected;
-            HoloNETClient.OnDisconnected += ZomeProxy_OnDisconnected;
+            HoloNETClient.OnConnected += MyZome_OnConnected;
+            HoloNETClient.OnDisconnected += MyZome_OnDisconnected;
             HoloNETClient.OnError += HoloNETClient_OnError;
-            HoloNETClient.OnDataReceived += ZomeProxy_OnDataReceived;
-            HoloNETClient.OnGetInstancesCallBack += ZomeProxy_OnGetInstancesCallBack;
-            HoloNETClient.OnSignalsCallBack += ZomeProxy_OnSignalsCallBack;
-            HoloNETClient.OnZomeFunctionCallBack += ZomeProxy_OnZomeFunctionCallBack;
+            HoloNETClient.OnDataReceived += MyZome_OnDataReceived;
+            HoloNETClient.OnGetInstancesCallBack += MyZome_OnGetInstancesCallBack;
+            HoloNETClient.OnSignalsCallBack += MyZome_OnSignalsCallBack;
+            HoloNETClient.OnZomeFunctionCallBack += MyZome_OnZomeFunctionCallBack;
 
             // HoloNETClient.Config.AutoStartConductor = true;
             //  HoloNETClient.Config.AutoShutdownConductor = true;
@@ -67,7 +67,7 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core.CSharpTemplates
             //OnHoloOASISError?.Invoke(this, new ErrorEventArgs { EndPoint = HoloNETClient.EndPoint, Reason = "Error occured in HoloNET. See ErrorDetial for reason.", HoloNETErrorDetails = e });
         }
 
-        private void ZomeProxy_OnZomeFunctionCallBack(object sender, ZomeFunctionCallBackEventArgs e)
+        private void MyZome_OnZomeFunctionCallBack(object sender, ZomeFunctionCallBackEventArgs e)
         {
             if (!e.IsCallSuccessful)
                 HandleError(string.Concat("Zome function ", e.ZomeFunction, " on zome ", e.Zome, " returned an error. Error Details: ", e.ZomeReturnData), null, null);
@@ -118,29 +118,29 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core.CSharpTemplates
             }
         }
 
-        private void ZomeProxy_OnSignalsCallBack(object sender, SignalsCallBackEventArgs e)
+        private void MyZome_OnSignalsCallBack(object sender, SignalsCallBackEventArgs e)
         {
 
         }
 
-        private void ZomeProxy_OnGetInstancesCallBack(object sender, GetInstancesCallBackEventArgs e)
+        private void MyZome_OnGetInstancesCallBack(object sender, GetInstancesCallBackEventArgs e)
         {
             _hcinstance = e.Instances[0];
             OnInitialized?.Invoke(this, new EventArgs());
             _taskCompletionSourceGetInstance.SetResult(_hcinstance);
         }
 
-        private void ZomeProxy_OnDisconnected(object sender, DisconnectedEventArgs e)
+        private void MyZome_OnDisconnected(object sender, DisconnectedEventArgs e)
         {
 
         }
 
-        private void ZomeProxy_OnDataReceived(object sender, DataReceivedEventArgs e)
+        private void MyZome_OnDataReceived(object sender, DataReceivedEventArgs e)
         {
 
         }
 
-        private void ZomeProxy_OnConnected(object sender, ConnectedEventArgs e)
+        private void MyZome_OnConnected(object sender, ConnectedEventArgs e)
         {
             HoloNETClient.GetHolochainInstancesAsync();
         }
@@ -218,7 +218,7 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core.CSharpTemplates
         /// <param name="holoNETEventArgs"></param>
         private void HandleError(string reason, Exception errorDetails, HoloNETErrorEventArgs holoNETEventArgs)
         {
-            OnZomeProxyError?.Invoke(this, new ZomeProxyErrorEventArgs() { EndPoint = HoloNETClient.EndPoint, Reason = reason, ErrorDetails = errorDetails, HoloNETErrorDetails = holoNETEventArgs });
+            OnMyZomeError?.Invoke(this, new MyZomeErrorEventArgs() { EndPoint = HoloNETClient.EndPoint, Reason = reason, ErrorDetails = errorDetails, HoloNETErrorDetails = holoNETEventArgs });
         }
     }
 }

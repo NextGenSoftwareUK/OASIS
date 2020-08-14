@@ -24,6 +24,7 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.CLI
                 return;
             }
 
+
             if (args[0].ToLower() == "build")
                 Build(args[1]);
         }

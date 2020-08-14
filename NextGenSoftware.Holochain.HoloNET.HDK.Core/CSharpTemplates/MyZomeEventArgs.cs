@@ -14,7 +14,7 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core.CSharpTemplates
         public IMyClass MyClass { get; set; }
     }
 
-    public class ZomeProxyErrorEventArgs : EventArgs
+    public class MyZomeErrorEventArgs : EventArgs
     {
         public string EndPoint { get; set; }
         public string Reason { get; set; }
