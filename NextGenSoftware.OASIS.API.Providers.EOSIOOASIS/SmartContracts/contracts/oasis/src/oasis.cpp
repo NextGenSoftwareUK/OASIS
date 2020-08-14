@@ -57,7 +57,8 @@ ACTION oasis::setversion(string new_version)
 
 //======================== account actions ========================
 
-ACTION oasis::openacct(string userid, name eosio_acc, string providerkey)
+ACTION oasis::openacct(string userid, name eosio_acc, string providerkey, string password, string email, string title, string firstname,
+                       string lastname, string dob, string playeraddr, uint32_t karma)
 {
 
     //open configs singleton, get config
@@ -84,6 +85,14 @@ ACTION oasis::openacct(string userid, name eosio_acc, string providerkey)
         col.userid = userid;
         col.username = eosio_acc;
         col.providerkey = providerkey;
+        col.password = password;
+        col.email = email;
+        col.title = title;
+        col.firstname = firstname;
+        col.lastname = lastname;
+        col.dob = dob;
+        col.playeraddr = playeraddr;
+        col.karma = karma;
     });
 
     //update total accounts

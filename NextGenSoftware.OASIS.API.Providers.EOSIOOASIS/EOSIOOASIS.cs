@@ -108,79 +108,16 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
                     new EOSIOOpenAccountParams()
                     {
                         userid = profile.UserId.ToString(),
-                        eosio_acc = profile.Username
-                    }
-                ));
-
-            actions.Add(new ActionUtility(chainApi.GetHost().AbsoluteUri).GetActionObject("setstrval", profile.Username, "active", OASIS_EOSIO_ACCOUNT,
-                    new EOSIOSetStringValueParams()
-                    {
                         eosio_acc = profile.Username,
-                        field_name = "password",
-                        new_value = StringCipher.Encrypt(profile.Password, OASIS_PASS_PHRASE)
-                    }
-                ));
-
-            actions.Add(new ActionUtility(chainApi.GetHost().AbsoluteUri).GetActionObject("setstrval", profile.Username, "active", OASIS_EOSIO_ACCOUNT,
-                    new EOSIOSetStringValueParams()
-                    {
-                        eosio_acc = profile.Username,
-                        field_name = "email",
-                        new_value = profile.Email
-                    }
-                ));
-
-            actions.Add(new ActionUtility(chainApi.GetHost().AbsoluteUri).GetActionObject("setstrval", profile.Username, "active", OASIS_EOSIO_ACCOUNT,
-                    new EOSIOSetStringValueParams()
-                    {
-                        eosio_acc = profile.Username,
-                        field_name = "title",
-                        new_value = profile.Title
-                    }
-                ));
-
-            actions.Add(new ActionUtility(chainApi.GetHost().AbsoluteUri).GetActionObject("setstrval", profile.Username, "active", OASIS_EOSIO_ACCOUNT,
-                    new EOSIOSetStringValueParams()
-                    {
-                        eosio_acc = profile.Username,
-                        field_name = "firstname",
-                        new_value = profile.FirstName
-                    }
-                ));
-
-            actions.Add(new ActionUtility(chainApi.GetHost().AbsoluteUri).GetActionObject("setstrval", profile.Username, "active", OASIS_EOSIO_ACCOUNT,
-                    new EOSIOSetStringValueParams()
-                    {
-                        eosio_acc = profile.Username,
-                        field_name = "lastname",
-                        new_value = profile.LastName
-                    }
-                ));
-
-            actions.Add(new ActionUtility(chainApi.GetHost().AbsoluteUri).GetActionObject("setstrval", profile.Username, "active", OASIS_EOSIO_ACCOUNT,
-                    new EOSIOSetStringValueParams()
-                    {
-                        eosio_acc = profile.Username,
-                        field_name = "dob",
-                        new_value = profile.DOB
-                    }
-                ));
-
-            actions.Add(new ActionUtility(chainApi.GetHost().AbsoluteUri).GetActionObject("setstrval", profile.Username, "active", OASIS_EOSIO_ACCOUNT,
-                    new EOSIOSetStringValueParams()
-                    {
-                        eosio_acc = profile.Username,
-                        field_name = "playeraddr",
-                        new_value = profile.PlayerAddress
-                    }
-                ));
-
-            actions.Add(new ActionUtility(chainApi.GetHost().AbsoluteUri).GetActionObject("setintval", profile.Username, "active", OASIS_EOSIO_ACCOUNT,
-                    new EOSIOSetIntValueParams()
-                    {
-                        eosio_acc = profile.Username,
-                        field_name = "karma",
-                        new_value = profile.Karma
+                        providerkey = profile.ProviderKey,
+                        password = StringCipher.Encrypt(profile.Password, OASIS_PASS_PHRASE),
+                        email = profile.Email,
+                        title = profile.Title,
+                        firstname = profile.FirstName,
+                        lastname = profile.LastName,
+                        dob = profile.DOB,
+                        playeraddr = profile.PlayerAddress,
+                        karma = profile.Karma
                     }
                 ));
 
