@@ -48,15 +48,20 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
     {
         public void Build(string classFolder)
         {
+            ConfigSettings settings;
+
             if (!Directory.Exists(classFolder))
             {
                 throw new ArgumentOutOfRangeException("classFolder", classFolder, "The folder is not valid, please double check and try again.");
             }
 
-            ConfigSettings settings2 = new ConfigSettings();
-            SaveConfig(settings2);
-
-            ConfigSettings settings = LoadConfig();
+            if (File.Exists("NETHDKSettings.json"))
+                settings = LoadConfig();
+            else
+            {
+                settings = new ConfigSettings();
+                SaveConfig(settings);
+            }            
 
             if (settings != null)
             {
@@ -305,13 +310,13 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
 
         class ConfigSettings
         {
-            public string RustTemplateFolder = @"C:\Users\david\source\repos\Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK\NextGenSoftware.Holochain.HoloNET.HDK\RustTemplates";
-            public string CSharpTemplateFolder = @"C:\Users\david\source\repos\Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK\NextGenSoftware.Holochain.HoloNET.HDK\CSharpTemplates";
+            public string RustTemplateFolder = @"C:\Users\david\source\repos\Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK\NextGenSoftware.Holochain.HoloNET.HDK.Core\RustTemplates";
+            public string CSharpTemplateFolder = @"C:\Users\david\source\repos\Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK\NextGenSoftware.Holochain.HoloNET.HDK.Core\CSharpTemplates";
             public string RustTemplateLib = "lib.rs";
             public string RustTemplateCreate = "create.rs";
             public string RustTemplateRead = "read.rs";
             public string RustTemplateUpdate = "update.rs";
-            public string RustTemplateDelete = "RustTemplates\\delete.rs";
+            public string RustTemplateDelete = "delete.rs";
             public string RustTemplateList = "list.rs";
             public string RustTemplateInt = "int.rs";
             public string RustTemplateString = "string.rs";
