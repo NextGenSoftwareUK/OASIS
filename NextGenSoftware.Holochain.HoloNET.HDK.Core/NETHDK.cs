@@ -50,10 +50,8 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
         {
             ConfigSettings settings;
 
-            if (!Directory.Exists(classFolder))
-            {
+            if (!string.IsNullOrEmpty(classFolder) && !Directory.Exists(classFolder))
                 throw new ArgumentOutOfRangeException("classFolder", classFolder, "The folder is not valid, please double check and try again.");
-            }
 
             if (File.Exists("NETHDKSettings.json"))
                 settings = LoadConfig();
@@ -65,55 +63,44 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
 
             if (settings != null)
             {
+                if (!Directory.Exists(settings.ProxyClassesToGenerateFromFolder))
+                    throw new ArgumentOutOfRangeException("ProxyClassesToGenerateFromFolder", settings.ProxyClassesToGenerateFromFolder, "The ProxyClassesToGenerateFromFolder folder is not valid, please double check and try again.");
+
+                if (!Directory.Exists(settings.GeneratedCSharpFilesFolder))
+                    throw new ArgumentOutOfRangeException("GeneratedCSharpFilesFolder", settings.GeneratedCSharpFilesFolder, "The GeneratedCSharpFilesFolder folder is not valid, please double check and try again.");
+
+                if (!Directory.Exists(settings.GeneratedRustFilesFolder))
+                    throw new ArgumentOutOfRangeException("GeneratedRustFilesFolder", settings.GeneratedCSharpFilesFolder, "The GeneratedRustFilesFolder folder is not valid, please double check and try again.");
+
                 if (!File.Exists(string.Concat(settings.RustTemplateFolder, "\\", settings.RustTemplateCreate)))
-                {
-                    throw new ArgumentOutOfRangeException("RustTemplateCreate", string.Concat(settings.RustTemplateFolder, "\\", settings.RustTemplateCreate), "The folder is not valid, please double check and try again.");
-                }
+                    throw new ArgumentOutOfRangeException("RustTemplateCreate", string.Concat(settings.RustTemplateFolder, "\\", settings.RustTemplateCreate), "The RustTemplateCreate file is not valid, please double check and try again.");
 
                 if (!File.Exists(string.Concat(settings.RustTemplateFolder, "\\", settings.RustTemplateDelete)))
-                {
-                    throw new ArgumentOutOfRangeException("RustTemplateDelete", string.Concat(settings.RustTemplateFolder, "\\", settings.RustTemplateDelete), "The folder is not valid, please double check and try again.");
-                }
+                    throw new ArgumentOutOfRangeException("RustTemplateDelete", string.Concat(settings.RustTemplateFolder, "\\", settings.RustTemplateDelete), "The RustTemplateDelete file is not valid, please double check and try again.");
 
                 if (!File.Exists(string.Concat(settings.RustTemplateFolder, "\\", settings.RustTemplateLib)))
-                {
-                    throw new ArgumentOutOfRangeException("RustTemplateLib", string.Concat(settings.RustTemplateFolder, "\\", settings.RustTemplateLib), "The folder is not valid, please double check and try again.");
-                }
+                    throw new ArgumentOutOfRangeException("RustTemplateLib", string.Concat(settings.RustTemplateFolder, "\\", settings.RustTemplateLib), "The RustTemplateLib file is not valid, please double check and try again.");
 
                 if (!File.Exists(string.Concat(settings.RustTemplateFolder, "\\", settings.RustTemplateRead)))
-                {
-                    throw new ArgumentOutOfRangeException("RustTemplateRead", string.Concat(settings.RustTemplateFolder, "\\", settings.RustTemplateRead), "The folder is not valid, please double check and try again.");
-                }
+                    throw new ArgumentOutOfRangeException("RustTemplateRead", string.Concat(settings.RustTemplateFolder, "\\", settings.RustTemplateRead), "The RustTemplateRead file is not valid, please double check and try again.");
 
                 if (!File.Exists(string.Concat(settings.RustTemplateFolder, "\\", settings.RustTemplateUpdate)))
-                {
-                    throw new ArgumentOutOfRangeException("RustTemplateUpdate", string.Concat(settings.RustTemplateFolder, "\\", settings.RustTemplateUpdate), "The folder is not valid, please double check and try again.");
-                }
+                    throw new ArgumentOutOfRangeException("RustTemplateUpdate", string.Concat(settings.RustTemplateFolder, "\\", settings.RustTemplateUpdate), "The RustTemplateUpdate file is not valid, please double check and try again.");
 
                 if (!File.Exists(string.Concat(settings.RustTemplateFolder, "\\", settings.RustTemplateList)))
-                {
-                    throw new ArgumentOutOfRangeException("RustTemplateList", string.Concat(settings.RustTemplateFolder, "\\", settings.RustTemplateList), "The folder is not valid, please double check and try again.");
-                }
+                    throw new ArgumentOutOfRangeException("RustTemplateList", string.Concat(settings.RustTemplateFolder, "\\", settings.RustTemplateList), "The RustTemplateList file is not valid, please double check and try again.");
 
                 if (!File.Exists(string.Concat(settings.CSharpTemplateFolder, "\\", settings.CSharpTemplateMyZomeEventArgs)))
-                {
-                    throw new ArgumentOutOfRangeException("CSharpTemplateEventArgs", string.Concat(settings.CSharpTemplateMyZomeEventArgs, "\\", settings.CSharpTemplateMyZomeEventArgs), "The folder is not valid, please double check and try again.");
-                }
+                    throw new ArgumentOutOfRangeException("CSharpTemplateEventArgs", string.Concat(settings.CSharpTemplateMyZomeEventArgs, "\\", settings.CSharpTemplateMyZomeEventArgs), "The CSharpTemplateEventArgs file is not valid, please double check and try again.");
 
                 if (!File.Exists(string.Concat(settings.CSharpTemplateFolder, "\\", settings.CSharpTemplateIMyClass)))
-                {
-                    throw new ArgumentOutOfRangeException("CSharpTemplateIMyClass", string.Concat(settings.CSharpTemplateFolder, "\\", settings.CSharpTemplateIMyClass), "The folder is not valid, please double check and try again.");
-                }
+                    throw new ArgumentOutOfRangeException("CSharpTemplateIMyClass", string.Concat(settings.CSharpTemplateFolder, "\\", settings.CSharpTemplateIMyClass), "The CSharpTemplateIMyClass file is not valid, please double check and try again.");
 
                 if (!File.Exists(string.Concat(settings.CSharpTemplateFolder, "\\", settings.CSharpTemplateMyClass)))
-                {
-                    throw new ArgumentOutOfRangeException("CSharpTemplateMyClass", string.Concat(settings.CSharpTemplateFolder, "\\", settings.CSharpTemplateMyClass), "The folder is not valid, please double check and try again.");
-                }
+                    throw new ArgumentOutOfRangeException("CSharpTemplateMyClass", string.Concat(settings.CSharpTemplateFolder, "\\", settings.CSharpTemplateMyClass), "The CSharpTemplateMyClass file is not valid, please double check and try again.");
 
                 if (!File.Exists(string.Concat(settings.CSharpTemplateFolder, "\\", settings.CSharpTemplateMyZome)))
-                {
-                    throw new ArgumentOutOfRangeException("CSharpTemplateMyZome", string.Concat(settings.CSharpTemplateFolder, "\\", settings.CSharpTemplateMyZome), "The folder is not valid, please double check and try again.");
-                }
+                    throw new ArgumentOutOfRangeException("CSharpTemplateMyZome", string.Concat(settings.CSharpTemplateFolder, "\\", settings.CSharpTemplateMyZome), "The CSharpTemplateMyZome file is not valid, please double check and try again.");
             }
 
             string libTemplate = new FileInfo(string.Concat(settings.RustTemplateFolder, "\\", settings.RustTemplateLib)).OpenText().ReadToEnd();
@@ -130,6 +117,10 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
             string iMyClassTemplate = new FileInfo(string.Concat(settings.CSharpTemplateFolder, "\\", settings.CSharpTemplateIMyClass)).OpenText().ReadToEnd();
             string myClassTemplate = new FileInfo(string.Concat(settings.CSharpTemplateFolder, "\\", settings.CSharpTemplateMyClass)).OpenText().ReadToEnd();
             string myZomeTemplate = new FileInfo(string.Concat(settings.CSharpTemplateFolder, "\\", settings.CSharpTemplateMyZome)).OpenText().ReadToEnd();
+
+            //If folder is not passed in via command line args then use default in config file.
+            if (string.IsNullOrEmpty(classFolder))
+                classFolder = settings.ProxyClassesToGenerateFromFolder;
 
             DirectoryInfo dirInfo = new DirectoryInfo(classFolder);
             FileInfo[] files = dirInfo.GetFiles();
@@ -160,11 +151,12 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
                         if (buffer.Contains("HolochainBaseZome"))
                         {
                             string[] parts = buffer.Split(' ');
-                            libBuffer = libTemplate.Replace("zome_name", parts[6].ToSnakeCase());
 
+                            myZomeEventArgsBuffer = myZomeEventArgsTemplate.Replace("MyZome", parts[6]);
+                            libBuffer = libTemplate.Replace("zome_name", parts[6].ToSnakeCase());
                             myZomeBuffer = myZomeTemplate.Replace("MyZome", parts[6].ToPascalCase());
-                            myZomeBuffer = myZomeTemplate.Replace("MYZOME", parts[6].ToUpper());
-                            myZomeBuffer = myZomeTemplate.Replace("my_zome", parts[6].ToSnakeCase());
+                            myZomeBuffer = myZomeBuffer.Replace("MYZOME", parts[6].ToUpper());
+                            myZomeBuffer = myZomeBuffer.Replace("my_zome", parts[6].ToSnakeCase());
                             zomeName = parts[6].ToPascalCase();
                         }
 
@@ -256,13 +248,14 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
                             classBuffer = classBuffer.Substring(0, classBuffer.Length - 1);
 
                             //Process the CSharp Templates.
-                            myZomeEventArgsBuffer = myZomeEventArgsTemplate.Replace("MyClass", parts[10]);
+                            myZomeEventArgsBuffer = myZomeEventArgsBuffer.Replace("MyClass", parts[10]);
                             myClassBuffer = myClassTemplate.Replace("MyClass", parts[10]);
                             iMyClassBuffer = iMyClassTemplate.Replace("MyClass", parts[10]);
 
                             myZomeBuffer = myZomeBuffer.Replace("MyClass", parts[10].ToPascalCase());
                             myZomeBuffer = myZomeBuffer.Replace("MYCLASS", parts[10].ToUpper());
                             myZomeBuffer = myZomeBuffer.Replace("myClass", parts[10].ToCamelCase());
+                            myZomeBuffer = myZomeBuffer.Replace("my_class", parts[10].ToSnakeCase());
 
                             classLineReached = true;
                         }
@@ -271,11 +264,11 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
                     reader.Close();
                     className = className.ToPascalCase();
 
-                    File.WriteAllText("lib.rs", libBuffer);
-                    File.WriteAllText(string.Concat(zomeName, ".cs"), myZomeBuffer);
-                    File.WriteAllText(string.Concat(zomeName, "EventArgs.cs"), myZomeEventArgsBuffer);
-                    File.WriteAllText(string.Concat(className, ".cs"), myClassBuffer);
-                    File.WriteAllText(string.Concat("I", className, ".cs"), iMyClassBuffer);
+                    File.WriteAllText(string.Concat(settings.GeneratedRustFilesFolder, "\\lib.rs"), libBuffer);
+                    File.WriteAllText(string.Concat(settings.GeneratedCSharpFilesFolder, "\\", zomeName, ".cs"), myZomeBuffer);
+                    File.WriteAllText(string.Concat(settings.GeneratedCSharpFilesFolder, "\\", zomeName, "EventArgs.cs"), myZomeEventArgsBuffer);
+                    File.WriteAllText(string.Concat(settings.GeneratedCSharpFilesFolder, "\\", className, ".cs"), myClassBuffer);
+                    File.WriteAllText(string.Concat(settings.GeneratedCSharpFilesFolder, "\\I", className, ".cs"), iMyClassBuffer);
                 }
             }
         }
@@ -312,6 +305,9 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
         {
             public string RustTemplateFolder = @"C:\Users\david\source\repos\Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK\NextGenSoftware.Holochain.HoloNET.HDK.Core\RustTemplates";
             public string CSharpTemplateFolder = @"C:\Users\david\source\repos\Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK\NextGenSoftware.Holochain.HoloNET.HDK.Core\CSharpTemplates";
+            public string ProxyClassesToGenerateFromFolder = @"C:\Users\david\source\repos\Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK\NextGenSoftware.Holochain.HoloNET.HDK.CLI\ProxyClasses";
+            public string GeneratedRustFilesFolder = @"C:\Users\david\source\repos\Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK\NextGenSoftware.Holochain.HoloNET.HDK.CLI\GeneratedCode\Rust";
+            public string GeneratedCSharpFilesFolder = @"C:\Users\david\source\repos\Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK\NextGenSoftware.Holochain.HoloNET.HDK.CLI\GeneratedCode\CSharp";
             public string RustTemplateLib = "lib.rs";
             public string RustTemplateCreate = "create.rs";
             public string RustTemplateRead = "read.rs";
