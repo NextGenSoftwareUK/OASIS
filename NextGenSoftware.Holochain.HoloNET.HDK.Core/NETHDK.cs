@@ -128,6 +128,7 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
             bool classLineReached = false;
             string classBuffer = "";
             string libBuffer = "";
+            string zomeBuffer = "";
             string className = "";
             string zomeName = "";
             string classFieldsClone = "";
@@ -263,8 +264,12 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
 
                     reader.Close();
                     className = className.ToPascalCase();
+                    nextLineToWrite = 0;
 
                     File.WriteAllText(string.Concat(settings.GeneratedRustFilesFolder, "\\lib.rs"), libBuffer);
+                    File.WriteAllText(string.Concat(settings.GeneratedRustFilesFolder, "\\", className.ToSnakeCase(), ".rs"), libBuffer);
+                    
+
                     File.WriteAllText(string.Concat(settings.GeneratedCSharpFilesFolder, "\\", zomeName, ".cs"), myZomeBuffer);
                     File.WriteAllText(string.Concat(settings.GeneratedCSharpFilesFolder, "\\", zomeName, "EventArgs.cs"), myZomeEventArgsBuffer);
                     File.WriteAllText(string.Concat(settings.GeneratedCSharpFilesFolder, "\\", className, ".cs"), myClassBuffer);
@@ -303,6 +308,7 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
 
         class ConfigSettings
         {
+            //TODO: Make the paths relative!
             public string RustTemplateFolder = @"C:\Users\david\source\repos\Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK\NextGenSoftware.Holochain.HoloNET.HDK.Core\RustTemplates";
             public string CSharpTemplateFolder = @"C:\Users\david\source\repos\Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK\NextGenSoftware.Holochain.HoloNET.HDK.Core\CSharpTemplates";
             public string ProxyClassesToGenerateFromFolder = @"C:\Users\david\source\repos\Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK\NextGenSoftware.Holochain.HoloNET.HDK.CLI\ProxyClasses";

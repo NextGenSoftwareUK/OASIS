@@ -9,24 +9,16 @@ use hdk_proc_macros::zome;
 // agent's chain via the exposed function create_my_entry
 
 #[zome]
-mod test_zome {
-
+mod test2_zome {
 #[derive(Serialize, Deserialize, Debug, DefaultJson, Clone)]
-pub struct test {
+pub struct test2 {
 test_string: String,
 test_int: i32,
 test_bool: bool
 }
-    
-    #[init]
-    fn init() {
-        Ok(())
-    }
 
-    #[validate_agent]
-    pub fn validate_agent(validation_data: EntryValidationData<
 #[zome_fn("hc_public")]
-fn delete_test(entry: test) -> ZomeApiResult<Address> {
+fn delete_test2(entry: test2) -> ZomeApiResult<Address> {
     /*
     hdk::remove_link(&anchor_address()?, &address, "course_list", "")?;
 
@@ -43,31 +35,39 @@ fn delete_test(entry: test) -> ZomeApiResult<Address> {
 }
 
 #[zome_fn("hc_public")]
-fn update_test(updated_entry: test, address: &Address) -> ZomeApiResult<Address> {
-    let mut test: test = hdk::utils::get_as_type(address.clone())?;
+fn update_test2(updated_entry: test2, address: &Address) -> ZomeApiResult<Address> {
+    let mut test2: test2 = hdk::utils::get_as_type(address.clone())?;
     
-    test.test_string=updated_entry.test_string;
-	test.test_int=updated_entry.test_int;
-	test.test_bool=updated_entry.test_bool;
+    test2.test_string=updated_entry.test_string;
+	test2.test_int=updated_entry.test_int;
+	test2.test_bool=updated_entry.test_bool;
 
-    hdk::update_entry(test.entry(), address)
+    hdk::update_entry(test2.entry(), address)
 }
 
 
 #[zome_fn("hc_public")]
-fn read_test(address: Address) -> ZomeApiResult<Option<test>> {
+fn read_test2(address: Address) -> ZomeApiResult<Option<test2>> {
     hdk::get_entry(&address)
 }
 
 
 #[zome_fn("hc_public")]
-fn create_test(entry: test) -> ZomeApiResult<Address> {
-    let entry = Entry::App("test".into(), entry.into());
+fn create_test2(entry: test2) -> ZomeApiResult<Address> {
+    let entry = Entry::App("test2".into(), entry.into());
     let address = hdk::commit_entry(&entry)?;
     Ok(address)
 }
 
-AgentId>) {
+
+    
+    #[init]
+    fn init() {
+        Ok(())
+    }
+
+    #[validate_agent]
+    pub fn validate_agent(validation_data: EntryValidationData<AgentId>) {
         Ok(())
     }
 
