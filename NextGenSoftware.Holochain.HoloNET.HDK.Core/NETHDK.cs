@@ -90,6 +90,9 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
                 if (!File.Exists(string.Concat(settings.RustTemplateFolder, "\\", settings.RustTemplateList)))
                     throw new ArgumentOutOfRangeException("RustTemplateList", string.Concat(settings.RustTemplateFolder, "\\", settings.RustTemplateList), "The RustTemplateList file is not valid, please double check and try again.");
 
+                if (!File.Exists(string.Concat(settings.RustTemplateFolder, "\\", settings.RustTemplateValidation)))
+                    throw new ArgumentOutOfRangeException("RustTemplateValidation", string.Concat(settings.RustTemplateValidation, "\\", settings.RustTemplateList), "The RustTemplateValidation file is not valid, please double check and try again.");
+
                 if (!File.Exists(string.Concat(settings.CSharpTemplateFolder, "\\", settings.CSharpTemplateMyZomeEventArgs)))
                     throw new ArgumentOutOfRangeException("CSharpTemplateEventArgs", string.Concat(settings.CSharpTemplateMyZomeEventArgs, "\\", settings.CSharpTemplateMyZomeEventArgs), "The CSharpTemplateEventArgs file is not valid, please double check and try again.");
 
@@ -109,6 +112,7 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
             string updateTemplate = new FileInfo(string.Concat(settings.RustTemplateFolder, "\\", settings.RustTemplateUpdate)).OpenText().ReadToEnd();
             string deleteTemplate = new FileInfo(string.Concat(settings.RustTemplateFolder, "\\", settings.RustTemplateDelete)).OpenText().ReadToEnd();
             string listTemplate = new FileInfo(string.Concat(settings.RustTemplateFolder, "\\", settings.RustTemplateList)).OpenText().ReadToEnd();
+            string validationTemplate = new FileInfo(string.Concat(settings.RustTemplateFolder, "\\", settings.RustTemplateValidation)).OpenText().ReadToEnd();
             string structTemplate = new FileInfo(string.Concat(settings.RustTemplateFolder, "\\", settings.RustTemplateStruct)).OpenText().ReadToEnd();
             string intTemplate = new FileInfo(string.Concat(settings.RustTemplateFolder, "\\", settings.RustTemplateInt)).OpenText().ReadToEnd();
             string stringTemplate = new FileInfo(string.Concat(settings.RustTemplateFolder, "\\", settings.RustTemplateString)).OpenText().ReadToEnd();
@@ -155,6 +159,7 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
 
                             myZomeEventArgsBuffer = myZomeEventArgsTemplate.Replace("MyZome", parts[6]);
                             libBuffer = libTemplate.Replace("zome_name", parts[6].ToSnakeCase());
+
                             myZomeBuffer = myZomeTemplate.Replace("MyZome", parts[6].ToPascalCase());
                             myZomeBuffer = myZomeBuffer.Replace("MYZOME", parts[6].ToUpper());
                             myZomeBuffer = myZomeBuffer.Replace("my_zome", parts[6].ToSnakeCase());
@@ -177,8 +182,11 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
 
                                         fieldName = parts[14].ToSnakeCase();
                                         classFieldsClone = string.Concat(classFieldsClone, className, ".", fieldName, "=updated_entry.", fieldName, ";", Environment.NewLine);
+
+                                        //int index = classBuffer.IndexOf("//#CopyFields//");
                                         classBuffer = string.Concat(classBuffer, stringTemplate.Replace("variableName", fieldName), ",", Environment.NewLine);
 
+                                       // classBuffer = classBuffer.Insert(nextLineToWrite + 2, string.Concat(Environment.NewLine, createTemplate.Replace("MyEntry", className.ToPascalCase()).Replace("my_entry", className), Environment.NewLine));
                                     }
                                     break;
 
@@ -218,20 +226,24 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
 
                             classBuffer = string.Concat(Environment.NewLine, classBuffer, Environment.NewLine, structTemplate.Substring(structTemplate.Length - 1, 1), Environment.NewLine);
 
-                            int zomeNameIndex = libTemplate.IndexOf("zome_name");
-                            int zomeBodyStartIndex = libTemplate.IndexOf("{", zomeNameIndex);
-                            libBuffer = libBuffer.Insert(zomeBodyStartIndex + 2, classBuffer);
+                            //int zomeNameIndex = libTemplate.IndexOf("zome_name");
+                            int zomeIndex = libTemplate.IndexOf("#[zome]");
+                            int zomeBodyStartIndex = libTemplate.IndexOf("{", zomeIndex);
                             
+                            libBuffer = libBuffer.Insert(zomeIndex - 2, classBuffer);
+                            // libBuffer = libBuffer.Insert(zomeBodyStartIndex + 2, classBuffer);
+
                             if (nextLineToWrite == 0)
                                 nextLineToWrite = zomeBodyStartIndex + classBuffer.Length;
                             else
                                 nextLineToWrite += classBuffer.Length;
 
                             //Now insert the CRUD methods for each class.
-                            libBuffer = libBuffer.Insert(nextLineToWrite + 2, string.Concat(Environment.NewLine, createTemplate.Replace("MyEntry", className).Replace("my_entry", className), Environment.NewLine));
-                            libBuffer = libBuffer.Insert(nextLineToWrite + 2, string.Concat(Environment.NewLine, readTemplate.Replace("MyEntry", className).Replace("my_entry", className), Environment.NewLine));
-                            libBuffer = libBuffer.Insert(nextLineToWrite + 2, string.Concat(Environment.NewLine, updateTemplate.Replace("MyEntry", className).Replace("my_entry", className).Replace("//#CopyFields//", classFieldsClone), Environment.NewLine));
-                            libBuffer = libBuffer.Insert(nextLineToWrite + 2, string.Concat(Environment.NewLine, deleteTemplate.Replace("MyEntry", className).Replace("my_entry", className), Environment.NewLine));
+                            libBuffer = libBuffer.Insert(nextLineToWrite + 2, string.Concat(Environment.NewLine, createTemplate.Replace("MyEntry", className.ToPascalCase()).Replace("my_entry", className), Environment.NewLine));
+                            libBuffer = libBuffer.Insert(nextLineToWrite + 2, string.Concat(Environment.NewLine, readTemplate.Replace("MyEntry", className.ToPascalCase()).Replace("my_entry", className), Environment.NewLine));
+                            libBuffer = libBuffer.Insert(nextLineToWrite + 2, string.Concat(Environment.NewLine, updateTemplate.Replace("MyEntry", className.ToPascalCase()).Replace("my_entry", className).Replace("//#CopyFields//", classFieldsClone), Environment.NewLine));
+                            libBuffer = libBuffer.Insert(nextLineToWrite + 2, string.Concat(Environment.NewLine, deleteTemplate.Replace("MyEntry", className.ToPascalCase()).Replace("my_entry", className), Environment.NewLine));
+                            libBuffer = libBuffer.Insert(nextLineToWrite + 2, string.Concat(Environment.NewLine, validationTemplate.Replace("MyEntry", className.ToPascalCase()).Replace("my_entry", className), Environment.NewLine));
                             //libBuffer = libBuffer.Insert(nextLineToWrite + 2, string.Concat(Environment.NewLine, listTemplate, Environment.NewLine));
 
                             classBuffer = "";
@@ -244,8 +256,9 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
                         if (buffer.Contains("HolochainBaseDataObject"))
                         {
                             string[] parts = buffer.Split(' ');
-                            className = parts[10].ToSnakeCase();  
-                            classBuffer = structTemplate.Replace("StructName", className); 
+                            className = parts[10].ToPascalCase();
+
+                            classBuffer = structTemplate.Replace("MyEntry", className).Replace("my_entry", className.ToSnakeCase());
                             classBuffer = classBuffer.Substring(0, classBuffer.Length - 1);
 
                             //Process the CSharp Templates.
@@ -258,6 +271,7 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
                             myZomeBuffer = myZomeBuffer.Replace("myClass", parts[10].ToCamelCase());
                             myZomeBuffer = myZomeBuffer.Replace("my_class", parts[10].ToSnakeCase());
 
+                            className = className.ToSnakeCase();
                             classLineReached = true;
                         }
                     }
@@ -267,7 +281,7 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
                     nextLineToWrite = 0;
 
                     File.WriteAllText(string.Concat(settings.GeneratedRustFilesFolder, "\\lib.rs"), libBuffer);
-                    File.WriteAllText(string.Concat(settings.GeneratedRustFilesFolder, "\\", className.ToSnakeCase(), ".rs"), libBuffer);
+                  //  File.WriteAllText(string.Concat(settings.GeneratedRustFilesFolder, "\\", className.ToSnakeCase(), ".rs"), libBuffer);
                     
 
                     File.WriteAllText(string.Concat(settings.GeneratedCSharpFilesFolder, "\\", zomeName, ".cs"), myZomeBuffer);
@@ -324,6 +338,7 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
             public string RustTemplateString = "string.rs";
             public string RustTemplateBool = "bool.rs";
             public string RustTemplateStruct = "struct.rs";
+            public string RustTemplateValidation = "validation.rs";
             public string CSharpTemplateMyZomeEventArgs = "MyZomeEventArgs.cs";
             public string CSharpTemplateIMyClass = "IMyClass.cs";
             public string CSharpTemplateMyClass = "MyClass.cs";

@@ -6,7 +6,11 @@ using System.Threading.Tasks;
 
 namespace NextGenSoftware.Holochain.HoloNET.HDK.Core.CSharpTemplates
 {
-    public class MyZome : HolochainBaseZome
+    // TODO: Move generic parts like HoloNETClient, error handling, etc into HolochainBaseZome
+    // Update NETHDK to generate serperate partial classes for each class defined in proxyClasses.
+    // Nearly there! ;-)
+
+    public partial class MyZome : HolochainBaseZome
     {
         private const string MYZOME_ZOME = "my_zome_core";
         private const string LOAD_MYCLASS_FUNC = "load_my_class";

@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 
 namespace NextGenSoftware.Holochain.HoloNET.HDK.Core.CSharpTemplates
 {
-    public class TestZome : HolochainBaseZome
+    public class MyZome : HolochainBaseZome
     {
-        private const string TESTZOME_ZOME = "test_zome_core";
+        private const string MYZOME_ZOME = "my_zome_core";
         private const string LOAD_TEST_FUNC = "load_test";
         private const string SAVE_TEST_FUNC = "save_test";
 
@@ -31,13 +31,13 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core.CSharpTemplates
         public delegate void TestLoaded(object sender, TestLoadedEventArgs e);
         public event TestLoaded OnTestLoaded;
 
-        public delegate void TestZomeError(object sender, TestZomeErrorEventArgs e);
-        public event TestZomeError OnTestZomeError;
+        public delegate void MyZomeError(object sender, MyZomeErrorEventArgs e);
+        public event MyZomeError OnMyZomeError;
 
         public HoloNETClientBase HoloNETClient { get; private set; }
 
 
-        public TestZome(HoloNETClientBase holoNETClient)
+        public MyZome(HoloNETClientBase holoNETClient)
         {
             this.HoloNETClient = holoNETClient;
             Initialize();
@@ -45,13 +45,13 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core.CSharpTemplates
 
         public async Task Initialize()
         {
-            HoloNETClient.OnConnected += TestZome_OnConnected;
-            HoloNETClient.OnDisconnected += TestZome_OnDisconnected;
+            HoloNETClient.OnConnected += MyZome_OnConnected;
+            HoloNETClient.OnDisconnected += MyZome_OnDisconnected;
             HoloNETClient.OnError += HoloNETClient_OnError;
-            HoloNETClient.OnDataReceived += TestZome_OnDataReceived;
-            HoloNETClient.OnGetInstancesCallBack += TestZome_OnGetInstancesCallBack;
-            HoloNETClient.OnSignalsCallBack += TestZome_OnSignalsCallBack;
-            HoloNETClient.OnZomeFunctionCallBack += TestZome_OnZomeFunctionCallBack;
+            HoloNETClient.OnDataReceived += MyZome_OnDataReceived;
+            HoloNETClient.OnGetInstancesCallBack += MyZome_OnGetInstancesCallBack;
+            HoloNETClient.OnSignalsCallBack += MyZome_OnSignalsCallBack;
+            HoloNETClient.OnZomeFunctionCallBack += MyZome_OnZomeFunctionCallBack;
 
             // HoloNETClient.Config.AutoStartConductor = true;
             //  HoloNETClient.Config.AutoShutdownConductor = true;
@@ -67,7 +67,7 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core.CSharpTemplates
             //OnHoloOASISError?.Invoke(this, new ErrorEventArgs { EndPoint = HoloNETClient.EndPoint, Reason = "Error occured in HoloNET. See ErrorDetial for reason.", HoloNETErrorDetails = e });
         }
 
-        private void TestZome_OnZomeFunctionCallBack(object sender, ZomeFunctionCallBackEventArgs e)
+        private void MyZome_OnZomeFunctionCallBack(object sender, ZomeFunctionCallBackEventArgs e)
         {
             if (!e.IsCallSuccessful)
                 HandleError(string.Concat("Zome function ", e.ZomeFunction, " on zome ", e.Zome, " returned an error. Error Details: ", e.ZomeReturnData), null, null);
@@ -118,29 +118,29 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core.CSharpTemplates
             }
         }
 
-        private void TestZome_OnSignalsCallBack(object sender, SignalsCallBackEventArgs e)
+        private void MyZome_OnSignalsCallBack(object sender, SignalsCallBackEventArgs e)
         {
 
         }
 
-        private void TestZome_OnGetInstancesCallBack(object sender, GetInstancesCallBackEventArgs e)
+        private void MyZome_OnGetInstancesCallBack(object sender, GetInstancesCallBackEventArgs e)
         {
             _hcinstance = e.Instances[0];
             OnInitialized?.Invoke(this, new EventArgs());
             _taskCompletionSourceGetInstance.SetResult(_hcinstance);
         }
 
-        private void TestZome_OnDisconnected(object sender, DisconnectedEventArgs e)
+        private void MyZome_OnDisconnected(object sender, DisconnectedEventArgs e)
         {
 
         }
 
-        private void TestZome_OnDataReceived(object sender, DataReceivedEventArgs e)
+        private void MyZome_OnDataReceived(object sender, DataReceivedEventArgs e)
         {
 
         }
 
-        private void TestZome_OnConnected(object sender, ConnectedEventArgs e)
+        private void MyZome_OnConnected(object sender, ConnectedEventArgs e)
         {
             HoloNETClient.GetHolochainInstancesAsync();
         }
@@ -151,7 +151,7 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core.CSharpTemplates
 
             if (HoloNETClient.State == System.Net.WebSockets.WebSocketState.Open && !string.IsNullOrEmpty(_hcinstance))
             {
-                await HoloNETClient.CallZomeFunctionAsync(_hcinstance, TESTZOME_ZOME, LOAD_TEST_FUNC, new { address = TestEntryHash });
+                await HoloNETClient.CallZomeFunctionAsync(_hcinstance, MYZOME_ZOME, LOAD_TEST_FUNC, new { address = TestEntryHash });
                 return await _taskCompletionSourceLoadTest.Task;
             }
 
@@ -165,7 +165,7 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core.CSharpTemplates
             if (HoloNETClient.State == System.Net.WebSockets.WebSocketState.Open && !string.IsNullOrEmpty(_hcinstance))
             {
                 //TODO: Implement in HC/Rust
-                await HoloNETClient.CallZomeFunctionAsync(_hcinstance, TESTZOME_ZOME, LOAD_TEST_FUNC, new { id });
+                await HoloNETClient.CallZomeFunctionAsync(_hcinstance, MYZOME_ZOME, LOAD_TEST_FUNC, new { id });
                 return await _taskCompletionSourceLoadTest.Task;
             }
 
@@ -182,7 +182,7 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core.CSharpTemplates
                 //await HoloNETClient.CallZomeFunctionAsync(_hcinstance, OURWORLD_ZOME, LOAD_Test_FUNC, new { username, password });
 
                 //TODO: TEMP HARDCODED JUST TO TEST WITH!
-                await HoloNETClient.CallZomeFunctionAsync(_hcinstance, TESTZOME_ZOME, LOAD_TEST_FUNC, new { address = "QmR6A1gkSmCsxnbDF7V9Eswnd4Kw9SWhuf8r4R643eDshg" });
+                await HoloNETClient.CallZomeFunctionAsync(_hcinstance, MYZOME_ZOME, LOAD_TEST_FUNC, new { address = "QmR6A1gkSmCsxnbDF7V9Eswnd4Kw9SWhuf8r4R643eDshg" });
                 return await _taskCompletionSourceLoadTest.Task;
             }
 
@@ -202,7 +202,7 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core.CSharpTemplates
                 _currentId++;
                 _savingTests[_currentId.ToString()] = (Test)test;
 
-                await HoloNETClient.CallZomeFunctionAsync(_currentId.ToString(), _hcinstance, TESTZOME_ZOME, SAVE_TEST_FUNC, new { entry = test });
+                await HoloNETClient.CallZomeFunctionAsync(_currentId.ToString(), _hcinstance, MYZOME_ZOME, SAVE_TEST_FUNC, new { entry = test });
                 return await _taskCompletionSourceSaveTest.Task;
             }
 
@@ -218,7 +218,7 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core.CSharpTemplates
         /// <param name="holoNETEventArgs"></param>
         private void HandleError(string reason, Exception errorDetails, HoloNETErrorEventArgs holoNETEventArgs)
         {
-            OnTestZomeError?.Invoke(this, new TestZomeErrorEventArgs() { EndPoint = HoloNETClient.EndPoint, Reason = reason, ErrorDetails = errorDetails, HoloNETErrorDetails = holoNETEventArgs });
+            OnMyZomeError?.Invoke(this, new MyZomeErrorEventArgs() { EndPoint = HoloNETClient.EndPoint, Reason = reason, ErrorDetails = errorDetails, HoloNETErrorDetails = holoNETEventArgs });
         }
     }
 }

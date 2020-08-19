@@ -14,7 +14,7 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core.CSharpTemplates
         public ITest Test { get; set; }
     }
 
-    public class TestZomeErrorEventArgs : EventArgs
+    public class MyZomeErrorEventArgs : EventArgs
     {
         public string EndPoint { get; set; }
         public string Reason { get; set; }
