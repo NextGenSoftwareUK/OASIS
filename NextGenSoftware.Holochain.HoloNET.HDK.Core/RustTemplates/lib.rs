@@ -2,11 +2,9 @@
 
 use hdk::prelude::*;
 use hdk_proc_macros::zome;
+use holochain_entry_utils::HolochainEntry;
 
 // see https://developer.holochain.org/api/0.0.50-alpha4/hdk/ for info on using the hdk library
-
-// This is a sample zome that defines an entry type "MyEntry" that can be committed to the
-// agent's chain via the exposed function create_my_entry
 
 #[zome]
 mod zome_name {
@@ -19,20 +17,5 @@ mod zome_name {
     #[validate_agent]
     pub fn validate_agent(validation_data: EntryValidationData<AgentId>) {
         Ok(())
-    }
-
-    #[entry_def]
-    fn my_entry_def() -> ValidatingEntryType {
-        entry!(
-            name: "my_entry",
-            description: "this is a same entry defintion",
-            sharing: Sharing::Public,
-            validation_package: || {
-                hdk::ValidationPackageDefinition::Entry
-            },
-            validation: | _validation_data: hdk::EntryValidationData<MyEntry>| {
-                Ok(())
-            }
-        )
     }
 }

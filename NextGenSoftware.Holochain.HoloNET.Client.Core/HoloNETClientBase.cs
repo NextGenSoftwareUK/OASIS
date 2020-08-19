@@ -6,7 +6,6 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using System.Linq;
 using System.IO;
 using System.Diagnostics;
 
@@ -129,7 +128,8 @@ namespace NextGenSoftware.Holochain.HoloNET.Client.Core
                         await Task.Delay(Config.SecondsToWaitForHolochainConductorToStart); // Give the conductor 5 seconds to start up...
 
                         // pProcess.StandardInput.WriteLine("nix-shell https://holochain.love");
-                        pProcess.StandardInput.WriteLine("nix-shell holochain-holonix-6a1542d");
+                        //pProcess.StandardInput.WriteLine("nix-shell holochain-holonix-6a1542d");
+                        pProcess.StandardInput.WriteLine("nix-shell C:\\holochain-holonix-v0.0.80-9-g6a1542d\\holochain-holonix-6a1542d");
 
                         await Task.Delay(Config.SecondsToWaitForHolochainConductorToStart); // Give the conductor 5 seconds to start up...
 
