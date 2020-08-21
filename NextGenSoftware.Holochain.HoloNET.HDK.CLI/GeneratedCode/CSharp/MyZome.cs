@@ -21,7 +21,7 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core.CSharpTemplates
         private TaskCompletionSource<string> _taskCompletionSourceGetInstance = new TaskCompletionSource<string>();
 
         // public event TestManager.StorageProviderError OnStorageProviderError;
-
+         
         public delegate void Initialized(object sender, EventArgs e);
         public event Initialized OnInitialized;
 
