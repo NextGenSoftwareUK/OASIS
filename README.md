@@ -2497,3 +2497,4 @@ https://d4de5c45-0ca1-451c-86a7-ce397b9225cd.filesusr.com/ugd/4280d8_50d17252aa3
 **Funding**
 
 **https://www.gofundme.com/ourworldthegame** <br/> 
+**https://www.patreon.com/davidellams**
