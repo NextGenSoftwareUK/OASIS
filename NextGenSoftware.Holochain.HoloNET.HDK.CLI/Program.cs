@@ -27,7 +27,12 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.CLI
 
             if (args[0].ToLower() == "build")
                 Build(args[1]);
-        }
+
+
+           // NextGenSoftware.Holochain.HoloNET.HDK.Core.CSharpTemplates. _ssss = new SuperZome("http://www.localhost:8888", HolochainBaseZome.HoloNETClientType.Desktop);
+            //  _ssss.
+       
+    }
 
         static void Build(string classFolder)
         {

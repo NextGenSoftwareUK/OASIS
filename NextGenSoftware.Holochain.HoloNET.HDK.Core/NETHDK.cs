@@ -128,8 +128,10 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
 
             DirectoryInfo dirInfo = new DirectoryInfo(classFolder);
             FileInfo[] files = dirInfo.GetFiles();
-            
-            bool classLineReached = false;
+
+            //bool classLineReached = false;
+            bool classHolochainDataObjectReached = false;
+            bool classHolochainZometReached = false;
             string classBuffer = "";
             string libBuffer = "";
             string zomeBuffer = "";
@@ -142,6 +144,8 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
             string iMyClassBuffer = "";
             string myClassBuffer = "";
             string myZomeBuffer = "";
+            string classList = "";
+            string namespaceName = "";
 
             foreach (FileInfo file in files)
             {
@@ -153,20 +157,30 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
                     {
                         string buffer = reader.ReadLine();
 
+                        //if (buffer.Concat(classHolochainZometReached))
+
+
+                        if (buffer.Contains("namespace"))
+                        {
+                            string[] parts = buffer.Split(' ');
+                            myZomeBuffer = myZomeTemplate.Replace("NextGenSoftware.Holochain.HoloNET.HDK.Core.CSharpTemplates", parts[1]);
+                        }
+
                         if (buffer.Contains("HolochainBaseZome"))
+                        //if (buffer.Contains("HolochainBaseProxyZome"))
                         {
                             string[] parts = buffer.Split(' ');
 
                             myZomeEventArgsBuffer = myZomeEventArgsTemplate.Replace("MyZome", parts[6]);
                             libBuffer = libTemplate.Replace("zome_name", parts[6].ToSnakeCase());
 
-                            myZomeBuffer = myZomeTemplate.Replace("MyZome", parts[6].ToPascalCase());
+                            myZomeBuffer = myZomeBuffer.Replace("MyZome", parts[6].ToPascalCase());
                             myZomeBuffer = myZomeBuffer.Replace("MYZOME", parts[6].ToUpper());
                             myZomeBuffer = myZomeBuffer.Replace("my_zome", parts[6].ToSnakeCase());
                             zomeName = parts[6].ToPascalCase();
                         }
 
-                        if (classLineReached && buffer.Contains("string") || buffer.Contains("int") || buffer.Contains("bool"))
+                        if (classHolochainDataObjectReached && buffer.Contains("string") || buffer.Contains("int") || buffer.Contains("bool"))
                         {
                             string[] parts = buffer.Split(' ');
                             string fieldName = string.Empty;
@@ -219,7 +233,7 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
                         }
 
                         // Write the class out to the rust lib template. 
-                        if (classLineReached && buffer.Length > 1 && buffer.Substring(buffer.Length-1 ,1) == "}" && !buffer.Contains("get;"))
+                        if (classHolochainDataObjectReached && buffer.Length > 1 && buffer.Substring(buffer.Length-1 ,1) == "}" && !buffer.Contains("get;"))
                         {
                             if (classBuffer.Length >2)
                                 classBuffer = classBuffer.Remove(classBuffer.Length - 3);
@@ -248,15 +262,22 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
 
                             classBuffer = "";
                             classFieldsClone = "";
-                            //className = "";
-                            classLineReached = false;
+                            classHolochainDataObjectReached = false;
+                            classHolochainZometReached = false;
                             firstField = true;
+                            className = className.ToPascalCase();
+
+                            File.WriteAllText(string.Concat(settings.GeneratedCSharpFilesFolder, "\\", className, ".cs"), myClassBuffer);
+                            File.WriteAllText(string.Concat(settings.GeneratedCSharpFilesFolder, "\\I", className, ".cs"), iMyClassBuffer);
+
+                            className = "";
                         }
 
                         if (buffer.Contains("HolochainBaseDataObject"))
                         {
                             string[] parts = buffer.Split(' ');
                             className = parts[10].ToPascalCase();
+                            classList = string.Concat(classList, className, ", ");
 
                             classBuffer = structTemplate.Replace("MyEntry", className).Replace("my_entry", className.ToSnakeCase());
                             classBuffer = classBuffer.Substring(0, classBuffer.Length - 1);
@@ -272,22 +293,22 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
                             myZomeBuffer = myZomeBuffer.Replace("my_class", parts[10].ToSnakeCase());
 
                             className = className.ToSnakeCase();
-                            classLineReached = true;
+                            classHolochainDataObjectReached = true;
                         }
                     }
 
                     reader.Close();
-                    className = className.ToPascalCase();
                     nextLineToWrite = 0;
 
                     File.WriteAllText(string.Concat(settings.GeneratedRustFilesFolder, "\\lib.rs"), libBuffer);
-                  //  File.WriteAllText(string.Concat(settings.GeneratedRustFilesFolder, "\\", className.ToSnakeCase(), ".rs"), libBuffer);
-                    
+                    //  File.WriteAllText(string.Concat(settings.GeneratedRustFilesFolder, "\\", className.ToSnakeCase(), ".rs"), libBuffer);
 
+                    classList = classList.Substring(0, classList.Length - 2);
+                    myZomeBuffer = myZomeBuffer.Replace("class_list", classList);
                     File.WriteAllText(string.Concat(settings.GeneratedCSharpFilesFolder, "\\", zomeName, ".cs"), myZomeBuffer);
                     File.WriteAllText(string.Concat(settings.GeneratedCSharpFilesFolder, "\\", zomeName, "EventArgs.cs"), myZomeEventArgsBuffer);
-                    File.WriteAllText(string.Concat(settings.GeneratedCSharpFilesFolder, "\\", className, ".cs"), myClassBuffer);
-                    File.WriteAllText(string.Concat(settings.GeneratedCSharpFilesFolder, "\\I", className, ".cs"), iMyClassBuffer);
+                    //File.WriteAllText(string.Concat(settings.GeneratedCSharpFilesFolder, "\\", className, ".cs"), myClassBuffer);
+                    //File.WriteAllText(string.Concat(settings.GeneratedCSharpFilesFolder, "\\I", className, ".cs"), iMyClassBuffer);
                 }
             }
         }

@@ -1,8 +1,6 @@
-﻿using Newtonsoft.Json;
-using NextGenSoftware.Holochain.HoloNET.Client.Core;
-using System;
+﻿using NextGenSoftware.Holochain.HoloNET.Client.Core;
+using NextGenSoftware.Holochain.HoloNET.HDK.Core;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 
 namespace NextGenSoftware.Holochain.HoloNET.HDK.Core.CSharpTemplates
 {
@@ -12,6 +10,17 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core.CSharpTemplates
 
     public partial class MyZome : HolochainBaseZome
     {
+        public MyZome(HoloNETClientBase holoNETClient) : base(holoNETClient, "my_zome", new List<string> { "class_list" })
+        {
+
+        }
+
+        public MyZome(string holochainConductorURI, HoloNETClientType type) : base(holochainConductorURI, "my_zome", type, new List<string> { "class_list" })
+        {
+
+        }
+
+        /*
         private const string LOAD_MYCLASS_FUNC = "load_my_class";
         private const string SAVE_MYCLASS_FUNC = "save_my_class";
 
@@ -117,5 +126,6 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core.CSharpTemplates
 
             return null;
         }
+        */
     }
 }
