@@ -9,9 +9,4 @@
     <ProjectReference Include="..\NextGenSoftware.Holochain.HoloNET.HDK.Core\NextGenSoftware.Holochain.HoloNET.HDK.Core.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="GeneratedCode\CSharp\" />
-    <Folder Include="GeneratedCode\Rust\" />
-  </ItemGroup>
-
 </Project>

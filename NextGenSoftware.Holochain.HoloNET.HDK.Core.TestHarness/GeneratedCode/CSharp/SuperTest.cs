@@ -1,7 +1,7 @@
 
 namespace NextGenSoftware.Holochain.HoloNET.HDK.Core.CSharpTemplates
 {
-    public interface IMyTestClass : IHolochainBaseDataObject
+    public class SuperTest : HolochainBaseDataObject, ISuperTest
     {
         
     }
