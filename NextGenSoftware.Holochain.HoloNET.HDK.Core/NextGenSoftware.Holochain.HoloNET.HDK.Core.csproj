@@ -11,7 +11,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Update="CSharpTemplates\ZomeTemplate.cs">
+    <Compile Update="CSharpDNATemplates\ZomeTemplate.cs">
       <DependentUpon>ZomeTemplate.tt</DependentUpon>
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
@@ -24,7 +24,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="CSharpTemplates\ZomeTemplate.tt">
+    <None Update="CSharpDNATemplates\ZomeTemplate.tt">
       <LastGenOutput>ZomeTemplate.cs</LastGenOutput>
       <Generator>TextTemplatingFileGenerator</Generator>
     </None>
