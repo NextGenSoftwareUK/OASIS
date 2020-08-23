@@ -4,14 +4,14 @@ using System;
 
 namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
 {
-    public class HolochainBaseDataObjectLoadedEventArgs : EventArgs
+    public class HolonLoadedEventArgs : EventArgs
     {
-        public IHolochainBaseDataObject HolochainBaseDataObject { get; set; }
+        public IHolon Holon { get; set; }
     }
 
-    public class HolochainBaseDataObjectSavedEventArgs : EventArgs
+    public class HolonSavedEventArgs : EventArgs
     {
-        public IHolochainBaseDataObject HolochainBaseDataObject { get; set; }
+        public IHolon Holon { get; set; }
     }
 
     public class ZomeErrorEventArgs : EventArgs

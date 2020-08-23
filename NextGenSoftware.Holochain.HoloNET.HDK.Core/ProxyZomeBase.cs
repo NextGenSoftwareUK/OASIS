@@ -6,11 +6,11 @@ using System.Threading.Tasks;
 namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
 {
     //TODO: Replace this with an attribue in ProxyClass
-    public abstract class HolochainBaseProxyZome 
+    public abstract class ProxyZomeBase 
     {
-        public HolochainBaseProxyZome(string newNameSpace)
-        {
+        //public ProxyZomeBase(string newNameSpace)
+        //{
 
-        }
+        //}
     }
 }

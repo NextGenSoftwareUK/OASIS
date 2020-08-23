@@ -20,8 +20,12 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core.TestHarness
             Console.WriteLine("  nethdk --convert -rusthAppRootFolder");
             Console.WriteLine($"***********************************************");
 
-            NETHDK hdk = new NETHDK();
-            hdk.Build(@"C:\Users\david\source\repos\Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK\NextGenSoftware.Holochain.HoloNET.HDK.Core.TestHarness\ProxyClasses");
+            string proxyClassFolder = @"C:\Users\david\source\repos\Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK\NextGenSoftware.Holochain.HoloNET.HDK.Core.TestHarness\ProxyClasses";
+            string cSharpGeneratedCodeFolder = @"C:\Users\david\source\repos\Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK\NextGenSoftware.Holochain.HoloNET.HDK.Core.TestHarness\GeneratedCode\CSharp";
+            string rustGeneratedCodeFolder = @"C:\Users\david\source\repos\Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK\NextGenSoftware.Holochain.HoloNET.HDK.Core.TestHarness\GeneratedCode\Rust";
+
+            Litghter lighter = new Litghter();
+            lighter.Spark(proxyClassFolder, cSharpGeneratedCodeFolder, rustGeneratedCodeFolder, "NextGenSoftware.Holochain.HoloNET.HDK.Core.TestHarness.ProxyClasses");
         }
     }
 }

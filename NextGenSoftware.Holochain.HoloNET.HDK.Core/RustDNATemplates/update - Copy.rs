@@ -20,10 +20,10 @@ fn update_my_entry(entry: MyEntry) -> ZomeApiResult<Address>
         )
 }*/
 
-pub fn update(updated_entry: MyEntry, address: &Address) -> ZomeApiResult<Address> {
-    let mut my_entry: MyEntry = hdk::utils::get_as_type(address.clone())?;
+pub fn update(updated_entry: MyHolon, address: &Address) -> ZomeApiResult<Address> {
+    let mut my_holon: MyHolon = hdk::utils::get_as_type(address.clone())?;
 
   // my_entry.title = title;
 
-    hdk::update_entry(my_entry.entry(), module_address)
+    hdk::update_entry(my_holon.entry(), module_address)
 }

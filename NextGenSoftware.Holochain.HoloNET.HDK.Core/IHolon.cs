@@ -1,7 +1,8 @@
 ﻿
 namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
 {
-    public interface IHolochainBaseZome
+    public interface IHolon
     {
+        string HcAddressHash { get; set; }
     }
 }

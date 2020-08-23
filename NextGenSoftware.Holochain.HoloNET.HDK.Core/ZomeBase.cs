@@ -7,20 +7,20 @@ using System.Threading.Tasks;
 
 namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
 {
-    public abstract class HolochainBaseZome
+    public abstract class ZomeBase : IZome
     {
         protected int _currentId = 0;
         protected string _hcinstance;
         protected TaskCompletionSource<string> _taskCompletionSourceGetInstance = new TaskCompletionSource<string>();
-        private Dictionary<string, IHolochainBaseDataObject> _savingHolochainBaseDataObjects = new Dictionary<string, IHolochainBaseDataObject>();
-        private TaskCompletionSource<IHolochainBaseDataObject> _taskCompletionSourceLoadHolochainBaseDataObject = new TaskCompletionSource<IHolochainBaseDataObject>();
-        private TaskCompletionSource<IHolochainBaseDataObject> _taskCompletionSourceSaveHolochainBaseDataObject = new TaskCompletionSource<IHolochainBaseDataObject>();
+        private Dictionary<string, IHolon> _savingHolons = new Dictionary<string, IHolon>();
+        private TaskCompletionSource<IHolon> _taskCompletionSourceLoadHolon = new TaskCompletionSource<IHolon>();
+        private TaskCompletionSource<IHolon> _taskCompletionSourceSaveHolon = new TaskCompletionSource<IHolon>();
 
-        public delegate void HolochainBaseDataObjectSaved(object sender, HolochainBaseDataObjectLoadedEventArgs e);
-        public event HolochainBaseDataObjectSaved OnHolochainBaseDataObjectSaved;
+        public delegate void HolonSaved(object sender, HolonLoadedEventArgs e);
+        public event HolonSaved OnHolonSaved;
 
-        public delegate void HolochainBaseDataObjectLoaded(object sender, HolochainBaseDataObjectLoadedEventArgs e);
-        public event HolochainBaseDataObjectLoaded OnHolochainBaseDataObjectLoaded;
+        public delegate void HolonLoaded(object sender, HolonLoadedEventArgs e);
+        public event HolonLoaded OnHolonLoaded;
 
         private List<string> _loadFuncNames = new List<string>();
         private List<string> _saveFuncNames = new List<string>();
@@ -53,10 +53,10 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
         //TODO: Use only for Proxy classes (not sure to do this way?) Revisit later...
         //public HolochainBaseZome()
         //{
-            
+
         //}
 
-        public HolochainBaseZome(HoloNETClientBase holoNETClient, string zomeName, List<string> holochainDataObjectNames)
+        public ZomeBase(HoloNETClientBase holoNETClient, string zomeName, List<string> holochainDataObjectNames)
         {
             Initialize(zomeName, holoNETClient);
 
@@ -69,7 +69,7 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
             }
         }
 
-        public HolochainBaseZome(string holochainConductorURI, string zomeName, HoloNETClientType type, List<string> holochainDataObjectNames)
+        public ZomeBase(string holochainConductorURI, string zomeName, HoloNETClientType type, List<string> holochainDataObjectNames)
         {
             Initialize(zomeName, holochainConductorURI, type);
 
@@ -82,7 +82,7 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
             }
         }
 
-        public HolochainBaseZome(HoloNETClientBase holoNETClient, string zomeName, string loadFuncName, string saveFuncName)
+        public ZomeBase(HoloNETClientBase holoNETClient, string zomeName, string loadFuncName, string saveFuncName)
         {
             Initialize(zomeName, holoNETClient);
 
@@ -90,7 +90,7 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
             _saveFuncNames[0] = saveFuncName;
         }
 
-        public HolochainBaseZome(HoloNETClientBase holoNETClient, string zomeName, List<string> loadFuncNames, List<string> saveFuncNames)
+        public ZomeBase(HoloNETClientBase holoNETClient, string zomeName, List<string> loadFuncNames, List<string> saveFuncNames)
         {
             Initialize(zomeName, holoNETClient);
 
@@ -98,7 +98,7 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
             _saveFuncNames = saveFuncNames;
         }
 
-        public HolochainBaseZome(string holochainConductorURI, HoloNETClientType type, string zomeName, string loadFuncName, string saveFuncName)
+        public ZomeBase(string holochainConductorURI, HoloNETClientType type, string zomeName, string loadFuncName, string saveFuncName)
         {
             Initialize(zomeName, holochainConductorURI, type);
 
@@ -106,7 +106,7 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
             _saveFuncNames[0] = saveFuncName;
         }
 
-        public HolochainBaseZome(string holochainConductorURI, HoloNETClientType type, string zomeName, List<string> loadFuncNames, List<string> saveFuncNames)
+        public ZomeBase(string holochainConductorURI, HoloNETClientType type, string zomeName, List<string> loadFuncNames, List<string> saveFuncNames)
         {
             Initialize(zomeName, holochainConductorURI, type);
 
@@ -137,7 +137,7 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
             }
 
             await WireUpEvents();
- 
+
         }
 
         private async Task WireUpEvents()
@@ -168,17 +168,17 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
                 {
                     if (e.ZomeFunction == _loadFuncNames[i])
                     {
-                        IHolochainBaseDataObject hcObject = (IHolochainBaseDataObject)JsonConvert.DeserializeObject<HolochainBaseDataObject>(string.Concat("{", e.ZomeReturnData, "}"));
-                        OnHolochainBaseDataObjectLoaded?.Invoke(this, new HolochainBaseDataObjectLoadedEventArgs { HolochainBaseDataObject = hcObject });
-                        _taskCompletionSourceLoadHolochainBaseDataObject.SetResult(hcObject);
+                        IHolon holon = (IHolon)JsonConvert.DeserializeObject<IHolon>(string.Concat("{", e.ZomeReturnData, "}"));
+                        OnHolonLoaded?.Invoke(this, new HolonLoadedEventArgs { Holon = holon });
+                        _taskCompletionSourceLoadHolon.SetResult(holon);
                     }
                     else if (e.ZomeFunction == _saveFuncNames[i])
                     {
-                        _savingHolochainBaseDataObjects[e.Id].HcAddressHash = e.ZomeReturnData;
+                        _savingHolons[e.Id].HcAddressHash = e.ZomeReturnData;
 
-                        OnHolochainBaseDataObjectSaved?.Invoke(this, new HolochainBaseDataObjectLoadedEventArgs { HolochainBaseDataObject = _savingHolochainBaseDataObjects[e.Id] });
-                        _taskCompletionSourceSaveHolochainBaseDataObject.SetResult(_savingHolochainBaseDataObjects[e.Id]);
-                        _savingHolochainBaseDataObjects.Remove(e.Id);
+                        OnHolonSaved?.Invoke(this, new HolonLoadedEventArgs { Holon = _savingHolons[e.Id] });
+                        _taskCompletionSourceSaveHolon.SetResult(_savingHolons[e.Id]);
+                        _savingHolons.Remove(e.Id);
                     }
                 }
 
@@ -187,58 +187,64 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
                 {
                     case LoadFuncName:
                     {
-                        IHolochainBaseDataObject hcObject = (IHolochainBaseDataObject)JsonConvert.DeserializeObject<HolochainBaseDataObject>(string.Concat("{", e.ZomeReturnData, "}"));
-                        OnHolochainBaseDataObjectLoaded?.Invoke(this, new HolochainBaseDataObjectLoadedEventArgs { HolochainBaseDataObject = hcObject });
-                        _taskCompletionSourceLoadHolochainBaseDataObject.SetResult(hcObject);
+                        iHolon hcObject = (iHolon)JsonConvert.DeserializeObject<Holon>(string.Concat("{", e.ZomeReturnData, "}"));
+                        OnHolonLoaded?.Invoke(this, new HolonLoadedEventArgs { Holon = hcObject });
+                        _taskCompletionSourceLoadHolon.SetResult(hcObject);
                     }
                     break;
 
                     case SAVE_HOLOCHAINDATAOBJECT_FUNC:
                     {
-                        _savingHolochainBaseDataObjects[e.Id].HcAddressHash = e.ZomeReturnData;
+                        _savingHolons[e.Id].HcAddressHash = e.ZomeReturnData;
 
-                        OnHolochainBaseDataObjectSaved?.Invoke(this, new HolochainBaseDataObjectLoadedEventArgs { HolochainBaseDataObject = _savingHolochainBaseDataObjects[e.Id] });
-                        _taskCompletionSourceSaveHolochainBaseDataObject.SetResult(_savingHolochainBaseDataObjects[e.Id]);
-                        _savingHolochainBaseDataObjects.Remove(e.Id);
+                        OnHolonSaved?.Invoke(this, new HolonLoadedEventArgs { Holon = _savingHolons[e.Id] });
+                        _taskCompletionSourceSaveHolon.SetResult(_savingHolons[e.Id]);
+                        _savingHolons.Remove(e.Id);
                     }
                     break;
                 }*/
             }
         }
 
-        public async Task<IHolochainBaseDataObject> LoadHolochainBaseDataObjectAsync(string hcEntryAddressHash)
-        {
-            await _taskCompletionSourceGetInstance.Task;
-
-            for (int i= 0; i < _loadFuncNames.Count; i++)
-            {
-                if (_loadFuncNames[i].Contains("load"))
-                {
-                    if (HoloNETClient.State == System.Net.WebSockets.WebSocketState.Open && !string.IsNullOrEmpty(_hcinstance))
-                    {
-                        await HoloNETClient.CallZomeFunctionAsync(_hcinstance, ZomeName, _loadFuncNames[i], new { address = hcEntryAddressHash });
-                        return await _taskCompletionSourceLoadHolochainBaseDataObject.Task;
-                    }
-                }
-            }
-
-            return null;
-        }
-
-        public async Task<IHolochainBaseDataObject> LoadHolochainBaseDataObjectAsync(string loadFuncName, string hcEntryAddressHash)
+        public virtual async Task<IHolon> LoadHolonAsync(string holonName, string hcEntryAddressHash)
         {
             await _taskCompletionSourceGetInstance.Task;
 
             if (HoloNETClient.State == System.Net.WebSockets.WebSocketState.Open && !string.IsNullOrEmpty(_hcinstance))
             {
-                await HoloNETClient.CallZomeFunctionAsync(_hcinstance, ZomeName, loadFuncName, new { address = hcEntryAddressHash });
-                return await _taskCompletionSourceLoadHolochainBaseDataObject.Task;
+                await HoloNETClient.CallZomeFunctionAsync(_hcinstance, ZomeName, string.Concat(holonName, "_load"), new { address = hcEntryAddressHash });
+                return await _taskCompletionSourceLoadHolon.Task;
             }
+
+            //for (int i= 0; i < _loadFuncNames.Count; i++)
+            //{
+            //    if (_loadFuncNames[i].Contains("load"))
+            //    {
+            //        if (HoloNETClient.State == System.Net.WebSockets.WebSocketState.Open && !string.IsNullOrEmpty(_hcinstance))
+            //        {
+            //            await HoloNETClient.CallZomeFunctionAsync(_hcinstance, ZomeName, _loadFuncNames[i], new { address = hcEntryAddressHash });
+            //            return await _taskCompletionSourceLoadHolon.Task;
+            //        }
+            //    }
+            //}
 
             return null;
         }
 
-        //public async Task<IHolochainBaseDataObject> LoadMyClassAsync(Guid id)
+        //public virtual async Task<iHolon> LoadHolonAsync(string loadFuncName, string hcEntryAddressHash)
+        //{
+        //    await _taskCompletionSourceGetInstance.Task;
+
+        //    if (HoloNETClient.State == System.Net.WebSockets.WebSocketState.Open && !string.IsNullOrEmpty(_hcinstance))
+        //    {
+        //        await HoloNETClient.CallZomeFunctionAsync(_hcinstance, ZomeName, loadFuncName, new { address = hcEntryAddressHash });
+        //        return await _taskCompletionSourceLoadHolon.Task;
+        //    }
+
+        //    return null;
+        //}
+
+        //public async Task<iHolon> LoadMyClassAsync(Guid id)
         //{
         //    await _taskCompletionSourceGetInstance.Task;
 
@@ -246,13 +252,13 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
         //    {
         //        //TODO: Implement in HC/Rust
         //        await HoloNETClient.CallZomeFunctionAsync(_hcinstance, MYZOME_ZOME, LOAD_MYCLASS_FUNC, new { id });
-        //        return await _taskCompletionSourceLoadHolochainBaseDataObject.Task;
+        //        return await _taskCompletionSourceLoadHolon.Task;
         //    }
 
         //    return null;
         //}
 
-        //public async Task<IHolochainBaseDataObject> LoadMyClassAsync(string username, string password)
+        //public async Task<iHolon> LoadMyClassAsync(string username, string password)
         //{
         //    await _taskCompletionSourceGetInstance.Task;
 
@@ -263,31 +269,56 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
 
         //        //TODO: TEMP HARDCODED JUST TO TEST WITH!
         //        await HoloNETClient.CallZomeFunctionAsync(_hcinstance, MYZOME_ZOME, LOAD_MYCLASS_FUNC, new { address = "QmR6A1gkSmCsxnbDF7V9Eswnd4Kw9SWhuf8r4R643eDshg" });
-        //        return await _taskCompletionSourceLoadHolochainBaseDataObject.Task;
+        //        return await _taskCompletionSourceLoadHolon.Task;
         //    }
 
         //    return null;
         //}
 
-        public async Task<IHolochainBaseDataObject> SaveMyClassAsync(string saveFuncName, IHolochainBaseDataObject hcObject)
+        //public virtual async Task<iHolon> SaveMyClassAsync(string saveFuncName, iHolon hcObject)
+        //{
+        //    await _taskCompletionSourceGetInstance.Task;
+
+        //    if (HoloNETClient.State == System.Net.WebSockets.WebSocketState.Open && !string.IsNullOrEmpty(_hcinstance))
+        //    {
+        //        // Rust/HC does not like null strings so need to set to empty string.
+        //        if (hcObject.HcAddressHash == null)
+        //            hcObject.HcAddressHash = string.Empty;
+
+        //        _currentId++;
+        //        _savingHolons[_currentId.ToString()] = hcObject;
+
+        //        await HoloNETClient.CallZomeFunctionAsync(_currentId.ToString(), _hcinstance, ZomeName, saveFuncName, new { entry = hcObject });
+        //        return await _taskCompletionSourceSaveHolon.Task;
+        //    }
+
+        //    return null;
+        //}
+
+        public virtual async Task<IHolon> SaveHolonAsync(string holochainDataObjectName, IHolon hcObject)
         {
+            string methodName = "_update";
             await _taskCompletionSourceGetInstance.Task;
 
             if (HoloNETClient.State == System.Net.WebSockets.WebSocketState.Open && !string.IsNullOrEmpty(_hcinstance))
             {
                 // Rust/HC does not like null strings so need to set to empty string.
                 if (hcObject.HcAddressHash == null)
+                {
                     hcObject.HcAddressHash = string.Empty;
+                    methodName = "_create";
+                }
 
                 _currentId++;
-                _savingHolochainBaseDataObjects[_currentId.ToString()] = hcObject;
+                _savingHolons[_currentId.ToString()] = hcObject;
 
-                await HoloNETClient.CallZomeFunctionAsync(_currentId.ToString(), _hcinstance, ZomeName, saveFuncName, new { entry = hcObject });
-                return await _taskCompletionSourceSaveHolochainBaseDataObject.Task;
+                await HoloNETClient.CallZomeFunctionAsync(_currentId.ToString(), _hcinstance, ZomeName, string.Concat(holochainDataObjectName, methodName, new { entry = hcObject }));
+                return await _taskCompletionSourceSaveHolon.Task;
             }
 
             return null;
         }
+
 
 
         private void HoloNETClient_OnSignalsCallBack(object sender, SignalsCallBackEventArgs e)

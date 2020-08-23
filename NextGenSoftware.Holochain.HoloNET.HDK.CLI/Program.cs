@@ -36,8 +36,8 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.CLI
 
         static void Build(string classFolder)
         {
-            Core.NETHDK hdk = new Core.NETHDK();
-            hdk.Build(classFolder);
+            Core.Litghter lighter = new Core.Litghter();
+            lighter.Spark(classFolder);
         }
     }
 }
