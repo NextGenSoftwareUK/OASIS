@@ -1,9 +1,9 @@
-impl HolochainEntry for MyEntry {
+impl HolochainEntry for Holon {
     fn entry_type() -> String {
-        String::from("my_holon")
+        String::from("{holon}")
     }
 }
 
 #[derive(Serialize, Deserialize, Debug, DefaultJson, Clone)]
-pub struct MyHolon {
+pub struct Holon {
 }

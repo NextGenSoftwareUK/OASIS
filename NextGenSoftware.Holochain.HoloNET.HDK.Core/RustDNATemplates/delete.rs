@@ -1,5 +1,5 @@
 #[zome_fn("hc_public")]
-fn delete_my_entry(address: Address) -> ZomeApiResult<Address> {
+fn delete_holon(address: Address) -> ZomeApiResult<Address> {
     /*
     hdk::remove_link(&anchor_address()?, &address, "course_list", "")?;
 
