@@ -5,30 +5,26 @@ using System.Threading.Tasks;
 
 namespace NextGenSoftware.Holochain.HoloNET.HDK.Core.CSharpTemplates
 {
-    // TODO: Move generic parts like HoloNETClient, error handling, etc into HolochainBaseZome
-    // Update NETHDK to generate serperate partial classes for each class defined in proxyClasses.
-    // Nearly there! ;-)
-
-    public partial class ZomeDNA : ZomeBase, IZome
+    public partial class ZomeDNATemplate : ZomeBase, IZome
     {
-        public ZomeDNA(HoloNETClientBase holoNETClient) : base(holoNETClient, "my_zome", new List<string> { "holon_list" })
+        public ZomeDNATemplate(HoloNETClientBase holoNETClient) : base(holoNETClient, "{zome}", new List<string> { "{holon_list}" })
         {
 
         }
 
-        public ZomeDNA(string holochainConductorURI, HoloNETClientType type) : base(holochainConductorURI, "my_zome", type, new List<string> { "holon_list" })
+        public ZomeDNATemplate(string holochainConductorURI, HoloNETClientType type) : base(holochainConductorURI, "{zome}", type, new List<string> { "{holon_list}" })
         {
 
         }
 
         public async Task<IHolon> LoadMyHolonAsync(string hcEntryAddressHash)
         {
-            return await base.LoadHolonAsync("my_holon", hcEntryAddressHash);
+            return await base.LoadHolonAsync("{holon}", hcEntryAddressHash);
         }
 
         public async Task<IHolon> SaveMyHolonAsync(IHolon holon)
         {
-            return await base.SaveHolonAsync("my_holon", holon);
+            return await base.SaveHolonAsync("{holon}", holon);
         }
 
         /*

@@ -5,7 +5,7 @@ use hdk_proc_macros::zome;
 use holochain_entry_utils::HolochainEntry;
 
 // see https://developer.holochain.org/api/0.0.50-alpha4/hdk/ for info on using the hdk library
-impl HolochainEntry for MyEntry {
+impl HolochainEntry for SuperHolon {
     fn entry_type() -> String {
         String::from("super_holon")
     }
@@ -18,7 +18,7 @@ super_test_int: i32,
 super_test_bool: bool
 }
 
-impl HolochainEntry for MyEntry {
+impl HolochainEntry for SuperTest {
     fn entry_type() -> String {
         String::from("super_test")
     }
@@ -33,25 +33,24 @@ test_bool: bool
 
 
 #[zome]
-mod my_zome {
-  
+mod super_zome {
 #[entry_def]
-fn super_holon_def() -> ValidatingEntryType {
+fn my_holon_def() -> ValidatingEntryType {
     entry!(
-        name: "super_holon",
+        name: "my_holon",
         description: "holon description",
         sharing: Sharing::Public,
         validation_package: || {
             hdk::ValidationPackageDefinition::Entry
         },
-        validation: | _validation_data: hdk::EntryValidationData<SuperHolon>| {
+        validation: | _validation_data: hdk::EntryValidationData<MySuperHolon>| {
             Ok(())
         }
     )
 }
 
 #[zome_fn("hc_public")]
-fn delete_my_entry(address: Address) -> ZomeApiResult<Address> {
+fn delete_holon(address: Address) -> ZomeApiResult<Address> {
     /*
     hdk::remove_link(&anchor_address()?, &address, "course_list", "")?;
 
@@ -82,36 +81,36 @@ fn update_my_entry(updated_entry: MyEntry, address: Address) -> ZomeApiResult<Ad
 
 
 #[zome_fn("hc_public")]
-fn read_super_holon(address: Address) -> ZomeApiResult<MyEntry> {
+fn read_my_holon(address: Address) -> ZomeApiResult<MyEntry> {
     //hdk::get_entry(&address)
     hdk::utils::get_as_type(address)
 }
 
 #[zome_fn("hc_public")]
-fn create_my_entry(holon: SuperHolon) -> ZomeApiResult<Address> {
+fn create_holon(holon: SuperHolon) -> ZomeApiResult<Address> {
     let holon = Entry::App("super_holon".into(), holon.into());
-    let address = hdk::commit_entry(&entry)?;
+    let address = hdk::commit_entry(&holon)?;
     Ok(address)
 }
 
 
 #[entry_def]
-fn super_test_def() -> ValidatingEntryType {
+fn my_holon_def() -> ValidatingEntryType {
     entry!(
-        name: "super_test",
+        name: "my_holon",
         description: "holon description",
         sharing: Sharing::Public,
         validation_package: || {
             hdk::ValidationPackageDefinition::Entry
         },
-        validation: | _validation_data: hdk::EntryValidationData<SuperTest>| {
+        validation: | _validation_data: hdk::EntryValidationData<MySuperTest>| {
             Ok(())
         }
     )
 }
 
 #[zome_fn("hc_public")]
-fn delete_my_entry(address: Address) -> ZomeApiResult<Address> {
+fn delete_holon(address: Address) -> ZomeApiResult<Address> {
     /*
     hdk::remove_link(&anchor_address()?, &address, "course_list", "")?;
 
@@ -142,19 +141,20 @@ fn update_my_entry(updated_entry: MyEntry, address: Address) -> ZomeApiResult<Ad
 
 
 #[zome_fn("hc_public")]
-fn read_super_test(address: Address) -> ZomeApiResult<MyEntry> {
+fn read_my_holon(address: Address) -> ZomeApiResult<MyEntry> {
     //hdk::get_entry(&address)
     hdk::utils::get_as_type(address)
 }
 
 #[zome_fn("hc_public")]
-fn create_my_entry(holon: SuperTest) -> ZomeApiResult<Address> {
+fn create_holon(holon: SuperTest) -> ZomeApiResult<Address> {
     let holon = Entry::App("super_test".into(), holon.into());
-    let address = hdk::commit_entry(&entry)?;
+    let address = hdk::commit_entry(&holon)?;
     Ok(address)
 }
 
-  
+
+    
     #[init]
     fn init() {
         Ok(())

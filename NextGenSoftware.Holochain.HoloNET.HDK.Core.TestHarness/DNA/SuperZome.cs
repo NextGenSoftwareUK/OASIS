@@ -2,29 +2,19 @@
 
 using NextGenSoftware.Holochain.HoloNET.HDK.Core;
 
-namespace NextGenSoftware.Holochain.HoloNET.HDK.Core.TestHarness.ProxyClasses
+namespace NextGenSoftware.Holochain.HoloNET.HDK.Core.TestHarness.DNA
 {
-    //public class MyZome
-
     //TODO: Replace base class with attribute.
-    public class MyZome : ProxyZomeBase
-    //public class SuperZome : HolochainBaseZome
-    //public class MyZome 
+    public class SuperZome : ZomeDNA
     {
-
-        //public MyZome : base("NextGenSoftware.Holochain.HoloNET.HDK.Core.TestHarness.GeneratedCode")
-        //{
-
-        //}
-
-        public class SuperTest : HolonBase
+        public class SuperTest : HolonDNA
         {
             public string TestString { get; set; }
             public int TestInt { get; set; }
             public bool TestBool { get; set; }
         }
 
-        public class SuperHolon : HolonBase
+        public class SuperHolon : HolonDNA
         {
             public string SuperTestString { get; set; }
             public int SuperTestInt { get; set; }

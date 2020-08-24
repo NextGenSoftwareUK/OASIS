@@ -3,30 +3,26 @@ using NextGenSoftware.Holochain.HoloNET.HDK.Core;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace NextGenSoftware.Holochain.HoloNET.HDK.Core.TestHarness.ProxyClasses
+namespace NextGenSoftware.Holochain.HoloNET.HDK.Core.TestHarness.Genesis
 {
-    // TODO: Move generic parts like HoloNETClient, error handling, etc into HolochainBaseZome
-    // Update NETHDK to generate serperate partial classes for each class defined in proxyClasses.
-    // Nearly there! ;-)
-
-    public partial class ZomeDNA : ZomeBase, IZome
+    public partial class SuperZome : ZomeBase, IZome
     {
-        public ZomeDNA(HoloNETClientBase holoNETClient) : base(holoNETClient, "my_zome", new List<string> { "holon_list" })
+        public SuperZome(HoloNETClientBase holoNETClient) : base(holoNETClient, "super_zome", new List<string> { "{holon_list}" })
         {
 
         }
 
-        public ZomeDNA(string holochainConductorURI, HoloNETClientType type) : base(holochainConductorURI, "my_zome", type, new List<string> { "holon_list" })
+        public SuperZome(string holochainConductorURI, HoloNETClientType type) : base(holochainConductorURI, "super_zome", type, new List<string> { "{holon_list}" })
         {
 
         }
 
-        public async Task<IHolon> LoadSuperTestAsync(string hcEntryAddressHash)
+        public async Task<IHolon> LoadMyHolonAsync(string hcEntryAddressHash)
         {
             return await base.LoadHolonAsync("super_test", hcEntryAddressHash);
         }
 
-        public async Task<IHolon> SaveSuperTestAsync(IHolon holon)
+        public async Task<IHolon> SaveMyHolonAsync(IHolon holon)
         {
             return await base.SaveHolonAsync("super_test", holon);
         }

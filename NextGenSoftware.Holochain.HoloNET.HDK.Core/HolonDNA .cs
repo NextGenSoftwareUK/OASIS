@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
 {
     //TODO: Replace this with an attribue in ProxyClass
-    public abstract class ProxyZomeBase 
+    public abstract class HolonDNA 
     {
         //public ProxyZomeBase(string newNameSpace)
         //{

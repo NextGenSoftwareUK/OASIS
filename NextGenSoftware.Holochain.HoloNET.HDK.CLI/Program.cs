@@ -1,4 +1,5 @@
-﻿using System;
+﻿using NextGenSoftware.Holochain.HoloNET.HDK.Core;
+using System;
 using System.Reflection;
 
 namespace NextGenSoftware.Holochain.HoloNET.HDK.CLI
@@ -18,14 +19,14 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.CLI
                 Console.WriteLine($"NextGen Software Holochain HoloNET HDK CLI v{versionString}");
                 Console.WriteLine($"***********************************************");
                 Console.WriteLine("\nUsage:");
-                Console.WriteLine("  nethdk --build -classFolder");
-                Console.WriteLine("  nethdk --convert -rusthAppRootFolder");
+                Console.WriteLine("  star --light -classFolder");
+                Console.WriteLine("  star --convert -rusthAppRootFolder");
                 Console.WriteLine($"***********************************************");
                 return;
             }
 
 
-            if (args[0].ToLower() == "build")
+            if (args[0].ToLower() == "light")
                 Build(args[1]);
 
 
@@ -36,8 +37,7 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.CLI
 
         static void Build(string classFolder)
         {
-            Core.Litghter lighter = new Core.Litghter();
-            lighter.Spark(classFolder);
+            Star.Light(classFolder);
         }
     }
 }
