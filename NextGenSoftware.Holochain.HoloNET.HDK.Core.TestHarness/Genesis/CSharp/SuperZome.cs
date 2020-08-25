@@ -26,7 +26,8 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core.TestHarness.Genesis
 
         public async Task<IHolon> SaveSuperTestAsync(IHolon holon)
         {
-            return await base.SaveHolonAsync("super_test", holon);
+            //return await base.SaveHolonAsync("super_test", holon);
+            return await base.SaveHolonAsync(holon);
         }
     public async Task<IHolon> LoadSuperHolonAsync(string hcEntryAddressHash)
         {
@@ -34,7 +35,6 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core.TestHarness.Genesis
         }
 public async Task<IHolon> SaveSuperHolonAsync(IHolon holon)
         {
-            return await base.SaveHolonAsync("super_holon", holon);
-        }
-    }
+            //return await base.SaveHolonAsync("super_holon", holon);
+            r}
 }

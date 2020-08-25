@@ -19,6 +19,6 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
         Task Initialize(string zomeName, HoloNETClientBase holoNETClient);
         Task Initialize(string zomeName, string holochainConductorURI, ZomeBase.HoloNETClientType type);
         Task<IHolon> LoadHolonAsync(string holonName, string hcEntryAddressHash);
-        Task<IHolon> SaveHolonAsync(string holonName, IHolon hcObject);
+        Task<IHolon> SaveHolonAsync(IHolon hcObject);
     }
 }

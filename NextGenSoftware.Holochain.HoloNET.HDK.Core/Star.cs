@@ -2,6 +2,7 @@
 using System;
 using System.IO;
 using System.Runtime.CompilerServices;
+using System.Text.RegularExpressions;
 
 namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
 {
@@ -26,6 +27,7 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
          //   string myZomeEventArgsBuffer = "";
             string iholonBuffer = "";
             string zomeBufferCsharp = "";
+            string planetBufferCsharp = "";
            // string holonList = "";
             bool firstHolon = true;
 
@@ -59,6 +61,8 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
             string iHolonTemplate = new FileInfo(string.Concat(starDNA.CSharpDNATemplateFolder, "\\", starDNA.CSharpTemplateIHolonDNA)).OpenText().ReadToEnd();
             string holonTemplateCsharp = new FileInfo(string.Concat(starDNA.CSharpDNATemplateFolder, "\\", starDNA.CSharpTemplateHolonDNA)).OpenText().ReadToEnd();
             string zomeTemplateCsharp = new FileInfo(string.Concat(starDNA.CSharpDNATemplateFolder, "\\", starDNA.CSharpTemplateZomeDNA)).OpenText().ReadToEnd();
+            string iPlanetTemplateCsharp = new FileInfo(string.Concat(starDNA.CSharpDNATemplateFolder, "\\", starDNA.CSharpTemplateIPlanetDNA)).OpenText().ReadToEnd();
+            string planetTemplateCsharp = new FileInfo(string.Concat(starDNA.CSharpDNATemplateFolder, "\\", starDNA.CSharpTemplatePlanetDNA)).OpenText().ReadToEnd();
             string iZomeTemplate = new FileInfo(string.Concat(starDNA.CSharpDNATemplateFolder, "\\", starDNA.CSharpTemplateIZomeDNA)).OpenText().ReadToEnd();
 
             //If folder is not passed in via command line args then use default in config file.
@@ -246,6 +250,12 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
                             iholonBuffer = iholonBuffer.Replace(TEMPLATE_NAMESPACE, genesisNameSpace);
                             //izomeBufferCsharp = izomeBufferCsharp.Replace(TEMPLATE_NAMESPACE, genesisNameSpace);
 
+                            if (string.IsNullOrEmpty(planetBufferCsharp))
+                                planetBufferCsharp = planetTemplateCsharp;
+
+                            planetBufferCsharp = planetBufferCsharp.Replace(TEMPLATE_NAMESPACE, genesisNameSpace);
+                            planetBufferCsharp = planetBufferCsharp.Replace("{holon}", parts[10].ToSnakeCase()).Replace("HOLON", parts[10].ToPascalCase());
+
                             holonName = holonName.ToSnakeCase();
                             holonReached = true;
                         }
@@ -270,13 +280,21 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
                     File.WriteAllText(string.Concat(genesisCSharpFolder, "\\", zomeName, ".cs"), zomeBufferCsharp);
                 }
             }
+            
+            // Remove any white space from the planet name.
+            File.WriteAllText(string.Concat(genesisCSharpFolder, "\\", Regex.Replace(planetName, @"\s+", ""), ".cs"), planetBufferCsharp);
 
-            //PlanetBase newPlanet = new PlanetBase()
-            //newPlanet.Id = Guid.NewGuid();
+            Planet newPlanet = new Planet();
+            newPlanet.Id = Guid.NewGuid();
+            newPlanet.Name = planetName;
 
+            //TODO: Need to save the collection of Zomes/Holons that belong to this planet here...
+            newPlanet.Save();
 
-           // return newPlanet;
-            return null;
+            //TODO: Need to save this to the StarNET store (still to be made!) (Will of course be written on top of the HDK/ODK...
+            //This will be private on the store until the user publishes via the Star.Seed() command.
+
+            return newPlanet;
         }
 
 
@@ -486,6 +504,11 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
 
                 if (!File.Exists(string.Concat(starDNA.CSharpDNATemplateFolder, "\\", starDNA.CSharpTemplateZomeDNA)))
                     throw new ArgumentOutOfRangeException("CSharpTemplateZomeDNA", string.Concat(starDNA.CSharpDNATemplateFolder, "\\", starDNA.CSharpTemplateZomeDNA), "The CSharpTemplateMyZome file is not valid, please double check and try again.");
+
+                if (!File.Exists(string.Concat(starDNA.CSharpDNATemplateFolder, "\\", starDNA.CSharpTemplatePlanetDNA)))
+                    throw new ArgumentOutOfRangeException("CSharpTemplateZomeDNA", string.Concat(starDNA.CSharpDNATemplateFolder, "\\", starDNA.CSharpTemplatePlanetDNA), "The CSharpTemplatePlanetDNA file is not valid, please double check and try again.");
+
+                //TODO: Add missing properties...
             }
         }
 
