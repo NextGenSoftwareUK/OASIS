@@ -23,6 +23,14 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core.TestHarness
             Console.WriteLine("  star dim -planetName = Deactivate a planet (OAPP).");
             Console.WriteLine("  star seed -planetName = Deploy a planet (OAPP).");
             Console.WriteLine("  star twinkle -planetName = Deactivate a planet (OAPP).");
+            Console.WriteLine("  star dust -planetName = Delete a planet (OAPP).");
+            Console.WriteLine("  star radiate -planetName = Highlight the Planet (OAPP) in the OAPP Store (StarNET). *Admin Only*");
+            Console.WriteLine("  star emit -planetName = Show how much light the planet (OAPP) is emitting into the solar system (StarNET/HoloNET)");
+            Console.WriteLine("  star reflect -planetName = Show stats of the Planet (OAPP).");
+            Console.WriteLine("  star evolve -planetName = Upgrade/update a Planet (OAPP).");
+            Console.WriteLine("  star mutate -planetName = Import/Export hApp, dApp & others.");
+            Console.WriteLine("  star love -planetName = Send/Receive Love.");
+            Console.WriteLine("  star super - Reserved For Future Use...");
             Console.WriteLine($"********************************************************************");
 
             string dnaFolder = @"C:\Users\david\source\repos\Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK\NextGenSoftware.Holochain.HoloNET.HDK.Core.TestHarness\DNA";
@@ -30,8 +38,12 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core.TestHarness
             string rustGenesisFolder = @"C:\Users\david\source\repos\Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK\NextGenSoftware.Holochain.HoloNET.HDK.Core.TestHarness\Genesis\Rust";
 
             // Create Planet (OAPP) by generating dynamic template/scaffolding code.
-            Planet ourWorld = Star.Genesis("Our World", dnaFolder, cSharpGeneisFolder, rustGenesisFolder, "NextGenSoftware.Holochain.HoloNET.HDK.Core.TestHarness.Genesis");
+            IPlanet ourWorld = Star.Genesis("Our World", dnaFolder, cSharpGeneisFolder, rustGenesisFolder, "NextGenSoftware.Holochain.HoloNET.HDK.Core.TestHarness.Genesis");
             
+            /*
+            string firstEntryHCHash = ourWorld.Zomes[0].Holons[0].ProviderKey;
+           // ourWorld.Zomes[0].
+
             // Build
             Star.Light(ourWorld);
 
@@ -46,6 +58,31 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core.TestHarness
 
             // Run Tests
             Star.Twinkle(ourWorld);
+
+            // Highlight the Planet (OAPP) in the OAPP Store (StarNET). *Admin Only*
+            Star.Radiate(ourWorld);
+
+            // Show how much light the planet (OAPP) is emitting into the solar system (StarNET/HoloNET)
+            Star.Emit(ourWorld);
+
+            // Show stats of the Planet (OAPP).
+            Star.Reflect(ourWorld);
+
+            // Upgrade/update a Planet (OAPP).
+            Star.Evolve(ourWorld);
+
+            // Import/Export hApp, dApp & others.
+            Star.Mutate(ourWorld);
+
+            // Send/Receive Love
+            Star.Love(ourWorld);
+
+            // Reserved For Future Use...
+            Star.Super(ourWorld);
+
+            // Delete a planet (OAPP).
+            Star.Dust(ourWorld);
+            */
         }
     }
 }
