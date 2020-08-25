@@ -22,8 +22,9 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
         public string RustTemplateHolon = "holon.rs";
         public string RustTemplateValidation = "validation.rs";
      //   public string CSharpTemplateMyZomeEventArgs = "MyZomeEventArgs.cs";
-       // public string CSharpTemplateIMyHolon = "IMyClass.cs";
+        public string CSharpTemplateIHolonDNA = "IHolonDNATemplate.cs";
         public string CSharpTemplateHolonDNA = "HolonDNATemplate.cs";
+        public string CSharpTemplateIZomeDNA = "IZomeDNATemplate.cs";
         public string CSharpTemplateZomeDNA = "ZomeDNATemplate.cs";
     }
 }

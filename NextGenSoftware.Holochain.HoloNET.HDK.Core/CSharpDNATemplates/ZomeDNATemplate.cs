@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 
 namespace NextGenSoftware.Holochain.HoloNET.HDK.Core.CSharpTemplates
 {
+    //public partial class ZomeDNATemplate : ZomeBase, IZomeDNATemplate
     public partial class ZomeDNATemplate : ZomeBase, IZome
     {
         public ZomeDNATemplate(HoloNETClientBase holoNETClient) : base(holoNETClient, "{zome}", new List<string> { "{holon_list}" })
@@ -17,12 +18,12 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core.CSharpTemplates
 
         }
 
-        public async Task<IHolon> LoadMyHolonAsync(string hcEntryAddressHash)
+        public async Task<IHolon> LoadHOLONAsync(string hcEntryAddressHash)
         {
             return await base.LoadHolonAsync("{holon}", hcEntryAddressHash);
         }
 
-        public async Task<IHolon> SaveMyHolonAsync(IHolon holon)
+        public async Task<IHolon> SaveHOLONAsync(IHolon holon)
         {
             return await base.SaveHolonAsync("{holon}", holon);
         }

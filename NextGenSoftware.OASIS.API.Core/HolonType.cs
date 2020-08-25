@@ -15,6 +15,7 @@ namespace NextGenSoftware.OASIS.API.Core
         Cafe,
         TrainStation,
         UndergroundStation,
-        BusStation
+        BusStation,
+        Planet
     }
 }

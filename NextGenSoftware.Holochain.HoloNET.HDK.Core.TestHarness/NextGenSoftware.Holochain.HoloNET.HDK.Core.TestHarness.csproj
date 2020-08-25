@@ -10,4 +10,8 @@
     <ProjectReference Include="..\NextGenSoftware.Holochain.HoloNET.HDK.Core\NextGenSoftware.Holochain.HoloNET.HDK.Core.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Genesis\CSharp\" />
+  </ItemGroup>
+
 </Project>
