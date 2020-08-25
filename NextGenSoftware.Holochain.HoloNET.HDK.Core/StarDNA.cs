@@ -26,5 +26,7 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
         public string CSharpTemplateHolonDNA = "HolonDNATemplate.cs";
         public string CSharpTemplateIZomeDNA = "IZomeDNATemplate.cs";
         public string CSharpTemplateZomeDNA = "ZomeDNATemplate.cs";
+        public string CSharpTemplateIPlanetDNA = "IPlanetDNATemplate.cs";
+        public string CSharpTemplatePlanetDNA = "PlanetDNATemplate.cs";
     }
 }

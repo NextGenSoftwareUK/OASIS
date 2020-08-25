@@ -2,6 +2,7 @@
 using NextGenSoftware.OASIS.API.Core;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
@@ -68,13 +69,41 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
 
         public void Load()
         {
-            //TODO: Load here
+            //TODO: Load here using Anchor/Catalog pattern.
 
+            //foreach (ZomeBase zome in Zomes)
+            //{
+            //    //TODO: Need to check if any state has changed and only save if it has...
+            //    zome.LoadHolonAsync(zome,);
+
+            //    foreach (Holon holon in zome.Holons)
+            //    {
+            //        //TODO: Need to check if any state has changed and only save if it has...
+            //        zome.LoadHolonAsync(holon);
+            //    }
+            //}
+
+            //return true;
         }
 
-        public void Save()
+        public bool Save()
         {
-            //TODO: Save here
+            //TODO: Save Zomes/Holons added to collections here...
+            //TODO: Better if we can pass in collections rather than saving one at a time...
+
+            foreach (ZomeBase zome in Zomes)
+            {
+                //TODO: Need to check if any state has changed and only save if it has...
+                zome.SaveHolonAsync(zome);
+
+                foreach (Holon holon in zome.Holons)
+                {
+                    //TODO: Need to check if any state has changed and only save if it has...
+                    zome.SaveHolonAsync(holon);
+                }
+            }
+            
+            return true;
         }
 
         // Build
@@ -155,11 +184,17 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
             HoloNETClient = holoNETClient;
 
             //TODO: Load the planets Zome collection here? Or is it passed in from the sub-class implementation? Probably 2nd one... ;-)
+            LoadZomes();
 
             foreach (ZomeBase zome in Zomes)
                 await zome.Initialize(zome.Name, holoNETClient);
 
             await WireUpEvents();
+        }
+
+        private void LoadZomes()
+        {
+
         }
 
         public async Task Initialize(string holochainConductorURI, HoloNETClientType type)
@@ -200,6 +235,15 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
             HoloNETClient.OnSignalsCallBack += HoloNETClient_OnSignalsCallBack;
             HoloNETClient.OnZomeFunctionCallBack += HoloNETClient_OnZomeFunctionCallBack;
 
+            foreach (ZomeBase zome in this.Zomes)
+            {
+                zome.OnHolonLoaded += Zome_OnHolonLoaded;
+                zome.OnHolonSaved += Zome_OnHolonSaved;
+            }
+
+          //  OnHolonLoaded += PlanetBase_OnHolonLoaded;
+           // OnHolonSaved += PlanetBase_OnHolonSaved;
+            
             // HoloNETClient.Config.AutoStartConductor = true;
             //  HoloNETClient.Config.AutoShutdownConductor = true;
             //  HoloNETClient.Config.FullPathToExternalHolochainConductor = string.Concat(Directory.GetCurrentDirectory(), "\\hc.exe");
@@ -207,6 +251,55 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
 
             //await HoloNETClient.Connect();
         }
+
+        private void Zome_OnHolonLoaded(object sender, HolonLoadedEventArgs e)
+        {
+            bool holonFound = false;
+
+            foreach (ZomeBase zome in Zomes)
+            {
+                foreach (Holon holon in zome.Holons)
+                {
+                    if (holon.Name == e.Holon.Name)
+                    {
+                        holonFound = true;
+                        break;
+                    }
+                }
+            }
+
+            // If the zome or holon is not stored in the cache yet then add it now...
+            // Currently the collection will fill up as the individual loads each holon.
+            // They can call the LoadAll function to load all Holons and Zomes linked to this Planet (OAPP).
+            if (!holonFound)
+            {
+                ZomeBase zome = Zomes.FirstOrDefault(x => x.Parent.Name == e.Holon.Parent.Name);
+
+                if (zome == null)
+                    Zomes.Add(new Zome(HoloNETClient, e.Holon.Parent.Name));
+
+                zome.Holons.Add((Holon)e.Holon);
+            }
+
+            OnHolonLoaded?.Invoke(this, e);
+        }
+
+        private void Zome_OnHolonSaved(object sender, HolonLoadedEventArgs e)
+        {
+            OnHolonSaved?.Invoke(this, e);
+        }
+
+       
+
+        //private void PlanetBase_OnHolonSaved(object sender, HolonLoadedEventArgs e)
+        //{
+
+        //}
+
+        //private void PlanetBase_OnHolonLoaded(object sender, HolonLoadedEventArgs e)
+        //{
+
+        //}
 
         private void HoloNETClient_OnZomeFunctionCallBack(object sender, ZomeFunctionCallBackEventArgs e)
         {
@@ -241,25 +334,21 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
                 foreach (Holon holon in zome.Holons)
                 {
                     if (holon.Name == holonName)
-                    {
                         return await zome.LoadHolonAsync(holonName, hcEntryAddressHash);
-                    }
                 }
             }
 
             return null;
         }
 
-        public virtual async Task<IHolon> SaveHolonAsync(string holonName, IHolon savingHolon)
+        public virtual async Task<IHolon> SaveHolonAsync(IHolon savingHolon)
         {
             foreach (ZomeBase zome in Zomes)
             {
                 foreach (Holon holon in zome.Holons)
                 {
-                    if (holon.Name == holonName)
-                    {
-                        return await zome.SaveHolonAsync(holonName, savingHolon);
-                    }
+                    if (holon.Name == savingHolon.Name)
+                        return await zome.SaveHolonAsync(savingHolon);
                 }
             }
 

@@ -297,7 +297,7 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
         //    return null;
         //}
 
-        public virtual async Task<IHolon> SaveHolonAsync(string holonName, IHolon savingHolon)
+        public virtual async Task<IHolon> SaveHolonAsync(IHolon savingHolon)
         {
             string methodName = "_update";
             await _taskCompletionSourceGetInstance.Task;
@@ -314,7 +314,7 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
                 _currentId++;
                 _savingHolons[_currentId.ToString()] = savingHolon;
 
-                await HoloNETClient.CallZomeFunctionAsync(_currentId.ToString(), _hcinstance, this.Name, string.Concat(holonName, methodName, new { entry = savingHolon }));
+                await HoloNETClient.CallZomeFunctionAsync(_currentId.ToString(), _hcinstance, this.Name, string.Concat(savingHolon.Name, methodName, new { entry = savingHolon }));
                 return await _taskCompletionSourceSaveHolon.Task;
             }
 

@@ -1,10 +1,13 @@
-﻿using System;
+﻿using NextGenSoftware.OASIS.API.Core;
+using System;
 using System.Reflection;
 
 namespace NextGenSoftware.Holochain.HoloNET.HDK.Core.TestHarness
 {
     class Program
     {
+        static Planet ourWorld;
+
         static void Main(string[] args)
         {
             var versionString = Assembly.GetEntryAssembly()
@@ -38,11 +41,19 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core.TestHarness
             string rustGenesisFolder = @"C:\Users\david\source\repos\Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK\NextGenSoftware.Holochain.HoloNET.HDK.Core.TestHarness\Genesis\Rust";
 
             // Create Planet (OAPP) by generating dynamic template/scaffolding code.
-            IPlanet ourWorld = Star.Genesis("Our World", dnaFolder, cSharpGeneisFolder, rustGenesisFolder, "NextGenSoftware.Holochain.HoloNET.HDK.Core.TestHarness.Genesis");
+            Console.WriteLine("Generating Planet...");
+            ourWorld = (Planet)Star.Genesis("Our World", dnaFolder, cSharpGeneisFolder, rustGenesisFolder, "NextGenSoftware.Holochain.HoloNET.HDK.Core.TestHarness.Genesis");
+            ourWorld.OnHolonLoaded += OurWorld_OnHolonLoaded;
+            ourWorld.OnHolonSaved += OurWorld_OnHolonSaved;
+            ourWorld.OnZomeError += OurWorld_OnZomeError;
             
-            /*
-            string firstEntryHCHash = ourWorld.Zomes[0].Holons[0].ProviderKey;
-           // ourWorld.Zomes[0].
+            Holon newHolon = new Holon();
+            newHolon.Name = "Test";
+            newHolon.Description = "Test Desc";
+            newHolon.HolonType = HolonType.Park;
+
+            Console.WriteLine("Saving Holon...");
+            ourWorld.SaveHolonAsync(newHolon);
 
             // Build
             Star.Light(ourWorld);
@@ -82,7 +93,36 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core.TestHarness
 
             // Delete a planet (OAPP).
             Star.Dust(ourWorld);
-            */
+        }
+
+        private static void OurWorld_OnZomeError(object sender, ZomeErrorEventArgs e)
+        {
+            Console.WriteLine(string.Concat("Error Occured. EndPoint: ", e.EndPoint, ". Reason: ", e.Reason, ". Error Details: ", e.ErrorDetails, "HoloNETErrorDetails.Reason: ", e.HoloNETErrorDetails.Reason, "HoloNETErrorDetails.ErrorDetails: ", e.HoloNETErrorDetails.ErrorDetails));
+        }
+
+        private static void OurWorld_OnHolonSaved(object sender, HolonLoadedEventArgs e)
+        {
+            Console.WriteLine("Holon Saved");
+            Console.WriteLine(string.Concat("Holon Id: ", e.Holon.Id));
+            Console.WriteLine(string.Concat("Holon ProviderKey: ", e.Holon.ProviderKey));
+            Console.WriteLine(string.Concat("Holon Name: ", e.Holon.Name));
+            Console.WriteLine(string.Concat("Holon Type: ", e.Holon.HolonType));
+            Console.WriteLine(string.Concat("Holon Description: ", e.Holon.Description));
+
+            Console.WriteLine("Loading Holon...");
+            ourWorld.LoadHolonAsync(e.Holon.Name, e.Holon.ProviderKey);
+        }
+
+        private static void OurWorld_OnHolonLoaded(object sender, HolonLoadedEventArgs e)
+        {
+            Console.WriteLine("Holon Loaded");
+            Console.WriteLine(string.Concat("Holon Id: ", e.Holon.Id));
+            Console.WriteLine(string.Concat("Holon ProviderKey: ", e.Holon.ProviderKey));
+            Console.WriteLine(string.Concat("Holon Name: ", e.Holon.Name));
+            Console.WriteLine(string.Concat("Holon Type: ", e.Holon.HolonType));
+            Console.WriteLine(string.Concat("Holon Description: ", e.Holon.Description));
+
+            Console.WriteLine(string.Concat("ourWorld.Zomes[0].Holons[0].ProviderKey: ", ourWorld.Zomes[0].Holons[0].ProviderKey));
         }
     }
 }

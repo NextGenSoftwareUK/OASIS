@@ -30,8 +30,8 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
         void Mutate();
         void Radiate();
         void Reflect();
-        void Save();
-        Task<IHolon> SaveHolonAsync(string holonName, IHolon savingHolon);
+        bool Save();
+        Task<IHolon> SaveHolonAsync(IHolon savingHolon);
         void Seed();
         void Shine();
         void Super();

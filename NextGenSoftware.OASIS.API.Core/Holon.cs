@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 
 namespace NextGenSoftware.OASIS.API.Core
 {
@@ -11,5 +10,7 @@ namespace NextGenSoftware.OASIS.API.Core
         public string Description { get; set; }
         public string ProviderKey { get; set; }
         public HolonType HolonType { get; set; }
+        public IHolon Parent { get; set; }
+        public List<IHolon> Children { get; set; }
     }
 }
