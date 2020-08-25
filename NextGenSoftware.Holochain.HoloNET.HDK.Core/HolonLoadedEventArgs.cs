@@ -1,5 +1,6 @@
 ﻿
 using NextGenSoftware.Holochain.HoloNET.Client.Core;
+using NextGenSoftware.OASIS.API.Core;
 using System;
 
 namespace NextGenSoftware.Holochain.HoloNET.HDK.Core

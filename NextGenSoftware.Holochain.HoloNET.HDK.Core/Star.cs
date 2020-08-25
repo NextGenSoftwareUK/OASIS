@@ -7,7 +7,7 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
 {
     public static class Star
     {
-        public static Planet Genesis(string planetName, string dnaFolder = "", string genesisCSharpFolder = "", string genesisRustFolder = "", string genesisNameSpace = "")
+        public static IPlanet Genesis(string planetName, string dnaFolder = "", string genesisCSharpFolder = "", string genesisRustFolder = "", string genesisNameSpace = "")
         {
             //TODO: Make this dynamic by reading from top of template files!
             const string TEMPLATE_NAMESPACE = "NextGenSoftware.Holochain.HoloNET.HDK.Core.CSharpTemplates";
@@ -26,10 +26,11 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
          //   string myZomeEventArgsBuffer = "";
             string iholonBuffer = "";
             string zomeBufferCsharp = "";
-            string holonList = "";
+           // string holonList = "";
+            bool firstHolon = true;
 
-            Planet newPlanet = new Planet() { Name = planetName };
-            
+            //PlanetBase newPlanet = new PlanetBase() { Name = planetName };
+
             //  string loadholonMethodBuffer = "";
             //   int loadholonMethodBufferReadLine = 0;
 
@@ -194,14 +195,12 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
                             libBuffer = libBuffer.Insert(nextLineToWrite + 2, string.Concat(Environment.NewLine, validationTemplate.Replace("Holon", holonName.ToPascalCase()).Replace("{holon}", holonName), Environment.NewLine));
                             //libBuffer = libBuffer.Insert(nextLineToWrite + 2, string.Concat(Environment.NewLine, listTemplate, Environment.NewLine));
 
-
-                            int loadHolonIndex = zomeTemplateCsharp.IndexOf("Load");
-                            int loadHolonIndexEnd = zomeTemplateCsharp.IndexOf("}", loadHolonIndex);
-                            string loadFunct = zomeTemplateCsharp.Substring(loadHolonIndex - 26, (loadHolonIndexEnd - (loadHolonIndex - 26)) + 3);
-
-                            loadFunct = loadFunct.Replace("HOLON", holonName);
-                            zomeBufferCsharp.Insert(zomeBufferCsharp.Length - 3, loadFunct);
-
+                            if (!firstHolon)
+                            {
+                                //TODO: Need to make dynamic so no need to pass length in (had issues before but will try again later... :) )
+                                zomeBufferCsharp = GenerateDynamicZomeFunc("Load", zomeTemplateCsharp, holonName, zomeBufferCsharp, 170);
+                                zomeBufferCsharp = GenerateDynamicZomeFunc("Save", zomeTemplateCsharp, holonName, zomeBufferCsharp, 147);
+                            }
 
                             holonName = holonName.ToPascalCase();
 
@@ -217,6 +216,7 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
                             holonFieldsClone = "";
                             holonReached = false;
                             firstField = true;
+                            firstHolon = false;
                             holonName = "";
                         }
 
@@ -224,7 +224,7 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
                         {
                             string[] parts = buffer.Split(' ');
                             holonName = parts[10].ToPascalCase();
-                            holonList = string.Concat(holonList, holonName, ", ");
+                           // holonList = string.Concat(holonList, holonName, ", ");
 
                             holonBufferRust = holonTemplateRust.Replace("Holon", holonName).Replace("{holon}", holonName.ToSnakeCase());
                             holonBufferRust = holonBufferRust.Substring(0, holonBufferRust.Length - 1);
@@ -265,13 +265,28 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
 
                     File.WriteAllText(string.Concat(genesisRustFolder, "\\lib.rs"), libBuffer);
 
-                    holonList = holonList.Substring(0, holonList.Length - 2);
-                    zomeBufferCsharp = zomeBufferCsharp.Replace("holon_list", holonList);
+                    //holonList = holonList.Substring(0, holonList.Length - 2);
+                    //zomeBufferCsharp = zomeBufferCsharp.Replace("holon_list", holonList);
                     File.WriteAllText(string.Concat(genesisCSharpFolder, "\\", zomeName, ".cs"), zomeBufferCsharp);
                 }
             }
 
-            return newPlanet;
+            //PlanetBase newPlanet = new PlanetBase()
+            //newPlanet.Id = Guid.NewGuid();
+
+
+           // return newPlanet;
+            return null;
+        }
+
+
+        private static string GenerateDynamicZomeFunc(string funcName, string zomeTemplateCsharp, string holonName, string zomeBufferCsharp, int funcLength)
+        {
+            int funcHolonIndex = zomeTemplateCsharp.IndexOf(funcName);
+            string funct = zomeTemplateCsharp.Substring(funcHolonIndex - 26, funcLength); //170
+            funct = funct.Replace("{holon}", holonName.ToSnakeCase()).Replace("HOLON", holonName.ToPascalCase());
+            zomeBufferCsharp = zomeBufferCsharp.Insert(zomeBufferCsharp.Length - 6, funct);
+            return zomeBufferCsharp;
         }
 
         // Build
@@ -280,13 +295,13 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
 
         }
 
-        public static void Light(Planet planet)
+        public static void Light(PlanetBase planet)
         {
 
         }
 
         //Activate & Launch - Launch & activate a planet (OAPP) by shining the star's light upon it...
-        public static void Shine(Planet planet)
+        public static void Shine(PlanetBase planet)
         {
 
         }
@@ -297,7 +312,7 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
         }
 
         //Dractivate
-        public static void Dim(Planet planet)
+        public static void Dim(PlanetBase planet)
         {
 
         }
@@ -308,7 +323,7 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
         }
 
         //Deploy
-        public static void Seed(Planet planet)
+        public static void Seed(PlanetBase planet)
         {
 
         }
@@ -319,12 +334,100 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
         }
 
         // Run Tests
-        public static void Twinkle(Planet planet)
+        public static void Twinkle(PlanetBase planet)
         {
 
         }
 
         public static void Twinkle(string planetName)
+        {
+
+        }
+
+        // Delete Planet (OAPP)
+        public static void Dust(PlanetBase planet)
+        {
+
+        }
+
+        public static void Dust(string planetName)
+        {
+
+        }
+
+        // Delete Planet (OAPP)
+        public static void Evolve(PlanetBase planet)
+        {
+
+        }
+
+        public static void Evolve(string planetName)
+        {
+
+        }
+
+        // Delete Planet (OAPP)
+        public static void Mutate(PlanetBase planet)
+        {
+
+        }
+
+        public static void Mutate(string planetName)
+        {
+
+        }
+
+        // Highlight the Planet (OAPP) in the OAPP Store (StarNET)
+        public static void Radiate(PlanetBase planet)
+        {
+
+        }
+
+        public static void Radiate(string planetName)
+        {
+
+        }
+
+        // Show how much light the planet (OAPP) is emitting into the solar system (StarNET/HoloNET)
+        public static void Emit(PlanetBase planet)
+        {
+
+        }
+
+        public static void Emit(string planetName)
+        {
+
+        }
+
+        // Show stats of the Planet (OAPP)
+        public static void Reflect(PlanetBase planet)
+        {
+
+        }
+
+        public static void Reflect(string planetName)
+        {
+
+        }
+
+        // Send/Receive Love
+        public static void Love(PlanetBase planet)
+        {
+
+        }
+
+        public static void Love(string planetName)
+        {
+
+        }
+
+        // Reserved For Future Use...
+        public static void Super(PlanetBase planet)
+        {
+
+        }
+
+        public static void Super(string planetName)
         {
 
         }

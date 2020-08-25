@@ -1,12 +1,13 @@
 ﻿using NextGenSoftware.Holochain.HoloNET.Client.Core;
+using NextGenSoftware.OASIS.API.Core;
 using System.Threading.Tasks;
 
 namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
 {
-    public interface IZome
+    public interface IZome : IHolon
     {
         HoloNETClientBase HoloNETClient { get; }
-        string ZomeName { get; set; }
+      //  string ZomeName { get; set; }
 
         event ZomeBase.DataReceived OnDataReceived; //TODO: May rename to OnSynapseFired ?
         event ZomeBase.Disconnected OnDisconnected;
@@ -18,6 +19,6 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
         Task Initialize(string zomeName, HoloNETClientBase holoNETClient);
         Task Initialize(string zomeName, string holochainConductorURI, ZomeBase.HoloNETClientType type);
         Task<IHolon> LoadHolonAsync(string holonName, string hcEntryAddressHash);
-        Task<IHolon> SaveHolonAsync(string holochainDataObjectName, IHolon hcObject);
+        Task<IHolon> SaveHolonAsync(string holonName, IHolon hcObject);
     }
 }
