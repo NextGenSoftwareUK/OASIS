@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 
 namespace NextGenSoftware.Holochain.HoloNET.HDK.Core.TestHarness.Genesis
 {
+    //public partial class SuperZome : ZomeBase, ISuperZome
     public partial class SuperZome : ZomeBase, IZome
     {
         public SuperZome(HoloNETClientBase holoNETClient) : base(holoNETClient, "super_zome", new List<string> { "{holon_list}" })
@@ -17,12 +18,12 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core.TestHarness.Genesis
 
         }
 
-        public async Task<IHolon> LoadMyHolonAsync(string hcEntryAddressHash)
+        public async Task<IHolon> LoadSuperTestAsync(string hcEntryAddressHash)
         {
             return await base.LoadHolonAsync("super_test", hcEntryAddressHash);
         }
 
-        public async Task<IHolon> SaveMyHolonAsync(IHolon holon)
+        public async Task<IHolon> SaveSuperTestAsync(IHolon holon)
         {
             return await base.SaveHolonAsync("super_test", holon);
         }

@@ -8,6 +8,7 @@
     <ProjectReference Include="..\NextGenSoftware.Holochain.HoloNET.Client.Core\NextGenSoftware.Holochain.HoloNET.Client.Core.csproj" />
     <ProjectReference Include="..\NextGenSoftware.Holochain.HoloNET.Client.Desktop\NextGenSoftware.Holochain.HoloNET.Client.Desktop.csproj" />
     <ProjectReference Include="..\NextGenSoftware.Holochain.HoloNET.Client.Unity\NextGenSoftware.Holochain.HoloNET.Client.Unity.csproj" />
+    <ProjectReference Include="..\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj" />
   </ItemGroup>
 
   <ItemGroup>
