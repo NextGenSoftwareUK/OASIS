@@ -7,7 +7,7 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
 {
     public static class Star
     {
-        public static Planet CreatePlanet(string planetName, string dnaFolder = "", string genesisCSharpFolder = "", string genesisRustFolder = "", string genesisNameSpace = "")
+        public static Planet Genesis(string planetName, string dnaFolder = "", string genesisCSharpFolder = "", string genesisRustFolder = "", string genesisNameSpace = "")
         {
             //TODO: Make this dynamic by reading from top of template files!
             const string TEMPLATE_NAMESPACE = "NextGenSoftware.Holochain.HoloNET.HDK.Core.CSharpTemplates";
@@ -274,7 +274,7 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
             return newPlanet;
         }
 
-        // Launch & activate a planet (OAPP) by shining the star's light upon it...
+        // Build
         public static void Light(string planetName)
         {
 
@@ -285,12 +285,46 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
 
         }
 
-        public static void UnLight(Planet planet)
+        //Activate & Launch - Launch & activate a planet (OAPP) by shining the star's light upon it...
+        public static void Shine(Planet planet)
         {
 
         }
 
-        public static void UnLight(string planetName)
+        public static void Shine(string planetName)
+        {
+
+        }
+
+        //Dractivate
+        public static void Dim(Planet planet)
+        {
+
+        }
+
+        public static void Dim(string planetName)
+        {
+
+        }
+
+        //Deploy
+        public static void Seed(Planet planet)
+        {
+
+        }
+
+        public static void Seed(string planetName)
+        {
+
+        }
+
+        // Run Tests
+        public static void Twinkle(Planet planet)
+        {
+
+        }
+
+        public static void Twinkle(string planetName)
         {
 
         }
