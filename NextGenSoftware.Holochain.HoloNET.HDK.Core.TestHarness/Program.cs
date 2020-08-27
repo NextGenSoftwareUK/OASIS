@@ -56,10 +56,13 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core.TestHarness
             ourWorld.SaveHolonAsync(newHolon);
 
             // Build
+            ourWorld.Light();
+            //OR
             Star.Light(ourWorld);
 
             // Activate & Launch - Launch & activate the planet (OAPP) by shining the star's light upon it...
             Star.Shine(ourWorld);
+            ourWorld.Shine();
 
             // Deactivate the planet (OAPP)
             Star.Dim(ourWorld);
