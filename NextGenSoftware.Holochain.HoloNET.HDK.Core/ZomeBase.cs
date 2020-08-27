@@ -15,6 +15,7 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
         protected TaskCompletionSource<string> _taskCompletionSourceGetInstance = new TaskCompletionSource<string>();
         private Dictionary<string, IHolon> _savingHolons = new Dictionary<string, IHolon>();
         private TaskCompletionSource<IHolon> _taskCompletionSourceLoadHolon = new TaskCompletionSource<IHolon>();
+        private TaskCompletionSource<List<IHolon>> _taskCompletionSourceLoadHolons = new TaskCompletionSource<List<IHolon>>();
         private TaskCompletionSource<IHolon> _taskCompletionSourceSaveHolon = new TaskCompletionSource<IHolon>();
 
         //public List<HolonBase> Holons = new List<HolonBase>();
@@ -26,8 +27,11 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
         public delegate void HolonLoaded(object sender, HolonLoadedEventArgs e);
         public event HolonLoaded OnHolonLoaded;
 
-        private List<string> _loadFuncNames = new List<string>();
-        private List<string> _saveFuncNames = new List<string>();
+        public delegate void HolonsLoaded(object sender, HolonsLoadedEventArgs e);
+        public event HolonsLoaded OnHolonsLoaded;
+
+        // private List<string> _loadFuncNames = new List<string>();
+        //  private List<string> _saveFuncNames = new List<string>();
 
         public delegate void Initialized(object sender, EventArgs e);
         public event Initialized OnInitialized;
@@ -166,6 +170,7 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
                 HandleError(string.Concat("Zome function ", e.ZomeFunction, " on zome ", e.Zome, " returned an error. Error Details: ", e.ZomeReturnData), null, null);
             else
             {
+                /*
                 for (int i = 0; i < _loadFuncNames.Count; i++)
                 {
                     if (e.ZomeFunction == _loadFuncNames[i])
@@ -182,8 +187,29 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
                         _taskCompletionSourceSaveHolon.SetResult(_savingHolons[e.Id]);
                         _savingHolons.Remove(e.Id);
                     }
-                }
+                }*/
 
+                if (e.ZomeFunction.Contains("loadall"))
+                {
+                    List<IHolon> holons = (List<IHolon>)JsonConvert.DeserializeObject<List<IHolon>>(string.Concat("{", e.ZomeReturnData, "}"));
+                    OnHolonsLoaded?.Invoke(this, new HolonsLoadedEventArgs { Holons = holons });
+                    _taskCompletionSourceLoadHolons.SetResult(holons);
+                }
+                else if (e.ZomeFunction.Contains("load"))
+                {
+                    IHolon holon = (IHolon)JsonConvert.DeserializeObject<IHolon>(string.Concat("{", e.ZomeReturnData, "}"));
+                    OnHolonLoaded?.Invoke(this, new HolonLoadedEventArgs { Holon = holon });
+                    _taskCompletionSourceLoadHolon.SetResult(holon);
+                }
+                else if (e.ZomeFunction.Contains("save"))
+                {
+                    _savingHolons[e.Id].ProviderKey = e.ZomeReturnData;
+
+                    OnHolonSaved?.Invoke(this, new HolonLoadedEventArgs { Holon = _savingHolons[e.Id] });
+                    _taskCompletionSourceSaveHolon.SetResult(_savingHolons[e.Id]);
+                    _savingHolons.Remove(e.Id);
+                }
+                
                 /*
                 switch (e.ZomeFunction)
                 {
@@ -229,6 +255,19 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
             //        }
             //    }
             //}
+
+            return null;
+        }
+
+        public virtual async Task<List<IHolon>> LoadHolonsAsync(string holonName, string hcAnchorAddressHash)
+        {
+            await _taskCompletionSourceGetInstance.Task;
+
+            if (HoloNETClient.State == System.Net.WebSockets.WebSocketState.Open && !string.IsNullOrEmpty(_hcinstance))
+            {
+                await HoloNETClient.CallZomeFunctionAsync(_hcinstance, this.Name, string.Concat(holonName, "_loadall"), new { address = hcAnchorAddressHash });
+                return await _taskCompletionSourceLoadHolons.Task;
+            }
 
             return null;
         }
