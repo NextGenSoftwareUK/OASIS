@@ -4,16 +4,16 @@ using System.Threading.Tasks;
 
 namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
 {
-    public interface IPlanet : OASIS.API.Core.IPlanet
+    public interface ICelestialBodyBase : OASIS.API.Core.ICelestialBodyBase
     {
         HoloNETClientBase HoloNETClient { get; }
 
-        event PlanetBase.DataReceived OnDataReceived;
-        event PlanetBase.Disconnected OnDisconnected;
-        event PlanetBase.HolonLoaded OnHolonLoaded;
-        event PlanetBase.HolonSaved OnHolonSaved;
-        event PlanetBase.Initialized OnInitialized;
-        event PlanetBase.ZomeError OnZomeError;
+        event CelestialBodyBase.DataReceived OnDataReceived;
+        event CelestialBodyBase.Disconnected OnDisconnected;
+        event CelestialBodyBase.HolonLoaded OnHolonLoaded;
+        event CelestialBodyBase.HolonSaved OnHolonSaved;
+        event CelestialBodyBase.Initialized OnInitialized;
+        event CelestialBodyBase.ZomeError OnZomeError;
 
         Task Initialize(Guid id, HoloNETClientBase holoNETClient);
         Task Initialize(Guid id, string holochainConductorURI, HoloNETClientType type);

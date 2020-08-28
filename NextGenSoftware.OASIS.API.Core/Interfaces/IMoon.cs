@@ -1,7 +1,7 @@
 ﻿
 namespace NextGenSoftware.OASIS.API.Core
-{ 
-    public interface IPlanet : ICelestialBodyBase
+{
+    public interface IMoon : ICelestialBodyBase
     {
        
     }

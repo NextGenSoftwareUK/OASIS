@@ -31,9 +31,9 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.EOSIOClasses
             return meta;
         }
 
-        public Profile ToProfile()
+        public Avatar ToProfile()
         {
-            var profile = new Profile()
+            var profile = new Avatar()
             {
                 UserId = Guid.Parse(this.userid),
                 Username = this.username,

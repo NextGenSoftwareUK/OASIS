@@ -21,11 +21,11 @@ namespace NextGenSoftware.OASIS.API.Core.TestHarness
 
 
             Console.WriteLine("\nSaving Profile...");
-            Profile newProfile = new Profile { Username = "dellams", Email = "david@nextgensoftware.co.uk", Password = "1234", FirstName = "David", LastName = "Ellams", DOB = "11/04/1980", Id = Guid.NewGuid(), Title = "Mr", PlayerAddress = "blahahahaha" };
+            Avatar newProfile = new Avatar { Username = "dellams", Email = "david@nextgensoftware.co.uk", Password = "1234", FirstName = "David", LastName = "Ellams", DOB = "11/04/1980", Id = Guid.NewGuid(), Title = "Mr", PlayerAddress = "blahahahaha" };
             
             
             await newProfile.KarmaEarnt(KarmaTypePositive.HelpingTheEnvironment, KarmaSourceType.hApp, "Our World", "XR Educational Game To Make The World A Better Place");
-            Profile savedProfile = (Profile)await OASISAPIManager.ProfileManager.SaveProfileAsync(newProfile);
+            Avatar savedProfile = (Avatar)await OASISAPIManager.ProfileManager.SaveProfileAsync(newProfile);
             //IProfile savedProfile = await profileManager.SaveProfileAsync(newProfile);
 
             if (savedProfile != null)

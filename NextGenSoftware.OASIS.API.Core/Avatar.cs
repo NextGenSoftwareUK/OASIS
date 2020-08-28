@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 namespace NextGenSoftware.OASIS.API.Core
 {
-    public class Profile : Holon, IProfile
+    public class Avatar : Holon, IAvatar
     {
         public Guid UserId { get; set; } //TODO: Remember to add this to the HC Rust code...
         public string Username { get; set; }
@@ -77,7 +77,7 @@ namespace NextGenSoftware.OASIS.API.Core
             return true;
         }
 
-        public Profile()
+        public Avatar()
         {
             this.HolonType = HolonType.Profile;
         }

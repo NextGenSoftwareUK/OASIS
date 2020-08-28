@@ -12,6 +12,7 @@ namespace NextGenSoftware.OASIS.API.Core
         string ProviderKey { get; set; }
         HolonType HolonType { get; set; }
         IPlanet Planet { get; set; }
+        IMoon Moon { get; set; }
         IHolon Parent { get; set; }
         List<IHolon> Children { get; set; }
     }
