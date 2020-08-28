@@ -1,21 +1,27 @@
 ﻿using Newtonsoft.Json;
+using NextGenSoftware.Holochain.HoloNET.Client.Core;
 using System;
 using System.IO;
-using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 
 namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
 {
     public static class Star
     {
-        public static IPlanet Genesis(string planetName, string dnaFolder = "", string genesisCSharpFolder = "", string genesisRustFolder = "", string genesisNameSpace = "")
+        const string STAR_DNA = "starDNA.json";
+        public static StarCore StarCore { get; set; }
+
+        // Possible to override settings in DNA file if this method is manually called...
+        public static void Initialize(string holochainConductorURI, HoloNETClientType type, string providerKey)
         {
-            //TODO: Make this dynamic by reading from top of template files!
-            const string TEMPLATE_NAMESPACE = "NextGenSoftware.Holochain.HoloNET.HDK.Core.CSharpTemplates";
+            StarCore = new StarCore(holochainConductorURI, type, providerKey);
+        }
+
+        public static async Task<IPlanet> Genesis(string planetName, string dnaFolder = "", string genesisCSharpFolder = "", string genesisRustFolder = "", string genesisNameSpace = "")
+        {
             StarDNA starDNA;
-            //bool holonLineReached = false;
             bool holonReached = false;
-            //  bool holonHolochainZometReached = false;
             string holonBufferRust = "";
             string holonBufferCsharp = "";
             string libBuffer = "";
@@ -24,19 +30,12 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
             string holonFieldsClone = "";
             int nextLineToWrite = 0;
             bool firstField = true;
-         //   string myZomeEventArgsBuffer = "";
             string iholonBuffer = "";
             string zomeBufferCsharp = "";
             string planetBufferCsharp = "";
-           // string holonList = "";
             bool firstHolon = true;
 
-            //PlanetBase newPlanet = new PlanetBase() { Name = planetName };
-
-            //  string loadholonMethodBuffer = "";
-            //   int loadholonMethodBufferReadLine = 0;
-
-            if (File.Exists("starDNA.json"))
+            if (File.Exists(STAR_DNA))
                 starDNA = LoadDNA();
             else
             {
@@ -45,6 +44,9 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
             }
 
             ValidateDNA(starDNA, dnaFolder, genesisCSharpFolder, genesisRustFolder);
+            
+            if (StarCore == null)
+                Initialize(starDNA.HolochainConductorURI, (HoloNETClientType)Enum.Parse(typeof(HoloNETClientType), starDNA.HoloNETClientType), starDNA.StarProviderKey);
 
             string libTemplate = new FileInfo(string.Concat(starDNA.RustDNATemplateFolder, "\\", starDNA.RustTemplateLib)).OpenText().ReadToEnd();
             string createTemplate = new FileInfo(string.Concat(starDNA.RustDNATemplateFolder, "\\", starDNA.RustTemplateCreate)).OpenText().ReadToEnd();
@@ -57,7 +59,6 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
             string intTemplate = new FileInfo(string.Concat(starDNA.RustDNATemplateFolder, "\\", starDNA.RustTemplateInt)).OpenText().ReadToEnd();
             string stringTemplate = new FileInfo(string.Concat(starDNA.RustDNATemplateFolder, "\\", starDNA.RustTemplateString)).OpenText().ReadToEnd();
             string boolTemplate = new FileInfo(string.Concat(starDNA.RustDNATemplateFolder, "\\", starDNA.RustTemplateBool)).OpenText().ReadToEnd();
-           // string myZomeEventArgsTemplate = new FileInfo(string.Concat(starDNA.CSharpDNATemplateFolder, "\\", starDNA.CSharpTemplateMyZomeEventArgs)).OpenText().ReadToEnd();
             string iHolonTemplate = new FileInfo(string.Concat(starDNA.CSharpDNATemplateFolder, "\\", starDNA.CSharpTemplateIHolonDNA)).OpenText().ReadToEnd();
             string holonTemplateCsharp = new FileInfo(string.Concat(starDNA.CSharpDNATemplateFolder, "\\", starDNA.CSharpTemplateHolonDNA)).OpenText().ReadToEnd();
             string zomeTemplateCsharp = new FileInfo(string.Concat(starDNA.CSharpDNATemplateFolder, "\\", starDNA.CSharpTemplateZomeDNA)).OpenText().ReadToEnd();
@@ -67,7 +68,7 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
 
             //If folder is not passed in via command line args then use default in config file.
             if (string.IsNullOrEmpty(dnaFolder))
-                dnaFolder = starDNA.DNAFolder;
+                dnaFolder = starDNA.PlanetDNAFolder;
 
             if (string.IsNullOrEmpty(genesisCSharpFolder))
                 genesisCSharpFolder = starDNA.GenesisCSharpFolder;
@@ -76,8 +77,7 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
                 genesisRustFolder = starDNA.GenesisRustFolder;
 
             if (string.IsNullOrEmpty(genesisNameSpace))
-                genesisNameSpace = starDNA.GenesisNameSpace;
-            
+                genesisNameSpace = starDNA.GenesisNamespace;
 
             DirectoryInfo dirInfo = new DirectoryInfo(dnaFolder);
             FileInfo[] files = dirInfo.GetFiles();
@@ -100,20 +100,15 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
                             if (string.IsNullOrEmpty(genesisNameSpace))
                                 genesisNameSpace = parts[1];
 
-                            zomeBufferCsharp = zomeTemplateCsharp.Replace(TEMPLATE_NAMESPACE, genesisNameSpace);
-                            holonBufferCsharp = holonTemplateCsharp.Replace(TEMPLATE_NAMESPACE, genesisNameSpace);
+                            zomeBufferCsharp = zomeTemplateCsharp.Replace(starDNA.TemplateNamespace, genesisNameSpace);
+                            holonBufferCsharp = holonTemplateCsharp.Replace(starDNA.TemplateNamespace, genesisNameSpace);
                         }
 
                         if (buffer.Contains("ZomeDNA"))
-                        //if (buffer.Contains("HolochainBaseProxyZome"))
                         {
                             string[] parts = buffer.Split(' ');
-
-                         //   myZomeEventArgsBuffer = myZomeEventArgsTemplate.Replace("MyZome", parts[6]);
                             libBuffer = libTemplate.Replace("zome_name", parts[6].ToSnakeCase());
 
-                            //zomeBufferCsharp = zomeBufferCsharp.Replace("MyZome", parts[6].ToPascalCase());
-                            //zomeBufferCsharp = zomeBufferCsharp.Replace("MYZOME", parts[6].ToUpper());
                             zomeBufferCsharp = zomeBufferCsharp.Replace("ZomeDNATemplate", parts[6].ToPascalCase());
                             zomeBufferCsharp = zomeBufferCsharp.Replace("{zome}", parts[6].ToSnakeCase());
                             zomeName = parts[6].ToPascalCase();
@@ -128,6 +123,9 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
                             {
                                 case "string":
                                     {
+                                        //TODO: Get this working so one line for each type! :)
+                                        ///GenerateDynamicZomeFunc()
+
                                         if (firstField)
                                             firstField = false;
                                         else
@@ -136,10 +134,7 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
                                         fieldName = parts[14].ToSnakeCase();
                                         holonFieldsClone = string.Concat(holonFieldsClone, holonName, ".", fieldName, "=updated_entry.", fieldName, ";", Environment.NewLine);
 
-                                        //int index = holonBuffer.IndexOf("//#CopyFields//");
                                         holonBufferRust = string.Concat(holonBufferRust, stringTemplate.Replace("variableName", fieldName), ",", Environment.NewLine);
-
-                                       // holonBuffer = holonBuffer.Insert(nextLineToWrite + 2, string.Concat(Environment.NewLine, createTemplate.Replace("MyEntry", holonName.ToPascalCase()).Replace("my_entry", holonName), Environment.NewLine));
                                     }
                                     break;
 
@@ -179,12 +174,10 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
 
                             holonBufferRust = string.Concat(Environment.NewLine, holonBufferRust, Environment.NewLine, holonTemplateRust.Substring(holonTemplateRust.Length - 1, 1), Environment.NewLine);
 
-                            //int zomeNameIndex = libTemplate.IndexOf("zome_name");
                             int zomeIndex = libTemplate.IndexOf("#[zome]");
                             int zomeBodyStartIndex = libTemplate.IndexOf("{", zomeIndex);
                             
                             libBuffer = libBuffer.Insert(zomeIndex - 2, holonBufferRust);
-                            // libBuffer = libBuffer.Insert(zomeBodyStartIndex + 2, holonBuffer);
 
                             if (nextLineToWrite == 0)
                                 nextLineToWrite = zomeBodyStartIndex + holonBufferRust.Length;
@@ -197,7 +190,6 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
                             libBuffer = libBuffer.Insert(nextLineToWrite + 2, string.Concat(Environment.NewLine, updateTemplate.Replace("Holon", holonName.ToPascalCase()).Replace("{holon}", holonName).Replace("//#CopyFields//", holonFieldsClone), Environment.NewLine));
                             libBuffer = libBuffer.Insert(nextLineToWrite + 2, string.Concat(Environment.NewLine, deleteTemplate.Replace("Holon", holonName.ToPascalCase()).Replace("{holon}", holonName), Environment.NewLine));
                             libBuffer = libBuffer.Insert(nextLineToWrite + 2, string.Concat(Environment.NewLine, validationTemplate.Replace("Holon", holonName.ToPascalCase()).Replace("{holon}", holonName), Environment.NewLine));
-                            //libBuffer = libBuffer.Insert(nextLineToWrite + 2, string.Concat(Environment.NewLine, listTemplate, Environment.NewLine));
 
                             if (!firstHolon)
                             {
@@ -228,7 +220,6 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
                         {
                             string[] parts = buffer.Split(' ');
                             holonName = parts[10].ToPascalCase();
-                           // holonList = string.Concat(holonList, holonName, ", ");
 
                             holonBufferRust = holonTemplateRust.Replace("Holon", holonName).Replace("{holon}", holonName.ToSnakeCase());
                             holonBufferRust = holonBufferRust.Substring(0, holonBufferRust.Length - 1);
@@ -240,43 +231,28 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
                             holonBufferCsharp = holonBufferCsharp.Replace("HolonDNATemplate", parts[10]);
                             iholonBuffer = iHolonTemplate.Replace("IHolonDNATemplate", string.Concat("I", parts[10]));
 
-                            //zomeBufferCsharp = zomeBufferCsharp.Replace("MYHOLON", parts[10].ToUpper());
-                            //zomeBufferCsharp = zomeBufferCsharp.Replace("myHolon", parts[10].ToCamelCase());
                             zomeBufferCsharp = zomeBufferCsharp.Replace("HOLON", parts[10].ToPascalCase());
                             zomeBufferCsharp = zomeBufferCsharp.Replace("{holon}", parts[10].ToSnakeCase());
 
-                            zomeBufferCsharp = zomeBufferCsharp.Replace(TEMPLATE_NAMESPACE, genesisNameSpace);
-                            holonBufferCsharp = holonBufferCsharp.Replace(TEMPLATE_NAMESPACE, genesisNameSpace);
-                            iholonBuffer = iholonBuffer.Replace(TEMPLATE_NAMESPACE, genesisNameSpace);
-                            //izomeBufferCsharp = izomeBufferCsharp.Replace(TEMPLATE_NAMESPACE, genesisNameSpace);
+                            zomeBufferCsharp = zomeBufferCsharp.Replace(starDNA.TemplateNamespace, genesisNameSpace);
+                            holonBufferCsharp = holonBufferCsharp.Replace(starDNA.TemplateNamespace, genesisNameSpace);
+                            iholonBuffer = iholonBuffer.Replace(starDNA.TemplateNamespace, genesisNameSpace);
 
                             if (string.IsNullOrEmpty(planetBufferCsharp))
                                 planetBufferCsharp = planetTemplateCsharp;
 
-                            planetBufferCsharp = planetBufferCsharp.Replace(TEMPLATE_NAMESPACE, genesisNameSpace);
+                            planetBufferCsharp = planetBufferCsharp.Replace(starDNA.TemplateNamespace, genesisNameSpace);
                             planetBufferCsharp = planetBufferCsharp.Replace("{holon}", parts[10].ToSnakeCase()).Replace("HOLON", parts[10].ToPascalCase());
 
                             holonName = holonName.ToSnakeCase();
                             holonReached = true;
                         }
-
-                        //if (buffer.Contains("LoadMyholonAsync"))
-                        //{
-                        //    loadholonMethodBuffer = string.Concat(loadholonMethodBuffer, buffer.Replace();
-                        //    loadholonMethodBufferReadLine++;
-                            
-                        //    if (loadholonMethodBufferReadLine == 3)
-                        //        zomeBufferCsharp.Insert(zomeBufferCsharp.Length - 3, loadholonMethodBuffer);
-                        //}
                     }
 
                     reader.Close();
                     nextLineToWrite = 0;
 
                     File.WriteAllText(string.Concat(genesisRustFolder, "\\lib.rs"), libBuffer);
-
-                    //holonList = holonList.Substring(0, holonList.Length - 2);
-                    //zomeBufferCsharp = zomeBufferCsharp.Replace("holon_list", holonList);
                     File.WriteAllText(string.Concat(genesisCSharpFolder, "\\", zomeName, ".cs"), zomeBufferCsharp);
                 }
             }
@@ -289,7 +265,10 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
             newPlanet.Name = planetName;
 
             //TODO: Need to save the collection of Zomes/Holons that belong to this planet here...
-            newPlanet.Save();
+            await newPlanet.Save();
+
+            //TODO: Might be more efficient if the planet can be saved and then added to the list of planets in the star in one go?
+            await StarCore.AddPlanetAsync(newPlanet);
 
             //TODO: Need to save this to the StarNET store (still to be made!) (Will of course be written on top of the HDK/ODK...
             //This will be private on the store until the user publishes via the Star.Seed() command.
@@ -297,7 +276,7 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
             return newPlanet;
         }
 
-
+        //TODO: Get this working... :)
         private static string GenerateDynamicZomeFunc(string funcName, string zomeTemplateCsharp, string holonName, string zomeBufferCsharp, int funcLength)
         {
             int funcHolonIndex = zomeTemplateCsharp.IndexOf(funcName);
@@ -463,8 +442,8 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
 
             if (starDNA != null)
             {
-                if (!Directory.Exists(starDNA.DNAFolder))
-                    throw new ArgumentOutOfRangeException("DNAFolder", starDNA.DNAFolder, "The DNAFolder is not valid, please double check and try again.");
+                if (!Directory.Exists(starDNA.PlanetDNAFolder))
+                    throw new ArgumentOutOfRangeException("PlanetDNAFolder", starDNA.PlanetDNAFolder, "The PlanetDNAFolder is not valid, please double check and try again.");
 
                 if (!Directory.Exists(starDNA.GenesisCSharpFolder))
                     throw new ArgumentOutOfRangeException("GenesisCSharpFolder", starDNA.GenesisCSharpFolder, "The GenesisCSharpFolder is not valid, please double check and try again.");
@@ -493,12 +472,6 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
                 if (!File.Exists(string.Concat(starDNA.RustDNATemplateFolder, "\\", starDNA.RustTemplateValidation)))
                     throw new ArgumentOutOfRangeException("RustTemplateValidation", string.Concat(starDNA.RustTemplateValidation, "\\", starDNA.RustTemplateList), "The RustTemplateValidation file is not valid, please double check and try again.");
 
-                //if (!File.Exists(string.Concat(starDNA.CSharpDNATemplateFolder, "\\", starDNA.CSharpTemplateMyZomeEventArgs)))
-                //    throw new ArgumentOutOfRangeException("CSharpTemplateEventArgs", string.Concat(starDNA.CSharpTemplateMyZomeEventArgs, "\\", starDNA.CSharpTemplateMyZomeEventArgs), "The CSharpTemplateEventArgs file is not valid, please double check and try again.");
-
-                //if (!File.Exists(string.Concat(starDNA.CSharpDNATemplateFolder, "\\", starDNA.CSharpTemplateIMyholon)))
-                //    throw new ArgumentOutOfRangeException("CSharpTemplateIMyholon", string.Concat(starDNA.CSharpDNATemplateFolder, "\\", starDNA.CSharpTemplateIMyholon), "The CSharpTemplateIMyholon file is not valid, please double check and try again.");
-
                 if (!File.Exists(string.Concat(starDNA.CSharpDNATemplateFolder, "\\", starDNA.CSharpTemplateHolonDNA)))
                     throw new ArgumentOutOfRangeException("CSharpTemplateHolonDNA", string.Concat(starDNA.CSharpDNATemplateFolder, "\\", starDNA.CSharpTemplateHolonDNA), "The CSharpTemplateMyholon file is not valid, please double check and try again.");
 
@@ -521,7 +494,7 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
 
         private static StarDNA LoadDNA()
         {
-            using (StreamReader r = new StreamReader("starDNA.json"))
+            using (StreamReader r = new StreamReader(STAR_DNA))
             {
                 string json = r.ReadToEnd();
                 StarDNA starDNA = JsonConvert.DeserializeObject<StarDNA> (json);
@@ -532,7 +505,7 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
         private static bool SaveDNA(StarDNA starDNA)
         {
             string json = JsonConvert.SerializeObject(starDNA);
-            StreamWriter writer = new StreamWriter("starDNA.json");
+            StreamWriter writer = new StreamWriter(STAR_DNA);
             writer.Write(json);
             writer.Close();
             

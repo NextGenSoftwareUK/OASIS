@@ -52,12 +52,6 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
 
         public HoloNETClientBase HoloNETClient { get; private set; }
 
-        public enum HoloNETClientType
-        {
-            Desktop,
-            Unity
-        }
-
         //TODO: Use only for Proxy classes (not sure to do this way?) Revisit later...
         //public HolochainBaseZome()
         //{
@@ -234,132 +228,62 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
             }
         }
 
-        public virtual async Task<IHolon> LoadHolonAsync(string holonName, string hcEntryAddressHash)
+        public virtual async Task<IHolon> LoadHolonAsync(string holonType, string hcEntryAddressHash)
         {
-            await _taskCompletionSourceGetInstance.Task;
-
-            if (HoloNETClient.State == System.Net.WebSockets.WebSocketState.Open && !string.IsNullOrEmpty(_hcinstance))
-            {
-                await HoloNETClient.CallZomeFunctionAsync(_hcinstance, this.Name, string.Concat(holonName, "_load"), new { address = hcEntryAddressHash });
-                return await _taskCompletionSourceLoadHolon.Task;
-            }
-
-            //for (int i= 0; i < _loadFuncNames.Count; i++)
-            //{
-            //    if (_loadFuncNames[i].Contains("load"))
-            //    {
-            //        if (HoloNETClient.State == System.Net.WebSockets.WebSocketState.Open && !string.IsNullOrEmpty(_hcinstance))
-            //        {
-            //            await HoloNETClient.CallZomeFunctionAsync(_hcinstance, ZomeName, _loadFuncNames[i], new { address = hcEntryAddressHash });
-            //            return await _taskCompletionSourceLoadHolon.Task;
-            //        }
-            //    }
-            //}
-
-            return null;
+            await CallZomeFunctionAsync(string.Concat(holonType, "_load"), hcEntryAddressHash);
+            return await _taskCompletionSourceLoadHolon.Task; //TODO: Look into this...
         }
 
-        public virtual async Task<List<IHolon>> LoadHolonsAsync(string holonName, string hcAnchorAddressHash)
+        public virtual async Task<List<IHolon>> LoadHolonsAsync(string holonType, string hcAnchorAddressHash)
         {
-            await _taskCompletionSourceGetInstance.Task;
-
-            if (HoloNETClient.State == System.Net.WebSockets.WebSocketState.Open && !string.IsNullOrEmpty(_hcinstance))
-            {
-                await HoloNETClient.CallZomeFunctionAsync(_hcinstance, this.Name, string.Concat(holonName, "_loadall"), new { address = hcAnchorAddressHash });
-                return await _taskCompletionSourceLoadHolons.Task;
-            }
-
-            return null;
+            await CallZomeFunctionAsync(string.Concat(holonType, "_loadall"), hcAnchorAddressHash);
+            return await _taskCompletionSourceLoadHolons.Task; //TODO: Look into this...
         }
 
-        //public virtual async Task<iHolon> LoadHolonAsync(string loadFuncName, string hcEntryAddressHash)
-        //{
-        //    await _taskCompletionSourceGetInstance.Task;
-
-        //    if (HoloNETClient.State == System.Net.WebSockets.WebSocketState.Open && !string.IsNullOrEmpty(_hcinstance))
-        //    {
-        //        await HoloNETClient.CallZomeFunctionAsync(_hcinstance, ZomeName, loadFuncName, new { address = hcEntryAddressHash });
-        //        return await _taskCompletionSourceLoadHolon.Task;
-        //    }
-
-        //    return null;
-        //}
-
-        //public async Task<iHolon> LoadMyClassAsync(Guid id)
-        //{
-        //    await _taskCompletionSourceGetInstance.Task;
-
-        //    if (HoloNETClient.State == System.Net.WebSockets.WebSocketState.Open && !string.IsNullOrEmpty(_hcinstance))
-        //    {
-        //        //TODO: Implement in HC/Rust
-        //        await HoloNETClient.CallZomeFunctionAsync(_hcinstance, MYZOME_ZOME, LOAD_MYCLASS_FUNC, new { id });
-        //        return await _taskCompletionSourceLoadHolon.Task;
-        //    }
-
-        //    return null;
-        //}
-
-        //public async Task<iHolon> LoadMyClassAsync(string username, string password)
-        //{
-        //    await _taskCompletionSourceGetInstance.Task;
-
-        //    if (HoloNETClient.State == System.Net.WebSockets.WebSocketState.Open && !string.IsNullOrEmpty(_hcinstance))
-        //    {
-        //        //TODO: Implement in HC/Rust
-        //        //await HoloNETClient.CallZomeFunctionAsync(_hcinstance, OURWORLD_ZOME, LOAD_MyClass_FUNC, new { username, password });
-
-        //        //TODO: TEMP HARDCODED JUST TO TEST WITH!
-        //        await HoloNETClient.CallZomeFunctionAsync(_hcinstance, MYZOME_ZOME, LOAD_MYCLASS_FUNC, new { address = "QmR6A1gkSmCsxnbDF7V9Eswnd4Kw9SWhuf8r4R643eDshg" });
-        //        return await _taskCompletionSourceLoadHolon.Task;
-        //    }
-
-        //    return null;
-        //}
-
-        //public virtual async Task<iHolon> SaveMyClassAsync(string saveFuncName, iHolon hcObject)
-        //{
-        //    await _taskCompletionSourceGetInstance.Task;
-
-        //    if (HoloNETClient.State == System.Net.WebSockets.WebSocketState.Open && !string.IsNullOrEmpty(_hcinstance))
-        //    {
-        //        // Rust/HC does not like null strings so need to set to empty string.
-        //        if (hcObject.HcAddressHash == null)
-        //            hcObject.HcAddressHash = string.Empty;
-
-        //        _currentId++;
-        //        _savingHolons[_currentId.ToString()] = hcObject;
-
-        //        await HoloNETClient.CallZomeFunctionAsync(_currentId.ToString(), _hcinstance, ZomeName, saveFuncName, new { entry = hcObject });
-        //        return await _taskCompletionSourceSaveHolon.Task;
-        //    }
-
-        //    return null;
-        //}
-
-        public virtual async Task<IHolon> SaveHolonAsync(IHolon savingHolon)
+        public virtual async Task<IHolon> SaveHolonAsync(string holonType, IHolon savingHolon)
         {
-            string methodName = "_update";
+            CallZomeFunctionAsync(string.Concat(holonType, string.IsNullOrEmpty(savingHolon.ProviderKey) ? "_create" : "_update"), savingHolon);
+            return await _taskCompletionSourceSaveHolon.Task; //TODO: Look into this?
+        }
+
+        public virtual async Task<IHolon> CallZomeFunctionAsync(string zomeFunctionName, IHolon holon)
+        {
             await _taskCompletionSourceGetInstance.Task;
 
             if (HoloNETClient.State == System.Net.WebSockets.WebSocketState.Open && !string.IsNullOrEmpty(_hcinstance))
             {
                 // Rust/HC does not like null strings so need to set to empty string.
-                if (savingHolon.ProviderKey == null)
-                {
-                    savingHolon.ProviderKey = string.Empty;
-                    methodName = "_create";
-                }
+                if (holon.ProviderKey == null)
+                    holon.ProviderKey = string.Empty;
 
+                //TODO: Not sure we need this anymore? Need to look into...
                 _currentId++;
-                _savingHolons[_currentId.ToString()] = savingHolon;
+               // _savingHolons[_currentId.ToString()] = savingHolon;
 
-                await HoloNETClient.CallZomeFunctionAsync(_currentId.ToString(), _hcinstance, this.Name, string.Concat(savingHolon.Name, methodName, new { entry = savingHolon }));
-                return await _taskCompletionSourceSaveHolon.Task;
+                await HoloNETClient.CallZomeFunctionAsync(_currentId.ToString(), _hcinstance, zomeFunctionName, new { entry = holon });
+
+                //TODO: Fix this
+                // return await _taskCompletionSourceSaveHolon.Task;
             }
 
             return null;
         }
 
+        public virtual async Task<IHolon> CallZomeFunctionAsync(string zomeFunctionName, string hcAnchorAddressHash)
+        {
+            await _taskCompletionSourceGetInstance.Task;
+
+            if (HoloNETClient.State == System.Net.WebSockets.WebSocketState.Open && !string.IsNullOrEmpty(_hcinstance))
+            {
+                //TODO: Think may change loadall to list (to match rust conventions...) :)
+                await HoloNETClient.CallZomeFunctionAsync(_hcinstance, this.Name, zomeFunctionName, new { address = hcAnchorAddressHash });
+               
+                //TODO: Fix this
+                // return await _taskCompletionSourceLoadHolons.Task;
+            }
+
+            return null;
+        }
 
 
         private void HoloNETClient_OnSignalsCallBack(object sender, SignalsCallBackEventArgs e)

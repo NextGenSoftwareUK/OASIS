@@ -11,7 +11,8 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
     public abstract class PlanetBase : Holon, IPlanet
     {
         //  private const string PLANET_CORE_ZOME = "planet_core_zome"; //Equivilant to an anchor in hc rust... :)
-        private string _coreProviderKey;
+        //  private string _coreProviderKey;
+        private string PLANET_HOLON = "planet_holon";
         protected int _currentId = 0;
         protected string _hcinstance;
         protected TaskCompletionSource<string> _taskCompletionSourceGetInstance = new TaskCompletionSource<string>();
@@ -49,59 +50,86 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
 
         public HoloNETClientBase HoloNETClient { get; private set; }
 
-        public enum HoloNETClientType
-        {
-            Desktop,
-            Unity
-        }
-
         public PlanetBase()
         {
 
         }
+        
+        public PlanetBase(HoloNETClientBase holoNETClient, Guid id)
+        {
+            Initialize(id, holoNETClient);
+        }
 
+        public PlanetBase(string holochainConductorURI, HoloNETClientType type, Guid id)
+        {
+            Initialize(id, holochainConductorURI, type);
+        }
+
+        public PlanetBase(HoloNETClientBase holoNETClient)
+        {
+            Initialize(holoNETClient);
+        }
+
+        public PlanetBase(string holochainConductorURI, HoloNETClientType type)
+        {
+            Initialize(holochainConductorURI, type);
+        }
+
+        //TODO: Don't think we need to pass Id in if we are using ProviderKey?
+        public PlanetBase(HoloNETClientBase holoNETClient, Guid id, string providerKey)
+        {
+            this.ProviderKey = providerKey;
+            Initialize(id, holoNETClient);
+        }
+
+        public PlanetBase(string holochainConductorURI, HoloNETClientType type, Guid id, string providerKey)
+        {
+            this.ProviderKey = providerKey;
+            Initialize(id, holochainConductorURI, type);
+        }
+
+        public PlanetBase(HoloNETClientBase holoNETClient, string providerKey)
+        {
+            this.ProviderKey = providerKey;
+            Initialize(holoNETClient);
+        }
+
+        public PlanetBase(string holochainConductorURI, HoloNETClientType type, string providerKey)
+        {
+            this.ProviderKey = providerKey;
+            Initialize(holochainConductorURI, type);
+        }
+        
+
+        /*
         public PlanetBase(HoloNETClientBase holoNETClient, Guid id, string coreProviderKey)
         {
-            _coreProviderKey = coreProviderKey;
+            this.ProviderKey = coreProviderKey;
             Initialize(id, holoNETClient);
         }
 
         public PlanetBase(string holochainConductorURI, HoloNETClientType type, Guid id, string coreProviderKey)
         {
-            _coreProviderKey = coreProviderKey;
+            this.ProviderKey = coreProviderKey;
             Initialize(id, holochainConductorURI, type);
         }
 
         public PlanetBase(HoloNETClientBase holoNETClient, string coreProviderKey)
         {
-            _coreProviderKey = coreProviderKey;
+            this.ProviderKey = coreProviderKey;
             Initialize(holoNETClient);
         }
 
         public PlanetBase(string holochainConductorURI, HoloNETClientType type, string coreProviderKey)
         {
-            _coreProviderKey = coreProviderKey;
+            this.ProviderKey = coreProviderKey;
             Initialize(holochainConductorURI, type);
-        }
+        }*/
 
         public void LoadAll()
         {
             LoadHolons();
             LoadZomes();
-
-            //foreach (ZomeBase zome in Zomes)
-            //{
-            //    //TODO: Need to check if any state has changed and only save if it has...
-            //    zome.LoadHolonAsync(zome,);
-
-            //    foreach (Holon holon in zome.Holons)
-            //    {
-            //        //TODO: Need to check if any state has changed and only save if it has...
-            //        zome.LoadHolonAsync(holon);
-            //    }
-            //}
-
-            //return true;
         }
 
         public async Task<bool> Save()
@@ -226,22 +254,6 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
             Star.Super(this);
         }
 
-        public async Task Initialize(HoloNETClientBase holoNETClient)
-        {
-            this.HolonType = HolonType.Planet;
-            HoloNETClient = holoNETClient;
-
-            //TODO: Do we need to wire up any more events to this?
-            PlanetCore = new PlanetCore(holoNETClient, _coreProviderKey); //_coreProviderKey = hc anchor.
-
-            //TODO: Load the planets Zome collection here? Or is it passed in from the sub-class implementation? Probably 2nd one... ;-)
-            //No we load the holons and zomes linked to the planetcore zome via the coreProviderKey anchor...
-            LoadHolons();
-            LoadZomes();
-
-            await WireUpEvents();
-        }
-
         private void PlanetCore_OnZomeError(object sender, ZomeErrorEventArgs e)
         {
             OnZomeError?.Invoke(sender, e);
@@ -306,6 +318,30 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
         {
             this.Id = id;
             await Initialize(holoNETClient);
+        }
+
+        public async Task Initialize(HoloNETClientBase holoNETClient)
+        {
+            this.HolonType = HolonType.Planet;
+            HoloNETClient = holoNETClient;
+
+            if (!string.IsNullOrEmpty(this.ProviderKey))
+            {
+                PlanetCore = new PlanetCore(holoNETClient, this.ProviderKey); //_coreProviderKey = hc anchor.
+                await LoadPlanet();
+
+                //TODO: Load the planets Zome collection here? Or is it passed in from the sub-class implementation? Probably 2nd one... ;-)
+                //No we load the holons and zomes linked to the planetcore zome via the coreProviderKey anchor...
+                LoadHolons();
+                LoadZomes();
+            }
+
+            await WireUpEvents();
+        }
+
+        private async Task LoadPlanet()
+        {
+            await PlanetCore.LoadHolonAsync(PLANET_HOLON, this.ProviderKey);
         }
 
         private async Task WireUpEvents()
