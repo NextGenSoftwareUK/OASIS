@@ -16,9 +16,9 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
         event PlanetBase.ZomeError OnZomeError;
 
         Task Initialize(Guid id, HoloNETClientBase holoNETClient);
-        Task Initialize(Guid id, string holochainConductorURI, PlanetBase.HoloNETClientType type);
+        Task Initialize(Guid id, string holochainConductorURI, HoloNETClientType type);
         Task Initialize(HoloNETClientBase holoNETClient);
-        Task Initialize(string holochainConductorURI, PlanetBase.HoloNETClientType type);
+        Task Initialize(string holochainConductorURI, HoloNETClientType type);
       
        // Task<IHolon> LoadHolonAsync(string holonName, string hcEntryAddressHash);
     }

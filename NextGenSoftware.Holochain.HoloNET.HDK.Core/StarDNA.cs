@@ -6,10 +6,11 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
         //TODO: Make the paths relative!
         public string RustDNATemplateFolder = @"C:\Users\david\source\repos\Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK\NextGenSoftware.Holochain.HoloNET.HDK.Core\RustDNATemplates";
         public string CSharpDNATemplateFolder = @"C:\Users\david\source\repos\Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK\NextGenSoftware.Holochain.HoloNET.HDK.Core\CSharpDNATemplates";
-        public string DNAFolder = @"C:\Users\david\source\repos\Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK\NextGenSoftware.Holochain.HoloNET.HDK.Core.TestHarness\DNA";
+        public string PlanetDNAFolder = @"C:\Users\david\source\repos\Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK\NextGenSoftware.Holochain.HoloNET.HDK.Core.TestHarness\PlanetDNA";
         public string GenesisRustFolder = @"C:\Users\david\source\repos\Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK\NextGenSoftware.Holochain.HoloNET.HDK.Core.TestHarness\Genesis\Rust";
         public string GenesisCSharpFolder = @"C:\Users\david\source\repos\Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK\NextGenSoftware.Holochain.HoloNET.HDK.Core.TestHarness\Genesis\CSharp";
-        public string GenesisNameSpace = "NextGenSoftware.Holochain.HoloNET.HDK.Core.TestHarness.Genesis";
+        public string GenesisNamespace = "NextGenSoftware.Holochain.HoloNET.HDK.Core.TestHarness.Genesis";
+        public string TemplateNamespace = "NextGenSoftware.Holochain.HoloNET.HDK.Core.CSharpTemplates";
         public string RustTemplateLib = "lib.rs";
         public string RustTemplateCreate = "create.rs";
         public string RustTemplateRead = "read.rs";
@@ -21,12 +22,14 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
         public string RustTemplateBool = "bool.rs";
         public string RustTemplateHolon = "holon.rs";
         public string RustTemplateValidation = "validation.rs";
-     //   public string CSharpTemplateMyZomeEventArgs = "MyZomeEventArgs.cs";
         public string CSharpTemplateIHolonDNA = "IHolonDNATemplate.cs";
         public string CSharpTemplateHolonDNA = "HolonDNATemplate.cs";
         public string CSharpTemplateIZomeDNA = "IZomeDNATemplate.cs";
         public string CSharpTemplateZomeDNA = "ZomeDNATemplate.cs";
         public string CSharpTemplateIPlanetDNA = "IPlanetDNATemplate.cs";
         public string CSharpTemplatePlanetDNA = "PlanetDNATemplate.cs";
+        public string StarProviderKey = "";
+        public string HolochainConductorURI = "ws://localhost:8888";
+        public string HoloNETClientType = "Desktop";
     }
 }

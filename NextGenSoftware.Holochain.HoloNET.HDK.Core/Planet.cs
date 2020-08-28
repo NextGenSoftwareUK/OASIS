@@ -10,24 +10,24 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
 
         }
 
-        public Planet(HoloNETClientBase holoNETClient, Guid id) : base(holoNETClient, id)
+        //public Planet(HoloNETClientBase holoNETClient, Guid id) : base(holoNETClient, id)
+        //{
+
+        //}
+
+        //public Planet(string holochainConductorURI, HoloNETClientType type, Guid id) : base(holochainConductorURI, type, id)
+        //{
+         
+        //}
+
+        public Planet(HoloNETClientBase holoNETClient, string providerKey) : base(holoNETClient, providerKey)
         {
-           // Initialize(id, holoNETClient);
+     
         }
 
-        public Planet(string holochainConductorURI, HoloNETClientType type, Guid id) : base(holochainConductorURI, type, id)
+        public Planet(string holochainConductorURI, HoloNETClientType type, string providerKey) : base(holochainConductorURI, type, providerKey)
         {
-            //Initialize(id, holochainConductorURI, type);
-        }
-
-        public Planet(HoloNETClientBase holoNETClient) : base(holoNETClient)
-        {
-           // Initialize(holoNETClient);
-        }
-
-        public Planet(string holochainConductorURI, HoloNETClientType type) : base(holochainConductorURI, type)
-        {
-           // Initialize(holochainConductorURI, type);
+    
         }
     }
 }
