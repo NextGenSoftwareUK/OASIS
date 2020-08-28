@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 namespace NextGenSoftware.OASIS.API.Core
 {
-    public interface IProfile : IHolon
+    public interface IAvatar : IHolon
     {
         Guid UserId { get; set; } //TODO: Remember to add this to the HC Rust code...
         string Username { get; set; }

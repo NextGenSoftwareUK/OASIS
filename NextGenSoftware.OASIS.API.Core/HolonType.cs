@@ -16,7 +16,9 @@ namespace NextGenSoftware.OASIS.API.Core
         TrainStation,
         UndergroundStation,
         BusStation,
+        Star,
         Planet,
+        Moon,
         Zome
     }
 }

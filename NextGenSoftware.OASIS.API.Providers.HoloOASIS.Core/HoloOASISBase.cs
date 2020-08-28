@@ -20,8 +20,8 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Core
         //private TaskCompletionSource<NextGenSoftware.OASIS.API.Providers.HoloOASIS.Core.IProfile> _taskCompletionSourceLoadProfile = new TaskCompletionSource<NextGenSoftware.OASIS.API.Providers.HoloOASIS.Core.IProfile>();
         //private TaskCompletionSource<NextGenSoftware.OASIS.API.Providers.HoloOASIS.Core.IProfile> _taskCompletionSourceSaveProfile = new TaskCompletionSource<NextGenSoftware.OASIS.API.Providers.HoloOASIS.Core.IProfile>();
 
-        private TaskCompletionSource<Profile> _taskCompletionSourceLoadProfile = new TaskCompletionSource<Profile>();
-        private TaskCompletionSource<Profile> _taskCompletionSourceSaveProfile = new TaskCompletionSource<Profile>();
+        private TaskCompletionSource<Avatar> _taskCompletionSourceLoadProfile = new TaskCompletionSource<Avatar>();
+        private TaskCompletionSource<Avatar> _taskCompletionSourceSaveProfile = new TaskCompletionSource<Avatar>();
 
         private TaskCompletionSource<string> _taskCompletionSourceGetInstance = new TaskCompletionSource<string>();
 
@@ -109,7 +109,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Core
                         //else
                         //{
 
-                        Profile profile = ConvertHcProfileToProfile(_savingProfiles[e.Id]);
+                        Avatar profile = ConvertHcProfileToProfile(_savingProfiles[e.Id]);
                         OnPlayerProfileSaved?.Invoke(this, new ProfileSavedEventArgs { Profile = profile, HcProfile = _savingProfiles[e.Id] });
                         _taskCompletionSourceSaveProfile.SetResult(profile);
                         _savingProfiles.Remove(e.Id);
@@ -324,9 +324,9 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Core
             };
         }
 
-        private Profile ConvertHcProfileToProfile(HcProfile profile)
+        private Avatar ConvertHcProfileToProfile(HcProfile profile)
         {
-            return new Profile
+            return new Avatar
             {
                 DOB = profile.dob,
                 Email = profile.email,

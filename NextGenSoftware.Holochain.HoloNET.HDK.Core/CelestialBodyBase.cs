@@ -8,17 +8,18 @@ using System.Threading.Tasks;
 
 namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
 {
-    public abstract class PlanetBase : Holon, IPlanet
+    public abstract class CelestialBodyBase : Holon, IPlanet
     {
         //  private const string PLANET_CORE_ZOME = "planet_core_zome"; //Equivilant to an anchor in hc rust... :)
         //  private string _coreProviderKey;
-        private string PLANET_HOLON = "planet_holon";
+      //  private string HOLON = "planet_holon";
         protected int _currentId = 0;
         protected string _hcinstance;
         protected TaskCompletionSource<string> _taskCompletionSourceGetInstance = new TaskCompletionSource<string>();
         
         public PlanetCore PlanetCore { get; set; } // This is the core zome of the planet (OAPP), which links to all the other planet zomes/holons...
-        
+        public string RustHolonType { get; set; }
+
         //TODO: Should these be in PlanetCore?
         public List<IZome> Zomes = new List<IZome>();
         public List<IHolon> Holons = new List<IHolon>();
@@ -50,53 +51,61 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
 
         public HoloNETClientBase HoloNETClient { get; private set; }
 
-        public PlanetBase()
+        public CelestialBodyBase()
         {
 
         }
         
-        public PlanetBase(HoloNETClientBase holoNETClient, Guid id)
+        public CelestialBodyBase(HoloNETClientBase holoNETClient, Guid id, string rustHolonType)
         {
+            this.RustHolonType = rustHolonType;
             Initialize(id, holoNETClient);
         }
 
-        public PlanetBase(string holochainConductorURI, HoloNETClientType type, Guid id)
+        public CelestialBodyBase(string holochainConductorURI, HoloNETClientType type, Guid id, string rustHolonType)
         {
+            this.RustHolonType = rustHolonType;
             Initialize(id, holochainConductorURI, type);
         }
 
-        public PlanetBase(HoloNETClientBase holoNETClient)
+        public CelestialBodyBase(HoloNETClientBase holoNETClient, string rustHolonType)
         {
+            this.RustHolonType = rustHolonType;
             Initialize(holoNETClient);
         }
 
-        public PlanetBase(string holochainConductorURI, HoloNETClientType type)
+        public CelestialBodyBase(string holochainConductorURI, HoloNETClientType type, string rustHolonType)
         {
+            this.RustHolonType = rustHolonType;
             Initialize(holochainConductorURI, type);
         }
 
         //TODO: Don't think we need to pass Id in if we are using ProviderKey?
-        public PlanetBase(HoloNETClientBase holoNETClient, Guid id, string providerKey)
+        public CelestialBodyBase(HoloNETClientBase holoNETClient, Guid id, string providerKey, string rustHolonType)
         {
             this.ProviderKey = providerKey;
+            this.RustHolonType = rustHolonType;
             Initialize(id, holoNETClient);
         }
 
-        public PlanetBase(string holochainConductorURI, HoloNETClientType type, Guid id, string providerKey)
+        public CelestialBodyBase(string holochainConductorURI, HoloNETClientType type, Guid id, string providerKey, string rustHolonType)
         {
             this.ProviderKey = providerKey;
+            this.RustHolonType = rustHolonType;
             Initialize(id, holochainConductorURI, type);
         }
 
-        public PlanetBase(HoloNETClientBase holoNETClient, string providerKey)
+        public CelestialBodyBase(HoloNETClientBase holoNETClient, string providerKey, string rustHolonType)
         {
             this.ProviderKey = providerKey;
+            this.RustHolonType = rustHolonType;
             Initialize(holoNETClient);
         }
 
-        public PlanetBase(string holochainConductorURI, HoloNETClientType type, string providerKey)
+        public CelestialBodyBase(string holochainConductorURI, HoloNETClientType type, string providerKey, string rustHolonType)
         {
             this.ProviderKey = providerKey;
+            this.RustHolonType = rustHolonType;
             Initialize(holochainConductorURI, type);
         }
         
@@ -170,12 +179,13 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
             foreach (ZomeBase zome in Zomes)
             {
                 //TODO: Need to check if any state has changed and only save if it has...
-                await zome.SaveHolonAsync(zome);
+                //await zome.SaveHolonAsync(zome);
+                await zome.SaveHolonAsync(this.RustHolonType, zome); //TODO: FIX ASAP!
 
                 foreach (Holon holon in zome.Holons)
                 {
                     //TODO: Need to check if any state has changed and only save if it has...
-                    await zome.SaveHolonAsync(holon);
+                    await zome.SaveHolonAsync(this.RustHolonType, holon);
                 }
             }
 
@@ -379,7 +389,7 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
                     zome.Parent = e.Holon;
                     zome.Planet = this;
 
-                    await zome.SaveHolonAsync(zome);
+                    await zome.SaveHolonAsync(this.RustHolonType, zome);
                 }
             }
         }
@@ -439,7 +449,7 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
                     zome.Planet = this;
 
                     foreach (Holon holon in GetHolonsThatBelongToZome(zome))
-                        zome.SaveHolonAsync(holon);
+                        zome.SaveHolonAsync(this.RustHolonType, holon);
                     // }
                 }
             }
@@ -541,7 +551,7 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
                 foreach (Holon holon in zome.Holons)
                 {
                     if (holon.Name == savingHolon.Name)
-                        return await zome.SaveHolonAsync(savingHolon);
+                        return await zome.SaveHolonAsync(this.RustHolonType, savingHolon);
                 }
             }
 

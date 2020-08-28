@@ -1,5 +1,6 @@
 ﻿using Newtonsoft.Json;
 using NextGenSoftware.Holochain.HoloNET.Client.Core;
+using NextGenSoftware.OASIS.API.Core;
 using System;
 using System.IO;
 using System.Text.RegularExpressions;
@@ -11,6 +12,7 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
     {
         const string STAR_DNA = "starDNA.json";
         public static StarCore StarCore { get; set; }
+        public static Avatar LoggedInUser { get; set; }
 
         // Possible to override settings in DNA file if this method is manually called...
         public static void Initialize(string holochainConductorURI, HoloNETClientType type, string providerKey)
@@ -18,7 +20,7 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
             StarCore = new StarCore(holochainConductorURI, type, providerKey);
         }
 
-        public static async Task<IPlanet> Genesis(string planetName, string dnaFolder = "", string genesisCSharpFolder = "", string genesisRustFolder = "", string genesisNameSpace = "")
+        public static async Task<StarResult> Genesis(GenesisType type, string name, string dnaFolder = "", string genesisCSharpFolder = "", string genesisRustFolder = "", string genesisNameSpace = "")
         {
             StarDNA starDNA;
             bool holonReached = false;
@@ -34,6 +36,9 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
             string zomeBufferCsharp = "";
             string planetBufferCsharp = "";
             bool firstHolon = true;
+
+            if (LoggedInUser == null)
+                return new StarResult() { ErrorOccured = true, Message = "Avatar is not logged in. Please log in before calling this command." };
 
             if (File.Exists(STAR_DNA))
                 starDNA = LoadDNA();
@@ -258,22 +263,57 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
             }
             
             // Remove any white space from the planet name.
-            File.WriteAllText(string.Concat(genesisCSharpFolder, "\\", Regex.Replace(planetName, @"\s+", ""), ".cs"), planetBufferCsharp);
+            File.WriteAllText(string.Concat(genesisCSharpFolder, "\\", Regex.Replace(name, @"\s+", ""), ".cs"), planetBufferCsharp);
 
-            Planet newPlanet = new Planet();
-            newPlanet.Id = Guid.NewGuid();
-            newPlanet.Name = planetName;
+            ICelestialBodyBase newBody = null;
+
+            switch (type)
+            {
+                case GenesisType.Moon:
+                    newBody = (ICelestialBodyBase)new Moon();
+                    break;
+
+                case GenesisType.Planet:
+                    newBody = (ICelestialBodyBase)new Planet();
+                    break;
+
+                //case GenesisType.Star:
+                //    newBody = new Star();
+                //    break;
+            }
+
+            newBody.Id = Guid.NewGuid();
+            newBody.Name = name;
 
             //TODO: Need to save the collection of Zomes/Holons that belong to this planet here...
-            await newPlanet.Save();
+            await newBody.Save();
 
             //TODO: Might be more efficient if the planet can be saved and then added to the list of planets in the star in one go?
-            await StarCore.AddPlanetAsync(newPlanet);
+            switch (type)
+            {
+                case GenesisType.Moon:
+                {
+                    await StarCore.AddMoonAsync((IMoon)newBody);
+                    return new StarResult() { ErrorOccured = false, Message = "Moon Successfully Created.", Result = newBody };
+                }
+
+                case GenesisType.Planet:
+                {
+                    await StarCore.AddPlanetAsync((IPlanet)newBody);
+                    return new StarResult() { ErrorOccured = false, Message = "Planet Successfully Created.", Result = newBody };
+                }
+
+                case GenesisType.Star:
+                {
+                    //await StarCore.AddPlanetAsync((IPlanet)newBody); //TODO: Add AddStarAsync method.
+                    return new StarResult() { ErrorOccured = false, Message = "Star Successfully Created.", Result = newBody };
+                }
+                default:
+                    return new StarResult() { ErrorOccured = true, Message = "Unknown Error Occured.", Result = newBody };
+            }
 
             //TODO: Need to save this to the StarNET store (still to be made!) (Will of course be written on top of the HDK/ODK...
             //This will be private on the store until the user publishes via the Star.Seed() command.
-
-            return newPlanet;
         }
 
         //TODO: Get this working... :)
@@ -286,140 +326,146 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
             return zomeBufferCsharp;
         }
 
+        public static void Login(string username, string password)
+        {
+            //TODO: Login and load the users profile here...
+            LoggedInUser = new Avatar();
+        }
+
         // Build
-        public static void Light(string planetName)
+        public static void Light(string bodyName)
         {
 
         }
 
-        public static void Light(PlanetBase planet)
+        public static void Light(CelestialBodyBase body)
         {
 
         }
 
         //Activate & Launch - Launch & activate a planet (OAPP) by shining the star's light upon it...
-        public static void Shine(PlanetBase planet)
+        public static void Shine(CelestialBodyBase body)
         {
 
         }
 
-        public static void Shine(string planetName)
+        public static void Shine(string bodyName)
         {
 
         }
 
         //Dractivate
-        public static void Dim(PlanetBase planet)
+        public static void Dim(CelestialBodyBase body)
         {
 
         }
 
-        public static void Dim(string planetName)
+        public static void Dim(string bodyName)
         {
 
         }
 
         //Deploy
-        public static void Seed(PlanetBase planet)
+        public static void Seed(CelestialBodyBase body)
         {
 
         }
 
-        public static void Seed(string planetName)
+        public static void Seed(string bodyName)
         {
 
         }
 
         // Run Tests
-        public static void Twinkle(PlanetBase planet)
+        public static void Twinkle(CelestialBodyBase body)
         {
 
         }
 
-        public static void Twinkle(string planetName)
-        {
-
-        }
-
-        // Delete Planet (OAPP)
-        public static void Dust(PlanetBase planet)
-        {
-
-        }
-
-        public static void Dust(string planetName)
+        public static void Twinkle(string bodyName)
         {
 
         }
 
         // Delete Planet (OAPP)
-        public static void Evolve(PlanetBase planet)
+        public static void Dust(CelestialBodyBase body)
         {
 
         }
 
-        public static void Evolve(string planetName)
+        public static void Dust(string bodyName)
         {
 
         }
 
         // Delete Planet (OAPP)
-        public static void Mutate(PlanetBase planet)
+        public static void Evolve(CelestialBodyBase body)
         {
 
         }
 
-        public static void Mutate(string planetName)
+        public static void Evolve(string bodyName)
+        {
+
+        }
+
+        // Delete Planet (OAPP)
+        public static void Mutate(CelestialBodyBase body)
+        {
+
+        }
+
+        public static void Mutate(string bodyName)
         {
 
         }
 
         // Highlight the Planet (OAPP) in the OAPP Store (StarNET)
-        public static void Radiate(PlanetBase planet)
+        public static void Radiate(CelestialBodyBase body)
         {
 
         }
 
-        public static void Radiate(string planetName)
+        public static void Radiate(string bodyName)
         {
 
         }
 
         // Show how much light the planet (OAPP) is emitting into the solar system (StarNET/HoloNET)
-        public static void Emit(PlanetBase planet)
+        public static void Emit(CelestialBodyBase body)
         {
 
         }
 
-        public static void Emit(string planetName)
+        public static void Emit(string bodyName)
         {
 
         }
 
         // Show stats of the Planet (OAPP)
-        public static void Reflect(PlanetBase planet)
+        public static void Reflect(CelestialBodyBase body)
         {
 
         }
 
-        public static void Reflect(string planetName)
+        public static void Reflect(string bodyName)
         {
 
         }
 
         // Send/Receive Love
-        public static void Love(PlanetBase planet)
+        public static void Love(CelestialBodyBase body)
         {
 
         }
 
-        public static void Love(string planetName)
+        public static void Love(string body)
         {
 
         }
 
         // Reserved For Future Use...
-        public static void Super(PlanetBase planet)
+        public static void Super(CelestialBodyBase body)
         {
 
         }
