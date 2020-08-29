@@ -8,7 +8,7 @@ namespace NextGenSoftware.OASIS.API.Core
     {
         All,
         Player,
-        Profile,
+        Avatar,
         Quest,
         Park,
         Restaurant,

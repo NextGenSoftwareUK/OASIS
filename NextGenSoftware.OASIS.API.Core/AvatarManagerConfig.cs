@@ -2,7 +2,8 @@
 
 namespace NextGenSoftware.OASIS.API.Core
 {
-    public class ProfileManagerConfig
+    // Might have been ProviderManagerConfig before global replaceall from Profile to Avatar... Check later... :)
+    public class AvatarManagerConfig
     {
         private FieldToProviderMappingsConfig _fieldToProviderMappings = null;
 
@@ -19,7 +20,7 @@ namespace NextGenSoftware.OASIS.API.Core
             }
         }
 
-        //TODO: Not sure want to split profile across multiple providers? How fast would it be? Need to check GraphQL (Apollo)...
+        //TODO: Not sure want to split Avatar across multiple providers? How fast would it be? Need to check GraphQL (Apollo)...
         public class FieldToProviderMappingsConfig
         {
             public FieldToProviderMappingsConfig()

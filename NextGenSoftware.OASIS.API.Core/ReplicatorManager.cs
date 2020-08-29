@@ -1,28 +1,28 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using static NextGenSoftware.OASIS.API.Core.ProfileManager;
+using static NextGenSoftware.OASIS.API.Core.AvatarManager;
 
 namespace NextGenSoftware.OASIS.API.Core
 {
     public class ReplicatorManager : OASISManager
     {
-       // private ProfileManagerConfig _config;
+       // private AvatarManagerConfig _config;
 
         public List<IOASISStorage> OASISStorageProviders { get; set; }
 
-        //public Task<IProfile> LoadProfileAsync(Guid id)
+        //public Task<IAvatar> LoadAvatarAsync(Guid id)
         //{
         //    throw new NotImplementedException();
         //}
 
-        //public ProfileManagerConfig Config
+        //public AvatarManagerConfig Config
         //{
         //    get
         //    {
         //        if (_config == null)
         //        {
-        //            _config = new ProfileManagerConfig();
+        //            _config = new AvatarManagerConfig();
         //        }
 
         //        return _config;
@@ -38,13 +38,13 @@ namespace NextGenSoftware.OASIS.API.Core
         //RegisterQueryForReplication(string connectionString, string dbName, string query);
 
         //Events
-        public delegate void ReplicatorManagerError(object sender, ProfileManagerErrorEventArgs e);
-        public event ProfileManagerError OnProfileManagerError;
+        public delegate void ReplicatorManagerError(object sender, AvatarManagerErrorEventArgs e);
+        public event AvatarManagerError OnAvatarManagerError;
 
-        public delegate void StorageProviderError(object sender, ProfileManagerErrorEventArgs e);
+        public delegate void StorageProviderError(object sender, AvatarManagerErrorEventArgs e);
 
         /*
-        public ProfileManager(List<IOASISStorage> OASISStorageProviders)
+        public AvatarManager(List<IOASISStorage> OASISStorageProviders)
         {
             this.OASISStorageProviders = OASISStorageProviders;
 
@@ -66,58 +66,58 @@ namespace NextGenSoftware.OASIS.API.Core
          //   return null;
         }
 
-        private void OASISStorageProvider_OnStorageProviderError(object sender, ProfileManagerErrorEventArgs e)
+        private void OASISStorageProvider_OnStorageProviderError(object sender, AvatarManagerErrorEventArgs e)
         {
-            //TODO: Not sure if we need to have a OnProfileManagerError as well as the StorageProvider Error Event?
-            OnProfileManagerError?.Invoke(this, e);
+            //TODO: Not sure if we need to have a OnAvatarManagerError as well as the StorageProvider Error Event?
+            OnAvatarManagerError?.Invoke(this, e);
         }
 
-        public async Task<IProfile> LoadProfileAsync(string providerKey, ProviderType provider = ProviderType.Default)
+        public async Task<IAvatar> LoadAvatarAsync(string providerKey, ProviderType provider = ProviderType.Default)
         {
             if (provider != ProviderType.Default)
-                return await ((IOASISStorage)ProviderManager.GetAndActivateProvider(provider)).LoadProfileAsync(providerKey);
+                return await ((IOASISStorage)ProviderManager.GetAndActivateProvider(provider)).LoadAvatarAsync(providerKey);
 
-            return await ProviderManager.CurrentStorageProvider.LoadProfileAsync(providerKey);
+            return await ProviderManager.CurrentStorageProvider.LoadAvatarAsync(providerKey);
         }
 
-        public async Task<IProfile> LoadProfileAsync(Guid id, ProviderType provider = ProviderType.Default)
+        public async Task<IAvatar> LoadAvatarAsync(Guid id, ProviderType provider = ProviderType.Default)
         {
             if (provider != ProviderType.Default)
-                return await ((IOASISStorage)ProviderManager.GetAndActivateProvider(provider)).LoadProfileAsync(id);
+                return await ((IOASISStorage)ProviderManager.GetAndActivateProvider(provider)).LoadAvatarAsync(id);
 
-            return await ProviderManager.CurrentStorageProvider.LoadProfileAsync(id);
+            return await ProviderManager.CurrentStorageProvider.LoadAvatarAsync(id);
         }
 
-        public async Task<IProfile> LoadProfileAsync(string username, string password, ProviderType provider = ProviderType.Default)
+        public async Task<IAvatar> LoadAvatarAsync(string username, string password, ProviderType provider = ProviderType.Default)
         {
             if (provider != ProviderType.Default)
-                return await ((IOASISStorage)ProviderManager.GetAndActivateProvider(provider)).LoadProfileAsync(username, password);
+                return await ((IOASISStorage)ProviderManager.GetAndActivateProvider(provider)).LoadAvatarAsync(username, password);
 
-            return await ProviderManager.CurrentStorageProvider.LoadProfileAsync(username, password);
+            return await ProviderManager.CurrentStorageProvider.LoadAvatarAsync(username, password);
         }
 
-        public async Task<IProfile> SaveProfileAsync(IProfile profile, ProviderType provider = ProviderType.Default)
+        public async Task<IAvatar> SaveAvatarAsync(IAvatar Avatar, ProviderType provider = ProviderType.Default)
         {
             if (provider != ProviderType.Default)
-                return await ((IOASISStorage)ProviderManager.GetAndActivateProvider(provider)).SaveProfileAsync(profile);
+                return await ((IOASISStorage)ProviderManager.GetAndActivateProvider(provider)).SaveAvatarAsync(Avatar);
 
-            return await ProviderManager.CurrentStorageProvider.SaveProfileAsync(profile);
+            return await ProviderManager.CurrentStorageProvider.SaveAvatarAsync(Avatar);
         }
 
-        public async Task<KarmaAkashicRecord> AddKarmaToProfileAsync(IProfile profile, KarmaTypePositive karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc, ProviderType provider = ProviderType.Default)
+        public async Task<KarmaAkashicRecord> AddKarmaToAvatarAsync(IAvatar Avatar, KarmaTypePositive karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc, ProviderType provider = ProviderType.Default)
         {
             if (provider != ProviderType.Default)
-                return await ((IOASISStorage)ProviderManager.GetAndActivateProvider(provider)).AddKarmaToProfileAsync(profile, karmaType, karmaSourceType, karamSourceTitle, karmaSourceDesc);
+                return await ((IOASISStorage)ProviderManager.GetAndActivateProvider(provider)).AddKarmaToAvatarAsync(Avatar, karmaType, karmaSourceType, karamSourceTitle, karmaSourceDesc);
 
-            return await ProviderManager.CurrentStorageProvider.AddKarmaToProfileAsync(profile, karmaType, karmaSourceType, karamSourceTitle, karmaSourceDesc);
+            return await ProviderManager.CurrentStorageProvider.AddKarmaToAvatarAsync(Avatar, karmaType, karmaSourceType, karamSourceTitle, karmaSourceDesc);
         }
 
-        public async Task<KarmaAkashicRecord> RemoveKarmaFromProfileAsync(IProfile profile, KarmaTypeNegative karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc, ProviderType provider = ProviderType.Default)
+        public async Task<KarmaAkashicRecord> RemoveKarmaFromAvatarAsync(IAvatar Avatar, KarmaTypeNegative karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc, ProviderType provider = ProviderType.Default)
         {
             if (provider != ProviderType.Default)
-                return await ((IOASISStorage)ProviderManager.GetAndActivateProvider(provider)).SubtractKarmaFromProfileAsync(profile, karmaType, karmaSourceType, karamSourceTitle, karmaSourceDesc);
+                return await ((IOASISStorage)ProviderManager.GetAndActivateProvider(provider)).SubtractKarmaFromAvatarAsync(Avatar, karmaType, karmaSourceType, karamSourceTitle, karmaSourceDesc);
 
-            return await ProviderManager.CurrentStorageProvider.SubtractKarmaFromProfileAsync(profile, karmaType, karmaSourceType, karamSourceTitle, karmaSourceDesc);
+            return await ProviderManager.CurrentStorageProvider.SubtractKarmaFromAvatarAsync(Avatar, karmaType, karmaSourceType, karamSourceTitle, karmaSourceDesc);
         }
     }
 }

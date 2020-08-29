@@ -4,6 +4,7 @@ using System.Text;
 
 namespace NextGenSoftware.OASIS.API.Core
 {
+    // TODO:  Not sure need this anymore?
     public interface ISemanticHolon : IHolon
     {
         Guid ParentId { get; set; }

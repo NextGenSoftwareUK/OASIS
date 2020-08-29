@@ -4,17 +4,17 @@ using System;
 
 namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Core
 {
-    public class ProfileLoadedEventArgs : EventArgs
+    public class AvatarLoadedEventArgs : EventArgs
     {
-        public IProfile Profile { get; set; }
-        public IHcProfile HcProfile { get; set; }
+        public IAvatar Avatar { get; set; }
+        public IHcAvatar HcAvatar { get; set; }
     }
 
-    public class ProfileSavedEventArgs : EventArgs
+    public class AvatarSavedEventArgs : EventArgs
     {
-        //public string ProfileEntryHash { get; set; }
-        public IProfile Profile { get; set; }
-        public IHcProfile HcProfile { get; set; }
+        //public string AvatarEntryHash { get; set; }
+        public IAvatar Avatar { get; set; }
+        public IHcAvatar HcAvatar { get; set; }
     }
 
     public class HoloOASISErrorEventArgs : EventArgs

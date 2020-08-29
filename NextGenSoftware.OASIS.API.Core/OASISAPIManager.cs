@@ -6,7 +6,7 @@ namespace NextGenSoftware.OASIS.API.Core
 {
     public class OASISAPIManager
     {
-        public ProfileManager ProfileManager { get; set; }
+        public AvatarManager AvatarManager { get; set; }
         public MapManager MapManager { get; set; }
 
         public OASISAPIManager(List<IOASISProvider> OASISProviders, bool startApolloServer = true)
@@ -16,21 +16,21 @@ namespace NextGenSoftware.OASIS.API.Core
             this.MapManager = new MapManager();
             
             // TODO: Soon you will not need to inject in a provider because the mappings below will be used instead...
-            this.ProfileManager = new ProfileManager(ProviderManager.GetStorageProvider(ProviderType.HoloOASIS));
+            this.AvatarManager = new AvatarManager(ProviderManager.GetStorageProvider(ProviderType.HoloOASIS));
 
             //TODO: Move the mappings to an external config wrapper than is injected into the OASISAPIManager constructor above...
             // Give HoloOASIS Store permission for the Name field (the field will only be stored on Holochain).
-            this.ProfileManager.Config.FieldToProviderMappings.Name.Add(new ProfileManagerConfig.FieldToProviderMappingAccess { Access = ProfileManagerConfig.ProviderAccess.Store, Provider = ProviderType.HoloOASIS });
+            this.AvatarManager.Config.FieldToProviderMappings.Name.Add(new AvatarManagerConfig.FieldToProviderMappingAccess { Access = AvatarManagerConfig.ProviderAccess.Store, Provider = ProviderType.HoloOASIS });
 
             // Give all providers read/write access to the Name field (will allow them to read and write to the field but it will only be stored on Holochain).
             // You could choose to store it on more than one provider if you wanted the extra redundancy (but not normally needed since Holochain has a lot of redundancy built in).
-            this.ProfileManager.Config.FieldToProviderMappings.Name.Add(new ProfileManagerConfig.FieldToProviderMappingAccess { Access = ProfileManagerConfig.ProviderAccess.ReadWrite, Provider = ProviderType.All });
-            //this.ProfileManager.Config.FieldToProviderMappings.Name.Add(new ProfileManagerConfig.FieldToProviderMappingAccess { Access = ProfileManagerConfig.ProviderAccess.ReadWrite, Provider = ProviderType.EthereumOASIS });
-            //this.ProfileManager.Config.FieldToProviderMappings.Name.Add(new ProfileManagerConfig.FieldToProviderMappingAccess { Access = ProfileManagerConfig.ProviderAccess.ReadWrite, Provider = ProviderType.IPFSOASIS });
-            //this.ProfileManager.Config.FieldToProviderMappings.DOB.Add(new ProfileManagerConfig.FieldToProviderMappingAccess { Access = ProfileManagerConfig.ProviderAccess.Store, Provider = ProviderType.HoloOASIS });
+            this.AvatarManager.Config.FieldToProviderMappings.Name.Add(new AvatarManagerConfig.FieldToProviderMappingAccess { Access = AvatarManagerConfig.ProviderAccess.ReadWrite, Provider = ProviderType.All });
+            //this.AvatarManager.Config.FieldToProviderMappings.Name.Add(new AvatarManagerConfig.FieldToProviderMappingAccess { Access = AvatarManagerConfig.ProviderAccess.ReadWrite, Provider = ProviderType.EthereumOASIS });
+            //this.AvatarManager.Config.FieldToProviderMappings.Name.Add(new AvatarManagerConfig.FieldToProviderMappingAccess { Access = AvatarManagerConfig.ProviderAccess.ReadWrite, Provider = ProviderType.IPFSOASIS });
+            //this.AvatarManager.Config.FieldToProviderMappings.DOB.Add(new AvatarManagerConfig.FieldToProviderMappingAccess { Access = AvatarManagerConfig.ProviderAccess.Store, Provider = ProviderType.HoloOASIS });
 
             //Give Ethereum read-only access to the DOB field.
-            this.ProfileManager.Config.FieldToProviderMappings.DOB.Add(new ProfileManagerConfig.FieldToProviderMappingAccess { Access = ProfileManagerConfig.ProviderAccess.ReadOnly, Provider = ProviderType.EthereumOASIS });
+            this.AvatarManager.Config.FieldToProviderMappings.DOB.Add(new AvatarManagerConfig.FieldToProviderMappingAccess { Access = AvatarManagerConfig.ProviderAccess.ReadOnly, Provider = ProviderType.EthereumOASIS });
 
             if (startApolloServer)
             {
@@ -39,34 +39,34 @@ namespace NextGenSoftware.OASIS.API.Core
         }
 
         /*
-        public async Task<IProfile> LoadProfileAsync(string providerKey)
+        public async Task<IAvatar> LoadAvatarAsync(string providerKey)
         {
-            return await ProfileManager.LoadProfileAsync(providerKey);
+            return await AvatarManager.LoadAvatarAsync(providerKey);
         }
 
-        public async Task<IProfile> LoadProfileAsync(Guid id)
+        public async Task<IAvatar> LoadAvatarAsync(Guid id)
         {
-            return await ProfileManager.LoadProfileAsync(id);
+            return await AvatarManager.LoadAvatarAsync(id);
         }
 
-        public async Task<IProfile> LoadProfileAsync(string username, string password)
+        public async Task<IAvatar> LoadAvatarAsync(string username, string password)
         {
-            return await ProfileManager.LoadProfileAsync(username, password);
+            return await AvatarManager.LoadAvatarAsync(username, password);
         }
 
-        public async Task<IProfile> SaveProfileAsync(IProfile profile)
+        public async Task<IAvatar> SaveAvatarAsync(IAvatar Avatar)
         {
-            return await ProfileManager.SaveProfileAsync(profile);
+            return await AvatarManager.SaveAvatarAsync(Avatar);
         }
 
-        public async Task<bool> AddKarmaToProfileAsync(IProfile profile, int karma)
+        public async Task<bool> AddKarmaToAvatarAsync(IAvatar Avatar, int karma)
         {
-            return await ProfileManager.AddKarmaToProfileAsync(profile, karma);
+            return await AvatarManager.AddKarmaToAvatarAsync(Avatar, karma);
         }
 
-        public async Task<bool> RemoveKarmaToProfileAsync(IProfile profile, int karma)
+        public async Task<bool> RemoveKarmaToAvatarAsync(IAvatar Avatar, int karma)
         {
-            return await ProfileManager.RemoveKarmaFromProfileAsync(profile, karma);
+            return await AvatarManager.RemoveKarmaFromAvatarAsync(Avatar, karma);
         }*/
     }
 }

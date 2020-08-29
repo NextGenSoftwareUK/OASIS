@@ -25,22 +25,22 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS
             throw new NotImplementedException();
         }
 
-        public override Task<IProfile> LoadProfileAsync(string providerKey)
+        public override Task<IAvatar> LoadAvatarAsync(string providerKey)
         {
             throw new NotImplementedException();
         }
 
-        public override Task<IProfile> LoadProfileAsync(Guid Id)
+        public override Task<IAvatar> LoadAvatarAsync(Guid Id)
         {
             throw new NotImplementedException();
         }
 
-        public override Task<IProfile> LoadProfileAsync(string username, string password)
+        public override Task<IAvatar> LoadAvatarAsync(string username, string password)
         {
             throw new NotImplementedException();
         }
 
-        public override Task<IProfile> SaveProfileAsync(IProfile profile)
+        public override Task<IAvatar> SaveAvatarAsync(IAvatar Avatar)
         {
             throw new NotImplementedException();
         }

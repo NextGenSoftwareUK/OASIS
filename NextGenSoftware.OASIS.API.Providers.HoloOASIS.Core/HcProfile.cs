@@ -4,13 +4,13 @@ using System;
 
 namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Core
 {
-    //public class Profile : API.Core.Profile, IProfile
+    //public class Avatar : API.Core.Avatar, IAvatar
     //{
     //    public string HcAddressHash { get; set; }
     //}
 
     
-    public class HcProfile : IHcProfile
+    public class HcAvatar : IHcAvatar
     {
         public Guid id { get; set; }
         public Guid user_id { get; set; } //TODO: Remember to add this to the HC Rust code...

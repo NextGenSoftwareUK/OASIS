@@ -45,14 +45,21 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
             return zomes;
         }
 
-        public async Task<IHolon> SaveHolonAsync(IHolon savingHolon)
+        //public async Task<IHolon> SaveHolonAsync(IHolon savingHolon)
+        public async Task<IHolon> SavePlanetAsync(IHolon savingHolon)
         {
             return await base.SaveHolonAsync(PLANET_HOLON_TYPE, savingHolon);
         }
 
+        public async Task<IHolon> LoadPlanetAsync()
+        {
+            return await base.LoadHolonAsync(PLANET_HOLON_TYPE, _providerKey);
+        }
+
         public async Task<List<IHolon>> LoadHolons()
         {
-            return await base.LoadHolonsAsync(PLANET_HOLON_TYPE, _providerKey);
+            return await base.LoadHolonsAsync(PLANET_HOLONS_TYPE, _providerKey);
         }
+
     }
 }

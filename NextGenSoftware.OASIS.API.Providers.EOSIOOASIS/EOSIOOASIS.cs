@@ -32,7 +32,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             throw new NotImplementedException();
         }
 
-        public override async Task<IProfile> LoadProfileAsync(string providerKey)
+        public override async Task<IAvatar> LoadAvatarAsync(string providerKey)
         {
             var chainApi = new ChainAPI();
             var rows = await chainApi.GetTableRowsAsync(OASIS_EOSIO_ACCOUNT, OASIS_EOSIO_ACCOUNT, "accounts", "true", providerKey, providerKey, 1, 3);
@@ -40,14 +40,14 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             if (rows.rows.Count == 0)
                 return null;
 
-            var profileRow = (EOSIOAccountTableRow)rows.rows[0];
-            var profile = profileRow.ToProfile();
-            profile.Password = StringCipher.Decrypt(profile.Password, OASIS_PASS_PHRASE);
+            var AvatarRow = (EOSIOAccountTableRow)rows.rows[0];
+            var Avatar = AvatarRow.ToAvatar();
+            Avatar.Password = StringCipher.Decrypt(Avatar.Password, OASIS_PASS_PHRASE);
 
-            return profile;
+            return Avatar;
         }
 
-        public override async Task<IProfile> LoadProfileAsync(Guid Id)
+        public override async Task<IAvatar> LoadAvatarAsync(Guid Id)
         {
             var chainApi = new ChainAPI();
             //var rows = await chainApi.GetTableRowsAsync(OASIS_EOSIO_ACCOUNT, OASIS_EOSIO_ACCOUNT, "accounts", "true", Id.ToString(), Id.ToString(), 1);
@@ -56,14 +56,14 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             if (rows.rows.Count == 0)
                 return null;
 
-            var profileRow = (EOSIOAccountTableRow)rows.rows[0];
-            var profile = profileRow.ToProfile();
+            var AvatarRow = (EOSIOAccountTableRow)rows.rows[0];
+            var Avatar = AvatarRow.ToAvatar();
 
-            profile.Password = StringCipher.Decrypt(profile.Password, OASIS_PASS_PHRASE);
-            return profile;
+            Avatar.Password = StringCipher.Decrypt(Avatar.Password, OASIS_PASS_PHRASE);
+            return Avatar;
         }
 
-        public override async Task<IProfile> LoadProfileAsync(string username, string password)
+        public override async Task<IAvatar> LoadAvatarAsync(string username, string password)
         {
             var chainApi = new ChainAPI();
             var rows = await chainApi.GetTableRowsAsync(OASIS_EOSIO_ACCOUNT, OASIS_EOSIO_ACCOUNT, "accounts", "true", username, username, 1, 2);
@@ -71,14 +71,14 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             if (rows.rows.Count == 0)
                 return null;
 
-            var profileRow = (EOSIOAccountTableRow)rows.rows[0];
-            var profile = profileRow.ToProfile();
+            var AvatarRow = (EOSIOAccountTableRow)rows.rows[0];
+            var Avatar = AvatarRow.ToAvatar();
 
-            profile.Password = StringCipher.Decrypt(profile.Password, OASIS_PASS_PHRASE);
-            return profile;
+            Avatar.Password = StringCipher.Decrypt(Avatar.Password, OASIS_PASS_PHRASE);
+            return Avatar;
         }
 
-        public override async Task<IProfile> SaveProfileAsync(IProfile profile)
+        public override async Task<IAvatar> SaveAvatarAsync(IAvatar Avatar)
         {
             var chainApi = new ChainAPI();
             var rows = await chainApi.GetTableRowsAsync(OASIS_EOSIO_ACCOUNT, OASIS_EOSIO_ACCOUNT, "config", "true", null, null, 1);
@@ -92,24 +92,24 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             actions.Add(new ActionUtility(chainApi.GetHost().AbsoluteUri).GetActionObject("openacct", configRow.admin, "active", OASIS_EOSIO_ACCOUNT,
                     new EOSIOOpenAccountParams()
                     {
-                        userid = profile.UserId.ToString(),
-                        eosio_acc = profile.Username,
-                        providerkey = profile.ProviderKey,
-                        password = StringCipher.Encrypt(profile.Password, OASIS_PASS_PHRASE),
-                        email = profile.Email,
-                        title = profile.Title,
-                        firstname = profile.FirstName,
-                        lastname = profile.LastName,
-                        dob = profile.DOB,
-                        playeraddr = profile.PlayerAddress,
-                        karma = profile.Karma
+                        userid = Avatar.UserId.ToString(),
+                        eosio_acc = Avatar.Username,
+                        providerkey = Avatar.ProviderKey,
+                        password = StringCipher.Encrypt(Avatar.Password, OASIS_PASS_PHRASE),
+                        email = Avatar.Email,
+                        title = Avatar.Title,
+                        firstname = Avatar.FirstName,
+                        lastname = Avatar.LastName,
+                        dob = Avatar.DOB,
+                        playeraddr = Avatar.PlayerAddress,
+                        karma = Avatar.Karma
                     }
                 ));
 
             List<string> privateKeysInWIF = new List<string> { "private key in WIF" };
             await chainApi.PushTransactionAsync(actions.ToArray(), privateKeysInWIF);
 
-            return profile;
+            return Avatar;
         }
 
         public override Task<ISearchResults> SearchAsync(string searchTerm)
