@@ -14,54 +14,54 @@ namespace NextGenSoftware.OASIS.API.Core.TestHarness
 
             OASISAPIManager OASISAPIManager = new OASISAPIManager(new List<IOASISProvider> { new HoloOASIS("ws://localhost:8888") });
             
-            //ProfileManager profileManager = new ProfileManager(new HoloOASIS("ws://localhost:8888"));
-            //profileManager.OnProfileManagerError += ProfileManager_OnProfileManagerError;
-            //profileManager.OASISStorageProvider.OnStorageProviderError += OASISStorageProvider_OnStorageProviderError;
+            //AvatarManager AvatarManager = new AvatarManager(new HoloOASIS("ws://localhost:8888"));
+            //AvatarManager.OnAvatarManagerError += AvatarManager_OnAvatarManagerError;
+            //AvatarManager.OASISStorageProvider.OnStorageProviderError += OASISStorageProvider_OnStorageProviderError;
 
 
 
-            Console.WriteLine("\nSaving Profile...");
-            Avatar newProfile = new Avatar { Username = "dellams", Email = "david@nextgensoftware.co.uk", Password = "1234", FirstName = "David", LastName = "Ellams", DOB = "11/04/1980", Id = Guid.NewGuid(), Title = "Mr", PlayerAddress = "blahahahaha" };
+            Console.WriteLine("\nSaving Avatar...");
+            Avatar newAvatar = new Avatar { Username = "dellams", Email = "david@nextgensoftware.co.uk", Password = "1234", FirstName = "David", LastName = "Ellams", DOB = "11/04/1980", Id = Guid.NewGuid(), Title = "Mr", PlayerAddress = "blahahahaha" };
             
             
-            await newProfile.KarmaEarnt(KarmaTypePositive.HelpingTheEnvironment, KarmaSourceType.hApp, "Our World", "XR Educational Game To Make The World A Better Place");
-            Avatar savedProfile = (Avatar)await OASISAPIManager.ProfileManager.SaveProfileAsync(newProfile);
-            //IProfile savedProfile = await profileManager.SaveProfileAsync(newProfile);
+            await newAvatar.KarmaEarnt(KarmaTypePositive.HelpingTheEnvironment, KarmaSourceType.hApp, "Our World", "XR Educational Game To Make The World A Better Place");
+            Avatar savedAvatar = (Avatar)await OASISAPIManager.AvatarManager.SaveAvatarAsync(newAvatar);
+            //IAvatar savedAvatar = await AvatarManager.SaveAvatarAsync(newAvatar);
 
-            if (savedProfile != null)
+            if (savedAvatar != null)
             {
-                Console.WriteLine("Profile Saved.\n");
-                Console.WriteLine(string.Concat("Id: ", savedProfile.Id));
-                Console.WriteLine(string.Concat("Provider Key: ", savedProfile.ProviderKey));
-               // Console.WriteLine(string.Concat("HC Address Hash: ", savedProfile.HcAddressHash)); //But we can still view the HC Hash if we wish by casting to the provider profile object as we have above. - UPDATE: We do not need this, the ProviderKey shows the same info (hash in this case).
-                Console.WriteLine(string.Concat("Name: ", savedProfile.Title, " ", savedProfile.FirstName, " ", savedProfile.LastName));
-                Console.WriteLine(string.Concat("Username: ", savedProfile.Username));
-                Console.WriteLine(string.Concat("Password: ", savedProfile.Password));
-                Console.WriteLine(string.Concat("Email: ", savedProfile.Email));
-                Console.WriteLine(string.Concat("DOB: ", savedProfile.DOB));
-                Console.WriteLine(string.Concat("Address: ", savedProfile.PlayerAddress));
-                Console.WriteLine(string.Concat("Karma: ", savedProfile.Karma));
-                Console.WriteLine(string.Concat("Level: ", savedProfile.Level));
+                Console.WriteLine("Avatar Saved.\n");
+                Console.WriteLine(string.Concat("Id: ", savedAvatar.Id));
+                Console.WriteLine(string.Concat("Provider Key: ", savedAvatar.ProviderKey));
+               // Console.WriteLine(string.Concat("HC Address Hash: ", savedAvatar.HcAddressHash)); //But we can still view the HC Hash if we wish by casting to the provider Avatar object as we have above. - UPDATE: We do not need this, the ProviderKey shows the same info (hash in this case).
+                Console.WriteLine(string.Concat("Name: ", savedAvatar.Title, " ", savedAvatar.FirstName, " ", savedAvatar.LastName));
+                Console.WriteLine(string.Concat("Username: ", savedAvatar.Username));
+                Console.WriteLine(string.Concat("Password: ", savedAvatar.Password));
+                Console.WriteLine(string.Concat("Email: ", savedAvatar.Email));
+                Console.WriteLine(string.Concat("DOB: ", savedAvatar.DOB));
+                Console.WriteLine(string.Concat("Address: ", savedAvatar.PlayerAddress));
+                Console.WriteLine(string.Concat("Karma: ", savedAvatar.Karma));
+                Console.WriteLine(string.Concat("Level: ", savedAvatar.Level));
             }
 
-            Console.WriteLine("\nLoading Profile...");
-            //IProfile profile = await profileManager.LoadProfileAsync("dellams", "1234");
-            IProfile profile = await OASISAPIManager.ProfileManager.LoadProfileAsync("QmR6A1gkSmCsxnbDF7V9Eswnd4Kw9SWhuf8r4R643eDshg");
+            Console.WriteLine("\nLoading Avatar...");
+            //IAvatar Avatar = await AvatarManager.LoadAvatarAsync("dellams", "1234");
+            IAvatar Avatar = await OASISAPIManager.AvatarManager.LoadAvatarAsync("QmR6A1gkSmCsxnbDF7V9Eswnd4Kw9SWhuf8r4R643eDshg");
 
-            if (profile != null)
+            if (Avatar != null)
             {
-                Console.WriteLine("Profile Loaded.\n");
-                Console.WriteLine(string.Concat("Id: ", profile.Id));
-                Console.WriteLine(string.Concat("Provider Key: ", savedProfile.ProviderKey));
-                //Console.WriteLine(string.Concat("HC Address Hash: ", profile.HcAddressHash)); //ProfileManager is independent of provider implementation so it should not know about HC Hash.
-                Console.WriteLine(string.Concat("Name: ", profile.Title, " ", profile.FirstName, " ", profile.LastName));
-                Console.WriteLine(string.Concat("Username: ", profile.Username));
-                Console.WriteLine(string.Concat("Password: ", profile.Password));
-                Console.WriteLine(string.Concat("Email: ", profile.Email));
-                Console.WriteLine(string.Concat("DOB: ", profile.DOB));
-                Console.WriteLine(string.Concat("Address: ", profile.PlayerAddress));
-                Console.WriteLine(string.Concat("Karma: ", profile.Karma));
-                Console.WriteLine(string.Concat("Level: ", profile.Level));
+                Console.WriteLine("Avatar Loaded.\n");
+                Console.WriteLine(string.Concat("Id: ", Avatar.Id));
+                Console.WriteLine(string.Concat("Provider Key: ", savedAvatar.ProviderKey));
+                //Console.WriteLine(string.Concat("HC Address Hash: ", Avatar.HcAddressHash)); //AvatarManager is independent of provider implementation so it should not know about HC Hash.
+                Console.WriteLine(string.Concat("Name: ", Avatar.Title, " ", Avatar.FirstName, " ", Avatar.LastName));
+                Console.WriteLine(string.Concat("Username: ", Avatar.Username));
+                Console.WriteLine(string.Concat("Password: ", Avatar.Password));
+                Console.WriteLine(string.Concat("Email: ", Avatar.Email));
+                Console.WriteLine(string.Concat("DOB: ", Avatar.DOB));
+                Console.WriteLine(string.Concat("Address: ", Avatar.PlayerAddress));
+                Console.WriteLine(string.Concat("Karma: ", Avatar.Karma));
+                Console.WriteLine(string.Concat("Level: ", Avatar.Level));
             }
 
             
@@ -69,12 +69,12 @@ namespace NextGenSoftware.OASIS.API.Core.TestHarness
             Console.ReadKey();
         }
 
-        private static void ProfileManager_OnProfileManagerError(object sender, ProfileManagerErrorEventArgs e)
+        private static void AvatarManager_OnAvatarManagerError(object sender, AvatarManagerErrorEventArgs e)
         {
-            Console.WriteLine(string.Concat("\nProfileManager Error. EndPoint: ", e.EndPoint, ", Reason: ", e.Reason, ", Error Details: ", e.ErrorDetails.ToString()));
+            Console.WriteLine(string.Concat("\nAvatarManager Error. EndPoint: ", e.EndPoint, ", Reason: ", e.Reason, ", Error Details: ", e.ErrorDetails.ToString()));
         }
 
-        private static void OASISStorageProvider_OnStorageProviderError(object sender, ProfileManagerErrorEventArgs e)
+        private static void OASISStorageProvider_OnStorageProviderError(object sender, AvatarManagerErrorEventArgs e)
         {
             Console.WriteLine(string.Concat("\nOASIS Storage Provider Error. EndPoint: ", e.EndPoint, ", Reason: ", e.Reason, ", Error Details: ", e.ErrorDetails.ToString()));
         }

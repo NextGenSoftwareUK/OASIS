@@ -1,9 +1,10 @@
 ﻿using NextGenSoftware.Holochain.HoloNET.Client.Core;
+using NextGenSoftware.OASIS.API.Core;
 using System;
 
 namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
 {
-    public class Moon : CelestialBodyBase, IMoon
+    public class Moon : CelestialBody, IMoon
     {
         public Moon()
         {
@@ -20,12 +21,12 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
          
         //}
 
-        public Moon(HoloNETClientBase holoNETClient, string providerKey) : base(holoNETClient, providerKey)
+        public Moon(HoloNETClientBase holoNETClient, string providerKey) : base(holoNETClient, providerKey, "moon")
         {
      
         }
 
-        public Moon(string holochainConductorURI, HoloNETClientType type, string providerKey) : base(holochainConductorURI, type, providerKey)
+        public Moon(string holochainConductorURI, HoloNETClientType type, string providerKey) : base(holochainConductorURI, type, providerKey, "moon")
         {
     
         }

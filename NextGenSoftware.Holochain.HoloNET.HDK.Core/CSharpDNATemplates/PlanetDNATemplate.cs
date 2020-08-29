@@ -2,37 +2,36 @@
 using NextGenSoftware.Holochain.HoloNET.HDK.Core;
 using NextGenSoftware.OASIS.API.Core;
 using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
-using static NextGenSoftware.Holochain.HoloNET.HDK.Core.PlanetBase;
 
 namespace NextGenSoftware.Holochain.HoloNET.HDK.Core.CSharpTemplates
 {
     //public class ZomeDNATemplate : ZomeBase, IZomeDNATemplate
-    public class PlanetDNATemplate : PlanetBase, IPlanet
+    //public class PlanetDNATemplate : Planet, IPlanet
+    public class PlanetDNATemplate : CelestialBody, IPlanet
     {
         //public PlanetDNATemplate(HoloNETClientBase holoNETClient) : base(holoNETClient, "{planet}")
-        public PlanetDNATemplate(HoloNETClientBase holoNETClient) : base(holoNETClient)
+        public PlanetDNATemplate(HoloNETClientBase holoNETClient, string providerKey, Guid id) : base(holoNETClient, providerKey, "{holon}")
         {
 
         }
 
-        public PlanetDNATemplate(HoloNETClientBase holoNETClient, Guid id) : base(holoNETClient, id)
-        {
+        //public PlanetDNATemplate(HoloNETClientBase holoNETClient, Guid id) : base(holoNETClient, providerKey)
+        //{
 
-        }
+        //}
 
         //public PlanetDNATemplate(string holochainConductorURI, HoloNETClientType type) : base(holochainConductorURI, "{planet}", type)
-       // {
-       
-       // }
+        // {
 
-        public PlanetDNATemplate(string holochainConductorURI, HoloNETClientType type) : base(holochainConductorURI, type)
+        // }
+
+        public PlanetDNATemplate(string holochainConductorURI, HoloNETClientType type, string providerKey) : base(holochainConductorURI, type, providerKey, "{ holon}")
         {
 
         }
 
-        public PlanetDNATemplate(string holochainConductorURI, HoloNETClientType type, Guid id) : base(holochainConductorURI, type, id)
+        public PlanetDNATemplate(string holochainConductorURI, HoloNETClientType type, Guid id) : base(holochainConductorURI, type, id, "{holon}" )
         {
 
         }
@@ -45,7 +44,7 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core.CSharpTemplates
         public async Task<IHolon> SaveHOLONAsync(IHolon holon)
         {
             //return await base.SaveHolonAsync("{holon}", holon);
-            return await base.SaveHolonAsync(holon);
+            return await base.SaveHolonAsync("{holon}", holon);
         }
     }
 }

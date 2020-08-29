@@ -20,7 +20,7 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
             StarCore = new StarCore(holochainConductorURI, type, providerKey);
         }
 
-        public static async Task<StarResult> Genesis(GenesisType type, string name, string dnaFolder = "", string genesisCSharpFolder = "", string genesisRustFolder = "", string genesisNameSpace = "")
+        public static async Task<CoronalEjection> Genesis(GenesisType type, string name, string dnaFolder = "", string genesisCSharpFolder = "", string genesisRustFolder = "", string genesisNameSpace = "")
         {
             StarDNA starDNA;
             bool holonReached = false;
@@ -328,7 +328,7 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
 
         public static void Login(string username, string password)
         {
-            //TODO: Login and load the users profile here...
+            //TODO: Login and load the users Avatar here...
             LoggedInUser = new Avatar();
         }
 
@@ -338,13 +338,13 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
 
         }
 
-        public static void Light(CelestialBodyBase body)
+        public static void Light(CelestialBody body)
         {
 
         }
 
         //Activate & Launch - Launch & activate a planet (OAPP) by shining the star's light upon it...
-        public static void Shine(CelestialBodyBase body)
+        public static void Shine(CelestialBody body)
         {
 
         }
@@ -355,7 +355,7 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
         }
 
         //Dractivate
-        public static void Dim(CelestialBodyBase body)
+        public static void Dim(CelestialBody body)
         {
 
         }
@@ -366,7 +366,7 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
         }
 
         //Deploy
-        public static void Seed(CelestialBodyBase body)
+        public static void Seed(CelestialBody body)
         {
 
         }
@@ -377,7 +377,7 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
         }
 
         // Run Tests
-        public static void Twinkle(CelestialBodyBase body)
+        public static void Twinkle(CelestialBody body)
         {
 
         }
@@ -388,7 +388,7 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
         }
 
         // Delete Planet (OAPP)
-        public static void Dust(CelestialBodyBase body)
+        public static void Dust(CelestialBody body)
         {
 
         }
@@ -399,7 +399,7 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
         }
 
         // Delete Planet (OAPP)
-        public static void Evolve(CelestialBodyBase body)
+        public static void Evolve(CelestialBody body)
         {
 
         }
@@ -410,7 +410,7 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
         }
 
         // Delete Planet (OAPP)
-        public static void Mutate(CelestialBodyBase body)
+        public static void Mutate(CelestialBody body)
         {
 
         }
@@ -421,7 +421,7 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
         }
 
         // Highlight the Planet (OAPP) in the OAPP Store (StarNET)
-        public static void Radiate(CelestialBodyBase body)
+        public static void Radiate(CelestialBody body)
         {
 
         }
@@ -432,7 +432,7 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
         }
 
         // Show how much light the planet (OAPP) is emitting into the solar system (StarNET/HoloNET)
-        public static void Emit(CelestialBodyBase body)
+        public static void Emit(CelestialBody body)
         {
 
         }
@@ -443,7 +443,7 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
         }
 
         // Show stats of the Planet (OAPP)
-        public static void Reflect(CelestialBodyBase body)
+        public static void Reflect(CelestialBody body)
         {
 
         }
@@ -454,7 +454,7 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
         }
 
         // Send/Receive Love
-        public static void Love(CelestialBodyBase body)
+        public static void Love(CelestialBody body)
         {
 
         }
@@ -465,7 +465,7 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
         }
 
         // Reserved For Future Use...
-        public static void Super(CelestialBodyBase body)
+        public static void Super(CelestialBody body)
         {
 
         }

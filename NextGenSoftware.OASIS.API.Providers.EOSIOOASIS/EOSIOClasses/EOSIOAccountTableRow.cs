@@ -31,9 +31,9 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.EOSIOClasses
             return meta;
         }
 
-        public Avatar ToProfile()
+        public Avatar ToAvatar()
         {
-            var profile = new Avatar()
+            var Avatar = new Avatar()
             {
                 UserId = Guid.Parse(this.userid),
                 Username = this.username,
@@ -47,7 +47,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.EOSIOClasses
                 Karma = this.karma
             };
 
-            return profile;
+            return Avatar;
         }
     }
 }

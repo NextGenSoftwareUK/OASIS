@@ -5,30 +5,30 @@ namespace NextGenSoftware.OASIS.API.Core
 {
     public abstract class OASISStorageBase : OASISProvider, IOASISStorage
     {
-        public event ProfileManager.StorageProviderError StorageProviderError;
+        public event AvatarManager.StorageProviderError StorageProviderError;
 
-        public Task<KarmaAkashicRecord> AddKarmaToProfileAsync(API.Core.IProfile profile, KarmaTypePositive karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc)
+        public Task<KarmaAkashicRecord> AddKarmaToAvatarAsync(API.Core.IAvatar Avatar, KarmaTypePositive karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc)
         {
-            return profile.KarmaEarnt(karmaType, karmaSourceType, karamSourceTitle, karmaSourceDesc);
+            return Avatar.KarmaEarnt(karmaType, karmaSourceType, karamSourceTitle, karmaSourceDesc);
         }
 
-        public Task<KarmaAkashicRecord> SubtractKarmaFromProfileAsync(API.Core.IProfile profile, KarmaTypeNegative karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc)
+        public Task<KarmaAkashicRecord> SubtractKarmaFromAvatarAsync(API.Core.IAvatar Avatar, KarmaTypeNegative karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc)
         {
-            return profile.KarmaLost(karmaType, karmaSourceType, karamSourceTitle, karmaSourceDesc);
+            return Avatar.KarmaLost(karmaType, karmaSourceType, karamSourceTitle, karmaSourceDesc);
         }
 
         protected void OnStorageProviderError(string endPoint, string reason, Exception errorDetails)
         {
-            StorageProviderError?.Invoke(this, new ProfileManagerErrorEventArgs { EndPoint = endPoint, Reason = reason, ErrorDetails = errorDetails });
+            StorageProviderError?.Invoke(this, new AvatarManagerErrorEventArgs { EndPoint = endPoint, Reason = reason, ErrorDetails = errorDetails });
         }
 
-        public abstract Task<IProfile> LoadProfileAsync(string providerKey);
+        public abstract Task<IAvatar> LoadAvatarAsync(string providerKey);
 
-        public abstract Task<IProfile> LoadProfileAsync(Guid Id);
+        public abstract Task<IAvatar> LoadAvatarAsync(Guid Id);
 
-        public abstract Task<IProfile> LoadProfileAsync(string username, string password);
+        public abstract Task<IAvatar> LoadAvatarAsync(string username, string password);
 
-        public abstract Task<IProfile> SaveProfileAsync(IProfile profile);
+        public abstract Task<IAvatar> SaveAvatarAsync(IAvatar Avatar);
 
         public abstract Task<ISearchResults> SearchAsync(string searchTerm);
 

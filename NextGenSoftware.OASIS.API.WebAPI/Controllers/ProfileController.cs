@@ -15,18 +15,18 @@ namespace NextGenSoftware.OASIS.API.WebAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class ProfileController : ControllerBase
+    public class AvatarController : ControllerBase
     {
-        private ProfileManager _profileManager;
+        private AvatarManager _AvatarManager;
 
-        private ProfileManager ProfileManager
+        private AvatarManager AvatarManager
         {
             get
             {
-                if (_profileManager == null)
-                    _profileManager = new ProfileManager(new HoloOASIS("ws://localhost:8888")); //Default to HoloOASIS Provider.
+                if (_AvatarManager == null)
+                    _AvatarManager = new AvatarManager(new HoloOASIS("ws://localhost:8888")); //Default to HoloOASIS Provider.
 
-                return _profileManager;
+                return _AvatarManager;
             }
         }
 
@@ -46,84 +46,84 @@ namespace NextGenSoftware.OASIS.API.WebAPI.Controllers
 
         // GET api/values/5
         [HttpGet("{id}")]
-        public async Task<IProfile> Get(Guid id)
+        public async Task<IAvatar> Get(Guid id)
         {
-            return await ProfileManager.LoadProfileAsync(id);
+            return await AvatarManager.LoadAvatarAsync(id);
         }
 
         // GET api/values/5
         [HttpGet("{id}")]
-        public async Task<IProfile> Get(Guid id, ProviderType providerType)
+        public async Task<IAvatar> Get(Guid id, ProviderType providerType)
         {
             //TODO: This will fail if the requested provider has not been registered with the ProviderManager (soon this will bn automatic with MEF if the provider dll is in the providers hot folder).
-            return await ProfileManager.LoadProfileAsync(id, providerType);
+            return await AvatarManager.LoadAvatarAsync(id, providerType);
 
 
             /*
-            if (ProfileManager.DefaultProviderType != providerType)
+            if (AvatarManager.DefaultProviderType != providerType)
             {
                 switch (providerType)
                 {
                     case ProviderType.ActivityPubOASIS:
-                        ProfileManager.DefaultProvider = new AcitvityPubOASIS();
+                        AvatarManager.DefaultProvider = new AcitvityPubOASIS();
                         break;
 
                     case ProviderType.BlockStackOASIS:
-                        ProfileManager.DefaultProvider = new BlockStackOASIS();
+                        AvatarManager.DefaultProvider = new BlockStackOASIS();
                         break;
 
                     case ProviderType.EOSOASIS:
-                        //ProfileManager.DefaultProvider = new EOSOASIS();
+                        //AvatarManager.DefaultProvider = new EOSOASIS();
                         break;
 
                     case ProviderType.EthereumOASIS:
-                        ProfileManager.DefaultProvider = new EthereumOASIS();
+                        AvatarManager.DefaultProvider = new EthereumOASIS();
                         break;
 
                     case ProviderType.HoloOASIS:
-                        ProfileManager.DefaultProvider = new HoloOASIS(("ws://localhost:8888"));
+                        AvatarManager.DefaultProvider = new HoloOASIS(("ws://localhost:8888"));
                         break;
 
                     case ProviderType.IPFSOASIS:
-                        ProfileManager.DefaultProvider = new IPFSOASIS;
+                        AvatarManager.DefaultProvider = new IPFSOASIS;
                         break;
 
                     case ProviderType.LoonOASIS:
-                        //ProfileManager.DefaultProvider = new LoonOASIS();
+                        //AvatarManager.DefaultProvider = new LoonOASIS();
                         break;
 
                     case ProviderType.ScuttleBugOASIS:
-                        //ProfileManager.DefaultProvider = new ScuttleBugOASIS();
+                        //AvatarManager.DefaultProvider = new ScuttleBugOASIS();
                         break;
 
                     case ProviderType.SOLIDOASIS:
-                        ProfileManager.DefaultProvider = new SOLIDOASIS();
+                        AvatarManager.DefaultProvider = new SOLIDOASIS();
                         break;
 
                     case ProviderType.StellarOASIS:
-                        //ProfileManager.DefaultProvider = new ScuttleBugOASIS();
+                        //AvatarManager.DefaultProvider = new ScuttleBugOASIS();
                         break;
                 }
 
-                ProfileManager.DefaultProviderType = providerType;
+                AvatarManager.DefaultProviderType = providerType;
             }
 
-            //ProfileManager.DefaultProvider = providerType;
-            return await ProfileManager.LoadProfileAsync(id);
+            //AvatarManager.DefaultProvider = providerType;
+            return await AvatarManager.LoadAvatarAsync(id);
             */
         }
 
 
         [HttpGet("{id}")]
-        public async Task<IProfile> Get(string providerKey)
+        public async Task<IAvatar> Get(string providerKey)
         {
-            return await ProfileManager.LoadProfileAsync(providerKey);
+            return await AvatarManager.LoadAvatarAsync(providerKey);
         }
 
         [HttpGet("{id}")]
-        public async Task<IProfile> Get(string username, string password)
+        public async Task<IAvatar> Get(string username, string password)
         {
-            return await ProfileManager.LoadProfileAsync(username, password);
+            return await AvatarManager.LoadAvatarAsync(username, password);
         }
 
 
@@ -131,9 +131,9 @@ namespace NextGenSoftware.OASIS.API.WebAPI.Controllers
 
         // PUT api/values/5
         [HttpPut("{id}")]
-        public void Put(int id, [FromBody] IProfile value)
+        public void Put(int id, [FromBody] IAvatar value)
         {
-            ProfileManager.SaveProfileAsync(value);
+            AvatarManager.SaveAvatarAsync(value);
         }
 
         // POST api/values

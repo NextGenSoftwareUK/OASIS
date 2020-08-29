@@ -73,13 +73,13 @@ namespace NextGenSoftware.OASIS.API.Core
 
         public async Task<bool> Save()
         {
-            await ((IOASISStorage)ProviderManager.CurrentStorageProvider).SaveProfileAsync(this);
+            await ((IOASISStorage)ProviderManager.CurrentStorageProvider).SaveAvatarAsync(this);
             return true;
         }
 
         public Avatar()
         {
-            this.HolonType = HolonType.Profile;
+            this.HolonType = HolonType.Avatar;
         }
 
         private int GetKarmaForType(KarmaTypePositive karmaType)

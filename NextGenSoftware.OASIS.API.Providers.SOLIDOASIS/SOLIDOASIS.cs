@@ -8,7 +8,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLIDOASIS
 {
     public class SOLIDOASIS : OASISStorageBase, IOASISStorage, IOASISNET
     {
-        //public event ProfileManager.StorageProviderError OnStorageProviderError;
+        //public event AvatarManager.StorageProviderError OnStorageProviderError;
 
         public SOLIDOASIS()
         {
@@ -28,7 +28,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLIDOASIS
             throw new NotImplementedException();
         }
 
-        public override Task<IProfile> LoadProfileAsync(string providerKey)
+        public override Task<IAvatar> LoadAvatarAsync(string providerKey)
         {
             //TODO: Call into JS SOLID Code here.
             //Page.ClientScript.RegisterStartupScript(this.GetType(), "CallMyFunction", "MyFunction()", true);
@@ -36,17 +36,17 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLIDOASIS
             return null;
         }
 
-        public override Task<IProfile> LoadProfileAsync(Guid Id)
+        public override Task<IAvatar> LoadAvatarAsync(Guid Id)
         {
             throw new NotImplementedException();
         }
 
-        public override Task<IProfile> LoadProfileAsync(string username, string password)
+        public override Task<IAvatar> LoadAvatarAsync(string username, string password)
         {
             throw new NotImplementedException();
         }
 
-        public override Task<IProfile> SaveProfileAsync(IProfile profile)
+        public override Task<IAvatar> SaveAvatarAsync(IAvatar Avatar)
         {
             throw new NotImplementedException();
         }

@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
-using static NextGenSoftware.OASIS.API.Core.ProfileManager;
+using static NextGenSoftware.OASIS.API.Core.AvatarManager;
 
 namespace NextGenSoftware.OASIS.API.Core
 {
@@ -11,14 +11,14 @@ namespace NextGenSoftware.OASIS.API.Core
     // will be implemented soon (IPFSOASIS & HoloOASIS).
     public interface IOASISStorage : IOASISProvider
     {
-        Task<IProfile> LoadProfileAsync(string providerKey);
-        Task<IProfile> LoadProfileAsync(Guid Id);
-        Task<IProfile> LoadProfileAsync(string username, string password);
+        Task<IAvatar> LoadAvatarAsync(string providerKey);
+        Task<IAvatar> LoadAvatarAsync(Guid Id);
+        Task<IAvatar> LoadAvatarAsync(string username, string password);
 
-        //Task<bool> SaveProfileAsync(IProfile profile);
-        Task<IProfile> SaveProfileAsync(IProfile profile);
-        Task<KarmaAkashicRecord> AddKarmaToProfileAsync(API.Core.IProfile profile, KarmaTypePositive karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc);
-        Task<KarmaAkashicRecord> SubtractKarmaFromProfileAsync(API.Core.IProfile profile, KarmaTypeNegative karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc);
+        //Task<bool> SaveAvatarAsync(IAvatar Avatar);
+        Task<IAvatar> SaveAvatarAsync(IAvatar Avatar);
+        Task<KarmaAkashicRecord> AddKarmaToAvatarAsync(API.Core.IAvatar Avatar, KarmaTypePositive karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc);
+        Task<KarmaAkashicRecord> SubtractKarmaFromAvatarAsync(API.Core.IAvatar Avatar, KarmaTypeNegative karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc);
 
 
         Task<ISearchResults> SearchAsync(string searchTerm);

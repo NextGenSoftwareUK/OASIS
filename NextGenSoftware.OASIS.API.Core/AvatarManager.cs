@@ -1,44 +1,35 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using static NextGenSoftware.OASIS.API.Core.AvatarManager;
 
 namespace NextGenSoftware.OASIS.API.Core
 {
-    public class ReplicatorManager : OASISManager
+    public class AvatarManager : OASISManager
     {
-       // private AvatarManagerConfig _config;
+        private AvatarManagerConfig _config;
 
         public List<IOASISStorage> OASISStorageProviders { get; set; }
+        
+        public Task<IAvatar> LoadAvatarAsync(Guid id)
+        {
+            throw new NotImplementedException();
+        }
 
-        //public Task<IAvatar> LoadAvatarAsync(Guid id)
-        //{
-        //    throw new NotImplementedException();
-        //}
+        public AvatarManagerConfig Config
+        {
+            get
+            {
+                if (_config == null)
+                {
+                    _config = new AvatarManagerConfig();
+                }
 
-        //public AvatarManagerConfig Config
-        //{
-        //    get
-        //    {
-        //        if (_config == null)
-        //        {
-        //            _config = new AvatarManagerConfig();
-        //        }
-
-        //        return _config;
-        //    }
-        //}
-
-
-
-
-        //RegisterDatabaseForReplication(string connectionString, string dbName);
-        //RegisterTableForReplication(string connectionString, string dbName, string tableName);
-        //RegisterTablesForReplication(string connectionString, string dbName, string<> tables);
-        //RegisterQueryForReplication(string connectionString, string dbName, string query);
+                return _config;
+            }
+        }
 
         //Events
-        public delegate void ReplicatorManagerError(object sender, AvatarManagerErrorEventArgs e);
+        public delegate void AvatarManagerError(object sender, AvatarManagerErrorEventArgs e);
         public event AvatarManagerError OnAvatarManagerError;
 
         public delegate void StorageProviderError(object sender, AvatarManagerErrorEventArgs e);
@@ -56,14 +47,12 @@ namespace NextGenSoftware.OASIS.API.Core
         }*/
 
        //TODO: In future more than one storage provider can be active at a time where each call can specify which provider to use.
-        public ReplicatorManager(IOASISStorage OASISStorageProvider) : base(OASISStorageProvider)
+        public AvatarManager(IOASISStorage OASISStorageProvider) : base(OASISStorageProvider)
         {
             //if (!ProviderManager.IsProviderRegistered(OASISStorageProvider))
             //    ProviderManager.RegisterProvider(OASISStorageProvider);
 
             //ProviderManager.SwitchCurrentStorageProvider(OASISStorageProvider.ProviderType);
-
-         //   return null;
         }
 
         private void OASISStorageProvider_OnStorageProviderError(object sender, AvatarManagerErrorEventArgs e)

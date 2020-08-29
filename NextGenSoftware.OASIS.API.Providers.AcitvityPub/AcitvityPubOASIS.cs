@@ -15,7 +15,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AcitvityPubOASIS
             this.ProviderCategory = ProviderCategory.StorageAndNetwork;
         }
 
-        public Task<bool> AddKarmaToProfileAsync(IProfile profile, int karma)
+        public Task<bool> AddKarmaToAvatarAsync(IAvatar Avatar, int karma)
         {
             throw new NotImplementedException();
         }
@@ -30,22 +30,22 @@ namespace NextGenSoftware.OASIS.API.Providers.AcitvityPubOASIS
             throw new NotImplementedException();
         }
 
-        public override Task<IProfile> LoadProfileAsync(string providerKey)
+        public override Task<IAvatar> LoadAvatarAsync(string providerKey)
         {
             throw new NotImplementedException();
         }
 
-        public override Task<IProfile> LoadProfileAsync(Guid Id)
+        public override Task<IAvatar> LoadAvatarAsync(Guid Id)
         {
             throw new NotImplementedException();
         }
 
-        public override Task<IProfile> LoadProfileAsync(string username, string password)
+        public override Task<IAvatar> LoadAvatarAsync(string username, string password)
         {
             throw new NotImplementedException();
         }
 
-        public override Task<IProfile> SaveProfileAsync(IProfile profile)
+        public override Task<IAvatar> SaveAvatarAsync(IAvatar Avatar)
         {
             throw new NotImplementedException();
         }

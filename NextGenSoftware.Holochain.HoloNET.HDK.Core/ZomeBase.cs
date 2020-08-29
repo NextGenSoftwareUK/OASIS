@@ -4,6 +4,7 @@ using NextGenSoftware.Holochain.HoloNET.Client.Core;
 using NextGenSoftware.OASIS.API.Core;
 using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 
 namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
@@ -20,6 +21,7 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
 
         //public List<HolonBase> Holons = new List<HolonBase>();
         public List<Holon> Holons = new List<Holon>();
+        
 
         public delegate void HolonSaved(object sender, HolonLoadedEventArgs e);
         public event HolonSaved OnHolonSaved;

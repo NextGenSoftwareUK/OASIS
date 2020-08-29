@@ -20,7 +20,7 @@ struct SignalPayload {
 
 
 #[derive(Serialize, Deserialize, Debug, DefaultJson,Clone)]
-pub struct Profile 
+pub struct Avatar 
 {
     id: String,
     user_id: String,
@@ -55,13 +55,13 @@ mod our_world_core {
     #[entry_def]
     fn my_entry_def() -> ValidatingEntryType {
         entry!(
-            name: "profile",
+            name: "Avatar",
             description: "this is a same entry defintion",
             sharing: Sharing::Public,
             validation_package: || {
                 hdk::ValidationPackageDefinition::Entry
             },
-            validation: | _validation_data: hdk::EntryValidationData<Profile>| {
+            validation: | _validation_data: hdk::EntryValidationData<Avatar>| {
                 Ok(())
             }
         )
@@ -87,20 +87,20 @@ mod our_world_core {
     }
 
     #[zome_fn("hc_public")]
-    fn save_profile(entry: Profile) -> ZomeApiResult<Address> {
-        let entry = Entry::App("profile".into(), entry.into());
+    fn save_Avatar(entry: Avatar) -> ZomeApiResult<Address> {
+        let entry = Entry::App("Avatar".into(), entry.into());
         let address = hdk::commit_entry(&entry)?;
         //entry.HcAddressHash = address;
         Ok(address)
         //Ok(entry);
     }
     
-    //pub fn handle_load_profile(address: Address) -> ZomeApiResult<Option<Entry>> {
+    //pub fn handle_load_Avatar(address: Address) -> ZomeApiResult<Option<Entry>> {
     //    hdk::get_entry(&address)
     //}
 
     #[zome_fn("hc_public")]
-    fn load_profile(address: Address) -> ZomeApiResult<Profile> {
+    fn load_Avatar(address: Address) -> ZomeApiResult<Avatar> {
         //hdk::get_entry(&address)
         hdk::utils::get_as_type(address)
     }

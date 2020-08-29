@@ -32,7 +32,7 @@ pub struct MyEntry {
 }
 
 #[derive(Serialize, Deserialize, Debug, DefaultJson,Clone)]
-pub struct Profile 
+pub struct Avatar 
 {
 	Id: String,
 	Username: String,
@@ -49,39 +49,39 @@ pub struct Profile
 	Level: i32
 }
 
-pub fn handle_save_profile(entry: Profile) -> ZomeApiResult<Address> {
-    let entry = Entry::App("profile".into(), entry.into());
+pub fn handle_save_Avatar(entry: Avatar) -> ZomeApiResult<Address> {
+    let entry = Entry::App("Avatar".into(), entry.into());
     let address = hdk::commit_entry(&entry)?;
 	//entry.HcAddressHash = address;
     Ok(address)
 	//Ok(entry);
 }
 
-//pub fn handle_load_profile(address: Address) -> ZomeApiResult<Option<Entry>> {
+//pub fn handle_load_Avatar(address: Address) -> ZomeApiResult<Option<Entry>> {
 //    hdk::get_entry(&address)
 //}
 
-pub fn handle_load_profile(address: Address) -> ZomeApiResult<Profile> {
+pub fn handle_load_Avatar(address: Address) -> ZomeApiResult<Avatar> {
     hdk::utils::get_as_type(address)
 }
 
-//pub fn handle_load_profiles() -> ZomeApiResult<Vec<Profile>> {
+//pub fn handle_load_Avatars() -> ZomeApiResult<Vec<Avatar>> {
 //    hdk::utils::get_links_and_load_type(Baseaddress?, LinkMatch::Exactly, LinkMatch::Exactly)
 //}
 
-//pub fn handle_get_profiles() -> serde_json::Value {
- //  match hdk::get_links(&hdk::AGENT_ADDRESS, None, "has profiles") {
+//pub fn handle_get_Avatars() -> serde_json::Value {
+ //  match hdk::get_links(&hdk::AGENT_ADDRESS, None, "has Avatars") {
   //      Ok(result) => {
- //           let mut profiles: Vec<Profile> = Vec::with_capacity(result.links.len());
+ //           let mut Avatars: Vec<Avatar> = Vec::with_capacity(result.links.len());
  //           for address in result.links {
- //               let result : Result<Option<Profile>, ZomeApiError> = hdk::get_entry(address);
+ //               let result : Result<Option<Avatar>, ZomeApiError> = hdk::get_entry(address);
  //               match result {
- //                   Ok(Some(profile)) => profiles.push(profile),
+ //                   Ok(Some(Avatar)) => Avatars.push(Avatar),
  //                   Ok(None) =>  {},
  //                   Err(_) => {},
  //               }
 //            }
-//            json!(profiles)
+//            json!(Avatars)
 //        },
 //        Err(hdk_error) => hdk_error.to_json(),
 //    }
@@ -89,12 +89,12 @@ pub fn handle_load_profile(address: Address) -> ZomeApiResult<Profile> {
 
 
 
-//pub fn handle_load_profile(address: Address) -> Result<Option<Entry>, ZomeApiError>
+//pub fn handle_load_Avatar(address: Address) -> Result<Option<Entry>, ZomeApiError>
 //{
-//    let profile : Result<Option<Entry>, ZomeApiError> = hdk::get_entry(&address);
-//	Ok(profile)
+//    let Avatar : Result<Option<Entry>, ZomeApiError> = hdk::get_entry(&address);
+//	Ok(Avatar)
 //	//Ok(hdk::get_entry(&address))
-//	//let result : Result<Option<Profile>, ZomeApiError> = hdk::get_entry(address);
+//	//let result : Result<Option<Avatar>, ZomeApiError> = hdk::get_entry(address);
 //}
 
 pub fn handle_create_my_entry(entry: MyEntry) -> ZomeApiResult<Address> {
@@ -142,14 +142,14 @@ pub fn handle_test3() -> ZomeApiResult<String>
 
 fn definition() -> ValidatingEntryType {
     entry!(
-        name: "profile",
+        name: "Avatar",
         description: "this is a same entry defintion",
         sharing: Sharing::Public,
         validation_package: || {
             hdk::ValidationPackageDefinition::Entry
         },
 
-        validation: | _validation_data: hdk::EntryValidationData<Profile>| {
+        validation: | _validation_data: hdk::EntryValidationData<Avatar>| {
             Ok(())
         }
     )
@@ -188,25 +188,25 @@ define_zome! {
             outputs: |result: ZomeApiResult<String>|,
             handler: handle_test3
         }
-		save_profile: {
-            inputs: |entry: Profile|,
+		save_Avatar: {
+            inputs: |entry: Avatar|,
             outputs: |result: ZomeApiResult<Address>|,
-            handler: handle_save_profile
+            handler: handle_save_Avatar
         }
-        load_profile: {
+        load_Avatar: {
             inputs: |address: Address|,
-            outputs: |result: ZomeApiResult<Profile>|,
-            handler: handle_load_profile
+            outputs: |result: ZomeApiResult<Avatar>|,
+            handler: handle_load_Avatar
         }
-		//get_profiles: {
+		//get_Avatars: {
         //    inputs: | |,
-        //    outputs: |profiles: serde_json::Value|,
-        //    handler: handle_get_profiles
+        //    outputs: |Avatars: serde_json::Value|,
+        //    handler: handle_get_Avatars
        // }
         
     ]
 
     traits: {
-        hc_public [create_my_entry,get_my_entry,test,test2,test3,load_profile,save_profile]
+        hc_public [create_my_entry,get_my_entry,test,test2,test3,load_Avatar,save_Avatar]
     }
 }

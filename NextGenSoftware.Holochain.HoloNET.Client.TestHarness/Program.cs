@@ -44,8 +44,8 @@ namespace NextGenSoftware.Holochain.HoloNET.Client.TestHarness
                 await holoNETClient.CallZomeFunctionAsync("1", "test-instance", "our_world_core", "test", ZomeCallback, new { message = new { content = "blah!" } });
                 //await holoNETClient.CallZomeFunctionAsync("2", "test-instance", "our_world_core", "test2", ZomeCallback, new { _message = "blah!" });
 
-                await holoNETClient.CallZomeFunctionAsync("2", "test-instance", "our_world_core", "save_profile", ZomeCallback, new { address = "" });
-                //await holoNETClient.CallZomeFunctionAsync("2", "test-instance", "our_world_core", "load_profile", ZomeCallback, new { address = "" });
+                await holoNETClient.CallZomeFunctionAsync("2", "test-instance", "our_world_core", "save_Avatar", ZomeCallback, new { address = "" });
+                //await holoNETClient.CallZomeFunctionAsync("2", "test-instance", "our_world_core", "load_Avatar", ZomeCallback, new { address = "" });
 
                 // Load testing
                 //   for (int i = 0; i < 100; i++)

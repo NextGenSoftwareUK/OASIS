@@ -26,8 +26,7 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core.CSharpTemplates
 
         public async Task<IHolon> SaveHOLONAsync(IHolon holon)
         {
-            //return await base.SaveHolonAsync("{holon}", holon);
-            return await base.SaveHolonAsync(holon);
+            return await base.SaveHolonAsync("{holon}", holon);
         }
     }
 }

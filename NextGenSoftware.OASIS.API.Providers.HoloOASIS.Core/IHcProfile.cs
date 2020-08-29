@@ -2,13 +2,13 @@
 
 namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Core
 {
-    //public interface IProfile : API.Core.IProfile
+    //public interface IAvatar : API.Core.IAvatar
     //{
     //    string HcAddressHash { get; set; }
     //}
 
     
-    public interface IHcProfile
+    public interface IHcAvatar
     {
         Guid id { get; set; }
         Guid user_id { get; set; } //TODO: Remember to add this to the HC Rust code...

@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 namespace NextGenSoftware.OASIS.API.Core
 {
-    public interface ICelestialBodyBase : IHolon
+    public interface ICelestialBody : IHolon
     {
         //HoloNETClientBase HoloNETClient { get; }
 
@@ -26,13 +26,15 @@ namespace NextGenSoftware.OASIS.API.Core
         void LoadAll();
         void LoadZomes();
         void LoadHolons();
-        Task<IHolon> LoadHolonAsync(string holonName, string providerKey);
+        //Task<IHolon> LoadHolonAsync(string rustHolonType, string providerKey);
+        abstract Task<IHolon> LoadHolonAsync(string providerKey);
         void Love();
         void Mutate();
         void Radiate();
         void Reflect();
         Task<bool> Save();
-        Task<IHolon> SaveHolonAsync(IHolon savingHolon);
+        //Task<IHolon> SaveHolonAsync(string rustHolonType, IHolon savingHolon);
+        abstract Task<IHolon> SaveHolonAsync(IHolon savingHolon);
         void Seed();
         void Shine();
         void Super();
