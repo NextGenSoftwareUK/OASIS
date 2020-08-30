@@ -21,12 +21,12 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
          
         //}
 
-        public Moon(HoloNETClientBase holoNETClient, string providerKey) : base(holoNETClient, providerKey, "moon")
+        public Moon(HoloNETClientBase holoNETClient, string providerKey) : base(holoNETClient, providerKey)
         {
      
         }
 
-        public Moon(string holochainConductorURI, HoloNETClientType type, string providerKey) : base(holochainConductorURI, type, providerKey, "moon")
+        public Moon(string holochainConductorURI, HoloNETClientType type, string providerKey) : base(holochainConductorURI, type, providerKey)
         {
     
         }

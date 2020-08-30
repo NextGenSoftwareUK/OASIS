@@ -26,15 +26,19 @@ namespace NextGenSoftware.OASIS.API.Core
         void LoadAll();
         void LoadZomes();
         void LoadHolons();
+
+
         //Task<IHolon> LoadHolonAsync(string rustHolonType, string providerKey);
-        abstract Task<IHolon> LoadHolonAsync(string providerKey);
+
+        //TODO: Come back to this...  we dont want to include rust in this base interface but need way to hide this method in sub-interfaces somehow...
+        // abstract Task<IHolon> LoadHolonAsync(string providerKey);
         void Love();
         void Mutate();
         void Radiate();
         void Reflect();
         Task<bool> Save();
         //Task<IHolon> SaveHolonAsync(string rustHolonType, IHolon savingHolon);
-        abstract Task<IHolon> SaveHolonAsync(IHolon savingHolon);
+        //abstract Task<IHolon> SaveHolonAsync(IHolon savingHolon);
         void Seed();
         void Shine();
         void Super();
