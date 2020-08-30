@@ -18,7 +18,7 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
         protected TaskCompletionSource<string> _taskCompletionSourceGetInstance = new TaskCompletionSource<string>();
         
         public PlanetCore PlanetCore { get; set; } // This is the core zome of the planet (OAPP), which links to all the other planet zomes/holons...
-        public string RustHolonType { get; set; }
+       // public string RustHolonType { get; set; }
         public string RustCelestialBodyType { get; set; }
 
         //TODO: Should these be in PlanetCore?
@@ -57,12 +57,53 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
 
         }
 
-        public CelestialBody(HoloNETClientBase holoNETClient, Guid id, string rustHolonType)
+        public CelestialBody(HoloNETClientBase holoNETClient, Guid id)
         {
-            this.RustHolonType = rustHolonType;
             Initialize(id, holoNETClient);
         }
 
+        public CelestialBody(string holochainConductorURI, HoloNETClientType type, Guid id)
+        {
+            Initialize(id, holochainConductorURI, type);
+        }
+
+        public CelestialBody(HoloNETClientBase holoNETClient)
+        {
+            Initialize(holoNETClient);
+        }
+
+        public CelestialBody(string holochainConductorURI, HoloNETClientType type)
+        {
+            Initialize(holochainConductorURI, type);
+        }
+
+        //TODO: Don't think we need to pass Id in if we are using ProviderKey?
+        public CelestialBody(HoloNETClientBase holoNETClient, Guid id, string providerKey )
+        {
+            this.ProviderKey = providerKey;
+            Initialize(id, holoNETClient);
+        }
+
+        public CelestialBody(string holochainConductorURI, HoloNETClientType type, Guid id, string providerKey)
+        {
+            this.ProviderKey = providerKey;
+            Initialize(id, holochainConductorURI, type);
+        }
+
+        public CelestialBody(HoloNETClientBase holoNETClient, string providerKey)
+        {
+            this.ProviderKey = providerKey;
+            Initialize(holoNETClient);
+        }
+
+        public CelestialBody(string holochainConductorURI, HoloNETClientType type, string providerKey)
+        {
+            this.ProviderKey = providerKey;
+            Initialize(holochainConductorURI, type);
+        }
+
+
+        /*
         public CelestialBody(HoloNETClientBase holoNETClient, Guid id, string rustHolonType)
         {
             this.RustHolonType = rustHolonType;
@@ -95,7 +136,7 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
             Initialize(id, holoNETClient);
         }
 
-        public CelestialBody(string holochainConductorURI, HoloNETClientType type, Guid id, string providerKey,  string rustHolonType)
+        public CelestialBody(string holochainConductorURI, HoloNETClientType type, Guid id, string providerKey, string rustHolonType)
         {
             this.ProviderKey = providerKey;
             this.RustHolonType = rustHolonType;
@@ -114,6 +155,7 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
             this.ProviderKey = providerKey;
             Initialize(holochainConductorURI, type);
         }
+        */
 
 
         /*
@@ -598,8 +640,29 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
             //}
         }
 
+        /*
+        public virtual async Task<IHolon> LoadHolonAsync(string hcEntryAddressHash)
+        {
+            return await LoadHolonAsync(this.RustHolonType, hcEntryAddressHash);
+
+            // Find the zome that the holon belongs to and then load it...
+            //TODO: May be more efficient way of doing this by loading it directly? But nice each zome manages its own collection of holons...
+            //foreach (ZomeBase zome in Zomes)
+            //{
+            //    foreach (Holon holon in zome.Holons)
+            //    {
+            //        //if (holon.Name == holonName)
+            //        if (holon.RustHolonType == this.RustHolonType)
+            //            return await zome.LoadHolonAsync(holon.RustHolonType, hcEntryAddressHash);
+            //    }
+            //}
+
+            //return null;
+        }
+        */
+        
         //TODO: Should this be in PlanetCore?
-        public virtual async Task<IHolon> LoadHolonAsync(string holonType, string hcEntryAddressHash)
+        public virtual async Task<IHolon> LoadHolonAsync(string rustHolonType, string hcEntryAddressHash)
         {
             // Find the zome that the holon belongs to and then load it...
             //TODO: May be more efficient way of doing this by loading it directly? But nice each zome manages its own collection of holons...
@@ -608,8 +671,8 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
                 foreach (Holon holon in zome.Holons)
                 {
                     //if (holon.Name == holonName)
-                    if (holon.RustHolonType == holonType)
-                        return await zome.LoadHolonAsync(holonType, hcEntryAddressHash);
+                    if (holon.RustHolonType == rustHolonType)
+                        return await zome.LoadHolonAsync(rustHolonType, hcEntryAddressHash);
                 }
             }
 
@@ -617,7 +680,7 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
         }
 
         //TODO: Should this be in PlanetCore?
-        public virtual async Task<IHolon> SaveHolonAsync(string holonName, IHolon savingHolon)
+        public virtual async Task<IHolon> SaveHolonAsync(string rustHolonType, IHolon savingHolon)
         {
             // Find the zome that the holon belongs to and then save it...
             foreach (ZomeBase zome in Zomes)
@@ -625,15 +688,33 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
                 foreach (Holon holon in zome.Holons)
                 {
                     //if (holon.Name == savingHolon.Name)
-                    if (holon.RustHolonType == holonName)
-                        return await zome.SaveHolonAsync(holonName, savingHolon);
-                        //return await zome.SaveHolonAsync(this.RustHolonType, savingHolon);
+                    if (holon.RustHolonType == rustHolonType)
+                        return await zome.SaveHolonAsync(rustHolonType, savingHolon);
+                    //return await zome.SaveHolonAsync(this.RustHolonType, savingHolon);
                 }
             }
 
             return null;
         }
 
+        /*
+        public virtual async Task<IHolon> SaveHolonAsync(IHolon savingHolon)
+        {
+            // Find the zome that the holon belongs to and then save it...
+            foreach (ZomeBase zome in Zomes)
+            {
+                foreach (Holon holon in zome.Holons)
+                {
+                    //if (holon.Name == savingHolon.Name)
+                    if (holon.RustHolonType == this.RustHolonType)
+                        return await zome.SaveHolonAsync(this.RustHolonType, savingHolon);
+                    //return await zome.SaveHolonAsync(this.RustHolonType, savingHolon);
+                }
+            }
+
+            return null;
+        }
+        */
         private void HoloNETClient_OnSignalsCallBack(object sender, SignalsCallBackEventArgs e)
         {
 

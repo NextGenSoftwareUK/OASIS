@@ -38,7 +38,7 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
             bool firstHolon = true;
 
             if (LoggedInUser == null)
-                return new StarResult() { ErrorOccured = true, Message = "Avatar is not logged in. Please log in before calling this command." };
+                return new CoronalEjection() { ErrorOccured = true, Message = "Avatar is not logged in. Please log in before calling this command." };
 
             if (File.Exists(STAR_DNA))
                 starDNA = LoadDNA();
@@ -265,18 +265,19 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
             // Remove any white space from the planet name.
             File.WriteAllText(string.Concat(genesisCSharpFolder, "\\", Regex.Replace(name, @"\s+", ""), ".cs"), planetBufferCsharp);
 
-            ICelestialBodyBase newBody = null;
+            ICelestialBody newBody = null;
 
             switch (type)
             {
                 case GenesisType.Moon:
-                    newBody = (ICelestialBodyBase)new Moon();
+                    newBody = (ICelestialBody)new Moon();
                     break;
 
                 case GenesisType.Planet:
-                    newBody = (ICelestialBodyBase)new Planet();
+                    newBody = (ICelestialBody)new Planet();
                     break;
 
+                //TODO: Finish this... :)
                 //case GenesisType.Star:
                 //    newBody = new Star();
                 //    break;
@@ -294,22 +295,22 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
                 case GenesisType.Moon:
                 {
                     await StarCore.AddMoonAsync((IMoon)newBody);
-                    return new StarResult() { ErrorOccured = false, Message = "Moon Successfully Created.", Result = newBody };
+                    return new CoronalEjection() { ErrorOccured = false, Message = "Moon Successfully Created.", CelestialBody = newBody };
                 }
 
                 case GenesisType.Planet:
                 {
                     await StarCore.AddPlanetAsync((IPlanet)newBody);
-                    return new StarResult() { ErrorOccured = false, Message = "Planet Successfully Created.", Result = newBody };
+                    return new CoronalEjection() { ErrorOccured = false, Message = "Planet Successfully Created.", CelestialBody = newBody };
                 }
 
                 case GenesisType.Star:
                 {
                     //await StarCore.AddPlanetAsync((IPlanet)newBody); //TODO: Add AddStarAsync method.
-                    return new StarResult() { ErrorOccured = false, Message = "Star Successfully Created.", Result = newBody };
+                    return new CoronalEjection() { ErrorOccured = false, Message = "Star Successfully Created.", CelestialBody = newBody };
                 }
                 default:
-                    return new StarResult() { ErrorOccured = true, Message = "Unknown Error Occured.", Result = newBody };
+                    return new CoronalEjection() { ErrorOccured = true, Message = "Unknown Error Occured.", CelestialBody = newBody };
             }
 
             //TODO: Need to save this to the StarNET store (still to be made!) (Will of course be written on top of the HDK/ODK...
