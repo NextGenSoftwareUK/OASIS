@@ -17,7 +17,7 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
         protected string _hcinstance;
         protected TaskCompletionSource<string> _taskCompletionSourceGetInstance = new TaskCompletionSource<string>();
         
-        public PlanetCore PlanetCore { get; set; } // This is the core zome of the planet (OAPP), which links to all the other planet zomes/holons...
+        public CelestialBodyCore CelestialBodyCore { get; set; } // This is the core zome of the planet (OAPP), which links to all the other planet zomes/holons...
        // public string RustHolonType { get; set; }
         public string RustCelestialBodyType { get; set; }
 
@@ -282,7 +282,7 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
             }
 
             //await PlanetCore.SaveHolonAsync(new Holon() { Id = this.Id, Name = this.Name, Description = this.Description, HolonType = HolonType.Planet });
-            await PlanetCore.SavePlanetAsync(new Holon() { Id = this.Id, Name = this.Name, Description = this.Description, HolonType = HolonType.Planet });
+            await CelestialBodyCore.SaveCelestialBodyAsync(new Holon() { Id = this.Id, Name = this.Name, Description = this.Description, HolonType = HolonType.Planet });
             return true;
         }
 
@@ -406,12 +406,12 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
         //}
         public void LoadZomes()
         {
-            Zomes = PlanetCore.LoadZomes();
+            Zomes = CelestialBodyCore.LoadZomes();
         }
 
         public async void LoadHolons()
         {
-            Holons = await PlanetCore.LoadHolons();
+            Holons = await CelestialBodyCore.LoadHolons();
         }
 
         public async Task Initialize(string holochainConductorURI, HoloNETClientType type)
@@ -447,10 +447,34 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
             this.HolonType = HolonType.Planet;
             HoloNETClient = holoNETClient;
 
+            switch (this.HolonType)
+            {
+                case HolonType.Planet:
+                    CelestialBodyCore = new PlanetCore(holoNETClient); 
+                    break;
+
+                case HolonType.Moon:
+                    CelestialBodyCore = new MoonCore(holoNETClient); 
+                    break;
+            }
+
             if (!string.IsNullOrEmpty(this.ProviderKey))
             {
-                PlanetCore = new PlanetCore(holoNETClient, this.ProviderKey); //_coreProviderKey = hc anchor.
-                await LoadPlanet();
+                CelestialBodyCore.ProviderKey = this.ProviderKey; //_coreProviderKey = hc anchor.
+
+                /*
+                switch (this.HolonType)
+                {
+                    case HolonType.Planet:
+                        CelestialBodyCore = new PlanetCore(holoNETClient, this.ProviderKey); //_coreProviderKey = hc anchor.
+                        break;
+
+                    case HolonType.Moon:
+                        CelestialBodyCore = new MoonCore(holoNETClient, this.ProviderKey); //_coreProviderKey = hc anchor.
+                        break;
+                }*/
+
+                await LoadCelestialBody();
 
                 //TODO: Load the planets Zome collection here? Or is it passed in from the sub-class implementation? Probably 2nd one... ;-)
                 //No we load the holons and zomes linked to the planetcore zome via the coreProviderKey anchor...
@@ -461,12 +485,12 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
             await WireUpEvents();
         }
 
-        private async Task LoadPlanet()
+        private async Task LoadCelestialBody()
         {
             //await PlanetCore.LoadHolonAsync(PLANET_HOLON, this.ProviderKey);
             //await PlanetCore.LoadHolonAsync(string.Concat(this.RustHolonType, "_holon"), this.ProviderKey);
 
-            await PlanetCore.LoadPlanetAsync();
+            await CelestialBodyCore.LoadCelestialBodyAsync();
         }
 
         private async Task WireUpEvents()
@@ -479,10 +503,10 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
             HoloNETClient.OnSignalsCallBack += HoloNETClient_OnSignalsCallBack;
             HoloNETClient.OnZomeFunctionCallBack += HoloNETClient_OnZomeFunctionCallBack;
 
-            PlanetCore.OnHolonsLoaded += PlanetCore_OnHolonsLoaded;
-            PlanetCore.OnZomesLoaded += PlanetCore_OnZomesLoaded;
-            PlanetCore.OnHolonSaved += PlanetCore_OnHolonSaved;
-            PlanetCore.OnZomeError += PlanetCore_OnZomeError;
+            CelestialBodyCore.OnHolonsLoaded += PlanetCore_OnHolonsLoaded;
+            CelestialBodyCore.OnZomesLoaded += PlanetCore_OnZomesLoaded;
+            CelestialBodyCore.OnHolonSaved += PlanetCore_OnHolonSaved;
+            CelestialBodyCore.OnZomeError += PlanetCore_OnZomeError;
         }
 
         private async void PlanetCore_OnHolonSaved(object sender, HolonLoadedEventArgs e)

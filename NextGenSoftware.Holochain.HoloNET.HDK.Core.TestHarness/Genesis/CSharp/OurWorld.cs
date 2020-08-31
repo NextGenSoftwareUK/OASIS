@@ -1,10 +1,10 @@
-﻿using NextGenSoftware.Holochain.HoloNET.Client.Core;
+using NextGenSoftware.Holochain.HoloNET.Client.Core;
 using NextGenSoftware.Holochain.HoloNET.HDK.Core;
 using NextGenSoftware.OASIS.API.Core;
 using System;
 using System.Threading.Tasks;
 
-namespace NextGenSoftware.Holochain.HoloNET.HDK.Core.CSharpTemplates
+namespace NextGenSoftware.Holochain.HoloNET.HDK.Core.TestHarness.Genesis
 {
     public class PlanetDNATemplate : CelestialBody, IPlanet
     {
@@ -39,27 +39,27 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core.CSharpTemplates
         }
 
 
-        public async Task<IHolon> LoadHOLONAsync(string hcEntryAddressHash)
+        public async Task<IHolon> LoadSuperTestAsync(string hcEntryAddressHash)
         {
-            return await base.LoadHolonAsync("{holon}", hcEntryAddressHash);
+            return await base.LoadHolonAsync("super_test", hcEntryAddressHash);
         }
 
-        public async Task<IHolon> SaveHOLONAsync(IHolon holon)
+        public async Task<IHolon> SaveSuperTestAsync(IHolon holon)
         {
-            //return await base.SaveHolonAsync("{holon}", holon);
-            return await base.SaveHolonAsync("{holon}", holon);
+            //return await base.SaveHolonAsync("super_test", holon);
+            return await base.SaveHolonAsync("super_test", holon);
         }
 
         /*
         //TODO: Do we still need these now? Nice to call the method what the holon type is I guess...
-        public async Task<IHolon> LoadHOLONAsync(string hcEntryAddressHash)
+        public async Task<IHolon> LoadSuperTestAsync(string hcEntryAddressHash)
         {
             return await base.LoadHolonAsync(hcEntryAddressHash);
         }
 
-        public async Task<IHolon> SaveHOLONAsync(IHolon holon)
+        public async Task<IHolon> SaveSuperTestAsync(IHolon holon)
         {
-            //return await base.SaveHolonAsync("{holon}", holon);
+            //return await base.SaveHolonAsync("super_test", holon);
             return await base.SaveHolonAsync(holon);
         }*/
     }

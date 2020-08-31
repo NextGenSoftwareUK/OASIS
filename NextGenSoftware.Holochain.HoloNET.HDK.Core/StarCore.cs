@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 
 namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
 {
+    //TODO: Inherit from CelestialBodyCore
     public class StarCore : ZomeBase, IZome
     {
         private const string STAR_CORE_ZOME = "star_core_zome"; //Name of the core zome in rust hc.
