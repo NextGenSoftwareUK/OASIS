@@ -6,7 +6,7 @@
           "files": [
             "**.csproj"
           ],
-          "src": "D:\\Dropbox\\Our World\\OASIS API\\NextGenSoftware.Holochain.HoloNET.Client.Core"
+          "src": "C:\\CODE\\Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK\\NextGenSoftware.Holochain.HoloNET.Client.Core"
         }
       ],
       "dest": "api",

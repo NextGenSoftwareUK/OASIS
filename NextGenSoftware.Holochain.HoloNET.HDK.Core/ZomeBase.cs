@@ -20,8 +20,21 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
         private TaskCompletionSource<IHolon> _taskCompletionSourceSaveHolon = new TaskCompletionSource<IHolon>();
 
         //public List<HolonBase> Holons = new List<HolonBase>();
-        public List<Holon> Holons = new List<Holon>();
+        public List<Holon> _holons = new List<Holon>();
         
+        public List<Holon> Holons
+        {
+            get
+            {
+                return _holons;
+            }
+            set
+            {
+                _holons = value;
+            }
+        }
+            
+
 
         public delegate void HolonSaved(object sender, HolonLoadedEventArgs e);
         public event HolonSaved OnHolonSaved;

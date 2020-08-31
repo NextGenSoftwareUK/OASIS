@@ -37,7 +37,7 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.CLI
 
         static void Build(string classFolder)
         {
-            Star.Light(classFolder);
+            Star.Light(GenesisType.Planet, classFolder);
         }
     }
 }

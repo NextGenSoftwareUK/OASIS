@@ -1,5 +1,4 @@
-﻿using NextGenSoftware.OASIS.API.Core;
-using System;
+﻿
 using System.Threading.Tasks;
 
 namespace NextGenSoftware.OASIS.API.Core
@@ -22,7 +21,7 @@ namespace NextGenSoftware.OASIS.API.Core
         //Task Initialize(Guid id, string holochainConductorURI, PlanetBase.HoloNETClientType type);
         //Task Initialize(HoloNETClientBase holoNETClient);
         //Task Initialize(string holochainConductorURI, PlanetBase.HoloNETClientType type);
-        void Light();
+        CoronalEjection Flare();
         void LoadAll();
         void LoadZomes();
         void LoadHolons();

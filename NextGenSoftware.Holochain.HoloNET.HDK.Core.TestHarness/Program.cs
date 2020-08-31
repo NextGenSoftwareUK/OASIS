@@ -42,60 +42,71 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core.TestHarness
 
             // Create Planet (OAPP) by generating dynamic template/scaffolding code.
             Console.WriteLine("Generating Planet...");
-            ourWorld = (Planet)Star.Genesis("Our World", dnaFolder, cSharpGeneisFolder, rustGenesisFolder, "NextGenSoftware.Holochain.HoloNET.HDK.Core.TestHarness.Genesis");
-            ourWorld.OnHolonLoaded += OurWorld_OnHolonLoaded;
-            ourWorld.OnHolonSaved += OurWorld_OnHolonSaved;
-            ourWorld.OnZomeError += OurWorld_OnZomeError;
-            
-            Holon newHolon = new Holon();
-            newHolon.Name = "Test";
-            newHolon.Description = "Test Desc";
-            newHolon.HolonType = HolonType.Park;
+            CoronalEjection result = Star.Light(GenesisType.Planet, "Our World", dnaFolder, cSharpGeneisFolder, rustGenesisFolder, "NextGenSoftware.Holochain.HoloNET.HDK.Core.TestHarness.Genesis").Result;
 
-            Console.WriteLine("Saving Holon...");
-            ourWorld.SaveHolonAsync(newHolon);
+            if (!result.ErrorOccured)
+            {
+                ourWorld = result.CelestialBody as Planet;
 
-            // Build
-            ourWorld.Light();
-            //OR
-            Star.Light(ourWorld);
+                ourWorld.OnHolonLoaded += OurWorld_OnHolonLoaded;
+                ourWorld.OnHolonSaved += OurWorld_OnHolonSaved;
+                ourWorld.OnZomeError += OurWorld_OnZomeError;
 
-            // Activate & Launch - Launch & activate the planet (OAPP) by shining the star's light upon it...
-            Star.Shine(ourWorld);
-            ourWorld.Shine();
+                Holon newHolon = new Holon();
+                newHolon.Name = "Test Data";
+                newHolon.Description = "Test Desc";
+                newHolon.HolonType = HolonType.Park;
 
-            // Deactivate the planet (OAPP)
-            Star.Dim(ourWorld);
+                Console.WriteLine("Saving Holon...");
 
-            // Deploy the planet (OAPP)
-            Star.Seed(ourWorld);
+                // If you are using the generated code from Light above (highly recommended) you do not need to pass the HolonTypeName in, you only need to pass the holon in.
+                ourWorld.SaveHolonAsync("Test", newHolon);
 
-            // Run Tests
-            Star.Twinkle(ourWorld);
+                // Build
+                CoronalEjection ejection = ourWorld.Flare();
+                //OR
+                //CoronalEjection ejection = Star.Flare(ourWorld);
 
-            // Highlight the Planet (OAPP) in the OAPP Store (StarNET). *Admin Only*
-            Star.Radiate(ourWorld);
+                // Activate & Launch - Launch & activate the planet (OAPP) by shining the star's light upon it...
+                Star.Shine(ourWorld);
+                ourWorld.Shine();
 
-            // Show how much light the planet (OAPP) is emitting into the solar system (StarNET/HoloNET)
-            Star.Emit(ourWorld);
+                // Deactivate the planet (OAPP)
+                Star.Dim(ourWorld);
 
-            // Show stats of the Planet (OAPP).
-            Star.Reflect(ourWorld);
+                // Deploy the planet (OAPP)
+                Star.Seed(ourWorld);
 
-            // Upgrade/update a Planet (OAPP).
-            Star.Evolve(ourWorld);
+                // Run Tests
+                Star.Twinkle(ourWorld);
 
-            // Import/Export hApp, dApp & others.
-            Star.Mutate(ourWorld);
+                // Highlight the Planet (OAPP) in the OAPP Store (StarNET). *Admin Only*
+                Star.Radiate(ourWorld);
 
-            // Send/Receive Love
-            Star.Love(ourWorld);
+                // Show how much light the planet (OAPP) is emitting into the solar system (StarNET/HoloNET)
+                Star.Emit(ourWorld);
 
-            // Reserved For Future Use...
-            Star.Super(ourWorld);
+                // Show stats of the Planet (OAPP).
+                Star.Reflect(ourWorld);
 
-            // Delete a planet (OAPP).
-            Star.Dust(ourWorld);
+                // Upgrade/update a Planet (OAPP).
+                Star.Evolve(ourWorld);
+
+                // Import/Export hApp, dApp & others.
+                Star.Mutate(ourWorld);
+
+                // Send/Receive Love
+                Star.Love(ourWorld);
+
+                // Show network stats/management/settings
+                Star.Burst(ourWorld);
+
+                // Reserved For Future Use...
+                Star.Super(ourWorld);
+
+                // Delete a planet (OAPP).
+                Star.Dust(ourWorld);
+            }
         }
 
         private static void OurWorld_OnZomeError(object sender, ZomeErrorEventArgs e)
