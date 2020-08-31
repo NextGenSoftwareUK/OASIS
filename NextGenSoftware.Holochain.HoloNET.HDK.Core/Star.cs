@@ -20,7 +20,7 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
             StarCore = new StarCore(holochainConductorURI, type, providerKey);
         }
 
-        public static async Task<CoronalEjection> Genesis(GenesisType type, string name, string dnaFolder = "", string genesisCSharpFolder = "", string genesisRustFolder = "", string genesisNameSpace = "")
+        public static async Task<CoronalEjection> Light(GenesisType type, string name, string dnaFolder = "", string genesisCSharpFolder = "", string genesisRustFolder = "", string genesisNameSpace = "")
         {
             StarDNA starDNA;
             bool holonReached = false;
@@ -39,6 +39,9 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
 
             if (LoggedInUser == null)
                 return new CoronalEjection() { ErrorOccured = true, Message = "Avatar is not logged in. Please log in before calling this command." };
+
+            if (LoggedInUser.Level < 33 && type == GenesisType.Planet)
+                return new CoronalEjection() { ErrorOccured = true, Message = "Avatar must have reached level 33 before they can create planets. Please create a moon instead..." };
 
             if (File.Exists(STAR_DNA))
                 starDNA = LoadDNA();
@@ -334,14 +337,16 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
         }
 
         // Build
-        public static void Light(string bodyName)
+        public static CoronalEjection Flare(string bodyName)
         {
-
+            //TODO: Build rust code using hc conductor and .net code using dotnet compiler.
+            return new CoronalEjection();
         }
 
-        public static void Light(CelestialBody body)
+        public static CoronalEjection Flare(CelestialBody body)
         {
-
+            //TODO: Build rust code using hc conductor and .net code using dotnet compiler.
+            return new CoronalEjection();
         }
 
         //Activate & Launch - Launch & activate a planet (OAPP) by shining the star's light upon it...
@@ -461,6 +466,28 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
         }
 
         public static void Love(string body)
+        {
+
+        }
+
+        // Show network stats/management/settings
+        public static void Burst(CelestialBody body)
+        {
+
+        }
+
+        public static void Burst(string body)
+        {
+
+        }
+
+        // ????
+        public static void Pulse(CelestialBody body)
+        {
+
+        }
+
+        public static void Pulse(string body)
         {
 
         }

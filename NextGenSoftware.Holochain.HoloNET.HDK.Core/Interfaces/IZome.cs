@@ -1,5 +1,6 @@
 ﻿using NextGenSoftware.Holochain.HoloNET.Client.Core;
 using NextGenSoftware.OASIS.API.Core;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
@@ -7,7 +8,8 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
     public interface IZome : IHolon
     {
         HoloNETClientBase HoloNETClient { get; }
-      //  string ZomeName { get; set; }
+        //  string ZomeName { get; set; }
+        List<Holon> Holons { get; set; }
 
         event ZomeBase.DataReceived OnDataReceived; //TODO: May rename to OnSynapseFired ?
         event ZomeBase.Disconnected OnDisconnected;

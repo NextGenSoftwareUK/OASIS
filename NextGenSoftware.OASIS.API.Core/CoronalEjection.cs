@@ -1,5 +1,5 @@
 ﻿
-namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
+namespace NextGenSoftware.OASIS.API.Core
 {
     public class CoronalEjection
     {

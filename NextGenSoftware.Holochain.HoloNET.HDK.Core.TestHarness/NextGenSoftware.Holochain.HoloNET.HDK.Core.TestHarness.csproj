@@ -12,6 +12,7 @@
 
   <ItemGroup>
     <Folder Include="Genesis\CSharp\" />
+    <Folder Include="Genesis\Rust\" />
   </ItemGroup>
 
 </Project>

@@ -305,9 +305,9 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
         }
 
         // Build
-        public void Light()
+        public CoronalEjection Flare()
         {
-            Star.Light(this);
+            return Star.Flare(this);
         }
 
         // Activate & Launch - Launch & activate the planet (OAPP) by shining the star's light upon it...
