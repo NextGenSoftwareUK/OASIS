@@ -6,47 +6,34 @@ using System.Threading.Tasks;
 
 namespace NextGenSoftware.Holochain.HoloNET.HDK.Core.CSharpTemplates
 {
-    //public class ZomeDNATemplate : ZomeBase, IZomeDNATemplate
-    //public class PlanetDNATemplate : Planet, IPlanet
     public class PlanetDNATemplate : CelestialBody, IPlanet
     {
-        //public PlanetDNATemplate(HoloNETClientBase holoNETClient) : base(holoNETClient, "{planet}")
-        //public PlanetDNATemplate(HoloNETClientBase holoNETClient, string providerKey, Guid id) : base(holoNETClient, providerKey, "{holon}")
+        //public PlanetDNATemplate(HoloNETClientBase holoNETClient, string providerKey, Guid id) : base(holoNETClient, providerKey)
         //{
 
-        //}
-
-        public PlanetDNATemplate(HoloNETClientBase holoNETClient, string providerKey, Guid id) : base(holoNETClient, providerKey)
-        {
-
-        }
-
-        //public PlanetDNATemplate(HoloNETClientBase holoNETClient, Guid id) : base(holoNETClient, providerKey)
-        //{
-
-        //}
-
-        //public PlanetDNATemplate(string holochainConductorURI, HoloNETClientType type) : base(holochainConductorURI, "{planet}", type)
-        // {
-
-        // }
-
-        //public PlanetDNATemplate(string holochainConductorURI, HoloNETClientType type, string providerKey) : base(holochainConductorURI, type, providerKey, "{holon}")
-        //{
-
-        //}
-
-        //public PlanetDNATemplate(string holochainConductorURI, HoloNETClientType type, Guid id) : base(holochainConductorURI, type, id, "{holon}" )
-        //{
-
-        //}
+      //  }
 
         public PlanetDNATemplate(string holochainConductorURI, HoloNETClientType type, string providerKey) : base(holochainConductorURI, type, providerKey)
         {
 
         }
 
-        public PlanetDNATemplate(string holochainConductorURI, HoloNETClientType type, Guid id) : base(holochainConductorURI, type, id)
+        //public PlanetDNATemplate(string holochainConductorURI, HoloNETClientType type, Guid id) : base(holochainConductorURI, type, id)
+        //{
+
+        //}
+
+        public PlanetDNATemplate(string holochainConductorURI, HoloNETClientType type) : base(holochainConductorURI, type)
+        {
+
+        }
+
+        public PlanetDNATemplate(HoloNETClientBase holoNETClient, string providerKey) : base(holoNETClient, providerKey)
+        {
+
+        }
+
+        public PlanetDNATemplate(HoloNETClientBase holoNETClient) : base(holoNETClient)
         {
 
         }

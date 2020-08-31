@@ -136,6 +136,11 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
 
             //ZomeName = zomeName;
             HoloNETClient = holoNETClient;
+            
+            //TODO: Not sure whether to connect here or not?
+            if (HoloNETClient.State != System.Net.WebSockets.WebSocketState.Connecting && HoloNETClient.State != System.Net.WebSockets.WebSocketState.Open)
+                await HoloNETClient.Connect();
+
             await WireUpEvents();
         }
 

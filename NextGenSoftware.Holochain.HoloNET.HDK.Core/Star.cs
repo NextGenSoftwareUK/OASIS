@@ -8,6 +8,8 @@ using System.Threading.Tasks;
 
 namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
 {
+    // TODO: Inherit from CelestialBody.
+    //public static class Star : CelestialBody
     public static class Star
     {
         const string STAR_DNA = "starDNA.json";
@@ -18,6 +20,45 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
         public static void Initialize(string holochainConductorURI, HoloNETClientType type, string providerKey)
         {
             StarCore = new StarCore(holochainConductorURI, type, providerKey);
+
+            StarCore.OnHolonLoaded += StarCore_OnHolonLoaded;
+            StarCore.OnHolonSaved += StarCore_OnHolonSaved;
+            StarCore.OnHolonsLoaded += StarCore_OnHolonsLoaded;
+            StarCore.OnZomeError += StarCore_OnZomeError;
+            StarCore.OnInitialized += StarCore_OnInitialized;
+        }
+
+        private static void StarCore_OnInitialized(object sender, EventArgs e)
+        {
+            throw new NotImplementedException();
+        }
+
+        private static void StarCore_OnZomeError(object sender, ZomeErrorEventArgs e)
+        {
+            throw new NotImplementedException();
+        }
+
+        private static void StarCore_OnHolonLoaded(object sender, HolonLoadedEventArgs e)
+        {
+            throw new NotImplementedException();
+        }
+
+        private static void StarCore_OnHolonSaved(object sender, HolonLoadedEventArgs e)
+        {
+            throw new NotImplementedException();
+        }
+
+        private static void StarCore_OnHolonsLoaded(object sender, HolonsLoadedEventArgs e)
+        {
+            throw new NotImplementedException();
+        }
+
+        //Log in
+        public static async Task<Avatar> BeamIn(string username, string password)
+        {
+            //TODO: Implement login code here.
+            LoggedInUser = new Avatar() { Karma = 777, Name = "David Ellams", HolonType = HolonType.Avatar };
+            return LoggedInUser;
         }
 
         public static async Task<CoronalEjection> Light(GenesisType type, string name, string dnaFolder = "", string genesisCSharpFolder = "", string genesisRustFolder = "", string genesisNameSpace = "")
@@ -76,7 +117,7 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
 
             //If folder is not passed in via command line args then use default in config file.
             if (string.IsNullOrEmpty(dnaFolder))
-                dnaFolder = starDNA.PlanetDNAFolder;
+                dnaFolder = starDNA.CelestialBodyDNA;
 
             if (string.IsNullOrEmpty(genesisCSharpFolder))
                 genesisCSharpFolder = starDNA.GenesisCSharpFolder;
@@ -273,11 +314,11 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
             switch (type)
             {
                 case GenesisType.Moon:
-                    newBody = (ICelestialBody)new Moon();
+                    newBody = new Moon(StarCore.HoloNETClient);
                     break;
 
                 case GenesisType.Planet:
-                    newBody = (ICelestialBody)new Planet();
+                    newBody = new Planet(StarCore.HoloNETClient);
                     break;
 
                 //TODO: Finish this... :)
@@ -516,8 +557,8 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
 
             if (starDNA != null)
             {
-                if (!Directory.Exists(starDNA.PlanetDNAFolder))
-                    throw new ArgumentOutOfRangeException("PlanetDNAFolder", starDNA.PlanetDNAFolder, "The PlanetDNAFolder is not valid, please double check and try again.");
+                if (!Directory.Exists(starDNA.CelestialBodyDNA))
+                    throw new ArgumentOutOfRangeException("CelestialBodyDNA", starDNA.CelestialBodyDNA, "The CelestialBodyDNA is not valid, please double check and try again.");
 
                 if (!Directory.Exists(starDNA.GenesisCSharpFolder))
                     throw new ArgumentOutOfRangeException("GenesisCSharpFolder", starDNA.GenesisCSharpFolder, "The GenesisCSharpFolder is not valid, please double check and try again.");

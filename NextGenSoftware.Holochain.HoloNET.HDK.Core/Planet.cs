@@ -11,20 +11,15 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
         //then they can create a planet. The user needs to log into their avatar Star before they can create a moon/planet with the Genesis command.
         public List<IMoon> Moons { get; set; }
 
-        public Planet()
-        {
+        //public Planet(HoloNETClientBase holoNETClient, Guid id, string providerKey) : base(holoNETClient, id, providerKey)
+        //{
 
-        }
+        //}
 
-        public Planet(HoloNETClientBase holoNETClient, Guid id, string providerKey) : base(holoNETClient, id, providerKey)
-        {
+        //public Planet(string holochainConductorURI, HoloNETClientType type, Guid id) : base(holochainConductorURI, type, id)
+        //{
 
-        }
-
-        public Planet(string holochainConductorURI, HoloNETClientType type, Guid id) : base(holochainConductorURI, type, id)
-        {
-
-        }
+        //}
 
         public Planet(HoloNETClientBase holoNETClient, string providerKey) : base(holoNETClient, providerKey)
         {
@@ -32,6 +27,16 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
         }
 
         public Planet(string holochainConductorURI, HoloNETClientType type, string providerKey) : base(holochainConductorURI, type, providerKey)
+        {
+
+        }
+
+        public Planet(HoloNETClientBase holoNETClient) : base(holoNETClient)
+        {
+
+        }
+
+        public Planet(string holochainConductorURI, HoloNETClientType type) : base(holochainConductorURI, type)
         {
 
         }

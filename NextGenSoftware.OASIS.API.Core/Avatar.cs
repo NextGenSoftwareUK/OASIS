@@ -30,6 +30,9 @@ namespace NextGenSoftware.OASIS.API.Core
                 if (this.Karma >= 200 && this.Karma < 300)
                     return 3;
 
+                if (this.Karma >= 777)
+                    return 99;
+
                 //TODO: Add all the other levels here, all the way up to 100 for now! ;=)
 
                 return 1; //Default.
