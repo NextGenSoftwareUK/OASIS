@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
 {
-    public abstract class CelestialBody : Holon, IPlanet
+    public abstract class CelestialBody : Holon, ICelestialBody
     {
         //  private const string PLANET_CORE_ZOME = "planet_core_zome"; //Equivilant to an anchor in hc rust... :)
         //  private string _coreProviderKey;

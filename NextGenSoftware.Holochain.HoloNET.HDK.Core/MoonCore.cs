@@ -2,7 +2,7 @@
 
 namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
 {
-    public class MoonCore : CelestialBodyCore, IZome
+    public class MoonCore : CelestialBodyCore, IMoonCore
     {
         private const string MOON_CORE_ZOME = "moon_core_zome"; //Name of the core zome in rust hc.
         private const string MOON_HOLON_TYPE = "moon_holon";
