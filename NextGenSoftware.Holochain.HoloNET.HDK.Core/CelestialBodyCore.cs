@@ -6,11 +6,8 @@ using System.Threading.Tasks;
 
 namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
 {
-    public abstract class CelestialBodyCore : ZomeBase, IZome
+    public abstract class CelestialBodyCore : ZomeBase, ICelestialBodyCore
     {
-        //private const string PLANET_CORE_ZOME = "planet_core_zome"; //Name of the core zome in rust hc.
-        //private const string PLANET_HOLON_TYPE = "planet_holon";
-        //private const string PLANET_HOLONS_TYPE = "planet_holons";
         public string ProviderKey { get; set; } //Anchor address in hc.
 
         public delegate void HolonsLoaded(object sender, HolonsLoadedEventArgs e);
@@ -63,7 +60,7 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
 
             //TODO: Check to see if the method awaits till the zomes(holons) are loaded before returning (if it doesn't need to refacoring to subscribe to events like LoadHolons does)
             List<IZome> zomes = new List<IZome>();
-            foreach(IHolon holon in base.LoadHolonsAsync(HolonsType, ProviderKey).Result)
+            foreach (IHolon holon in base.LoadHolonsAsync(HolonsType, ProviderKey).Result)
                 zomes.Add((IZome)holon);
 
             OnZomesLoaded?.Invoke(this, new ZomesLoadedEventArgs { Zomes = zomes });

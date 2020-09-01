@@ -2,7 +2,7 @@
 
 namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
 {
-    public class PlanetCore : CelestialBodyCore, IZome
+    public class PlanetCore : CelestialBodyCore, IPlanetCore
     {
         private const string PLANET_CORE_ZOME = "planet_core_zome"; //Name of the core zome in rust hc.
         private const string PLANET_HOLON_TYPE = "planet_holon";

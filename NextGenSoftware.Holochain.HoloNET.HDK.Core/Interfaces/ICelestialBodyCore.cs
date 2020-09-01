@@ -1,0 +1,22 @@
+﻿using NextGenSoftware.OASIS.API.Core;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+
+namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
+{
+    public interface ICelestialBodyCore : IZome
+    {
+        string CoreZome { get; set; }
+        string HolonsType { get; set; }
+        string HolonType { get; set; }
+        string ProviderKey { get; set; }
+
+        event CelestialBodyCore.HolonsLoaded OnHolonsLoaded;
+        event CelestialBodyCore.ZomesLoaded OnZomesLoaded;
+
+        Task<IHolon> LoadCelestialBodyAsync();
+        Task<List<IHolon>> LoadHolons();
+        List<IZome> LoadZomes();
+        Task<IHolon> SaveCelestialBodyAsync(IHolon savingHolon);
+    }
+}
