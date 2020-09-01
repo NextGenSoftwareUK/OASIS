@@ -16,6 +16,31 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
         public static StarCore StarCore { get; set; }
         public static Avatar LoggedInUser { get; set; }
 
+        public delegate void HolonsLoaded(object sender, HolonsLoadedEventArgs e);
+        public static event HolonsLoaded OnHolonsLoaded;
+
+        public delegate void ZomesLoaded(object sender, ZomesLoadedEventArgs e);
+        public static event ZomesLoaded OnZomesLoaded;
+
+        public delegate void HolonSaved(object sender, HolonLoadedEventArgs e);
+        public static event HolonSaved OnHolonSaved;
+
+        public delegate void HolonLoaded(object sender, HolonLoadedEventArgs e);
+        public static event HolonLoaded OnHolonLoaded;
+
+        public delegate void Initialized(object sender, EventArgs e);
+        public static event Initialized OnInitialized;
+
+        public delegate void ZomeError(object sender, ZomeErrorEventArgs e);
+        public static event ZomeError OnZomeError;
+
+        //TODO: Not sure if we want to expose the HoloNETClient events at this level? They can subscribe to them through the HoloNETClient property below...
+        public delegate void Disconnected(object sender, DisconnectedEventArgs e);
+        public static event Disconnected OnDisconnected;
+
+        public delegate void DataReceived(object sender, DataReceivedEventArgs e);
+        public static event DataReceived OnDataReceived;
+
         // Possible to override settings in DNA file if this method is manually called...
         public static void Initialize(string holochainConductorURI, HoloNETClientType type, string providerKey)
         {
@@ -329,6 +354,8 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
 
             newBody.Id = Guid.NewGuid();
             newBody.Name = name;
+            newBody.OnZomeError += NewBody_OnZomeError;
+
 
             //TODO: Need to save the collection of Zomes/Holons that belong to this planet here...
             await newBody.Save();
@@ -359,6 +386,11 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
 
             //TODO: Need to save this to the StarNET store (still to be made!) (Will of course be written on top of the HDK/ODK...
             //This will be private on the store until the user publishes via the Star.Seed() command.
+        }
+
+        private static void NewBody_OnZomeError(object sender, ZomeErrorEventArgs e)
+        {
+            OnZomeError?.Invoke(sender, new ZomeErrorEventArgs() { EndPoint = StarCore.HoloNETClient.EndPoint, Reason = e.Reason, ErrorDetails = e.ErrorDetails, HoloNETErrorDetails = e.HoloNETErrorDetails });
         }
 
         //TODO: Get this working... :)

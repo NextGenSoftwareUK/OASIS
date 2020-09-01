@@ -47,6 +47,15 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core.TestHarness
             string cSharpGeneisFolder = @"C:\CODE\Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK\NextGenSoftware.Holochain.HoloNET.HDK.Core.TestHarness\Genesis\CSharp";
             string rustGenesisFolder = @"C:\CODE\Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK\NextGenSoftware.Holochain.HoloNET.HDK.Core.TestHarness\Genesis\Rust";
 
+            // TODO: Not sure what events should expose on Star, StarCore and HoloNETClient?
+            // I feel the events should at least be on the Star object, but then they need to be on the others to bubble them up (maybe could be hidden somehow?)
+            Star.OnZomeError += Star_OnZomeError;
+            Star.OnHolonLoaded += Star_OnHolonLoaded;
+            Star.OnHolonsLoaded += Star_OnHolonsLoaded;
+            Star.OnHolonSaved += Star_OnHolonSaved;
+            Star.OnInitialized += Star_OnInitialized;
+          //  Star.StarCore.OnZomeError += StarCore_OnZomeError;
+          //  Star.StarCore.HoloNETClient.OnError += HoloNETClient_OnError;
 
             Console.WriteLine("Beaming In...");
             Console.WriteLine("");
@@ -135,9 +144,44 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core.TestHarness
                 Console.WriteLine("Error Beaming In.");
         }
 
+        private static void HoloNETClient_OnError(object sender, Client.Core.HoloNETErrorEventArgs e)
+        {
+            Console.WriteLine(string.Concat("HoloNET Client Error Occured. EndPoint: ", e.EndPoint, ". Reason: ", e.Reason, ". Error Details: ", e.ErrorDetails, "EndPoint: ", e.EndPoint));
+        }
+
+        private static void StarCore_OnZomeError(object sender, ZomeErrorEventArgs e)
+        {
+            Console.WriteLine(string.Concat("Star Core Error Occured. EndPoint: ", e.EndPoint, ". Reason: ", e.Reason, ". Error Details: ", e.ErrorDetails, "HoloNETErrorDetails.Reason: ", e.HoloNETErrorDetails.Reason, "HoloNETErrorDetails.ErrorDetails: ", e.HoloNETErrorDetails.ErrorDetails));
+        }
+
+        private static void Star_OnInitialized(object sender, EventArgs e)
+        {
+            Console.WriteLine("Star Initialized.");
+        }
+
+        private static void Star_OnHolonSaved(object sender, HolonLoadedEventArgs e)
+        {
+            Console.WriteLine(string.Concat("Star Holons Saved. Holon Saved: ", e.Holon.Name));
+        }
+
+        private static void Star_OnHolonsLoaded(object sender, HolonsLoadedEventArgs e)
+        {
+            Console.WriteLine(string.Concat("Star Holons Loaded. Holons Loaded: ", e.Holons.Count));
+        }
+
+        private static void Star_OnHolonLoaded(object sender, HolonLoadedEventArgs e)
+        {
+            Console.WriteLine(string.Concat("Star Holons Loaded. Holon Name: ", e.Holon.Name));
+        }
+
+        private static void Star_OnZomeError(object sender, ZomeErrorEventArgs e)
+        {
+            Console.WriteLine(string.Concat("Star Error Occured. EndPoint: ", e.EndPoint, ". Reason: ", e.Reason, ". Error Details: ", e.ErrorDetails, "HoloNETErrorDetails.Reason: ", e.HoloNETErrorDetails.Reason, "HoloNETErrorDetails.ErrorDetails: ", e.HoloNETErrorDetails.ErrorDetails));
+        }
+
         private static void OurWorld_OnZomeError(object sender, ZomeErrorEventArgs e)
         {
-            Console.WriteLine(string.Concat("Error Occured. EndPoint: ", e.EndPoint, ". Reason: ", e.Reason, ". Error Details: ", e.ErrorDetails, "HoloNETErrorDetails.Reason: ", e.HoloNETErrorDetails.Reason, "HoloNETErrorDetails.ErrorDetails: ", e.HoloNETErrorDetails.ErrorDetails));
+            Console.WriteLine(string.Concat("Our World Error Occured. EndPoint: ", e.EndPoint, ". Reason: ", e.Reason, ". Error Details: ", e.ErrorDetails, "HoloNETErrorDetails.Reason: ", e.HoloNETErrorDetails.Reason, "HoloNETErrorDetails.ErrorDetails: ", e.HoloNETErrorDetails.ErrorDetails));
         }
 
         private static void OurWorld_OnHolonSaved(object sender, HolonLoadedEventArgs e)
