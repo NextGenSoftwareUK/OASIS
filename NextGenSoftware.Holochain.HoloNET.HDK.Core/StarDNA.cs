@@ -33,6 +33,8 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
         public string CSharpTemplateZomeDNA = "ZomeDNATemplate.cs";
         public string CSharpTemplateIPlanetDNA = "IPlanetDNATemplate.cs";
         public string CSharpTemplatePlanetDNA = "PlanetDNATemplate.cs";
+        public string CSharpTemplateICelestialBodyDNA = "ICelestialBodyDNATemplate.cs";
+        public string CSharpTemplateCelestialBodyDNA = "CelestialBodyDNATemplate.cs";
         public string StarProviderKey = "";
         public string HolochainConductorURI = "ws://localhost:8888";
         public string HoloNETClientType = "Desktop";
