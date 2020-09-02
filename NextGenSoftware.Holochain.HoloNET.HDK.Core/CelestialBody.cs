@@ -456,6 +456,10 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
                 case HolonType.Moon:
                     CelestialBodyCore = new MoonCore(holoNETClient); 
                     break;
+
+                case HolonType.Star:
+                    CelestialBodyCore = new StarCore(holoNETClient);
+                    break;
             }
 
             if (!string.IsNullOrEmpty(this.ProviderKey))
