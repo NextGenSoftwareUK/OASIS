@@ -11,7 +11,7 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core.CSharpTemplates
 
       //  }
 
-        public CelestialBodyDNATemplate(string holochainConductorURI, HoloNETClientType type, string providerKey) : base(holochainConductorURI, type, providerKey)
+        public CelestialBodyDNATemplate(string holochainConductorURI, HoloNETClientType type, string providerKey) : base(holochainConductorURI, type, providerKey, GenesisType.Star)
         {
 
         }
@@ -21,17 +21,17 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core.CSharpTemplates
 
         //}
 
-        public CelestialBodyDNATemplate(string holochainConductorURI, HoloNETClientType type) : base(holochainConductorURI, type)
+        public CelestialBodyDNATemplate(string holochainConductorURI, HoloNETClientType type) : base(holochainConductorURI, type, GenesisType.Star)
         {
 
         }
 
-        public CelestialBodyDNATemplate(HoloNETClientBase holoNETClient, string providerKey) : base(holoNETClient, providerKey)
+        public CelestialBodyDNATemplate(HoloNETClientBase holoNETClient, string providerKey) : base(holoNETClient, providerKey, GenesisType.Star)
         {
 
         }
 
-        public CelestialBodyDNATemplate(HoloNETClientBase holoNETClient) : base(holoNETClient)
+        public CelestialBodyDNATemplate(HoloNETClientBase holoNETClient) : base(holoNETClient, GenesisType.Star)
         {
 
         }

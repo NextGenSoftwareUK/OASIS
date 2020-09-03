@@ -1,11 +1,9 @@
 ﻿
 using NextGenSoftware.Holochain.HoloNET.Client.Core;
-using NextGenSoftware.OASIS.API.Core;
-using System;
-using System.Collections.Generic;
 
 namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
 {
+    /*
     public class ZomesLoadedEventArgs : EventArgs
     {
         public List<IZome> Zomes { get; set; }
@@ -25,12 +23,13 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
     {
         public IHolon Holon { get; set; }
     }
+    */
 
-    public class ZomeErrorEventArgs : EventArgs
+    public class ZomeErrorEventArgs : OASIS.API.Core.ZomeErrorEventArgs
     {
-        public string EndPoint { get; set; }
-        public string Reason { get; set; }
-        public Exception ErrorDetails { get; set; }
+        //public string EndPoint { get; set; }
+        //public string Reason { get; set; }
+        //public Exception ErrorDetails { get; set; }
         public HoloNETErrorEventArgs HoloNETErrorDetails { get; set; }
     }
 }
