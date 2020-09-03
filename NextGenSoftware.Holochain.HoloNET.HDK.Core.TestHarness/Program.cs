@@ -84,6 +84,9 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core.TestHarness
                     ourWorld.OnHolonSaved += OurWorld_OnHolonSaved;
                     ourWorld.OnZomeError += OurWorld_OnZomeError;
 
+                    ourWorld.LoadAll();
+                    //ourWorld.Zomes.Count
+
                     Holon newHolon = new Holon();
                     newHolon.Name = "Test Data";
                     newHolon.Description = "Test Desc";

@@ -96,6 +96,7 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
         public static async Task<CoronalEjection> Light(GenesisType type, string name, string dnaFolder = "", string genesisCSharpFolder = "", string genesisRustFolder = "", string genesisNameSpace = "")
         {
             StarDNA starDNA;
+            OASIS.API.Core.ICelestialBody newBody = null;
             bool holonReached = false;
             string holonBufferRust = "";
             string holonBufferCsharp = "";
@@ -145,8 +146,14 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
             string iHolonTemplate = new FileInfo(string.Concat(starDNA.CSharpDNATemplateFolder, "\\", starDNA.CSharpTemplateIHolonDNA)).OpenText().ReadToEnd();
             string holonTemplateCsharp = new FileInfo(string.Concat(starDNA.CSharpDNATemplateFolder, "\\", starDNA.CSharpTemplateHolonDNA)).OpenText().ReadToEnd();
             string zomeTemplateCsharp = new FileInfo(string.Concat(starDNA.CSharpDNATemplateFolder, "\\", starDNA.CSharpTemplateZomeDNA)).OpenText().ReadToEnd();
+            string iStarTemplateCsharp = new FileInfo(string.Concat(starDNA.CSharpDNATemplateFolder, "\\", starDNA.CSharpTemplateIStarDNA)).OpenText().ReadToEnd();
+            string starTemplateCsharp = new FileInfo(string.Concat(starDNA.CSharpDNATemplateFolder, "\\", starDNA.CSharpTemplateStarDNA)).OpenText().ReadToEnd();
             string iPlanetTemplateCsharp = new FileInfo(string.Concat(starDNA.CSharpDNATemplateFolder, "\\", starDNA.CSharpTemplateIPlanetDNA)).OpenText().ReadToEnd();
             string planetTemplateCsharp = new FileInfo(string.Concat(starDNA.CSharpDNATemplateFolder, "\\", starDNA.CSharpTemplatePlanetDNA)).OpenText().ReadToEnd();
+            string iMoonTemplateCsharp = new FileInfo(string.Concat(starDNA.CSharpDNATemplateFolder, "\\", starDNA.CSharpTemplateIMoonDNA)).OpenText().ReadToEnd();
+            string moonTemplateCsharp = new FileInfo(string.Concat(starDNA.CSharpDNATemplateFolder, "\\", starDNA.CSharpTemplateMoonDNA)).OpenText().ReadToEnd();
+            string TemplateCsharp = new FileInfo(string.Concat(starDNA.CSharpDNATemplateFolder, "\\", starDNA.CSharpTemplatePlanetDNA)).OpenText().ReadToEnd();
+
             string iCelestialBodyTemplateCsharp = new FileInfo(string.Concat(starDNA.CSharpDNATemplateFolder, "\\", starDNA.CSharpTemplateICelestialBodyDNA)).OpenText().ReadToEnd();
             string celestialBodyTemplateCsharp = new FileInfo(string.Concat(starDNA.CSharpDNATemplateFolder, "\\", starDNA.CSharpTemplateCelestialBodyDNA)).OpenText().ReadToEnd();
             string iZomeTemplate = new FileInfo(string.Concat(starDNA.CSharpDNATemplateFolder, "\\", starDNA.CSharpTemplateIZomeDNA)).OpenText().ReadToEnd();
@@ -166,6 +173,25 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
 
             DirectoryInfo dirInfo = new DirectoryInfo(dnaFolder);
             FileInfo[] files = dirInfo.GetFiles();
+
+            switch (type)
+            {
+                case GenesisType.Moon:
+                    newBody = new Moon(StarBody.HoloNETClient);
+                    break;
+
+                case GenesisType.Planet:
+                    newBody = new Planet(StarBody.HoloNETClient);
+                    break;
+
+                case GenesisType.Star:
+                    newBody = new StarBody(StarBody.HoloNETClient);
+                    break;
+            }
+
+            newBody.Id = Guid.NewGuid();
+            newBody.Name = name;
+            newBody.OnZomeError += NewBody_OnZomeError;
 
             foreach (FileInfo file in files)
             {
@@ -197,6 +223,7 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
                             zomeBufferCsharp = zomeBufferCsharp.Replace("ZomeDNATemplate", parts[6].ToPascalCase());
                             zomeBufferCsharp = zomeBufferCsharp.Replace("{zome}", parts[6].ToSnakeCase());
                             zomeName = parts[6].ToPascalCase();
+                            //newBody.Zomes
                         }
 
                         if (holonReached && buffer.Contains("string") || buffer.Contains("int") || buffer.Contains("bool"))
@@ -329,12 +356,32 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
                             //planetBufferCsharp = planetBufferCsharp.Replace(starDNA.TemplateNamespace, genesisNameSpace);
                             //planetBufferCsharp = planetBufferCsharp.Replace("{holon}", parts[10].ToSnakeCase()).Replace("HOLON", parts[10].ToPascalCase());
 
-                            if (string.IsNullOrEmpty(planetBufferCsharp))
+                            if (string.IsNullOrEmpty(celestialBodyBufferCsharp))
                                 celestialBodyBufferCsharp = celestialBodyTemplateCsharp;
 
                             celestialBodyBufferCsharp = celestialBodyBufferCsharp.Replace(starDNA.TemplateNamespace, genesisNameSpace);
+                            celestialBodyBufferCsharp = celestialBodyBufferCsharp.Replace("CelestialBodyDNATemplate", name.ToPascalCase());
                             celestialBodyBufferCsharp = celestialBodyBufferCsharp.Replace("{holon}", parts[10].ToSnakeCase()).Replace("HOLON", parts[10].ToPascalCase());
+                            celestialBodyBufferCsharp = celestialBodyBufferCsharp.Replace("CelestialBody", Enum.GetName(typeof(GenesisType), type)).Replace("ICelestialBody", string.Concat("I", Enum.GetName(typeof(GenesisType), type)));
+                            celestialBodyBufferCsharp = celestialBodyBufferCsharp.Replace("ICelestialBody", string.Concat("I", Enum.GetName(typeof(GenesisType), type)));
+                            //celestialBodyBufferCsharp = celestialBodyBufferCsharp.Replace("GenesisType.Star", string.Concat("GenesisType.", Enum.GetName(typeof(GenesisType), type)));
+                            celestialBodyBufferCsharp = celestialBodyBufferCsharp.Replace(", GenesisType.Star", "");
 
+                            /*
+                            switch (type)
+                            {
+                                case GenesisType.Star:
+                                    celestialBodyBufferCsharp = celestialBodyBufferCsharp.Replace("CelestialBody", "Star").Replace("ICelestialBody", "IStar");
+                                    break;
+
+                                case GenesisType.Planet:
+                                    celestialBodyBufferCsharp = celestialBodyBufferCsharp.Replace("CelestialBody", "Planet").Replace("ICelestialBody", "IPlanet");
+                                    break;
+
+                                case GenesisType.Moon:
+                                    celestialBodyBufferCsharp = celestialBodyBufferCsharp.Replace("CelestialBody", "Moon").Replace("ICelestialBody", "IMoon");
+                                    break;
+                            }*/
 
                             holonName = holonName.ToSnakeCase();
                             holonReached = true;
@@ -344,48 +391,22 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
                     reader.Close();
                     nextLineToWrite = 0;
 
+                    //string name = "";
+                    //switch (type)
+                    //{
+                    //    case GenesisType.Star:
+
+                    //}
+
                     File.WriteAllText(string.Concat(genesisRustFolder, "\\lib.rs"), libBuffer);
                     File.WriteAllText(string.Concat(genesisCSharpFolder, "\\", zomeName, ".cs"), zomeBufferCsharp);
                 }
             }
             
-            // Remove any white space from the planet name.
-            File.WriteAllText(string.Concat(genesisCSharpFolder, "\\", Regex.Replace(name, @"\s+", ""), ".cs"), planetBufferCsharp);
+            // Remove any white space from the name.
+            File.WriteAllText(string.Concat(genesisCSharpFolder, "\\", Regex.Replace(name, @"\s+", ""), Enum.GetName(typeof(GenesisType), type), ".cs"), celestialBodyBufferCsharp);
 
-            ICelestialBody newBody = null;
-
-            switch (type)
-            {
-                //case GenesisType.Moon:
-                //    newBody = new Moon(StarCore.HoloNETClient);
-                //    break;
-
-                //case GenesisType.Planet:
-                //    newBody = new Planet(StarCore.HoloNETClient);
-                //    break;
-
-                ////TODO: Finish this... :)
-                //case GenesisType.Star:
-                //    newBody = new Star(StarCore.HoloNETClient);
-                //    break;
-
-                case GenesisType.Moon:
-                    newBody = new Moon(StarBody.HoloNETClient);
-                    break;
-
-                case GenesisType.Planet:
-                    newBody = new Planet(StarBody.HoloNETClient);
-                    break;
-
-                //TODO: Finish this... :)
-                case GenesisType.Star:
-                    newBody = new StarBody(StarBody.HoloNETClient);
-                    break;
-            }
-
-            newBody.Id = Guid.NewGuid();
-            newBody.Name = name;
-            newBody.OnZomeError += NewBody_OnZomeError;
+            
 
 
             //TODO: Need to save the collection of Zomes/Holons that belong to this planet here...
@@ -394,34 +415,22 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
             //TODO: Might be more efficient if the planet can be saved and then added to the list of planets in the star in one go?
             switch (type)
             {
-                //case GenesisType.Moon:
-                //{
-                //    await StarCore.AddMoonAsync((IMoon)newBody);
-                //    return new CoronalEjection() { ErrorOccured = false, Message = "Moon Successfully Created.", CelestialBody = newBody };
-                //}
-
-                //case GenesisType.Planet:
-                //{
-                //    await StarCore.AddPlanetAsync((IPlanet)newBody);
-                //    return new CoronalEjection() { ErrorOccured = false, Message = "Planet Successfully Created.", CelestialBody = newBody };
-                //}
-
                 case GenesisType.Moon:
-                    {
-                        await ((StarCore)StarBody.CelestialBodyCore).Add((IMoon)newBody);
-                        return new CoronalEjection() { ErrorOccured = false, Message = "Moon Successfully Created.", CelestialBody = newBody };
-                    }
+                {
+                    await ((StarCore)StarBody.CelestialBodyCore).AddMoonAsync((IMoon)newBody);
+                    return new CoronalEjection() { ErrorOccured = false, Message = "Moon Successfully Created.", CelestialBody = newBody };
+                }
 
                 case GenesisType.Planet:
-                    {
-                        await StarBody.AddPlanetAsync((IPlanet)newBody);
-                        return new CoronalEjection() { ErrorOccured = false, Message = "Planet Successfully Created.", CelestialBody = newBody };
-                    }
+                {
+                    await ((StarCore)StarBody.CelestialBodyCore).AddPlanetAsync((IPlanet)newBody);
+                    return new CoronalEjection() { ErrorOccured = false, Message = "Planet Successfully Created.", CelestialBody = newBody };
+                }
 
                 case GenesisType.Star:
                 {
-                    //await StarCore.AddPlanetAsync((IPlanet)newBody); //TODO: Add AddStarAsync method.
-                    return new CoronalEjection() { ErrorOccured = false, Message = "Star Successfully Created.", CelestialBody = newBody };
+                        await ((StarCore)StarBody.CelestialBodyCore).AddStarAsync((IStar)newBody);
+                        return new CoronalEjection() { ErrorOccured = false, Message = "Star Successfully Created.", CelestialBody = newBody };
                 }
                 default:
                     return new CoronalEjection() { ErrorOccured = true, Message = "Unknown Error Occured.", CelestialBody = newBody };
@@ -433,7 +442,7 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
 
         private static void NewBody_OnZomeError(object sender, ZomeErrorEventArgs e)
         {
-            OnZomeError?.Invoke(sender, new ZomeErrorEventArgs() { EndPoint = StarCore.HoloNETClient.EndPoint, Reason = e.Reason, ErrorDetails = e.ErrorDetails, HoloNETErrorDetails = e.HoloNETErrorDetails });
+            OnZomeError?.Invoke(sender, new ZomeErrorEventArgs() { EndPoint = StarBody.HoloNETClient.EndPoint, Reason = e.Reason, ErrorDetails = e.ErrorDetails, HoloNETErrorDetails = e.HoloNETErrorDetails });
         }
 
         //TODO: Get this working... :)
@@ -668,9 +677,23 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
                 if (!File.Exists(string.Concat(starDNA.CSharpDNATemplateFolder, "\\", starDNA.CSharpTemplateZomeDNA)))
                     throw new ArgumentOutOfRangeException("CSharpTemplateZomeDNA", string.Concat(starDNA.CSharpDNATemplateFolder, "\\", starDNA.CSharpTemplateZomeDNA), "The CSharpTemplateMyZome file is not valid, please double check and try again.");
 
+                if (!File.Exists(string.Concat(starDNA.CSharpDNATemplateFolder, "\\", starDNA.CSharpTemplateIStarDNA)))
+                    throw new ArgumentOutOfRangeException("CSharpTemplateIStarDNA", string.Concat(starDNA.CSharpDNATemplateFolder, "\\", starDNA.CSharpTemplateIStarDNA), "The CSharpTemplateIStarDNA file is not valid, please double check and try again.");
+
+                if (!File.Exists(string.Concat(starDNA.CSharpDNATemplateFolder, "\\", starDNA.CSharpTemplateStarDNA)))
+                    throw new ArgumentOutOfRangeException("CSharpTemplateStarDNA", string.Concat(starDNA.CSharpDNATemplateFolder, "\\", starDNA.CSharpTemplateStarDNA), "The CSharpTemplateStarDNA file is not valid, please double check and try again.");
+
+                if (!File.Exists(string.Concat(starDNA.CSharpDNATemplateFolder, "\\", starDNA.CSharpTemplateIPlanetDNA)))
+                    throw new ArgumentOutOfRangeException("CSharpTemplateIPlanetDNA", string.Concat(starDNA.CSharpDNATemplateFolder, "\\", starDNA.CSharpTemplateIPlanetDNA), "The CSharpTemplateIPlanetDNA file is not valid, please double check and try again.");
 
                 if (!File.Exists(string.Concat(starDNA.CSharpDNATemplateFolder, "\\", starDNA.CSharpTemplatePlanetDNA)))
-                    throw new ArgumentOutOfRangeException("CSharpTemplateZomeDNA", string.Concat(starDNA.CSharpDNATemplateFolder, "\\", starDNA.CSharpTemplatePlanetDNA), "The CSharpTemplatePlanetDNA file is not valid, please double check and try again.");
+                    throw new ArgumentOutOfRangeException("CSharpTemplatePlanetDNA", string.Concat(starDNA.CSharpDNATemplateFolder, "\\", starDNA.CSharpTemplatePlanetDNA), "The CSharpTemplatePlanetDNA file is not valid, please double check and try again.");
+
+                if (!File.Exists(string.Concat(starDNA.CSharpDNATemplateFolder, "\\", starDNA.CSharpTemplateIMoonDNA)))
+                    throw new ArgumentOutOfRangeException("CSharpTemplateIMoonDNA", string.Concat(starDNA.CSharpDNATemplateFolder, "\\", starDNA.CSharpTemplateIMoonDNA), "The CSharpTemplateIMoonDNA file is not valid, please double check and try again.");
+
+                if (!File.Exists(string.Concat(starDNA.CSharpDNATemplateFolder, "\\", starDNA.CSharpTemplatePlanetDNA)))
+                    throw new ArgumentOutOfRangeException("CSharpTemplateMoonDNA", string.Concat(starDNA.CSharpDNATemplateFolder, "\\", starDNA.CSharpTemplateMoonDNA), "The CSharpTemplateMoonDNA file is not valid, please double check and try again.");
 
                 if (!File.Exists(string.Concat(starDNA.CSharpDNATemplateFolder, "\\", starDNA.CSharpTemplateCelestialBodyDNA)))
                     throw new ArgumentOutOfRangeException("CSharpTemplateCelestialBodyDNA", string.Concat(starDNA.CSharpDNATemplateFolder, "\\", starDNA.CSharpTemplateCelestialBodyDNA), "The CSharpTemplatePlanetDNA file is not valid, please double check and try again.");

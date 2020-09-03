@@ -1,19 +1,19 @@
 ﻿using NextGenSoftware.Holochain.HoloNET.Client.Core;
-using NextGenSoftware.Holochain.HoloNET.HDK.Core;
 using NextGenSoftware.OASIS.API.Core;
 using System;
 using System.Threading.Tasks;
 
 namespace NextGenSoftware.Holochain.HoloNET.HDK.Core.CSharpTemplates
 {
-    public class PlanetDNATemplate : CelestialBody, IPlanet
+    //public class PlanetDNATemplate : CelestialBody, IPlanet
+    public class MoonDNATemplate : Moon, IMoon
     {
         //public PlanetDNATemplate(HoloNETClientBase holoNETClient, string providerKey, Guid id) : base(holoNETClient, providerKey)
         //{
 
       //  }
 
-        public PlanetDNATemplate(string holochainConductorURI, HoloNETClientType type, string providerKey) : base(holochainConductorURI, type, providerKey)
+        public MoonDNATemplate(string holochainConductorURI, HoloNETClientType type, string providerKey) : base(holochainConductorURI, type, providerKey)
         {
 
         }
@@ -23,21 +23,20 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core.CSharpTemplates
 
         //}
 
-        public PlanetDNATemplate(string holochainConductorURI, HoloNETClientType type) : base(holochainConductorURI, type)
+        public MoonDNATemplate(string holochainConductorURI, HoloNETClientType type) : base(holochainConductorURI, type)
         {
 
         }
 
-        public PlanetDNATemplate(HoloNETClientBase holoNETClient, string providerKey) : base(holoNETClient, providerKey)
+        public MoonDNATemplate(HoloNETClientBase holoNETClient, string providerKey) : base(holoNETClient, providerKey)
         {
 
         }
 
-        public PlanetDNATemplate(HoloNETClientBase holoNETClient) : base(holoNETClient)
+        public MoonDNATemplate(HoloNETClientBase holoNETClient) : base(holoNETClient)
         {
 
         }
-
 
         public async Task<IHolon> LoadHOLONAsync(string hcEntryAddressHash)
         {

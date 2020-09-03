@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 namespace NextGenSoftware.Holochain.HoloNET.HDK.Core.CSharpTemplates
 {
-    public class StarDNATemplate : CelestialBody, IPlanet
+    public class StarDNATemplate : StarBody, IStar
     {
         public StarDNATemplate(string holochainConductorURI, HoloNETClientType type, string providerKey) : base(holochainConductorURI, type, providerKey)
         {
@@ -25,7 +25,6 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core.CSharpTemplates
         {
 
         }
-
 
         public async Task<IHolon> LoadHOLONAsync(string hcEntryAddressHash)
         {

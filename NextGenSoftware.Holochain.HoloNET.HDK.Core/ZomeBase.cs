@@ -35,30 +35,27 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
             
 
 
-        public delegate void HolonSaved(object sender, HolonLoadedEventArgs e);
-        public event HolonSaved OnHolonSaved;
+        //public delegate void HolonSaved(object sender, HolonLoadedEventArgs e);
+        //public event HolonSaved OnHolonSaved;
 
-        public delegate void HolonLoaded(object sender, HolonLoadedEventArgs e);
-        public event HolonLoaded OnHolonLoaded;
+        //public delegate void HolonLoaded(object sender, HolonLoadedEventArgs e);
+        //public event HolonLoaded OnHolonLoaded;
 
-        public delegate void HolonsLoaded(object sender, HolonsLoadedEventArgs e);
-        public event HolonsLoaded OnHolonsLoaded;
+        //public delegate void HolonsLoaded(object sender, HolonsLoadedEventArgs e);
+        //public event HolonsLoaded OnHolonsLoaded;
 
-        // private List<string> _loadFuncNames = new List<string>();
-        //  private List<string> _saveFuncNames = new List<string>();
-
-        public delegate void Initialized(object sender, EventArgs e);
-        public event Initialized OnInitialized;
+        //public delegate void Initialized(object sender, EventArgs e);
+        //public event Initialized OnInitialized;
 
         public delegate void ZomeError(object sender, ZomeErrorEventArgs e);
-        public event ZomeError OnZomeError;
+        //public event ZomeError OnZomeError;
 
-        //TODO: Not sure if we want to expose the HoloNETClient events at this level? They can subscribe to them through the HoloNETClient property below...
-        public delegate void Disconnected(object sender, DisconnectedEventArgs e);
-        public event Disconnected OnDisconnected;
+        ////TODO: Not sure if we want to expose the HoloNETClient events at this level? They can subscribe to them through the HoloNETClient property below...
+        //public delegate void Disconnected(object sender, DisconnectedEventArgs e);
+        //public event Disconnected OnDisconnected;
 
-        public delegate void DataReceived(object sender, DataReceivedEventArgs e);
-        public event DataReceived OnDataReceived;
+        //public delegate void DataReceived(object sender, DataReceivedEventArgs e);
+        //public event DataReceived OnDataReceived;
 
         //TODO: If decide yes to above, finish passing through HoloNETClient events here...
 

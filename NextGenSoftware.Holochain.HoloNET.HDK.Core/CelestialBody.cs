@@ -12,18 +12,19 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
     {
         //  private const string PLANET_CORE_ZOME = "planet_core_zome"; //Equivilant to an anchor in hc rust... :)
         //  private string _coreProviderKey;
-       // private string HOLON = "planet_holon";
+        // private string HOLON = "planet_holon";
         protected int _currentId = 0;
         protected string _hcinstance;
         protected TaskCompletionSource<string> _taskCompletionSourceGetInstance = new TaskCompletionSource<string>();
-        
+
         public CelestialBodyCore CelestialBodyCore { get; set; } // This is the core zome of the planet (OAPP), which links to all the other planet zomes/holons...
-       // public string RustHolonType { get; set; }
+                                                                 // public string RustHolonType { get; set; }
         public string RustCelestialBodyType { get; set; }
+        public GenesisType GenesisType { get; set; }
 
         //TODO: Should these be in PlanetCore?
-        public List<IZome> Zomes = new List<IZome>();
-        public List<IHolon> Holons = new List<IHolon>();
+        public List<IZome> Zomes { get; set; }
+        public List<IHolon> Holons { get; set; }
 
         public delegate void HolonsLoaded(object sender, HolonsLoadedEventArgs e);
         public event HolonsLoaded OnHolonsLoaded;
@@ -57,47 +58,55 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
 
         }
 
-        public CelestialBody(HoloNETClientBase holoNETClient, Guid id)
+        public CelestialBody(HoloNETClientBase holoNETClient, Guid id, GenesisType genesisType)
         {
+            this.GenesisType = genesisType;
             Initialize(id, holoNETClient);
         }
 
-        public CelestialBody(string holochainConductorURI, HoloNETClientType type, Guid id)
+        public CelestialBody(string holochainConductorURI, HoloNETClientType type, Guid id, GenesisType genesisType)
         {
+            this.GenesisType = genesisType;
             Initialize(id, holochainConductorURI, type);
         }
 
-        public CelestialBody(HoloNETClientBase holoNETClient)
+        public CelestialBody(HoloNETClientBase holoNETClient, GenesisType genesisType)
         {
+            this.GenesisType = genesisType;
             Initialize(holoNETClient);
         }
 
-        public CelestialBody(string holochainConductorURI, HoloNETClientType type)
+        public CelestialBody(string holochainConductorURI, HoloNETClientType type, GenesisType genesisType)
         {
+            this.GenesisType = genesisType;
             Initialize(holochainConductorURI, type);
         }
 
         //TODO: Don't think we need to pass Id in if we are using ProviderKey?
-        public CelestialBody(HoloNETClientBase holoNETClient, Guid id, string providerKey )
+        public CelestialBody(HoloNETClientBase holoNETClient, Guid id, string providerKey, GenesisType genesisType)
         {
+            this.GenesisType = genesisType;
             this.ProviderKey = providerKey;
             Initialize(id, holoNETClient);
         }
 
-        public CelestialBody(string holochainConductorURI, HoloNETClientType type, Guid id, string providerKey)
+        public CelestialBody(string holochainConductorURI, HoloNETClientType type, Guid id, string providerKey, GenesisType genesisType)
         {
+            this.GenesisType = genesisType;
             this.ProviderKey = providerKey;
             Initialize(id, holochainConductorURI, type);
         }
 
-        public CelestialBody(HoloNETClientBase holoNETClient, string providerKey)
+        public CelestialBody(HoloNETClientBase holoNETClient, string providerKey, GenesisType genesisType)
         {
+            this.GenesisType = genesisType;
             this.ProviderKey = providerKey;
             Initialize(holoNETClient);
         }
 
-        public CelestialBody(string holochainConductorURI, HoloNETClientType type, string providerKey)
+        public CelestialBody(string holochainConductorURI, HoloNETClientType type, string providerKey, GenesisType genesisType)
         {
+            this.GenesisType = genesisType;
             this.ProviderKey = providerKey;
             Initialize(holochainConductorURI, type);
         }
@@ -263,7 +272,7 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
             {
                 Id = Guid.NewGuid();
 
-               
+
             }
 
             //Just in case the zomes/holons have been added since the planet was last saved.
@@ -396,7 +405,7 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
 
         private void PlanetCore_OnHolonsLoaded(object sender, HolonsLoadedEventArgs e)
         {
-            
+
         }
 
         //TODO: Make LoadZomes async once PlanetCore.LoadZomes() refactored to return a Task...
@@ -444,20 +453,21 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
 
         public async Task Initialize(HoloNETClientBase holoNETClient)
         {
-            this.HolonType = HolonType.Planet;
             HoloNETClient = holoNETClient;
+            this.Zomes = new List<IZome>();
+            this.Holons = new List<IHolon>();
 
-            switch (this.HolonType)
+            switch (this.GenesisType)
             {
-                case HolonType.Planet:
-                    CelestialBodyCore = new PlanetCore(holoNETClient); 
+                case GenesisType.Planet:
+                    CelestialBodyCore = new PlanetCore(holoNETClient);
                     break;
 
-                case HolonType.Moon:
-                    CelestialBodyCore = new MoonCore(holoNETClient); 
+                case GenesisType.Moon:
+                    CelestialBodyCore = new MoonCore(holoNETClient);
                     break;
 
-                case HolonType.Star:
+                case GenesisType.Star:
                     CelestialBodyCore = new StarCore(holoNETClient);
                     break;
             }
@@ -465,25 +475,12 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
             if (!string.IsNullOrEmpty(this.ProviderKey))
             {
                 CelestialBodyCore.ProviderKey = this.ProviderKey; //_coreProviderKey = hc anchor.
-
-                /*
-                switch (this.HolonType)
-                {
-                    case HolonType.Planet:
-                        CelestialBodyCore = new PlanetCore(holoNETClient, this.ProviderKey); //_coreProviderKey = hc anchor.
-                        break;
-
-                    case HolonType.Moon:
-                        CelestialBodyCore = new MoonCore(holoNETClient, this.ProviderKey); //_coreProviderKey = hc anchor.
-                        break;
-                }*/
-
                 await LoadCelestialBody();
 
                 //TODO: Load the planets Zome collection here? Or is it passed in from the sub-class implementation? Probably 2nd one... ;-)
                 //No we load the holons and zomes linked to the planetcore zome via the coreProviderKey anchor...
-                LoadHolons();
                 LoadZomes();
+                LoadHolons();
             }
 
             await WireUpEvents();
@@ -604,11 +601,11 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
                 if (holon != null)
                 {
                     holon.ProviderKey = e.Holon.ProviderKey;
-                   //holon.Parent = e.Holon;
+                    //holon.Parent = e.Holon;
                     holon.CelestialBody = this;
                 }
             }
-            
+
             OnHolonSaved?.Invoke(this, e);
         }
 
@@ -688,7 +685,7 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
             //return null;
         }
         */
-        
+
         //TODO: Should this be in PlanetCore?
         public virtual async Task<IHolon> LoadHolonAsync(string rustHolonType, string hcEntryAddressHash)
         {

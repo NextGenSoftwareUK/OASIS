@@ -6,7 +6,8 @@ using System.Threading.Tasks;
 
 namespace NextGenSoftware.Holochain.HoloNET.HDK.Core.CSharpTemplates
 {
-    public class PlanetDNATemplate : CelestialBody, IPlanet
+    //public class PlanetDNATemplate : CelestialBody, IPlanet
+    public class PlanetDNATemplate : Planet, IPlanet
     {
         //public PlanetDNATemplate(HoloNETClientBase holoNETClient, string providerKey, Guid id) : base(holoNETClient, providerKey)
         //{
@@ -37,7 +38,6 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core.CSharpTemplates
         {
 
         }
-
 
         public async Task<IHolon> LoadHOLONAsync(string hcEntryAddressHash)
         {

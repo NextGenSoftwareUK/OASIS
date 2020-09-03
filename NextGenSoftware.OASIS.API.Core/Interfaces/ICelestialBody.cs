@@ -1,4 +1,5 @@
 ﻿
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace NextGenSoftware.OASIS.API.Core
@@ -14,6 +15,9 @@ namespace NextGenSoftware.OASIS.API.Core
         //event PlanetBase.Initialized OnInitialized;
         //event PlanetBase.ZomeError OnZomeError;
 
+        List<IZome> Zomes { get; set; }
+        List<IHolon> Holons { get; set; }
+
         void Dim();
         void Emit();
         void Evolve();
@@ -22,6 +26,7 @@ namespace NextGenSoftware.OASIS.API.Core
         //Task Initialize(HoloNETClientBase holoNETClient);
         //Task Initialize(string holochainConductorURI, PlanetBase.HoloNETClientType type);
         CoronalEjection Flare();
+
         void LoadAll();
         void LoadZomes();
         void LoadHolons();

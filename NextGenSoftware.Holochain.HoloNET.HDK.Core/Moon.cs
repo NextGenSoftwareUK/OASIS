@@ -6,22 +6,22 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
 {
     public class Moon : CelestialBody, IMoon
     {
-        public Moon(HoloNETClientBase holoNETClient, string providerKey) : base(holoNETClient, providerKey)
-        {
-     
-        }
-
-        public Moon(string holochainConductorURI, HoloNETClientType type, string providerKey) : base(holochainConductorURI, type, providerKey)
-        {
-    
-        }
-
-        public Moon(HoloNETClientBase holoNETClient) : base(holoNETClient)
+        public Moon(HoloNETClientBase holoNETClient, string providerKey) : base(holoNETClient, providerKey, GenesisType.Moon)
         {
 
         }
 
-        public Moon(string holochainConductorURI, HoloNETClientType type) : base(holochainConductorURI, type)
+        public Moon(string holochainConductorURI, HoloNETClientType type, string providerKey) : base(holochainConductorURI, type, providerKey, GenesisType.Moon)
+        {
+
+        }
+
+        public Moon(HoloNETClientBase holoNETClient) : base(holoNETClient, GenesisType.Moon)
+        {
+
+        }
+
+        public Moon(string holochainConductorURI, HoloNETClientType type) : base(holochainConductorURI, type, GenesisType.Moon)
         {
 
         }
