@@ -39,13 +39,13 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core.TestHarness.Genesis
 
         public async Task<IHolon> LoadSuperTestAsync(string hcEntryAddressHash)
         {
-            return await base.LoadHolonAsync("super_test", hcEntryAddressHash);
+            return await CelestialBodyCore.LoadHolonAsync("super_test", hcEntryAddressHash);
         }
 
         public async Task<IHolon> SaveSuperTestAsync(IHolon holon)
         {
             //return await base.SaveHolonAsync("super_test", holon);
-            return await base.SaveHolonAsync("super_test", holon);
+            return await CelestialBodyCore.SaveHolonAsync("super_test", holon);
         }
 
         /*

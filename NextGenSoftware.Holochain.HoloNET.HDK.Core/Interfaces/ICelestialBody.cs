@@ -1,6 +1,7 @@
 ﻿using NextGenSoftware.Holochain.HoloNET.Client.Core;
 using NextGenSoftware.OASIS.API.Core;
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
@@ -12,14 +13,20 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
         HoloNETClientBase HoloNETClient { get; }
         string RustCelestialBodyType { get; set; }
 
+        List<IZome> Zomes { get; set; }
+
+
+        //TODO: Come back to this...
+        /*
         event CelestialBody.DataReceived OnDataReceived;
         event CelestialBody.Disconnected OnDisconnected;
-        event CelestialBody.HolonLoaded OnHolonLoaded;
-        event CelestialBody.HolonSaved OnHolonSaved;
-        event CelestialBody.HolonsLoaded OnHolonsLoaded;
-        event CelestialBody.Initialized OnInitialized;
-        event CelestialBody.ZomeError OnZomeError;
-        event CelestialBody.ZomesLoaded OnZomesLoaded;
+        //event CelestialBody.HolonLoaded OnHolonLoaded;
+        //event CelestialBody.HolonSaved OnHolonSaved;
+        //event CelestialBody.HolonsLoaded OnHolonsLoaded;
+        //event CelestialBody.Initialized OnInitialized;
+        //event CelestialBody.ZomeError OnZomeError;
+        //event CelestialBody.ZomesLoaded OnZomesLoaded;
+        */
 
         /*
         void Dim();
@@ -40,12 +47,12 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
         Task Initialize(HoloNETClientBase holoNETClient);
         Task Initialize(string holochainConductorURI, HoloNETClientType type);
      //   void LoadAll();
-        Task<IHolon> LoadHolonAsync(string rustHolonType, string hcEntryAddressHash);
+       // Task<IHolon> LoadHolonAsync(string rustHolonType, string hcEntryAddressHash);
         //void LoadHolons();
        // void LoadZomes();
       
         Task<bool> Save();
-        Task<IHolon> SaveHolonAsync(string rustHolonType, IHolon savingHolon);
+       // Task<IHolon> SaveHolonAsync(string rustHolonType, IHolon savingHolon);
        
     }
 }

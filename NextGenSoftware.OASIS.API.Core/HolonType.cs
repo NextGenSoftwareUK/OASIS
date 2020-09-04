@@ -19,6 +19,7 @@ namespace NextGenSoftware.OASIS.API.Core
         Star,
         Planet,
         Moon,
-        Zome
+        Zome,
+        Holon
     }
 }

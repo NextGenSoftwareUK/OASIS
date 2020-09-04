@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
 {
     public abstract class ZomeBase: Holon, IZome
+   // public abstract class ZomeBase : OASIS.API.Core.Zome, IZome  //TODO: Come back to this... See if possible to move Zome into OASIS.API.Core, etc...
     {
         protected int _currentId = 0;
         protected string _hcinstance;
@@ -32,30 +33,30 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
                 _holons = value;
             }
         }
-            
 
 
-        //public delegate void HolonSaved(object sender, HolonLoadedEventArgs e);
-        //public event HolonSaved OnHolonSaved;
 
-        //public delegate void HolonLoaded(object sender, HolonLoadedEventArgs e);
-        //public event HolonLoaded OnHolonLoaded;
+        public delegate void HolonSaved(object sender, HolonSavedEventArgs e);
+        public event HolonSaved OnHolonSaved;
 
-        //public delegate void HolonsLoaded(object sender, HolonsLoadedEventArgs e);
-        //public event HolonsLoaded OnHolonsLoaded;
+        public delegate void HolonLoaded(object sender, HolonLoadedEventArgs e);
+        public event HolonLoaded OnHolonLoaded;
 
-        //public delegate void Initialized(object sender, EventArgs e);
-        //public event Initialized OnInitialized;
+        public delegate void HolonsLoaded(object sender, HolonsLoadedEventArgs e);
+        public event HolonsLoaded OnHolonsLoaded;
+
+        public delegate void Initialized(object sender, EventArgs e);
+        public event Initialized OnInitialized;
 
         public delegate void ZomeError(object sender, ZomeErrorEventArgs e);
-        //public event ZomeError OnZomeError;
+        public event ZomeError OnZomeError;
 
         ////TODO: Not sure if we want to expose the HoloNETClient events at this level? They can subscribe to them through the HoloNETClient property below...
-        //public delegate void Disconnected(object sender, DisconnectedEventArgs e);
-        //public event Disconnected OnDisconnected;
+        public delegate void Disconnected(object sender, DisconnectedEventArgs e);
+        public event Disconnected OnDisconnected;
 
-        //public delegate void DataReceived(object sender, DataReceivedEventArgs e);
-        //public event DataReceived OnDataReceived;
+        public delegate void DataReceived(object sender, DataReceivedEventArgs e);
+        public event DataReceived OnDataReceived;
 
         //TODO: If decide yes to above, finish passing through HoloNETClient events here...
 
@@ -96,6 +97,59 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
             //    _saveFuncNames[3] = string.Concat("delete_", holochainDataObjectNames[i]);
             //}
         }
+
+        /*
+        event Events.HolonLoaded OASIS.API.Core.IZome.OnHolonLoaded
+        {
+            add
+            {
+                throw new NotImplementedException();
+            }
+
+            remove
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        event Events.HolonSaved OASIS.API.Core.IZome.OnHolonSaved
+        {
+            add
+            {
+                throw new NotImplementedException();
+            }
+
+            remove
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        event Events.Initialized OASIS.API.Core.IZome.OnInitialized
+        {
+            add
+            {
+                throw new NotImplementedException();
+            }
+
+            remove
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        event Events.ZomeError OASIS.API.Core.IZome.OnZomeError
+        {
+            add
+            {
+                throw new NotImplementedException();
+            }
+
+            remove
+            {
+                throw new NotImplementedException();
+            }
+        }*/
 
 
         //public ZomeBase(HoloNETClientBase holoNETClient, string zomeName, List<string> loadFuncNames, List<string> saveFuncNames)
@@ -215,7 +269,7 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
                 {
                     _savingHolons[e.Id].ProviderKey = e.ZomeReturnData;
 
-                    OnHolonSaved?.Invoke(this, new HolonLoadedEventArgs { Holon = _savingHolons[e.Id] });
+                    OnHolonSaved?.Invoke(this, new HolonSavedEventArgs { Holon = _savingHolons[e.Id] });
                     _taskCompletionSourceSaveHolon.SetResult(_savingHolons[e.Id]);
                     _savingHolons.Remove(e.Id);
                 }
@@ -246,7 +300,7 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
 
         public virtual async Task<IHolon> LoadHolonAsync(string holonType, string hcEntryAddressHash)
         {
-            await CallZomeFunctionAsync(string.Concat(holonType, "_load"), hcEntryAddressHash);
+            await CallZomeFunctionAsync(string.Concat(holonType, "_read"), hcEntryAddressHash);
             return await _taskCompletionSourceLoadHolon.Task; //TODO: Look into this...
         }
 
