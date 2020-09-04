@@ -39,13 +39,13 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core.CSharpTemplates
 
         public async Task<IHolon> LoadHOLONAsync(string hcEntryAddressHash)
         {
-            return await base.LoadHolonAsync("{holon}", hcEntryAddressHash);
+            return await base.CelestialBodyCore.LoadHolonAsync("{holon}", hcEntryAddressHash);
         }
 
         public async Task<IHolon> SaveHOLONAsync(IHolon holon)
         {
             //return await base.SaveHolonAsync("{holon}", holon);
-            return await base.SaveHolonAsync("{holon}", holon);
+            return await base.CelestialBodyCore.SaveHolonAsync("{holon}", holon);
         }
 
         /*

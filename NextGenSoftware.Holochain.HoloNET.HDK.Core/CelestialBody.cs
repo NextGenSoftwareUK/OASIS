@@ -24,7 +24,23 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
 
         //TODO: Should these be in PlanetCore?
         public List<IZome> Zomes { get; set; }
-        public List<IHolon> Holons { get; set; }
+        public List<IHolon> Holons
+        {
+            get
+            {
+                if (Zomes != null)
+                {
+                    List<IHolon> holons = new List<IHolon>();
+
+                    foreach (IZome zome in Zomes)
+                        holons.Add(zome);
+
+                    return holons;
+                }
+
+                return null;
+            }
+        }
 
         public delegate void HolonsLoaded(object sender, HolonsLoadedEventArgs e);
         public event HolonsLoaded OnHolonsLoaded;
@@ -32,7 +48,7 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
         public delegate void ZomesLoaded(object sender, ZomesLoadedEventArgs e);
         public event ZomesLoaded OnZomesLoaded;
 
-        public delegate void HolonSaved(object sender, HolonLoadedEventArgs e);
+        public delegate void HolonSaved(object sender, HolonSavedEventArgs e);
         public event HolonSaved OnHolonSaved;
 
         public delegate void HolonLoaded(object sender, HolonLoadedEventArgs e);
@@ -257,7 +273,7 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
 
         public void LoadAll()
         {
-            LoadHolons();
+          //  LoadHolons();
             LoadZomes();
         }
 
@@ -268,12 +284,8 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
 
             //TODO: Need to save the planet holon itself so we can get its anchor address (we can use later to load its collections of zomes/holons).
 
-            if (this.Id == Guid.Empty)
-            {
+            if (Id == Guid.Empty)
                 Id = Guid.NewGuid();
-
-
-            }
 
             //Just in case the zomes/holons have been added since the planet was last saved.
             foreach (Zome zome in Zomes)
@@ -295,6 +307,7 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
             return true;
         }
 
+        /*
         private async Task<bool> SaveZomesAndHolons()
         {
             foreach (ZomeBase zome in Zomes)
@@ -312,6 +325,7 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
 
             return true;
         }
+        */
 
         // Build
         public CoronalEjection Flare()
@@ -418,10 +432,11 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
             Zomes = CelestialBodyCore.LoadZomes();
         }
 
+        /*
         public async void LoadHolons()
         {
             Holons = await CelestialBodyCore.LoadHolons();
-        }
+        }*/
 
         public async Task Initialize(string holochainConductorURI, HoloNETClientType type)
         {
@@ -455,7 +470,7 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
         {
             HoloNETClient = holoNETClient;
             this.Zomes = new List<IZome>();
-            this.Holons = new List<IHolon>();
+           // this.Holons = new List<IHolon>();
 
             switch (this.GenesisType)
             {
@@ -480,7 +495,7 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
                 //TODO: Load the planets Zome collection here? Or is it passed in from the sub-class implementation? Probably 2nd one... ;-)
                 //No we load the holons and zomes linked to the planetcore zome via the coreProviderKey anchor...
                 LoadZomes();
-                LoadHolons();
+               // LoadHolons();
             }
 
             await WireUpEvents();
@@ -510,7 +525,7 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
             CelestialBodyCore.OnZomeError += PlanetCore_OnZomeError;
         }
 
-        private async void PlanetCore_OnHolonSaved(object sender, HolonLoadedEventArgs e)
+        private async void PlanetCore_OnHolonSaved(object sender, HolonSavedEventArgs e)
         {
             if (e.Holon.HolonType == HolonType.Planet)
             {
@@ -572,7 +587,7 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
             OnHolonLoaded?.Invoke(this, e);
         }
 
-        private void Zome_OnHolonSaved(object sender, HolonLoadedEventArgs e)
+        private void Zome_OnHolonSaved(object sender, HolonSavedEventArgs e)
         {
             if (e.Holon.HolonType == HolonType.Zome)
             {
@@ -687,6 +702,7 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
         */
 
         //TODO: Should this be in PlanetCore?
+      /*
         public virtual async Task<IHolon> LoadHolonAsync(string rustHolonType, string hcEntryAddressHash)
         {
             // Find the zome that the holon belongs to and then load it...
@@ -702,8 +718,9 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
             }
 
             return null;
-        }
+        }*/
 
+        /*
         //TODO: Should this be in PlanetCore?
         public virtual async Task<IHolon> SaveHolonAsync(string rustHolonType, IHolon savingHolon)
         {
@@ -720,7 +737,7 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
             }
 
             return null;
-        }
+        }*/
 
         /*
         public virtual async Task<IHolon> SaveHolonAsync(IHolon savingHolon)

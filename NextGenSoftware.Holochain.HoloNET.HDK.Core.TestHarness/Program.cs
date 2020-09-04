@@ -85,7 +85,7 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core.TestHarness
                     ourWorld.OnZomeError += OurWorld_OnZomeError;
 
                     ourWorld.LoadAll();
-                    //ourWorld.Zomes.Count
+                    //ourWorld.Zomes.Add()
 
                     Holon newHolon = new Holon();
                     newHolon.Name = "Test Data";
@@ -95,7 +95,7 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core.TestHarness
                     Console.WriteLine("Saving Holon...");
 
                     // If you are using the generated code from Light above (highly recommended) you do not need to pass the HolonTypeName in, you only need to pass the holon in.
-                    ourWorld.SaveHolonAsync("Test", newHolon);
+                    ourWorld.CelestialBodyCore.SaveHolonAsync("Test", newHolon);
 
                     // Build
                     CoronalEjection ejection = ourWorld.Flare();
@@ -187,7 +187,7 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core.TestHarness
             Console.WriteLine(string.Concat("Our World Error Occured. EndPoint: ", e.EndPoint, ". Reason: ", e.Reason, ". Error Details: ", e.ErrorDetails, "HoloNETErrorDetails.Reason: ", e.HoloNETErrorDetails.Reason, "HoloNETErrorDetails.ErrorDetails: ", e.HoloNETErrorDetails.ErrorDetails));
         }
 
-        private static void OurWorld_OnHolonSaved(object sender, HolonLoadedEventArgs e)
+        private static void OurWorld_OnHolonSaved(object sender, HolonSavedEventArgs e)
         {
             Console.WriteLine("Holon Saved");
             Console.WriteLine(string.Concat("Holon Id: ", e.Holon.Id));
@@ -197,7 +197,7 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core.TestHarness
             Console.WriteLine(string.Concat("Holon Description: ", e.Holon.Description));
 
             Console.WriteLine("Loading Holon...");
-            ourWorld.LoadHolonAsync(e.Holon.Name, e.Holon.ProviderKey);
+            ourWorld.CelestialBodyCore.LoadHolonAsync(e.Holon.Name, e.Holon.ProviderKey);
         }
 
         private static void OurWorld_OnHolonLoaded(object sender, HolonLoadedEventArgs e)

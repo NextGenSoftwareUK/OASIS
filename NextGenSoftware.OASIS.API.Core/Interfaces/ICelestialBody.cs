@@ -8,15 +8,21 @@ namespace NextGenSoftware.OASIS.API.Core
     {
         //HoloNETClientBase HoloNETClient { get; }
 
-        //event PlanetBase.DataReceived OnDataReceived;
-        //event PlanetBase.Disconnected OnDisconnected;
-        //event PlanetBase.HolonLoaded OnHolonLoaded;
-        //event PlanetBase.HolonSaved OnHolonSaved;
-        //event PlanetBase.Initialized OnInitialized;
-        //event PlanetBase.ZomeError OnZomeError;
 
-        List<IZome> Zomes { get; set; }
-        List<IHolon> Holons { get; set; }
+        //TODO: Come back to this...
+        /*
+        //  event DataReceived OnDataReceived;
+        // event Disconnected OnDisconnected;
+        event Events.HolonLoaded OnHolonLoaded;
+        event Events.HolonLoaded OnHolonsLoaded;
+        event Events.HolonSaved OnHolonSaved;
+        event Events.Initialized OnInitialized;
+        event Events.ZomeError OnZomeError;
+        event Events.ZomesLoaded OnZomesLoaded;
+        */
+
+        //List<IZome> Zomes { get; set; }
+        List<IHolon> Holons { get; }
 
         void Dim();
         void Emit();
@@ -29,7 +35,7 @@ namespace NextGenSoftware.OASIS.API.Core
 
         void LoadAll();
         void LoadZomes();
-        void LoadHolons();
+        //void LoadHolons();
 
 
         //Task<IHolon> LoadHolonAsync(string rustHolonType, string providerKey);

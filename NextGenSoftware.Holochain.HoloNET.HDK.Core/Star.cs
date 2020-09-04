@@ -75,7 +75,7 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
             throw new NotImplementedException();
         }
 
-        private static void StarCore_OnHolonSaved(object sender, HolonLoadedEventArgs e)
+        private static void StarCore_OnHolonSaved(object sender, HolonSavedEventArgs e)
         {
             throw new NotImplementedException();
         }
@@ -95,8 +95,25 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
 
         public static async Task<CoronalEjection> Light(GenesisType type, string name, string dnaFolder = "", string genesisCSharpFolder = "", string genesisRustFolder = "", string genesisNameSpace = "")
         {
+            return await Light(type, name, null, dnaFolder, genesisCSharpFolder, genesisNameSpace);
+        }
+
+
+        public static async Task<CoronalEjection> Light(GenesisType type, string name, IStar starToAddPlanetTo, string dnaFolder = "", string genesisCSharpFolder = "", string genesisRustFolder = "", string genesisNameSpace = "")
+        {
+            return await Light(type, name, starToAddPlanetTo, dnaFolder, genesisCSharpFolder, genesisNameSpace);
+        }
+
+        public static async Task<CoronalEjection> Light(GenesisType type, string name, IPlanet planetToAddMoonTo, string dnaFolder = "", string genesisCSharpFolder = "", string genesisRustFolder = "", string genesisNameSpace = "")
+        {
+            return await Light(type, name, planetToAddMoonTo, dnaFolder, genesisCSharpFolder, genesisNameSpace);
+        }
+
+        private static async Task<CoronalEjection> Light(GenesisType type, string name, ICelestialBody celestialBodyParent, string dnaFolder = "", string genesisCSharpFolder = "", string genesisRustFolder = "", string genesisNameSpace = "")
+        {
             StarDNA starDNA;
-            OASIS.API.Core.ICelestialBody newBody = null;
+            //OASIS.API.Core.ICelestialBody newBody = null;
+            CelestialBody newBody = null;
             bool holonReached = false;
             string holonBufferRust = "";
             string holonBufferCsharp = "";
@@ -117,6 +134,9 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
 
             if (LoggedInUser.Level < 33 && type == GenesisType.Planet)
                 return new CoronalEjection() { ErrorOccured = true, Message = "Avatar must have reached level 33 before they can create planets. Please create a moon instead..." };
+
+            if (celestialBodyParent == null && type == GenesisType.Moon)
+                return new CoronalEjection() { ErrorOccured = true, Message = "You must specify the planet to add the moon to." };
 
             if (File.Exists(STAR_DNA))
                 starDNA = LoadDNA();
@@ -192,6 +212,7 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
             newBody.Id = Guid.NewGuid();
             newBody.Name = name;
             newBody.OnZomeError += NewBody_OnZomeError;
+            
 
             foreach (FileInfo file in files)
             {
@@ -223,7 +244,17 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
                             zomeBufferCsharp = zomeBufferCsharp.Replace("ZomeDNATemplate", parts[6].ToPascalCase());
                             zomeBufferCsharp = zomeBufferCsharp.Replace("{zome}", parts[6].ToSnakeCase());
                             zomeName = parts[6].ToPascalCase();
-                            //newBody.Zomes
+
+                            Zome newZome = new Zome(StarBody.HoloNETClient, zomeName);
+                            newBody.Zomes.Add(newZome);
+
+                            //TODO: Not sure await this? 
+                            await newBody.CelestialBodyCore.AddZome(newZome);
+                            //await newBody.SaveHolonAsync(zomeName, new Holon() { HolonType = HolonType.Zome, Id = Guid.NewGuid(), Name = zomeName });
+
+
+                            newZome.Holons.Add(new Holon() { Name = "", HolonType = HolonType.Holon });
+                            newZome.SaveHolonAsync()
                         }
 
                         if (holonReached && buffer.Contains("string") || buffer.Contains("int") || buffer.Contains("bool"))
@@ -417,13 +448,25 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
             {
                 case GenesisType.Moon:
                 {
-                    await ((StarCore)StarBody.CelestialBodyCore).AddMoonAsync((IMoon)newBody);
-                    return new CoronalEjection() { ErrorOccured = false, Message = "Moon Successfully Created.", CelestialBody = newBody };
+                     //   ((PlanetCore)(celestialBodyParent.CelestialBodyCore)).AddMoonAsync
+
+                    //await ((StarCore)StarBody.CelestialBodyCore).AddMoonAsync((IMoon)newBody);
+                     
+                     //TODO: Come back to this...
+                     //if (celestialBodyParent.CelestialBodyCore == null)
+                            //return new CoronalEjection() { ErrorOccured = false, Message = "celestialBodyParent.CelestialBodyCore is null, please make sure the ", CelestialBody = newBody };
+
+                     await ((PlanetCore)celestialBodyParent.CelestialBodyCore).AddMoonAsync((IMoon)newBody);
+                     return new CoronalEjection() { ErrorOccured = false, Message = "Moon Successfully Created.", CelestialBody = newBody };
                 }
 
                 case GenesisType.Planet:
                 {
-                    await ((StarCore)StarBody.CelestialBodyCore).AddPlanetAsync((IPlanet)newBody);
+                    // If a star is not passed in, then add the planet to the main star.
+                    if (celestialBodyParent == null)
+                        celestialBodyParent = StarBody;
+
+                    await ((StarCore)celestialBodyParent.CelestialBodyCore).AddPlanetAsync((IPlanet)newBody);
                     return new CoronalEjection() { ErrorOccured = false, Message = "Planet Successfully Created.", CelestialBody = newBody };
                 }
 

@@ -10,7 +10,7 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
         //TODO: When you first create an OAPP, it needs to be a moon of the OurWorld planet, once they have raised their karma to 33 (master) 
         //then they can create a planet. The user needs to log into their avatar Star before they can create a moon/planet with the Genesis command.
         public List<IMoon> Moons { get; set; }
-        public List<IZome> Zomes { get; set; }
+      //  public List<IZome> Zomes { get; set; }
 
         //public Planet(HoloNETClientBase holoNETClient, Guid id, string providerKey) : base(holoNETClient, id, providerKey)
         //{
