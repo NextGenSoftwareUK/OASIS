@@ -317,7 +317,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Core
                 karma = Avatar.Karma,
                 last_name = Avatar.LastName,
                 password = Avatar.Password,
-                player_address = Avatar.PlayerAddress,
+                address = Avatar.Address,
                 provider_key = Avatar.ProviderKey == null ? string.Empty : Avatar.ProviderKey,
                 title = Avatar.Title,
                 username = Avatar.Username
@@ -336,7 +336,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Core
                 Karma = Avatar.karma,
                 LastName = Avatar.last_name,
                 Password = Avatar.password,
-                PlayerAddress = Avatar.player_address,
+                Address = Avatar.address,
                 ProviderKey = Avatar.provider_key,
                 Title = Avatar.title,
                 Username = Avatar.username

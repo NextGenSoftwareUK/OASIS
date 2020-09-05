@@ -1,6 +1,6 @@
 ﻿using MongoDB.Driver;
 
-namespace NextGenSoftware.OASIS.API.WebAPI
+namespace NextGenSoftware.OASIS.API.ORIAServices
 {
     public class MongoDbContext
     {
@@ -33,13 +33,13 @@ namespace NextGenSoftware.OASIS.API.WebAPI
             mongoClient = new MongoClient("mongodb+srv://dbadmin:mz0u0VKsg0Hi6JOT@beb-wfqsj.mongodb.net/BEB?retryWrites=true&w=majority");
             _mongoDbBEB = mongoClient.GetDatabase("BEB");
         }
-        public IMongoCollection<User> User
-        {
-            get
-            {
-                return _mongoDbOASIS.GetCollection<User>("User");
-            }
-        }
+        //public IMongoCollection<Avatar> Avatar
+        //{
+        //    get
+        //    {
+        //        return _mongoDbOASIS.GetCollection<Avatar>("Avatar");
+        //    }
+        //}
 
         public IMongoCollection<Sequence> Sequence
         {

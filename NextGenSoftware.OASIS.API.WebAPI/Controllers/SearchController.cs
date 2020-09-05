@@ -13,7 +13,7 @@ using NextGenSoftware.OASIS.API.Providers.MongoOASIS;
 //using NextGenSoftware.OASIS.API.Providers.IPFSOASIS;
 //using NextGenSoftware.OASIS.API.Providers.SOLIDOASIS;
 
-namespace NextGenSoftware.OASIS.API.WebAPI.Controllers
+namespace NextGenSoftware.OASIS.API.ORIAServices.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]

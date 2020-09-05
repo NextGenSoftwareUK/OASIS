@@ -6,20 +6,24 @@ namespace NextGenSoftware.OASIS.API.Core
 {
     public interface IAvatar : IHolon
     {
-        Guid UserId { get; set; } //TODO: Remember to add this to the HC Rust code...
         string Username { get; set; }
         string Password { get; set; }
         string Email { get; set; }
         string Title { get; set; }
         string FirstName { get; set; }
         string LastName { get; set; }
+        string FullName { get; }
         string DOB { get; set; }
-        string PlayerAddress { get; set; }
+        string Address { get; set; }
         int Karma { get; }
         int Level { get; }
-
-        //bool AddKarma(int karmaToAdd);
-        //bool SubstractKarma(int karmaToRemove);
+        string Town { get; set; }
+        string County { get; set; }
+        string Country { get; set; }
+        string Postcode { get; set; }
+        string Mobile { get; set; }
+        string Landline { get; set; }
+        AvatarType AvatarType { get; set; }
 
         Task<KarmaAkashicRecord> KarmaEarnt(KarmaTypePositive karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc, bool autoSave = true);
         Task<KarmaAkashicRecord> KarmaLost(KarmaTypeNegative karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc, bool autoSave = true);

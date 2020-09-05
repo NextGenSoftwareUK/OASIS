@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace NextGenSoftware.OASIS.API.Core
@@ -6,6 +8,18 @@ namespace NextGenSoftware.OASIS.API.Core
     public abstract class OASISStorageBase : OASISProvider, IOASISStorage
     {
         public event AvatarManager.StorageProviderError StorageProviderError;
+
+        //TODO: COme back to this...
+        //public List<Avatar> LoadAvatarsWithoutPasswords(IEnumerable<Avatar> avatars)
+        //{
+        //    return avatars.Select(x => x.WithoutPassword());
+        //}
+
+        //public Avatar WithoutPassword(this Avatar user)
+        //{
+        //    user.Password = null;
+        //    return user;
+        //}
 
         public Task<KarmaAkashicRecord> AddKarmaToAvatarAsync(API.Core.IAvatar Avatar, KarmaTypePositive karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc)
         {
@@ -22,6 +36,7 @@ namespace NextGenSoftware.OASIS.API.Core
             StorageProviderError?.Invoke(this, new AvatarManagerErrorEventArgs { EndPoint = endPoint, Reason = reason, ErrorDetails = errorDetails });
         }
 
+        public abstract Task<IEnumerable<IAvatar>> LoadAllAvatarsAsync();
         public abstract Task<IAvatar> LoadAvatarAsync(string providerKey);
 
         public abstract Task<IAvatar> LoadAvatarAsync(Guid Id);

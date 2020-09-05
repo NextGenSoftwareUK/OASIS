@@ -14,6 +14,7 @@ namespace NextGenSoftware.OASIS.API.Core
         Task<IAvatar> LoadAvatarAsync(string providerKey);
         Task<IAvatar> LoadAvatarAsync(Guid Id);
         Task<IAvatar> LoadAvatarAsync(string username, string password);
+        Task<IEnumerable<IAvatar>> LoadAllAvatarsAsync();
 
         //Task<bool> SaveAvatarAsync(IAvatar Avatar);
         Task<IAvatar> SaveAvatarAsync(IAvatar Avatar);

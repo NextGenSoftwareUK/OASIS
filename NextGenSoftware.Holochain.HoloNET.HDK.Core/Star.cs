@@ -254,7 +254,7 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
 
 
                             newZome.Holons.Add(new Holon() { Name = "", HolonType = HolonType.Holon });
-                            newZome.SaveHolonAsync()
+                            //newZome.SaveHolonAsync() //TODO: Finish this...
                         }
 
                         if (holonReached && buffer.Contains("string") || buffer.Contains("int") || buffer.Contains("bool"))

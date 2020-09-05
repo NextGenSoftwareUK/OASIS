@@ -1,48 +1,84 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 using NextGenSoftware.OASIS.API.Core;
 using NextGenSoftware.OASIS.API.Providers.HoloOASIS.Desktop;
+using ORIAServices.Models;
 //using NextGenSoftware.OASIS.API.Providers.AcitvityPubOASIS;
 //using NextGenSoftware.OASIS.API.Providers.BlockStackOASIS;
 //using NextGenSoftware.OASIS.API.Providers.EthereumOASIS;
 //using NextGenSoftware.OASIS.API.Providers.IPFSOASIS;
 //using NextGenSoftware.OASIS.API.Providers.SOLIDOASIS;
 
-namespace NextGenSoftware.OASIS.API.WebAPI.Controllers
+namespace NextGenSoftware.OASIS.API.ORIAServices.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
     public class AvatarController : ControllerBase
     {
-        private AvatarManager _AvatarManager;
+        private static AvatarManager _avatarManager;
+        private IAvatarService _avatarService;
 
-        private AvatarManager AvatarManager
+        public AvatarController(IAvatarService avatarService)
+        {
+            _avatarService = avatarService;
+        }
+
+        public static AvatarManager AvatarManager
         {
             get
             {
-                if (_AvatarManager == null)
-                    _AvatarManager = new AvatarManager(new HoloOASIS("ws://localhost:8888")); //Default to HoloOASIS Provider.
+                if (_avatarManager == null)
+                    _avatarManager = new AvatarManager(new HoloOASIS("ws://localhost:8888")); //Default to HoloOASIS Provider.
 
-                return _AvatarManager;
+                return _avatarManager;
             }
         }
 
-        // GET api/values
-        [HttpGet]
-        public ActionResult<IEnumerable<string>> Get()
+        [AllowAnonymous]
+        [HttpPost("authenticate")]
+        public async Task<IActionResult> Authenticate([FromBody] AuthenticateModel model)
         {
-            return new string[] { "value1", "value2" };
+            List<IAvatar>_avatars = await AvatarManager.LoadAllAvatarsAsync();
+            var avatar = await Task.Run(() => _avatars.SingleOrDefault(x => x.Username == model.Username && x.Password == model.Password));
+
+            if (avatar == null)
+                return BadRequest(new { message = "Avatar Name or password is incorrect" });
+
+            avatar.Password = null;
+            return Ok(avatar);
+            //return Ok(avatar.WithoutPassword());
         }
 
-        // GET api/values/5
-        [HttpGet("{id}")]
-        public ActionResult<string> Get(int id)
-        {
-            return "value";
-        }
+        //TODO: Come back to this...
+        //[HttpGet]
+        //public async Task<IActionResult> GetAll()
+        //{
+        //    List<Avatar> avatars = AvatarManager.LoadAllAvatarsAsync().Result;
+
+        //    foreach (Avatar avatar in avatars)
+        //        avatar.Password = null;
+        //    }
+        //    return Ok(avatars);
+        //}
+
+        //// GET api/values
+        //[HttpGet]
+        //public ActionResult<IEnumerable<string>> Get()
+        //{
+        //    return new string[] { "value1", "value2" };
+        //}
+
+        //// GET api/values/5
+        //[HttpGet("{id}")]
+        //public ActionResult<string> Get(int id)
+        //{
+        //    return "value";
+        //}
 
         // GET api/values/5
         [HttpGet("{id}")]

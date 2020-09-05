@@ -1,7 +1,5 @@
 ﻿using MongoDB.Driver;
-using System;
-using System.Collections.Generic;
-using System.Text;
+using NextGenSoftware.OASIS.API.Core;
 using static NextGenSoftware.OASIS.API.Providers.MongoOASIS.MongoOASIS;
 
 namespace NextGenSoftware.OASIS.API.Providers.MongoOASIS
@@ -15,6 +13,15 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoOASIS
             MongoClient mongoClient = new MongoClient(connectionString);
             _mongoDb = mongoClient.GetDatabase("OASISAPI");
         }
+
+        public IMongoCollection<Avatar> Avatar
+        {
+            get
+            {
+                return _mongoDb.GetCollection<Avatar>("Avatar");
+            }
+        }
+
         public IMongoCollection<SearchData> SearchData
         {
             get

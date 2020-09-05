@@ -1,5 +1,5 @@
 
-namespace NextGenSoftware.OASIS.API.WebAPI
+namespace NextGenSoftware.OASIS.API.ORIAServices
 {
     public class BaseEntityTitleDesc : BaseEntity
     {
