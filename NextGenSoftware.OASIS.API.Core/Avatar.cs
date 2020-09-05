@@ -6,16 +6,30 @@ namespace NextGenSoftware.OASIS.API.Core
 {
     public class Avatar : Holon, IAvatar
     {
-        public Guid UserId { get; set; } //TODO: Remember to add this to the HC Rust code...
+       // public Guid UserId { get; set; } //TODO: Remember to add this to the HC Rust code...
         public string Username { get; set; }
         public string Password { get; set; }
         public string Email { get; set; }
         public string Title { get; set; }
         public string FirstName { get; set; }
         public string LastName { get; set; }
+        public string FullName
+        {
+            get
+            {
+                return string.Concat(Title, " ", FirstName, " ", LastName);
+            }
+        }
         public string DOB { get; set; }
-        public string PlayerAddress { get; set; }
-       // public int Karma { get; private set; }
+        public string Address { get; set; }
+        public string Town { get; set; }
+        public string County { get; set; }
+        public string Country { get; set; }
+        public string Postcode { get; set; }
+        public string Mobile { get; set; }
+        public string Landline { get; set; }
+        public AvatarType AvatarType { get; set; }
+        // public int Karma { get; private set; }
         public int Karma { get; set; } //TODO: This really needs to have a private setter but in the HoloOASIS provider it needs to copy the object along with each property... would prefer another work around if possible?
         public int Level
         {
@@ -38,6 +52,8 @@ namespace NextGenSoftware.OASIS.API.Core
                 return 1; //Default.
             }
         }
+
+
 
         // A record of all the karma the user has earnt/lost along with when and where from.
         public List<KarmaAkashicRecord> KarmaAkashicRecords { get; set; }
@@ -139,6 +155,8 @@ namespace NextGenSoftware.OASIS.API.Core
 
                 case KarmaTypePositive.SelfHelpImprovement:
                     return 2;
+                
+                //TODO: Finish...
 
                 default:
                     return 0;

@@ -19,7 +19,8 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Core
         string first_name { get; set; }
         string last_name { get; set; }
         string dob { get; set; }
-        string player_address { get; set; }
+        string address { get; set; }
+        //string town { get; set; } //TODO: FInish adding other fields if we still need this (think new version of HoloNET will make the class redundtant, it will convert automatically... ;-)
         // public int Karma { get; private set; }
         int karma { get; set; } //TODO: This really needs to have a private setter but in the HoloOASIS provider it needs to copy the object along with each property... would prefer another work around if possible?
         int level { get; set; }

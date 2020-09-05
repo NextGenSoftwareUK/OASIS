@@ -12,7 +12,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
-namespace NextGenSoftware.OASIS.API.WebAPI
+namespace NextGenSoftware.OASIS.API.ORIAServices
 {
     public class Startup
     {
@@ -44,7 +44,7 @@ namespace NextGenSoftware.OASIS.API.WebAPI
                 .AddScheme<AuthenticationSchemeOptions, BasicAuthenticationHandler>("BasicAuthentication", null);
 
             // configure DI for application services
-            services.AddScoped<IUserService, UserService>();
+            services.AddScoped<IAvatarService, AvatarService>();
             services.AddScoped<ISCMSService, SCMSService>();
         }
 
@@ -114,7 +114,7 @@ namespace NextGenSoftware.OASIS.API.WebAPI
 //using Microsoft.Extensions.Logging;
 //using Microsoft.Extensions.Options;
 
-//namespace NextGenSoftware.OASIS.API.WebAPI
+//namespace NextGenSoftware.OASIS.API.ORIAServices
 //{
 //    public class Startup
 //    {

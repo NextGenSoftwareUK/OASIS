@@ -61,6 +61,14 @@ namespace NextGenSoftware.OASIS.API.Core
             OnAvatarManagerError?.Invoke(this, e);
         }
 
+        public async Task<List<IAvatar>> LoadAllAvatarsAsync(ProviderType provider = ProviderType.Default)
+        {
+            if (provider != ProviderType.Default)
+                return await ((IOASISStorage)ProviderManager.GetAndActivateProvider(provider)).LoadAllAvatarsAsync();
+
+            return await ProviderManager.CurrentStorageProvider.LoadAllAvatarsAsync();
+        }
+
         public async Task<IAvatar> LoadAvatarAsync(string providerKey, ProviderType provider = ProviderType.Default)
         {
             if (provider != ProviderType.Default)

@@ -13,6 +13,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoOASIS
         //MongoDbContext db = new MongoDbContext();
         //private string _connectionString = "";
         private MongoDbContext _db = null;
+        private AvatarRepository _avatarRepository = null;
 
         public class SearchData
         {
@@ -26,7 +27,8 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoOASIS
         public MongoOASIS(string connectionString)
         {
             _db = new MongoDbContext(connectionString);
-            
+            _avatarRepository = new AvatarRepository(_db);
+
             this.ProviderName = "MongoOASIS";
             this.ProviderDescription = "MongoDB Atlas Provider";
             this.ProviderType = ProviderType.MongoDBOASIS;
@@ -47,25 +49,28 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoOASIS
         {
             throw new NotImplementedException();
         }
-
+        public override Task<IEnumerable<IAvatar>> LoadAllAvatarsAsync()
+        {
+            return _avatarRepository.GetAvatars();
+        }
         public override Task<IAvatar> LoadAvatarAsync(string providerKey)
         {
-            throw new NotImplementedException();
+            return _avatarRepository.GetAvatar(providerKey);
         }
 
         public override Task<IAvatar> LoadAvatarAsync(Guid Id)
         {
-            throw new NotImplementedException();
+            return _avatarRepository.GetAvatar(Id.ToString());
         }
 
         public override Task<IAvatar> LoadAvatarAsync(string username, string password)
         {
-            throw new NotImplementedException();
+            return _avatarRepository.GetAvatar(username, password);
         }
 
-        public override Task<IAvatar> SaveAvatarAsync(IAvatar Avatar)
+        public override Task<IAvatar> SaveAvatarAsync(IAvatar avatar)
         {
-            throw new NotImplementedException();
+            return avatar.Id == Guid.Empty ? _avatarRepository.Add(avatar) : _avatarRepository.Update(avatar);
         }
 
         public override async Task<ISearchResults> SearchAsync(string searchTerm)

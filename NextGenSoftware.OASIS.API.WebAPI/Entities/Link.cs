@@ -2,7 +2,7 @@
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 
-namespace NextGenSoftware.OASIS.API.WebAPI
+namespace NextGenSoftware.OASIS.API.ORIAServices
 {
     public class Link : BaseEntityTitleDesc
     {

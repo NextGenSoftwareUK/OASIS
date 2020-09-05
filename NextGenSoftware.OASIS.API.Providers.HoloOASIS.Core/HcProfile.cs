@@ -21,7 +21,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Core
         public string first_name { get; set; }
         public string last_name { get; set; }
         public string dob { get; set; }
-        public string player_address { get; set; }
+        public string address { get; set; }
         // public int Karma { get; private set; }
         public int karma { get; set; } //TODO: This really needs to have a private setter but in the HoloOASIS provider it needs to copy the object along with each property... would prefer another work around if possible?
         public int level { get; set; }

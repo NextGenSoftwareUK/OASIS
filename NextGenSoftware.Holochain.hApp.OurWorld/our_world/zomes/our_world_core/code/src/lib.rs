@@ -23,7 +23,6 @@ struct SignalPayload {
 pub struct Avatar 
 {
     id: String,
-    user_id: String,
 	username: String,
 	email: String,
 	hc_address_hash : String,

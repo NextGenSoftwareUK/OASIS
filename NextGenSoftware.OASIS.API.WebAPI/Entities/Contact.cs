@@ -1,9 +1,9 @@
 using MongoDB.Bson;  
 using MongoDB.Bson.Serialization.Attributes;
 
-namespace NextGenSoftware.OASIS.API.WebAPI
+namespace NextGenSoftware.OASIS.API.ORIAServices
 {
-    public class Contact : User
+    public class Contact : Avatar
     {
         [BsonRepresentation(BsonType.ObjectId)]
         public string PhaseId { get; set; }

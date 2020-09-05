@@ -4,23 +4,24 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Linq;
 using MongoDB.Bson;
+using NextGenSoftware.OASIS.API.Core;
 
-namespace NextGenSoftware.OASIS.API.WebAPI
+namespace NextGenSoftware.OASIS.API.ORIAServices
 {
     public class SCMSRepository : ISCMSRepository
     {
         MongoDbContext db = new MongoDbContext();
-        public async Task Add(User User)
-        {
-            try
-            {
-                await db.User.InsertOneAsync(User);
-            }
-            catch
-            {
-                throw;
-            }
-        }
+        //public async Task Add(Avatar Avatar)
+        //{
+        //    try
+        //    {
+        //        await db.Avatar.InsertOneAsync(Avatar);
+        //    }
+        //    catch
+        //    {
+        //        throw;
+        //    }
+        //}
         public async Task<Sequence> GetSequence(string id)
         {
             try
@@ -280,11 +281,14 @@ namespace NextGenSoftware.OASIS.API.WebAPI
         
         private List<Contact> LoadUserDataIntoContacts(List<Contact> contacts)
         {
-            var users = db.User.AsQueryable().ToListAsync();
+            //var users = db.Avatar.AsQueryable().ToListAsync();
+            
+            //TODO: Come back to this... TOMORROW! ;-)
+            var users = AvatarController.
 
             foreach (Contact contact in contacts)
             {
-                foreach (User user in users.Result)
+                foreach (Avatar user in users.Result)
                 {
                     if (contact.UserId == user.Id)
                     {
@@ -308,7 +312,7 @@ namespace NextGenSoftware.OASIS.API.WebAPI
                         contact.Title = user.Title;
                         contact.Town = user.Town;
                         contact.Username = user.Username;
-                        contact.UserType = user.UserType;
+                        contact.AvatarType = user.AvatarType;
                         contact.Version = user.Version;
                         break;
                     }
@@ -318,11 +322,12 @@ namespace NextGenSoftware.OASIS.API.WebAPI
             return contacts;
         }
 
-        public async Task Update(User User)
+        /*
+        public async Task Update(Avatar Avatar)
         {
             try
             {
-                await db.User.ReplaceOneAsync(filter: g => g.Id == User.Id, replacement: User);
+                await db.Avatar.ReplaceOneAsync(filter: g => g.Id == Avatar.Id, replacement: Avatar);
             }
             catch
             {
@@ -333,14 +338,14 @@ namespace NextGenSoftware.OASIS.API.WebAPI
         {
             try
             {
-                FilterDefinition<User> data = Builders<User>.Filter.Eq("Id", id);
-                await db.User.DeleteOneAsync(data);
+                FilterDefinition<Avatar> data = Builders<Avatar>.Filter.Eq("Id", id);
+                await db.Avatar.DeleteOneAsync(data);
             }
             catch
             {
                 throw;
             }
-        }
+        }*/
 
         public Task AddSequence(Sequence sequence)
         {
@@ -365,7 +370,7 @@ namespace NextGenSoftware.OASIS.API.WebAPI
 
                 if (loadSignedByUser)
                 {
-                    User user = await GetUser(delivery.SignedByUserId);
+                    Avatar user = await GetAvatar(delivery.SignedByUserId);
 
                     if (user != null)
                         delivery.SignedByUserFullName = user.FullName;
@@ -512,23 +517,24 @@ namespace NextGenSoftware.OASIS.API.WebAPI
             }
         }
 
-        public async Task<User> GetUser(string id)
+        /*
+        public async Task<Avatar> GetAvatar(string id)
         {
-            FilterDefinition<User> filter = Builders<User>.Filter.Eq("Id", id);
-            return await db.User.Find(filter).FirstOrDefaultAsync();
+            FilterDefinition<Avatar> filter = Builders<Avatar>.Filter.Eq("Id", id);
+            return await db.Avatar.Find(filter).FirstOrDefaultAsync();
         }
 
-        public async Task<IEnumerable<User>> GetAllUsers()
+        public async Task<IEnumerable<Avatar>> GetAllAvatars()
         {
             try
             {
-                return await db.User.AsQueryable().ToListAsync();
+                return await db.Avatar.AsQueryable().ToListAsync();
             }
             catch (Exception ex)
             {
                 throw;
             }
-        }
+        }*/
 
         public async Task<Drawing> GetDrawing(string id)
         {
