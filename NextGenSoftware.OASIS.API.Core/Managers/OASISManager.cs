@@ -1,14 +1,21 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace NextGenSoftware.OASIS.API.Core
 {
     public abstract class OASISManager
     {
-       // private SearchManagerConfig _config;
+     //   private IOASISStorage _currentOASISStorageProvider;
 
-        public List<IOASISStorage> OASISStorageProviders { get; set; }
+        //public IOASISStorage CurrentOASISStorageProvider
+        //{
+        //    get
+        //    {
+        //        return _currentOASISStorageProvider;
+        //    }
+        //}
+
+      //  public List<IOASISStorage> OASISStorageProviders { get; set; }
         
         public Task<ISearch> LoadSearchAsync(Guid id)
         {
@@ -49,16 +56,59 @@ namespace NextGenSoftware.OASIS.API.Core
        //TODO: In future more than one storage provider can be active at a time where each call can specify which provider to use.
         public OASISManager(IOASISStorage OASISStorageProvider)
         {
-            if (!ProviderManager.IsProviderRegistered(OASISStorageProvider))
-                ProviderManager.RegisterProvider(OASISStorageProvider);
+            if (OASISStorageProvider != null)
+            {
+                ProviderManager.SwitchCurrentStorageProvider(OASISStorageProvider);
+                //OASISStorageProvider.StorageProviderError += OASISStorageProvider_StorageProviderError;
+                OASISStorageProvider.StorageProviderError += OASISStorageProvider_StorageProviderError;
+            }
 
-            ProviderManager.SwitchCurrentStorageProvider(OASISStorageProvider.ProviderType);
+            //TODO: Need to unsubscribe events to stop memory leaks...
         }
 
-        private void OASISStorageProvider_OnStorageProviderError(object sender, OASISErrorEventArgs e)
+
+        private void OASISStorageProvider_StorageProviderError(object sender, AvatarManagerErrorEventArgs e)
         {
-            //TODO: Not sure if we need to have a OnSearchManagerError as well as the StorageProvider Error Event?
-            OnOASISManagerError?.Invoke(this, e);
+            OnOASISManagerError?.Invoke(this, new OASISErrorEventArgs() { ErrorDetails = e.ErrorDetails, Reason = e.Reason });
         }
+
+        //public void SetOASISStorageProvider(IOASISStorage OASISStorageProvider)
+        //{
+        //    if (OASISStorageProvider != null)
+        //    {
+        //        if (!ProviderManager.IsProviderRegistered(OASISStorageProvider))
+        //            ProviderManager.RegisterProvider(OASISStorageProvider);
+
+        //        ProviderManager.SwitchCurrentStorageProvider(OASISStorageProvider.ProviderType);
+        //        //_currentOASISStorageProvider = OASISStorageProvider;
+        //    }
+        //}
+
+        protected IOASISStorage GetOASISStorageProvider(ProviderType providerType = ProviderType.Default)
+        {
+            //   IOASISProvider provider = null;
+            //if (providerType != ProviderType.Default)
+          //  if (providerType != null)
+          //  {
+                if (providerType == ProviderType.Default)
+                    providerType = ProviderManager.CurrentStorageProviderType;
+
+                IOASISProvider provider = ProviderManager.GetAndActivateProvider(providerType);
+
+                if (provider != null)
+                    return (IOASISStorage)provider;
+
+                throw new InvalidOperationException(string.Concat(Enum.GetName(typeof(ProviderType), providerType), " ProviderType is not registered. Please call SetOASISStorageProvider() method to register the provider before calling this method."));
+        //    }
+
+            return null;
+        }
+
+
+        //private void OASISStorageProvider_OnStorageProviderError(object sender, OASISErrorEventArgs e)
+        //{
+        //    //TODO: Not sure if we need to have a OnSearchManagerError as well as the StorageProvider Error Event?
+        //    OnOASISManagerError?.Invoke(this, e);
+        //}
     }
 }

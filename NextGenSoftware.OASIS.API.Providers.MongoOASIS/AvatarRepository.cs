@@ -45,8 +45,16 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoOASIS
         {
             try
             {
-                FilterDefinition<Avatar> filter = Builders<Avatar>.Filter.Eq("Id", id);
-                return await _dbContext.Avatar.Find(filter).FirstOrDefaultAsync();
+                //TODO: (MONGOFIX) Better if can query more than field at once in Mongo? Must be possible.... Can a Mongo dev PLEASE sort this... thanks... :)
+                FilterDefinition<Avatar> filter = Builders<Avatar>.Filter.Eq("Username", username);
+                //FilterDefinition<Avatar> filter = Builders<Avatar>.Filter.AnyEq(new FieldDefinition<TDocument>)
+
+                IAvatar avatar = await _dbContext.Avatar.Find(filter).FirstOrDefaultAsync();
+
+                if (avatar != null && password != avatar.Password)
+                    return null;
+
+                return avatar;
             }
             catch
             {

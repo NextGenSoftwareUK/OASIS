@@ -7,7 +7,7 @@ namespace NextGenSoftware.OASIS.API.Core
     public class Avatar : Holon, IAvatar
     {
        // public Guid UserId { get; set; } //TODO: Remember to add this to the HC Rust code...
-        public string Username { get; set; }
+        public string Username { get; set; } //TODO: Might get rid of this and use Avatar.Name instead (from base Holon)? Would that be confusing?
         public string Password { get; set; }
         public string Email { get; set; }
         public string Title { get; set; }
@@ -60,7 +60,7 @@ namespace NextGenSoftware.OASIS.API.Core
 
         public async Task<KarmaAkashicRecord> KarmaEarnt(KarmaTypePositive karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc, bool autoSave = true)
         {
-            KarmaAkashicRecord record = new KarmaAkashicRecord { KarmaEarntOrLost = KarmaEarntOrLost.Earnt, Date = DateTime.Now, Karma = GetKarmaForType(karmaType), KarmaSource = karmaSourceType, KarmaSourceTitle = karamSourceTitle, KarmaSourceDesc = karmaSourceDesc, KarmaTypePositive = karmaType, UserId = UserId, Provider = ProviderManager.CurrentStorageProviderType };
+            KarmaAkashicRecord record = new KarmaAkashicRecord { KarmaEarntOrLost = KarmaEarntOrLost.Earnt, Date = DateTime.Now, Karma = GetKarmaForType(karmaType), KarmaSource = karmaSourceType, KarmaSourceTitle = karamSourceTitle, KarmaSourceDesc = karmaSourceDesc, KarmaTypePositive = karmaType, AvatarId = Id, Provider = ProviderManager.CurrentStorageProviderType };
             this.Karma += GetKarmaForType(karmaType);
 
             if (this.KarmaAkashicRecords == null)
@@ -76,7 +76,7 @@ namespace NextGenSoftware.OASIS.API.Core
 
         public async Task<KarmaAkashicRecord> KarmaLost(KarmaTypeNegative karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc, bool autoSave = true)
         {
-            KarmaAkashicRecord record = new KarmaAkashicRecord { KarmaEarntOrLost = KarmaEarntOrLost.Lost, Date = DateTime.Now, Karma = GetKarmaForType(karmaType), KarmaSource = karmaSourceType, KarmaSourceTitle = karamSourceTitle, KarmaSourceDesc = karmaSourceDesc, KarmaTypeNegative = karmaType, UserId = UserId, Provider = ProviderManager.CurrentStorageProviderType };
+            KarmaAkashicRecord record = new KarmaAkashicRecord { KarmaEarntOrLost = KarmaEarntOrLost.Lost, Date = DateTime.Now, Karma = GetKarmaForType(karmaType), KarmaSource = karmaSourceType, KarmaSourceTitle = karamSourceTitle, KarmaSourceDesc = karmaSourceDesc, KarmaTypeNegative = karmaType, AvatarId = Id, Provider = ProviderManager.CurrentStorageProviderType };
             this.Karma -= GetKarmaForType(karmaType);
 
             if (this.KarmaAkashicRecords == null)
