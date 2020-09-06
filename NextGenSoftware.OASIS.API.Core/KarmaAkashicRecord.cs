@@ -5,7 +5,7 @@ namespace NextGenSoftware.OASIS.API.Core
 {
     public class KarmaAkashicRecord
     {
-        public Guid UserId { get; set; }
+        public Guid AvatarId { get; set; }
         public DateTime Date { get; set; }
         public KarmaTypePositive KarmaTypePositive { get; set; }
         public KarmaTypeNegative KarmaTypeNegative { get; set; }

@@ -73,7 +73,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.TestHarness
             Console.WriteLine(string.Concat("Password: ", e.Avatar.Password));
             Console.WriteLine(string.Concat("Email: ", e.Avatar.Email));
             Console.WriteLine(string.Concat("DOB: ", e.Avatar.DOB));
-            Console.WriteLine(string.Concat("Address: ", e.Avatar.PlayerAddress));
+            Console.WriteLine(string.Concat("Address: ", e.Avatar.Address));
             Console.WriteLine(string.Concat("Karma: ", e.Avatar.Karma));
             Console.WriteLine(string.Concat("Level: ", e.Avatar.Level));
         }
@@ -83,7 +83,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.TestHarness
             Console.WriteLine("Initialized.");
             Console.WriteLine("Saving Avatar...");
 
-            _savedAvatar = new Avatar { Username = "dellams", Email = "david@nextgensoftware.co.uk", Password = "1234", FirstName = "David", LastName = "Ellams", DOB = "11/04/1980", Id = Guid.NewGuid(), Title = "Mr", PlayerAddress = "blahahahaha" };
+            _savedAvatar = new Avatar { Username = "dellams", Email = "david@nextgensoftware.co.uk", Password = "1234", FirstName = "David", LastName = "Ellams", DOB = "11/04/1980", Id = Guid.NewGuid(), Title = "Mr", Address = "blahahahaha" };
             await _savedAvatar.KarmaEarnt(KarmaTypePositive.HelpingTheEnvironment, KarmaSourceType.hApp, "Our World", "XR Educational Game To Make The World A Better Place", false);
             await _holoOASIS.SaveAvatarAsync(_savedAvatar);
         }

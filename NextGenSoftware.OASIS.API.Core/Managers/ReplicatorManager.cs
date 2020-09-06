@@ -39,7 +39,7 @@ namespace NextGenSoftware.OASIS.API.Core
 
         //Events
         public delegate void ReplicatorManagerError(object sender, AvatarManagerErrorEventArgs e);
-        public event AvatarManagerError OnAvatarManagerError;
+      //  public event AvatarManagerError OnAvatarManagerError;
 
         public delegate void StorageProviderError(object sender, AvatarManagerErrorEventArgs e);
 
@@ -69,7 +69,10 @@ namespace NextGenSoftware.OASIS.API.Core
         private void OASISStorageProvider_OnStorageProviderError(object sender, AvatarManagerErrorEventArgs e)
         {
             //TODO: Not sure if we need to have a OnAvatarManagerError as well as the StorageProvider Error Event?
-            OnAvatarManagerError?.Invoke(this, e);
+            
+            //TODO: (URGENT) FIX THIS! BOTTOM LINE USE TO BE IN....
+            //OnOASISManagerError?.Invoke(this, new OASISErrorEventArgs() { Reason = e.Reason, ErrorDetails = e.ErrorDetails });
+            //OnAvatarManagerError?.Invoke(this, e);
         }
 
         public async Task<IAvatar> LoadAvatarAsync(string providerKey, ProviderType provider = ProviderType.Default)

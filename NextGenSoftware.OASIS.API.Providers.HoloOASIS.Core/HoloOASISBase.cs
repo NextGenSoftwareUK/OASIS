@@ -359,7 +359,9 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Core
 
         public async override void ActivateProvider()
         {
-            await HoloNETClient.Connect();
+            if (HoloNETClient.State != System.Net.WebSockets.WebSocketState.Open && HoloNETClient.State != System.Net.WebSockets.WebSocketState.Connecting)
+                await HoloNETClient.Connect();
+            
             base.ActivateProvider();
         }
 

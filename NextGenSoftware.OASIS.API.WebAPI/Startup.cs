@@ -44,8 +44,8 @@ namespace NextGenSoftware.OASIS.API.ORIAServices
                 .AddScheme<AuthenticationSchemeOptions, BasicAuthenticationHandler>("BasicAuthentication", null);
 
             // configure DI for application services
-            services.AddScoped<IAvatarService, AvatarService>();
-            services.AddScoped<ISCMSService, SCMSService>();
+            //services.AddScoped<IAvatarService, AvatarService>();
+          //  services.AddScoped<ISCMSService, SCMSService>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

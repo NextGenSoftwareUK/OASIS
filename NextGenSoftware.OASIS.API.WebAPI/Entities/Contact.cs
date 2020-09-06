@@ -1,5 +1,6 @@
 using MongoDB.Bson;  
 using MongoDB.Bson.Serialization.Attributes;
+using NextGenSoftware.OASIS.API.Core;
 
 namespace NextGenSoftware.OASIS.API.ORIAServices
 {

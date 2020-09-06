@@ -114,6 +114,18 @@ namespace NextGenSoftware.OASIS.API.Core
             return _registeredProviders.Any(x => x.ProviderName == provider.ProviderName);
         }
 
+        //TODO: Check if we need this?
+        public static void SwitchCurrentStorageProvider(IOASISProvider OASISProvider)
+        {
+            if (OASISProvider != null)
+            {
+                if (!ProviderManager.IsProviderRegistered(OASISProvider))
+                    ProviderManager.RegisterProvider(OASISProvider);
+
+                ProviderManager.SwitchCurrentStorageProvider(OASISProvider.ProviderType);
+            }
+        }
+
         //TODO: In future more than one StorageProvider will be active at a time so we need to work out how to handle this...
         public static void SwitchCurrentStorageProvider(ProviderType providerType)
         {
@@ -126,6 +138,21 @@ namespace NextGenSoftware.OASIS.API.Core
                 ProviderManager.CurrentStorageProvider.ActivateProvider();
             }
         }
+
+        //TODO: Come back to this...
+        //public static void SwitchCurrentProvider(ProviderType providerType)
+        //{
+        //    IOASISProvider provider = _registeredProviders.FirstOrDefault(x => x.ProviderType == providerType);
+
+        //    if (provider != null)
+        //    {
+        //        ProviderManager.CurrentStorageProviderType = providerType;
+        //        ProviderManager.CurrentStorageProvider = (IOASISStorage)provider;
+        //        ProviderManager.CurrentStorageProvider.ActivateProvider();
+        //    }
+        //}
+
+
 
         public static void ActivateProvider(ProviderType type)
         {

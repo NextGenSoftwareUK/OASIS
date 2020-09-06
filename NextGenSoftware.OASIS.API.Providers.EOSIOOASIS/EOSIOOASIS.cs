@@ -32,6 +32,11 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             throw new NotImplementedException();
         }
 
+        public override Task<IEnumerable<IAvatar>> LoadAllAvatarsAsync()
+        {
+            throw new NotImplementedException();
+        }
+
         public override async Task<IAvatar> LoadAvatarAsync(string providerKey)
         {
             var chainApi = new ChainAPI();
@@ -92,7 +97,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             actions.Add(new ActionUtility(chainApi.GetHost().AbsoluteUri).GetActionObject("openacct", configRow.admin, "active", OASIS_EOSIO_ACCOUNT,
                     new EOSIOOpenAccountParams()
                     {
-                        userid = Avatar.UserId.ToString(),
+                        userid = Avatar.Id.ToString(),
                         eosio_acc = Avatar.Username,
                         providerkey = Avatar.ProviderKey,
                         password = StringCipher.Encrypt(Avatar.Password, OASIS_PASS_PHRASE),
@@ -101,7 +106,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
                         firstname = Avatar.FirstName,
                         lastname = Avatar.LastName,
                         dob = Avatar.DOB,
-                        playeraddr = Avatar.PlayerAddress,
+                        playeraddr = Avatar.Address,
                         karma = Avatar.Karma
                     }
                 ));

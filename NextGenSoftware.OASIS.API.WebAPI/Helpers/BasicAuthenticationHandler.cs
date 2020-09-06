@@ -7,22 +7,23 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using NextGenSoftware.OASIS.API.Core;
 
 namespace NextGenSoftware.OASIS.API.ORIAServices
 {
     public class BasicAuthenticationHandler : AuthenticationHandler<AuthenticationSchemeOptions>
     {
-        private readonly IAvatarService _userService;
+      //  private readonly IAvatarService _avatarService;
 
         public BasicAuthenticationHandler(
             IOptionsMonitor<AuthenticationSchemeOptions> options,
             ILoggerFactory logger,
             UrlEncoder encoder,
-            ISystemClock clock,
-            IAvatarService userService)
+            ISystemClock clock)
+            //IAvatarService avatarService) //TODO: See if this param can be taken out? I can't see where this BasicAuthenticationHandler is instanitated?
             : base(options, logger, encoder, clock)
         {
-            _userService = userService;
+           // _avatarService = avatarService;
         }
 
         protected override async Task<AuthenticateResult> HandleAuthenticateAsync()
@@ -30,7 +31,8 @@ namespace NextGenSoftware.OASIS.API.ORIAServices
             if (!Request.Headers.ContainsKey("Authorization"))
                 return AuthenticateResult.Fail("Missing Authorization Header");
 
-            Avatar user = null;
+            IAvatar avatar = null;
+
             try
             {
                 var authHeader = AuthenticationHeaderValue.Parse(Request.Headers["Authorization"]);
@@ -38,20 +40,24 @@ namespace NextGenSoftware.OASIS.API.ORIAServices
                 var credentials = Encoding.UTF8.GetString(credentialBytes).Split(new[] { ':' }, 2);
                 var username = credentials[0];
                 var password = credentials[1];
-                user = await _userService.Authenticate(username, password);
+
+                //avatar = await _userService.Authenticate(username, password);
+                avatar = await Program.AvatarManager.Authenticate(username, password);
             }
             catch
             {
                 return AuthenticateResult.Fail("Invalid Authorization Header");
             }
 
-            if (user == null)
+            if (avatar == null)
                 return AuthenticateResult.Fail("Invalid Username or Password");
 
-            var claims = new[] {
-                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
-                new Claim(ClaimTypes.Name, user.Username),
+            var claims = new[] 
+            {
+                new Claim(ClaimTypes.NameIdentifier, avatar.Id.ToString()),
+                new Claim(ClaimTypes.Name, avatar.Username),
             };
+
             var identity = new ClaimsIdentity(claims, Scheme.Name);
             var principal = new ClaimsPrincipal(identity);
             var ticket = new AuthenticationTicket(principal, Scheme.Name);

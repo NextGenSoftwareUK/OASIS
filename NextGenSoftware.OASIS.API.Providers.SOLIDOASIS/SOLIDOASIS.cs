@@ -67,5 +67,10 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLIDOASIS
         {
             throw new NotImplementedException();
         }
+
+        public override Task<IEnumerable<IAvatar>> LoadAllAvatarsAsync()
+        {
+            throw new NotImplementedException();
+        }
     }
 }

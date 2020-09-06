@@ -4,9 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-
 using NextGenSoftware.OASIS.API.Core;
-using NextGenSoftware.OASIS.API.Providers.HoloOASIS.Desktop;
 using ORIAServices.Models;
 //using NextGenSoftware.OASIS.API.Providers.AcitvityPubOASIS;
 //using NextGenSoftware.OASIS.API.Providers.BlockStackOASIS;
@@ -20,30 +18,35 @@ namespace NextGenSoftware.OASIS.API.ORIAServices.Controllers
     [ApiController]
     public class AvatarController : ControllerBase
     {
-        private static AvatarManager _avatarManager;
-        private IAvatarService _avatarService;
+       // private static AvatarManager _avatarManager;
+        //  private IAvatarService _avatarService;
 
-        public AvatarController(IAvatarService avatarService)
+        //public AvatarController(IAvatarService avatarService)
+        //{
+        //    _avatarService = avatarService;
+        //}
+
+        public AvatarController()
         {
-            _avatarService = avatarService;
+
         }
 
-        public static AvatarManager AvatarManager
-        {
-            get
-            {
-                if (_avatarManager == null)
-                    _avatarManager = new AvatarManager(new HoloOASIS("ws://localhost:8888")); //Default to HoloOASIS Provider.
+        //public static AvatarManager AvatarManager
+        //{
+        //    get
+        //    {
+        //        if (_avatarManager == null)
+        //            _avatarManager = new AvatarManager(new HoloOASIS("ws://localhost:8888")); //Default to HoloOASIS Provider.
 
-                return _avatarManager;
-            }
-        }
+        //        return _avatarManager;
+        //    }
+        //}
 
         [AllowAnonymous]
         [HttpPost("authenticate")]
         public async Task<IActionResult> Authenticate([FromBody] AuthenticateModel model)
         {
-            List<IAvatar>_avatars = await AvatarManager.LoadAllAvatarsAsync();
+            IEnumerable<IAvatar>_avatars = await Program.AvatarManager.LoadAllAvatarsAsync();
             var avatar = await Task.Run(() => _avatars.SingleOrDefault(x => x.Username == model.Username && x.Password == model.Password));
 
             if (avatar == null)
@@ -80,19 +83,24 @@ namespace NextGenSoftware.OASIS.API.ORIAServices.Controllers
         //    return "value";
         //}
 
+        /*
         // GET api/values/5
-        [HttpGet("{id}")]
+        //[HttpGet("GetAvatarById/{sequenceNo}/{phaseNo}")]
+        [HttpGet("GetAvatarById/{id}")]
+        //[HttpGet("{id}")]
         public async Task<IAvatar> Get(Guid id)
         {
-            return await AvatarManager.LoadAvatarAsync(id);
+            return await Program.AvatarManager.LoadAvatarAsync(id);
         }
+        */
 
         // GET api/values/5
-        [HttpGet("{id}")]
+        //[HttpGet("{id}")]
+        [HttpGet("GetAvatarByIdForProvider/{id}/{providerType}")]
         public async Task<IAvatar> Get(Guid id, ProviderType providerType)
         {
             //TODO: This will fail if the requested provider has not been registered with the ProviderManager (soon this will bn automatic with MEF if the provider dll is in the providers hot folder).
-            return await AvatarManager.LoadAvatarAsync(id, providerType);
+            return await Program.AvatarManager.LoadAvatarAsync(id, providerType);
 
 
             /*
@@ -149,17 +157,31 @@ namespace NextGenSoftware.OASIS.API.ORIAServices.Controllers
             */
         }
 
-
-        [HttpGet("{id}")]
+        /*
+        //[HttpGet("{id}")]
+        [HttpGet("GetAvatarByProviderKey/{id}")]
         public async Task<IAvatar> Get(string providerKey)
         {
-            return await AvatarManager.LoadAvatarAsync(providerKey);
+            return await Program.AvatarManager.LoadAvatarAsync(providerKey);
         }
 
-        [HttpGet("{id}")]
+        [HttpGet("GetAvatarByProviderKeyForProvider/{id}/{providerType}")]
+        public async Task<IAvatar> Get(string providerKey, ProviderType providerType)
+        {
+            return await Program.AvatarManager.LoadAvatarAsync(providerKey, providerType);
+        }
+        */
+
+        [HttpGet("GetAvatarByUsernameAndPassword/{username}/{password}")]
         public async Task<IAvatar> Get(string username, string password)
         {
-            return await AvatarManager.LoadAvatarAsync(username, password);
+            return await Program.AvatarManager.LoadAvatarAsync(username, password);
+        }
+
+        [HttpGet("GetAvatarByUsernameAndPasswordForProvider/{username}/{password}/{providerType}")]
+        public async Task<IAvatar> Get(string username, string password, ProviderType providerType)
+        {
+            return await Program.AvatarManager.LoadAvatarAsync(username, password, providerType);
         }
 
 
@@ -169,7 +191,7 @@ namespace NextGenSoftware.OASIS.API.ORIAServices.Controllers
         [HttpPut("{id}")]
         public void Put(int id, [FromBody] IAvatar value)
         {
-            AvatarManager.SaveAvatarAsync(value);
+            Program.AvatarManager.SaveAvatarAsync(value);
         }
 
         // POST api/values

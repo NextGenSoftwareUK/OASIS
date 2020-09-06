@@ -1,16 +1,18 @@
+//using System.Collections.Generic;
 //using System.Linq;
 //using System.Threading.Tasks;
 //using MongoDB.Driver;
+//using NextGenSoftware.OASIS.API.Core;
 
 //namespace NextGenSoftware.OASIS.API.ORIAServices
 //{
 //    public class AvatarService : IAvatarService
 //    {
-//       // AvatarRepository _avatarRepository = new AvatarRepository();
-//       // private IEnumerable<Avatar> _avatars = null;
+//        // AvatarRepository _avatarRepository = new AvatarRepository();
+//        // private IEnumerable<Avatar> _avatars = null;
 
-//       // private IMongoDatabase _mongoDb;
-//       // private List<User> _users = null;
+//        // private IMongoDatabase _mongoDb;
+//        // private List<User> _users = null;
 //        // users hardcoded for simplicity, store in a db with hashed passwords in production applications
 //        // private List<User> _users = new List<User>
 //        // {
@@ -25,24 +27,15 @@
 //            // MongoClient client = new MongoClient(connectionString + databaseName);
 
 
-//          //  MongoClient mongoClient = new MongoClient("mongodb+srv://dbadmin:PlRuNP9u4rG2nRdN@oasisapi-oipck.mongodb.net/test?retryWrites=true&w=majority");
-//           // _mongoDb = mongoClient.GetDatabase("OASISAPI");  
+//            //  MongoClient mongoClient = new MongoClient("mongodb+srv://dbadmin:PlRuNP9u4rG2nRdN@oasisapi-oipck.mongodb.net/test?retryWrites=true&w=majority");
+//            // _mongoDb = mongoClient.GetDatabase("OASISAPI");  
 //        }
 
-//        //public async Task<Avatar> Authenticate(string username, string password)
-//        //{
-//        //    //_avatars = await _avatarRepository.GetAvatars();
+//        public async Task<IAvatar> Authenticate(string username, string password)
+//        {
 
-
-
-//        //    var avatar = await Task.Run(() => _avatars.SingleOrDefault(x => x.Username == username && x.Password == password));
-
-//        //    if (avatar == null)
-//        //        return null;
-
-//        //    // authentication successful so return avatar details without password
-//        //    return avatar.WithoutPassword();
-//        //}
+//            return await  AvatarManager.Instance.Authenticate(username, password);
+//        }
 
 //        //public async Task<IEnumerable<Avatar>> GetAll()
 //        //{

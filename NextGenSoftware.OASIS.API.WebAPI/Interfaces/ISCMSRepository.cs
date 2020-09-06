@@ -1,13 +1,15 @@
-﻿using System.Collections.Generic;
+﻿using NextGenSoftware.OASIS.API.Core;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace NextGenSoftware.OASIS.API.ORIAServices
 {
     public interface ISCMSRepository
     {
+        static AvatarManager AvatarManager { get; }
         Task AddSequence(Sequence sequence);
         Task Update(Sequence sequence);
-        Task Delete(string id);
+        //Task Delete(string id);
         Task<Sequence> GetSequence(string id);
         Task<IEnumerable<Sequence>> GetAllSequences();
         Task<Phase> GetPhase(string id);

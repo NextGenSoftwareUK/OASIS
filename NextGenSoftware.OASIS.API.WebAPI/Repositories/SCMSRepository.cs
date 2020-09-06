@@ -3,14 +3,28 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Linq;
-using MongoDB.Bson;
 using NextGenSoftware.OASIS.API.Core;
+using NextGenSoftware.OASIS.API.Providers.HoloOASIS.Desktop;
 
 namespace NextGenSoftware.OASIS.API.ORIAServices
 {
     public class SCMSRepository : ISCMSRepository
     {
         MongoDbContext db = new MongoDbContext();
+
+        public static AvatarManager AvatarManager
+        {
+            get
+            {
+                return Program.AvatarManager;
+
+                //if (AvatarManager.Instance.CurrentOASISStorageProvider == null)
+                //    AvatarManager.Instance.SetOASISStorageProvider(new HoloOASIS("ws://localhost:8888")); //Default to HoloOASIS Provider.
+
+                //return AvatarManager.Instance;
+            }
+        }
+
         //public async Task Add(Avatar Avatar)
         //{
         //    try
@@ -22,6 +36,15 @@ namespace NextGenSoftware.OASIS.API.ORIAServices
         //        throw;
         //    }
         //}
+
+        //private AvatarManager GetAvatarManager()
+        //{
+        //    if (AvatarManager.Instance.CurrentOASISStorageProvider == null)
+        //        AvatarManager.Instance.SetOASISStorageProvider(new HoloOASIS("ws://localhost:8888")); //Default to HoloOASIS Provider.
+
+        //    return AvatarManager.Instance;
+        //}
+
         public async Task<Sequence> GetSequence(string id)
         {
             try
@@ -281,39 +304,41 @@ namespace NextGenSoftware.OASIS.API.ORIAServices
         
         private List<Contact> LoadUserDataIntoContacts(List<Contact> contacts)
         {
-            //var users = db.Avatar.AsQueryable().ToListAsync();
-            
-            //TODO: Come back to this... TOMORROW! ;-)
-            var users = AvatarController.
+            //var users = db.Avatar.AsQueryable().ToListAsync();            
 
+            // TODO: Be good if can find global way of caching the AvatarManager because expensive to start up the providers each time.
+            // Just want one persisted/cached but more tricky in web so may need to put it into a cache...
+            var users = AvatarManager.LoadAllAvatarsAsync();
+
+            //TODO: Need to change Contact fields in Mongo to match new ones (like Created/Modified/Deleted, etc since User/Profile renamed to Avatar.
             foreach (Contact contact in contacts)
             {
-                foreach (Avatar user in users.Result)
+                foreach (Avatar avatar in users.Result)
                 {
-                    if (contact.UserId == user.Id)
+                    if (contact.UserId == avatar.Id.ToString())
                     {
-                        contact.FirstName = user.FirstName;
-                        contact.LastName = user.LastName;
-                        contact.Address = user.Address;
-                        contact.Country = user.Country;
-                        contact.County = user.County;
-                        contact.CreatedByUserId = user.CreatedByUserId;
-                        contact.CreatedDate = user.CreatedDate;
-                        contact.DeletedByUserId = user.DeletedByUserId;
-                        contact.DeletedDate = user.DeletedDate;
-                        contact.Email = user.Email;
-                        contact.DOB = user.DOB;
-                        contact.Landline = user.LastName;
-                        contact.Mobile = user.Mobile;
-                        contact.ModifledByUserId = user.ModifledByUserId;
-                        contact.ModifledDate = user.ModifledDate;
-                        contact.Password = user.Password;
-                        contact.Postcode = user.Postcode;
-                        contact.Title = user.Title;
-                        contact.Town = user.Town;
-                        contact.Username = user.Username;
-                        contact.AvatarType = user.AvatarType;
-                        contact.Version = user.Version;
+                        contact.FirstName = avatar.FirstName;
+                        contact.LastName = avatar.LastName;
+                        contact.Address = avatar.Address;
+                        contact.Country = avatar.Country;
+                        contact.County = avatar.County;
+                        contact.CreatedByAvatarId = avatar.CreatedByAvatarId;
+                        contact.CreatedDate = avatar.CreatedDate;
+                        contact.DeletedByAvatarId = avatar.DeletedByAvatarId;
+                        contact.DeletedDate = avatar.DeletedDate;
+                        contact.Email = avatar.Email;
+                        contact.DOB = avatar.DOB;
+                        contact.Landline = avatar.LastName;
+                        contact.Mobile = avatar.Mobile;
+                        contact.ModifiedByAvatarId = avatar.ModifiedByAvatarId;
+                        contact.ModifiedDate = avatar.ModifiedDate;
+                        contact.Password = avatar.Password;
+                        contact.Postcode = avatar.Postcode;
+                        contact.Title = avatar.Title;
+                        contact.Town = avatar.Town;
+                        contact.Username = avatar.Username;
+                        contact.AvatarType = avatar.AvatarType;
+                        contact.Version = avatar.Version;
                         break;
                     }
                 }
@@ -370,7 +395,8 @@ namespace NextGenSoftware.OASIS.API.ORIAServices
 
                 if (loadSignedByUser)
                 {
-                    Avatar user = await GetAvatar(delivery.SignedByUserId);
+                    //Avatar user = await GetAvatar(delivery.SignedByUserId);
+                    IAvatar user = await AvatarManager.LoadAvatarAsync(Guid.Parse(delivery.SignedByUserId));
 
                     if (user != null)
                         delivery.SignedByUserFullName = user.FullName;

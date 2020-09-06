@@ -35,7 +35,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.EOSIOClasses
         {
             var Avatar = new Avatar()
             {
-                UserId = Guid.Parse(this.userid),
+                Id = Guid.Parse(this.userid),
                 Username = this.username,
                 Password = this.password,
                 Email = this.email,
@@ -43,7 +43,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.EOSIOClasses
                 FirstName = this.firstname,
                 LastName = this.lastname,
                 DOB = this.dob,
-                PlayerAddress = this.playeraddr,
+                Address = this.playeraddr,
                 Karma = this.karma
             };
 
