@@ -5,6 +5,9 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using NextGenSoftware.OASIS.API.Core;
+using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS;
+using NextGenSoftware.OASIS.API.Providers.HoloOASIS.Desktop;
+using NextGenSoftware.OASIS.API.Providers.MongoOASIS;
 using ORIAServices.Models;
 //using NextGenSoftware.OASIS.API.Providers.AcitvityPubOASIS;
 //using NextGenSoftware.OASIS.API.Providers.BlockStackOASIS;
@@ -15,6 +18,7 @@ using ORIAServices.Models;
 namespace NextGenSoftware.OASIS.API.ORIAServices.Controllers
 {
     [Route("api/[controller]")]
+    //[Route("api/[avatar]")] //TODO: Get this working, think better way?
     [ApiController]
     public class AvatarController : ControllerBase
     {
@@ -172,20 +176,66 @@ namespace NextGenSoftware.OASIS.API.ORIAServices.Controllers
         }
         */
 
+        /*
         [HttpGet("GetAvatarByUsernameAndPassword/{username}/{password}")]
-        public async Task<IAvatar> Get(string username, string password)
+        public IAvatar Get(string username, string password)
         {
-            return await Program.AvatarManager.LoadAvatarAsync(username, password);
+            //TODO: Get Async version working... 
+            //return await Program.AvatarManager.LoadAvatarAsync(username, password);
+            return Program.AvatarManager.LoadAvatar(username, password);
         }
 
         [HttpGet("GetAvatarByUsernameAndPasswordForProvider/{username}/{password}/{providerType}")]
         public async Task<IAvatar> Get(string username, string password, ProviderType providerType)
         {
             return await Program.AvatarManager.LoadAvatarAsync(username, password, providerType);
+        }*/
+
+        [HttpGet("GetAvatar/{username}/{password}")]
+        //[HttpGet("GetAvatarByUsernameAndPassword/{username}/{password}")]
+        //[HttpGet("/{username}/{password}")]
+        public IAvatar Get(string username, string password)
+        {
+            //TODO: Get Async version working... 
+            //return await Program.AvatarManager.LoadAvatarAsync(username, password);
+            return Program.AvatarManager.LoadAvatar(username, password);
         }
 
+        [HttpGet("GetAvatarForProvider/{username}/{password}/{providerType}")]
+        //[HttpGet("GetAvatarByUsernameAndPasswordForProvider/{username}/{password}/{providerType}")]
+        //[HttpGet("/{username}/{password}/{providerType}")]
+        public async Task<IAvatar> Get(string username, string password, ProviderType providerType)
+        {
+            ActivateProvider(providerType);
+            return await Program.AvatarManager.LoadAvatarAsync(username, password, providerType);
+        }
 
-        //QmR6A1gkSmCsxnbDF7V9Eswnd4Kw9SWhuf8r4R643eDshg
+        private void ActivateProvider(ProviderType providerType)
+        {
+            //TODO: Think we can have this in ProviderManger and have default connection strings/settings for each provider.
+            if (providerType != ProviderManager.CurrentStorageProviderType)
+            {
+                if (!ProviderManager.IsProviderRegistered(providerType))
+                {
+                    switch (providerType)
+                    {
+                        case ProviderType.HoloOASIS:
+                            ProviderManager.RegisterProvider(new HoloOASIS("ws://localhost:8888"));
+                            break;
+
+                        case ProviderType.MongoDBOASIS:
+                            ProviderManager.RegisterProvider(new MongoOASIS("mongodb+srv://dbadmin:PlRuNP9u4rG2nRdN@oasisapi-oipck.mongodb.net/OASISAPI?retryWrites=true&w=majority", "OASISAPI"));
+                            break;
+
+                        case ProviderType.EOSOASIS:
+                            ProviderManager.RegisterProvider(new EOSIOOASIS()); //TODO: Need to pass connection string in.
+                            break;
+                    }
+                }
+
+                ProviderManager.SwitchCurrentStorageProvider(providerType);
+            }
+        }
 
         // PUT api/values/5
         [HttpPut("{id}")]

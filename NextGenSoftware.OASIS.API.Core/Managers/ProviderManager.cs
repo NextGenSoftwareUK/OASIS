@@ -114,6 +114,11 @@ namespace NextGenSoftware.OASIS.API.Core
             return _registeredProviders.Any(x => x.ProviderName == provider.ProviderName);
         }
 
+        public static bool IsProviderRegistered(ProviderType providerType)
+        {
+            return _registeredProviders.Any(x => x.ProviderType == providerType);
+        }
+
         //TODO: Check if we need this?
         public static void SwitchCurrentStorageProvider(IOASISProvider OASISProvider)
         {

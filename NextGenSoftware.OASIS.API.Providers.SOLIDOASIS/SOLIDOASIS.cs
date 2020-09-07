@@ -72,5 +72,10 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLIDOASIS
         {
             throw new NotImplementedException();
         }
+
+        public override IAvatar LoadAvatar(string username, string password)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

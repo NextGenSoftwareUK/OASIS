@@ -112,58 +112,24 @@ namespace NextGenSoftware.OASIS.API.Core
             return await ProviderManager.CurrentStorageProvider.LoadAvatarAsync(providerKey);
         }
 
-        /*
-        private IOASISStorage GetOASISStorageProvider(ProviderType providerType = ProviderType.Default)
-        {
-         //   IOASISProvider provider = null;
-            if (providerType != ProviderType.Default)
-            {
-                IOASISProvider provider = ProviderManager.GetAndActivateProvider(providerType);
-
-                if (provider != null)
-                    return (IOASISStorage)provider;
-
-                throw new InvalidOperationException(string.Concat(Enum.GetName(typeof(ProviderType), providerType), " ProviderType is not registered. Please call SetOASISStorageProvider() method to register the provider before calling this method."));
-            }
-
-            return null;
-            //return await ((IOASISStorage)ProviderManager.GetAndActivateProvider(provider)).LoadAvatarAsync(id);
-        }
-        */
-
         public async Task<IAvatar> LoadAvatarAsync(Guid id, ProviderType providerType = ProviderType.Default)
         {
             return await GetOASISStorageProvider(providerType).LoadAvatarAsync(id);
-
-            //if (providerType != ProviderType.Default)
-            //{
-            //    IOASISProvider provider = ProviderManager.GetAndActivateProvider(providerType);
-
-            //    if (provider != null)
-            //        return await ((IOASISStorage)provider).LoadAvatarAsync(id);
-
-            //    throw new InvalidOperationException(string.Concat(Enum.GetName(typeof(ProviderType), providerType), " ProviderType is not registered. Please call SetOASISStorageProvider() method to register the provider before calling this method."));
-            //}
-            //return await ((IOASISStorage)ProviderManager.GetAndActivateProvider(provider)).LoadAvatarAsync(id);
-
-            return await ProviderManager.CurrentStorageProvider.LoadAvatarAsync(id);
         }
 
         public async Task<IAvatar> LoadAvatarAsync(string username, string password, ProviderType providerType = ProviderType.Default)
         {
-            //if ()
-
             return await GetOASISStorageProvider(providerType).LoadAvatarAsync(username, password);
+        }
+
+        public IAvatar LoadAvatar(string username, string password, ProviderType providerType = ProviderType.Default)
+        {
+            return  GetOASISStorageProvider(providerType).LoadAvatar(username, password);
         }
 
         public async Task<IAvatar> SaveAvatarAsync(IAvatar avatar, ProviderType providerType = ProviderType.Default)
         {
             return await GetOASISStorageProvider(providerType).SaveAvatarAsync(avatar);
-
-            //if (provider != ProviderType.Default)
-            //    return await ((IOASISStorage)ProviderManager.GetAndActivateProvider(provider)).SaveAvatarAsync(Avatar);
-
-            //return await ProviderManager.CurrentStorageProvider.SaveAvatarAsync(Avatar);
         }
 
         public async Task<KarmaAkashicRecord> AddKarmaToAvatarAsync(IAvatar Avatar, KarmaTypePositive karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc, ProviderType provider = ProviderType.Default)
@@ -178,7 +144,6 @@ namespace NextGenSoftware.OASIS.API.Core
         public async Task<KarmaAkashicRecord> RemoveKarmaFromAvatarAsync(IAvatar Avatar, KarmaTypeNegative karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc, ProviderType provider = ProviderType.Default)
         {
             //TODO: Check this with above changes to do with checking provider is registered before trying to use, etc...
-
             if (provider != ProviderType.Default)
                 return await ((IOASISStorage)ProviderManager.GetAndActivateProvider(provider)).SubtractKarmaFromAvatarAsync(Avatar, karmaType, karmaSourceType, karamSourceTitle, karmaSourceDesc);
 

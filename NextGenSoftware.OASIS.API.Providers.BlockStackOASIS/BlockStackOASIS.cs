@@ -30,6 +30,11 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
             throw new NotImplementedException();
         }
 
+        public override IAvatar LoadAvatar(string username, string password)
+        {
+            throw new NotImplementedException();
+        }
+
         public override Task<IAvatar> LoadAvatarAsync(string providerKey)
         {
             throw new NotImplementedException();
