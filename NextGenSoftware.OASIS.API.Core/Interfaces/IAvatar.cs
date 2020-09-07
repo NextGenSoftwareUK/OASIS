@@ -13,7 +13,7 @@ namespace NextGenSoftware.OASIS.API.Core
         string FirstName { get; set; }
         string LastName { get; set; }
         string FullName { get; }
-        string DOB { get; set; }
+        DateTime DOB { get; set; }
         string Address { get; set; }
         int Karma { get; }
         int Level { get; }

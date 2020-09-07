@@ -37,6 +37,11 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             throw new NotImplementedException();
         }
 
+        public override IAvatar LoadAvatar(string username, string password)
+        {
+            throw new NotImplementedException();
+        }
+
         public override async Task<IAvatar> LoadAvatarAsync(string providerKey)
         {
             var chainApi = new ChainAPI();
@@ -105,7 +110,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
                         title = Avatar.Title,
                         firstname = Avatar.FirstName,
                         lastname = Avatar.LastName,
-                        dob = Avatar.DOB,
+                        dob = Avatar.DOB.ToString(),
                         playeraddr = Avatar.Address,
                         karma = Avatar.Karma
                     }

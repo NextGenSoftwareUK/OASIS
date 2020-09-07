@@ -308,7 +308,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Core
         {
             return new HcAvatar
             {
-                dob = Avatar.DOB,
+                dob = Avatar.DOB.ToString(),
                 email = Avatar.Email,
                 first_name = Avatar.FirstName,
                 hc_address_hash = string.Empty,
@@ -328,7 +328,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Core
         {
             return new Avatar
             {
-                DOB = Avatar.dob,
+                DOB = Convert.ToDateTime(Avatar.dob),
                 Email = Avatar.email,
                 FirstName = Avatar.first_name,
                 HolonType = Avatar.holon_type,

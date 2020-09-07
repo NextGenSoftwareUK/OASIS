@@ -6,11 +6,11 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoOASIS
 {
     public interface IAvatarRepository
     {
-        Task<IAvatar> Add(IAvatar user);
-        Task<IAvatar> Update(IAvatar user);
+        Task<Avatar> Add(Avatar user);
+        Task<Avatar> Update(Avatar user);
         Task Delete(string id);
-        Task<IAvatar> GetAvatar(string id);
-        Task<IEnumerable<IAvatar>> GetAvatars();
+        Task<Avatar> GetAvatar(string id);
+        Task<List<Avatar>> GetAvatars();
     }
 
 }

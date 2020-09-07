@@ -14,7 +14,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoOASIS
             _dbContext = dbContext;
         }
 
-        public async Task<IAvatar> Add(IAvatar avatar)
+        public async Task<Avatar> Add(Avatar avatar)
         {
             try
             {
@@ -28,7 +28,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoOASIS
                 throw;
             }
         }
-        public async Task<IAvatar> GetAvatar(string id)
+        public async Task<Avatar> GetAvatar(string id)
         {
             try
             {
@@ -41,7 +41,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoOASIS
             }
         }
 
-        public async Task<IAvatar> GetAvatar(string username, string password)
+        public async Task<Avatar> GetAvatar(string username, string password)
         {
             try
             {
@@ -49,7 +49,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoOASIS
                 FilterDefinition<Avatar> filter = Builders<Avatar>.Filter.Eq("Username", username);
                 //FilterDefinition<Avatar> filter = Builders<Avatar>.Filter.AnyEq(new FieldDefinition<TDocument>)
 
-                IAvatar avatar = await _dbContext.Avatar.Find(filter).FirstOrDefaultAsync();
+                Avatar avatar = await _dbContext.Avatar.Find(filter).FirstOrDefaultAsync();
 
                 if (avatar != null && password != avatar.Password)
                     return null;
@@ -62,7 +62,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoOASIS
             }
         }
 
-        public async Task<IEnumerable<IAvatar>> GetAvatars()
+        public async Task<List<Avatar>> GetAvatars()
         {
             try
             {
@@ -73,7 +73,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoOASIS
                 throw;
             }
         }
-        public async Task<IAvatar> Update(IAvatar avatar)
+        public async Task<Avatar> Update(Avatar avatar)
         {
             try
             {

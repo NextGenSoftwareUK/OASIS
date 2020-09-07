@@ -24,9 +24,9 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoOASIS
             public string searchData { get; set; }
         }
 
-        public MongoOASIS(string connectionString)
+        public MongoOASIS(string connectionString, string dbName)
         {
-            _db = new MongoDbContext(connectionString);
+            _db = new MongoDbContext(connectionString, dbName);
             _avatarRepository = new AvatarRepository(_db);
 
             this.ProviderName = "MongoOASIS";
@@ -51,28 +51,52 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoOASIS
         }
         public override Task<IEnumerable<IAvatar>> LoadAllAvatarsAsync()
         {
-            return _avatarRepository.GetAvatars();
+            return new Task<IEnumerable<IAvatar>>(() => ConvertMongoEntitysToOASISAvatars(_avatarRepository.GetAvatars().Result));
         }
+
         public override Task<IAvatar> LoadAvatarAsync(string providerKey)
         {
-            return _avatarRepository.GetAvatar(providerKey);
+            //TODO: Check if this is correct way to handle Task/async...
+            return new Task<IAvatar>(() => ConvertMongoEntityToOASISAvatar(_avatarRepository.GetAvatar(providerKey).Result));
         }
 
         public override Task<IAvatar> LoadAvatarAsync(Guid Id)
         {
-            return _avatarRepository.GetAvatar(Id.ToString());
+            return new Task<IAvatar>(() => ConvertMongoEntityToOASISAvatar(_avatarRepository.GetAvatar(Id.ToString()).Result));
         }
 
         public override Task<IAvatar> LoadAvatarAsync(string username, string password)
         {
-            return _avatarRepository.GetAvatar(username, password);
+            //return new Task<IAvatar>(() => ConvertMongoEntityToOASISAvatar(_avatarRepository.GetAvatar(username, password).Result));
+
+            Avatar avatar = _avatarRepository.GetAvatar(username, password).Result;
+            IAvatar oasisAvatar = ConvertMongoEntityToOASISAvatar(avatar);
+
+            //TODO: {URGENT} The calling method never returns and waits forever, need to fix this ASAP
+            return new Task<IAvatar>(() => oasisAvatar);
+           // return oasisAvatar;
+        }
+
+        public override IAvatar LoadAvatar(string username, string password)
+        {
+            //return new Task<IAvatar>(() => ConvertMongoEntityToOASISAvatar(_avatarRepository.GetAvatar(username, password).Result));
+
+            Avatar avatar = _avatarRepository.GetAvatar(username, password).Result;
+            IAvatar oasisAvatar = ConvertMongoEntityToOASISAvatar(avatar);
+
+            //TODO: {URGENT} The calling method never returns and waits forever, need to fix this ASAP
+            return oasisAvatar;
+            // return oasisAvatar;
         }
 
         public override Task<IAvatar> SaveAvatarAsync(IAvatar avatar)
         {
-            return avatar.Id == Guid.Empty ? _avatarRepository.Add(avatar) : _avatarRepository.Update(avatar);
+            return new Task<IAvatar>(() => ConvertMongoEntityToOASISAvatar(avatar.Id == Guid.Empty ? 
+                _avatarRepository.Add(ConvertOASISAvatarToMongoEntity(avatar)).Result : 
+                _avatarRepository.Update(ConvertOASISAvatarToMongoEntity(avatar)).Result));
         }
 
+        //TODO: Move this into Search Reposirary like Avatar is...
         public override async Task<ISearchResults> SearchAsync(string searchTerm)
         {
             try
@@ -110,6 +134,91 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoOASIS
             {
                 throw;
             }
+        }
+
+        private IEnumerable<IAvatar> ConvertMongoEntitysToOASISAvatars(List<Avatar> avatars)
+        {
+            List<IAvatar> oasisAvatars = new List<IAvatar>();
+
+            foreach (Avatar avatar in avatars)
+                oasisAvatars.Add(ConvertMongoEntityToOASISAvatar(avatar));
+
+            return oasisAvatars;
+        }
+
+        private IAvatar ConvertMongoEntityToOASISAvatar(Avatar avatar)
+        {
+            Core.Avatar oasisAvatar = new Core.Avatar();
+
+            oasisAvatar.Id = Guid.Parse(avatar.AvatarId);
+            oasisAvatar.ProviderKey = avatar.Id;
+            oasisAvatar.Address = avatar.Address;
+            oasisAvatar.AvatarType = avatar.AvatarType;
+            oasisAvatar.Country = avatar.Country;
+            oasisAvatar.County = avatar.County;
+            oasisAvatar.CreatedByAvatarId = Guid.Parse(avatar.CreatedByAvatarId);
+            //oasisAvatar.CreatedDate = Convert.ToDateTime(avatar.CreatedDate);
+            oasisAvatar.CreatedDate = avatar.CreatedDate;
+            oasisAvatar.DeletedByAvatarId = Guid.Parse(avatar.DeletedByAvatarId);
+            //oasisAvatar.DeletedDate = Convert.ToDateTime(avatar.DeletedDate);
+            oasisAvatar.DeletedDate = avatar.DeletedDate;
+            oasisAvatar.ModifiedByAvatarId = Guid.Parse(avatar.ModifiedByAvatarId);
+            //oasisAvatar.DeletedDate = Convert.ToDateTime(avatar.DeletedDate);
+            oasisAvatar.DeletedDate = avatar.DeletedDate;
+            oasisAvatar.FirstName = avatar.FirstName;
+            oasisAvatar.LastName = avatar.LastName;
+            oasisAvatar.Address = avatar.Address;
+            oasisAvatar.Country = avatar.Country;
+            oasisAvatar.County = avatar.County;
+            oasisAvatar.Email = avatar.Email;
+            oasisAvatar.DOB = avatar.DOB;
+            oasisAvatar.Landline = avatar.LastName;
+            oasisAvatar.Mobile = avatar.Mobile;
+            oasisAvatar.Password = avatar.Password;
+            oasisAvatar.Postcode = avatar.Postcode;
+            oasisAvatar.Title = avatar.Title;
+            oasisAvatar.Town = avatar.Town;
+            oasisAvatar.Username = avatar.Username;
+            oasisAvatar.AvatarType = avatar.AvatarType;
+            oasisAvatar.Version = avatar.Version;
+
+            return oasisAvatar;
+        }
+
+        private Avatar ConvertOASISAvatarToMongoEntity(IAvatar avatar)
+        {
+            Avatar mongoAvatar = new Avatar();
+
+            mongoAvatar.Id = avatar.ProviderKey;
+            mongoAvatar.AvatarId = avatar.Id.ToString();
+            mongoAvatar.Address = avatar.Address;
+            mongoAvatar.AvatarType = avatar.AvatarType;
+            mongoAvatar.Country = avatar.Country;
+            mongoAvatar.County = avatar.County;
+            mongoAvatar.CreatedByAvatarId = avatar.CreatedByAvatarId.ToString();
+            mongoAvatar.CreatedDate = avatar.CreatedDate;
+            mongoAvatar.DeletedByAvatarId = avatar.DeletedByAvatarId.ToString();
+            mongoAvatar.DeletedDate = avatar.DeletedDate;
+            mongoAvatar.ModifiedByAvatarId = avatar.ModifiedByAvatarId.ToString();
+            mongoAvatar.DeletedDate = avatar.DeletedDate;
+            mongoAvatar.FirstName = avatar.FirstName;
+            mongoAvatar.LastName = avatar.LastName;
+            mongoAvatar.Address = avatar.Address;
+            mongoAvatar.Country = avatar.Country;
+            mongoAvatar.County = avatar.County;
+            mongoAvatar.Email = avatar.Email;
+            mongoAvatar.DOB = avatar.DOB;
+            mongoAvatar.Landline = avatar.LastName;
+            mongoAvatar.Mobile = avatar.Mobile;
+            mongoAvatar.Password = avatar.Password;
+            mongoAvatar.Postcode = avatar.Postcode;
+            mongoAvatar.Title = avatar.Title;
+            mongoAvatar.Town = avatar.Town;
+            mongoAvatar.Username = avatar.Username;
+            mongoAvatar.AvatarType = avatar.AvatarType;
+            mongoAvatar.Version = avatar.Version;
+
+            return mongoAvatar;
         }
     }
 }

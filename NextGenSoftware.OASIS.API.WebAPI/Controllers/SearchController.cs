@@ -28,8 +28,9 @@ namespace NextGenSoftware.OASIS.API.ORIAServices.Controllers
         {
             get
             {
+                //TODO: Check if this or AvatarManager way is better in Program?
                 if (_SearchManager == null)
-                    _SearchManager = new SearchManager(new MongoOASIS("mongodb+srv://dbadmin:PlRuNP9u4rG2nRdN@oasisapi-oipck.mongodb.net/test?retryWrites=true&w=majority")); //Default to HoloOASIS Provider.
+                    _SearchManager = new SearchManager(new MongoOASIS("mongodb+srv://dbadmin:PlRuNP9u4rG2nRdN@oasisapi-oipck.mongodb.net/test?retryWrites=true&w=majority", "OASISAPI")); //Default to HoloOASIS Provider.
                     //_SearchManager = new SearchManager(new HoloOASIS("ws://localhost:8888")); //Default to HoloOASIS Provider.
 
                 return _SearchManager;
