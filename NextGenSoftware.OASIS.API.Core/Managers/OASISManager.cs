@@ -59,6 +59,7 @@ namespace NextGenSoftware.OASIS.API.Core
             if (OASISStorageProvider != null)
             {
                 ProviderManager.SwitchCurrentStorageProvider(OASISStorageProvider);
+
                 //OASISStorageProvider.StorageProviderError += OASISStorageProvider_StorageProviderError;
                 OASISStorageProvider.StorageProviderError += OASISStorageProvider_StorageProviderError;
             }
@@ -88,18 +89,23 @@ namespace NextGenSoftware.OASIS.API.Core
         {
             //   IOASISProvider provider = null;
             //if (providerType != ProviderType.Default)
-          //  if (providerType != null)
-          //  {
-                if (providerType == ProviderType.Default)
-                    providerType = ProviderManager.CurrentStorageProviderType;
+            //  if (providerType != null)
+            //  {
 
-                IOASISProvider provider = ProviderManager.GetAndActivateProvider(providerType);
+            if (providerType != ProviderManager.CurrentStorageProviderType)
+            { 
+                //TODO Need to Set Default.
+                //if (providerType == ProviderType.Default)
+                    
+                    //providerType = ProviderManager.CurrentStorageProviderType; //TODO: Set to DefaultProvider. (will put in config file) )remember to pass through from web api too?
+
+                IOASISProvider provider = ProviderManager.SwitchCurrentStorageProvider(providerType);
 
                 if (provider != null)
                     return (IOASISStorage)provider;
 
                 throw new InvalidOperationException(string.Concat(Enum.GetName(typeof(ProviderType), providerType), " ProviderType is not registered. Please call SetOASISStorageProvider() method to register the provider before calling this method."));
-        //    }
+            }
 
             return null;
         }

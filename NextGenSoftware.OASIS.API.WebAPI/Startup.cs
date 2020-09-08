@@ -11,8 +11,9 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using NextGenSoftware.OASIS.API.Core;
 
-namespace NextGenSoftware.OASIS.API.ORIAServices
+namespace NextGenSoftware.OASIS.API.WebAPI
 {
     public class Startup
     {
@@ -28,6 +29,17 @@ namespace NextGenSoftware.OASIS.API.ORIAServices
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            services.Configure<OASISSettings>(Configuration.GetSection("OASIS"));
+            //string mongoConnectionString = Configuration.GetConnectionString("MongoDBConnectionString");
+
+            // Program.DefaultStorageProviderType = (ProviderType)Enum.Parse(typeof(ProviderType), Configuration.GetValue<string>("OASIS:StorageProviders.DefaultProvider"));
+
+            //string test = Configuration.GetValue<string>("OASIS:Test");
+            //string test2 = Configuration.GetValue<string>("OASIS:StorageProviders.DefaultProvider");
+            //Program.HoloOASISConnectionString = Configuration.GetValue<string>("OASIS:StorageProviders.HoloOASIS.ConnectionString");
+            //Program.MongoOASISConnectionString = Configuration.GetValue<string>("OASIS:StorageProviders.MongoOASIS.ConnectionString");
+            //Program.MongoOASISDBName = Configuration.GetValue<string>("OASIS:StorageProviders.MongoOASIS.DBName");
+
             services.AddCors(options =>
             {
                 options.AddPolicy(MyAllowSpecificOrigins,
@@ -68,6 +80,8 @@ namespace NextGenSoftware.OASIS.API.ORIAServices
             {
                 endpoints.MapControllers();
             });
+
+          //  string dbConn = configuration.GetSection("MySettings").GetSection("DbConnection").Value;
 
             /*
             app.UseEndpoints(endpoints =>
@@ -114,7 +128,7 @@ namespace NextGenSoftware.OASIS.API.ORIAServices
 //using Microsoft.Extensions.Logging;
 //using Microsoft.Extensions.Options;
 
-//namespace NextGenSoftware.OASIS.API.ORIAServices
+//namespace NextGenSoftware.OASIS.API.WebAPI
 //{
 //    public class Startup
 //    {

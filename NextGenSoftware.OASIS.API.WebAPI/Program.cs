@@ -1,34 +1,92 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using NextGenSoftware.OASIS.API.Core;
 using NextGenSoftware.OASIS.API.Providers.HoloOASIS.Desktop;
 using NextGenSoftware.OASIS.API.Providers.MongoOASIS;
 
-namespace NextGenSoftware.OASIS.API.ORIAServices
+namespace NextGenSoftware.OASIS.API.WebAPI
 {
     public class Program
     {
+        private static AvatarManager _avatarManager;
+
+        /*
+        private static MongoOASIS _mongoOASISProvider = null;
+        private static HoloOASIS _holoOASISProvider = null;
+        
+        public static string HoloOASISConnectionString = "";
+        public static string MongoOASISConnectionString = "";
+        public static string MongoOASISDBName = "";
+        public static ProviderType DefaultStorageProviderType = ProviderType.MongoDBOASIS;
+
+        public static MongoOASIS MongoOASISProvider
+        {
+            get
+            {
+                if (_mongoOASISProvider == null)
+                {
+
+
+                    _mongoOASISProvider = new MongoOASIS(MongoOASISConnectionString, MongoOASISDBName);
+                    _mongoOASISProvider.StorageProviderError += MongoOASISProvider_StorageProviderError;
+                }
+
+                return _mongoOASISProvider;
+            }
+        }
+
+        public static HoloOASIS HoloOASISProvider
+        {
+            get
+            {
+                if (_holoOASISProvider == null)
+                {
+                    _holoOASISProvider = new HoloOASIS(HoloOASISConnectionString);
+                    _holoOASISProvider.OnHoloOASISError += _holoOASISProvider_OnHoloOASISError;
+                    _holoOASISProvider.StorageProviderError += _holoOASISProvider_StorageProviderError;
+                }
+
+                return _holoOASISProvider;
+            }
+        }*/
+
+        /*
+        private static void _holoOASISProvider_StorageProviderError(object sender, AvatarManagerErrorEventArgs e)
+        {
+            
+        }
+
+        private static void _holoOASISProvider_OnHoloOASISError(object sender, Providers.HoloOASIS.Core.HoloOASISErrorEventArgs e)
+        {
+            
+        }*/
+
+
         public static AvatarManager AvatarManager
         {
             get
             {
                 // TODO: This code is only needed because we have a singelton pattern for AvatarManager (only 1 instance instanitated through a static property).
                 // Normally code is simpler if you just pass the provider into the manager constructor like SearchManager does, it is just one instance that is disposed of again once the request has been serviced...
-                if (ProviderManager.CurrentStorageProvider == null)
+                //if (ProviderManager.CurrentStorageProvider == null)
+                
+                //if (AvatarManager.Instance == null || ProviderManager.CurrentStorageProvider == null)
+                if (_avatarManager == null)
                 {
+                    _avatarManager = new AvatarManager(GetAndActivateProvider());
+                    _avatarManager.OnOASISManagerError += _avatarManager_OnOASISManagerError;
+
+                    //ProviderManager.SwitchCurrentStorageProvider(MongoOASISProvider);
+                    // ProviderManager.SwitchCurrentStorageProvider(DefaultStorageProviderType);
+
                     //HoloOASIS holoOASISProvider = new HoloOASIS("ws://localhost:8888");
-                    MongoOASIS mongoOASISProvider = new MongoOASIS("mongodb+srv://dbadmin:PlRuNP9u4rG2nRdN@oasisapi-oipck.mongodb.net/OASISAPI?retryWrites=true&w=majority", "OASISAPI");
-                    
-                    ProviderManager.SwitchCurrentStorageProvider(mongoOASISProvider);
+                    //MongoOASIS mongoOASISProvider = new MongoOASIS("mongodb+srv://dbadmin:PlRuNP9u4rG2nRdN@oasisapi-oipck.mongodb.net/OASISAPI?retryWrites=true&w=majority", "OASISAPI");
+
+                    //ProviderManager.SwitchCurrentStorageProvider(mongoOASISProvider);
 
                     //  holoOASISProvider.OnHoloOASISError += HoloOASISProvider_OnHoloOASISError;
-                    mongoOASISProvider.StorageProviderError += MongoOASISProvider_StorageProviderError;
+                    //mongoOASISProvider.StorageProviderError += MongoOASISProvider_StorageProviderError;
                     AvatarManager.Instance.OnOASISManagerError += AvatarManager_OnOASISManagerError;
                 }
                                                                                                        
@@ -58,10 +116,6 @@ namespace NextGenSoftware.OASIS.API.ORIAServices
 
         public static void Main(string[] args)
         {
-
-            Guid temp = Guid.NewGuid();
-            Guid temp2 = Guid.NewGuid();
-
             CreateHostBuilder(args).Build().Run();
         }
 
@@ -87,7 +141,7 @@ namespace NextGenSoftware.OASIS.API.ORIAServices
 //using Microsoft.Extensions.Configuration;
 //using Microsoft.Extensions.Logging;
 
-//namespace NextGenSoftware.OASIS.API.ORIAServices
+//namespace NextGenSoftware.OASIS.API.WebAPI
 //{
 //    public class Program
 //    {

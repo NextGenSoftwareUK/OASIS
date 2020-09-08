@@ -2,7 +2,7 @@ using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 using System;
 
-namespace NextGenSoftware.OASIS.API.ORIAServices
+namespace NextGenSoftware.OASIS.API.WebAPI
 {
     public class Drawing : BaseEntity
     {

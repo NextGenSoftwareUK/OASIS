@@ -98,16 +98,18 @@ namespace NextGenSoftware.OASIS.API.Core
 
         public async Task<IEnumerable<IAvatar>> LoadAllAvatarsAsync(ProviderType provider = ProviderType.Default)
         {
-            if (provider != ProviderType.Default)
-                return await ((IOASISStorage)ProviderManager.GetAndActivateProvider(provider)).LoadAllAvatarsAsync();
+            if (provider != ProviderManager.CurrentStorageProviderType)
+                return await ((IOASISStorage)ProviderManager.SwitchCurrentStorageProvider(provider)).LoadAllAvatarsAsync();
+
+           // ProviderManager.SwitchCurrentStorageProvider(providerType);
 
             return await ProviderManager.CurrentStorageProvider.LoadAllAvatarsAsync();
         }
 
         public async Task<IAvatar> LoadAvatarAsync(string providerKey, ProviderType provider = ProviderType.Default)
         {
-            if (provider != ProviderType.Default)
-                return await ((IOASISStorage)ProviderManager.GetAndActivateProvider(provider)).LoadAvatarAsync(providerKey);
+            if (provider != ProviderManager.CurrentStorageProviderType)
+                return await ((IOASISStorage)ProviderManager.SwitchCurrentStorageProvider(provider)).LoadAvatarAsync(providerKey);
 
             return await ProviderManager.CurrentStorageProvider.LoadAvatarAsync(providerKey);
         }
@@ -136,7 +138,7 @@ namespace NextGenSoftware.OASIS.API.Core
         {
             //TODO: Check this with above changes to do with checking provider is registered before trying to use, etc...
             if (provider != ProviderType.Default)
-                return await ((IOASISStorage)ProviderManager.GetAndActivateProvider(provider)).AddKarmaToAvatarAsync(Avatar, karmaType, karmaSourceType, karamSourceTitle, karmaSourceDesc);
+                return await ((IOASISStorage)ProviderManager.SwitchCurrentStorageProvider(provider)).AddKarmaToAvatarAsync(Avatar, karmaType, karmaSourceType, karamSourceTitle, karmaSourceDesc);
 
             return await ProviderManager.CurrentStorageProvider.AddKarmaToAvatarAsync(Avatar, karmaType, karmaSourceType, karamSourceTitle, karmaSourceDesc);
         }
