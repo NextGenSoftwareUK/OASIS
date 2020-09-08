@@ -42,7 +42,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.EOSIOClasses
                 Title = this.title,
                 FirstName = this.firstname,
                 LastName = this.lastname,
-                DOB = this.dob,
+                DOB = Convert.ToDateTime(this.dob),
                 Address = this.playeraddr,
                 Karma = this.karma
             };

@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace ORIAServices.Models
+namespace WebAPI.Models
 {
     public class AuthenticateModel
     {

@@ -1,7 +1,7 @@
 ﻿//using System.Collections.Generic;
 //using System.Threading.Tasks;
 
-//namespace NextGenSoftware.OASIS.API.ORIAServices
+//namespace NextGenSoftware.OASIS.API.WebAPI
 //{
 //    public interface ISCMSService
 //    {

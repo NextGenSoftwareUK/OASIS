@@ -2,7 +2,7 @@
 //using NextGenSoftware.OASIS.API.Core;
 //using System;
 
-//namespace NextGenSoftware.OASIS.API.ORIAServices
+//namespace NextGenSoftware.OASIS.API.WebAPI
 //{
 //    public class Avatar : BaseEntity
 //    {

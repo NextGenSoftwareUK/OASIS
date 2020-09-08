@@ -3,8 +3,8 @@
   <PropertyGroup>
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <AspNetCoreHostingModel>InProcess</AspNetCoreHostingModel>
-    <RootNamespace>NextGenSoftware.OASIS.API.ORIAServices</RootNamespace>
-    <AssemblyName>NextGenSoftware.OASIS.API.ORIAServices</AssemblyName>
+    <RootNamespace>NextGenSoftware.OASIS.API.WebAPI</RootNamespace>
+    <AssemblyName>NextGenSoftware.OASIS.API.WebAPI</AssemblyName>
   </PropertyGroup>
 
   <ItemGroup>

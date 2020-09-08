@@ -1,9 +1,9 @@
 ﻿//using Microsoft.AspNetCore.Mvc;
 //using Microsoft.AspNetCore.Authorization;
 //using System.Threading.Tasks;
-//using ORIAServices.Models;
+//using WebAPI.Models;
 
-//namespace NextGenSoftware.OASIS.API.ORIAServices.Controllers
+//namespace NextGenSoftware.OASIS.API.WebAPI.Controllers
 //{
 //    [Authorize]
 //    [ApiController]

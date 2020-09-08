@@ -4,53 +4,48 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 using NextGenSoftware.OASIS.API.Core;
-using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS;
-using NextGenSoftware.OASIS.API.Providers.HoloOASIS.Desktop;
-using NextGenSoftware.OASIS.API.Providers.MongoOASIS;
-using ORIAServices.Models;
-//using NextGenSoftware.OASIS.API.Providers.AcitvityPubOASIS;
-//using NextGenSoftware.OASIS.API.Providers.BlockStackOASIS;
-//using NextGenSoftware.OASIS.API.Providers.EthereumOASIS;
-//using NextGenSoftware.OASIS.API.Providers.IPFSOASIS;
-//using NextGenSoftware.OASIS.API.Providers.SOLIDOASIS;
+using WebAPI.Models;
 
-namespace NextGenSoftware.OASIS.API.ORIAServices.Controllers
+namespace NextGenSoftware.OASIS.API.WebAPI.Controllers
 {
     [Route("api/[controller]")]
     //[Route("api/[avatar]")] //TODO: Get this working, think better way?
     [ApiController]
-    public class AvatarController : ControllerBase
+    public class AvatarController : OASISControllerBase
     {
-       // private static AvatarManager _avatarManager;
-        //  private IAvatarService _avatarService;
+        private static AvatarManager _avatarManager;
 
-        //public AvatarController(IAvatarService avatarService)
-        //{
-        //    _avatarService = avatarService;
-        //}
-
-        public AvatarController()
+        public AvatarController(IOptions<OASISSettings> OASISSettings) : base(OASISSettings)
         {
 
         }
 
-        //public static AvatarManager AvatarManager
-        //{
-        //    get
-        //    {
-        //        if (_avatarManager == null)
-        //            _avatarManager = new AvatarManager(new HoloOASIS("ws://localhost:8888")); //Default to HoloOASIS Provider.
+        public AvatarManager AvatarManager
+        {
+            get
+            {
+                if (_avatarManager == null)
+                {
+                    _avatarManager = new AvatarManager(GetAndActivateProvider());
+                    _avatarManager.OnOASISManagerError += _avatarManager_OnOASISManagerError;
+                }
 
-        //        return _avatarManager;
-        //    }
-        //}
+                return _avatarManager;
+            }
+        }
+
+        private void _avatarManager_OnOASISManagerError(object sender, OASISErrorEventArgs e)
+        {
+            
+        }
 
         [AllowAnonymous]
         [HttpPost("authenticate")]
         public async Task<IActionResult> Authenticate([FromBody] AuthenticateModel model)
         {
-            IEnumerable<IAvatar>_avatars = await Program.AvatarManager.LoadAllAvatarsAsync();
+            IEnumerable<IAvatar>_avatars = await AvatarManager.LoadAllAvatarsAsync();
             var avatar = await Task.Run(() => _avatars.SingleOrDefault(x => x.Username == model.Username && x.Password == model.Password));
 
             if (avatar == null)
@@ -104,61 +99,7 @@ namespace NextGenSoftware.OASIS.API.ORIAServices.Controllers
         public async Task<IAvatar> Get(Guid id, ProviderType providerType)
         {
             //TODO: This will fail if the requested provider has not been registered with the ProviderManager (soon this will bn automatic with MEF if the provider dll is in the providers hot folder).
-            return await Program.AvatarManager.LoadAvatarAsync(id, providerType);
-
-
-            /*
-            if (AvatarManager.DefaultProviderType != providerType)
-            {
-                switch (providerType)
-                {
-                    case ProviderType.ActivityPubOASIS:
-                        AvatarManager.DefaultProvider = new AcitvityPubOASIS();
-                        break;
-
-                    case ProviderType.BlockStackOASIS:
-                        AvatarManager.DefaultProvider = new BlockStackOASIS();
-                        break;
-
-                    case ProviderType.EOSOASIS:
-                        //AvatarManager.DefaultProvider = new EOSOASIS();
-                        break;
-
-                    case ProviderType.EthereumOASIS:
-                        AvatarManager.DefaultProvider = new EthereumOASIS();
-                        break;
-
-                    case ProviderType.HoloOASIS:
-                        AvatarManager.DefaultProvider = new HoloOASIS(("ws://localhost:8888"));
-                        break;
-
-                    case ProviderType.IPFSOASIS:
-                        AvatarManager.DefaultProvider = new IPFSOASIS;
-                        break;
-
-                    case ProviderType.LoonOASIS:
-                        //AvatarManager.DefaultProvider = new LoonOASIS();
-                        break;
-
-                    case ProviderType.ScuttleBugOASIS:
-                        //AvatarManager.DefaultProvider = new ScuttleBugOASIS();
-                        break;
-
-                    case ProviderType.SOLIDOASIS:
-                        AvatarManager.DefaultProvider = new SOLIDOASIS();
-                        break;
-
-                    case ProviderType.StellarOASIS:
-                        //AvatarManager.DefaultProvider = new ScuttleBugOASIS();
-                        break;
-                }
-
-                AvatarManager.DefaultProviderType = providerType;
-            }
-
-            //AvatarManager.DefaultProvider = providerType;
-            return await AvatarManager.LoadAvatarAsync(id);
-            */
+            return await AvatarManager.LoadAvatarAsync(id, providerType);
         }
 
         /*
@@ -198,50 +139,28 @@ namespace NextGenSoftware.OASIS.API.ORIAServices.Controllers
         {
             //TODO: Get Async version working... 
             //return await Program.AvatarManager.LoadAvatarAsync(username, password);
-            return Program.AvatarManager.LoadAvatar(username, password);
+
+          //  ActivateProvider((ProviderType)Enum.Parse(typeof(ProviderType), OASISSettings.Value.StorageProviders.DefaultProvider));
+            return AvatarManager.LoadAvatar(username, password);
         }
 
-        [HttpGet("GetAvatarForProvider/{username}/{password}/{providerType}")]
+        [HttpGet("GetAvatarForProvider/{providerType}/{username}/{password}")]
         //[HttpGet("GetAvatarByUsernameAndPasswordForProvider/{username}/{password}/{providerType}")]
         //[HttpGet("/{username}/{password}/{providerType}")]
-        public async Task<IAvatar> Get(string username, string password, ProviderType providerType)
+        public async Task<IAvatar> Get(ProviderType providerType, string username, string password)
         {
-            ActivateProvider(providerType);
-            return await Program.AvatarManager.LoadAvatarAsync(username, password, providerType);
-        }
+            //TODO: Get Async version working... 
+            //return await Program.AvatarManager.LoadAvatarAsync(username, password, providerType);
 
-        private void ActivateProvider(ProviderType providerType)
-        {
-            //TODO: Think we can have this in ProviderManger and have default connection strings/settings for each provider.
-            if (providerType != ProviderManager.CurrentStorageProviderType)
-            {
-                if (!ProviderManager.IsProviderRegistered(providerType))
-                {
-                    switch (providerType)
-                    {
-                        case ProviderType.HoloOASIS:
-                            ProviderManager.RegisterProvider(new HoloOASIS("ws://localhost:8888"));
-                            break;
-
-                        case ProviderType.MongoDBOASIS:
-                            ProviderManager.RegisterProvider(new MongoOASIS("mongodb+srv://dbadmin:PlRuNP9u4rG2nRdN@oasisapi-oipck.mongodb.net/OASISAPI?retryWrites=true&w=majority", "OASISAPI"));
-                            break;
-
-                        case ProviderType.EOSOASIS:
-                            ProviderManager.RegisterProvider(new EOSIOOASIS()); //TODO: Need to pass connection string in.
-                            break;
-                    }
-                }
-
-                ProviderManager.SwitchCurrentStorageProvider(providerType);
-            }
+          //  ActivateProvider(providerType);
+            return AvatarManager.LoadAvatar(username, password, providerType);
         }
 
         // PUT api/values/5
         [HttpPut("{id}")]
         public void Put(int id, [FromBody] IAvatar value)
         {
-            Program.AvatarManager.SaveAvatarAsync(value);
+            AvatarManager.SaveAvatarAsync(value);
         }
 
         // POST api/values

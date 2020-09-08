@@ -99,15 +99,15 @@ namespace NextGenSoftware.OASIS.API.Core
         }
 
         // Highly recommend this one is used.
-        public static IOASISProvider GetAndActivateProvider(ProviderType type)
-        {
-            IOASISProvider provider = _registeredProviders.FirstOrDefault(x => x.ProviderType == type);
+        //public static IOASISProvider GetAndActivateProvider(ProviderType type)
+        //{
+        //    IOASISProvider provider = _registeredProviders.FirstOrDefault(x => x.ProviderType == type);
 
-            if (provider != null)
-                provider.ActivateProvider();
+        //    if (provider != null)
+        //        provider.ActivateProvider();
 
-            return provider;
-        }
+        //    return provider;
+        //}
 
         public static bool IsProviderRegistered(IOASISProvider provider)
         {
@@ -122,26 +122,34 @@ namespace NextGenSoftware.OASIS.API.Core
         //TODO: Check if we need this?
         public static void SwitchCurrentStorageProvider(IOASISProvider OASISProvider)
         {
-            if (OASISProvider != null)
+            if (OASISProvider != ProviderManager.CurrentStorageProvider)
             {
-                if (!ProviderManager.IsProviderRegistered(OASISProvider))
-                    ProviderManager.RegisterProvider(OASISProvider);
+                if (OASISProvider != null)
+                {
+                    if (!ProviderManager.IsProviderRegistered(OASISProvider))
+                        ProviderManager.RegisterProvider(OASISProvider);
 
-                ProviderManager.SwitchCurrentStorageProvider(OASISProvider.ProviderType);
+                    ProviderManager.SwitchCurrentStorageProvider(OASISProvider.ProviderType);
+                }
             }
         }
 
         //TODO: In future more than one StorageProvider will be active at a time so we need to work out how to handle this...
-        public static void SwitchCurrentStorageProvider(ProviderType providerType)
+        public static IOASISProvider SwitchCurrentStorageProvider(ProviderType providerType)
         {
-            IOASISProvider provider = _registeredProviders.FirstOrDefault(x => x.ProviderType == providerType);
-
-            if (provider != null && (provider.ProviderCategory == ProviderCategory.Storage || provider.ProviderCategory == ProviderCategory.StorageAndNetwork))
+            if (providerType != ProviderManager.CurrentStorageProviderType)
             {
-                ProviderManager.CurrentStorageProviderType = providerType;
-                ProviderManager.CurrentStorageProvider = (IOASISStorage)provider;
-                ProviderManager.CurrentStorageProvider.ActivateProvider();
+                IOASISProvider provider = _registeredProviders.FirstOrDefault(x => x.ProviderType == providerType);
+
+                if (provider != null && (provider.ProviderCategory == ProviderCategory.Storage || provider.ProviderCategory == ProviderCategory.StorageAndNetwork))
+                {
+                    ProviderManager.CurrentStorageProviderType = providerType;
+                    ProviderManager.CurrentStorageProvider = (IOASISStorage)provider;
+                    ProviderManager.CurrentStorageProvider.ActivateProvider();
+                }
             }
+
+            return ProviderManager.CurrentStorageProvider;
         }
 
         //TODO: Come back to this...
