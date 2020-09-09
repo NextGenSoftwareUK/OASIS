@@ -3,7 +3,7 @@ using NextGenSoftware.OASIS.API.Core;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace NextGenSoftware.OASIS.API.Providers.MongoOASIS
+namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
 {
     public class AvatarRepository : IAvatarRepository
     {

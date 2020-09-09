@@ -58,7 +58,7 @@ namespace NextGenSoftware.OASIS.API.Core
         {
             if (OASISStorageProvider != null)
             {
-                ProviderManager.SwitchCurrentStorageProvider(OASISStorageProvider);
+                ProviderManager.SetAndActivateCurrentStorageProvider(OASISStorageProvider);
 
                 //OASISStorageProvider.StorageProviderError += OASISStorageProvider_StorageProviderError;
                 OASISStorageProvider.StorageProviderError += OASISStorageProvider_StorageProviderError;
@@ -85,6 +85,7 @@ namespace NextGenSoftware.OASIS.API.Core
         //    }
         //}
 
+        /*
         protected IOASISStorage GetOASISStorageProvider(ProviderType providerType = ProviderType.Default)
         {
             //   IOASISProvider provider = null;
@@ -108,7 +109,7 @@ namespace NextGenSoftware.OASIS.API.Core
             }
 
             return null;
-        }
+        }*/
 
 
         //private void OASISStorageProvider_OnStorageProviderError(object sender, OASISErrorEventArgs e)

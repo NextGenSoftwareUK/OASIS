@@ -52,7 +52,7 @@ namespace NextGenSoftware.OASIS.API.Core
             if (!ProviderManager.IsProviderRegistered(OASISStorageProvider))
                 ProviderManager.RegisterProvider(OASISStorageProvider);
 
-            ProviderManager.SwitchCurrentStorageProvider(OASISStorageProvider.ProviderType);
+            ProviderManager.SetAndActivateCurrentStorageProvider(OASISStorageProvider.ProviderType);
         }
 
         //private void OASISStorageProvider_OnStorageProviderError(object sender, SearchManagerErrorEventArgs e)
@@ -63,10 +63,7 @@ namespace NextGenSoftware.OASIS.API.Core
 
         public async Task<ISearchResults> SearchAsync(string searchTerm, ProviderType provider = ProviderType.Default)
         {
-            if (provider != ProviderType.Default)
-                return await ((IOASISStorage)ProviderManager.GetAndActivateProvider(provider)).SearchAsync(searchTerm);
-
-            return await ProviderManager.CurrentStorageProvider.SearchAsync(searchTerm);
+            return await ((IOASISStorage)ProviderManager.SetAndActivateCurrentStorageProvider(provider)).SearchAsync(searchTerm);
         }
 
     }

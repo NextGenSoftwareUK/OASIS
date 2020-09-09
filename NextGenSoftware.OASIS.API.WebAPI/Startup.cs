@@ -30,6 +30,8 @@ namespace NextGenSoftware.OASIS.API.WebAPI
         public void ConfigureServices(IServiceCollection services)
         {
             services.Configure<OASISSettings>(Configuration.GetSection("OASIS"));
+            
+            
             //string mongoConnectionString = Configuration.GetConnectionString("MongoDBConnectionString");
 
             // Program.DefaultStorageProviderType = (ProviderType)Enum.Parse(typeof(ProviderType), Configuration.GetValue<string>("OASIS:StorageProviders.DefaultProvider"));

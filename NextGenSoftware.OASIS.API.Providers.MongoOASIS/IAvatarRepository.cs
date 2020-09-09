@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace NextGenSoftware.OASIS.API.Providers.MongoOASIS
+namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
 {
     public interface IAvatarRepository
     {

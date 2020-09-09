@@ -1,4 +1,5 @@
 ﻿
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -9,6 +10,8 @@ namespace NextGenSoftware.OASIS.API.Core
         private static List<IOASISProvider> _registeredProviders = new List<IOASISProvider>();
 
         public static ProviderType CurrentStorageProviderType { get; private set; }
+
+        public static string[] DefaultProviderTypes { get;  set; }
 
         public static IOASISStorage CurrentStorageProvider { get; private set; } //TODO: Need to work this out because in future there can be more than one provider active at a time.
 
@@ -120,7 +123,7 @@ namespace NextGenSoftware.OASIS.API.Core
         }
 
         //TODO: Check if we need this?
-        public static void SwitchCurrentStorageProvider(IOASISProvider OASISProvider)
+        public static IOASISStorage SetAndActivateCurrentStorageProvider(IOASISProvider OASISProvider)
         {
             if (OASISProvider != ProviderManager.CurrentStorageProvider)
             {
@@ -129,17 +132,30 @@ namespace NextGenSoftware.OASIS.API.Core
                     if (!ProviderManager.IsProviderRegistered(OASISProvider))
                         ProviderManager.RegisterProvider(OASISProvider);
 
-                    ProviderManager.SwitchCurrentStorageProvider(OASISProvider.ProviderType);
+                    return ProviderManager.SetAndActivateCurrentStorageProvider(OASISProvider.ProviderType);
                 }
             }
+
+            return ProviderManager.CurrentStorageProvider;
         }
 
         //TODO: In future more than one StorageProvider will be active at a time so we need to work out how to handle this...
-        public static IOASISProvider SwitchCurrentStorageProvider(ProviderType providerType)
+        public static IOASISStorage SetAndActivateCurrentStorageProvider(ProviderType providerType)
         {
             if (providerType != ProviderManager.CurrentStorageProviderType)
             {
+                //TODO: Need to get this to use the next provider in the list if there is an issue with the first/current provider...
+                if (providerType == ProviderType.Default)  
+                    providerType = (ProviderType)Enum.Parse(typeof(ProviderType), DefaultProviderTypes[0]);
+                
+                //if (!ProviderManager.IsProviderRegistered(providerType))
+                //{
+                //    ProviderManager.RegisterProvider()
+                //}
                 IOASISProvider provider = _registeredProviders.FirstOrDefault(x => x.ProviderType == providerType);
+
+                if (provider == null)
+                    throw new InvalidOperationException(string.Concat(Enum.GetName(typeof(ProviderType), providerType), " ProviderType is not registered. Please call RegisterProvider() method to register the provider before calling this method."));
 
                 if (provider != null && (provider.ProviderCategory == ProviderCategory.Storage || provider.ProviderCategory == ProviderCategory.StorageAndNetwork))
                 {

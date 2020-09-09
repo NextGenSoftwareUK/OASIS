@@ -2,8 +2,8 @@
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
 using NextGenSoftware.OASIS.API.Core;
-using NextGenSoftware.OASIS.API.Providers.HoloOASIS.Desktop;
-using NextGenSoftware.OASIS.API.Providers.MongoOASIS;
+using NextGenSoftware.OASIS.API.WebAPI.Controllers;
+using System;
 
 namespace NextGenSoftware.OASIS.API.WebAPI
 {
@@ -62,7 +62,7 @@ namespace NextGenSoftware.OASIS.API.WebAPI
             
         }*/
 
-
+        
         public static AvatarManager AvatarManager
         {
             get
@@ -74,7 +74,7 @@ namespace NextGenSoftware.OASIS.API.WebAPI
                 //if (AvatarManager.Instance == null || ProviderManager.CurrentStorageProvider == null)
                 if (_avatarManager == null)
                 {
-                    _avatarManager = new AvatarManager(GetAndActivateProvider());
+                    _avatarManager = new AvatarManager(OASISControllerBase.GetAndActivateProviderStatic());
                     _avatarManager.OnOASISManagerError += _avatarManager_OnOASISManagerError;
 
                     //ProviderManager.SwitchCurrentStorageProvider(MongoOASISProvider);
@@ -87,13 +87,25 @@ namespace NextGenSoftware.OASIS.API.WebAPI
 
                     //  holoOASISProvider.OnHoloOASISError += HoloOASISProvider_OnHoloOASISError;
                     //mongoOASISProvider.StorageProviderError += MongoOASISProvider_StorageProviderError;
-                    AvatarManager.Instance.OnOASISManagerError += AvatarManager_OnOASISManagerError;
+                   // AvatarManager.Instance.OnOASISManagerError += AvatarManager_OnOASISManagerError;
                 }
-                                                                                                       
-                return AvatarManager.Instance;
+
+                return _avatarManager;
+               // return AvatarManager.Instance;
             }
         }
 
+        //private static void AvatarManager_OnOASISManagerError(object sender, OASISErrorEventArgs e)
+        //{
+        //    throw new Exception(string.Concat("ERROR: AvatarManager_OnOASISManagerError. Reason: ", e.Reason, ". Error Details: ", e.ErrorDetails);
+        //}
+
+        private static void _avatarManager_OnOASISManagerError(object sender, OASISErrorEventArgs e)
+        {
+            throw new Exception(string.Concat("ERROR: AvatarManager_OnOASISManagerError. Reason: ", e.Reason, ". Error Details: ", e.ErrorDetails));
+        }
+
+        /*
         private static void MongoOASISProvider_StorageProviderError(object sender, AvatarManagerErrorEventArgs e)
         {
            
@@ -108,11 +120,12 @@ namespace NextGenSoftware.OASIS.API.WebAPI
         {
             
         }
+        */
 
-        //private static void AvatarManager_OnAvatarManagerError(object sender, AvatarManagerErrorEventArgs e)
-        //{
-           
-        //}
+        private static void AvatarManager_OnAvatarManagerError(object sender, AvatarManagerErrorEventArgs e)
+        {
+
+        }
 
         public static void Main(string[] args)
         {
