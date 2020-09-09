@@ -4,30 +4,51 @@ using Microsoft.Extensions.Options;
 using NextGenSoftware.OASIS.API.Core;
 using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS;
 using NextGenSoftware.OASIS.API.Providers.HoloOASIS.Desktop;
-using NextGenSoftware.OASIS.API.Providers.MongoOASIS;
+using NextGenSoftware.OASIS.API.Providers.MongoDBOASIS;
 using System;
 
 namespace NextGenSoftware.OASIS.API.WebAPI.Controllers
 {
+    // TODO: Not sure if should move this into OASIS.API.Core.ProviderManager? But then Core will have refs to all the providers and 
+    // the providers already have a ref to Core so then you will get circular refs so maybe not a good idea?
+
     //[Route("api/[controller]")]
     //[ApiController]
     public class OASISControllerBase : ControllerBase
     {
-        protected readonly IOptions<OASISSettings> OASISSettings;
+        public static IOptions<OASISSettings> _OASISSettings;
+        private static OASISControllerBase _instance;
+
+        public static OASISControllerBase Instance
+        {
+            get
+            {
+                if (_instance == null)
+                    _instance = new OASISControllerBase(_OASISSettings);
+
+                return _instance;
+            }
+        }
 
         public OASISControllerBase(IOptions<OASISSettings> OASISSettings)
         {
-            this.OASISSettings = OASISSettings;
+            _OASISSettings = OASISSettings;
+        }
+
+        public static IOASISStorage GetAndActivateProviderStatic()
+        {
+            ProviderManager.DefaultProviderTypes = _OASISSettings.Value.StorageProviders.DefaultProviders.Split(",");
+
+            //TODO: Need to add additional logic later for when the first provider and others fail or are too laggy and so need to switch to a faster provider, etc...
+            return Instance.GetAndActivateProvider((ProviderType)Enum.Parse(typeof(ProviderType), ProviderManager.DefaultProviderTypes[0]));
         }
 
         protected IOASISStorage GetAndActivateProvider()
         {
-            return GetAndActivateProvider((ProviderType)Enum.Parse(typeof(ProviderType), OASISSettings.Value.StorageProviders.DefaultProvider));
-        }
+            ProviderManager.DefaultProviderTypes = _OASISSettings.Value.StorageProviders.DefaultProviders.Split(",");
 
-        public static IOASISStorage GetAndActivateProvider(ProviderType providerType)
-        {
-            //GetAndActivateProvider()
+            //TODO: Need to add additional logic later for when the first provider and others fail or are too laggy and so need to switch to a faster provider, etc...
+            return GetAndActivateProvider((ProviderType)Enum.Parse(typeof(ProviderType), ProviderManager.DefaultProviderTypes[0]));
         }
 
         protected IOASISStorage GetAndActivateProvider(ProviderType providerType)
@@ -41,7 +62,7 @@ namespace NextGenSoftware.OASIS.API.WebAPI.Controllers
                     {
                         case ProviderType.HoloOASIS:
                             {
-                                HoloOASIS holoOASIS = new HoloOASIS(OASISSettings.Value.StorageProviders.HoloOASIS.ConnectionString);
+                                HoloOASIS holoOASIS = new HoloOASIS(_OASISSettings.Value.StorageProviders.HoloOASIS.ConnectionString);
                                 holoOASIS.OnHoloOASISError += HoloOASIS_OnHoloOASISError;
                                 holoOASIS.StorageProviderError += HoloOASIS_StorageProviderError;
 
@@ -52,23 +73,33 @@ namespace NextGenSoftware.OASIS.API.WebAPI.Controllers
 
                         case ProviderType.MongoDBOASIS:
                             {
-                                MongoOASIS mongoOASIS = new MongoOASIS(OASISSettings.Value.StorageProviders.MongoOASIS.ConnectionString, OASISSettings.Value.StorageProviders.MongoOASIS.DBName));
+                                MongoDBOASIS mongoOASIS = new MongoDBOASIS(_OASISSettings.Value.StorageProviders.MongoDBOASIS.ConnectionString, _OASISSettings.Value.StorageProviders.MongoDBOASIS.DBName);
                                 mongoOASIS.StorageProviderError += MongoOASIS_StorageProviderError;
-                                ProviderManager.RegisterProvider(new MongoOASIS(OASISSettings.Value.StorageProviders.MongoOASIS.ConnectionString, OASISSettings.Value.StorageProviders.MongoOASIS.DBName));
+                                ProviderManager.RegisterProvider(new MongoDBOASIS(_OASISSettings.Value.StorageProviders.MongoDBOASIS.ConnectionString, _OASISSettings.Value.StorageProviders.MongoDBOASIS.DBName));
 
                             }
                             break;
 
                         case ProviderType.EOSOASIS:
-                            ProviderManager.RegisterProvider(new EOSIOOASIS()); //TODO: Need to pass connection string in.
+                            {
+                                EOSIOOASIS EOSIOOASIS = new EOSIOOASIS();
+                                EOSIOOASIS.StorageProviderError += EOSIOOASIS_StorageProviderError;
+                                ProviderManager.RegisterProvider(new EOSIOOASIS()); //TODO: Need to pass connection string in.
+                            }
+
                             break;
                     }
                 }
 
-                ProviderManager.SwitchCurrentStorageProvider(providerType);
+                ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
             }
 
             return ProviderManager.CurrentStorageProvider;
+        }
+
+        private void EOSIOOASIS_StorageProviderError(object sender, AvatarManagerErrorEventArgs e)
+        {
+            
         }
 
         private void MongoOASIS_StorageProviderError(object sender, AvatarManagerErrorEventArgs e)

@@ -13,7 +13,21 @@ namespace NextGenSoftware.OASIS.API.WebAPI
 {
     public class BasicAuthenticationHandler : AuthenticationHandler<AuthenticationSchemeOptions>
     {
-      //  private readonly IAvatarService _avatarService;
+        //private static AvatarManager _avatarManager;
+
+        //public AvatarManager AvatarManager
+        //{
+        //    get
+        //    {
+        //        if (_avatarManager == null)
+        //        {
+        //            _avatarManager = new AvatarManager(GetAndActivateProvider());
+        //            _avatarManager.OnOASISManagerError += _avatarManager_OnOASISManagerError;
+        //        }
+
+        //        return _avatarManager;
+        //    }
+        //}
 
         public BasicAuthenticationHandler(
             IOptionsMonitor<AuthenticationSchemeOptions> options,

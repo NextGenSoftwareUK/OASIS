@@ -2,7 +2,7 @@
 using NextGenSoftware.OASIS.API.Core;
 using System;
 
-namespace NextGenSoftware.OASIS.API.Providers.MongoOASIS
+namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
 {
     public class Avatar : BaseEntity
     {

@@ -99,7 +99,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.C
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.ORIAServices.IntegrationTests", "NextGenSoftware.OASIS.API.WebAP.IntegrationTests\NextGenSoftware.OASIS.API.ORIAServices.IntegrationTests.csproj", "{B008D639-1D6C-4641-A221-E6A91226EC8B}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.Providers.MongoOASIS", "NextGenSoftware.OASIS.API.Providers.MongoOASIS\NextGenSoftware.OASIS.API.Providers.MongoOASIS.csproj", "{F50901F0-EBBC-4EA8-A062-FE1E6DF51031}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.Providers.MongoDBOASIS", "NextGenSoftware.OASIS.API.Providers.MongoOASIS\NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.csproj", "{F50901F0-EBBC-4EA8-A062-FE1E6DF51031}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.Providers.ChainLinkOASIS", "NextGenSoftware.OASIS.API.Providers.ChainLinkOASIS\NextGenSoftware.OASIS.API.Providers.ChainLinkOASIS.csproj", "{749875C8-221A-4EEE-A7A2-23DE86AD0FD1}"
 EndProject

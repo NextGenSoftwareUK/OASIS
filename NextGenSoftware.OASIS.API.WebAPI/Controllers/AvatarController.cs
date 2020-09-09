@@ -26,13 +26,15 @@ namespace NextGenSoftware.OASIS.API.WebAPI.Controllers
         {
             get
             {
-                if (_avatarManager == null)
-                {
-                    _avatarManager = new AvatarManager(GetAndActivateProvider());
-                    _avatarManager.OnOASISManagerError += _avatarManager_OnOASISManagerError;
-                }
+                return Program.AvatarManager;
 
-                return _avatarManager;
+                //if (_avatarManager == null)
+                //{
+                //    _avatarManager = new AvatarManager(GetAndActivateProvider());
+                //    _avatarManager.OnOASISManagerError += _avatarManager_OnOASISManagerError;
+                //}
+
+                //return _avatarManager;
             }
         }
 

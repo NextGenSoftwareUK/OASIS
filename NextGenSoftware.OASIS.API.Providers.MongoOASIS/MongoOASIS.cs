@@ -6,9 +6,9 @@ using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Driver;
 
-namespace NextGenSoftware.OASIS.API.Providers.MongoOASIS
+namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
 {
-    public class MongoOASIS : OASISStorageBase, IOASISStorage, IOASISNET
+    public class MongoDBOASIS : OASISStorageBase, IOASISStorage, IOASISNET
     {
         //MongoDbContext db = new MongoDbContext();
         //private string _connectionString = "";
@@ -24,12 +24,12 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoOASIS
             public string searchData { get; set; }
         }
 
-        public MongoOASIS(string connectionString, string dbName)
+        public MongoDBOASIS(string connectionString, string dbName)
         {
             _db = new MongoDbContext(connectionString, dbName);
             _avatarRepository = new AvatarRepository(_db);
 
-            this.ProviderName = "MongoOASIS";
+            this.ProviderName = "MongoDBOASIS";
             this.ProviderDescription = "MongoDB Atlas Provider";
             this.ProviderType = ProviderType.MongoDBOASIS;
             this.ProviderCategory = ProviderCategory.StorageAndNetwork;
