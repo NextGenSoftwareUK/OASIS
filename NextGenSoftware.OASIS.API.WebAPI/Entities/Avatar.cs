@@ -2,7 +2,7 @@
 //using NextGenSoftware.OASIS.API.Core;
 //using System;
 
-//namespace NextGenSoftware.OASIS.API.WebAPI
+//namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
 //{
 //    public class Avatar : BaseEntity
 //    {

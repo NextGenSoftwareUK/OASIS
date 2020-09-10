@@ -13,7 +13,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using NextGenSoftware.OASIS.API.Core;
 
-namespace NextGenSoftware.OASIS.API.WebAPI
+namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
 {
     public class Startup
     {
@@ -130,7 +130,7 @@ namespace NextGenSoftware.OASIS.API.WebAPI
 //using Microsoft.Extensions.Logging;
 //using Microsoft.Extensions.Options;
 
-//namespace NextGenSoftware.OASIS.API.WebAPI
+//namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
 //{
 //    public class Startup
 //    {

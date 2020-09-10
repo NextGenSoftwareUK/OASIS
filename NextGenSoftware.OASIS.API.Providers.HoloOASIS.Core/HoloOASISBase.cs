@@ -195,6 +195,43 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Core
             return null;
         }
 
+        public override IAvatar LoadAvatar(string username, string password)
+        {
+            // TODO: {URGENT} FIX THIS ASAP! Need to wait for GetInstance to complete, ideally this method should call the async method above..
+            // Even better is we ONLY use the async method, need to fix the bug in WebAPI so it can call async methods from the controllers ASAP...
+            // _taskCompletionSourceGetInstance.Task;
+
+            if (HoloNETClient.State != System.Net.WebSockets.WebSocketState.Open && HoloNETClient.State != System.Net.WebSockets.WebSocketState.Connecting)
+                HoloNETClient.Connect();
+
+            //TODO: Come back to this... (Need to wait for it to connect...)
+            if (HoloNETClient.State == System.Net.WebSockets.WebSocketState.Open && !string.IsNullOrEmpty(_hcinstance))
+            {
+                //TODO: Implement in HC/Rust
+                //await HoloNETClient.CallZomeFunctionAsync(_hcinstance, OURWORLD_ZOME, LOAD_Avatar_FUNC, new { username, password });
+
+                //TODO: TEMP HARDCODED JUST TO TEST WITH!
+                HoloNETClient.CallZomeFunctionAsync(_hcinstance, OURWORLD_ZOME, LOAD_Avatar_FUNC, new { address = "QmR6A1gkSmCsxnbDF7V9Eswnd4Kw9SWhuf8r4R643eDshg" });
+              //  return await _taskCompletionSourceLoadAvatar.Task;
+            }
+
+            return null;
+        }
+
+        public override Task<IEnumerable<IAvatar>> LoadAllAvatarsAsync()
+        {
+            //TODO: {URGENT} FIX ASAP!
+            //return new (IEnumerable<IAvatar>)List<IAvatar>();
+
+            throw new System.NotImplementedException();
+        }
+
+
+        public override Task<ISearchResults> SearchAsync(string searchTerm)
+        {
+            throw new System.NotImplementedException();
+        }
+
         /*
         public override async Task<API.Core.IAvatar> SaveAvatarAsync(API.Core.IAvatar Avatar)
         {
@@ -369,11 +406,6 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Core
         {
             await HoloNETClient.Disconnect();
             base.DeActivateProvider();
-        }
-
-        public override Task<ISearchResults> SearchAsync(string searchTerm)
-        {
-            throw new System.NotImplementedException();
         }
     }
 }

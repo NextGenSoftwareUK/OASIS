@@ -2,14 +2,15 @@
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
 using NextGenSoftware.OASIS.API.Core;
-using NextGenSoftware.OASIS.API.WebAPI.Controllers;
+using NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers;
 using System;
 
-namespace NextGenSoftware.OASIS.API.WebAPI
+namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
 {
     public class Program
     {
         private static AvatarManager _avatarManager;
+        //public static ProviderType CurrentStorageProviderType = ProviderType.Default;
 
         /*
         private static MongoOASIS _mongoOASISProvider = null;
@@ -62,7 +63,7 @@ namespace NextGenSoftware.OASIS.API.WebAPI
             
         }*/
 
-        
+
         public static AvatarManager AvatarManager
         {
             get
@@ -74,7 +75,9 @@ namespace NextGenSoftware.OASIS.API.WebAPI
                 //if (AvatarManager.Instance == null || ProviderManager.CurrentStorageProvider == null)
                 if (_avatarManager == null)
                 {
-                    _avatarManager = new AvatarManager(OASISControllerBase.GetAndActivateProviderStatic());
+                    //_avatarManager = new AvatarManager(OASISControllerBase.GetAndActivateProviderStatic(CurrentStorageProviderType));
+                    _avatarManager = new AvatarManager();
+                    //_avatarManager = new AvatarManager(OASISC
                     _avatarManager.OnOASISManagerError += _avatarManager_OnOASISManagerError;
 
                     //ProviderManager.SwitchCurrentStorageProvider(MongoOASISProvider);
@@ -89,6 +92,11 @@ namespace NextGenSoftware.OASIS.API.WebAPI
                     //mongoOASISProvider.StorageProviderError += MongoOASISProvider_StorageProviderError;
                    // AvatarManager.Instance.OnOASISManagerError += AvatarManager_OnOASISManagerError;
                 }
+                else
+                {
+                    
+                }
+
 
                 return _avatarManager;
                // return AvatarManager.Instance;
@@ -154,7 +162,7 @@ namespace NextGenSoftware.OASIS.API.WebAPI
 //using Microsoft.Extensions.Configuration;
 //using Microsoft.Extensions.Logging;
 
-//namespace NextGenSoftware.OASIS.API.WebAPI
+//namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
 //{
 //    public class Program
 //    {

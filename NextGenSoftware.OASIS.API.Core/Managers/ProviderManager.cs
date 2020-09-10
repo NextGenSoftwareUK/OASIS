@@ -9,7 +9,7 @@ namespace NextGenSoftware.OASIS.API.Core
     {
         private static List<IOASISProvider> _registeredProviders = new List<IOASISProvider>();
 
-        public static ProviderType CurrentStorageProviderType { get; private set; }
+        public static ProviderType CurrentStorageProviderType { get; private set; } = ProviderType.All;
 
         public static string[] DefaultProviderTypes { get;  set; }
 
@@ -142,11 +142,15 @@ namespace NextGenSoftware.OASIS.API.Core
         //TODO: In future more than one StorageProvider will be active at a time so we need to work out how to handle this...
         public static IOASISStorage SetAndActivateCurrentStorageProvider(ProviderType providerType)
         {
+            //TODO: Need to get this to use the next provider in the list if there is an issue with the first/current provider...
+            if (providerType == ProviderType.Default)
+                providerType = (ProviderType)Enum.Parse(typeof(ProviderType), DefaultProviderTypes[0]);
+
             if (providerType != ProviderManager.CurrentStorageProviderType)
             {
                 //TODO: Need to get this to use the next provider in the list if there is an issue with the first/current provider...
-                if (providerType == ProviderType.Default)  
-                    providerType = (ProviderType)Enum.Parse(typeof(ProviderType), DefaultProviderTypes[0]);
+                //if (providerType == ProviderType.Default)  
+                //    providerType = (ProviderType)Enum.Parse(typeof(ProviderType), DefaultProviderTypes[0]);
                 
                 //if (!ProviderManager.IsProviderRegistered(providerType))
                 //{

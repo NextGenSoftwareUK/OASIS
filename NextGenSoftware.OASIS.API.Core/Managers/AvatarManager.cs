@@ -51,6 +51,13 @@ namespace NextGenSoftware.OASIS.API.Core
 
         }
 
+        // TODO: Not sure good idea? All because want to cache AvatarManager in WebAPI.Program, also is it a good idea?
+        // Dont think its needed? Because not expensive to create a new AvatarManager, the expensive bit is already cached in the ProviderManager (in OASIS.API.Core) & OASISConteollerBase (in WebAPI)
+        public AvatarManager() : base(null)
+        {
+
+        }
+
         public async Task<IAvatar> Authenticate(string username, string password)
         {
             IEnumerable<IAvatar> _avatars = await LoadAllAvatarsAsync();

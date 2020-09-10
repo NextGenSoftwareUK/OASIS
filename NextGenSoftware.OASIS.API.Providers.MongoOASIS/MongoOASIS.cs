@@ -11,9 +11,11 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
     public class MongoDBOASIS : OASISStorageBase, IOASISStorage, IOASISNET
     {
         //MongoDbContext db = new MongoDbContext();
-        //private string _connectionString = "";
         private MongoDbContext _db = null;
         private AvatarRepository _avatarRepository = null;
+
+        public string ConnectionString { get; set; }
+        public string DBName { get; set; }
 
         public class SearchData
         {
@@ -26,6 +28,9 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
 
         public MongoDBOASIS(string connectionString, string dbName)
         {
+            ConnectionString = connectionString;
+            DBName = dbName;
+
             _db = new MongoDbContext(connectionString, dbName);
             _avatarRepository = new AvatarRepository(_db);
 
@@ -219,6 +224,30 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             mongoAvatar.Version = avatar.Version;
 
             return mongoAvatar;
+        }
+
+        public override void ActivateProvider()
+        {
+            //TODO: {URGENT} Find out how to check if MongoDB is connected, etc here...
+            //if (_db.MongoDB.)
+
+            if (_db == null)
+            {
+                _db = new MongoDbContext(ConnectionString, DBName);
+                _avatarRepository = new AvatarRepository(_db);
+            }
+
+            base.ActivateProvider();
+        }
+
+        public override void DeActivateProvider()
+        {
+            //TODO: {URGENT} Disconnect, Dispose and release resources here.
+            _db.MongoDB = null;
+            _db.MongoClient = null;
+            _db = null;
+
+            base.DeActivateProvider();
         }
     }
 }

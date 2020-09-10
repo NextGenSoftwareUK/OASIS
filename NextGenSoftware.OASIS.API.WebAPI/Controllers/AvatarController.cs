@@ -8,7 +8,7 @@ using Microsoft.Extensions.Options;
 using NextGenSoftware.OASIS.API.Core;
 using WebAPI.Models;
 
-namespace NextGenSoftware.OASIS.API.WebAPI.Controllers
+namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 {
     [Route("api/[controller]")]
     //[Route("api/[avatar]")] //TODO: Get this working, think better way?
@@ -84,16 +84,20 @@ namespace NextGenSoftware.OASIS.API.WebAPI.Controllers
         //    return "value";
         //}
 
-        /*
+        
         // GET api/values/5
         //[HttpGet("GetAvatarById/{sequenceNo}/{phaseNo}")]
         [HttpGet("GetAvatarById/{id}")]
         //[HttpGet("{id}")]
         public async Task<IAvatar> Get(Guid id)
         {
+             GetAndActivateProvider();
             return await Program.AvatarManager.LoadAvatarAsync(id);
+
+            //TODO: Blank out private fields especially password, etc.
+            // Only leave other private fields if the id mateches the logged in avatar...
         }
-        */
+
 
         // GET api/values/5
         //[HttpGet("{id}")]
@@ -101,7 +105,11 @@ namespace NextGenSoftware.OASIS.API.WebAPI.Controllers
         public async Task<IAvatar> Get(Guid id, ProviderType providerType)
         {
             //TODO: This will fail if the requested provider has not been registered with the ProviderManager (soon this will bn automatic with MEF if the provider dll is in the providers hot folder).
+            GetAndActivateProvider(providerType);
             return await AvatarManager.LoadAvatarAsync(id, providerType);
+
+            //TODO: Blank out private fields especially password, etc.
+            // Only leave other private fields if the id mateches the logged in avatar...
         }
 
         /*
@@ -142,7 +150,9 @@ namespace NextGenSoftware.OASIS.API.WebAPI.Controllers
             //TODO: Get Async version working... 
             //return await Program.AvatarManager.LoadAvatarAsync(username, password);
 
-          //  ActivateProvider((ProviderType)Enum.Parse(typeof(ProviderType), OASISSettings.Value.StorageProviders.DefaultProvider));
+            //  ActivateProvider((ProviderType)Enum.Parse(typeof(ProviderType), OASISSettings.Value.StorageProviders.DefaultProvider));
+
+            GetAndActivateProvider();
             return AvatarManager.LoadAvatar(username, password);
         }
 
@@ -154,7 +164,7 @@ namespace NextGenSoftware.OASIS.API.WebAPI.Controllers
             //TODO: Get Async version working... 
             //return await Program.AvatarManager.LoadAvatarAsync(username, password, providerType);
 
-          //  ActivateProvider(providerType);
+            GetAndActivateProvider(providerType);
             return AvatarManager.LoadAvatar(username, password, providerType);
         }
 

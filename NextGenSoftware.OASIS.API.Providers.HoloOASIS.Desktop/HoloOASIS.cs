@@ -13,19 +13,19 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Desktop
             
         }
 
-        public override Task<IEnumerable<IAvatar>> LoadAllAvatarsAsync()
-        {
-            throw new System.NotImplementedException();
-        }
+        //public override Task<IEnumerable<IAvatar>> LoadAllAvatarsAsync()
+        //{
+        //    throw new System.NotImplementedException();
+        //}
 
-        public override IAvatar LoadAvatar(string username, string password)
-        {
-            throw new System.NotImplementedException();
-        }
+        //public override IAvatar LoadAvatar(string username, string password)
+        //{
+        //    throw new System.NotImplementedException();
+        //}
 
-        public override Task<ISearchResults> SearchAsync(string searchTerm)
-        {
-            throw new System.NotImplementedException();
-        }
+        //public override Task<ISearchResults> SearchAsync(string searchTerm)
+        //{
+        //    throw new System.NotImplementedException();
+        //}
     }
 }
