@@ -4,7 +4,7 @@
 //using MongoDB.Driver;
 //using NextGenSoftware.OASIS.API.Core;
 
-//namespace NextGenSoftware.OASIS.API.WebAPI
+//namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
 //{
 //    public class AvatarService : IAvatarService
 //    {

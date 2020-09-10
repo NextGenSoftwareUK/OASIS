@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace NextGenSoftware.OASIS.API.WebAPI.Controllers
+namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]

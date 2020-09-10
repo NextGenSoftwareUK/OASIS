@@ -1,13 +1,14 @@
 ﻿
+using System;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
+
 using NextGenSoftware.OASIS.API.Core;
 using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS;
 using NextGenSoftware.OASIS.API.Providers.HoloOASIS.Desktop;
 using NextGenSoftware.OASIS.API.Providers.MongoDBOASIS;
-using System;
 
-namespace NextGenSoftware.OASIS.API.WebAPI.Controllers
+namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 {
     // TODO: Not sure if should move this into OASIS.API.Core.ProviderManager? But then Core will have refs to all the providers and 
     // the providers already have a ref to Core so then you will get circular refs so maybe not a good idea?
@@ -18,6 +19,7 @@ namespace NextGenSoftware.OASIS.API.WebAPI.Controllers
     {
         public static IOptions<OASISSettings> _OASISSettings;
         private static OASISControllerBase _instance;
+        //public static ProviderType CurrentStorageProviderType = ProviderType.Default;
 
         public static OASISControllerBase Instance
         {
@@ -43,6 +45,11 @@ namespace NextGenSoftware.OASIS.API.WebAPI.Controllers
             return Instance.GetAndActivateProvider((ProviderType)Enum.Parse(typeof(ProviderType), ProviderManager.DefaultProviderTypes[0]));
         }
 
+        public static IOASISStorage GetAndActivateProviderStatic(ProviderType providerType)
+        {
+            return Instance.GetAndActivateProvider(providerType);
+        }
+
         protected IOASISStorage GetAndActivateProvider()
         {
             ProviderManager.DefaultProviderTypes = _OASISSettings.Value.StorageProviders.DefaultProviders.Split(",");
@@ -65,9 +72,7 @@ namespace NextGenSoftware.OASIS.API.WebAPI.Controllers
                                 HoloOASIS holoOASIS = new HoloOASIS(_OASISSettings.Value.StorageProviders.HoloOASIS.ConnectionString);
                                 holoOASIS.OnHoloOASISError += HoloOASIS_OnHoloOASISError;
                                 holoOASIS.StorageProviderError += HoloOASIS_StorageProviderError;
-
                                 ProviderManager.RegisterProvider(holoOASIS);
-                                
                             }
                             break;
 
@@ -75,7 +80,7 @@ namespace NextGenSoftware.OASIS.API.WebAPI.Controllers
                             {
                                 MongoDBOASIS mongoOASIS = new MongoDBOASIS(_OASISSettings.Value.StorageProviders.MongoDBOASIS.ConnectionString, _OASISSettings.Value.StorageProviders.MongoDBOASIS.DBName);
                                 mongoOASIS.StorageProviderError += MongoOASIS_StorageProviderError;
-                                ProviderManager.RegisterProvider(new MongoDBOASIS(_OASISSettings.Value.StorageProviders.MongoDBOASIS.ConnectionString, _OASISSettings.Value.StorageProviders.MongoDBOASIS.DBName));
+                                ProviderManager.RegisterProvider(mongoOASIS);
 
                             }
                             break;
@@ -84,9 +89,8 @@ namespace NextGenSoftware.OASIS.API.WebAPI.Controllers
                             {
                                 EOSIOOASIS EOSIOOASIS = new EOSIOOASIS();
                                 EOSIOOASIS.StorageProviderError += EOSIOOASIS_StorageProviderError;
-                                ProviderManager.RegisterProvider(new EOSIOOASIS()); //TODO: Need to pass connection string in.
+                                ProviderManager.RegisterProvider(EOSIOOASIS); //TODO: Need to pass connection string in.
                             }
-
                             break;
                     }
                 }
@@ -94,27 +98,32 @@ namespace NextGenSoftware.OASIS.API.WebAPI.Controllers
                 ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
             }
 
+          //  CurrentStorageProviderType = providerType;
             return ProviderManager.CurrentStorageProvider;
         }
 
         private void EOSIOOASIS_StorageProviderError(object sender, AvatarManagerErrorEventArgs e)
         {
-            
+            //TODO: {URGENT} Handle Errors properly here (log, etc)
+            // throw new Exception(string.Concat("ERROR: EOSIOOASIS_StorageProviderError. EndPoint: ", e.EndPoint, "Reason: ", e.Reason, ". Error Details: ", e.ErrorDetails));
         }
 
         private void MongoOASIS_StorageProviderError(object sender, AvatarManagerErrorEventArgs e)
         {
-
+            //TODO: {URGENT} Handle Errors properly here (log, etc)
+            //  throw new Exception(string.Concat("ERROR: MongoOASIS_StorageProviderError. EndPoint: ", e.EndPoint, "Reason: ", e.Reason, ". Error Details: ", e.ErrorDetails));
         }
 
         private void HoloOASIS_StorageProviderError(object sender, AvatarManagerErrorEventArgs e)
         {
-
+            //TODO: {URGENT} Handle Errors properly here (log, etc)
+            //  throw new Exception(string.Concat("ERROR: HoloOASIS_StorageProviderError. EndPoint: ", e.EndPoint, "Reason: ", e.Reason, ". Error Details: ", e.ErrorDetails));
         }
 
         private void HoloOASIS_OnHoloOASISError(object sender, Providers.HoloOASIS.Core.HoloOASISErrorEventArgs e)
         {
-          
+            //TODO: {URGENT} Handle Errors properly here (log, etc)
+            //  throw new Exception(string.Concat("ERROR: HoloOASIS_OnHoloOASISError. EndPoint: ", e.EndPoint, "Reason: ", e.Reason, ". Error Details: ", e.ErrorDetails, "HoloNET.Reason: ", e.HoloNETErrorDetails.Reason, "HoloNET.ErrorDetails: ", e.HoloNETErrorDetails.ErrorDetails));
         }
     }
 }

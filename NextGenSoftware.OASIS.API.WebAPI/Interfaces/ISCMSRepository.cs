@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace NextGenSoftware.OASIS.API.WebAPI
+namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
 {
     public interface ISCMSRepository
     {

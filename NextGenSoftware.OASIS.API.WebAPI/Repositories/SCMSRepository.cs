@@ -6,7 +6,7 @@ using System.Linq;
 using NextGenSoftware.OASIS.API.Core;
 using NextGenSoftware.OASIS.API.Providers.HoloOASIS.Desktop;
 
-namespace NextGenSoftware.OASIS.API.WebAPI
+namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
 {
     public class SCMSRepository : ISCMSRepository
     {

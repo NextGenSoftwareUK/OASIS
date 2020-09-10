@@ -1,18 +1,16 @@
-﻿using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.TestHost;
-using System;
+﻿using Microsoft.AspNetCore.TestHost;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Xunit;
 
-namespace NextGenSoftware.OASIS.API.WebAP.IntegrationTests
+namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.IntegrationTests
 {
-    public class TestWebOASISAPI
+    public class TestWebAPI
     {
         private readonly TestServer _server;
         private readonly HttpClient _client;
 
-        public TestWebOASISAPI()
+        public TestWebAPI()
         {
             // Arrange
             //_server = new TestServer(new WebHostBuilder()
