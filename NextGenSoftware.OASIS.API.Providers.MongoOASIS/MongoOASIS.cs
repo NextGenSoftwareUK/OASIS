@@ -177,7 +177,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             oasisAvatar.County = avatar.County;
             oasisAvatar.Email = avatar.Email;
             oasisAvatar.DOB = avatar.DOB;
-            oasisAvatar.Landline = avatar.LastName;
+            oasisAvatar.Landline = avatar.Landline;
             oasisAvatar.Mobile = avatar.Mobile;
             oasisAvatar.Password = avatar.Password;
             oasisAvatar.Postcode = avatar.Postcode;
