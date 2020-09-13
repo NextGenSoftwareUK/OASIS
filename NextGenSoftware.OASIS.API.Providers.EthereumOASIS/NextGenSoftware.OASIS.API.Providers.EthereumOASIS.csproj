@@ -6,6 +6,7 @@
 
   <ItemGroup>
     <PackageReference Include="Nethereum.Portable" Version="3.7.0" />
+    <PackageReference Include="Nethereum.Web3" Version="3.8.0" />
   </ItemGroup>
 
   <ItemGroup>
