@@ -4,4 +4,5 @@
     <TargetFramework>netcoreapp3.1</TargetFramework>
   </PropertyGroup>
 
+  <PropertyGroup Condition=" '$(RunConfiguration)' == 'NextGenSoftware.Holochain.HoloNET.HDK.EntityFrameworkCore.Ra' " />
 </Project>
