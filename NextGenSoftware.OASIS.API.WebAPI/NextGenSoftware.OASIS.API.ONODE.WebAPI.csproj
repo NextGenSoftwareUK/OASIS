@@ -5,6 +5,7 @@
     <AspNetCoreHostingModel>InProcess</AspNetCoreHostingModel>
     <RootNamespace>NextGenSoftware.OASIS.API.WebAPI</RootNamespace>
     <AssemblyName>NextGenSoftware.OASIS.API.ONODE.WebAPI</AssemblyName>
+    <StartupObject>NextGenSoftware.OASIS.API.ONODE.WebAPI.Program</StartupObject>
   </PropertyGroup>
 
   <ItemGroup>
