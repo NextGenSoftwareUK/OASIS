@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Nethereum.Contracts;
+//using Nethereum.Model;
 using Nethereum.Web3.Accounts;
 using Nethereum.Web3;
 
