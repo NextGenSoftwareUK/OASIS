@@ -17,7 +17,9 @@ namespace NextGenSoftware.OASIS.API.Core
 
         //TODO: Add NonAsync methods for rest...
         IAvatar LoadAvatar(string username, string password);
-        
+        IAvatar LoadAvatar(Guid id);
+
+        IEnumerable<IAvatar> LoadAllAvatars();
         Task<IEnumerable<IAvatar>> LoadAllAvatarsAsync();
 
         //Task<bool> SaveAvatarAsync(IAvatar Avatar);

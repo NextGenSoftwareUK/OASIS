@@ -71,6 +71,18 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Core
             //await HoloNETClient.Connect();
         }
 
+        public override IEnumerable<IAvatar> LoadAllAvatars()
+        {
+            //TODO: Implement
+            throw new NotImplementedException();
+        }
+
+        public override IAvatar LoadAvatar(Guid Id)
+        {
+            //TODO: Implement
+            throw new NotImplementedException();
+        }
+
         private void HoloNETClient_OnError(object sender, HoloNETErrorEventArgs e)
         {
             HandleError("Error occured in HoloNET. See ErrorDetial for reason.", null, e);
