@@ -30,12 +30,22 @@ namespace NextGenSoftware.OASIS.API.Providers.AcitvityPubOASIS
             throw new NotImplementedException();
         }
 
+        public override IEnumerable<IAvatar> LoadAllAvatars()
+        {
+            throw new NotImplementedException();
+        }
+
         public override Task<IEnumerable<IAvatar>> LoadAllAvatarsAsync()
         {
             throw new NotImplementedException();
         }
 
         public override IAvatar LoadAvatar(string username, string password)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override IAvatar LoadAvatar(Guid Id)
         {
             throw new NotImplementedException();
         }

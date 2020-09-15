@@ -59,6 +59,11 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             return new Task<IEnumerable<IAvatar>>(() => ConvertMongoEntitysToOASISAvatars(_avatarRepository.GetAvatars().Result));
         }
 
+        public override IEnumerable<IAvatar> LoadAllAvatars()
+        {
+            return ConvertMongoEntitysToOASISAvatars(_avatarRepository.GetAvatars().Result);
+        }
+
         public override Task<IAvatar> LoadAvatarAsync(string providerKey)
         {
             //TODO: Check if this is correct way to handle Task/async...
@@ -68,6 +73,11 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
         public override Task<IAvatar> LoadAvatarAsync(Guid Id)
         {
             return new Task<IAvatar>(() => ConvertMongoEntityToOASISAvatar(_avatarRepository.GetAvatar(Id.ToString()).Result));
+        }
+
+        public override IAvatar LoadAvatar(Guid Id)
+        {
+            return ConvertMongoEntityToOASISAvatar(_avatarRepository.GetAvatar(Id.ToString()).Result);
         }
 
         public override Task<IAvatar> LoadAvatarAsync(string username, string password)

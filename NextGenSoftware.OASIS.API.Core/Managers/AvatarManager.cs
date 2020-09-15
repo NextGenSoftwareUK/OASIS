@@ -24,11 +24,6 @@ namespace NextGenSoftware.OASIS.API.Core
         
         public List<IOASISStorage> OASISStorageProviders { get; set; }
         
-        public Task<IAvatar> LoadAvatarAsync(Guid id)
-        {
-            throw new NotImplementedException();
-        }
-
         public AvatarManagerConfig Config
         {
             get
@@ -71,6 +66,11 @@ namespace NextGenSoftware.OASIS.API.Core
             return avatar;
         }
 
+        public IEnumerable<IAvatar> LoadAllAvatars(ProviderType provider = ProviderType.Default)
+        {
+            return ProviderManager.SetAndActivateCurrentStorageProvider(provider).LoadAllAvatars();
+        }
+
         public async Task<IEnumerable<IAvatar>> LoadAllAvatarsAsync(ProviderType provider = ProviderType.Default)
         {
             return await ProviderManager.SetAndActivateCurrentStorageProvider(provider).LoadAllAvatarsAsync();
@@ -86,10 +86,20 @@ namespace NextGenSoftware.OASIS.API.Core
             return await ProviderManager.SetAndActivateCurrentStorageProvider(providerType).LoadAvatarAsync(id);
         }
 
+        public IAvatar LoadAvatar(Guid id, ProviderType providerType = ProviderType.Default)
+        {
+            return ProviderManager.SetAndActivateCurrentStorageProvider(providerType).LoadAvatar(id);
+        }
+
         public async Task<IAvatar> LoadAvatarAsync(string username, string password, ProviderType providerType = ProviderType.Default)
         {
             return await ProviderManager.SetAndActivateCurrentStorageProvider(providerType).LoadAvatarAsync(username, password);
         }
+
+        //public Task<IAvatar> LoadAvatarAsync(Guid id, ProviderType providerType = ProviderType.Default)
+        //{
+        //    return ProviderManager.SetAndActivateCurrentStorageProvider(provider).LoadAvatarAsync();
+        //}
 
         public IAvatar LoadAvatar(string username, string password, ProviderType providerType = ProviderType.Default)
         {

@@ -17,7 +17,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
     //[ApiController]
     public class OASISControllerBase : ControllerBase
     {
-        public static IOptions<OASISSettings> _OASISSettings;
+        public IOptions<OASISSettings> OASISSettings;
+        public static IOptions<OASISSettings> OASISSettingsStatic;
         private static OASISControllerBase _instance;
         //public static ProviderType CurrentStorageProviderType = ProviderType.Default;
 
@@ -26,20 +27,21 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             get
             {
                 if (_instance == null)
-                    _instance = new OASISControllerBase(_OASISSettings);
+                    _instance = new OASISControllerBase(OASISSettingsStatic);
 
                 return _instance;
             }
         }
 
-        public OASISControllerBase(IOptions<OASISSettings> OASISSettings)
+        public OASISControllerBase(IOptions<OASISSettings> settings)
         {
-            _OASISSettings = OASISSettings;
+            OASISSettings = settings;
+            OASISSettingsStatic = settings;
         }
 
         public static IOASISStorage GetAndActivateProviderStatic()
         {
-            ProviderManager.DefaultProviderTypes = _OASISSettings.Value.StorageProviders.DefaultProviders.Split(",");
+            ProviderManager.DefaultProviderTypes = Instance.OASISSettings.Value.StorageProviders.DefaultProviders.Split(",");
 
             //TODO: Need to add additional logic later for when the first provider and others fail or are too laggy and so need to switch to a faster provider, etc...
             return Instance.GetAndActivateProvider((ProviderType)Enum.Parse(typeof(ProviderType), ProviderManager.DefaultProviderTypes[0]));
@@ -52,7 +54,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 
         protected IOASISStorage GetAndActivateProvider()
         {
-            ProviderManager.DefaultProviderTypes = _OASISSettings.Value.StorageProviders.DefaultProviders.Split(",");
+            ProviderManager.DefaultProviderTypes = OASISSettings.Value.StorageProviders.DefaultProviders.Split(",");
 
             //TODO: Need to add additional logic later for when the first provider and others fail or are too laggy and so need to switch to a faster provider, etc...
             return GetAndActivateProvider((ProviderType)Enum.Parse(typeof(ProviderType), ProviderManager.DefaultProviderTypes[0]));
@@ -69,7 +71,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                     {
                         case ProviderType.HoloOASIS:
                             {
-                                HoloOASIS holoOASIS = new HoloOASIS(_OASISSettings.Value.StorageProviders.HoloOASIS.ConnectionString);
+                                HoloOASIS holoOASIS = new HoloOASIS(OASISSettings.Value.StorageProviders.HoloOASIS.ConnectionString);
                                 holoOASIS.OnHoloOASISError += HoloOASIS_OnHoloOASISError;
                                 holoOASIS.StorageProviderError += HoloOASIS_StorageProviderError;
                                 ProviderManager.RegisterProvider(holoOASIS);
@@ -78,7 +80,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 
                         case ProviderType.MongoDBOASIS:
                             {
-                                MongoDBOASIS mongoOASIS = new MongoDBOASIS(_OASISSettings.Value.StorageProviders.MongoDBOASIS.ConnectionString, _OASISSettings.Value.StorageProviders.MongoDBOASIS.DBName);
+                                MongoDBOASIS mongoOASIS = new MongoDBOASIS(OASISSettings.Value.StorageProviders.MongoDBOASIS.ConnectionString, OASISSettings.Value.StorageProviders.MongoDBOASIS.DBName);
                                 mongoOASIS.StorageProviderError += MongoOASIS_StorageProviderError;
                                 ProviderManager.RegisterProvider(mongoOASIS);
 

@@ -32,7 +32,8 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
         {
             try
             {
-                FilterDefinition<Avatar> filter = Builders<Avatar>.Filter.Eq("Id", id);
+                //FilterDefinition<Avatar> filter = Builders<Avatar>.Filter.Eq("Id", id);
+                FilterDefinition<Avatar> filter = Builders<Avatar>.Filter.Eq("AvatarId", id);
                 return await _dbContext.Avatar.Find(filter).FirstOrDefaultAsync();
             }
             catch

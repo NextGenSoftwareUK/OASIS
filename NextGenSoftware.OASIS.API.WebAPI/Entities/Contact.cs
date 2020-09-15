@@ -11,8 +11,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
 
         public Phase Phase { get; set; }
 
-        [BsonRepresentation(BsonType.ObjectId)]
-        public string UserId { get; set; }
+        //[BsonRepresentation(BsonType.ObjectId)]
+        public string AvatarId { get; set; }
 
         public BEBUserType BEBUserType { get; set; }
 

@@ -308,30 +308,32 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
 
             // TODO: Be good if can find global way of caching the AvatarManager because expensive to start up the providers each time.
             // Just want one persisted/cached but more tricky in web so may need to put it into a cache...
-            var users = AvatarManager.LoadAllAvatarsAsync();
+
+            //OASISProviderManager.SetOASISSettings()
+            // OASISProviderManager.GetAndActivateProvider();
+            
+            //var users = AvatarManager.LoadAllAvatarsAsync();
+            IEnumerable<IAvatar> avatars = AvatarManager.LoadAllAvatars();
 
             //TODO: Need to change Contact fields in Mongo to match new ones (like Created/Modified/Deleted, etc since User/Profile renamed to Avatar.
             foreach (Contact contact in contacts)
             {
-                foreach (Avatar avatar in users.Result)
+                foreach (IAvatar avatar in avatars)
                 {
-                    if (contact.UserId == avatar.Id.ToString())
+
+                    if (contact.AvatarId == avatar.Id.ToString())
                     {
                         contact.FirstName = avatar.FirstName;
                         contact.LastName = avatar.LastName;
                         contact.Address = avatar.Address;
                         contact.Country = avatar.Country;
                         contact.County = avatar.County;
-                        contact.CreatedByAvatarId = avatar.CreatedByAvatarId;
                         contact.CreatedDate = avatar.CreatedDate;
-                        contact.DeletedByAvatarId = avatar.DeletedByAvatarId;
                         contact.DeletedDate = avatar.DeletedDate;
                         contact.Email = avatar.Email;
                         contact.DOB = avatar.DOB;
                         contact.Landline = avatar.LastName;
                         contact.Mobile = avatar.Mobile;
-                        contact.ModifiedByAvatarId = avatar.ModifiedByAvatarId;
-                        contact.ModifiedDate = avatar.ModifiedDate;
                         contact.Password = avatar.Password;
                         contact.Postcode = avatar.Postcode;
                         contact.Title = avatar.Title;
@@ -339,6 +341,17 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
                         contact.Username = avatar.Username;
                         contact.AvatarType = avatar.AvatarType;
                         contact.Version = avatar.Version;
+
+                        //contact.CreatedByAvatarId = avatar.CreatedByAvatarId;
+                        //contact.DeletedByAvatarId = avatar.DeletedByAvatarId;
+                        //contact.ModifiedByAvatarId = avatar.ModifiedByAvatarId;
+                        //contact.ModifiedDate = avatar.ModifiedDate;
+
+                        //TODO: Change to use Avatar EVERYWHERE ASAP...
+                        contact.CreatedByUserId = avatar.CreatedByAvatarId.ToString();
+                        contact.DeletedByUserId = avatar.DeletedByAvatarId.ToString();
+                        contact.ModifiedByUserId = avatar.ModifiedByAvatarId.ToString();
+                        contact.ModifiedDate = avatar.ModifiedDate;
                         break;
                     }
                 }
@@ -396,10 +409,13 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
                 if (loadSignedByUser)
                 {
                     //Avatar user = await GetAvatar(delivery.SignedByUserId);
-                    IAvatar user = await AvatarManager.LoadAvatarAsync(Guid.Parse(delivery.SignedByUserId));
+                    
+                    //TODO: Fix BUG in MongoDBOASIS with being able to return async methods ASAP!
+                    //IAvatar user = await AvatarManager.LoadAvatarAsync(Guid.Parse(delivery.SignedByUserId));
+                    IAvatar avatar = AvatarManager.LoadAvatar(Guid.Parse(delivery.SignedByUserId));
 
-                    if (user != null)
-                        delivery.SignedByUserFullName = user.FullName;
+                    if (avatar != null)
+                        delivery.SignedByUserFullName = avatar.FullName;
                 }
 
                 if (loadSentToPhase)

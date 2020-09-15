@@ -1,6 +1,7 @@
 ﻿using NextGenSoftware.Holochain.HoloNET.Client.Desktop;
 using NextGenSoftware.OASIS.API.Core;
 using NextGenSoftware.OASIS.API.Providers.HoloOASIS.Core;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -12,6 +13,8 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Desktop
         {
             
         }
+
+
 
         //public override Task<IEnumerable<IAvatar>> LoadAllAvatarsAsync()
         //{
