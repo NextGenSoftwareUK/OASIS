@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
-
+using Microsoft.Extensions.Options;
 using NextGenSoftware.OASIS.API.Core;
 using NextGenSoftware.OASIS.API.Providers.HoloOASIS.Desktop;
 using NextGenSoftware.OASIS.API.Providers.MongoDBOASIS;
@@ -20,9 +20,14 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 
     //[EnableCors(origins: "http://mywebclient.azurewebsites.net", headers: "*", methods: "*")]
     [EnableCors()]
-    public class SearchController : ControllerBase
+    public class SearchController : OASISControllerBase
     {
         private SearchManager _SearchManager;
+
+        public SearchController(IOptions<OASISSettings> OASISSettings) : base(OASISSettings)
+        {
+
+        }
 
         private SearchManager SearchManager
         {
@@ -137,6 +142,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpGet("{search}")]
         public async Task<ISearchResults> Get(string search)
         {
+            GetAndActivateProvider();
             return await SearchManager.SearchAsync(search);
         }
 
