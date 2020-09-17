@@ -53,47 +53,68 @@ namespace NextGenSoftware.OASIS.API.Core
 
         }
 
-        public async Task<IAvatar> Authenticate(string username, string password)
-        {
-            IEnumerable<IAvatar> _avatars = await LoadAllAvatarsAsync();
+        //public async Task<IAvatar> Authenticate(string username, string password)
+        //{
 
-            var avatar = await Task.Run(() => _avatars.SingleOrDefault(x => x.Username == username && x.Password == password));
 
-            if (avatar == null)
-                return null;
 
-            avatar.Password = null;
-            return avatar;
-        }
+        //    IEnumerable<IAvatar> _avatars = await LoadAllAvatarsAsync();
+
+        //    var avatar = await Task.Run(() => _avatars.SingleOrDefault(x => x.Username == username && x.Password == password));
+
+        //    if (avatar == null)
+        //        return null;
+
+        //    avatar.Password = null;
+        //    return avatar;
+        //}
 
         public IEnumerable<IAvatar> LoadAllAvatars(ProviderType provider = ProviderType.Default)
         {
-            return ProviderManager.SetAndActivateCurrentStorageProvider(provider).LoadAllAvatars();
+            IEnumerable<IAvatar> avatars = ProviderManager.SetAndActivateCurrentStorageProvider(provider).LoadAllAvatars();
+
+            foreach (IAvatar avatar in avatars)
+                avatar.Password = null;
+
+            return avatars;
         }
 
         public async Task<IEnumerable<IAvatar>> LoadAllAvatarsAsync(ProviderType provider = ProviderType.Default)
         {
-            return await ProviderManager.SetAndActivateCurrentStorageProvider(provider).LoadAllAvatarsAsync();
+            IEnumerable<IAvatar> avatars = ProviderManager.SetAndActivateCurrentStorageProvider(provider).LoadAllAvatarsAsync().Result;
+
+            foreach (IAvatar avatar in avatars)
+                avatar.Password = null;
+
+            return avatars;
         }
 
         public async Task<IAvatar> LoadAvatarAsync(string providerKey, ProviderType provider = ProviderType.Default)
         {
-            return await ProviderManager.SetAndActivateCurrentStorageProvider(provider).LoadAvatarAsync(providerKey);
+            IAvatar avatar = ProviderManager.SetAndActivateCurrentStorageProvider(provider).LoadAvatarAsync(providerKey).Result;
+            avatar.Password = null;
+            return avatar;
         }
 
         public async Task<IAvatar> LoadAvatarAsync(Guid id, ProviderType providerType = ProviderType.Default)
         {
-            return await ProviderManager.SetAndActivateCurrentStorageProvider(providerType).LoadAvatarAsync(id);
+            IAvatar avatar = ProviderManager.SetAndActivateCurrentStorageProvider(providerType).LoadAvatarAsync(id).Result;
+            avatar.Password = null;
+            return avatar;
         }
 
         public IAvatar LoadAvatar(Guid id, ProviderType providerType = ProviderType.Default)
         {
-            return ProviderManager.SetAndActivateCurrentStorageProvider(providerType).LoadAvatar(id);
+            IAvatar avatar = ProviderManager.SetAndActivateCurrentStorageProvider(providerType).LoadAvatar(id);
+            avatar.Password = null;
+            return avatar;
         }
 
         public async Task<IAvatar> LoadAvatarAsync(string username, string password, ProviderType providerType = ProviderType.Default)
         {
-            return await ProviderManager.SetAndActivateCurrentStorageProvider(providerType).LoadAvatarAsync(username, password);
+            IAvatar avatar = ProviderManager.SetAndActivateCurrentStorageProvider(providerType).LoadAvatarAsync(username, password).Result;
+            avatar.Password = null;
+            return avatar;
         }
 
         //public Task<IAvatar> LoadAvatarAsync(Guid id, ProviderType providerType = ProviderType.Default)
