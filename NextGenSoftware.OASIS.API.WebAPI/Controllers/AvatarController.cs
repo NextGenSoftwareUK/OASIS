@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -10,7 +8,7 @@ using WebAPI.Models;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/avatar")]
     //[Route("api/[avatar]")] //TODO: Get this working, think better way?
     [ApiController]
     public class AvatarController : OASISControllerBase
@@ -43,19 +41,21 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             
         }
 
-        [AllowAnonymous]
-        [HttpPost("authenticate")]
-        public async Task<IActionResult> Authenticate([FromBody] AuthenticateModel model)
+        //[AllowAnonymous]
+        //[HttpPost("PostAuthenticate", Name ="AuthenticateAvatar")]
+        [HttpPost]
+        public async Task<IActionResult> PostAuthenticate([FromBody] AuthenticateModel model)
         {
-            IEnumerable<IAvatar>_avatars = await AvatarManager.LoadAllAvatarsAsync();
-            var avatar = await Task.Run(() => _avatars.SingleOrDefault(x => x.Username == model.Username && x.Password == model.Password));
+            //IEnumerable<IAvatar>_avatars = await AvatarManager.LoadAllAvatarsAsync();
+            //var avatar = await Task.Run(() => _avatars.SingleOrDefault(x => x.Username == model.Username && x.Password == model.Password));
+
+            IAvatar avatar = AvatarManager.LoadAvatar(model.Username, model.Password);
 
             if (avatar == null)
-                return BadRequest(new { message = "Avatar Name or password is incorrect" });
+                return BadRequest(new { message = "Avatar name or password is incorrect" });
 
             avatar.Password = null;
             return Ok(avatar);
-            //return Ok(avatar.WithoutPassword());
         }
 
         //TODO: Come back to this...

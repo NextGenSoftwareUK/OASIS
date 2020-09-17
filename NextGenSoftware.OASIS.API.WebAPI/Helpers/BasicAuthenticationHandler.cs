@@ -56,7 +56,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
                 var password = credentials[1];
 
                 //avatar = await _userService.Authenticate(username, password);
-                avatar = await Program.AvatarManager.Authenticate(username, password);
+                //avatar = await Program.AvatarManager.Authenticate(username, password);
+                
+                //TODO: Get Async working ASAP!
+                //avatar = await Program.AvatarManager.LoadAvatarAsync(username, password);
+                avatar = Program.AvatarManager.LoadAvatar(username, password);
             }
             catch
             {
