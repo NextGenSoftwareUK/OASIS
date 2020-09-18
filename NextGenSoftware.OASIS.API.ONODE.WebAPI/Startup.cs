@@ -12,6 +12,9 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.AspNetCore.Authentication.OpenIdConnect;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authentication.Cookies;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
 {
@@ -30,6 +33,26 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
             services.AddAuthentication(AzureADB2CDefaults.BearerAuthenticationScheme)
                 .AddAzureADB2CBearer(options => Configuration.Bind("AzureAdB2C", options));
             services.AddControllers();
+
+            services.AddProtectedWebApi(Configuration, "AzureAdB2C");
+
+            services.Configure<OpenIdConnectOptions>(
+                AzureAD[B2C]Defaults.OpenIdScheme, options =>
+                {
+                    // Omitted for brevity
+                });
+
+                        services.Configure<CookieAuthenticationOptions>(
+                            AzureAD[B2C]Defaults.CookieScheme, options =>
+                            {
+                    // Omitted for brevity
+                });
+
+                        services.Configure<JwtBearerOptions>(
+                            AzureAD[B2C]Defaults.JwtBearerAuthenticationScheme, options =>
+                            {
+                    // Omitted for brevity
+                });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -41,6 +64,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
             }
 
             app.UseHttpsRedirection();
+
+            //added this.
+            app.UseCors(builder => { builder.WithOrigins("http://localhost:4200").AllowCredentials().AllowAnyMethod().AllowAnyHeader(); });
 
             app.UseRouting();
 
