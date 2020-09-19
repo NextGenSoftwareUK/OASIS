@@ -34,25 +34,33 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
                 .AddAzureADB2CBearer(options => Configuration.Bind("AzureAdB2C", options));
             services.AddControllers();
 
-            services.AddProtectedWebApi(Configuration, "AzureAdB2C");
+           // services.AddAuthentication(AzureADB2CDefaults.AuthenticationScheme)
+         // .AddAzureADB2C(options => Configuration.Bind("AzureAdB2C", options));
 
-            services.Configure<OpenIdConnectOptions>(
-                AzureAD[B2C]Defaults.OpenIdScheme, options =>
-                {
-                    // Omitted for brevity
-                });
+            //services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
 
-                        services.Configure<CookieAuthenticationOptions>(
-                            AzureAD[B2C]Defaults.CookieScheme, options =>
-                            {
-                    // Omitted for brevity
-                });
 
-                        services.Configure<JwtBearerOptions>(
-                            AzureAD[B2C]Defaults.JwtBearerAuthenticationScheme, options =>
-                            {
-                    // Omitted for brevity
-                });
+
+
+            //services.AddProtectedWebApi(Configuration, "AzureAdB2C");
+
+            //services.Configure<OpenIdConnectOptions>(
+            //    AzureAD[B2C]Defaults.OpenIdScheme, options =>
+            //    {
+            //        // Omitted for brevity
+            //    });
+
+            //            services.Configure<CookieAuthenticationOptions>(
+            //                AzureAD[B2C]Defaults.CookieScheme, options =>
+            //                {
+            //        // Omitted for brevity
+            //    });
+
+            //            services.Configure<JwtBearerOptions>(
+            //                AzureAD[B2C]Defaults.JwtBearerAuthenticationScheme, options =>
+            //                {
+            //        // Omitted for brevity
+            //    });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -62,6 +70,25 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
             {
                 app.UseDeveloperExceptionPage();
             }
+            else
+            {
+                app.UseExceptionHandler("/Home/Error");
+                // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
+                app.UseHsts();
+            }
+
+          
+          //  app.UseStaticFiles();
+            app.UseCookiePolicy();
+
+            //app.UseMvc(routes =>
+            //{
+            //    routes.MapRoute(
+            //        name: "default",
+            //        template: "{controller=Home}/{action=Index}/{id?}");
+            //});
+
+   
 
             app.UseHttpsRedirection();
 
