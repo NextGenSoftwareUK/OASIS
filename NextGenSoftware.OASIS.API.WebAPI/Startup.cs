@@ -1,17 +1,16 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using AutoMapper;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.HttpsPolicy;
-using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
-using NextGenSoftware.OASIS.API.Core;
+
+using NextGenSoftware.OASIS.API.ONODE.WebAPI.Helpers;
+using NextGenSoftware.OASIS.API.ONODE.WebAPI.Middleware;
+using NextGenSoftware.OASIS.API.ONODE.WebAPI.Services;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
 {
@@ -30,17 +29,19 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
         public void ConfigureServices(IServiceCollection services)
         {
             services.Configure<OASISSettings>(Configuration.GetSection("OASIS"));
-            
-            
-            //string mongoConnectionString = Configuration.GetConnectionString("MongoDBConnectionString");
 
-            // Program.DefaultStorageProviderType = (ProviderType)Enum.Parse(typeof(ProviderType), Configuration.GetValue<string>("OASIS:StorageProviders.DefaultProvider"));
+            services.AddDbContext<DataContext>();
+            services.AddCors();
+            services.AddControllers().AddJsonOptions(x => x.JsonSerializerOptions.IgnoreNullValues = true);
+            services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
+            services.AddSwaggerGen();
 
-            //string test = Configuration.GetValue<string>("OASIS:Test");
-            //string test2 = Configuration.GetValue<string>("OASIS:StorageProviders.DefaultProvider");
-            //Program.HoloOASISConnectionString = Configuration.GetValue<string>("OASIS:StorageProviders.HoloOASIS.ConnectionString");
-            //Program.MongoOASISConnectionString = Configuration.GetValue<string>("OASIS:StorageProviders.MongoOASIS.ConnectionString");
-            //Program.MongoOASISDBName = Configuration.GetValue<string>("OASIS:StorageProviders.MongoOASIS.DBName");
+            // configure strongly typed settings object
+            services.Configure<AppSettings>(Configuration.GetSection("AppSettings"));
+
+            // configure DI for application services
+            services.AddScoped<IAccountService, AccountService>();
+            services.AddScoped<IEmailService, EmailService>();
 
             services.AddCors(options =>
             {
@@ -63,8 +64,16 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, DataContext context)
         {
+            // migrate database changes on startup (includes initial db creation)
+            context.Database.Migrate();
+
+            // generated swagger json and swagger ui middleware
+            app.UseSwagger();
+            app.UseSwaggerUI(x => x.SwaggerEndpoint("/swagger/v1/swagger.json", "ASP.NET Core Sign-up and Verification API"));
+
+
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
@@ -74,14 +83,25 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
 
             app.UseRouting();
 
-            app.UseCors(MyAllowSpecificOrigins);
+            // global cors policy
+            app.UseCors(x => x
+                .SetIsOriginAllowed(origin => true)
+                .AllowAnyMethod()
+                .AllowAnyHeader()
+                .AllowCredentials());
+
+           //TODO: Was this, check later...
+           // app.UseCors(MyAllowSpecificOrigins);
 
             app.UseAuthorization();
 
-            app.UseEndpoints(endpoints =>
-            {
-                endpoints.MapControllers();
-            });
+            // global error handler
+            app.UseMiddleware<ErrorHandlerMiddleware>();
+
+            // custom jwt auth middleware
+            app.UseMiddleware<JwtMiddleware>();
+
+            app.UseEndpoints(endpoints => { endpoints.MapControllers(); });
 
           //  string dbConn = configuration.GetSection("MySettings").GetSection("DbConnection").Value;
 

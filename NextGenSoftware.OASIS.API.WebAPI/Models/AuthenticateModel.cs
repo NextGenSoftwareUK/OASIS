@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace WebAPI.Models
+namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Models
 {
     public class AuthenticateModel
     {
