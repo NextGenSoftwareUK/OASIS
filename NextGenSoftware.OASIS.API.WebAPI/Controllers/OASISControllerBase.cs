@@ -22,6 +22,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         private static OASISControllerBase _instance;
         //public static ProviderType CurrentStorageProviderType = ProviderType.Default;
 
+        // returns the current authenticated account (null if not logged in)
+        public Account Account => (Account)HttpContext.Items["Account"];
+
         public static OASISControllerBase Instance
         {
             get
