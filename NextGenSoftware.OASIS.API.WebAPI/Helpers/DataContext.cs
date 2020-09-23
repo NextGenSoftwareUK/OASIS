@@ -1,23 +1,23 @@
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
+//using Microsoft.EntityFrameworkCore;
+//using Microsoft.Extensions.Configuration;
 
-namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Helpers
-{
-    public class DataContext : DbContext
-    {
-        public DbSet<Account> Accounts { get; set; }
-        
-        private readonly IConfiguration Configuration;
+//namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Helpers
+//{
+//    public class DataContext : DbContext
+//    {
+//        public DbSet<Avatar> Avatar { get; set; }
 
-        public DataContext(IConfiguration configuration)
-        {
-            Configuration = configuration;
-        }
+//        private readonly IConfiguration Configuration;
 
-        protected override void OnConfiguring(DbContextOptionsBuilder options)
-        {
-            // connect to sqlite database
-            options.UseSqlite(Configuration.GetConnectionString("WebApiDatabase"));
-        }
-    }
-}
+//        public DataContext(IConfiguration configuration)
+//        {
+//            Configuration = configuration;
+//        }
+
+//        protected override void OnConfiguring(DbContextOptionsBuilder options)
+//        {
+//            // connect to sqlite database
+//            options.UseSqlite(Configuration.GetConnectionString("OASISSQLLiteDB"));
+//        }
+//    }
+//}

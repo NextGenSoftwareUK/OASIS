@@ -137,7 +137,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
                     foreach (SearchData dataObj in data)
                         results.Add( dataObj.searchData );
 
-                    return new SearchResults() { SearchResult = results };
+                    return new SearchResults() {  SearchResultStrings = results };
                 }
                 else
                     return null;

@@ -1,5 +1,5 @@
 using AutoMapper;
-using NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Accounts;
+using NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Security;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Helpers
 {
@@ -8,15 +8,15 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Helpers
         // mappings between model and entity objects
         public AutoMapperProfile()
         {
-            CreateMap<Account, AccountResponse>();
+            CreateMap<Avatar, AccountResponse>();
 
-            CreateMap<Account, AuthenticateResponse>();
+            CreateMap<Avatar, AuthenticateResponse>();
 
-            CreateMap<RegisterRequest, Account>();
+            CreateMap<RegisterRequest, Avatar>();
 
-            CreateMap<CreateRequest, Account>();
+            CreateMap<CreateRequest, Avatar>();
 
-            CreateMap<UpdateRequest, Account>()
+            CreateMap<UpdateRequest, Avatar>()
                 .ForAllMembers(x => x.Condition(
                     (src, dest, prop) =>
                     {
@@ -25,7 +25,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Helpers
                         if (prop.GetType() == typeof(string) && string.IsNullOrEmpty((string)prop)) return false;
 
                         // ignore null role
-                        if (x.DestinationMember.Name == "Role" && src.Role == null) return false;
+                        if (x.DestinationMember.Name == "AvatarType" && src.AvatarType == null) return false;
 
                         return true;
                     }

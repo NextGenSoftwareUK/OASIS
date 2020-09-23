@@ -3,14 +3,13 @@ using AutoMapper;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
-using NextGenSoftware.OASIS.API.ONODE.WebAPI.Helpers;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Middleware;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Services;
+using NextGenSoftware.OASIS.API.WebAPI;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
 {
@@ -30,17 +29,17 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
         {
             services.Configure<OASISSettings>(Configuration.GetSection("OASIS"));
 
-            services.AddDbContext<DataContext>();
-            services.AddCors();
+           // services.AddDbContext<DataContext>();
+            //services.AddCors(); //Needed twice? It is below too...
             services.AddControllers().AddJsonOptions(x => x.JsonSerializerOptions.IgnoreNullValues = true);
             services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
             services.AddSwaggerGen();
 
             // configure strongly typed settings object
-            services.Configure<AppSettings>(Configuration.GetSection("AppSettings"));
+           // services.Configure<AppSettings>(Configuration.GetSection("AppSettings"));
 
             // configure DI for application services
-            services.AddScoped<IAccountService, AccountService>();
+            services.AddScoped<IAvatarService, AvatarService>();
             services.AddScoped<IEmailService, EmailService>();
 
             services.AddCors(options =>
@@ -64,10 +63,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, DataContext context)
+        //public void Configure(IApplicationBuilder app, IWebHostEnvironment env, DataContext context)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
             // migrate database changes on startup (includes initial db creation)
-            context.Database.Migrate();
+            //context.Database.Migrate();
 
             // generated swagger json and swagger ui middleware
             app.UseSwagger();
@@ -75,9 +75,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
 
 
             if (env.IsDevelopment())
-            {
                 app.UseDeveloperExceptionPage();
-            }
 
             app.UseHttpsRedirection();
 

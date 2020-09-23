@@ -25,6 +25,22 @@ namespace NextGenSoftware.OASIS.API.Core
         string Landline { get; set; }
         AvatarType AvatarType { get; set; }
 
+        bool AcceptTerms { get; set; }
+        public string VerificationToken { get; set; }
+        DateTime? Verified { get; set; }
+        bool IsVerified => Verified.HasValue || PasswordReset.HasValue;
+        string ResetToken { get; set; }
+        DateTime? ResetTokenExpires { get; set; }
+        DateTime? PasswordReset { get; set; }
+        //public DateTime Created { get; set; }
+        //public DateTime? Updated { get; set; }
+        public List<RefreshToken> RefreshTokens { get; set; }
+
+        public bool OwnsToken(string token)
+        {
+            return this.RefreshTokens?.Find(x => x.Token == token) != null;
+        }
+
         Task<KarmaAkashicRecord> KarmaEarnt(KarmaTypePositive karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc, bool autoSave = true);
         Task<KarmaAkashicRecord> KarmaLost(KarmaTypeNegative karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc, bool autoSave = true);
         List<KarmaAkashicRecord> KarmaAkashicRecords { get; set; }

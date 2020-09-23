@@ -1,9 +1,15 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
+using AutoMapper;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
+
 using NextGenSoftware.OASIS.API.Core;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Models;
+using NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Security;
+using NextGenSoftware.OASIS.API.WebAPI;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 {
@@ -12,12 +18,23 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
     [ApiController]
     public class AvatarController : OASISControllerBase
     {
-        private static AvatarManager _avatarManager;
+       // private static AvatarManager _avatarManager;
+        private readonly IAvatarService _avatarService;
+        private readonly IMapper _mapper;
 
-        public AvatarController(IOptions<OASISSettings> OASISSettings) : base(OASISSettings)
+        public AvatarController(IOptions<OASISSettings> OASISSettings, IAvatarService avatarService) : base(OASISSettings)
         {
-
+            _avatarService = avatarService;
         }
+
+        //        public AccountsController(
+        //            IAccountService accountService,
+        //            IMapper mapper, IOptions<OASISSettings> OASISSettings) : base(OASISSettings)
+        //        {
+        //            _accountService = accountService;
+        //            _mapper = mapper;
+        //        }
+
 
         public AvatarManager AvatarManager
         {
@@ -48,6 +65,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             //IEnumerable<IAvatar>_avatars = await AvatarManager.LoadAllAvatarsAsync();
             //var avatar = await Task.Run(() => _avatars.SingleOrDefault(x => x.Username == model.Username && x.Password == model.Password));
 
+            GetAndActivateProvider();
             IAvatar avatar = AvatarManager.LoadAvatar(model.Username, model.Password);
 
             if (avatar == null)
@@ -56,6 +74,151 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             avatar.Password = null;
             return Ok(avatar);
         }
+
+        [HttpPost("authenticate")]
+        public ActionResult<AuthenticateResponse> Authenticate(AuthenticateRequest model)
+        {
+            GetAndActivateProvider();
+            var response = _avatarService.Authenticate(model, ipAddress());
+            setTokenCookie(response.RefreshToken);
+            return Ok(response);
+        }
+
+        [HttpPost("refresh-token")]
+        public ActionResult<AuthenticateResponse> RefreshToken()
+        {
+            GetAndActivateProvider();
+            var refreshToken = Request.Cookies["refreshToken"];
+            var response = _avatarService.RefreshToken(refreshToken, ipAddress());
+            setTokenCookie(response.RefreshToken);
+            return Ok(response);
+        }
+
+        [Authorize]
+        [HttpPost("revoke-token")]
+        public IActionResult RevokeToken(RevokeTokenRequest model)
+        {
+            GetAndActivateProvider();
+
+            // accept token from request body or cookie
+            var token = model.Token ?? Request.Cookies["refreshToken"];
+
+            if (string.IsNullOrEmpty(token))
+                return BadRequest(new { message = "Token is required" });
+
+            // users can revoke their own tokens and admins can revoke any tokens
+            if (!Avatar.OwnsToken(token) && Avatar.AvatarType != AvatarType.Wizard)
+                return Unauthorized(new { message = "Unauthorized" });
+
+            _avatarService.RevokeToken(token, ipAddress());
+            return Ok(new { message = "Token revoked" });
+        }
+
+        [HttpPost("register")]
+        public IActionResult Register(RegisterRequest model)
+        {
+            GetAndActivateProvider();
+            _avatarService.Register(model, Request.Headers["origin"]);
+            return Ok(new { message = "Registration successful, please check your email for verification instructions" });
+        }
+
+        [HttpPost("verify-email")]
+        public IActionResult VerifyEmail(VerifyEmailRequest model)
+        {
+            GetAndActivateProvider();
+            _avatarService.VerifyEmail(model.Token);
+            return Ok(new { message = "Verification successful, you can now login" });
+        }
+
+        [HttpPost("forgot-password")]
+        public IActionResult ForgotPassword(ForgotPasswordRequest model)
+        {
+            GetAndActivateProvider();
+            _avatarService.ForgotPassword(model, Request.Headers["origin"]);
+            return Ok(new { message = "Please check your email for password reset instructions" });
+        }
+
+        [HttpPost("validate-reset-token")]
+        public IActionResult ValidateResetToken(ValidateResetTokenRequest model)
+        {
+            GetAndActivateProvider();
+            _avatarService.ValidateResetToken(model);
+            return Ok(new { message = "Token is valid" });
+        }
+
+        [HttpPost("reset-password")]
+        public IActionResult ResetPassword(ResetPasswordRequest model)
+        {
+            GetAndActivateProvider();
+            _avatarService.ResetPassword(model);
+            return Ok(new { message = "Password reset successful, you can now login" });
+        }
+
+        [Authorize(AvatarType.Wizard)]
+        [HttpGet]
+        public ActionResult<IEnumerable<AccountResponse>> GetAll()
+        {
+            var accounts = _avatarService.GetAll();
+            return Ok(accounts);
+        }
+
+        [Authorize]
+        [HttpGet("{id:int}")]
+        public ActionResult<AccountResponse> GetById(Guid id)
+        {
+            GetAndActivateProvider();
+
+            // users can get their own account and admins can get any account
+            if (id != Avatar.Id && Avatar.AvatarType != AvatarType.Wizard)
+                return Unauthorized(new { message = "Unauthorized" });
+
+            var account = _avatarService.GetById(id);
+            return Ok(account);
+        }
+
+        [Authorize(AvatarType.Wizard)]
+        [HttpPost]
+        public ActionResult<AccountResponse> Create(CreateRequest model)
+        {
+            GetAndActivateProvider();
+            var account = _avatarService.Create(model);
+            return Ok(account);
+        }
+
+        [Authorize]
+        [HttpPut("{id:Guid}")]
+        public ActionResult<AccountResponse> Update(Guid id, UpdateRequest model)
+        {
+            GetAndActivateProvider();
+
+            // users can update their own account and admins can update any account
+            if (id != Avatar.Id && Avatar.AvatarType != AvatarType.Wizard)
+                return Unauthorized(new { message = "Unauthorized" });
+
+            // only admins can update role
+            if (Avatar.AvatarType != AvatarType.Wizard)
+                model.AvatarType = null;
+
+            var avatar = _avatarService.Update(id, model);
+            return Ok(avatar);
+        }
+
+        [Authorize]
+        [HttpDelete("{id:int}")]
+        public IActionResult Delete(Guid id)
+        {
+            // users can delete their own account and admins can delete any account
+            if (id != Avatar.Id && Avatar.AvatarType != AvatarType.Wizard)
+                return Unauthorized(new { message = "Unauthorized" });
+
+            GetAndActivateProvider();
+            _avatarService.Delete(id);
+
+            return Ok(new { message = "Account deleted successfully" });
+        }
+
+
+
 
         //TODO: Come back to this...
         //[HttpGet]
@@ -83,7 +246,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         //    return "value";
         //}
 
-        
+
         // GET api/values/5
         //[HttpGet("GetAvatarById/{sequenceNo}/{phaseNo}")]
         [HttpGet("GetAvatarById/{id}")]
@@ -174,22 +337,27 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             AvatarManager.SaveAvatarAsync(value);
         }
 
-        // POST api/values
-        //[HttpPost]
-        //public void Post([FromBody] string value)
-        //{
-        //}
+           // helper methods
 
-        //// PUT api/values/5
-        //[HttpPut("{id}")]
-        //public void Put(int id, [FromBody] string value)
-        //{
-        //}
+        private void setTokenCookie(string token)
+        {
+            var cookieOptions = new CookieOptions
+            {
+                HttpOnly = true,
+                Expires = DateTime.UtcNow.AddDays(7)
+            };
+            Response.Cookies.Append("refreshToken", token, cookieOptions);
+        }
 
-        //// DELETE api/values/5
-        //[HttpDelete("{id}")]
-        //public void Delete(int id)
-        //{
-        //}
+        private string ipAddress()
+        {
+            if (Request.Headers.ContainsKey("X-Forwarded-For"))
+                return Request.Headers["X-Forwarded-For"];
+            else
+                return HttpContext.Connection.RemoteIpAddress.MapToIPv4().ToString();
+        }
+
+
+
     }
 }

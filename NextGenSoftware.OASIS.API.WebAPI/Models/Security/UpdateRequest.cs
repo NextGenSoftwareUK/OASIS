@@ -1,6 +1,7 @@
+using NextGenSoftware.OASIS.API.Core;
 using System.ComponentModel.DataAnnotations;
 
-namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Accounts
+namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Security
 {
     public class UpdateRequest
     {
@@ -13,8 +14,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Accounts
         public string FirstName { get; set; }
         public string LastName { get; set; }
 
-        [EnumDataType(typeof(Role))]
-        public string Role
+        [EnumDataType(typeof(AvatarType))]
+        public string AvatarType
         {
             get => _role;
             set => _role = replaceEmptyWithNull(value);
