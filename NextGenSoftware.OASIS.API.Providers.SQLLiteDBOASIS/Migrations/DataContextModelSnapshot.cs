@@ -2,10 +2,8 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
-using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using NextGenSoftware.OASIS.API.ONODE.WebAPI.Helpers;
 
-namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Migrations
+namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Migrations
 {
     [DbContext(typeof(DataContext))]
     partial class DataContextModelSnapshot : ModelSnapshot

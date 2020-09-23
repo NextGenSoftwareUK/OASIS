@@ -7,6 +7,7 @@ using NextGenSoftware.OASIS.API.Core;
 using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS;
 using NextGenSoftware.OASIS.API.Providers.HoloOASIS.Desktop;
 using NextGenSoftware.OASIS.API.Providers.MongoDBOASIS;
+using NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 {
@@ -23,7 +24,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         //public static ProviderType CurrentStorageProviderType = ProviderType.Default;
 
         // returns the current authenticated account (null if not logged in)
-        public Account Account => (Account)HttpContext.Items["Account"];
+        public IAvatar Avatar => (IAvatar)HttpContext.Items["Avatar"];
 
         public static OASISControllerBase Instance
         {
@@ -81,6 +82,15 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                             }
                             break;
 
+                        case ProviderType.SQLLiteDBOASIS:
+                        {
+                                SQLLiteDBOASIS SQLLiteDBOASIS = new SQLLiteDBOASIS(OASISSettings.Value.StorageProviders.SQLLiteDBOASIS.ConnectionString);
+                                SQLLiteDBOASIS.StorageProviderError += SQLLiteDBOASIS_StorageProviderError;
+                                ProviderManager.RegisterProvider(SQLLiteDBOASIS);
+
+                        }
+                        break;
+
                         case ProviderType.MongoDBOASIS:
                             {
                                 MongoDBOASIS mongoOASIS = new MongoDBOASIS(OASISSettings.Value.StorageProviders.MongoDBOASIS.ConnectionString, OASISSettings.Value.StorageProviders.MongoDBOASIS.DBName);
@@ -114,6 +124,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         }
 
         private void MongoOASIS_StorageProviderError(object sender, AvatarManagerErrorEventArgs e)
+        {
+            //TODO: {URGENT} Handle Errors properly here (log, etc)
+            //  throw new Exception(string.Concat("ERROR: MongoOASIS_StorageProviderError. EndPoint: ", e.EndPoint, "Reason: ", e.Reason, ". Error Details: ", e.ErrorDetails));
+        }
+
+        private void SQLLiteDBOASIS_StorageProviderError(object sender, AvatarManagerErrorEventArgs e)
         {
             //TODO: {URGENT} Handle Errors properly here (log, etc)
             //  throw new Exception(string.Concat("ERROR: MongoOASIS_StorageProviderError. EndPoint: ", e.EndPoint, "Reason: ", e.Reason, ". Error Details: ", e.ErrorDetails));

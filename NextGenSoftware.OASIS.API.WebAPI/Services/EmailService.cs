@@ -14,18 +14,18 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
 
     public class EmailService : IEmailService
     {
-        private readonly AppSettings _appSettings;
+        private readonly OASISSettings _OASISSettings;
 
-        public EmailService(IOptions<AppSettings> appSettings)
+        public EmailService(IOptions<OASISSettings> OASISSettings)
         {
-            _appSettings = appSettings.Value;
+            _OASISSettings = OASISSettings.Value;
         }
 
         public void Send(string to, string subject, string html, string from = null)
         {
             // create message
             var email = new MimeMessage();
-            email.Sender = MailboxAddress.Parse(from ?? _appSettings.EmailFrom);
+            email.Sender = MailboxAddress.Parse(from ?? _OASISSettings.Email.EmailFrom);
             email.To.Add(MailboxAddress.Parse(to));
             email.Subject = subject;
             email.Body = new TextPart(TextFormat.Html) { Text = html };
@@ -33,8 +33,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
             // send email
             using var smtp = new SmtpClient();
             //smtp.Connect(_appSettings.SmtpHost, _appSettings.SmtpPort, SecureSocketOptions.StartTls);
-            smtp.Connect(_appSettings.SmtpHost, _appSettings.SmtpPort, SecureSocketOptions.None);
-            smtp.Authenticate(_appSettings.SmtpUser, _appSettings.SmtpPass);
+            smtp.Connect(_OASISSettings.Email.SmtpHost, _OASISSettings.Email.SmtpPort, SecureSocketOptions.None);
+            smtp.Authenticate(_OASISSettings.Email.SmtpUser, _OASISSettings.Email.SmtpPass);
             smtp.Send(email);
             smtp.Disconnect(true);
         }

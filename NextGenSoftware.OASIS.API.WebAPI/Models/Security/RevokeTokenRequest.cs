@@ -1,4 +1,4 @@
-namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Accounts
+namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Security
 {
     public class RevokeTokenRequest
     {

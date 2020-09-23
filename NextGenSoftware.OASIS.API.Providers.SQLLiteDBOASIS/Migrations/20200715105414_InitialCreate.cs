@@ -1,7 +1,7 @@
 ﻿using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 
-namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Migrations
+namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Migrations
 {
     public partial class InitialCreate : Migration
     {

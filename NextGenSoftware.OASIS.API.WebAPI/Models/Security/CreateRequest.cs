@@ -1,8 +1,9 @@
+using NextGenSoftware.OASIS.API.Core;
 using System.ComponentModel.DataAnnotations;
 
-namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Accounts
+namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Security
 {
-    public class RegisterRequest
+    public class CreateRequest
     {
         [Required]
         public string Title { get; set; }
@@ -12,6 +13,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Accounts
 
         [Required]
         public string LastName { get; set; }
+
+        [Required]
+        [EnumDataType(typeof(AvatarType))]
+        public string Role { get; set; }
 
         [Required]
         [EmailAddress]
@@ -24,8 +29,5 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Accounts
         [Required]
         [Compare("Password")]
         public string ConfirmPassword { get; set; }
-
-        [Range(typeof(bool), "true", "true")]
-        public bool AcceptTerms { get; set; }
     }
 }

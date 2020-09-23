@@ -1,8 +1,8 @@
-namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
-{
-    public enum Role
-    {
-        Admin,
-        User
-    }
-}
+//namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
+//{
+//    public enum Role
+//    {
+//        Admin,
+//        User
+//    }
+//}
