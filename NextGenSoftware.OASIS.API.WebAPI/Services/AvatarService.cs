@@ -54,13 +54,17 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
             _emailService = emailService;
         }
 
-        public AuthenticateResponse Authenticate(AuthenticateRequest model, string ipAddress)
+        //public AuthenticateResponse Authenticate(AuthenticateRequest model, string ipAddress)
+        public IAvatar Authenticate(AuthenticateRequest model, string ipAddress)
         {
             //var account = _context.Accounts.SingleOrDefault(x => x.Email == model.Email);
-            IAvatar avatar = AvatarManager.LoadAvatar(model.Email, model.Password);
+            //IAvatar avatar = AvatarManager.LoadAvatar(model.Email, model.Password);
+            //IAvatar avatar = AvatarManager.LoadAvatar(model.Email, BC.HashPassword(model.Password));
+            IAvatar avatar = AvatarManager.LoadAvatar(model.Email);
 
             //if (account == null || !account.IsVerified || !BC.Verify(model.Password, account.PasswordHash))
             if (avatar == null || !BC.Verify(model.Password, avatar.Password))
+           // if (avatar == null)
                 throw new AppException("Email or password is incorrect");
 
             // authentication successful so generate jwt and refresh tokens
@@ -68,19 +72,31 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
             var refreshToken = generateRefreshToken(ipAddress);
 
             // save refresh token
+            //if (avatar.RefreshToken == null)
+            //    avatar.RefreshTokens = new List<RefreshToken>();
+
             avatar.RefreshTokens.Add(refreshToken);
-            AvatarManager.SaveAvatarAsync(avatar);
+            avatar.JwtToken = jwtToken;
+            avatar.RefreshToken = refreshToken.Token;
+
+            //TODO: Get Async working!
+            AvatarManager.SaveAvatar(avatar);
+            //AvatarManager.SaveAvatarAsync(avatar);
+
+            avatar.Password = null;
+            return avatar;
 
             //_context.Update(account);
             //_context.SaveChanges();
 
-            var response = _mapper.Map<AuthenticateResponse>(avatar);
-            response.JwtToken = jwtToken;
-            response.RefreshToken = refreshToken.Token;
-            return response;
+            //var response = _mapper.Map<AuthenticateResponse>(avatar);
+            //response.JwtToken = jwtToken;
+            //response.RefreshToken = refreshToken.Token;
+            //return response;
         }
 
-        public AuthenticateResponse RefreshToken(string token, string ipAddress)
+        //public AuthenticateResponse RefreshToken(string token, string ipAddress)
+        public IAvatar RefreshToken(string token, string ipAddress)
         {
             var (refreshToken, avatar) = getRefreshToken(token);
 
@@ -91,18 +107,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
             refreshToken.ReplacedByToken = newRefreshToken.Token;
             avatar.RefreshTokens.Add(newRefreshToken);
 
-            AvatarManager.SaveAvatarAsync(avatar);
-
-            //_context.Update(account);
-            //_context.SaveChanges();
-
-            // generate new jwt
-            var jwtToken = generateJwtToken(avatar);
-
-            var response = _mapper.Map<AuthenticateResponse>(avatar);
-            response.JwtToken = jwtToken;
-            response.RefreshToken = newRefreshToken.Token;
-            return response;
+            avatar.JwtToken = generateJwtToken(avatar);
+            avatar = AvatarManager.SaveAvatar(avatar);
+            avatar.Password = null;
+            return avatar;
         }
 
         public void RevokeToken(string token, string ipAddress)
@@ -113,33 +121,36 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
             refreshToken.Revoked = DateTime.UtcNow;
             refreshToken.RevokedByIp = ipAddress;
 
-            AvatarManager.SaveAvatarAsync(avatar);
+            AvatarManager.SaveAvatar(avatar);
 
             //_context.Update(account);
             //_context.SaveChanges();
         }
 
-        public void Register(RegisterRequest model, string origin)
+        public IAvatar Register(RegisterRequest model, string origin)
         {
-            // validate
-            
+            IEnumerable<IAvatar> avatars = AvatarManager.LoadAllAvatars();
+
             //TODO: {PERFORMANCE} Add this method to the providers so more efficient.
             //if (_context.Accounts.Any(x => x.Email == model.Email))
-            if (AvatarManager.LoadAllAvatars().Any(x => x.Email == model.Email))
+            if (avatars.Any(x => x.Email == model.Email))
+            //if (AvatarManager.LoadAvatar(model.Email) == null)
             {
                 // send already registered error in email to prevent account enumeration
                 sendAlreadyRegisteredEmail(model.Email, origin);
-                return;
+                return null;
             }
 
             // map model to new account object
-            IAvatar avatar = _mapper.Map<IAvatar>(model);
+            //IAvatar avatar = _mapper.Map<IAvatar>(model);
+            IAvatar avatar = new Core.Avatar() { FirstName = model.FirstName, LastName = model.LastName, Password = model.Password, Title = model.Title, Email = model.Email, AvatarType = (AvatarType)Enum.Parse(typeof(AvatarType),model.AvatarType), AcceptTerms = model.AcceptTerms };
+
 
             // first registered account is an admin
             //var isFirstAccount = _context.Accounts.Count() == 0;
 
             //TODO: PERFORMANCE} Implement in Providers so more efficient and do not need to return whole list!
-            var isFirstAccount = AvatarManager.LoadAllAvatars().Count() == 0;
+            var isFirstAccount = avatars.Count() == 0;
             avatar.AvatarType = isFirstAccount ? AvatarType.Wizard : AvatarType.User;
             avatar.CreatedDate = DateTime.UtcNow;
             avatar.VerificationToken = randomTokenString();
@@ -150,10 +161,15 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
             // save account
             //  _context.Accounts.Add(account);
             // _context.SaveChanges();
-            AvatarManager.SaveAvatarAsync(avatar);
+            //AvatarManager.SaveAvatarAsync(avatar);
+
+            //TODO: Get async version working ASAP! :)
+            avatar = AvatarManager.SaveAvatar(avatar);
+            avatar.Password = null;
 
             // send email
             sendVerificationEmail(avatar, origin);
+            return avatar;
         }
 
         public void VerifyEmail(string token)
@@ -161,14 +177,14 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
             //var account = _context.Accounts.SingleOrDefault(x => x.VerificationToken == token);
 
             //TODO: PERFORMANCE} Implement in Providers so more efficient and do not need to return whole list!
-            IAvatar avatar = AvatarManager.LoadAllAvatars().FirstOrDefault(x => x.VerificationToken == token);
+            IAvatar avatar = AvatarManager.LoadAllAvatarsWithPasswords().FirstOrDefault(x => x.VerificationToken == token);
 
             if (avatar == null) throw new AppException("Verification failed");
 
             avatar.Verified = DateTime.UtcNow;
             avatar.VerificationToken = null;
 
-            AvatarManager.SaveAvatarAsync(avatar);
+            AvatarManager.SaveAvatar(avatar);
            //_context.Accounts.Update(account);
            // _context.SaveChanges();
         }
@@ -187,7 +203,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
             avatar.ResetToken = randomTokenString();
             avatar.ResetTokenExpires = DateTime.UtcNow.AddDays(24);
 
-            AvatarManager.SaveAvatarAsync(avatar);
+            AvatarManager.SaveAvatar(avatar);
            // _context.Accounts.Update(account);
            // _context.SaveChanges();
 
@@ -228,23 +244,34 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
             avatar.ResetToken = null;
             avatar.ResetTokenExpires = null;
 
-            AvatarManager.SaveAvatarAsync(avatar);
+            AvatarManager.SaveAvatar(avatar);
             //_context.Accounts.Update(avatar);
             // _context.SaveChanges();
         }
 
-        public IEnumerable<AccountResponse> GetAll()
+        //public IEnumerable<AccountResponse> GetAll()
+        //{
+        //    return _mapper.Map<IList<AccountResponse>>(AvatarManager.LoadAllAvatars());
+        //}
+
+        public IEnumerable<IAvatar> GetAll()
         {
-            return _mapper.Map<IList<AccountResponse>>(AvatarManager.LoadAllAvatars());
+            return AvatarManager.LoadAllAvatars();
         }
 
-        public AccountResponse GetById(Guid id)
+        //public AccountResponse GetById(Guid id)
+        //{
+        //    var account = getAvatar(id);
+        //    return _mapper.Map<AccountResponse>(account);
+        //}
+
+        public IAvatar GetById(Guid id)
         {
-            var account = getAvatar(id);
-            return _mapper.Map<AccountResponse>(account);
+            return getAvatar(id);
         }
 
-        public AccountResponse Create(CreateRequest model)
+        //public AccountResponse Create(CreateRequest model)
+        public IAvatar Create(CreateRequest model)
         {
             // validate
             //if (_context.Accounts.Any(x => x.Email == model.Email))
@@ -265,12 +292,15 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
             // save account
             // _context.Accounts.Add(account);
             // _context.SaveChanges();
-            AvatarManager.SaveAvatarAsync(avatar);
+            AvatarManager.SaveAvatar(avatar);
+            avatar.Password = null;
 
-            return _mapper.Map<AccountResponse>(avatar);
+            //return _mapper.Map<AccountResponse>(avatar);
+            return avatar;
         }
 
-        public AccountResponse Update(Guid id, UpdateRequest model)
+        //public AccountResponse Update(Guid id, UpdateRequest model)
+        public IAvatar Update(Guid id, UpdateRequest model)
         {
             IAvatar avatar = getAvatar(id);
 
@@ -288,11 +318,13 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
             _mapper.Map(model, avatar);
             avatar.ModifiedDate = DateTime.UtcNow;
 
-            AvatarManager.SaveAvatarAsync(avatar);
+            return AvatarManager.SaveAvatar(avatar);
+            avatar.Password = null;
+
            // _context.Accounts.Update(account);
            // _context.SaveChanges();
 
-            return _mapper.Map<AccountResponse>(avatar);
+            //return _mapper.Map<AccountResponse>(avatar);
         }
 
         public void Delete(Guid id)
@@ -310,12 +342,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
         //private Avatar getAvatar(int id)
         private IAvatar getAvatar(Guid id)
         {
-            // var account = _context.Accounts.Find(id);
-
             IAvatar avatar = AvatarManager.LoadAvatar(id);
 
-            if (avatar == null) throw new KeyNotFoundException("Avatar not found");
+            if (avatar == null) 
+                throw new KeyNotFoundException("Avatar not found");
 
+            //avatar.Password = null;
             return avatar;
         }
 

@@ -30,6 +30,8 @@ namespace NextGenSoftware.OASIS.API.Core
         DateTime? Verified { get; set; }
         bool IsVerified => Verified.HasValue || PasswordReset.HasValue;
         string ResetToken { get; set; }
+        string JwtToken { get; set; }
+        string RefreshToken { get; set; }
         DateTime? ResetTokenExpires { get; set; }
         DateTime? PasswordReset { get; set; }
         //public DateTime Created { get; set; }

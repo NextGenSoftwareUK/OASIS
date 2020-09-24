@@ -45,6 +45,11 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
             throw new NotImplementedException();
         }
 
+        public override IAvatar LoadAvatar(string username)
+        {
+            throw new NotImplementedException();
+        }
+
         public override Task<IAvatar> LoadAvatarAsync(string providerKey)
         {
             throw new NotImplementedException();
@@ -56,6 +61,11 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
         }
 
         public override Task<IAvatar> LoadAvatarAsync(string username, string password)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override IAvatar SaveAvatar(IAvatar Avatar)
         {
             throw new NotImplementedException();
         }

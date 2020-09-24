@@ -71,8 +71,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
 
             // generated swagger json and swagger ui middleware
             app.UseSwagger();
-            app.UseSwaggerUI(x => x.SwaggerEndpoint("/swagger/v1/swagger.json", "ASP.NET Core Sign-up and Verification API"));
-
+            app.UseSwaggerUI(x => x.SwaggerEndpoint("/swagger/v1/swagger.json", "OASIS API"));
 
             if (env.IsDevelopment())
                 app.UseDeveloperExceptionPage();

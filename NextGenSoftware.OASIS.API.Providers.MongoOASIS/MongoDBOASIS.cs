@@ -104,6 +104,25 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             // return oasisAvatar;
         }
 
+        public override IAvatar LoadAvatar(string username)
+        {
+            //return new Task<IAvatar>(() => ConvertMongoEntityToOASISAvatar(_avatarRepository.GetAvatar(username, password).Result));
+
+            Avatar avatar = _avatarRepository.GetAvatar(username).Result;
+            IAvatar oasisAvatar = ConvertMongoEntityToOASISAvatar(avatar);
+
+            //TODO: {URGENT} The calling method never returns and waits forever, need to fix this ASAP
+            return oasisAvatar;
+            // return oasisAvatar;
+        }
+
+        public override IAvatar SaveAvatar(IAvatar avatar)
+        {
+            return ConvertMongoEntityToOASISAvatar(avatar.Id == Guid.Empty ?
+                _avatarRepository.Add(ConvertOASISAvatarToMongoEntity(avatar)).Result :
+                _avatarRepository.Update(ConvertOASISAvatarToMongoEntity(avatar)).Result);
+        }
+
         public override Task<IAvatar> SaveAvatarAsync(IAvatar avatar)
         {
             return new Task<IAvatar>(() => ConvertMongoEntityToOASISAvatar(avatar.Id == Guid.Empty ? 
@@ -163,6 +182,9 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
 
         private IAvatar ConvertMongoEntityToOASISAvatar(Avatar avatar)
         {
+            if (avatar == null)
+                return null;
+
             Core.Avatar oasisAvatar = new Core.Avatar();
 
             oasisAvatar.Id = Guid.Parse(avatar.AvatarId);
@@ -196,12 +218,23 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             oasisAvatar.Username = avatar.Username;
             oasisAvatar.AvatarType = avatar.AvatarType;
             oasisAvatar.Version = avatar.Version;
+            oasisAvatar.AcceptTerms = avatar.AcceptTerms;
+            oasisAvatar.JwtToken = avatar.JwtToken;
+            oasisAvatar.PasswordReset = avatar.PasswordReset;
+            oasisAvatar.RefreshToken = avatar.RefreshToken;
+            oasisAvatar.ResetToken = avatar.ResetToken;
+            oasisAvatar.ResetTokenExpires = avatar.ResetTokenExpires;
+            oasisAvatar.VerificationToken = avatar.VerificationToken;
+            oasisAvatar.Verified = avatar.Verified;
 
             return oasisAvatar;
         }
 
         private Avatar ConvertOASISAvatarToMongoEntity(IAvatar avatar)
         {
+            if (avatar == null)
+                return null;
+
             Avatar mongoAvatar = new Avatar();
 
             mongoAvatar.Id = avatar.ProviderKey;
@@ -232,6 +265,14 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             mongoAvatar.Username = avatar.Username;
             mongoAvatar.AvatarType = avatar.AvatarType;
             mongoAvatar.Version = avatar.Version;
+            mongoAvatar.AcceptTerms = avatar.AcceptTerms;
+            mongoAvatar.JwtToken = avatar.JwtToken;
+            mongoAvatar.PasswordReset = avatar.PasswordReset;
+            mongoAvatar.RefreshToken = avatar.RefreshToken;
+            mongoAvatar.ResetToken = avatar.ResetToken;
+            mongoAvatar.ResetTokenExpires = avatar.ResetTokenExpires;
+            mongoAvatar.VerificationToken = avatar.VerificationToken;
+            mongoAvatar.Verified = avatar.Verified;
 
             return mongoAvatar;
         }

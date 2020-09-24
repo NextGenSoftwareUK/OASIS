@@ -107,5 +107,15 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
 
             base.DeActivateProvider();
         }
+
+        public override IAvatar SaveAvatar(IAvatar Avatar)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override IAvatar LoadAvatar(string username)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

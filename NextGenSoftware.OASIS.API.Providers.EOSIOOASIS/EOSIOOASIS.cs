@@ -52,6 +52,11 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             throw new NotImplementedException();
         }
 
+        public override IAvatar LoadAvatar(string username)
+        {
+            throw new NotImplementedException();
+        }
+
         public override async Task<IAvatar> LoadAvatarAsync(string providerKey)
         {
             var chainApi = new ChainAPI();
@@ -96,6 +101,11 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
 
             Avatar.Password = StringCipher.Decrypt(Avatar.Password, OASIS_PASS_PHRASE);
             return Avatar;
+        }
+
+        public override IAvatar SaveAvatar(IAvatar Avatar)
+        {
+            throw new NotImplementedException();
         }
 
         public override async Task<IAvatar> SaveAvatarAsync(IAvatar Avatar)

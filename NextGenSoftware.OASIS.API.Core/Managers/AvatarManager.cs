@@ -7,7 +7,7 @@ namespace NextGenSoftware.OASIS.API.Core
 {
     public class AvatarManager : OASISManager
     {
-        private AvatarManagerConfig _config;
+        private ProviderManagerConfig _config;
         //private static AvatarManager _instance;
 
         //public static AvatarManager Instance
@@ -24,13 +24,13 @@ namespace NextGenSoftware.OASIS.API.Core
         
         public List<IOASISStorage> OASISStorageProviders { get; set; }
         
-        public AvatarManagerConfig Config
+        public ProviderManagerConfig Config
         {
             get
             {
                 if (_config == null)
                 {
-                    _config = new AvatarManagerConfig();
+                    _config = new ProviderManagerConfig();
                 }
 
                 return _config;
@@ -68,6 +68,16 @@ namespace NextGenSoftware.OASIS.API.Core
         //    avatar.Password = null;
         //    return avatar;
         //}
+
+        public IEnumerable<IAvatar> LoadAllAvatarsWithPasswords(ProviderType provider = ProviderType.Default)
+        {
+            IEnumerable<IAvatar> avatars = ProviderManager.SetAndActivateCurrentStorageProvider(provider).LoadAllAvatars();
+
+           // foreach (IAvatar avatar in avatars)
+           //     avatar.Password = null;
+
+            return avatars;
+        }
 
         public IEnumerable<IAvatar> LoadAllAvatars(ProviderType provider = ProviderType.Default)
         {
@@ -127,9 +137,31 @@ namespace NextGenSoftware.OASIS.API.Core
             return ProviderManager.SetAndActivateCurrentStorageProvider(providerType).LoadAvatar(username, password);
         }
 
+        public IAvatar LoadAvatar(string username, ProviderType providerType = ProviderType.Default)
+        {
+            return ProviderManager.SetAndActivateCurrentStorageProvider(providerType).LoadAvatar(username);
+        }
+
         public async Task<IAvatar> SaveAvatarAsync(IAvatar avatar, ProviderType providerType = ProviderType.Default)
         {
+            if (string.IsNullOrEmpty(avatar.Username))
+                avatar.Username = avatar.Email;
+
+            //if (avatar.Id == Guid.Empty)
+            //    avatar.Id = Guid.NewGuid();
+
             return await ProviderManager.SetAndActivateCurrentStorageProvider(providerType).SaveAvatarAsync(avatar);
+        }
+
+        public IAvatar SaveAvatar(IAvatar avatar, ProviderType providerType = ProviderType.Default)
+        {
+            if (string.IsNullOrEmpty(avatar.Username))
+                avatar.Username = avatar.Email;
+
+            //if (avatar.Id == Guid.Empty)
+            //    avatar.Id = Guid.NewGuid();
+
+            return ProviderManager.SetAndActivateCurrentStorageProvider(providerType).SaveAvatar(avatar);
         }
 
         public async Task<KarmaAkashicRecord> AddKarmaToAvatarAsync(IAvatar Avatar, KarmaTypePositive karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc, ProviderType provider = ProviderType.Default)

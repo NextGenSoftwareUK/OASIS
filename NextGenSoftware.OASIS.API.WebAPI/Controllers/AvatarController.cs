@@ -57,6 +57,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             
         }
 
+        /*
         //[AllowAnonymous]
         //[HttpPost("PostAuthenticate", Name ="AuthenticateAvatar")]
         [HttpPost]
@@ -73,10 +74,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 
             avatar.Password = null;
             return Ok(avatar);
-        }
+        }*/
 
+        //TODO: Some of the above code may be useful...
         [HttpPost("authenticate")]
-        public ActionResult<AuthenticateResponse> Authenticate(AuthenticateRequest model)
+        //public ActionResult<AuthenticateResponse> Authenticate(AuthenticateRequest model)
+        public ActionResult<IAvatar> Authenticate(AuthenticateRequest model)
         {
             GetAndActivateProvider();
             var response = _avatarService.Authenticate(model, ipAddress());
@@ -85,7 +88,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         }
 
         [HttpPost("refresh-token")]
-        public ActionResult<AuthenticateResponse> RefreshToken()
+        //public ActionResult<AuthenticateResponse> RefreshToken()
+        public ActionResult<IAvatar> RefreshToken()
         {
             GetAndActivateProvider();
             var refreshToken = Request.Cookies["refreshToken"];
@@ -118,8 +122,15 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         public IActionResult Register(RegisterRequest model)
         {
             GetAndActivateProvider();
-            _avatarService.Register(model, Request.Headers["origin"]);
-            return Ok(new { message = "Registration successful, please check your email for verification instructions" });
+            IAvatar avatar = _avatarService.Register(model, Request.Headers["origin"]);
+
+            if (avatar != null)
+            {
+                avatar.Password = null;
+                return Ok(new { avatar,  message = "Avatar registration successful, please check your email for verification instructions." });
+            }
+            else
+                return Ok(new { message = "ERROR: Avatar already registered." });
         }
 
         [HttpPost("verify-email")]
@@ -156,7 +167,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 
         [Authorize(AvatarType.Wizard)]
         [HttpGet]
-        public ActionResult<IEnumerable<AccountResponse>> GetAll()
+        //public ActionResult<IEnumerable<AccountResponse>> GetAll()
+        public ActionResult<IEnumerable<IAvatar>> GetAll()
         {
             var accounts = _avatarService.GetAll();
             return Ok(accounts);
@@ -164,7 +176,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 
         [Authorize]
         [HttpGet("{id:int}")]
-        public ActionResult<AccountResponse> GetById(Guid id)
+        //public ActionResult<AccountResponse> GetById(Guid id)
+        public ActionResult<IAvatar> GetById(Guid id)
         {
             GetAndActivateProvider();
 
@@ -178,16 +191,17 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 
         [Authorize(AvatarType.Wizard)]
         [HttpPost]
-        public ActionResult<AccountResponse> Create(CreateRequest model)
+        //public ActionResult<AccountResponse> Create(CreateRequest model)
+        public ActionResult<IAvatar> Create(CreateRequest model)
         {
             GetAndActivateProvider();
-            var account = _avatarService.Create(model);
-            return Ok(account);
+            return Ok(_avatarService.Create(model));
         }
 
         [Authorize]
         [HttpPut("{id:Guid}")]
-        public ActionResult<AccountResponse> Update(Guid id, UpdateRequest model)
+        //public ActionResult<AccountResponse> Update(Guid id, UpdateRequest model)
+        public ActionResult<IAvatar> Update(Guid id, UpdateRequest model)
         {
             GetAndActivateProvider();
 
