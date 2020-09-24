@@ -17,6 +17,7 @@ namespace NextGenSoftware.OASIS.API.Core
 
         //TODO: Add NonAsync methods for rest...
         IAvatar LoadAvatar(string username, string password);
+        IAvatar LoadAvatar(string username);
         IAvatar LoadAvatar(Guid id);
 
         IEnumerable<IAvatar> LoadAllAvatars();
@@ -24,6 +25,8 @@ namespace NextGenSoftware.OASIS.API.Core
 
         //Task<bool> SaveAvatarAsync(IAvatar Avatar);
         Task<IAvatar> SaveAvatarAsync(IAvatar Avatar);
+        IAvatar SaveAvatar(IAvatar Avatar);
+
         Task<KarmaAkashicRecord> AddKarmaToAvatarAsync(API.Core.IAvatar Avatar, KarmaTypePositive karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc);
         Task<KarmaAkashicRecord> SubtractKarmaFromAvatarAsync(API.Core.IAvatar Avatar, KarmaTypeNegative karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc);
 

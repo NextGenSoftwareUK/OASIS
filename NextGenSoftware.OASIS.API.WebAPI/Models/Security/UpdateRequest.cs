@@ -3,11 +3,12 @@ using System.ComponentModel.DataAnnotations;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Security
 {
+    //TODO: Need to add rest of Avatar fields here (do we need seperate object? Could just add this DataAnnotations to the main Avatar object in Core?
     public class UpdateRequest
     {
         private string _password;
         private string _confirmPassword;
-        private string _role;
+        private string _avatarType;
         private string _email;
         
         public string Title { get; set; }
@@ -17,8 +18,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Security
         [EnumDataType(typeof(AvatarType))]
         public string AvatarType
         {
-            get => _role;
-            set => _role = replaceEmptyWithNull(value);
+            get => _avatarType;
+            set => _avatarType = replaceEmptyWithNull(value);
         }
 
         [EmailAddress]

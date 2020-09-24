@@ -3,7 +3,7 @@
 namespace NextGenSoftware.OASIS.API.Core
 {
     // Might have been ProviderManagerConfig before global replaceall from Profile to Avatar... Check later... :)
-    public class AvatarManagerConfig
+    public class ProviderManagerConfig
     {
         private FieldToProviderMappingsConfig _fieldToProviderMappings = null;
 

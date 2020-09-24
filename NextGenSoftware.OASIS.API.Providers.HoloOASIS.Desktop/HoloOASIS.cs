@@ -14,6 +14,16 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Desktop
             
         }
 
+        public override IAvatar LoadAvatar(string username)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override IAvatar SaveAvatar(IAvatar Avatar)
+        {
+            throw new NotImplementedException();
+        }
+
 
 
         //public override Task<IEnumerable<IAvatar>> LoadAllAvatarsAsync()

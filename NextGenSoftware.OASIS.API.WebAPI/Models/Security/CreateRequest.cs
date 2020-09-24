@@ -16,7 +16,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Security
 
         [Required]
         [EnumDataType(typeof(AvatarType))]
-        public string Role { get; set; }
+        public string AvatarType { get; set; }
 
         [Required]
         [EmailAddress]

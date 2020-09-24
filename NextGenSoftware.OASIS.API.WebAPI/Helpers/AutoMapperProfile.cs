@@ -1,4 +1,5 @@
 using AutoMapper;
+using NextGenSoftware.OASIS.API.Core;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Security;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Helpers
@@ -8,24 +9,54 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Helpers
         // mappings between model and entity objects
         public AutoMapperProfile()
         {
-            CreateMap<Avatar, AccountResponse>();
+            //CreateMap<Core.Avatar, AccountResponse>();
+            //CreateMap<Core.Avatar, AuthenticateResponse>();
+            //CreateMap<IAvatar, AccountResponse>();
+            //CreateMap<IAvatar, AuthenticateResponse>();
 
-            CreateMap<Avatar, AuthenticateResponse>();
+            //CreateMap<RegisterRequest, Core.Avatar>();
+            //CreateMap<CreateRequest, Core.Avatar>();
+            //CreateMap<RegisterRequest, IAvatar>();
+            CreateMap<CreateRequest, IAvatar>();
 
-            CreateMap<RegisterRequest, Avatar>();
-
-            CreateMap<CreateRequest, Avatar>();
-
-            CreateMap<UpdateRequest, Avatar>()
+            CreateMap<UpdateRequest, IAvatar>()
                 .ForAllMembers(x => x.Condition(
                     (src, dest, prop) =>
                     {
                         // ignore null & empty string properties
-                        if (prop == null) return false;
-                        if (prop.GetType() == typeof(string) && string.IsNullOrEmpty((string)prop)) return false;
+                        if (prop == null) 
+                            return false;
 
-                        // ignore null role
-                        if (x.DestinationMember.Name == "AvatarType" && src.AvatarType == null) return false;
+                        if (prop.GetType() == typeof(string) && string.IsNullOrEmpty((string)prop)) 
+                            return false;
+
+                        // ignore null AvatarType
+                        if (x.DestinationMember.Name == "AvatarType" && src.AvatarType == null) 
+                            return false;
+
+                        return true;
+                    }
+                ));
+
+            CreateMap<RegisterRequest, IAvatar>()
+                .ForAllMembers(x => x.Condition(
+                    (src, dest, prop) =>
+                    {
+                        // ignore null & empty string properties
+                        if (prop == null)
+                            return false;
+
+                        if (prop.GetType() == typeof(string) && string.IsNullOrEmpty((string)prop))
+                            return false;
+
+                        // ignore null AvatarType
+                        if (x.DestinationMember.Name == "AvatarType" && src.AvatarType == null)
+                            return false;
+
+                        //x.Ignore()
+
+                        if (x.DestinationMember.Name == "KarmaEarnt")
+                            return false;
 
                         return true;
                     }

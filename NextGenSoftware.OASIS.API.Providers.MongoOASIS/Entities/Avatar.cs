@@ -33,6 +33,18 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
         public int Level { get; set; }
         public HolonType HolonType { get; set; }
 
+        public bool AcceptTerms { get; set; }
+        public string VerificationToken { get; set; }
+        public DateTime? Verified { get; set; }
+        public bool IsVerified => Verified.HasValue || PasswordReset.HasValue;
+        public string ResetToken { get; set; }
+        public string JwtToken { get; set; }
+
+     //   [JsonIgnore] // refresh token is returned in http only cookie
+        public string RefreshToken { get; set; }
+
+        public DateTime? ResetTokenExpires { get; set; }
+        public DateTime? PasswordReset { get; set; }
 
     }
 

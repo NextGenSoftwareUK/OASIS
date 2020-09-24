@@ -1,5 +1,6 @@
 ﻿using MongoDB.Driver;
 using NextGenSoftware.OASIS.API.Core;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -18,6 +19,9 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
         {
             try
             {
+                //if (string.IsNullOrEmpty(avatar.AvatarId))
+                    avatar.AvatarId = Guid.NewGuid().ToString();
+
                 await _dbContext.Avatar.InsertOneAsync((Avatar)avatar);
                 
                 //avatar.Id =  //TODO: Check if Mongo populates the id automatically or if we need to re-load it...
@@ -28,13 +32,30 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
                 throw;
             }
         }
-        public async Task<Avatar> GetAvatar(string id)
+        public async Task<Avatar> GetAvatar(Guid id)
         {
             try
             {
                 //FilterDefinition<Avatar> filter = Builders<Avatar>.Filter.Eq("Id", id);
-                FilterDefinition<Avatar> filter = Builders<Avatar>.Filter.Eq("AvatarId", id);
+                FilterDefinition<Avatar> filter = Builders<Avatar>.Filter.Eq("AvatarId", id.ToString());
                 return await _dbContext.Avatar.Find(filter).FirstOrDefaultAsync();
+            }
+            catch
+            {
+                throw;
+            }
+        }
+
+        public async Task<Avatar> GetAvatar(string username)
+        {
+            try
+            {
+                //TODO: (MONGOFIX) Better if can query more than field at once in Mongo? Must be possible.... Can a Mongo dev PLEASE sort this... thanks... :)
+                FilterDefinition<Avatar> filter = Builders<Avatar>.Filter.Eq("Username", username);
+                //FilterDefinition<Avatar> filter = Builders<Avatar>.Filter.AnyEq(new FieldDefinition<TDocument>)
+
+                Avatar avatar = await _dbContext.Avatar.Find(filter).FirstOrDefaultAsync();
+                return avatar;
             }
             catch
             {
