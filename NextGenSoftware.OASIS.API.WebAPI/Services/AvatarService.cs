@@ -150,8 +150,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
             //var isFirstAccount = _context.Accounts.Count() == 0;
 
             //TODO: PERFORMANCE} Implement in Providers so more efficient and do not need to return whole list!
-            var isFirstAccount = avatars.Count() == 0;
-            avatar.AvatarType = isFirstAccount ? AvatarType.Wizard : AvatarType.User;
+            
+            //TODO: Not sure if this is a good idea or not? Currently you can register as a wizard (admin) or normal user.
+            // The normal register screen will create user types but if logged in as a wizard, then they can create other wizards.
+            //var isFirstAccount = avatars.Count() == 0;
+            //avatar.AvatarType = isFirstAccount ? AvatarType.Wizard : AvatarType.User;
+
             avatar.CreatedDate = DateTime.UtcNow;
             avatar.VerificationToken = randomTokenString();
 
