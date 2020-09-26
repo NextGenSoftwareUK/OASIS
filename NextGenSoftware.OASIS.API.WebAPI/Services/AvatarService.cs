@@ -171,6 +171,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
             avatar = AvatarManager.SaveAvatar(avatar);
             avatar.Password = null;
 
+            
+
             // send email
             sendVerificationEmail(avatar, origin);
             return avatar;
@@ -323,7 +325,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
             avatar.ModifiedDate = DateTime.UtcNow;
 
             return AvatarManager.SaveAvatar(avatar);
-            avatar.Password = null;
+          //  avatar.Password = null;
 
            // _context.Accounts.Update(account);
            // _context.SaveChanges();
