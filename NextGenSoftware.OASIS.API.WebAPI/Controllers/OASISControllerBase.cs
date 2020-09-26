@@ -1,5 +1,8 @@
 ﻿
 using System;
+using System.Diagnostics.Eventing.Reader;
+using System.Text.Json;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 
@@ -24,7 +27,26 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         //public static ProviderType CurrentStorageProviderType = ProviderType.Default;
 
         // returns the current authenticated account (null if not logged in)
-        public IAvatar Avatar => (IAvatar)HttpContext.Items["Avatar"];
+        //public IAvatar Avatar => (IAvatar)HttpContext.Items["Avatar"];
+
+        public IAvatar Avatar
+        {
+            get
+            {
+                if (HttpContext.Items.ContainsKey("Avatar") && HttpContext.Items["Avatar"] != null)
+                    return (IAvatar)HttpContext.Items["Avatar"];
+
+                if (HttpContext.Session.GetString("Avatar") != null)
+                    return JsonSerializer.Deserialize<IAvatar>(HttpContext.Session.GetString("Avatar"));
+
+                return null;
+            }
+            set
+            {
+                HttpContext.Items["Avatar"] = value;
+                HttpContext.Session.SetString("Avatar", JsonSerializer.Serialize(value));
+            }
+        }
 
         public static OASISControllerBase Instance
         {

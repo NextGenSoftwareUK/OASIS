@@ -84,6 +84,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             GetAndActivateProvider();
             var response = _avatarService.Authenticate(model, ipAddress());
             setTokenCookie(response.RefreshToken);
+            //Avatar = response;
+            // HttpContext.Items["Avatar"] = response; //TODO: Need to check why I needed to put this in? Used to work without?! hmmm....
+
+            Avatar = response;
             return Ok(response);
         }
 

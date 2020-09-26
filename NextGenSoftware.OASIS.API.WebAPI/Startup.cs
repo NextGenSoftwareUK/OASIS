@@ -3,6 +3,7 @@ using AutoMapper;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -35,8 +36,22 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
             services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
             services.AddSwaggerGen();
 
+            services.Configure<CookiePolicyOptions>(options =>
+            {
+                // This lambda determines whether user consent for non-essential cookies is needed for a given request.
+                options.CheckConsentNeeded = context => true;
+                options.MinimumSameSitePolicy = SameSiteMode.None;
+            });
+
+            services.AddSession(options =>
+            {
+                options.IdleTimeout = TimeSpan.FromSeconds(10);
+                options.Cookie.HttpOnly = true;
+                options.Cookie.IsEssential = true;
+            });
+
             // configure strongly typed settings object
-           // services.Configure<AppSettings>(Configuration.GetSection("AppSettings"));
+            // services.Configure<AppSettings>(Configuration.GetSection("AppSettings"));
 
             // configure DI for application services
             services.AddScoped<IAvatarService, AvatarService>();
@@ -79,6 +94,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
             app.UseHttpsRedirection();
 
             app.UseRouting();
+            app.UseSession();
 
             // global cors policy
             app.UseCors(x => x
@@ -95,7 +111,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
             // global error handler
             app.UseMiddleware<ErrorHandlerMiddleware>();
 
-            // custom jwt auth middleware
+            //// custom jwt auth middleware
             app.UseMiddleware<JwtMiddleware>();
 
             app.UseEndpoints(endpoints => { endpoints.MapControllers(); });
