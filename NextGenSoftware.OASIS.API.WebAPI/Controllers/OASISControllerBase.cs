@@ -36,15 +36,15 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 if (HttpContext.Items.ContainsKey("Avatar") && HttpContext.Items["Avatar"] != null)
                     return (IAvatar)HttpContext.Items["Avatar"];
 
-                if (HttpContext.Session.GetString("Avatar") != null)
-                    return JsonSerializer.Deserialize<IAvatar>(HttpContext.Session.GetString("Avatar"));
+                //if (HttpContext.Session.GetString("Avatar") != null)
+                //    return JsonSerializer.Deserialize<IAvatar>(HttpContext.Session.GetString("Avatar"));
 
                 return null;
             }
             set
             {
                 HttpContext.Items["Avatar"] = value;
-                HttpContext.Session.SetString("Avatar", JsonSerializer.Serialize(value));
+                //HttpContext.Session.SetString("Avatar", JsonSerializer.Serialize(value));
             }
         }
 
