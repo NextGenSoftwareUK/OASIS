@@ -52,16 +52,21 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Middleware
                 var jwtToken = (JwtSecurityToken)validatedToken;
 
                 //TODO: Check this still works now it's a Guid instead of an int...
-                //var id = int.Parse(jwtToken.Claims.First(x => x.Type == "id").Value);
-                var id = Guid.Parse(jwtToken.Claims.First(x => x.Type == "Guid").Value);
+                var id = Guid.Parse(jwtToken.Claims.First(x => x.Type == "id").Value);
+                // var id = Guid.Parse(jwtToken.Claims.First(x => x.Type == "Guid").Value);
 
                 // attach account to context on successful jwt validation
                 //context.Items["Account"] = await dataContext.Accounts.FindAsync(accountId);
-                
+
                 //TODO: Change to async version when it is fixed...
-                context.Items["Avatar"] = await Program.AvatarManager.LoadAvatarAsync(id);
+                //context.Items["Avatar"] = await Program.AvatarManager.LoadAvatarAsync(id);
+
+                OASISProviderManager.OASISSettings = _OASISSettings;
+                OASISProviderManager.GetAndActivateProvider();
+
+                context.Items["Avatar"] = Program.AvatarManager.LoadAvatar(id);
             }
-            catch 
+            catch (Exception ex)
             {
                 // do nothing if jwt validation fails
                 // account is not attached to context so request won't have access to secure routes

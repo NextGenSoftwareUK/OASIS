@@ -77,7 +77,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
 
         public override IAvatar LoadAvatar(Guid Id)
         {
-            return ConvertMongoEntityToOASISAvatar(_avatarRepository.GetAvatar(Id.ToString()).Result);
+            return ConvertMongoEntityToOASISAvatar(_avatarRepository.GetAvatar(Id).Result);
         }
 
         public override Task<IAvatar> LoadAvatarAsync(string username, string password)

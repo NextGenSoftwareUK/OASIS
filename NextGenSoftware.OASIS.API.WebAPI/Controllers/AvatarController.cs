@@ -174,6 +174,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         //public ActionResult<IEnumerable<AccountResponse>> GetAll()
         public ActionResult<IEnumerable<IAvatar>> GetAll()
         {
+            GetAndActivateProvider();
             var accounts = _avatarService.GetAll();
             return Ok(accounts);
         }

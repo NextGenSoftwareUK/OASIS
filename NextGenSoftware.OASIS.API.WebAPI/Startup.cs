@@ -36,6 +36,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
             services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
             services.AddSwaggerGen();
 
+            /*
             services.Configure<CookiePolicyOptions>(options =>
             {
                 // This lambda determines whether user consent for non-essential cookies is needed for a given request.
@@ -48,7 +49,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
                 options.IdleTimeout = TimeSpan.FromSeconds(10);
                 options.Cookie.HttpOnly = true;
                 options.Cookie.IsEssential = true;
-            });
+            });*/
 
             // configure strongly typed settings object
             // services.Configure<AppSettings>(Configuration.GetSection("AppSettings"));
@@ -94,7 +95,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
             app.UseHttpsRedirection();
 
             app.UseRouting();
-            app.UseSession();
+            //app.UseSession();
 
             // global cors policy
             app.UseCors(x => x

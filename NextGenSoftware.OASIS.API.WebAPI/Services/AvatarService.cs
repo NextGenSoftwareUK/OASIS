@@ -80,10 +80,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
             avatar.RefreshToken = refreshToken.Token;
 
             //TODO: Get Async working!
-            AvatarManager.SaveAvatar(avatar);
-            //AvatarManager.SaveAvatarAsync(avatar);
+            avatar = RemoveAuthDetails(AvatarManager.SaveAvatar(avatar));
+           // avatar.RefreshTokens.Add(refreshToken);
+            avatar.RefreshToken = refreshToken.Token;
 
-            avatar.Password = null;
             return avatar;
 
             //_context.Update(account);
@@ -108,8 +108,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
             avatar.RefreshTokens.Add(newRefreshToken);
 
             avatar.JwtToken = generateJwtToken(avatar);
-            avatar = AvatarManager.SaveAvatar(avatar);
-            avatar.Password = null;
+            avatar = RemoveAuthDetails(AvatarManager.SaveAvatar(avatar));
+            avatar.RefreshToken = newRefreshToken.Token;
             return avatar;
         }
 
@@ -169,13 +169,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
 
             //TODO: Get async version working ASAP! :)
             avatar = AvatarManager.SaveAvatar(avatar);
-            avatar.Password = null;
-
-            
-
-            // send email
             sendVerificationEmail(avatar, origin);
-            return avatar;
+
+            return RemoveAuthDetails(avatar);
         }
 
         public void VerifyEmail(string token)
@@ -299,10 +295,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
             // _context.Accounts.Add(account);
             // _context.SaveChanges();
             AvatarManager.SaveAvatar(avatar);
-            avatar.Password = null;
 
             //return _mapper.Map<AccountResponse>(avatar);
-            return avatar;
+            return RemoveAuthDetails(avatar);
         }
 
         //public AccountResponse Update(Guid id, UpdateRequest model)
@@ -324,8 +319,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
             _mapper.Map(model, avatar);
             avatar.ModifiedDate = DateTime.UtcNow;
 
-            return AvatarManager.SaveAvatar(avatar);
-          //  avatar.Password = null;
+            return RemoveAuthDetails(AvatarManager.SaveAvatar(avatar));
 
            // _context.Accounts.Update(account);
            // _context.SaveChanges();
@@ -397,6 +391,16 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
                 Created = DateTime.UtcNow,
                 CreatedByIp = ipAddress
             };
+        }
+
+        private IAvatar RemoveAuthDetails(IAvatar avatar)
+        {
+            avatar.VerificationToken = null;
+            avatar.RefreshToken = null;
+            avatar.RefreshTokens = null;
+            avatar.Password = null;
+
+            return avatar;
         }
 
         private string randomTokenString()
