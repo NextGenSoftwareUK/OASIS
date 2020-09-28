@@ -69,13 +69,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
 
             services.AddControllers();
 
+            //TODO: Don't think this is used anymore? Take out...
             // configure basic authentication 
-            services.AddAuthentication("BasicAuthentication")
-                .AddScheme<AuthenticationSchemeOptions, BasicAuthenticationHandler>("BasicAuthentication", null);
-
-            // configure DI for application services
-            //services.AddScoped<IAvatarService, AvatarService>();
-          //  services.AddScoped<ISCMSService, SCMSService>();
+          //  services.AddAuthentication("BasicAuthentication")
+           //     .AddScheme<AuthenticationSchemeOptions, BasicAuthenticationHandler>("BasicAuthentication", null);
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

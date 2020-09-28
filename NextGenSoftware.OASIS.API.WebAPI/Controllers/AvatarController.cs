@@ -1,13 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using AutoMapper;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 
 using NextGenSoftware.OASIS.API.Core;
-using NextGenSoftware.OASIS.API.ONODE.WebAPI.Models;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Security;
 using NextGenSoftware.OASIS.API.WebAPI;
 
@@ -18,9 +16,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
     [ApiController]
     public class AvatarController : OASISControllerBase
     {
-       // private static AvatarManager _avatarManager;
+       // private AvatarManager _avatarManager;
         private readonly IAvatarService _avatarService;
-        private readonly IMapper _mapper;
+      //  private readonly IMapper _mapper;
 
         public AvatarController(IOptions<OASISSettings> OASISSettings, IAvatarService avatarService) : base(OASISSettings)
         {
@@ -52,10 +50,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             }
         }
 
-        private void _avatarManager_OnOASISManagerError(object sender, OASISErrorEventArgs e)
-        {
+        //private void _avatarManager_OnOASISManagerError(object sender, OASISErrorEventArgs e)
+        //{
             
-        }
+        //}
 
         /*
         //[AllowAnonymous]
@@ -81,13 +79,13 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         //public ActionResult<AuthenticateResponse> Authenticate(AuthenticateRequest model)
         public ActionResult<IAvatar> Authenticate(AuthenticateRequest model)
         {
-            GetAndActivateProvider();
+            //GetAndActivateProvider();
             var response = _avatarService.Authenticate(model, ipAddress());
             setTokenCookie(response.RefreshToken);
             //Avatar = response;
             // HttpContext.Items["Avatar"] = response; //TODO: Need to check why I needed to put this in? Used to work without?! hmmm....
 
-            Avatar = response;
+            //Avatar = response;
             return Ok(response);
         }
 
@@ -95,7 +93,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         //public ActionResult<AuthenticateResponse> RefreshToken()
         public ActionResult<IAvatar> RefreshToken()
         {
-            GetAndActivateProvider();
+          //  GetAndActivateProvider();
             var refreshToken = Request.Cookies["refreshToken"];
             var response = _avatarService.RefreshToken(refreshToken, ipAddress());
             setTokenCookie(response.RefreshToken);
@@ -106,7 +104,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpPost("revoke-token")]
         public IActionResult RevokeToken(RevokeTokenRequest model)
         {
-            GetAndActivateProvider();
+            //GetAndActivateProvider();
 
             // accept token from request body or cookie
             var token = model.Token ?? Request.Cookies["refreshToken"];
@@ -125,7 +123,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpPost("register")]
         public IActionResult Register(RegisterRequest model)
         {
-            GetAndActivateProvider();
+           // GetAndActivateProvider();
             IAvatar avatar = _avatarService.Register(model, Request.Headers["origin"]);
 
             if (avatar != null)
@@ -140,7 +138,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpPost("verify-email")]
         public IActionResult VerifyEmail(VerifyEmailRequest model)
         {
-            GetAndActivateProvider();
+          //  GetAndActivateProvider();
             _avatarService.VerifyEmail(model.Token);
             return Ok(new { message = "Verification successful, you can now login" });
         }
@@ -148,7 +146,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpPost("forgot-password")]
         public IActionResult ForgotPassword(ForgotPasswordRequest model)
         {
-            GetAndActivateProvider();
+           // GetAndActivateProvider();
             _avatarService.ForgotPassword(model, Request.Headers["origin"]);
             return Ok(new { message = "Please check your email for password reset instructions" });
         }
@@ -156,7 +154,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpPost("validate-reset-token")]
         public IActionResult ValidateResetToken(ValidateResetTokenRequest model)
         {
-            GetAndActivateProvider();
+            //GetAndActivateProvider();
             _avatarService.ValidateResetToken(model);
             return Ok(new { message = "Token is valid" });
         }
@@ -164,7 +162,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpPost("reset-password")]
         public IActionResult ResetPassword(ResetPasswordRequest model)
         {
-            GetAndActivateProvider();
+            //GetAndActivateProvider();
             _avatarService.ResetPassword(model);
             return Ok(new { message = "Password reset successful, you can now login" });
         }
@@ -174,7 +172,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         //public ActionResult<IEnumerable<AccountResponse>> GetAll()
         public ActionResult<IEnumerable<IAvatar>> GetAll()
         {
-            GetAndActivateProvider();
+           // GetAndActivateProvider();
             var accounts = _avatarService.GetAll();
             return Ok(accounts);
         }
@@ -184,7 +182,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         //public ActionResult<AccountResponse> GetById(Guid id)
         public ActionResult<IAvatar> GetById(Guid id)
         {
-            GetAndActivateProvider();
+           // GetAndActivateProvider();
 
             // users can get their own account and admins can get any account
             if (id != Avatar.Id && Avatar.AvatarType != AvatarType.Wizard)
@@ -199,16 +197,17 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         //public ActionResult<AccountResponse> Create(CreateRequest model)
         public ActionResult<IAvatar> Create(CreateRequest model)
         {
-            GetAndActivateProvider();
+            //GetAndActivateProvider();
             return Ok(_avatarService.Create(model));
         }
 
         [Authorize]
         [HttpPut("{id:Guid}")]
         //public ActionResult<AccountResponse> Update(Guid id, UpdateRequest model)
-        public ActionResult<IAvatar> Update(Guid id, UpdateRequest model)
+        //public ActionResult<IAvatar> Update(Guid id, UpdateRequest model)
+        public ActionResult<Avatar> Update(Guid id, UpdateRequest model)
         {
-            GetAndActivateProvider();
+            //GetAndActivateProvider();
 
             // users can update their own account and admins can update any account
             if (id != Avatar.Id && Avatar.AvatarType != AvatarType.Wizard)
@@ -218,19 +217,18 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             if (Avatar.AvatarType != AvatarType.Wizard)
                 model.AvatarType = null;
 
-            var avatar = _avatarService.Update(id, model);
-            return Ok(avatar);
+            return Ok(_avatarService.Update(id, model));
         }
 
         [Authorize]
-        [HttpDelete("{id:int}")]
+        [HttpDelete("{id:Guid}")]
         public IActionResult Delete(Guid id)
         {
             // users can delete their own account and admins can delete any account
             if (id != Avatar.Id && Avatar.AvatarType != AvatarType.Wizard)
                 return Unauthorized(new { message = "Unauthorized" });
 
-            GetAndActivateProvider();
+           // GetAndActivateProvider();
             _avatarService.Delete(id);
 
             return Ok(new { message = "Account deleted successfully" });
@@ -272,8 +270,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         //[HttpGet("{id}")]
         public async Task<IAvatar> Get(Guid id)
         {
-             GetAndActivateProvider();
-            return await Program.AvatarManager.LoadAvatarAsync(id);
+           //  GetAndActivateProvider();
+            return await AvatarManager.LoadAvatarAsync(id);
 
             //TODO: Blank out private fields especially password, etc.
             // Only leave other private fields if the id mateches the logged in avatar...
@@ -333,7 +331,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 
             //  ActivateProvider((ProviderType)Enum.Parse(typeof(ProviderType), OASISSettings.Value.StorageProviders.DefaultProvider));
 
-            GetAndActivateProvider();
+           // GetAndActivateProvider();
             return AvatarManager.LoadAvatar(username, password);
         }
 
@@ -375,8 +373,5 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             else
                 return HttpContext.Connection.RemoteIpAddress.MapToIPv4().ToString();
         }
-
-
-
     }
 }

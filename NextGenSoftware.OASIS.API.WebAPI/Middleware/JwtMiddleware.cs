@@ -12,12 +12,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Middleware
     public class JwtMiddleware
     {
         private readonly RequestDelegate _next;
-        private readonly OASISSettings _OASISSettings;
 
         public JwtMiddleware(RequestDelegate next, IOptions<OASISSettings> OASISSettings)
         {
             _next = next;
-            _OASISSettings = OASISSettings.Value;
+            OASISProviderManager.OASISSettings = OASISSettings.Value;
         }
 
         //public async Task Invoke(HttpContext context, DataContext dataContext)
@@ -26,19 +25,18 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Middleware
             var token = context.Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
 
             if (token != null)
-                await attachAccountToContext(context, token);
-            //await attachAccountToContext(context, dataContext, token);
+                await AttachAccountToContext(context, token);
 
             await _next(context);
         }
 
         //private async Task attachAccountToContext(HttpContext context, DataContext dataContext, string token)
-        private async Task attachAccountToContext(HttpContext context, string token)
+        private async Task AttachAccountToContext(HttpContext context, string token)
         {
             try
             {
                 var tokenHandler = new JwtSecurityTokenHandler();
-                var key = Encoding.ASCII.GetBytes(_OASISSettings.Secret);
+                var key = Encoding.ASCII.GetBytes(OASISProviderManager.OASISSettings.Secret);
                 tokenHandler.ValidateToken(token, new TokenValidationParameters
                 {
                     ValidateIssuerSigningKey = true,
@@ -61,10 +59,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Middleware
                 //TODO: Change to async version when it is fixed...
                 //context.Items["Avatar"] = await Program.AvatarManager.LoadAvatarAsync(id);
 
-                OASISProviderManager.OASISSettings = _OASISSettings;
-                OASISProviderManager.GetAndActivateProvider();
+               // OASISProviderManager.GetAndActivateProvider();
 
-                context.Items["Avatar"] = Program.AvatarManager.LoadAvatar(id);
+                context.Items["Avatar"] = (Core.Avatar)Program.AvatarManager.LoadAvatar(id);
+               // context.Items["Avatar"] = new AvatarManager().LoadAvatar(id);
             }
             catch (Exception ex)
             {

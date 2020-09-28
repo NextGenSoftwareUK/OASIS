@@ -5,6 +5,7 @@ using NextGenSoftware.OASIS.API.Core;
 using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS;
 using NextGenSoftware.OASIS.API.Providers.HoloOASIS.Desktop;
 using NextGenSoftware.OASIS.API.Providers.MongoDBOASIS;
+using NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
 {
@@ -30,10 +31,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
 
 
 
-        public static void SetOASISSettings(OASISSettings settings)
-        {
-            OASISSettings = settings;
-        }
+        //public static void SetOASISSettings(OASISSettings settings)
+        //{
+        //    OASISSettings = settings;
+        //}
 
         public static IOASISStorage GetAndActivateProvider()
         {
@@ -61,6 +62,15 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
                             }
                             break;
 
+                        case ProviderType.SQLLiteDBOASIS:
+                            {
+                                SQLLiteDBOASIS SQLLiteDBOASIS = new SQLLiteDBOASIS(OASISSettings.StorageProviders.SQLLiteDBOASIS.ConnectionString);
+                                SQLLiteDBOASIS.StorageProviderError += SQLLiteDBOASIS_StorageProviderError;
+                                ProviderManager.RegisterProvider(SQLLiteDBOASIS);
+
+                            }
+                            break;
+
                         case ProviderType.MongoDBOASIS:
                             {
                                 MongoDBOASIS mongoOASIS = new MongoDBOASIS(OASISSettings.StorageProviders.MongoDBOASIS.ConnectionString, OASISSettings.StorageProviders.MongoDBOASIS.DBName);
@@ -83,8 +93,14 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
                 ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
             }
 
-          //  CurrentStorageProviderType = providerType;
-            return ProviderManager.CurrentStorageProvider;
+            //  CurrentStorageProviderType = providerType;
+            return ProviderManager.CurrentStorageProvider; 
+        }
+
+        private static void SQLLiteDBOASIS_StorageProviderError(object sender, AvatarManagerErrorEventArgs e)
+        {
+            //TODO: {URGENT} Handle Errors properly here (log, etc)
+            //  throw new Exception(string.Concat("ERROR: MongoOASIS_StorageProviderError. EndPoint: ", e.EndPoint, "Reason: ", e.Reason, ". Error Details: ", e.ErrorDetails));
         }
 
         private static void EOSIOOASIS_StorageProviderError(object sender, AvatarManagerErrorEventArgs e)
