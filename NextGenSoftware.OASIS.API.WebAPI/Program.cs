@@ -2,7 +2,6 @@
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
 using NextGenSoftware.OASIS.API.Core;
-using NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers;
 using System;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
@@ -71,13 +70,14 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
                 // TODO: This code is only needed because we have a singelton pattern for AvatarManager (only 1 instance instanitated through a static property).
                 // Normally code is simpler if you just pass the provider into the manager constructor like SearchManager does, it is just one instance that is disposed of again once the request has been serviced...
                 //if (ProviderManager.CurrentStorageProvider == null)
-                
+
                 //if (AvatarManager.Instance == null || ProviderManager.CurrentStorageProvider == null)
                 if (_avatarManager == null)
                 {
                     //_avatarManager = new AvatarManager(OASISControllerBase.GetAndActivateProviderStatic(CurrentStorageProviderType));
-                    _avatarManager = new AvatarManager();
-                    //_avatarManager = new AvatarManager(OASISC
+                    //_avatarManager = new AvatarManager();
+
+                    _avatarManager = new AvatarManager(OASISProviderManager.GetAndActivateProvider());
                     _avatarManager.OnOASISManagerError += _avatarManager_OnOASISManagerError;
 
                     //ProviderManager.SwitchCurrentStorageProvider(MongoOASISProvider);
@@ -90,16 +90,15 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
 
                     //  holoOASISProvider.OnHoloOASISError += HoloOASISProvider_OnHoloOASISError;
                     //mongoOASISProvider.StorageProviderError += MongoOASISProvider_StorageProviderError;
-                   // AvatarManager.Instance.OnOASISManagerError += AvatarManager_OnOASISManagerError;
+                    // AvatarManager.Instance.OnOASISManagerError += AvatarManager_OnOASISManagerError;
                 }
                 else
                 {
-                    
+
                 }
 
-
                 return _avatarManager;
-               // return AvatarManager.Instance;
+                // return AvatarManager.Instance;
             }
         }
 

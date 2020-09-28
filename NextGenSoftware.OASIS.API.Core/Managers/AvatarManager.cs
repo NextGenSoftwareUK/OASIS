@@ -102,28 +102,28 @@ namespace NextGenSoftware.OASIS.API.Core
         public async Task<IAvatar> LoadAvatarAsync(string providerKey, ProviderType provider = ProviderType.Default)
         {
             IAvatar avatar = ProviderManager.SetAndActivateCurrentStorageProvider(provider).LoadAvatarAsync(providerKey).Result;
-            avatar.Password = null;
+           // avatar.Password = null;
             return avatar;
         }
 
         public async Task<IAvatar> LoadAvatarAsync(Guid id, ProviderType providerType = ProviderType.Default)
         {
             IAvatar avatar = ProviderManager.SetAndActivateCurrentStorageProvider(providerType).LoadAvatarAsync(id).Result;
-            avatar.Password = null;
+           // avatar.Password = null;
             return avatar;
         }
 
         public IAvatar LoadAvatar(Guid id, ProviderType providerType = ProviderType.Default)
         {
             IAvatar avatar = ProviderManager.SetAndActivateCurrentStorageProvider(providerType).LoadAvatar(id);
-            avatar.Password = null;
+            //avatar.Password = null;
             return avatar;
         }
 
         public async Task<IAvatar> LoadAvatarAsync(string username, string password, ProviderType providerType = ProviderType.Default)
         {
             IAvatar avatar = ProviderManager.SetAndActivateCurrentStorageProvider(providerType).LoadAvatarAsync(username, password).Result;
-            avatar.Password = null;
+            //avatar.Password = null;
             return avatar;
         }
 

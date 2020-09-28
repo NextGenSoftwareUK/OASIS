@@ -11,19 +11,28 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
     public class SCMSRepository : ISCMSRepository
     {
         MongoDbContext db = new MongoDbContext();
+        //private AvatarManager _avatarManager;
 
-        public static AvatarManager AvatarManager
+        public AvatarManager AvatarManager
         {
             get
             {
                 return Program.AvatarManager;
 
-                //if (AvatarManager.Instance.CurrentOASISStorageProvider == null)
-                //    AvatarManager.Instance.SetOASISStorageProvider(new HoloOASIS("ws://localhost:8888")); //Default to HoloOASIS Provider.
+                //if (_avatarManager == null)
+                //{
+                //    _avatarManager = new AvatarManager();
+                //    _avatarManager.OnOASISManagerError += _avatarManager_OnOASISManagerError;
+                //}
 
-                //return AvatarManager.Instance;
+                //return _avatarManager;
             }
         }
+
+        //private void _avatarManager_OnOASISManagerError(object sender, OASISErrorEventArgs e)
+        //{
+        //    //TODO: Log and handle errors here.
+        //}
 
         //public async Task Add(Avatar Avatar)
         //{

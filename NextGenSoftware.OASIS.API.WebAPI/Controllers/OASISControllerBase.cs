@@ -1,16 +1,9 @@
 ﻿
-using System;
-using System.Diagnostics.Eventing.Reader;
-using System.Text.Json;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 
 using NextGenSoftware.OASIS.API.Core;
-using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS;
-using NextGenSoftware.OASIS.API.Providers.HoloOASIS.Desktop;
-using NextGenSoftware.OASIS.API.Providers.MongoDBOASIS;
-using NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 {
@@ -22,8 +15,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
     public class OASISControllerBase : ControllerBase
     {
         public IOptions<OASISSettings> OASISSettings;
-        public static IOptions<OASISSettings> OASISSettingsStatic;
-        private static OASISControllerBase _instance;
+      //  public static IOptions<OASISSettings> OASISSettingsStatic;
+      //  private static OASISControllerBase _instance;
         //public static ProviderType CurrentStorageProviderType = ProviderType.Default;
 
         // returns the current authenticated account (null if not logged in)
@@ -48,46 +41,53 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             }
         }
 
-        public static OASISControllerBase Instance
-        {
-            get
-            {
-                if (_instance == null)
-                    _instance = new OASISControllerBase(OASISSettingsStatic);
+        //public static OASISControllerBase Instance
+        //{
+        //    get
+        //    {
+        //        if (_instance == null)
+        //            _instance = new OASISControllerBase(OASISSettingsStatic);
 
-                return _instance;
-            }
-        }
+        //        return _instance;
+        //    }
+        //}
 
         public OASISControllerBase(IOptions<OASISSettings> settings)
         {
             OASISSettings = settings;
-            OASISSettingsStatic = settings;
+            // OASISSettingsStatic = settings;
+
+            OASISProviderManager.OASISSettings = settings.Value;
         }
 
-        public static IOASISStorage GetAndActivateProviderStatic()
-        {
-            ProviderManager.DefaultProviderTypes = Instance.OASISSettings.Value.StorageProviders.DefaultProviders.Split(",");
+        //public static IOASISStorage GetAndActivateProviderStatic()
+        //{
+        //    ProviderManager.DefaultProviderTypes = Instance.OASISSettings.Value.StorageProviders.DefaultProviders.Split(",");
 
-            //TODO: Need to add additional logic later for when the first provider and others fail or are too laggy and so need to switch to a faster provider, etc...
-            return Instance.GetAndActivateProvider((ProviderType)Enum.Parse(typeof(ProviderType), ProviderManager.DefaultProviderTypes[0]));
-        }
+        //    //TODO: Need to add additional logic later for when the first provider and others fail or are too laggy and so need to switch to a faster provider, etc...
+        //    return Instance.GetAndActivateProvider((ProviderType)Enum.Parse(typeof(ProviderType), ProviderManager.DefaultProviderTypes[0]));
+        //}
 
-        public static IOASISStorage GetAndActivateProviderStatic(ProviderType providerType)
-        {
-            return Instance.GetAndActivateProvider(providerType);
-        }
+        //public static IOASISStorage GetAndActivateProviderStatic(ProviderType providerType)
+        //{
+        //    return Instance.GetAndActivateProvider(providerType);
+        //}
 
         protected IOASISStorage GetAndActivateProvider()
         {
-            ProviderManager.DefaultProviderTypes = OASISSettings.Value.StorageProviders.DefaultProviders.Split(",");
+            return OASISProviderManager.GetAndActivateProvider();
+
+            //ProviderManager.DefaultProviderTypes = OASISSettings.Value.StorageProviders.DefaultProviders.Split(",");
 
             //TODO: Need to add additional logic later for when the first provider and others fail or are too laggy and so need to switch to a faster provider, etc...
-            return GetAndActivateProvider((ProviderType)Enum.Parse(typeof(ProviderType), ProviderManager.DefaultProviderTypes[0]));
+           //return GetAndActivateProvider((ProviderType)Enum.Parse(typeof(ProviderType), ProviderManager.DefaultProviderTypes[0]));
         }
 
         protected IOASISStorage GetAndActivateProvider(ProviderType providerType)
         {
+            return OASISProviderManager.GetAndActivateProvider(providerType);
+
+            /*
             //TODO: Think we can have this in ProviderManger and have default connection strings/settings for each provider.
             if (providerType != ProviderManager.CurrentStorageProviderType)
             {
@@ -136,9 +136,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             }
 
           //  CurrentStorageProviderType = providerType;
-            return ProviderManager.CurrentStorageProvider;
+            return ProviderManager.CurrentStorageProvider;*/
         }
 
+        /*
         private void EOSIOOASIS_StorageProviderError(object sender, AvatarManagerErrorEventArgs e)
         {
             //TODO: {URGENT} Handle Errors properly here (log, etc)
@@ -167,6 +168,6 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         {
             //TODO: {URGENT} Handle Errors properly here (log, etc)
             //  throw new Exception(string.Concat("ERROR: HoloOASIS_OnHoloOASISError. EndPoint: ", e.EndPoint, "Reason: ", e.Reason, ". Error Details: ", e.ErrorDetails, "HoloNET.Reason: ", e.HoloNETErrorDetails.Reason, "HoloNET.ErrorDetails: ", e.HoloNETErrorDetails.ErrorDetails));
-        }
+        }*/
     }
 }

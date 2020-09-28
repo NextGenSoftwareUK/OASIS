@@ -23,14 +23,28 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
         private readonly IMapper _mapper;
         private readonly OASISSettings _OASISSettings;
         private readonly IEmailService _emailService;
+        //private AvatarManager _avatarManager;
 
         public AvatarManager AvatarManager
         {
             get
             {
-                return Program.AvatarManager;
+                 return Program.AvatarManager;
+
+                //if (_avatarManager == null)
+                //{
+                //    _avatarManager = new AvatarManager();
+                //    _avatarManager.OnOASISManagerError += _avatarManager_OnOASISManagerError;
+                //}
+
+                //return _avatarManager;
             }
         }
+
+        //private void _avatarManager_OnOASISManagerError(object sender, OASISErrorEventArgs e)
+        //{
+        //    //TODO: Log and handle errors here.
+        //}
 
         //public AvatarService(
         //    DataContext context,
@@ -57,14 +71,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
         //public AuthenticateResponse Authenticate(AuthenticateRequest model, string ipAddress)
         public IAvatar Authenticate(AuthenticateRequest model, string ipAddress)
         {
-            //var account = _context.Accounts.SingleOrDefault(x => x.Email == model.Email);
-            //IAvatar avatar = AvatarManager.LoadAvatar(model.Email, model.Password);
-            //IAvatar avatar = AvatarManager.LoadAvatar(model.Email, BC.HashPassword(model.Password));
             IAvatar avatar = AvatarManager.LoadAvatar(model.Email);
 
-            //if (account == null || !account.IsVerified || !BC.Verify(model.Password, account.PasswordHash))
+            if (!avatar.IsVerified)
+                throw new AppException("Avatar has not been verified. Please check your email.");
+
             if (avatar == null || !BC.Verify(model.Password, avatar.Password))
-           // if (avatar == null)
                 throw new AppException("Email or password is incorrect");
 
             // authentication successful so generate jwt and refresh tokens
@@ -82,7 +94,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
             //TODO: Get Async working!
             avatar = RemoveAuthDetails(AvatarManager.SaveAvatar(avatar));
            // avatar.RefreshTokens.Add(refreshToken);
-            avatar.RefreshToken = refreshToken.Token;
+            //avatar.RefreshToken = refreshToken.Token;
 
             return avatar;
 
@@ -98,7 +110,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
         //public AuthenticateResponse RefreshToken(string token, string ipAddress)
         public IAvatar RefreshToken(string token, string ipAddress)
         {
-            var (refreshToken, avatar) = getRefreshToken(token);
+            (RefreshToken refreshToken, IAvatar avatar) = getRefreshToken(token);
 
             // replace old refresh token with a new one and save
             var newRefreshToken = generateRefreshToken(ipAddress);
@@ -109,7 +121,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
 
             avatar.JwtToken = generateJwtToken(avatar);
             avatar = RemoveAuthDetails(AvatarManager.SaveAvatar(avatar));
-            avatar.RefreshToken = newRefreshToken.Token;
+           // avatar.RefreshToken = newRefreshToken.Token;
             return avatar;
         }
 
@@ -355,6 +367,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
         {
             //var account = _context.Accounts.SingleOrDefault(u => u.RefreshTokens.Any(t => t.Token == token));
             //TODO: PERFORMANCE} Implement in Providers so more efficient and do not need to return whole list!
+
+            List<IAvatar> avatars = (List<IAvatar>)AvatarManager.LoadAllAvatars();
+
+
             IAvatar avatar = AvatarManager.LoadAllAvatars().FirstOrDefault(x => x.RefreshTokens.Any(t => t.Token == token));
 
             if (avatar == null) 
@@ -395,10 +411,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
 
         private IAvatar RemoveAuthDetails(IAvatar avatar)
         {
-            avatar.VerificationToken = null;
-            avatar.RefreshToken = null;
-            avatar.RefreshTokens = null;
+          //  avatar.VerificationToken = null; //TODO: Put back in when LIVE!
+          
             avatar.Password = null;
+            // avatar.RefreshToken = null;
+            //avatar.RefreshTokens = null;
 
             return avatar;
         }
