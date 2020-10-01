@@ -19,10 +19,14 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
         {
             try
             {
-                //if (string.IsNullOrEmpty(avatar.AvatarId))
-                    avatar.AvatarId = Guid.NewGuid().ToString();
+                avatar.AvatarId = Guid.NewGuid().ToString();
 
-                await _dbContext.Avatar.InsertOneAsync((Avatar)avatar);
+                //if (AvatarManager.LoggedInAvatar != null)
+                //    avatar.CreatedByAvatarId = AvatarManager.LoggedInAvatar.Id.ToString();
+
+                //avatar.CreatedDate = DateTime.Now;
+
+                await _dbContext.Avatar.InsertOneAsync(avatar);
                 
                 //avatar.Id =  //TODO: Check if Mongo populates the id automatically or if we need to re-load it...
                 return avatar;
@@ -99,6 +103,10 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
         {
             try
             {
+               // if (AvatarManager.LoggedInAvatar != null)
+               //     avatar.ModifiedByAvatarId = AvatarManager.LoggedInAvatar.Id.ToString();
+                
+                //avatar.ModifiedDate = DateTime.Now;
                 await _dbContext.Avatar.ReplaceOneAsync(filter: g => g.Id == avatar.Id, replacement: (Avatar)avatar);
 
                 //avatar.Id =  //TODO: Check if Mongo populates the id automatically or if we need to re-load it...
@@ -109,12 +117,27 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
                 throw;
             }
         }
-        public async Task Delete(string id)
+        public async Task<bool> Delete(Guid id, bool softDelete = true)
         {
             try
             {
-                FilterDefinition<Avatar> data = Builders<Avatar>.Filter.Eq("Id", id);
-                await _dbContext.Avatar.DeleteOneAsync(data);
+                if (softDelete)
+                {
+                    Avatar avatar = await GetAvatar(id);
+
+                    if (AvatarManager.LoggedInAvatar != null)
+                        avatar.DeletedByAvatarId = AvatarManager.LoggedInAvatar.Id.ToString();
+                    
+                    avatar.DeletedDate = DateTime.Now;
+                    await _dbContext.Avatar.ReplaceOneAsync(filter: g => g.Id == avatar.Id, replacement: avatar);
+                    return true;
+                }
+                else
+                {
+                    FilterDefinition<Avatar> data = Builders<Avatar>.Filter.Eq("Id", id);
+                    await _dbContext.Avatar.DeleteOneAsync(data);
+                    return true;
+                }
             }
             catch
             {

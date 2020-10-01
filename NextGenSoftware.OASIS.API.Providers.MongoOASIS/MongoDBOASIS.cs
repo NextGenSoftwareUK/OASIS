@@ -123,6 +123,16 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
                 _avatarRepository.Update(ConvertOASISAvatarToMongoEntity(avatar)).Result);
         }
 
+        public override bool DeleteAvatar(Guid id, bool softDelete = true)
+        {
+            return _avatarRepository.Delete(id, softDelete).Result;
+        }
+
+        public override async Task<bool> DeleteAvatarAsync(Guid id, bool softDelete = true)
+        {
+            return await _avatarRepository.Delete(id, softDelete);
+        }
+
         public override Task<IAvatar> SaveAvatarAsync(IAvatar avatar)
         {
             return new Task<IAvatar>(() => ConvertMongoEntityToOASISAvatar(avatar.Id == Guid.Empty ? 
@@ -222,6 +232,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             oasisAvatar.JwtToken = avatar.JwtToken;
             oasisAvatar.PasswordReset = avatar.PasswordReset;
             oasisAvatar.RefreshToken = avatar.RefreshToken;
+            oasisAvatar.RefreshTokens = avatar.RefreshTokens;
             oasisAvatar.ResetToken = avatar.ResetToken;
             oasisAvatar.ResetTokenExpires = avatar.ResetTokenExpires;
             oasisAvatar.VerificationToken = avatar.VerificationToken;
@@ -269,6 +280,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             mongoAvatar.JwtToken = avatar.JwtToken;
             mongoAvatar.PasswordReset = avatar.PasswordReset;
             mongoAvatar.RefreshToken = avatar.RefreshToken;
+            mongoAvatar.RefreshTokens = avatar.RefreshTokens;
             mongoAvatar.ResetToken = avatar.ResetToken;
             mongoAvatar.ResetTokenExpires = avatar.ResetTokenExpires;
             mongoAvatar.VerificationToken = avatar.VerificationToken;

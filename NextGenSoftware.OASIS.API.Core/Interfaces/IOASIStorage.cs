@@ -27,6 +27,9 @@ namespace NextGenSoftware.OASIS.API.Core
         Task<IAvatar> SaveAvatarAsync(IAvatar Avatar);
         IAvatar SaveAvatar(IAvatar Avatar);
 
+        bool DeleteAvatar(Guid id, bool softDelete = true);
+        Task<bool> DeleteAvatarAsync(Guid id, bool softDelete = true);
+
         Task<KarmaAkashicRecord> AddKarmaToAvatarAsync(API.Core.IAvatar Avatar, KarmaTypePositive karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc);
         Task<KarmaAkashicRecord> SubtractKarmaFromAvatarAsync(API.Core.IAvatar Avatar, KarmaTypeNegative karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc);
 

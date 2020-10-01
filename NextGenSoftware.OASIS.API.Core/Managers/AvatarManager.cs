@@ -7,6 +7,8 @@ namespace NextGenSoftware.OASIS.API.Core
 {
     public class AvatarManager : OASISManager
     {
+        public static IAvatar LoggedInAvatar { get; set; }
+
         private ProviderManagerConfig _config;
         //private static AvatarManager _instance;
 
@@ -127,11 +129,6 @@ namespace NextGenSoftware.OASIS.API.Core
             return avatar;
         }
 
-        //public Task<IAvatar> LoadAvatarAsync(Guid id, ProviderType providerType = ProviderType.Default)
-        //{
-        //    return ProviderManager.SetAndActivateCurrentStorageProvider(provider).LoadAvatarAsync();
-        //}
-
         public IAvatar LoadAvatar(string username, string password, ProviderType providerType = ProviderType.Default)
         {
             return ProviderManager.SetAndActivateCurrentStorageProvider(providerType).LoadAvatar(username, password);
@@ -147,8 +144,22 @@ namespace NextGenSoftware.OASIS.API.Core
             if (string.IsNullOrEmpty(avatar.Username))
                 avatar.Username = avatar.Email;
 
-            //if (avatar.Id == Guid.Empty)
-            //    avatar.Id = Guid.NewGuid();
+            // TODO: I think it's best to include audit stuff here so the providers do not need to worry about it?
+            // Providers could always override this behaviour if they choose...
+            if (avatar.Id == Guid.Empty)
+            {
+                avatar.ModifiedDate = DateTime.Now;
+
+                if (LoggedInAvatar != null)
+                    avatar.ModifiedByAvatarId = LoggedInAvatar.Id;
+            }
+            else
+            {
+                avatar.CreatedDate = DateTime.Now;
+
+                if (LoggedInAvatar != null)
+                    avatar.CreatedByAvatarId = LoggedInAvatar.Id;
+            }
 
             return await ProviderManager.SetAndActivateCurrentStorageProvider(providerType).SaveAvatarAsync(avatar);
         }
@@ -158,10 +169,34 @@ namespace NextGenSoftware.OASIS.API.Core
             if (string.IsNullOrEmpty(avatar.Username))
                 avatar.Username = avatar.Email;
 
-            //if (avatar.Id == Guid.Empty)
-            //    avatar.Id = Guid.NewGuid();
+            // TODO: I think it's best to include audit stuff here so the providers do not need to worry about it?
+            // Providers could always override this behaviour if they choose...
+            if (avatar.Id == Guid.Empty)
+            {
+                avatar.ModifiedDate = DateTime.Now;
+
+                if (LoggedInAvatar != null)
+                    avatar.ModifiedByAvatarId = LoggedInAvatar.Id;
+            }
+            else
+            {
+                avatar.CreatedDate = DateTime.Now;
+
+                if (LoggedInAvatar != null)
+                    avatar.CreatedByAvatarId = LoggedInAvatar.Id;
+            }
 
             return ProviderManager.SetAndActivateCurrentStorageProvider(providerType).SaveAvatar(avatar);
+        }
+
+        public bool DeleteAvatar(Guid id, bool softDelete = true, ProviderType providerType = ProviderType.Default)
+        {
+            return ProviderManager.SetAndActivateCurrentStorageProvider(providerType).DeleteAvatar(id, softDelete);
+        }
+
+        public async Task<bool> DeleteAvatarAsync(Guid id, bool softDelete = true, ProviderType providerType = ProviderType.Default)
+        {
+            return await ProviderManager.SetAndActivateCurrentStorageProvider(providerType).DeleteAvatarAsync(id, softDelete);
         }
 
         public async Task<KarmaAkashicRecord> AddKarmaToAvatarAsync(IAvatar Avatar, KarmaTypePositive karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc, ProviderType provider = ProviderType.Default)

@@ -21,5 +21,6 @@ namespace NextGenSoftware.OASIS.API.Core
         public Guid DeletedByAvatarId { get; set; }
         public DateTime DeletedDate { get; set; }
         public int Version { get; set; }
+        public bool IsActive { get; set; }
     }
 }

@@ -49,6 +49,9 @@ namespace NextGenSoftware.OASIS.API.Core
         public abstract IAvatar SaveAvatar(IAvatar Avatar);
         public abstract Task<IAvatar> SaveAvatarAsync(IAvatar Avatar);
 
+        public abstract bool DeleteAvatar(Guid id, bool softDelete = true);
+        public abstract Task<bool> DeleteAvatarAsync(Guid id, bool softDelete = true);
+
         public abstract Task<ISearchResults> SearchAsync(string searchTerm);
 
 

@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
+using NextGenSoftware.OASIS.API.Core;
 using System;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
@@ -48,24 +49,15 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Middleware
                 }, out SecurityToken validatedToken);
 
                 var jwtToken = (JwtSecurityToken)validatedToken;
-
-                //TODO: Check this still works now it's a Guid instead of an int...
                 var id = Guid.Parse(jwtToken.Claims.First(x => x.Type == "id").Value);
-                // var id = Guid.Parse(jwtToken.Claims.First(x => x.Type == "Guid").Value);
-
-                // attach account to context on successful jwt validation
-                //context.Items["Account"] = await dataContext.Accounts.FindAsync(accountId);
-
-                //TODO: Change to async version when it is fixed...
-                //context.Items["Avatar"] = await Program.AvatarManager.LoadAvatarAsync(id);
-
-               // OASISProviderManager.GetAndActivateProvider();
 
                 context.Items["Avatar"] = (Core.Avatar)Program.AvatarManager.LoadAvatar(id);
-               // context.Items["Avatar"] = new AvatarManager().LoadAvatar(id);
+                AvatarManager.LoggedInAvatar = (IAvatar)context.Items["Avatar"];
+
             }
             catch (Exception ex)
             {
+                throw new Exception("Token Authorization Failed.");
                 // do nothing if jwt validation fails
                 // account is not attached to context so request won't have access to secure routes
                 
