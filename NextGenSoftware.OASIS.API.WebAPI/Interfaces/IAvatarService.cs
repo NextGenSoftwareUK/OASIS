@@ -2,6 +2,7 @@
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Security;
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace NextGenSoftware.OASIS.API.WebAPI
 {
@@ -25,6 +26,6 @@ namespace NextGenSoftware.OASIS.API.WebAPI
         IAvatar Create(CreateRequest model);
         //AccountResponse Update(Guid id, UpdateRequest model);
         IAvatar Update(Guid id, UpdateRequest model);
-        void Delete(Guid id);
+        bool Delete(Guid id);
     }
 }

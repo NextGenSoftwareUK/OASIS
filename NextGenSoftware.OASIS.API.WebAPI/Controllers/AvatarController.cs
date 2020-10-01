@@ -85,7 +85,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             //Avatar = response;
             // HttpContext.Items["Avatar"] = response; //TODO: Need to check why I needed to put this in? Used to work without?! hmmm....
 
-            //Avatar = response;
+           
             return Ok(response);
         }
 
@@ -207,7 +207,6 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         //public ActionResult<IAvatar> Update(Guid id, UpdateRequest model)
         public ActionResult<Avatar> Update(Guid id, UpdateRequest model)
         {
-            //GetAndActivateProvider();
 
             // users can update their own account and admins can update any account
             if (id != Avatar.Id && Avatar.AvatarType != AvatarType.Wizard)
@@ -228,7 +227,6 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             if (id != Avatar.Id && Avatar.AvatarType != AvatarType.Wizard)
                 return Unauthorized(new { message = "Unauthorized" });
 
-           // GetAndActivateProvider();
             _avatarService.Delete(id);
 
             return Ok(new { message = "Account deleted successfully" });

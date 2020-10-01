@@ -1,6 +1,7 @@
 
 using NextGenSoftware.OASIS.API.Core;
 using System;
+using System.Collections.Generic;
 
 namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
 {
@@ -42,6 +43,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
 
      //   [JsonIgnore] // refresh token is returned in http only cookie
         public string RefreshToken { get; set; }
+        public List<RefreshToken> RefreshTokens { get; set; } = new List<RefreshToken>();
 
         public DateTime? ResetTokenExpires { get; set; }
         public DateTime? PasswordReset { get; set; }

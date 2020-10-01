@@ -15,6 +15,16 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
             this.ProviderCategory = ProviderCategory.StorageAndNetwork;
         }
 
+        public override bool DeleteAvatar(Guid id, bool softDelete = true)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override Task<bool> DeleteAvatarAsync(Guid id, bool softDelete = true)
+        {
+            throw new NotImplementedException();
+        }
+
         public List<IHolon> GetHolonsNearMe(HolonType Type)
         {
             throw new NotImplementedException();

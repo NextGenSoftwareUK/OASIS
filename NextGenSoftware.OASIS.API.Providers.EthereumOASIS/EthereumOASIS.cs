@@ -161,5 +161,15 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
         {
             throw new NotImplementedException();
         }
+
+        public override bool DeleteAvatar(Guid id, bool softDelete = true)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override Task<bool> DeleteAvatarAsync(Guid id, bool softDelete = true)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

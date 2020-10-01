@@ -14,6 +14,16 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Desktop
             
         }
 
+        public override bool DeleteAvatar(Guid id, bool softDelete = true)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override Task<bool> DeleteAvatarAsync(Guid id, bool softDelete = true)
+        {
+            throw new NotImplementedException();
+        }
+
         public override IAvatar LoadAvatar(string username)
         {
             throw new NotImplementedException();

@@ -14,6 +14,7 @@ using NextGenSoftware.OASIS.API.ONODE.WebAPI.Helpers;
 using NextGenSoftware.OASIS.API.WebAPI;
 using NextGenSoftware.OASIS.API.Core;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Security;
+using System.Threading.Tasks;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
 {
@@ -73,6 +74,13 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
         {
             IAvatar avatar = AvatarManager.LoadAvatar(model.Email);
 
+            if (avatar.DeletedDate != null)
+                throw new AppException("This avatar has been deleted. Please contact support or create a new avatar.");
+
+            // TODO: Implement Activate/Deactivate methods in AvatarManager & Providers...
+            if (!avatar.IsActive)
+                throw new AppException("This avatar is no longer active. Please contact support or create a new avatar.");
+
             if (!avatar.IsVerified)
                 throw new AppException("Avatar has not been verified. Please check your email.");
 
@@ -83,28 +91,14 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
             var jwtToken = generateJwtToken(avatar);
             var refreshToken = generateRefreshToken(ipAddress);
 
-            // save refresh token
-            //if (avatar.RefreshToken == null)
-            //    avatar.RefreshTokens = new List<RefreshToken>();
-
             avatar.RefreshTokens.Add(refreshToken);
             avatar.JwtToken = jwtToken;
             avatar.RefreshToken = refreshToken.Token;
 
+            AvatarManager.LoggedInAvatar = avatar;
+
             //TODO: Get Async working!
-            avatar = RemoveAuthDetails(AvatarManager.SaveAvatar(avatar));
-           // avatar.RefreshTokens.Add(refreshToken);
-            //avatar.RefreshToken = refreshToken.Token;
-
-            return avatar;
-
-            //_context.Update(account);
-            //_context.SaveChanges();
-
-            //var response = _mapper.Map<AuthenticateResponse>(avatar);
-            //response.JwtToken = jwtToken;
-            //response.RefreshToken = refreshToken.Token;
-            //return response;
+            return RemoveAuthDetails(AvatarManager.SaveAvatar(avatar));
         }
 
         //public AuthenticateResponse RefreshToken(string token, string ipAddress)
@@ -119,6 +113,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
             refreshToken.ReplacedByToken = newRefreshToken.Token;
             avatar.RefreshTokens.Add(newRefreshToken);
 
+            avatar.RefreshToken = newRefreshToken.Token;
             avatar.JwtToken = generateJwtToken(avatar);
             avatar = RemoveAuthDetails(AvatarManager.SaveAvatar(avatar));
            // avatar.RefreshToken = newRefreshToken.Token;
@@ -339,14 +334,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
             //return _mapper.Map<AccountResponse>(avatar);
         }
 
-        public void Delete(Guid id)
+        public bool Delete(Guid id)
         {
-            //TODO: Implement ASAP!
-            //AvatarManager.DeleteAvatar(id);
-
-            //var account = getAvatar(id);
-            //_context.Accounts.Remove(account);
-            //_context.SaveChanges();
+            // Default to soft delete.
+            return AvatarManager.DeleteAvatar(id);
         }
 
         // helper methods
@@ -367,11 +358,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
         {
             //var account = _context.Accounts.SingleOrDefault(u => u.RefreshTokens.Any(t => t.Token == token));
             //TODO: PERFORMANCE} Implement in Providers so more efficient and do not need to return whole list!
-
-            List<IAvatar> avatars = (List<IAvatar>)AvatarManager.LoadAllAvatars();
-
-
-            IAvatar avatar = AvatarManager.LoadAllAvatars().FirstOrDefault(x => x.RefreshTokens.Any(t => t.Token == token));
+            IAvatar avatar = AvatarManager.LoadAllAvatarsWithPasswords().FirstOrDefault(x => x.RefreshTokens.Any(t => t.Token == token));
 
             if (avatar == null) 
                 throw new AppException("Invalid token");
