@@ -71,19 +71,43 @@ namespace NextGenSoftware.OASIS.API.Core
         //    return avatar;
         //}
 
-        public IEnumerable<IAvatar> LoadAllAvatarsWithPasswords(ProviderType provider = ProviderType.Default)
+        //public IEnumerable<IAvatar> LoadAllAvatarsWithPasswords(ProviderType provider = ProviderType.Default)
+        //{
+        //    IEnumerable<IAvatar> avatars = ProviderManager.SetAndActivateCurrentStorageProvider(provider).LoadAllAvatars();
+        //    return avatars;
+        //}
+
+        public IEnumerable<IAvatar> LoadAllAvatarsWithPasswords(ProviderType provider)
         {
-            IEnumerable<IAvatar> avatars = ProviderManager.SetAndActivateCurrentStorageProvider(provider).LoadAllAvatars();
+            ProviderManager.SetAndActivateCurrentStorageProvider(provider);
+            return LoadAllAvatarsWithPasswords();
+        }
 
-           // foreach (IAvatar avatar in avatars)
-           //     avatar.Password = null;
-
+        public IEnumerable<IAvatar> LoadAllAvatarsWithPasswords()
+        {
+            IEnumerable<IAvatar> avatars = ProviderManager.CurrentStorageProvider.LoadAllAvatars();
             return avatars;
         }
 
-        public IEnumerable<IAvatar> LoadAllAvatars(ProviderType provider = ProviderType.Default)
+        //public IEnumerable<IAvatar> LoadAllAvatars(ProviderType provider = ProviderType.Default)
+        //{
+        //    IEnumerable<IAvatar> avatars = ProviderManager.SetAndActivateCurrentStorageProvider(provider).LoadAllAvatars();
+
+        //    foreach (IAvatar avatar in avatars)
+        //        avatar.Password = null;
+
+        //    return avatars;
+        //}
+
+        public IEnumerable<IAvatar> LoadAllAvatars(ProviderType provider)
         {
-            IEnumerable<IAvatar> avatars = ProviderManager.SetAndActivateCurrentStorageProvider(provider).LoadAllAvatars();
+            ProviderManager.SetAndActivateCurrentStorageProvider(provider);
+            return LoadAllAvatars();
+        }
+
+        public IEnumerable<IAvatar> LoadAllAvatars()
+        {
+            IEnumerable<IAvatar> avatars = ProviderManager.CurrentStorageProvider.LoadAllAvatars();
 
             foreach (IAvatar avatar in avatars)
                 avatar.Password = null;
@@ -91,9 +115,25 @@ namespace NextGenSoftware.OASIS.API.Core
             return avatars;
         }
 
-        public async Task<IEnumerable<IAvatar>> LoadAllAvatarsAsync(ProviderType provider = ProviderType.Default)
+        //public async Task<IEnumerable<IAvatar>> LoadAllAvatarsAsync(ProviderType provider = ProviderType.Default)
+        //{
+        //    IEnumerable<IAvatar> avatars = ProviderManager.SetAndActivateCurrentStorageProvider(provider).LoadAllAvatarsAsync().Result;
+
+        //    foreach (IAvatar avatar in avatars)
+        //        avatar.Password = null;
+
+        //    return avatars;
+        //}
+
+        public async Task<IEnumerable<IAvatar>> LoadAllAvatarsAsync(ProviderType provider)
         {
-            IEnumerable<IAvatar> avatars = ProviderManager.SetAndActivateCurrentStorageProvider(provider).LoadAllAvatarsAsync().Result;
+            ProviderManager.SetAndActivateCurrentStorageProvider(provider);
+            return await LoadAllAvatarsAsync();
+        }
+
+        public async Task<IEnumerable<IAvatar>> LoadAllAvatarsAsync()
+        {
+            IEnumerable<IAvatar> avatars = ProviderManager.CurrentStorageProvider.LoadAllAvatarsAsync().Result;
 
             foreach (IAvatar avatar in avatars)
                 avatar.Password = null;
@@ -101,94 +141,178 @@ namespace NextGenSoftware.OASIS.API.Core
             return avatars;
         }
 
-        public async Task<IAvatar> LoadAvatarAsync(string providerKey, ProviderType provider = ProviderType.Default)
+        //public async Task<IAvatar> LoadAvatarAsync(string providerKey, ProviderType provider = ProviderType.Default)
+        //{
+        //    IAvatar avatar = ProviderManager.SetAndActivateCurrentStorageProvider(provider).LoadAvatarAsync(providerKey).Result;
+        //   // avatar.Password = null;
+        //    return avatar;
+        //}
+
+        public async Task<IAvatar> LoadAvatarAsync(string providerKey, ProviderType provider)
         {
-            IAvatar avatar = ProviderManager.SetAndActivateCurrentStorageProvider(provider).LoadAvatarAsync(providerKey).Result;
+            ProviderManager.SetAndActivateCurrentStorageProvider(provider);
+            return await LoadAvatarAsync(providerKey);
+        }
+
+        public async Task<IAvatar> LoadAvatarAsync(string providerKey)
+        {
+            IAvatar avatar = ProviderManager.CurrentStorageProvider.LoadAvatarAsync(providerKey).Result;
+            // avatar.Password = null;
+            return avatar;
+        }
+
+        //public async Task<IAvatar> LoadAvatarAsync(Guid id, ProviderType providerType = ProviderType.Default)
+        //{
+        //    IAvatar avatar = ProviderManager.SetAndActivateCurrentStorageProvider(providerType).LoadAvatarAsync(id).Result;
+        //    // avatar.Password = null;
+        //    return avatar;
+        //}
+
+        public async Task<IAvatar> LoadAvatarAsync(Guid id, ProviderType providerType)
+        {
+            ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
+            return await LoadAvatarAsync(id);
+        }
+
+        public async Task<IAvatar> LoadAvatarAsync(Guid id)
+        {
+            IAvatar avatar = ProviderManager.CurrentStorageProvider.LoadAvatarAsync(id).Result;
            // avatar.Password = null;
             return avatar;
         }
 
-        public async Task<IAvatar> LoadAvatarAsync(Guid id, ProviderType providerType = ProviderType.Default)
+        //public IAvatar LoadAvatar(Guid id, ProviderType providerType = ProviderType.Default)
+        //{
+        //    IAvatar avatar = ProviderManager.SetAndActivateCurrentStorageProvider(providerType).LoadAvatar(id);
+        //    //avatar.Password = null;
+        //    return avatar;
+        //}
+
+        public IAvatar LoadAvatar(Guid id, ProviderType providerType)
         {
-            IAvatar avatar = ProviderManager.SetAndActivateCurrentStorageProvider(providerType).LoadAvatarAsync(id).Result;
-           // avatar.Password = null;
-            return avatar;
+            ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
+            return LoadAvatar(id);
         }
 
-        public IAvatar LoadAvatar(Guid id, ProviderType providerType = ProviderType.Default)
+        public IAvatar LoadAvatar(Guid id)
         {
-            IAvatar avatar = ProviderManager.SetAndActivateCurrentStorageProvider(providerType).LoadAvatar(id);
+            IAvatar avatar = ProviderManager.CurrentStorageProvider.LoadAvatar(id);
             //avatar.Password = null;
             return avatar;
         }
 
-        public async Task<IAvatar> LoadAvatarAsync(string username, string password, ProviderType providerType = ProviderType.Default)
+        //public async Task<IAvatar> LoadAvatarAsync(string username, string password, ProviderType providerType = ProviderType.Default)
+        public async Task<IAvatar> LoadAvatarAsync(string username, string password, ProviderType providerType)
         {
-            IAvatar avatar = ProviderManager.SetAndActivateCurrentStorageProvider(providerType).LoadAvatarAsync(username, password).Result;
+            ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
+            return await LoadAvatarAsync(username, password);
+        }
+
+        public async Task<IAvatar> LoadAvatarAsync(string username, string password)
+        {
+            IAvatar avatar = ProviderManager.CurrentStorageProvider.LoadAvatarAsync(username, password).Result;
             //avatar.Password = null;
             return avatar;
         }
 
-        public IAvatar LoadAvatar(string username, string password, ProviderType providerType = ProviderType.Default)
+        //public IAvatar LoadAvatar(string username, string password, ProviderType providerType = ProviderType.Default)
+        //{
+        //    return ProviderManager.SetAndActivateCurrentStorageProvider(providerType).LoadAvatar(username, password);
+        //}
+
+        public IAvatar LoadAvatar(string username, string password, ProviderType providerType)
         {
             return ProviderManager.SetAndActivateCurrentStorageProvider(providerType).LoadAvatar(username, password);
         }
 
-        public IAvatar LoadAvatar(string username, ProviderType providerType = ProviderType.Default)
+        public IAvatar LoadAvatar(string username, string password)
+        {
+            return ProviderManager.CurrentStorageProvider.LoadAvatar(username, password);
+        }
+
+        public IAvatar LoadAvatar(string username)
+        {
+            return ProviderManager.CurrentStorageProvider.LoadAvatar(username);
+        }
+
+        public IAvatar LoadAvatar(string username, ProviderType providerType)
         {
             return ProviderManager.SetAndActivateCurrentStorageProvider(providerType).LoadAvatar(username);
         }
 
-        public async Task<IAvatar> SaveAvatarAsync(IAvatar avatar, ProviderType providerType = ProviderType.Default)
+        //public async Task<IAvatar> SaveAvatarAsync(IAvatar avatar, ProviderType providerType = ProviderType.Default)
+        //{
+        //    if (string.IsNullOrEmpty(avatar.Username))
+        //        avatar.Username = avatar.Email;
+
+        //    // TODO: I think it's best to include audit stuff here so the providers do not need to worry about it?
+        //    // Providers could always override this behaviour if they choose...
+        //    if (avatar.Id == Guid.Empty)
+        //    {
+        //        avatar.ModifiedDate = DateTime.Now;
+
+        //        if (LoggedInAvatar != null)
+        //            avatar.ModifiedByAvatarId = LoggedInAvatar.Id;
+        //    }
+        //    else
+        //    {
+        //        avatar.CreatedDate = DateTime.Now;
+
+        //        if (LoggedInAvatar != null)
+        //            avatar.CreatedByAvatarId = LoggedInAvatar.Id;
+        //    }
+
+        //    return await ProviderManager.SetAndActivateCurrentStorageProvider(providerType).SaveAvatarAsync(avatar);
+        //}
+
+        public async Task<IAvatar> SaveAvatarAsync(IAvatar avatar, ProviderType providerType)
         {
-            if (string.IsNullOrEmpty(avatar.Username))
-                avatar.Username = avatar.Email;
-
-            // TODO: I think it's best to include audit stuff here so the providers do not need to worry about it?
-            // Providers could always override this behaviour if they choose...
-            if (avatar.Id == Guid.Empty)
-            {
-                avatar.ModifiedDate = DateTime.Now;
-
-                if (LoggedInAvatar != null)
-                    avatar.ModifiedByAvatarId = LoggedInAvatar.Id;
-            }
-            else
-            {
-                avatar.CreatedDate = DateTime.Now;
-
-                if (LoggedInAvatar != null)
-                    avatar.CreatedByAvatarId = LoggedInAvatar.Id;
-            }
-
-            return await ProviderManager.SetAndActivateCurrentStorageProvider(providerType).SaveAvatarAsync(avatar);
+            ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
+            return await SaveAvatarAsync(avatar);
         }
 
-        public IAvatar SaveAvatar(IAvatar avatar, ProviderType providerType = ProviderType.Default)
+        public async Task<IAvatar> SaveAvatarAsync(IAvatar avatar)
         {
-            if (string.IsNullOrEmpty(avatar.Username))
-                avatar.Username = avatar.Email;
-
-            // TODO: I think it's best to include audit stuff here so the providers do not need to worry about it?
-            // Providers could always override this behaviour if they choose...
-            if (avatar.Id == Guid.Empty)
-            {
-                avatar.ModifiedDate = DateTime.Now;
-
-                if (LoggedInAvatar != null)
-                    avatar.ModifiedByAvatarId = LoggedInAvatar.Id;
-            }
-            else
-            {
-                avatar.CreatedDate = DateTime.Now;
-
-                if (LoggedInAvatar != null)
-                    avatar.CreatedByAvatarId = LoggedInAvatar.Id;
-            }
-
-            return ProviderManager.SetAndActivateCurrentStorageProvider(providerType).SaveAvatar(avatar);
+            return await ProviderManager.CurrentStorageProvider.SaveAvatarAsync(PrepareAvatarForSaving(avatar));
         }
 
+        //public IAvatar SaveAvatar(IAvatar avatar, ProviderType providerType = ProviderType.Default)
+        //{
+        //    if (string.IsNullOrEmpty(avatar.Username))
+        //        avatar.Username = avatar.Email;
+
+        //    // TODO: I think it's best to include audit stuff here so the providers do not need to worry about it?
+        //    // Providers could always override this behaviour if they choose...
+        //    if (avatar.Id == Guid.Empty)
+        //    {
+        //        avatar.ModifiedDate = DateTime.Now;
+
+        //        if (LoggedInAvatar != null)
+        //            avatar.ModifiedByAvatarId = LoggedInAvatar.Id;
+        //    }
+        //    else
+        //    {
+        //        avatar.CreatedDate = DateTime.Now;
+
+        //        if (LoggedInAvatar != null)
+        //            avatar.CreatedByAvatarId = LoggedInAvatar.Id;
+        //    }
+
+        //    return ProviderManager.SetAndActivateCurrentStorageProvider(providerType).SaveAvatar(avatar);
+        //}
+
+        public IAvatar SaveAvatar(IAvatar avatar, ProviderType providerType)
+        {
+            ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
+            return SaveAvatar(avatar);
+        }
+
+        public IAvatar SaveAvatar(IAvatar avatar)
+        {
+            return ProviderManager.CurrentStorageProvider.SaveAvatar(PrepareAvatarForSaving(avatar));
+        }
+
+        //TODO: Need to refactor methods below to match the new above ones.
         public bool DeleteAvatar(Guid id, bool softDelete = true, ProviderType providerType = ProviderType.Default)
         {
             return ProviderManager.SetAndActivateCurrentStorageProvider(providerType).DeleteAvatar(id, softDelete);
@@ -207,6 +331,31 @@ namespace NextGenSoftware.OASIS.API.Core
         public async Task<KarmaAkashicRecord> RemoveKarmaFromAvatarAsync(IAvatar Avatar, KarmaTypeNegative karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc, ProviderType provider = ProviderType.Default)
         {
             return await ProviderManager.SetAndActivateCurrentStorageProvider(provider).SubtractKarmaFromAvatarAsync(Avatar, karmaType, karmaSourceType, karamSourceTitle, karmaSourceDesc);
+        }
+
+        private IAvatar PrepareAvatarForSaving(IAvatar avatar)
+        {
+            if (string.IsNullOrEmpty(avatar.Username))
+                avatar.Username = avatar.Email;
+
+            // TODO: I think it's best to include audit stuff here so the providers do not need to worry about it?
+            // Providers could always override this behaviour if they choose...
+            if (avatar.Id == Guid.Empty)
+            {
+                avatar.ModifiedDate = DateTime.Now;
+
+                if (LoggedInAvatar != null)
+                    avatar.ModifiedByAvatarId = LoggedInAvatar.Id;
+            }
+            else
+            {
+                avatar.CreatedDate = DateTime.Now;
+
+                if (LoggedInAvatar != null)
+                    avatar.CreatedByAvatarId = LoggedInAvatar.Id;
+            }
+
+            return avatar;
         }
     }
 }
