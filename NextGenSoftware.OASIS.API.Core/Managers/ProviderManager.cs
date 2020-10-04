@@ -8,6 +8,7 @@ namespace NextGenSoftware.OASIS.API.Core
     public class ProviderManager 
     {
         private static List<IOASISProvider> _registeredProviders = new List<IOASISProvider>();
+        private static bool _resetToDefaults = true;
 
         public static ProviderType CurrentStorageProviderType { get; private set; } = ProviderType.All;
 
@@ -15,6 +16,7 @@ namespace NextGenSoftware.OASIS.API.Core
 
         public static IOASISStorage CurrentStorageProvider { get; private set; } //TODO: Need to work this out because in future there can be more than one provider active at a time.
 
+        public static bool IgnoreDefaultProviderTypes { get; set; } = false;
         
 
         //TODO: In future the registered providers will be dynamically loaded from MEF by watching a hot folder for compiled provider dlls (and other ways in future...)
@@ -140,13 +142,16 @@ namespace NextGenSoftware.OASIS.API.Core
         }
 
         //TODO: In future more than one StorageProvider will be active at a time so we need to work out how to handle this...
-        public static IOASISStorage SetAndActivateCurrentStorageProvider(ProviderType providerType)
+        public static IOASISStorage SetAndActivateCurrentStorageProvider(ProviderType providerType, bool setGlobally = true)
         {
+           // if (_resetToDefaults)
+           //     CurrentStorageProviderType = ProviderType.None;
+
             //TODO: Need to get this to use the next provider in the list if there is an issue with the first/current provider...
-            if (providerType == ProviderType.Default)
+            if (providerType == ProviderType.Default && !IgnoreDefaultProviderTypes)
                 providerType = (ProviderType)Enum.Parse(typeof(ProviderType), DefaultProviderTypes[0]);
 
-            if (providerType != ProviderManager.CurrentStorageProviderType)
+            if (providerType != CurrentStorageProviderType)
             {
                 //TODO: Need to get this to use the next provider in the list if there is an issue with the first/current provider...
                 //if (providerType == ProviderType.Default)  
@@ -169,6 +174,7 @@ namespace NextGenSoftware.OASIS.API.Core
                 }
             }
 
+            _resetToDefaults = !setGlobally;
             return ProviderManager.CurrentStorageProvider;
         }
 

@@ -233,12 +233,18 @@ namespace NextGenSoftware.OASIS.API.Core
         public IAvatar LoadAvatar(string username)
         {
             return ProviderManager.CurrentStorageProvider.LoadAvatar(username);
+           // return ProviderManager.SetAndActivateCurrentStorageProvider(ProviderType.Default).LoadAvatar(username);
         }
 
         public IAvatar LoadAvatar(string username, ProviderType providerType)
         {
             return ProviderManager.SetAndActivateCurrentStorageProvider(providerType).LoadAvatar(username);
         }
+
+        //public IAvatar LoadAvatar(string username, ProviderType providerType = ProviderType.Default)
+        //{
+        //    return ProviderManager.SetAndActivateCurrentStorageProvider(providerType).LoadAvatar(username);
+        //}
 
         //public async Task<IAvatar> SaveAvatarAsync(IAvatar avatar, ProviderType providerType = ProviderType.Default)
         //{

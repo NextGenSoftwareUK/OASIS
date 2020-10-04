@@ -26,7 +26,8 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Desktop
 
         public override IAvatar LoadAvatar(string username)
         {
-            throw new NotImplementedException();
+            //throw new NotImplementedException();
+            return new Avatar();
         }
 
         public override IAvatar SaveAvatar(IAvatar Avatar)

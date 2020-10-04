@@ -78,6 +78,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
                     //_avatarManager = new AvatarManager();
 
                     _avatarManager = new AvatarManager(OASISProviderManager.GetAndActivateProvider());
+                    ProviderManager.IgnoreDefaultProviderTypes = false;
+
                     _avatarManager.OnOASISManagerError += _avatarManager_OnOASISManagerError;
 
                     //ProviderManager.SwitchCurrentStorageProvider(MongoOASISProvider);
