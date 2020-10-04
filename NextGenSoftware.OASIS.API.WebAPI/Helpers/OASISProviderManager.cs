@@ -44,7 +44,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
             return GetAndActivateProvider((ProviderType)Enum.Parse(typeof(ProviderType), ProviderManager.DefaultProviderTypes[0]));
         }
 
-        public static IOASISStorage GetAndActivateProvider(ProviderType providerType)
+        public static IOASISStorage GetAndActivateProvider(ProviderType providerType, bool setGlobally = false)
         {
             //TODO: Think we can have this in ProviderManger and have default connection strings/settings for each provider.
             if (providerType != ProviderManager.CurrentStorageProviderType)
@@ -91,6 +91,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
                 }
 
                 ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
+
+               // if (setGlobally)
+                    ProviderManager.IgnoreDefaultProviderTypes = true;
             }
 
             //  CurrentStorageProviderType = providerType;

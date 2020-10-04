@@ -14,7 +14,6 @@ using NextGenSoftware.OASIS.API.ONODE.WebAPI.Helpers;
 using NextGenSoftware.OASIS.API.WebAPI;
 using NextGenSoftware.OASIS.API.Core;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Security;
-using System.Threading.Tasks;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
 {
@@ -70,8 +69,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
         }
 
         //public AuthenticateResponse Authenticate(AuthenticateRequest model, string ipAddress)
+        //public IAvatar Authenticate(AuthenticateRequest model, string ipAddress, bool setGlobally = false)
         public IAvatar Authenticate(AuthenticateRequest model, string ipAddress)
         {
+            //IAvatar avatar = AvatarManager.LoadAvatar(model.Email, setGlobally);
             IAvatar avatar = AvatarManager.LoadAvatar(model.Email);
 
             if (avatar.DeletedDate != null)

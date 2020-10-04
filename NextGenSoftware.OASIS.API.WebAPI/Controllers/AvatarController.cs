@@ -39,6 +39,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         }
 
         [HttpPost("authenticate")]
+        //public ActionResult<IAvatar> Authenticate(AuthenticateRequest model, bool setGlobally = false)
         public ActionResult<IAvatar> Authenticate(AuthenticateRequest model)
         {
             var response = _avatarService.Authenticate(model, ipAddress());
@@ -46,11 +47,20 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             return Ok(response);
         }
 
-        [HttpPost("authenticate/{providerType}")]
-        public ActionResult<IAvatar> Authenticate(AuthenticateRequest model, ProviderType providerType)
+        [HttpPost("authenticate/{providerType}/{setGlobally}")]
+       // [HttpPost("authenticate/{providerType}")]
+        public ActionResult<IAvatar> Authenticate(AuthenticateRequest model, ProviderType providerType, bool setGlobally = false)
+        //public ActionResult<IAvatar> Authenticate(AuthenticateRequest model, ProviderType providerType)
         {
-            GetAndActivateProvider(providerType);
-            return Authenticate(model);
+            GetAndActivateProvider(providerType, setGlobally);
+            ActionResult<IAvatar> result = Authenticate(model);
+
+            // TODO: Find better way of doing this?
+            // By default IgnoreDefaultProviderTypes is set to true in above GetAndActivateProvider method so need to reset if they do not want this providerType to be set globally.
+            if (!setGlobally)
+                ProviderManager.IgnoreDefaultProviderTypes = false;
+
+            return result;
         }
 
         [HttpPost("refresh-token")]

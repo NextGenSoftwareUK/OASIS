@@ -83,9 +83,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
            //return GetAndActivateProvider((ProviderType)Enum.Parse(typeof(ProviderType), ProviderManager.DefaultProviderTypes[0]));
         }
 
-        protected IOASISStorage GetAndActivateProvider(ProviderType providerType)
+        protected IOASISStorage GetAndActivateProvider(ProviderType providerType, bool setGlobally = false)
         {
-            return OASISProviderManager.GetAndActivateProvider(providerType);
+            return OASISProviderManager.GetAndActivateProvider(providerType, setGlobally);
 
             /*
             //TODO: Think we can have this in ProviderManger and have default connection strings/settings for each provider.
