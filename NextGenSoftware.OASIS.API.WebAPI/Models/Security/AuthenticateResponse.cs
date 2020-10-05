@@ -1,22 +1,11 @@
-//using System;
-//using System.Text.Json.Serialization;
+using NextGenSoftware.OASIS.API.Core;
 
-//namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Security
-//{
-//    public class AuthenticateResponse
-//    {
-//        public int Id { get; set; }
-//        public string Title { get; set; }
-//        public string FirstName { get; set; }
-//        public string LastName { get; set; }
-//        public string Email { get; set; }
-//        public string Role { get; set; }
-//        public DateTime Created { get; set; }
-//        public DateTime? Updated { get; set; }
-//        public bool IsVerified { get; set; }
-//        public string JwtToken { get; set; }
-
-//        [JsonIgnore] // refresh token is returned in http only cookie
-//        public string RefreshToken { get; set; }
-//    }
-//}
+namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Security
+{
+    public class AuthenticateResponse
+    {
+        public IAvatar Avatar { get; set; }
+        public bool IsError { get; set; }
+        public string Message { get; set; }
+    }
+}

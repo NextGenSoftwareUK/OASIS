@@ -22,5 +22,6 @@ namespace NextGenSoftware.OASIS.API.Core
         public DateTime DeletedDate { get; set; }
         public int Version { get; set; }
         public bool IsActive { get; set; }
+        public ProviderType ProviderType { get; set; }
     }
 }

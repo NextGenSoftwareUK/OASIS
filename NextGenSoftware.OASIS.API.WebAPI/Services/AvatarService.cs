@@ -68,25 +68,28 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
             _emailService = emailService;
         }
 
-        //public AuthenticateResponse Authenticate(AuthenticateRequest model, string ipAddress)
-        //public IAvatar Authenticate(AuthenticateRequest model, string ipAddress, bool setGlobally = false)
-        public IAvatar Authenticate(AuthenticateRequest model, string ipAddress)
+        public AuthenticateResponse Authenticate(AuthenticateRequest model, string ipAddress)
         {
             //IAvatar avatar = AvatarManager.LoadAvatar(model.Email, setGlobally);
             IAvatar avatar = AvatarManager.LoadAvatar(model.Email);
 
             if (avatar.DeletedDate != null)
-                throw new AppException("This avatar has been deleted. Please contact support or create a new avatar.");
+                return new AuthenticateResponse() { IsError = true, Avatar = avatar, Message = "This avatar has been deleted. Please contact support or create a new avatar." };
+                //throw new AppException("This avatar has been deleted. Please contact support or create a new avatar.");
 
             // TODO: Implement Activate/Deactivate methods in AvatarManager & Providers...
             if (!avatar.IsActive)
-                throw new AppException("This avatar is no longer active. Please contact support or create a new avatar.");
+                return new AuthenticateResponse() { IsError = true, Avatar = avatar, Message = "This avatar is no longer active. Please contact support or create a new avatar." };
+            //throw new AppException("This avatar is no longer active. Please contact support or create a new avatar.");
 
             if (!avatar.IsVerified)
-                throw new AppException("Avatar has not been verified. Please check your email.");
+                return new AuthenticateResponse() { IsError = true, Avatar = avatar, Message = "Avatar has not been verified. Please check your email." };
+            //throw new AppException("Avatar has not been verified. Please check your email.");
 
             if (avatar == null || !BC.Verify(model.Password, avatar.Password))
-                throw new AppException("Email or password is incorrect");
+                return new AuthenticateResponse() { IsError = true, Avatar = avatar, Message = "Email or password is incorrect" };
+            //throw new AppException("Email or password is incorrect");
+
 
             // authentication successful so generate jwt and refresh tokens
             var jwtToken = generateJwtToken(avatar);
@@ -99,7 +102,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
             AvatarManager.LoggedInAvatar = avatar;
 
             //TODO: Get Async working!
-            return RemoveAuthDetails(AvatarManager.SaveAvatar(avatar));
+            return new AuthenticateResponse() { Message = "Avatar Successfully Authenticated.", Avatar = RemoveAuthDetails(AvatarManager.SaveAvatar(avatar)) };
         }
 
         //public AuthenticateResponse RefreshToken(string token, string ipAddress)

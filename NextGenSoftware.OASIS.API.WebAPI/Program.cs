@@ -78,7 +78,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
                     //_avatarManager = new AvatarManager();
 
                     _avatarManager = new AvatarManager(OASISProviderManager.GetAndActivateProvider());
-                    ProviderManager.IgnoreDefaultProviderTypes = false;
+                    //ProviderManager.OverrideProviderType = false; //TODO: Check if this is still needed?
 
                     _avatarManager.OnOASISManagerError += _avatarManager_OnOASISManagerError;
 

@@ -237,6 +237,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             oasisAvatar.ResetTokenExpires = avatar.ResetTokenExpires;
             oasisAvatar.VerificationToken = avatar.VerificationToken;
             oasisAvatar.Verified = avatar.Verified;
+            oasisAvatar.ProviderType = ProviderType.MongoDBOASIS;
 
             return oasisAvatar;
         }

@@ -8,16 +8,18 @@ namespace NextGenSoftware.OASIS.API.Core
     public class ProviderManager 
     {
         private static List<IOASISProvider> _registeredProviders = new List<IOASISProvider>();
-        private static bool _resetToDefaults = true;
 
-        public static ProviderType CurrentStorageProviderType { get; private set; } = ProviderType.All;
+        public static ProviderType CurrentStorageProviderType { get; private set; } = ProviderType.Default;
 
         public static string[] DefaultProviderTypes { get;  set; }
 
+        public static IOASISStorage DefaultGlobalStorageProvider { get; set; }
+
         public static IOASISStorage CurrentStorageProvider { get; private set; } //TODO: Need to work this out because in future there can be more than one provider active at a time.
 
-        public static bool IgnoreDefaultProviderTypes { get; set; } = false;
-        
+        //public static bool IgnoreDefaultProviderTypes { get; set; } = false;
+        public static bool OverrideProviderType { get; set; } = false;
+
 
         //TODO: In future the registered providers will be dynamically loaded from MEF by watching a hot folder for compiled provider dlls (and other ways in future...)
         public static void RegisterProvider(IOASISProvider provider)
@@ -103,17 +105,6 @@ namespace NextGenSoftware.OASIS.API.Core
             return (IOASISRenderer)_registeredProviders.FirstOrDefault(x => x.ProviderType == type && x.ProviderCategory == ProviderCategory.Renderer);
         }
 
-        // Highly recommend this one is used.
-        //public static IOASISProvider GetAndActivateProvider(ProviderType type)
-        //{
-        //    IOASISProvider provider = _registeredProviders.FirstOrDefault(x => x.ProviderType == type);
-
-        //    if (provider != null)
-        //        provider.ActivateProvider();
-
-        //    return provider;
-        //}
-
         public static bool IsProviderRegistered(IOASISProvider provider)
         {
             return _registeredProviders.Any(x => x.ProviderName == provider.ProviderName);
@@ -124,43 +115,78 @@ namespace NextGenSoftware.OASIS.API.Core
             return _registeredProviders.Any(x => x.ProviderType == providerType);
         }
 
-        //TODO: Check if we need this?
+        /*
+        //TODO: Try and fix this later...
+        public static IOASISStorage SetAndActivateCurrentStorageProvider(ProviderType providerType, bool setGlobally = false)
+        {
+            if (providerType == ProviderType.Default)
+            {
+                // If a global provider has been set and the REST API call has not overiden the provider (OverrideProviderType) then set to global provider.
+                if (DefaultGlobalStorageProvider != null && DefaultGlobalStorageProvider != CurrentStorageProvider && !OverrideProviderType)
+                    return SetAndActivateCurrentStorageProvider(DefaultGlobalStorageProvider);
+
+                // Otherwise set to default provider (configured in appSettings.json) if the provider has not been overiden in the REST call.
+                else if (!OverrideProviderType && DefaultProviderTypes != null && CurrentStorageProviderType != (ProviderType)Enum.Parse(typeof(ProviderType), DefaultProviderTypes[0]))
+                    return SetAndActivateCurrentStorageProviderInternal(ProviderType.Default, setGlobally);
+            }
+
+            if (CurrentStorageProvider == null || (CurrentStorageProviderType != providerType))
+                return SetAndActivateCurrentStorageProviderInternal(providerType, setGlobally);
+
+            return CurrentStorageProvider;
+        }*/
+
+
+        public static IOASISStorage SetAndActivateCurrentStorageProvider(ProviderType providerType)
+        {
+            if (providerType == ProviderType.Default)
+                return SetAndActivateCurrentStorageProvider();
+            else
+                return SetAndActivateCurrentStorageProvider(providerType, false);
+        }
+
+        //THIS ONE WORKS.
+        public static IOASISStorage SetAndActivateCurrentStorageProvider()
+        {
+            // If a global provider has been set and the REST API call has not overiden the provider (OverrideProviderType) then set to global provider.
+            if (DefaultGlobalStorageProvider != null && DefaultGlobalStorageProvider != CurrentStorageProvider && !OverrideProviderType)
+                return SetAndActivateCurrentStorageProvider(DefaultGlobalStorageProvider);
+
+            // Otherwise set to default provider (configured in appSettings.json) if the provider has not been overiden in the REST call.
+            else if (!OverrideProviderType && DefaultProviderTypes != null && CurrentStorageProviderType != (ProviderType)Enum.Parse(typeof(ProviderType), DefaultProviderTypes[0]))
+                return SetAndActivateCurrentStorageProvider(ProviderType.Default, false);
+            //return SetAndActivateCurrentStorageProviderInternal(ProviderType.Default);
+
+            return CurrentStorageProvider;
+        }
+
+
         public static IOASISStorage SetAndActivateCurrentStorageProvider(IOASISProvider OASISProvider)
         {
-            if (OASISProvider != ProviderManager.CurrentStorageProvider)
+            if (OASISProvider != CurrentStorageProvider)
             {
                 if (OASISProvider != null)
                 {
-                    if (!ProviderManager.IsProviderRegistered(OASISProvider))
-                        ProviderManager.RegisterProvider(OASISProvider);
+                    if (!IsProviderRegistered(OASISProvider))
+                        RegisterProvider(OASISProvider);
 
-                    return ProviderManager.SetAndActivateCurrentStorageProvider(OASISProvider.ProviderType);
+                    return SetAndActivateCurrentStorageProvider(OASISProvider.ProviderType);
                 }
             }
 
-            return ProviderManager.CurrentStorageProvider;
+            return CurrentStorageProvider;
         }
 
         //TODO: In future more than one StorageProvider will be active at a time so we need to work out how to handle this...
-        public static IOASISStorage SetAndActivateCurrentStorageProvider(ProviderType providerType, bool setGlobally = true)
+        //private static IOASISStorage SetAndActivateCurrentStorageProviderInternal(ProviderType providerType, bool setGlobally = false)
+        public static IOASISStorage SetAndActivateCurrentStorageProvider(ProviderType providerType, bool setGlobally = false)
         {
-           // if (_resetToDefaults)
-           //     CurrentStorageProviderType = ProviderType.None;
-
             //TODO: Need to get this to use the next provider in the list if there is an issue with the first/current provider...
-            if (providerType == ProviderType.Default && !IgnoreDefaultProviderTypes)
+            if (providerType == ProviderType.Default && !OverrideProviderType)
                 providerType = (ProviderType)Enum.Parse(typeof(ProviderType), DefaultProviderTypes[0]);
 
             if (providerType != CurrentStorageProviderType)
             {
-                //TODO: Need to get this to use the next provider in the list if there is an issue with the first/current provider...
-                //if (providerType == ProviderType.Default)  
-                //    providerType = (ProviderType)Enum.Parse(typeof(ProviderType), DefaultProviderTypes[0]);
-                
-                //if (!ProviderManager.IsProviderRegistered(providerType))
-                //{
-                //    ProviderManager.RegisterProvider()
-                //}
                 IOASISProvider provider = _registeredProviders.FirstOrDefault(x => x.ProviderType == providerType);
 
                 if (provider == null)
@@ -168,30 +194,17 @@ namespace NextGenSoftware.OASIS.API.Core
 
                 if (provider != null && (provider.ProviderCategory == ProviderCategory.Storage || provider.ProviderCategory == ProviderCategory.StorageAndNetwork))
                 {
-                    ProviderManager.CurrentStorageProviderType = providerType;
-                    ProviderManager.CurrentStorageProvider = (IOASISStorage)provider;
-                    ProviderManager.CurrentStorageProvider.ActivateProvider();
+                    CurrentStorageProviderType = providerType;
+                    CurrentStorageProvider = (IOASISStorage)provider;
+                    CurrentStorageProvider.ActivateProvider();
+
+                    if (setGlobally)
+                        DefaultGlobalStorageProvider = CurrentStorageProvider;
                 }
             }
 
-            _resetToDefaults = !setGlobally;
-            return ProviderManager.CurrentStorageProvider;
+            return CurrentStorageProvider;
         }
-
-        //TODO: Come back to this...
-        //public static void SwitchCurrentProvider(ProviderType providerType)
-        //{
-        //    IOASISProvider provider = _registeredProviders.FirstOrDefault(x => x.ProviderType == providerType);
-
-        //    if (provider != null)
-        //    {
-        //        ProviderManager.CurrentStorageProviderType = providerType;
-        //        ProviderManager.CurrentStorageProvider = (IOASISStorage)provider;
-        //        ProviderManager.CurrentStorageProvider.ActivateProvider();
-        //    }
-        //}
-
-
 
         public static void ActivateProvider(ProviderType type)
         {
