@@ -20,9 +20,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Middleware
             OASISProviderManager.OASISSettings = OASISSettings.Value;
         }
 
-        //public async Task Invoke(HttpContext context, DataContext dataContext)
         public async Task Invoke(HttpContext context)
         {
+         //   if (!ProviderManager.IgnoreDefaultProviderTypes && ProviderManager.DefaultProviderTypes != null && ProviderManager.CurrentStorageProviderType != (ProviderType)Enum.Parse(typeof(ProviderType), ProviderManager.DefaultProviderTypes[0]))
+         //       ProviderManager.SetAndActivateCurrentStorageProvider(ProviderType.Default);
+
             var token = context.Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
 
             if (token != null)
@@ -58,7 +60,6 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Middleware
             catch (Exception ex)
             {
                 throw new Exception("Token Authorization Failed.");
-                // do nothing if jwt validation fails
                 // account is not attached to context so request won't have access to secure routes
                 
                 //TODO: Log and handle error

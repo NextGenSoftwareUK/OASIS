@@ -90,13 +90,16 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
                     }
                 }
 
-                ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
+                ProviderManager.SetAndActivateCurrentStorageProvider(providerType, setGlobally);
 
                // if (setGlobally)
-                    ProviderManager.IgnoreDefaultProviderTypes = true;
+                  //  ProviderManager.IgnoreDefaultProviderTypes = true;
             }
 
-            //  CurrentStorageProviderType = providerType;
+            if (setGlobally && ProviderManager.CurrentStorageProvider != ProviderManager.DefaultGlobalStorageProvider)
+                ProviderManager.DefaultGlobalStorageProvider = ProviderManager.CurrentStorageProvider;
+
+            ProviderManager.OverrideProviderType = true;
             return ProviderManager.CurrentStorageProvider; 
         }
 

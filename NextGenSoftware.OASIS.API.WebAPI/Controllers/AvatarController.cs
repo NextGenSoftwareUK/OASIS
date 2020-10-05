@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
@@ -39,26 +38,26 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         }
 
         [HttpPost("authenticate")]
-        //public ActionResult<IAvatar> Authenticate(AuthenticateRequest model, bool setGlobally = false)
-        public ActionResult<IAvatar> Authenticate(AuthenticateRequest model)
+        public ActionResult<AuthenticateResponse> Authenticate(AuthenticateRequest model)
         {
-            var response = _avatarService.Authenticate(model, ipAddress());
-            setTokenCookie(response.RefreshToken);
+            AuthenticateResponse response = _avatarService.Authenticate(model, ipAddress());
+            
+            if (!response.IsError && response.Avatar != null)
+                setTokenCookie(response.Avatar.RefreshToken);
+            
             return Ok(response);
         }
 
         [HttpPost("authenticate/{providerType}/{setGlobally}")]
-       // [HttpPost("authenticate/{providerType}")]
-        public ActionResult<IAvatar> Authenticate(AuthenticateRequest model, ProviderType providerType, bool setGlobally = false)
-        //public ActionResult<IAvatar> Authenticate(AuthenticateRequest model, ProviderType providerType)
+        public ActionResult<AuthenticateResponse> Authenticate(AuthenticateRequest model, ProviderType providerType, bool setGlobally = false)
         {
             GetAndActivateProvider(providerType, setGlobally);
-            ActionResult<IAvatar> result = Authenticate(model);
+            ActionResult<AuthenticateResponse> result = Authenticate(model);
 
             // TODO: Find better way of doing this?
             // By default IgnoreDefaultProviderTypes is set to true in above GetAndActivateProvider method so need to reset if they do not want this providerType to be set globally.
             if (!setGlobally)
-                ProviderManager.IgnoreDefaultProviderTypes = false;
+                ProviderManager.OverrideProviderType = false;
 
             return result;
         }

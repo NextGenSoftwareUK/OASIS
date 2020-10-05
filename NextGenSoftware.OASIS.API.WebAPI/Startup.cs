@@ -84,7 +84,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
 
             // generated swagger json and swagger ui middleware
             app.UseSwagger();
-            app.UseSwaggerUI(x => x.SwaggerEndpoint("/swagger/v1/swagger.json", "OASIS API"));
+            app.UseSwaggerUI(x => x.SwaggerEndpoint("/swagger/v1/swagger.json", "OASIS API v0.01 ALTHA"));
 
             if (env.IsDevelopment())
                 app.UseDeveloperExceptionPage();
@@ -106,12 +106,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
 
             app.UseAuthorization();
 
-            // global error handler
+            app.UseMiddleware<OASISMiddleware>();
             app.UseMiddleware<ErrorHandlerMiddleware>();
-
-            //// custom jwt auth middleware
             app.UseMiddleware<JwtMiddleware>();
-
+            
             app.UseEndpoints(endpoints => { endpoints.MapControllers(); });
 
           //  string dbConn = configuration.GetSection("MySettings").GetSection("DbConnection").Value;

@@ -8,9 +8,8 @@ namespace NextGenSoftware.OASIS.API.WebAPI
 {
     public interface IAvatarService
     {
-        //AuthenticateResponse Authenticate(AuthenticateRequest model, string ipAddress);
         //AuthenticateResponse RefreshToken(string token, string ipAddress);
-        IAvatar Authenticate(AuthenticateRequest model, string ipAddress);
+        AuthenticateResponse Authenticate(AuthenticateRequest model, string ipAddress);
         IAvatar RefreshToken(string token, string ipAddress);
         void RevokeToken(string token, string ipAddress);
         IAvatar Register(RegisterRequest model, string origin);
