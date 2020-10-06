@@ -52,14 +52,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         public ActionResult<AuthenticateResponse> Authenticate(AuthenticateRequest model, ProviderType providerType, bool setGlobally = false)
         {
             GetAndActivateProvider(providerType, setGlobally);
-            ActionResult<AuthenticateResponse> result = Authenticate(model);
-
-            // TODO: Find better way of doing this?
-            // By default IgnoreDefaultProviderTypes is set to true in above GetAndActivateProvider method so need to reset if they do not want this providerType to be set globally.
-            if (!setGlobally)
-                ProviderManager.OverrideProviderType = false;
-
-            return result;
+            return Authenticate(model);
         }
 
         [HttpPost("refresh-token")]
@@ -71,10 +64,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             return Ok(response);
         }
 
-        [HttpPost("refresh-token/{providerType}")]
-        public ActionResult<IAvatar> RefreshToken(ProviderType providerType)
+        [HttpPost("refresh-token/{providerType}/{setGlobally}")]
+        public ActionResult<IAvatar> RefreshToken(ProviderType providerType, bool setGlobally = false)
         {
-            GetAndActivateProvider(providerType);
+            GetAndActivateProvider(providerType, setGlobally);
             return RefreshToken();
         }
 
@@ -97,10 +90,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         }
 
         [Authorize]
-        [HttpPost("revoke-token/{providerType}")]
-        public IActionResult RevokeToken(RevokeTokenRequest model, ProviderType providerType)
+        [HttpPost("revoke-token/{providerType}/{setGlobally}")]
+        public IActionResult RevokeToken(RevokeTokenRequest model, ProviderType providerType, bool setGlobally = false)
         {
-            GetAndActivateProvider(providerType);
+            GetAndActivateProvider(providerType, setGlobally);
             return RevokeToken(model);
         }
 
@@ -118,10 +111,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 return Ok(new { message = "ERROR: Avatar already registered." });
         }
 
-        [HttpPost("register/{providerType}")]
-        public IActionResult Register(RegisterRequest model, ProviderType providerType)
+        [HttpPost("register/{providerType}/{setGlobally}")]
+        public IActionResult Register(RegisterRequest model, ProviderType providerType, bool setGlobally = false)
         {
-            GetAndActivateProvider(providerType);
+            GetAndActivateProvider(providerType, setGlobally);
             return Register(model);
         }
 
@@ -132,10 +125,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             return Ok(new { message = "Verification successful, you can now login" });
         }
 
-        [HttpPost("verify-email/{providerType}")]
-        public IActionResult VerifyEmail(VerifyEmailRequest model, ProviderType providerType)
+        [HttpPost("verify-email/{providerType}/{setGlobally}")]
+        public IActionResult VerifyEmail(VerifyEmailRequest model, ProviderType providerType, bool setGlobally = false)
         {
-            GetAndActivateProvider(providerType);
+            GetAndActivateProvider(providerType, setGlobally);
             return VerifyEmail(model);
         }
 
@@ -146,10 +139,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             return Ok(new { message = "Please check your email for password reset instructions" });
         }
 
-        [HttpPost("forgot-password/{providerType}")]
-        public IActionResult ForgotPassword(ForgotPasswordRequest model, ProviderType providerType)
+        [HttpPost("forgot-password/{providerType}/{setGlobally}")]
+        public IActionResult ForgotPassword(ForgotPasswordRequest model, ProviderType providerType, bool setGlobally = false)
         {
-            GetAndActivateProvider(providerType);
+            GetAndActivateProvider(providerType, setGlobally);
             return ForgotPassword(model);
         }
 
@@ -160,10 +153,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             return Ok(new { message = "Token is valid" });
         }
 
-        [HttpPost("validate-reset-token/{providerType}")]
-        public IActionResult ValidateResetToken(ValidateResetTokenRequest model, ProviderType providerType)
+        [HttpPost("validate-reset-token/{providerType}/{setGlobally}")]
+        public IActionResult ValidateResetToken(ValidateResetTokenRequest model, ProviderType providerType, bool setGlobally = false)
         {
-            GetAndActivateProvider(providerType);
+            GetAndActivateProvider(providerType, setGlobally);
             return ValidateResetToken(model);
         }
 
@@ -174,10 +167,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             return Ok(new { message = "Password reset successful, you can now login" });
         }
 
-        [HttpPost("reset-password/{providerType}")]
-        public IActionResult ResetPassword(ResetPasswordRequest model, ProviderType providerType)
+        [HttpPost("reset-password/{providerType}/{setGlobally}")]
+        public IActionResult ResetPassword(ResetPasswordRequest model, ProviderType providerType, bool setGlobally = false)
         {
-            GetAndActivateProvider(providerType);
+            GetAndActivateProvider(providerType, setGlobally);
             return ResetPassword(model);
         }
 
@@ -209,10 +202,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         }
 
         [Authorize]
-        [HttpGet("{id:Guid}/{providerType}")]
-        public ActionResult<IAvatar> GetById(Guid id, ProviderType providerType)
+        [HttpGet("{id:Guid}/{providerType}/{setGlobally}")]
+        public ActionResult<IAvatar> GetById(Guid id, ProviderType providerType, bool setGlobally = false)
         {
-            GetAndActivateProvider(providerType);
+            GetAndActivateProvider(providerType, setGlobally);
             return GetById(id);
         }
 
@@ -256,10 +249,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         }
 
         [Authorize]
-        [HttpPut("{id:Guid}/{providerType}")]
-        public ActionResult<Avatar> Update(Guid id, UpdateRequest model, ProviderType providerType)
+        [HttpPut("{id:Guid}/{providerType}/{setGlobally}")]
+        public ActionResult<Avatar> Update(Guid id, UpdateRequest model, ProviderType providerType, bool setGlobally = false)
         {
-            GetAndActivateProvider(providerType);
+            GetAndActivateProvider(providerType, setGlobally);
             return Update(id, model);
         }
 
@@ -277,10 +270,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         }
 
         [Authorize]
-        [HttpDelete("{id:Guid}/{providerType}")]
-        public IActionResult Delete(Guid id, ProviderType providerType)
+        [HttpDelete("{id:Guid}/{providerType}/{setGlobally}")]
+        public IActionResult Delete(Guid id, ProviderType providerType, bool setGlobally = false)
         {
-            GetAndActivateProvider(providerType);
+            GetAndActivateProvider(providerType, setGlobally);
             return Delete(id);
         }
 

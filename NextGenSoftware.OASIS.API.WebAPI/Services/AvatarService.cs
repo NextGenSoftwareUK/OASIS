@@ -19,7 +19,6 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
 {
     public class AvatarService : IAvatarService
     {
-       // private readonly DataContext _context;
         private readonly IMapper _mapper;
         private readonly OASISSettings _OASISSettings;
         private readonly IEmailService _emailService;
@@ -41,23 +40,6 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
             }
         }
 
-        //private void _avatarManager_OnOASISManagerError(object sender, OASISErrorEventArgs e)
-        //{
-        //    //TODO: Log and handle errors here.
-        //}
-
-        //public AvatarService(
-        //    DataContext context,
-        //    IMapper mapper,
-        //    IOptions<OASISSettings> OASISSettings,
-        //    IEmailService emailService)
-        //{
-        //  //  _context = context;
-        //    _mapper = mapper;
-        //    _OASISSettings = OASISSettings.Value;
-        //    _emailService = emailService;
-        //}
-
         public AvatarService(
             IMapper mapper,
             IOptions<OASISSettings> OASISSettings,
@@ -73,6 +55,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
             //IAvatar avatar = AvatarManager.LoadAvatar(model.Email, setGlobally);
             IAvatar avatar = AvatarManager.LoadAvatar(model.Email);
 
+            //TODO:{URGENT}{TESTING} Remove Avatar from error responses (only put in temp for testing purposes)
             if (avatar.DeletedDate != null)
                 return new AuthenticateResponse() { IsError = true, Avatar = avatar, Message = "This avatar has been deleted. Please contact support or create a new avatar." };
                 //throw new AppException("This avatar has been deleted. Please contact support or create a new avatar.");
