@@ -28,15 +28,6 @@ namespace NextGenSoftware.OASIS.API.Core
             //TODO: Need to unsubscribe events to stop memory leaks...
         }
 
-        //TODO: {URGENT} Move this into ProviderManager ASAP!
-        protected IOASISStorage SetAndActivateCurrentStorageProvider(ProviderType providerType)
-        {
-            if (providerType == ProviderType.Default)
-                return ProviderManager.SetAndActivateCurrentStorageProvider();
-            else
-                return ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
-        }
-
         private void OASISStorageProvider_StorageProviderError(object sender, AvatarManagerErrorEventArgs e)
         {
             OnOASISManagerError?.Invoke(this, new OASISErrorEventArgs() { ErrorDetails = e.ErrorDetails, Reason = e.Reason });

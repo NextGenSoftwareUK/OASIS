@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace NextGenSoftware.OASIS.API.Core
@@ -8,21 +7,7 @@ namespace NextGenSoftware.OASIS.API.Core
     public class AvatarManager : OASISManager
     {
         public static IAvatar LoggedInAvatar { get; set; }
-
         private ProviderManagerConfig _config;
-        //private static AvatarManager _instance;
-
-        //public static AvatarManager Instance
-        //{
-        //    get
-        //    {
-        //          if (_instance == null)
-        //           _instance = new AvatarManager();
-
-        //        return _instance;
-        //    }
-        //}
-
         
         public List<IOASISStorage> OASISStorageProviders { get; set; }
         
@@ -31,9 +16,7 @@ namespace NextGenSoftware.OASIS.API.Core
             get
             {
                 if (_config == null)
-                {
                     _config = new ProviderManagerConfig();
-                }
 
                 return _config;
             }
@@ -41,73 +24,21 @@ namespace NextGenSoftware.OASIS.API.Core
 
         public delegate void StorageProviderError(object sender, AvatarManagerErrorEventArgs e);
 
-
         //TODO: In future more than one storage provider can be active at a time where each call can specify which provider to use.
         public AvatarManager(IOASISStorage OASISStorageProvider) : base(OASISStorageProvider)
         {
 
         }
 
-        // TODO: Not sure good idea? All because want to cache AvatarManager in WebAPI.Program, also is it a good idea?
-        // Dont think its needed? Because not expensive to create a new AvatarManager, the expensive bit is already cached in the ProviderManager (in OASIS.API.Core) & OASISConteollerBase (in WebAPI)
-        public AvatarManager() : base(null)
+        public IEnumerable<IAvatar> LoadAllAvatarsWithPasswords(ProviderType provider = ProviderType.Default)
         {
-
-        }
-
-        //public async Task<IAvatar> Authenticate(string username, string password)
-        //{
-
-
-
-        //    IEnumerable<IAvatar> _avatars = await LoadAllAvatarsAsync();
-
-        //    var avatar = await Task.Run(() => _avatars.SingleOrDefault(x => x.Username == username && x.Password == password));
-
-        //    if (avatar == null)
-        //        return null;
-
-        //    avatar.Password = null;
-        //    return avatar;
-        //}
-
-        //public IEnumerable<IAvatar> LoadAllAvatarsWithPasswords(ProviderType provider = ProviderType.Default)
-        //{
-        //    IEnumerable<IAvatar> avatars = ProviderManager.SetAndActivateCurrentStorageProvider(provider).LoadAllAvatars();
-        //    return avatars;
-        //}
-
-        public IEnumerable<IAvatar> LoadAllAvatarsWithPasswords(ProviderType provider)
-        {
-            ProviderManager.SetAndActivateCurrentStorageProvider(provider);
-            return LoadAllAvatarsWithPasswords();
-        }
-
-        public IEnumerable<IAvatar> LoadAllAvatarsWithPasswords()
-        {
-            IEnumerable<IAvatar> avatars = ProviderManager.CurrentStorageProvider.LoadAllAvatars();
+            IEnumerable<IAvatar> avatars = ProviderManager.SetAndActivateCurrentStorageProvider(provider).LoadAllAvatars();
             return avatars;
         }
 
-        //public IEnumerable<IAvatar> LoadAllAvatars(ProviderType provider = ProviderType.Default)
-        //{
-        //    IEnumerable<IAvatar> avatars = ProviderManager.SetAndActivateCurrentStorageProvider(provider).LoadAllAvatars();
-
-        //    foreach (IAvatar avatar in avatars)
-        //        avatar.Password = null;
-
-        //    return avatars;
-        //}
-
-        public IEnumerable<IAvatar> LoadAllAvatars(ProviderType provider)
+        public IEnumerable<IAvatar> LoadAllAvatars(ProviderType provider = ProviderType.Default)
         {
-            ProviderManager.SetAndActivateCurrentStorageProvider(provider);
-            return LoadAllAvatars();
-        }
-
-        public IEnumerable<IAvatar> LoadAllAvatars()
-        {
-            IEnumerable<IAvatar> avatars = ProviderManager.CurrentStorageProvider.LoadAllAvatars();
+            IEnumerable<IAvatar> avatars = ProviderManager.SetAndActivateCurrentStorageProvider(provider).LoadAllAvatars();
 
             foreach (IAvatar avatar in avatars)
                 avatar.Password = null;
@@ -115,25 +46,9 @@ namespace NextGenSoftware.OASIS.API.Core
             return avatars;
         }
 
-        //public async Task<IEnumerable<IAvatar>> LoadAllAvatarsAsync(ProviderType provider = ProviderType.Default)
-        //{
-        //    IEnumerable<IAvatar> avatars = ProviderManager.SetAndActivateCurrentStorageProvider(provider).LoadAllAvatarsAsync().Result;
-
-        //    foreach (IAvatar avatar in avatars)
-        //        avatar.Password = null;
-
-        //    return avatars;
-        //}
-
-        public async Task<IEnumerable<IAvatar>> LoadAllAvatarsAsync(ProviderType provider)
+        public async Task<IEnumerable<IAvatar>> LoadAllAvatarsAsync(ProviderType provider = ProviderType.Default)
         {
-            ProviderManager.SetAndActivateCurrentStorageProvider(provider);
-            return await LoadAllAvatarsAsync();
-        }
-
-        public async Task<IEnumerable<IAvatar>> LoadAllAvatarsAsync()
-        {
-            IEnumerable<IAvatar> avatars = ProviderManager.CurrentStorageProvider.LoadAllAvatarsAsync().Result;
+            IEnumerable<IAvatar> avatars = ProviderManager.SetAndActivateCurrentStorageProvider(provider).LoadAllAvatarsAsync().Result;
 
             foreach (IAvatar avatar in avatars)
                 avatar.Password = null;
@@ -141,62 +56,23 @@ namespace NextGenSoftware.OASIS.API.Core
             return avatars;
         }
 
-        //public async Task<IAvatar> LoadAvatarAsync(string providerKey, ProviderType provider = ProviderType.Default)
-        //{
-        //    IAvatar avatar = ProviderManager.SetAndActivateCurrentStorageProvider(provider).LoadAvatarAsync(providerKey).Result;
-        //   // avatar.Password = null;
-        //    return avatar;
-        //}
-
-        public async Task<IAvatar> LoadAvatarAsync(string providerKey, ProviderType provider)
+        public async Task<IAvatar> LoadAvatarAsync(string providerKey, ProviderType provider = ProviderType.Default)
         {
-            ProviderManager.SetAndActivateCurrentStorageProvider(provider);
-            return await LoadAvatarAsync(providerKey);
-        }
-
-        public async Task<IAvatar> LoadAvatarAsync(string providerKey)
-        {
-            IAvatar avatar = ProviderManager.CurrentStorageProvider.LoadAvatarAsync(providerKey).Result;
+            IAvatar avatar = ProviderManager.SetAndActivateCurrentStorageProvider(provider).LoadAvatarAsync(providerKey).Result;
             // avatar.Password = null;
             return avatar;
         }
 
-        //public async Task<IAvatar> LoadAvatarAsync(Guid id, ProviderType providerType = ProviderType.Default)
-        //{
-        //    IAvatar avatar = ProviderManager.SetAndActivateCurrentStorageProvider(providerType).LoadAvatarAsync(id).Result;
-        //    // avatar.Password = null;
-        //    return avatar;
-        //}
-
-        public async Task<IAvatar> LoadAvatarAsync(Guid id, ProviderType providerType)
+        public async Task<IAvatar> LoadAvatarAsync(Guid id, ProviderType providerType = ProviderType.Default)
         {
-            ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
-            return await LoadAvatarAsync(id);
-        }
-
-        public async Task<IAvatar> LoadAvatarAsync(Guid id)
-        {
-            IAvatar avatar = ProviderManager.CurrentStorageProvider.LoadAvatarAsync(id).Result;
-           // avatar.Password = null;
+            IAvatar avatar = ProviderManager.SetAndActivateCurrentStorageProvider(providerType).LoadAvatarAsync(id).Result;
+            // avatar.Password = null;
             return avatar;
         }
 
-        //public IAvatar LoadAvatar(Guid id, ProviderType providerType = ProviderType.Default)
-        //{
-        //    IAvatar avatar = ProviderManager.SetAndActivateCurrentStorageProvider(providerType).LoadAvatar(id);
-        //    //avatar.Password = null;
-        //    return avatar;
-        //}
-
-        public IAvatar LoadAvatar(Guid id, ProviderType providerType)
+        public IAvatar LoadAvatar(Guid id, ProviderType providerType = ProviderType.Default)
         {
-            ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
-            return LoadAvatar(id);
-        }
-
-        public IAvatar LoadAvatar(Guid id)
-        {
-            IAvatar avatar = ProviderManager.CurrentStorageProvider.LoadAvatar(id);
+            IAvatar avatar = ProviderManager.SetAndActivateCurrentStorageProvider(providerType).LoadAvatar(id);
             //avatar.Password = null;
             return avatar;
         }
