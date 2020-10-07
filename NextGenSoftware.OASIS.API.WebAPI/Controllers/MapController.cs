@@ -21,28 +21,30 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 
         }
 
-        //private MapManager MapManager
-        //{
-        //    get
-        //    {
-        //        if (_mapManager == null)
-        //            _mapManager = new MapManager(GetAndActivateProvider());
+        private MapManager MapManager
+        {
+            get
+            {
+                if (_mapManager == null)
+                    _mapManager = new MapManager(GetAndActivateProvider());
 
-        //        return _mapManager;
-        //    }
-        //}
+                return _mapManager;
+            }
+        }
 
-        //[HttpGet("{search}")]
-        //public async Task<ISearchResults> Get(string search)
-        //{
-        //    return await SearchManager.SearchAsync(search);
-        //}
+        public bool CreateRouteBetweenHolons(IHolon fromHolon, IHolon toHolon)
+        {
+            return  MapManager.CreateRouteBetweenHolons(fromHolon, toHolon);
+        }
 
-        //[HttpGet("{search}/{providerType}/{setGlobally}")]
-        //public async Task<ISearchResults> Get(string search, ProviderType providerType, bool setGlobally = false)
-        //{
-        //    GetAndActivateProvider(providerType, setGlobally);
-        //    return await SearchManager.SearchAsync(search);
-        //}
+        public bool Draw2DSpriteOnHUD(object sprite, float x, float y)
+        {
+            return MapManager.Draw2DSpriteOnHUD(sprite, x, y);
+        }
+
+        public bool Draw2DSpriteOnMap(object sprite, float x, float y)
+        {
+            return MapManager.Draw2DSpriteOnMap(sprite, x, y);
+        }
     }
 }

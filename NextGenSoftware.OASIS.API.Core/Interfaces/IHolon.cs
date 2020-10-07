@@ -16,10 +16,13 @@ namespace NextGenSoftware.OASIS.API.Core
         IHolon Parent { get; set; }
         List<IHolon> Children { get; set; }
         Guid CreatedByAvatarId { get; set; }
+        Avatar CreatedByAvatar { get; set; }
         DateTime CreatedDate { get; set; }
         Guid ModifiedByAvatarId { get; set; }
+        Avatar ModifiedByAvatar { get; set; }
         DateTime ModifiedDate { get; set; }
         Guid DeletedByAvatarId { get; set; }
+        Avatar DeletedByAvatar { get; set; }
         DateTime DeletedDate { get; set; }
         bool IsActive { get; set; }
         int Version { get; set; }
