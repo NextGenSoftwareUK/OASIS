@@ -21,28 +21,6 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 
         }
 
-        //private MapManager MapManager
-        //{
-        //    get
-        //    {
-        //        if (_mapManager == null)
-        //            _mapManager = new MapManager(GetAndActivateProvider());
-
-        //        return _mapManager;
-        //    }
-        //}
-
-        //[HttpGet("{search}")]
-        //public async Task<ISearchResults> Get(string search)
-        //{
-        //    return await SearchManager.SearchAsync(search);
-        //}
-
-        //[HttpGet("{search}/{providerType}/{setGlobally}")]
-        //public async Task<ISearchResults> Get(string search, ProviderType providerType, bool setGlobally = false)
-        //{
-        //    GetAndActivateProvider(providerType, setGlobally);
-        //    return await SearchManager.SearchAsync(search);
-        //}
+       
     }
 }

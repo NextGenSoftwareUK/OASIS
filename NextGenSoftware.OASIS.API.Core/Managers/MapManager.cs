@@ -1,11 +1,12 @@
 ﻿
 namespace NextGenSoftware.OASIS.API.Core
 {
-    public class MapManager
+    public class MapManager : OASISManager
     {
-        public bool Draw2DSpriteOnMap(float x, float y)
+        //TODO: In future more than one storage provider can be active at a time where each call can specify which provider to use.
+        public MapManager(IOASISStorage OASISStorageProvider) : base(OASISStorageProvider)
         {
-            return true;
+
         }
 
         public bool Draw3DObjectOnMap(object obj, float x, float y)
@@ -23,12 +24,12 @@ namespace NextGenSoftware.OASIS.API.Core
             return true;
         }
 
-        public bool SelectBuildingOnMap(float x, float y)
+        public bool SelectBuildingOnMap(Building building)
         {
             return true;
         }
 
-        public bool HighlightBuildingOnMap(float x, float y)
+        public bool HighlightBuildingOnMap(Building building)
         {
             return true;
         }
@@ -43,49 +44,49 @@ namespace NextGenSoftware.OASIS.API.Core
             return true;
         }
 
-        public void ZoomMapOut()
+        public bool ZoomMapOut()
         {
-
+            return true;
         }
 
-        public void ZoomMapIn()
+        public bool ZoomMapIn()
         {
-
+            return true;
         }
 
-        public void PanMapLeft()
+        public bool PanMapLeft()
         {
-
+            return true;
         }
 
-        public void PanMapRight()
+        public bool PanMapRight()
         {
-
+            return true;
         }
 
-        public void PanMapUp()
+        public bool PanMapUp()
         {
-
+            return true;
         }
 
-        public void PanMapDown()
+        public bool PanMapDown()
         {
-
+            return true;
         }
 
-        public void SelectHolonOnMap(IHolon holon)
+        public bool SelectHolonOnMap(IHolon holon)
         {
-
+            return true;
         }
 
-        public void ZoomToHolonOnMap(IHolon holon)
+        public bool ZoomToHolonOnMap(IHolon holon)
         {
-
+            return true;
         }
 
-        public void CreateRouteBetweenHolons(IHolon fromHolon, IHolon toHolon)
+        public bool CreateRouteBetweenHolons(IHolon fromHolon, IHolon toHolon)
         {
-
+            return true;
         }
     }
 }
