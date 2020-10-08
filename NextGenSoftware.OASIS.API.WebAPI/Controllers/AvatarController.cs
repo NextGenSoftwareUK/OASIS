@@ -41,10 +41,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         public ActionResult<AuthenticateResponse> Authenticate(AuthenticateRequest model)
         {
             AuthenticateResponse response = _avatarService.Authenticate(model, ipAddress());
-            
+
             if (!response.IsError && response.Avatar != null)
                 setTokenCookie(response.Avatar.RefreshToken);
-            
+
             return Ok(response);
         }
 
@@ -105,7 +105,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             if (avatar != null)
             {
                 avatar.Password = null;
-                return Ok(new { avatar,  message = "Avatar registration successful, please check your email for verification instructions." });
+                return Ok(new { avatar, message = "Avatar registration successful, please check your email for verification instructions." });
             }
             else
                 return Ok(new { message = "ERROR: Avatar already registered." });
@@ -175,14 +175,14 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         }
 
         [Authorize(AvatarType.Wizard)]
-        [HttpGet]
+        [HttpGet("GetAll")]
         public ActionResult<IEnumerable<IAvatar>> GetAll()
         {
             return Ok(_avatarService.GetAll());
         }
 
         [Authorize(AvatarType.Wizard)]
-        [HttpGet]
+        [HttpGet("GetAll/{providerType}")]
         public ActionResult<IEnumerable<IAvatar>> GetAll(ProviderType providerType)
         {
             GetAndActivateProvider(providerType);
@@ -190,7 +190,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         }
 
         [Authorize]
-        [HttpGet("{id:Guid}")]
+        [HttpGet("GetById/{id}")]
         public ActionResult<IAvatar> GetById(Guid id)
         {
             // users can get their own account and admins can get any account
@@ -202,7 +202,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         }
 
         [Authorize]
-        [HttpGet("{id:Guid}/{providerType}/{setGlobally}")]
+        [HttpGet("GetById/{id}/{providerType}/{setGlobally}")]
         public ActionResult<IAvatar> GetById(Guid id, ProviderType providerType, bool setGlobally = false)
         {
             GetAndActivateProvider(providerType, setGlobally);
@@ -219,42 +219,44 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         //}
 
         [Authorize(AvatarType.Wizard)]
-        [HttpPost]
+        [HttpPost("Create/{model}")]
         public ActionResult<IAvatar> Create(CreateRequest model)
         {
             return Ok(_avatarService.Create(model));
         }
 
-        [Authorize(AvatarType.Wizard)]
-        [HttpPost]
-        public ActionResult<IAvatar> Create(CreateRequest model, ProviderType providerType)
-        {
-            GetAndActivateProvider(providerType);
-            return Ok(_avatarService.Create(model));
-        }
+        //[Authorize(AvatarType.Wizard)]
+        //[HttpPost("Create/{model}/{providerType}")]
+        //public ActionResult<IAvatar> Create(CreateRequest model, ProviderType providerType)
+        //{
+        //    GetAndActivateProvider(providerType);
+        //    return Ok(_avatarService.Create(model));
+        //}
 
-        [Authorize]
-        [HttpPut("{id:Guid}")]
-        public ActionResult<Avatar> Update(Guid id, UpdateRequest model)
-        {
-            // users can update their own account and admins can update any account
-            if (id != Avatar.Id && Avatar.AvatarType != AvatarType.Wizard)
-                return Unauthorized(new { message = "Unauthorized" });
+        //TODO: {URGENT} FIX ASAP!
+        //[Authorize]
+        //[HttpPut("Update/{id}/{model}")]
+        //public ActionResult<Avatar> Update(Guid id, UpdateRequest model)
+        //{
+        //    // users can update their own account and admins can update any account
+        //    if (id != Avatar.Id && Avatar.AvatarType != AvatarType.Wizard)
+        //        return Unauthorized(new { message = "Unauthorized" });
 
-            // only admins can update role
-            if (Avatar.AvatarType != AvatarType.Wizard)
-                model.AvatarType = null;
+        //    // only admins can update role
+        //    if (Avatar.AvatarType != AvatarType.Wizard)
+        //        model.AvatarType = null;
 
-            return Ok(_avatarService.Update(id, model));
-        }
+        //    return Ok(_avatarService.Update(id, model));
+        //}
 
-        [Authorize]
-        [HttpPut("{id:Guid}/{providerType}/{setGlobally}")]
-        public ActionResult<Avatar> Update(Guid id, UpdateRequest model, ProviderType providerType, bool setGlobally = false)
-        {
-            GetAndActivateProvider(providerType, setGlobally);
-            return Update(id, model);
-        }
+        //TODO: {URGENT} FIX ASAP!
+        //[Authorize]
+        //[HttpPut("Update/{id}/{model}/{providerType}/{setGlobally}")]
+        //public ActionResult<Avatar> Update(Guid id, UpdateRequest model, ProviderType providerType, bool setGlobally = false)
+        //{
+        //    GetAndActivateProvider(providerType, setGlobally);
+        //    return Update(id, model);
+        //}
 
         [Authorize]
         [HttpDelete("{id:Guid}")]
