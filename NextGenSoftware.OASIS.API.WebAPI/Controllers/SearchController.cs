@@ -7,7 +7,7 @@ using NextGenSoftware.OASIS.API.Core;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 {
-    [Route("api/[search]")]
+    //[Route("api/[search]")]
     [ApiController]
 
     //[EnableCors(origins: "http://mywebclient.azurewebsites.net", headers: "*", methods: "*")]
