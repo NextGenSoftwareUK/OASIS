@@ -233,30 +233,32 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         //    return Ok(_avatarService.Create(model));
         //}
 
-        //TODO: {URGENT} FIX ASAP!
-        //[Authorize]
-        //[HttpPut("Update/{id}/{model}")]
-        //public ActionResult<Avatar> Update(Guid id, UpdateRequest model)
-        //{
-        //    // users can update their own account and admins can update any account
-        //    if (id != Avatar.Id && Avatar.AvatarType != AvatarType.Wizard)
-        //        return Unauthorized(new { message = "Unauthorized" });
 
-        //    // only admins can update role
-        //    if (Avatar.AvatarType != AvatarType.Wizard)
-        //        model.AvatarType = null;
+        [Authorize]
+        [HttpPut("Update/{id}")]
+        public ActionResult<IAvatar> Update(Core.Avatar avatar, Guid id)
+        {
+            // users can update their own account and admins can update any account
+            if (id != Avatar.Id && Avatar.AvatarType != AvatarType.Wizard)
+                return Unauthorized(new { message = "Unauthorized" });
 
-        //    return Ok(_avatarService.Update(id, model));
-        //}
+            // only admins can update role
+            if (Avatar.AvatarType != AvatarType.Wizard)
+                avatar.AvatarType = Avatar.AvatarType;
+            //model.AvatarType = null;
 
-        //TODO: {URGENT} FIX ASAP!
-        //[Authorize]
-        //[HttpPut("Update/{id}/{model}/{providerType}/{setGlobally}")]
+            //return Ok(_avatarService.Update(id, model));
+            return Ok(_avatarService.Update(id, avatar));
+        }
+
+        [Authorize]
+        [HttpPut("Update/{id}/{providerType}/{setGlobally}")]
         //public ActionResult<Avatar> Update(Guid id, UpdateRequest model, ProviderType providerType, bool setGlobally = false)
-        //{
-        //    GetAndActivateProvider(providerType, setGlobally);
-        //    return Update(id, model);
-        //}
+        public ActionResult<IAvatar> Update(Guid id, Core.Avatar avatar, ProviderType providerType, bool setGlobally = false)
+        {
+            GetAndActivateProvider(providerType, setGlobally);
+            return Update(avatar, id);
+        }
 
         [Authorize]
         [HttpDelete("{id:Guid}")]

@@ -39,37 +39,37 @@ namespace NextGenSoftware.OASIS.API.Core
             return true;
         }
 
-        public bool DrawRouteOnMap(float[] xPoints, float[] yPoints)
+        public bool DrawRouteOnMap(MapPoints points)
         {
             return true;
         }
 
-        public bool ZoomMapOut()
+        public bool ZoomMapOut(float value)
         {
             return true;
         }
 
-        public bool ZoomMapIn()
+        public bool ZoomMapIn(float value)
         {
             return true;
         }
 
-        public bool PanMapLeft()
+        public bool PanMapLeft(float value)
         {
             return true;
         }
 
-        public bool PanMapRight()
+        public bool PanMapRight(float value)
         {
             return true;
         }
 
-        public bool PanMapUp()
+        public bool PanMapUp(float value)
         {
             return true;
         }
 
-        public bool PanMapDown()
+        public bool PanMapDown(float value)
         {
             return true;
         }
@@ -79,7 +79,17 @@ namespace NextGenSoftware.OASIS.API.Core
             return true;
         }
 
+        public bool SelectQuestOnMap(IQuest quest)
+        {
+            return true;
+        }
+
         public bool ZoomToHolonOnMap(IHolon holon)
+        {
+            return true;
+        }
+
+        public bool ZoomToQuestOnMap(IQuest quest)
         {
             return true;
         }

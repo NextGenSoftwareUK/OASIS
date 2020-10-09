@@ -63,7 +63,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLIDOASIS
             base.DeActivateProvider();
         }
 
-        public override Task<ISearchResults> SearchAsync(string searchTerm)
+        public override Task<ISearchResults> SearchAsync(ISearchParams searchTerm)
         {
             throw new NotImplementedException();
         }

@@ -1,6 +1,6 @@
 ﻿namespace NextGenSoftware.OASIS.API.Core
 {
-    internal interface IQuest
+    public interface IQuest
     {
     }
 }

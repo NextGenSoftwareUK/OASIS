@@ -34,7 +34,7 @@ namespace NextGenSoftware.OASIS.API.Core
         Task<KarmaAkashicRecord> SubtractKarmaFromAvatarAsync(API.Core.IAvatar Avatar, KarmaTypeNegative karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc);
 
 
-        Task<ISearchResults> SearchAsync(string searchTerm);
+        Task<ISearchResults> SearchAsync(ISearchParams searchParams);
 
         event StorageProviderError StorageProviderError;
 

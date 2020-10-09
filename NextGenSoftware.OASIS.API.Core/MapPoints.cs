@@ -1,6 +1,6 @@
 ﻿namespace NextGenSoftware.OASIS.API.Core
 {
-    public interface IBuilding : IHolon
+    public class MapPoints
     {
     }
 }

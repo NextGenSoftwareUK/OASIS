@@ -24,7 +24,8 @@ namespace NextGenSoftware.OASIS.API.WebAPI
         //AccountResponse Create(CreateRequest model);
         IAvatar Create(CreateRequest model);
         //AccountResponse Update(Guid id, UpdateRequest model);
-        IAvatar Update(Guid id, UpdateRequest model);
+        //IAvatar Update(Guid id, UpdateRequest model);
+        IAvatar Update(Guid id, IAvatar avatar);
         bool Delete(Guid id);
     }
 }

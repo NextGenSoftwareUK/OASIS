@@ -52,7 +52,7 @@ namespace NextGenSoftware.OASIS.API.Core
         public abstract bool DeleteAvatar(Guid id, bool softDelete = true);
         public abstract Task<bool> DeleteAvatarAsync(Guid id, bool softDelete = true);
 
-        public abstract Task<ISearchResults> SearchAsync(string searchTerm);
+        public abstract Task<ISearchResults> SearchAsync(ISearchParams searchParams);
 
 
     }

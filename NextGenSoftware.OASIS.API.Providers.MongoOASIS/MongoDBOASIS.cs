@@ -141,7 +141,8 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
         }
 
         //TODO: Move this into Search Reposirary like Avatar is...
-        public override async Task<ISearchResults> SearchAsync(string searchTerm)
+        //TODO: {URGENT} FIX BEB SEARCH TO WORK WITH ISearchParams instead of string as it use to be!
+        public override async Task<ISearchResults> SearchAsync(ISearchParams searchTerm)
         {
             try
             {
@@ -151,7 +152,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
 
                 //FilterDefinition<SearchData> filter = Builders<SearchData>.Filter.Eq("searchData", searchTerm);
                 //FilterDefinition<SearchData> filter = Builders<SearchData>.Filter.Regex("searchData", new BsonRegularExpression("/" + searchTerm + "/G[a-b].*/i"));
-                FilterDefinition<SearchData> filter = Builders<SearchData>.Filter.Regex("searchData", new BsonRegularExpression("/" + searchTerm.ToLower() + "/"));
+                FilterDefinition<SearchData> filter = Builders<SearchData>.Filter.Regex("searchData", new BsonRegularExpression("/" + searchTerm.SearchQuery.ToLower() + "/"));
                 //FilterDefinition<SearchData> filter = Builders<SearchData>.Filter.AnyIn("searchData", searchTerm);
                 List<SearchData> data = await _db.SearchData.Find(filter).ToListAsync();
 
@@ -238,6 +239,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             oasisAvatar.VerificationToken = avatar.VerificationToken;
             oasisAvatar.Verified = avatar.Verified;
             oasisAvatar.ProviderType = ProviderType.MongoDBOASIS;
+            oasisAvatar.IsActive = avatar.IsActive;
 
             return oasisAvatar;
         }
@@ -286,6 +288,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             mongoAvatar.ResetTokenExpires = avatar.ResetTokenExpires;
             mongoAvatar.VerificationToken = avatar.VerificationToken;
             mongoAvatar.Verified = avatar.Verified;
+            mongoAvatar.IsActive = avatar.IsActive;
 
             return mongoAvatar;
         }

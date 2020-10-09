@@ -152,7 +152,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             return Avatar;
         }
 
-        public override Task<ISearchResults> SearchAsync(string searchTerm)
+        public override Task<ISearchResults> SearchAsync(ISearchParams searchTerm)
         {
             throw new NotImplementedException();
         }
