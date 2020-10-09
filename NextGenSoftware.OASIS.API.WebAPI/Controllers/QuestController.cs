@@ -1,48 +1,89 @@
-﻿using System.Threading.Tasks;
-using Microsoft.AspNetCore.Cors;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Options;
+﻿//using Microsoft.AspNetCore.Cors;
+//using Microsoft.AspNetCore.Mvc;
+//using Microsoft.Extensions.Options;
 
-using NextGenSoftware.OASIS.API.Core;
+//using NextGenSoftware.OASIS.API.Core;
+//using System.Collections.Generic;
 
-namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
-{
-    [Route("api/[quest]")]
-    [ApiController]
+//namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
+//{
+//    [Route("api/quest")]
+//    [ApiController]
 
-    //[EnableCors(origins: "http://mywebclient.azurewebsites.net", headers: "*", methods: "*")]
-    [EnableCors()]
-    public class QuestController : OASISControllerBase
-    {
-        private MapManager _mapManager;
+//    //[EnableCors(origins: "http://mywebclient.azurewebsites.net", headers: "*", methods: "*")]
+//    [EnableCors()]
+//    public class QuestController : OASISControllerBase
+//    {
+//        private QuestManager _questManager;
 
-        public QuestController(IOptions<OASISSettings> OASISSettings) : base(OASISSettings)
-        {
+//        private QuestManager questManager
+//        {
+//            get
+//            {
+//                if (_questManager == null)
+//                    _questManager = new QuestManager(GetAndActivateProvider());
 
-        }
+//                return _questManager;
+//            }
+//        }
 
-        //private MapManager MapManager
-        //{
-        //    get
-        //    {
-        //        if (_mapManager == null)
-        //            _mapManager = new MapManager(GetAndActivateProvider());
+//        public QuestController(IOptions<OASISSettings> OASISSettings) : base(OASISSettings)
+//        {
 
-        //        return _mapManager;
-        //    }
-        //}
+//        }
 
-        //[HttpGet("{search}")]
-        //public async Task<ISearchResults> Get(string search)
-        //{
-        //    return await SearchManager.SearchAsync(search);
-        //}
+//        [HttpGet("CompleteQuest/{quest}")]
+//        public ActionResult<bool> CompleteQuest(Quest quest)
+//        {
+//            return questManager.CompleteQuest(quest);
+//        }
 
-        //[HttpGet("{search}/{providerType}/{setGlobally}")]
-        //public async Task<ISearchResults> Get(string search, ProviderType providerType, bool setGlobally = false)
-        //{
-        //    GetAndActivateProvider(providerType, setGlobally);
-        //    return await SearchManager.SearchAsync(search);
-        //}
-    }
-}
+//        [HttpGet("CreateQuest/{quest}")]
+//        public ActionResult<bool> CreateQuest(Quest quest)
+//        {
+//            return questManager.CreateQuest(quest);
+//        }
+
+//        [HttpGet("DeleteQuest/{quest}")]
+//        public ActionResult<bool> DeleteQuest(Quest quest)
+//        {
+//            return questManager.DeleteQuest(quest);
+//        }
+
+//        [HttpGet("HighlightQuestOnMap/{quest}")]
+//        public ActionResult<bool> HighlightQuestOnMap(Quest quest)
+//        {
+//            return questManager.HighlightQuestOnMap(quest);
+//        }
+
+//        [HttpGet("FindNearestQuestOnMap")]
+//        public ActionResult<Quest> FindNearestQuestOnMap()
+//        {
+//            return questManager.FindNearestQuestOnMap();
+//        }
+
+//        [HttpGet("GetAllCurrentQuestsForAvatar/{avatar}")]
+//        public ActionResult<List<Quest>> GetAllCurrentquestsForAvatar(Avatar avatar)
+//        {
+//            return questManager.GetAllCurrentQuestsForAvatar((IAvatar)avatar);
+//        }
+
+//        [HttpGet("GetAllCurrentQuestsForLoggedInAvatar")]
+//        public ActionResult<List<Quest>> GetAllCurrentQuestsForLoggedInAvatar()
+//        {
+//            return questManager.GetAllCurrentQuestsForAvatar(Avatar);
+//        }
+
+//        [HttpGet("SearchAsync/{searchParams}")]
+//        public ActionResult<ISearchResults> SearchAsync(ISearchParams searchParams)
+//        {
+//            return Ok(questManager.SearchAsync(searchParams).Result);
+//        }
+
+//        [HttpGet("UpdateQuest/{quest}")]
+//        public ActionResult<bool> UpdateQuest(Quest quest)
+//        {
+//            return Ok(questManager.UpdateQuest(quest));
+//        }
+//    }
+//}

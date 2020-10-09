@@ -48,6 +48,8 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
         public DateTime? ResetTokenExpires { get; set; }
         public DateTime? PasswordReset { get; set; }
 
+        public bool IsActive { get; set; }
+
     }
 
     ////TODO: More types will be added later.

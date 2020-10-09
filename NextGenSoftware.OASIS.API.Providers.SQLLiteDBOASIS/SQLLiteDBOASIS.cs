@@ -85,7 +85,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
         }
 
         //TODO: Move this into Search Reposirary like Avatar is...
-        public override async Task<ISearchResults> SearchAsync(string searchTerm)
+        public override async Task<ISearchResults> SearchAsync(ISearchParams searchTerm)
         {
             //TODO: Implement.
             return new SearchResults() { SearchResultHolons = new List<Holon>() };

@@ -5,7 +5,7 @@ namespace NextGenSoftware.OASIS.API.Core
 {
     public abstract class OASISManager
     {        
-        public Task<ISearch> LoadSearchAsync(Guid id)
+        public Task<ISearchResults> SearchAsync(ISearchParams searchParams)
         {
             throw new NotImplementedException();
         }

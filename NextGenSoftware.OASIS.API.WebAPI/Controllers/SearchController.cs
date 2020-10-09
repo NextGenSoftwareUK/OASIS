@@ -32,17 +32,17 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             }
         }
 
-        [HttpGet("{search}")]
-        public async Task<ISearchResults> Get(string search)
+        [HttpGet("{searchParams}")]
+        public async Task<ISearchResults> Get(ISearchParams searchParams)
         {
-            return await SearchManager.SearchAsync(search);
+            return await SearchManager.SearchAsync(searchParams);
         }
 
-        [HttpGet("{search}/{providerType}/{setGlobally}")]
-        public async Task<ISearchResults> Get(string search, ProviderType providerType, bool setGlobally = false)
+        [HttpGet("{searchParams}/{providerType}/{setGlobally}")]
+        public async Task<ISearchResults> Get(ISearchParams searchParams, ProviderType providerType, bool setGlobally = false)
         {
             GetAndActivateProvider(providerType, setGlobally);
-            return await SearchManager.SearchAsync(search);
+            return await SearchManager.SearchAsync(searchParams);
         }
     }
 }

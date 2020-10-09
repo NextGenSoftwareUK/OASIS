@@ -41,7 +41,7 @@ namespace NextGenSoftware.OASIS.API.Core
             return new Quest();
         }
 
-        public List<Quest> GetAllCurrentQuestsForAvatar(Avatar avatar)
+        public List<Quest> GetAllCurrentQuestsForAvatar(IAvatar avatar)
         {
             return new List<Quest>();
         }

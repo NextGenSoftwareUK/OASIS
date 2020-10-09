@@ -239,7 +239,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Core
         }
 
 
-        public override Task<ISearchResults> SearchAsync(string searchTerm)
+        public override Task<ISearchResults> SearchAsync(ISearchParams searchParams)
         {
             throw new System.NotImplementedException();
         }

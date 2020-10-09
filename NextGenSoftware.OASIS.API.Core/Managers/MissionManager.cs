@@ -31,7 +31,7 @@ namespace NextGenSoftware.OASIS.API.Core
             return true;
         }
 
-        public List<Mission> GetAllCurrentMissionsForAvatar(Avatar avatar)
+        public List<Mission> GetAllCurrentMissionsForAvatar(IAvatar avatar)
         {
             return new List<Mission>();
         }

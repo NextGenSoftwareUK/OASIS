@@ -55,22 +55,25 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
             //IAvatar avatar = AvatarManager.LoadAvatar(model.Email, setGlobally);
             IAvatar avatar = AvatarManager.LoadAvatar(model.Email);
 
+            if (avatar == null)
+                return new AuthenticateResponse() { IsError = true, Message = "This avatar does not exist. Please contact support or create a new avatar." };
+
             //TODO:{URGENT}{TESTING} Remove Avatar from error responses (only put in temp for testing purposes)
-            if (avatar.DeletedDate != null)
-                return new AuthenticateResponse() { IsError = true, Avatar = avatar, Message = "This avatar has been deleted. Please contact support or create a new avatar." };
+            if (avatar.DeletedDate != DateTime.MinValue)
+                return new AuthenticateResponse() { IsError = true, Message = "This avatar has been deleted. Please contact support or create a new avatar." };
                 //throw new AppException("This avatar has been deleted. Please contact support or create a new avatar.");
 
             // TODO: Implement Activate/Deactivate methods in AvatarManager & Providers...
             if (!avatar.IsActive)
-                return new AuthenticateResponse() { IsError = true, Avatar = avatar, Message = "This avatar is no longer active. Please contact support or create a new avatar." };
+                return new AuthenticateResponse() { IsError = true, Message = "This avatar is no longer active. Please contact support or create a new avatar." };
             //throw new AppException("This avatar is no longer active. Please contact support or create a new avatar.");
 
             if (!avatar.IsVerified)
-                return new AuthenticateResponse() { IsError = true, Avatar = avatar, Message = "Avatar has not been verified. Please check your email." };
+                return new AuthenticateResponse() { IsError = true, Message = "Avatar has not been verified. Please check your email." };
             //throw new AppException("Avatar has not been verified. Please check your email.");
 
             if (avatar == null || !BC.Verify(model.Password, avatar.Password))
-                return new AuthenticateResponse() { IsError = true, Avatar = avatar, Message = "Email or password is incorrect" };
+                return new AuthenticateResponse() { IsError = true, Message = "Email or password is incorrect" };
             //throw new AppException("Email or password is incorrect");
 
 
@@ -294,29 +297,33 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
             return RemoveAuthDetails(avatar);
         }
 
-        //public AccountResponse Update(Guid id, UpdateRequest model)
-        public IAvatar Update(Guid id, UpdateRequest model)
+        public IAvatar Update(Guid id, IAvatar avatar)
         {
-            IAvatar avatar = getAvatar(id);
+            // IAvatar origAvatar = getAvatar(id);
+
+            if (avatar.Id == Guid.Empty)
+                avatar.Id = id;
 
             //if (account.Email != model.Email && _context.Accounts.Any(x => x.Email == model.Email))
 
-            //TODO: PERFORMANCE} Implement in Providers so more efficient and do not need to return whole list!
-            if (AvatarManager.LoadAllAvatars().Any(x => x.Email == model.Email))
-                throw new AppException($"Email '{model.Email}' is already taken");
+            //TODO: {PERFORMANCE} Implement in Providers so more efficient and do not need to return whole list!
+            if (AvatarManager.LoadAllAvatars().Any(x => x.Email == avatar.Email))
+                throw new AppException($"Email '{avatar.Email}' is already taken");
 
             // hash password if it was entered
-            if (!string.IsNullOrEmpty(model.Password))
-                avatar.Password = BC.HashPassword(model.Password);
+            if (!string.IsNullOrEmpty(avatar.Password))
+                avatar.Password = BC.HashPassword(avatar.Password);
 
             // copy model to account and save
-            _mapper.Map(model, avatar);
-            avatar.ModifiedDate = DateTime.UtcNow;
+            //  _mapper.Map(avatar, origAvatar);
+            // avatar.ModifiedDate = DateTime.UtcNow;
 
+            // return RemoveAuthDetails(AvatarManager.SaveAvatar(origAvatar));
             return RemoveAuthDetails(AvatarManager.SaveAvatar(avatar));
 
-           // _context.Accounts.Update(account);
-           // _context.SaveChanges();
+
+            // _context.Accounts.Update(account);
+            // _context.SaveChanges();
 
             //return _mapper.Map<AccountResponse>(avatar);
         }
