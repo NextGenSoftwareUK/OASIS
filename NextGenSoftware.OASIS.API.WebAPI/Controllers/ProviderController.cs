@@ -60,8 +60,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         }
 
         [Authorize]
-        [HttpGet("RegisterProvider/{providers}")]
-        public ActionResult<bool> RegisterProvider(List<IOASISProvider> providers)
+        [HttpGet("RegisterProviders/{providers}")]
+        public ActionResult<bool> RegisterProviders(List<IOASISProvider> providers)
         {
             return Ok(ProviderManager.RegisterProviders(providers));
         }
@@ -138,7 +138,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         }
 
         [Authorize]
-        [HttpGet("SetProviderConfig/{proviproviderTypeders}/{connectionString}")]
+        [HttpGet("SetProviderConfig/{providerType}/{connectionString}")]
         public ActionResult<bool> SetProviderConfig(ProviderType providerType, string connectionString)
         {
             switch (providerType)
