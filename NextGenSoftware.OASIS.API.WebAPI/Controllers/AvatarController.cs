@@ -37,6 +37,53 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             }
         }
 
+        [Authorize(AvatarType.Wizard)]
+        [HttpGet("GetAll")]
+        public ActionResult<IEnumerable<IAvatar>> GetAll()
+        {
+            return Ok(_avatarService.GetAll());
+        }
+
+        [Authorize(AvatarType.Wizard)]
+        [HttpGet("GetAll/{providerType}")]
+        public ActionResult<IEnumerable<IAvatar>> GetAll(ProviderType providerType)
+        {
+            GetAndActivateProvider(providerType);
+            return GetAll();
+        }
+
+        [Authorize]
+        [HttpGet("GetById/{id}")]
+        public ActionResult<IAvatar> GetById(Guid id)
+        {
+            // users can get their own account and admins can get any account
+            if (id != Avatar.Id && Avatar.AvatarType != AvatarType.Wizard)
+                return Unauthorized(new { message = "Unauthorized" });
+
+            var account = _avatarService.GetById(id);
+            return Ok(account);
+        }
+
+        [Authorize]
+        [HttpGet("GetById/{id}/{providerType}/{setGlobally}")]
+        public ActionResult<IAvatar> GetById(Guid id, ProviderType providerType, bool setGlobally = false)
+        {
+            GetAndActivateProvider(providerType, setGlobally);
+            return GetById(id);
+        }
+
+        [HttpGet("Search/{searchParams}")]
+        public ActionResult<ISearchResults> Search(ISearchParams searchParams)
+        {
+            return Ok(AvatarManager.SearchAsync(searchParams).Result);
+        }
+
+        [HttpGet("Search/{searchParams}/{providerType}/{setGlobally}")]
+        public ActionResult<ISearchResults> Search(ISearchParams searchParams, ProviderType providerType, bool setGlobally = false)
+        {
+            return Ok(AvatarManager.SearchAsync(searchParams).Result);
+        }
+
         [HttpPost("authenticate")]
         public ActionResult<AuthenticateResponse> Authenticate(AuthenticateRequest model)
         {
@@ -175,39 +222,51 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         }
 
         [Authorize(AvatarType.Wizard)]
-        [HttpGet("GetAll")]
-        public ActionResult<IEnumerable<IAvatar>> GetAll()
+        [HttpPost("Create/{model}")]
+        public ActionResult<IAvatar> Create(CreateRequest model)
         {
-            return Ok(_avatarService.GetAll());
-        }
-
-        [Authorize(AvatarType.Wizard)]
-        [HttpGet("GetAll/{providerType}")]
-        public ActionResult<IEnumerable<IAvatar>> GetAll(ProviderType providerType)
-        {
-            GetAndActivateProvider(providerType);
-            return GetAll();
+            return Ok(_avatarService.Create(model));
         }
 
         [Authorize]
-        [HttpGet("GetById/{id}")]
-        public ActionResult<IAvatar> GetById(Guid id)
+        [HttpPost("AddKarmaToAvatar/{avatar}/{karmaType}/{karmaSourceType}/{karamSourceTitle}/{karmaSourceDesc}")]
+        public ActionResult<IAvatar> AddKarmaToAvatar(IAvatar avatar, KarmaTypePositive karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc)
         {
-            // users can get their own account and admins can get any account
-            if (id != Avatar.Id && Avatar.AvatarType != AvatarType.Wizard)
-                return Unauthorized(new { message = "Unauthorized" });
-
-            var account = _avatarService.GetById(id);
-            return Ok(account);
+            return Ok(Program.AvatarManager.AddKarmaToAvatarAsync(avatar, karmaType, karmaSourceType, karamSourceTitle, karmaSourceDesc));
         }
 
         [Authorize]
-        [HttpGet("GetById/{id}/{providerType}/{setGlobally}")]
-        public ActionResult<IAvatar> GetById(Guid id, ProviderType providerType, bool setGlobally = false)
+        [HttpPost("AddKarmaToAvatar/{avatar}/{karmaType}/{karmaSourceType}/{karamSourceTitle}/{karmaSourceDesc}/{providerType}/{setGlobally}")]
+        public ActionResult<IAvatar> AddKarmaToAvatar(IAvatar avatar, KarmaTypePositive karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc, ProviderType providerType, bool setGlobally = false)
         {
             GetAndActivateProvider(providerType, setGlobally);
-            return GetById(id);
+            return AddKarmaToAvatar(avatar, karmaType, karmaSourceType, karamSourceTitle, karmaSourceDesc);
         }
+
+        [Authorize]
+        [HttpPost("RemoveKarmaFromAvatar/{avatar}/{karmaType}/{karmaSourceType}/{karamSourceTitle}/{karmaSourceDesc}")]
+        public ActionResult<IAvatar> RemoveKarmaFromAvatar(IAvatar avatar, KarmaTypeNegative karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc)
+        {
+            return Ok(Program.AvatarManager.RemoveKarmaFromAvatarAsync(avatar, karmaType, karmaSourceType, karamSourceTitle, karmaSourceDesc));
+        }
+
+        [Authorize]
+        [HttpPost("RemoveKarmaFromAvatar/{avatar}/{karmaType}/{karmaSourceType}/{karamSourceTitle}/{karmaSourceDesc}/{providerType}/{setGlobally}")]
+        public ActionResult<IAvatar> RemoveKarmaFromAvatar(IAvatar avatar, KarmaTypeNegative karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc, ProviderType providerType, bool setGlobally = false)
+        {
+            GetAndActivateProvider(providerType, setGlobally);
+            return RemoveKarmaFromAvatar(avatar, karmaType, karmaSourceType, karamSourceTitle, karmaSourceDesc);
+        }
+
+        //[Authorize(AvatarType.Wizard)]
+        //[HttpPost("Create/{model}/{providerType}")]
+        //public ActionResult<IAvatar> Create(CreateRequest model, ProviderType providerType)
+        //{
+        //    GetAndActivateProvider(providerType);
+        //    return Ok(_avatarService.Create(model));
+        //}
+
+
 
         //[Authorize]
         //[HttpGet("GetByIdForProvider/{id}/{providerType}")]
@@ -218,20 +277,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         //    return await AvatarManager.LoadAvatarAsync(id, providerType);
         //}
 
-        [Authorize(AvatarType.Wizard)]
-        [HttpPost("Create/{model}")]
-        public ActionResult<IAvatar> Create(CreateRequest model)
-        {
-            return Ok(_avatarService.Create(model));
-        }
 
-        //[Authorize(AvatarType.Wizard)]
-        //[HttpPost("Create/{model}/{providerType}")]
-        //public ActionResult<IAvatar> Create(CreateRequest model, ProviderType providerType)
-        //{
-        //    GetAndActivateProvider(providerType);
-        //    return Ok(_avatarService.Create(model));
-        //}
 
 
         [Authorize]
@@ -253,12 +299,13 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 
         [Authorize]
         [HttpPut("Update/{id}/{providerType}/{setGlobally}")]
-        //public ActionResult<Avatar> Update(Guid id, UpdateRequest model, ProviderType providerType, bool setGlobally = false)
         public ActionResult<IAvatar> Update(Guid id, Core.Avatar avatar, ProviderType providerType, bool setGlobally = false)
         {
             GetAndActivateProvider(providerType, setGlobally);
             return Update(avatar, id);
         }
+
+       
 
         [Authorize]
         [HttpDelete("{id:Guid}")]

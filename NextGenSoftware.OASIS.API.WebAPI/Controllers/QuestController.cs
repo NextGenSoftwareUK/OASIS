@@ -16,7 +16,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
     {
         private QuestManager _questManager;
 
-        private QuestManager questManager
+        private QuestManager QuestManager
         {
             get
             {
@@ -32,35 +32,43 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 
         }
 
-        [HttpGet("CompleteQuest/{quest}")]
-        public ActionResult<bool> CompleteQuest(Quest quest)
+        [HttpGet("Search/{searchParams}")]
+        public ActionResult<ISearchResults> Search(ISearchParams searchParams)
         {
-            return questManager.CompleteQuest(quest);
+            return Ok(QuestManager.SearchAsync(searchParams).Result);
         }
 
-        [HttpGet("CreateQuest/{quest}")]
-        public ActionResult<bool> CreateQuest(Quest quest)
+        [HttpGet("Search/{searchParams}/{providerType}/{setGlobally}")]
+        public ActionResult<ISearchResults> Search(ISearchParams searchParams, ProviderType providerType, bool setGlobally = false)
         {
-            return questManager.CreateQuest(quest);
-        }
-
-        [HttpGet("DeleteQuest/{quest}")]
-        public ActionResult<bool> DeleteQuest(Quest quest)
-        {
-            return questManager.DeleteQuest(quest);
-        }
-
-        [HttpGet("HighlightQuestOnMap/{quest}")]
-        public ActionResult<bool> HighlightQuestOnMap(Quest quest)
-        {
-            return questManager.HighlightQuestOnMap(quest);
+            return Ok(QuestManager.SearchAsync(searchParams).Result);
         }
 
         [HttpGet("FindNearestQuestOnMap")]
         public ActionResult<Quest> FindNearestQuestOnMap()
         {
-            return questManager.FindNearestQuestOnMap();
+            return QuestManager.FindNearestQuestOnMap();
         }
+
+        [HttpPost("CompleteQuest/{quest}")]
+        public ActionResult<bool> CompleteQuest(Quest quest)
+        {
+            return QuestManager.CompleteQuest(quest);
+        }
+
+        [HttpPost("CreateQuest/{quest}")]
+        public ActionResult<bool> CreateQuest(Quest quest)
+        {
+            return QuestManager.CreateQuest(quest);
+        }
+
+        [HttpPost("HighlightQuestOnMap/{quest}")]
+        public ActionResult<bool> HighlightQuestOnMap(Quest quest)
+        {
+            return QuestManager.HighlightQuestOnMap(quest);
+        }
+
+       
 
         //[HttpGet("GetAllCurrentQuestsForAvatar/{avatar}")]
         //public ActionResult<List<Quest>> GetAllCurrentquestsForAvatar(Avatar avatar)
@@ -74,16 +82,16 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         //    return questManager.GetAllCurrentQuestsForAvatar(Avatar);
         //}
 
-        [HttpGet("SearchAsync/{searchParams}")]
-        public ActionResult<ISearchResults> SearchAsync(ISearchParams searchParams)
-        {
-            return Ok(questManager.SearchAsync(searchParams).Result);
-        }
-
-        [HttpGet("UpdateQuest/{quest}")]
+        [HttpPost("UpdateQuest/{quest}")]
         public ActionResult<bool> UpdateQuest(Quest quest)
         {
-            return Ok(questManager.UpdateQuest(quest));
+            return Ok(QuestManager.UpdateQuest(quest));
+        }
+
+        [HttpDelete("DeleteQuest/{quest}")]
+        public ActionResult<bool> DeleteQuest(Quest quest)
+        {
+            return QuestManager.DeleteQuest(quest);
         }
     }
 }

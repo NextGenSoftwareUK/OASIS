@@ -32,22 +32,29 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 
         }
 
-        [HttpGet("CompleteMission/{mission}")]
+
+        [HttpGet("Search/{searchParams}")]
+        public ActionResult<ISearchResults> Search(ISearchParams searchParams)
+        {
+            return Ok(MissionManager.SearchAsync(searchParams).Result);
+        }
+
+        [HttpGet("Search/{searchParams}/{providerType}/{setGlobally}")]
+        public ActionResult<ISearchResults> Search(ISearchParams searchParams, ProviderType providerType, bool setGlobally = false)
+        {
+            return Ok(MissionManager.SearchAsync(searchParams).Result);
+        }
+
+        [HttpPost("CompleteMission/{mission}")]
         public ActionResult<bool> CompleteMission(Mission mission)
         {
             return MissionManager.CompleteMission(mission);
         }
 
-        [HttpGet("CreateMission/{mission}")]
+        [HttpPost("CreateMission/{mission}")]
         public ActionResult<bool> CreateMission(Mission mission)
         {
             return MissionManager.CreateMission(mission);
-        }
-
-        [HttpGet("DeleteMission/{mission}")]
-        public ActionResult<bool> DeleteMission(Mission mission)
-        {
-            return MissionManager.DeleteMission(mission);
         }
 
         //TODO: GET WORKING LATER!
@@ -63,16 +70,16 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         //    return MissionManager.GetAllCurrentMissionsForAvatar(Avatar);
         //}
 
-        [HttpGet("SearchAsync/{searchParams}")]
-        public ActionResult<ISearchResults> SearchAsync(ISearchParams searchParams)
-        {
-            return Ok(MissionManager.SearchAsync(searchParams).Result);
-        }
-
-        [HttpGet("UpdateMission/{mission}")]
+        [HttpPost("UpdateMission/{mission}")]
         public ActionResult<bool> UpdateMission(Mission mission)
         {
             return Ok(MissionManager.UpdateMission(mission));
+        }
+
+        [HttpDelete("DeleteMission/{mission}")]
+        public ActionResult<bool> DeleteMission(Mission mission)
+        {
+            return MissionManager.DeleteMission(mission);
         }
     }
 }

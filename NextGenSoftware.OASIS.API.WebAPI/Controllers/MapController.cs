@@ -34,110 +34,122 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             }
         }
 
-        [HttpGet("CreateRouteBetweenHolons/{holonDNA}")]
+        [HttpGet("Search/{searchParams}")]
+        public ActionResult<ISearchResults> Search(ISearchParams searchParams)
+        {
+            return Ok(MapManager.SearchAsync(searchParams).Result);
+        }
+
+        [HttpGet("Search/{searchParams}/{providerType}/{setGlobally}")]
+        public ActionResult<ISearchResults> Search(ISearchParams searchParams, ProviderType providerType, bool setGlobally = false)
+        {
+            return Ok(MapManager.SearchAsync(searchParams).Result);
+        }
+
+        [HttpPost("CreateRouteBetweenHolons/{holonDNA}")]
         public ActionResult<bool> CreateRouteBetweenHolons(HolonDNA holonDNA)
         {
             return MapManager.CreateRouteBetweenHolons(holonDNA.FromHolon, holonDNA.ToHolon);
         }
 
-        [HttpGet("Draw2DSpriteOnHUD/{sprite}/{x}/{y}")]
+        [HttpPost("Draw2DSpriteOnHUD/{sprite}/{x}/{y}")]
         //public ActionResult<bool> Draw2DSpriteOnHUD(object sprite, float x, float y)
         public ActionResult<bool> Draw2DSpriteOnHUD(string sprite, float x, float y)
         {
             return MapManager.Draw2DSpriteOnHUD(sprite, x, y);
         }
 
-        [HttpGet("Draw2DSpriteOnMap/{sprite}/{x}/{y}")]
+        [HttpPost("Draw2DSpriteOnMap/{sprite}/{x}/{y}")]
         public ActionResult<bool> Draw2DSpriteOnMap(string sprite, float x, float y)
         {
             return MapManager.Draw2DSpriteOnMap(sprite, x, y);
         }
 
-        [HttpGet("Draw3DObjectOnMap/{obj}/{x}/{y}")]
+        [HttpPost("Draw3DObjectOnMap/{obj}/{x}/{y}")]
         public ActionResult<bool> Draw3DObjectOnMap(string obj, float x, float y)
         {
             return MapManager.Draw3DObjectOnMap(obj, x, y);
         }
 
-        [HttpGet("DrawRouteOnMap/{points}")]
+        [HttpPost("DrawRouteOnMap/{points}")]
         public ActionResult<bool> DrawRouteOnMap(MapPoints points)
         {
             return MapManager.DrawRouteOnMap(points);
         }
 
-        [HttpGet("HighlightBuildingOnMap/{building}")]
+        [HttpPost("HighlightBuildingOnMap/{building}")]
         public ActionResult<bool> HighlightBuildingOnMap(Building building)
         {
             return MapManager.HighlightBuildingOnMap(building);
         }
 
-        [HttpGet("SearchMap/{searchParams}")]
+        [HttpPost("SearchMap/{searchParams}")]
         public ActionResult<ISearchResults> SearchMap(ISearchParams searchParams)
         {
             return Ok(MapManager.SearchAsync(searchParams).Result);
         }
 
-        [HttpGet("PanMapDown/{value}")]
+        [HttpPost("PanMapDown/{value}")]
         public ActionResult<bool> PanMapDown(float value)
         {
             return Ok(MapManager.PanMapDown(value));
         }
 
-        [HttpGet("PanMapLeft/{value}")]
+        [HttpPost("PanMapLeft/{value}")]
         public ActionResult<bool> PanMapLeft(float value)
         {
             return Ok(MapManager.PanMapLeft(value));
         }
 
-        [HttpGet("PanMapRight/{value}")]
+        [HttpPost("PanMapRight/{value}")]
         public ActionResult<bool> PanMapRight(float value)
         {
             return Ok(MapManager.PanMapRight(value));
         }
 
-        [HttpGet("PanMapUp/{value}")]
+        [HttpPost("PanMapUp/{value}")]
         public ActionResult<bool> PanMapUp(float value)
         {
             return Ok(MapManager.PanMapUp(value));
         }
 
-        [HttpGet("SelectBuildingOnMap/{building}")]
+        [HttpPost("SelectBuildingOnMap/{building}")]
         public ActionResult<bool> SelectBuildingOnMap(Building building)
         {
             return Ok(MapManager.SelectBuildingOnMap(building));
         }
 
-        [HttpGet("SelectHolonOnMap/{holon}")]
+        [HttpPost("SelectHolonOnMap/{holon}")]
         public ActionResult<bool> SelectHolonOnMap(Holon holon)
         {
             return Ok(MapManager.SelectHolonOnMap(holon));
         }
 
-        [HttpGet("SelectQuestOnMap/{quest}")]
+        [HttpPost("SelectQuestOnMap/{quest}")]
         public ActionResult<bool> SelectQuestOnMap(Quest quest)
         {
             return Ok(MapManager.SelectQuestOnMap(quest));
         }
 
-        [HttpGet("ZoomMapIn/{value}")]
+        [HttpPost("ZoomMapIn/{value}")]
         public ActionResult<bool> ZoomMapIn(float value)
         {
             return Ok(MapManager.ZoomMapIn(value));
         }
 
-        [HttpGet("ZoomMapOut/{value}")]
+        [HttpPost("ZoomMapOut/{value}")]
         public ActionResult<bool> ZoomMapOut(float value)
         {
             return Ok(MapManager.ZoomMapOut(value));
         }
 
-        [HttpGet("ZoomToHolonOnMap/{holon}")]
+        [HttpPost("ZoomToHolonOnMap/{holon}")]
         public ActionResult<bool> ZoomToHolonOnMap(Holon holon)
         {
             return Ok(MapManager.ZoomToHolonOnMap(holon));
         }
 
-        [HttpGet("ZoomToQuestOnMap/{quest}")]
+        [HttpPost("ZoomToQuestOnMap/{quest}")]
         public ActionResult<bool> ZoomToQuestOnMap(Quest quest)
         {
             return Ok(MapManager.ZoomToQuestOnMap(quest));

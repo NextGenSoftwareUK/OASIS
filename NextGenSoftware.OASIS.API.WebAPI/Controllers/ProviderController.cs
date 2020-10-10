@@ -53,48 +53,6 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         }
 
         [Authorize]
-        [HttpGet("RegisterProvider/{provider}")]
-        public ActionResult<bool> RegisterProvider(IOASISProvider provider)
-        {
-            return Ok(ProviderManager.RegisterProvider(provider));
-        }
-
-        [Authorize]
-        [HttpGet("RegisterProviders/{providers}")]
-        public ActionResult<bool> RegisterProviders(List<IOASISProvider> providers)
-        {
-            return Ok(ProviderManager.RegisterProviders(providers));
-        }
-
-        [Authorize]
-        [HttpGet("UnRegisterProvider/{provider}")]
-        public ActionResult<bool> UnRegisterProvider(IOASISProvider provider)
-        {
-            return Ok(ProviderManager.UnRegisterProvider(provider));
-        }
-
-        [Authorize]
-        [HttpGet("UnRegisterProvider/{providerType}")]
-        public ActionResult<bool> UnRegisterProvider(ProviderType providerType)
-        {
-            return Ok(ProviderManager.UnRegisterProvider(providerType));
-        }
-
-        [Authorize]
-        [HttpGet("UnRegisterProviders/{providerTypes}")]
-        public ActionResult<bool> UnRegisterProviders(List<ProviderType> providerTypes)
-        {
-            return Ok(ProviderManager.UnRegisterProviders(providerTypes));
-        }
-
-        [Authorize]
-        [HttpGet("UnRegisterProviders/{providers}")]
-        public ActionResult<bool> UnRegisterProviders(List<IOASISProvider> providers)
-        {
-            return Ok(ProviderManager.UnRegisterProviders(providers));
-        }
-
-        [Authorize]
         [HttpGet("GetProvider/{providerType}")]
         public ActionResult<IOASISProvider> GetProvider(ProviderType providerType)
         {
@@ -109,28 +67,70 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         }
 
         [Authorize]
-        [HttpGet("SetAndActivateCurrentStorageProvider/{providerType}/{setGlobally}")]
+        [HttpPost("RegisterProvider/{provider}")]
+        public ActionResult<bool> RegisterProvider(IOASISProvider provider)
+        {
+            return Ok(ProviderManager.RegisterProvider(provider));
+        }
+
+        [Authorize]
+        [HttpPost("RegisterProviders/{providers}")]
+        public ActionResult<bool> RegisterProviders(List<IOASISProvider> providers)
+        {
+            return Ok(ProviderManager.RegisterProviders(providers));
+        }
+
+        [Authorize]
+        [HttpPost("UnRegisterProvider/{provider}")]
+        public ActionResult<bool> UnRegisterProvider(IOASISProvider provider)
+        {
+            return Ok(ProviderManager.UnRegisterProvider(provider));
+        }
+
+        [Authorize]
+        [HttpPost("UnRegisterProvider/{providerType}")]
+        public ActionResult<bool> UnRegisterProvider(ProviderType providerType)
+        {
+            return Ok(ProviderManager.UnRegisterProvider(providerType));
+        }
+
+        [Authorize]
+        [HttpPost("UnRegisterProviders/{providerTypes}")]
+        public ActionResult<bool> UnRegisterProviders(List<ProviderType> providerTypes)
+        {
+            return Ok(ProviderManager.UnRegisterProviders(providerTypes));
+        }
+
+        [Authorize]
+        [HttpPost("UnRegisterProviders/{providers}")]
+        public ActionResult<bool> UnRegisterProviders(List<IOASISProvider> providers)
+        {
+            return Ok(ProviderManager.UnRegisterProviders(providers));
+        }
+
+        [Authorize]
+        [HttpPost("SetAndActivateCurrentStorageProvider/{providerType}/{setGlobally}")]
         public ActionResult<IOASISStorage> SetAndActivateCurrentStorageProvider(ProviderType providerType, bool setGlobally)
         {
             return Ok(GetAndActivateProvider(providerType, setGlobally));
         }
 
         [Authorize]
-        [HttpGet("ActivateProvider/{providerType}")]
+        [HttpPost("ActivateProvider/{providerType}")]
         public ActionResult<bool> ActivateProvider(ProviderType providerType)
         {
             return Ok(ProviderManager.ActivateProvider(providerType));
         }
 
         [Authorize]
-        [HttpGet("DeActivateProvider/{providerType}")]
+        [HttpPost("DeActivateProvider/{providerType}")]
         public ActionResult<bool> DeActivateProvider(ProviderType providerType)
         {
             return Ok(ProviderManager.DeActivateProvider(providerType));
         }
 
         [Authorize]
-        [HttpGet("SetDefaultProviders/{providers}")]
+        [HttpPost("SetDefaultProviders/{providers}")]
         public ActionResult<bool> SetDefaultProviders(string[] providers)
         {
             ProviderManager.DefaultProviderTypes = providers;
@@ -138,7 +138,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         }
 
         [Authorize]
-        [HttpGet("SetProviderConfig/{providerType}/{connectionString}")]
+        [HttpPost("SetProviderConfig/{providerType}/{connectionString}")]
         public ActionResult<bool> SetProviderConfig(ProviderType providerType, string connectionString)
         {
             switch (providerType)
