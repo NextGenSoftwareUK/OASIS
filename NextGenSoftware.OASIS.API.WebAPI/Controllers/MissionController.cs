@@ -50,10 +50,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             return MissionManager.DeleteMission(mission);
         }
 
+        //TODO: GET WORKING LATER!
         //[HttpGet("GetAllCurrentMissionsForAvatar/{avatar}")]
-        //public ActionResult<List<Mission>> GetAllCurrentMissionsForAvatar(Avatar avatar)
+        //public ActionResult<IMissionData> GetAllCurrentMissionsForAvatar(Avatar avatar)
         //{
-        //    return MissionManager.GetAllCurrentMissionsForAvatar((IAvatar)avatar);
+        //    return Ok(MissionManager.GetAllCurrentMissionsForAvatar((IAvatar)avatar));
         //}
 
         //[HttpGet("GetAllCurrentMissionsForLoggedInAvatar")]
@@ -62,16 +63,16 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         //    return MissionManager.GetAllCurrentMissionsForAvatar(Avatar);
         //}
 
-        //[HttpGet("SearchAsync/{searchParams}")]
-        //public ActionResult<ISearchResults> SearchAsync(ISearchParams searchParams)
-        //{
-        //    return Ok(MissionManager.SearchAsync(searchParams).Result);
-        //}
+        [HttpGet("SearchAsync/{searchParams}")]
+        public ActionResult<ISearchResults> SearchAsync(ISearchParams searchParams)
+        {
+            return Ok(MissionManager.SearchAsync(searchParams).Result);
+        }
 
-        //[HttpGet("UpdateMission/{mission}")]
-        //public ActionResult<bool> UpdateMission(Mission mission)
-        //{
-        //    return Ok(MissionManager.UpdateMission(mission));
-        //}
+        [HttpGet("UpdateMission/{mission}")]
+        public ActionResult<bool> UpdateMission(Mission mission)
+        {
+            return Ok(MissionManager.UpdateMission(mission));
+        }
     }
 }
