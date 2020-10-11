@@ -38,7 +38,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
 
             services.AddSwaggerGen(c =>
             {
-                c.SwaggerDoc("v1", new OpenApiInfo { Title = "OASIS API v0.01 ALTHA", Version = "v1", });
+                c.SwaggerDoc("v1", new OpenApiInfo { Contact = new OpenApiContact() { Email = "ourworld@nextgensoftware.co.uk", Name = "OASIS API", Url = new Uri("https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK") }, Description = "The OASIS API that powers Our World and the satillite apps/games/websites (OAPP's/Moons) that plug into it. Documentation coming soon...", Title = "OASIS API v0.01 ALTHA", Version = "v1", });
             });
 
             /*
