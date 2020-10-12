@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <AspNetCoreHostingModel>InProcess</AspNetCoreHostingModel>
-    <RootNamespace>NextGenSoftware.OASIS.API.WebAPI</RootNamespace>
+    <RootNamespace>NextGenSoftware.OASIS.API.ONODE.WebAPI</RootNamespace>
     <AssemblyName>NextGenSoftware.OASIS.API.ONODE.WebAPI</AssemblyName>
     <StartupObject>NextGenSoftware.OASIS.API.ONODE.WebAPI.Program</StartupObject>
     <UserSecretsId>b95fccdc-3bbf-4f80-b705-624af891ef15</UserSecretsId>
