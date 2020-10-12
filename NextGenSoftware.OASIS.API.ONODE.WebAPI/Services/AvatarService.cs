@@ -192,7 +192,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
         {
             // var account = _context.Accounts.SingleOrDefault(x => x.Email == model.Email);
 
-            //TODO: PERFORMANCE} Implement in Providers so more efficient and do not need to return whole list!
+            //TODO: {PERFORMANCE} Implement in Providers so more efficient and do not need to return whole list!
             IAvatar avatar = AvatarManager.LoadAllAvatars().FirstOrDefault(x => x.Email == model.Email);
 
             // always return ok response to prevent email enumeration
