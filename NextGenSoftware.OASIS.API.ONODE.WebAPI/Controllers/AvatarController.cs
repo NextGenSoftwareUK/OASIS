@@ -37,6 +37,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             }
         }
 
+        /// <summary>
+        /// Get's all avatars (only works for logged in &amp; authenticated Wizards (Admins)).
+        /// </summary>
+        /// <returns></returns>
         [Authorize(AvatarType.Wizard)]
         [HttpGet("GetAll")]
         public ActionResult<IEnumerable<IAvatar>> GetAll()
@@ -44,14 +48,24 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             return Ok(_avatarService.GetAll());
         }
 
+        /// <summary>
+        /// Get's all avatars (only works for logged in &amp; authenticated Wizards (Admins)) for a given provider. Pass in the provider you wish to use. Set the setglobally flag to false for this provider to be used only for this request or true for it to be used for all future requests too.
+        /// </summary>
+        /// <param name="providerType" description="test desc"></param>
+        /// <returns></returns>
         [Authorize(AvatarType.Wizard)]
         [HttpGet("GetAll/{providerType}")]
-        public ActionResult<IEnumerable<IAvatar>> GetAll(ProviderType providerType)
+        public ActionResult<IEnumerable<IAvatar>> GetAll(ProviderType providerType, bool setGlobally = false)
         {
-            GetAndActivateProvider(providerType);
+            GetAndActivateProvider(providerType, setGlobally);
             return GetAll();
         }
 
+        /// <summary>
+        /// Get's the avatar for the given id. You must be logged in &amp; authenticated for this to work.
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
         [Authorize]
         [HttpGet("GetById/{id}")]
         public ActionResult<IAvatar> GetById(Guid id)
@@ -64,6 +78,13 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             return Ok(account);
         }
 
+        /// <summary>
+        /// Get's the avatar for the given id. You must be logged in &amp; authenticated for this to work. Pass in the provider you wish to use. Set the setglobally flag to false for this provider to be used only for this request or true for it to be used for all future requests too.
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="providerType"></param>
+        /// <param name="setGlobally"></param>
+        /// <returns></returns>
         [Authorize]
         [HttpGet("GetById/{id}/{providerType}/{setGlobally}")]
         public ActionResult<IAvatar> GetById(Guid id, ProviderType providerType, bool setGlobally = false)
@@ -72,18 +93,36 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             return GetById(id);
         }
 
+        /// <summary>
+        /// Search avatars for the given search term. Coming soon...
+        /// </summary>
+        /// <param name="searchParams"></param>
+        /// <returns></returns>
         [HttpGet("Search/{searchParams}")]
         public ActionResult<ISearchResults> Search(ISearchParams searchParams)
         {
             return Ok(AvatarManager.SearchAsync(searchParams).Result);
         }
 
+        /// <summary>
+        /// Search avatars for the given search term. Coming soon... Pass in the provider you wish to use. Set the setglobally flag to false for this provider to be used only for this request or true for it to be used for all future requests too.
+        /// </summary>
+        /// <param name="searchParams"></param>
+        /// <param name="providerType"></param>
+        /// <param name="setGlobally"></param>
+        /// <returns></returns>
         [HttpGet("Search/{searchParams}/{providerType}/{setGlobally}")]
         public ActionResult<ISearchResults> Search(ISearchParams searchParams, ProviderType providerType, bool setGlobally = false)
         {
+            GetAndActivateProvider(providerType, setGlobally);
             return Ok(AvatarManager.SearchAsync(searchParams).Result);
         }
 
+        /// <summary>
+        /// Authenticate and log in using the given avatar credentials.
+        /// </summary>
+        /// <param name="model"></param>
+        /// <returns></returns>
         [HttpPost("authenticate")]
         public ActionResult<AuthenticateResponse> Authenticate(AuthenticateRequest model)
         {
@@ -95,6 +134,13 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             return Ok(response);
         }
 
+        /// <summary>
+        /// Authenticate and log in using the given avatar credentials. Pass in the provider you wish to use. Set the setglobally flag to false for this provider to be used only for this request or true for it to be used for all future requests too.
+        /// </summary>
+        /// <param name="model"></param>
+        /// <param name="providerType"></param>
+        /// <param name="setGlobally"></param>
+        /// <returns></returns>
         [HttpPost("authenticate/{providerType}/{setGlobally}")]
         public ActionResult<AuthenticateResponse> Authenticate(AuthenticateRequest model, ProviderType providerType, bool setGlobally = false)
         {
@@ -102,6 +148,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             return Authenticate(model);
         }
 
+        /// <summary>
+        /// Refresh and generate a new JWT Security Token. This will only work if you are already logged in &amp; authenticated.
+        /// </summary>
+        /// <returns></returns>
         [HttpPost("refresh-token")]
         public ActionResult<IAvatar> RefreshToken()
         {
@@ -111,6 +161,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             return Ok(response);
         }
 
+        /// <summary>
+        /// Refresh and generate a new JWT Security Token. This will only work if you are already logged in &amp; authenticated. Pass in the provider you wish to use. Set the setglobally flag to false for this provider to be used only for this request or true for it to be used for all future requests too.
+        /// </summary>
+        /// <param name="providerType"></param>
+        /// <param name="setGlobally"></param>
+        /// <returns></returns>
         [HttpPost("refresh-token/{providerType}/{setGlobally}")]
         public ActionResult<IAvatar> RefreshToken(ProviderType providerType, bool setGlobally = false)
         {
@@ -118,6 +174,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             return RefreshToken();
         }
 
+        /// <summary>
+        /// Revoke a given JWT Token (for example, if a user logs out). They must be logged in &amp; authenticated for this method to work.
+        /// </summary>
+        /// <param name="model"></param>
+        /// <returns></returns>
         [Authorize]
         [HttpPost("revoke-token")]
         public IActionResult RevokeToken(RevokeTokenRequest model)
@@ -136,6 +197,13 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             return Ok(new { message = "Token revoked" });
         }
 
+        /// <summary>
+        /// Revoke a given JWT Token (for example, if a user logs out). They must be logged in &amp; authenticated for this method to work. This will only work if you are already logged &amp; authenticated. Pass in the provider you wish to use. Set the setglobally flag to false for this provider to be used only for this request or true for it to be used for all future requests too.
+        /// </summary>
+        /// <param name="model"></param>
+        /// <param name="providerType"></param>
+        /// <param name="setGlobally"></param>
+        /// <returns></returns>
         [Authorize]
         [HttpPost("revoke-token/{providerType}/{setGlobally}")]
         public IActionResult RevokeToken(RevokeTokenRequest model, ProviderType providerType, bool setGlobally = false)
@@ -144,6 +212,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             return RevokeToken(model);
         }
 
+        /// <summary>
+        /// Register a new avatar.
+        /// </summary>
+        /// <param name="model"></param>
+        /// <returns></returns>
         [HttpPost("register")]
         public IActionResult Register(RegisterRequest model)
         {
@@ -158,6 +231,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 return Ok(new { message = "ERROR: Avatar already registered." });
         }
 
+        /// <summary>
+        /// Register a new avatar. Pass in the provider you wish to use. Set the setglobally flag to false for this provider to be used only for this request or true for it to be used for all future requests too.
+        /// </summary>
+        /// <param name="model"></param>
+        /// <returns></returns>
         [HttpPost("register/{providerType}/{setGlobally}")]
         public IActionResult Register(RegisterRequest model, ProviderType providerType, bool setGlobally = false)
         {
@@ -165,6 +243,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             return Register(model);
         }
 
+        /// <summary>
+        /// Verify a newly created avatar by passing in the validation token sent in the verify email.
+        /// </summary>
+        /// <param name="model"></param>
+        /// <returns></returns>
         [HttpPost("verify-email")]
         public IActionResult VerifyEmail(VerifyEmailRequest model)
         {
@@ -172,6 +255,13 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             return Ok(new { message = "Verification successful, you can now login" });
         }
 
+        /// <summary>
+        /// Verify a newly created avatar by passing in the validation token sent in the verify email. Pass in the provider you wish to use. Set the setglobally flag to false for this provider to be used only for this request or true for it to be used for all future requests too.
+        /// </summary>
+        /// <param name="model"></param>
+        /// <param name="providerType"></param>
+        /// <param name="setGlobally"></param>
+        /// <returns></returns>
         [HttpPost("verify-email/{providerType}/{setGlobally}")]
         public IActionResult VerifyEmail(VerifyEmailRequest model, ProviderType providerType, bool setGlobally = false)
         {
@@ -179,6 +269,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             return VerifyEmail(model);
         }
 
+        /// <summary>
+        /// This will send a password reset email allowing the user to reset their password. Call the avatar/validate-reset-token method passing in the reset token received in the email.
+        /// </summary>
+        /// <param name="model"></param>
+        /// <returns></returns>
         [HttpPost("forgot-password")]
         public IActionResult ForgotPassword(ForgotPasswordRequest model)
         {
@@ -186,6 +281,13 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             return Ok(new { message = "Please check your email for password reset instructions" });
         }
 
+        /// <summary>
+        /// This will send a password reset email allowing the user to reset their password. Call the avatar/validate-reset-token method passing in the reset token received in the email. Pass in the provider you wish to use. Set the setglobally flag to false for this provider to be used only for this request or true for it to be used for all future requests too.
+        /// </summary>
+        /// <param name="model"></param>
+        /// <param name="providerType"></param>
+        /// <param name="setGlobally"></param>
+        /// <returns></returns>
         [HttpPost("forgot-password/{providerType}/{setGlobally}")]
         public IActionResult ForgotPassword(ForgotPasswordRequest model, ProviderType providerType, bool setGlobally = false)
         {
@@ -193,6 +295,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             return ForgotPassword(model);
         }
 
+        /// <summary>
+        /// Call this method passing in the reset token received in the forgotten password email after first calling the avatar/forgot-password method.
+        /// </summary>
+        /// <param name = "model" ></ param >
+        /// < returns ></ returns >
         [HttpPost("validate-reset-token")]
         public IActionResult ValidateResetToken(ValidateResetTokenRequest model)
         {
@@ -200,13 +307,25 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             return Ok(new { message = "Token is valid" });
         }
 
-        [HttpPost("validate-reset-token/{providerType}/{setGlobally}")]
-        public IActionResult ValidateResetToken(ValidateResetTokenRequest model, ProviderType providerType, bool setGlobally = false)
-        {
-            GetAndActivateProvider(providerType, setGlobally);
-            return ValidateResetToken(model);
-        }
+        /// <summary>
+        /// Call this method passing in the reset token received in the forgotten password email after first calling the avatar/forgot-password method. Pass in the provider you wish to use. Set the setglobally flag to false for this provider to be used only for this request or true for it to be used for all future requests too.
+        /// </summary>
+        /// <param name="model"></param>
+        /// <param name="providerType"></param>
+        /// <param name="setGlobally"></param>
+        /// <returns></returns>
+        //[HttpPost("validate-reset-token/{providerType}/{setGlobally}")]
+        //public IActionResult ValidateResetToken(ValidateResetTokenRequest model, ProviderType providerType, bool setGlobally = false)
+        //{
+        //    GetAndActivateProvider(providerType, setGlobally);
+        //    return ValidateResetToken(model);
+        //}
 
+        /// <summary>
+        /// Call this method passing in the reset token received in the forgotten password email after first calling the avatar/forgot-password method.
+        /// </summary>
+        /// <param name="model"></param>
+        /// <returns></returns>
         [HttpPost("reset-password")]
         public IActionResult ResetPassword(ResetPasswordRequest model)
         {
@@ -214,6 +333,13 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             return Ok(new { message = "Password reset successful, you can now login" });
         }
 
+        /// <summary>
+        /// Call this method passing in the reset token received in the forgotten password email after first calling the avatar/forgot-password method. Pass in the provider you wish to use. Set the setglobally flag to false for this provider to be used only for this request or true for it to be used for all future requests too.
+        /// </summary>
+        /// <param name="model"></param>
+        /// <param name="providerType"></param>
+        /// <param name="setGlobally"></param>
+        /// <returns></returns>
         [HttpPost("reset-password/{providerType}/{setGlobally}")]
         public IActionResult ResetPassword(ResetPasswordRequest model, ProviderType providerType, bool setGlobally = false)
         {
@@ -221,6 +347,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             return ResetPassword(model);
         }
 
+        /// <summary>
+        /// Allows a Wizard(Admin) to create new avatars including other wizards.
+        /// </summary>
+        /// <param name="model"></param>
+        /// <returns></returns>
         [Authorize(AvatarType.Wizard)]
         [HttpPost("Create/{model}")]
         public ActionResult<IAvatar> Create(CreateRequest model)
@@ -228,6 +359,30 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             return Ok(_avatarService.Create(model));
         }
 
+        /// <summary>
+        /// Allows a Wizard(Admin) to create new avatars including other wizards. Pass in the provider you wish to use. Set the setglobally flag to false for this provider to be used only for this request or true for it to be used for all future requests too.
+        /// </summary>
+        /// <param name="model"></param>
+        /// <param name="providerType"></param>
+        /// <param name="setGlobally"></param>
+        /// <returns></returns>
+        [Authorize(AvatarType.Wizard)]
+        [HttpPost("Create/{model}/{providerType}/{setGlobally}")]
+        public ActionResult<IAvatar> Create(CreateRequest model, ProviderType providerType, bool setGlobally = false)
+        {
+            GetAndActivateProvider(providerType, setGlobally);
+            return Ok(_avatarService.Create(model));
+        }
+
+        /// <summary>
+        /// Add positive karma to the given avatar. karmaType = The type of positive karma, karmaSourceType = Where the karma was earnt (App, dApp, hApp, Website, Game, karamSourceTitle/karamSourceDesc = The name/desc of the app/website/game where the karma was earnt. They must be logged in &amp; authenticated for this method to work. 
+        /// </summary>
+        /// <param name="avatar">The avatar to add the karma to.</param>
+        /// <param name="karmaType">The type of positive karma.</param>
+        /// <param name="karmaSourceType">Where the karma was earnt (App, dApp, hApp, Website, Game.</param>
+        /// <param name="karamSourceTitle">The name of the app/website/game where the karma was earnt.</param>
+        /// <param name="karmaSourceDesc">The description of the app/website/game where the karma was earnt.</param>
+        /// <returns></returns>
         [Authorize]
         [HttpPost("AddKarmaToAvatar/{avatar}/{karmaType}/{karmaSourceType}/{karamSourceTitle}/{karmaSourceDesc}")]
         public ActionResult<IAvatar> AddKarmaToAvatar(IAvatar avatar, KarmaTypePositive karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc)
@@ -235,6 +390,17 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             return Ok(Program.AvatarManager.AddKarmaToAvatarAsync(avatar, karmaType, karmaSourceType, karamSourceTitle, karmaSourceDesc));
         }
 
+        /// <summary>
+        /// Add positive karma to the given avatar. They must be logged in &amp; authenticated for this method to work. karmaType = The type of positive karma, karmaSourceType = Where the karma was earnt (App, dApp, hApp, Website, Game, karamSourceTitle/karamSourceDesc = The name/desc of the app/website/game where the karma was earnt. Pass in the provider you wish to use. Set the setglobally flag to false for this provider to be used only for this request or true for it to be used for all future requests too.
+        /// </summary>
+        /// <param name="avatar">The avatar to add the karma to.</param>
+        /// <param name="karmaType">The type of positive karma.</param>
+        /// <param name="karmaSourceType">Where the karma was earnt (App, dApp, hApp, Website, Game.</param>
+        /// <param name="karamSourceTitle">The name of the app/website/game where the karma was earnt.</param>
+        /// <param name="karmaSourceDesc">The description of the app/website/game where the karma was earnt.</param>
+        /// <param name="providerType">Pass in the provider you wish to use.</param>
+        /// <param name="setGlobally"> Set this to false for this provider to be used only for this request or true for it to be used for all future requests too.</param>
+        /// <returns></returns>
         [Authorize]
         [HttpPost("AddKarmaToAvatar/{avatar}/{karmaType}/{karmaSourceType}/{karamSourceTitle}/{karmaSourceDesc}/{providerType}/{setGlobally}")]
         public ActionResult<IAvatar> AddKarmaToAvatar(IAvatar avatar, KarmaTypePositive karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc, ProviderType providerType, bool setGlobally = false)
@@ -243,6 +409,15 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             return AddKarmaToAvatar(avatar, karmaType, karmaSourceType, karamSourceTitle, karmaSourceDesc);
         }
 
+        /// <summary>
+        /// Remove karma from the given avatar. They must be logged in &amp; authenticated for this method to work. karmaType = The type of negative karma, karmaSourceType = Where the karma was lost (App, dApp, hApp, Website, Game, karamSourceTitle/karamSourceDesc = The name/desc of the app/website/game where the karma was lost.
+        /// </summary>
+        /// <param name="avatar">The avatar to remove the karma from.</param>
+        /// <param name="karmaType">The type of negative karma.</param>
+        /// <param name="karmaSourceType">Where the karma was lost (App, dApp, hApp, Website, Game.</param>
+        /// <param name="karamSourceTitle">The name of the app/website/game where the karma was lost.</param>
+        /// <param name="karmaSourceDesc">The description of the app/website/game where the karma was lost.</param>
+        /// <returns></returns>
         [Authorize]
         [HttpPost("RemoveKarmaFromAvatar/{avatar}/{karmaType}/{karmaSourceType}/{karamSourceTitle}/{karmaSourceDesc}")]
         public ActionResult<IAvatar> RemoveKarmaFromAvatar(IAvatar avatar, KarmaTypeNegative karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc)
@@ -250,6 +425,17 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             return Ok(Program.AvatarManager.RemoveKarmaFromAvatarAsync(avatar, karmaType, karmaSourceType, karamSourceTitle, karmaSourceDesc));
         }
 
+        /// <summary>
+        /// Remove karma from the given avatar. They must be logged in &amp; authenticated for this method to work. karmaType = The type of negative karma, karmaSourceType = Where the karma was lost (App, dApp, hApp, Website, Game, karamSourceTitle/karamSourceDesc = The name/desc of the app/website/game where the karma was lost. Pass in the provider you wish to use. Set the setglobally flag to false for this provider to be used only for this request or true for it to be used for all future requests too.
+        /// </summary>
+        /// <param name="avatar">The avatar to remove the karma from.</param>
+        /// <param name="karmaType">The type of negative karma.</param>
+        /// <param name="karmaSourceType">Where the karma was lost (App, dApp, hApp, Website, Game.</param>
+        /// <param name="karamSourceTitle">The name of the app/website/game where the karma was lost.</param>
+        /// <param name="karmaSourceDesc">The description of the app/website/game where the karma was lost.</param>
+        /// <param name="providerType">Pass in the provider you wish to use.</param>
+        /// <param name="setGlobally"> Set this to false for this provider to be used only for this request or true for it to be used for all future requests too.</param>
+        /// <returns></returns>
         [Authorize]
         [HttpPost("RemoveKarmaFromAvatar/{avatar}/{karmaType}/{karmaSourceType}/{karamSourceTitle}/{karmaSourceDesc}/{providerType}/{setGlobally}")]
         public ActionResult<IAvatar> RemoveKarmaFromAvatar(IAvatar avatar, KarmaTypeNegative karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc, ProviderType providerType, bool setGlobally = false)
@@ -279,7 +465,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 
 
 
-
+        /// <summary>
+        /// Update the given avatar. They must be logged in &amp; authenticated for this method to work. 
+        /// </summary>
+        /// <param name="avatar"></param>
+        /// <param name="id"></param>
+        /// <returns></returns>
         [Authorize]
         [HttpPut("Update/{id}")]
         public ActionResult<IAvatar> Update(Core.Avatar avatar, Guid id)
@@ -297,6 +488,14 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             return Ok(_avatarService.Update(id, avatar));
         }
 
+        /// <summary>
+        /// Update the given avatar. They must be logged in &amp; authenticated for this method to work. Pass in the provider you wish to use. Set the setglobally flag to false for this provider to be used only for this request or true for it to be used for all future requests too.
+        /// </summary>
+        /// <param name="id">The id of the avatar.</param>
+        /// <param name="avatar">The avatar to update.</param>
+        /// <param name="providerType"></param>
+        /// <param name="setGlobally"></param>
+        /// <returns></returns>
         [Authorize]
         [HttpPut("Update/{id}/{providerType}/{setGlobally}")]
         public ActionResult<IAvatar> Update(Guid id, Core.Avatar avatar, ProviderType providerType, bool setGlobally = false)
@@ -305,8 +504,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             return Update(avatar, id);
         }
 
-       
 
+        /// <summary>
+        /// Delete the given avatar. They must be logged in &amp; authenticated for this method to work. 
+        /// </summary>
+        /// <param name="id">The id of the avatar.</param>
+        /// <returns></returns>
         [Authorize]
         [HttpDelete("{id:Guid}")]
         public IActionResult Delete(Guid id)
@@ -320,6 +523,13 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             return Ok(new { message = "Account deleted successfully" });
         }
 
+        /// <summary>
+        /// Delete the given avatar. They must be logged in &amp; authenticated for this method to work. Pass in the provider you wish to use. Set the setglobally flag to false for this provider to be used only for this request or true for it to be used for all future requests too.
+        /// </summary>
+        /// <param name="id">The id of the avatar.</param>
+        /// <param name="providerType"></param>
+        /// <param name="setGlobally"></param>
+        /// <returns></returns>
         [Authorize]
         [HttpDelete("{id:Guid}/{providerType}/{setGlobally}")]
         public IActionResult Delete(Guid id, ProviderType providerType, bool setGlobally = false)
