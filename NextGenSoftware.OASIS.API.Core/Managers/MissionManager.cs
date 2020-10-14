@@ -1,4 +1,5 @@
 ﻿
+using System;
 using System.Collections.Generic;
 
 namespace NextGenSoftware.OASIS.API.Core
@@ -21,17 +22,17 @@ namespace NextGenSoftware.OASIS.API.Core
             return true;
         }
 
-        public bool CompleteMission(Mission mission)
+        public bool CompleteMission(Guid missionId)
         {
             return true;
         }
 
-        public bool DeleteMission(Mission mission)
+        public bool DeleteMission(Guid missionId)
         {
             return true;
         }
 
-        public IMissionData GetAllCurrentMissionsForAvatar(IAvatar avatar)
+        public IMissionData GetAllCurrentMissionsForAvatar(Guid avatarId)
         {
             return new MissionData();
         }

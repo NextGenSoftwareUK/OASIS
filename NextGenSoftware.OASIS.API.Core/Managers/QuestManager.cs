@@ -1,4 +1,5 @@
 ﻿
+using System;
 using System.Collections.Generic;
 
 namespace NextGenSoftware.OASIS.API.Core
@@ -21,17 +22,17 @@ namespace NextGenSoftware.OASIS.API.Core
             return true;
         }
 
-        public bool CompleteQuest(Quest quest)
+        public bool CompleteQuest(Guid questId)
         {
             return true;
         }
 
-        public bool DeleteQuest(Quest quest)
+        public bool DeleteQuest(Guid questId)
         {
             return true;
         }
 
-        public bool HighlightQuestOnMap(Quest quest)
+        public bool HighlightQuestOnMap(Guid questId)
         {
             return true;
         }
@@ -41,7 +42,7 @@ namespace NextGenSoftware.OASIS.API.Core
             return new Quest();
         }
 
-        public List<Quest> GetAllCurrentQuestsForAvatar(IAvatar avatar)
+        public List<Quest> GetAllCurrentQuestsForAvatar(Guid avatarId)
         {
             return new List<Quest>();
         }

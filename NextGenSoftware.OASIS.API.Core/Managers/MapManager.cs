@@ -39,7 +39,7 @@ namespace NextGenSoftware.OASIS.API.Core
             return true;
         }
 
-        public bool DrawRouteOnMap(MapPoints points)
+        public bool CreateAndDrawRouteOnMapBeweenPoints(MapPoints points)
         {
             return true;
         }
@@ -54,22 +54,22 @@ namespace NextGenSoftware.OASIS.API.Core
             return true;
         }
 
-        public bool PanMapLeft(float value)
+        public bool PamMapLeft(float value)
         {
             return true;
         }
 
-        public bool PanMapRight(float value)
+        public bool PamMapRight(float value)
         {
             return true;
         }
 
-        public bool PanMapUp(float value)
+        public bool PamMapUp(float value)
         {
             return true;
         }
 
-        public bool PanMapDown(float value)
+        public bool PamMapDown(float value)
         {
             return true;
         }
@@ -94,7 +94,7 @@ namespace NextGenSoftware.OASIS.API.Core
             return true;
         }
 
-        public bool CreateRouteBetweenHolons(IHolon fromHolon, IHolon toHolon)
+        public bool CreateAndDrawRouteOnMapBetweenHolons(IHolon fromHolon, IHolon toHolon)
         {
             return true;
         }
