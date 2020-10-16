@@ -2449,9 +2449,12 @@ http://www.yoga4autism.com <br/>
 |Type  |Link  |
 |--|--|
 |Facebook| http://www.facebook.com/ourworldthegame  |
-|Twitter | http://www.twitter.com/ourworldthegame
-|YouTube:| https://www.youtube.com/channel/UC0_O4RwdY3lq1m3-K-njUxA  
-|Telegram:| https://t.me/ourworldthegamechat
+|Twitter | http://www.twitter.com/ourworldthegame |
+|YouTube:| https://www.youtube.com/channel/UC0_O4RwdY3lq1m3-K-njUxA | 
+|Discord:| https://discord.gg/CVrNmt |
+|Telegram:| https://t.me/ourworldthegamechat (General Chat) |
+|| https://t.me/ourworldthegamechat (Announcements) |
+|| https://t.me/ourworldtechupdate (Tech Updates) |
 
 
 **Blog/Forum**
@@ -2468,7 +2471,7 @@ https://chat.holochain.org/appsup/channels/net-hdk
 
 https://forum.holochain.org/c/projects/our-world
 
-**NextGen DeveloperTraining  Programmes**
+**NextGen Developer Training  Programmes**
 
 <a href="https://docs.wixstatic.com/ugd/4280d8_ad8787bd42b1471bae73003bfbf111f7.pdf">NextGen Developer Training Programme</a> <br/> 
 <a href="https://docs.wixstatic.com/ugd/4280d8_999d98ba615e4fa6ab4383a415ee24c5.pdf">Junior NextGen Developer Training Programme</a>
