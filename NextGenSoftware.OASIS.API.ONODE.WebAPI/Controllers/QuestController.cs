@@ -52,6 +52,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpGet("Search/{searchParams}/{providerType}/{setGlobally}")]
         public ActionResult<ISearchResults> Search(ISearchParams searchParams, ProviderType providerType, bool setGlobally = false)
         {
+            GetAndActivateProvider(providerType, setGlobally);
             return Ok(QuestManager.SearchAsync(searchParams).Result);
         }
 
@@ -66,7 +67,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         }
 
         /// <summary>
-        /// Find nearest quest on the map.
+        /// Find nearest quest on the map. Pass in the provider you wish to use. Set the setglobally flag to false for this provider to be used only for this request or true for it to be used for all future requests too.
         /// </summary>
         /// <param name="providerType">Pass in the provider you wish to use.</param>
         /// <param name="setGlobally"> Set this to false for this provider to be used only for this request or true for it to be used for all future requests too.</param>
@@ -74,6 +75,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpGet("FindNearestQuestOnMap/{providerType}/{setGlobally}")]
         public ActionResult<Quest> FindNearestQuestOnMap(ProviderType providerType, bool setGlobally = false)
         {
+            GetAndActivateProvider(providerType, setGlobally);
             return QuestManager.FindNearestQuestOnMap();
         }
 
@@ -89,7 +91,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         }
 
         /// <summary>
-        /// Marks a given quest as completed.
+        /// Marks a given quest as completed. Pass in the provider you wish to use. Set the setglobally flag to false for this provider to be used only for this request or true for it to be used for all future requests too.
         /// </summary>
         /// <param name="quest"></param>
         /// <param name="providerType">Pass in the provider you wish to use.</param>
@@ -98,6 +100,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpPost("CompleteQuest/{quest}/{providerType}/{setGlobally}")]
         public ActionResult<bool> CompleteQuest(Guid questId, ProviderType providerType, bool setGlobally = false)
         {
+            GetAndActivateProvider(providerType, setGlobally);
             return QuestManager.CompleteQuest(questId);
         }
 
@@ -113,7 +116,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         }
 
         /// <summary>
-        /// Create a quest.
+        /// Create a quest. Pass in the provider you wish to use. Set the setglobally flag to false for this provider to be used only for this request or true for it to be used for all future requests too.
         /// </summary>
         /// <param name="quest"></param>
         /// <param name="providerType">Pass in the provider you wish to use.</param>
@@ -122,6 +125,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpPost("CreateQuest/{quest}/{providerType}/{setGlobally}")]
         public ActionResult<bool> CreateQuest(Quest quest, ProviderType providerType, bool setGlobally = false)
         {
+            GetAndActivateProvider(providerType, setGlobally);
             return QuestManager.CreateQuest(quest);
         }
 
@@ -137,7 +141,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         }
 
         /// <summary>
-        /// Highlight a given quest on the map.
+        /// Highlight a given quest on the map. Pass in the provider you wish to use. Set the setglobally flag to false for this provider to be used only for this request or true for it to be used for all future requests too.
         /// </summary>
         /// <param name="quest"></param>
         /// <param name="providerType">Pass in the provider you wish to use.</param>
@@ -146,6 +150,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpPost("HighlightQuestOnMap/{quest}/{providerType}/{setGlobally}")]
         public ActionResult<bool> HighlightQuestOnMap(Guid questId, ProviderType providerType, bool setGlobally = false)
         {
+            GetAndActivateProvider(providerType, setGlobally);
             return QuestManager.HighlightQuestOnMap(questId);
         }
 
@@ -175,7 +180,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         }
 
         /// <summary>
-        /// Update a given quest.
+        /// Update a given quest. Pass in the provider you wish to use. Set the setglobally flag to false for this provider to be used only for this request or true for it to be used for all future requests too.
         /// </summary>
         /// <param name="quest"></param>
         /// <param name="providerType">Pass in the provider you wish to use.</param>
@@ -184,6 +189,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpPost("UpdateQuest/{quest}/{providerType}/{setGlobally}")]
         public ActionResult<bool> UpdateQuest(Quest quest, ProviderType providerType, bool setGlobally = false)
         {
+            GetAndActivateProvider(providerType, setGlobally);
             return Ok(QuestManager.UpdateQuest(quest));
         }
 
@@ -199,7 +205,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         }
 
         /// <summary>
-        /// Delete a given quest.
+        /// Delete a given quest. Pass in the provider you wish to use. Set the setglobally flag to false for this provider to be used only for this request or true for it to be used for all future requests too.
         /// </summary>
         /// <param name="questId"></param>
         /// <param name="providerType">Pass in the provider you wish to use.</param>
@@ -208,6 +214,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpDelete("DeleteQuest/{quest}/{providerType}/{setGlobally}")]
         public ActionResult<bool> DeleteQuest(Guid questId, ProviderType providerType, bool setGlobally = false)
         {
+            GetAndActivateProvider(providerType, setGlobally);
             return QuestManager.DeleteQuest(questId);
         }
     }
