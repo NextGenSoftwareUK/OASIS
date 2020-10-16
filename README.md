@@ -420,6 +420,8 @@ Below is a list of the protocols/networks/platforms that the OASIS API will supp
 | [HoloWeb](https://holoweb.io//) | We’re reinventing the way the web works, and taking a stand for our sovereignty in cyberspace.| In Dev | HoloWebOASIS
 |PLAN | https://www.plan-systems.org/ | Solving for privacy, ease of collaboration, and accessibility for all. We believe people profoundly benefit from having the tools to connect with each other, manage common resources, and to engage in meaningful projects. | In Dev | PLANOASIS
 |[CEPTR Protocol For Pluggable Protocols](http://ceptr.org/projects/pcubed)|Complete interoperability: No more silos and brittle APIs. Self-Describing protocols and a universal parsing system allows anything to talk to anything. This is where the OASIS API is a stepping stone to get to this point by providing backwards compatibility with what is already out there.|Coming soon | 
+|Elrond|https://github.com/ElrondNetwork|A highly scalable, fast and secure blockchain platform built on Rust for distributed apps, enterprise use cases and the new internet economy. | Coming Soon |
+|Urbit|https://urbit.org/|Urbit is a clean-slate OS and network for the 21st century.| Coming Soon |
 |[HSTP (Hyper Spacial Transport Protocol)](https://www.verses.io/)  | The new protocol for the new Spacial Web (Web 3.0) | Coming Soon |
 | [WebFinger](https://webfinger.net/) | WebFinger is used to discover information about people or other entities on the Internet that are identified by a URI using standard Hypertext Transfer Protocol (HTTP) methods over a secure transport. A WebFinger resource returns a JavaScript Object Notation (JSON) object describing the entity that is queried. The JSON object is referred to as the JSON Resource Descriptor (JRD).| Coming Soon
 | [ActivityPub](https://activitypub.rocks/) |ActivityPub is an open, decentralized social networking protocol based on Pump.io's ActivityPump protocol. It provides a client/server API for creating, updating and deleting content, as well as a federated server-to-server API for delivering notifications and content | Coming Soon
@@ -2392,6 +2394,9 @@ The platform that is going to win many rewards for the ground-breaking work it w
 
 We would love to have some much needed dev resource on this vital project not only for Holochain but also for the world so if you are interested please contact us on either ourworld@nextgensoftware.co.uk or david@nextgensoftware.co.uk. Thank you, we look forward to hearing from you! :)
 
+For more details on what we are looking for, please check out this doc:
+https://drive.google.com/file/d/1b_G08UTALUg4H3jPlBdElZAFvyRcVKj1/view 
+
 ## Other Ways To Get Involved
 
 If you cannot code or donate, then no problem, you can help in other ways! :) You can share our website/posts, give us valuable feedback on our site, etc as well as submit ideas for Our World. We are also looking for people to join for every department/area such as PR, Sales, Support, Admin, Accounting, Management, Strategy, Operations, etc  
@@ -2450,12 +2455,17 @@ http://www.yoga4autism.com <br/>
 |--|--|
 |Facebook| http://www.facebook.com/ourworldthegame  |
 |Twitter | http://www.twitter.com/ourworldthegame |
-|YouTube:| https://www.youtube.com/channel/UC0_O4RwdY3lq1m3-K-njUxA | 
-|Discord:| https://discord.gg/CVrNmt |
-|Telegram:| https://t.me/ourworldthegamechat (General Chat) |
+|YouTube| https://www.youtube.com/channel/UC0_O4RwdY3lq1m3-K-njUxA | 
+|Discord| https://discord.gg/CVrNmt |
+|Telegram| https://t.me/ourworldthegamechat (General Chat) |
 || https://t.me/ourworldthegamechat (Announcements) |
 || https://t.me/ourworldtechupdate (Tech Updates) |
 
+**Join The Our World Tribe (Dev Requirments)**
+https://drive.google.com/file/d/1b_G08UTALUg4H3jPlBdElZAFvyRcVKj1/view 
+
+**Mission/Summary**
+https://drive.google.com/file/d/12pCk20iLw_uA1yIfojcP6WwvyOT4WRiO/view?usp=sharing
 
 **Blog/Forum**
 
