@@ -2456,7 +2456,7 @@ http://www.yoga4autism.com <br/>
 |Facebook| http://www.facebook.com/ourworldthegame  |
 |Twitter | http://www.twitter.com/ourworldthegame |
 |YouTube| https://www.youtube.com/channel/UC0_O4RwdY3lq1m3-K-njUxA | 
-|Discord| https://discord.gg/CVrNmt |
+|Discord| https://discord.gg/q9gMKU6 |
 |Telegram| https://t.me/ourworldthegamechat (General Chat) |
 || https://t.me/ourworldthegamechat (Announcements) |
 || https://t.me/ourworldtechupdate (Tech Updates) |
