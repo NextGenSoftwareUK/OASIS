@@ -2461,7 +2461,7 @@ http://www.yoga4autism.com <br/>
 || https://t.me/ourworldthegame (Announcements) |
 || https://t.me/ourworldtechupdate (Tech Updates) |
 
-**Join The Our World Tribe (Dev Requirments)**
+**Join The Our World Tribe (Dev Requirements)**
 
 https://drive.google.com/file/d/1b_G08UTALUg4H3jPlBdElZAFvyRcVKj1/view 
 
