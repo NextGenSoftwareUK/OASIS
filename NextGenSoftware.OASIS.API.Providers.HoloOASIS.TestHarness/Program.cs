@@ -83,7 +83,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.TestHarness
             Console.WriteLine("Initialized.");
             Console.WriteLine("Saving Avatar...");
 
-            _savedAvatar = new Avatar { Username = "dellams", Email = "david@nextgensoftware.co.uk", Password = "1234", FirstName = "David", LastName = "Ellams", DOB = "11/04/1980", Id = Guid.NewGuid(), Title = "Mr", Address = "blahahahaha" };
+            _savedAvatar = new Avatar { Username = "dellams", Email = "david@nextgensoftware.co.uk", Password = "1234", FirstName = "David", LastName = "Ellams", DOB = DateTime.Parse("11/04/1980"), Id = Guid.NewGuid(), Title = "Mr", Address = "blahahahaha" };
             await _savedAvatar.KarmaEarnt(KarmaTypePositive.HelpingTheEnvironment, KarmaSourceType.hApp, "Our World", "XR Educational Game To Make The World A Better Place", false);
             await _holoOASIS.SaveAvatarAsync(_savedAvatar);
         }
