@@ -15,6 +15,16 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
             this.ProviderCategory = ProviderCategory.StorageAndNetwork;
         }
 
+        public override bool DeleteAvatar(Guid id, bool softDelete = true)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override Task<bool> DeleteAvatarAsync(Guid id, bool softDelete = true)
+        {
+            throw new NotImplementedException();
+        }
+
         public List<IHolon> GetHolonsNearMe(HolonType Type)
         {
             throw new NotImplementedException();
@@ -45,6 +55,11 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
             throw new NotImplementedException();
         }
 
+        public override IAvatar LoadAvatar(string username)
+        {
+            throw new NotImplementedException();
+        }
+
         public override Task<IAvatar> LoadAvatarAsync(string providerKey)
         {
             throw new NotImplementedException();
@@ -60,12 +75,17 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
             throw new NotImplementedException();
         }
 
+        public override IAvatar SaveAvatar(IAvatar Avatar)
+        {
+            throw new NotImplementedException();
+        }
+
         public override Task<IAvatar> SaveAvatarAsync(IAvatar Avatar)
         {
             throw new NotImplementedException();
         }
 
-        public override Task<ISearchResults> SearchAsync(string searchTerm)
+        public override Task<ISearchResults> SearchAsync(ISearchParams searchParams)
         {
             throw new NotImplementedException();
         }

@@ -21,7 +21,7 @@ namespace NextGenSoftware.OASIS.API.Core.TestHarness
 
 
             Console.WriteLine("\nSaving Avatar...");
-            Avatar newAvatar = new Avatar { Username = "dellams", Email = "david@nextgensoftware.co.uk", Password = "1234", FirstName = "David", LastName = "Ellams", DOB = "11/04/1980", Id = Guid.NewGuid(), Title = "Mr", Address = "blahahahaha" };
+            Avatar newAvatar = new Avatar { Username = "dellams", Email = "david@nextgensoftware.co.uk", Password = "1234", FirstName = "David", LastName = "Ellams", DOB = DateTime.Parse("11/04/1980"), Id = Guid.NewGuid(), Title = "Mr", Address = "blahahahaha" };
             
             
             await newAvatar.KarmaEarnt(KarmaTypePositive.HelpingTheEnvironment, KarmaSourceType.hApp, "Our World", "XR Educational Game To Make The World A Better Place");
