@@ -2458,10 +2458,10 @@ http://www.yoga4autism.com <br/>
 |YouTube| https://www.youtube.com/channel/UC0_O4RwdY3lq1m3-K-njUxA | 
 |Discord| https://discord.gg/q9gMKU6 |
 |Telegram| https://t.me/ourworldthegamechat (General Chat) |
-|| https://t.me/ourworldthegamechat (Announcements) |
+|| https://t.me/ourworldthegame (Announcements) |
 || https://t.me/ourworldtechupdate (Tech Updates) |
 
-**Join The Our World Tribe (Dev Requirments)**
+**Join The Our World Tribe (Dev Requirements)**
 
 https://drive.google.com/file/d/1b_G08UTALUg4H3jPlBdElZAFvyRcVKj1/view 
 
