@@ -98,6 +98,18 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         }
 
         /// <summary>
+        /// Get's the list of providers that are auto-replicating. See SetAutoReplicate methods below for more info.
+        /// </summary>
+        /// <returns></returns>
+        [Authorize]
+        [HttpGet("GetProvidersThatAreAutoReplicating")]
+        public ActionResult<bool> GetProvidersThatAreAutoReplicating()
+        {
+            //TODO: Finish implementing.
+            return Ok(true);
+        }
+
+        /// <summary>
         /// Register the given provider.
         /// </summary>
         /// <param name="provider"></param>
@@ -228,7 +240,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpPost("SetFailOver/{failOver}")]
         public ActionResult<bool> SetFailOver(bool failOver)
         {
-           // ProviderManager.DefaultProviderTypes = providers;
+            //TODO: Finish implementing.
             return Ok(true);
         }
 
@@ -241,9 +253,37 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpPost("SetLoadBalance/{loadBalance}")]
         public ActionResult<bool> SetLoadBalance(bool loadBalance)
         {
-            // ProviderManager.DefaultProviderTypes = providers;
+            //TODO: Finish implementing.
             return Ok(true);
         }
+
+        /// <summary>
+        /// Enable/disable auto-replication between providers. If this is set to true then the OASIS will automatically replicate all data including the user's avatar to all available providers.
+        /// </summary>
+        /// <param name="autoReplicate"></param>
+        /// <returns></returns>
+        [Authorize]
+        [HttpPost("SetAutoReplicate/{autoReplicate}")]
+        public ActionResult<bool> SetAutoReplicate(bool autoReplicate)
+        {
+            //TODO: Finish implementing.
+            return Ok(true);
+        }
+
+        /// <summary>
+        /// Enable/disable auto-replication between providers. If this is set to true then the OASIS will automatically replicate all data including the user's avatar to the list of providers passed in. The OASIS will continue to replicate to the given providers until this method is called again passing in false along with a list of providers to disable auto-replication. NOTE: If a provider is in the list of providers to auto-replicate but is missing from the list when false is passed in, then it will continue to auto-replicate.
+        /// </summary>
+        /// <param name="autoReplicate"></param>
+        /// <param name="providers"></param>
+        /// <returns></returns>
+        [Authorize]
+        [HttpPost("SetAutoReplicate/{autoReplicate}/{providers}")]
+        public ActionResult<bool> SetAutoReplicate(bool autoReplicate, string[] providers)
+        {
+            //TODO: Finish implementing.
+            return Ok(true);
+        }
+
 
         /// <summary>
         /// Override a provider's config such as connnectionstring, etc
@@ -255,6 +295,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpPost("SetProviderConfig/{providerType}/{connectionString}")]
         public ActionResult<bool> SetProviderConfig(ProviderType providerType, string connectionString)
         {
+            //TODO: Test this works and then implement for rest of providers...
             switch (providerType)
             {
                 case ProviderType.MongoDBOASIS:
