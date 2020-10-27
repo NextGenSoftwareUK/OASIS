@@ -64,14 +64,14 @@ var loggedIn;
 				// document.getElementById("divNewAccount").style.display = "none";
 				// document.getElementById("divLogin").style.display = "block";
 				// document.getElementById("divForgotPassword").style.display = "none";
-				//event.preventDefault();
-				//removeClass(self.element, 'cd-signin-modal--is-visible');
+				event.preventDefault();
+				removeClass(self.element, 'cd-signin-modal--is-visible');
 			}
 		});
 		//close modal when clicking the esc keyboard button
 		document.addEventListener('keydown', function (event)
 		{
-			//(event.which == '27') && removeClass(self.element, 'cd-signin-modal--is-visible');
+			(event.which == '27') && removeClass(self.element, 'cd-signin-modal--is-visible');
 		});
 
 		//hide/show password
@@ -149,7 +149,8 @@ var loggedIn;
 				event.preventDefault();
 
 				//var xhr = createCORSRequest('POST', "https://localhost:44371/api/users/authenticate");
-				var xhr = createCORSRequest('POST', "https://localhost:5001/api/avatar/authenticate");
+				//var xhr = createCORSRequest('POST', "https://localhost:5001/api/avatar/authenticate");
+				var xhr = createCORSRequest('POST', "https://oasisplatform.world/api/avatar/authenticate");
 				//console.log("xhr = " + xhr);
 
 				if (!xhr) 
