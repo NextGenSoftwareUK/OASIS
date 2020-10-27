@@ -415,6 +415,9 @@ Below is a list of the protocols/networks/platforms that the OASIS API will supp
 | [Telos](https://telosnetwork.io/) | The Telos Blockchain was launched in December of 2018 in response to what the founders saw as an opportunity to build, and improve upon the EOSIO software. | In Dev | TelosOASIS
 | [SEEDS](https://www.joinseeds.com/) | A payment platform and financial ecosystem to empower humanity and heal our planet. | In Dev | SEEDSOASIS
 | [IPFS](https://ipfs.io) | The InterPlanetary File System is a protocol and peer-to-peer network for storing and sharing data in a distributed file system. IPFS uses content-addressing to uniquely identify each file in a global namespace connecting all computing devices.| In Dev | IPFSOASIS
+| [Elrond](https://elrond.com/) |A highly scalable, fast and secure blockchain platform for distributed apps, enterprise use cases and the new internet economy. | In Dev  | ElrondOASIS
+| [HIVE](https://www.hiveblockchain.com/) |First publicly listed blockchain infrastructure company that bridges blockchain and cryptocurrencies to traditional capital markets. | In Dev  | HIVEOASIS
+| [Orion Protocol](https://www.orionprotocol.io/) |Trade with the liquidity of the entire crypto market in one place - without ever giving up your private keys. | In Dev  | OrionProtocolOASIS
 | [Hedera Hashgraph](https://www.hedera.com/) | Hedera is a decentralized public network where anyone can carve out a piece of cyberspace to transact, play, and socialize in a secure, trusted environment. | In Dev  | HashgraphOASIS
 | [ScuttleButt](https://github.com/ssbc/) | A distributed and secure peer to peer social network | In Dev | ScuttleButtOASIS
 | [HoloWeb](https://holoweb.io//) | We’re reinventing the way the web works, and taking a stand for our sovereignty in cyberspace.| In Dev | HoloWebOASIS
