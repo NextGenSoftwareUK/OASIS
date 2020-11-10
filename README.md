@@ -1,7 +1,7 @@
 
 
 
-# OASIS API / Our World / HoloNET / HoloUnity / .NET HDK Altha v0.1.1
+# OASIS API / Our World / HoloNET / HoloUnity / .NET HDK Altha v0.1.2
 
 ## Contents
 - [Introduction](#introduction)
@@ -191,6 +191,9 @@ The first phase of Our World will be a de-centralised distributed XR Gamified 3D
 Next it will implement the ARC (Augmented Reality Computer) Membrane allowing the revolutionary next-gen operating system to fully interface & integrate with the 3D Map & Avatar/Karma system as well as render its own 3D interfaces and 2D HUD overlays on top of the map, etc.
 
 Next, it will port Noomap to Unity and will implement a Synergy Engine allowing people to easily find and match solutions/desires/passions and to also find various solution providers, which again will be fully integrated with the 3D Map & Avatar/Karma system.
+
+Read another more refined (and updated) summary on the github repo code base for the Our World Smartphone AR Prototype:<br>
+https://github.com/NextGenSoftwareUK/Our-World-Smartphone-Prototype-AR
 
 <br>
 
