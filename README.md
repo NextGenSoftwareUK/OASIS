@@ -1173,7 +1173,7 @@ You can manually download using the links below:
 
 <a href="https://docs.wixstatic.com/ugd/4280d8_999d98ba615e4fa6ab4383a415ee24c5.pdf">Junior NextGen Developer Training Programme</a>
 
-<b>NEW</b> The Justice League Training Accademny is a superhero themed upgrade to the above training course fully integrated with the OASIS API so you can earn karma for learning and even more karma for providing training material. This is a superhero training platform, are you ready to be the hero of your own life story? You also unlock power ups and badges as you progress, come join the FUN NOW! :)
+<b>NEW</b> - The Justice League Training Accademny is a superhero themed upgrade to the above training course fully integrated with the OASIS API so you can earn karma for learning and even more karma for providing training material. This is a superhero training platform, are you ready to be the hero of your own life story? You also unlock power ups and badges as you progress, come join the FUN NOW! :)
 
 https://www.thejusticeleagueaccademy.icu
 
