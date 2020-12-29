@@ -150,9 +150,20 @@ var loggedIn;
 
 				//var xhr = createCORSRequest('POST', "https://localhost:44371/api/users/authenticate");
 				//var xhr = createCORSRequest('POST', "https://localhost:5001/api/avatar/authenticate");
-				var xhr = createCORSRequest('POST', "https://oasisplatform.world/api/avatar/authenticate");
+				//var xhr = createCORSRequest('POST', "https://oasisplatform.world/api/avatar/authenticate");
 				//console.log("xhr = " + xhr);
 
+				$.post("https://oasisplatform.world/api/avatar/authenticate",
+					{
+						name: "Donald Duck",
+						city: "Duckburg"
+					},
+					function (data, status)
+					{
+						alert("Data: " + data + "\nStatus: " + status);
+					});
+
+				/*
 				if (!xhr) 
 				{
 					alert("Error Occured. CORS Not Supported. Please Try Another Browser...");
@@ -188,6 +199,7 @@ var loggedIn;
 					console.log("There was an error making the request.");
 				//	HandleError(iSequence, iPhase, tab, "Unknown Error Occured!");
 				};
+				*/
 
 				//xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
 				xhr.send("username=david@nextgensoftware.co.uk&password=lettherebelight!");

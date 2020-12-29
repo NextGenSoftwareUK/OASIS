@@ -95,21 +95,22 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
 
         public static async Task<CoronalEjection> Light(GenesisType type, string name, string dnaFolder = "", string genesisCSharpFolder = "", string genesisRustFolder = "", string genesisNameSpace = "")
         {
-            return await Light(type, name, null, dnaFolder, genesisCSharpFolder, genesisNameSpace);
+            return await Light(type, name, (ICelestialBody)null, dnaFolder, genesisCSharpFolder, genesisRustFolder, genesisNameSpace);
+            //return await Light(type, name, new Planet("", HoloNETClientType.Desktop, ""), dnaFolder, genesisCSharpFolder, genesisRustFolder, genesisNameSpace);
         }
 
 
-        public static async Task<CoronalEjection> Light(GenesisType type, string name, IStar starToAddPlanetTo, string dnaFolder = "", string genesisCSharpFolder = "", string genesisRustFolder = "", string genesisNameSpace = "")
+        public static async Task<CoronalEjection> Light(GenesisType type, string name, IStar starToAddPlanetTo = null, string dnaFolder = "", string genesisCSharpFolder = "", string genesisRustFolder = "", string genesisNameSpace = "")
         {
-            return await Light(type, name, starToAddPlanetTo, dnaFolder, genesisCSharpFolder, genesisNameSpace);
+            return await Light(type, name, (ICelestialBody)starToAddPlanetTo, dnaFolder, genesisCSharpFolder, genesisRustFolder, genesisNameSpace);
         }
 
-        public static async Task<CoronalEjection> Light(GenesisType type, string name, IPlanet planetToAddMoonTo, string dnaFolder = "", string genesisCSharpFolder = "", string genesisRustFolder = "", string genesisNameSpace = "")
+        public static async Task<CoronalEjection> Light(GenesisType type, string name, IPlanet planetToAddMoonTo = null, string dnaFolder = "", string genesisCSharpFolder = "", string genesisRustFolder = "", string genesisNameSpace = "")
         {
-            return await Light(type, name, planetToAddMoonTo, dnaFolder, genesisCSharpFolder, genesisNameSpace);
+            return await Light(type, name, (ICelestialBody)planetToAddMoonTo, dnaFolder, genesisCSharpFolder, genesisRustFolder, genesisNameSpace);
         }
 
-        private static async Task<CoronalEjection> Light(GenesisType type, string name, ICelestialBody celestialBodyParent, string dnaFolder = "", string genesisCSharpFolder = "", string genesisRustFolder = "", string genesisNameSpace = "")
+        private static async Task<CoronalEjection> Light(GenesisType type, string name, ICelestialBody celestialBodyParent = null, string dnaFolder = "", string genesisCSharpFolder = "", string genesisRustFolder = "", string genesisNameSpace = "")
         {
             StarDNA starDNA;
             //OASIS.API.Core.ICelestialBody newBody = null;
