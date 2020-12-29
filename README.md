@@ -1,7 +1,7 @@
 
 
 
-# OASIS API / Our World / HoloNET / HoloUnity / .NET HDK Altha v0.1.1
+# OASIS API / Our World / HoloNET / HoloUnity / .NET HDK Altha v0.1.2
 
 ## Contents
 - [Introduction](#introduction)
@@ -191,6 +191,9 @@ The first phase of Our World will be a de-centralised distributed XR Gamified 3D
 Next it will implement the ARC (Augmented Reality Computer) Membrane allowing the revolutionary next-gen operating system to fully interface & integrate with the 3D Map & Avatar/Karma system as well as render its own 3D interfaces and 2D HUD overlays on top of the map, etc.
 
 Next, it will port Noomap to Unity and will implement a Synergy Engine allowing people to easily find and match solutions/desires/passions and to also find various solution providers, which again will be fully integrated with the 3D Map & Avatar/Karma system.
+
+Read another more refined (and updated) summary on the github repo code base for the Our World Smartphone AR Prototype:<br>
+https://github.com/NextGenSoftwareUK/Our-World-Smartphone-Prototype-AR
 
 <br>
 
@@ -1169,6 +1172,11 @@ You can manually download using the links below:
 <a href="https://docs.wixstatic.com/ugd/4280d8_ad8787bd42b1471bae73003bfbf111f7.pdf">NextGen Developer Training Programme</a>
 
 <a href="https://docs.wixstatic.com/ugd/4280d8_999d98ba615e4fa6ab4383a415ee24c5.pdf">Junior NextGen Developer Training Programme</a>
+
+<b>NEW</b> - The Justice League Training Accademny is a superhero themed upgrade to the above training course fully integrated with the OASIS API so you can earn karma for learning and even more karma for providing training material. This is a superhero training platform, are you ready to be the hero of your own life story? You also unlock power ups and badges as you progress, come join the FUN NOW! :)
+
+https://www.thejusticeleagueaccademy.icu
+
 
 
 ## The Power Of Autism
@@ -2445,11 +2453,16 @@ Yoga4Autism Ltd
 <br/> 
 <br/> 
 
+**Our World Smartphone AR Prototype**
+
+https://github.com/NextGenSoftwareUK/Our-World-Smartphone-Prototype-AR
+
 **Sites**
 
 http://www.ourworldthegame.com <br/>
 http://www.nextgensoftware.co.uk <br/>
 http://www.yoga4autism.com <br/> 
+https://www.thejusticeleagueaccademy.icu <br/> 
 
 **Social**
 
