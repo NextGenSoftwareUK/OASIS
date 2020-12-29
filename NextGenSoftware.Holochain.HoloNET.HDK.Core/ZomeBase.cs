@@ -313,27 +313,44 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
         public virtual async Task<IHolon> SaveHolonAsync(string holonType, IHolon savingHolon)
         {
             CallZomeFunctionAsync(string.Concat(holonType, string.IsNullOrEmpty(savingHolon.ProviderKey) ? "_create" : "_update"), savingHolon);
-            return await _taskCompletionSourceSaveHolon.Task; //TODO: Look into this?
-        }
 
+            //   return await _taskCompletionSourceSaveHolon.Task; //TODO: Need to add timeout for this so if connection to hc conductor fails or timesout this will return eventually! :)
+
+            var task = _taskCompletionSourceSaveHolon.Task;
+
+            if (await Task.WhenAny(task, Task.Delay(1000)) == task)
+                return task.Result;
+            else
+                throw new TimeoutException("Timeout error occured saving holon.");
+        }
         public virtual async Task<IHolon> CallZomeFunctionAsync(string zomeFunctionName, IHolon holon)
         {
-            await _taskCompletionSourceGetInstance.Task;
+            //await _taskCompletionSourceGetInstance.Task; //TODO: Need to add timeout for this so if connection to hc conductor fails or timesout this will return eventually! :)
 
-            if (HoloNETClient.State == System.Net.WebSockets.WebSocketState.Open && !string.IsNullOrEmpty(_hcinstance))
+            var task = _taskCompletionSourceGetInstance.Task; 
+            if (await Task.WhenAny(task, Task.Delay(1000)) == task)
             {
-                // Rust/HC does not like null strings so need to set to empty string.
-                if (holon.ProviderKey == null)
-                    holon.ProviderKey = string.Empty;
+                // task completed within timeout
+                if (HoloNETClient.State == System.Net.WebSockets.WebSocketState.Open && !string.IsNullOrEmpty(_hcinstance))
+                {
+                    // Rust/HC does not like null strings so need to set to empty string.
+                    if (holon.ProviderKey == null)
+                        holon.ProviderKey = string.Empty;
 
-                //TODO: Not sure we need this anymore? Need to look into...
-                _currentId++;
-               // _savingHolons[_currentId.ToString()] = savingHolon;
+                    //TODO: Not sure we need this anymore? Need to look into...
+                    _currentId++;
+                    // _savingHolons[_currentId.ToString()] = savingHolon;
 
-                await HoloNETClient.CallZomeFunctionAsync(_currentId.ToString(), _hcinstance, zomeFunctionName, new { entry = holon });
+                    await HoloNETClient.CallZomeFunctionAsync(_currentId.ToString(), _hcinstance, zomeFunctionName, new { entry = holon });
 
-                //TODO: Fix this
-                // return await _taskCompletionSourceSaveHolon.Task;
+                    //TODO: Fix this
+                    // return await _taskCompletionSourceSaveHolon.Task;
+                }
+            }
+            else
+            {
+                // timeout logic
+                throw new TimeoutException("Timeout error occured waiting for Holochain conductor to return instance.");
             }
 
             return null;

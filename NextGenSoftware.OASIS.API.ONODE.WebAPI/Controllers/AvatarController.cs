@@ -123,6 +123,22 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// </summary>
         /// <param name="model"></param>
         /// <returns></returns>
+        [HttpPost("test/{providerType}/{setGlobally}")]
+        public ActionResult<AuthenticateResponse> test(AuthenticateRequest model, ProviderType providerType, bool setGlobally = false)
+        {
+            AuthenticateResponse response = _avatarService.Authenticate(model, ipAddress());
+
+            if (!response.IsError && response.Avatar != null)
+                setTokenCookie(response.Avatar.RefreshToken);
+
+            return Ok(response);
+        }
+
+        /// <summary>
+        /// Authenticate and log in using the given avatar credentials.
+        /// </summary>
+        /// <param name="model"></param>
+        /// <returns></returns>
         [HttpPost("authenticate")]
         public ActionResult<AuthenticateResponse> Authenticate(AuthenticateRequest model)
         {
@@ -147,6 +163,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             GetAndActivateProvider(providerType, setGlobally);
             return Authenticate(model);
         }
+
 
         /// <summary>
         /// Refresh and generate a new JWT Security Token. This will only work if you are already logged in &amp; authenticated.
