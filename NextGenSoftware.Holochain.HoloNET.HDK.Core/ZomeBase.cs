@@ -320,8 +320,12 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
 
             if (await Task.WhenAny(task, Task.Delay(1000)) == task)
                 return task.Result;
+
             else
-                throw new TimeoutException("Timeout error occured saving holon.");
+                return null;
+
+           // else
+             //   throw new TimeoutException("Timeout error occured saving holon.");
         }
         public virtual async Task<IHolon> CallZomeFunctionAsync(string zomeFunctionName, IHolon holon)
         {
@@ -350,7 +354,7 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
             else
             {
                 // timeout logic
-                throw new TimeoutException("Timeout error occured waiting for Holochain conductor to return instance.");
+               // throw new TimeoutException("Timeout error occured waiting for Holochain conductor to return instance.");
             }
 
             return null;
