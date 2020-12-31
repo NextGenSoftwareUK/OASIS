@@ -107,7 +107,7 @@ namespace NextGenSoftware.Holochain.HoloNET.Client.Core
                 if (Logger == null)
                     throw new HoloNETException("ERROR: No Logger Has Been Specified! Please set a Logger with the Logger Property.");
 
-                if (WebSocket.State != WebSocketState.Open && WebSocket.State != WebSocketState.Aborted)
+                if (WebSocket.State != WebSocketState.Connecting && WebSocket.State != WebSocketState.Open && WebSocket.State != WebSocketState.Aborted)
                 {
                     if (Config.AutoStartConductor)
                     {
