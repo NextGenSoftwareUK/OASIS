@@ -11,41 +11,42 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core.TestHarness.Genesis
 
         }
 
-        public OurWorld() : base()
+        public OurWorld() : base(GenesisType.Star)
         {
 
         }
 
-        //public OurWorld(string holochainConductorURI, HoloNETClientType type, string providerKey) : base(holochainConductorURI, type, providerKey)
-        //{
+        /*
+        public OurWorld(string holochainConductorURI, HoloNETClientType type, string providerKey) : base(holochainConductorURI, type, providerKey)
+        {
 
-        //}
+        }
 
-        //public OurWorld(string holochainConductorURI, HoloNETClientType type) : base(holochainConductorURI, type)
-        //{
+        public OurWorld(string holochainConductorURI, HoloNETClientType type) : base(holochainConductorURI, type)
+        {
 
-        //}
+        }
 
-        //public OurWorld(HoloNETClientBase holoNETClient, string providerKey) : base(holoNETClient, providerKey)
-        //{
+        public OurWorld(HoloNETClientBase holoNETClient, string providerKey) : base(holoNETClient, providerKey)
+        {
 
-        //}
+        }
 
-        //public OurWorld(HoloNETClientBase holoNETClient) : base(holoNETClient)
-        //{
+        public OurWorld(HoloNETClientBase holoNETClient) : base(holoNETClient)
+        {
 
-        //}
+        }*/
 
 
         public async Task<IHolon> LoadSuperTestAsync(string hcEntryAddressHash)
         {
-            return await CelestialBodyCore.LoadHolonAsync("super_test", hcEntryAddressHash);
+            return await base.PlanetCore.LoadHolonAsync("super_test", hcEntryAddressHash);
         }
 
         public async Task<IHolon> SaveSuperTestAsync(IHolon holon)
         {
             //return await base.SaveHolonAsync("super_test", holon);
-            return await CelestialBodyCore.SaveHolonAsync("super_test", holon);
+            return await base.PlanetCore.SaveHolonAsync("super_test", holon);
         }
 
         /*

@@ -6,20 +6,21 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core.CSharpTemplates
 {
     public class CelestialBodyDNATemplate : CelestialBody, ICelestialBody
     {
-        //public PlanetDNATemplate(HoloNETClientBase holoNETClient, string providerKey, Guid id) : base(holoNETClient, providerKey)
-        //{
-
-      //  }
-
-        public CelestialBodyDNATemplate(string holochainConductorURI, HoloNETClientType type, string providerKey) : base(holochainConductorURI, type, providerKey, GenesisType.Star)
+        public CelestialBodyDNATemplate(string providerKey) : base(providerKey, GenesisType.Star)
         {
 
         }
 
-        //public PlanetDNATemplate(string holochainConductorURI, HoloNETClientType type, Guid id) : base(holochainConductorURI, type, id)
-        //{
+        public CelestialBodyDNATemplate() : base(GenesisType.Star)
+        {
 
-        //}
+        }
+
+        /*
+        public CelestialBodyDNATemplate(string holochainConductorURI, HoloNETClientType type, string providerKey) : base(holochainConductorURI, type, providerKey, GenesisType.Star)
+        {
+
+        }
 
         public CelestialBodyDNATemplate(string holochainConductorURI, HoloNETClientType type) : base(holochainConductorURI, type, GenesisType.Star)
         {
@@ -34,7 +35,7 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core.CSharpTemplates
         public CelestialBodyDNATemplate(HoloNETClientBase holoNETClient) : base(holoNETClient, GenesisType.Star)
         {
 
-        }
+        }*/
 
 
         public async Task<IHolon> LoadHOLONAsync(string hcEntryAddressHash)

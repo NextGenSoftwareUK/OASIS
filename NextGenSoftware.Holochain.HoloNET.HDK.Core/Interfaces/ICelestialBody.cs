@@ -42,8 +42,8 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
         void Radiate();
         void Reflect();
         */
-        Task Initialize(Guid id, HoloNETClientBase holoNETClient);
-        Task Initialize(Guid id, string holochainConductorURI, HoloNETClientType type);
+        //Task Initialize(Guid id, HoloNETClientBase holoNETClient);
+       // Task Initialize(Guid id, string holochainConductorURI, HoloNETClientType type);
         Task Initialize(HoloNETClientBase holoNETClient);
         Task Initialize(string holochainConductorURI, HoloNETClientType type);
      //   void LoadAll();

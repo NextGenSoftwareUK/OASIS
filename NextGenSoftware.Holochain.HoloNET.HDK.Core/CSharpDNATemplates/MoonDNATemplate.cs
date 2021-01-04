@@ -5,23 +5,23 @@ using System.Threading.Tasks;
 
 namespace NextGenSoftware.Holochain.HoloNET.HDK.Core.CSharpTemplates
 {
-    //public class PlanetDNATemplate : CelestialBody, IPlanet
     public class MoonDNATemplate : Moon, IMoon
     {
-        //public PlanetDNATemplate(HoloNETClientBase holoNETClient, string providerKey, Guid id) : base(holoNETClient, providerKey)
-        //{
-
-      //  }
-
-        public MoonDNATemplate(string holochainConductorURI, HoloNETClientType type, string providerKey) : base(holochainConductorURI, type, providerKey)
+        public MoonDNATemplate(string providerKey) : base(providerKey)
         {
 
         }
 
-        //public PlanetDNATemplate(string holochainConductorURI, HoloNETClientType type, Guid id) : base(holochainConductorURI, type, id)
-        //{
+        public MoonDNATemplate() : base()
+        {
 
-        //}
+        }
+
+        /*
+        public MoonDNATemplate(string holochainConductorURI, HoloNETClientType type, string providerKey) : base(holochainConductorURI, type, providerKey)
+        {
+
+        }
 
         public MoonDNATemplate(string holochainConductorURI, HoloNETClientType type) : base(holochainConductorURI, type)
         {
@@ -36,7 +36,7 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core.CSharpTemplates
         public MoonDNATemplate(HoloNETClientBase holoNETClient) : base(holoNETClient)
         {
 
-        }
+        }*/
 
         public async Task<IHolon> LoadHOLONAsync(string hcEntryAddressHash)
         {

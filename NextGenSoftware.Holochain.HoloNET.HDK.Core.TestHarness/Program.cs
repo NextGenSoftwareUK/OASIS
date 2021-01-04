@@ -54,6 +54,8 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core.TestHarness
             Star.OnHolonsLoaded += Star_OnHolonsLoaded;
             Star.OnHolonSaved += Star_OnHolonSaved;
             Star.OnInitialized += Star_OnInitialized;
+            Star.OnStarError += Star_OnStarError;
+
           //  Star.StarCore.OnZomeError += StarCore_OnZomeError;
           //  Star.StarCore.HoloNETClient.OnError += HoloNETClient_OnError;
 
@@ -145,6 +147,11 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core.TestHarness
             }
             else
                 Console.WriteLine("Error Beaming In.");
+        }
+
+        private static void Star_OnStarError(object sender, StarErrorEventArgs e)
+        {
+            Console.WriteLine(string.Concat("Star Error Occured. EndPoint: ", e.EndPoint, ". Reason: ", e.Reason, ". Error Details: ", e.ErrorDetails, "EndPoint: ", e.EndPoint));
         }
 
         private static void HoloNETClient_OnError(object sender, Client.Core.HoloNETErrorEventArgs e)

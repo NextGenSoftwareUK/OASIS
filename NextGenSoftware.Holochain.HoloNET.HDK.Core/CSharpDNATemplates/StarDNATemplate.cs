@@ -1,30 +1,40 @@
-﻿using NextGenSoftware.Holochain.HoloNET.Client.Core;
-using NextGenSoftware.OASIS.API.Core;
+﻿using NextGenSoftware.OASIS.API.Core;
 using System.Threading.Tasks;
 
 namespace NextGenSoftware.Holochain.HoloNET.HDK.Core.CSharpTemplates
 {
     public class StarDNATemplate : StarBody, IStar
     {
-        public StarDNATemplate(string holochainConductorURI, HoloNETClientType type, string providerKey) : base(holochainConductorURI, type, providerKey)
+        public StarDNATemplate(string providerKey) : base(providerKey)
         {
 
         }
 
-        public StarDNATemplate(string holochainConductorURI, HoloNETClientType type) : base(holochainConductorURI, type)
+        public StarDNATemplate() : base()
         {
 
         }
 
-        public StarDNATemplate(HoloNETClientBase holoNETClient, string providerKey) : base(holoNETClient, providerKey)
-        {
 
-        }
+        //public StarDNATemplate(string holochainConductorURI, HoloNETClientType type, string providerKey) : base(holochainConductorURI, type, providerKey)
+        //{
 
-        public StarDNATemplate(HoloNETClientBase holoNETClient) : base(holoNETClient)
-        {
+        //}
 
-        }
+        //public StarDNATemplate(string holochainConductorURI, HoloNETClientType type) : base(holochainConductorURI, type)
+        //{
+
+        //}
+
+        //public StarDNATemplate(HoloNETClientBase holoNETClient, string providerKey) : base(holoNETClient, providerKey)
+        //{
+
+        //}
+
+        //public StarDNATemplate(HoloNETClientBase holoNETClient) : base(holoNETClient)
+        //{
+
+        //}
 
         public async Task<IHolon> LoadHOLONAsync(string hcEntryAddressHash)
         {
