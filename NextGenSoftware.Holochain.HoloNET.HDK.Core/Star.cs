@@ -34,6 +34,9 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
         public delegate void ZomeError(object sender, ZomeErrorEventArgs e);
         public static event ZomeError OnZomeError;
 
+        public delegate void StarError(object sender, StarErrorEventArgs e);
+        public static event StarError OnStarError;
+
         //TODO: Not sure if we want to expose the HoloNETClient events at this level? They can subscribe to them through the HoloNETClient property below...
         public delegate void Disconnected(object sender, DisconnectedEventArgs e);
         public static event Disconnected OnDisconnected;
@@ -44,8 +47,9 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
         // Possible to override settings in DNA file if this method is manually called...
         public static void Initialize(string holochainConductorURI, HoloNETClientType type, string providerKey)
         {
-          //  StarCore = new StarCore(holochainConductorURI, type, providerKey);
-            StarBody = new StarBody(holochainConductorURI, type, providerKey);
+            //  StarCore = new StarCore(holochainConductorURI, type, providerKey);
+            //StarBody = new StarBody(holochainConductorURI, type, providerKey);
+            StarBody = new StarBody(providerKey);
 
             //StarCore.OnHolonLoaded += StarCore_OnHolonLoaded;
             //StarCore.OnHolonSaved += StarCore_OnHolonSaved;
@@ -58,6 +62,15 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
             StarBody.OnHolonsLoaded += StarCore_OnHolonsLoaded;
             StarBody.OnZomeError += StarCore_OnZomeError;
             StarBody.OnInitialized += StarCore_OnInitialized;
+
+            StarBody.Initialize(holochainConductorURI, type);
+            StarBody.HoloNETClient.OnError += HoloNETClient_OnError;
+        }
+
+        private static void HoloNETClient_OnError(object sender, HoloNETErrorEventArgs e)
+        {
+            //ALL HoloNET errors should now come through this handler (because this client is passed to everything else).
+            OnStarError?.Invoke(sender, new StarErrorEventArgs() { EndPoint = StarBody.HoloNETClient.EndPoint, Reason = e.Reason, ErrorDetails = e.ErrorDetails, HoloNETErrorDetails = e });
         }
 
         private static void StarCore_OnInitialized(object sender, EventArgs e)
@@ -198,22 +211,25 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
             switch (type)
             {
                 case GenesisType.Moon:
-                    newBody = new Moon(StarBody.HoloNETClient);
+                    //newBody = new Moon(StarBody.HoloNETClient);
+                    newBody = new Moon();
                     break;
 
                 case GenesisType.Planet:
-                    newBody = new Planet(StarBody.HoloNETClient);
+                    newBody = new Planet();
+                    //newBody = new Planet(StarBody.HoloNETClient);
                     break;
 
                 case GenesisType.Star:
-                    newBody = new StarBody(StarBody.HoloNETClient);
+                    //newBody = new StarBody(StarBody.HoloNETClient);
+                    newBody = new StarBody();
                     break;
             }
 
             newBody.Id = Guid.NewGuid();
             newBody.Name = name;
             newBody.OnZomeError += NewBody_OnZomeError;
-            
+            await newBody.Initialize(StarBody.HoloNETClient);
 
             foreach (FileInfo file in files)
             {
@@ -487,6 +503,7 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
         private static void NewBody_OnZomeError(object sender, ZomeErrorEventArgs e)
         {
             OnZomeError?.Invoke(sender, new ZomeErrorEventArgs() { EndPoint = StarBody.HoloNETClient.EndPoint, Reason = e.Reason, ErrorDetails = e.ErrorDetails, HoloNETErrorDetails = e.HoloNETErrorDetails });
+            OnStarError?.Invoke(sender, new StarErrorEventArgs() { EndPoint = StarBody.HoloNETClient.EndPoint, Reason = e.Reason, ErrorDetails = e.ErrorDetails, HoloNETErrorDetails = e.HoloNETErrorDetails });
         }
 
         //TODO: Get this working... :)

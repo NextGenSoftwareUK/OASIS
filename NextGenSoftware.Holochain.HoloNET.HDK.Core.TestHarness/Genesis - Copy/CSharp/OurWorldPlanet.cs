@@ -6,35 +6,35 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core.TestHarness.Genesis
 {
     public class OurWorld : Planet, IPlanet
     {
-        //public PlanetDNATemplate(HoloNETClientBase holoNETClient, string providerKey, Guid id) : base(holoNETClient, providerKey)
-        //{
-
-      //  }
-
-        public OurWorld(string holochainConductorURI, HoloNETClientType type, string providerKey) : base(holochainConductorURI, type, providerKey)
+        public OurWorld(string providerKey) : base(providerKey)
         {
 
         }
 
-        //public PlanetDNATemplate(string holochainConductorURI, HoloNETClientType type, Guid id) : base(holochainConductorURI, type, id)
+        public OurWorld() : base()
+        {
+
+        }
+
+        //public OurWorld(string holochainConductorURI, HoloNETClientType type, string providerKey) : base(holochainConductorURI, type, providerKey)
         //{
 
         //}
 
-        public OurWorld(string holochainConductorURI, HoloNETClientType type) : base(holochainConductorURI, type)
-        {
+        //public OurWorld(string holochainConductorURI, HoloNETClientType type) : base(holochainConductorURI, type)
+        //{
 
-        }
+        //}
 
-        public OurWorld(HoloNETClientBase holoNETClient, string providerKey) : base(holoNETClient, providerKey)
-        {
+        //public OurWorld(HoloNETClientBase holoNETClient, string providerKey) : base(holoNETClient, providerKey)
+        //{
 
-        }
+        //}
 
-        public OurWorld(HoloNETClientBase holoNETClient) : base(holoNETClient)
-        {
+        //public OurWorld(HoloNETClientBase holoNETClient) : base(holoNETClient)
+        //{
 
-        }
+        //}
 
 
         public async Task<IHolon> LoadSuperTestAsync(string hcEntryAddressHash)

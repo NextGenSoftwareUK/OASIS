@@ -74,15 +74,42 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
 
         }
 
+        //public CelestialBody(Guid id, GenesisType genesisType)
+        //{
+        //    this.GenesisType = genesisType;
+        //    this.Id = id;
+        //}
+
+        public CelestialBody(GenesisType genesisType)
+        {
+            this.GenesisType = genesisType;
+        }
+
+        //TODO: Don't think we need to pass Id in if we are using ProviderKey?
+        public CelestialBody(string providerKey, GenesisType genesisType)
+        {
+            this.GenesisType = genesisType;
+            this.ProviderKey = providerKey;
+        }
+
+    
+        /*
         public CelestialBody(HoloNETClientBase holoNETClient, Guid id, GenesisType genesisType)
         {
             this.GenesisType = genesisType;
-            Initialize(id, holoNETClient);
+            this.Id = id;
+            this.HoloNETClient = holoNETClient;
+
+            //Initialize(id, holoNETClient);
         }
+
 
         public CelestialBody(string holochainConductorURI, HoloNETClientType type, Guid id, GenesisType genesisType)
         {
             this.GenesisType = genesisType;
+            this.Id = id;
+            this.HolochainConductorURI = holochainConductorURI;
+
             Initialize(id, holochainConductorURI, type);
         }
 
@@ -126,7 +153,7 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
             this.ProviderKey = providerKey;
             Initialize(holochainConductorURI, type);
         }
-
+        */
 
         /*
         public CelestialBody(HoloNETClientBase holoNETClient, Guid id, string rustHolonType)
@@ -454,17 +481,18 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
             await Initialize(this.HoloNETClient);
         }
 
-        public async Task Initialize(Guid id, string holochainConductorURI, HoloNETClientType type)
-        {
-            this.Id = id;
-            await Initialize(holochainConductorURI, type);
-        }
+        //TODO: What use case is the Guid Id used for when we have Provider Key?
+        //public async Task Initialize(Guid id, string holochainConductorURI, HoloNETClientType type)
+        //{
+        //   // this.Id = id;
+        //    await Initialize(holochainConductorURI, type);
+        //}
 
-        public async Task Initialize(Guid id, HoloNETClientBase holoNETClient)
-        {
-            this.Id = id;
-            await Initialize(holoNETClient);
-        }
+        //public async Task Initialize(Guid id, HoloNETClientBase holoNETClient)
+        //{
+        //   // this.Id = id;
+        //    await Initialize(holoNETClient);
+        //}
 
         public async Task Initialize(HoloNETClientBase holoNETClient)
         {
@@ -513,7 +541,7 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
         {
             HoloNETClient.OnConnected += HoloNETClient_OnConnected;
             HoloNETClient.OnDisconnected += HoloNETClient_OnDisconnected;
-            HoloNETClient.OnError += HoloNETClient_OnError;
+          //  HoloNETClient.OnError += HoloNETClient_OnError;
             HoloNETClient.OnDataReceived += HoloNETClient_OnDataReceived;
             HoloNETClient.OnGetInstancesCallBack += HoloNETClient_OnGetInstancesCallBack;
             HoloNETClient.OnSignalsCallBack += HoloNETClient_OnSignalsCallBack;

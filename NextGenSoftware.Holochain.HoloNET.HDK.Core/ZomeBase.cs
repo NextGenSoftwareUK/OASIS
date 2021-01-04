@@ -70,32 +70,15 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
 
         //}
 
-      //  public ZomeBase(HoloNETClientBase holoNETClient, string zomeName, List<string> holochainDataObjectNames)
+
         public ZomeBase(HoloNETClientBase holoNETClient, string zomeName)
         {
             Initialize(zomeName, holoNETClient);
-
-            //for (int i = 0; i < holochainDataObjectNames.Count; i++)
-            //{
-            //    _loadFuncNames[0] = string.Concat("create_", holochainDataObjectNames[i]);
-            //    _saveFuncNames[1] = string.Concat("read_", holochainDataObjectNames[i]);
-            //    _saveFuncNames[2] = string.Concat("update_", holochainDataObjectNames[i]);
-            //    _saveFuncNames[3] = string.Concat("delete_", holochainDataObjectNames[i]);
-            //}
         }
 
-        //public ZomeBase(string holochainConductorURI, string zomeName, HoloNETClientType type, List<string> holochainDataObjectNames)
         public ZomeBase(string holochainConductorURI, string zomeName, HoloNETClientType type)
         {
             Initialize(zomeName, holochainConductorURI, type);
-
-            //for (int i = 0; i < holochainDataObjectNames.Count; i++)
-            //{
-            //    _loadFuncNames[0] = string.Concat("create_", holochainDataObjectNames[i]);
-            //    _saveFuncNames[1] = string.Concat("read_", holochainDataObjectNames[i]);
-            //    _saveFuncNames[2] = string.Concat("update_", holochainDataObjectNames[i]);
-            //    _saveFuncNames[3] = string.Concat("delete_", holochainDataObjectNames[i]);
-            //}
         }
 
         /*
@@ -214,7 +197,7 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
         {
             HoloNETClient.OnConnected += HoloNETClient_OnConnected;
             HoloNETClient.OnDisconnected += HoloNETClient_OnDisconnected;
-            HoloNETClient.OnError += HoloNETClient_OnError;
+           // HoloNETClient.OnError += HoloNETClient_OnError;
             HoloNETClient.OnDataReceived += HoloNETClient_OnDataReceived;
             HoloNETClient.OnGetInstancesCallBack += HoloNETClient_OnGetInstancesCallBack;
             HoloNETClient.OnSignalsCallBack += HoloNETClient_OnSignalsCallBack;
