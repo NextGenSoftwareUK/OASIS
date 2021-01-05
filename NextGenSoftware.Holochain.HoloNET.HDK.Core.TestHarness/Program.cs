@@ -44,12 +44,18 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core.TestHarness
             //string rustGenesisFolder = @"C:\Users\david\source\repos\Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK\NextGenSoftware.Holochain.HoloNET.HDK.Core.TestHarness\Genesis\Rust";
 
             string dnaFolder = @"C:\CODE\Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK\NextGenSoftware.Holochain.HoloNET.HDK.Core.TestHarness\CelestialBodyDNA";
-            string cSharpGeneisFolder = @"C:\CODE\Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK\NextGenSoftware.Holochain.HoloNET.HDK.Core.TestHarness\Genesis\CSharp";
-            string rustGenesisFolder = @"C:\CODE\Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK\NextGenSoftware.Holochain.HoloNET.HDK.Core.TestHarness\Genesis\Rust";
+            //string cSharpGeneisFolder = @"C:\CODE\Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK\NextGenSoftware.Holochain.HoloNET.HDK.Core.TestHarness\Genesis\CSharp";
+            //string rustGenesisFolder = @"C:\CODE\Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK\NextGenSoftware.Holochain.HoloNET.HDK.Core.TestHarness\Genesis\Rust";
+          //  string cSharpGeneisFolder = @"C:\CODE\Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK\NextGenSoftware.Holochain.HoloNET.HDK.Core.TestHarness\Genesis\CSharp";
+           // string rustGenesisFolder = @"C:\CODE\Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK\NextGenSoftware.Holochain.HoloNET.HDK.Core.TestHarness\Genesis\Rust";
 
-            // TODO: Not sure what events should expose on Star, StarCore and HoloNETClient?
-            // I feel the events should at least be on the Star object, but then they need to be on the others to bubble them up (maybe could be hidden somehow?)
-            Star.OnZomeError += Star_OnZomeError;
+
+            string cSharpGeneisFolder = @"C:\CODE\Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK\NextGenSoftware.Holochain.HoloNET.HDK.Core.TestHarness\bin\Debug\netcoreapp3.1\Genesis\CSharp";
+            string rustGenesisFolder = @"C:\CODE\Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK\NextGenSoftware.Holochain.HoloNET.HDK.Core.TestHarness\bin\Debug\netcoreapp3.1\Genesis\Rust";
+
+        // TODO: Not sure what events should expose on Star, StarCore and HoloNETClient?
+        // I feel the events should at least be on the Star object, but then they need to be on the others to bubble them up (maybe could be hidden somehow?)
+        Star.OnZomeError += Star_OnZomeError;
             Star.OnHolonLoaded += Star_OnHolonLoaded;
             Star.OnHolonsLoaded += Star_OnHolonsLoaded;
             Star.OnHolonSaved += Star_OnHolonSaved;
@@ -169,7 +175,7 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core.TestHarness
             Console.WriteLine("Star Initialized.");
         }
 
-        private static void Star_OnHolonSaved(object sender, HolonLoadedEventArgs e)
+        private static void Star_OnHolonSaved(object sender, HolonSavedEventArgs e)
         {
             Console.WriteLine(string.Concat("Star Holons Saved. Holon Saved: ", e.Holon.Name));
         }

@@ -22,7 +22,7 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
         public delegate void ZomesLoaded(object sender, ZomesLoadedEventArgs e);
         public static event ZomesLoaded OnZomesLoaded;
 
-        public delegate void HolonSaved(object sender, HolonLoadedEventArgs e);
+        public delegate void HolonSaved(object sender, HolonSavedEventArgs e);
         public static event HolonSaved OnHolonSaved;
 
         public delegate void HolonLoaded(object sender, HolonLoadedEventArgs e);
@@ -57,11 +57,11 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
             //StarCore.OnZomeError += StarCore_OnZomeError;
             //StarCore.OnInitialized += StarCore_OnInitialized;
 
-            StarBody.OnHolonLoaded += StarCore_OnHolonLoaded;
-            StarBody.OnHolonSaved += StarCore_OnHolonSaved;
-            StarBody.OnHolonsLoaded += StarCore_OnHolonsLoaded;
-            StarBody.OnZomeError += StarCore_OnZomeError;
-            StarBody.OnInitialized += StarCore_OnInitialized;
+            StarBody.OnHolonLoaded += StarBody_OnHolonLoaded;
+            StarBody.OnHolonSaved += StarBody_OnHolonSaved;
+            StarBody.OnHolonsLoaded += StarBody_OnHolonsLoaded;
+            StarBody.OnZomeError += StarBody_OnZomeError;
+            StarBody.OnInitialized += StarBody_OnInitialized;
 
             StarBody.Initialize(holochainConductorURI, type);
             StarBody.HoloNETClient.OnError += HoloNETClient_OnError;
@@ -73,29 +73,29 @@ namespace NextGenSoftware.Holochain.HoloNET.HDK.Core
             OnStarError?.Invoke(sender, new StarErrorEventArgs() { EndPoint = StarBody.HoloNETClient.EndPoint, Reason = e.Reason, ErrorDetails = e.ErrorDetails, HoloNETErrorDetails = e });
         }
 
-        private static void StarCore_OnInitialized(object sender, EventArgs e)
+        private static void StarBody_OnInitialized(object sender, EventArgs e)
         {
-            throw new NotImplementedException();
+            OnInitialized?.Invoke(sender, e);
         }
 
-        private static void StarCore_OnZomeError(object sender, ZomeErrorEventArgs e)
+        private static void StarBody_OnZomeError(object sender, ZomeErrorEventArgs e)
         {
-            throw new NotImplementedException();
+            OnZomeError?.Invoke(sender, e);
         }
 
-        private static void StarCore_OnHolonLoaded(object sender, HolonLoadedEventArgs e)
+        private static void StarBody_OnHolonLoaded(object sender, HolonLoadedEventArgs e)
         {
-            throw new NotImplementedException();
+            OnHolonLoaded?.Invoke(sender, e);
         }
 
-        private static void StarCore_OnHolonSaved(object sender, HolonSavedEventArgs e)
+        private static void StarBody_OnHolonSaved(object sender, HolonSavedEventArgs e)
         {
-            throw new NotImplementedException();
+            OnHolonSaved?.Invoke(sender, e);
         }
 
-        private static void StarCore_OnHolonsLoaded(object sender, HolonsLoadedEventArgs e)
+        private static void StarBody_OnHolonsLoaded(object sender, HolonsLoadedEventArgs e)
         {
-            throw new NotImplementedException();
+            OnHolonsLoaded?.Invoke(sender, e);
         }
 
         //Log in
