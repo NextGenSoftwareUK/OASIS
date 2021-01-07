@@ -113,6 +113,46 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             return Avatar;
         }
 
+        public override IHolon LoadHolon(Guid id)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override IHolon LoadHolon(string providerKey)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override Task<IHolon> LoadHolonAsync(Guid id)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override Task<IHolon> LoadHolonAsync(string providerKey)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override List<IHolon> LoadHolons(Guid id)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override List<IHolon> LoadHolons(string providerKey)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override Task<List<IHolon>> LoadHolonsAsync(Guid id)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override Task<List<IHolon>> LoadHolonsAsync(string providerKey)
+        {
+            throw new NotImplementedException();
+        }
+
         public override IAvatar SaveAvatar(IAvatar Avatar)
         {
             throw new NotImplementedException();
@@ -150,6 +190,26 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             await chainApi.PushTransactionAsync(actions.ToArray(), privateKeysInWIF);
 
             return Avatar;
+        }
+
+        public override IHolon SaveHolon(IHolon holon)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override Task<IHolon> SaveHolonAsync(IHolon holon)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override List<IHolon> SaveHolons(List<IHolon> holons)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override Task<List<IHolon>> SaveHolonsAsync(List<IHolon> holons)
+        {
+            throw new NotImplementedException();
         }
 
         public override Task<ISearchResults> SearchAsync(ISearchParams searchTerm)
