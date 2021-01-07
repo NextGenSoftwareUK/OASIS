@@ -54,6 +54,17 @@ namespace NextGenSoftware.OASIS.API.Core
 
         public abstract Task<ISearchResults> SearchAsync(ISearchParams searchParams);
 
-
+        public abstract IHolon LoadHolon(Guid id);
+        public abstract IHolon LoadHolon(string providerKey);
+        public abstract List<IHolon> LoadHolons(Guid id);
+        public abstract List<IHolon> LoadHolons(string providerKey);
+        public abstract IHolon SaveHolon(IHolon holon);
+        public abstract List<IHolon> SaveHolons(List<IHolon> holons);
+        public abstract Task<IHolon> LoadHolonAsync(Guid id);
+        public abstract Task<IHolon> LoadHolonAsync(string providerKey);
+        public abstract Task<List<IHolon>> LoadHolonsAsync(Guid id);
+        public abstract Task<List<IHolon>> LoadHolonsAsync(string providerKey);
+        public abstract Task<IHolon> SaveHolonAsync(IHolon holon);
+        public abstract Task<List<IHolon>> SaveHolonsAsync(List<IHolon> holons);
     }
 }

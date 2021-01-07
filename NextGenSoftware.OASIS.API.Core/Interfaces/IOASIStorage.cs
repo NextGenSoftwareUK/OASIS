@@ -27,6 +27,23 @@ namespace NextGenSoftware.OASIS.API.Core
         Task<IAvatar> SaveAvatarAsync(IAvatar Avatar);
         IAvatar SaveAvatar(IAvatar Avatar);
 
+        IHolon LoadHolon(Guid id);
+        IHolon LoadHolon(string providerKey);
+        IHolon SaveHolon(IHolon holon);
+        List<IHolon> SaveHolons(List<IHolon> holons);
+
+        Task<IHolon> LoadHolonAsync(Guid id);
+        Task<IHolon> LoadHolonAsync(string providerKey);
+        Task<IHolon> SaveHolonAsync(IHolon holon);
+        Task<List<IHolon>> SaveHolonsAsync(List<IHolon> holons);
+
+
+        List<IHolon> LoadHolons(Guid id);
+        List<IHolon> LoadHolons(string providerKey);
+        Task<List<IHolon>> LoadHolonsAsync(Guid id);
+        Task<List<IHolon>> LoadHolonsAsync(string providerKey);
+
+
         bool DeleteAvatar(Guid id, bool softDelete = true);
         Task<bool> DeleteAvatarAsync(Guid id, bool softDelete = true);
 

@@ -21,8 +21,8 @@ namespace NextGenSoftware.Holochain.HoloNET.Client.TestHarness
             HoloNETClient holoNETClient = new HoloNETClient("ws://localhost:8888");
             holoNETClient.Config.NeverTimeOut = true;
             //holoNETClient.Config.ErrorHandlingBehaviour = ErrorHandlingBehaviour.OnlyThrowExceptionIfNoErrorHandlerSubscribedToOnErrorEvent
-            holoNETClient.Config.AutoStartConductor = true;
-            holoNETClient.Config.AutoShutdownConductor = true;
+            holoNETClient.Config.AutoStartConductor = false;
+            holoNETClient.Config.AutoShutdownConductor = false;
             holoNETClient.Config.FullPathToHolochainAppDNA = @"D:\Dropbox\Our World\OASIS API\NextGenSoftware.Holochain.hApp.OurWorld\our_world\dist\our_world.dna.json";
 
             holoNETClient.OnConnected += HoloNETClient_OnConnected;
