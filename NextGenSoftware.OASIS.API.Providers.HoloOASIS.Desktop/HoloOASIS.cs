@@ -1,9 +1,5 @@
 ﻿using NextGenSoftware.Holochain.HoloNET.Client.Desktop;
-using NextGenSoftware.OASIS.API.Core;
 using NextGenSoftware.OASIS.API.Providers.HoloOASIS.Core;
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 
 namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Desktop
 {
@@ -13,103 +9,5 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Desktop
         {
             
         }
-
-        public override bool DeleteAvatar(Guid id, bool softDelete = true)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override Task<bool> DeleteAvatarAsync(Guid id, bool softDelete = true)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override IAvatar LoadAvatar(string username)
-        {
-            //throw new NotImplementedException();
-            return new Avatar() { ProviderType = ProviderType.HoloOASIS };
-        }
-
-        public override IHolon LoadHolon(Guid id)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override IHolon LoadHolon(string providerKey)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override Task<IHolon> LoadHolonAsync(Guid id)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override Task<IHolon> LoadHolonAsync(string providerKey)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override List<IHolon> LoadHolons(Guid id)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override List<IHolon> LoadHolons(string providerKey)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override Task<List<IHolon>> LoadHolonsAsync(Guid id)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override Task<List<IHolon>> LoadHolonsAsync(string providerKey)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override IAvatar SaveAvatar(IAvatar Avatar)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override IHolon SaveHolon(IHolon holon)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override Task<IHolon> SaveHolonAsync(IHolon holon)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override List<IHolon> SaveHolons(List<IHolon> holons)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override Task<List<IHolon>> SaveHolonsAsync(List<IHolon> holons)
-        {
-            throw new NotImplementedException();
-        }
-
-
-
-        //public override Task<IEnumerable<IAvatar>> LoadAllAvatarsAsync()
-        //{
-        //    throw new System.NotImplementedException();
-        //}
-
-        //public override IAvatar LoadAvatar(string username, string password)
-        //{
-        //    throw new System.NotImplementedException();
-        //}
-
-        //public override Task<ISearchResults> SearchAsync(string searchTerm)
-        //{
-        //    throw new System.NotImplementedException();
-        //}
     }
 }
