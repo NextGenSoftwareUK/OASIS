@@ -187,5 +187,45 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
         {
             throw new NotImplementedException();
         }
+
+        public override Task<IAvatar> LoadAvatarForProviderKeyAsync(string providerKey)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override IAvatar LoadAvatarForProviderKey(string providerKey)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override bool DeleteAvatar(string providerKey, bool softDelete = true)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override Task<bool> DeleteAvatarAsync(string providerKey, bool softDelete = true)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override bool DeleteHolon(Guid id, bool softDelete = true)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override Task<bool> DeleteHolonAsync(Guid id, bool softDelete = true)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override bool DeleteHolon(string providerKey, bool softDelete = true)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override Task<bool> DeleteHolonAsync(string providerKey, bool softDelete = true)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

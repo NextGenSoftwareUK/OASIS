@@ -11,21 +11,27 @@ namespace NextGenSoftware.OASIS.API.Core
     // will be implemented soon (IPFSOASIS & HoloOASIS).
     public interface IOASISStorage : IOASISProvider
     {
-        Task<IAvatar> LoadAvatarAsync(string providerKey);
+        Task<IAvatar> LoadAvatarForProviderKeyAsync(string providerKey);
         Task<IAvatar> LoadAvatarAsync(Guid Id);
+        Task<IAvatar> LoadAvatarAsync(string username);
         Task<IAvatar> LoadAvatarAsync(string username, string password);
 
-        //TODO: Add NonAsync methods for rest...
         IAvatar LoadAvatar(string username, string password);
         IAvatar LoadAvatar(string username);
         IAvatar LoadAvatar(Guid id);
+        IAvatar LoadAvatarForProviderKey(string providerKey);
 
         IEnumerable<IAvatar> LoadAllAvatars();
         Task<IEnumerable<IAvatar>> LoadAllAvatarsAsync();
 
-        //Task<bool> SaveAvatarAsync(IAvatar Avatar);
         Task<IAvatar> SaveAvatarAsync(IAvatar Avatar);
         IAvatar SaveAvatar(IAvatar Avatar);
+
+        bool DeleteAvatar(Guid id, bool softDelete = true);
+        Task<bool> DeleteAvatarAsync(Guid id, bool softDelete = true);
+        bool DeleteAvatar(string providerKey, bool softDelete = true);
+        Task<bool> DeleteAvatarAsync(string providerKey, bool softDelete = true);
+
 
         IHolon LoadHolon(Guid id);
         IHolon LoadHolon(string providerKey);
@@ -43,9 +49,10 @@ namespace NextGenSoftware.OASIS.API.Core
         Task<List<IHolon>> LoadHolonsAsync(Guid id);
         Task<List<IHolon>> LoadHolonsAsync(string providerKey);
 
-
-        bool DeleteAvatar(Guid id, bool softDelete = true);
-        Task<bool> DeleteAvatarAsync(Guid id, bool softDelete = true);
+        bool DeleteHolon(Guid id, bool softDelete = true);
+        Task<bool> DeleteHolonAsync(Guid id, bool softDelete = true);
+        bool DeleteHolon(string providerKey, bool softDelete = true);
+        Task<bool> DeleteHolonAsync(string providerKey, bool softDelete = true);
 
         Task<KarmaAkashicRecord> AddKarmaToAvatarAsync(API.Core.IAvatar Avatar, KarmaTypePositive karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc);
         Task<KarmaAkashicRecord> SubtractKarmaFromAvatarAsync(API.Core.IAvatar Avatar, KarmaTypeNegative karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc);
