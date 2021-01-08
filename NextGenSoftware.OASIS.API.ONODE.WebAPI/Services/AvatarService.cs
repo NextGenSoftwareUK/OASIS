@@ -1,5 +1,3 @@
-using AutoMapper;
-using BC = BCrypt.Net.BCrypt;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using System;
@@ -9,6 +7,9 @@ using System.Linq;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
+
+using AutoMapper;
+using BC = BCrypt.Net.BCrypt;
 
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Helpers;
 using NextGenSoftware.OASIS.API.WebAPI;

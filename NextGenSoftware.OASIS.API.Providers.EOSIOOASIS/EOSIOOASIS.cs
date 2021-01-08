@@ -27,7 +27,37 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             throw new NotImplementedException();
         }
 
+        public override bool DeleteAvatar(string providerKey, bool softDelete = true)
+        {
+            throw new NotImplementedException();
+        }
+
         public override Task<bool> DeleteAvatarAsync(Guid id, bool softDelete = true)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override Task<bool> DeleteAvatarAsync(string providerKey, bool softDelete = true)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override bool DeleteHolon(Guid id, bool softDelete = true)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override bool DeleteHolon(string providerKey, bool softDelete = true)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override Task<bool> DeleteHolonAsync(Guid id, bool softDelete = true)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override Task<bool> DeleteHolonAsync(string providerKey, bool softDelete = true)
         {
             throw new NotImplementedException();
         }
@@ -111,6 +141,16 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
 
             Avatar.Password = StringCipher.Decrypt(Avatar.Password, OASIS_PASS_PHRASE);
             return Avatar;
+        }
+
+        public override IAvatar LoadAvatarForProviderKey(string providerKey)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override Task<IAvatar> LoadAvatarForProviderKeyAsync(string providerKey)
+        {
+            throw new NotImplementedException();
         }
 
         public override IHolon LoadHolon(Guid id)

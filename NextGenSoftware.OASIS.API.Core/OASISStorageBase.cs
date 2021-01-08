@@ -38,13 +38,20 @@ namespace NextGenSoftware.OASIS.API.Core
 
         public abstract Task<IEnumerable<IAvatar>> LoadAllAvatarsAsync();
         public abstract IEnumerable<IAvatar> LoadAllAvatars();
-        public abstract Task<IAvatar> LoadAvatarAsync(string providerKey);
+
+      // public abstract Task<IAvatar> LoadAvatarAsync(string providerKey);
 
         public abstract Task<IAvatar> LoadAvatarAsync(Guid Id);
         public abstract IAvatar LoadAvatar(Guid Id);
-        public abstract IAvatar LoadAvatar(string username, string password);
-        public abstract IAvatar LoadAvatar(string username);
+
         public abstract Task<IAvatar> LoadAvatarAsync(string username, string password);
+        public abstract IAvatar LoadAvatar(string username, string password);
+
+        public abstract IAvatar LoadAvatar(string username);
+        public abstract Task<IAvatar> LoadAvatarAsync(string username);
+
+        public abstract Task<IAvatar> LoadAvatarForProviderKeyAsync(string providerKey);
+        public abstract IAvatar LoadAvatarForProviderKey(string providerKey);
 
         public abstract IAvatar SaveAvatar(IAvatar Avatar);
         public abstract Task<IAvatar> SaveAvatarAsync(IAvatar Avatar);
@@ -55,16 +62,30 @@ namespace NextGenSoftware.OASIS.API.Core
         public abstract Task<ISearchResults> SearchAsync(ISearchParams searchParams);
 
         public abstract IHolon LoadHolon(Guid id);
-        public abstract IHolon LoadHolon(string providerKey);
-        public abstract List<IHolon> LoadHolons(Guid id);
-        public abstract List<IHolon> LoadHolons(string providerKey);
-        public abstract IHolon SaveHolon(IHolon holon);
-        public abstract List<IHolon> SaveHolons(List<IHolon> holons);
         public abstract Task<IHolon> LoadHolonAsync(Guid id);
+
+        public abstract IHolon LoadHolon(string providerKey);
         public abstract Task<IHolon> LoadHolonAsync(string providerKey);
+
+        public abstract List<IHolon> LoadHolons(Guid id);
         public abstract Task<List<IHolon>> LoadHolonsAsync(Guid id);
+
+        public abstract List<IHolon> LoadHolons(string providerKey);
         public abstract Task<List<IHolon>> LoadHolonsAsync(string providerKey);
+
+        public abstract IHolon SaveHolon(IHolon holon);
         public abstract Task<IHolon> SaveHolonAsync(IHolon holon);
+
+        public abstract List<IHolon> SaveHolons(List<IHolon> holons);
         public abstract Task<List<IHolon>> SaveHolonsAsync(List<IHolon> holons);
+
+        public abstract bool DeleteAvatar(string providerKey, bool softDelete = true);
+        public abstract Task<bool> DeleteAvatarAsync(string providerKey, bool softDelete = true);
+
+        public abstract bool DeleteHolon(Guid id, bool softDelete = true);
+        public abstract Task<bool> DeleteHolonAsync(Guid id, bool softDelete = true);
+
+        public abstract bool DeleteHolon(string providerKey, bool softDelete = true);
+        public abstract Task<bool> DeleteHolonAsync(string providerKey, bool softDelete = true);
     }
 }

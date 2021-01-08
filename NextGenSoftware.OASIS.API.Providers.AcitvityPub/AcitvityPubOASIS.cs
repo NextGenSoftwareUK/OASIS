@@ -25,7 +25,37 @@ namespace NextGenSoftware.OASIS.API.Providers.AcitvityPubOASIS
             throw new NotImplementedException();
         }
 
+        public override bool DeleteAvatar(string providerKey, bool softDelete = true)
+        {
+            throw new NotImplementedException();
+        }
+
         public override Task<bool> DeleteAvatarAsync(Guid id, bool softDelete = true)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override Task<bool> DeleteAvatarAsync(string providerKey, bool softDelete = true)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override bool DeleteHolon(Guid id, bool softDelete = true)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override bool DeleteHolon(string providerKey, bool softDelete = true)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override Task<bool> DeleteHolonAsync(Guid id, bool softDelete = true)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override Task<bool> DeleteHolonAsync(string providerKey, bool softDelete = true)
         {
             throw new NotImplementedException();
         }
@@ -76,6 +106,16 @@ namespace NextGenSoftware.OASIS.API.Providers.AcitvityPubOASIS
         }
 
         public override Task<IAvatar> LoadAvatarAsync(string username, string password)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override IAvatar LoadAvatarForProviderKey(string providerKey)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override Task<IAvatar> LoadAvatarForProviderKeyAsync(string providerKey)
         {
             throw new NotImplementedException();
         }
