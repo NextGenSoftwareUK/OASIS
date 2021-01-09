@@ -7,8 +7,7 @@ using static NextGenSoftware.OASIS.API.Core.AvatarManager;
 namespace NextGenSoftware.OASIS.API.Core
 {
     // This interface is responsbile for persisting data/state to storage, this could be a local DB or other local 
-    // storage or through a distributed/decentralised provider such as IPFS or Holochain (these two implementations 
-    // will be implemented soon (IPFSOASIS & HoloOASIS).
+    // storage or through a distributed/decentralised provider such as IPFS (IPFSOASIS Provider coming soon) or Holochain (HoloOASIS Provider implemented).
     public interface IOASISStorage : IOASISProvider
     {
         Task<IAvatar> LoadAvatarForProviderKeyAsync(string providerKey);
@@ -36,18 +35,18 @@ namespace NextGenSoftware.OASIS.API.Core
         IHolon LoadHolon(Guid id);
         IHolon LoadHolon(string providerKey);
         IHolon SaveHolon(IHolon holon);
-        List<IHolon> SaveHolons(List<IHolon> holons);
+        IEnumerable<IHolon> SaveHolons(IEnumerable<IHolon> holons);
 
         Task<IHolon> LoadHolonAsync(Guid id);
         Task<IHolon> LoadHolonAsync(string providerKey);
         Task<IHolon> SaveHolonAsync(IHolon holon);
-        Task<List<IHolon>> SaveHolonsAsync(List<IHolon> holons);
+        Task<IEnumerable<IHolon>> SaveHolonsAsync(IEnumerable<IHolon> holons);
 
 
         List<IHolon> LoadHolons(Guid id);
         List<IHolon> LoadHolons(string providerKey);
-        Task<List<IHolon>> LoadHolonsAsync(Guid id);
-        Task<List<IHolon>> LoadHolonsAsync(string providerKey);
+        Task<IEnumerable<IHolon>> LoadHolonsAsync(Guid id);
+        Task<IEnumerable<IHolon>> LoadHolonsAsync(string providerKey);
 
         bool DeleteHolon(Guid id, bool softDelete = true);
         Task<bool> DeleteHolonAsync(Guid id, bool softDelete = true);

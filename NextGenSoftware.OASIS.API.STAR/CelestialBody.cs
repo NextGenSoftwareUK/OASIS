@@ -1,11 +1,4 @@
-﻿using NextGenSoftware.Holochain.HoloNET.Client.Core;
-using NextGenSoftware.OASIS.API.Core;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Security.Cryptography.X509Certificates;
-using System.Threading.Tasks;
-
+﻿
 namespace NextGenSoftware.OASIS.API.STAR
 {
     public abstract class CelestialBody : Holon, ICelestialBody
@@ -22,7 +15,7 @@ namespace NextGenSoftware.OASIS.API.STAR
         public string RustCelestialBodyType { get; set; }
         public GenesisType GenesisType { get; set; }
 
-        //TODO: Should these be in PlanetCore?
+        //TODO: Should these be in CelestialBodyCore?
         public List<IZome> Zomes { get; set; }
         public List<IHolon> Holons
         {

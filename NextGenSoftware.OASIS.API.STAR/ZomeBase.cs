@@ -310,9 +310,15 @@ namespace NextGenSoftware.OASIS.API.STAR
            // else
              //   throw new TimeoutException("Timeout error occured saving holon.");
         }
+
+
         public virtual async Task<IHolon> CallZomeFunctionAsync(string zomeFunctionName, IHolon holon)
         {
             //await _taskCompletionSourceGetInstance.Task; //TODO: Need to add timeout for this so if connection to hc conductor fails or timesout this will return eventually! :)
+
+            //TODO: ********** NEED TO SWAP OUT HOLONETCLIENT FOR HOLONMANAGER HERE PASSING IN PROVIDERTYPE. ************
+            // MAY EVEN BE ABLE TO DO THIS LEVEL ABOVE HERE AND NOT NEED ZOMEBASE AT ALL ANYMORE?
+
 
             var task = _taskCompletionSourceGetInstance.Task; 
             if (await Task.WhenAny(task, Task.Delay(1000)) == task)
