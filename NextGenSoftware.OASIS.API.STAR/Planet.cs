@@ -1,8 +1,4 @@
-﻿using NextGenSoftware.Holochain.HoloNET.Client.Core;
-using NextGenSoftware.OASIS.API.Core;
-using System;
-using System.Collections.Generic;
-
+﻿
 namespace NextGenSoftware.OASIS.API.STAR
 {
     public class Planet : CelestialBody, IPlanet

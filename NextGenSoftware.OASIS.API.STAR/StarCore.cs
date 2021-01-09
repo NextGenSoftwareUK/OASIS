@@ -1,8 +1,4 @@
-﻿using NextGenSoftware.Holochain.HoloNET.Client.Core;
-using NextGenSoftware.OASIS.API.Core;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-
+﻿
 namespace NextGenSoftware.OASIS.API.STAR
 {
     public class StarCore : CelestialBodyCore, IPlanetCore
