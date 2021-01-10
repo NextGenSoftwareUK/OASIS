@@ -67,17 +67,17 @@ namespace NextGenSoftware.OASIS.API.Core
         public abstract IHolon LoadHolon(string providerKey);
         public abstract Task<IHolon> LoadHolonAsync(string providerKey);
 
-        public abstract List<IHolon> LoadHolons(Guid id);
-        public abstract Task<List<IHolon>> LoadHolonsAsync(Guid id);
+        public abstract IEnumerable<IHolon> LoadHolons(Guid id);
+        public abstract Task<IEnumerable<IHolon>> LoadHolonsAsync(Guid id);
 
-        public abstract List<IHolon> LoadHolons(string providerKey);
-        public abstract Task<List<IHolon>> LoadHolonsAsync(string providerKey);
+        public abstract IEnumerable<IHolon> LoadHolons(string providerKey);
+        public abstract Task<IEnumerable<IHolon>> LoadHolonsAsync(string providerKey);
 
         public abstract IHolon SaveHolon(IHolon holon);
         public abstract Task<IHolon> SaveHolonAsync(IHolon holon);
 
-        public abstract List<IHolon> SaveHolons(List<IHolon> holons);
-        public abstract Task<List<IHolon>> SaveHolonsAsync(List<IHolon> holons);
+        public abstract IEnumerable<IHolon> SaveHolons(IEnumerable<IHolon> holons);
+        public abstract Task<IEnumerable<IHolon>> SaveHolonsAsync(IEnumerable<IHolon> holons);
 
         public abstract bool DeleteAvatar(string providerKey, bool softDelete = true);
         public abstract Task<bool> DeleteAvatarAsync(string providerKey, bool softDelete = true);

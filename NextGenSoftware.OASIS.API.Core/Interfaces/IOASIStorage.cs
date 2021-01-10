@@ -43,8 +43,8 @@ namespace NextGenSoftware.OASIS.API.Core
         Task<IEnumerable<IHolon>> SaveHolonsAsync(IEnumerable<IHolon> holons);
 
 
-        List<IHolon> LoadHolons(Guid id);
-        List<IHolon> LoadHolons(string providerKey);
+        IEnumerable<IHolon> LoadHolons(Guid id);
+        IEnumerable<IHolon> LoadHolons(string providerKey);
         Task<IEnumerable<IHolon>> LoadHolonsAsync(Guid id);
         Task<IEnumerable<IHolon>> LoadHolonsAsync(string providerKey);
 

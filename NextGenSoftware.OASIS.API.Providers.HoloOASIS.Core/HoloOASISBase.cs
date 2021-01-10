@@ -233,7 +233,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Core
         public override Task<IEnumerable<IAvatar>> LoadAllAvatarsAsync()
         {
             //TODO: {URGENT} FIX ASAP!
-            //return new (IEnumerable<IAvatar>)List<IAvatar>();
+            //return new (IEnumerable<IAvatar>)IEnumerable<IAvatar>();
 
             throw new System.NotImplementedException();
         }
@@ -316,12 +316,12 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Core
 
             #region IOASISNET Implementation
 
-        public List<IHolon> GetHolonsNearMe(HolonType type)
+        public IEnumerable<IHolon> GetHolonsNearMe(HolonType type)
         {
             throw new NotImplementedException();
         }
 
-        public List<IPlayer> GetPlayersNearMe()
+        public IEnumerable<IPlayer> GetPlayersNearMe()
         {
             throw new NotImplementedException();
         }
@@ -457,22 +457,22 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Core
             throw new NotImplementedException();
         }
 
-        public override List<IHolon> LoadHolons(Guid id)
+        public override IEnumerable<IHolon> LoadHolons(Guid id)
         {
             throw new NotImplementedException();
         }
 
-        public override List<IHolon> LoadHolons(string providerKey)
+        public override IEnumerable<IHolon> LoadHolons(string providerKey)
         {
             throw new NotImplementedException();
         }
 
-        public override Task<List<IHolon>> LoadHolonsAsync(Guid id)
+        public override Task<IEnumerable<IHolon>> LoadHolonsAsync(Guid id)
         {
             throw new NotImplementedException();
         }
 
-        public override Task<List<IHolon>> LoadHolonsAsync(string providerKey)
+        public override Task<IEnumerable<IHolon>> LoadHolonsAsync(string providerKey)
         {
             throw new NotImplementedException();
         }
@@ -492,12 +492,12 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Core
             throw new NotImplementedException();
         }
 
-        public override List<IHolon> SaveHolons(List<IHolon> holons)
+        public override IEnumerable<IHolon> SaveHolons(IEnumerable<IHolon> holons)
         {
             throw new NotImplementedException();
         }
 
-        public override Task<List<IHolon>> SaveHolonsAsync(List<IHolon> holons)
+        public override Task<IEnumerable<IHolon>> SaveHolonsAsync(IEnumerable<IHolon> holons)
         {
             throw new NotImplementedException();
         }

@@ -18,12 +18,12 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLIDOASIS
             this.ProviderCategory = ProviderCategory.StorageAndNetwork;
         }
 
-        public List<IHolon> GetHolonsNearMe(HolonType Type)
+        public IEnumerable<IHolon> GetHolonsNearMe(HolonType Type)
         {
             throw new NotImplementedException();
         }
 
-        public List<IPlayer> GetPlayersNearMe()
+        public IEnumerable<IPlayer> GetPlayersNearMe()
         {
             throw new NotImplementedException();
         }
@@ -118,12 +118,12 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLIDOASIS
             throw new NotImplementedException();
         }
 
-        public override List<IHolon> LoadHolons(Guid id)
+        public override IEnumerable<IHolon> LoadHolons(Guid id)
         {
             throw new NotImplementedException();
         }
 
-        public override List<IHolon> LoadHolons(string providerKey)
+        public override IEnumerable<IHolon> LoadHolons(string providerKey)
         {
             throw new NotImplementedException();
         }
@@ -133,7 +133,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLIDOASIS
             throw new NotImplementedException();
         }
 
-        public override List<IHolon> SaveHolons(List<IHolon> holons)
+        public override IEnumerable<IHolon> SaveHolons(IEnumerable<IHolon> holons)
         {
             throw new NotImplementedException();
         }
@@ -148,12 +148,12 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLIDOASIS
             throw new NotImplementedException();
         }
 
-        public override Task<List<IHolon>> LoadHolonsAsync(Guid id)
+        public override Task<IEnumerable<IHolon>> LoadHolonsAsync(Guid id)
         {
             throw new NotImplementedException();
         }
 
-        public override Task<List<IHolon>> LoadHolonsAsync(string providerKey)
+        public override Task<IEnumerable<IHolon>> LoadHolonsAsync(string providerKey)
         {
             throw new NotImplementedException();
         }
@@ -163,7 +163,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLIDOASIS
             throw new NotImplementedException();
         }
 
-        public override Task<List<IHolon>> SaveHolonsAsync(List<IHolon> holons)
+        public override Task<IEnumerable<IHolon>> SaveHolonsAsync(IEnumerable<IHolon> holons)
         {
             throw new NotImplementedException();
         }
