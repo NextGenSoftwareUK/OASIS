@@ -1,5 +1,6 @@
 ﻿using Newtonsoft.Json;
 using NextGenSoftware.Holochain.HoloNET.Client.Core;
+using NextGenSoftware.OASIS.API.Config;
 using NextGenSoftware.OASIS.API.Core;
 using System;
 using System.IO;
@@ -45,17 +46,13 @@ namespace NextGenSoftware.OASIS.STAR
         public static event DataReceived OnDataReceived;
 
         // Possible to override settings in DNA file if this method is manually called...
-        public static void Initialize(string holochainConductorURI, HoloNETClientType type, string providerKey)
+        //public static void Initialize(string holochainConductorURI, HoloNETClientType type, string providerKey)
+        public static void Initialize(string providerKey)
         {
-            //  StarCore = new StarCore(holochainConductorURI, type, providerKey);
-            //StarBody = new StarBody(holochainConductorURI, type, providerKey);
-            StarBody = new StarBody(providerKey);
+            // Will initialize the default OASIS Provider defined in the appSettings.json config file.
+            OASISProviderManager.GetAndActivateProvider();
 
-            //StarCore.OnHolonLoaded += StarCore_OnHolonLoaded;
-            //StarCore.OnHolonSaved += StarCore_OnHolonSaved;
-            //StarCore.OnHolonsLoaded += StarCore_OnHolonsLoaded;
-            //StarCore.OnZomeError += StarCore_OnZomeError;
-            //StarCore.OnInitialized += StarCore_OnInitialized;
+            StarBody = new StarBody(providerKey);
 
             StarBody.OnHolonLoaded += StarBody_OnHolonLoaded;
             StarBody.OnHolonSaved += StarBody_OnHolonSaved;
@@ -63,6 +60,7 @@ namespace NextGenSoftware.OASIS.STAR
             StarBody.OnZomeError += StarBody_OnZomeError;
             StarBody.OnInitialized += StarBody_OnInitialized;
 
+            //StarBody.Initialize(holochainConductorURI, type);
             StarBody.Initialize(holochainConductorURI, type);
             StarBody.HoloNETClient.OnError += HoloNETClient_OnError;
         }

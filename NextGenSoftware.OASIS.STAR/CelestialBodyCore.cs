@@ -1,8 +1,9 @@
-﻿using NextGenSoftware.Holochain.HoloNET.Client.Core;
-using NextGenSoftware.OASIS.API.Core;
+﻿
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+
+using NextGenSoftware.OASIS.API.Core;
 
 namespace NextGenSoftware.OASIS.STAR
 {
@@ -30,12 +31,22 @@ namespace NextGenSoftware.OASIS.STAR
         public List<Zome> Zomes { get; set; }
 
         public string CoreZomeName { get; set; }
-        //public string CoreHolonBase { get; set; }
         public string CoreHolonType { get; set; }
 
-        //public string HolonType { get; set; }
-        //public string HolonsType { get; set; }
+        public CelestialBodyCore(string coreZomeName, string coreHolonBase, string providerKey) : base(coreZomeName)
+        {
+            this.ProviderKey = providerKey;
+            this.CoreZomeName = coreZomeName;
+            this.CoreHolonType = coreHolonBase;
+        }
 
+        public CelestialBodyCore(string coreZomeName, string coreHolonBase) : base(coreZomeName)
+        {
+            this.CoreZomeName = coreZomeName;
+            this.CoreHolonType = coreHolonBase;
+        }
+
+        /*
         public CelestialBodyCore(HoloNETClientBase holoNETClient, string coreZomeName, string coreHolonBase, string providerKey) : base(holoNETClient, coreZomeName)
         {
             this.ProviderKey = providerKey;
@@ -70,33 +81,10 @@ namespace NextGenSoftware.OASIS.STAR
             //this.HolonType = holonType;
             //this.HolonsType = holonsType;
         }
-
-        /*
-        public CelestialBodyCore(string holochainConductorURI, HoloNETClientType type, string coreZome, string holonType, string holonsType, string providerKey) : base(holochainConductorURI, coreZome, type)
-        {
-            this.ProviderKey = providerKey;
-            this.CoreZomeName = coreZome;
-            this.HolonType = holonType;
-            this.HolonsType = holonsType;
-        }
-
-        public CelestialBodyCore(HoloNETClientBase holoNETClient, string coreZome, string holonType, string holonsType) : base(holoNETClient, coreZome)
-        {
-            this.CoreZomeName = coreZome;
-            this.HolonType = holonType;
-            this.HolonsType = holonsType;
-        }
-
-        public CelestialBodyCore(string holochainConductorURI, HoloNETClientType type, string coreZome, string holonType, string holonsType) : base(holochainConductorURI, coreZome, type)
-        {
-            this.CoreZomeName = coreZome;
-            this.HolonType = holonType;
-            this.HolonsType = holonsType;
-        }*/
+        */
 
         // Need to load list of zome names that belong to this Planet for PlanetBase to use...
         // Maybe load list of holons too?
-        //public Task<List<IZome>> LoadZomes(string coreProviderKey)
         public List<IZome> LoadZomes()
         {
             if (string.IsNullOrEmpty(ProviderKey))
@@ -132,7 +120,7 @@ namespace NextGenSoftware.OASIS.STAR
 
         public async Task<IHolon> SaveCelestialBodyAsync(IHolon savingHolon)
         {
-            return await base.SaveHolonAsync(CoreHolonType, savingHolon);
+            return await base.SaveHolonAsync(savingHolon);
         }
 
         public async Task<IHolon> LoadCelestialBodyAsync()
@@ -140,15 +128,7 @@ namespace NextGenSoftware.OASIS.STAR
             if (string.IsNullOrEmpty(ProviderKey))
                 throw new ArgumentNullException("ProviderKey", "The ProviderKey must be set before this method can be called.");
 
-            return await base.LoadHolonAsync(CoreHolonType, ProviderKey);
+            return await base.LoadHolonAsync(ProviderKey);
         }
-
-        //public async Task<List<IHolon>> LoadHolons()
-        //{
-        //    if (string.IsNullOrEmpty(ProviderKey))
-        //        throw new ArgumentNullException("ProviderKey", "The ProviderKey must be set before this method can be called.");
-
-        //    return await base.LoadHolonsAsync(CoreHolonType, ProviderKey);
-        //}
     }
 }

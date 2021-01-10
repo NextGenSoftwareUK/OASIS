@@ -1,4 +1,4 @@
-﻿using NextGenSoftware.Holochain.HoloNET.Client.Core;
+﻿using NextGenSoftware.OASIS.API.Config;
 using NextGenSoftware.OASIS.API.Core;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -12,6 +12,22 @@ namespace NextGenSoftware.OASIS.STAR
         private const string PLANET_GET_MOONS = "planet_get_moons"; //TODO: Finish implementing (copy from StarCore).
         private const string PLANET_ADD_MOON = "planet_add_moon";
 
+        public IPlanet Planet { get; set; }
+
+
+        public PlanetCore(IPlanet planet) : base(PLANET_CORE_ZOME, PLANET_HOLON_TYPE)
+        {
+            this.Planet = planet;
+        }
+
+        public PlanetCore(string providerKey, IPlanet planet) : base(PLANET_CORE_ZOME, PLANET_HOLON_TYPE, providerKey)
+        {
+            this.Planet = planet;
+        }
+
+    
+
+        /*
         public PlanetCore(HoloNETClientBase holoNETClient, string providerKey) : base(holoNETClient, PLANET_CORE_ZOME, PLANET_HOLON_TYPE, providerKey)
         {
 
@@ -30,14 +46,12 @@ namespace NextGenSoftware.OASIS.STAR
         public PlanetCore(string holochainConductorURI, HoloNETClientType type) : base(holochainConductorURI, type, PLANET_CORE_ZOME, PLANET_HOLON_TYPE)
         {
 
-        }
+        }*/
 
         public async Task<IMoon> AddMoonAsync(IMoon moon)
         {
-           // HolonManager holonManager = new HolonManager( )
-
-            //holonManager.
-
+            this.Planet.Moons.Add(moon);
+            this.Planet.Save();
             // return (IMoon)await base.CallZomeFunctionAsync(PLANET_ADD_MOON, moon);
         }
 

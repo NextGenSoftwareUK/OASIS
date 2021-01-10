@@ -67,18 +67,12 @@ namespace NextGenSoftware.OASIS.STAR
         public delegate void DataReceived(object sender, DataReceivedEventArgs e);
         public event DataReceived OnDataReceived;
 
-        public HoloNETClientBase HoloNETClient { get; private set; }
+       // public HoloNETClientBase HoloNETClient { get; private set; }
 
         public CelestialBody()
         {
 
         }
-
-        //public CelestialBody(Guid id, GenesisType genesisType)
-        //{
-        //    this.GenesisType = genesisType;
-        //    this.Id = id;
-        //}
 
         public CelestialBody(GenesisType genesisType)
         {
@@ -91,212 +85,6 @@ namespace NextGenSoftware.OASIS.STAR
             this.GenesisType = genesisType;
             this.ProviderKey = providerKey;
         }
-
-    
-        /*
-        public CelestialBody(HoloNETClientBase holoNETClient, Guid id, GenesisType genesisType)
-        {
-            this.GenesisType = genesisType;
-            this.Id = id;
-            this.HoloNETClient = holoNETClient;
-
-            //Initialize(id, holoNETClient);
-        }
-
-
-        public CelestialBody(string holochainConductorURI, HoloNETClientType type, Guid id, GenesisType genesisType)
-        {
-            this.GenesisType = genesisType;
-            this.Id = id;
-            this.HolochainConductorURI = holochainConductorURI;
-
-            Initialize(id, holochainConductorURI, type);
-        }
-
-        public CelestialBody(HoloNETClientBase holoNETClient, GenesisType genesisType)
-        {
-            this.GenesisType = genesisType;
-            Initialize(holoNETClient);
-        }
-
-        public CelestialBody(string holochainConductorURI, HoloNETClientType type, GenesisType genesisType)
-        {
-            this.GenesisType = genesisType;
-            Initialize(holochainConductorURI, type);
-        }
-
-        //TODO: Don't think we need to pass Id in if we are using ProviderKey?
-        public CelestialBody(HoloNETClientBase holoNETClient, Guid id, string providerKey, GenesisType genesisType)
-        {
-            this.GenesisType = genesisType;
-            this.ProviderKey = providerKey;
-            Initialize(id, holoNETClient);
-        }
-
-        public CelestialBody(string holochainConductorURI, HoloNETClientType type, Guid id, string providerKey, GenesisType genesisType)
-        {
-            this.GenesisType = genesisType;
-            this.ProviderKey = providerKey;
-            Initialize(id, holochainConductorURI, type);
-        }
-
-        public CelestialBody(HoloNETClientBase holoNETClient, string providerKey, GenesisType genesisType)
-        {
-            this.GenesisType = genesisType;
-            this.ProviderKey = providerKey;
-            Initialize(holoNETClient);
-        }
-
-        public CelestialBody(string holochainConductorURI, HoloNETClientType type, string providerKey, GenesisType genesisType)
-        {
-            this.GenesisType = genesisType;
-            this.ProviderKey = providerKey;
-            Initialize(holochainConductorURI, type);
-        }
-        */
-
-        /*
-        public CelestialBody(HoloNETClientBase holoNETClient, Guid id, string rustHolonType)
-        {
-            this.RustHolonType = rustHolonType;
-            Initialize(id, holoNETClient);
-        }
-
-        public CelestialBody(string holochainConductorURI, HoloNETClientType type, Guid id, string rustHolonType)
-        {
-            this.RustHolonType = rustHolonType;
-            Initialize(id, holochainConductorURI, type);
-        }
-
-        public CelestialBody(HoloNETClientBase holoNETClient, string rustHolonType)
-        {
-            this.RustHolonType = rustHolonType;
-            Initialize(holoNETClient);
-        }
-
-        public CelestialBody(string holochainConductorURI, HoloNETClientType type, string rustHolonType)
-        {
-            this.RustHolonType = rustHolonType;
-            Initialize(holochainConductorURI, type);
-        }
-
-        //TODO: Don't think we need to pass Id in if we are using ProviderKey?
-        public CelestialBody(HoloNETClientBase holoNETClient, Guid id, string providerKey, string rustHolonType)
-        {
-            this.ProviderKey = providerKey;
-            this.RustHolonType = rustHolonType;
-            Initialize(id, holoNETClient);
-        }
-
-        public CelestialBody(string holochainConductorURI, HoloNETClientType type, Guid id, string providerKey, string rustHolonType)
-        {
-            this.ProviderKey = providerKey;
-            this.RustHolonType = rustHolonType;
-            Initialize(id, holochainConductorURI, type);
-        }
-
-        public CelestialBody(HoloNETClientBase holoNETClient, string providerKey, string rustHolonType)
-        {
-            this.ProviderKey = providerKey;
-            this.RustHolonType = rustHolonType;
-            Initialize(holoNETClient);
-        }
-
-        public CelestialBody(string holochainConductorURI, HoloNETClientType type, string providerKey, string rustHolonType)
-        {
-            this.ProviderKey = providerKey;
-            Initialize(holochainConductorURI, type);
-        }
-        */
-
-
-        /*
-        public CelestialBody(HoloNETClientBase holoNETClient, Guid id, string rustCelestialBodyType, string rustHolonType)
-        {
-            this.RustCelestialBodyType = rustCelestialBodyType;
-            this.RustHolonType = rustHolonType;
-            Initialize(id, holoNETClient);
-        }
-
-        public CelestialBody(string holochainConductorURI, HoloNETClientType type, Guid id, string rustCelestialBodyType,  string rustHolonType)
-        {
-            this.RustCelestialBodyType = rustCelestialBodyType;
-            this.RustHolonType = rustHolonType;
-            Initialize(id, holochainConductorURI, type);
-        }
-
-        public CelestialBody(HoloNETClientBase holoNETClient, string rustCelestialBodyType, string rustHolonType)
-        {
-            this.RustCelestialBodyType = rustCelestialBodyType;
-            this.RustHolonType = rustHolonType;
-            Initialize(holoNETClient);
-        }
-
-        public CelestialBody(string holochainConductorURI, HoloNETClientType type, string rustCelestialBodyType, string rustHolonType)
-        {
-            this.RustCelestialBodyType = rustCelestialBodyType;
-            this.RustHolonType = rustHolonType;
-            Initialize(holochainConductorURI, type);
-        }
-
-        //TODO: Don't think we need to pass Id in if we are using ProviderKey?
-        public CelestialBody(HoloNETClientBase holoNETClient, Guid id, string providerKey, string rustCelestialBodyType, string rustHolonType)
-        {
-            this.RustCelestialBodyType = rustCelestialBodyType;
-            this.ProviderKey = providerKey;
-            this.RustHolonType = rustHolonType;
-            Initialize(id, holoNETClient);
-        }
-
-        public CelestialBody(string holochainConductorURI, HoloNETClientType type, Guid id, string providerKey, string rustCelestialBodyType, string rustHolonType)
-        {
-            this.RustCelestialBodyType = rustCelestialBodyType;
-            this.ProviderKey = providerKey;
-            this.RustHolonType = rustHolonType;
-            Initialize(id, holochainConductorURI, type);
-        }
-
-        public CelestialBody(HoloNETClientBase holoNETClient, string providerKey, string rustCelestialBodyType, string rustHolonType)
-        {
-            this.RustCelestialBodyType = rustCelestialBodyType;
-            this.ProviderKey = providerKey;
-            this.RustHolonType = rustHolonType;
-            Initialize(holoNETClient);
-        }
-
-        public CelestialBody(string holochainConductorURI, HoloNETClientType type, string providerKey, string rustCelestialBodyType, string rustHolonType)
-        {
-            this.RustCelestialBodyType = rustCelestialBodyType;
-            this.ProviderKey = providerKey;
-            this.RustHolonType = rustHolonType;
-            Initialize(holochainConductorURI, type);
-        }
-        */
-
-        /*
-        public PlanetBase(HoloNETClientBase holoNETClient, Guid id, string coreProviderKey)
-        {
-            this.ProviderKey = coreProviderKey;
-            Initialize(id, holoNETClient);
-        }
-
-        public PlanetBase(string holochainConductorURI, HoloNETClientType type, Guid id, string coreProviderKey)
-        {
-            this.ProviderKey = coreProviderKey;
-            Initialize(id, holochainConductorURI, type);
-        }
-
-        public PlanetBase(HoloNETClientBase holoNETClient, string coreProviderKey)
-        {
-            this.ProviderKey = coreProviderKey;
-            Initialize(holoNETClient);
-        }
-
-        public PlanetBase(string holochainConductorURI, HoloNETClientType type, string coreProviderKey)
-        {
-            this.ProviderKey = coreProviderKey;
-            Initialize(holochainConductorURI, type);
-        }*/
 
         public void LoadAll()
         {
@@ -329,8 +117,28 @@ namespace NextGenSoftware.OASIS.STAR
                 }
             }
 
-            //await PlanetCore.SaveHolonAsync(new Holon() { Id = this.Id, Name = this.Name, Description = this.Description, HolonType = HolonType.Planet });
-            await CelestialBodyCore.SaveCelestialBodyAsync(new Holon() { Id = this.Id, Name = this.Name, Description = this.Description, HolonType = HolonType.Planet });
+            HolonType holonType = HolonType.Holon;
+
+            switch (GenesisType)
+            {
+                case GenesisType.Planet:
+                    holonType = HolonType.Planet;
+                    break;
+
+                case GenesisType.Moon:
+                    holonType = HolonType.Moon;
+                    break;
+
+                case GenesisType.Star:
+                    holonType = HolonType.Star;
+                    break;
+            }
+
+            //TODO: Not sure why we need to create a new holon here? CelestialBody (planet, moon, star, etc) are all Holons themselves.
+            // So why not just have a Save method directly on them? Save code should be here?
+            // Why did I put all IO code in Core? Hmmmm.... Need to remember! lol ;-)
+
+            await CelestialBodyCore.SaveCelestialBodyAsync(new Holon() { Id = this.Id, Name = this.Name, Description = this.Description, HolonType = holonType });
             return true;
         }
 
@@ -465,8 +273,10 @@ namespace NextGenSoftware.OASIS.STAR
             Holons = await CelestialBodyCore.LoadHolons();
         }*/
 
+        /*
         public async Task Initialize(string holochainConductorURI, HoloNETClientType type)
         {
+            
             switch (type)
             {
                 case HoloNETClientType.Desktop:
@@ -480,6 +290,7 @@ namespace NextGenSoftware.OASIS.STAR
 
             await Initialize(this.HoloNETClient);
         }
+        */
 
         //TODO: What use case is the Guid Id used for when we have Provider Key?
         //public async Task Initialize(Guid id, string holochainConductorURI, HoloNETClientType type)
@@ -494,16 +305,18 @@ namespace NextGenSoftware.OASIS.STAR
         //    await Initialize(holoNETClient);
         //}
 
-        public async Task Initialize(HoloNETClientBase holoNETClient)
+        //public async Task Initialize(HoloNETClientBase holoNETClient)
+        public async Task Initialize()
         {
-            HoloNETClient = holoNETClient;
+           // HoloNETClient = holoNETClient;
             this.Zomes = new List<IZome>();
            // this.Holons = new List<IHolon>();
 
             switch (this.GenesisType)
             {
                 case GenesisType.Planet:
-                    CelestialBodyCore = new PlanetCore(holoNETClient);
+                    //CelestialBodyCore = new PlanetCore(holoNETClient);
+                    CelestialBodyCore = new PlanetCore((IPlanet)this);
                     break;
 
                 case GenesisType.Moon:
