@@ -15,6 +15,11 @@
   </PropertyGroup>
 
   <PropertyGroup Condition=" '$(RunConfiguration)' == 'OASIS_API' " />
+
+  <ItemGroup>
+    <Compile Remove="Helpers\OASISProviderManager.cs" />
+    <Compile Remove="Helpers\OASISSettings.cs" />
+  </ItemGroup>
   <ItemGroup>
     <PackageReference Include="AutoMapper" Version="10.0.0" />
     <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="8.0.1" />
@@ -38,6 +43,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\NextGenSoftware.OASIS.API.Config\NextGenSoftware.OASIS.API.Config.csproj" />
     <ProjectReference Include="..\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj" />
     <ProjectReference Include="..\NextGenSoftware.OASIS.API.Providers.AcitvityPub\NextGenSoftware.OASIS.API.Providers.AcitvityPubOASIS.csproj" />
     <ProjectReference Include="..\NextGenSoftware.OASIS.API.Providers.BlockStackOASIS\NextGenSoftware.OASIS.API.Providers.BlockStackOASIS.csproj" />

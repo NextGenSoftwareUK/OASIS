@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
+using NextGenSoftware.OASIS.API.Config;
 using NextGenSoftware.OASIS.API.Core;
 using System;
 using System.IdentityModel.Tokens.Jwt;
