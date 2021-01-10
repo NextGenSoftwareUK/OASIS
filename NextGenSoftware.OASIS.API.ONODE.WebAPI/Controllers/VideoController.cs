@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
-
+using NextGenSoftware.OASIS.API.Config;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 {

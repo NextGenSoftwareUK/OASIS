@@ -149,6 +149,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.S
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.STAR", "NextGenSoftware.OASIS.STAR\NextGenSoftware.OASIS.STAR.csproj", "{DBE52264-B1F0-4FCC-8F24-DBFAEF4C0652}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.Config", "NextGenSoftware.OASIS.API.Config\NextGenSoftware.OASIS.API.Config.csproj", "{10FB20F3-FB83-4195-886E-EE962D165912}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -1114,6 +1116,24 @@ Global
 		{DBE52264-B1F0-4FCC-8F24-DBFAEF4C0652}.Release|x64.Build.0 = Release|Any CPU
 		{DBE52264-B1F0-4FCC-8F24-DBFAEF4C0652}.Release|x86.ActiveCfg = Release|Any CPU
 		{DBE52264-B1F0-4FCC-8F24-DBFAEF4C0652}.Release|x86.Build.0 = Release|Any CPU
+		{10FB20F3-FB83-4195-886E-EE962D165912}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{10FB20F3-FB83-4195-886E-EE962D165912}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{10FB20F3-FB83-4195-886E-EE962D165912}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{10FB20F3-FB83-4195-886E-EE962D165912}.Debug|x64.Build.0 = Debug|Any CPU
+		{10FB20F3-FB83-4195-886E-EE962D165912}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{10FB20F3-FB83-4195-886E-EE962D165912}.Debug|x86.Build.0 = Debug|Any CPU
+		{10FB20F3-FB83-4195-886E-EE962D165912}.Linux|Any CPU.ActiveCfg = Debug|Any CPU
+		{10FB20F3-FB83-4195-886E-EE962D165912}.Linux|Any CPU.Build.0 = Debug|Any CPU
+		{10FB20F3-FB83-4195-886E-EE962D165912}.Linux|x64.ActiveCfg = Debug|Any CPU
+		{10FB20F3-FB83-4195-886E-EE962D165912}.Linux|x64.Build.0 = Debug|Any CPU
+		{10FB20F3-FB83-4195-886E-EE962D165912}.Linux|x86.ActiveCfg = Debug|Any CPU
+		{10FB20F3-FB83-4195-886E-EE962D165912}.Linux|x86.Build.0 = Debug|Any CPU
+		{10FB20F3-FB83-4195-886E-EE962D165912}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{10FB20F3-FB83-4195-886E-EE962D165912}.Release|Any CPU.Build.0 = Release|Any CPU
+		{10FB20F3-FB83-4195-886E-EE962D165912}.Release|x64.ActiveCfg = Release|Any CPU
+		{10FB20F3-FB83-4195-886E-EE962D165912}.Release|x64.Build.0 = Release|Any CPU
+		{10FB20F3-FB83-4195-886E-EE962D165912}.Release|x86.ActiveCfg = Release|Any CPU
+		{10FB20F3-FB83-4195-886E-EE962D165912}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

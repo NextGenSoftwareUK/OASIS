@@ -1,6 +1,7 @@
 ﻿
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
+using NextGenSoftware.OASIS.API.Config;
 using NextGenSoftware.OASIS.API.Core;
 using System;
 

@@ -34,7 +34,7 @@ namespace NextGenSoftware.OASIS.STAR
 
         public async Task<IMoon> AddMoonAsync(IMoon moon)
         {
-            HolonManager holonManager = new HolonManager( )
+           // HolonManager holonManager = new HolonManager( )
 
             //holonManager.
 

@@ -2,7 +2,7 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
-
+using NextGenSoftware.OASIS.API.Config;
 using NextGenSoftware.OASIS.API.Core;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
