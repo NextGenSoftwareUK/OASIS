@@ -1,0 +1,29 @@
+
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.Holochain.HoloNET.Client.Core", "NextGenSoftware.Holochain.HoloNET.Client.Core.csproj", "{FE73BB4F-9260-4758-ACA4-CDCEC422016A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.Holochain.HoloNET.Client.Desktop", "..\NextGenSoftware.Holochain.HoloNET.Client.Desktop\NextGenSoftware.Holochain.HoloNET.Client.Desktop.csproj", "{DF22FA17-ED0C-4CDB-91C2-CBF846773D48}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.Holochain.HoloNET.Client.TestHarness", "..\NextGenSoftware.Holochain.HoloNET.Client.TestHarness\NextGenSoftware.Holochain.HoloNET.Client.TestHarness.csproj", "{8DB97BBC-F461-429B-B302-7378AF824FEE}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{FE73BB4F-9260-4758-ACA4-CDCEC422016A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FE73BB4F-9260-4758-ACA4-CDCEC422016A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FE73BB4F-9260-4758-ACA4-CDCEC422016A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FE73BB4F-9260-4758-ACA4-CDCEC422016A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DF22FA17-ED0C-4CDB-91C2-CBF846773D48}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DF22FA17-ED0C-4CDB-91C2-CBF846773D48}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DF22FA17-ED0C-4CDB-91C2-CBF846773D48}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DF22FA17-ED0C-4CDB-91C2-CBF846773D48}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8DB97BBC-F461-429B-B302-7378AF824FEE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8DB97BBC-F461-429B-B302-7378AF824FEE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8DB97BBC-F461-429B-B302-7378AF824FEE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8DB97BBC-F461-429B-B302-7378AF824FEE}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
