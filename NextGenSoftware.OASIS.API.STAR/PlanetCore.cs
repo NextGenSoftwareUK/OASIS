@@ -1,4 +1,6 @@
 ﻿
+using NextGenSoftware.OASIS.API;
+
 namespace NextGenSoftware.OASIS.API.STAR
 {
     public class PlanetCore : CelestialBodyCore, IPlanetCore
@@ -30,7 +32,7 @@ namespace NextGenSoftware.OASIS.API.STAR
 
         public async Task<IMoon> AddMoonAsync(IMoon moon)
         {
-            //HolonManager holonManager = new HolonManager();
+            HolonManager holonManager = new HolonManager();
 
             //holonManager.
 
