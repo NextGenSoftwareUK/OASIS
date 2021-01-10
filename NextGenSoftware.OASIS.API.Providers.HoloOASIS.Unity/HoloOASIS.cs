@@ -1,7 +1,5 @@
 ﻿using NextGenSoftware.Holochain.HoloNET.Client.Unity;
-using NextGenSoftware.OASIS.API.Core;
 using NextGenSoftware.OASIS.API.Providers.HoloOASIS.Core;
-using System.Threading.Tasks;
 
 namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Unity
 {
@@ -11,7 +9,5 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Unity
         {
             
         }
-
-       
     }
 }

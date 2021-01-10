@@ -9,29 +9,29 @@ namespace NextGenSoftware.OASIS.API.FrontEnd.Unity
 {
     public class UnityOASISAPIManager
     {
-        //public GameObject ProfileName;
+        //public GameObject AvatarName;
 
         public UnityOASISAPIManager()
         {
             // Inject in the HoloOASIS Storage Provider (this could be moved to a config file later so the 
             // providers can be sweapped without having to re-compile.
-            ProfileManager = new ProfileManager(new HoloOASIS("ws://localhost:8888"));
+            AvatarManager = new AvatarManager(new HoloOASIS("ws://localhost:8888"));
             //StorageProvider = new HoloOASIS("ws://localhost:8888");
         }
 
-        ProfileManager ProfileManager { get; set; }  //If the ProfileManager is going to contain additional business logic not contained in the providers then use this.
+        AvatarManager AvatarManager { get; set; }  //If the AvatarManager is going to contain additional business logic not contained in the providers then use this.
         //IOASISStorage StorageProvider { get; set; }
 
-        public async Task LoadProfileAsync(string username, string password)
+        public async Task LoadAvatarAsync(string username, string password)
         {
-            IProfile profile = await ProfileManager.LoadProfileAsync(username, password);
+            IAvatar Avatar = await AvatarManager.LoadAvatarAsync(username, password);
 
-            if (profile != null)
+            if (Avatar != null)
             {
-                //TODO: Bind profile info to Unity Avatar UI here.
+                //TODO: Bind Avatar info to Unity Avatar UI here.
             }
 
-            //return await StorageProvider.LoadProfileAsync(username, password);
+            //return await StorageProvider.LoadAvatarAsync(username, password);
         }
     }
 }

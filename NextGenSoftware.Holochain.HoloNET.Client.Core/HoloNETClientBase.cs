@@ -6,7 +6,6 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using System.Linq;
 using System.IO;
 using System.Diagnostics;
 
@@ -54,6 +53,9 @@ namespace NextGenSoftware.Holochain.HoloNET.Client.Core
         public delegate void SignalsCallBack(object sender, SignalsCallBackEventArgs e);
         public event SignalsCallBack OnSignalsCallBack;
 
+        public delegate void ConductorDebugCallBack(object sender, ConductorDebugCallBackEventArgs e);
+        public event ConductorDebugCallBack OnConductorDebugCallBack;
+
         public delegate void GetInstancesCallBack(object sender, GetInstancesCallBackEventArgs e);
         public event GetInstancesCallBack OnGetInstancesCallBack;
 
@@ -87,12 +89,12 @@ namespace NextGenSoftware.Holochain.HoloNET.Client.Core
         public IHoloNETClientNET NetworkServiceProvider { get; set; }
         public NetworkServiceProviderMode NetworkServiceProviderMode { get; set; }
 
-        public HoloNETClientBase(string holochainURI)
+        public HoloNETClientBase(string holochainConductorURI)
         {
           //  _useInternalHolochainConductor = useInternalHolochainConductor;
             WebSocket = new ClientWebSocket();
             WebSocket.Options.KeepAliveInterval = TimeSpan.FromSeconds(Config.KeepAliveSeconds == 0 ? KeepAliveSecondsDefault : Config.KeepAliveSeconds);
-            EndPoint = holochainURI;
+            EndPoint = holochainConductorURI;
             Config.ErrorHandlingBehaviour = ErrorHandlingBehaviour.OnlyThrowExceptionIfNoErrorHandlerSubscribedToOnErrorEvent;
 
             _cancellationToken = _cancellationTokenSource.Token; //TODO: do something with this!
@@ -105,10 +107,33 @@ namespace NextGenSoftware.Holochain.HoloNET.Client.Core
                 if (Logger == null)
                     throw new HoloNETException("ERROR: No Logger Has Been Specified! Please set a Logger with the Logger Property.");
 
-                if (WebSocket.State != WebSocketState.Open && WebSocket.State != WebSocketState.Aborted)
+                if (WebSocket.State != WebSocketState.Connecting && WebSocket.State != WebSocketState.Open && WebSocket.State != WebSocketState.Aborted)
                 {
                     if (Config.AutoStartConductor)
                     {
+                        DirectoryInfo info = new DirectoryInfo(Config.FullPathToHolochainAppDNA);
+                        Logger.Log("Starting Holochain Conductor...", LogType.Info);
+
+                        Process pProcess = new Process();
+                        pProcess.StartInfo.WorkingDirectory = @"C:\holochain-holonix-v0.0.80-9-g6a1542d";
+                        pProcess.StartInfo.FileName = "wsl";
+                       // pProcess.StartInfo.Arguments = "run";
+                        pProcess.StartInfo.UseShellExecute = false;
+                        pProcess.StartInfo.RedirectStandardOutput = false;
+                        pProcess.StartInfo.RedirectStandardInput = true;
+                        pProcess.StartInfo.WindowStyle = ProcessWindowStyle.Normal;
+                        pProcess.StartInfo.CreateNoWindow = false;
+                        pProcess.Start();
+
+                        await Task.Delay(Config.SecondsToWaitForHolochainConductorToStart); // Give the conductor 5 seconds to start up...
+
+                        // pProcess.StandardInput.WriteLine("nix-shell https://holochain.love");
+                        //pProcess.StandardInput.WriteLine("nix-shell holochain-holonix-6a1542d");
+                        pProcess.StandardInput.WriteLine("nix-shell C:\\holochain-holonix-v0.0.80-9-g6a1542d\\holochain-holonix-6a1542d");
+
+                        await Task.Delay(Config.SecondsToWaitForHolochainConductorToStart); // Give the conductor 5 seconds to start up...
+
+                        /*
                         //If no path to the conductor has been given then default to the current working directory.
                         if (string.IsNullOrEmpty(Config.FullPathToExternalHolochainConductor))
                             Config.FullPathToExternalHolochainConductor = string.Concat(Directory.GetCurrentDirectory(), "\\hc.exe"); //default to the current path
@@ -136,7 +161,7 @@ namespace NextGenSoftware.Holochain.HoloNET.Client.Core
                             pProcess.Start();
 
                             await Task.Delay(Config.SecondsToWaitForHolochainConductorToStart); // Give the conductor 5 seconds to start up...
-                        }
+                        }*/
                     }
 
                     Logger.Log(string.Concat("Connecting to ", EndPoint, "..."), LogType.Info);
@@ -205,6 +230,7 @@ namespace NextGenSoftware.Holochain.HoloNET.Client.Core
             await CallZomeFunctionAsync(_currentId.ToString(), instanceId, zome, function, callback, paramsObject, true, cachReturnData);
         }
 
+        //public async Task CallZomeFunctionAsync(string id, string instanceId, string zome, string function, ZomeFunctionCallBack callback, object paramsObject, bool autoConvertFieldsToHCStandard = false, bool matchIdToInstanceZomeFuncInCallback = true, bool cachReturnData = false)
         public async Task CallZomeFunctionAsync(string id, string instanceId, string zome, string function, ZomeFunctionCallBack callback, object paramsObject, bool matchIdToInstanceZomeFuncInCallback = true, bool cachReturnData = false)
         {
             Logger.Log("CallZomeFunctionAsync ENTER", LogType.Debug);
@@ -236,13 +262,24 @@ namespace NextGenSoftware.Holochain.HoloNET.Client.Core
             if (callback != null)
                 _callbackLookup[id] = callback;
 
+
+            //if (autoConvertFieldsToHCStandard)
+            //{
+            //    string json = JsonConvert.SerializeObject(paramsObject);
+            //    JObject data = JObject.Parse(json);
+            //    //data.Next.Replace(new JToken()
+
+            //    data.SelectToken("instance_stats.test-instance.number_delayed_validations").ToString()),
+            //}
+
             await SendMessageAsync(JsonConvert.SerializeObject(
                 new
                 {
                     jsonrpc = "2.0",
                     id,
                     method = "call",
-                    @params = new { instance_id = instanceId, zome, function, @params = paramsObject }
+                    @params = new { instance_id = instanceId, zome, function, args = paramsObject }
+                    //@params = new { instance_id = instanceId, zome, function, @params = paramsObject }
                 }
             ));
 
@@ -252,6 +289,12 @@ namespace NextGenSoftware.Holochain.HoloNET.Client.Core
         public async Task SendMessageAsync(string jsonMessage)
         {
             Logger.Log(string.Concat("Sending Message: ", jsonMessage), LogType.Info);
+
+            //if (autoConvertFieldsToHCStandard)
+            //{
+            //    JObject data = JObject.Parse(jsonMessage);
+            //    data.SelectToken("instance_stats.test-instance.number_delayed_validations").ToString()),
+            //}
 
             if (WebSocket.State != WebSocketState.Open)
             {
@@ -321,21 +364,37 @@ namespace NextGenSoftware.Holochain.HoloNET.Client.Core
                     } while (!result.EndOfMessage);
 
                     string rawData = stringResult.ToString();
-                    Logger.Log(string.Concat("Received Data: ", rawData), LogType.Info);
-                    OnDataReceived?.Invoke(this, new DataReceivedEventArgs { EndPoint = EndPoint, RawJSONData = rawData, WebSocketResult = result });
-
                     JObject data = JObject.Parse(rawData);
-                    string id = data["id"].ToString();
 
-                    if (data.ContainsKey("signal"))
+                    bool isConductorDebugInfo = false;
+                    string id = "";
+
+                    if (data.ContainsKey("type"))
+                        isConductorDebugInfo = true;
+
+                    Logger.Log(string.Concat("Received Data: ", rawData), LogType.Info);
+                    OnDataReceived?.Invoke(this, new DataReceivedEventArgs { EndPoint = EndPoint, RawJSONData = rawData, WebSocketResult = result, IsConductorDebugInfo = isConductorDebugInfo });
+                    
+                    if (data.ContainsKey("id"))
+                        id = data["id"].ToString();
+
+                    if (isConductorDebugInfo)
                     {
-                        Logger.Log(string.Concat("Signals data detected. Id: ", id, ", Raw JSON Data: ", rawData), LogType.Info);
-                        OnSignalsCallBack?.Invoke(this, new SignalsCallBackEventArgs(id, EndPoint, true, rawData, result));
-
-                        //TODO: Handle Signals here when hc fully implement them...
+                        // Conducor Debug Info.
+                        ConductorDebugCallBackEventArgs args = new ConductorDebugCallBackEventArgs { EndPoint = EndPoint, RawJSONData = rawData, NumberDelayedValidations = Convert.ToInt32(data.SelectToken("instance_stats.test-instance.number_delayed_validations").ToString()), NumberHeldAspects = Convert.ToInt32(data.SelectToken("instance_stats.test-instance.number_held_aspects").ToString()), NumberHeldEntries = Convert.ToInt32(data.SelectToken("instance_stats.test-instance.number_held_entries").ToString()), NumberPendingValidations = Convert.ToInt32(data.SelectToken("instance_stats.test-instance.number_pending_validations").ToString()), NumberRunningZomeCalls = Convert.ToInt32(data.SelectToken("instance_stats.test-instance.number_running_zome_calls").ToString()), Offline = Convert.ToBoolean(data.SelectToken("instance_stats.test-instance.offline").ToString()), Type = data.SelectToken("type").ToString(), WebSocketResult = result };
+                        Logger.Log(string.Concat("Conductor Debug Info Detected. Raw JSON Data: ", rawData, "NumberDelayedValidations: ", args.NumberDelayedValidations, "NumberDelayedValidations: ", args.NumberHeldAspects, "NumberHeldEntries: ", args.NumberHeldEntries, "NumberPendingValidations: ", args.NumberPendingValidations, "NumberRunningZomeCalls; ", args.NumberRunningZomeCalls, "Offline: ", args.Offline, "Type: ", args.Type), LogType.Info);
+                        OnConductorDebugCallBack?.Invoke(this, args);
+                    }
+                    else if (data.ContainsKey("signal"))
+                    {
+                        //Signals.
+                        SignalsCallBackEventArgs args = new SignalsCallBackEventArgs(id, EndPoint, true, rawData, (SignalsCallBackEventArgs.SignalTypes)Enum.Parse(typeof(SignalsCallBackEventArgs.SignalTypes), data.SelectToken("signal_type").ToString(), true), data.SelectToken("name").ToString(), data.SelectToken("arguments"), result);
+                        Logger.Log(string.Concat("Signals data detected. Id: ", id, ", Raw JSON Data: ", rawData, "Name: ", args.Name, "SignalType: ", args.SignalType, "Arguments: ", args.Arguments), LogType.Info);
+                        OnSignalsCallBack?.Invoke(this, args);
                     }
                     else if (data.SelectToken("result[0].agent") != null)
                     {
+                        // Get Instance Info.
                         GetInstancesCallBackEventArgs args = new GetInstancesCallBackEventArgs(id, EndPoint, true, data["result"].ToString(), new List<string>() { data.SelectToken("result[0].id").ToString() }, data.SelectToken("result[0].dna").ToString(), data.SelectToken("result[0].agent").ToString(), result);
                         Logger.Log(string.Concat("Get Instances data detected. Id: ", id, ", EndPoint: ", EndPoint, ", agent: ", args.Agent, ", DNA: ", args.DNA, ", Instances: ", string.Join(",", args.Instances), ", Raw JSON Data: ", rawData), LogType.Info);
 
@@ -348,18 +407,22 @@ namespace NextGenSoftware.Holochain.HoloNET.Client.Core
                     else
                     {
                         //Zome Return Call.
-                        string rawZomeReturnData = data["result"].ToString();
+                        string rawZomeReturnData = "";
+
+                        if (data.ContainsKey("result"))
+                            rawZomeReturnData = data["result"].ToString();
+
                         string zomeReturnData = string.Empty;
                         bool isZomeCallSuccessful = false;
 
-                        if (rawZomeReturnData.Substring(2, 2).ToUpper() == "OK")
+                        if (rawZomeReturnData.Length >= 4 && rawZomeReturnData.Substring(2, 2).ToUpper() == "OK")
                         {
                             isZomeCallSuccessful = true;
                             zomeReturnData = rawZomeReturnData.Substring(7, rawZomeReturnData.Length - 9);
                             //zomeReturnData = rawZomeReturnData.Substring(6, rawZomeReturnData.Length - 8);
                         }
                         //else if (rawZomeReturnData.Substring(0,3).ToUpper() == "ERR")
-                        else
+                        else if (rawZomeReturnData.Length > 1)
                             zomeReturnData = rawZomeReturnData.Substring(1, rawZomeReturnData.Length - 2);
                         //zomeReturnData = rawZomeReturnData.Substring(8, rawZomeReturnData.Length - 11);
 

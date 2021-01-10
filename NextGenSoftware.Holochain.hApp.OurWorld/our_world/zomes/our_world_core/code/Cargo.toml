@@ -1,16 +1,17 @@
 [package]
 name = "our_world_core"
 version = "0.1.0"
-authors = ["David Ellams <david@nextgensoftware.co.uk>"]
+authors = ["hc-scaffold-framework"]
 edition = "2018"
 
 [dependencies]
-serde = "=1.0.89"
-serde_json = { version = "=1.0.39", features = ["preserve_order"] }
-serde_derive = "=1.0.89"
-hdk = { git = "https://github.com/holochain/holochain-rust", tag = "v0.0.17-alpha2" }
-holochain_wasm_utils = { git = "https://github.com/holochain/holochain-rust", tag = "v0.0.17-alpha2" }
-holochain_core_types_derive = { git = "https://github.com/holochain/holochain-rust", tag = "v0.0.17-alpha2" }
+serde = "1.0"
+serde_json = { version = "1.0", features = ["preserve_order"] }
+serde_derive = "1.0"
+hdk = "=0.0.50-alpha4"
+hdk_proc_macros = "=0.0.50-alpha4"
+holochain_wasm_utils = "=0.0.50-alpha4"
+holochain_json_derive = "0.0"
 
 [lib]
 path = "src/lib.rs"

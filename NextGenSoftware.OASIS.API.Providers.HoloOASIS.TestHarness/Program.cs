@@ -9,7 +9,8 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.TestHarness
     class Program
     {
         static Desktop.HoloOASIS _holoOASIS = new Desktop.HoloOASIS("ws://localhost:8888");
-        static Core.Profile _savedProfile;
+        //static Core.HcAvatar _savedAvatar;
+        static Avatar _savedAvatar;
 
         static async Task Main(string[] args)
         {
@@ -18,8 +19,8 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.TestHarness
 
             _holoOASIS.HoloNETClient.OnConnected += HoloNETClient_OnConnected;
             _holoOASIS.OnInitialized += _holoOASIS_OnInitialized;
-            _holoOASIS.OnPlayerProfileLoaded += _holoOASIS_OnPlayerProfileLoaded;
-            _holoOASIS.OnPlayerProfileSaved += _holoOASIS_OnPlayerProfileSaved;
+            _holoOASIS.OnPlayerAvatarLoaded += _holoOASIS_OnPlayerAvatarLoaded;
+            _holoOASIS.OnPlayerAvatarSaved += _holoOASIS_OnPlayerAvatarSaved;
             _holoOASIS.OnHoloOASISError += _holoOASIS_OnHoloOASISError;
 
             //  await _holoOASIS.Initialize();
@@ -30,16 +31,16 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.TestHarness
             Console.ReadKey();
 
             /*
-            IProfile profile = await _holoOASIS.GetProfileAsync(Guid.NewGuid());
+            IAvatar Avatar = await _holoOASIS.GetAvatarAsync(Guid.NewGuid());
 
-            if (profile != null)
+            if (Avatar != null)
             {
-                Console.WriteLine("Profile Received.");
-                Console.WriteLine(string.Concat("Name: ", profile.Title, " ", profile.FirstName, " ", profile.LastName));
-                Console.WriteLine(string.Concat("DOB: ", profile.DOB));
-                Console.WriteLine(string.Concat("Address: ", profile.PlayerAddress));
-                Console.WriteLine(string.Concat("Karma: ", profile.Karma));
-                Console.WriteLine(string.Concat("Level: ", profile.Level));
+                Console.WriteLine("Avatar Received.");
+                Console.WriteLine(string.Concat("Name: ", Avatar.Title, " ", Avatar.FirstName, " ", Avatar.LastName));
+                Console.WriteLine(string.Concat("DOB: ", Avatar.DOB));
+                Console.WriteLine(string.Concat("Address: ", Avatar.PlayerAddress));
+                Console.WriteLine(string.Concat("Karma: ", Avatar.Karma));
+                Console.WriteLine(string.Concat("Level: ", Avatar.Level));
             }*/
         }
 
@@ -53,38 +54,38 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.TestHarness
             Console.WriteLine("Connected");
         }
 
-        private static void _holoOASIS_OnPlayerProfileSaved(object sender, ProfileSavedEventArgs e)
+        private static void _holoOASIS_OnPlayerAvatarSaved(object sender, AvatarSavedEventArgs e)
         {
-            Console.WriteLine("Profile Saved.");
-            Console.WriteLine("Profile Entry Hash: " + e.Profile.HcAddressHash);
-            Console.WriteLine("Loading Profile...");
-            //_savedProfile.Id = new Guid(e.ProfileEntryHash);
-            _holoOASIS.LoadProfileAsync(e.Profile.HcAddressHash);
+            Console.WriteLine("Avatar Saved.");
+            Console.WriteLine("Avatar Entry Hash: " + e.HcAvatar.hc_address_hash);
+            Console.WriteLine("Loading Avatar...");
+            //_savedAvatar.Id = new Guid(e.AvatarEntryHash);
+            _holoOASIS.LoadAvatarAsync(e.HcAvatar.hc_address_hash);
         }
 
-        private static void _holoOASIS_OnPlayerProfileLoaded(object sender, ProfileLoadedEventArgs e)
+        private static void _holoOASIS_OnPlayerAvatarLoaded(object sender, AvatarLoadedEventArgs e)
         {
-            Console.WriteLine("Profile Loaded.");
-            Console.WriteLine(string.Concat("Id: ", e.Profile.Id));
-            Console.WriteLine(string.Concat("HC Address Hash: ", e.Profile.HcAddressHash));
-            Console.WriteLine(string.Concat("Name: ", e.Profile.Title, " ", e.Profile.FirstName, " ", e.Profile.LastName));
-            Console.WriteLine(string.Concat("Username: ", e.Profile.Username));
-            Console.WriteLine(string.Concat("Password: ", e.Profile.Password));
-            Console.WriteLine(string.Concat("Email: ", e.Profile.Email));
-            Console.WriteLine(string.Concat("DOB: ", e.Profile.DOB));
-            Console.WriteLine(string.Concat("Address: ", e.Profile.PlayerAddress));
-            Console.WriteLine(string.Concat("Karma: ", e.Profile.Karma));
-            Console.WriteLine(string.Concat("Level: ", e.Profile.Level));
+            Console.WriteLine("Avatar Loaded.");
+            Console.WriteLine(string.Concat("Id: ", e.Avatar.Id));
+            Console.WriteLine(string.Concat("HC Address Hash: ", e.HcAvatar.hc_address_hash));
+            Console.WriteLine(string.Concat("Name: ", e.Avatar.Title, " ", e.Avatar.FirstName, " ", e.Avatar.LastName));
+            Console.WriteLine(string.Concat("Username: ", e.Avatar.Username));
+            Console.WriteLine(string.Concat("Password: ", e.Avatar.Password));
+            Console.WriteLine(string.Concat("Email: ", e.Avatar.Email));
+            Console.WriteLine(string.Concat("DOB: ", e.Avatar.DOB));
+            Console.WriteLine(string.Concat("Address: ", e.Avatar.Address));
+            Console.WriteLine(string.Concat("Karma: ", e.Avatar.Karma));
+            Console.WriteLine(string.Concat("Level: ", e.Avatar.Level));
         }
 
         private static async void _holoOASIS_OnInitialized(object sender, EventArgs e)
         {
             Console.WriteLine("Initialized.");
-            Console.WriteLine("Saving Profile...");
+            Console.WriteLine("Saving Avatar...");
 
-            _savedProfile = new NextGenSoftware.OASIS.API.Providers.HoloOASIS.Core.Profile { Username = "dellams", Email = "david@nextgensoftware.co.uk", Password = "1234", FirstName = "David", LastName = "Ellams", DOB = "11/04/1980", Id = Guid.NewGuid(), Title = "Mr", PlayerAddress = "blahahahaha" };
-            await _savedProfile.KarmaEarnt(KarmaType.HelpingTheEnvironment, KarmaSourceType.hApp, "Our World", "XR Educational Game To Make The World A Better Place", false);
-            await _holoOASIS.SaveProfileAsync(_savedProfile);
+            _savedAvatar = new Avatar { Username = "dellams", Email = "david@nextgensoftware.co.uk", Password = "1234", FirstName = "David", LastName = "Ellams", DOB = DateTime.Parse("11/04/1980"), Id = Guid.NewGuid(), Title = "Mr", Address = "blahahahaha" };
+            await _savedAvatar.KarmaEarnt(KarmaTypePositive.HelpingTheEnvironment, KarmaSourceType.hApp, "Our World", "XR Educational Game To Make The World A Better Place", false);
+            await _holoOASIS.SaveAvatarAsync(_savedAvatar);
         }
     }
 }

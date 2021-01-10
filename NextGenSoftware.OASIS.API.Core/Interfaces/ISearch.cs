@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 namespace NextGenSoftware.OASIS.API.Core
 {
-    public interface ISearch : IHolon
+    public interface ISearchParams 
     {
         string SearchQuery { get; set; }
     }
