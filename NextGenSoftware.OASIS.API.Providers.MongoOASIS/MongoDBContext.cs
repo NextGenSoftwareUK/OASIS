@@ -1,25 +1,35 @@
 ﻿using MongoDB.Driver;
-using System;
-using System.Collections.Generic;
-using System.Text;
-using static NextGenSoftware.OASIS.API.Providers.MongoOASIS.MongoOASIS;
+using NextGenSoftware.OASIS.API.Core;
+using static NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.MongoDBOASIS;
 
-namespace NextGenSoftware.OASIS.API.Providers.MongoOASIS
+namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
 {
     public class MongoDbContext
     {
-        private readonly IMongoDatabase _mongoDb;
-        public MongoDbContext(string connectionString)
+        public MongoClient MongoClient { get; set; }
+        public IMongoDatabase MongoDB { get; set; }
+
+        public MongoDbContext(string connectionString, string dbName)
         {
             //MongoClient mongoClient = new MongoClient("mongodb+srv://dbadmin:PlRuNP9u4rG2nRdN@oasisapi-oipck.mongodb.net/test?retryWrites=true&w=majority");
-            MongoClient mongoClient = new MongoClient(connectionString);
-            _mongoDb = mongoClient.GetDatabase("OASISAPI");
+            MongoClient = new MongoClient(connectionString);
+            MongoDB = MongoClient.GetDatabase(dbName);
+            //_mongoDb = mongoClient.GetDatabase("OASISAPI");
         }
+
+        public IMongoCollection<Avatar> Avatar
+        {
+            get
+            {
+                return MongoDB.GetCollection<Avatar>("Avatar");
+            }
+        }
+
         public IMongoCollection<SearchData> SearchData
         {
             get
             {
-                return _mongoDb.GetCollection<SearchData>("SearchData");
+                return MongoDB.GetCollection<SearchData>("SearchData");
             }
         }
     }

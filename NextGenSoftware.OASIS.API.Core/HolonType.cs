@@ -8,13 +8,18 @@ namespace NextGenSoftware.OASIS.API.Core
     {
         All,
         Player,
-        Profile,
+        Avatar,
         Quest,
         Park,
         Restaurant,
         Cafe,
         TrainStation,
         UndergroundStation,
-        BusStation
+        BusStation,
+        Star,
+        Planet,
+        Moon,
+        Zome,
+        Holon
     }
 }

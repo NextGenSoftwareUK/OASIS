@@ -1,7 +1,7 @@
 
 
 
-# OASIS API / Our World / HoloNET / HoloUnity / .NET HDK Altha v0.1.1
+# OASIS API / Our World / HoloNET / HoloUnity / .NET HDK Altha v0.1.2
 
 ## Contents
 - [Introduction](#introduction)
@@ -192,6 +192,9 @@ Next it will implement the ARC (Augmented Reality Computer) Membrane allowing th
 
 Next, it will port Noomap to Unity and will implement a Synergy Engine allowing people to easily find and match solutions/desires/passions and to also find various solution providers, which again will be fully integrated with the 3D Map & Avatar/Karma system.
 
+Read another more refined (and updated) summary on the github repo code base for the Our World Smartphone AR Prototype:<br>
+https://github.com/NextGenSoftwareUK/Our-World-Smartphone-Prototype-AR
+
 <br>
 
 ## Project Structure
@@ -235,7 +238,9 @@ The projects within this repo should be pretty self explanatory from their names
 |NextGenSoftware.OASIS.API.Providers.ChainLinkOASIS| OASIS Provider for Chainlink (Smart Contracts for all blockchains).
 |NextGenSoftware.OASIS.API.Providers.MongoOASIS| OASIS Provider for MongoDB.
 |NextGenSoftware.OASIS.API.Providers.PLANOASIS| OASIS Provider for PLAN.
-|NextGenSoftware.OASIS.API.Providers.HoloWeb| OASIS Provider for HoloWeb.
+|NextGenSoftware.OASIS.API.Providers.HoloWebOASIS| OASIS Provider for HoloWeb.
+|NextGenSoftware.OASIS.API.Providers.HashgraphOASIS| OASIS Provider for Hashgraph.
+|NextGenSoftware.OASIS.API.Providers.ScuttlebuttOASIS| OASIS Provider for Scuttlebutt.
 
 <br>
 
@@ -413,12 +418,18 @@ Below is a list of the protocols/networks/platforms that the OASIS API will supp
 | [Telos](https://telosnetwork.io/) | The Telos Blockchain was launched in December of 2018 in response to what the founders saw as an opportunity to build, and improve upon the EOSIO software. | In Dev | TelosOASIS
 | [SEEDS](https://www.joinseeds.com/) | A payment platform and financial ecosystem to empower humanity and heal our planet. | In Dev | SEEDSOASIS
 | [IPFS](https://ipfs.io) | The InterPlanetary File System is a protocol and peer-to-peer network for storing and sharing data in a distributed file system. IPFS uses content-addressing to uniquely identify each file in a global namespace connecting all computing devices.| In Dev | IPFSOASIS
+| [Elrond](https://elrond.com/) |A highly scalable, fast and secure blockchain platform for distributed apps, enterprise use cases and the new internet economy. | In Dev  | ElrondOASIS
+| [HIVE](https://www.hiveblockchain.com/) |First publicly listed blockchain infrastructure company that bridges blockchain and cryptocurrencies to traditional capital markets. | In Dev  | HIVEOASIS
+| [Orion Protocol](https://www.orionprotocol.io/) |Trade with the liquidity of the entire crypto market in one place - without ever giving up your private keys. | In Dev  | OrionProtocolOASIS
+| [Hedera Hashgraph](https://www.hedera.com/) | Hedera is a decentralized public network where anyone can carve out a piece of cyberspace to transact, play, and socialize in a secure, trusted environment. | In Dev  | HashgraphOASIS
+| [ScuttleButt](https://github.com/ssbc/) | A distributed and secure peer to peer social network | In Dev | ScuttleButtOASIS
+| [HoloWeb](https://holoweb.io//) | We’re reinventing the way the web works, and taking a stand for our sovereignty in cyberspace.| In Dev | HoloWebOASIS
+|[PLAN](https://www.plan-systems.org/) | Solving for privacy, ease of collaboration, and accessibility for all. We believe people profoundly benefit from having the tools to connect with each other, manage common resources, and to engage in meaningful projects. | In Dev | PLANOASIS
 |[CEPTR Protocol For Pluggable Protocols](http://ceptr.org/projects/pcubed)|Complete interoperability: No more silos and brittle APIs. Self-Describing protocols and a universal parsing system allows anything to talk to anything. This is where the OASIS API is a stepping stone to get to this point by providing backwards compatibility with what is already out there.|Coming soon | 
+|[Urbit](https://urbit.org/)|Urbit is a clean-slate OS and network for the 21st century.|  Coming Soon |
 |[HSTP (Hyper Spacial Transport Protocol)](https://www.verses.io/)  | The new protocol for the new Spacial Web (Web 3.0) | Coming Soon |
 | [WebFinger](https://webfinger.net/) | WebFinger is used to discover information about people or other entities on the Internet that are identified by a URI using standard Hypertext Transfer Protocol (HTTP) methods over a secure transport. A WebFinger resource returns a JavaScript Object Notation (JSON) object describing the entity that is queried. The JSON object is referred to as the JSON Resource Descriptor (JRD).| Coming Soon
 | [ActivityPub](https://activitypub.rocks/) |ActivityPub is an open, decentralized social networking protocol based on Pump.io's ActivityPump protocol. It provides a client/server API for creating, updating and deleting content, as well as a federated server-to-server API for delivering notifications and content | Coming Soon
-| [HoloWeb](https://holoweb.io//) | We’re reinventing the way the web works, and taking a stand for our sovereignty in cyberspace.| Coming Soon| 
-|PLAN | | Coming Soon| 
 |[Core Network](https://core.network/) | Unify your social network silos into a single visual dashboard. Own your data.  Create and curate content, share privately or publicly, for free or for cryptocurrency.  Develop learning experiences.  Create community currencies.  Track impact, create communities, and reach your people, unfettered by paywalls.  Experience a futuristic VR-first dashboard, which gracefully degrades to standard mobile and desktop browsers. | Coming Soon| 
 | [XMPP](https://xmpp.org/) | Extensible Messaging and Presence Protocol is an open XML technology for real-time communication, which powers a wide range of applications including instant messaging, presence and collaboration.  | Coming Soon
 | [Loom](https://loomx.io/) | Loom Network is a Layer 2 scaling solution for Ethereum that is live in production. It is a network of DPoS sidechains, which allows for highly-scalable games. | Coming Soon
@@ -429,12 +440,10 @@ Below is a list of the protocols/networks/platforms that the OASIS API will supp
 | [Gab](https://gab.com) | Distributed social network promoting free speech | Coming Soon
 | [Mastodon](https://joinmastodon.org/) | Distributed twitter style network of micro blogging servers using the Fediverse. | Coming Soon
 | [Diaspora](https://diasporafoundation.org/) | Another distributed social network | Coming Soon|
-| [ScuttleButt](https://github.com/ssbc/) | A distributed and secure peer to peer social network | Coming Soon |
 | [Stellar](https://www.stellar.org/) | Stellar is an open network for storing and moving money. | TBC
 | [Nexus](https://nexusearth.com/) | Nexus Earth is an innovative open source blockchain technology, designed to better the world through advanced peer to peer networks and digital currency.. | TBC
 | [Ripple](https://www.ripple.com/) | Ripple is a real-time gross settlement system, currency exchange and remittance network created by Ripple Labs Inc., a US-based technology company.. | TBC
 | [TON](https://github.com/ton-blockchain/ton) | Telegram's Open Network Blockchain also looks very promising. | TBC
-| [Hedera Hashgraph](https://www.hedera.com/) | Hedera is a decentralized public network where anyone can carve out a piece of cyberspace to transact, play, and socialize in a secure, trusted environment. | TBC |
 | [DFINITY](https://dfinity.org) | DFINITY is building an open, decentralized compute platform designed to host the next generation of software and services with vastly improved performance | TBC |
 
 **More coming soon...**
@@ -1163,6 +1172,11 @@ You can manually download using the links below:
 <a href="https://docs.wixstatic.com/ugd/4280d8_ad8787bd42b1471bae73003bfbf111f7.pdf">NextGen Developer Training Programme</a>
 
 <a href="https://docs.wixstatic.com/ugd/4280d8_999d98ba615e4fa6ab4383a415ee24c5.pdf">Junior NextGen Developer Training Programme</a>
+
+<b>NEW</b> - The Justice League Training Accademny is a superhero themed upgrade to the above training course fully integrated with the OASIS API so you can earn karma for learning and even more karma for providing training material. This is a superhero training platform, are you ready to be the hero of your own life story? You also unlock power ups and badges as you progress, come join the FUN NOW! :)
+
+https://www.thejusticeleagueaccademy.icu
+
 
 
 ## The Power Of Autism
@@ -2390,6 +2404,9 @@ The platform that is going to win many rewards for the ground-breaking work it w
 
 We would love to have some much needed dev resource on this vital project not only for Holochain but also for the world so if you are interested please contact us on either ourworld@nextgensoftware.co.uk or david@nextgensoftware.co.uk. Thank you, we look forward to hearing from you! :)
 
+For more details on what we are looking for, please check out this doc:
+https://drive.google.com/file/d/1b_G08UTALUg4H3jPlBdElZAFvyRcVKj1/view 
+
 ## Other Ways To Get Involved
 
 If you cannot code or donate, then no problem, you can help in other ways! :) You can share our website/posts, give us valuable feedback on our site, etc as well as submit ideas for Our World. We are also looking for people to join for every department/area such as PR, Sales, Support, Admin, Accounting, Management, Strategy, Operations, etc  
@@ -2436,21 +2453,37 @@ Yoga4Autism Ltd
 <br/> 
 <br/> 
 
+**Our World Smartphone AR Prototype**
+
+https://github.com/NextGenSoftwareUK/Our-World-Smartphone-Prototype-AR
+
 **Sites**
 
 http://www.ourworldthegame.com <br/>
 http://www.nextgensoftware.co.uk <br/>
 http://www.yoga4autism.com <br/> 
+https://www.thejusticeleagueaccademy.icu <br/> 
 
 **Social**
 
 |Type  |Link  |
 |--|--|
 |Facebook| http://www.facebook.com/ourworldthegame  |
-|Twitter | http://www.twitter.com/ourworldthegame
-|YouTube:| https://www.youtube.com/channel/UC0_O4RwdY3lq1m3-K-njUxA  
-|Telegram:| https://t.me/ourworldthegamechat
+|Twitter | http://www.twitter.com/ourworldthegame |
+|YouTube| https://www.youtube.com/channel/UC0_O4RwdY3lq1m3-K-njUxA | 
+|Discord| https://discord.gg/q9gMKU6 |
+|Hylo| https://www.hylo.com/c/ourworld |
+|Telegram| https://t.me/ourworldthegamechat (General Chat) |
+|| https://t.me/ourworldthegame (Announcements) |
+|| https://t.me/ourworldtechupdate (Tech Updates) |
 
+**Join The Our World Tribe (Dev Requirements)**
+
+https://drive.google.com/file/d/1b_G08UTALUg4H3jPlBdElZAFvyRcVKj1/view 
+
+**Mission/Summary**
+
+https://drive.google.com/file/d/12pCk20iLw_uA1yIfojcP6WwvyOT4WRiO/view?usp=sharing
 
 **Blog/Forum**
 
@@ -2466,7 +2499,7 @@ https://chat.holochain.org/appsup/channels/net-hdk
 
 https://forum.holochain.org/c/projects/our-world
 
-**NextGen DeveloperTraining  Programmes**
+**NextGen Developer Training  Programmes**
 
 <a href="https://docs.wixstatic.com/ugd/4280d8_ad8787bd42b1471bae73003bfbf111f7.pdf">NextGen Developer Training Programme</a> <br/> 
 <a href="https://docs.wixstatic.com/ugd/4280d8_999d98ba615e4fa6ab4383a415ee24c5.pdf">Junior NextGen Developer Training Programme</a>
@@ -2495,3 +2528,4 @@ https://d4de5c45-0ca1-451c-86a7-ce397b9225cd.filesusr.com/ugd/4280d8_50d17252aa3
 **Funding**
 
 **https://www.gofundme.com/ourworldthegame** <br/> 
+**https://www.patreon.com/davidellams**

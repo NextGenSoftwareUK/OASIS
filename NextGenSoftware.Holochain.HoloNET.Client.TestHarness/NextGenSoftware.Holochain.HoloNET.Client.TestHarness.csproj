@@ -2,7 +2,11 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
+<<<<<<< HEAD
     <TargetFramework>netcoreapp3.1</TargetFramework>
+=======
+    <TargetFramework>net5.0</TargetFramework>
+>>>>>>> master
   </PropertyGroup>
 
   <ItemGroup>
