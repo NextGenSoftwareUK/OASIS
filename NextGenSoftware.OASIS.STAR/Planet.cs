@@ -1,7 +1,4 @@
-﻿using NextGenSoftware.Holochain.HoloNET.Client.Core;
-using NextGenSoftware.OASIS.API.Core;
-using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 namespace NextGenSoftware.OASIS.STAR
 {
