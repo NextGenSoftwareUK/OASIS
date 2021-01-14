@@ -46,19 +46,34 @@ namespace NextGenSoftware.OASIS.STAR
         //public delegate void DataReceived(object sender, DataReceivedEventArgs e);
         //public event DataReceived OnDataReceived;
     
-        public virtual async Task<IHolon> LoadHolonAsync(Guid id)
+        public virtual async Task<IHolon> LoadHolonAsync(Guid id, HolonType type = HolonType.Holon)
         {
-            return await _holonManager.LoadHolonAsync(id);
+            return await _holonManager.LoadHolonAsync(id, type);
         }
 
-        public virtual async Task<IEnumerable<IHolon>> LoadHolonsAsync(Guid id)
+        public virtual async Task<IHolon> LoadHolonAsync(string providerKey, HolonType type = HolonType.Holon)
         {
-            return await _holonManager.LoadHolonsAsync(id);
+            return await _holonManager.LoadHolonAsync(providerKey, type);
+        }
+
+        public virtual async Task<IEnumerable<IHolon>> LoadHolonsAsync(Guid id, HolonType type = HolonType.Holon)
+        {
+            return await _holonManager.LoadHolonsAsync(id, type);
+        }
+
+        public virtual async Task<IEnumerable<IHolon>> LoadHolonsAsync(string providerKey, HolonType type = HolonType.Holon)
+        {
+            return await _holonManager.LoadHolonsAsync(providerKey, type);
         }
 
         public virtual async Task<IHolon> SaveHolonAsync(IHolon savingHolon)
         {
             return await _holonManager.SaveHolonAsync(savingHolon);
+        }
+
+        public virtual async Task<IEnumerable<IHolon>> SaveHolonsAsync(IEnumerable<IHolon> savingHolons)
+        {
+            return await _holonManager.SaveHolonsAsync(savingHolons);
         }
 
     }

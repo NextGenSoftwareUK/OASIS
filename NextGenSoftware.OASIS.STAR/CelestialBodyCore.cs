@@ -9,9 +9,9 @@ namespace NextGenSoftware.OASIS.STAR
 {
     public abstract class CelestialBodyCore : ZomeBase, ICelestialBodyCore
     {
-        private const string ZOMES_LOAD_ALL = "_zomes_loadall";
-        private const string ZOMES_ADD = "_zomes_add";
-        private const string ZOMES_REMOVE = "_zomes_remove";
+        //private const string ZOMES_LOAD_ALL = "_zomes_loadall";
+        //private const string ZOMES_ADD = "_zomes_add";
+        //private const string ZOMES_REMOVE = "_zomes_remove";
 
        
         //private const string ZOMES_ADD = "planet_holons_add";  //Holons Collection on CelestialBody only loads all holons in all zomes belonging to that body (like a shortcut). So a body does not store holons directly, only zomes (containing holons).
@@ -30,9 +30,20 @@ namespace NextGenSoftware.OASIS.STAR
 
         public List<Zome> Zomes { get; set; }
 
-        public string CoreZomeName { get; set; }
-        public string CoreHolonType { get; set; }
+        //public string CoreZomeName { get; set; }
+        //public string CoreHolonType { get; set; }
 
+
+        public CelestialBodyCore(string providerKey) : base()
+        {
+            this.ProviderKey = providerKey;
+        }
+
+        public CelestialBodyCore() : base()
+        {
+        }
+
+        /*
         public CelestialBodyCore(string coreZomeName, string coreHolonBase, string providerKey) : base(coreZomeName)
         {
             this.ProviderKey = providerKey;
@@ -44,7 +55,7 @@ namespace NextGenSoftware.OASIS.STAR
         {
             this.CoreZomeName = coreZomeName;
             this.CoreHolonType = coreHolonBase;
-        }
+        }*/
 
         /*
         public CelestialBodyCore(HoloNETClientBase holoNETClient, string coreZomeName, string coreHolonBase, string providerKey) : base(holoNETClient, coreZomeName)
@@ -92,13 +103,12 @@ namespace NextGenSoftware.OASIS.STAR
 
             //TODO: Check to see if the method awaits till the zomes(holons) are loaded before returning (if it doesn't need to refacoring to subscribe to events like LoadHolons does)
             List<IZome> zomes = new List<IZome>();
-            List<OASIS.API.Core.IZome> coreZomes = new List<OASIS.API.Core.IZome>();
+            List<API.Core.IZome> coreZomes = new List<API.Core.IZome>();
 
-            //TODO: Come back to this, must be better way of doing this?
-            foreach (IHolon holon in base.LoadHolonsAsync(string.Concat(this.CoreHolonType, ZOMES_LOAD_ALL), ProviderKey).Result)
+            foreach (IHolon holon in base.LoadHolonsAsync(ProviderKey).Result)
             {
                 zomes.Add((IZome)holon);
-                coreZomes.Add((OASIS.API.Core.IZome)holon);
+                coreZomes.Add((API.Core.IZome)holon);
             }
 
             OnZomesLoaded?.Invoke(this, new ZomesLoadedEventArgs { Zomes = coreZomes });
@@ -109,13 +119,13 @@ namespace NextGenSoftware.OASIS.STAR
 
         public async Task<IHolon> AddZome(IZome zome)
         {
-            return await base.SaveHolonAsync(string.Concat(this.CoreHolonType, ZOMES_ADD), zome);
+            return await base.SaveHolonAsync(zome);
         }
 
         public async Task<IHolon> RemoveZome(IZome zome)
         {
             //TODO: Finish
-            return await base.SaveHolonAsync(string.Concat(this.CoreHolonType, ZOMES_REMOVE), zome);
+            return await base.SaveHolonAsync(zome);
         }
 
         public async Task<IHolon> SaveCelestialBodyAsync(IHolon savingHolon)
