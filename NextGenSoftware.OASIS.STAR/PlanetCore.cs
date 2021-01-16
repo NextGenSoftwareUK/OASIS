@@ -60,10 +60,12 @@ namespace NextGenSoftware.OASIS.STAR
 
         public async Task<IMoon> AddMoonAsync(IMoon moon)
         {
-            if (moon.Id == Guid.Empty)
-                await base.SaveHolonAsync(moon);
+            //if (moon.Id == Guid.Empty)
+                //await base.SaveHolonAsync(moon);
 
             this.Planet.Moons.Add(moon);
+
+            //TODO: Not sure if this method will save each holon first and then update the collection? Think it will so method above is not needed?
             await base.SaveHolonsAsync(this.Planet.Moons);
 
             return moon;

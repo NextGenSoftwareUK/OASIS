@@ -1,12 +1,11 @@
-﻿using NextGenSoftware.Holochain.HoloNET.Client.Core;
-using NextGenSoftware.OASIS.API.Core;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace NextGenSoftware.OASIS.STAR
 {
     public class StarCore : CelestialBodyCore, IPlanetCore
     {
+        /*
       //  private string _providerKey = "";
         private const string STAR_CORE_ZOME = "star_core_zome"; //Name of the core zome in rust hc.
         //private const string STAR_HOLON_TYPE = "star_holon";
@@ -41,24 +40,50 @@ namespace NextGenSoftware.OASIS.STAR
         {
 
         }
-        public async Task<IPlanet> AddStarAsync(IStar planet)
+        */
+
+        public IStar Star { get; set; }
+
+        public StarCore(IStar star) : base()
         {
-            return (IPlanet)await base.CallZomeFunctionAsync(STAR_ADD_STAR, planet);
+            this.Star = star;
+        }
+
+        public StarCore(string providerKey, IStar star) : base(providerKey)
+        {
+            this.Star = star;
+        }
+
+        public async Task<IStar> AddStarAsync(IStar star)
+        {
+            //TODO: Do we want to add the new star to the main star? Can a Star have a collection of Stars?
+            // Yes, I think we do, but that means if we can create Stars, then the first main star needs to be either SuperStar, BlueStar or GreatCentralSun! ;-)
+            // Then SuperStar/BlueStar/GreatCentralSun is the only object that can contain a collection of other stars. Normal Stars only contain collections of planets.
+            // I feel GreatCentralSun would be best because it then accurately models the Galaxy/Universe! ;-)
+
+            //TODO: SO.... tomorrow need to rename the existing Star to GreatCentralSun and then create a normal Star...
+            // Think StarBody can be renamed to Star and Star renamed to GreatCentralSun...
+
+            return (IStar)await base.SaveHolonAsync(star);
+            //return (IPlanet)await base.CallZomeFunctionAsync(STAR_ADD_STAR, planet);
         }
 
         public async Task<IPlanet> AddPlanetAsync(IPlanet planet)
         {
-            return (IPlanet)await base.CallZomeFunctionAsync(STAR_ADD_PLANET, planet);
+            this.Star.StarBody.Planets.Add(planet);
+            return (IPlanet)await base.SaveHolonAsync(planet);
+            //return (IPlanet)await base.CallZomeFunctionAsync(STAR_ADD_PLANET, planet);
         }
 
         
 
-        public async Task<List<IMoon>> GetStars()
+        public async Task<List<IStar>> GetStars()
         {
             if (string.IsNullOrEmpty(ProviderKey))
                 throw new System.ArgumentException("ERROR: ProviderKey is null, please set this before calling this method.", "ProviderKey");
 
-            return (List<IMoon>)await base.CallZomeFunctionAsync(STAR_GET_STARS, ProviderKey);
+            return (List<IStar>)await base.LoadHolonsAsync(ProviderKey, API.Core.HolonType.Star);
+            //return (List<IMoon>)await base.CallZomeFunctionAsync(STAR_GET_STARS, ProviderKey);
         }
 
         public async Task<List<IPlanet>> GetPlanets()
@@ -66,8 +91,11 @@ namespace NextGenSoftware.OASIS.STAR
             if (string.IsNullOrEmpty(ProviderKey))
                 throw new System.ArgumentException("ERROR: ProviderKey is null, please set this before calling this method.", "ProviderKey");
 
-            return (List<IPlanet>)await base.CallZomeFunctionAsync(STAR_GET_PLANETS, ProviderKey);
+            return (List<IPlanet>)await base.LoadHolonsAsync(ProviderKey, API.Core.HolonType.Planet);
+            //return (List<IPlanet>)await base.CallZomeFunctionAsync(STAR_GET_PLANETS, ProviderKey);
         }
+
+        //TODO: I think we need to also add back in these Moon functions because Star can also create Moons...
 
         //public async Task<IMoon> AddMoonAsync(IMoon moon)
         //{

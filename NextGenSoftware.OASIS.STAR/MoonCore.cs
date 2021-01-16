@@ -4,6 +4,19 @@ namespace NextGenSoftware.OASIS.STAR
 {
     public class MoonCore : CelestialBodyCore, IMoonCore
     {
+        public IMoon Moon { get; set; }
+
+        public MoonCore(IMoon moon) : base()
+        {
+            this.Moon = moon;
+        }
+
+        public MoonCore(string providerKey, IMoon moon) : base(providerKey)
+        {
+            this.Moon = moon;
+        }
+
+        /*
         private const string MOON_CORE_ZOME = "moon_core_zome"; //Name of the core zome in rust hc.
         private const string MOON_HOLON_TYPE = "moon";
 
@@ -25,6 +38,6 @@ namespace NextGenSoftware.OASIS.STAR
         public MoonCore(string holochainConductorURI, HoloNETClientType type) : base(holochainConductorURI, type, MOON_CORE_ZOME, MOON_HOLON_TYPE)
         {
 
-        }
+        }*/
     }
 }
