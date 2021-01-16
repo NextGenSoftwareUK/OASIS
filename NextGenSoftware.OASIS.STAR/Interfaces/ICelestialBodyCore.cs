@@ -6,8 +6,8 @@ namespace NextGenSoftware.OASIS.STAR
 {
     public interface ICelestialBodyCore : IZome
     {
-        string CoreZomeName { get; set; }
-        string CoreHolonType { get; set; }
+      //  string CoreZomeName { get; set; }
+       // string CoreHolonType { get; set; }
         //string HolonsType { get; set; }
         //string HolonType { get; set; }
         string ProviderKey { get; set; }

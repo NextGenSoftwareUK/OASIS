@@ -76,5 +76,19 @@ namespace NextGenSoftware.OASIS.STAR
             return await _holonManager.SaveHolonsAsync(savingHolons);
         }
 
+        public async Task<IEnumerable<IHolon>> AddHolon(IHolon holon)
+        {
+            //return await base.SaveHolonAsync(string.Concat(this.Name, HOLONS_ADD), zome);
+            this.Holons.Add((Holon)holon);
+            return await SaveHolonsAsync(this.Holons);
+        }
+
+        public async Task<IEnumerable<IHolon>> RemoveHolon(IHolon holon)
+        {
+            //return await base.SaveHolonAsync(string.Concat(this.Name, HOLONS_REMOVE), zome);
+            this.Holons.Remove((Holon)holon);
+            return await SaveHolonsAsync(this.Holons);
+        }
+
     }
 }

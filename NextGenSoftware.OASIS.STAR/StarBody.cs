@@ -1,11 +1,8 @@
-﻿using NextGenSoftware.Holochain.HoloNET.Client.Core;
-using NextGenSoftware.OASIS.API.Core;
-using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 namespace NextGenSoftware.OASIS.STAR
 {
-    public class StarBody : CelestialBody, IPlanet
+    public class StarBody : CelestialBody, IStarBody
     {
         //TODO: When you first create an OAPP, it needs to be a moon of the OurWorld planet, once they have raised their karma to 33 (master) 
         //then they can create a planet. The user needs to log into their avatar Star before they can create a moon/planet with the Genesis command.
