@@ -320,6 +320,7 @@ namespace NextGenSoftware.OASIS.STAR
            // HoloNETClient = holoNETClient;
             this.Zomes = new List<IZome>();
            // this.Holons = new List<IHolon>();
+             */
 
             switch (this.GenesisType)
             {
@@ -329,14 +330,15 @@ namespace NextGenSoftware.OASIS.STAR
                     break;
 
                 case GenesisType.Moon:
-                    CelestialBodyCore = new MoonCore(holoNETClient);
+                    //CelestialBodyCore = new MoonCore(holoNETClient);
+                    CelestialBodyCore = new MoonCore();
                     break;
 
                 case GenesisType.Star:
-                    CelestialBodyCore = new StarCore(holoNETClient);
+                    //CelestialBodyCore = new StarCore(holoNETClient);
                     break;
             }
-            */
+           
 
             if (!string.IsNullOrEmpty(this.ProviderKey))
             {

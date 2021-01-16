@@ -3,13 +3,15 @@ using NextGenSoftware.Holochain.HoloNET.Client.Core;
 using NextGenSoftware.OASIS.API.Config;
 using NextGenSoftware.OASIS.API.Core;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace NextGenSoftware.OASIS.STAR
 {
-    // TODO: Inherit from CelestialBody.
+    //TODO: Inherit from IStar
+    //public static class Star : IStar
     public static class Star
     {
         const string STAR_DNA = "starDNA.json";
@@ -44,6 +46,8 @@ namespace NextGenSoftware.OASIS.STAR
 
         public delegate void DataReceived(object sender, DataReceivedEventArgs e);
         public static event DataReceived OnDataReceived;
+
+       // public static List<IPlanet> Planets { get; set; }
 
         // Possible to override settings in DNA file if this method is manually called...
         //public static void Initialize(string holochainConductorURI, HoloNETClientType type, string providerKey)

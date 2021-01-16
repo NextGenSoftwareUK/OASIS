@@ -115,42 +115,42 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
             throw new NotImplementedException();
         }
 
-        public override IHolon LoadHolon(Guid id)
+        public override IHolon LoadHolon(Guid id, HolonType type = HolonType.Holon)
         {
             throw new NotImplementedException();
         }
 
-        public override IHolon LoadHolon(string providerKey)
+        public override IHolon LoadHolon(string providerKey, HolonType type = HolonType.Holon)
         {
             throw new NotImplementedException();
         }
 
-        public override Task<IHolon> LoadHolonAsync(Guid id)
+        public override Task<IHolon> LoadHolonAsync(Guid id, HolonType type = HolonType.Holon)
         {
             throw new NotImplementedException();
         }
 
-        public override Task<IHolon> LoadHolonAsync(string providerKey)
+        public override Task<IHolon> LoadHolonAsync(string providerKey, HolonType type = HolonType.Holon)
         {
             throw new NotImplementedException();
         }
 
-        public override IEnumerable<IHolon> LoadHolons(Guid id)
+        public override IEnumerable<IHolon> LoadHolons(Guid id, HolonType type = HolonType.Holon)
         {
             throw new NotImplementedException();
         }
 
-        public override IEnumerable<IHolon> LoadHolons(string providerKey)
+        public override IEnumerable<IHolon> LoadHolons(string providerKey, HolonType type = HolonType.Holon)
         {
             throw new NotImplementedException();
         }
 
-        public override Task<IEnumerable<IHolon>> LoadHolonsAsync(Guid id)
+        public override Task<IEnumerable<IHolon>> LoadHolonsAsync(Guid id, HolonType type = HolonType.Holon)
         {
             throw new NotImplementedException();
         }
 
-        public override Task<IEnumerable<IHolon>> LoadHolonsAsync(string providerKey)
+        public override Task<IEnumerable<IHolon>> LoadHolonsAsync(string providerKey, HolonType type = HolonType.Holon)
         {
             throw new NotImplementedException();
         }
