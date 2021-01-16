@@ -61,17 +61,17 @@ namespace NextGenSoftware.OASIS.API.Core
 
         public abstract Task<ISearchResults> SearchAsync(ISearchParams searchParams);
 
-        public abstract IHolon LoadHolon(Guid id);
-        public abstract Task<IHolon> LoadHolonAsync(Guid id);
+        public abstract IHolon LoadHolon(Guid id, HolonType type = HolonType.Holon);
+        public abstract Task<IHolon> LoadHolonAsync(Guid id, HolonType type = HolonType.Holon);
 
-        public abstract IHolon LoadHolon(string providerKey);
-        public abstract Task<IHolon> LoadHolonAsync(string providerKey);
+        public abstract IHolon LoadHolon(string providerKey, HolonType type = HolonType.Holon);
+        public abstract Task<IHolon> LoadHolonAsync(string providerKey, HolonType type = HolonType.Holon);
 
-        public abstract IEnumerable<IHolon> LoadHolons(Guid id);
-        public abstract Task<IEnumerable<IHolon>> LoadHolonsAsync(Guid id);
+        public abstract IEnumerable<IHolon> LoadHolons(Guid id, HolonType type = HolonType.Holon);
+        public abstract Task<IEnumerable<IHolon>> LoadHolonsAsync(Guid id, HolonType type = HolonType.Holon);
 
-        public abstract IEnumerable<IHolon> LoadHolons(string providerKey);
-        public abstract Task<IEnumerable<IHolon>> LoadHolonsAsync(string providerKey);
+        public abstract IEnumerable<IHolon> LoadHolons(string providerKey, HolonType type = HolonType.Holon);
+        public abstract Task<IEnumerable<IHolon>> LoadHolonsAsync(string providerKey, HolonType type = HolonType.Holon);
 
         public abstract IHolon SaveHolon(IHolon holon);
         public abstract Task<IHolon> SaveHolonAsync(IHolon holon);

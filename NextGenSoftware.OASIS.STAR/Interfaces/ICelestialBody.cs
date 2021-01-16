@@ -1,19 +1,16 @@
-﻿using NextGenSoftware.Holochain.HoloNET.Client.Core;
-using NextGenSoftware.OASIS.API.Core;
-using System;
-using System.Collections.Generic;
+﻿
 using System.Threading.Tasks;
 
 namespace NextGenSoftware.OASIS.STAR
 {
-    public interface ICelestialBody : OASIS.API.Core.ICelestialBody
+    public interface ICelestialBody : API.Core.ICelestialBody
     {
         CelestialBodyCore CelestialBodyCore { get; set; }
         GenesisType GenesisType { get; set; }
-        HoloNETClientBase HoloNETClient { get; }
-        string RustCelestialBodyType { get; set; }
+       // HoloNETClientBase HoloNETClient { get; }
+        //string RustCelestialBodyType { get; set; }
 
-        List<IZome> Zomes { get; set; }
+      //  List<IZome> Zomes { get; set; }
 
 
         //TODO: Come back to this...
@@ -44,8 +41,8 @@ namespace NextGenSoftware.OASIS.STAR
         */
         //Task Initialize(Guid id, HoloNETClientBase holoNETClient);
        // Task Initialize(Guid id, string holochainConductorURI, HoloNETClientType type);
-        Task Initialize(HoloNETClientBase holoNETClient);
-        Task Initialize(string holochainConductorURI, HoloNETClientType type);
+      //  Task Initialize(HoloNETClientBase holoNETClient);
+      //  Task Initialize(string holochainConductorURI, HoloNETClientType type);
      //   void LoadAll();
        // Task<IHolon> LoadHolonAsync(string rustHolonType, string hcEntryAddressHash);
         //void LoadHolons();

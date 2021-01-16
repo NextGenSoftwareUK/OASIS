@@ -1,6 +1,5 @@
 ﻿
-using NextGenSoftware.OASIS.API.Core;
-using System.Collections.Generic;
+using System;
 using System.Threading.Tasks;
 
 namespace NextGenSoftware.OASIS.API.Core
@@ -21,7 +20,8 @@ namespace NextGenSoftware.OASIS.API.Core
 
         //Task Initialize(string zomeName, HoloNETClientBase holoNETClient);
         //Task Initialize(string zomeName, string holochainConductorURI, HoloNETClientType type);
-        Task<IHolon> LoadHolonAsync(string holonType, string providerKey);
-        Task<IHolon> SaveHolonAsync(string holonType, IHolon holon);
+        Task<IHolon> LoadHolonAsync(string providerKey, HolonType type = HolonType.Holon);
+        Task<IHolon> LoadHolonAsync(Guid id, HolonType type = HolonType.Holon);
+        Task<IHolon> SaveHolonAsync(IHolon holon);
     }
 }

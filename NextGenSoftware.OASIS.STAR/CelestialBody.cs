@@ -10,37 +10,35 @@ namespace NextGenSoftware.OASIS.STAR
 {
     public abstract class CelestialBody : Holon, ICelestialBody
     {
-        //  private const string PLANET_CORE_ZOME = "planet_core_zome"; //Equivilant to an anchor in hc rust... :)
-        //  private string _coreProviderKey;
-        // private string HOLON = "planet_holon";
         protected int _currentId = 0;
         protected string _hcinstance;
         protected TaskCompletionSource<string> _taskCompletionSourceGetInstance = new TaskCompletionSource<string>();
 
         public CelestialBodyCore CelestialBodyCore { get; set; } // This is the core zome of the planet (OAPP), which links to all the other planet zomes/holons...
                                                                  // public string RustHolonType { get; set; }
-        public string RustCelestialBodyType { get; set; }
+      //  public string RustCelestialBodyType { get; set; }
         public GenesisType GenesisType { get; set; }
 
         //TODO: Should these be in PlanetCore?
-        public List<IZome> Zomes { get; set; }
-        public List<IHolon> Holons
-        {
-            get
-            {
-                if (Zomes != null)
-                {
-                    List<IHolon> holons = new List<IHolon>();
+        //public List<IZome> Zomes { get; set; }
 
-                    foreach (IZome zome in Zomes)
-                        holons.Add(zome);
+        //public List<IHolon> Holons
+        //{
+        //    get
+        //    {
+        //        if (Zomes != null)
+        //        {
+        //            List<IHolon> holons = new List<IHolon>();
 
-                    return holons;
-                }
+        //            foreach (IZome zome in Zomes)
+        //                holons.Add(zome);
 
-                return null;
-            }
-        }
+        //            return holons;
+        //        }
+
+        //        return null;
+        //    }
+        //}
 
         public delegate void HolonsLoaded(object sender, HolonsLoadedEventArgs e);
         public event HolonsLoaded OnHolonsLoaded;
@@ -60,7 +58,7 @@ namespace NextGenSoftware.OASIS.STAR
         public delegate void ZomeError(object sender, ZomeErrorEventArgs e);
         public event ZomeError OnZomeError;
 
-        //TODO: Not sure if we want to expose the HoloNETClient events at this level? They can subscribe to them through the HoloNETClient property below...
+        //TODO: Move these two events to IOASISStorage so can be shared...
         public delegate void Disconnected(object sender, DisconnectedEventArgs e);
         public event Disconnected OnDisconnected;
 
@@ -102,8 +100,9 @@ namespace NextGenSoftware.OASIS.STAR
             if (Id == Guid.Empty)
                 Id = Guid.NewGuid();
 
+            /*
             //Just in case the zomes/holons have been added since the planet was last saved.
-            foreach (Zome zome in Zomes)
+            foreach (Zome zome in CelestialBodyCore.Zomes)
             {
                 zome.CelestialBody = this;
                 zome.Parent = this;
@@ -115,8 +114,9 @@ namespace NextGenSoftware.OASIS.STAR
                     holon.Parent = zome;
                     holon.CelestialBody = this;
                 }
-            }
+            }/*
 
+            /*
             HolonType holonType = HolonType.Holon;
 
             switch (GenesisType)
@@ -132,13 +132,14 @@ namespace NextGenSoftware.OASIS.STAR
                 case GenesisType.Star:
                     holonType = HolonType.Star;
                     break;
-            }
+            }*/
 
             //TODO: Not sure why we need to create a new holon here? CelestialBody (planet, moon, star, etc) are all Holons themselves.
             // So why not just have a Save method directly on them? Save code should be here?
             // Why did I put all IO code in Core? Hmmmm.... Need to remember! lol ;-)
 
-            await CelestialBodyCore.SaveCelestialBodyAsync(new Holon() { Id = this.Id, Name = this.Name, Description = this.Description, HolonType = holonType });
+            //await CelestialBodyCore.SaveCelestialBodyAsync(new Holon() { Id = this.Id, Name = this.Name, Description = this.Description, HolonType = holonType });
+            await CelestialBodyCore.SaveCelestialBodyAsync(this);
             return true;
         }
 
@@ -241,12 +242,18 @@ namespace NextGenSoftware.OASIS.STAR
 
         private async void PlanetCore_OnZomesLoaded(object sender, ZomesLoadedEventArgs e)
         {
-            foreach (ZomeBase zome in Zomes)
+            // TODO: Dont think this is needed now?
+            // This was going to load each of the zomes holons once the zomes were loaded for this Planet. 
+            // But maybe it is better to allow them be lazy loaded as and when they are needed rather than pulling them all back in one go?
+            // Trade offs between the 2 approaches... for now we leave as lazy loading so will only load when they are needed...
+
+            /*
+            foreach (ZomeBase zome in CelestialBodyCore.Zomes)
             {
                 await zome.Initialize(zome.Name, this.HoloNETClient);
                 zome.OnHolonLoaded += Zome_OnHolonLoaded;
                 zome.OnHolonSaved += Zome_OnHolonSaved;
-            }
+            }*/
 
             //TODO: Not sure whether to delegate holons being loaded by zomes if can just load direct from PlanetCore?
             //Nice for Zomes to manage their own collections of holons (good practice) so will see... :)
@@ -264,7 +271,8 @@ namespace NextGenSoftware.OASIS.STAR
         //}
         public void LoadZomes()
         {
-            Zomes = CelestialBodyCore.LoadZomes();
+            //Zomes = CelestialBodyCore.LoadZomes();
+            CelestialBodyCore.LoadZomes();
         }
 
         /*
@@ -308,6 +316,7 @@ namespace NextGenSoftware.OASIS.STAR
         //public async Task Initialize(HoloNETClientBase holoNETClient)
         public async Task Initialize()
         {
+            /*
            // HoloNETClient = holoNETClient;
             this.Zomes = new List<IZome>();
            // this.Holons = new List<IHolon>();
@@ -327,6 +336,7 @@ namespace NextGenSoftware.OASIS.STAR
                     CelestialBodyCore = new StarCore(holoNETClient);
                     break;
             }
+            */
 
             if (!string.IsNullOrEmpty(this.ProviderKey))
             {
@@ -352,6 +362,7 @@ namespace NextGenSoftware.OASIS.STAR
 
         private async Task WireUpEvents()
         {
+            /*
             HoloNETClient.OnConnected += HoloNETClient_OnConnected;
             HoloNETClient.OnDisconnected += HoloNETClient_OnDisconnected;
           //  HoloNETClient.OnError += HoloNETClient_OnError;
@@ -359,6 +370,7 @@ namespace NextGenSoftware.OASIS.STAR
             HoloNETClient.OnGetInstancesCallBack += HoloNETClient_OnGetInstancesCallBack;
             HoloNETClient.OnSignalsCallBack += HoloNETClient_OnSignalsCallBack;
             HoloNETClient.OnZomeFunctionCallBack += HoloNETClient_OnZomeFunctionCallBack;
+            */
 
             CelestialBodyCore.OnHolonsLoaded += PlanetCore_OnHolonsLoaded;
             CelestialBodyCore.OnZomesLoaded += PlanetCore_OnZomesLoaded;
@@ -373,32 +385,36 @@ namespace NextGenSoftware.OASIS.STAR
                 // This is the hc Address of the planet (we can use this as the anchor/coreProviderKey to load all future zomes/holons belonging to this planet).
                 this.ProviderKey = e.Holon.ProviderKey;
 
-                //TODO: Does hc/rust save this address in the holon object? YES! :)
-
-                //If we have just saved the planet then we need to now save it's zomes and holons.
-                foreach (ZomeBase zome in Zomes)
+                //Just in case the zomes/holons have been added since the planet was last saved.
+                foreach (Zome zome in CelestialBodyCore.Zomes)
                 {
-                    //TODO: Do we want to save all the planets zomes and holons everytime the planet is saved/updated? Should be option to specify SaveZomesAndHolons = true in Save method();
-                    if (zome.Id == Guid.Empty)
-                        zome.Id = Guid.NewGuid();
-
-                    zome.Parent = e.Holon;
                     zome.CelestialBody = this;
+                    zome.Parent = this;
 
-                    await zome.SaveHolonAsync(this.RustHolonType, zome);
+                    // TODO: Need to sort this.Holons collection too (this is a list of ALL holons that belong to ALL zomes for this planet.
+                    // So the same holon will be in both collections, just that this.Holons has been flatterned. Why it's Fractal Holonic! ;-)
+                    foreach (Holon holon in zome.Holons)
+                    {
+                        holon.Parent = zome;
+                        holon.CelestialBody = this;
+                    }
+
+                    await zome.SaveHolonsAsync(zome.Holons);
                 }
             }
         }
 
+        //TODO: Come back to this, this is what is fired when each zome is loaded once the celestialbody is loaded but I think for now we will lazy load them later...
         private void Zome_OnHolonLoaded(object sender, HolonLoadedEventArgs e)
         {
+            /*
             bool holonFound = false;
 
-            foreach (ZomeBase zome in Zomes)
+            foreach (ZomeBase zome in CelestialBodyCore.Zomes)
             {
                 foreach (Holon holon in zome.Holons)
                 {
-                    if (holon.Name == e.Holon.Name)
+                    if (holon.Id == e.Holon.Id)
                     {
                         holonFound = true;
                         break;
@@ -407,7 +423,7 @@ namespace NextGenSoftware.OASIS.STAR
             }
 
             // If the zome or holon is not stored in the cache yet then add it now...
-            // Currently the collection will fill up as the individual loads each holon.
+            // Currently the collection will fill up as the individual zome loads each holon.
             // They can call the LoadAll function to load all Holons and Zomes linked to this Planet (OAPP).
 
             //TODO: Now all zomes and holons belonging to a planet (OAPP) are loaded in init method using hc anchor pattern.
@@ -417,17 +433,26 @@ namespace NextGenSoftware.OASIS.STAR
 
             if (!holonFound)
             {
-                IZome zome = Zomes.FirstOrDefault(x => x.Parent.Name == e.Holon.Parent.Name);
+                //IZome zome = CelestialBodyCore.Zomes.FirstOrDefault(x => x.Parent.Name == e.Holon.Parent.Name);
+                IZome zome = CelestialBodyCore.Zomes.FirstOrDefault(x => x.Parent.Id == e.Holon.Parent.Id);
 
                 if (zome == null)
-                    Zomes.Add(new Zome(HoloNETClient, e.Holon.Parent.Name));
+                {
+                    zome = new Zome(e.Holon.Parent.Id);
+                    zome.Holons.Add(e.Holon);
+                    CelestialBodyCore.Zomes.Add(zome);
+                    //CelestialBodyCore.Zomes.Add(new Zome(HoloNETClient, e.Holon.Parent.Name));
+                }
 
                 ((ZomeBase)zome).Holons.Add((Holon)e.Holon);
             }
 
             OnHolonLoaded?.Invoke(this, e);
+            */
         }
 
+
+        //TODO: COME BACK TO THIS!!! 
         private void Zome_OnHolonSaved(object sender, HolonSavedEventArgs e)
         {
             if (e.Holon.HolonType == HolonType.Zome)
@@ -445,13 +470,14 @@ namespace NextGenSoftware.OASIS.STAR
                     zome.CelestialBody = this;
 
                     foreach (Holon holon in GetHolonsThatBelongToZome(zome))
-                        zome.SaveHolonAsync(this.RustHolonType, holon);
+                        zome.SaveHolonAsync(holon);
+                    //zome.SaveHolonAsync(this.RustHolonType, holon);
                     // }
                 }
             }
             else
             {
-                IHolon holon = Holons.FirstOrDefault(x => x.Id == e.Holon.Id);
+                IHolon holon = CelestialBodyCore.Holons.FirstOrDefault(x => x.Id == e.Holon.Id);
 
                 //TODO: Come back to this... Wouldn't parent already be set? Same for zomes? Need to check...
                 if (holon != null)
@@ -467,22 +493,22 @@ namespace NextGenSoftware.OASIS.STAR
 
         private Zome GetZomeThatHolonBelongsTo(Holon holon)
         {
-            return (Zome)Holons.FirstOrDefault(x => x.Id == holon.Id).Parent;
+            return (Zome)CelestialBodyCore.Holons.FirstOrDefault(x => x.Id == holon.Id).Parent;
         }
 
         private List<IHolon> GetHolonsThatBelongToZome(IZome zome)
         {
-            return Holons.Where(x => x.Parent.Id == zome.Id).ToList();
+            return CelestialBodyCore.Holons.Where(x => x.Parent.Id == zome.Id).ToList();
         }
 
         private IZome GetZomeByName(string name)
         {
-            return Zomes.FirstOrDefault(x => x.Name == name);
+            return CelestialBodyCore.Zomes.FirstOrDefault(x => x.Name == name);
         }
 
         private IZome GetZomeById(Guid id)
         {
-            return Zomes.FirstOrDefault(x => x.Id == id);
+            return CelestialBodyCore.Zomes.FirstOrDefault(x => x.Id == id);
         }
 
         //private void PlanetBase_OnHolonSaved(object sender, HolonLoadedEventArgs e)
@@ -598,6 +624,9 @@ namespace NextGenSoftware.OASIS.STAR
             return null;
         }
         */
+
+
+        /*
         private void HoloNETClient_OnSignalsCallBack(object sender, SignalsCallBackEventArgs e)
         {
 
@@ -641,6 +670,6 @@ namespace NextGenSoftware.OASIS.STAR
         protected void HandleError(string reason, Exception errorDetails, HoloNETErrorEventArgs holoNETEventArgs)
         {
             OnZomeError?.Invoke(this, new ZomeErrorEventArgs() { EndPoint = HoloNETClient.EndPoint, Reason = reason, ErrorDetails = errorDetails, HoloNETErrorDetails = holoNETEventArgs });
-        }
+        }*/
     }
 }

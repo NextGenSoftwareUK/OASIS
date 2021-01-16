@@ -22,7 +22,7 @@ namespace NextGenSoftware.OASIS.API.Core
         */
 
         //List<IZome> Zomes { get; set; }
-        List<IHolon> Holons { get; }
+      //  List<IHolon> Holons { get; }
 
         void Dim();
         void Emit();
