@@ -1,9 +1,10 @@
-﻿using System.Collections.Generic;
+﻿
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace NextGenSoftware.OASIS.STAR
 {
-    public class StarCore : CelestialBodyCore, IPlanetCore
+    public class StarCore : CelestialBodyCore, IStarCore
     {
         /*
       //  private string _providerKey = "";
@@ -54,37 +55,40 @@ namespace NextGenSoftware.OASIS.STAR
             this.Star = star;
         }
 
-        public async Task<IStar> AddStarAsync(IStar star)
-        {
-            //TODO: Do we want to add the new star to the main star? Can a Star have a collection of Stars?
-            // Yes, I think we do, but that means if we can create Stars, then the first main star needs to be either SuperStar, BlueStar or GreatCentralSun! ;-)
-            // Then SuperStar/BlueStar/GreatCentralSun is the only object that can contain a collection of other stars. Normal Stars only contain collections of planets.
-            // I feel GreatCentralSun would be best because it then accurately models the Galaxy/Universe! ;-)
+        //ONLY SUPERSTAR CAN HAVE A COLLECTION OF OTHER STARS.
 
-            //TODO: SO.... tomorrow need to rename the existing Star to GreatCentralSun and then create a normal Star...
-            // Think StarBody can be renamed to Star and Star renamed to GreatCentralSun...
+        //public async Task<IStar> AddStarAsync(IStar star)
+        //{
+        //    //TODO: Do we want to add the new star to the main star? Can a Star have a collection of Stars?
+        //    // Yes, I think we do, but that means if we can create Stars, then the first main star needs to be either SuperStar, BlueStar or GreatCentralSun! ;-)
+        //    // Then SuperStar/BlueStar/GreatCentralSun is the only object that can contain a collection of other stars. Normal Stars only contain collections of planets.
+        //    // I feel GreatCentralSun would be best because it then accurately models the Galaxy/Universe! ;-)
 
-            return (IStar)await base.SaveHolonAsync(star);
-            //return (IPlanet)await base.CallZomeFunctionAsync(STAR_ADD_STAR, planet);
-        }
+        //    //TODO: SO.... tomorrow need to rename the existing Star to GreatCentralSun and then create a normal Star...
+        //    // Think StarBody can be renamed to Star and Star renamed to GreatCentralSun...
+
+        //    return (IStar)await base.SaveHolonAsync((IHolon)star);
+        //    //return (IPlanet)await base.CallZomeFunctionAsync(STAR_ADD_STAR, planet);
+        //}
 
         public async Task<IPlanet> AddPlanetAsync(IPlanet planet)
         {
-            this.Star.StarBody.Planets.Add(planet);
+            this.Star.Planets.Add(planet);
             return (IPlanet)await base.SaveHolonAsync(planet);
             //return (IPlanet)await base.CallZomeFunctionAsync(STAR_ADD_PLANET, planet);
         }
 
-        
 
-        public async Task<List<IStar>> GetStars()
-        {
-            if (string.IsNullOrEmpty(ProviderKey))
-                throw new System.ArgumentException("ERROR: ProviderKey is null, please set this before calling this method.", "ProviderKey");
+        //ONLY SUPERSTAR CAN HAVE A COLLECTION OF OTHER STARS.
 
-            return (List<IStar>)await base.LoadHolonsAsync(ProviderKey, API.Core.HolonType.Star);
-            //return (List<IMoon>)await base.CallZomeFunctionAsync(STAR_GET_STARS, ProviderKey);
-        }
+        //public async Task<List<IStar>> GetStars()
+        //{
+        //    if (string.IsNullOrEmpty(ProviderKey))
+        //        throw new System.ArgumentException("ERROR: ProviderKey is null, please set this before calling this method.", "ProviderKey");
+
+        //    return (List<IStar>)await base.LoadHolonsAsync(ProviderKey, API.Core.HolonType.Star);
+        //    //return (List<IMoon>)await base.CallZomeFunctionAsync(STAR_GET_STARS, ProviderKey);
+        //}
 
         public async Task<List<IPlanet>> GetPlanets()
         {
@@ -96,6 +100,8 @@ namespace NextGenSoftware.OASIS.STAR
         }
 
         //TODO: I think we need to also add back in these Moon functions because Star can also create Moons...
+        // BUT I THINK ONLY A SUPERSTAR CAN CREATE MOONS?
+        // THINK A NORMAL STAR CAN GET COLLECTION OF MOONS AND PLANETS THAT BELONG TO ITS SOLAR SYSTEM?
 
         //public async Task<IMoon> AddMoonAsync(IMoon moon)
         //{

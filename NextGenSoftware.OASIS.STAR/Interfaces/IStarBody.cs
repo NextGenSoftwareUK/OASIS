@@ -1,9 +1,9 @@
-﻿using System.Collections.Generic;
+﻿//using System.Collections.Generic;
 
-namespace NextGenSoftware.OASIS.STAR
-{
-    public interface IStarBody
-    {
-        List<IPlanet> Planets { get; set; }
-    }
-}
+//namespace NextGenSoftware.OASIS.STAR
+//{
+//    public interface IStarBody
+//    {
+//        List<IPlanet> Planets { get; set; }
+//    }
+//}

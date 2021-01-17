@@ -166,73 +166,73 @@ namespace NextGenSoftware.OASIS.STAR
         // Build
         public CoronalEjection Flare()
         {
-            return Star.Flare(this);
+            return SuperStar.Flare(this);
         }
 
         // Activate & Launch - Launch & activate the planet (OAPP) by shining the star's light upon it...
         public void Shine()
         {
-            Star.Shine(this);
+            SuperStar.Shine(this);
         }
 
         // Deactivate the planet (OAPP)
         public void Dim()
         {
-            Star.Dim(this);
+            SuperStar.Dim(this);
         }
 
         // Deploy the planet (OAPP)
         public void Seed()
         {
-            Star.Seed(this);
+            SuperStar.Seed(this);
         }
 
         // Run Tests
         public void Twinkle()
         {
-            Star.Twinkle(this);
+            SuperStar.Twinkle(this);
         }
 
         // Highlight the Planet (OAPP) in the OAPP Store (StarNET). *Admin Only*
         public void Radiate()
         {
-            Star.Radiate(this);
+            SuperStar.Radiate(this);
         }
 
         // Show how much light the planet (OAPP) is emitting into the solar system (StarNET/HoloNET)
         public void Emit()
         {
-            Star.Emit(this);
+            SuperStar.Emit(this);
         }
 
         // Show stats of the Planet (OAPP).
         public void Reflect()
         {
-            Star.Reflect(this);
+            SuperStar.Reflect(this);
         }
 
         // Upgrade/update a Planet (OAPP).
         public void Evolve()
         {
-            Star.Evolve(this);
+            SuperStar.Evolve(this);
         }
 
         // Import/Export hApp, dApp & others.
         public void Mutate()
         {
-            Star.Mutate(this);
+            SuperStar.Mutate(this);
         }
 
         // Send/Receive Love
         public void Love()
         {
-            Star.Love(this);
+            SuperStar.Love(this);
         }
 
         // Reserved For Future Use...
         public void Super()
         {
-            Star.Super(this);
+            SuperStar.Super(this);
         }
 
         private void PlanetCore_OnZomeError(object sender, ZomeErrorEventArgs e)
@@ -331,11 +331,12 @@ namespace NextGenSoftware.OASIS.STAR
 
                 case GenesisType.Moon:
                     //CelestialBodyCore = new MoonCore(holoNETClient);
-                    CelestialBodyCore = new MoonCore();
+                    CelestialBodyCore = new MoonCore((IMoon)this);
                     break;
 
                 case GenesisType.Star:
                     //CelestialBodyCore = new StarCore(holoNETClient);
+                    CelestialBodyCore = new StarCore((IStar)this);
                     break;
             }
            
