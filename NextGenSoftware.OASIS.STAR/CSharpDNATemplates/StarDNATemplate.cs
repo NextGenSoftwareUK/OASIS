@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 
 namespace NextGenSoftware.OASIS.STAR.CSharpTemplates
 {
-    public class StarDNATemplate : StarBody, IStar
+    public class StarDNATemplate : Star, IStar
     {
         public StarDNATemplate(string providerKey) : base(providerKey)
         {

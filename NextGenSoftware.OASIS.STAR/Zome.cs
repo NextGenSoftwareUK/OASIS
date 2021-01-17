@@ -1,9 +1,5 @@
 ﻿
-using NextGenSoftware.Holochain.HoloNET.Client.Core;
-using NextGenSoftware.OASIS.API.Core;
 using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 
 namespace NextGenSoftware.OASIS.STAR
 {
@@ -18,7 +14,11 @@ namespace NextGenSoftware.OASIS.STAR
         //public event HolonsLoaded OnHolonsLoaded;
 
 
-        
+        public Zome() : base()
+        {
+
+        }
+
         public Zome(Guid id) : base()
         {
             this.Id = id;
