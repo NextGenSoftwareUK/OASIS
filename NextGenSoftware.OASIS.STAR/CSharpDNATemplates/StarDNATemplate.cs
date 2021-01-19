@@ -38,13 +38,15 @@ namespace NextGenSoftware.OASIS.STAR.CSharpTemplates
 
         public async Task<IHolon> LoadHOLONAsync(string hcEntryAddressHash)
         {
-            return await CelestialBodyCore.LoadHolonAsync("{holon}", hcEntryAddressHash);
+            //return await CelestialBodyCore.LoadHolonAsync("{holon}", hcEntryAddressHash);
+            return await CelestialBodyCore.LoadHolonAsync(hcEntryAddressHash);
         }
 
         public async Task<IHolon> SaveHOLONAsync(IHolon holon)
         {
             //return await base.SaveHolonAsync("{holon}", holon);
-            return await CelestialBodyCore.SaveHolonAsync("{holon}", holon);
+            //return await CelestialBodyCore.SaveHolonAsync("{holon}", holon);
+            return await CelestialBodyCore.SaveHolonAsync(holon);
         }
 
         /*
