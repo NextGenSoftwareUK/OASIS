@@ -28,6 +28,7 @@ namespace NextGenSoftware.OASIS.API.Core
         ThreeFoldOASIS,
         PLANOASIS,
         HoloWebOASIS,
+        TRONOASIS,
         All,
         None,
         Default

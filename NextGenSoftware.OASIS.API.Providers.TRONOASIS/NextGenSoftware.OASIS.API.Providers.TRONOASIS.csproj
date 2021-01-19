@@ -4,4 +4,8 @@
     <TargetFramework>net5.0</TargetFramework>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj" />
+  </ItemGroup>
+
 </Project>
