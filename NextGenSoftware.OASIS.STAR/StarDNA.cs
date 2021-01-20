@@ -9,7 +9,8 @@ namespace NextGenSoftware.OASIS.STAR
         //public string CelestialBodyDNA = @"C:\Users\david\source\repos\Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK\NextGenSoftware.OASIS.STAR.TestHarness\CelestialBodyDNA";
         //public string GenesisRustFolder = @"C:\Users\david\source\repos\Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK\NextGenSoftware.OASIS.STAR.TestHarness\Genesis\Rust";
         //public string GenesisCSharpFolder = @"C:\Users\david\source\repos\Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK\NextGenSoftware.OASIS.STAR.TestHarness\Genesis\CSharp";
-        public string RustDNATemplateFolder = @"C:\CODE\Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK\NextGenSoftware.OASIS.STAR\RustDNATemplates";
+        public string RustDNAReduxTemplateFolder = @"C:\CODE\Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK\NextGenSoftware.OASIS.STAR\RustDNATemplates\Redux";
+        public string RustDNARSMTemplateFolder = @"C:\CODE\Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK\NextGenSoftware.OASIS.STAR\RustDNATemplates\RSM";
         public string CSharpDNATemplateFolder = @"C:\CODE\Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK\NextGenSoftware.OASIS.STAR\CSharpDNATemplates";
         public string CelestialBodyDNA = @"C:\CODE\Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK\NextGenSoftware.OASIS.STAR.TestHarness\CelestialBodyDNA";
         //public string GenesisRustFolder = @"C:\CODE\Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK\NextGenSoftware.OASIS.STAR.TestHarness\Genesis\Rust";
@@ -44,5 +45,6 @@ namespace NextGenSoftware.OASIS.STAR
         public string StarProviderKey = "";
         public string HolochainConductorURI = "ws://localhost:8888";
         public string HoloNETClientType = "Desktop";
+        public string HolochainVersion = "Redux"; //Valid values: Redux or RSM.
     }
 }

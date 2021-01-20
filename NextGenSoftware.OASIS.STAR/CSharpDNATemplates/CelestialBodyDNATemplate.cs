@@ -6,12 +6,12 @@ namespace NextGenSoftware.OASIS.STAR.CSharpTemplates
 {
     public class CelestialBodyDNATemplate : CelestialBody, ICelestialBody
     {
-        public CelestialBodyDNATemplate(string providerKey) : base(providerKey, GenesisType.Star)
+        public CelestialBodyDNATemplate(string providerKey) : base(providerKey, GenesisType.CelestialBody)
         {
 
         }
 
-        public CelestialBodyDNATemplate() : base(GenesisType.Star)
+        public CelestialBodyDNATemplate() : base(GenesisType.CelestialBody)
         {
 
         }

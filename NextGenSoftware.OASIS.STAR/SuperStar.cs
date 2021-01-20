@@ -170,19 +170,32 @@ namespace NextGenSoftware.OASIS.STAR
             //if (StarCore == null)
             if (SuperStarCore == null)
                 Initialize(starDNA.StarProviderKey);
-                //Initialize(starDNA.HolochainConductorURI, (HoloNETClientType)Enum.Parse(typeof(HoloNETClientType), starDNA.HoloNETClientType), starDNA.StarProviderKey);
+            //Initialize(starDNA.HolochainConductorURI, (HoloNETClientType)Enum.Parse(typeof(HoloNETClientType), starDNA.HoloNETClientType), starDNA.StarProviderKey);
 
-            string libTemplate = new FileInfo(string.Concat(starDNA.RustDNATemplateFolder, "\\", starDNA.RustTemplateLib)).OpenText().ReadToEnd();
-            string createTemplate = new FileInfo(string.Concat(starDNA.RustDNATemplateFolder, "\\", starDNA.RustTemplateCreate)).OpenText().ReadToEnd();
-            string readTemplate = new FileInfo(string.Concat(starDNA.RustDNATemplateFolder, "\\", starDNA.RustTemplateRead)).OpenText().ReadToEnd();
-            string updateTemplate = new FileInfo(string.Concat(starDNA.RustDNATemplateFolder, "\\", starDNA.RustTemplateUpdate)).OpenText().ReadToEnd();
-            string deleteTemplate = new FileInfo(string.Concat(starDNA.RustDNATemplateFolder, "\\", starDNA.RustTemplateDelete)).OpenText().ReadToEnd();
-            string listTemplate = new FileInfo(string.Concat(starDNA.RustDNATemplateFolder, "\\", starDNA.RustTemplateList)).OpenText().ReadToEnd();
-            string validationTemplate = new FileInfo(string.Concat(starDNA.RustDNATemplateFolder, "\\", starDNA.RustTemplateValidation)).OpenText().ReadToEnd();
-            string holonTemplateRust = new FileInfo(string.Concat(starDNA.RustDNATemplateFolder, "\\", starDNA.RustTemplateHolon)).OpenText().ReadToEnd();
-            string intTemplate = new FileInfo(string.Concat(starDNA.RustDNATemplateFolder, "\\", starDNA.RustTemplateInt)).OpenText().ReadToEnd();
-            string stringTemplate = new FileInfo(string.Concat(starDNA.RustDNATemplateFolder, "\\", starDNA.RustTemplateString)).OpenText().ReadToEnd();
-            string boolTemplate = new FileInfo(string.Concat(starDNA.RustDNATemplateFolder, "\\", starDNA.RustTemplateBool)).OpenText().ReadToEnd();
+            string rustDNAFolder = string.Empty;
+
+            switch (starDNA.HolochainVersion.ToUpper())
+            {
+                case "REDUX":
+                    rustDNAFolder = starDNA.RustDNAReduxTemplateFolder;
+                    break;
+
+                case "RSM":
+                    rustDNAFolder = starDNA.RustDNARSMTemplateFolder;
+                    break;
+            }
+
+            string libTemplate = new FileInfo(string.Concat(rustDNAFolder, "\\", starDNA.RustTemplateLib)).OpenText().ReadToEnd();
+            string createTemplate = new FileInfo(string.Concat(rustDNAFolder, "\\", starDNA.RustTemplateCreate)).OpenText().ReadToEnd();
+            string readTemplate = new FileInfo(string.Concat(rustDNAFolder, "\\", starDNA.RustTemplateRead)).OpenText().ReadToEnd();
+            string updateTemplate = new FileInfo(string.Concat(rustDNAFolder, "\\", starDNA.RustTemplateUpdate)).OpenText().ReadToEnd();
+            string deleteTemplate = new FileInfo(string.Concat(rustDNAFolder, "\\", starDNA.RustTemplateDelete)).OpenText().ReadToEnd();
+            string listTemplate = new FileInfo(string.Concat(rustDNAFolder, "\\", starDNA.RustTemplateList)).OpenText().ReadToEnd();
+            string validationTemplate = new FileInfo(string.Concat(rustDNAFolder, "\\", starDNA.RustTemplateValidation)).OpenText().ReadToEnd();
+            string holonTemplateRust = new FileInfo(string.Concat(rustDNAFolder, "\\", starDNA.RustTemplateHolon)).OpenText().ReadToEnd();
+            string intTemplate = new FileInfo(string.Concat(rustDNAFolder, "\\", starDNA.RustTemplateInt)).OpenText().ReadToEnd();
+            string stringTemplate = new FileInfo(string.Concat(rustDNAFolder, "\\", starDNA.RustTemplateString)).OpenText().ReadToEnd();
+            string boolTemplate = new FileInfo(string.Concat(rustDNAFolder, "\\", starDNA.RustTemplateBool)).OpenText().ReadToEnd();
             string iHolonTemplate = new FileInfo(string.Concat(starDNA.CSharpDNATemplateFolder, "\\", starDNA.CSharpTemplateIHolonDNA)).OpenText().ReadToEnd();
             string holonTemplateCsharp = new FileInfo(string.Concat(starDNA.CSharpDNATemplateFolder, "\\", starDNA.CSharpTemplateHolonDNA)).OpenText().ReadToEnd();
             string zomeTemplateCsharp = new FileInfo(string.Concat(starDNA.CSharpDNATemplateFolder, "\\", starDNA.CSharpTemplateZomeDNA)).OpenText().ReadToEnd();
@@ -721,55 +734,67 @@ namespace NextGenSoftware.OASIS.STAR
                 if (!Directory.Exists(starDNA.GenesisRustFolder))
                     throw new ArgumentOutOfRangeException("GenesisRustFolder", starDNA.GenesisCSharpFolder, "The GenesisRustFolder is not valid, please double check and try again.");
 
-                if (!File.Exists(string.Concat(starDNA.RustDNATemplateFolder, "\\", starDNA.RustTemplateCreate)))
-                    throw new ArgumentOutOfRangeException("RustTemplateCreate", string.Concat(starDNA.RustDNATemplateFolder, "\\", starDNA.RustTemplateCreate), "The RustTemplateCreate file is not valid, please double check and try again.");
+                switch (starDNA.HolochainVersion.ToUpper())
+                {
+                    case "REDUX":
+                    {
+                        if (!File.Exists(string.Concat(starDNA.RustDNAReduxTemplateFolder, "\\", starDNA.RustTemplateCreate)))
+                            throw new ArgumentOutOfRangeException("RustTemplateCreate", string.Concat(starDNA.RustDNAReduxTemplateFolder, "\\", starDNA.RustTemplateCreate), "The RustTemplateCreate file is not valid, please double check and try again.");
 
-                if (!File.Exists(string.Concat(starDNA.RustDNATemplateFolder, "\\", starDNA.RustTemplateDelete)))
-                    throw new ArgumentOutOfRangeException("RustTemplateDelete", string.Concat(starDNA.RustDNATemplateFolder, "\\", starDNA.RustTemplateDelete), "The RustTemplateDelete file is not valid, please double check and try again.");
+                        if (!File.Exists(string.Concat(starDNA.RustDNAReduxTemplateFolder, "\\", starDNA.RustTemplateDelete)))
+                            throw new ArgumentOutOfRangeException("RustTemplateDelete", string.Concat(starDNA.RustDNAReduxTemplateFolder, "\\", starDNA.RustTemplateDelete), "The RustTemplateDelete file is not valid, please double check and try again.");
 
-                if (!File.Exists(string.Concat(starDNA.RustDNATemplateFolder, "\\", starDNA.RustTemplateLib)))
-                    throw new ArgumentOutOfRangeException("RustTemplateLib", string.Concat(starDNA.RustDNATemplateFolder, "\\", starDNA.RustTemplateLib), "The RustTemplateLib file is not valid, please double check and try again.");
+                        if (!File.Exists(string.Concat(starDNA.RustDNAReduxTemplateFolder, "\\", starDNA.RustTemplateLib)))
+                            throw new ArgumentOutOfRangeException("RustTemplateLib", string.Concat(starDNA.RustDNAReduxTemplateFolder, "\\", starDNA.RustTemplateLib), "The RustTemplateLib file is not valid, please double check and try again.");
 
-                if (!File.Exists(string.Concat(starDNA.RustDNATemplateFolder, "\\", starDNA.RustTemplateRead)))
-                    throw new ArgumentOutOfRangeException("RustTemplateRead", string.Concat(starDNA.RustDNATemplateFolder, "\\", starDNA.RustTemplateRead), "The RustTemplateRead file is not valid, please double check and try again.");
+                        if (!File.Exists(string.Concat(starDNA.RustDNAReduxTemplateFolder, "\\", starDNA.RustTemplateRead)))
+                            throw new ArgumentOutOfRangeException("RustTemplateRead", string.Concat(starDNA.RustDNAReduxTemplateFolder, "\\", starDNA.RustTemplateRead), "The RustTemplateRead file is not valid, please double check and try again.");
 
-                if (!File.Exists(string.Concat(starDNA.RustDNATemplateFolder, "\\", starDNA.RustTemplateUpdate)))
-                    throw new ArgumentOutOfRangeException("RustTemplateUpdate", string.Concat(starDNA.RustDNATemplateFolder, "\\", starDNA.RustTemplateUpdate), "The RustTemplateUpdate file is not valid, please double check and try again.");
+                        if (!File.Exists(string.Concat(starDNA.RustDNAReduxTemplateFolder, "\\", starDNA.RustTemplateUpdate)))
+                            throw new ArgumentOutOfRangeException("RustTemplateUpdate", string.Concat(starDNA.RustDNAReduxTemplateFolder, "\\", starDNA.RustTemplateUpdate), "The RustTemplateUpdate file is not valid, please double check and try again.");
 
-                if (!File.Exists(string.Concat(starDNA.RustDNATemplateFolder, "\\", starDNA.RustTemplateList)))
-                    throw new ArgumentOutOfRangeException("RustTemplateList", string.Concat(starDNA.RustDNATemplateFolder, "\\", starDNA.RustTemplateList), "The RustTemplateList file is not valid, please double check and try again.");
+                        if (!File.Exists(string.Concat(starDNA.RustDNAReduxTemplateFolder, "\\", starDNA.RustTemplateList)))
+                            throw new ArgumentOutOfRangeException("RustTemplateList", string.Concat(starDNA.RustDNAReduxTemplateFolder, "\\", starDNA.RustTemplateList), "The RustTemplateList file is not valid, please double check and try again.");
 
-                if (!File.Exists(string.Concat(starDNA.RustDNATemplateFolder, "\\", starDNA.RustTemplateValidation)))
-                    throw new ArgumentOutOfRangeException("RustTemplateValidation", string.Concat(starDNA.RustTemplateValidation, "\\", starDNA.RustTemplateList), "The RustTemplateValidation file is not valid, please double check and try again.");
+                        if (!File.Exists(string.Concat(starDNA.RustDNAReduxTemplateFolder, "\\", starDNA.RustTemplateValidation)))
+                            throw new ArgumentOutOfRangeException("RustTemplateValidation", string.Concat(starDNA.RustTemplateValidation, "\\", starDNA.RustTemplateList), "The RustTemplateValidation file is not valid, please double check and try again.");
 
-                if (!File.Exists(string.Concat(starDNA.CSharpDNATemplateFolder, "\\", starDNA.CSharpTemplateHolonDNA)))
-                    throw new ArgumentOutOfRangeException("CSharpTemplateHolonDNA", string.Concat(starDNA.CSharpDNATemplateFolder, "\\", starDNA.CSharpTemplateHolonDNA), "The CSharpTemplateMyholon file is not valid, please double check and try again.");
+                        if (!File.Exists(string.Concat(starDNA.CSharpDNATemplateFolder, "\\", starDNA.CSharpTemplateHolonDNA)))
+                            throw new ArgumentOutOfRangeException("CSharpTemplateHolonDNA", string.Concat(starDNA.CSharpDNATemplateFolder, "\\", starDNA.CSharpTemplateHolonDNA), "The CSharpTemplateMyholon file is not valid, please double check and try again.");
 
-                if (!File.Exists(string.Concat(starDNA.CSharpDNATemplateFolder, "\\", starDNA.CSharpTemplateZomeDNA)))
-                    throw new ArgumentOutOfRangeException("CSharpTemplateZomeDNA", string.Concat(starDNA.CSharpDNATemplateFolder, "\\", starDNA.CSharpTemplateZomeDNA), "The CSharpTemplateMyZome file is not valid, please double check and try again.");
+                        if (!File.Exists(string.Concat(starDNA.CSharpDNATemplateFolder, "\\", starDNA.CSharpTemplateZomeDNA)))
+                            throw new ArgumentOutOfRangeException("CSharpTemplateZomeDNA", string.Concat(starDNA.CSharpDNATemplateFolder, "\\", starDNA.CSharpTemplateZomeDNA), "The CSharpTemplateMyZome file is not valid, please double check and try again.");
 
-                if (!File.Exists(string.Concat(starDNA.CSharpDNATemplateFolder, "\\", starDNA.CSharpTemplateIStarDNA)))
-                    throw new ArgumentOutOfRangeException("CSharpTemplateIStarDNA", string.Concat(starDNA.CSharpDNATemplateFolder, "\\", starDNA.CSharpTemplateIStarDNA), "The CSharpTemplateIStarDNA file is not valid, please double check and try again.");
+                        if (!File.Exists(string.Concat(starDNA.CSharpDNATemplateFolder, "\\", starDNA.CSharpTemplateIStarDNA)))
+                            throw new ArgumentOutOfRangeException("CSharpTemplateIStarDNA", string.Concat(starDNA.CSharpDNATemplateFolder, "\\", starDNA.CSharpTemplateIStarDNA), "The CSharpTemplateIStarDNA file is not valid, please double check and try again.");
 
-                if (!File.Exists(string.Concat(starDNA.CSharpDNATemplateFolder, "\\", starDNA.CSharpTemplateStarDNA)))
-                    throw new ArgumentOutOfRangeException("CSharpTemplateStarDNA", string.Concat(starDNA.CSharpDNATemplateFolder, "\\", starDNA.CSharpTemplateStarDNA), "The CSharpTemplateStarDNA file is not valid, please double check and try again.");
+                        if (!File.Exists(string.Concat(starDNA.CSharpDNATemplateFolder, "\\", starDNA.CSharpTemplateStarDNA)))
+                            throw new ArgumentOutOfRangeException("CSharpTemplateStarDNA", string.Concat(starDNA.CSharpDNATemplateFolder, "\\", starDNA.CSharpTemplateStarDNA), "The CSharpTemplateStarDNA file is not valid, please double check and try again.");
 
-                if (!File.Exists(string.Concat(starDNA.CSharpDNATemplateFolder, "\\", starDNA.CSharpTemplateIPlanetDNA)))
-                    throw new ArgumentOutOfRangeException("CSharpTemplateIPlanetDNA", string.Concat(starDNA.CSharpDNATemplateFolder, "\\", starDNA.CSharpTemplateIPlanetDNA), "The CSharpTemplateIPlanetDNA file is not valid, please double check and try again.");
+                        if (!File.Exists(string.Concat(starDNA.CSharpDNATemplateFolder, "\\", starDNA.CSharpTemplateIPlanetDNA)))
+                            throw new ArgumentOutOfRangeException("CSharpTemplateIPlanetDNA", string.Concat(starDNA.CSharpDNATemplateFolder, "\\", starDNA.CSharpTemplateIPlanetDNA), "The CSharpTemplateIPlanetDNA file is not valid, please double check and try again.");
 
-                if (!File.Exists(string.Concat(starDNA.CSharpDNATemplateFolder, "\\", starDNA.CSharpTemplatePlanetDNA)))
-                    throw new ArgumentOutOfRangeException("CSharpTemplatePlanetDNA", string.Concat(starDNA.CSharpDNATemplateFolder, "\\", starDNA.CSharpTemplatePlanetDNA), "The CSharpTemplatePlanetDNA file is not valid, please double check and try again.");
+                        if (!File.Exists(string.Concat(starDNA.CSharpDNATemplateFolder, "\\", starDNA.CSharpTemplatePlanetDNA)))
+                            throw new ArgumentOutOfRangeException("CSharpTemplatePlanetDNA", string.Concat(starDNA.CSharpDNATemplateFolder, "\\", starDNA.CSharpTemplatePlanetDNA), "The CSharpTemplatePlanetDNA file is not valid, please double check and try again.");
 
-                if (!File.Exists(string.Concat(starDNA.CSharpDNATemplateFolder, "\\", starDNA.CSharpTemplateIMoonDNA)))
-                    throw new ArgumentOutOfRangeException("CSharpTemplateIMoonDNA", string.Concat(starDNA.CSharpDNATemplateFolder, "\\", starDNA.CSharpTemplateIMoonDNA), "The CSharpTemplateIMoonDNA file is not valid, please double check and try again.");
+                        if (!File.Exists(string.Concat(starDNA.CSharpDNATemplateFolder, "\\", starDNA.CSharpTemplateIMoonDNA)))
+                            throw new ArgumentOutOfRangeException("CSharpTemplateIMoonDNA", string.Concat(starDNA.CSharpDNATemplateFolder, "\\", starDNA.CSharpTemplateIMoonDNA), "The CSharpTemplateIMoonDNA file is not valid, please double check and try again.");
 
-                if (!File.Exists(string.Concat(starDNA.CSharpDNATemplateFolder, "\\", starDNA.CSharpTemplatePlanetDNA)))
-                    throw new ArgumentOutOfRangeException("CSharpTemplateMoonDNA", string.Concat(starDNA.CSharpDNATemplateFolder, "\\", starDNA.CSharpTemplateMoonDNA), "The CSharpTemplateMoonDNA file is not valid, please double check and try again.");
+                        if (!File.Exists(string.Concat(starDNA.CSharpDNATemplateFolder, "\\", starDNA.CSharpTemplatePlanetDNA)))
+                            throw new ArgumentOutOfRangeException("CSharpTemplateMoonDNA", string.Concat(starDNA.CSharpDNATemplateFolder, "\\", starDNA.CSharpTemplateMoonDNA), "The CSharpTemplateMoonDNA file is not valid, please double check and try again.");
 
-                if (!File.Exists(string.Concat(starDNA.CSharpDNATemplateFolder, "\\", starDNA.CSharpTemplateCelestialBodyDNA)))
-                    throw new ArgumentOutOfRangeException("CSharpTemplateCelestialBodyDNA", string.Concat(starDNA.CSharpDNATemplateFolder, "\\", starDNA.CSharpTemplateCelestialBodyDNA), "The CSharpTemplatePlanetDNA file is not valid, please double check and try again.");
+                        if (!File.Exists(string.Concat(starDNA.CSharpDNATemplateFolder, "\\", starDNA.CSharpTemplateCelestialBodyDNA)))
+                            throw new ArgumentOutOfRangeException("CSharpTemplateCelestialBodyDNA", string.Concat(starDNA.CSharpDNATemplateFolder, "\\", starDNA.CSharpTemplateCelestialBodyDNA), "The CSharpTemplatePlanetDNA file is not valid, please double check and try again.");
+                        }
+                        break;
 
+                    case "RSM":
+                    {
+                        //TODO: RSM support coming soon... Currently blocked on HoloNET RSM upgrade because have not received support from hc community as yet to get RSM up and running on Windows...
+                    }break;
+                }
 
+                
                 //TODO: Add missing properties...
             }
         }
