@@ -5,7 +5,8 @@ using System.Threading.Tasks;
 
 namespace NextGenSoftware.OASIS.STAR
 {
-    public interface IZome : OASIS.API.Core.IZome
+    //public interface IZome : OASIS.API.Core.IZome
+    public interface IZome : IZomeBase
     {
         /*
         HoloNETClientBase HoloNETClient { get; }

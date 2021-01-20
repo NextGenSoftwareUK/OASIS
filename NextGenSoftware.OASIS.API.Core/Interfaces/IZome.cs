@@ -1,5 +1,6 @@
 ﻿
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace NextGenSoftware.OASIS.API.Core
@@ -8,7 +9,7 @@ namespace NextGenSoftware.OASIS.API.Core
     {
        // HoloNETClientBase HoloNETClient { get; }
         //  string ZomeName { get; set; }
-       // List<Holon> Holons { get; set; }
+        //List<Holon> Holons { get; set; }
 
         //TODO: Come back to this, these are currently in HoloNETClient.
        // event Events.DataReceived OnDataReceived; //TODO: May rename to OnSynapseFired ?

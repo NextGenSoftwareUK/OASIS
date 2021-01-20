@@ -7,11 +7,12 @@ using NextGenSoftware.OASIS.API.Core;
 
 namespace NextGenSoftware.OASIS.STAR
 {
-    public abstract class ZomeBase: Holon, IZome
+    //public abstract class ZomeBase: Holon, IZome
+    public abstract class ZomeBase : Holon, IZomeBase
     {
         private HolonManager _holonManager = new HolonManager(OASISProviderManager.GetAndActivateProvider());
         public List<Holon> _holons = new List<Holon>();
-        
+
         public List<Holon> Holons
         {
             get
@@ -45,7 +46,7 @@ namespace NextGenSoftware.OASIS.STAR
 
         //public delegate void DataReceived(object sender, DataReceivedEventArgs e);
         //public event DataReceived OnDataReceived;
-    
+
         public virtual async Task<IHolon> LoadHolonAsync(Guid id, HolonType type = HolonType.Holon)
         {
             return await _holonManager.LoadHolonAsync(id, type);
