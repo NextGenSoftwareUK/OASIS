@@ -1,6 +1,7 @@
 ﻿
 using System;
-
+using System.IO;
+using Newtonsoft.Json;
 using NextGenSoftware.OASIS.API.Core;
 using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS;
 using NextGenSoftware.OASIS.API.Providers.HoloOASIS.Desktop;
@@ -14,6 +15,7 @@ namespace NextGenSoftware.OASIS.API.Config
 
     public static class OASISProviderManager 
     {
+        public static string OASISDNAFileName { get; set; } = "appsettings.json";
         public static OASISSettings OASISSettings;
        // private static OASISProviderManager _instance;
         //public static ProviderType CurrentStorageProviderType = ProviderType.Default;
@@ -36,9 +38,24 @@ namespace NextGenSoftware.OASIS.API.Config
         //    OASISSettings = settings;
         //}
 
+        public static void LoadOASISSettings(string OASISSettingsFileName)
+        {
+            if (File.Exists(OASISSettingsFileName))
+            {
+                using (StreamReader r = new StreamReader(OASISSettingsFileName))
+                {
+                    string json = r.ReadToEnd();
+                    OASISSettings = JsonConvert.DeserializeObject<OASISSettings>(json);
+                }
+            }
+        }
+
         public static IOASISStorage GetAndActivateProvider()
         {
-            ProviderManager.DefaultProviderTypes = OASISSettings.StorageProviders.DefaultProviders.Split(",");
+            if (OASISSettings == null)
+                LoadOASISSettings(OASISDNAFileName);
+
+            ProviderManager.DefaultProviderTypes = OASISSettings.OASIS.StorageProviders.DefaultProviders.Split(",");
 
             //TODO: Need to add additional logic later for when the first provider and others fail or are too laggy and so need to switch to a faster provider, etc...
             return GetAndActivateProvider((ProviderType)Enum.Parse(typeof(ProviderType), ProviderManager.DefaultProviderTypes[0]));
@@ -46,6 +63,9 @@ namespace NextGenSoftware.OASIS.API.Config
 
         public static IOASISStorage GetAndActivateProvider(ProviderType providerType, bool setGlobally = false)
         {
+            if (OASISSettings == null)
+                LoadOASISSettings(OASISDNAFileName);
+
             //TODO: Think we can have this in ProviderManger and have default connection strings/settings for each provider.
             if (providerType != ProviderManager.CurrentStorageProviderType)
             {
@@ -55,7 +75,7 @@ namespace NextGenSoftware.OASIS.API.Config
                     {
                         case ProviderType.HoloOASIS:
                             {
-                                HoloOASIS holoOASIS = new HoloOASIS(OASISSettings.StorageProviders.HoloOASIS.ConnectionString);
+                                HoloOASIS holoOASIS = new HoloOASIS(OASISSettings.OASIS.StorageProviders.HoloOASIS.ConnectionString);
                                 holoOASIS.OnHoloOASISError += HoloOASIS_OnHoloOASISError;
                                 holoOASIS.StorageProviderError += HoloOASIS_StorageProviderError;
                                 ProviderManager.RegisterProvider(holoOASIS);
@@ -64,7 +84,7 @@ namespace NextGenSoftware.OASIS.API.Config
 
                         case ProviderType.SQLLiteDBOASIS:
                             {
-                                SQLLiteDBOASIS SQLLiteDBOASIS = new SQLLiteDBOASIS(OASISSettings.StorageProviders.SQLLiteDBOASIS.ConnectionString);
+                                SQLLiteDBOASIS SQLLiteDBOASIS = new SQLLiteDBOASIS(OASISSettings.OASIS.StorageProviders.SQLLiteDBOASIS.ConnectionString);
                                 SQLLiteDBOASIS.StorageProviderError += SQLLiteDBOASIS_StorageProviderError;
                                 ProviderManager.RegisterProvider(SQLLiteDBOASIS);
 
@@ -73,7 +93,7 @@ namespace NextGenSoftware.OASIS.API.Config
 
                         case ProviderType.MongoDBOASIS:
                             {
-                                MongoDBOASIS mongoOASIS = new MongoDBOASIS(OASISSettings.StorageProviders.MongoDBOASIS.ConnectionString, OASISSettings.StorageProviders.MongoDBOASIS.DBName);
+                                MongoDBOASIS mongoOASIS = new MongoDBOASIS(OASISSettings.OASIS.StorageProviders.MongoDBOASIS.ConnectionString, OASISSettings.OASIS.StorageProviders.MongoDBOASIS.DBName);
                                 mongoOASIS.StorageProviderError += MongoOASIS_StorageProviderError;
                                 ProviderManager.RegisterProvider(mongoOASIS);
 

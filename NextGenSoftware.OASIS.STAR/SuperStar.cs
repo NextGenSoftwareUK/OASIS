@@ -14,7 +14,8 @@ namespace NextGenSoftware.OASIS.STAR
     //public static class Star : IStar
     public static class SuperStar
     {
-        const string STAR_DNA = "starDNA.json";
+        const string STAR_DNA = "STAR_DNA.json";
+        const string OASIS_DNA = "OASIS_DNA.json";
         public static Star InnerStar { get; set; }
         public static SuperStarCore SuperStarCore { get; set; }
         public static List<Star> Stars { get; set; }
@@ -55,7 +56,10 @@ namespace NextGenSoftware.OASIS.STAR
         //public static void Initialize(string holochainConductorURI, HoloNETClientType type, string providerKey)
         public static void Initialize(string providerKey)
         {
-            // Will initialize the default OASIS Provider defined in the appSettings.json config file.
+            //By default the OASISProviderManager will load the settings from appsettings.json but you can override using below:
+           OASISProviderManager.OASISDNAFileName = OASIS_DNA;
+
+            // Will initialize the default OASIS Provider defined OASIS_DNA config file.
             OASISProviderManager.GetAndActivateProvider();
 
             SuperStarCore = new SuperStarCore(providerKey);
