@@ -28,7 +28,7 @@ namespace NextGenSoftware.OASIS.STAR
         public delegate void ZomesLoaded(object sender, ZomesLoadedEventArgs e);
         public event ZomesLoaded OnZomesLoaded;
 
-        public List<IZome> Zomes { get; set; }
+        public List<IZome> Zomes { get; set; } = new List<IZome>();
 
         public new List<IHolon> Holons
         {

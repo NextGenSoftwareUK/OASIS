@@ -3,6 +3,15 @@ namespace NextGenSoftware.OASIS.API.Config
 {
     public class OASISSettings
     {
+        public OASIS OASIS { get; set; }
+
+        //public string Secret { get; set; }
+        //public EmailSettings Email { get; set; }
+        //public StorageProviderSettings StorageProviders { get; set; }
+    }
+
+    public class OASIS
+    {
         public string Secret { get; set; }
         public EmailSettings Email { get; set; }
         public StorageProviderSettings StorageProviders { get; set; }

@@ -7,7 +7,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\NextGenSoftware.Holochain.HoloNET.Client.Core\NextGenSoftware.Holochain.HoloNET.Client.Core.csproj" />
-    <ProjectReference Include="..\NextGenSoftware.Holochain.HoloNET.HDK.Core\NextGenSoftware.Holochain.HoloNET.HDK.Core.csproj" />
   </ItemGroup>
 
   <ItemGroup>

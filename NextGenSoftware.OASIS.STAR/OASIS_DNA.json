@@ -1,0 +1,34 @@
+{
+  "OASIS": {
+    "Secret": "PRIVATE",
+    "Email": {
+      "EmailFrom": "anorak@theoasisplatform.world",
+      "SmtpHost": "mailuk2.promailserver.com",
+      "SmtpPort": 587,
+      "SmtpUser": "anorak@oasisplatform.world",
+      "SmtpPass": "PRIVATE"
+    },
+    "StorageProviders": {
+      "DefaultProviders": "MongoDBOASIS, SQLLiteDBOASIS, HoloOASIS, EOSIOOASIS, EthereumOASIS, ThreeFoldOASIS",
+      "HoloOASIS": {
+        "ConnectionString": "ws://localhost:8888"
+      },
+      "MongoDBOASIS": {
+        "ConnectionString": "mongodb+srv://dbadmin:PlRuNP9u4rG2nRdN@oasisapi-oipck.mongodb.net/OASISAPI?retryWrites=true&w=majority",
+        "DBName": "OASISAPI"
+      },
+      "SQLLiteDBOASIS": {
+        "ConnectionString": "Data Source=OASISSQLLiteDB.db"
+      },
+      "EOSIOOASIS": {
+        "ConnectionString": ""
+      },
+      "ThreeFoldOASIS": {
+        "ConnectionString": ""
+      },
+      "EthereumOASIS": {
+        "ConnectionString": ""
+      }
+    }
+  }
+}
