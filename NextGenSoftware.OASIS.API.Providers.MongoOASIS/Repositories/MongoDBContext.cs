@@ -25,6 +25,14 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             }
         }
 
+        public IMongoCollection<Holon> Holon
+        {
+            get
+            {
+                return MongoDB.GetCollection<Holon>("Holon");
+            }
+        }
+
         public IMongoCollection<SearchData> SearchData
         {
             get

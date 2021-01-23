@@ -174,7 +174,10 @@ namespace NextGenSoftware.OASIS.STAR
             //if (StarCore == null)
             if (SuperStarCore == null)
                 Initialize(starDNA.StarProviderKey);
-            //Initialize(starDNA.HolochainConductorURI, (HoloNETClientType)Enum.Parse(typeof(HoloNETClientType), starDNA.HoloNETClientType), starDNA.StarProviderKey);
+                //Initialize(starDNA.HolochainConductorURI, (HoloNETClientType)Enum.Parse(typeof(HoloNETClientType), starDNA.HoloNETClientType), starDNA.StarProviderKey);
+
+
+            ((IOASISSuperStar)ProviderManager.CurrentStorageProvider).NativeCodeGenesis();
 
             string rustDNAFolder = string.Empty;
 
@@ -200,6 +203,7 @@ namespace NextGenSoftware.OASIS.STAR
             string intTemplate = new FileInfo(string.Concat(rustDNAFolder, "\\", starDNA.RustTemplateInt)).OpenText().ReadToEnd();
             string stringTemplate = new FileInfo(string.Concat(rustDNAFolder, "\\", starDNA.RustTemplateString)).OpenText().ReadToEnd();
             string boolTemplate = new FileInfo(string.Concat(rustDNAFolder, "\\", starDNA.RustTemplateBool)).OpenText().ReadToEnd();
+
             string iHolonTemplate = new FileInfo(string.Concat(starDNA.CSharpDNATemplateFolder, "\\", starDNA.CSharpTemplateIHolonDNA)).OpenText().ReadToEnd();
             string holonTemplateCsharp = new FileInfo(string.Concat(starDNA.CSharpDNATemplateFolder, "\\", starDNA.CSharpTemplateHolonDNA)).OpenText().ReadToEnd();
             string zomeTemplateCsharp = new FileInfo(string.Concat(starDNA.CSharpDNATemplateFolder, "\\", starDNA.CSharpTemplateZomeDNA)).OpenText().ReadToEnd();

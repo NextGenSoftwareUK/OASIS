@@ -13,7 +13,5 @@ namespace NextGenSoftware.OASIS.API.Core
         //virtual void DeActivateProvider();
         void ActivateProvider();
         void DeActivateProvider();
-
-
     }
 }

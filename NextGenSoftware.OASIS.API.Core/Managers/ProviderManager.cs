@@ -146,6 +146,13 @@ namespace NextGenSoftware.OASIS.API.Core
             return _registeredProviders.Any(x => x.ProviderType == providerType);
         }
 
+        //public static IOASISSuperStar SetAndActivateCurrentSuperStarProvider(ProviderType providerType)
+        //{
+        //    SetAndActivateCurrentStorageProvider(providerType);
+
+            
+      //  }
+
         // Called from Managers.
         public static IOASISStorage SetAndActivateCurrentStorageProvider(ProviderType providerType)
         {
