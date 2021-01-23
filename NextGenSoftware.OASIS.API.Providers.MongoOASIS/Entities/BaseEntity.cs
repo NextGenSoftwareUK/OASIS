@@ -10,6 +10,8 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
         [BsonRepresentation(BsonType.ObjectId)]  
         public string Id { get; set; }
 
+        public string ProviderKey { get; set; }
+
         [BsonRepresentation(BsonType.DateTime)]
         public DateTime CreatedDate { get; set; }
 

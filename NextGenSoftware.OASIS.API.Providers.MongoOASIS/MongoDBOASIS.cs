@@ -8,11 +8,12 @@ using MongoDB.Driver;
 
 namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
 {
-    public class MongoDBOASIS : OASISStorageBase, IOASISStorage, IOASISNET
+    public class MongoDBOASIS : OASISStorageBase, IOASISStorage, IOASISNET, IOASISSuperStar
     {
         //MongoDbContext db = new MongoDbContext();
         private MongoDbContext _db = null;
         private AvatarRepository _avatarRepository = null;
+        private HolonRepository _holonRepository = null;
 
         public string ConnectionString { get; set; }
         public string DBName { get; set; }
@@ -370,6 +371,10 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
         public override Task<IHolon> SaveHolonAsync(IHolon holon)
         {
             throw new NotImplementedException();
+
+            //return holon.Id == Guid.Empty ?
+            //    _avatarRepository.Add(holon).Result :
+            //    _avatarRepository.Update(holon).Result;
         }
 
         public override Task<IEnumerable<IHolon>> SaveHolonsAsync(IEnumerable<IHolon> holons)
@@ -389,7 +394,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
 
         public override bool DeleteAvatar(string providerKey, bool softDelete = true)
         {
-            throw new NotImplementedException();
+            return _holonRepository.Delete(providerKey, softDelete).Result;
         }
 
         public override Task<bool> DeleteAvatarAsync(string providerKey, bool softDelete = true)
@@ -399,7 +404,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
 
         public override bool DeleteHolon(Guid id, bool softDelete = true)
         {
-            throw new NotImplementedException();
+            return _holonRepository.Delete(id, softDelete).Result;
         }
 
         public override Task<bool> DeleteHolonAsync(Guid id, bool softDelete = true)
@@ -409,12 +414,20 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
 
         public override bool DeleteHolon(string providerKey, bool softDelete = true)
         {
-            throw new NotImplementedException();
+            return _holonRepository.Delete(providerKey, softDelete).Result;
         }
 
         public override Task<bool> DeleteHolonAsync(string providerKey, bool softDelete = true)
         {
             throw new NotImplementedException();
+        }
+
+
+        //IOASISSuperStar Interface Implementation
+
+        public bool NativeCodeGenesis()
+        {
+            return true;
         }
     }
 }

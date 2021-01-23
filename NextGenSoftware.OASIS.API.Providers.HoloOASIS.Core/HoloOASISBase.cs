@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Core
 {
-    public abstract class HoloOASISBase : OASISStorageBase, IOASISNET, IOASISStorage
+    public abstract class HoloOASISBase : OASISStorageBase, IOASISNET, IOASISStorage, IOASISSuperStar
     {
         private const string OURWORLD_ZOME = "our_world_core";
         private const string LOAD_Avatar_FUNC = "load_Avatar";
@@ -543,19 +543,11 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Core
         }
 
 
-        //public override Task<IEnumerable<IAvatar>> LoadAllAvatarsAsync()
-        //{
-        //    throw new System.NotImplementedException();
-        //}
+        //IOASISSuperStar Interface Implementation
 
-        //public override IAvatar LoadAvatar(string username, string password)
-        //{
-        //    throw new System.NotImplementedException();
-        //}
-
-        //public override Task<ISearchResults> SearchAsync(string searchTerm)
-        //{
-        //    throw new System.NotImplementedException();
-        //}
+        public bool NativeCodeGenesis()
+        {
+            return true;
+        }
     }
 }

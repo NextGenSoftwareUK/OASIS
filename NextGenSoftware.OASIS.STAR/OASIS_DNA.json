@@ -2,10 +2,10 @@
   "OASIS": {
     "Secret": "PRIVATE",
     "Email": {
-      "EmailFrom": "anorak@theoasisplatform.world",
-      "SmtpHost": "mailuk2.promailserver.com",
+      "EmailFrom": "PRIVATE",
+      "SmtpHost": "PRIVATE",
       "SmtpPort": 587,
-      "SmtpUser": "anorak@oasisplatform.world",
+      "SmtpUser": "PRIVATE",
       "SmtpPass": "PRIVATE"
     },
     "StorageProviders": {
@@ -14,7 +14,7 @@
         "ConnectionString": "ws://localhost:8888"
       },
       "MongoDBOASIS": {
-        "ConnectionString": "mongodb+srv://dbadmin:PlRuNP9u4rG2nRdN@oasisapi-oipck.mongodb.net/OASISAPI?retryWrites=true&w=majority",
+        "ConnectionString": "PRIVATE",
         "DBName": "OASISAPI"
       },
       "SQLLiteDBOASIS": {
