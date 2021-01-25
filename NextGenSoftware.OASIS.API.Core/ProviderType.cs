@@ -29,6 +29,7 @@ namespace NextGenSoftware.OASIS.API.Core
         PLANOASIS,
         HoloWebOASIS,
         TRONOASIS,
+        Neo4jOASIS,
         All,
         None,
         Default
