@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS
+namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
 {
     public class Neo4jOASIS : OASISStorageBase, IOASISStorage, IOASISNET
     {
