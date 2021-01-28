@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.IO;
 using System.Diagnostics;
+using MessagePack;
 
 //Testing Linux Dev...
 
@@ -23,7 +24,7 @@ namespace NextGenSoftware.Holochain.HoloNET.Client.Core
         private const int ReconnectionIntervalSecondsDefault = 5;
         private const int SecondsToWaitForConductorToStartDefault = 5;
 
-       // private bool _useInternalHolochainConductor = false;
+        // private bool _useInternalHolochainConductor = false;
         private TaskCompletionSource<GetInstancesCallBackEventArgs> _taskCompletionSourceGetInstance = new TaskCompletionSource<GetInstancesCallBackEventArgs>();
         private readonly CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
         private readonly CancellationToken _cancellationToken;
@@ -94,7 +95,7 @@ namespace NextGenSoftware.Holochain.HoloNET.Client.Core
 
         public HoloNETClientBase(string holochainConductorURI, HolochainVersion version)
         {
-          //  _useInternalHolochainConductor = useInternalHolochainConductor;
+            //  _useInternalHolochainConductor = useInternalHolochainConductor;
             WebSocket = new ClientWebSocket();
             WebSocket.Options.KeepAliveInterval = TimeSpan.FromSeconds(Config.KeepAliveSeconds == 0 ? KeepAliveSecondsDefault : Config.KeepAliveSeconds);
             EndPoint = holochainConductorURI;
@@ -111,6 +112,24 @@ namespace NextGenSoftware.Holochain.HoloNET.Client.Core
                 if (Logger == null)
                     throw new HoloNETException("ERROR: No Logger Has Been Specified! Please set a Logger with the Logger Property.");
 
+
+                switch (HolochainVersion)
+                {
+                    case HolochainVersion.Redux:
+                        {
+
+                        }
+                        break;
+
+                    case HolochainVersion.RSM:
+                        {
+                            byte[] bytes = MessagePackSerializer.Serialize(new HoloNETStream { Age = 40, FirstName = "David", LastName = "Ellams" }());
+                            HoloNETStream stream = MessagePackSerializer.Deserialize<HoloNETStream>(bytes);
+                        }
+                        break;
+                }
+
+
                 if (WebSocket.State != WebSocketState.Connecting && WebSocket.State != WebSocketState.Open && WebSocket.State != WebSocketState.Aborted)
                 {
                     if (Config.AutoStartConductor)
@@ -121,7 +140,7 @@ namespace NextGenSoftware.Holochain.HoloNET.Client.Core
                         Process pProcess = new Process();
                         pProcess.StartInfo.WorkingDirectory = @"C:\holochain-holonix-v0.0.80-9-g6a1542d";
                         pProcess.StartInfo.FileName = "wsl";
-                       // pProcess.StartInfo.Arguments = "run";
+                        // pProcess.StartInfo.Arguments = "run";
                         pProcess.StartInfo.UseShellExecute = false;
                         pProcess.StartInfo.RedirectStandardOutput = false;
                         pProcess.StartInfo.RedirectStandardInput = true;
@@ -207,7 +226,7 @@ namespace NextGenSoftware.Holochain.HoloNET.Client.Core
                         ShutDownConductors();
 
                         Logger.Log(string.Concat("Disconnected from ", EndPoint), LogType.Info);
-                        OnDisconnected?.Invoke(this, new DisconnectedEventArgs { EndPoint = EndPoint,Reason = "Disconnected Method Called." });
+                        OnDisconnected?.Invoke(this, new DisconnectedEventArgs { EndPoint = EndPoint, Reason = "Disconnected Method Called." });
                     }
                 }
             }
@@ -230,7 +249,7 @@ namespace NextGenSoftware.Holochain.HoloNET.Client.Core
 
         public async Task CallZomeFunctionAsync(string instanceId, string zome, string function, ZomeFunctionCallBack callback, object paramsObject, bool cachReturnData = false)
         {
-            _currentId ++;
+            _currentId++;
             await CallZomeFunctionAsync(_currentId.ToString(), instanceId, zome, function, callback, paramsObject, true, cachReturnData);
         }
 
@@ -378,7 +397,7 @@ namespace NextGenSoftware.Holochain.HoloNET.Client.Core
 
                     Logger.Log(string.Concat("Received Data: ", rawData), LogType.Info);
                     OnDataReceived?.Invoke(this, new DataReceivedEventArgs { EndPoint = EndPoint, RawJSONData = rawData, WebSocketResult = result, IsConductorDebugInfo = isConductorDebugInfo });
-                    
+
                     if (data.ContainsKey("id"))
                         id = data["id"].ToString();
 
@@ -405,7 +424,7 @@ namespace NextGenSoftware.Holochain.HoloNET.Client.Core
                         if (_cachInstancesReturnData)
                             _instancesCache = args;
 
-                       // _taskCompletionSourceGetInstance.SetResult(args);
+                        // _taskCompletionSourceGetInstance.SetResult(args);
                         OnGetInstancesCallBack?.Invoke(this, args);
                     }
                     else
@@ -499,7 +518,7 @@ namespace NextGenSoftware.Holochain.HoloNET.Client.Core
         public async Task GetHolochainInstancesAsync(string id, bool cachReturnData = false)
         {
             //TODO: Are there other admin functions we can wrap around?
-           
+
             Logger.Log("GetHolochainInstances ENTER", LogType.Debug);
 
             if (cachReturnData && _instancesCache != null)
