@@ -259,6 +259,7 @@ namespace NextGenSoftware.OASIS.STAR
             //await newBody.Initialize(StarBody.HoloNETClient);
             await newBody.Initialize();
 
+            /*
             foreach (FileInfo file in files)
             {
                 if (file != null)
@@ -444,6 +445,210 @@ namespace NextGenSoftware.OASIS.STAR
                             //celestialBodyBufferCsharp = celestialBodyBufferCsharp.Replace("GenesisType.Star", string.Concat("GenesisType.", Enum.GetName(typeof(GenesisType), type)));
                             celestialBodyBufferCsharp = celestialBodyBufferCsharp.Replace(", GenesisType.Star", "");
 
+                            
+                            //switch (type)
+                            //{
+                            //    case GenesisType.Star:
+                            //        celestialBodyBufferCsharp = celestialBodyBufferCsharp.Replace("CelestialBody", "Star").Replace("ICelestialBody", "IStar");
+                            //        break;
+
+                            //    case GenesisType.Planet:
+                            //        celestialBodyBufferCsharp = celestialBodyBufferCsharp.Replace("CelestialBody", "Planet").Replace("ICelestialBody", "IPlanet");
+                            //        break;
+
+                            //    case GenesisType.Moon:
+                            //        celestialBodyBufferCsharp = celestialBodyBufferCsharp.Replace("CelestialBody", "Moon").Replace("ICelestialBody", "IMoon");
+                            //        break;
+                            //}
+
+                            holonName = holonName.ToSnakeCase();
+                            holonReached = true;
+                        }
+                    }
+
+                    reader.Close();
+                    nextLineToWrite = 0;
+
+                    File.WriteAllText(string.Concat(genesisRustFolder, "\\lib.rs"), libBuffer);
+                    File.WriteAllText(string.Concat(genesisCSharpFolder, "\\", zomeName, ".cs"), zomeBufferCsharp);
+                }
+            }*/
+
+            Zome currentZome = null;
+
+            foreach (FileInfo file in files)
+            {
+                if (file != null)
+                {
+                    StreamReader reader = file.OpenText();
+
+                    while (!reader.EndOfStream)
+                    {
+                        string buffer = reader.ReadLine();
+
+                        if (buffer.Contains("namespace"))
+                        {
+                            string[] parts = buffer.Split(' ');
+
+                            //If the new namespace name has not been passed in then default it to the proxy holon namespace.
+                            if (string.IsNullOrEmpty(genesisNameSpace))
+                                genesisNameSpace = parts[1];
+
+                            zomeBufferCsharp = zomeTemplateCsharp.Replace(starDNA.TemplateNamespace, genesisNameSpace);
+                            holonBufferCsharp = holonTemplateCsharp.Replace(starDNA.TemplateNamespace, genesisNameSpace);
+                        }
+
+                        if (buffer.Contains("ZomeDNA"))
+                        {
+                            string[] parts = buffer.Split(' ');
+                            libBuffer = libTemplate.Replace("zome_name", parts[6].ToSnakeCase());
+
+                            zomeBufferCsharp = zomeBufferCsharp.Replace("ZomeDNATemplate", parts[6].ToPascalCase());
+                            zomeBufferCsharp = zomeBufferCsharp.Replace("{zome}", parts[6].ToSnakeCase());
+                            zomeName = parts[6].ToPascalCase();
+
+                            currentZome = new Zome() { Name = zomeName };
+                            newBody.CelestialBodyCore.Zomes.Add(currentZome);
+
+                            //TODO: Not sure await this? 
+                            await newBody.CelestialBodyCore.AddZome(currentZome);
+                        }
+
+                        if (holonReached && buffer.Contains("string") || buffer.Contains("int") || buffer.Contains("bool"))
+                        {
+                            string[] parts = buffer.Split(' ');
+                            string fieldName = string.Empty;
+
+                            switch (parts[13].ToLower())
+                            {
+                                case "string":
+                                    {
+                                        //TODO: Get this working so one line for each type! :)
+                                        ///GenerateDynamicZomeFunc()
+
+                                        if (firstField)
+                                            firstField = false;
+                                        else
+                                            holonFieldsClone = string.Concat(holonFieldsClone, "\t");
+
+                                        fieldName = parts[14].ToSnakeCase();
+                                        holonFieldsClone = string.Concat(holonFieldsClone, holonName, ".", fieldName, "=updated_entry.", fieldName, ";", Environment.NewLine);
+
+                                        holonBufferRust = string.Concat(holonBufferRust, stringTemplate.Replace("variableName", fieldName), ",", Environment.NewLine);
+                                    }
+                                    break;
+
+                                case "int":
+                                    {
+                                        if (firstField)
+                                            firstField = false;
+                                        else
+                                            holonFieldsClone = string.Concat(holonFieldsClone, "\t");
+
+                                        fieldName = parts[14].ToSnakeCase();
+                                        holonFieldsClone = string.Concat(holonFieldsClone, holonName, ".", fieldName, "=updated_entry.", fieldName, ";", Environment.NewLine);
+                                        holonBufferRust = string.Concat(holonBufferRust, intTemplate.Replace("variableName", fieldName), ",", Environment.NewLine);
+                                    }
+                                    break;
+
+                                case "bool":
+                                    {
+                                        if (firstField)
+                                            firstField = false;
+                                        else
+                                            holonFieldsClone = string.Concat(holonFieldsClone, "\t");
+
+                                        fieldName = parts[14].ToSnakeCase();
+                                        holonFieldsClone = string.Concat(holonFieldsClone, holonName, ".", fieldName, "=updated_entry.", fieldName, ";", Environment.NewLine);
+                                        holonBufferRust = string.Concat(holonBufferRust, boolTemplate.Replace("variableName", fieldName), ",", Environment.NewLine);
+                                    }
+                                    break;
+                            }
+                        }
+
+                        // Write the holon out to the rust lib template. 
+                        if (holonReached && buffer.Length > 1 && buffer.Substring(buffer.Length - 1, 1) == "}" && !buffer.Contains("get;"))
+                        {
+                            if (holonBufferRust.Length > 2)
+                                holonBufferRust = holonBufferRust.Remove(holonBufferRust.Length - 3);
+
+                            holonBufferRust = string.Concat(Environment.NewLine, holonBufferRust, Environment.NewLine, holonTemplateRust.Substring(holonTemplateRust.Length - 1, 1), Environment.NewLine);
+
+                            int zomeIndex = libTemplate.IndexOf("#[zome]");
+                            int zomeBodyStartIndex = libTemplate.IndexOf("{", zomeIndex);
+
+                            libBuffer = libBuffer.Insert(zomeIndex - 2, holonBufferRust);
+
+                            if (nextLineToWrite == 0)
+                                nextLineToWrite = zomeBodyStartIndex + holonBufferRust.Length;
+                            else
+                                nextLineToWrite += holonBufferRust.Length;
+
+                            //Now insert the CRUD methods for each holon.
+                            libBuffer = libBuffer.Insert(nextLineToWrite + 2, string.Concat(Environment.NewLine, createTemplate.Replace("Holon", holonName.ToPascalCase()).Replace("{holon}", holonName), Environment.NewLine));
+                            libBuffer = libBuffer.Insert(nextLineToWrite + 2, string.Concat(Environment.NewLine, readTemplate.Replace("Holon", holonName.ToPascalCase()).Replace("{holon}", holonName), Environment.NewLine));
+                            libBuffer = libBuffer.Insert(nextLineToWrite + 2, string.Concat(Environment.NewLine, updateTemplate.Replace("Holon", holonName.ToPascalCase()).Replace("{holon}", holonName).Replace("//#CopyFields//", holonFieldsClone), Environment.NewLine));
+                            libBuffer = libBuffer.Insert(nextLineToWrite + 2, string.Concat(Environment.NewLine, deleteTemplate.Replace("Holon", holonName.ToPascalCase()).Replace("{holon}", holonName), Environment.NewLine));
+                            libBuffer = libBuffer.Insert(nextLineToWrite + 2, string.Concat(Environment.NewLine, validationTemplate.Replace("Holon", holonName.ToPascalCase()).Replace("{holon}", holonName), Environment.NewLine));
+
+                            if (!firstHolon)
+                            {
+                                //TODO: Need to make dynamic so no need to pass length in (had issues before but will try again later... :) )
+                                zomeBufferCsharp = GenerateDynamicZomeFunc("Load", zomeTemplateCsharp, holonName, zomeBufferCsharp, 170);
+                                zomeBufferCsharp = GenerateDynamicZomeFunc("Save", zomeTemplateCsharp, holonName, zomeBufferCsharp, 147);
+                            }
+
+                            holonName = holonName.ToPascalCase();
+
+                            File.WriteAllText(string.Concat(genesisCSharpFolder, "\\I", holonName, ".cs"), iholonBuffer);
+                            File.WriteAllText(string.Concat(genesisCSharpFolder, "\\", holonName, ".cs"), holonBufferCsharp);
+
+                            //TDOD: Finish putting in IZomeBuffer etc
+                            //   File.WriteAllText(string.Concat(genesisCSharpFolder, "\\I", holonName, ".cs"), izomeBuffer);
+                            // File.WriteAllText(string.Concat(genesisCSharpFolder, "\\", zomeName, ".cs"), zomeBufferCsharp);
+
+                            holonBufferRust = "";
+                            holonBufferCsharp = "";
+                            holonFieldsClone = "";
+                            holonReached = false;
+                            firstField = true;
+                            firstHolon = false;
+                            holonName = "";
+                        }
+
+                        if (buffer.Contains("HolonDNA"))
+                        {
+                            string[] parts = buffer.Split(' ');
+                            holonName = parts[10].ToPascalCase();
+
+                            holonBufferRust = holonTemplateRust.Replace("Holon", holonName).Replace("{holon}", holonName.ToSnakeCase());
+                            holonBufferRust = holonBufferRust.Substring(0, holonBufferRust.Length - 1);
+
+                            //Process the CSharp Templates.
+                            if (string.IsNullOrEmpty(holonBufferCsharp))
+                                holonBufferCsharp = holonTemplateCsharp;
+
+                            holonBufferCsharp = holonBufferCsharp.Replace("HolonDNATemplate", parts[10]);
+                            iholonBuffer = iHolonTemplate.Replace("IHolonDNATemplate", string.Concat("I", parts[10]));
+
+                            zomeBufferCsharp = zomeBufferCsharp.Replace("HOLON", parts[10].ToPascalCase());
+                            zomeBufferCsharp = zomeBufferCsharp.Replace("{holon}", parts[10].ToSnakeCase());
+
+                            zomeBufferCsharp = zomeBufferCsharp.Replace(starDNA.TemplateNamespace, genesisNameSpace);
+                            holonBufferCsharp = holonBufferCsharp.Replace(starDNA.TemplateNamespace, genesisNameSpace);
+                            iholonBuffer = iholonBuffer.Replace(starDNA.TemplateNamespace, genesisNameSpace);
+
+                            if (string.IsNullOrEmpty(celestialBodyBufferCsharp))
+                                celestialBodyBufferCsharp = celestialBodyTemplateCsharp;
+
+                            celestialBodyBufferCsharp = celestialBodyBufferCsharp.Replace(starDNA.TemplateNamespace, genesisNameSpace);
+                            celestialBodyBufferCsharp = celestialBodyBufferCsharp.Replace("CelestialBodyDNATemplate", name.ToPascalCase());
+                            celestialBodyBufferCsharp = celestialBodyBufferCsharp.Replace("{holon}", parts[10].ToSnakeCase()).Replace("HOLON", parts[10].ToPascalCase());
+                            celestialBodyBufferCsharp = celestialBodyBufferCsharp.Replace("CelestialBody", Enum.GetName(typeof(GenesisType), type)).Replace("ICelestialBody", string.Concat("I", Enum.GetName(typeof(GenesisType), type)));
+                            celestialBodyBufferCsharp = celestialBodyBufferCsharp.Replace("ICelestialBody", string.Concat("I", Enum.GetName(typeof(GenesisType), type)));
+                            //celestialBodyBufferCsharp = celestialBodyBufferCsharp.Replace("GenesisType.Star", string.Concat("GenesisType.", Enum.GetName(typeof(GenesisType), type)));
+                            celestialBodyBufferCsharp = celestialBodyBufferCsharp.Replace(", GenesisType.Star", "");
+
                             /*
                             switch (type)
                             {
@@ -462,24 +667,19 @@ namespace NextGenSoftware.OASIS.STAR
 
                             holonName = holonName.ToSnakeCase();
                             holonReached = true;
+
+                            currentZome.Holons.Add(new Holon() { Name = holonName, HolonType = HolonType.Holon });
                         }
                     }
 
                     reader.Close();
                     nextLineToWrite = 0;
 
-                    //string name = "";
-                    //switch (type)
-                    //{
-                    //    case GenesisType.Star:
-
-                    //}
-
                     File.WriteAllText(string.Concat(genesisRustFolder, "\\lib.rs"), libBuffer);
                     File.WriteAllText(string.Concat(genesisCSharpFolder, "\\", zomeName, ".cs"), zomeBufferCsharp);
                 }
             }
-            
+
             // Remove any white space from the name.
             File.WriteAllText(string.Concat(genesisCSharpFolder, "\\", Regex.Replace(name, @"\s+", ""), Enum.GetName(typeof(GenesisType), type), ".cs"), celestialBodyBufferCsharp);
 
@@ -494,14 +694,6 @@ namespace NextGenSoftware.OASIS.STAR
             {
                 case GenesisType.Moon:
                 {
-                     //   ((PlanetCore)(celestialBodyParent.CelestialBodyCore)).AddMoonAsync
-
-                    //await ((StarCore)StarBody.CelestialBodyCore).AddMoonAsync((IMoon)newBody);
-                     
-                     //TODO: Come back to this...
-                     //if (celestialBodyParent.CelestialBodyCore == null)
-                            //return new CoronalEjection() { ErrorOccured = false, Message = "celestialBodyParent.CelestialBodyCore is null, please make sure the ", CelestialBody = newBody };
-
                      await ((PlanetCore)celestialBodyParent.CelestialBodyCore).AddMoonAsync((IMoon)newBody);
                      return new CoronalEjection() { ErrorOccured = false, Message = "Moon Successfully Created.", CelestialBody = newBody };
                 }
@@ -511,17 +703,15 @@ namespace NextGenSoftware.OASIS.STAR
                     // If a star is not passed in, then add the planet to the main star.
                     if (celestialBodyParent == null)
                         celestialBodyParent = InnerStar;
-                        //celestialBodyParent = StarBody;
 
-                        await ((StarCore)celestialBodyParent.CelestialBodyCore).AddPlanetAsync((IPlanet)newBody);
+                    await ((StarCore)celestialBodyParent.CelestialBodyCore).AddPlanetAsync((IPlanet)newBody);
                     return new CoronalEjection() { ErrorOccured = false, Message = "Planet Successfully Created.", CelestialBody = newBody };
                 }
 
                 case GenesisType.Star:
                 {
-                        //await ((StarCore)StarBody.CelestialBodyCore).AddStarAsync((IStar)newBody);
-                        await SuperStarCore.AddStarAsync((IStar)newBody);
-                        return new CoronalEjection() { ErrorOccured = false, Message = "Star Successfully Created.", CelestialBody = newBody };
+                    await SuperStarCore.AddStarAsync((IStar)newBody);
+                    return new CoronalEjection() { ErrorOccured = false, Message = "Star Successfully Created.", CelestialBody = newBody };
                 }
                 default:
                     return new CoronalEjection() { ErrorOccured = true, Message = "Unknown Error Occured.", CelestialBody = newBody };
