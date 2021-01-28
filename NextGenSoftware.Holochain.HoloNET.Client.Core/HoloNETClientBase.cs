@@ -90,14 +90,16 @@ namespace NextGenSoftware.Holochain.HoloNET.Client.Core
 
         public IHoloNETClientNET NetworkServiceProvider { get; set; }
         public NetworkServiceProviderMode NetworkServiceProviderMode { get; set; }
+        public HolochainVersion HolochainVersion { get; set; }
 
-        public HoloNETClientBase(string holochainConductorURI)
+        public HoloNETClientBase(string holochainConductorURI, HolochainVersion version)
         {
           //  _useInternalHolochainConductor = useInternalHolochainConductor;
             WebSocket = new ClientWebSocket();
             WebSocket.Options.KeepAliveInterval = TimeSpan.FromSeconds(Config.KeepAliveSeconds == 0 ? KeepAliveSecondsDefault : Config.KeepAliveSeconds);
             EndPoint = holochainConductorURI;
             Config.ErrorHandlingBehaviour = ErrorHandlingBehaviour.OnlyThrowExceptionIfNoErrorHandlerSubscribedToOnErrorEvent;
+            this.HolochainVersion = version;
 
             _cancellationToken = _cancellationTokenSource.Token; //TODO: do something with this!
         }
