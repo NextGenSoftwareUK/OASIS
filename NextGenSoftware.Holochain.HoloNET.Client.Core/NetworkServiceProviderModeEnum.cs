@@ -5,6 +5,8 @@ namespace NextGenSoftware.Holochain.HoloNET.Client.Core
     {
         WebSockets,
         HTTP,
+        QUIC,
+        GRPC,
         External
     }
 }
