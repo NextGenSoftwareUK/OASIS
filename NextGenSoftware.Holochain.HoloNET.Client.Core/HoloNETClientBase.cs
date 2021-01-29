@@ -113,22 +113,38 @@ namespace NextGenSoftware.Holochain.HoloNET.Client.Core
                     throw new HoloNETException("ERROR: No Logger Has Been Specified! Please set a Logger with the Logger Property.");
 
 
+                //MessagePack Test:
+
+                /*
                 switch (HolochainVersion)
                 {
                     case HolochainVersion.Redux:
-                        {
+                    {
 
-                        }
-                        break;
+                    }
+                    break;
 
                     case HolochainVersion.RSM:
-                        {
-                            byte[] bytes = MessagePackSerializer.Serialize(new HoloNETStream { Age = 40, FirstName = "David", LastName = "Ellams" }());
-                            HoloNETStream stream = MessagePackSerializer.Deserialize<HoloNETStream>(bytes);
-                        }
-                        break;
-                }
+                    {
+                            try
+                            {
+                                byte[] bytes = MessagePackSerializer.Serialize(new HoloNETStream() { Age = 40, FirstName = "David", LastName = "Ellams" });
 
+                                HoloNETStream stream = MessagePackSerializer.Deserialize<HoloNETStream>(bytes);
+
+                                Console.WriteLine("HolosStream.FirstName: " + stream.FirstName);
+                                Console.WriteLine("JSON = " + MessagePackSerializer.ConvertToJson(bytes));
+
+                            }
+                            catch (Exception ex)
+                            {
+                                string msg = ex.ToString();
+                                Console.WriteLine("Error " + msg);
+                            }
+                    }
+                    break;
+                }
+                */
 
                 if (WebSocket.State != WebSocketState.Connecting && WebSocket.State != WebSocketState.Open && WebSocket.State != WebSocketState.Aborted)
                 {
@@ -295,29 +311,79 @@ namespace NextGenSoftware.Holochain.HoloNET.Client.Core
             //    data.SelectToken("instance_stats.test-instance.number_delayed_validations").ToString()),
             //}
 
-            await SendMessageAsync(JsonConvert.SerializeObject(
-                new
+
+            switch case HolochainVersion
+            {
+                case HolochainVersion.Redux:
                 {
-                    jsonrpc = "2.0",
-                    id,
-                    method = "call",
-                    @params = new { instance_id = instanceId, zome, function, args = paramsObject }
-                    //@params = new { instance_id = instanceId, zome, function, @params = paramsObject }
+                    await SendRawDataAsync(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(
+                        new
+                        {
+                            jsonrpc = "2.0",
+                            id,
+                            method = "call",
+                            @params = new { instance_id = instanceId, zome, function, args = paramsObject }
+                            //@params = new { instance_id = instanceId, zome, function, @params = paramsObject }
+                        }
+                    )));
                 }
-            ));
+                break;
+
+                case HolochainVersion.RSM:
+                {
+                    await SendRawDataAsync(MessagePackSerializer.Serialize(new HoloNETPayload() { id = id, type = "Request", data = new HoloNETData() { fn_name = function, zome_name = zome, payload = paramsObject, cell_id = new string[1, 2] { "33", "22" } } ));
+                    //HoloNETStream stream = MessagePackSerializer.Deserialize<HoloNETStream>(bytes);
+                }
+                break;
+            }
 
             Logger.Log("CallZomeFunctionAsync EXIT", LogType.Debug);
         }
 
-        public async Task SendMessageAsync(string jsonMessage)
-        {
-            Logger.Log(string.Concat("Sending Message: ", jsonMessage), LogType.Info);
 
-            //if (autoConvertFieldsToHCStandard)
-            //{
-            //    JObject data = JObject.Parse(jsonMessage);
-            //    data.SelectToken("instance_stats.test-instance.number_delayed_validations").ToString()),
-            //}
+        //public async Task SendMessageAsync(string jsonMessage)
+        //{
+        //    Logger.Log(string.Concat("Sending Message: ", jsonMessage), LogType.Info);
+
+        //    //if (autoConvertFieldsToHCStandard)
+        //    //{
+        //    //    JObject data = JObject.Parse(jsonMessage);
+        //    //    data.SelectToken("instance_stats.test-instance.number_delayed_validations").ToString()),
+        //    //}
+
+        //    //if (WebSocket.State != WebSocketState.Open)
+        //    //{
+        //    //    string msg = "Connection is not open!";
+        //    //    HandleError(msg, new InvalidOperationException(msg));
+        //    //}
+
+            
+        //    await SendRawData(Encoding.UTF8.GetBytes(jsonMessage));
+
+
+        //    /*
+        //    var messagesCount = (int)Math.Ceiling((double)messageBuffer.Length / sendChunkSize);
+
+        //    for (var i = 0; i < messagesCount; i++)
+        //    {
+        //        var offset = (sendChunkSize * i);
+        //        var count = sendChunkSize;
+        //        var lastMessage = ((i + 1) == messagesCount);
+
+        //        if ((count * (i + 1)) > messageBuffer.Length)
+        //            count = messageBuffer.Length - offset;
+
+        //        Logger.Log(string.Concat("Sending Message ", i, " of ", messagesCount, "..."), LogType.Debug);
+        //        await WebSocket.SendAsync(new ArraySegment<byte>(messageBuffer, offset, count), WebSocketMessageType.Text, lastMessage, _cancellationToken);
+        //    }
+        //    */
+
+        //    Logger.Log("Message Sent", LogType.Info);
+        //}
+
+        public async Task SendRawDataAsync(byte[] data)
+        {
+            Logger.Log("Sending Raw Data...", LogType.Info);
 
             if (WebSocket.State != WebSocketState.Open)
             {
@@ -326,8 +392,7 @@ namespace NextGenSoftware.Holochain.HoloNET.Client.Core
             }
 
             int sendChunkSize = Config.SendChunkSize == 0 ? SendChunkSizeDefault : Config.SendChunkSize;
-            var messageBuffer = Encoding.UTF8.GetBytes(jsonMessage);
-            var messagesCount = (int)Math.Ceiling((double)messageBuffer.Length / sendChunkSize);
+            var messagesCount = (int)Math.Ceiling((double)data.Length / sendChunkSize);
 
             for (var i = 0; i < messagesCount; i++)
             {
@@ -338,11 +403,11 @@ namespace NextGenSoftware.Holochain.HoloNET.Client.Core
                 if ((count * (i + 1)) > messageBuffer.Length)
                     count = messageBuffer.Length - offset;
 
-                Logger.Log(string.Concat("Sending Message ", i, " of ", messagesCount, "..."), LogType.Debug);
+                Logger.Log(string.Concat("Sending Data Packet ", i, " of ", messagesCount, "..."), LogType.Debug);
                 await WebSocket.SendAsync(new ArraySegment<byte>(messageBuffer, offset, count), WebSocketMessageType.Text, lastMessage, _cancellationToken);
             }
 
-            Logger.Log("Message Sent", LogType.Info);
+            Logger.Log("Sending Raw Data... Done!", LogType.Info);
         }
 
         private async Task StartListen()

@@ -18,7 +18,8 @@ namespace NextGenSoftware.Holochain.HoloNET.Client.TestHarness
 
         private static async Task TestHoloNETClient()
         {
-            HoloNETClient holoNETClient = new HoloNETClient("ws://localhost:8888");
+            HoloNETClient holoNETClient = new HoloNETClient("ws://localhost:8888", HolochainVersion.RSM);
+           // holoNETClient.HolochainVersion = HolochainVersion.RSM;
             holoNETClient.Config.NeverTimeOut = true;
             //holoNETClient.Config.ErrorHandlingBehaviour = ErrorHandlingBehaviour.OnlyThrowExceptionIfNoErrorHandlerSubscribedToOnErrorEvent
             holoNETClient.Config.AutoStartConductor = false;
