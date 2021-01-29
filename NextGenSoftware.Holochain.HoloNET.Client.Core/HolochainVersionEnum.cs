@@ -1,5 +1,4 @@
-﻿using System;
-
+﻿
 namespace NextGenSoftware.Holochain.HoloNET.Client.Core
 {
         public enum HolochainVersion
