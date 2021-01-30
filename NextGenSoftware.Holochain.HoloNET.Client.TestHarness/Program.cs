@@ -10,7 +10,7 @@ namespace NextGenSoftware.Holochain.HoloNET.Client.TestHarness
     {
         static async Task Main(string[] args)
         {
-            Console.WriteLine("NextGenSoftware.Holochain.HoloNET.Client Test Harness v1.2");
+            Console.WriteLine("NextGenSoftware.Holochain.HoloNET.Client Test Harness v1.3");
             Console.WriteLine("");
             await TestHoloNETClient();
             Console.ReadKey();
