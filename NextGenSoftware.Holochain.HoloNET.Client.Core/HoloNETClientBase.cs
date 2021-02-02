@@ -332,9 +332,28 @@ namespace NextGenSoftware.Holochain.HoloNET.Client.Core
 
                 case HolochainVersion.RSM:
                 {
-                        await SendRawDataAsync(MessagePackSerializer.Serialize(new HoloNETRequest() { id = id, type = "Request", data = MessagePackSerializer.Serialize(new HoloNETData() { fn_name = function, zome_name = zome, payload = MessagePackSerializer.Serialize(paramsObject), provenance = AgentPubKey, cap = null, cell_id = new string[1, 2] { { HoloHash, AgentPubKey } } }) } ));
-                }
-                break;
+                        HoloNETRequest request = new HoloNETRequest() 
+                        { 
+                            id = id, 
+                            type = "Request", 
+                            data = MessagePackSerializer.Serialize(new HoloNETData() 
+                            { 
+                                fn_name = function, 
+                                zome_name = zome, 
+                                payload = MessagePackSerializer.Serialize(paramsObject), 
+                                provenance = AgentPubKey, 
+                                cap = null, 
+                                cell_id = new string[1, 2] 
+                                { 
+                                    { HoloHash, AgentPubKey } 
+                                } 
+                            }) 
+                        };
+
+                        await SendRawDataAsync(MessagePackSerializer.Serialize(request));
+                        //await SendRawDataAsync(MessagePackSerializer.Serialize(new HoloNETRequest() { id = id, type = "Request", data = MessagePackSerializer.Serialize(new HoloNETData() { fn_name = function, zome_name = zome, payload = MessagePackSerializer.Serialize(paramsObject), provenance = AgentPubKey, cap = null, cell_id = new string[1, 2] { { HoloHash, AgentPubKey } } }) } ));
+                    }
+                    break;
             }
 
             Logger.Log("CallZomeFunctionAsync EXIT", LogType.Debug);
@@ -554,15 +573,16 @@ namespace NextGenSoftware.Holochain.HoloNET.Client.Core
 
                         case HolochainVersion.RSM:
                         {
-                                HoloNETResponse response = MessagePackSerializer.Deserialize<HoloNETResponse>(dataResponse.ToArray());
+                                var options = MessagePackSerializerOptions.Standard.WithSecurity(MessagePackSecurity.UntrustedData);
+                                HoloNETResponse response = MessagePackSerializer.Deserialize<HoloNETResponse>(dataResponse.ToArray(), options);
 
                                 Console.WriteLine("RSM RESPONSE");
                                 Console.WriteLine("ID: " + response.id);
                                 Console.WriteLine("TYPE: " + response.type);
                                 Console.WriteLine("ENCODED DATA: " + response.data);
 
-                                string responseData2 = MessagePackSerializer.Deserialize<string>(response.data);
-                                byte[] responseData = MessagePackSerializer.Deserialize<byte[]>(response.data);
+                                string responseData2 = MessagePackSerializer.Deserialize<string>(response.data, options);
+                                byte[] responseData = MessagePackSerializer.Deserialize<byte[]>(response.data, options);
                                 var responseDataString = Encoding.UTF8.GetString(responseData, 0, responseData.Length);
 
                                 Console.WriteLine("DECODED DATA: " + responseDataString);
