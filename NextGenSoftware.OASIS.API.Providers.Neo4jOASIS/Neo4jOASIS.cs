@@ -1,23 +1,43 @@
-﻿using NextGenSoftware.OASIS.API.Core;
+﻿using Neo4jClient;
+using NextGenSoftware.OASIS.API.Core;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using System.Linq;
 
 namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
 {
     public class Neo4jOASIS : OASISStorageBase, IOASISStorage, IOASISNET
     {
+        GraphClient _graphClient = null;
+
         public Neo4jOASIS()
         {
             this.ProviderName = "Neo4jOASIS";
             this.ProviderDescription = "Neo4j Provider";
             this.ProviderType = ProviderType.Neo4jOASIS;
             this.ProviderCategory = ProviderCategory.StorageAndNetwork;
+
+            _graphClient = new GraphClient(new Uri("http://localhost:7474/db/data"), "username", "password");
+            _graphClient.ConnectAsync();
         }
 
         public override bool DeleteAvatar(Guid id, bool softDelete = true)
         {
-            throw new NotImplementedException();
+            _graphClient.Cypher.OptionalMatch("(avatar:Avatar)-[r]-()")
+                .Where((Avatar avatar) => avatar.Id == id)
+                .Delete("r,avatar")
+                .ExecuteWithoutResultsAsync();
+
+            return true;
+
+            //public void DeletePerson(string personName)
+            //{
+            //    this.graphClient.Cypher.OptionalMatch("(person:Person)-[r]-()")
+            //        .Where((Person person) => person.name == personName)
+            //        .Delete("r,person")
+            //        .ExecuteWithoutResults();
+            //}
         }
 
         public override bool DeleteAvatar(string providerKey, bool softDelete = true)
@@ -82,12 +102,37 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
 
         public override IAvatar LoadAvatar(string username, string password)
         {
-            throw new NotImplementedException();
+            try
+            {
+                //var people = _graphClient.Cypher
+                //  .Match("(p:Person)")
+                //  .Return(p => p.As<Person>())
+                //  .Results;
+
+
+                Avatar avatar =
+                    _graphClient.Cypher.Match("(p:Avatar {Username: {nameParam}})") //TODO: Need to add password to match query...
+                   .WithParam("nameParam", username)
+                  .Return(p => p.As<Avatar>())
+                    .ResultsAsync.Result.Single();
+
+                return avatar;
+            }
+            catch (InvalidOperationException) //thrown when nothing found
+            {
+                return null;
+            }
         }
 
         public override IAvatar LoadAvatar(string username)
         {
-            throw new NotImplementedException();
+            Avatar avatar =
+                   _graphClient.Cypher.Match("(p:Avatar {Username: {nameParam}})")
+                  .WithParam("nameParam", username)
+                 .Return(p => p.As<Avatar>())
+                   .ResultsAsync.Result.Single();
+
+            return avatar;
         }
 
         public override Task<IAvatar> LoadAvatarAsync(string providerKey)
@@ -102,7 +147,26 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
 
         public override Task<IAvatar> LoadAvatarAsync(string username, string password)
         {
-            throw new NotImplementedException();
+            try
+            {
+                //var people = _graphClient.Cypher
+                //  .Match("(p:Person)")
+                //  .Return(p => p.As<Person>())
+                //  .Results;
+
+
+                Avatar avatar =
+                    _graphClient.Cypher.Match("(p:Avatar {Username: {nameParam}})")
+                   .WithParam("nameParam", username)
+                  .Return(p => p.As<Avatar>())
+                    .ResultsAsync.Result.Single();
+
+                return Task<avatar>;
+            }
+            catch (InvalidOperationException) //thrown when nothing found
+            {
+                return null;
+            }
         }
 
         public override IAvatar LoadAvatarForProviderKey(string providerKey)
@@ -155,9 +219,60 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
             throw new NotImplementedException();
         }
 
-        public override IAvatar SaveAvatar(IAvatar Avatar)
+        public override IAvatar SaveAvatar(IAvatar avatar)
         {
-            throw new NotImplementedException();
+            if (avatar.Id == Guid.Empty)
+            {
+                // _graphClient.ExecutionConfiguration.EncryptionLevel = Neo4j.Driver.EncryptionLevel.Encrypted;
+
+                avatar.Id = Guid.NewGuid();
+
+                //_graphClient.Cypher
+                //    .Unwind(persons, "person")
+                //    .Merge("(p:Person { Id: person.Id })")
+                //    .OnCreate()
+                //    .Set("p = person")
+                //    .ExecuteWithoutResults();
+
+                _graphClient.Cypher
+                   .Merge("(a:Avatar { Id: avatar.Id })") //Only create if doesn't alreadye exists.
+                   .OnCreate()
+                   .Set("a = avatar") //Once created, set the properties.
+                   .ExecuteWithoutResultsAsync();
+            }
+            else
+            {
+                _graphClient.Cypher
+                   .Match("(a:Avatar)")
+                   .Where((Avatar a) => a.Id == avatar.Id)
+                   .Set("a = avatar") //Set the properties.
+                   .ExecuteWithoutResultsAsync();
+
+
+                /*
+                ITransactionalGraphClient txClient = _graphClient;
+
+                using (var tx = txClient.BeginTransaction())
+                {
+                    txClient.Cypher
+                        .Match("(m:Movie)")
+                        .Where((Movie m) => m.title == originalMovieName)
+                        .Set("m.title = {newMovieNameParam}")
+                        .WithParam("newMovieNameParam", newMovieName)
+                        .ExecuteWithoutResults();
+
+                    txClient.Cypher
+                        .Match("(m:Movie)")
+                        .Where((Movie m) => m.title == newMovieName)
+                        .Create("(p:Person {name: {actorNameParam}})-[:ACTED_IN]->(m)")
+                        .WithParam("actorNameParam", newActorName)
+                        .ExecuteWithoutResults();
+
+                    tx.CommitAsync();
+                }*/
+            }
+
+            return avatar;
         }
 
         public override Task<IAvatar> SaveAvatarAsync(IAvatar Avatar)

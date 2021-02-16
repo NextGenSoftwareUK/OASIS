@@ -1,9 +1,11 @@
-﻿using System;
-using Microsoft.EntityFrameworkCore.Storage;
+﻿//using System;
+//using Microsoft.EntityFrameworkCore.Storage;
 
-namespace NextGenSoftware.EntityFrameworkCore.OASISAPI
-{
-    public class OASISAPIDatabaseProviderServices : DatabaseProviderServices
-    {
-    }
-}
+//namespace NextGenSoftware.EntityFrameworkCore.OASISAPI
+//{
+    
+//    //public class OASISAPIDatabaseProviderServices : DatabaseProviderServices
+//    public class OASISAPIDatabaseProviderServices : RelationalDatabaseProviderServices
+//    {
+//    }
+//}
