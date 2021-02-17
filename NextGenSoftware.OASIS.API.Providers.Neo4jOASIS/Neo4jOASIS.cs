@@ -9,7 +9,7 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
 {
     public class Neo4jOASIS : OASISStorageBase, IOASISStorage, IOASISNET
     {
-        GraphClient _graphClient = null;
+        public GraphClient GraphClient { get; set; }
 
         public Neo4jOASIS()
         {
@@ -17,14 +17,25 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
             this.ProviderDescription = "Neo4j Provider";
             this.ProviderType = ProviderType.Neo4jOASIS;
             this.ProviderCategory = ProviderCategory.StorageAndNetwork;
+        }
 
-            _graphClient = new GraphClient(new Uri("http://localhost:7474/db/data"), "username", "password");
-            _graphClient.ConnectAsync();
+        public async Task<bool> Connect(string uri, string username, string password)
+        {
+            //GraphClient = new GraphClient(new Uri("http://localhost:7474/db/data"), username, password);
+            GraphClient = new GraphClient(new Uri(uri), username, password);
+            GraphClient.OperationCompleted += _graphClient_OperationCompleted;
+            await GraphClient.ConnectAsync();
+            return true;
+        }
+
+        private void _graphClient_OperationCompleted(object sender, OperationCompletedEventArgs e)
+        {
+            
         }
 
         public override bool DeleteAvatar(Guid id, bool softDelete = true)
         {
-            _graphClient.Cypher.OptionalMatch("(avatar:Avatar)-[r]-()")
+            GraphClient.Cypher.OptionalMatch("(avatar:Avatar)-[r]-()")
                 .Where((Avatar avatar) => avatar.Id == id)
                 .Delete("r,avatar")
                 .ExecuteWithoutResultsAsync();
@@ -111,7 +122,7 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
 
 
                 Avatar avatar =
-                    _graphClient.Cypher.Match("(p:Avatar {Username: {nameParam}})") //TODO: Need to add password to match query...
+                    GraphClient.Cypher.Match("(p:Avatar {Username: {nameParam}})") //TODO: Need to add password to match query...
                    .WithParam("nameParam", username)
                   .Return(p => p.As<Avatar>())
                     .ResultsAsync.Result.Single();
@@ -127,7 +138,7 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
         public override IAvatar LoadAvatar(string username)
         {
             Avatar avatar =
-                   _graphClient.Cypher.Match("(p:Avatar {Username: {nameParam}})")
+                   GraphClient.Cypher.Match("(p:Avatar {Username: {nameParam}})")
                   .WithParam("nameParam", username)
                  .Return(p => p.As<Avatar>())
                    .ResultsAsync.Result.Single();
@@ -147,26 +158,28 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
 
         public override Task<IAvatar> LoadAvatarAsync(string username, string password)
         {
-            try
-            {
-                //var people = _graphClient.Cypher
-                //  .Match("(p:Person)")
-                //  .Return(p => p.As<Person>())
-                //  .Results;
+            throw new NotImplementedException();
+
+            //try
+            //{
+            //    //var people = _graphClient.Cypher
+            //    //  .Match("(p:Person)")
+            //    //  .Return(p => p.As<Person>())
+            //    //  .Results;
 
 
-                Avatar avatar =
-                    _graphClient.Cypher.Match("(p:Avatar {Username: {nameParam}})")
-                   .WithParam("nameParam", username)
-                  .Return(p => p.As<Avatar>())
-                    .ResultsAsync.Result.Single();
+            //    Avatar avatar =
+            //        _graphClient.Cypher.Match("(p:Avatar {Username: {nameParam}})")
+            //       .WithParam("nameParam", username)
+            //      .Return(p => p.As<Avatar>())
+            //        .ResultsAsync.Result.Single();
 
-                return Task<avatar>;
-            }
-            catch (InvalidOperationException) //thrown when nothing found
-            {
-                return null;
-            }
+            //    return Task<avatar>;
+            //}
+            //catch (InvalidOperationException) //thrown when nothing found
+            //{
+            //    return null;
+            //}
         }
 
         public override IAvatar LoadAvatarForProviderKey(string providerKey)
@@ -234,7 +247,7 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
                 //    .Set("p = person")
                 //    .ExecuteWithoutResults();
 
-                _graphClient.Cypher
+                GraphClient.Cypher
                    .Merge("(a:Avatar { Id: avatar.Id })") //Only create if doesn't alreadye exists.
                    .OnCreate()
                    .Set("a = avatar") //Once created, set the properties.
@@ -242,7 +255,7 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
             }
             else
             {
-                _graphClient.Cypher
+                GraphClient.Cypher
                    .Match("(a:Avatar)")
                    .Where((Avatar a) => a.Id == avatar.Id)
                    .Set("a = avatar") //Set the properties.
