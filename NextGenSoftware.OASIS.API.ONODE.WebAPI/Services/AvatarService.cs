@@ -48,7 +48,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
             IEmailService emailService)
         {
             _mapper = mapper;
-            _OASISSettings = OASISSettings.Value;
+            //_OASISSettings = OASISSettings.Value;
+            _OASISSettings = OASISProviderManager.OASISSettings;
             _emailService = emailService;
         }
 
@@ -370,7 +371,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
         private string generateJwtToken(IAvatar account)
         {
             var tokenHandler = new JwtSecurityTokenHandler();
-            var key = Encoding.ASCII.GetBytes(_OASISSettings.Secret);
+            var key = Encoding.ASCII.GetBytes(_OASISSettings.OASIS.Secret);
             var tokenDescriptor = new SecurityTokenDescriptor
             {
                 Subject = new ClaimsIdentity(new[] { new Claim("id", account.Id.ToString()) }),

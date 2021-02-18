@@ -136,6 +136,28 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         }
 
         /// <summary>
+        /// Authenticate and log in using the given avatar credentials. Pass in the provider you wish to use. Set the setglobally flag to false for this provider to be used only for this request or true for it to be used for all future requests too.
+        /// </summary>
+        /// <param name="model"></param>
+        /// <param name="providerType"></param>
+        /// <param name="setGlobally"></param>
+        /// <returns></returns>
+        [HttpPost("authenticate/{providerType}/{setGlobally}")]
+        public ActionResult<AuthenticateResponse> Authenticate(AuthenticateRequest model, ProviderType providerType = ProviderType.Default, bool setGlobally = false)
+        {
+            GetAndActivateProvider(providerType, setGlobally);
+            return Authenticate(model);
+
+            AuthenticateResponse response = _avatarService.Authenticate(model, ipAddress());
+
+            if (!response.IsError && response.Avatar != null)
+                setTokenCookie(response.Avatar.RefreshToken);
+
+            return Ok(response);
+        }
+
+        
+        /// <summary>
         /// Authenticate and log in using the given avatar credentials.
         /// </summary>
         /// <param name="model"></param>
@@ -151,19 +173,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             return Ok(response);
         }
 
-        /// <summary>
-        /// Authenticate and log in using the given avatar credentials. Pass in the provider you wish to use. Set the setglobally flag to false for this provider to be used only for this request or true for it to be used for all future requests too.
-        /// </summary>
-        /// <param name="model"></param>
-        /// <param name="providerType"></param>
-        /// <param name="setGlobally"></param>
-        /// <returns></returns>
-        [HttpPost("authenticate/{providerType}/{setGlobally}")]
-        public ActionResult<AuthenticateResponse> Authenticate(AuthenticateRequest model, ProviderType providerType, bool setGlobally = false)
-        {
-            GetAndActivateProvider(providerType, setGlobally);
-            return Authenticate(model);
-        }
+        
 
 
         /// <summary>

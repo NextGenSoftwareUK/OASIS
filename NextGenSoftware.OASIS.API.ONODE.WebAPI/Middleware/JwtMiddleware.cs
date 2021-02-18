@@ -18,7 +18,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Middleware
         public JwtMiddleware(RequestDelegate next, IOptions<OASISSettings> OASISSettings)
         {
             _next = next;
-            OASISProviderManager.OASISSettings = OASISSettings.Value;
+          //  OASISProviderManager.OASISSettings = OASISSettings.Value;
         }
 
         public async Task Invoke(HttpContext context)
@@ -40,7 +40,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Middleware
             try
             {
                 var tokenHandler = new JwtSecurityTokenHandler();
-                var key = Encoding.ASCII.GetBytes(OASISProviderManager.OASISSettings.Secret);
+                var key = Encoding.ASCII.GetBytes(OASISProviderManager.OASISSettings.OASIS.Secret);
                 tokenHandler.ValidateToken(token, new TokenValidationParameters
                 {
                     ValidateIssuerSigningKey = true,

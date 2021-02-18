@@ -33,7 +33,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         public OASISControllerBase(IOptions<OASISSettings> settings)
         {
             OASISSettings = settings;
-            OASISProviderManager.OASISSettings = settings.Value;
+           // OASISProviderManager.OASISSettings = settings.Value;
         }
 
         protected IOASISStorage GetAndActivateProvider()
