@@ -301,7 +301,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             {
                 case ProviderType.MongoDBOASIS:
                     {
-                        _settings.StorageProviders.MongoDBOASIS.ConnectionString = connectionString;
+                        _settings.OASIS.StorageProviders.MongoDBOASIS.ConnectionString = connectionString;
 
                         ProviderManager.DeActivateProvider(ProviderType.MongoDBOASIS);
                         ProviderManager.UnRegisterProvider(ProviderType.MongoDBOASIS);

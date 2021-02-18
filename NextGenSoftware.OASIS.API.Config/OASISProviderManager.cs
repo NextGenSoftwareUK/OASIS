@@ -2,6 +2,8 @@
 using System;
 using System.IO;
 using Newtonsoft.Json;
+
+using NextGenSoftware.Holochain.HoloNET.Client.Core;
 using NextGenSoftware.OASIS.API.Core;
 using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS;
 using NextGenSoftware.OASIS.API.Providers.HoloOASIS.Desktop;
@@ -75,7 +77,7 @@ namespace NextGenSoftware.OASIS.API.Config
                     {
                         case ProviderType.HoloOASIS:
                             {
-                                HoloOASIS holoOASIS = new HoloOASIS(OASISSettings.OASIS.StorageProviders.HoloOASIS.ConnectionString);
+                                HoloOASIS holoOASIS = new HoloOASIS(OASISSettings.OASIS.StorageProviders.HoloOASIS.ConnectionString, HolochainVersion.Redux); //TODO: Move hc version to config.
                                 holoOASIS.OnHoloOASISError += HoloOASIS_OnHoloOASISError;
                                 holoOASIS.StorageProviderError += HoloOASIS_StorageProviderError;
                                 ProviderManager.RegisterProvider(holoOASIS);

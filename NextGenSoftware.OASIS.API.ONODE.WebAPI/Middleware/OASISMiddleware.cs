@@ -18,7 +18,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Middleware
         public OASISMiddleware(RequestDelegate next, IOptions<OASISSettings> OASISSettings)
         {
             _next = next;
-            OASISProviderManager.OASISSettings = OASISSettings.Value;
+
+            if (OASISProviderManager.OASISSettings == null)
+                OASISProviderManager.LoadOASISSettings("appsettings.json");
+
+            //OASISProviderManager.OASISSettings = OASISSettings.Value;
         }
 
         public async Task Invoke(HttpContext context)

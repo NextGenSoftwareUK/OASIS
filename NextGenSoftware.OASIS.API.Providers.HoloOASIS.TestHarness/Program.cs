@@ -1,4 +1,5 @@
-﻿using NextGenSoftware.OASIS.API.Core;
+﻿using NextGenSoftware.Holochain.HoloNET.Client.Core;
+using NextGenSoftware.OASIS.API.Core;
 using NextGenSoftware.OASIS.API.Providers.HoloOASIS.Core;
 
 using System;
@@ -8,7 +9,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.TestHarness
 {
     class Program
     {
-        static Desktop.HoloOASIS _holoOASIS = new Desktop.HoloOASIS("ws://localhost:8888");
+        static Desktop.HoloOASIS _holoOASIS = new Desktop.HoloOASIS("ws://localhost:8888", HolochainVersion.Redux);
         //static Core.HcAvatar _savedAvatar;
         static Avatar _savedAvatar;
 
