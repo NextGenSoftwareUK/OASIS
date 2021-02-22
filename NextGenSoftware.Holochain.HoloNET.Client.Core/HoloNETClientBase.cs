@@ -332,6 +332,7 @@ namespace NextGenSoftware.Holochain.HoloNET.Client.Core
 
                 case HolochainVersion.RSM:
                 {
+                        /*
                         HoloNETRequest request = new HoloNETRequest() 
                         { 
                             id = id, 
@@ -342,12 +343,41 @@ namespace NextGenSoftware.Holochain.HoloNET.Client.Core
                                 zome_name = zome, 
                                 payload = MessagePackSerializer.Serialize(paramsObject), 
                                 provenance = AgentPubKey, 
-                                cap = null, 
-                                cell_id = new string[1, 2] 
-                                { 
-                                    { HoloHash, AgentPubKey } 
-                                } 
+                                cap = null,
+                                //cell_id = new byte[][1, 2] 
+                                //cell_id = new byte[][1, 2]
+                                //{
+                                //    {  
+                                //        Encoding.ASCII.GetBytes(HoloHash),
+                                //        Encoding.ASCII.GetBytes(AgentPubKey)
+                                //    } 
+                                //} 
                             }) 
+                        };*/
+
+                        HoloNETData holoNETData = new HoloNETData()
+                        {
+                            fn_name = function,
+                            zome_name = zome,
+                            payload = MessagePackSerializer.Serialize(paramsObject),
+                            provenance = AgentPubKey,
+                            cap = null
+                        };
+
+                        //holoNETData.cell_id[0] = Encoding.UTF8.GetBytes(HoloHash);
+                        //holoNETData.cell_id[1] = Encoding.UTF8.GetBytes(HoloHash);
+
+                        UInt32 holoHash = 000000000000000000000000000000000000;
+                        UInt32 agentPubKey = 000000000000000000000000000000000000;
+
+                        holoNETData.cell_id[0] = holoHash;
+                        holoNETData.cell_id[1] = agentPubKey;
+
+                        HoloNETRequest request = new HoloNETRequest()
+                        {
+                            id = id,
+                            type = "Request",
+                            data = MessagePackSerializer.Serialize(holoNETData)
                         };
 
                         await SendRawDataAsync(MessagePackSerializer.Serialize(request));
