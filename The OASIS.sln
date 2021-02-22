@@ -151,7 +151,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.P
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.EntityFrameworkCore.OASISAPI", "NextGenSoftware.EntityFrameworkCore.OASISAPI\NextGenSoftware.EntityFrameworkCore.OASISAPI.csproj", "{7B83AA40-B063-4F33-80D0-4D67983694F6}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.TestHarness", "NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.TestHarness\NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.TestHarness.csproj", "{26D52161-E6E6-49C0-91F5-B0FBBF4610ED}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.TestHarness", "NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.TestHarness\NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.TestHarness.csproj", "{26D52161-E6E6-49C0-91F5-B0FBBF4610ED}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.ONODE.WebAPI2", "NextGenSoftware.OASIS.API.ONODE.WebAPI2\NextGenSoftware.OASIS.API.ONODE.WebAPI2.csproj", "{7D3075AF-5D3E-44B0-9A6F-8E1931458190}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -1154,6 +1156,24 @@ Global
 		{26D52161-E6E6-49C0-91F5-B0FBBF4610ED}.Release|x64.Build.0 = Release|Any CPU
 		{26D52161-E6E6-49C0-91F5-B0FBBF4610ED}.Release|x86.ActiveCfg = Release|Any CPU
 		{26D52161-E6E6-49C0-91F5-B0FBBF4610ED}.Release|x86.Build.0 = Release|Any CPU
+		{7D3075AF-5D3E-44B0-9A6F-8E1931458190}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7D3075AF-5D3E-44B0-9A6F-8E1931458190}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7D3075AF-5D3E-44B0-9A6F-8E1931458190}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{7D3075AF-5D3E-44B0-9A6F-8E1931458190}.Debug|x64.Build.0 = Debug|Any CPU
+		{7D3075AF-5D3E-44B0-9A6F-8E1931458190}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{7D3075AF-5D3E-44B0-9A6F-8E1931458190}.Debug|x86.Build.0 = Debug|Any CPU
+		{7D3075AF-5D3E-44B0-9A6F-8E1931458190}.Linux|Any CPU.ActiveCfg = Debug|Any CPU
+		{7D3075AF-5D3E-44B0-9A6F-8E1931458190}.Linux|Any CPU.Build.0 = Debug|Any CPU
+		{7D3075AF-5D3E-44B0-9A6F-8E1931458190}.Linux|x64.ActiveCfg = Debug|Any CPU
+		{7D3075AF-5D3E-44B0-9A6F-8E1931458190}.Linux|x64.Build.0 = Debug|Any CPU
+		{7D3075AF-5D3E-44B0-9A6F-8E1931458190}.Linux|x86.ActiveCfg = Debug|Any CPU
+		{7D3075AF-5D3E-44B0-9A6F-8E1931458190}.Linux|x86.Build.0 = Debug|Any CPU
+		{7D3075AF-5D3E-44B0-9A6F-8E1931458190}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7D3075AF-5D3E-44B0-9A6F-8E1931458190}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7D3075AF-5D3E-44B0-9A6F-8E1931458190}.Release|x64.ActiveCfg = Release|Any CPU
+		{7D3075AF-5D3E-44B0-9A6F-8E1931458190}.Release|x64.Build.0 = Release|Any CPU
+		{7D3075AF-5D3E-44B0-9A6F-8E1931458190}.Release|x86.ActiveCfg = Release|Any CPU
+		{7D3075AF-5D3E-44B0-9A6F-8E1931458190}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
