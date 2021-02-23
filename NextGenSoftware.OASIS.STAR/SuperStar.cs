@@ -2,6 +2,8 @@
 using NextGenSoftware.Holochain.HoloNET.Client.Core;
 using NextGenSoftware.OASIS.API.Config;
 using NextGenSoftware.OASIS.API.Core;
+using NextGenSoftware.OASIS.API.OASISAPIManager;
+using NextGenSoftware.OASIS.API.Providers.SEEDSOASIS;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -50,7 +52,9 @@ namespace NextGenSoftware.OASIS.STAR
         public delegate void DataReceived(object sender, DataReceivedEventArgs e);
         public static event DataReceived OnDataReceived;
 
-       // public static List<IPlanet> Planets { get; set; }
+        // public static List<IPlanet> Planets { get; set; }
+
+        public static OASISAPIManager OASISAPI = new OASISAPIManager(new List<IOASISProvider>() { new SEEDSOASIS() });
 
         // Possible to override settings in DNA file if this method is manually called...
         //public static void Initialize(string holochainConductorURI, HoloNETClientType type, string providerKey)

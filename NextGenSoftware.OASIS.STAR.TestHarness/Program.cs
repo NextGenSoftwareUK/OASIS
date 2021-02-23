@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Reflection;
 using NextGenSoftware.OASIS.API.Core;
+using NextGenSoftware.OASIS.API.OASISAPIManager;
 
 namespace NextGenSoftware.OASIS.STAR.TestHarness
 {
@@ -96,6 +97,14 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
                     // If you are using the generated code from Light above (highly recommended) you do not need to pass the HolonTypeName in, you only need to pass the holon in.
                     //ourWorld.CelestialBodyCore.SaveHolonAsync("Test", newHolon);
                     ourWorld.CelestialBodyCore.SaveHolonAsync(newHolon);
+
+
+                    OASISAPIManager.AvatarManager.LoadAllAvatars();
+                    OASISAPIManager.MapManager.CreateAndDrawRouteOnMapBetweenHolons(newHolon, newHolon);
+                    OASISAPIManager.SEEDAPI.JoinSeeds();
+                    OASISAPIManager.SEEDAPI.PayWithSeeds();
+
+
 
                     // Build
                     CoronalEjection ejection = ourWorld.Flare();

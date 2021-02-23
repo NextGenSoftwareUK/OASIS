@@ -153,7 +153,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.EntityFrame
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.TestHarness", "NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.TestHarness\NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.TestHarness.csproj", "{26D52161-E6E6-49C0-91F5-B0FBBF4610ED}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.ONODE.WebAPI2", "NextGenSoftware.OASIS.API.ONODE.WebAPI2\NextGenSoftware.OASIS.API.ONODE.WebAPI2.csproj", "{7D3075AF-5D3E-44B0-9A6F-8E1931458190}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.ONODE.WebAPI2", "NextGenSoftware.OASIS.API.ONODE.WebAPI2\NextGenSoftware.OASIS.API.ONODE.WebAPI2.csproj", "{7D3075AF-5D3E-44B0-9A6F-8E1931458190}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.OASISAPIManager", "NextGenSoftware.OASIS.API.OASISAPIManager\NextGenSoftware.OASIS.API.OASISAPIManager.csproj", "{583B4F3F-91A7-4D89-9430-98CD0DDA48D5}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -1174,6 +1176,24 @@ Global
 		{7D3075AF-5D3E-44B0-9A6F-8E1931458190}.Release|x64.Build.0 = Release|Any CPU
 		{7D3075AF-5D3E-44B0-9A6F-8E1931458190}.Release|x86.ActiveCfg = Release|Any CPU
 		{7D3075AF-5D3E-44B0-9A6F-8E1931458190}.Release|x86.Build.0 = Release|Any CPU
+		{583B4F3F-91A7-4D89-9430-98CD0DDA48D5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{583B4F3F-91A7-4D89-9430-98CD0DDA48D5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{583B4F3F-91A7-4D89-9430-98CD0DDA48D5}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{583B4F3F-91A7-4D89-9430-98CD0DDA48D5}.Debug|x64.Build.0 = Debug|Any CPU
+		{583B4F3F-91A7-4D89-9430-98CD0DDA48D5}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{583B4F3F-91A7-4D89-9430-98CD0DDA48D5}.Debug|x86.Build.0 = Debug|Any CPU
+		{583B4F3F-91A7-4D89-9430-98CD0DDA48D5}.Linux|Any CPU.ActiveCfg = Debug|Any CPU
+		{583B4F3F-91A7-4D89-9430-98CD0DDA48D5}.Linux|Any CPU.Build.0 = Debug|Any CPU
+		{583B4F3F-91A7-4D89-9430-98CD0DDA48D5}.Linux|x64.ActiveCfg = Debug|Any CPU
+		{583B4F3F-91A7-4D89-9430-98CD0DDA48D5}.Linux|x64.Build.0 = Debug|Any CPU
+		{583B4F3F-91A7-4D89-9430-98CD0DDA48D5}.Linux|x86.ActiveCfg = Debug|Any CPU
+		{583B4F3F-91A7-4D89-9430-98CD0DDA48D5}.Linux|x86.Build.0 = Debug|Any CPU
+		{583B4F3F-91A7-4D89-9430-98CD0DDA48D5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{583B4F3F-91A7-4D89-9430-98CD0DDA48D5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{583B4F3F-91A7-4D89-9430-98CD0DDA48D5}.Release|x64.ActiveCfg = Release|Any CPU
+		{583B4F3F-91A7-4D89-9430-98CD0DDA48D5}.Release|x64.Build.0 = Release|Any CPU
+		{583B4F3F-91A7-4D89-9430-98CD0DDA48D5}.Release|x86.ActiveCfg = Release|Any CPU
+		{583B4F3F-91A7-4D89-9430-98CD0DDA48D5}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
