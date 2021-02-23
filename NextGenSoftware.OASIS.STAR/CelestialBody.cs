@@ -1,5 +1,7 @@
 ﻿using NextGenSoftware.Holochain.HoloNET.Client.Core;
 using NextGenSoftware.OASIS.API.Core;
+using NextGenSoftware.OASIS.API.OASISAPIManager;
+using NextGenSoftware.OASIS.API.Providers.SEEDSOASIS;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,8 +17,11 @@ namespace NextGenSoftware.OASIS.STAR
         protected TaskCompletionSource<string> _taskCompletionSourceGetInstance = new TaskCompletionSource<string>();
 
         public CelestialBodyCore CelestialBodyCore { get; set; } // This is the core zome of the planet (OAPP), which links to all the other planet zomes/holons...
-                                                                 // public string RustHolonType { get; set; }
-      //  public string RustCelestialBodyType { get; set; }
+
+        public OASISAPIManager OASISAPI = new OASISAPIManager(new List<IOASISProvider>() { new SEEDSOASIS() });
+
+        // public string RustHolonType { get; set; }
+        //  public string RustCelestialBodyType { get; set; }
         public GenesisType GenesisType { get; set; }
 
         //TODO: Should these be in PlanetCore?

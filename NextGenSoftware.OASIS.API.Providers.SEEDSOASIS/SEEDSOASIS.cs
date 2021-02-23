@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS
 {
-    public class SEEDSOASIS : OASISStorageBase, IOASISStorage, IOASISNET
+    public class SEEDSOASIS : OASISStorageBase, IOASISStorage, IOASISNET, IOASISSuperStar
     {
         public SEEDSOASIS()
         {
@@ -155,6 +155,11 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS
             throw new NotImplementedException();
         }
 
+        public bool NativeCodeGenesis()
+        {
+            throw new NotImplementedException();
+        }
+
         public override IAvatar SaveAvatar(IAvatar Avatar)
         {
             throw new NotImplementedException();
@@ -189,5 +194,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS
         {
             throw new NotImplementedException();
         }
+
+        IOASISCustomProviderCalls
     }
 }

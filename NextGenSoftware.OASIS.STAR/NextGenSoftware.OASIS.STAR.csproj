@@ -38,6 +38,8 @@
   <ItemGroup>
     <ProjectReference Include="..\NextGenSoftware.OASIS.API.Config\NextGenSoftware.OASIS.API.Config.csproj" />
     <ProjectReference Include="..\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj" />
+    <ProjectReference Include="..\NextGenSoftware.OASIS.API.OASISAPIManager\NextGenSoftware.OASIS.API.OASISAPIManager.csproj" />
+    <ProjectReference Include="..\NextGenSoftware.OASIS.API.Providers.SEEDSOASIS\NextGenSoftware.OASIS.API.Providers.SEEDSOASIS.csproj" />
   </ItemGroup>
 
   <ItemGroup>
