@@ -119,21 +119,6 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             return Ok(AvatarManager.SearchAsync(searchParams).Result);
         }
 
-        /// <summary>
-        /// Authenticate and log in using the given avatar credentials.
-        /// </summary>
-        /// <param name="model"></param>
-        /// <returns></returns>
-        [HttpPost("test/{providerType}/{setGlobally}")]
-        public ActionResult<AuthenticateResponse> test(AuthenticateRequest model, ProviderType providerType, bool setGlobally = false)
-        {
-            AuthenticateResponse response = _avatarService.Authenticate(model, ipAddress());
-
-            if (!response.IsError && response.Avatar != null)
-                setTokenCookie(response.Avatar.RefreshToken);
-
-            return Ok(response);
-        }
 
         /// <summary>
         /// Authenticate and log in using the given avatar credentials. Pass in the provider you wish to use. Set the setglobally flag to false for this provider to be used only for this request or true for it to be used for all future requests too.
@@ -147,13 +132,6 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         {
             GetAndActivateProvider(providerType, setGlobally);
             return Authenticate(model);
-
-            AuthenticateResponse response = _avatarService.Authenticate(model, ipAddress());
-
-            if (!response.IsError && response.Avatar != null)
-                setTokenCookie(response.Avatar.RefreshToken);
-
-            return Ok(response);
         }
 
         
@@ -173,9 +151,6 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             return Ok(response);
         }
 
-        
-
-
         /// <summary>
         /// Refresh and generate a new JWT Security Token. This will only work if you are already logged in &amp; authenticated.
         /// </summary>
@@ -187,6 +162,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             var response = _avatarService.RefreshToken(refreshToken, ipAddress());
             setTokenCookie(response.RefreshToken);
             return Ok(response);
+            
         }
 
         /// <summary>

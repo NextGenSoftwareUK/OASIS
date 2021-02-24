@@ -4,7 +4,6 @@ using Microsoft.Extensions.Options;
 using MimeKit;
 using MimeKit.Text;
 using NextGenSoftware.OASIS.API.Config;
-using NextGenSoftware.OASIS.API.ONODE.WebAPI.Helpers;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
 {
@@ -15,18 +14,18 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
 
     public class EmailService : IEmailService
     {
-        private readonly OASISSettings _OASISSettings;
+       // private readonly OASISSettings _OASISSettings;
 
         public EmailService(IOptions<OASISSettings> OASISSettings)
         {
-            _OASISSettings = OASISSettings.Value;
+           // _OASISSettings = OASISSettings.Value;
         }
 
         public void Send(string to, string subject, string html, string from = null)
         {
             // create message
             var email = new MimeMessage();
-            email.Sender = MailboxAddress.Parse(from ?? _OASISSettings.OASIS.Email.EmailFrom);
+            email.Sender = MailboxAddress.Parse(from ?? OASISProviderManager.OASISSettings.OASIS.Email.EmailFrom);
             email.To.Add(MailboxAddress.Parse(to));
             email.Subject = subject;
             email.Body = new TextPart(TextFormat.Html) { Text = html };
@@ -34,8 +33,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
             // send email
             using var smtp = new SmtpClient();
             //smtp.Connect(_appSettings.SmtpHost, _appSettings.SmtpPort, SecureSocketOptions.StartTls);
-            smtp.Connect(_OASISSettings.OASIS.Email.SmtpHost, _OASISSettings.OASIS.Email.SmtpPort, SecureSocketOptions.None);
-            smtp.Authenticate(_OASISSettings.OASIS.Email.SmtpUser, _OASISSettings.OASIS.Email.SmtpPass);
+            smtp.Connect(OASISProviderManager.OASISSettings.OASIS.Email.SmtpHost, OASISProviderManager.OASISSettings.OASIS.Email.SmtpPort, SecureSocketOptions.None);
+            smtp.Authenticate(OASISProviderManager.OASISSettings.OASIS.Email.SmtpUser, OASISProviderManager.OASISSettings.OASIS.Email.SmtpPass);
             smtp.Send(email);
             smtp.Disconnect(true);
         }
