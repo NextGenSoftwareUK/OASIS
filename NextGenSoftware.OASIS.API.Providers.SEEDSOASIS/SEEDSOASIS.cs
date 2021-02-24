@@ -195,6 +195,6 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS
             throw new NotImplementedException();
         }
 
-        IOASISCustomProviderCalls
+       // IOASISCustomProviderCalls
     }
 }

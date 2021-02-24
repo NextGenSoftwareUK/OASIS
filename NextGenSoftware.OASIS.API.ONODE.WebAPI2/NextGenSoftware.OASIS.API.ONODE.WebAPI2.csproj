@@ -10,5 +10,10 @@
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.10.9" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\NextGenSoftware.OASIS.API.Config\NextGenSoftware.OASIS.API.Config.csproj" />
+    <ProjectReference Include="..\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj" />
+  </ItemGroup>
+
 
 </Project>
