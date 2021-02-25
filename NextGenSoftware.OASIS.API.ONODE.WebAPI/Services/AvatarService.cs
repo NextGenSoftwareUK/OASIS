@@ -415,39 +415,48 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
 
         private void sendVerificationEmail(IAvatar avatar, string origin)
         {
+            if (string.IsNullOrEmpty(origin))
+                origin = EmailService.LIVE_OASISAPI;
+
             string message;
             if (!string.IsNullOrEmpty(origin))
             {
-                var verifyUrl = $"{origin}/account/verify-email?token={avatar.VerificationToken}";
+                var verifyUrl = $"{origin}/avatar/verify-email?token={avatar.VerificationToken}";
                 message = $@"<p>Please click the below link to verify your email address:</p>
                              <p><a href=""{verifyUrl}"">{verifyUrl}</a></p>";
             }
             else
             {
-                message = $@"<p>Please use the below token to verify your email address with the <code>/accounts/verify-email</code> api route:</p>
+                message = $@"<p>Please use the below token to verify your email address with the <code>/avatar/verify-email</code> api route:</p>
                              <p><code>{avatar.VerificationToken}</code></p>";
             }
 
             _emailService.Send(
                 to: avatar.Email,
-                subject: "Sign-up Verification API - Verify Email",
+                subject: "OASIS Sign-up Verification - Verify Email",
+                //html: $@"<h4>Verify Email</h4>
                 html: $@"<h4>Verify Email</h4>
                          <p>Thanks for registering!</p>
+                         <p>Welcome to the OASIS!</p>
+                         <p>Ready Player One?</p>
                          {message}"
             );
         }
 
         private void sendAlreadyRegisteredEmail(string email, string origin)
         {
+            if (string.IsNullOrEmpty(origin))
+                origin = EmailService.LIVE_OASISAPI;
+            
             string message;
             if (!string.IsNullOrEmpty(origin))
-                message = $@"<p>If you don't know your password please visit the <a href=""{origin}/account/forgot-password"">forgot password</a> page.</p>";
+                message = $@"<p>If you don't know your password please visit the <a href=""{origin}/avatar/forgot-password"">forgot password</a> page.</p>";
             else
-                message = "<p>If you don't know your password you can reset it via the <code>/accounts/forgot-password</code> api route.</p>";
+                message = "<p>If you don't know your password you can reset it via the <code>/avatar/forgot-password</code> api route.</p>";
 
             _emailService.Send(
                 to: email,
-                subject: "Sign-up Verification API - Email Already Registered",
+                subject: "OASIS Sign-up Verification - Email Already Registered",
                 html: $@"<h4>Email Already Registered</h4>
                          <p>Your email <strong>{email}</strong> is already registered.</p>
                          {message}"
@@ -456,23 +465,26 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
 
         private void sendPasswordResetEmail(IAvatar avatar, string origin)
         {
+            if (string.IsNullOrEmpty(origin))
+                origin = EmailService.LIVE_OASISAPI;
+
             string message;
             if (!string.IsNullOrEmpty(origin))
             {
-                var resetUrl = $"{origin}/account/reset-password?token={avatar.ResetToken}";
+                var resetUrl = $"{origin}/avatar/reset-password?token={avatar.ResetToken}";
                 message = $@"<p>Please click the below link to reset your password, the link will be valid for 1 day:</p>
                              <p><a href=""{resetUrl}"">{resetUrl}</a></p>";
             }
             else
             {
-                message = $@"<p>Please use the below token to reset your password with the <code>/accounts/reset-password</code> api route:</p>
+                message = $@"<p>Please use the below token to reset your password with the <code>/avatar/reset-password</code> api route:</p>
                              <p><code>{avatar.ResetToken}</code></p>";
             }
 
             _emailService.Send(
                 to: avatar.Email,
-                subject: "Sign-up Verification API - Reset Password",
-                html: $@"<h4>Reset Password Email</h4>
+                subject: "OASIS - Reset Password",
+                html: $@"<h4>Reset Password</h4>
                          {message}"
             );
         }

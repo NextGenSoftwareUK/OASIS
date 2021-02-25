@@ -247,6 +247,19 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             return Register(model);
         }
 
+
+        /// <summary>
+        /// Verify a newly created avatar by passing in the validation token sent in the verify email.
+        /// </summary>
+        /// <param name="model"></param>
+        /// <returns></returns>
+        [HttpPost("verify-email")]
+        public IActionResult VerifyEmail(string token)
+        {
+            _avatarService.VerifyEmail(token);
+            return Ok(new { message = "Verification successful, you can now login" });
+        }
+
         /// <summary>
         /// Verify a newly created avatar by passing in the validation token sent in the verify email.
         /// </summary>
