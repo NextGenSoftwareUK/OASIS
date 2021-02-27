@@ -14,9 +14,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
 
     public class EmailService : IEmailService
     {
-        public static string LIVE_OASISAPI = "http://oasisplatform.world/api";
-
-       // private readonly OASISSettings _OASISSettings;
+        // private readonly OASISSettings _OASISSettings;
 
         public EmailService(IOptions<OASISSettings> OASISSettings)
         {

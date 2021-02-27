@@ -116,8 +116,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
             app.UseSwagger();
             app.UseSwaggerUI(x => x.SwaggerEndpoint("/swagger/v1/swagger.json", "OASIS API v0.03 ALTHA"));
 
+            Program.IsDevEnviroment = env.IsDevelopment();
+
           //  if (env.IsDevelopment())
-                app.UseDeveloperExceptionPage();
+            app.UseDeveloperExceptionPage();
 
             app.UseHttpsRedirection();
 

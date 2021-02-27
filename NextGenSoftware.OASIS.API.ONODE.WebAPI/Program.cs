@@ -9,6 +9,21 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
 {
     public class Program
     {
+        public static bool IsDevEnviroment;
+        public static string LIVE_OASISAPI = "http://oasisplatform.world/api";
+        public static string DEV_OASISAPI = "http://localhost:5000/api";
+        
+        public static string CURRENT_OASISAPI
+        {
+            get
+            {
+                if (IsDevEnviroment)
+                    return DEV_OASISAPI;
+                else
+                    return LIVE_OASISAPI;
+            }
+        }
+
         private static AvatarManager _avatarManager;
         //public static ProviderType CurrentStorageProviderType = ProviderType.Default;
 
