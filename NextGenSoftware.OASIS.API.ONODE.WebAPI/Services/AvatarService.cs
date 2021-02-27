@@ -415,10 +415,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
 
         private void sendVerificationEmail(IAvatar avatar, string origin)
         {
-            if (string.IsNullOrEmpty(origin))
-                origin = EmailService.LIVE_OASISAPI;
-
             string message;
+
+            if (string.IsNullOrEmpty(origin))
+                origin = Program.CURRENT_OASISAPI;
+
             if (!string.IsNullOrEmpty(origin))
             {
                 var verifyUrl = $"{origin}/avatar/verify-email?token={avatar.VerificationToken}";
@@ -446,8 +447,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
         private void sendAlreadyRegisteredEmail(string email, string origin)
         {
             if (string.IsNullOrEmpty(origin))
-                origin = EmailService.LIVE_OASISAPI;
-            
+                origin = Program.CURRENT_OASISAPI;
+
             string message;
             if (!string.IsNullOrEmpty(origin))
                 message = $@"<p>If you don't know your password please visit the <a href=""{origin}/avatar/forgot-password"">forgot password</a> page.</p>";
@@ -466,7 +467,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
         private void sendPasswordResetEmail(IAvatar avatar, string origin)
         {
             if (string.IsNullOrEmpty(origin))
-                origin = EmailService.LIVE_OASISAPI;
+                origin = Program.CURRENT_OASISAPI;
 
             string message;
             if (!string.IsNullOrEmpty(origin))

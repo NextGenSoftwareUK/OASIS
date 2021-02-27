@@ -253,7 +253,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// </summary>
         /// <param name="model"></param>
         /// <returns></returns>
-        [HttpPost("verify-email")]
+        [HttpGet("verify-email")]
         public IActionResult VerifyEmail(string token)
         {
             _avatarService.VerifyEmail(token);
