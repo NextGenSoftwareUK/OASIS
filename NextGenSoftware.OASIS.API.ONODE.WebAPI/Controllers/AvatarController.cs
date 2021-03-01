@@ -490,15 +490,17 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpPut("Update/{id}")]
-        public ActionResult<IAvatar> Update(Core.Avatar avatar, Guid id)
+        //public ActionResult<IAvatar> Update(Core.Avatar avatar, Guid id)
+        public ActionResult<IAvatar> Update(UpdateRequest avatar, Guid id)
         {
             // users can update their own account and admins can update any account
             if (id != Avatar.Id && Avatar.AvatarType != AvatarType.Wizard)
                 return Unauthorized(new { message = "Unauthorized" });
 
             // only admins can update role
-            if (Avatar.AvatarType != AvatarType.Wizard)
-                avatar.AvatarType = Avatar.AvatarType;
+            //if (avatar.AvatarType != AvatarType.Wizard)
+            if (avatar.AvatarType != "Wizard")
+                avatar.AvatarType = null;
             //model.AvatarType = null;
 
             //return Ok(_avatarService.Update(id, model));
@@ -515,7 +517,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpPut("Update/{id}/{providerType}/{setGlobally}")]
-        public ActionResult<IAvatar> Update(Guid id, Core.Avatar avatar, ProviderType providerType, bool setGlobally = false)
+        //public ActionResult<IAvatar> Update(Guid id, Core.Avatar avatar, ProviderType providerType, bool setGlobally = false)
+        public ActionResult<IAvatar> Update(Guid id, UpdateRequest avatar, ProviderType providerType, bool setGlobally = false)
         {
             GetAndActivateProvider(providerType, setGlobally);
             return Update(avatar, id);
