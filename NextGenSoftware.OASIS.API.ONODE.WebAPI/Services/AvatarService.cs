@@ -24,7 +24,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
         private readonly IMapper _mapper;
         private readonly OASISSettings _OASISSettings;
         private readonly IEmailService _emailService;
-        //private AvatarManager _avatarManager;
+        //private AvatarManager _avatarManager;+
 
         public AvatarManager AvatarManager
         {
@@ -300,29 +300,30 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
             return RemoveAuthDetails(avatar);
         }
 
-        public IAvatar Update(Guid id, IAvatar avatar)
+        //public IAvatar Update(Guid id, IAvatar avatar)
+        public IAvatar Update(Guid id, UpdateRequest avatar)
         {
-            // IAvatar origAvatar = getAvatar(id);
+             IAvatar origAvatar = getAvatar(id);
 
-            if (avatar.Id == Guid.Empty)
-                avatar.Id = id;
+          //  if (avatar.Id == Guid.Empty)
+          //      avatar.Id = id;
 
             //if (account.Email != model.Email && _context.Accounts.Any(x => x.Email == model.Email))
 
             //TODO: {PERFORMANCE} Implement in Providers so more efficient and do not need to return whole list!
-            if (AvatarManager.LoadAllAvatars().Any(x => x.Email == avatar.Email))
+            if (!string.IsNullOrEmpty(avatar.Email) && avatar.Email != origAvatar.Email && AvatarManager.LoadAllAvatars().Any(x => x.Email == avatar.Email))
                 throw new AppException($"Email '{avatar.Email}' is already taken");
 
             // hash password if it was entered
             if (!string.IsNullOrEmpty(avatar.Password))
                 avatar.Password = BC.HashPassword(avatar.Password);
 
-            // copy model to account and save
-            //  _mapper.Map(avatar, origAvatar);
-            // avatar.ModifiedDate = DateTime.UtcNow;
+             //TODO: Fix this.
+             _mapper.Map(avatar, origAvatar);
+            origAvatar.ModifiedDate = DateTime.UtcNow;
 
             // return RemoveAuthDetails(AvatarManager.SaveAvatar(origAvatar));
-            return RemoveAuthDetails(AvatarManager.SaveAvatar(avatar));
+            return RemoveAuthDetails(AvatarManager.SaveAvatar(origAvatar));
 
 
             // _context.Accounts.Update(account);
