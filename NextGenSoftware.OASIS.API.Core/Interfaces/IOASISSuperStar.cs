@@ -3,6 +3,6 @@ namespace NextGenSoftware.OASIS.API.Core
 {
     public interface IOASISSuperStar : IOASISStorage
     {
-        bool NativeCodeGenesis();
+        bool NativeCodeGenesis(ICelestialBody celestialBody);
     }
 }

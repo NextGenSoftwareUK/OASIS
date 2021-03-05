@@ -545,7 +545,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Core
 
         //IOASISSuperStar Interface Implementation
 
-        public bool NativeCodeGenesis()
+        public bool NativeCodeGenesis(ICelestialBody celestialBody)
         {
             return true;
         }

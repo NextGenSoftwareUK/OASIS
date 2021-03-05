@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 
 namespace NextGenSoftware.OASIS.API.Core
 {
@@ -14,7 +13,7 @@ namespace NextGenSoftware.OASIS.API.Core
         ICelestialBody CelestialBody { get; set; }
         IZome ParentZome { get; set; }
         IHolon Parent { get; set; }
-        List<IHolon> Children { get; set; }
+        IEnumerable<IHolon> Children { get; set; }
         Guid CreatedByAvatarId { get; set; }
         Avatar CreatedByAvatar { get; set; }
         DateTime CreatedDate { get; set; }
@@ -27,5 +26,6 @@ namespace NextGenSoftware.OASIS.API.Core
         bool IsActive { get; set; }
         int Version { get; set; }
         ProviderType ProviderType { get; set; }
+        public List<INode> Nodes { get; set; }
     }
 }

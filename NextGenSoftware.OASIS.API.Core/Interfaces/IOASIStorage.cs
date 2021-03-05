@@ -53,7 +53,7 @@ namespace NextGenSoftware.OASIS.API.Core
         Task<bool> DeleteHolonAsync(string providerKey, bool softDelete = true);
 
         Task<KarmaAkashicRecord> AddKarmaToAvatarAsync(API.Core.IAvatar Avatar, KarmaTypePositive karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc);
-        Task<KarmaAkashicRecord> SubtractKarmaFromAvatarAsync(API.Core.IAvatar Avatar, KarmaTypeNegative karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc);
+        Task<KarmaAkashicRecord> RemoveKarmaFromAvatarAsync(API.Core.IAvatar Avatar, KarmaTypeNegative karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc);
 
 
         Task<ISearchResults> SearchAsync(ISearchParams searchParams);
