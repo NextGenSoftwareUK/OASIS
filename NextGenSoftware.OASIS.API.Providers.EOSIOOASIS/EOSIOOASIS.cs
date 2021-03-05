@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
 {
-    public class EOSIOOASIS : OASISStorageBase, IOASISStorage, IOASISNET
+    public class EOSIOOASIS : OASISStorageBase, IOASISStorage, IOASISNET, IOASISSuperStar
     {
         public const string OASIS_EOSIO_ACCOUNT = "oasis";
         //public const string OASIS_PASS_PHRASE = "oasis";
@@ -189,6 +189,11 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
         }
 
         public override Task<IEnumerable<IHolon>> LoadHolonsAsync(string providerKey, HolonType type = HolonType.Holon)
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool NativeCodeGenesis(ICelestialBody celestialBody)
         {
             throw new NotImplementedException();
         }

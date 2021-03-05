@@ -16,8 +16,8 @@ namespace NextGenSoftware.OASIS.STAR
     //public static class Star : IStar
     public static class SuperStar
     {
-        const string STAR_DNA = "STAR_DNA.json";
-        const string OASIS_DNA = "OASIS_DNA.json";
+        const string STAR_DNA = "DNA\\STAR_DNA.json";
+        const string OASIS_DNA = "DNA\\OASIS_DNA.json";
         public static Star InnerStar { get; set; }
         public static SuperStarCore SuperStarCore { get; set; }
         public static List<Star> Stars { get; set; }
@@ -179,9 +179,6 @@ namespace NextGenSoftware.OASIS.STAR
             if (SuperStarCore == null)
                 Initialize(starDNA.StarProviderKey);
                 //Initialize(starDNA.HolochainConductorURI, (HoloNETClientType)Enum.Parse(typeof(HoloNETClientType), starDNA.HoloNETClientType), starDNA.StarProviderKey);
-
-
-            ((IOASISSuperStar)ProviderManager.CurrentStorageProvider).NativeCodeGenesis();
 
             string rustDNAFolder = string.Empty;
 
@@ -478,7 +475,9 @@ namespace NextGenSoftware.OASIS.STAR
                 }
             }*/
 
+            //TODO: MOVE ALL RUST CODE INTO HOLOOASIS.GENERATENATIVECODE METHOD.
             Zome currentZome = null;
+            Holon currentHolon = null;
 
             foreach (FileInfo file in files)
             {
@@ -512,10 +511,10 @@ namespace NextGenSoftware.OASIS.STAR
                             zomeName = parts[6].ToPascalCase();
 
                             currentZome = new Zome() { Name = zomeName };
-                            newBody.CelestialBodyCore.Zomes.Add(currentZome);
+                            //newBody.CelestialBodyCore.Zomes.Add(currentZome);
 
                             //TODO: Not sure await this? 
-                            await newBody.CelestialBodyCore.AddZome(currentZome);
+                            //await newBody.CelestialBodyCore.AddZome(currentZome); //TODO: May need to save this once holons and nodes/fields have been added?
                         }
 
                         if (holonReached && buffer.Contains("string") || buffer.Contains("int") || buffer.Contains("bool"))
@@ -539,6 +538,11 @@ namespace NextGenSoftware.OASIS.STAR
                                         holonFieldsClone = string.Concat(holonFieldsClone, holonName, ".", fieldName, "=updated_entry.", fieldName, ";", Environment.NewLine);
 
                                         holonBufferRust = string.Concat(holonBufferRust, stringTemplate.Replace("variableName", fieldName), ",", Environment.NewLine);
+
+                                        if (currentHolon.Nodes == null)
+                                            currentHolon.Nodes = new List<INode>();
+
+                                        currentHolon.Nodes.Add(new Node { NodeName = fieldName, NodeType = NodeType.String });
                                     }
                                     break;
 
@@ -552,6 +556,11 @@ namespace NextGenSoftware.OASIS.STAR
                                         fieldName = parts[14].ToSnakeCase();
                                         holonFieldsClone = string.Concat(holonFieldsClone, holonName, ".", fieldName, "=updated_entry.", fieldName, ";", Environment.NewLine);
                                         holonBufferRust = string.Concat(holonBufferRust, intTemplate.Replace("variableName", fieldName), ",", Environment.NewLine);
+
+                                        if (currentHolon.Nodes == null)
+                                            currentHolon.Nodes = new List<INode>();
+
+                                        currentHolon.Nodes.Add(new Node { NodeName = fieldName, NodeType = NodeType.Int });
                                     }
                                     break;
 
@@ -565,6 +574,11 @@ namespace NextGenSoftware.OASIS.STAR
                                         fieldName = parts[14].ToSnakeCase();
                                         holonFieldsClone = string.Concat(holonFieldsClone, holonName, ".", fieldName, "=updated_entry.", fieldName, ";", Environment.NewLine);
                                         holonBufferRust = string.Concat(holonBufferRust, boolTemplate.Replace("variableName", fieldName), ",", Environment.NewLine);
+
+                                        if (currentHolon.Nodes == null)
+                                            currentHolon.Nodes = new List<INode>();
+
+                                        currentHolon.Nodes.Add(new Node { NodeName = fieldName, NodeType = NodeType.Bool });
                                     }
                                     break;
                             }
@@ -672,7 +686,8 @@ namespace NextGenSoftware.OASIS.STAR
                             holonName = holonName.ToSnakeCase();
                             holonReached = true;
 
-                            currentZome.Holons.Add(new Holon() { Name = holonName, HolonType = HolonType.Holon });
+                            currentHolon = new Holon() { Name = holonName, HolonType = HolonType.Holon };
+                            currentZome.Holons.Add(currentHolon); //TODO: May need to add this once all nodes/fields have been added to it?
                         }
                     }
 
@@ -691,7 +706,7 @@ namespace NextGenSoftware.OASIS.STAR
 
 
             //TODO: Need to save the collection of Zomes/Holons that belong to this planet here...
-            await newBody.Save();
+           // await newBody.Save();
 
             //TODO: Might be more efficient if the planet can be saved and then added to the list of planets in the star in one go?
             switch (type)
@@ -720,6 +735,11 @@ namespace NextGenSoftware.OASIS.STAR
                 default:
                     return new CoronalEjection() { ErrorOccured = true, Message = "Unknown Error Occured.", CelestialBody = newBody };
             }
+
+
+            //Generate any native code for the current provider.
+            //TODO: Add option to pass into STAR which providers to generate native code for (can be more than one provider).
+            ((IOASISSuperStar)ProviderManager.CurrentStorageProvider).NativeCodeGenesis(newBody);
 
             //TODO: Need to save this to the StarNET store (still to be made!) (Will of course be written on top of the HDK/ODK...
             //This will be private on the store until the user publishes via the Star.Seed() command.

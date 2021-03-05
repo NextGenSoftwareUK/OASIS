@@ -380,6 +380,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
         public override Task<IEnumerable<IHolon>> SaveHolonsAsync(IEnumerable<IHolon> holons)
         {
             throw new NotImplementedException();
+            //return holons;
         }
 
         public override Task<IAvatar> LoadAvatarForProviderKeyAsync(string providerKey)
@@ -425,7 +426,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
 
         //IOASISSuperStar Interface Implementation
 
-        public bool NativeCodeGenesis()
+        public bool NativeCodeGenesis(ICelestialBody celestialBody)
         {
             return true;
         }

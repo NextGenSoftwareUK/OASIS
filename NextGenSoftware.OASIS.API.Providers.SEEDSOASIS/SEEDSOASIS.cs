@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS
 {
-    public class SEEDSOASIS : OASISStorageBase, IOASISStorage, IOASISNET, IOASISSuperStar
+    public class SEEDSOASIS : OASISStorageBase, IOASISStorage, IOASISNET
     {
         public SEEDSOASIS()
         {
@@ -151,11 +151,6 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS
         }
 
         public override Task<IEnumerable<IHolon>> LoadHolonsAsync(string providerKey, HolonType type = HolonType.Holon)
-        {
-            throw new NotImplementedException();
-        }
-
-        public bool NativeCodeGenesis()
         {
             throw new NotImplementedException();
         }

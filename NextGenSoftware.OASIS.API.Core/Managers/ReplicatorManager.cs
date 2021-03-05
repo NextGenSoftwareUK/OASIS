@@ -74,40 +74,5 @@ namespace NextGenSoftware.OASIS.API.Core
             //OnOASISManagerError?.Invoke(this, new OASISErrorEventArgs() { Reason = e.Reason, ErrorDetails = e.ErrorDetails });
             //OnAvatarManagerError?.Invoke(this, e);
         }
-
-        public async Task<IAvatar> LoadAvatarAsync(string providerKey, ProviderType provider = ProviderType.Default)
-        {
-            return await ((IOASISStorage)ProviderManager.SetAndActivateCurrentStorageProvider(provider)).LoadAvatarAsync(providerKey);
-        }
-
-        public async Task<IAvatar> LoadAvatarAsync(Guid id, ProviderType provider = ProviderType.Default)
-        {
-            return await ((IOASISStorage)ProviderManager.SetAndActivateCurrentStorageProvider(provider)).LoadAvatarAsync(id);
-        }
-
-        public async Task<IAvatar> LoadAvatarAsync(string username, string password, ProviderType provider = ProviderType.Default)
-        {
-            return await ((IOASISStorage)ProviderManager.SetAndActivateCurrentStorageProvider(provider)).LoadAvatarAsync(username, password);
-        }
-
-        public async Task<IAvatar> SaveAvatarAsync(IAvatar Avatar, ProviderType provider = ProviderType.Default)
-        {
-            return await ((IOASISStorage)ProviderManager.SetAndActivateCurrentStorageProvider(provider)).SaveAvatarAsync(Avatar);
-
-            //if (provider != ProviderType.Default)
-            //    return await ((IOASISStorage)ProviderManager.GetAndActivateProvider(provider)).SaveAvatarAsync(Avatar);
-
-            //return await ProviderManager.CurrentStorageProvider.SaveAvatarAsync(Avatar);
-        }
-
-        public async Task<KarmaAkashicRecord> AddKarmaToAvatarAsync(IAvatar Avatar, KarmaTypePositive karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc, ProviderType provider = ProviderType.Default)
-        {
-            return await ((IOASISStorage)ProviderManager.SetAndActivateCurrentStorageProvider(provider)).AddKarmaToAvatarAsync(Avatar, karmaType, karmaSourceType, karamSourceTitle, karmaSourceDesc);
-        }
-
-        public async Task<KarmaAkashicRecord> RemoveKarmaFromAvatarAsync(IAvatar Avatar, KarmaTypeNegative karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc, ProviderType provider = ProviderType.Default)
-        {
-            return await ((IOASISStorage)ProviderManager.SetAndActivateCurrentStorageProvider(provider)).SubtractKarmaFromAvatarAsync(Avatar, karmaType, karmaSourceType, karamSourceTitle, karmaSourceDesc);
-        }
     }
 }

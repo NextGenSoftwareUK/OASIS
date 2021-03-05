@@ -13,7 +13,7 @@ namespace NextGenSoftware.OASIS.API.Core
         public ICelestialBody CelestialBody { get; set; } //The CelestialBody (Star, Planet or Moon) this Holon belongs to.
         public IZome ParentZome { get; set; } //TODO: Wire this up in the HDK.Core.Star code... not used yet because only just added...
         public IHolon Parent { get; set; }
-        public List<IHolon> Children { get; set; }
+        public IEnumerable<IHolon> Children { get; set; }
         public Guid CreatedByAvatarId { get; set; }
         public Avatar CreatedByAvatar { get; set; }
         public DateTime CreatedDate { get; set; }
@@ -26,5 +26,6 @@ namespace NextGenSoftware.OASIS.API.Core
         public int Version { get; set; }
         public bool IsActive { get; set; }
         public ProviderType ProviderType { get; set; }
+        public List<INode> Nodes { get; set; } 
     }
 }
