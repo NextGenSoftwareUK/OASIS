@@ -38,7 +38,7 @@ namespace NextGenSoftware.Holochain.HoloNET.Client.TestHarness
             await holoNETClient.Connect();
 
             if (holoNETClient.State == System.Net.WebSockets.WebSocketState.Open)
-            {
+           {
                 await holoNETClient.GetHolochainInstancesAsync();
                 await holoNETClient.CallZomeFunctionAsync("1", "test-instance", "our_world_core", "test", ZomeCallback, null);
 

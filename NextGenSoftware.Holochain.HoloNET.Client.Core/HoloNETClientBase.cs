@@ -370,6 +370,7 @@ namespace NextGenSoftware.Holochain.HoloNET.Client.Core
                         UInt32 holoHash = 000000000000000000000000000000000000;
                         UInt32 agentPubKey = 000000000000000000000000000000000000;
 
+                        holoNETData.cell_id = new UInt32[2];
                         holoNETData.cell_id[0] = holoHash;
                         holoNETData.cell_id[1] = agentPubKey;
 
