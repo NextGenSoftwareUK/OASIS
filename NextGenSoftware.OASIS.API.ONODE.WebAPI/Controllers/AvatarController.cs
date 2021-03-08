@@ -417,7 +417,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <param name="karmaSourceDesc">The description of the app/website/game where the karma was earnt.</param>
         /// <returns></returns>
         [Authorize]
-        [HttpPost("AddKarmaToAvatar/{avatarId}/{karmaType}/{karmaSourceType}/{karamSourceTitle}/{karmaSourceDesc}")]
+        [HttpGet("AddKarmaToAvatar/{avatarId}/{karmaType}/{karmaSourceType}/{karamSourceTitle}/{karmaSourceDesc}")]
         public ActionResult<IAvatar> AddKarmaToAvatar(Guid avatarId, KarmaTypePositive karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc)
         {
             return Ok(Program.AvatarManager.AddKarmaToAvatarAsync(avatarId, karmaType, karmaSourceType, karamSourceTitle, karmaSourceDesc));
