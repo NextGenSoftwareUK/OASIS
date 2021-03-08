@@ -404,8 +404,24 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpPost("AddKarmaToAvatar/{avatar}/{karmaType}/{karmaSourceType}/{karamSourceTitle}/{karmaSourceDesc}")]
         public ActionResult<IAvatar> AddKarmaToAvatar(IAvatar avatar, KarmaTypePositive karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc)
         {
-            return Ok(Program.AvatarManager.AddKarmaToAvatarAsync(avatar, karmaType, karmaSourceType, karamSourceTitle, karmaSourceDesc));
+            return Ok(Program.AvatarManager.AddKarmaToAvatar(avatar, karmaType, karmaSourceType, karamSourceTitle, karmaSourceDesc));
         }
+
+        ///// <summary>
+        ///// Add positive karma to the given avatar. karmaType = The type of positive karma, karmaSourceType = Where the karma was earnt (App, dApp, hApp, Website, Game, karamSourceTitle/karamSourceDesc = The name/desc of the app/website/game where the karma was earnt. They must be logged in &amp; authenticated for this method to work. 
+        ///// </summary>
+        ///// <param name="avatarId">The avatar ID to add the karma to.</param>
+        ///// <param name="karmaType">The type of positive karma.</param>
+        ///// <param name="karmaSourceType">Where the karma was earnt (App, dApp, hApp, Website, Game.</param>
+        ///// <param name="karamSourceTitle">The name of the app/website/game where the karma was earnt.</param>
+        ///// <param name="karmaSourceDesc">The description of the app/website/game where the karma was earnt.</param>
+        ///// <returns></returns>
+        //[Authorize]
+        //[HttpGet("AddKarmaToAvatar/{avatarId}/{karmaType}/{karmaSourceType}/{karamSourceTitle}/{karmaSourceDesc}")]
+        //public ActionResult<IAvatar> AddKarmaToAvatar(Guid avatarId, KarmaTypePositive karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc)
+        //{
+        //    return Ok(Program.AvatarManager.AddKarmaToAvatarAsync(avatarId, karmaType, karmaSourceType, karamSourceTitle, karmaSourceDesc));
+        //}
 
         /// <summary>
         /// Add positive karma to the given avatar. karmaType = The type of positive karma, karmaSourceType = Where the karma was earnt (App, dApp, hApp, Website, Game, karamSourceTitle/karamSourceDesc = The name/desc of the app/website/game where the karma was earnt. They must be logged in &amp; authenticated for this method to work. 
@@ -417,10 +433,22 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <param name="karmaSourceDesc">The description of the app/website/game where the karma was earnt.</param>
         /// <returns></returns>
         [Authorize]
-        [HttpGet("AddKarmaToAvatar/{avatarId}/{karmaType}/{karmaSourceType}/{karamSourceTitle}/{karmaSourceDesc}")]
-        public ActionResult<IAvatar> AddKarmaToAvatar(Guid avatarId, KarmaTypePositive karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc)
+        [HttpPost("AddKarmaToAvatar/{avatarId}")]
+        //[HttpPost("AddKarmaToAvatar")]
+        public ActionResult<IAvatar> AddKarmaToAvatar(Guid avatarId, AddKarmaToAvatarRequest addKarmaToAvatarRequest)
+       // public ActionResult<IAvatar> AddKarmaToAvatar(AddKarmaToAvatarRequest addKarmaToAvatarRequest)
         {
-            return Ok(Program.AvatarManager.AddKarmaToAvatarAsync(avatarId, karmaType, karmaSourceType, karamSourceTitle, karmaSourceDesc));
+            object karmaTypePositiveObject = null;
+            object karmaSourceTypeObject = null;
+
+            if (!Enum.TryParse(typeof(KarmaTypePositive), addKarmaToAvatarRequest.KarmaType, out karmaTypePositiveObject))
+                return Ok("ERROR: KarmaType needs to be one of the values found in KarmaTypePositive enumeration.");
+
+            if (!Enum.TryParse(typeof(KarmaSourceType), addKarmaToAvatarRequest.karmaSourceType, out karmaSourceTypeObject))
+                return Ok("ERROR: KarmaSourceType needs to be one of the values found in KarmaSourceType enumeration.");
+
+            return Ok(Program.AvatarManager.AddKarmaToAvatar(avatarId, (KarmaTypePositive)karmaTypePositiveObject, (KarmaSourceType)karmaSourceTypeObject, addKarmaToAvatarRequest.KaramSourceTitle, addKarmaToAvatarRequest.KarmaSourceDesc));
+            //return Ok(Program.AvatarManager.AddKarmaToAvatar(addKarmaToAvatarRequest.AvatarId, addKarmaToAvatarRequest.KarmaType, addKarmaToAvatarRequest.karmaSourceType, addKarmaToAvatarRequest.KaramSourceTitle, addKarmaToAvatarRequest.KarmaSourceDesc));
         }
 
         /// <summary>
@@ -458,7 +486,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         public ActionResult<IAvatar> AddKarmaToAvatar(Guid avatarId, KarmaTypePositive karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc, ProviderType providerType, bool setGlobally = false)
         {
             GetAndActivateProvider(providerType, setGlobally);
-            return Ok(Program.AvatarManager.AddKarmaToAvatarAsync(avatarId, karmaType, karmaSourceType, karamSourceTitle, karmaSourceDesc));
+            return Ok(Program.AvatarManager.AddKarmaToAvatar(avatarId, karmaType, karmaSourceType, karamSourceTitle, karmaSourceDesc));
         }
 
         /// <summary>
@@ -474,7 +502,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpPost("RemoveKarmaFromAvatar/{avatar}/{karmaType}/{karmaSourceType}/{karamSourceTitle}/{karmaSourceDesc}")]
         public ActionResult<IAvatar> RemoveKarmaFromAvatar(IAvatar avatar, KarmaTypeNegative karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc)
         {
-            return Ok(Program.AvatarManager.RemoveKarmaFromAvatarAsync(avatar, karmaType, karmaSourceType, karamSourceTitle, karmaSourceDesc));
+            return Ok(Program.AvatarManager.RemoveKarmaFromAvatar(avatar, karmaType, karmaSourceType, karamSourceTitle, karmaSourceDesc));
         }
 
         /// <summary>
@@ -509,7 +537,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpPost("RemoveKarmaFromAvatar/{avatarId}/{karmaType}/{karmaSourceType}/{karamSourceTitle}/{karmaSourceDesc}")]
         public ActionResult<IAvatar> RemoveKarmaFromAvatar(Guid avatarId, KarmaTypeNegative karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc)
         {
-            return Ok(Program.AvatarManager.RemoveKarmaFromAvatarAsync(avatarId, karmaType, karmaSourceType, karamSourceTitle, karmaSourceDesc));
+            return Ok(Program.AvatarManager.RemoveKarmaFromAvatar(avatarId, karmaType, karmaSourceType, karamSourceTitle, karmaSourceDesc));
         }
 
         /// <summary>

@@ -30,9 +30,11 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
         public string Mobile { get; set; }
         public DateTime DOB { get; set; }
         public AvatarType AvatarType { get; set; }
-        public int Karma { get; set; }
+        public int Karma { get; private set; }
+        public List<KarmaAkashicRecord> KarmaAkashicRecords { get; set; }
         public int Level { get; set; }
         public HolonType HolonType { get; set; }
+
 
         public bool AcceptTerms { get; set; }
         public string VerificationToken { get; set; }
