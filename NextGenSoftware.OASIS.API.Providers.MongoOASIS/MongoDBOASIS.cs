@@ -229,6 +229,8 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             oasisAvatar.Town = avatar.Town;
             oasisAvatar.Username = avatar.Username;
             oasisAvatar.AvatarType = avatar.AvatarType;
+            oasisAvatar.Karma = avatar.Karma;
+            oasisAvatar.KarmaAkashicRecords = avatar.KarmaAkashicRecords;
             oasisAvatar.Version = avatar.Version;
             oasisAvatar.AcceptTerms = avatar.AcceptTerms;
             oasisAvatar.JwtToken = avatar.JwtToken;
@@ -271,7 +273,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             mongoAvatar.County = avatar.County;
             mongoAvatar.Email = avatar.Email;
             mongoAvatar.DOB = avatar.DOB;
-            mongoAvatar.Landline = avatar.LastName;
+            mongoAvatar.Landline = avatar.Landline;
             mongoAvatar.Mobile = avatar.Mobile;
             mongoAvatar.Password = avatar.Password;
             mongoAvatar.Postcode = avatar.Postcode;
@@ -280,6 +282,8 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             mongoAvatar.Username = avatar.Username;
             mongoAvatar.AvatarType = avatar.AvatarType;
             mongoAvatar.Version = avatar.Version;
+            mongoAvatar.Karma = avatar.Karma;
+            mongoAvatar.KarmaAkashicRecords = avatar.KarmaAkashicRecords;
             mongoAvatar.AcceptTerms = avatar.AcceptTerms;
             mongoAvatar.JwtToken = avatar.JwtToken;
             mongoAvatar.PasswordReset = avatar.PasswordReset;

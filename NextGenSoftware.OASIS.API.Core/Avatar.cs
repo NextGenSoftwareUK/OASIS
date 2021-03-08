@@ -76,47 +76,90 @@ namespace NextGenSoftware.OASIS.API.Core
             return this.RefreshTokens?.Find(x => x.Token == token) != null;
         }
 
-
-
         // A record of all the karma the user has earnt/lost along with when and where from.
         public List<KarmaAkashicRecord> KarmaAkashicRecords { get; set; }
 
-        public async Task<KarmaAkashicRecord> KarmaEarnt(KarmaTypePositive karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc, bool autoSave = true)
+        public async Task<KarmaAkashicRecord> KarmaEarntAsync(KarmaTypePositive karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc, bool autoSave = true, int karmaOverride = 0)
         {
-            KarmaAkashicRecord record = new KarmaAkashicRecord { KarmaEarntOrLost = KarmaEarntOrLost.Earnt, Date = DateTime.Now, Karma = GetKarmaForType(karmaType), KarmaSource = karmaSourceType, KarmaSourceTitle = karamSourceTitle, KarmaSourceDesc = karmaSourceDesc, KarmaTypePositive = karmaType, AvatarId = Id, Provider = ProviderManager.CurrentStorageProviderType };
-            this.Karma += GetKarmaForType(karmaType);
+            KarmaAkashicRecord record = AddKarmaToAkashicRecord(karmaType, karmaSourceType, karamSourceTitle, karmaSourceDesc, karmaOverride);
+
+            if (autoSave)
+                await SaveAsync();
+
+            return record;
+        }
+
+        public KarmaAkashicRecord KarmaEarnt(KarmaTypePositive karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc, bool autoSave = true, int karmaOverride = 0)
+        {
+            KarmaAkashicRecord record = AddKarmaToAkashicRecord(karmaType, karmaSourceType, karamSourceTitle, karmaSourceDesc, karmaOverride);
+
+            if (autoSave)
+                Save();
+
+            return record;
+        }
+
+        public async Task<KarmaAkashicRecord> KarmaLostAsync(KarmaTypeNegative karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc, bool autoSave = true, int karmaOverride = 0)
+        {
+            KarmaAkashicRecord record = RemoveKarmaFromAkashicRecord(karmaType, karmaSourceType, karamSourceTitle, karmaSourceDesc, karmaOverride);
+
+            if (autoSave)
+                await SaveAsync();
+
+            return record;
+        }
+
+        public KarmaAkashicRecord KarmaLost(KarmaTypeNegative karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc, bool autoSave = true, int karmaOverride = 0)
+        {
+            KarmaAkashicRecord record = RemoveKarmaFromAkashicRecord(karmaType, karmaSourceType, karamSourceTitle, karmaSourceDesc, karmaOverride);
+
+            if (autoSave)
+                Save();
+
+            return record;
+        }
+
+        private KarmaAkashicRecord AddKarmaToAkashicRecord(KarmaTypePositive karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc, int karmaOverride = 0)
+        {
+            int karma = GetKarmaForType(karmaType);
+
+            if (karmaType == KarmaTypePositive.Other)
+                karma = karmaOverride;
+
+            this.Karma += karma;
+            KarmaAkashicRecord record = new KarmaAkashicRecord { KarmaEarntOrLost = KarmaEarntOrLost.Earnt, KarmaTypeNegative = KarmaTypeNegative.None, Date = DateTime.Now, Karma = karma, KarmaSource = karmaSourceType, KarmaSourceTitle = karamSourceTitle, KarmaSourceDesc = karmaSourceDesc, KarmaTypePositive = karmaType, AvatarId = Id, Provider = ProviderManager.CurrentStorageProviderType };
 
             if (this.KarmaAkashicRecords == null)
                 this.KarmaAkashicRecords = new List<KarmaAkashicRecord>();
 
             this.KarmaAkashicRecords.Add(record);
-
-            if (autoSave)
-                await Save();
-
             return record;
         }
 
-        public async Task<KarmaAkashicRecord> KarmaLost(KarmaTypeNegative karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc, bool autoSave = true)
+        private KarmaAkashicRecord RemoveKarmaFromAkashicRecord(KarmaTypeNegative karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc, int karmaOverride = 0)
         {
-            KarmaAkashicRecord record = new KarmaAkashicRecord { KarmaEarntOrLost = KarmaEarntOrLost.Lost, Date = DateTime.Now, Karma = GetKarmaForType(karmaType), KarmaSource = karmaSourceType, KarmaSourceTitle = karamSourceTitle, KarmaSourceDesc = karmaSourceDesc, KarmaTypeNegative = karmaType, AvatarId = Id, Provider = ProviderManager.CurrentStorageProviderType };
-            this.Karma -= GetKarmaForType(karmaType);
+            int karma = GetKarmaForType(karmaType);
+
+            if (karmaType == KarmaTypeNegative.Other)
+                karma = karmaOverride;
+
+            this.Karma -= karma;
+            KarmaAkashicRecord record = new KarmaAkashicRecord { KarmaEarntOrLost = KarmaEarntOrLost.Lost, KarmaTypePositive = KarmaTypePositive.None, Date = DateTime.Now, Karma = karma, KarmaSource = karmaSourceType, KarmaSourceTitle = karamSourceTitle, KarmaSourceDesc = karmaSourceDesc, KarmaTypeNegative = karmaType, AvatarId = Id, Provider = ProviderManager.CurrentStorageProviderType };
 
             if (this.KarmaAkashicRecords == null)
                 this.KarmaAkashicRecords = new List<KarmaAkashicRecord>();
 
             this.KarmaAkashicRecords.Add(record);
-
-            if (autoSave)
-                await Save();
-
             return record;
         }
 
-        public async Task<bool> Save()
+        public async Task<IAvatar> SaveAsync()
         {
-            await ((IOASISStorage)ProviderManager.CurrentStorageProvider).SaveAvatarAsync(this);
-            return true;
+            return await ((IOASISStorage)ProviderManager.CurrentStorageProvider).SaveAvatarAsync(this);
+        }
+        public IAvatar Save()
+        {
+            return ((IOASISStorage)ProviderManager.CurrentStorageProvider).SaveAvatar(this);
         }
 
         public Avatar()

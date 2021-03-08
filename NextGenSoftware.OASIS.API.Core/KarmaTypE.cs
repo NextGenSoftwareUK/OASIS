@@ -6,6 +6,7 @@ namespace NextGenSoftware.OASIS.API.Core
 {
     public enum KarmaTypePositive
     {
+        None,
         OurWorld,
         OurWorldPickupLitter,
         OurWorldHelpOtherPlayer,
@@ -83,6 +84,7 @@ namespace NextGenSoftware.OASIS.API.Core
 
     public enum KarmaTypeNegative
     {
+        None,
         OurWorldDropLitter,
         OurWorldDisrespectOtherPlayer,
         OurWorldAttackOtherPlayer,

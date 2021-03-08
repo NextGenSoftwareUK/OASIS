@@ -21,14 +21,24 @@ namespace NextGenSoftware.OASIS.API.Core
         //    return user;
         //}
 
-        public Task<KarmaAkashicRecord> AddKarmaToAvatarAsync(API.Core.IAvatar Avatar, KarmaTypePositive karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc)
+        public Task<KarmaAkashicRecord> AddKarmaToAvatarAsync(IAvatar avatar, KarmaTypePositive karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc)
         {
-            return Avatar.KarmaEarnt(karmaType, karmaSourceType, karamSourceTitle, karmaSourceDesc);
+            return avatar.KarmaEarntAsync(karmaType, karmaSourceType, karamSourceTitle, karmaSourceDesc);
         }
 
-        public Task<KarmaAkashicRecord> RemoveKarmaFromAvatarAsync(API.Core.IAvatar Avatar, KarmaTypeNegative karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc)
+        public Task<KarmaAkashicRecord> RemoveKarmaFromAvatarAsync(IAvatar avatar, KarmaTypeNegative karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc)
         {
-            return Avatar.KarmaLost(karmaType, karmaSourceType, karamSourceTitle, karmaSourceDesc);
+            return avatar.KarmaLostAsync(karmaType, karmaSourceType, karamSourceTitle, karmaSourceDesc);
+        }
+
+        public KarmaAkashicRecord AddKarmaToAvatar(IAvatar avatar, KarmaTypePositive karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc)
+        {
+            return avatar.KarmaEarnt(karmaType, karmaSourceType, karamSourceTitle, karmaSourceDesc);
+        }
+
+        public KarmaAkashicRecord RemoveKarmaFromAvatar(IAvatar avatar, KarmaTypeNegative karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc)
+        {
+            return avatar.KarmaLost(karmaType, karmaSourceType, karamSourceTitle, karmaSourceDesc);
         }
 
         protected void OnStorageProviderError(string endPoint, string reason, Exception errorDetails)
