@@ -115,7 +115,9 @@ namespace NextGenSoftware.OASIS.STAR
         public static async Task<Avatar> BeamIn(string username, string password)
         {
             //TODO: Implement login code here.
-            LoggedInUser = new Avatar() { Karma = 777, Name = "David Ellams", HolonType = HolonType.Avatar };
+            // LoggedInUser = new Avatar() { Karma = 777, Name = "David Ellams", HolonType = HolonType.Avatar };
+
+            LoggedInUser = (Avatar)ProviderManager.CurrentStorageProvider.LoadAvatar(username, password);
             return LoggedInUser;
         }
 

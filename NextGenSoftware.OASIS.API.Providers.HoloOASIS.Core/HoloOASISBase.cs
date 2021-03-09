@@ -373,8 +373,28 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Core
             };
         }
 
-        private Avatar ConvertHcAvatarToAvatar(HcAvatar Avatar)
+        private Avatar ConvertHcAvatarToAvatar(HcAvatar hcAvatar)
         {
+            Avatar avatar = new Avatar
+            {
+                DOB = Convert.ToDateTime(hcAvatar.dob),
+                Email = hcAvatar.email,
+                FirstName = hcAvatar.first_name,
+                HolonType = hcAvatar.holon_type,
+                Id = hcAvatar.id,
+                // Karma = Avatar.karma,
+                LastName = hcAvatar.last_name,
+                Password = hcAvatar.password,
+                Address = hcAvatar.address,
+                ProviderKey = hcAvatar.provider_key,
+                Title = hcAvatar.title,
+                Username = hcAvatar.username
+            };
+
+            avatar.SetKarmaForDataObject(hcAvatar.karma);
+            return avatar;
+
+            /*
             return new Avatar
             {
                 DOB = Convert.ToDateTime(Avatar.dob),
@@ -382,14 +402,14 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Core
                 FirstName = Avatar.first_name,
                 HolonType = Avatar.holon_type,
                 Id = Avatar.id,
-                Karma = Avatar.karma,
+               // Karma = Avatar.karma,
                 LastName = Avatar.last_name,
                 Password = Avatar.password,
                 Address = Avatar.address,
                 ProviderKey = Avatar.provider_key,
                 Title = Avatar.title,
                 Username = Avatar.username
-            };
+            };*/
         }
 
         /// <summary>

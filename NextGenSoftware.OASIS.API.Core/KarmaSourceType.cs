@@ -10,6 +10,7 @@ namespace NextGenSoftware.OASIS.API.Core
         dApp,
         hApp,
         Website,
-        Game
+        Game,
+        DataObject
     }
 }

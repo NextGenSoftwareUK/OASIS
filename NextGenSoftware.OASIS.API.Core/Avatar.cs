@@ -31,7 +31,7 @@ namespace NextGenSoftware.OASIS.API.Core
         public string Landline { get; set; }
         public AvatarType AvatarType { get; set; }
         // public int Karma { get; private set; }
-        public int Karma { get; set; } //TODO: This really needs to have a private setter but in the HoloOASIS provider it needs to copy the object along with each property... would prefer another work around if possible?
+        public int Karma { get; private set; } //TODO: This really needs to have a private setter but in the HoloOASIS provider it needs to copy the object along with each property... would prefer another work around if possible?
         public int Level
         {
             get
@@ -78,6 +78,43 @@ namespace NextGenSoftware.OASIS.API.Core
 
         // A record of all the karma the user has earnt/lost along with when and where from.
         public List<KarmaAkashicRecord> KarmaAkashicRecords { get; set; }
+
+        public KarmaAkashicRecord SetKarmaForDataObject(int karma, bool autoSave = false)
+        {
+            //TODO: Not sure how to handle this? We dont want to allow people to manually set the karma, because it needs to be logged through 
+            //the correct KarmaEarn/Lost methods. But this causes an issue for the OASIS Storage Providers when loading the data objects, because they 
+            //cannot set the karma property. So this is an attempt to resolve this but needs more thought, we dont want to add unnecessary Saves for every time we load the object slowing things down for example!
+            this.Karma = karma;
+
+            KarmaAkashicRecord record = new KarmaAkashicRecord { KarmaEarntOrLost = KarmaEarntOrLost.DataObject, KarmaTypeNegative = KarmaTypeNegative.None, Date = DateTime.Now, Karma = karma, KarmaSource = KarmaSourceType.DataObject, KarmaSourceTitle = "", KarmaSourceDesc = "", KarmaTypePositive = KarmaTypePositive.None, AvatarId = Id, Provider = ProviderManager.CurrentStorageProviderType };
+
+            if (this.KarmaAkashicRecords == null)
+                this.KarmaAkashicRecords = new List<KarmaAkashicRecord>();
+
+            this.KarmaAkashicRecords.Add(record);
+
+            if (autoSave)
+                Save();
+
+            return record;
+        }
+
+        public async Task<KarmaAkashicRecord> SetKarmaForDataObjectAsync(int karma, bool autoSave = true)
+        {
+            this.Karma = karma;
+
+            KarmaAkashicRecord record = new KarmaAkashicRecord { KarmaEarntOrLost = KarmaEarntOrLost.DataObject, KarmaTypeNegative = KarmaTypeNegative.None, Date = DateTime.Now, Karma = karma, KarmaSource = KarmaSourceType.DataObject, KarmaSourceTitle = string.Concat("Setting DataObject For ", ProviderManager.CurrentStorageProviderName, " Provider."), KarmaSourceDesc = "", KarmaTypePositive = KarmaTypePositive.None, AvatarId = Id, Provider = ProviderManager.CurrentStorageProviderType, ProviderName = ProviderManager.CurrentStorageProviderName };
+
+            if (this.KarmaAkashicRecords == null)
+                this.KarmaAkashicRecords = new List<KarmaAkashicRecord>();
+
+            this.KarmaAkashicRecords.Add(record);
+
+            if (autoSave)
+                await SaveAsync();
+
+            return record;
+        }
 
         public async Task<KarmaAkashicRecord> KarmaEarntAsync(KarmaTypePositive karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc, bool autoSave = true, int karmaOverride = 0)
         {
@@ -127,7 +164,7 @@ namespace NextGenSoftware.OASIS.API.Core
                 karma = karmaOverride;
 
             this.Karma += karma;
-            KarmaAkashicRecord record = new KarmaAkashicRecord { KarmaEarntOrLost = KarmaEarntOrLost.Earnt, KarmaTypeNegative = KarmaTypeNegative.None, Date = DateTime.Now, Karma = karma, KarmaSource = karmaSourceType, KarmaSourceTitle = karamSourceTitle, KarmaSourceDesc = karmaSourceDesc, KarmaTypePositive = karmaType, AvatarId = Id, Provider = ProviderManager.CurrentStorageProviderType };
+            KarmaAkashicRecord record = new KarmaAkashicRecord { KarmaEarntOrLost = KarmaEarntOrLost.Earnt, KarmaTypeNegative = KarmaTypeNegative.None, Date = DateTime.Now, Karma = karma, KarmaSource = karmaSourceType, KarmaSourceTitle = karamSourceTitle, KarmaSourceDesc = karmaSourceDesc, KarmaTypePositive = karmaType, AvatarId = Id, Provider = ProviderManager.CurrentStorageProviderType, ProviderName = ProviderManager.CurrentStorageProviderName };
 
             if (this.KarmaAkashicRecords == null)
                 this.KarmaAkashicRecords = new List<KarmaAkashicRecord>();
@@ -144,7 +181,7 @@ namespace NextGenSoftware.OASIS.API.Core
                 karma = karmaOverride;
 
             this.Karma -= karma;
-            KarmaAkashicRecord record = new KarmaAkashicRecord { KarmaEarntOrLost = KarmaEarntOrLost.Lost, KarmaTypePositive = KarmaTypePositive.None, Date = DateTime.Now, Karma = karma, KarmaSource = karmaSourceType, KarmaSourceTitle = karamSourceTitle, KarmaSourceDesc = karmaSourceDesc, KarmaTypeNegative = karmaType, AvatarId = Id, Provider = ProviderManager.CurrentStorageProviderType };
+            KarmaAkashicRecord record = new KarmaAkashicRecord { KarmaEarntOrLost = KarmaEarntOrLost.Lost, KarmaTypePositive = KarmaTypePositive.None, Date = DateTime.Now, Karma = karma, KarmaSource = karmaSourceType, KarmaSourceTitle = karamSourceTitle, KarmaSourceDesc = karmaSourceDesc, KarmaTypeNegative = karmaType, AvatarId = Id, Provider = ProviderManager.CurrentStorageProviderType, ProviderName = ProviderManager.CurrentStorageProviderName };
 
             if (this.KarmaAkashicRecords == null)
                 this.KarmaAkashicRecords = new List<KarmaAkashicRecord>();
