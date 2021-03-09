@@ -12,6 +12,14 @@ namespace NextGenSoftware.OASIS.API.Core
 
         public static ProviderType CurrentStorageProviderType { get; private set; } = ProviderType.Default;
 
+        public static string CurrentStorageProviderName
+        {
+            get
+            {
+                return Enum.GetName(CurrentStorageProviderType);
+            }
+        }
+
         public static string[] DefaultProviderTypes { get;  set; }
 
         public static IOASISStorage DefaultGlobalStorageProvider { get; set; }

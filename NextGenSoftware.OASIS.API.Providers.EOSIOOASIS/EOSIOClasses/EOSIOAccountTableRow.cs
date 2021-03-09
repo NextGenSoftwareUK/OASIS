@@ -33,7 +33,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.EOSIOClasses
 
         public Avatar ToAvatar()
         {
-            var Avatar = new Avatar()
+            var avatar = new Avatar()
             {
                 Id = Guid.Parse(this.userid),
                 Username = this.username,
@@ -44,10 +44,11 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.EOSIOClasses
                 LastName = this.lastname,
                 DOB = Convert.ToDateTime(this.dob),
                 Address = this.playeraddr,
-                Karma = this.karma
+                //Karma = this.karma
             };
 
-            return Avatar;
+            avatar.SetKarmaForDataObject(this.karma);
+            return avatar;
         }
     }
 }

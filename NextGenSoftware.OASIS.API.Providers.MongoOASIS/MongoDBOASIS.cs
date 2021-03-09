@@ -229,7 +229,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             oasisAvatar.Town = avatar.Town;
             oasisAvatar.Username = avatar.Username;
             oasisAvatar.AvatarType = avatar.AvatarType;
-            oasisAvatar.Karma = avatar.Karma;
+            //oasisAvatar.Karma = avatar.Karma;
             oasisAvatar.KarmaAkashicRecords = avatar.KarmaAkashicRecords;
             oasisAvatar.Version = avatar.Version;
             oasisAvatar.AcceptTerms = avatar.AcceptTerms;
@@ -244,6 +244,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             oasisAvatar.ProviderType = ProviderType.MongoDBOASIS;
             oasisAvatar.IsActive = avatar.IsActive;
 
+            oasisAvatar.SetKarmaForDataObject(avatar.Karma);
             return oasisAvatar;
         }
 
@@ -282,7 +283,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             mongoAvatar.Username = avatar.Username;
             mongoAvatar.AvatarType = avatar.AvatarType;
             mongoAvatar.Version = avatar.Version;
-            mongoAvatar.Karma = avatar.Karma;
+           // mongoAvatar.Karma = avatar.Karma;
             mongoAvatar.KarmaAkashicRecords = avatar.KarmaAkashicRecords;
             mongoAvatar.AcceptTerms = avatar.AcceptTerms;
             mongoAvatar.JwtToken = avatar.JwtToken;
@@ -294,6 +295,10 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             mongoAvatar.VerificationToken = avatar.VerificationToken;
             mongoAvatar.Verified = avatar.Verified;
             mongoAvatar.IsActive = avatar.IsActive;
+
+            //mongoAvatar.Karma = avatar.Karma;
+
+            mongoAvatar.Karma = avatar.Karma;
 
             return mongoAvatar;
         }
