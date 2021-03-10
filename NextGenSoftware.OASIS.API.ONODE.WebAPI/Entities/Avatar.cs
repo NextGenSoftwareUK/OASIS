@@ -1,5 +1,6 @@
 
 using NextGenSoftware.OASIS.API.Core;
+using NextGenSoftware.OASIS.API.Core.Helpers;
 using System;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
@@ -27,7 +28,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
         public string Landline { get; set; }
         public string Mobile { get; set; }
         public DateTime DOB { get; set; }
-        public AvatarType AvatarType { get; set; }
+        public EnumValue<AvatarType> AvatarType { get; set; }
         public int Karma { get; set; }
         public int Level { get; set; }
         public HolonType HolonType { get; set; }

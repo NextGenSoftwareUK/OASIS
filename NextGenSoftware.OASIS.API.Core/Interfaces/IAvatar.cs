@@ -1,4 +1,5 @@
-﻿using System;
+﻿using NextGenSoftware.OASIS.API.Core.Helpers;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -6,6 +7,7 @@ namespace NextGenSoftware.OASIS.API.Core
 {
     public interface IAvatar : IHolon
     {
+        Guid AvatarId { get; }
         string Username { get; set; }
         string Password { get; set; }
         string Email { get; set; }
@@ -23,8 +25,7 @@ namespace NextGenSoftware.OASIS.API.Core
         string Postcode { get; set; }
         string Mobile { get; set; }
         string Landline { get; set; }
-        AvatarType AvatarType { get; set; }
-
+        EnumValue<AvatarType> AvatarType { get; set; }
         bool AcceptTerms { get; set; }
         public string VerificationToken { get; set; }
         DateTime? Verified { get; set; }

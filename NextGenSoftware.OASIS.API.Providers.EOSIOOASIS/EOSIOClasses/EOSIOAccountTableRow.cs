@@ -44,10 +44,10 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.EOSIOClasses
                 LastName = this.lastname,
                 DOB = Convert.ToDateTime(this.dob),
                 Address = this.playeraddr,
-                //Karma = this.karma
+                Karma = this.karma
             };
 
-            avatar.SetKarmaForDataObject(this.karma);
+            //avatar.SetKarmaForDataObject(this.karma);
             return avatar;
         }
     }
