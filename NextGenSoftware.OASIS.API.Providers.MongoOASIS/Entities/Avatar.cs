@@ -1,5 +1,6 @@
 
 using NextGenSoftware.OASIS.API.Core;
+using NextGenSoftware.OASIS.API.Core.Helpers;
 using System;
 using System.Collections.Generic;
 
@@ -29,7 +30,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
         public string Landline { get; set; }
         public string Mobile { get; set; }
         public DateTime DOB { get; set; }
-        public AvatarType AvatarType { get; set; }
+        public EnumValue<AvatarType> AvatarType { get; set; }
         public int Karma { get; set; }
         public List<KarmaAkashicRecord> KarmaAkashicRecords { get; set; }
         public int Level { get; set; }

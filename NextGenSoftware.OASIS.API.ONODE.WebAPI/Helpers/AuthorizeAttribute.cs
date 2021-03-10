@@ -18,13 +18,12 @@ public class AuthorizeAttribute : Attribute, IAuthorizationFilter
 
     public void OnAuthorization(AuthorizationFilterContext context)
     {
-        //var avatar = (IAvatar)context.HttpContext.Items["Avatar"];
-        var avatar = (NextGenSoftware.OASIS.API.Core.Avatar)context.HttpContext.Items["Avatar"];
+        var avatar = (Avatar)context.HttpContext.Items["Avatar"];
 
-        if (avatar == null || (_avatarTypes.Any() && !_avatarTypes.Contains(avatar.AvatarType)))
+        if (avatar == null || (_avatarTypes.Any() && !_avatarTypes.Contains(avatar.AvatarType.Value)))
         {
             // not logged in or role not authorized
-            context.Result = new JsonResult(new { message = "Unauthorized" }) { StatusCode = StatusCodes.Status401Unauthorized };
+            context.Result = new JsonResult(new { message = "Unauthorized. Try Logging In First With api/avatar/auth REST API Route." }) { StatusCode = StatusCodes.Status401Unauthorized };
         }
     }
 }

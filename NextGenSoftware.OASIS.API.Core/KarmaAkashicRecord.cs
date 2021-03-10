@@ -1,4 +1,5 @@
 ﻿
+using NextGenSoftware.OASIS.API.Core.Helpers;
 using System;
 
 namespace NextGenSoftware.OASIS.API.Core
@@ -7,14 +8,14 @@ namespace NextGenSoftware.OASIS.API.Core
     {
         public Guid AvatarId { get; set; }
         public DateTime Date { get; set; }
-        public KarmaTypePositive KarmaTypePositive { get; set; }
-        public KarmaTypeNegative KarmaTypeNegative { get; set; }
-        public int Karma { get; set; } //Calculated from the KarmaType.
-        public KarmaSourceType KarmaSource { get; set; } //App, dApp, hApp, Website or Game.
-        public ProviderType Provider { get; set; }
-        public string ProviderName { get; set; }
+        public int Karma { get; set; } // Calculated from the KarmaType.
+        public int TotalKarma { get; set; } // The new karma value for the avatar.
         public string KarmaSourceTitle { get; set; } //Name of the app/website/game etc.
         public string KarmaSourceDesc { get; set; }
-        public KarmaEarntOrLost KarmaEarntOrLost { get; set; }
+        public EnumValue<KarmaSourceType> KarmaSource { get; set; } //App, dApp, hApp, Website or Game.
+        public EnumValue<KarmaEarntOrLost> KarmaEarntOrLost { get; set; }
+        public EnumValue<KarmaTypePositive> KarmaTypePositive { get; set; }
+        public EnumValue<KarmaTypeNegative> KarmaTypeNegative { get; set; }
+        public EnumValue<ProviderType> Provider { get; set; } 
     }
 }

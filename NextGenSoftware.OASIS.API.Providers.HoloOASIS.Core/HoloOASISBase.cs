@@ -382,7 +382,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Core
                 FirstName = hcAvatar.first_name,
                 HolonType = hcAvatar.holon_type,
                 Id = hcAvatar.id,
-                // Karma = Avatar.karma,
+                Karma = hcAvatar.karma,
                 LastName = hcAvatar.last_name,
                 Password = hcAvatar.password,
                 Address = hcAvatar.address,
@@ -391,7 +391,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Core
                 Username = hcAvatar.username
             };
 
-            avatar.SetKarmaForDataObject(hcAvatar.karma);
+            //avatar.SetKarmaForDataObject(hcAvatar.karma);
             return avatar;
 
             /*

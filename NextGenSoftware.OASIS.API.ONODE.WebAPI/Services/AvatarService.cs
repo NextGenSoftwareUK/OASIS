@@ -143,7 +143,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
 
             // map model to new account object
             //IAvatar avatar = _mapper.Map<IAvatar>(model);
-            IAvatar avatar = new Core.Avatar() { FirstName = model.FirstName, LastName = model.LastName, Password = model.Password, Title = model.Title, Email = model.Email, AvatarType = (AvatarType)Enum.Parse(typeof(AvatarType),model.AvatarType), AcceptTerms = model.AcceptTerms };
+            IAvatar avatar = new Core.Avatar() { FirstName = model.FirstName, LastName = model.LastName, Password = model.Password, Title = model.Title, Email = model.Email, AvatarType = new Core.Helpers.EnumValue<AvatarType>((AvatarType)Enum.Parse(typeof(AvatarType),model.AvatarType)), AcceptTerms = model.AcceptTerms };
 
 
             // first registered account is an admin

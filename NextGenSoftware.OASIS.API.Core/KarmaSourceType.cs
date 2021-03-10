@@ -6,11 +6,18 @@ namespace NextGenSoftware.OASIS.API.Core
 {
     public enum KarmaSourceType
     {
-        App,
+        IPhoneApp,
+        AndroidApp,
+        WindowsPhoneApp,
+        OtherApp,
         dApp,
         hApp,
         Website,
         Game,
-        DataObject
+        Cloud,
+        Service,
+        API,
+        Platform,
+        Other
     }
 }

@@ -73,7 +73,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         public ActionResult<IAvatar> GetById(Guid id)
         {
             // users can get their own account and admins can get any account
-            if (id != Avatar.Id && Avatar.AvatarType != AvatarType.Wizard)
+            if (id != Avatar.Id && Avatar.AvatarType.Value != AvatarType.Wizard)
                 return Unauthorized(new { message = "Unauthorized" });
 
             var account = _avatarService.GetById(id);
@@ -195,7 +195,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 return BadRequest(new { message = "Token is required" });
 
             // users can revoke their own tokens and admins can revoke any tokens
-            if (!Avatar.OwnsToken(token) && Avatar.AvatarType != AvatarType.Wizard)
+            if (!Avatar.OwnsToken(token) && Avatar.AvatarType.Value != AvatarType.Wizard)
                 return Unauthorized(new { message = "Unauthorized" });
 
             _avatarService.RevokeToken(token, ipAddress());
@@ -225,6 +225,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpPost("register")]
         public IActionResult Register(RegisterRequest model)
         {
+            object avatarTypeObject = null;
+
+            if (!Enum.TryParse(typeof(AvatarType), model.AvatarType, out avatarTypeObject))
+                return Ok(string.Concat("ERROR: AvatarType needs to be one of the values found in AvatarType enumeration. Possible value can be: ", EnumHelper.GetEnumValues(typeof(AvatarType))));
+
             IAvatar avatar = _avatarService.Register(model, Request.Headers["origin"]);
 
             if (avatar != null)
@@ -586,7 +591,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         public ActionResult<IAvatar> Update(UpdateRequest avatar, Guid id)
         {
             // users can update their own account and admins can update any account
-            if (id != Avatar.Id && Avatar.AvatarType != AvatarType.Wizard)
+            if (id != Avatar.Id && Avatar.AvatarType.Value != AvatarType.Wizard)
                 return Unauthorized(new { message = "Unauthorized" });
 
             // only admins can update role
@@ -627,7 +632,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         public IActionResult Delete(Guid id)
         {
             // users can delete their own account and admins can delete any account
-            if (id != Avatar.Id && Avatar.AvatarType != AvatarType.Wizard)
+            if (id != Avatar.Id && Avatar.AvatarType.Value != AvatarType.Wizard)
                 return Unauthorized(new { message = "Unauthorized" });
 
             _avatarService.Delete(id);

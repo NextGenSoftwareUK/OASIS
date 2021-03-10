@@ -229,7 +229,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             oasisAvatar.Town = avatar.Town;
             oasisAvatar.Username = avatar.Username;
             oasisAvatar.AvatarType = avatar.AvatarType;
-            //oasisAvatar.Karma = avatar.Karma;
+            oasisAvatar.Karma = avatar.Karma;
             oasisAvatar.KarmaAkashicRecords = avatar.KarmaAkashicRecords;
             oasisAvatar.Version = avatar.Version;
             oasisAvatar.AcceptTerms = avatar.AcceptTerms;
@@ -244,7 +244,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             oasisAvatar.ProviderType = ProviderType.MongoDBOASIS;
             oasisAvatar.IsActive = avatar.IsActive;
 
-            oasisAvatar.SetKarmaForDataObject(avatar.Karma);
+          //  oasisAvatar.SetKarmaForDataObject(avatar.Karma);
             return oasisAvatar;
         }
 
