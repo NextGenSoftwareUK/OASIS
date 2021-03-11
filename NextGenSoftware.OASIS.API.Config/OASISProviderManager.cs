@@ -4,7 +4,6 @@ using System.IO;
 using Newtonsoft.Json;
 
 using NextGenSoftware.Holochain.HoloNET.Client.Core;
-using NextGenSoftware.OASIS.API.Core;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Events;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
@@ -13,6 +12,8 @@ using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS;
 using NextGenSoftware.OASIS.API.Providers.HoloOASIS.Desktop;
 using NextGenSoftware.OASIS.API.Providers.MongoDBOASIS;
 using NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS;
+using NextGenSoftware.OASIS.API.Providers.IPFSOASIS;
+using NextGenSoftware.OASIS.API.Providers.Neo4jOASIS;
 
 namespace NextGenSoftware.OASIS.API.Config
 {
@@ -113,6 +114,22 @@ namespace NextGenSoftware.OASIS.API.Config
                                 ProviderManager.RegisterProvider(EOSIOOASIS); //TODO: Need to pass connection string in.
                             }
                             break;
+
+                        case ProviderType.Neo4jOASIS:
+                            {
+                                Neo4jOASIS Neo4jOASIS = new Neo4jOASIS();
+                                Neo4jOASIS.StorageProviderError += Neo4jOASIS_StorageProviderError;
+                                ProviderManager.RegisterProvider(Neo4jOASIS); //TODO: Need to pass connection string in.
+                            }
+                            break;
+
+                        case ProviderType.IPFSOASIS:
+                            {
+                                IPFSOASIS IPFSOASIS = new IPFSOASIS();
+                                IPFSOASIS.StorageProviderError += IPFSOASIS_StorageProviderError;
+                                ProviderManager.RegisterProvider(IPFSOASIS); //TODO: Need to pass connection string in.
+                            }
+                            break;
                     }
                 }
 
@@ -127,6 +144,16 @@ namespace NextGenSoftware.OASIS.API.Config
 
             ProviderManager.OverrideProviderType = true;
             return ProviderManager.CurrentStorageProvider; 
+        }
+
+        private static void IPFSOASIS_StorageProviderError(object sender, AvatarManagerErrorEventArgs e)
+        {
+            throw new NotImplementedException();
+        }
+
+        private static void Neo4jOASIS_StorageProviderError(object sender, AvatarManagerErrorEventArgs e)
+        {
+            throw new NotImplementedException();
         }
 
         private static void SQLLiteDBOASIS_StorageProviderError(object sender, AvatarManagerErrorEventArgs e)
