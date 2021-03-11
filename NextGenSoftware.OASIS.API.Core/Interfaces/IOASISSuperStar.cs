@@ -1,5 +1,5 @@
 ﻿
-namespace NextGenSoftware.OASIS.API.Core
+namespace NextGenSoftware.OASIS.API.Core.Interfaces
 {
     public interface IOASISSuperStar : IOASISStorage
     {

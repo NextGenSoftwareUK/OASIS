@@ -1,4 +1,5 @@
 ﻿using NextGenSoftware.OASIS.API.Core;
+using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Security;
 using System;
 using System.Collections.Generic;

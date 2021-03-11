@@ -2,7 +2,10 @@
 using System;
 using System.Collections.Generic;
 
-namespace NextGenSoftware.OASIS.API.Core
+using NextGenSoftware.OASIS.API.Core.Holons;
+using NextGenSoftware.OASIS.API.Core.Interfaces;
+
+namespace NextGenSoftware.OASIS.API.Core.Managers
 {
     public class QuestManager : OASISManager
     {

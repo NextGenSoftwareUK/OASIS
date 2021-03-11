@@ -1,10 +1,15 @@
-﻿using NextGenSoftware.OASIS.API.Core;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Driver;
+
+using NextGenSoftware.OASIS.API.Core;
+using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.Core.Holons;
 
 namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
 {
@@ -197,7 +202,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             if (avatar == null)
                 return null;
 
-            Core.Avatar oasisAvatar = new Core.Avatar();
+            Core.Holons.Avatar oasisAvatar = new Core.Holons.Avatar();
 
             oasisAvatar.Id = Guid.Parse(avatar.AvatarId);
             oasisAvatar.ProviderKey = avatar.Id;

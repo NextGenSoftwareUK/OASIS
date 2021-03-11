@@ -2,6 +2,11 @@
 using NextGenSoftware.Holochain.HoloNET.Client.Core;
 using NextGenSoftware.OASIS.API.Config;
 using NextGenSoftware.OASIS.API.Core;
+using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.Core.Events;
+using NextGenSoftware.OASIS.API.Core.Holons;
+using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.OASISAPIManager;
 using NextGenSoftware.OASIS.API.Providers.SEEDSOASIS;
 using System;
@@ -54,14 +59,17 @@ namespace NextGenSoftware.OASIS.STAR
 
         // public static List<IPlanet> Planets { get; set; }
 
-        public static OASISAPIManager OASISAPI = new OASISAPIManager(new List<IOASISProvider>() { new SEEDSOASIS() });
+       // public static OASISAPIManager OASISAPI = new OASISAPIManager(new List<IOASISProvider>() { new SEEDSOASIS() });
 
         // Possible to override settings in DNA file if this method is manually called...
         //public static void Initialize(string holochainConductorURI, HoloNETClientType type, string providerKey)
         public static void Initialize(string providerKey)
         {
+            OASISAPIManager.Init(new List<IOASISProvider>() { new SEEDSOASIS() });
+
             //By default the OASISProviderManager will load the settings from appsettings.json but you can override using below:
-           OASISProviderManager.OASISDNAFileName = OASIS_DNA;
+            OASISProviderManager.OASISDNAFileName = OASIS_DNA;
+
 
             // Will initialize the default OASIS Provider defined OASIS_DNA config file.
             OASISProviderManager.GetAndActivateProvider();

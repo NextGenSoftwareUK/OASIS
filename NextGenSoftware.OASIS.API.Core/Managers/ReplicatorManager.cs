@@ -1,9 +1,9 @@
-﻿using System;
+﻿
+using NextGenSoftware.OASIS.API.Core.Events;
+using NextGenSoftware.OASIS.API.Core.Interfaces;
 using System.Collections.Generic;
-using System.Threading.Tasks;
-using static NextGenSoftware.OASIS.API.Core.AvatarManager;
 
-namespace NextGenSoftware.OASIS.API.Core
+namespace NextGenSoftware.OASIS.API.Core.Managers
 {
     public class ReplicatorManager : OASISManager
     {

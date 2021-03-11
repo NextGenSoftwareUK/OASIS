@@ -1,8 +1,8 @@
 ﻿
-using System.Collections.Generic;
+using NextGenSoftware.OASIS.API.Core.Holons;
 using System.Threading.Tasks;
 
-namespace NextGenSoftware.OASIS.API.Core
+namespace NextGenSoftware.OASIS.API.Core.Interfaces
 {
     public interface ICelestialBody : IHolon
     {

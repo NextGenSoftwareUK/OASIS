@@ -25,7 +25,7 @@ namespace NextGenSoftware.OASIS.STAR
     }
     */
 
-    public class ZomeErrorEventArgs : OASIS.API.Core.ZomeErrorEventArgs
+    public class ZomeErrorEventArgs : OASIS.API.Core.Events.ZomeErrorEventArgs
     {
         //public string EndPoint { get; set; }
         //public string Reason { get; set; }

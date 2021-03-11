@@ -1,18 +1,21 @@
 ﻿using NextGenSoftware.OASIS.API.Core;
 using NextGenSoftware.OASIS.API.Core.Apollo.Server;
+using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Providers.SEEDSOASIS;
 using System.Collections.Generic;
 
 namespace NextGenSoftware.OASIS.API.OASISAPIManager
 {
-    public class OASISAPIManager
+    public static class OASISAPIManager
     {
         public static AvatarManager AvatarManager { get; set; }
         public static MapManager MapManager { get; set; }
         public static SEEDSManager SEEDAPI { get; set; } = new SEEDSManager();
      
 
-        public OASISAPIManager(List<IOASISProvider> OASISProviders, bool startApolloServer = true)
+        public static void Init(List<IOASISProvider> OASISProviders, bool startApolloServer = true)
         //public OASISAPIManager()
         {
             ProviderManager.RegisterProviders(OASISProviders); //TODO: Soon you will not need to pass these in since MEF will taKe care of this for us.

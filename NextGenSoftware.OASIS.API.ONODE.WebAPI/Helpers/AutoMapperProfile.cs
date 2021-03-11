@@ -1,5 +1,6 @@
 using AutoMapper;
-using NextGenSoftware.OASIS.API.Core;
+using NextGenSoftware.OASIS.API.Core.Holons;
+using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Security;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Helpers
@@ -18,7 +19,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Helpers
             //CreateMap<CreateRequest, Core.Avatar>();
             //CreateMap<RegisterRequest, IAvatar>();
             CreateMap<CreateRequest, IAvatar>();
-            CreateMap<Core.Avatar, IAvatar>();
+            CreateMap<Core.Holons.Avatar, IAvatar>();
 
             CreateMap<UpdateRequest, IAvatar>()
                 .ForAllMembers(x => x.Condition(

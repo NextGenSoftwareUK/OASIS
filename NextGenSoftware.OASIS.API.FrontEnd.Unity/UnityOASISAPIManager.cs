@@ -1,4 +1,6 @@
 ﻿using NextGenSoftware.OASIS.API.Core;
+using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Providers.HoloOASIS.Unity;
 using System.Threading.Tasks;
 
@@ -15,7 +17,7 @@ namespace NextGenSoftware.OASIS.API.FrontEnd.Unity
         {
             // Inject in the HoloOASIS Storage Provider (this could be moved to a config file later so the 
             // providers can be sweapped without having to re-compile.
-            AvatarManager = new AvatarManager(new HoloOASIS("ws://localhost:8888"));
+            AvatarManager = new AvatarManager(new HoloOASIS("ws://localhost:8888", Holochain.HoloNET.Client.Core.HolochainVersion.Redux));
             //StorageProvider = new HoloOASIS("ws://localhost:8888");
         }
 

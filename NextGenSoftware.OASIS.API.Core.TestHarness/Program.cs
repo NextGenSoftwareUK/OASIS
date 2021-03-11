@@ -2,6 +2,10 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using NextGenSoftware.OASIS.API.Core.Events;
+using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.Core.Holons;
+using NextGenSoftware.OASIS.API.Core.Enums;
 
 namespace NextGenSoftware.OASIS.API.Core.TestHarness
 {
@@ -12,7 +16,7 @@ namespace NextGenSoftware.OASIS.API.Core.TestHarness
             Console.WriteLine("NextGenSoftware.OASIS.API.Core Test Harness v1.0");
             Console.WriteLine("");
 
-            OASISAPIManager OASISAPIManager = new OASISAPIManager(new List<IOASISProvider> { new HoloOASIS("ws://localhost:8888") });
+            OASISAPIManager.OASISAPIManager.Init(new List<IOASISProvider> { new HoloOASIS("ws://localhost:8888", Holochain.HoloNET.Client.Core.HolochainVersion.Redux) });
             
             //AvatarManager AvatarManager = new AvatarManager(new HoloOASIS("ws://localhost:8888"));
             //AvatarManager.OnAvatarManagerError += AvatarManager_OnAvatarManagerError;
@@ -24,8 +28,8 @@ namespace NextGenSoftware.OASIS.API.Core.TestHarness
             Avatar newAvatar = new Avatar { Username = "dellams", Email = "david@nextgensoftware.co.uk", Password = "1234", FirstName = "David", LastName = "Ellams", DOB = DateTime.Parse("11/04/1980"), Id = Guid.NewGuid(), Title = "Mr", Address = "blahahahaha" };
             
             
-            await newAvatar.KarmaEarnt(KarmaTypePositive.HelpingTheEnvironment, KarmaSourceType.hApp, "Our World", "XR Educational Game To Make The World A Better Place");
-            Avatar savedAvatar = (Avatar)await OASISAPIManager.AvatarManager.SaveAvatarAsync(newAvatar);
+            await newAvatar.KarmaEarntAsync(KarmaTypePositive.HelpingTheEnvironment, KarmaSourceType.hApp, "Our World", "XR Educational Game To Make The World A Better Place");
+            Avatar savedAvatar = (Avatar)await OASISAPIManager.OASISAPIManager.AvatarManager.SaveAvatarAsync(newAvatar);
             //IAvatar savedAvatar = await AvatarManager.SaveAvatarAsync(newAvatar);
 
             if (savedAvatar != null)
@@ -46,7 +50,7 @@ namespace NextGenSoftware.OASIS.API.Core.TestHarness
 
             Console.WriteLine("\nLoading Avatar...");
             //IAvatar Avatar = await AvatarManager.LoadAvatarAsync("dellams", "1234");
-            IAvatar Avatar = await OASISAPIManager.AvatarManager.LoadAvatarAsync("QmR6A1gkSmCsxnbDF7V9Eswnd4Kw9SWhuf8r4R643eDshg");
+            IAvatar Avatar = await OASISAPIManager.OASISAPIManager.AvatarManager.LoadAvatarAsync("QmR6A1gkSmCsxnbDF7V9Eswnd4Kw9SWhuf8r4R643eDshg");
 
             if (Avatar != null)
             {

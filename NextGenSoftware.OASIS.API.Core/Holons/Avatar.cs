@@ -1,10 +1,14 @@
 ﻿using Newtonsoft.Json;
-using NextGenSoftware.OASIS.API.Core.Helpers;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace NextGenSoftware.OASIS.API.Core
+using NextGenSoftware.OASIS.API.Core.Helpers;
+using NextGenSoftware.OASIS.API.Core.Managers;
+using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.Core.Enums;
+
+namespace NextGenSoftware.OASIS.API.Core.Holons
 {
     public class Avatar : Holon, IAvatar
     {

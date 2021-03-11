@@ -1,9 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using static NextGenSoftware.OASIS.API.Core.AvatarManager;
 
-namespace NextGenSoftware.OASIS.API.Core
+using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.Core.Holons;
+using NextGenSoftware.OASIS.API.Core.Managers;
+using static NextGenSoftware.OASIS.API.Core.Managers.AvatarManager;
+
+namespace NextGenSoftware.OASIS.API.Core.Interfaces
 {
     // This interface is responsbile for persisting data/state to storage, this could be a local DB or other local 
     // storage or through a distributed/decentralised provider such as IPFS (IPFSOASIS Provider coming soon) or Holochain (HoloOASIS Provider implemented).

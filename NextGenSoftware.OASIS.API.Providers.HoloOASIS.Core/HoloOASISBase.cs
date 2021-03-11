@@ -1,6 +1,9 @@
 ﻿using Newtonsoft.Json;
 using NextGenSoftware.Holochain.HoloNET.Client.Core;
 using NextGenSoftware.OASIS.API.Core;
+using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.Core.Holons;
+using NextGenSoftware.OASIS.API.Core.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -163,7 +166,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Core
 
         #region IOASISStorage Implementation
 
-        public override async Task<API.Core.IAvatar> LoadAvatarAsync(string AvatarEntryHash)
+        public override async Task<IAvatar> LoadAvatarAsync(string AvatarEntryHash)
         {
             await _taskCompletionSourceGetInstance.Task;
 
@@ -176,7 +179,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Core
             return null;
         }
 
-        public override async Task<API.Core.IAvatar> LoadAvatarAsync(Guid id)
+        public override async Task<IAvatar> LoadAvatarAsync(Guid id)
         {
             await _taskCompletionSourceGetInstance.Task;
 
@@ -190,7 +193,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Core
             return null;
         }
 
-        public override async Task<API.Core.IAvatar> LoadAvatarAsync(string username, string password)
+        public override async Task<IAvatar> LoadAvatarAsync(string username, string password)
         {
             await _taskCompletionSourceGetInstance.Task;
 
@@ -278,7 +281,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Core
         }
         */
 
-        public override async Task<IAvatar> SaveAvatarAsync(API.Core.IAvatar Avatar)
+        public override async Task<IAvatar> SaveAvatarAsync(IAvatar Avatar)
         {
             await _taskCompletionSourceGetInstance.Task;
 
@@ -353,7 +356,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Core
         //    };
         //}
 
-        private HcAvatar ConvertAvatarToHoloOASISAvatar(API.Core.IAvatar Avatar)
+        private HcAvatar ConvertAvatarToHoloOASISAvatar(IAvatar Avatar)
         {
             return new HcAvatar
             {

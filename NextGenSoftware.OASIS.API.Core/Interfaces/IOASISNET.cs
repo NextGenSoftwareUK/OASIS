@@ -1,8 +1,9 @@
-﻿using System;
+﻿using NextGenSoftware.OASIS.API.Core.Enums;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace NextGenSoftware.OASIS.API.Core
+namespace NextGenSoftware.OASIS.API.Core.Interfaces
 {
     // This interface provides methods to discover and interact with other nodes/peers on the distributed/decentralised network (ONET)
     // This will involve peer to peer communcation.

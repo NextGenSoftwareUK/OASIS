@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Reflection;
 using NextGenSoftware.OASIS.API.Core;
+using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.Core.Events;
+using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.OASISAPIManager;
 
 namespace NextGenSoftware.OASIS.STAR.TestHarness

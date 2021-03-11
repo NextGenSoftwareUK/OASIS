@@ -1,7 +1,10 @@
 ﻿using System;
 using System.Threading.Tasks;
 
-namespace NextGenSoftware.OASIS.API.Core
+using NextGenSoftware.OASIS.API.Core.Events;
+using NextGenSoftware.OASIS.API.Core.Interfaces;
+
+namespace NextGenSoftware.OASIS.API.Core.Managers
 {
     public abstract class OASISManager
     {        

@@ -1,8 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 
-namespace NextGenSoftware.OASIS.API.Core
+namespace NextGenSoftware.OASIS.API.Core.Interfaces
 {
     // TODO:  Not sure need this anymore?
     public interface ISemanticHolon : IHolon

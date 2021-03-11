@@ -1,9 +1,8 @@
-﻿
-using System;
-using System.Collections.Generic;
+﻿using System;
 using System.Threading.Tasks;
+using NextGenSoftware.OASIS.API.Core.Enums;
 
-namespace NextGenSoftware.OASIS.API.Core
+namespace NextGenSoftware.OASIS.API.Core.Interfaces
 {
     public interface IZome : IHolon
     {

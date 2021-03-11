@@ -1,8 +1,9 @@
-﻿using System;
+﻿using NextGenSoftware.OASIS.API.Core.Interfaces;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace NextGenSoftware.OASIS.API.Core
+namespace NextGenSoftware.OASIS.API.Core.Events
 {
     public class AvatarManagerErrorEventArgs : EventArgs
     {

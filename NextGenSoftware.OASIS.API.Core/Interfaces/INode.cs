@@ -1,4 +1,6 @@
-﻿namespace NextGenSoftware.OASIS.API.Core
+﻿using NextGenSoftware.OASIS.API.Core.Enums;
+
+namespace NextGenSoftware.OASIS.API.Core.Interfaces
 {
     public interface INode
     {
