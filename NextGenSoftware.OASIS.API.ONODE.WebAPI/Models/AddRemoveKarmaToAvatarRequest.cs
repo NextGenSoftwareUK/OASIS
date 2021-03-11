@@ -1,7 +1,7 @@
 ﻿using NextGenSoftware.OASIS.API.Core;
 using System;
 
-namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
+namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Models
 {
     public class AddRemoveKarmaToAvatarRequest
     {
