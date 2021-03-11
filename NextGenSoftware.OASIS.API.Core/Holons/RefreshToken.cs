@@ -1,7 +1,8 @@
 
 using System;
+using NextGenSoftware.OASIS.API.Core.Interfaces;
 
-namespace NextGenSoftware.OASIS.API.Core
+namespace NextGenSoftware.OASIS.API.Core.Holons
 {
    // [Owned]
     public class RefreshToken

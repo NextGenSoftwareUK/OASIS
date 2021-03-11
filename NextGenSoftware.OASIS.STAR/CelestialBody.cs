@@ -1,5 +1,8 @@
 ﻿using NextGenSoftware.Holochain.HoloNET.Client.Core;
-using NextGenSoftware.OASIS.API.Core;
+using NextGenSoftware.OASIS.API.Core.Events;
+using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.Core.Holons;
+using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.OASISAPIManager;
 using NextGenSoftware.OASIS.API.Providers.SEEDSOASIS;
 using System;
@@ -18,8 +21,8 @@ namespace NextGenSoftware.OASIS.STAR
 
         public CelestialBodyCore CelestialBodyCore { get; set; } // This is the core zome of the planet (OAPP), which links to all the other planet zomes/holons...
 
-        public OASISAPIManager OASISAPI = new OASISAPIManager(new List<IOASISProvider>() { new SEEDSOASIS() });
-
+        //public OASISAPIManager OASISAPI = new OASISAPIManager(new List<IOASISProvider>() { new SEEDSOASIS() });
+       
         // public string RustHolonType { get; set; }
         //  public string RustCelestialBodyType { get; set; }
         public GenesisType GenesisType { get; set; }

@@ -3,6 +3,8 @@ using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using NextGenSoftware.OASIS.API.Config;
 using NextGenSoftware.OASIS.API.Core;
+using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.Core.Managers;
 using System;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
@@ -54,7 +56,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Middleware
                 var jwtToken = (JwtSecurityToken)validatedToken;
                 var id = Guid.Parse(jwtToken.Claims.First(x => x.Type == "id").Value);
 
-                context.Items["Avatar"] = (Core.Avatar)Program.AvatarManager.LoadAvatar(id);
+                context.Items["Avatar"] = (Core.Holons.Avatar)Program.AvatarManager.LoadAvatar(id);
                 AvatarManager.LoggedInAvatar = (IAvatar)context.Items["Avatar"];
 
             }

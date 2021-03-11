@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace NextGenSoftware.OASIS.API.Core
+namespace NextGenSoftware.OASIS.API.Core.Enums
 {
     public enum KarmaTypePositive
     {

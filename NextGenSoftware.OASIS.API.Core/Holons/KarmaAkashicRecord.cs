@@ -1,8 +1,9 @@
 ﻿
-using NextGenSoftware.OASIS.API.Core.Helpers;
 using System;
+using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.Core.Helpers;
 
-namespace NextGenSoftware.OASIS.API.Core
+namespace NextGenSoftware.OASIS.API.Core.Holons
 {
     public class KarmaAkashicRecord
     {

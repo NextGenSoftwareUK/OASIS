@@ -1,5 +1,6 @@
 ﻿using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core;
+using NextGenSoftware.OASIS.API.Core.Interfaces;
 
 namespace NextGenSoftware.OASIS.STAR.CSharpTemplates
 {

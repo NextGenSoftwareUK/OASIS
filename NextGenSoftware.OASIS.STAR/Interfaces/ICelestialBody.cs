@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 
 namespace NextGenSoftware.OASIS.STAR
 {
-    public interface ICelestialBody : API.Core.ICelestialBody
+    public interface ICelestialBody : API.Core.Interfaces.ICelestialBody
     {
         CelestialBodyCore CelestialBodyCore { get; set; }
         GenesisType GenesisType { get; set; }

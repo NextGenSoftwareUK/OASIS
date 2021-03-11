@@ -1,4 +1,5 @@
 using NextGenSoftware.OASIS.API.Core;
+using NextGenSoftware.OASIS.API.Core.Enums;
 using System.ComponentModel.DataAnnotations;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Security

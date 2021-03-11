@@ -95,7 +95,7 @@ namespace NextGenSoftware.OASIS.STAR
             if (string.IsNullOrEmpty(ProviderKey))
                 throw new System.ArgumentException("ERROR: ProviderKey is null, please set this before calling this method.", "ProviderKey");
 
-            return (List<IPlanet>)await base.LoadHolonsAsync(ProviderKey, API.Core.HolonType.Planet);
+            return (List<IPlanet>)await base.LoadHolonsAsync(ProviderKey, API.Core.Enums.HolonType.Planet);
             //return (List<IPlanet>)await base.CallZomeFunctionAsync(STAR_GET_PLANETS, ProviderKey);
         }
 

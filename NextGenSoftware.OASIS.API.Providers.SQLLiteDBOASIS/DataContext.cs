@@ -1,6 +1,6 @@
 
 using Microsoft.EntityFrameworkCore;
-using NextGenSoftware.OASIS.API.Core;
+using NextGenSoftware.OASIS.API.Core.Holons;
 
 namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
 {

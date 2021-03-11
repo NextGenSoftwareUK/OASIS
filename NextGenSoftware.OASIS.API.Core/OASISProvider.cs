@@ -1,4 +1,7 @@
 ﻿
+using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.Core.Interfaces;
+
 namespace NextGenSoftware.OASIS.API.Core
 {
     public abstract class OASISProvider : IOASISProvider

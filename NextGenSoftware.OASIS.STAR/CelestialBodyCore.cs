@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 
 using NextGenSoftware.OASIS.API.Core;
+using NextGenSoftware.OASIS.API.Core.Events;
+using NextGenSoftware.OASIS.API.Core.Interfaces;
 
 namespace NextGenSoftware.OASIS.STAR
 {
@@ -124,7 +126,7 @@ namespace NextGenSoftware.OASIS.STAR
 
             //TODO: Check to see if the method awaits till the zomes(holons) are loaded before returning (if it doesn't need to refacoring to subscribe to events like LoadHolons does)
            // List<IZome> zomes = new List<IZome>();
-            List<API.Core.IZome> coreZomes = new List<API.Core.IZome>();
+            List<API.Core.Interfaces.IZome> coreZomes = new List<API.Core.Interfaces.IZome>();
 
             if (Zomes == null)
                 Zomes = new List<IZome>();
@@ -133,7 +135,7 @@ namespace NextGenSoftware.OASIS.STAR
             {
                 //TODO: Why we we need two versions of IZome? Can't remember why now?!
                 Zomes.Add((IZome)holon);
-                coreZomes.Add((API.Core.IZome)holon);
+                coreZomes.Add((API.Core.Interfaces.IZome)holon);
             }
 
             OnZomesLoaded?.Invoke(this, new ZomesLoadedEventArgs { Zomes = coreZomes });

@@ -3,6 +3,9 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
+using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.Core.Enums;
+
 namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
 {
     public class PLANOASIS : OASISStorageBase, IOASISStorage, IOASISNET

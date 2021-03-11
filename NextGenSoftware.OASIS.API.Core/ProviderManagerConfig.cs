@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using NextGenSoftware.OASIS.API.Core.Enums;
+using System.Collections.Generic;
 
 namespace NextGenSoftware.OASIS.API.Core
 {

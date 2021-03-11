@@ -1,5 +1,6 @@
 ﻿
 using NextGenSoftware.OASIS.API.Core;
+using NextGenSoftware.OASIS.API.Core.Enums;
 using System;
 
 namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Core

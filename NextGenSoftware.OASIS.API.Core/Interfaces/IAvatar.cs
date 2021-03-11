@@ -1,9 +1,12 @@
-﻿using NextGenSoftware.OASIS.API.Core.Helpers;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace NextGenSoftware.OASIS.API.Core
+using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.Core.Helpers;
+using NextGenSoftware.OASIS.API.Core.Holons;
+
+namespace NextGenSoftware.OASIS.API.Core.Interfaces
 {
     public interface IAvatar : IHolon
     {

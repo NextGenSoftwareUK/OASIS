@@ -1,13 +1,30 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
+using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.Core.Events;
+using NextGenSoftware.OASIS.API.Core.Holons;
+using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.Core.Managers;
 
 namespace NextGenSoftware.OASIS.API.Core
 {
     public abstract class OASISStorageBase : OASISProvider, IOASISStorage
     {
         public event AvatarManager.StorageProviderError StorageProviderError;
+
+        //event StorageProviderError IOASISStorage.StorageProviderError
+        //{
+        //    add
+        //    {
+        //        throw new NotImplementedException();
+        //    }
+
+        //    remove
+        //    {
+        //        throw new NotImplementedException();
+        //    }
+        //}
 
         //TODO: COme back to this...
         //public List<Avatar> LoadAvatarsWithoutPasswords(IEnumerable<Avatar> avatars)
