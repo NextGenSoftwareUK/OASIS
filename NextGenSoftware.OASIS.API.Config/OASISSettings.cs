@@ -20,17 +20,14 @@ namespace NextGenSoftware.OASIS.API.Config
     public class StorageProviderSettings
     {
         public string DefaultProviders { get; set; }
-
         public HoloOASISProviderSettings HoloOASIS { get; set; }
         public MongoDBOASISProviderSettings MongoDBOASIS { get; set; }
-
         public EOSIOASISProviderSettings EOSIOOASIS { get; set; }
-
         public ThreeFoldOASISProviderSettings ThreeFoldOASIS { get; set; }
-
         public EthereumOASISProviderSettings EthereumOASIS { get; set; }
-
         public SQLLiteDBOASISSettings SQLLiteDBOASIS { get; set; }
+        public IPFSOASISSettings IPFSOASIS { get; set; }
+        public Neo4jOASISSettings Neo4jOASIS { get; set; }
     }
 
     public class EmailSettings
@@ -72,6 +69,14 @@ namespace NextGenSoftware.OASIS.API.Config
     }
 
     public class SQLLiteDBOASISSettings : ProviderSettingsBase
+    {
+    }
+
+    public class IPFSOASISSettings : ProviderSettingsBase
+    {
+    }
+
+    public class Neo4jOASISSettings : ProviderSettingsBase
     {
     }
 }

@@ -95,7 +95,13 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
                     //_avatarManager = new AvatarManager(OASISControllerBase.GetAndActivateProviderStatic(CurrentStorageProviderType));
                     //_avatarManager = new AvatarManager();
 
-                    _avatarManager = new AvatarManager(OASISProviderManager.GetAndActivateProvider());
+                    
+                    
+                    if (ProviderManager.CurrentStorageProvider == null)
+                        _avatarManager = new AvatarManager(OASISProviderManager.GetAndActivateProvider());
+                    else
+                        _avatarManager = new AvatarManager(ProviderManager.CurrentStorageProvider);
+
                     //ProviderManager.OverrideProviderType = false; //TODO: Check if this is still needed?
 
                     _avatarManager.OnOASISManagerError += _avatarManager_OnOASISManagerError;

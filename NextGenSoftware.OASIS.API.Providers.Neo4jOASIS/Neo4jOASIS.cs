@@ -320,5 +320,11 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
         {
             throw new NotImplementedException();
         }
+
+        public override void ActivateProvider()
+        {
+            Connect("http://localhost:7474/db/data", "neo4j", "neo4j");
+            base.ActivateProvider();
+        }
     }
 }
