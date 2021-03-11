@@ -139,11 +139,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         }
 
         /// <summary>
-        /// Get's the karma for a given avatar.
+        /// Get's the karma akashic records for a given avatar.
         /// </summary>
         /// <param name="avatarId"></param>
-        /// <param name="providerType">Pass in the provider you wish to use.</param>
-        /// <param name="setGlobally"> Set this to false for this provider to be used only for this request or true for it to be used for all future requests too.</param>
         /// <returns></returns>
         [HttpGet("GetKarmaAkashicRecordsForAvatar/{avatarId}")]
         public ActionResult<KarmaAkashicRecord[]> GetKarmaAkashicRecordsForAvatar(Guid avatarId)
@@ -157,7 +155,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         }
 
         /// <summary>
-        /// Get's the karma for a given avatar. Pass in the provider you wish to use. Set the setglobally flag to false for this provider to be used only for this request or true for it to be used for all future requests too.
+        /// Get's the karma akashic records for a given avatar. Pass in the provider you wish to use. Set the setglobally flag to false for this provider to be used only for this request or true for it to be used for all future requests too.
         /// </summary>
         /// <param name="avatarId"></param>
         /// <param name="providerType">Pass in the provider you wish to use.</param>
