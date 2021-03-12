@@ -9,9 +9,9 @@ using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Managers;
+using NextGenSoftware.OASIS.API.ONODE.WebAPI.Interfaces;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Models;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Security;
-using NextGenSoftware.OASIS.API.WebAPI;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 {

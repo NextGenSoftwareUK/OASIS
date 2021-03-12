@@ -62,12 +62,12 @@ namespace NextGenSoftware.OASIS.STAR
 
         public virtual async Task<IEnumerable<IHolon>> LoadHolonsAsync(Guid id, HolonType type = HolonType.Holon)
         {
-            return await _holonManager.LoadHolonsAsync(id, type);
+            return await _holonManager.LoadHolonsForParentAsync(id, type);
         }
 
         public virtual async Task<IEnumerable<IHolon>> LoadHolonsAsync(string providerKey, HolonType type = HolonType.Holon)
         {
-            return await _holonManager.LoadHolonsAsync(providerKey, type);
+            return await _holonManager.LoadHolonsForParentAsync(providerKey, type);
         }
 
         public virtual async Task<IHolon> SaveHolonAsync(IHolon savingHolon)

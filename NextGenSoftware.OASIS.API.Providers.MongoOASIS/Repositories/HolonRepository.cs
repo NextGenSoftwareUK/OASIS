@@ -20,7 +20,8 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
         {
             try
             {
-                holon.Id = Guid.NewGuid().ToString();
+                //holon.HolonId = Guid.NewGuid().ToString();
+                holon.HolonId = Guid.NewGuid();
 
                 //TODO: Cant remember why this is commented out?! Need to look into... ;-)
                 //if (AvatarManager.LoggedInAvatar != null)
@@ -43,7 +44,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             try
             {
                 //FilterDefinition<Avatar> filter = Builders<Avatar>.Filter.Eq("Id", id);
-                FilterDefinition<Holon> filter = Builders<Holon>.Filter.Eq("Id", id.ToString());
+                FilterDefinition<Holon> filter = Builders<Holon>.Filter.Eq("HolonId", id.ToString());
                 return await _dbContext.Holon.Find(filter).FirstOrDefaultAsync();
             }
             catch
@@ -65,7 +66,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             }
         }
 
-        public async Task<IEnumerable<Holon>> GetHolons()
+        public async Task<IEnumerable<Holon>> GetAllHolons()
         {
             try
             {
@@ -80,12 +81,31 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
         {
             try
             {
-                //TODO: Cant remember why this is commented out?! Need to look into... ;-)
-               // if (AvatarManager.LoggedInAvatar != null)
-               //     avatar.ModifiedByAvatarId = AvatarManager.LoggedInAvatar.Id.ToString();
-                
-                //avatar.ModifiedDate = DateTime.Now;
-                await _dbContext.Holon.ReplaceOneAsync(filter: g => g.Id == holon.Id, replacement: (Holon)holon);
+                if (holon.Id == null)
+                {
+                    Holon originalHolon = GetHolon(holon.HolonId).Result;
+
+                    if (originalHolon != null)
+                    {
+                        holon.Id = originalHolon.Id;
+                        holon.CreatedByAvatarId = originalHolon.CreatedByAvatarId;
+                        holon.CreatedDate = originalHolon.CreatedDate;
+                        holon.HolonType = originalHolon.HolonType;
+                        holon.CelestialBody = originalHolon.CelestialBody;
+                        holon.Children = originalHolon.Children;
+                        holon.DeletedByAvatarId = originalHolon.DeletedByAvatarId;
+                        holon.DeletedDate = originalHolon.DeletedDate;
+                        
+                        //TODO: Needs more thought!
+                    }
+                }
+
+              //   if (AvatarManager.LoggedInAvatar != null)
+                //    holon.ModifiedByAvatarId = AvatarManager.LoggedInAvatar.Id.ToString();
+
+             //   holon.ModifiedDate = DateTime.Now;
+                //await _dbContext.Holon.ReplaceOneAsync(filter: g => g.Id == holon.Id, replacement: (Holon)holon);
+                await _dbContext.Holon.ReplaceOneAsync(filter: g => g.HolonId == holon.HolonId, replacement: (Holon)holon);
 
                 //avatar.Id =  //TODO: Check if Mongo populates the id automatically or if we need to re-load it...
                 return holon;
@@ -144,6 +164,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             try
             {
                 if (AvatarManager.LoggedInAvatar != null)
+                    //holon.DeletedByAvatarId = AvatarManager.LoggedInAvatar.Id;
                     holon.DeletedByAvatarId = AvatarManager.LoggedInAvatar.Id.ToString();
 
                 holon.DeletedDate = DateTime.Now;

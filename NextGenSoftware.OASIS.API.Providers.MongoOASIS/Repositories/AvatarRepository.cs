@@ -145,5 +145,33 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
                 throw;
             }
         }
+
+        public async Task<bool> Delete(string providerKey, bool softDelete = true)
+        {
+            try
+            {
+                if (softDelete)
+                {
+                    Avatar avatar = await GetAvatar(providerKey);
+
+                    if (AvatarManager.LoggedInAvatar != null)
+                        avatar.DeletedByAvatarId = AvatarManager.LoggedInAvatar.Id.ToString();
+
+                    avatar.DeletedDate = DateTime.Now;
+                    await _dbContext.Avatar.ReplaceOneAsync(filter: g => g.Id == avatar.Id, replacement: avatar);
+                    return true;
+                }
+                else
+                {
+                    FilterDefinition<Avatar> data = Builders<Avatar>.Filter.Eq("ProviderKey", providerKey);
+                    await _dbContext.Avatar.DeleteOneAsync(data);
+                    return true;
+                }
+            }
+            catch
+            {
+                throw;
+            }
+        }
     }
 }

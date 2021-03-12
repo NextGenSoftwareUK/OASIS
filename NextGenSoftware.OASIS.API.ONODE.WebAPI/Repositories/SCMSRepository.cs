@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using System.Linq;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.ONODE.WebAPI.Interfaces;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
 {

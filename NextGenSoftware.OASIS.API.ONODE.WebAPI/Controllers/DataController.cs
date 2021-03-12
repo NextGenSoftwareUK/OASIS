@@ -1,10 +1,12 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using System;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
-using System;
-using NextGenSoftware.OASIS.API.Core;
 using NextGenSoftware.OASIS.API.Config;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.Core.Managers;
+using NextGenSoftware.OASIS.API.Core.Holons;
+using System.Collections.Generic;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 {
@@ -13,6 +15,18 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
     public class DataController : OASISControllerBase
     {
         OASISSettings _settings;
+        HolonManager _holonManager = null;
+
+        HolonManager HolonManager
+        {
+            get
+            {
+                if (_holonManager == null)
+                    _holonManager = new HolonManager(OASISProviderManager.GetAndActivateProvider());
+
+                return _holonManager;
+            }
+        }
 
         public DataController(IOptions<OASISSettings> OASISSettings) : base(OASISSettings)
         {
@@ -26,10 +40,14 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpGet("LoadHolon/{id}")]
-        public ActionResult<IHolon> LoadHolon(Guid id)
+        public ActionResult<Holon> LoadHolon(Guid id)
         {
-            // TODO: Finish implementing (will tie into the HDK/ODK/Star project)
-            return Ok();
+            IHolon holon = HolonManager.LoadHolon(id);
+
+            if (holon == null)
+                return Ok("ERROR: Holon Not Found.");
+            else
+                return Ok(holon);
         }
 
         /// <summary>
@@ -41,11 +59,47 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpGet("LoadHolon/{id}/{providerType}/{setGlobally}")]
-        public ActionResult<IHolon> LoadHolon(Guid id, ProviderType providerType, bool setGlobally = false)
+        public ActionResult<Holon> LoadHolon(Guid id, ProviderType providerType, bool setGlobally = false)
         {
             // TODO: Finish implementing (will tie into the HDK/ODK/Star project)
             GetAndActivateProvider(providerType, setGlobally);
-            return Ok();
+            return LoadHolon(id);
+        }
+
+        /// <summary>
+        /// Load's all holons
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        [Authorize]
+        [HttpGet("LoadAllHolons")]
+        public ActionResult<Holon[]> LoadAllHolons()
+        {
+            List<IHolon> data = (List<IHolon>)HolonManager.LoadAllHolons();
+            List<Holon> holons = new List<Holon>();
+
+            if (data == null)
+                return Ok("ERROR: No Holons Found.");
+
+            foreach (IHolon holon in data)
+                holons.Add((Holon)holon);
+
+            return Ok(holons);
+        }
+
+        /// <summary>
+        /// Load's all holons
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="providerType">Pass in the provider you wish to use.</param>
+        /// <param name="setGlobally"> Set this to false for this provider to be used only for this request or true for it to be used for all future requests too.</param>
+        /// <returns></returns>
+        [Authorize]
+        [HttpGet("LoadAllHolons/{providerType}/{setGlobally}")]
+        public ActionResult<Holon[]> LoadAllHolons(Guid id, ProviderType providerType, bool setGlobally = false)
+        {
+            GetAndActivateProvider(providerType, setGlobally);
+            return LoadAllHolons();
         }
 
         /// <summary>
@@ -54,11 +108,15 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <param name="holon"></param>
         /// <returns></returns>
         [Authorize]
-        [HttpPost("SaveHolon/{holon}")]
-        public ActionResult<IHolon> SaveHolon(IHolon holon)
+        [HttpPost("SaveHolon")]
+        public ActionResult<Holon> SaveHolon(Holon holon)
         {
-            // TODO: Finish implementing (will tie into the HDK/ODK/Star project)
-            return Ok();
+            holon = (Holon)HolonManager.SaveHolon(holon);
+
+            if (holon == null)
+                return Ok("ERROR: An error occured saving the holon.");
+            else
+                return Ok(holon);
         }
 
         /// <summary>
@@ -69,12 +127,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <param name="setGlobally"> Set this to false for this provider to be used only for this request or true for it to be used for all future requests too.</param>
         /// <returns></returns>
         [Authorize]
-        [HttpPost("SaveHolon/{holon}/{providerType}/{setGlobally}")]
-        public ActionResult<IHolon> SaveHolon(IHolon holon, ProviderType providerType, bool setGlobally = false)
+        [HttpPost("SaveHolon/{providerType}/{setGlobally}")]
+        public ActionResult<Holon> SaveHolon(Holon holon, ProviderType providerType, bool setGlobally = false)
         {
-            // TODO: Finish implementing (will tie into the HDK/ODK/Star project)
             GetAndActivateProvider(providerType, setGlobally);
-            return Ok();
+            return SaveHolon(holon);
         }
 
         /// <summary>
@@ -86,11 +143,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpPost("SaveHolonOffChain/{holon}/{offChainProviderType}/{onChainProviderType}")]
-        public ActionResult<IHolon> SaveHolon(IHolon holon, ProviderType offChainProviderType, ProviderType onChainProviderType)
+        public ActionResult<Holon> SaveHolon(Holon holon, ProviderType offChainProviderType, ProviderType onChainProviderType)
         {
             // TODO: Finish implementing (will tie into the HDK/ODK/Star project)
             //GetAndActivateProvider(providerType, setGlobally);
-            return Ok();
+            return Ok("COMING SOON...");
         }
 
         /// <summary>
@@ -100,10 +157,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpDelete("DeleteHolon/{id}")]
-        public ActionResult<IHolon> DeleteHolon(Guid id)
+        public ActionResult<string> DeleteHolon(Guid id)
         {
-            // TODO: Finish implementing (will tie into the HDK/ODK/Star project)
-            return Ok();
+            if (HolonManager.DeleteHolon(id))
+                return Ok("Holon Deleted Successfully");
+            else
+                return Ok("ERROR: Error Occured Deleting Holon.");
         }
 
         /// <summary>
@@ -115,11 +174,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpDelete("DeleteHolon/{id}/{providerType}/{setGlobally}")]
-        public ActionResult<IHolon> DeleteHolon(Guid id, ProviderType providerType, bool setGlobally = false)
+        public ActionResult<string> DeleteHolon(Guid id, ProviderType providerType, bool setGlobally = false)
         {
             // TODO: Finish implementing (will tie into the HDK/ODK/Star project)
             GetAndActivateProvider(providerType, setGlobally);
-            return Ok();
+            return DeleteHolon(id);
         }
     }
 }

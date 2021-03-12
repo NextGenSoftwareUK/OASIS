@@ -1,24 +1,22 @@
+using System;
+using System.Text;
+using System.Collections.Generic;
+using System.Linq;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
-using System;
-using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
-using System.Linq;
 using System.Security.Claims;
 using System.Security.Cryptography;
-using System.Text;
-
 using AutoMapper;
 using BC = BCrypt.Net.BCrypt;
-
-using NextGenSoftware.OASIS.API.ONODE.WebAPI.Helpers;
-using NextGenSoftware.OASIS.API.WebAPI;
-using NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Security;
 using NextGenSoftware.OASIS.API.Config;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.ONODE.WebAPI.Helpers;
+using NextGenSoftware.OASIS.API.ONODE.WebAPI.Interfaces;
+using NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Security;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
 {
