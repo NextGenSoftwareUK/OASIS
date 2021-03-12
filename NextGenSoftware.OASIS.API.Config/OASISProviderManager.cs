@@ -59,13 +59,18 @@ namespace NextGenSoftware.OASIS.API.Config
 
         public static IOASISStorage GetAndActivateProvider()
         {
-            if (OASISSettings == null)
-                LoadOASISSettings(OASISDNAFileName);
+            if (ProviderManager.CurrentStorageProvider == null)
+            {
+                if (OASISSettings == null)
+                    LoadOASISSettings(OASISDNAFileName);
 
-            ProviderManager.DefaultProviderTypes = OASISSettings.OASIS.StorageProviders.DefaultProviders.Split(",");
+                ProviderManager.DefaultProviderTypes = OASISSettings.OASIS.StorageProviders.DefaultProviders.Split(",");
 
-            //TODO: Need to add additional logic later for when the first provider and others fail or are too laggy and so need to switch to a faster provider, etc...
-            return GetAndActivateProvider((ProviderType)Enum.Parse(typeof(ProviderType), ProviderManager.DefaultProviderTypes[0]));
+                //TODO: Need to add additional logic later for when the first provider and others fail or are too laggy and so need to switch to a faster provider, etc...
+                return GetAndActivateProvider((ProviderType)Enum.Parse(typeof(ProviderType), ProviderManager.DefaultProviderTypes[0]));
+            }
+            else
+                return ProviderManager.CurrentStorageProvider;
         }
 
         public static IOASISStorage GetAndActivateProvider(ProviderType providerType, bool setGlobally = false)

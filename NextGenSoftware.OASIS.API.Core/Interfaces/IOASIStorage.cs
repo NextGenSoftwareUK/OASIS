@@ -46,10 +46,13 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces
         Task<IEnumerable<IHolon>> SaveHolonsAsync(IEnumerable<IHolon> holons);
 
 
-        IEnumerable<IHolon> LoadHolons(Guid id, HolonType type = HolonType.Holon);
-        IEnumerable<IHolon> LoadHolons(string providerKey, HolonType type = HolonType.Holon);
-        Task<IEnumerable<IHolon>> LoadHolonsAsync(Guid id, HolonType type = HolonType.Holon);
-        Task<IEnumerable<IHolon>> LoadHolonsAsync(string providerKey, HolonType type = HolonType.Holon);
+        IEnumerable<IHolon> LoadHolonsForParent(Guid id, HolonType type = HolonType.Holon);
+        IEnumerable<IHolon> LoadHolonsForParent(string providerKey, HolonType type = HolonType.Holon);
+        IEnumerable<IHolon> LoadAllHolons(HolonType type = HolonType.Holon);
+        Task<IEnumerable<IHolon>> LoadHolonsForParentAsync(Guid id, HolonType type = HolonType.Holon);
+        Task<IEnumerable<IHolon>> LoadHolonsForParentAsync(string providerKey, HolonType type = HolonType.Holon);
+        Task<IEnumerable<IHolon>> LoadAllHolonsAsync(HolonType type = HolonType.Holon);
+
 
         bool DeleteHolon(Guid id, bool softDelete = true);
         Task<bool> DeleteHolonAsync(Guid id, bool softDelete = true);

@@ -184,15 +184,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             throw new NotImplementedException();
         }
 
-        public override IEnumerable<IHolon> LoadHolons(Guid id, HolonType type = HolonType.Holon)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override IEnumerable<IHolon> LoadHolons(string providerKey, HolonType type = HolonType.Holon)
-        {
-            throw new NotImplementedException();
-        }
+      
 
         public override IHolon SaveHolon(IHolon holon)
         {
@@ -210,16 +202,6 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
         }
 
         public override Task<IHolon> LoadHolonAsync(string providerKey, HolonType type = HolonType.Holon)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override Task<IEnumerable<IHolon>> LoadHolonsAsync(Guid id, HolonType type = HolonType.Holon)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override Task<IEnumerable<IHolon>> LoadHolonsAsync(string providerKey, HolonType type = HolonType.Holon)
         {
             throw new NotImplementedException();
         }
@@ -270,6 +252,36 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
         }
 
         public override Task<bool> DeleteHolonAsync(string providerKey, bool softDelete = true)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override IEnumerable<IHolon> LoadHolonsForParent(Guid id, HolonType type = HolonType.Holon)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override Task<IEnumerable<IHolon>> LoadHolonsForParentAsync(Guid id, HolonType type = HolonType.Holon)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override IEnumerable<IHolon> LoadHolonsForParent(string providerKey, HolonType type = HolonType.Holon)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override Task<IEnumerable<IHolon>> LoadHolonsForParentAsync(string providerKey, HolonType type = HolonType.Holon)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override IEnumerable<IHolon> LoadAllHolons(HolonType type = HolonType.Holon)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override Task<IEnumerable<IHolon>> LoadAllHolonsAsync(HolonType type = HolonType.Holon)
         {
             throw new NotImplementedException();
         }

@@ -1,11 +1,9 @@
-﻿using NextGenSoftware.OASIS.API.Core;
+﻿using System;
+using System.Collections.Generic;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Security;
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 
-namespace NextGenSoftware.OASIS.API.WebAPI
+namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Interfaces
 {
     public interface IAvatarService
     {

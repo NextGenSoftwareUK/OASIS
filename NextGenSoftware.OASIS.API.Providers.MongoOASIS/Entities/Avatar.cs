@@ -36,7 +36,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
         public int Karma { get; set; }
         public List<KarmaAkashicRecord> KarmaAkashicRecords { get; set; }
         public int Level { get; set; }
-        public HolonType HolonType { get; set; }
+       // public HolonType HolonType { get; set; }
 
 
         public bool AcceptTerms { get; set; }
@@ -53,7 +53,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
         public DateTime? ResetTokenExpires { get; set; }
         public DateTime? PasswordReset { get; set; }
 
-        public bool IsActive { get; set; }
+        //public bool IsActive { get; set; }
 
     }
 

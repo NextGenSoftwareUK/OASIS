@@ -11,7 +11,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
         Task<Holon> Update(Holon holon);
         Task<bool> Delete(Guid id, bool softDelete = true);
         Task<Holon> GetHolon(Guid id);
-        Task<IEnumerable<Holon>> GetHolons();
+        Task<IEnumerable<Holon>> GetAllHolons();
     }
 
 }
