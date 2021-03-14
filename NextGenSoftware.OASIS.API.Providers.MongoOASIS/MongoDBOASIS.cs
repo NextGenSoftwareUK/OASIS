@@ -453,7 +453,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
 
         public override IEnumerable<IHolon> LoadHolonsForParent(Guid id, HolonType type = HolonType.Holon)
         {
-            throw new NotImplementedException();
+            return ConvertMongoEntitysToOASISHolons(_holonRepository.GetAllHolonsForParent(id).Result);
         }
 
         public override IEnumerable<IHolon> LoadHolonsForParent(string providerKey, HolonType type = HolonType.Holon)

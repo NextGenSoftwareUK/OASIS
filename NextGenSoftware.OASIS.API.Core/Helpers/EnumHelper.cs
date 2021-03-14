@@ -14,7 +14,7 @@ namespace NextGenSoftware.OASIS.API.Core.Helpers
                 if (enumValues == "")
                     enumValues = value;
                 else
-                    enumValues = string.Concat(enumValues, ",", value);
+                    enumValues = string.Concat(enumValues, "\n", value);
             }
 
             return enumValues;
