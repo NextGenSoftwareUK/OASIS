@@ -15,6 +15,7 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
         public ICelestialBody CelestialBody { get; set; } //The CelestialBody (Star, Planet or Moon) this Holon belongs to.
         public IZome ParentZome { get; set; } //TODO: Wire this up in the HDK.Core.Star code... not used yet because only just added...
         public IHolon Parent { get; set; }
+        public Guid ParentId { get; set; }
         public IEnumerable<IHolon> Children { get; set; }
         public Guid CreatedByAvatarId { get; set; }
         public Avatar CreatedByAvatar { get; set; }

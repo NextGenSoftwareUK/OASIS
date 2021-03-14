@@ -62,6 +62,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Middleware
             }
             catch (Exception ex)
             {
+                
+                
+                
                 throw new Exception("Token Authorization Failed.");
                 // account is not attached to context so request won't have access to secure routes
                 

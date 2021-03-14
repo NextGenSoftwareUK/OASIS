@@ -77,6 +77,20 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
                 throw;
             }
         }
+
+        public async Task<List<Holon>> GetAllHolonsForParent(Guid id)
+        {
+            try
+            {
+                FilterDefinition<Holon> filter = Builders<Holon>.Filter.Eq("ParentId", id.ToString());
+                return _dbContext.Holon.Find(filter).ToList();
+            }
+            catch
+            {
+                throw;
+            }
+        }
+
         public async Task<Holon> Update(Holon holon)
         {
             try

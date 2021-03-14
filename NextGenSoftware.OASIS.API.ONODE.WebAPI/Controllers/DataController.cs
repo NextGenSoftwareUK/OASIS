@@ -90,16 +90,51 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <summary>
         /// Load's all holons
         /// </summary>
-        /// <param name="id"></param>
         /// <param name="providerType">Pass in the provider you wish to use.</param>
         /// <param name="setGlobally"> Set this to false for this provider to be used only for this request or true for it to be used for all future requests too.</param>
         /// <returns></returns>
         [Authorize]
         [HttpGet("LoadAllHolons/{providerType}/{setGlobally}")]
-        public ActionResult<Holon[]> LoadAllHolons(Guid id, ProviderType providerType, bool setGlobally = false)
+        public ActionResult<Holon[]> LoadAllHolons(ProviderType providerType, bool setGlobally = false)
         {
             GetAndActivateProvider(providerType, setGlobally);
             return LoadAllHolons();
+        }
+
+        /// <summary>
+        /// Load's all holons for parent
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        [Authorize]
+        [HttpGet("LoadAllHolonsForParent/{id}")]
+        public ActionResult<Holon[]> LoadAllHolonsForParent(Guid id)
+        {
+            List<IHolon> data = (List<IHolon>)HolonManager.LoadHolonsForParent(id);
+            List<Holon> holons = new List<Holon>();
+
+            if (data == null)
+                return Ok("ERROR: No Holons Found.");
+
+            foreach (IHolon holon in data)
+                holons.Add((Holon)holon);
+
+            return Ok(holons);
+        }
+
+        /// <summary>
+        /// Load's all holons for parent
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="providerType">Pass in the provider you wish to use.</param>
+        /// <param name="setGlobally"> Set this to false for this provider to be used only for this request or true for it to be used for all future requests too.</param>
+        /// <returns></returns>
+        [Authorize]
+        [HttpGet("LoadAllHolonsForParent/{id}/{providerType}/{setGlobally}")]
+        public ActionResult<Holon[]> LoadAllHolonsForParent(Guid id, ProviderType providerType, bool setGlobally = false)
+        {
+            GetAndActivateProvider(providerType, setGlobally);
+            return LoadAllHolonsForParent(id);
         }
 
         /// <summary>
