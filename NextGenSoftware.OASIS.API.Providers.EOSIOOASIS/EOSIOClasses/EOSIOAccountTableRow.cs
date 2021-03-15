@@ -1,7 +1,6 @@
-﻿using EOSNewYork.EOSCore.Lib;
-using NextGenSoftware.OASIS.API.Core;
+﻿using System;
+using EOSNewYork.EOSCore.Lib;
 using NextGenSoftware.OASIS.API.Core.Holons;
-using System;
 
 namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.EOSIOClasses
 {
