@@ -2513,7 +2513,8 @@ https://www.thejusticeleagueaccademy.icu <br/>
 **https://www.patreon.com/davidellams**
 
 **Key Videos**
-<a href="https://www.youtube.com/watch?v=wdYa5wQUfrg">Our World Introduction</a>>br>
+
+<a href="https://www.youtube.com/watch?v=wdYa5wQUfrg">Our World Introduction</a><br>
 <a href="https://www.youtube.com/watch?v=DB75ldfPzlg&t=7s">OASIS API DEMO With David Ellams (James Halliday) NO SONG</a><br>
 <a href="https://www.youtube.com/watch?v=2oY4_LZBW4M">Latest prototype for the Our World Smartphone version... :)</a><br>
 <a href="https://www.youtube.com/watch?v=SB97mvzJiRg&t=1s">Founders Introduction To Our World May 2017 (Remastered Nov 2017)</a><br>
