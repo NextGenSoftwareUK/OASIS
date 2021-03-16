@@ -2478,14 +2478,14 @@ https://www.thejusticeleagueaccademy.icu <br/>
 || https://t.me/ourworldtechupdate (Tech Updates) |
 || https://t.me/oasisapihackalong (OASIS API Weekly Hackalongs) |
 
-<a href="https://drive.google.com/file/d/1nnhGpXcprr6kota1Y85HDDKsBfJHN6sn/view?usp=sharing">The POWER Of The OASIS API</a>
-<a href="https://drive.google.com/file/d/1QPgnb39fsoXqcQx_YejdIhhoPbmSuTnF/view?usp=sharing">Dev Plan/Roadmap</a>
-<a href="https://drive.google.com/file/d/1b_G08UTALUg4H3jPlBdElZAFvyRcVKj1/view">Join The Our World Tribe (Dev Requirements)</a>
-<a href="https://drive.google.com/file/d/12pCk20iLw_uA1yIfojcP6WwvyOT4WRiO/view?usp=sharing">Mission/Summary</a>
+<a href="https://drive.google.com/file/d/1nnhGpXcprr6kota1Y85HDDKsBfJHN6sn/view?usp=sharing">The POWER Of The OASIS API</a><br>
+<a href="https://drive.google.com/file/d/1QPgnb39fsoXqcQx_YejdIhhoPbmSuTnF/view?usp=sharing">Dev Plan/Roadmap</a><br>
+<a href="https://drive.google.com/file/d/1b_G08UTALUg4H3jPlBdElZAFvyRcVKj1/view">Join The Our World Tribe (Dev Requirements)</a><br>
+<a href="https://drive.google.com/file/d/12pCk20iLw_uA1yIfojcP6WwvyOT4WRiO/view?usp=sharing">Mission/Summary</a><br><br>
 
-<a href="https://drive.google.com/file/d/1G8jJ2aMFU9lObddgHJVwcOKRZlpz12xJ/view?usp=sharing">OASIS API & SEEDS API Integration Proposal</a>
-<a href="https://drive.google.com/file/d/1tFSK54mHxuUP1Z1Zc7p3ZxK5gQpoUjKW/view?usp=sharing">Our World & Game Of SEEDS Proposal</a>
-<a href="https://drive.google.com/file/d/1_UFi37UvDPaqW6g8WGJ7SyBPpbSXLfUV/view?usp=sharing">SEEDS Camppaign Proposal</a>
+<a href="https://drive.google.com/file/d/1G8jJ2aMFU9lObddgHJVwcOKRZlpz12xJ/view?usp=sharing">OASIS API & SEEDS API Integration Proposal</a><br>
+<a href="https://drive.google.com/file/d/1tFSK54mHxuUP1Z1Zc7p3ZxK5gQpoUjKW/view?usp=sharing">Our World & Game Of SEEDS Proposal</a><br>
+<a href="https://drive.google.com/file/d/1_UFi37UvDPaqW6g8WGJ7SyBPpbSXLfUV/view?usp=sharing">SEEDS Camppaign Proposal</a><br><br>
 
 **Blog/Forum**
 
