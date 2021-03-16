@@ -1,7 +1,7 @@
 
 
 
-# OASIS API / Our World / HoloNET / HoloUnity / .NET HDK Altha v0.1.2
+# OASIS API / Our World / HoloNET / HoloUnity / .NET HDK ALPHA v0.1.7
 
 ## Contents
 - [Introduction](#introduction)
