@@ -2478,6 +2478,14 @@ https://www.thejusticeleagueaccademy.icu <br/>
 || https://t.me/ourworldtechupdate (Tech Updates) |
 || https://t.me/oasisapihackalong (OASIS API Weekly Hackalongs) |
 
+**The POWER Of The OASIS API**
+
+https://drive.google.com/file/d/1nnhGpXcprr6kota1Y85HDDKsBfJHN6sn/view?usp=sharing
+
+**Dev Plan/Roadmap:**
+
+https://drive.google.com/file/d/1QPgnb39fsoXqcQx_YejdIhhoPbmSuTnF/view?usp=sharing
+
 **Join The Our World Tribe (Dev Requirements)**
 
 https://drive.google.com/file/d/1b_G08UTALUg4H3jPlBdElZAFvyRcVKj1/view 
@@ -2485,6 +2493,18 @@ https://drive.google.com/file/d/1b_G08UTALUg4H3jPlBdElZAFvyRcVKj1/view
 **Mission/Summary**
 
 https://drive.google.com/file/d/12pCk20iLw_uA1yIfojcP6WwvyOT4WRiO/view?usp=sharing
+
+**OASIS API & SEEDS API Integration Proposal**
+
+https://drive.google.com/file/d/1G8jJ2aMFU9lObddgHJVwcOKRZlpz12xJ/view?usp=sharing
+
+**Our World & Game Of SEEDS Proposal**
+
+https://drive.google.com/file/d/1tFSK54mHxuUP1Z1Zc7p3ZxK5gQpoUjKW/view?usp=sharing
+
+**SEEDS Camppaign Proposal**
+
+https://drive.google.com/file/d/1_UFi37UvDPaqW6g8WGJ7SyBPpbSXLfUV/view?usp=sharing
 
 **Blog/Forum**
 
@@ -2525,10 +2545,6 @@ https://docs.wixstatic.com/ugd/4280d8_698b48f342804534ac73829628799d33.xlsx?dn=N
 **Pitch Deck:**
 
 https://d4de5c45-0ca1-451c-86a7-ce397b9225cd.filesusr.com/ugd/4280d8_50d17252aa3247eaae80013d0e0bf70d.pptx?dn=NextGen%20Software%20PitchDeck%20Lite.pptx
-
-**Dev Plan/Roadmap:**
-
-https://drive.google.com/file/d/1QPgnb39fsoXqcQx_YejdIhhoPbmSuTnF/view?usp=sharing
 
 **Funding**
 
