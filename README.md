@@ -2476,6 +2476,7 @@ https://www.thejusticeleagueaccademy.icu <br/>
 |Telegram| https://t.me/ourworldthegamechat (General Chat) |
 || https://t.me/ourworldthegame (Announcements) |
 || https://t.me/ourworldtechupdate (Tech Updates) |
+|| https://t.me/oasisapihackalong (OASIS API Weekly Hackalongs) |
 
 **Join The Our World Tribe (Dev Requirements)**
 
