@@ -2485,47 +2485,25 @@ https://www.thejusticeleagueaccademy.icu <br/>
 
 <a href="https://drive.google.com/file/d/1G8jJ2aMFU9lObddgHJVwcOKRZlpz12xJ/view?usp=sharing">OASIS API & SEEDS API Integration Proposal</a><br>
 <a href="https://drive.google.com/file/d/1tFSK54mHxuUP1Z1Zc7p3ZxK5gQpoUjKW/view?usp=sharing">Our World & Game Of SEEDS Proposal</a><br>
-<a href="https://drive.google.com/file/d/1_UFi37UvDPaqW6g8WGJ7SyBPpbSXLfUV/view?usp=sharing">SEEDS Camppaign Proposal</a><br><br>
+<a href="https://drive.google.com/file/d/1_UFi37UvDPaqW6g8WGJ7SyBPpbSXLfUV/view?usp=sharing">SEEDS Camppaign Proposal</a><br>
 
-**Blog/Forum**
+<a href="http://www.ourworldthegame.com/blog">Blog</a><br>
+<a href="http://www.ourworldthegame.com/forum">Forum</a><br>
 
-http://www.ourworldthegame.com/blog <br/> 
-http://www.ourworldthegame.com/forum
-
-**Holochain Community Chat Channels**
-
-https://chat.holochain.org/appsup/channels/our-world-netclient <br/>
-https://chat.holochain.org/appsup/channels/net-hdk 
-
-**Holochain Forum**
-
-https://forum.holochain.org/c/projects/our-world
+<a href="https://forum.holochain.org/c/projects/our-world">Holochain Forum</a>
 
 **NextGen Developer Training  Programmes**
 
 <a href="https://docs.wixstatic.com/ugd/4280d8_ad8787bd42b1471bae73003bfbf111f7.pdf">NextGen Developer Training Programme</a> <br/> 
 <a href="https://docs.wixstatic.com/ugd/4280d8_999d98ba615e4fa6ab4383a415ee24c5.pdf">Junior NextGen Developer Training Programme</a>
 
+**Business Plan**
 
-**Executive Summary:**
-
-https://docs.wixstatic.com/ugd/4280d8_8b62b661334c43af8e4476d1a1b2afcb.pdf
-
-**Business Plan Summary:**
-
-https://docs.wixstatic.com/ugd/4280d8_9f8ed61eaf904905a6f94fcebf8650ef.pdf
-
-**Business Plan Detailed:**
-
-https://docs.wixstatic.com/ugd/4280d8_cb55d40e7e1b457c879383561e051fff.pdf
-
-**Financials:**
-
-https://docs.wixstatic.com/ugd/4280d8_698b48f342804534ac73829628799d33.xlsx?dn=NextGen%20Software%20Financials.xlsx
-
-**Pitch Deck:**
-
-https://d4de5c45-0ca1-451c-86a7-ce397b9225cd.filesusr.com/ugd/4280d8_50d17252aa3247eaae80013d0e0bf70d.pptx?dn=NextGen%20Software%20PitchDeck%20Lite.pptx
+<a href="https://docs.wixstatic.com/ugd/4280d8_8b62b661334c43af8e4476d1a1b2afcb.pdf">Executive Summary</a><br>
+<a href="https://docs.wixstatic.com/ugd/4280d8_9f8ed61eaf904905a6f94fcebf8650ef.pdf">Business Plan Summary</a><br>
+<a href="https://docs.wixstatic.com/ugd/4280d8_cb55d40e7e1b457c879383561e051fff.pdf">Business Plan Detailed</a><br>
+<a href="https://docs.wixstatic.com/ugd/4280d8_698b48f342804534ac73829628799d33.xlsx?dn=NextGen%20Software%20Financials.xlsx">Financials</a><br>
+<a href="https://d4de5c45-0ca1-451c-86a7-ce397b9225cd.filesusr.com/ugd/4280d8_50d17252aa3247eaae80013d0e0bf70d.pptx?dn=NextGen%20Software%20PitchDeck%20Lite.pptx">Pitch Deck</a><br>
 
 **Funding**
 
