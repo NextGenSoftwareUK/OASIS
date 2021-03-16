@@ -2478,18 +2478,20 @@ https://www.thejusticeleagueaccademy.icu <br/>
 || https://t.me/ourworldtechupdate (Tech Updates) |
 || https://t.me/oasisapihackalong (OASIS API Weekly Hackalongs) |
 
-<a href="https://drive.google.com/file/d/1nnhGpXcprr6kota1Y85HDDKsBfJHN6sn/view?usp=sharing">The POWER Of The OASIS API</a><br>
-<a href="https://drive.google.com/file/d/1QPgnb39fsoXqcQx_YejdIhhoPbmSuTnF/view?usp=sharing">Dev Plan/Roadmap</a><br>
-<a href="https://drive.google.com/file/d/1b_G08UTALUg4H3jPlBdElZAFvyRcVKj1/view">Join The Our World Tribe (Dev Requirements)</a><br>
-<a href="https://drive.google.com/file/d/12pCk20iLw_uA1yIfojcP6WwvyOT4WRiO/view?usp=sharing">Mission/Summary</a><br><br>
-
-<a href="https://drive.google.com/file/d/1G8jJ2aMFU9lObddgHJVwcOKRZlpz12xJ/view?usp=sharing">OASIS API & SEEDS API Integration Proposal</a><br>
-<a href="https://drive.google.com/file/d/1tFSK54mHxuUP1Z1Zc7p3ZxK5gQpoUjKW/view?usp=sharing">Our World & Game Of SEEDS Proposal</a><br>
-<a href="https://drive.google.com/file/d/1_UFi37UvDPaqW6g8WGJ7SyBPpbSXLfUV/view?usp=sharing">SEEDS Camppaign Proposal</a><br>
+**Blog/Forum**
 
 <a href="http://www.ourworldthegame.com/blog">Blog</a><br>
 <a href="http://www.ourworldthegame.com/forum">Forum</a><br>
 
+**Misc**
+
+<a href="https://drive.google.com/file/d/1nnhGpXcprr6kota1Y85HDDKsBfJHN6sn/view?usp=sharing">The POWER Of The OASIS API</a><br>
+<a href="https://drive.google.com/file/d/1QPgnb39fsoXqcQx_YejdIhhoPbmSuTnF/view?usp=sharing">Dev Plan/Roadmap</a><br>
+<a href="https://drive.google.com/file/d/1b_G08UTALUg4H3jPlBdElZAFvyRcVKj1/view">Join The Our World Tribe (Dev Requirements)</a><br>
+<a href="https://drive.google.com/file/d/12pCk20iLw_uA1yIfojcP6WwvyOT4WRiO/view?usp=sharing">Mission/Summary</a><br>
+<a href="https://drive.google.com/file/d/1G8jJ2aMFU9lObddgHJVwcOKRZlpz12xJ/view?usp=sharing">OASIS API & SEEDS API Integration Proposal</a><br>
+<a href="https://drive.google.com/file/d/1tFSK54mHxuUP1Z1Zc7p3ZxK5gQpoUjKW/view?usp=sharing">Our World & Game Of SEEDS Proposal</a><br>
+<a href="https://drive.google.com/file/d/1_UFi37UvDPaqW6g8WGJ7SyBPpbSXLfUV/view?usp=sharing">SEEDS Camppaign Proposal</a><br>
 <a href="https://forum.holochain.org/c/projects/our-world">Holochain Forum</a>
 
 **NextGen Developer Training  Programmes**
