@@ -1,7 +1,7 @@
 
 
 
-# OASIS API / Our World / HoloNET / HoloUnity / .NET HDK Altha v0.1.2
+# OASIS API / Our World / HoloNET / HoloUnity / .NET HDK ALPHA v0.1.7
 
 ## Contents
 - [Introduction](#introduction)
@@ -2476,56 +2476,56 @@ https://www.thejusticeleagueaccademy.icu <br/>
 |Telegram| https://t.me/ourworldthegamechat (General Chat) |
 || https://t.me/ourworldthegame (Announcements) |
 || https://t.me/ourworldtechupdate (Tech Updates) |
-
-**Join The Our World Tribe (Dev Requirements)**
-
-https://drive.google.com/file/d/1b_G08UTALUg4H3jPlBdElZAFvyRcVKj1/view 
-
-**Mission/Summary**
-
-https://drive.google.com/file/d/12pCk20iLw_uA1yIfojcP6WwvyOT4WRiO/view?usp=sharing
+|| https://t.me/oasisapihackalong (OASIS API Weekly Hackalongs) |
 
 **Blog/Forum**
 
-http://www.ourworldthegame.com/blog <br/> 
-http://www.ourworldthegame.com/forum
+<a href="http://www.ourworldthegame.com/blog">Blog</a><br>
+<a href="http://www.ourworldthegame.com/forum">Forum</a><br>
 
-**Holochain Community Chat Channels**
+**Misc**
 
-https://chat.holochain.org/appsup/channels/our-world-netclient <br/>
-https://chat.holochain.org/appsup/channels/net-hdk 
-
-**Holochain Forum**
-
-https://forum.holochain.org/c/projects/our-world
+<a href="https://drive.google.com/file/d/1nnhGpXcprr6kota1Y85HDDKsBfJHN6sn/view?usp=sharing">The POWER Of The OASIS API</a><br>
+<a href="https://drive.google.com/file/d/1QPgnb39fsoXqcQx_YejdIhhoPbmSuTnF/view?usp=sharing">Dev Plan/Roadmap</a><br>
+<a href="https://drive.google.com/file/d/1b_G08UTALUg4H3jPlBdElZAFvyRcVKj1/view">Join The Our World Tribe (Dev Requirements)</a><br>
+<a href="https://drive.google.com/file/d/12pCk20iLw_uA1yIfojcP6WwvyOT4WRiO/view?usp=sharing">Mission/Summary</a><br>
+<a href="https://drive.google.com/file/d/1G8jJ2aMFU9lObddgHJVwcOKRZlpz12xJ/view?usp=sharing">OASIS API & SEEDS API Integration Proposal</a><br>
+<a href="https://drive.google.com/file/d/1tFSK54mHxuUP1Z1Zc7p3ZxK5gQpoUjKW/view?usp=sharing">Our World & Game Of SEEDS Proposal</a><br>
+<a href="https://drive.google.com/file/d/1_UFi37UvDPaqW6g8WGJ7SyBPpbSXLfUV/view?usp=sharing">SEEDS Camppaign Proposal</a><br>
+<a href="https://forum.holochain.org/c/projects/our-world">Holochain Forum</a>
 
 **NextGen Developer Training  Programmes**
 
 <a href="https://docs.wixstatic.com/ugd/4280d8_ad8787bd42b1471bae73003bfbf111f7.pdf">NextGen Developer Training Programme</a> <br/> 
 <a href="https://docs.wixstatic.com/ugd/4280d8_999d98ba615e4fa6ab4383a415ee24c5.pdf">Junior NextGen Developer Training Programme</a>
 
+**Business Plan**
 
-**Executive Summary:**
-
-https://docs.wixstatic.com/ugd/4280d8_8b62b661334c43af8e4476d1a1b2afcb.pdf
-
-**Business Plan Summary:**
-
-https://docs.wixstatic.com/ugd/4280d8_9f8ed61eaf904905a6f94fcebf8650ef.pdf
-
-**Business Plan Detailed:**
-
-https://docs.wixstatic.com/ugd/4280d8_cb55d40e7e1b457c879383561e051fff.pdf
-
-**Financials:**
-
-https://docs.wixstatic.com/ugd/4280d8_698b48f342804534ac73829628799d33.xlsx?dn=NextGen%20Software%20Financials.xlsx
-
-**Pitch Deck:**
-
-https://d4de5c45-0ca1-451c-86a7-ce397b9225cd.filesusr.com/ugd/4280d8_50d17252aa3247eaae80013d0e0bf70d.pptx?dn=NextGen%20Software%20PitchDeck%20Lite.pptx
+<a href="https://docs.wixstatic.com/ugd/4280d8_8b62b661334c43af8e4476d1a1b2afcb.pdf">Executive Summary</a><br>
+<a href="https://docs.wixstatic.com/ugd/4280d8_9f8ed61eaf904905a6f94fcebf8650ef.pdf">Business Plan Summary</a><br>
+<a href="https://docs.wixstatic.com/ugd/4280d8_cb55d40e7e1b457c879383561e051fff.pdf">Business Plan Detailed</a><br>
+<a href="https://docs.wixstatic.com/ugd/4280d8_698b48f342804534ac73829628799d33.xlsx?dn=NextGen%20Software%20Financials.xlsx">Financials</a><br>
+<a href="https://d4de5c45-0ca1-451c-86a7-ce397b9225cd.filesusr.com/ugd/4280d8_50d17252aa3247eaae80013d0e0bf70d.pptx?dn=NextGen%20Software%20PitchDeck%20Lite.pptx">Pitch Deck</a><br>
 
 **Funding**
 
 **https://www.gofundme.com/ourworldthegame** <br/> 
 **https://www.patreon.com/davidellams**
+
+**Key Videos**
+
+<a href="https://www.youtube.com/watch?v=wdYa5wQUfrg">Our World Introduction</a><br>
+<a href="https://www.youtube.com/watch?v=DB75ldfPzlg&t=7s">OASIS API DEMO With David Ellams (James Halliday) NO SONG</a><br>
+<a href="https://www.youtube.com/watch?v=2oY4_LZBW4M">Latest prototype for the Our World Smartphone version... :)</a><br>
+<a href="https://www.youtube.com/watch?v=SB97mvzJiRg&t=1s">Founders Introduction To Our World May 2017 (Remastered Nov 2017)</a><br>
+<a href="https://www.youtube.com/watch?v=rvNJ6poMduo">Our World Smartphone Prototype AR Mode Part 1</a><br>
+<a href="https://www.youtube.com/watch?v=zyVmciqD9rs">Our World Smartphone Prototype AR Mode Part 2</a><br>
+<a href="https://www.youtube.com/watch?v=3KIW3wlkUs0">Our World - Smartphone Version Prototype In AR Mode</a><br>
+<a href="https://www.youtube.com/watch?v=U1IEfQQQeLc&t=1s">Our World Smartphone Version Preview</a><br>
+<a href="https://www.youtube.com/watch?v=3VFp5ltvPEM&t=611s">Games Without Borders Ep 03 ft David Ellams from Our World</a><br>
+<a href="https://www.youtube.com/watch?v=2ntJCTEihnw&t=1s">AWAKEN DREAM SYNERGY DREAM # 19 Our World & The OASIS API By David Ellams - (Presentation Only)</a><br>
+<a href="https://www.youtube.com/watch?v=kqTNINBFNV4&t=1s">Interview Between Moving On TV & Our World Founder David Ellams - Part 1</a><br>
+<a href="https://www.youtube.com/watch?v=HxZixdkc-Ns&t=1s">Interview Between Moving On TV & Our World Founder David Ellams - Part 2</a><br>
+<a href="https://www.youtube.com/watch?v=UICajpltv1Y">Our World Interviews With David Atkinson, Commercial Director of Holochain – Part 1</a><br>
+<a href="https://www.youtube.com/watch?v=SsNsEDPglos">Our World Interviews With David Atkinson, Commercial Director of Holochain – Part 2</a><br>
+<a href="https://www.youtube.com/watch?v=H5JJyLxGFe0">ThreeFold, Our World, Protocol Love, Soulfie API Meeting</a><br>
