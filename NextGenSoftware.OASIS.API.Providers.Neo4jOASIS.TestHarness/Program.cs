@@ -20,19 +20,24 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.TestHarness
             //await neo.Connect("http://localhost", "neo4j", "neo4j");
             //await neo.Connect("http://localhost:7474/db/data", "neo4j", "neo4j");
             //await neo.Connect("http://localhost:7474", "neo4j", "neo4j");
-            await neo.Connect("http://localhost:7474", null, null);
-            await neo.Connect("http://localhost:7474/db/data", null, null);
-            await neo.Connect("http://localhost", null, null);
-            await neo.Connect("http://localhost:7687", null, null);
+            await neo.Connect("http://localhost:7474", "neo4j", "letthereb@light!");
+           // await neo.Connect("http://localhost:7474/db/data", null, null);
+           // await neo.Connect("http://localhost", null, null);
+           // await neo.Connect("http://localhost:7687", null, null);
 
             neo.GraphClient.OperationCompleted += GraphClient_OperationCompleted;
 
             if (neo.GraphClient.IsConnected)
             {
                 Console.WriteLine("Connected To Graph DB.");
+                Console.WriteLine("Creating New Avatar...");
+
+                Avatar avatar = new Avatar() { FirstName = "David", LastName = "Ellams", Email = "davidellams@hotmail.com" };
+                neo.SaveAvatar(avatar);
+                Console.WriteLine("Avatar Created.");
+
                 Console.WriteLine("Loading Avatar...");
-                //Avatar avatar = (Avatar)neo.LoadAvatar("david");
-                Avatar avatar = (Avatar)neo.LoadAvatar("david", "password");
+                avatar = (Avatar)neo.LoadAvatar("david", "password");
                 Console.WriteLine("Avatar Loaded.");
 
                 Console.WriteLine("Updating Avatar...");

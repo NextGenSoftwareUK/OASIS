@@ -7,6 +7,36 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="api\**" />
+    <Content Remove="api\**" />
+    <EmbeddedResource Remove="api\**" />
+    <None Remove="api\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Remove="wwwroot\css\login\demo.css" />
+    <Content Remove="wwwroot\css\login\reset.css" />
+    <Content Remove="wwwroot\css\login\style.css" />
+    <Content Remove="wwwroot\index.html" />
+    <Content Remove="wwwroot\js\jquery-3.5.1.min.js" />
+    <Content Remove="wwwroot\js\login\login.js" />
+    <Content Remove="wwwroot\js\login\placeholders.min.js" />
+    <Content Remove="wwwroot\login.html" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="wwwroot\css\login\demo.css" />
+    <None Include="wwwroot\css\login\reset.css" />
+    <None Include="wwwroot\css\login\style.css" />
+    <None Include="wwwroot\index.html" />
+    <None Include="wwwroot\js\jquery-3.5.1.min.js" />
+    <None Include="wwwroot\js\login\login.js" />
+    <None Include="wwwroot\js\login\placeholders.min.js" />
+    <None Include="wwwroot\login.html" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNet.WebApi.Core" Version="5.2.7" />
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.10.9" />
   </ItemGroup>
 

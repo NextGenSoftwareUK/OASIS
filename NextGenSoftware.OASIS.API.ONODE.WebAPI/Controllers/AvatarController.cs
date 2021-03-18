@@ -231,7 +231,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             object avatarTypeObject = null;
 
             if (!Enum.TryParse(typeof(AvatarType), model.AvatarType, out avatarTypeObject))
-                return Ok(string.Concat("ERROR: AvatarType needs to be one of the values found in AvatarType enumeration. Possible value can be: ", EnumHelper.GetEnumValues(typeof(AvatarType))));
+                return Ok(string.Concat("ERROR: AvatarType needs to be one of the values found in AvatarType enumeration. Possible value can be:\n\n", EnumHelper.GetEnumValues(typeof(AvatarType))));
 
             IAvatar avatar = _avatarService.Register(model, Request.Headers["origin"]);
 
@@ -453,10 +453,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             object karmaSourceTypeObject = null;
 
             if (!Enum.TryParse(typeof(KarmaTypePositive), addKarmaToAvatarRequest.KarmaType, out karmaTypePositiveObject))
-                return Ok(string.Concat("ERROR: KarmaType needs to be one of the values found in KarmaTypePositive enumeration. Possible value can be: ", EnumHelper.GetEnumValues(typeof(KarmaTypePositive))));
+                return Ok(string.Concat("ERROR: KarmaType needs to be one of the values found in KarmaTypePositive enumeration. Possible value can be:\n\n", EnumHelper.GetEnumValues(typeof(KarmaTypePositive))));
 
             if (!Enum.TryParse(typeof(KarmaSourceType), addKarmaToAvatarRequest.karmaSourceType, out karmaSourceTypeObject))
-                return Ok(string.Concat("ERROR: KarmaSourceType needs to be one of the values found in KarmaSourceType enumeration. Possible value can be: ", EnumHelper.GetEnumValues(typeof(KarmaSourceType))));
+                return Ok(string.Concat("ERROR: KarmaSourceType needs to be one of the values found in KarmaSourceType enumeration. Possible value can be:\n\n", EnumHelper.GetEnumValues(typeof(KarmaSourceType))));
 
             return Ok(Program.AvatarManager.AddKarmaToAvatar(avatarId, (KarmaTypePositive)karmaTypePositiveObject, (KarmaSourceType)karmaSourceTypeObject, addKarmaToAvatarRequest.KaramSourceTitle, addKarmaToAvatarRequest.KarmaSourceDesc));
         }
@@ -534,10 +534,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             object karmaSourceTypeObject = null;
 
             if (!Enum.TryParse(typeof(KarmaTypeNegative), addKarmaToAvatarRequest.KarmaType, out karmaTypeNegativeObject))
-                return Ok(string.Concat("ERROR: KarmaType needs to be one of the values found in KarmaTypeNegative enumeration. Possible value can be: ", EnumHelper.GetEnumValues(typeof(KarmaTypeNegative))));
+                return Ok(string.Concat("ERROR: KarmaType needs to be one of the values found in KarmaTypeNegative enumeration. Possible value can be:\n\n", EnumHelper.GetEnumValues(typeof(KarmaTypeNegative))));
 
             if (!Enum.TryParse(typeof(KarmaSourceType), addKarmaToAvatarRequest.karmaSourceType, out karmaSourceTypeObject))
-                return Ok(string.Concat("ERROR: KarmaSourceType needs to be one of the values found in KarmaSourceType enumeration. Possible value can be: ", EnumHelper.GetEnumValues(typeof(KarmaSourceType))));
+                return Ok(string.Concat("ERROR: KarmaSourceType needs to be one of the values found in KarmaSourceType enumeration. Possible value can be:\n\n", EnumHelper.GetEnumValues(typeof(KarmaSourceType))));
 
             return Ok(Program.AvatarManager.RemoveKarmaFromAvatar(avatarId, (KarmaTypeNegative)karmaTypeNegativeObject, (KarmaSourceType)karmaSourceTypeObject, addKarmaToAvatarRequest.KaramSourceTitle, addKarmaToAvatarRequest.KarmaSourceDesc));
         }
@@ -589,7 +589,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <param name="id"></param>
         /// <returns></returns>
         [Authorize]
-        [HttpPut("Update/{id}")]
+        [HttpPost("Update/{id}")]
         //public ActionResult<IAvatar> Update(Core.Avatar avatar, Guid id)
         public ActionResult<IAvatar> Update(UpdateRequest avatar, Guid id)
         {
@@ -616,7 +616,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <param name="setGlobally"></param>
         /// <returns></returns>
         [Authorize]
-        [HttpPut("Update/{id}/{providerType}/{setGlobally}")]
+        [HttpPost("Update/{id}/{providerType}/{setGlobally}")]
         //public ActionResult<IAvatar> Update(Guid id, Core.Avatar avatar, ProviderType providerType, bool setGlobally = false)
         public ActionResult<IAvatar> Update(Guid id, UpdateRequest avatar, ProviderType providerType, bool setGlobally = false)
         {
