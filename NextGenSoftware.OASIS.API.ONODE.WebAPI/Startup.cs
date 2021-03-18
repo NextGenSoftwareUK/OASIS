@@ -31,8 +31,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
         public void ConfigureServices(IServiceCollection services)
         {
             services.Configure<OASISSettings>(Configuration.GetSection("OASIS"));
+            services.AddMvc();
 
-           // services.AddDbContext<DataContext>();
+            
+
+            // services.AddDbContext<DataContext>();
             //services.AddCors(); //Needed twice? It is below too...
             services.AddControllers().AddJsonOptions(x => x.JsonSerializerOptions.IgnoreNullValues = true);
             services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
@@ -98,7 +101,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
                 });
             });
 
-            services.AddControllers();
+          //  services.AddControllers();
 
             //TODO: Don't think this is used anymore? Take out...
             // configure basic authentication 
@@ -113,6 +116,14 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
             // migrate database changes on startup (includes initial db creation)
             //context.Database.Migrate();
 
+//            IApplicationBuilder app, IHostingEnvironment env)
+//{
+//                app.UseDeveloperExceptionPage();
+//                app.UseStaticFiles();
+//                app.UseMvcWithDefaultRoute();
+//            }
+
+
             // generated swagger json and swagger ui middleware
             app.UseSwagger();
             app.UseSwaggerUI(x => x.SwaggerEndpoint("/swagger/v1/swagger.json", VERSION));
@@ -121,6 +132,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
 
           //  if (env.IsDevelopment())
             app.UseDeveloperExceptionPage();
+            app.UseStaticFiles();
+           // app.UseMvcWithDefaultRoute();
 
             app.UseHttpsRedirection();
 
