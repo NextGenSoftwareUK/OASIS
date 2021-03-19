@@ -5,6 +5,10 @@ using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Enums;
+using Ipfs.Http;
+using NextGenSoftware.OASIS.API.Core.Holons;
+using System.IO;
+using Ipfs.Engine;
 
 namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
 {
@@ -113,9 +117,32 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
             throw new NotImplementedException();
         }
 
-        public override Task<IAvatar> LoadAvatarAsync(string username, string password)
+        public override async Task<IAvatar> LoadAvatarAsync(string username, string password)
         {
-            throw new NotImplementedException();
+            //var ipfs = new IpfsClient("http://localhost:5002");
+            IpfsEngine ipfs = new IpfsEngine();
+
+            ipfs.Start();
+
+            //https://ipfs.io/ipfs/QmWDkvhfbt5kwyd8K3W1shXuJynSkyAfpoXQ3nChj1QBC1?filename=LICENSES.chromium.html
+
+            //const string filename = "QmXarR6rgkQ2fDSHjSY5nM2kuCXKYGViky5nohtwgF65Ec/about";
+            const string filename = "QmWDkvhfbt5kwyd8K3W1shXuJynSkyAfpoXQ3nChj1QBC1/LICENSES.chromium.html";
+           // string text = await ipfs.FileSystem.ReadAllTextAsync(filename);
+
+          //  Stream stream = await ipfs.DownloadAsync("", new System.Threading.CancellationToken());
+            //ipfs.FileSystem.AddFileAsync
+            //ipfs.FileSystem.AddTextAsync
+            Stream stream2 = await ipfs.FileSystem.ReadFileAsync(filename);
+
+            //ipfs.Name.PublishAsync
+
+           // ipfs.Object.NewAsync
+           //ipfs.Pin.
+
+           // ipfs.ApiUri.
+
+            return new Avatar();
         }
 
         public override IAvatar LoadAvatarForProviderKey(string providerKey)
