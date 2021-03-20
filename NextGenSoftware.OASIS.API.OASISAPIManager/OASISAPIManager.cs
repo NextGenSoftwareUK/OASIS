@@ -3,6 +3,8 @@ using NextGenSoftware.OASIS.API.Core.Apollo.Server;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Managers;
+using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS;
+using NextGenSoftware.OASIS.API.Providers.IPFSOASIS;
 using NextGenSoftware.OASIS.API.Providers.SEEDSOASIS;
 using System.Collections.Generic;
 
@@ -13,7 +15,12 @@ namespace NextGenSoftware.OASIS.API.OASISAPIManager
         public static AvatarManager AvatarManager { get; set; }
         public static MapManager MapManager { get; set; }
         public static SEEDSManager SEEDAPI { get; set; } = new SEEDSManager();
-     
+
+        public static HolonManager Data { get; set; }
+
+        public static IPFSOASIS IPFS { get; set; }
+
+        public static EOSIOOASIS EOSIO { get; set; }
 
         public static void Init(List<IOASISProvider> OASISProviders, bool startApolloServer = true)
         //public OASISAPIManager()
