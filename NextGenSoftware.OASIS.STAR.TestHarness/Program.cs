@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Reflection;
+using EOSNewYork.EOSCore.Response.API;
 using NextGenSoftware.OASIS.API.Core;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Events;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.OASISAPIManager;
+using NextGenSoftware.OASIS.API.Providers.SEEDSOASIS.ParamObjects;
 
 namespace NextGenSoftware.OASIS.STAR.TestHarness
 {
@@ -20,7 +22,7 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
                                        .ToString();
 
             Console.WriteLine($"********************************************************************");
-            Console.WriteLine($"NextGen Software STAR ODK TEST HARNESS v{versionString}");
+            Console.WriteLine($"NextGen Software STAR (Synergiser Transformer Aggregator Resolver) HDK/ODK TEST HARNESS v{versionString}");
             Console.WriteLine($"********************************************************************");
             Console.WriteLine("\nUsage:");
             Console.WriteLine("  star beamin = Log in");
@@ -104,8 +106,32 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
 
                     OASISAPIManager.AvatarManager.LoadAllAvatars();
                     OASISAPIManager.MapManager.CreateAndDrawRouteOnMapBetweenHolons(newHolon, newHolon);
-                    OASISAPIManager.SEEDAPI.JoinSeeds();
-                    OASISAPIManager.SEEDAPI.PayWithSeeds();
+
+                    string balance = OASISAPIManager.SEEDAPI.GetBalance("test.account");
+                    Account account = OASISAPIManager.SEEDAPI.GetUser("test.account");
+
+                    Console.WriteLine(string.Concat("Balance Before: ", balance));
+                    Console.WriteLine(string.Concat("Account.account_name: ", account.account_name));
+                    Console.WriteLine(string.Concat("Account.core_liquid_balance Before: ", account.core_liquid_balance));
+
+                    OASISAPIManager.SEEDAPI.PayWithSeeds("test.account", "test.account2", 7, "test memo");
+                    balance = OASISAPIManager.SEEDAPI.GetBalance("test.account");
+                    account = OASISAPIManager.SEEDAPI.GetUser("test.account");
+
+                    Console.WriteLine(string.Concat("Balance After: ", balance));
+                    Console.WriteLine(string.Concat("Account.core_liquid_balance After: ", account.core_liquid_balance));
+
+                    string orgs = OASISAPIManager.SEEDAPI.GetAllOrganisationsAsJSON();
+                    Console.WriteLine(string.Concat("Organisations: ", orgs));
+
+                    string qrCode = OASISAPIManager.SEEDAPI.GenerateSignInQRCode();
+                    Console.WriteLine(string.Concat("SEEDS Sign-In QRCode: ", qrCode));
+
+                    SendInviteResult result = OASISAPIManager.SEEDAPI.SendInviteToJoinSeeds("test.account", "test.account", 5, 5);
+                    Console.WriteLine(string.Concat("Invite Sent To Join SEEDS. Invite Secrert: ", result.InviteSecret, ". Transction ID: ", result.TransactionId));
+
+                    string transactionID = OASISAPIManager.SEEDAPI.AcceptInviteToJoinSeeds("test.account2", result.InviteSecret);
+                    Console.WriteLine(string.Concat("Invite Accepted To Join SEEDS. Invite Secrert: ", result.InviteSecret, ". Transction ID: ", transactionID));
 
 
 

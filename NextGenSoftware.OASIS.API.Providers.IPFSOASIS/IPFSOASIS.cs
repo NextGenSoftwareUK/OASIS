@@ -14,6 +14,10 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
 {
     public class IPFSOASIS : OASISStorageBase, IOASISStorage, IOASISNET
     {
+
+        public IpfsClient ipfsClient = new IpfsClient("http://localhost:5002");
+        public IpfsEngine ipfsEngine = new IpfsEngine();
+
         public IPFSOASIS()
         {
             this.ProviderName = "IPFSOASIS";
@@ -119,10 +123,9 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
 
         public override async Task<IAvatar> LoadAvatarAsync(string username, string password)
         {
-            //var ipfs = new IpfsClient("http://localhost:5002");
-            IpfsEngine ipfs = new IpfsEngine();
+           
 
-            ipfs.Start();
+            ipfsEngine.Start();
 
             //https://ipfs.io/ipfs/QmWDkvhfbt5kwyd8K3W1shXuJynSkyAfpoXQ3nChj1QBC1?filename=LICENSES.chromium.html
 
@@ -133,7 +136,7 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
           //  Stream stream = await ipfs.DownloadAsync("", new System.Threading.CancellationToken());
             //ipfs.FileSystem.AddFileAsync
             //ipfs.FileSystem.AddTextAsync
-            Stream stream2 = await ipfs.FileSystem.ReadFileAsync(filename);
+            Stream stream2 = await ipfsEngine.FileSystem.ReadFileAsync(filename);
 
             //ipfs.Name.PublishAsync
 
