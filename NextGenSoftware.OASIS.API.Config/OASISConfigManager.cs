@@ -1,8 +1,6 @@
-﻿
-using System;
+﻿using System;
 using System.IO;
 using Newtonsoft.Json;
-
 using NextGenSoftware.Holochain.HoloNET.Client.Core;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Events;
@@ -17,42 +15,21 @@ using NextGenSoftware.OASIS.API.Providers.Neo4jOASIS;
 
 namespace NextGenSoftware.OASIS.API.Config
 {
-    // TODO: Not sure if should move this into OASIS.API.Core.ProviderManager? But then Core will have refs to all the providers and 
-    // the providers already have a ref to Core so then you will get circular refs so maybe not a good idea?
-
-    public static class OASISProviderManager 
+    public static class OASISConfigManager 
     {
         public static string OASISDNAFileName { get; set; } = "appsettings.json";
-        public static OASISSettings OASISSettings;
-       // private static OASISProviderManager _instance;
-        //public static ProviderType CurrentStorageProviderType = ProviderType.Default;
+        public static OASISDNA OASISDNA;
 
-        //public static OASISProviderManager Instance
-        //{
-        //    get
-        //    {
-        //        if (_instance == null)
-        //            _instance = new OASISProviderManager(_OASISSettings);
-
-        //        return _instance;
-        //    }
-        //}
-
-
-
-        //public static void SetOASISSettings(OASISSettings settings)
-        //{
-        //    OASISSettings = settings;
-        //}
-
-        public static void LoadOASISSettings(string OASISSettingsFileName)
+        public static void LoadOASISDNA(string OASISDNAFileName)
         {
-            if (File.Exists(OASISSettingsFileName))
+            OASISConfigManager.OASISDNAFileName = OASISDNAFileName;
+
+            if (File.Exists(OASISDNAFileName))
             {
-                using (StreamReader r = new StreamReader(OASISSettingsFileName))
+                using (StreamReader r = new StreamReader(OASISDNAFileName))
                 {
                     string json = r.ReadToEnd();
-                    OASISSettings = JsonConvert.DeserializeObject<OASISSettings>(json);
+                    OASISDNA = JsonConvert.DeserializeObject<OASISDNA>(json);
                 }
             }
         }
@@ -61,10 +38,10 @@ namespace NextGenSoftware.OASIS.API.Config
         {
             if (ProviderManager.CurrentStorageProvider == null)
             {
-                if (OASISSettings == null)
-                    LoadOASISSettings(OASISDNAFileName);
+                if (OASISDNA == null)
+                    LoadOASISDNA(OASISDNAFileName);
 
-                ProviderManager.DefaultProviderTypes = OASISSettings.OASIS.StorageProviders.DefaultProviders.Split(",");
+                ProviderManager.DefaultProviderTypes = OASISDNA.OASIS.StorageProviders.DefaultProviders.Split(",");
 
                 //TODO: Need to add additional logic later for when the first provider and others fail or are too laggy and so need to switch to a faster provider, etc...
                 return GetAndActivateProvider((ProviderType)Enum.Parse(typeof(ProviderType), ProviderManager.DefaultProviderTypes[0]));
@@ -75,8 +52,8 @@ namespace NextGenSoftware.OASIS.API.Config
 
         public static IOASISStorage GetAndActivateProvider(ProviderType providerType, bool setGlobally = false)
         {
-            if (OASISSettings == null)
-                LoadOASISSettings(OASISDNAFileName);
+            if (OASISDNA == null)
+                LoadOASISDNA(OASISDNAFileName);
 
             //TODO: Think we can have this in ProviderManger and have default connection strings/settings for each provider.
             if (providerType != ProviderManager.CurrentStorageProviderType)
@@ -87,7 +64,7 @@ namespace NextGenSoftware.OASIS.API.Config
                     {
                         case ProviderType.HoloOASIS:
                             {
-                                HoloOASIS holoOASIS = new HoloOASIS(OASISSettings.OASIS.StorageProviders.HoloOASIS.ConnectionString, HolochainVersion.Redux); //TODO: Move hc version to config.
+                                HoloOASIS holoOASIS = new HoloOASIS(OASISDNA.OASIS.StorageProviders.HoloOASIS.ConnectionString, HolochainVersion.Redux); //TODO: Move hc version to config.
                                 holoOASIS.OnHoloOASISError += HoloOASIS_OnHoloOASISError;
                                 holoOASIS.StorageProviderError += HoloOASIS_StorageProviderError;
                                 ProviderManager.RegisterProvider(holoOASIS);
@@ -96,7 +73,7 @@ namespace NextGenSoftware.OASIS.API.Config
 
                         case ProviderType.SQLLiteDBOASIS:
                             {
-                                SQLLiteDBOASIS SQLLiteDBOASIS = new SQLLiteDBOASIS(OASISSettings.OASIS.StorageProviders.SQLLiteDBOASIS.ConnectionString);
+                                SQLLiteDBOASIS SQLLiteDBOASIS = new SQLLiteDBOASIS(OASISDNA.OASIS.StorageProviders.SQLLiteDBOASIS.ConnectionString);
                                 SQLLiteDBOASIS.StorageProviderError += SQLLiteDBOASIS_StorageProviderError;
                                 ProviderManager.RegisterProvider(SQLLiteDBOASIS);
 
@@ -105,7 +82,7 @@ namespace NextGenSoftware.OASIS.API.Config
 
                         case ProviderType.MongoDBOASIS:
                             {
-                                MongoDBOASIS mongoOASIS = new MongoDBOASIS(OASISSettings.OASIS.StorageProviders.MongoDBOASIS.ConnectionString, OASISSettings.OASIS.StorageProviders.MongoDBOASIS.DBName);
+                                MongoDBOASIS mongoOASIS = new MongoDBOASIS(OASISDNA.OASIS.StorageProviders.MongoDBOASIS.ConnectionString, OASISDNA.OASIS.StorageProviders.MongoDBOASIS.DBName);
                                 mongoOASIS.StorageProviderError += MongoOASIS_StorageProviderError;
                                 ProviderManager.RegisterProvider(mongoOASIS);
 
@@ -114,7 +91,7 @@ namespace NextGenSoftware.OASIS.API.Config
 
                         case ProviderType.EOSOASIS:
                             {
-                                EOSIOOASIS EOSIOOASIS = new EOSIOOASIS();
+                                EOSIOOASIS EOSIOOASIS = new EOSIOOASIS(OASISDNA.OASIS.StorageProviders.EOSIOOASIS.ConnectionString);
                                 EOSIOOASIS.StorageProviderError += EOSIOOASIS_StorageProviderError;
                                 ProviderManager.RegisterProvider(EOSIOOASIS); //TODO: Need to pass connection string in.
                             }
@@ -122,7 +99,7 @@ namespace NextGenSoftware.OASIS.API.Config
 
                         case ProviderType.Neo4jOASIS:
                             {
-                                Neo4jOASIS Neo4jOASIS = new Neo4jOASIS();
+                                Neo4jOASIS Neo4jOASIS = new Neo4jOASIS(OASISDNA.OASIS.StorageProviders.Neo4jOASIS.ConnectionString, OASISDNA.OASIS.StorageProviders.Neo4jOASIS.Username, OASISDNA.OASIS.StorageProviders.Neo4jOASIS.Password);
                                 Neo4jOASIS.StorageProviderError += Neo4jOASIS_StorageProviderError;
                                 ProviderManager.RegisterProvider(Neo4jOASIS); //TODO: Need to pass connection string in.
                             }
@@ -130,7 +107,7 @@ namespace NextGenSoftware.OASIS.API.Config
 
                         case ProviderType.IPFSOASIS:
                             {
-                                IPFSOASIS IPFSOASIS = new IPFSOASIS();
+                                IPFSOASIS IPFSOASIS = new IPFSOASIS(OASISDNA.OASIS.StorageProviders.IPFSOASIS.ConnectionString);
                                 IPFSOASIS.StorageProviderError += IPFSOASIS_StorageProviderError;
                                 ProviderManager.RegisterProvider(IPFSOASIS); //TODO: Need to pass connection string in.
                             }

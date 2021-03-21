@@ -16,7 +16,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
     public class MongoDBOASIS : OASISStorageBase, IOASISStorage, IOASISNET, IOASISSuperStar
     {
         //MongoDbContext db = new MongoDbContext();
-        private MongoDbContext _db = null;
+        public MongoDbContext Database { get; set; }
         private AvatarRepository _avatarRepository = null;
         private HolonRepository _holonRepository = null;
 
@@ -37,9 +37,9 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             ConnectionString = connectionString;
             DBName = dbName;
 
-            _db = new MongoDbContext(connectionString, dbName);
-            _avatarRepository = new AvatarRepository(_db);
-            _holonRepository = new HolonRepository(_db);
+            Database = new MongoDbContext(connectionString, dbName);
+            _avatarRepository = new AvatarRepository(Database);
+            _holonRepository = new HolonRepository(Database);
 
             this.ProviderName = "MongoDBOASIS";
             this.ProviderDescription = "MongoDB Atlas Provider";
@@ -165,7 +165,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
                 //FilterDefinition<SearchData> filter = Builders<SearchData>.Filter.Regex("searchData", new BsonRegularExpression("/" + searchTerm + "/G[a-b].*/i"));
                 FilterDefinition<SearchData> filter = Builders<SearchData>.Filter.Regex("searchData", new BsonRegularExpression("/" + searchTerm.SearchQuery.ToLower() + "/"));
                 //FilterDefinition<SearchData> filter = Builders<SearchData>.Filter.AnyIn("searchData", searchTerm);
-                IEnumerable<SearchData> data = await _db.SearchData.Find(filter).ToListAsync();
+                IEnumerable<SearchData> data = await Database.SearchData.Find(filter).ToListAsync();
 
 
                 
@@ -422,10 +422,10 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             //TODO: {URGENT} Find out how to check if MongoDB is connected, etc here...
             //if (_db.MongoDB.)
 
-            if (_db == null)
+            if (Database == null)
             {
-                _db = new MongoDbContext(ConnectionString, DBName);
-                _avatarRepository = new AvatarRepository(_db);
+                Database = new MongoDbContext(ConnectionString, DBName);
+                _avatarRepository = new AvatarRepository(Database);
             }
 
             base.ActivateProvider();
@@ -434,9 +434,9 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
         public override void DeActivateProvider()
         {
             //TODO: {URGENT} Disconnect, Dispose and release resources here.
-            _db.MongoDB = null;
-            _db.MongoClient = null;
-            _db = null;
+            Database.MongoDB = null;
+            Database.MongoClient = null;
+            Database = null;
 
             base.DeActivateProvider();
         }

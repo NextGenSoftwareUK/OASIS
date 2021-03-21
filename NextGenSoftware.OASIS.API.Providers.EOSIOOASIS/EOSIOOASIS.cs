@@ -16,12 +16,16 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
         //public const string OASIS_PASS_PHRASE = "oasis";
         public const string OASIS_PASS_PHRASE = "7g7GJ557j549':;#~~#$4jf&hjj4";
 
-        public EOSIOOASIS()
+        public ChainAPI ChainAPI { get; set; }
+
+        public EOSIOOASIS(string host)
         {
             this.ProviderName = "EOSIOOASIS";
             this.ProviderDescription = "EOSIO Provider";
             this.ProviderType = ProviderType.EOSOASIS;
             this.ProviderCategory = ProviderCategory.StorageAndNetwork;
+
+            ChainAPI = new ChainAPI(host);
         }
 
         public override bool DeleteAvatar(Guid id, bool softDelete = true)
@@ -111,8 +115,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
 
         public override async Task<IAvatar> LoadAvatarAsync(string providerKey)
         {
-            var chainApi = new ChainAPI();
-            var rows = await chainApi.GetTableRowsAsync(OASIS_EOSIO_ACCOUNT, OASIS_EOSIO_ACCOUNT, "accounts", "true", providerKey, providerKey, 1, 3);
+            var rows = await ChainAPI.GetTableRowsAsync(OASIS_EOSIO_ACCOUNT, OASIS_EOSIO_ACCOUNT, "accounts", "true", providerKey, providerKey, 1, 3);
 
             if (rows.rows.Count == 0)
                 return null;
@@ -126,9 +129,8 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
 
         public override async Task<IAvatar> LoadAvatarAsync(Guid Id)
         {
-            var chainApi = new ChainAPI();
             //var rows = await chainApi.GetTableRowsAsync(OASIS_EOSIO_ACCOUNT, OASIS_EOSIO_ACCOUNT, "accounts", "true", Id.ToString(), Id.ToString(), 1);
-            var rows = await chainApi.GetTableRowsAsync(OASIS_EOSIO_ACCOUNT, OASIS_EOSIO_ACCOUNT, "accounts", "true", Id.ToString(), Id.ToString(), 1, 1);
+            var rows = await ChainAPI.GetTableRowsAsync(OASIS_EOSIO_ACCOUNT, OASIS_EOSIO_ACCOUNT, "accounts", "true", Id.ToString(), Id.ToString(), 1, 1);
 
             if (rows.rows.Count == 0)
                 return null;
@@ -142,8 +144,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
 
         public override async Task<IAvatar> LoadAvatarAsync(string username, string password)
         {
-            var chainApi = new ChainAPI();
-            var rows = await chainApi.GetTableRowsAsync(OASIS_EOSIO_ACCOUNT, OASIS_EOSIO_ACCOUNT, "accounts", "true", username, username, 1, 2);
+            var rows = await ChainAPI.GetTableRowsAsync(OASIS_EOSIO_ACCOUNT, OASIS_EOSIO_ACCOUNT, "accounts", "true", username, username, 1, 2);
 
             if (rows.rows.Count == 0)
                 return null;
@@ -217,8 +218,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
 
         public override async Task<IAvatar> SaveAvatarAsync(IAvatar Avatar)
         {
-            var chainApi = new ChainAPI();
-            var rows = await chainApi.GetTableRowsAsync(OASIS_EOSIO_ACCOUNT, OASIS_EOSIO_ACCOUNT, "config", "true", null, null, 1);
+            var rows = await ChainAPI.GetTableRowsAsync(OASIS_EOSIO_ACCOUNT, OASIS_EOSIO_ACCOUNT, "config", "true", null, null, 1);
 
             if (rows.rows.Count == 0)
                 return null;
@@ -226,7 +226,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             var configRow = (EOSIOConfigTableRow)rows.rows[0];
             var actions = new List<EOSNewYork.EOSCore.Params.Action>();
 
-            actions.Add(new ActionUtility(chainApi.GetHost().AbsoluteUri).GetActionObject("openacct", configRow.admin, "active", OASIS_EOSIO_ACCOUNT,
+            actions.Add(new ActionUtility(ChainAPI.GetHost().AbsoluteUri).GetActionObject("openacct", configRow.admin, "active", OASIS_EOSIO_ACCOUNT,
                     new EOSIOOpenAccountParams()
                     {
                         userid = Avatar.Id.ToString(),
@@ -244,7 +244,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
                 ));
 
             List<string> privateKeysInWIF = new List<string> { "private key in WIF" };
-            await chainApi.PushTransactionAsync(actions.ToArray(), privateKeysInWIF);
+            await ChainAPI.PushTransactionAsync(actions.ToArray(), privateKeysInWIF);
 
             return Avatar;
         }

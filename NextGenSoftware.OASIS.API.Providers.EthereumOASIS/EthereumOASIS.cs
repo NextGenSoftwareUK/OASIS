@@ -13,6 +13,8 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
 {
     public class EthereumOASIS : OASISStorageBase, IOASISStorage, IOASISNET
     {
+        public Web3 Web3 { get; set; }
+
         private class account
         {
             public string userid;
@@ -39,7 +41,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             oasisTest();
         }
 
-        private static void oasisTest()
+        private void oasisTest()
         {
             string url = "HTTP://localhost:7545";
             string address = "0x5AD3aeBBB1E99c851D68aeFaF07FC98c2e706Fd5";
@@ -48,8 +50,8 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             string ABI = @"[{'inputs':[],'stateMutability':'nonpayable','type':'constructor'},{'inputs':[{'internalType':'string','name':'first','type':'string'},{'internalType':'string','name':'second','type':'string'}],'name':'compareString','outputs':[{'internalType':'bool','name':'','type':'bool'}],'stateMutability':'pure','type':'function'},{'inputs':[{'internalType':'string','name':'userid','type':'string'},{'internalType':'string','name':'name','type':'string'},{'internalType':'string','name':'providerkey','type':'string'},{'internalType':'string','name':'password','type':'string'},{'internalType':'string','name':'email','type':'string'},{'internalType':'string','name':'title','type':'string'},{'internalType':'string','name':'firstname','type':'string'},{'internalType':'string','name':'lastname','type':'string'},{'internalType':'string','name':'dob','type':'string'},{'internalType':'string','name':'playeraddr','type':'string'},{'internalType':'uint32','name':'karma','type':'uint32'}],'name':'createAccount','outputs':[{'internalType':'uint256','name':'','type':'uint256'}],'stateMutability':'nonpayable','type':'function'},{'inputs':[{'internalType':'string','name':'userid','type':'string'}],'name':'deleteAccount','outputs':[{'internalType':'bool','name':'','type':'bool'}],'stateMutability':'nonpayable','type':'function'},{'inputs':[],'name':'getAccountCount','outputs':[{'internalType':'uint256','name':'count','type':'uint256'}],'stateMutability':'view','type':'function'},{'inputs':[{'internalType':'string','name':'userid','type':'string'}],'name':'getAccountParameter','outputs':[{'components':[{'internalType':'string','name':'userid','type':'string'},{'internalType':'string','name':'name','type':'string'},{'internalType':'string','name':'providerkey','type':'string'},{'internalType':'string','name':'password','type':'string'},{'internalType':'string','name':'email','type':'string'},{'internalType':'string','name':'title','type':'string'},{'internalType':'string','name':'firstname','type':'string'},{'internalType':'string','name':'lastname','type':'string'},{'internalType':'string','name':'dob','type':'string'},{'internalType':'string','name':'playeraddr','type':'string'},{'internalType':'uint32','name':'karma','type':'uint32'}],'internalType':'structOASIS.account','name':'','type':'tuple'}],'stateMutability':'view','type':'function'},{'inputs':[],'name':'totalAccounts','outputs':[{'internalType':'uint256','name':'','type':'uint256'}],'stateMutability':'view','type':'function'},{'inputs':[{'internalType':'string','name':'userid','type':'string'},{'internalType':'string','name':'name','type':'string'},{'internalType':'string','name':'providerkey','type':'string'},{'internalType':'string','name':'password','type':'string'},{'internalType':'string','name':'email','type':'string'},{'internalType':'string','name':'title','type':'string'},{'internalType':'string','name':'firstname','type':'string'},{'internalType':'string','name':'lastname','type':'string'},{'internalType':'string','name':'dob','type':'string'},{'internalType':'string','name':'playeraddr','type':'string'},{'internalType':'uint32','name':'karma','type':'uint32'}],'name':'updateAccount','outputs':[{'internalType':'bool','name':'','type':'bool'}],'stateMutability':'nonpayable','type':'function'}]";
 
             var account = new Account("0x96a2cdfa6e4198b683188e0265d548da23a829f00fdf4858f9b7899e5d55fd4c");
-            Web3 web3 = new Web3(account, url);
-            Contract oasisContract = web3.Eth.GetContract(ABI, address);
+            Web3 = new Web3(account, url);
+            Contract oasisContract = Web3.Eth.GetContract(ABI, address);
 
             account newAccount = new account();
 

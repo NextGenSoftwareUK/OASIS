@@ -30,8 +30,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.Configure<OASISSettings>(Configuration.GetSection("OASIS"));
-            services.AddMvc();
+            //services.Configure<OASISSettings>(Configuration.GetSection("OASIS")); // Replaced by OASISConfigManager in OASISMiddleware so shares same codebase to STAR ODK.
+           // services.AddMvc();
 
             
 

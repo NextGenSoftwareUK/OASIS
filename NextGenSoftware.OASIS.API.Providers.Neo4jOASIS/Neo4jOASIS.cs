@@ -13,22 +13,34 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
     public class Neo4jOASIS : OASISStorageBase, IOASISStorage, IOASISNET
     {
         public GraphClient GraphClient { get; set; }
+        public string Host { get; set; }
+        public string Username { get; set; }
+        public string Password { get; set; }
 
-        public Neo4jOASIS()
+        public Neo4jOASIS(string host, string username, string password)
         {
             this.ProviderName = "Neo4jOASIS";
             this.ProviderDescription = "Neo4j Provider";
             this.ProviderType = ProviderType.Neo4jOASIS;
             this.ProviderCategory = ProviderCategory.StorageAndNetwork;
+
+            Host = host;
+            Username = username;
+            Password = password;
         }
 
-        public async Task<bool> Connect(string uri, string username, string password)
+        public async Task<bool> Connect()
         {
-            //GraphClient = new GraphClient(new Uri("http://localhost:7474/db/data"), username, password);
-            GraphClient = new GraphClient(new Uri(uri), username, password);
+            GraphClient = new GraphClient(new Uri(Host), Username, Password);
             GraphClient.OperationCompleted += _graphClient_OperationCompleted;
             await GraphClient.ConnectAsync();
             return true;
+        }
+
+        public async Task Disconnect()
+        {
+            GraphClient.Dispose();
+            GraphClient.OperationCompleted -= _graphClient_OperationCompleted;
         }
 
         private void _graphClient_OperationCompleted(object sender, OperationCompletedEventArgs e)
@@ -302,7 +314,7 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
 
         public override void ActivateProvider()
         {
-            Connect("http://localhost:7474/db/data", "neo4j", "neo4j");
+            Connect();
             base.ActivateProvider();
         }
 

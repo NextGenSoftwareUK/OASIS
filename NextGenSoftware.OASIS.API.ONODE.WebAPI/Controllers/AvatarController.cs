@@ -21,7 +21,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
     {
         private readonly IAvatarService _avatarService;
 
-        public AvatarController(IOptions<OASISSettings> OASISSettings, IAvatarService avatarService) : base(OASISSettings)
+        //public AvatarController(IOptions<OASISSettings> OASISSettings, IAvatarService avatarService) : base(OASISSettings)
+        public AvatarController(IAvatarService avatarService)
         {
             _avatarService = avatarService;
         }

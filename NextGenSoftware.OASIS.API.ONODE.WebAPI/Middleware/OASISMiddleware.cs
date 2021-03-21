@@ -1,13 +1,6 @@
 using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Options;
-using Microsoft.IdentityModel.Tokens;
-using NextGenSoftware.OASIS.API.Config;
-using NextGenSoftware.OASIS.API.Core;
-using System;
-using System.IdentityModel.Tokens.Jwt;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
+using NextGenSoftware.OASIS.API.Config;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Middleware
 {
@@ -15,12 +8,13 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Middleware
     {
         private readonly RequestDelegate _next;
 
-        public OASISMiddleware(RequestDelegate next, IOptions<OASISSettings> OASISSettings)
+        //public OASISMiddleware(RequestDelegate next, IOptions<OASISDNA> OASISSettings)
+        public OASISMiddleware(RequestDelegate next)
         {
             _next = next;
 
-            if (OASISProviderManager.OASISSettings == null)
-                OASISProviderManager.LoadOASISSettings("appsettings.json");
+            if (OASISConfigManager.OASISDNA == null)
+                OASISConfigManager.LoadOASISDNA("OASIS_DNA.json");
 
             //OASISProviderManager.OASISSettings = OASISSettings.Value;
         }

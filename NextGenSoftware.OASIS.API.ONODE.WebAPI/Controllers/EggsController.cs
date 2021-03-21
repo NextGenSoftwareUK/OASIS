@@ -8,11 +8,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
     [Route("api/eggs")]
     public class EggsController : OASISControllerBase
     {
-        OASISSettings _settings;
+        // OASISDNA _settings;
 
-        public EggsController(IOptions<OASISSettings> OASISSettings) : base(OASISSettings)
+        //public EggsController(IOptions<OASISDNA> OASISSettings) : base(OASISSettings)
+        public EggsController()
         {
-            _settings = OASISSettings.Value;
+            //_settings = OASISSettings.Value;
         }
 
         /// <summary>

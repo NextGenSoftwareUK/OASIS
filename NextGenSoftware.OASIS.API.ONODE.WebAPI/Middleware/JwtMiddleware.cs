@@ -1,8 +1,6 @@
 using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using NextGenSoftware.OASIS.API.Config;
-using NextGenSoftware.OASIS.API.Core;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using System;
@@ -17,7 +15,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Middleware
     {
         private readonly RequestDelegate _next;
 
-        public JwtMiddleware(RequestDelegate next, IOptions<OASISSettings> OASISSettings)
+        //public JwtMiddleware(RequestDelegate next, IOptions<OASISSettings> OASISSettings)
+        public JwtMiddleware(RequestDelegate next)
         {
             _next = next;
           //  OASISProviderManager.OASISSettings = OASISSettings.Value;
@@ -42,7 +41,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Middleware
             try
             {
                 var tokenHandler = new JwtSecurityTokenHandler();
-                var key = Encoding.ASCII.GetBytes(OASISProviderManager.OASISSettings.OASIS.Secret);
+                var key = Encoding.ASCII.GetBytes(OASISConfigManager.OASISDNA.OASIS.Secret);
                 tokenHandler.ValidateToken(token, new TokenValidationParameters
                 {
                     ValidateIssuerSigningKey = true,

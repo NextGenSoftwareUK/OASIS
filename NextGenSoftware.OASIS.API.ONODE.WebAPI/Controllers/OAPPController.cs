@@ -1,8 +1,4 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Options;
-using System;
-using NextGenSoftware.OASIS.API.Core;
-using NextGenSoftware.OASIS.API.Config;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 {
@@ -10,11 +6,16 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
     [Route("api/oapp")]
     public class OAPPController : OASISControllerBase
     {
-        OASISSettings _settings;
+        //OASISSettings _settings;
 
-        public OAPPController(IOptions<OASISSettings> OASISSettings) : base(OASISSettings)
+        //public OAPPController(IOptions<OASISDNA> OASISSettings) : base(OASISSettings)
+        //{
+        //    _settings = OASISSettings.Value;
+        //}
+
+        public OAPPController()
         {
-            _settings = OASISSettings.Value;
+            
         }
 
         /// <summary>

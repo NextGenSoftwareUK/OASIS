@@ -13,18 +13,9 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.TestHarness
             Console.WriteLine("");
 
             Console.WriteLine("Connecting To Graph DB...");
-            Neo4jOASIS neo = new Neo4jOASIS();
-
-            //await neo.Connect("bolt://localhost:7687", "neo4j", "neo4j");
-            //await neo.Connect("http://localhost:7687", "neo4j", "neo4j");
-            //await neo.Connect("http://localhost", "neo4j", "neo4j");
-            //await neo.Connect("http://localhost:7474/db/data", "neo4j", "neo4j");
-            //await neo.Connect("http://localhost:7474", "neo4j", "neo4j");
-            await neo.Connect("http://localhost:7474", "neo4j", "letthereb@light!");
-           // await neo.Connect("http://localhost:7474/db/data", null, null);
-           // await neo.Connect("http://localhost", null, null);
-           // await neo.Connect("http://localhost:7687", null, null);
-
+            Neo4jOASIS neo = new Neo4jOASIS("http://localhost:7474", "neo4j", "letthereb@light!");
+            await neo.Connect();
+    
             neo.GraphClient.OperationCompleted += GraphClient_OperationCompleted;
 
             if (neo.GraphClient.IsConnected)

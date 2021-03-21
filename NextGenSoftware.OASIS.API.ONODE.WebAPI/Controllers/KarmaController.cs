@@ -31,7 +31,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         //    }
         //}
 
-        public KarmaController(IOptions<OASISSettings> OASISSettings) : base(OASISSettings)
+        public KarmaController(IOptions<OASISDNA> OASISSettings) : base(OASISSettings)
         {
 
         }
