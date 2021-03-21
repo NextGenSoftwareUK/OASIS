@@ -1,7 +1,4 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Options;
-using NextGenSoftware.OASIS.API.Config;
-using NextGenSoftware.OASIS.API.Core;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
@@ -10,11 +7,16 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
     [Route("api/messaging")]
     public class MessagingController : OASISControllerBase
     {
-        OASISSettings _settings;
+        //OASISSettings _settings;
 
-        public MessagingController(IOptions<OASISSettings> OASISSettings) : base(OASISSettings)
+        //public MessagingController(IOptions<OASISDNA> OASISSettings) : base(OASISSettings)
+        //{
+        //    _settings = OASISSettings.Value;
+        //}
+
+        public MessagingController() 
         {
-            _settings = OASISSettings.Value;
+
         }
 
         /// <summary>

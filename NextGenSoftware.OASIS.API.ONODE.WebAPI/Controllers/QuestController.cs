@@ -31,7 +31,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             }
         }
 
-        public QuestController(IOptions<OASISSettings> OASISSettings) : base(OASISSettings)
+        public QuestController(IOptions<OASISDNA> OASISSettings) : base(OASISSettings)
         {
 
         }

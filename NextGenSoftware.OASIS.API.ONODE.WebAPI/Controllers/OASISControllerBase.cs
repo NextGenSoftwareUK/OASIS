@@ -10,7 +10,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 {
     public class OASISControllerBase : ControllerBase
     {
-        public IOptions<OASISSettings> OASISSettings;
+       // public IOptions<OASISSettings> OASISSettings;
 
         public IAvatar Avatar
         {
@@ -31,20 +31,28 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             }
         }
 
-        public OASISControllerBase(IOptions<OASISSettings> settings)
+        //public OASISControllerBase(IOptions<OASISSettings> settings)
+        public OASISControllerBase()
         {
-            OASISSettings = settings;
+            //OASISSettings = settings;
            // OASISProviderManager.OASISSettings = settings.Value;
+        }
+
+        //TODO: REMOVE ASAP, NOT USED ANYMORE
+        public OASISControllerBase(IOptions<OASISDNA> settings)
+        {
+            //OASISSettings = settings;
+            // OASISProviderManager.OASISSettings = settings.Value;
         }
 
         protected IOASISStorage GetAndActivateProvider()
         {
-            return OASISProviderManager.GetAndActivateProvider();
+            return OASISConfigManager.GetAndActivateProvider();
         }
 
         protected IOASISStorage GetAndActivateProvider(ProviderType providerType, bool setGlobally = false)
         {
-            return OASISProviderManager.GetAndActivateProvider(providerType, setGlobally);
+            return OASISConfigManager.GetAndActivateProvider(providerType, setGlobally);
         }
     }
 }

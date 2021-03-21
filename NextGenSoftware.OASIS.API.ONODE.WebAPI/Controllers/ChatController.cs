@@ -8,11 +8,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
     [Route("api/chat")]
     public class ChatController : OASISControllerBase
     {
-        OASISSettings _settings;
+        //   OASISSettings _settings;
 
-        public ChatController(IOptions<OASISSettings> OASISSettings) : base(OASISSettings)
+        //public ChatController(IOptions<OASISSettings> OASISSettings) : base(OASISSettings)
+        public ChatController()
         {
-            _settings = OASISSettings.Value;
+            //_settings = OASISSettings.Value;
         }
 
         /// <summary>

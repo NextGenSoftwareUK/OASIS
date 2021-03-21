@@ -1,7 +1,8 @@
 ﻿
 namespace NextGenSoftware.OASIS.API.Config
 {
-    public class OASISSettings
+    //public class OASISSettings
+    public class OASISDNA
     {
         public OASIS OASIS { get; set; }
 
@@ -46,7 +47,6 @@ namespace NextGenSoftware.OASIS.API.Config
 
     public class HoloOASISProviderSettings : ProviderSettingsBase
     {
-
     }
 
     public class MongoDBOASISProviderSettings : ProviderSettingsBase
@@ -78,5 +78,7 @@ namespace NextGenSoftware.OASIS.API.Config
 
     public class Neo4jOASISSettings : ProviderSettingsBase
     {
+        public string Username { get; set; }
+        public string Password { get; set; }
     }
 }

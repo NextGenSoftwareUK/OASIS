@@ -8,9 +8,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
     [Route("api/files")]
     public class FilesController : OASISControllerBase
     {
-        OASISSettings _settings;
+        OASISDNA _settings;
 
-        public FilesController(IOptions<OASISSettings> OASISSettings) : base(OASISSettings)
+        public FilesController(IOptions<OASISDNA> OASISSettings) : base(OASISSettings)
         {
             _settings = OASISSettings.Value;
         }

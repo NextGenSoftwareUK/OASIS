@@ -1,20 +1,27 @@
 {
+  "Logging": {
+    "LogLevel": {
+      "Default": "Warning"
+    }
+  },
+  "AllowedHosts": "*",
+
   "OASIS": {
-    "Secret": "PRIVATE",
+    "Secret": "",
     "Email": {
-      "EmailFrom": "PRIVATE",
-      "SmtpHost": "PRIVATE",
-      "SmtpPort": 587,
-      "SmtpUser": "PRIVATE",
-      "SmtpPass": "PRIVATE"
+      "EmailFrom": "",
+      "SmtpHost": "",
+      "SmtpPort": 25,
+      "SmtpUser": "",
+      "SmtpPass": ""
     },
     "StorageProviders": {
-      "DefaultProviders": "MongoDBOASIS, SQLLiteDBOASIS, HoloOASIS, EOSIOOASIS, EthereumOASIS, ThreeFoldOASIS",
+      "DefaultProviders": "MongoDBOASIS, SQLLiteDBOASIS, Neo4JOASIS, IPFSOASIS, HoloOASIS, EOSIOOASIS, EthereumOASIS, ThreeFoldOASIS",
       "HoloOASIS": {
         "ConnectionString": "ws://localhost:8888"
       },
       "MongoDBOASIS": {
-        "ConnectionString": "PRIVATE",
+        "ConnectionString": "",
         "DBName": "OASISAPI"
       },
       "SQLLiteDBOASIS": {
@@ -27,6 +34,14 @@
         "ConnectionString": ""
       },
       "EthereumOASIS": {
+        "ConnectionString": ""
+      },
+      "Neo4JOASIS": {
+        "ConnectionString": "",
+        "Username": "",
+        "Password": ""
+      },
+      "IPFSOASIS": {
         "ConnectionString": ""
       }
     }

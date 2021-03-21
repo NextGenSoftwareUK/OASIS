@@ -14,9 +14,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
     [Route("api/provider")]
     public class ProviderController : OASISControllerBase
     {
-        OASISSettings _settings;
+        OASISDNA _settings;
 
-        public ProviderController(IOptions<OASISSettings> OASISSettings) : base(OASISSettings)
+        public ProviderController(IOptions<OASISDNA> OASISSettings) : base(OASISSettings)
         {
             _settings = OASISSettings.Value;
         }

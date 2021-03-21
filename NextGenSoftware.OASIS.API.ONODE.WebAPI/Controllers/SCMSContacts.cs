@@ -16,7 +16,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
     {
         SCMSRepository _scmsRepository = new SCMSRepository();
 
-        public SCMSContacts(IOptions<OASISSettings> OASISSettings) : base(OASISSettings)
+        public SCMSContacts(IOptions<OASISDNA> OASISSettings) : base(OASISSettings)
         {
 
         }

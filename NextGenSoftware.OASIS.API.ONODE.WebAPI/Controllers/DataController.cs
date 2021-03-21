@@ -14,7 +14,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
     [Route("api/data")]
     public class DataController : OASISControllerBase
     {
-        OASISSettings _settings;
+      //  OASISDNA _settings;
         HolonManager _holonManager = null;
 
         HolonManager HolonManager
@@ -22,15 +22,16 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             get
             {
                 if (_holonManager == null)
-                    _holonManager = new HolonManager(OASISProviderManager.GetAndActivateProvider());
+                    _holonManager = new HolonManager(OASISConfigManager.GetAndActivateProvider());
 
                 return _holonManager;
             }
         }
 
-        public DataController(IOptions<OASISSettings> OASISSettings) : base(OASISSettings)
+        //public DataController(IOptions<OASISDNA> OASISSettings) 
+        public DataController()
         {
-            _settings = OASISSettings.Value;
+            //_settings = OASISSettings.Value;
         }
 
         /// <summary>

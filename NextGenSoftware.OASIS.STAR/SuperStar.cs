@@ -65,14 +65,12 @@ namespace NextGenSoftware.OASIS.STAR
         //public static void Initialize(string holochainConductorURI, HoloNETClientType type, string providerKey)
         public static void Initialize(string providerKey)
         {
-            OASISAPIManager.Init(new List<IOASISProvider>() { new SEEDSOASIS() });
-
-            //By default the OASISProviderManager will load the settings from appsettings.json but you can override using below:
-            OASISProviderManager.OASISDNAFileName = OASIS_DNA;
-
+            //By default the OASISConfigManager will load the settings from appsettings.json but you can override using below:
+            OASISConfigManager.OASISDNAFileName = OASIS_DNA;
 
             // Will initialize the default OASIS Provider defined OASIS_DNA config file.
-            OASISProviderManager.GetAndActivateProvider();
+            OASISConfigManager.GetAndActivateProvider(); //TODO: May move this method into OASISAPI below?
+            OASISAPI.Init(InitOptions.InitWithCurrentDefaultProvider, OASISConfigManager.OASISDNA);
 
             SuperStarCore = new SuperStarCore(providerKey);
             InnerStar = new Star(providerKey);

@@ -30,7 +30,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             }
         }
 
-        public MissionController(IOptions<OASISSettings> OASISSettings) : base(OASISSettings)
+        public MissionController(IOptions<OASISDNA> OASISSettings) : base(OASISSettings)
         {
 
         }

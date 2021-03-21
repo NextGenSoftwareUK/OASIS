@@ -14,16 +14,18 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
 {
     public class IPFSOASIS : OASISStorageBase, IOASISStorage, IOASISNET
     {
+        public IpfsClient IPFSClient;
+        public IpfsEngine IPFSEngine = new IpfsEngine();
 
-        public IpfsClient ipfsClient = new IpfsClient("http://localhost:5002");
-        public IpfsEngine ipfsEngine = new IpfsEngine();
-
-        public IPFSOASIS()
+        public IPFSOASIS(string host)
         {
             this.ProviderName = "IPFSOASIS";
             this.ProviderDescription = "IPFS Provider";
             this.ProviderType = ProviderType.IPFSOASIS;
             this.ProviderCategory = ProviderCategory.StorageAndNetwork;
+
+            //IPFSClient = new IpfsClient("http://localhost:5002");
+            IPFSClient = new IpfsClient(host);
         }
 
         public override bool DeleteAvatar(Guid id, bool softDelete = true)
@@ -125,7 +127,7 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
         {
            
 
-            ipfsEngine.Start();
+            IPFSEngine.Start();
 
             //https://ipfs.io/ipfs/QmWDkvhfbt5kwyd8K3W1shXuJynSkyAfpoXQ3nChj1QBC1?filename=LICENSES.chromium.html
 
@@ -136,7 +138,7 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
           //  Stream stream = await ipfs.DownloadAsync("", new System.Threading.CancellationToken());
             //ipfs.FileSystem.AddFileAsync
             //ipfs.FileSystem.AddTextAsync
-            Stream stream2 = await ipfsEngine.FileSystem.ReadFileAsync(filename);
+            Stream stream2 = await IPFSEngine.FileSystem.ReadFileAsync(filename);
 
             //ipfs.Name.PublishAsync
 

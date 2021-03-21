@@ -7,7 +7,7 @@
   <ItemGroup>
     <None Remove="appsettings.Development.json" />
     <None Remove="CelestialBodyDNA.json" />
-    <None Remove="DNA\STAR_DNA - Copy.json" />
+    <None Remove="DNA\STAR_DNA.json" />
     <None Remove="OASIS_DNA.json" />
     <None Remove="STAR_DNA.json" />
   </ItemGroup>
@@ -23,7 +23,7 @@
       <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
     </Content>
-    <Content Include="DNA\STAR_DNA - Copy.json">
+    <Content Include="DNA\STAR_DNA.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>

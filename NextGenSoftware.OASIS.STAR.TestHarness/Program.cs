@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Linq;
 using System.Reflection;
+using System.Threading.Tasks;
 using EOSNewYork.EOSCore.Response.API;
 using NextGenSoftware.OASIS.API.Core;
 using NextGenSoftware.OASIS.API.Core.Enums;
@@ -14,7 +16,7 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
     {
         static Planet ourWorld;
 
-        static void Main(string[] args)
+        static async Task Main(string[] args)
         {
             var versionString = Assembly.GetEntryAssembly()
                                        .GetCustomAttribute<AssemblyInformationalVersionAttribute>()
@@ -104,35 +106,81 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
                     ourWorld.CelestialBodyCore.SaveHolonAsync(newHolon);
 
 
-                    OASISAPIManager.AvatarManager.LoadAllAvatars();
-                    OASISAPIManager.MapManager.CreateAndDrawRouteOnMapBetweenHolons(newHolon, newHolon);
+                    // All calls are load-balanced and have multiple redudancy/fail over for all supported OASIS Providers.
+                    OASISAPI.Avatar.LoadAllAvatars(); // Load-balanced across all providers.
+                    OASISAPI.Avatar.LoadAllAvatars(ProviderType.MongoDBOASIS); // Only loads from MongoDB.
+                    OASISAPI.Avatar.LoadAvatar(avatar.Id, ProviderType.HoloOASIS); // Only loads from Holochain.
+                    OASISAPI.Map.CreateAndDrawRouteOnMapBetweenHolons(newHolon, newHolon); // Load-balanced across all providers.
+                    
+                    OASISAPI.Data.LoadHolon(newHolon.Id); // Load-balanced across all providers.
+                    OASISAPI.Data.LoadHolon(newHolon.Id, HolonType.All, ProviderType.IPFSOASIS); // Only loads from IPFS.
+                    OASISAPI.Data.LoadAllHolons(HolonType.Moon, ProviderType.HoloOASIS); // Loads all moon (OAPPs) from Holochain.
+                    OASISAPI.Data.SaveHolon(newHolon); // Load-balanced across all providers.
+                    OASISAPI.Data.SaveHolon(newHolon, ProviderType.EthereumOASIS); //  Only saves to Etherum.
 
-                    string balance = OASISAPIManager.SEEDAPI.GetBalance("test.account");
-                    Account account = OASISAPIManager.SEEDAPI.GetUser("test.account");
+                    OASISAPI.Data.LoadAllHolons(HolonType.All, ProviderType.Default); // Loads all parks from current default provider.
+                    OASISAPI.Data.LoadAllHolons(HolonType.Park, ProviderType.All); // Loads all parks from all providers (load-balanced/fail over).
+                    OASISAPI.Data.LoadAllHolons(HolonType.Park); // shorthand for above.
+                    OASISAPI.Data.LoadAllHolons(HolonType.Quest); //  Loads all quests from all providers.
+                    OASISAPI.Data.LoadAllHolons(HolonType.Restaurant); //  Loads all resaurants from all providers.
+
+                    // Holochain Support
+                    await OASISAPI.Providers.Holochain.HoloNETClient.CallZomeFunctionAsync(OASISAPI.Providers.Holochain.HoloNETClient.AgentPubKey, "our_world_core", "load_holons", null);
+                   
+                    // IPFS Support
+                    await OASISAPI.Providers.IPFS.IPFSEngine.FileSystem.ReadFileAsync("");
+                    await OASISAPI.Providers.IPFS.IPFSEngine.FileSystem.AddFileAsync("");
+                    await OASISAPI.Providers.IPFS.IPFSEngine.Swarm.PeersAsync();
+                    await OASISAPI.Providers.IPFS.IPFSEngine.KeyChainAsync();
+                    await OASISAPI.Providers.IPFS.IPFSEngine.Dns.ResolveAsync("test");
+                    await OASISAPI.Providers.IPFS.IPFSEngine.Dag.GetAsync(new Ipfs.Cid() { Hash = "" });
+                    await OASISAPI.Providers.IPFS.IPFSEngine.Dag.PutAsync(new Ipfs.Cid() { Hash = "" });
+
+                    // EOSIO Support
+                    OASISAPI.Providers.EOSIO.ChainAPI.GetTableRows("accounts", "accounts", "users", "true", 0, 0, 1, 3);
+                    OASISAPI.Providers.EOSIO.ChainAPI.GetBlock("block");
+                    OASISAPI.Providers.EOSIO.ChainAPI.GetAccount("test.account");
+                    OASISAPI.Providers.EOSIO.ChainAPI.GetCurrencyBalance("test.account", "", "");
+
+                    // Ethereum Support
+                   // OASISAPI.Providers.Ethereum.Web3.
+
+
+                    // Graph DB Support
+                    await OASISAPI.Providers.Neo4j.GraphClient.Cypher.Merge("(a:Avatar { Id: avatar.Id })").OnCreate().Set("a = avatar").ExecuteWithoutResultsAsync(); //Insert/Update Avatar.
+                    Avatar newAvatar = OASISAPI.Providers.Neo4j.GraphClient.Cypher.Match("(p:Avatar {Username: {nameParam}})").WithParam("nameParam", "davidellams@hotmail.com").Return(p => p.As<Avatar>()).ResultsAsync.Result.Single(); //Load Avatar.
+
+                    // Document/Object DB Support
+                    OASISAPI.Providers.MongoDB.Database.MongoDB.ListCollectionNames();
+                    OASISAPI.Providers.MongoDB.Database.MongoDB.GetCollection<Avatar>("testCollection");
+                    
+                    // SEEDS Support
+                    string balance = OASISAPI.Providers.SEEDS.GetBalance("test.account");
+                    Account account = OASISAPI.Providers.SEEDS.GetUser("test.account");
 
                     Console.WriteLine(string.Concat("Balance Before: ", balance));
                     Console.WriteLine(string.Concat("Account.account_name: ", account.account_name));
                     Console.WriteLine(string.Concat("Account.core_liquid_balance Before: ", account.core_liquid_balance));
 
-                    OASISAPIManager.SEEDAPI.PayWithSeeds("test.account", "test.account2", 7, "test memo");
-                    balance = OASISAPIManager.SEEDAPI.GetBalance("test.account");
-                    account = OASISAPIManager.SEEDAPI.GetUser("test.account");
+                    OASISAPI.Providers.SEEDS.PayWithSeeds("test.account", "test.account2", 7, "test memo");
+                    balance = OASISAPI.Providers.SEEDS.GetBalance("test.account");
+                    account = OASISAPI.Providers.SEEDS.GetUser("test.account");
 
                     Console.WriteLine(string.Concat("Balance After: ", balance));
                     Console.WriteLine(string.Concat("Account.core_liquid_balance After: ", account.core_liquid_balance));
 
-                    string orgs = OASISAPIManager.SEEDAPI.GetAllOrganisationsAsJSON();
+                    string orgs = OASISAPI.Providers.SEEDS.GetAllOrganisationsAsJSON();
                     Console.WriteLine(string.Concat("Organisations: ", orgs));
 
-                    string qrCode = OASISAPIManager.SEEDAPI.GenerateSignInQRCode();
+                    string qrCode = OASISAPI.Providers.SEEDS.GenerateSignInQRCode();
                     Console.WriteLine(string.Concat("SEEDS Sign-In QRCode: ", qrCode));
 
-                    SendInviteResult result = OASISAPIManager.SEEDAPI.SendInviteToJoinSeeds("test.account", "test.account", 5, 5);
-                    Console.WriteLine(string.Concat("Invite Sent To Join SEEDS. Invite Secrert: ", result.InviteSecret, ". Transction ID: ", result.TransactionId));
+                    SendInviteResult inviteResult = OASISAPI.Providers.SEEDS.SendInviteToJoinSeeds("test.account", "test.account", 5, 5);
+                    Console.WriteLine(string.Concat("Invite Sent To Join SEEDS. Invite Secrert: ", inviteResult.InviteSecret, ". Transction ID: ", inviteResult.TransactionId));
 
-                    string transactionID = OASISAPIManager.SEEDAPI.AcceptInviteToJoinSeeds("test.account2", result.InviteSecret);
-                    Console.WriteLine(string.Concat("Invite Accepted To Join SEEDS. Invite Secrert: ", result.InviteSecret, ". Transction ID: ", transactionID));
-
+                    string transactionID = OASISAPI.Providers.SEEDS.AcceptInviteToJoinSeeds("test.account2", inviteResult.InviteSecret);
+                    Console.WriteLine(string.Concat("Invite Accepted To Join SEEDS. Invite Secrert: ", inviteResult.InviteSecret, ". Transction ID: ", transactionID));
+                    
 
 
                     // Build

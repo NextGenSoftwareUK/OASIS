@@ -8,9 +8,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
     [Route("api/gifts")]
     public class GiftsController : OASISControllerBase
     {
-        OASISSettings _settings;
+        OASISDNA _settings;
 
-        public GiftsController(IOptions<OASISSettings> OASISSettings) : base(OASISSettings)
+        public GiftsController(IOptions<OASISDNA> OASISSettings) : base(OASISSettings)
         {
             _settings = OASISSettings.Value;
         }
