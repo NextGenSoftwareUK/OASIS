@@ -19,7 +19,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
     {
         private SearchManager _SearchManager;
 
-        public SearchController(IOptions<OASISSettings> OASISSettings) : base(OASISSettings)
+        //public SearchController(IOptions<OASISSettings> OASISSettings) : base(OASISSettings)
+        //{
+
+        //}
+
+        public SearchController()
         {
 
         }

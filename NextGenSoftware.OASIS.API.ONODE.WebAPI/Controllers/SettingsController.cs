@@ -8,11 +8,16 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
     [Route("api/settings")]
     public class SettingsController : OASISControllerBase
     {
-        OASISSettings _settings;
+        //OASISSettings _settings;
 
-        public SettingsController(IOptions<OASISSettings> OASISSettings) : base(OASISSettings)
+        //public SettingsController(IOptions<OASISSettings> OASISSettings) : base(OASISSettings)
+        //{
+        //    _settings = OASISSettings.Value;
+        //}
+
+        public SettingsController()
         {
-            _settings = OASISSettings.Value;
+            //_settings = OASISSettings.Value;
         }
 
         /// <summary>

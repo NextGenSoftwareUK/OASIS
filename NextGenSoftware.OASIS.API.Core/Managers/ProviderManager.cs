@@ -7,9 +7,10 @@ using NextGenSoftware.OASIS.API.Core.Interfaces;
 
 namespace NextGenSoftware.OASIS.API.Core.Managers
 {
-    public class ProviderManager 
+    public class ProviderManager
     {
         private static List<IOASISProvider> _registeredProviders = new List<IOASISProvider>();
+        private static List<ProviderType> _registeredProviderTypes = null;
         private static bool _setProviderGlobally = false;
 
         public static ProviderType CurrentStorageProviderType { get; private set; } = ProviderType.Default;
@@ -22,7 +23,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             }
         }
 
-        public static string[] DefaultProviderTypes { get;  set; }
+        public static string[] DefaultProviderTypes { get; set; }
 
         public static IOASISStorage DefaultGlobalStorageProvider { get; set; }
 
@@ -30,6 +31,18 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
         public static bool OverrideProviderType { get; set; } = false;
 
+        public static List<ProviderType> ProvidersThatAreAutoReplicating { get; set; }
+
+        //public static List<ProviderType> RegisteredProviderTypes
+        //{
+        //    get
+        //    {
+        //        if (_registeredProviderTypes == null)
+        //        {
+        //            _registeredProviderTypes = new List<ProviderType>();
+        //        }
+        //    }
+        //}
 
         //TODO: In future the registered providers will be dynamically loaded from MEF by watching a hot folder for compiled provider dlls (and other ways in future...)
         public static bool RegisterProvider(IOASISProvider provider)
@@ -37,6 +50,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             if (!_registeredProviders.Any(x => x.ProviderName == provider.ProviderName))
             {
                 _registeredProviders.Add(provider);
+                _registeredProviderTypes.Add(provider.ProviderType);
                 return true;
             }
 
@@ -56,6 +70,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         public static bool UnRegisterProvider(IOASISProvider provider)
         {
             _registeredProviders.Remove(provider);
+            _registeredProviderTypes.Remove(provider.ProviderType);
             return true;
         }
 
@@ -86,14 +101,24 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return true;
         }
 
-        public static List<IOASISProvider> GetAllProviders()
+        public static List<IOASISProvider> GetAllRegisteredProviders()
         {
             return _registeredProviders;
+        }
+
+        public static List<ProviderType> GetAllRegisteredProviderTypes()
+        {
+            return _registeredProviderTypes;
         }
 
         public static List<IOASISProvider> GetProvidersOfCategory(ProviderCategory category)
         {
             return _registeredProviders.Where(x => x.ProviderCategory == category).ToList();
+        }
+
+        public static List<ProviderType> GetProviderTypesOfCategory(ProviderCategory category)
+        {
+            return GetProviderTypes(GetProvidersOfCategory(category));
         }
 
         public static List<IOASISStorage> GetStorageProviders()
@@ -106,6 +131,12 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return storageProviders;
         }
 
+        public static List<ProviderType> GetStorageProviderTypes()
+        {
+            //return GetProviderTypes(GetStorageProviders().Select(x => x.ProviderType);
+            return GetStorageProviders().Select(x => x.ProviderType).ToList();
+        }
+
         public static List<IOASISNET> GetNetworkProviders()
         {
             List<IOASISNET> networkProviders = new List<IOASISNET>();
@@ -114,6 +145,28 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 networkProviders.Add((IOASISNET)provider);
 
             return networkProviders;
+        }
+
+        public static List<ProviderType> GetNetworkProviderTypes()
+        {
+            return GetNetworkProviders().Select(x => x.ProviderType).ToList();
+
+            //List<ProviderType> providerTypes = new List<ProviderType>();
+
+            //foreach (IOASISProvider provider in GetNetworkProviders())
+            //    providerTypes.Add(provider.ProviderType);
+
+            //return providerTypes;
+        }
+
+        public static List<ProviderType> GetProviderTypes(List<IOASISProvider> providers)
+        {
+            List<ProviderType> providerTypes = new List<ProviderType>();
+
+            foreach (IOASISProvider provider in providers)
+                providerTypes.Add(provider.ProviderType);
+
+            return providerTypes;
         }
 
         public static List<IOASISRenderer> GetRendererProviders()
@@ -261,6 +314,35 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             }
 
             return false;
+        }
+
+        public bool SetAutoReplicate(bool autoReplicate, List<ProviderType> providers)
+        {
+            foreach (ProviderType providerType in providers)
+            {
+                foreach (ProviderType providerTypeRegistered in ProvidersThatAreAutoReplicating)
+                {
+                    if (providerType == providerTypeRegistered)
+                    {
+                        if (!autoReplicate)
+                            ProvidersThatAreAutoReplicating.Remove(providerTypeRegistered);
+
+                    }
+                }
+            }
+            
+            //ProvidersThatAreAutoReplicating = providers;
+
+
+            foreach (ProviderType providerType in providers)
+            {
+                //pro    
+            }
+        }
+
+        public bool SetAutoReplicate(bool autoReplicate)
+        {
+            return SetAutoReplicate(autoReplicate, _registeredProviderTypes);
         }
     }
 }
