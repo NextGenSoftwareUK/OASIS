@@ -29,7 +29,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpGet("GetAllRegisteredProviders")]
         public ActionResult<IEnumerable<IOASISProvider>> GetAllRegisteredProviders()
         {
-            return Ok(ProviderManager.GetAllProviders());
+            return Ok(ProviderManager.GetAllRegisteredProviders());
         }
 
         /// <summary>

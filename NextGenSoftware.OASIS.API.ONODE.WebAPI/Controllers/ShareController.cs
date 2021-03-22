@@ -11,11 +11,16 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
     [Route("api/share")]
     public class ShareController : OASISControllerBase
     {
-        OASISSettings _settings;
+        //  OASISSettings _settings;
 
-        public ShareController(IOptions<OASISSettings> OASISSettings) : base(OASISSettings)
+        //public ShareController(IOptions<OASISSettings> OASISSettings) : base(OASISSettings)
+        //{
+        //    _settings = OASISSettings.Value;
+        //}
+
+        public ShareController()
         {
-            _settings = OASISSettings.Value;
+            
         }
 
         /// <summary>
