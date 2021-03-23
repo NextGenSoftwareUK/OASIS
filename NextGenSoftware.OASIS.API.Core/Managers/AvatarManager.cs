@@ -101,12 +101,44 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
         public async Task<IAvatar> SaveAvatarAsync(IAvatar avatar, ProviderType providerType = ProviderType.Default)
         {
-            return await ProviderManager.SetAndActivateCurrentStorageProvider(providerType).SaveAvatarAsync(PrepareAvatarForSaving(avatar));
+            avatar = await ProviderManager.SetAndActivateCurrentStorageProvider(providerType).SaveAvatarAsync(PrepareAvatarForSaving(avatar));
+
+            bool needToChangeBack = false;
+            foreach (ProviderType type in ProviderManager.ProvidersThatAreAutoReplicating)
+            {
+                if (type != providerType)
+                {
+                    await ProviderManager.SetAndActivateCurrentStorageProvider(type).SaveAvatarAsync(avatar);
+                    needToChangeBack = true;
+                }
+            }
+
+            // Set the current provider back to the original provider.
+            if (needToChangeBack)
+                ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
+
+            return avatar;
         }
 
         public IAvatar SaveAvatar(IAvatar avatar, ProviderType providerType = ProviderType.Default)
         {
-            return ProviderManager.SetAndActivateCurrentStorageProvider(providerType).SaveAvatar(PrepareAvatarForSaving(avatar));
+            avatar = ProviderManager.SetAndActivateCurrentStorageProvider(providerType).SaveAvatar(PrepareAvatarForSaving(avatar));
+
+            bool needToChangeBack = false;
+            foreach (ProviderType type in ProviderManager.ProvidersThatAreAutoReplicating)
+            {
+                if (type != providerType)
+                {
+                    ProviderManager.SetAndActivateCurrentStorageProvider(type).SaveAvatar(avatar);
+                    needToChangeBack = true;
+                }
+            }
+
+            // Set the current provider back to the original provider.
+            if (needToChangeBack)
+                ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
+
+            return avatar;
         }
 
 

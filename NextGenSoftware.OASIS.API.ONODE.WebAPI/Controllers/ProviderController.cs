@@ -14,11 +14,16 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
     [Route("api/provider")]
     public class ProviderController : OASISControllerBase
     {
-        OASISDNA _settings;
+        // OASISDNA _settings;
 
-        public ProviderController(IOptions<OASISDNA> OASISSettings) : base(OASISSettings)
+        //public ProviderController(IOptions<OASISDNA> OASISSettings) : base(OASISSettings)
+        //{
+        //    _settings = OASISSettings.Value;
+        //}
+
+        public ProviderController()
         {
-            _settings = OASISSettings.Value;
+
         }
 
         /// <summary>
@@ -30,6 +35,17 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         public ActionResult<IEnumerable<IOASISProvider>> GetAllRegisteredProviders()
         {
             return Ok(ProviderManager.GetAllRegisteredProviders());
+        }
+
+        /// <summary>
+        /// Get all registered provider types.
+        /// </summary>
+        /// <returns></returns>
+        [Authorize]
+        [HttpGet("GetAllRegisteredProviderTypes")]
+        public ActionResult<IEnumerable<ProviderType>> GetAllRegisteredProviderTypes()
+        {
+            return Ok(ProviderManager.GetAllRegisteredProviderTypes());
         }
 
         /// <summary>
@@ -107,10 +123,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpGet("GetProvidersThatAreAutoReplicating")]
-        public ActionResult<bool> GetProvidersThatAreAutoReplicating()
+        public ActionResult<ProviderType[]> GetProvidersThatAreAutoReplicating()
         {
-            //TODO: Finish implementing.
-            return Ok(true);
+            return Ok(ProviderManager.ProvidersThatAreAutoReplicating);
         }
 
         /// <summary>
@@ -270,8 +285,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpPost("SetAutoReplicate/{autoReplicate}")]
         public ActionResult<bool> SetAutoReplicate(bool autoReplicate)
         {
-            //TODO: Finish implementing.
-            return Ok(true);
+            return Ok(ProviderManager.SetAutoReplicate(autoReplicate));
         }
 
         /// <summary>
@@ -282,10 +296,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpPost("SetAutoReplicate/{autoReplicate}/{providers}")]
-        public ActionResult<bool> SetAutoReplicate(bool autoReplicate, string[] providers)
+        public ActionResult<bool> SetAutoReplicate(bool autoReplicate, ProviderType[] providers)
         {
-            //TODO: Finish implementing.
-            return Ok(true);
+            return Ok(ProviderManager.SetAutoReplicate(autoReplicate, new List<ProviderType>(providers)));
         }
 
 
@@ -304,7 +317,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             {
                 case ProviderType.MongoDBOASIS:
                     {
-                        _settings.OASIS.StorageProviders.MongoDBOASIS.ConnectionString = connectionString;
+                        OASISConfigManager.OASISDNA.OASIS.StorageProviders.MongoDBOASIS.ConnectionString = connectionString;
 
                         ProviderManager.DeActivateProvider(ProviderType.MongoDBOASIS);
                         ProviderManager.UnRegisterProvider(ProviderType.MongoDBOASIS);
