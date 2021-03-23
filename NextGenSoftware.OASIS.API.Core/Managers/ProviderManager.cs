@@ -316,7 +316,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return false;
         }
 
-        public bool SetAutoReplicate(bool autoReplicate, List<ProviderType> providers)
+        public static bool SetAutoReplicate(bool autoReplicate, List<ProviderType> providers)
         {
             foreach (ProviderType providerType in providers)
             {
@@ -324,23 +324,26 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 {
                     if (providerType == providerTypeRegistered)
                     {
+                        // If they wish to remove the selected providers from auto-replication then remove them now.
                         if (!autoReplicate)
                             ProvidersThatAreAutoReplicating.Remove(providerTypeRegistered);
 
+                        break;
+                    }
+
+                    //If they wish to add providers to auto-replicate and they are not in the list then add them now.
+                    else if (autoReplicate)
+                    {
+                        ProvidersThatAreAutoReplicating.Add(providerTypeRegistered);
+                        break;
                     }
                 }
             }
-            
-            //ProvidersThatAreAutoReplicating = providers;
 
-
-            foreach (ProviderType providerType in providers)
-            {
-                //pro    
-            }
+            return true;
         }
 
-        public bool SetAutoReplicate(bool autoReplicate)
+        public static bool SetAutoReplicate(bool autoReplicate)
         {
             return SetAutoReplicate(autoReplicate, _registeredProviderTypes);
         }
