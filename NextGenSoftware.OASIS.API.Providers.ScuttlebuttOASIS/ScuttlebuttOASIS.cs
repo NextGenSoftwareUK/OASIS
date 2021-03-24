@@ -15,8 +15,8 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
         {
             this.ProviderName = "ScuttlebuttOASIS";
             this.ProviderDescription = "Scuttlebutt Provider";
-            this.ProviderType = ProviderType.ScuttlebuttOASIS;
-            this.ProviderCategory = ProviderCategory.StorageAndNetwork;
+            this.ProviderType = new Core.Helpers.EnumValue<ProviderType>(Core.Enums.ProviderType.ScuttlebuttOASIS);
+            this.ProviderCategory = new Core.Helpers.EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
         }
 
         public override bool DeleteAvatar(Guid id, bool softDelete = true)

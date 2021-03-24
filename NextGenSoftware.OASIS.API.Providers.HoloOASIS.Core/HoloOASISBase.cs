@@ -49,8 +49,8 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Core
         {
             this.ProviderName = "HoloOASIS";
             this.ProviderDescription = "Holochain Provider";
-            this.ProviderType = ProviderType.HoloOASIS;
-            this.ProviderCategory = ProviderCategory.StorageAndNetwork;
+            this.ProviderType = new API.Core.Helpers.EnumValue<ProviderType>(API.Core.Enums.ProviderType.HoloOASIS);
+            this.ProviderCategory = new API.Core.Helpers.EnumValue<ProviderCategory>(API.Core.Enums.ProviderCategory.StorageAndNetwork);
             this.HoloNETClient = holoNETClient;
           //  _holochainURI = holochainURI;
             Initialize();
@@ -456,8 +456,8 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Core
 
         public override IAvatar LoadAvatar(string username)
         {
-            //throw new NotImplementedException();
-            return new Avatar() { ProviderType = ProviderType.HoloOASIS };
+            throw new NotImplementedException();
+           // return new Avatar() { ProviderType =  };
         }
 
         public override IHolon LoadHolon(Guid id, HolonType type = HolonType.Holon)

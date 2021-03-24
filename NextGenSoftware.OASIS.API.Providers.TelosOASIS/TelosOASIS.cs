@@ -14,8 +14,8 @@ namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS
         {
             this.ProviderName = "TelosOASIS";
             this.ProviderDescription = "Telos Provider";
-            this.ProviderType = ProviderType.TelosOASIS;
-            this.ProviderCategory = ProviderCategory.StorageAndNetwork;
+            this.ProviderType = new API.Core.Helpers.EnumValue<ProviderType>(API.Core.Enums.ProviderType.TelosOASIS);
+            this.ProviderCategory = new Core.Helpers.EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
         }
 
         public override bool DeleteAvatar(Guid id, bool softDelete = true)

@@ -14,8 +14,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS
         {
             this.ProviderName = "SEEDSOASIS";
             this.ProviderDescription = "SEEDS Provider";
-            this.ProviderType = ProviderType.SEEDSOASIS;
-            this.ProviderCategory = ProviderCategory.StorageAndNetwork;
+            this.ProviderType = new Core.Helpers.EnumValue<ProviderType>(Core.Enums.ProviderType.SEEDSOASIS);
+            this.ProviderCategory = new Core.Helpers.EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
         }
 
         public override bool DeleteAvatar(Guid id, bool softDelete = true)

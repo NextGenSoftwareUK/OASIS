@@ -7,6 +7,7 @@ using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.Core.Objects;
 
 namespace NextGenSoftware.OASIS.API.Core.Holons
 {
@@ -180,7 +181,8 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
                 karma = karmaOverride;
 
             this.Karma += karma;
-            KarmaAkashicRecord record = new KarmaAkashicRecord { TotalKarma = this.Karma, KarmaEarntOrLost = new EnumValue<KarmaEarntOrLost>(KarmaEarntOrLost.Earnt), KarmaTypeNegative = new EnumValue<KarmaTypeNegative>(KarmaTypeNegative.None), Date = DateTime.Now, Karma = karma, KarmaSource = new EnumValue<KarmaSourceType>(karmaSourceType), KarmaSourceTitle = karamSourceTitle, KarmaSourceDesc = karmaSourceDesc, KarmaTypePositive = new EnumValue<KarmaTypePositive>(karmaType), AvatarId = Id, Provider = new EnumValue<ProviderType>(ProviderManager.CurrentStorageProviderType) };
+            //KarmaAkashicRecord record = new KarmaAkashicRecord { TotalKarma = this.Karma, KarmaEarntOrLost = new EnumValue<KarmaEarntOrLost>(KarmaEarntOrLost.Earnt), KarmaTypeNegative = new EnumValue<KarmaTypeNegative>(KarmaTypeNegative.None), Date = DateTime.Now, Karma = karma, KarmaSource = new EnumValue<KarmaSourceType>(karmaSourceType), KarmaSourceTitle = karamSourceTitle, KarmaSourceDesc = karmaSourceDesc, KarmaTypePositive = new EnumValue<KarmaTypePositive>(karmaType), AvatarId = Id, Provider = new EnumValue<ProviderType>(ProviderManager.CurrentStorageProviderType.Value) };
+            KarmaAkashicRecord record = new KarmaAkashicRecord { TotalKarma = this.Karma, KarmaEarntOrLost = new EnumValue<KarmaEarntOrLost>(KarmaEarntOrLost.Earnt), KarmaTypeNegative = new EnumValue<KarmaTypeNegative>(KarmaTypeNegative.None), Date = DateTime.Now, Karma = karma, KarmaSource = new EnumValue<KarmaSourceType>(karmaSourceType), KarmaSourceTitle = karamSourceTitle, KarmaSourceDesc = karmaSourceDesc, KarmaTypePositive = new EnumValue<KarmaTypePositive>(karmaType), AvatarId = Id, Provider = ProviderManager.CurrentStorageProviderType };
 
             if (this.KarmaAkashicRecords == null)
                 this.KarmaAkashicRecords = new List<KarmaAkashicRecord>();
@@ -197,7 +199,8 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
                 karma = karmaOverride;
 
             this.Karma -= karma;
-            KarmaAkashicRecord record = new KarmaAkashicRecord { TotalKarma = this.Karma,KarmaEarntOrLost = new EnumValue<KarmaEarntOrLost>(KarmaEarntOrLost.Lost), KarmaTypePositive = new EnumValue<KarmaTypePositive>(KarmaTypePositive.None), Date = DateTime.Now, Karma = karma, KarmaSource = new EnumValue<KarmaSourceType>(karmaSourceType), KarmaSourceTitle = karamSourceTitle, KarmaSourceDesc = karmaSourceDesc, KarmaTypeNegative = new EnumValue<KarmaTypeNegative>(karmaType), AvatarId = Id, Provider = new EnumValue<ProviderType>(ProviderManager.CurrentStorageProviderType) };
+            //KarmaAkashicRecord record = new KarmaAkashicRecord { TotalKarma = this.Karma,KarmaEarntOrLost = new EnumValue<KarmaEarntOrLost>(KarmaEarntOrLost.Lost), KarmaTypePositive = new EnumValue<KarmaTypePositive>(KarmaTypePositive.None), Date = DateTime.Now, Karma = karma, KarmaSource = new EnumValue<KarmaSourceType>(karmaSourceType), KarmaSourceTitle = karamSourceTitle, KarmaSourceDesc = karmaSourceDesc, KarmaTypeNegative = new EnumValue<KarmaTypeNegative>(karmaType), AvatarId = Id, Provider = new EnumValue<ProviderType>(ProviderManager.CurrentStorageProviderType.Value) };
+            KarmaAkashicRecord record = new KarmaAkashicRecord { TotalKarma = this.Karma, KarmaEarntOrLost = new EnumValue<KarmaEarntOrLost>(KarmaEarntOrLost.Lost), KarmaTypePositive = new EnumValue<KarmaTypePositive>(KarmaTypePositive.None), Date = DateTime.Now, Karma = karma, KarmaSource = new EnumValue<KarmaSourceType>(karmaSourceType), KarmaSourceTitle = karamSourceTitle, KarmaSourceDesc = karmaSourceDesc, KarmaTypeNegative = new EnumValue<KarmaTypeNegative>(karmaType), AvatarId = Id, Provider = ProviderManager.CurrentStorageProviderType };
 
             if (this.KarmaAkashicRecords == null)
                 this.KarmaAkashicRecords = new List<KarmaAkashicRecord>();

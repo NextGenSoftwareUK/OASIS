@@ -22,8 +22,8 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
         {
             this.ProviderName = "EOSIOOASIS";
             this.ProviderDescription = "EOSIO Provider";
-            this.ProviderType = ProviderType.EOSOASIS;
-            this.ProviderCategory = ProviderCategory.StorageAndNetwork;
+            this.ProviderType = new Core.Helpers.EnumValue<ProviderType>(Core.Enums.ProviderType.EOSOASIS);
+            this.ProviderCategory = new Core.Helpers.EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
 
             ChainAPI = new ChainAPI(host);
         }

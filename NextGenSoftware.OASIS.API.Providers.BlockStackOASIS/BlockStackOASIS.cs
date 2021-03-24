@@ -14,8 +14,8 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
         {
             this.ProviderName = "BlockStackOASIS";
             this.ProviderDescription = "BlockStack Provider";
-            this.ProviderType = ProviderType.BlockStackOASIS;
-            this.ProviderCategory = ProviderCategory.StorageAndNetwork;
+            this.ProviderType = new Core.Helpers.EnumValue<ProviderType>(Core.Enums.ProviderType.BlockStackOASIS);
+            this.ProviderCategory = new Core.Helpers.EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
         }
 
         public override bool DeleteAvatar(Guid id, bool softDelete = true)

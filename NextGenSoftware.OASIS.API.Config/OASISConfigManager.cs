@@ -56,7 +56,7 @@ namespace NextGenSoftware.OASIS.API.Config
                 LoadOASISDNA(OASISDNAFileName);
 
             //TODO: Think we can have this in ProviderManger and have default connection strings/settings for each provider.
-            if (providerType != ProviderManager.CurrentStorageProviderType)
+            if (providerType != ProviderManager.CurrentStorageProviderType.Value)
             {
                 if (!ProviderManager.IsProviderRegistered(providerType))
                 {
