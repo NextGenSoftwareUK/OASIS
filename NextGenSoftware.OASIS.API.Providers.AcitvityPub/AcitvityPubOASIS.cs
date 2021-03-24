@@ -14,8 +14,8 @@ namespace NextGenSoftware.OASIS.API.Providers.AcitvityPubOASIS
         {
             this.ProviderName = "AcitvityPubOASIS";
             this.ProviderDescription = "ActivityPub Provider";
-            this.ProviderType = ProviderType.ActivityPubOASIS;
-            this.ProviderCategory = ProviderCategory.StorageAndNetwork;
+            this.ProviderType = new Core.Helpers.EnumValue<ProviderType>(Core.Enums.ProviderType.ActivityPubOASIS);
+            this.ProviderCategory = new Core.Helpers.EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
         }
 
         public Task<bool> AddKarmaToAvatarAsync(IAvatar Avatar, int karma)

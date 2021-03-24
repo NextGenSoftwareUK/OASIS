@@ -17,8 +17,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLIDOASIS
         {
             this.ProviderName = "SOLIDOASIS";
             this.ProviderDescription = "SOLID Provider";
-            this.ProviderType = ProviderType.SOLIDOASIS;
-            this.ProviderCategory = ProviderCategory.StorageAndNetwork;
+            this.ProviderType = new Core.Helpers.EnumValue<ProviderType>(Core.Enums.ProviderType.SOLIDOASIS);
+            this.ProviderCategory = new Core.Helpers.EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
         }
 
         public IEnumerable<IHolon> GetHolonsNearMe(HolonType Type)

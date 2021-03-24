@@ -35,8 +35,8 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
         {
             this.ProviderName = "EthereumOASIS";
             this.ProviderDescription = "Ethereum Provider";
-            this.ProviderType = ProviderType.EthereumOASIS;
-            this.ProviderCategory = ProviderCategory.StorageAndNetwork;
+            this.ProviderType = new Core.Helpers.EnumValue<ProviderType>(Core.Enums.ProviderType.EthereumOASIS);
+            this.ProviderCategory = new Core.Helpers.EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
 
             oasisTest();
         }

@@ -1,7 +1,7 @@
 ﻿using NextGenSoftware.OASIS.API.Core.Enums;
 using System.Collections.Generic;
 
-namespace NextGenSoftware.OASIS.API.Core
+namespace NextGenSoftware.OASIS.API.Core.Objects
 {
     // Might have been ProviderManagerConfig before global replaceall from Profile to Avatar... Check later... :)
     public class ProviderManagerConfig

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 
 using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Holons;
 
 namespace NextGenSoftware.OASIS.API.Core.Interfaces
@@ -28,7 +29,7 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces
         DateTime DeletedDate { get; set; }
         bool IsActive { get; set; }
         int Version { get; set; }
-        ProviderType ProviderType { get; set; }
+        EnumValue<ProviderType> ProviderType { get; set; }
         public List<INode> Nodes { get; set; }
     }
 }

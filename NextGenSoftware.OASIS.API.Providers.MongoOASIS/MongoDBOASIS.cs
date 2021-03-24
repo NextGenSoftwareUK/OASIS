@@ -9,6 +9,7 @@ using MongoDB.Driver;
 using NextGenSoftware.OASIS.API.Core;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.Core.Holons;
 
 namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
@@ -43,8 +44,8 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
 
             this.ProviderName = "MongoDBOASIS";
             this.ProviderDescription = "MongoDB Atlas Provider";
-            this.ProviderType = ProviderType.MongoDBOASIS;
-            this.ProviderCategory = ProviderCategory.StorageAndNetwork;
+            this.ProviderType = new Core.Helpers.EnumValue<ProviderType>(Core.Enums.ProviderType.MongoDBOASIS);
+            this.ProviderCategory = new Core.Helpers.EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
         }
 
         public Task<bool> AddKarmaToAvatarAsync(IAvatar Avatar, int karma)
@@ -225,7 +226,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             oasisAvatar.Name = avatar.Name;
             oasisAvatar.Description = avatar.Description;
             oasisAvatar.HolonType = avatar.HolonType;
-            oasisAvatar.ProviderType = avatar.ProviderType;
+            oasisAvatar.ProviderType = new Core.Helpers.EnumValue<ProviderType>(avatar.ProviderType);
             oasisAvatar.CelestialBody = avatar.CelestialBody;
             oasisAvatar.Nodes = avatar.Nodes;
             oasisAvatar.Parent = avatar.Parent;
@@ -273,7 +274,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             oasisAvatar.ResetTokenExpires = avatar.ResetTokenExpires;
             oasisAvatar.VerificationToken = avatar.VerificationToken;
             oasisAvatar.Verified = avatar.Verified;
-            oasisAvatar.ProviderType = ProviderType.MongoDBOASIS;
+            oasisAvatar.ProviderType = new Core.Helpers.EnumValue<ProviderType>(Core.Enums.ProviderType.MongoDBOASIS);
             oasisAvatar.IsActive = avatar.IsActive;
 
           //  oasisAvatar.SetKarmaForDataObject(avatar.Karma);
@@ -294,7 +295,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             mongoAvatar.Description = avatar.Description;
             mongoAvatar.HolonType = avatar.HolonType;
             mongoAvatar.ProviderKey = avatar.ProviderKey;
-            mongoAvatar.ProviderType = avatar.ProviderType;
+            mongoAvatar.ProviderType = avatar.ProviderType.Value;
             mongoAvatar.CelestialBody = avatar.CelestialBody;
             mongoAvatar.Nodes = avatar.Nodes;
             mongoAvatar.Parent = avatar.Parent;
@@ -360,7 +361,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             oasisHolon.Name = holon.Name;
             oasisHolon.Description = holon.Description;
             oasisHolon.HolonType = holon.HolonType;
-            oasisHolon.ProviderType = holon.ProviderType;
+            oasisHolon.ProviderType = new Core.Helpers.EnumValue<ProviderType>(holon.ProviderType);
             oasisHolon.CelestialBody = holon.CelestialBody;
             oasisHolon.Nodes = holon.Nodes;
             oasisHolon.Parent = holon.Parent;
@@ -377,7 +378,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             oasisHolon.ModifiedDate = holon.ModifiedDate;
             oasisHolon.DeletedDate = holon.DeletedDate;
             oasisHolon.Version = holon.Version;
-            oasisHolon.ProviderType = ProviderType.MongoDBOASIS;
+            oasisHolon.ProviderType.Value = Core.Enums.ProviderType.MongoDBOASIS;
             oasisHolon.IsActive = holon.IsActive;
 
             return oasisHolon;
@@ -395,7 +396,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             mongoHolon.Description = holon.Description;
             mongoHolon.HolonType = holon.HolonType;
             mongoHolon.ProviderKey = holon.ProviderKey;
-            mongoHolon.ProviderType = holon.ProviderType;
+            mongoHolon.ProviderType = holon.ProviderType.Value;
             mongoHolon.CelestialBody = holon.CelestialBody;
             mongoHolon.Nodes = holon.Nodes;
             mongoHolon.Parent = holon.Parent;

@@ -1,5 +1,6 @@
 ﻿
 using NextGenSoftware.OASIS.API.Core.Holons;
+using NextGenSoftware.OASIS.API.Core.Objects;
 using System.Threading.Tasks;
 
 namespace NextGenSoftware.OASIS.API.Core.Interfaces

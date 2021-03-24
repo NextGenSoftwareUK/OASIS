@@ -21,8 +21,8 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
         {
             this.ProviderName = "IPFSOASIS";
             this.ProviderDescription = "IPFS Provider";
-            this.ProviderType = ProviderType.IPFSOASIS;
-            this.ProviderCategory = ProviderCategory.StorageAndNetwork;
+            this.ProviderType = new Core.Helpers.EnumValue<ProviderType>(Core.Enums.ProviderType.IPFSOASIS);
+            this.ProviderCategory = new Core.Helpers.EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
 
             //IPFSClient = new IpfsClient("http://localhost:5002");
             IPFSClient = new IpfsClient(host);

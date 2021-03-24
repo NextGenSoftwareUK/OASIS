@@ -14,8 +14,8 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
         {
             this.ProviderName = "TRONOASIS";
             this.ProviderDescription = "TRON Provider";
-            this.ProviderType = ProviderType.TRONOASIS;
-            this.ProviderCategory = ProviderCategory.StorageAndNetwork;
+            this.ProviderType = new API.Core.Helpers.EnumValue<ProviderType>(API.Core.Enums.ProviderType.TRONOASIS);
+            this.ProviderCategory = new Core.Helpers.EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
         }
 
         public override bool DeleteAvatar(Guid id, bool softDelete = true)

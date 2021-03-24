@@ -10,6 +10,7 @@ using NextGenSoftware.OASIS.API.Core;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Holons;
+using NextGenSoftware.OASIS.API.Core.Objects;
 
 namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
 {
@@ -29,8 +30,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
 
             this.ProviderName = "SQLLiteDBOASIS";
             this.ProviderDescription = "SQLLiteDB Provider";
-            this.ProviderType = ProviderType.SQLLiteDBOASIS;
-            this.ProviderCategory = ProviderCategory.StorageAndNetwork;
+            this.ProviderType = new Core.Helpers.EnumValue<ProviderType>(Core.Enums.ProviderType.SQLLiteDBOASIS);
+            this.ProviderCategory = new Core.Helpers.EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
         }
 
         public Task<bool> AddKarmaToAvatarAsync(IAvatar Avatar, int karma)

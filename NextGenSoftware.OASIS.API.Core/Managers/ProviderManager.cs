@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 
 using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 
 namespace NextGenSoftware.OASIS.API.Core.Managers
@@ -10,18 +11,18 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
     public class ProviderManager
     {
         private static List<IOASISProvider> _registeredProviders = new List<IOASISProvider>();
-        private static List<ProviderType> _registeredProviderTypes = null;
+        private static List<EnumValue<ProviderType>> _registeredProviderTypes = new List<EnumValue<ProviderType>>();
         private static bool _setProviderGlobally = false;
 
-        public static ProviderType CurrentStorageProviderType { get; private set; } = ProviderType.Default;
+        public static EnumValue<ProviderType> CurrentStorageProviderType { get; private set; } = new EnumValue<ProviderType>(ProviderType.Default);
 
-        public static string CurrentStorageProviderName
-        {
-            get
-            {
-                return Enum.GetName(CurrentStorageProviderType);
-            }
-        }
+        //public static string CurrentStorageProviderName
+        //{
+        //    get
+        //    {
+        //        return Enum.GetName(CurrentStorageProviderType);
+        //    }
+        //}
 
         public static string[] DefaultProviderTypes { get; set; }
 
@@ -31,7 +32,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
         public static bool OverrideProviderType { get; set; } = false;
 
-        public static List<ProviderType> ProvidersThatAreAutoReplicating { get; set; }
+        public static List<ProviderType> ProvidersThatAreAutoReplicating { get; set; } = new List<ProviderType>();
 
         //public static List<ProviderType> RegisteredProviderTypes
         //{
@@ -78,7 +79,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         {
             foreach (IOASISProvider provider in _registeredProviders)
             {
-                if (provider.ProviderType == providerType)
+                if (provider.ProviderType.Value == providerType)
                     UnRegisterProvider(provider);
             }    
             
@@ -106,14 +107,14 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return _registeredProviders;
         }
 
-        public static List<ProviderType> GetAllRegisteredProviderTypes()
+        public static List<EnumValue<ProviderType>> GetAllRegisteredProviderTypes()
         {
             return _registeredProviderTypes;
         }
 
         public static List<IOASISProvider> GetProvidersOfCategory(ProviderCategory category)
         {
-            return _registeredProviders.Where(x => x.ProviderCategory == category).ToList();
+            return _registeredProviders.Where(x => x.ProviderCategory.Value == category).ToList();
         }
 
         public static List<ProviderType> GetProviderTypesOfCategory(ProviderCategory category)
@@ -125,7 +126,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         {
             List<IOASISStorage> storageProviders = new List<IOASISStorage>();
 
-            foreach (IOASISProvider provider in _registeredProviders.Where(x => x.ProviderCategory == ProviderCategory.Storage || x.ProviderCategory == ProviderCategory.StorageAndNetwork).ToList())
+            foreach (IOASISProvider provider in _registeredProviders.Where(x => x.ProviderCategory.Value == ProviderCategory.Storage || x.ProviderCategory.Value == ProviderCategory.StorageAndNetwork).ToList())
                 storageProviders.Add((IOASISStorage)provider);  
 
             return storageProviders;
@@ -134,14 +135,14 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         public static List<ProviderType> GetStorageProviderTypes()
         {
             //return GetProviderTypes(GetStorageProviders().Select(x => x.ProviderType);
-            return GetStorageProviders().Select(x => x.ProviderType).ToList();
+            return GetStorageProviders().Select(x => x.ProviderType.Value).ToList();
         }
 
         public static List<IOASISNET> GetNetworkProviders()
         {
             List<IOASISNET> networkProviders = new List<IOASISNET>();
 
-            foreach (IOASISProvider provider in _registeredProviders.Where(x => x.ProviderCategory == ProviderCategory.Network || x.ProviderCategory == ProviderCategory.StorageAndNetwork).ToList())
+            foreach (IOASISProvider provider in _registeredProviders.Where(x => x.ProviderCategory.Value == ProviderCategory.Network || x.ProviderCategory.Value == ProviderCategory.StorageAndNetwork).ToList())
                 networkProviders.Add((IOASISNET)provider);
 
             return networkProviders;
@@ -149,7 +150,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
         public static List<ProviderType> GetNetworkProviderTypes()
         {
-            return GetNetworkProviders().Select(x => x.ProviderType).ToList();
+            return GetNetworkProviders().Select(x => x.ProviderType.Value).ToList();
 
             //List<ProviderType> providerTypes = new List<ProviderType>();
 
@@ -164,7 +165,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             List<ProviderType> providerTypes = new List<ProviderType>();
 
             foreach (IOASISProvider provider in providers)
-                providerTypes.Add(provider.ProviderType);
+                providerTypes.Add(provider.ProviderType.Value);
 
             return providerTypes;
         }
@@ -173,7 +174,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         {
             List<IOASISRenderer> rendererProviders = new List<IOASISRenderer>();
 
-            foreach (IOASISProvider provider in _registeredProviders.Where(x => x.ProviderCategory == ProviderCategory.Renderer).ToList())
+            foreach (IOASISProvider provider in _registeredProviders.Where(x => x.ProviderCategory.Value == ProviderCategory.Renderer).ToList())
                 rendererProviders.Add((IOASISRenderer)provider);
 
             return rendererProviders;
@@ -181,22 +182,22 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
         public static IOASISProvider GetProvider(ProviderType type)
         {
-            return _registeredProviders.FirstOrDefault(x => x.ProviderType == type);
+            return _registeredProviders.FirstOrDefault(x => x.ProviderType.Value == type);
         }
 
         public static IOASISStorage GetStorageProvider(ProviderType type)
         {
-            return (IOASISStorage)_registeredProviders.FirstOrDefault(x => x.ProviderType == type && x.ProviderCategory == ProviderCategory.Storage);
+            return (IOASISStorage)_registeredProviders.FirstOrDefault(x => x.ProviderType.Value == type && x.ProviderCategory.Value == ProviderCategory.Storage);
         }
 
         public static IOASISNET GetNetworkProvider(ProviderType type)
         {
-            return (IOASISNET)_registeredProviders.FirstOrDefault(x => x.ProviderType == type && x.ProviderCategory == ProviderCategory.Network);
+            return (IOASISNET)_registeredProviders.FirstOrDefault(x => x.ProviderType.Value == type && x.ProviderCategory.Value == ProviderCategory.Network);
         }
 
         public static IOASISRenderer GetRendererProvider(ProviderType type)
         {
-            return (IOASISRenderer)_registeredProviders.FirstOrDefault(x => x.ProviderType == type && x.ProviderCategory == ProviderCategory.Renderer);
+            return (IOASISRenderer)_registeredProviders.FirstOrDefault(x => x.ProviderType.Value == type && x.ProviderCategory.Value == ProviderCategory.Renderer);
         }
 
         public static bool IsProviderRegistered(IOASISProvider provider)
@@ -206,7 +207,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
         public static bool IsProviderRegistered(ProviderType providerType)
         {
-            return _registeredProviders.Any(x => x.ProviderType == providerType);
+            return _registeredProviders.Any(x => x.ProviderType.Value == providerType);
         }
 
         //public static IOASISSuperStar SetAndActivateCurrentSuperStarProvider(ProviderType providerType)
@@ -233,7 +234,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 return SetAndActivateCurrentStorageProvider(DefaultGlobalStorageProvider);
 
             // Otherwise set to default provider (configured in appSettings.json) if the provider has not been overiden in the REST call.
-            else if (!OverrideProviderType && DefaultProviderTypes != null && CurrentStorageProviderType != (ProviderType)Enum.Parse(typeof(ProviderType), DefaultProviderTypes[0]))
+            else if (!OverrideProviderType && DefaultProviderTypes != null && CurrentStorageProviderType.Value != (ProviderType)Enum.Parse(typeof(ProviderType), DefaultProviderTypes[0]))
                 return SetAndActivateCurrentStorageProvider(ProviderType.Default, false);
 
             if (!_setProviderGlobally)
@@ -252,7 +253,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                     if (!IsProviderRegistered(OASISProvider))
                         RegisterProvider(OASISProvider);
 
-                    return SetAndActivateCurrentStorageProvider(OASISProvider.ProviderType);
+                    return SetAndActivateCurrentStorageProvider(OASISProvider.ProviderType.Value);
                 }
             }
 
@@ -269,16 +270,19 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             if (providerType == ProviderType.Default && !OverrideProviderType)
                 providerType = (ProviderType)Enum.Parse(typeof(ProviderType), DefaultProviderTypes[0]);
 
-            if (providerType != CurrentStorageProviderType)
+            if (providerType != CurrentStorageProviderType.Value)
             {
-                IOASISProvider provider = _registeredProviders.FirstOrDefault(x => x.ProviderType == providerType);
+                IOASISProvider provider = _registeredProviders.FirstOrDefault(x => x.ProviderType.Value == providerType);
 
                 if (provider == null)
                     throw new InvalidOperationException(string.Concat(Enum.GetName(typeof(ProviderType), providerType), " ProviderType is not registered. Please call RegisterProvider() method to register the provider before calling this method."));
 
-                if (provider != null && (provider.ProviderCategory == ProviderCategory.Storage || provider.ProviderCategory == ProviderCategory.StorageAndNetwork))
+                if (provider != null && (provider.ProviderCategory.Value == ProviderCategory.Storage || provider.ProviderCategory.Value == ProviderCategory.StorageAndNetwork))
                 {
-                    CurrentStorageProviderType = providerType;
+                    if (CurrentStorageProvider != null)
+                        CurrentStorageProvider.DeActivateProvider();
+                   
+                    CurrentStorageProviderType.Value = providerType;
                     CurrentStorageProvider = (IOASISStorage)provider;
                     CurrentStorageProvider.ActivateProvider();
 
@@ -292,7 +296,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
         public static bool ActivateProvider(ProviderType type)
         {
-            IOASISProvider provider = _registeredProviders.FirstOrDefault(x => x.ProviderType == type);
+            IOASISProvider provider = _registeredProviders.FirstOrDefault(x => x.ProviderType.Value == type);
 
             if (provider != null)
             {
@@ -305,7 +309,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
         public static bool DeActivateProvider(ProviderType type)
         {
-            IOASISProvider provider = _registeredProviders.FirstOrDefault(x => x.ProviderType == type);
+            IOASISProvider provider = _registeredProviders.FirstOrDefault(x => x.ProviderType.Value == type);
 
             if (provider != null)
             {
@@ -345,7 +349,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
         public static bool SetAutoReplicate(bool autoReplicate)
         {
-            return SetAutoReplicate(autoReplicate, _registeredProviderTypes);
+            return SetAutoReplicate(autoReplicate, _registeredProviderTypes.Select(x => x.Value).ToList());
         }
     }
 }

@@ -7,6 +7,7 @@ using NextGenSoftware.OASIS.API.Config;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Managers;
+using NextGenSoftware.OASIS.API.Core.Helpers;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 {
@@ -27,6 +28,28 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         }
 
         /// <summary>
+        /// Get's the current active storage provider.
+        /// </summary>
+        /// <returns></returns>
+        [Authorize]
+        [HttpGet("GetCurrentStorageProvider")]
+        public ActionResult<IOASISStorage> GetCurrentStorageProvider()
+        {
+            return Ok(ProviderManager.CurrentStorageProvider);
+        }
+
+        /// <summary>
+        /// Get's the current active storage provider type.
+        /// </summary>
+        /// <returns></returns>
+        [Authorize]
+        [HttpGet("GetCurrentStorageProviderType")]
+        public ActionResult<ProviderType> GetCurrentStorageProviderType()
+        {
+            return Ok(ProviderManager.CurrentStorageProviderType);
+        }
+
+        /// <summary>
         /// Get all registered providers.
         /// </summary>
         /// <returns></returns>
@@ -43,7 +66,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpGet("GetAllRegisteredProviderTypes")]
-        public ActionResult<IEnumerable<ProviderType>> GetAllRegisteredProviderTypes()
+        public ActionResult<IEnumerable<EnumValue<ProviderType>>> GetAllRegisteredProviderTypes()
         {
             return Ok(ProviderManager.GetAllRegisteredProviderTypes());
         }
