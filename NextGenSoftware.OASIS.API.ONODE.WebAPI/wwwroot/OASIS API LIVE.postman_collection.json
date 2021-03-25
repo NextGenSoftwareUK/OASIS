@@ -1,0 +1,887 @@
+{
+	"info": {
+		"_postman_id": "a20b94cc-08f6-4929-ac08-a22983f798b8",
+		"name": "OASIS API LIVE",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Avatar",
+			"item": [
+				{
+					"name": "Register",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"title\": \"Mr\",\r\n    \"firstName\": \"David\",\r\n    \"lastName\": \"Ellams\",\r\n    \"email\": \"davidellams@hotmail.com\",\r\n    \"password\": \"my-super-secret-password\",\r\n    \"confirmPassword\": \"my-super-secret-password\",\r\n    \"acceptTerms\": true,\r\n    \"AvatarType\": \"Wizard\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://oasisplatform.world/api/avatar/register",
+							"protocol": "http",
+							"host": [
+								"oasisplatform",
+								"world"
+							],
+							"path": [
+								"api",
+								"avatar",
+								"register"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Authenticate",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"email\": \"davidellams@hotmail.com\",\r\n    \"password\": \"my-super-secret-password\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://oasisplatform.world/api/avatar/authenticate",
+							"protocol": "http",
+							"host": [
+								"oasisplatform",
+								"world"
+							],
+							"path": [
+								"api",
+								"avatar",
+								"authenticate"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Verify Email",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"token\": \"1BD797E431BF2A1AAB84B0661E7467ED605E390DDE3BCD091B4DD1777A6CBDEEF156C5EE13BF22B6\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://oasisplatform.world/api/avatar/verify-email",
+							"protocol": "http",
+							"host": [
+								"oasisplatform",
+								"world"
+							],
+							"path": [
+								"api",
+								"avatar",
+								"verify-email"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Verify Email",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"token\": \"2E3C757E057CB0B3E95F8B8710D6BEF5BEEA590D0DDF62DDED8F18D5509DF99BAB034AF79BA91E13\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://oasisplatform.world/api/avatar/verify-email",
+							"protocol": "http",
+							"host": [
+								"oasisplatform",
+								"world"
+							],
+							"path": [
+								"api",
+								"avatar",
+								"verify-email"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Forgot Password",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjM1ODUwMzIxLWZhZjAtNGM5NC1hMmY4LTkxMTBlMzYyMGJiNiIsIm5iZiI6MTYxNDYyNzkzOSwiZXhwIjoxNjE0NjI4ODM5LCJpYXQiOjE2MTQ2Mjc5Mzl9.7nruuV8ofYwbVKk0mD4TZFlvaROMIri_pklGByhVUtg",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"email\": \"davidellams@hotmail.com\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://oasisplatform.world/api/avatar/forgot-password",
+							"protocol": "http",
+							"host": [
+								"oasisplatform",
+								"world"
+							],
+							"path": [
+								"api",
+								"avatar",
+								"forgot-password"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Password Reset",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjM1ODUwMzIxLWZhZjAtNGM5NC1hMmY4LTkxMTBlMzYyMGJiNiIsIm5iZiI6MTYxNDYyNzkzOSwiZXhwIjoxNjE0NjI4ODM5LCJpYXQiOjE2MTQ2Mjc5Mzl9.7nruuV8ofYwbVKk0mD4TZFlvaROMIri_pklGByhVUtg",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"token\": \"F2ECD9B0C6AADC862788BF1AD6DD0BF5F90472784C9C189D91354906EF058D0649830DD13EC3BBDB\",\r\n    \"password\": \"new-super-secret-password\",\r\n    \"confirmPassword\": \"new-super-secret-password\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://oasisplatform.world/api/avatar/reset-password",
+							"protocol": "http",
+							"host": [
+								"oasisplatform",
+								"world"
+							],
+							"path": [
+								"api",
+								"avatar",
+								"reset-password"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Refresh Token",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjM1ODUwMzIxLWZhZjAtNGM5NC1hMmY4LTkxMTBlMzYyMGJiNiIsIm5iZiI6MTYxNDYyNzkzOSwiZXhwIjoxNjE0NjI4ODM5LCJpYXQiOjE2MTQ2Mjc5Mzl9.7nruuV8ofYwbVKk0mD4TZFlvaROMIri_pklGByhVUtg",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "http://oasisplatform.world/api/avatar/refresh-token",
+							"protocol": "http",
+							"host": [
+								"oasisplatform",
+								"world"
+							],
+							"path": [
+								"api",
+								"avatar",
+								"refresh-token"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Revoke Token (Log out)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjM1ODUwMzIxLWZhZjAtNGM5NC1hMmY4LTkxMTBlMzYyMGJiNiIsIm5iZiI6MTYxNDYxNDI2NywiZXhwIjoxNjE0NjE1MTY3LCJpYXQiOjE2MTQ2MTQyNjd9.2f4y0jM3TEvsj6p4G0y1p06rQ8PgX5x0YC5IHjLihmc",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"token\": \"4783BFFCFE38ACD9FEA3AFD560E7732FB53AA100A3020A1B80285D44F40886FB39BAF0E607ABC2D6\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://oasisplatform.world/api/avatar/revoke-token",
+							"protocol": "http",
+							"host": [
+								"oasisplatform",
+								"world"
+							],
+							"path": [
+								"api",
+								"avatar",
+								"revoke-token"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Avatar",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjM1ODUwMzIxLWZhZjAtNGM5NC1hMmY4LTkxMTBlMzYyMGJiNiIsIm5iZiI6MTYxNDYxNDI2NywiZXhwIjoxNjE0NjE1MTY3LCJpYXQiOjE2MTQ2MTQyNjd9.2f4y0jM3TEvsj6p4G0y1p06rQ8PgX5x0YC5IHjLihmc",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://oasisplatform.world/api/avatar/GetById/67728563-2946-4253-be6f-47929750fcda",
+							"protocol": "http",
+							"host": [
+								"oasisplatform",
+								"world"
+							],
+							"path": [
+								"api",
+								"avatar",
+								"GetById",
+								"67728563-2946-4253-be6f-47929750fcda"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Avatars",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjM1ODUwMzIxLWZhZjAtNGM5NC1hMmY4LTkxMTBlMzYyMGJiNiIsIm5iZiI6MTYxNDYxNDI2NywiZXhwIjoxNjE0NjE1MTY3LCJpYXQiOjE2MTQ2MTQyNjd9.2f4y0jM3TEvsj6p4G0y1p06rQ8PgX5x0YC5IHjLihmc",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://oasisplatform.world/api/avatar/GetAll",
+							"protocol": "http",
+							"host": [
+								"oasisplatform",
+								"world"
+							],
+							"path": [
+								"api",
+								"avatar",
+								"GetAll"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Avatar",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjM1ODUwMzIxLWZhZjAtNGM5NC1hMmY4LTkxMTBlMzYyMGJiNiIsIm5iZiI6MTYxNDYyNzkzOSwiZXhwIjoxNjE0NjI4ODM5LCJpYXQiOjE2MTQ2Mjc5Mzl9.7nruuV8ofYwbVKk0mD4TZFlvaROMIri_pklGByhVUtg",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"firstName\": \"Frank2\",\r\n    \"lastName\": \"Murphy\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://oasisplatform.world/api/avatar/Update/67728563-2946-4253-be6f-47929750fcda",
+							"protocol": "http",
+							"host": [
+								"oasisplatform",
+								"world"
+							],
+							"path": [
+								"api",
+								"avatar",
+								"Update",
+								"67728563-2946-4253-be6f-47929750fcda"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Avatar",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjM1ODUwMzIxLWZhZjAtNGM5NC1hMmY4LTkxMTBlMzYyMGJiNiIsIm5iZiI6MTYxNDYxNzc2MywiZXhwIjoxNjE0NjE4NjYzLCJpYXQiOjE2MTQ2MTc3NjN9.iks0umBlxe5jnl_ImsyLjIUwBj_PLaOe0q2uvA55klU",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "http://oasisplatform.world/api/avatar/67728563-2946-4253-be6f-47929750fcda",
+							"protocol": "http",
+							"host": [
+								"oasisplatform",
+								"world"
+							],
+							"path": [
+								"api",
+								"avatar",
+								"67728563-2946-4253-be6f-47929750fcda"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "AddKarmaToAvatar",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjM2ODVkZjg0LTc3ZmMtNDM1OS1iNjdkLTA4ZDk0MTE1MjgwZiIsIm5iZiI6MTYxNTQ5MjU0NSwiZXhwIjoxNjE1NDkzNDQ1LCJpYXQiOjE2MTU0OTI1NDV9.FBquToOVkCMKzYEqLptQLxO0e46FJdyRNa_x7SxRDGY",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"KarmaType\": \"BeAHero\",\r\n    \"karmaSourceType\": \"Game\",\r\n    \"KaramSourceTitle\": \"helppeoplegame222\",\r\n    \"KarmaSourceDesc\": \"greatgame222\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://oasisplatform.world/api/avatar/AddKarmaToAvatar/3685df84-77fc-4359-b67d-08d94115280f",
+							"protocol": "http",
+							"host": [
+								"oasisplatform",
+								"world"
+							],
+							"path": [
+								"api",
+								"avatar",
+								"AddKarmaToAvatar",
+								"3685df84-77fc-4359-b67d-08d94115280f"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "RemoveKarmaFromAvatar",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjM2ODVkZjg0LTc3ZmMtNDM1OS1iNjdkLTA4ZDk0MTE1MjgwZiIsIm5iZiI6MTYxNTQ5MjU0NSwiZXhwIjoxNjE1NDkzNDQ1LCJpYXQiOjE2MTU0OTI1NDV9.FBquToOVkCMKzYEqLptQLxO0e46FJdyRNa_x7SxRDGY",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"KarmaType\": \"DropLitter\",\r\n    \"karmaSourceType\": \"AndroidApp\",\r\n    \"KaramSourceTitle\": \"SEEDS\",\r\n    \"KarmaSourceDesc\": \"SEEDS3333\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://oasisplatform.world/api/avatar/RemoveKarmaFromAvatar/3685df84-77fc-4359-b67d-08d94115280f",
+							"protocol": "http",
+							"host": [
+								"oasisplatform",
+								"world"
+							],
+							"path": [
+								"api",
+								"avatar",
+								"RemoveKarmaFromAvatar",
+								"3685df84-77fc-4359-b67d-08d94115280f"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Map",
+			"item": [
+				{
+					"name": "Draw2DSpriteOnMap",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://oasisplatform.world/api/map/Draw2DSpriteOnMap/tttt/111/111",
+							"protocol": "http",
+							"host": [
+								"oasisplatform",
+								"world"
+							],
+							"path": [
+								"api",
+								"map",
+								"Draw2DSpriteOnMap",
+								"tttt",
+								"111",
+								"111"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "CreateRouteBetweenHolons",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://oasisplatform.world/api/map/CreateRouteBetweenHolons/5/5",
+							"protocol": "http",
+							"host": [
+								"oasisplatform",
+								"world"
+							],
+							"path": [
+								"api",
+								"map",
+								"CreateRouteBetweenHolons",
+								"5",
+								"5"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Draw2DSpriteOnHUD",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://oasisplatform.world/api/map/Draw2DSpriteOnHUD/33/33/33",
+							"protocol": "http",
+							"host": [
+								"oasisplatform",
+								"world"
+							],
+							"path": [
+								"api",
+								"map",
+								"Draw2DSpriteOnHUD",
+								"33",
+								"33",
+								"33"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Karma",
+			"item": [
+				{
+					"name": "GetKarmaForAvatar",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjM2ODVkZjg0LTc3ZmMtNDM1OS1iNjdkLTA4ZDk0MTE1MjgwZiIsIm5iZiI6MTYxNTQ5MjU0NSwiZXhwIjoxNjE1NDkzNDQ1LCJpYXQiOjE2MTU0OTI1NDV9.FBquToOVkCMKzYEqLptQLxO0e46FJdyRNa_x7SxRDGY",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://oasisplatform.world/api/karma/GetKarmaForAvatar/3685df84-77fc-4359-b67d-08d94115280f",
+							"protocol": "http",
+							"host": [
+								"oasisplatform",
+								"world"
+							],
+							"path": [
+								"api",
+								"karma",
+								"GetKarmaForAvatar",
+								"3685df84-77fc-4359-b67d-08d94115280f"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "GetKarmaAkashicRecordsForAvatar",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjM2ODVkZjg0LTc3ZmMtNDM1OS1iNjdkLTA4ZDk0MTE1MjgwZiIsIm5iZiI6MTYxNTQ5MjU0NSwiZXhwIjoxNjE1NDkzNDQ1LCJpYXQiOjE2MTU0OTI1NDV9.FBquToOVkCMKzYEqLptQLxO0e46FJdyRNa_x7SxRDGY",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://oasisplatform.world/api/karma/GetKarmaAkashicRecordsForAvatar/3685df84-77fc-4359-b67d-08d94115280f",
+							"protocol": "http",
+							"host": [
+								"oasisplatform",
+								"world"
+							],
+							"path": [
+								"api",
+								"karma",
+								"GetKarmaAkashicRecordsForAvatar",
+								"3685df84-77fc-4359-b67d-08d94115280f"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "AddKarmaToAvatar",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjM2ODVkZjg0LTc3ZmMtNDM1OS1iNjdkLTA4ZDk0MTE1MjgwZiIsIm5iZiI6MTYxNTQ5MjU0NSwiZXhwIjoxNjE1NDkzNDQ1LCJpYXQiOjE2MTU0OTI1NDV9.FBquToOVkCMKzYEqLptQLxO0e46FJdyRNa_x7SxRDGY",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"KarmaType\": \"BeAHero\",\r\n    \"karmaSourceType\": \"Game\",\r\n    \"KaramSourceTitle\": \"helppeoplegame222\",\r\n    \"KarmaSourceDesc\": \"greatgame222\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://oasisplatform.world/api/karma/AddKarmaToAvatar/3685df84-77fc-4359-b67d-08d94115280f",
+							"protocol": "http",
+							"host": [
+								"oasisplatform",
+								"world"
+							],
+							"path": [
+								"api",
+								"karma",
+								"AddKarmaToAvatar",
+								"3685df84-77fc-4359-b67d-08d94115280f"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "RemoveKarmaFromAvatar",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImVlMTVhZGFlLTlmODQtNDk0ZC1hM2UzLTU4MTU1N2FhZTdiYyIsIm5iZiI6MTYxNTU2MzQzMiwiZXhwIjoxNjE1NTY0MzMyLCJpYXQiOjE2MTU1NjM0MzJ9.WpV5iq4Ce9qnpdMbLiAPyRTbtJmhGw2bBYgTJnWdsxs",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"KarmaType\": \"DropLitter\",\r\n    \"karmaSourceType\": \"AndroidApp\",\r\n    \"KaramSourceTitle\": \"SEEDS\",\r\n    \"KarmaSourceDesc\": \"SEEDS3333\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://oasisplatform.world/api/karma/RemoveKarmaFromAvatar/ee15adae-9f84-494d-a3e3-581557aae7bc",
+							"protocol": "http",
+							"host": [
+								"oasisplatform",
+								"world"
+							],
+							"path": [
+								"api",
+								"karma",
+								"RemoveKarmaFromAvatar",
+								"ee15adae-9f84-494d-a3e3-581557aae7bc"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Data",
+			"item": [
+				{
+					"name": "LoadHolon",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImVlMTVhZGFlLTlmODQtNDk0ZC1hM2UzLTU4MTU1N2FhZTdiYyIsIm5iZiI6MTYxNTU2MzQzMiwiZXhwIjoxNjE1NTY0MzMyLCJpYXQiOjE2MTU1NjM0MzJ9.WpV5iq4Ce9qnpdMbLiAPyRTbtJmhGw2bBYgTJnWdsxs",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://oasisplatform.world/api/data/loadholon/0588e043-58f8-408a-af46-e0a45861b149",
+							"protocol": "http",
+							"host": [
+								"oasisplatform",
+								"world"
+							],
+							"path": [
+								"api",
+								"data",
+								"loadholon",
+								"0588e043-58f8-408a-af46-e0a45861b149"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Load All Holons",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImVlMTVhZGFlLTlmODQtNDk0ZC1hM2UzLTU4MTU1N2FhZTdiYyIsIm5iZiI6MTYxNTU2MzQzMiwiZXhwIjoxNjE1NTY0MzMyLCJpYXQiOjE2MTU1NjM0MzJ9.WpV5iq4Ce9qnpdMbLiAPyRTbtJmhGw2bBYgTJnWdsxs",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://oasisplatform.world/api/data/LoadAllHolons",
+							"protocol": "http",
+							"host": [
+								"oasisplatform",
+								"world"
+							],
+							"path": [
+								"api",
+								"data",
+								"LoadAllHolons"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "SaveHolon",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImVlMTVhZGFlLTlmODQtNDk0ZC1hM2UzLTU4MTU1N2FhZTdiYyIsIm5iZiI6MTYxNTU2MzQzMiwiZXhwIjoxNjE1NTY0MzMyLCJpYXQiOjE2MTU1NjM0MzJ9.WpV5iq4Ce9qnpdMbLiAPyRTbtJmhGw2bBYgTJnWdsxs",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"id\": \"56e87574-1607-4321-b314-60533a877df9\",\r\n    \"Name\": \"Test Holon nmr7777777777777777777\",\r\n    \"Description\": \"Test Holon Desc\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://oasisplatform.world/api/data/saveholon",
+							"protocol": "http",
+							"host": [
+								"oasisplatform",
+								"world"
+							],
+							"path": [
+								"api",
+								"data",
+								"saveholon"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"auth": {
+		"type": "bearer"
+	},
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	]
+}

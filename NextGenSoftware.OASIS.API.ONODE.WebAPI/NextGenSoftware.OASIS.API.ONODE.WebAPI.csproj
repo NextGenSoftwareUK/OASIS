@@ -17,7 +17,7 @@
   <PropertyGroup Condition=" '$(RunConfiguration)' == 'OASIS_API' " />
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <Optimize>false</Optimize>
+    <Optimize>true</Optimize>
   </PropertyGroup>
 
   <ItemGroup>
