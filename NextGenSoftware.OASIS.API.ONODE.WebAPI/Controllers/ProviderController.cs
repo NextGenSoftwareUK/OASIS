@@ -8,6 +8,7 @@ using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Helpers;
+using System;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 {
@@ -31,7 +32,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// Get's the current active storage provider.
         /// </summary>
         /// <returns></returns>
-        [Authorize]
+        [Authorize(AvatarType.Wizard)]
         [HttpGet("GetCurrentStorageProvider")]
         public ActionResult<IOASISStorage> GetCurrentStorageProvider()
         {
@@ -44,7 +45,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpGet("GetCurrentStorageProviderType")]
-        public ActionResult<ProviderType> GetCurrentStorageProviderType()
+        public ActionResult<EnumValue<ProviderType>> GetCurrentStorageProviderType()
         {
             return Ok(ProviderManager.CurrentStorageProviderType);
         }
@@ -146,7 +147,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpGet("GetProvidersThatAreAutoReplicating")]
-        public ActionResult<ProviderType[]> GetProvidersThatAreAutoReplicating()
+        public ActionResult<EnumValue<ProviderType>[]> GetProvidersThatAreAutoReplicating()
         {
             return Ok(ProviderManager.ProvidersThatAreAutoReplicating);
         }
@@ -164,6 +165,18 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         }
 
         /// <summary>
+        /// Register the given provider type.
+        /// </summary>
+        /// <param name="providerType"></param>
+        /// <returns></returns>
+        [Authorize]
+        [HttpPost("RegisterProviderType/{providerType}")]
+        public ActionResult<bool> RegisterProviderType(ProviderType providerType)
+        {
+            return Ok(OASISConfigManager.RegisterProvider(providerType) != null);
+        }
+
+        /// <summary>
         /// Register the given providers.
         /// </summary>
         /// <param name="providers"></param>
@@ -173,6 +186,24 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         public ActionResult<bool> RegisterProviders(List<IOASISProvider> providers)
         {
             return Ok(ProviderManager.RegisterProviders(providers));
+        }
+
+        /// <summary>
+        /// Register the given provider types.
+        /// </summary>
+        /// <param name="providerTypes"></param>
+        /// <returns></returns>
+        [Authorize]
+        [HttpPost("RegisterProviderTypes/{providerTypes}")]
+        public ActionResult<IOASISStorage[]> RegisterProviderTypes(string providerTypes)
+        {
+            string[] types = providerTypes.Split(',');
+            List<IOASISStorage> providers = new List<IOASISStorage>();
+
+            foreach (string type in types)
+                OASISConfigManager.RegisterProvider((ProviderType)Enum.Parse(typeof(ProviderType), type));
+
+            return Ok(providers);
         }
 
         /// <summary>
@@ -193,8 +224,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <param name="providerType"></param>
         /// <returns></returns>
         [Authorize]
-        [HttpPost("UnRegisterProvider/{providerType}")]
-        public ActionResult<bool> UnRegisterProvider(ProviderType providerType)
+        [HttpPost("UnRegisterProviderType/{providerType}")]
+        public ActionResult<bool> UnRegisterProviderType(ProviderType providerType)
         {
             return Ok(ProviderManager.UnRegisterProvider(providerType));
         }
@@ -205,10 +236,16 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <param name="providerTypes"></param>
         /// <returns></returns>
         [Authorize]
-        [HttpPost("UnRegisterProviders/{providerTypes}")]
-        public ActionResult<bool> UnRegisterProviders(List<ProviderType> providerTypes)
+        [HttpPost("UnRegisterProviderTypes/{providerTypes}")]
+        public ActionResult<bool> UnRegisterProviderTypes(string providerTypes)
         {
-            return Ok(ProviderManager.UnRegisterProviders(providerTypes));
+            string[] types = providerTypes.Split(',');
+            List<ProviderType> providerTypesList = new List<ProviderType>();
+
+            foreach (string type in types)
+                providerTypesList.Add((ProviderType)Enum.Parse(typeof(ProviderType), type));
+
+            return Ok(ProviderManager.UnRegisterProviders(providerTypesList));
         }
 
         /// <summary>
@@ -305,8 +342,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <param name="autoReplicate"></param>
         /// <returns></returns>
         [Authorize]
-        [HttpPost("SetAutoReplicate/{autoReplicate}")]
-        public ActionResult<bool> SetAutoReplicate(bool autoReplicate)
+        [HttpPost("SetAutoReplicateForAllProviders/{autoReplicate}")]
+        public ActionResult<bool> SetAutoReplicateForAllProviders(bool autoReplicate)
         {
             return Ok(ProviderManager.SetAutoReplicate(autoReplicate));
         }
@@ -315,13 +352,33 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// Enable/disable auto-replication between providers. If this is set to true then the OASIS will automatically replicate all data including the user's avatar to the list of providers passed in. The OASIS will continue to replicate to the given providers until this method is called again passing in false along with a list of providers to disable auto-replication. NOTE: If a provider is in the list of providers to auto-replicate but is missing from the list when false is passed in, then it will continue to auto-replicate.
         /// </summary>
         /// <param name="autoReplicate"></param>
-        /// <param name="providers"></param>
+        /// <param name="providerTypes"></param>
         /// <returns></returns>
         [Authorize]
-        [HttpPost("SetAutoReplicate/{autoReplicate}/{providers}")]
-        public ActionResult<bool> SetAutoReplicate(bool autoReplicate, ProviderType[] providers)
+        [HttpPost("SetAutoReplicateForListOfProviders/{autoReplicate}/{providerTypes}")]
+        //public ActionResult<bool> SetAutoReplicateForListOfProviders(bool autoReplicate, ProviderType[] providerTypes)
+        public ActionResult<bool> SetAutoReplicateForListOfProviders(bool autoReplicate, string providerTypes)
         {
-            return Ok(ProviderManager.SetAutoReplicate(autoReplicate, new List<ProviderType>(providers)));
+            string[] types = providerTypes.Split(',');
+            List<ProviderType> providerTypesList = new List<ProviderType>();
+
+            foreach (string type in types)
+                providerTypesList.Add((ProviderType)Enum.Parse(typeof(ProviderType), type));
+
+            return Ok(ProviderManager.SetAutoReplicate(autoReplicate, new List<ProviderType>(providerTypesList)));
+        }
+
+        /// <summary>
+        /// Enable/disable auto-replication between providers. If this is set to true then the OASIS will automatically replicate all data including the user's avatar to the list of providers passed in. The OASIS will continue to replicate to the given providers until this method is called again passing in false along with a list of providers to disable auto-replication. NOTE: If a provider is in the list of providers to auto-replicate but is missing from the list when false is passed in, then it will continue to auto-replicate.
+        /// </summary>
+        /// <param name="autoReplicate"></param>
+        /// <param name="providerType"></param>
+        /// <returns></returns>
+        [Authorize]
+        [HttpPost("SetAutoReplicateForProvider/{autoReplicate}/{providerType}")]
+        public ActionResult<bool> SetAutoReplicateForProvider(bool autoReplicate, ProviderType providerType)
+        {
+            return Ok(ProviderManager.SetAutoReplicate(autoReplicate, new List<ProviderType>() { providerType }));
         }
 
 
@@ -331,7 +388,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <param name="providerType"></param>
         /// <param name="connectionString"></param>
         /// <returns></returns>
-        [Authorize]
+        [Authorize(AvatarType.Wizard)]
         [HttpPost("SetProviderConfig/{providerType}/{connectionString}")]
         public ActionResult<bool> SetProviderConfig(ProviderType providerType, string connectionString)
         {

@@ -105,11 +105,11 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             avatar = await ProviderManager.SetAndActivateCurrentStorageProvider(providerType).SaveAvatarAsync(PrepareAvatarForSaving(avatar));
 
             bool needToChangeBack = false;
-            foreach (ProviderType type in ProviderManager.ProvidersThatAreAutoReplicating)
+            foreach (EnumValue<ProviderType> type in ProviderManager.ProvidersThatAreAutoReplicating)
             {
-                if (type != providerType)
+                if (type.Value != providerType && type.Value != ProviderManager.CurrentStorageProviderType.Value)
                 {
-                    await ProviderManager.SetAndActivateCurrentStorageProvider(type).SaveAvatarAsync(avatar);
+                    await ProviderManager.SetAndActivateCurrentStorageProvider(type.Value).SaveAvatarAsync(avatar);
                     needToChangeBack = true;
                 }
             }
@@ -126,11 +126,11 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             avatar = ProviderManager.SetAndActivateCurrentStorageProvider(providerType).SaveAvatar(PrepareAvatarForSaving(avatar));
 
             bool needToChangeBack = false;
-            foreach (ProviderType type in ProviderManager.ProvidersThatAreAutoReplicating)
+            foreach (EnumValue<ProviderType> type in ProviderManager.ProvidersThatAreAutoReplicating)
             {
-                if (type != providerType)
+                if (type.Value != providerType && type.Value != ProviderManager.CurrentStorageProviderType.Value)
                 {
-                    ProviderManager.SetAndActivateCurrentStorageProvider(type).SaveAvatar(avatar);
+                    ProviderManager.SetAndActivateCurrentStorageProvider(type.Value).SaveAvatar(avatar);
                     needToChangeBack = true;
                 }
             }

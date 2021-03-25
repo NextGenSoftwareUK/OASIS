@@ -32,7 +32,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
         public static bool OverrideProviderType { get; set; } = false;
 
-        public static List<ProviderType> ProvidersThatAreAutoReplicating { get; set; } = new List<ProviderType>();
+        public static List<EnumValue<ProviderType>> ProvidersThatAreAutoReplicating { get; set; } = new List<EnumValue<ProviderType>>();
 
         //public static List<ProviderType> RegisteredProviderTypes
         //{
@@ -48,7 +48,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         //TODO: In future the registered providers will be dynamically loaded from MEF by watching a hot folder for compiled provider dlls (and other ways in future...)
         public static bool RegisterProvider(IOASISProvider provider)
         {
-            if (!_registeredProviders.Any(x => x.ProviderName == provider.ProviderName))
+            if (!_registeredProviders.Any(x => x.ProviderType == provider.ProviderType))
             {
                 _registeredProviders.Add(provider);
                 _registeredProviderTypes.Add(provider.ProviderType);
@@ -80,7 +80,10 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             foreach (IOASISProvider provider in _registeredProviders)
             {
                 if (provider.ProviderType.Value == providerType)
+                {
                     UnRegisterProvider(provider);
+                    break;
+                }
             }    
             
             return true;
@@ -324,23 +327,20 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         {
             foreach (ProviderType providerType in providers)
             {
-                foreach (ProviderType providerTypeRegistered in ProvidersThatAreAutoReplicating)
+                if (autoReplicate && !ProvidersThatAreAutoReplicating.Any(x => x.Value == providerType))
+                    ProvidersThatAreAutoReplicating.Add(new EnumValue<ProviderType>(providerType));
+
+                else if (!autoReplicate)
                 {
-                    if (providerType == providerTypeRegistered)
+                    foreach (EnumValue<ProviderType> type in ProvidersThatAreAutoReplicating)
                     {
-                        // If they wish to remove the selected providers from auto-replication then remove them now.
-                        if (!autoReplicate)
-                            ProvidersThatAreAutoReplicating.Remove(providerTypeRegistered);
-
-                        break;
+                        if (type.Value == providerType)
+                        {
+                            ProvidersThatAreAutoReplicating.Remove(type);
+                            break;
+                        }
                     }
-
-                    //If they wish to add providers to auto-replicate and they are not in the list then add them now.
-                    else if (autoReplicate)
-                    {
-                        ProvidersThatAreAutoReplicating.Add(providerTypeRegistered);
-                        break;
-                    }
+                    //ProvidersThatAreAutoReplicating.Remove(providerType);
                 }
             }
 
