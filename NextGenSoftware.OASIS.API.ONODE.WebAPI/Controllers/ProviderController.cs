@@ -153,6 +153,28 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         }
 
         /// <summary>
+        /// Get's the list of providers that have auto-failover enabled. See SetAutoFailOver methods below for more info.
+        /// </summary>
+        /// <returns></returns>
+        [Authorize]
+        [HttpGet("GetProvidersThatHaveAutoFailOverEnabled")]
+        public ActionResult<EnumValue<ProviderType>[]> GetProvidersThatHaveAutoFailOverEnabled()
+        {
+            return Ok(ProviderManager.ProviderAutoFailOverList);
+        }
+
+        /// <summary>
+        /// Get's the list of providers that have auto-load balance enabled. See SetAutoLoadBalance methods below for more info.
+        /// </summary>
+        /// <returns></returns>
+        [Authorize]
+        [HttpGet("GetProvidersThatHaveAutoLoadBalanceEnabled")]
+        public ActionResult<EnumValue<ProviderType>[]> GetProvidersThatHaveAutoLoadBalanceEnabled()
+        {
+            return Ok(ProviderManager.ProviderAutoLoadBalanceList);
+        }
+
+        /// <summary>
         /// Register the given provider.
         /// </summary>
         /// <param name="provider"></param>
@@ -268,9 +290,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpPost("SetAndActivateCurrentStorageProvider/{providerType}/{setGlobally}")]
-        public ActionResult<IOASISStorage> SetAndActivateCurrentStorageProvider(ProviderType providerType, bool setGlobally)
+        public ActionResult<bool> SetAndActivateCurrentStorageProvider(ProviderType providerType, bool setGlobally)
         {
-            return Ok(GetAndActivateProvider(providerType, setGlobally));
+            return Ok(GetAndActivateProvider(providerType, setGlobally) != null);
         }
 
         /// <summary>
@@ -311,32 +333,6 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         }
 
         /// <summary>
-        /// Enable/disable fail over between the providers. If this is set to true then if the current provider fails it will switch to the next provider in the default list (if load balancing is switched on then it will automatically switch to the next fastest provider).
-        /// </summary>
-        /// <param name="failOver"></param>
-        /// <returns></returns>
-        [Authorize]
-        [HttpPost("SetFailOver/{failOver}")]
-        public ActionResult<bool> SetFailOver(bool failOver)
-        {
-            //TODO: Finish implementing.
-            return Ok(true);
-        }
-
-        /// <summary>
-        /// Enable/disable load balancing between providers. If this is set to true then the OASIS will automatically switch to the fastest provider within the ONODE's neighbourhood. This effectively load balances the entire internet.
-        /// </summary>
-        /// <param name="loadBalance"></param>
-        /// <returns></returns>
-        [Authorize]
-        [HttpPost("SetLoadBalance/{loadBalance}")]
-        public ActionResult<bool> SetLoadBalance(bool loadBalance)
-        {
-            //TODO: Finish implementing.
-            return Ok(true);
-        }
-
-        /// <summary>
         /// Enable/disable auto-replication between providers. If this is set to true then the OASIS will automatically replicate all data including the user's avatar to all available providers.
         /// </summary>
         /// <param name="autoReplicate"></param>
@@ -345,7 +341,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpPost("SetAutoReplicateForAllProviders/{autoReplicate}")]
         public ActionResult<bool> SetAutoReplicateForAllProviders(bool autoReplicate)
         {
-            return Ok(ProviderManager.SetAutoReplicate(autoReplicate));
+            return Ok(ProviderManager.SetAutoReplicateForAllProviders(autoReplicate));
         }
 
         /// <summary>
@@ -365,21 +361,97 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             foreach (string type in types)
                 providerTypesList.Add((ProviderType)Enum.Parse(typeof(ProviderType), type));
 
-            return Ok(ProviderManager.SetAutoReplicate(autoReplicate, new List<ProviderType>(providerTypesList)));
+            return Ok(ProviderManager.SetAutoReplicateForProviders(autoReplicate, new List<ProviderType>(providerTypesList)));
+        }
+
+        ///// <summary>
+        ///// Enable/disable auto-replication for the provider. If this is set to true then the OASIS will automatically replicate all data including the user's avatar to the list of providers passed in. The OASIS will continue to replicate to the given providers until this method is called again passing in false along with a list of providers to disable auto-replication. NOTE: If a provider is in the list of providers to auto-replicate but is missing from the list when false is passed in, then it will continue to auto-replicate.
+        ///// </summary>
+        ///// <param name="autoReplicate"></param>
+        ///// <param name="providerType"></param>
+        ///// <returns></returns>
+        //[Authorize]
+        //[HttpPost("SetAutoReplicateForProvider/{autoReplicate}/{providerType}")]
+        //public ActionResult<bool> SetAutoReplicateForProvider(bool autoReplicate, ProviderType providerType)
+        //{
+        //    return Ok(ProviderManager.SetAutoReplicateForProviders(autoReplicate, new List<ProviderType>() { providerType }));
+        //}
+
+
+        /// <summary>
+        /// Enable/disable auto-failover for all providers. If this is set to true then the OASIS will automatically switch to the next provider if the current one fails. If load balancing is switched on then it will automatically switch to the next fastest provider.
+        /// </summary>
+        /// <param name="addToFailOverList"></param>
+        /// <returns></returns>
+        [Authorize]
+        [HttpPost("SetAutoFailOverForAllProviders/{addToFailOverList}")]
+        public ActionResult<bool> SetAutoFailOverForAllProviders(bool addToFailOverList)
+        {
+            return Ok(ProviderManager.SetAutoFailOverForAllProviders(addToFailOverList));
         }
 
         /// <summary>
-        /// Enable/disable auto-replication between providers. If this is set to true then the OASIS will automatically replicate all data including the user's avatar to the list of providers passed in. The OASIS will continue to replicate to the given providers until this method is called again passing in false along with a list of providers to disable auto-replication. NOTE: If a provider is in the list of providers to auto-replicate but is missing from the list when false is passed in, then it will continue to auto-replicate.
+        /// Enable/disable auto-failover for providers. If this is set to true then the OASIS will automatically switch to the next provider in the list of providers passed in if the current one fails. If load balancing is switched on then it will automatically switch to the next fastest provider. The OASIS will continue to auto-fail over to the next provider in the list until this method is called again passing in false along with a list of providers to disable auto-failover. NOTE: If a provider is in the list of providers to auto-failover but is missing from the list when false is passed in, then it will continue to auto-failover.
         /// </summary>
-        /// <param name="autoReplicate"></param>
-        /// <param name="providerType"></param>
+        /// <param name="addToFailOverList"></param>
+        /// <param name="providerTypes"></param>
         /// <returns></returns>
         [Authorize]
-        [HttpPost("SetAutoReplicateForProvider/{autoReplicate}/{providerType}")]
-        public ActionResult<bool> SetAutoReplicateForProvider(bool autoReplicate, ProviderType providerType)
+        [HttpPost("SetAutoFailOverForListOfProviders/{addToFailOverList}/{providerTypes}")]
+        public ActionResult<bool> SetAutoFailOverForListOfProviders(bool addToFailOverList, string providerTypes)
         {
-            return Ok(ProviderManager.SetAutoReplicate(autoReplicate, new List<ProviderType>() { providerType }));
+            string[] types = providerTypes.Split(',');
+            List<ProviderType> providerTypesList = new List<ProviderType>();
+
+            foreach (string type in types)
+                providerTypesList.Add((ProviderType)Enum.Parse(typeof(ProviderType), type));
+
+            return Ok(ProviderManager.SetAutoFailOverForProviders(addToFailOverList, new List<ProviderType>(providerTypesList)));
         }
+
+        /// <summary>
+        /// Enable/disable auto-load balance for all providers. If this is set to true then the OASIS will automatically switch to the fastest provider within the ONODE's neighbourhood. This effectively load balances the entire internet.
+        /// </summary>
+        /// <param name="addToLoadBalanceList"></param>
+        /// <returns></returns>
+        [Authorize]
+        [HttpPost("SetAutoLoadBalanceForAllProviders/{addToLoadBalanceList}")]
+        public ActionResult<bool> SetAutoLoadBalanceForAllProviders(bool addToLoadBalanceList)
+        {
+            return Ok(ProviderManager.SetAutoLoadBalanceForAllProviders(addToLoadBalanceList));
+        }
+
+        /// <summary>
+        /// Enable/disable auto-load balance for providers. If this is set to true then the OASIS will automatically switch to the fastest provider within the ONODE's neighbourhood. This effectively load balances the entire internet. The OASIS will continue to auto-load balance over providers in the list until this method is called again passing in false along with a list of providers to disable auto-loadbalance. NOTE: If a provider is in the list of providers to auto-loadbalance but is missing from the list when false is passed in, then it will continue to auto-loadbalance.
+        /// </summary>
+        /// <param name="addToLoadBalanceList"></param>
+        /// <param name="providerTypes"></param>
+        /// <returns></returns>
+        [Authorize]
+        [HttpPost("SetAutoLoadBalanceForListOfProviders/{addToLoadBalanceList}/{providerTypes}")]
+        public ActionResult<bool> SetAutoLoadBalanceForListOfProviders(bool addToLoadBalanceList, string providerTypes)
+        {
+            string[] types = providerTypes.Split(',');
+            List<ProviderType> providerTypesList = new List<ProviderType>();
+
+            foreach (string type in types)
+                providerTypesList.Add((ProviderType)Enum.Parse(typeof(ProviderType), type));
+
+            return Ok(ProviderManager.SetAutoLoadBalanceForProviders(addToLoadBalanceList, new List<ProviderType>(providerTypesList)));
+        }
+
+        ///// <summary>
+        ///// Enable/disable auto-failover for the provider. If this is set to true then the OASIS will automatically switch to the next provider in the list of providers passed in. The OASIS will continue to auto-fail over to the next provider in the list until this method is called again passing in false.
+        ///// </summary>
+        ///// <param name="addToFailOverList"></param>
+        ///// <param name="providerType"></param>
+        ///// <returns></returns>
+        //[Authorize]
+        //[HttpPost("SetAutoFailOverForProvider/{addToFailOverList}/{providerType}")]
+        //public ActionResult<bool> SetAutoFailOverForProvider(bool addToFailOverList, ProviderType providerType)
+        //{
+        //    return Ok(ProviderManager.SetAutoFailOverForProviders(addToFailOverList, new List<ProviderType>() { providerType }));
+        //}
 
 
         /// <summary>
