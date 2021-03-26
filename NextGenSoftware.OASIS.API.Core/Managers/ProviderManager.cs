@@ -33,6 +33,8 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         public static bool OverrideProviderType { get; set; } = false;
 
         public static List<EnumValue<ProviderType>> ProvidersThatAreAutoReplicating { get; set; } = new List<EnumValue<ProviderType>>();
+        public static List<EnumValue<ProviderType>> ProviderAutoFailOverList { get; set; } = new List<EnumValue<ProviderType>>();
+        public static List<EnumValue<ProviderType>> ProviderAutoLoadBalanceList { get; set; } = new List<EnumValue<ProviderType>>();
 
         //public static List<ProviderType> RegisteredProviderTypes
         //{
@@ -323,33 +325,57 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return false;
         }
 
-        public static bool SetAutoReplicate(bool autoReplicate, List<ProviderType> providers)
+        public static bool SetAutoReplicateForProviders(bool autoReplicate, List<ProviderType> providers)
+        {
+            return SetProviderList(autoReplicate, providers, ProvidersThatAreAutoReplicating);
+        }
+
+        public static bool SetAutoReplicateForAllProviders(bool autoReplicate)
+        {
+            return SetAutoReplicateForProviders(autoReplicate, _registeredProviderTypes.Select(x => x.Value).ToList());
+        }
+
+        public static bool SetAutoFailOverForProviders(bool addToFailOverList, List<ProviderType> providers)
+        {
+            return SetProviderList(addToFailOverList, providers, ProviderAutoFailOverList);
+        }
+
+        public static bool SetAutoFailOverForAllProviders(bool addToFailOverList)
+        {
+            return SetAutoFailOverForProviders(addToFailOverList, _registeredProviderTypes.Select(x => x.Value).ToList());
+        }
+
+        public static bool SetAutoLoadBalanceForProviders(bool addToLoadBalanceList, List<ProviderType> providers)
+        {
+            return SetProviderList(addToLoadBalanceList, providers, ProviderAutoLoadBalanceList);
+        }
+
+        public static bool SetAutoLoadBalanceForAllProviders(bool addToLoadBalanceList)
+        {
+            return SetAutoLoadBalanceForProviders(addToLoadBalanceList, _registeredProviderTypes.Select(x => x.Value).ToList());
+        }
+
+        private static bool SetProviderList(bool add, List<ProviderType> providers, List<EnumValue<ProviderType>> listToAddTo)
         {
             foreach (ProviderType providerType in providers)
             {
-                if (autoReplicate && !ProvidersThatAreAutoReplicating.Any(x => x.Value == providerType))
-                    ProvidersThatAreAutoReplicating.Add(new EnumValue<ProviderType>(providerType));
+                if (add && !listToAddTo.Any(x => x.Value == providerType))
+                    listToAddTo.Add(new EnumValue<ProviderType>(providerType));
 
-                else if (!autoReplicate)
+                else if (!add)
                 {
-                    foreach (EnumValue<ProviderType> type in ProvidersThatAreAutoReplicating)
+                    foreach (EnumValue<ProviderType> type in listToAddTo)
                     {
                         if (type.Value == providerType)
                         {
-                            ProvidersThatAreAutoReplicating.Remove(type);
+                            listToAddTo.Remove(type);
                             break;
                         }
                     }
-                    //ProvidersThatAreAutoReplicating.Remove(providerType);
                 }
             }
 
             return true;
-        }
-
-        public static bool SetAutoReplicate(bool autoReplicate)
-        {
-            return SetAutoReplicate(autoReplicate, _registeredProviderTypes.Select(x => x.Value).ToList());
         }
     }
 }
