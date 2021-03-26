@@ -1,10 +1,10 @@
 ﻿using System.Collections.Generic;
 using NextGenSoftware.OASIS.API.Config;
-using NextGenSoftware.OASIS.API.Core;
 using NextGenSoftware.OASIS.API.Core.Apollo.Server;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Managers;
+using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.Providers.AcitvityPubOASIS;
 using NextGenSoftware.OASIS.API.Providers.BlockStackOASIS;
 using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS;
@@ -21,22 +21,14 @@ namespace NextGenSoftware.OASIS.API.OASISAPIManager
     {
         public SEEDSManager SEEDS { get; set; } = new SEEDSManager();
         public IPFSOASIS IPFS { get; set; }
-
         public EOSIOOASIS EOSIO { get; set; }
-
         public HoloOASIS Holochain { get; set; }
-
         public MongoDBOASIS MongoDB { get; set; }
-
         public Neo4jOASIS Neo4j { get; set; }
-
         public EthereumOASIS Ethereum { get; set; }
-
         public ThreeFoldOASIS ThreeFold { get; set; }
-
         public AcitvityPubOASIS ActivityPub { get; set; }
     }
-
 
     public static class OASISAPI
     {
@@ -50,7 +42,7 @@ namespace NextGenSoftware.OASIS.API.OASISAPIManager
             switch (options)
             {
                 case InitOptions.InitWithAllProviders:
-                    Init(ProviderManager.GetAllProviders(), OASISDNA, startApolloServer);
+                    Init(ProviderManager.GetAllRegisteredProviders(), OASISDNA, startApolloServer);
                     break;
 
                 case InitOptions.InitWithCurrentDefaultProvider:
@@ -69,7 +61,7 @@ namespace NextGenSoftware.OASIS.API.OASISAPIManager
             Data = new HolonManager((IOASISStorage)OASISProviders[0]);
             Providers.IPFS = new IPFSOASIS(OASISDNA.OASIS.StorageProviders.IPFSOASIS.ConnectionString);
             Providers.EOSIO = new EOSIOOASIS(OASISDNA.OASIS.StorageProviders.EOSIOOASIS.ConnectionString);
-            Providers.Holochain = new HoloOASIS(OASISDNA.OASIS.StorageProviders.HoloOASIS.ConnectionString, NextGenSoftware.Holochain.HoloNET.Client.Core.HolochainVersion.RSM);
+            Providers.Holochain = new HoloOASIS(OASISDNA.OASIS.StorageProviders.HoloOASIS.ConnectionString, Holochain.HoloNET.Client.Core.HolochainVersion.RSM);
             Providers.MongoDB = new MongoDBOASIS(OASISDNA.OASIS.StorageProviders.MongoDBOASIS.ConnectionString, OASISDNA.OASIS.StorageProviders.MongoDBOASIS.DBName);
             Providers.Neo4j = new Neo4jOASIS(OASISDNA.OASIS.StorageProviders.Neo4jOASIS.ConnectionString, OASISDNA.OASIS.StorageProviders.Neo4jOASIS.Username,  OASISDNA.OASIS.StorageProviders.Neo4jOASIS.Password);
             Providers.ThreeFold = new ThreeFoldOASIS();
@@ -83,19 +75,19 @@ namespace NextGenSoftware.OASIS.API.OASISAPIManager
             ProviderManager.RegisterProvider(Providers.ThreeFold);
             ProviderManager.RegisterProvider(Providers.ActivityPub);
 
-            //TODO: Move the mappings to an external config wrapper than is injected into the OASISAPIManager constructor above...
-            // Give HoloOASIS Store permission for the Name field (the field will only be stored on Holochain).
-            Avatar.Config.FieldToProviderMappings.Name.Add(new ProviderManagerConfig.FieldToProviderMappingAccess { Access = ProviderManagerConfig.ProviderAccess.Store, Provider = ProviderType.HoloOASIS });
+            ////TODO: Move the mappings to an external config wrapper than is injected into the OASISAPIManager constructor above...
+            //// Give HoloOASIS Store permission for the Name field (the field will only be stored on Holochain).
+            //Avatar.Config.FieldToProviderMappings.Name.Add(new ProviderManagerConfig.FieldToProviderMappingAccess { Access = ProviderManagerConfig.ProviderAccess.Store, Provider = ProviderType.HoloOASIS });
 
-            // Give all providers read/write access to the Karma field (will allow them to read and write to the field but it will only be stored on Holochain).
-            // You could choose to store it on more than one provider if you wanted the extra redundancy (but not normally needed since Holochain has a lot of redundancy built in).
-            Avatar.Config.FieldToProviderMappings.Karma.Add(new ProviderManagerConfig.FieldToProviderMappingAccess { Access = ProviderManagerConfig.ProviderAccess.ReadWrite, Provider = ProviderType.All });
-            //this.AvatarManager.Config.FieldToProviderMappings.Name.Add(new AvatarManagerConfig.FieldToProviderMappingAccess { Access = AvatarManagerConfig.ProviderAccess.ReadWrite, Provider = ProviderType.EthereumOASIS });
-            //this.AvatarManager.Config.FieldToProviderMappings.Name.Add(new AvatarManagerConfig.FieldToProviderMappingAccess { Access = AvatarManagerConfig.ProviderAccess.ReadWrite, Provider = ProviderType.IPFSOASIS });
-            //this.AvatarManager.Config.FieldToProviderMappings.DOB.Add(new AvatarManagerConfig.FieldToProviderMappingAccess { Access = AvatarManagerConfig.ProviderAccess.Store, Provider = ProviderType.HoloOASIS });
+            //// Give all providers read/write access to the Karma field (will allow them to read and write to the field but it will only be stored on Holochain).
+            //// You could choose to store it on more than one provider if you wanted the extra redundancy (but not normally needed since Holochain has a lot of redundancy built in).
+            //Avatar.Config.FieldToProviderMappings.Karma.Add(new ProviderManagerConfig.FieldToProviderMappingAccess { Access = ProviderManagerConfig.ProviderAccess.ReadWrite, Provider = ProviderType.All });
+            ////this.AvatarManager.Config.FieldToProviderMappings.Name.Add(new AvatarManagerConfig.FieldToProviderMappingAccess { Access = AvatarManagerConfig.ProviderAccess.ReadWrite, Provider = ProviderType.EthereumOASIS });
+            ////this.AvatarManager.Config.FieldToProviderMappings.Name.Add(new AvatarManagerConfig.FieldToProviderMappingAccess { Access = AvatarManagerConfig.ProviderAccess.ReadWrite, Provider = ProviderType.IPFSOASIS });
+            ////this.AvatarManager.Config.FieldToProviderMappings.DOB.Add(new AvatarManagerConfig.FieldToProviderMappingAccess { Access = AvatarManagerConfig.ProviderAccess.Store, Provider = ProviderType.HoloOASIS });
 
-            //Give Ethereum read-only access to the DOB field.
-            Avatar.Config.FieldToProviderMappings.DOB.Add(new ProviderManagerConfig.FieldToProviderMappingAccess { Access = ProviderManagerConfig.ProviderAccess.ReadOnly, Provider = ProviderType.EthereumOASIS });
+            ////Give Ethereum read-only access to the DOB field.
+            //Avatar.Config.FieldToProviderMappings.DOB.Add(new ProviderManagerConfig.FieldToProviderMappingAccess { Access = ProviderManagerConfig.ProviderAccess.ReadOnly, Provider = ProviderType.EthereumOASIS });
 
             if (startApolloServer)
                 ApolloServer.StartServer();
