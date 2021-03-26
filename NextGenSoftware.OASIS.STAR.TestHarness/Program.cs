@@ -2,11 +2,13 @@
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
+using System.Collections.Generic;
 using EOSNewYork.EOSCore.Response.API;
-using NextGenSoftware.OASIS.API.Core;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Events;
 using NextGenSoftware.OASIS.API.Core.Holons;
+using NextGenSoftware.OASIS.API.Core.Managers;
+using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.OASISAPIManager;
 using NextGenSoftware.OASIS.API.Providers.SEEDSOASIS.ParamObjects;
 
@@ -103,7 +105,25 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
 
                     // If you are using the generated code from Light above (highly recommended) you do not need to pass the HolonTypeName in, you only need to pass the holon in.
                     //ourWorld.CelestialBodyCore.SaveHolonAsync("Test", newHolon);
-                    ourWorld.CelestialBodyCore.SaveHolonAsync(newHolon);
+                    await ourWorld.CelestialBodyCore.SaveHolonAsync(newHolon);
+
+
+                    //Set auto-replicate for all providers except IPFS and Neo4j.
+                    ProviderManager.SetAutoReplicate(true);
+                    ProviderManager.SetAutoReplicate(false, new List<ProviderType>() { ProviderType.IPFSOASIS, ProviderType.Neo4jOASIS });
+
+                    // Set the default provider to MongoDB.
+                    ProviderManager.SetAndActivateCurrentStorageProvider(ProviderType.MongoDBOASIS, true); // Set last param to false if you wish only the next call to use this provider.
+.
+                    // Give HoloOASIS Store permission for the Name field (the field will only be stored on Holochain).
+                    OASISAPI.Avatar.Config.FieldToProviderMappings.Name.Add(new ProviderManagerConfig.FieldToProviderMappingAccess { Access = ProviderManagerConfig.ProviderAccess.Store, Provider = ProviderType.HoloOASIS });
+
+                    // Give all providers read/write access to the Karma field (will allow them to read and write to the field but it will only be stored on Holochain).
+                    // You could choose to store it on more than one provider if you wanted the extra redundancy (but not normally needed since Holochain has a lot of redundancy built in).
+                    OASISAPI.Avatar.Config.FieldToProviderMappings.Karma.Add(new ProviderManagerConfig.FieldToProviderMappingAccess { Access = ProviderManagerConfig.ProviderAccess.ReadWrite, Provider = ProviderType.All });
+
+                    //Give Ethereum read-only access to the DOB field.
+                    OASISAPI.Avatar.Config.FieldToProviderMappings.DOB.Add(new ProviderManagerConfig.FieldToProviderMappingAccess { Access = ProviderManagerConfig.ProviderAccess.ReadOnly, Provider = ProviderType.EthereumOASIS });
 
 
                     // All calls are load-balanced and have multiple redudancy/fail over for all supported OASIS Providers.
@@ -143,7 +163,7 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
                     OASISAPI.Providers.EOSIO.ChainAPI.GetCurrencyBalance("test.account", "", "");
 
                     // Ethereum Support
-                   // OASISAPI.Providers.Ethereum.Web3.
+                  //  OASISAPI.Providers.Ethereum.Web3.
 
 
                     // Graph DB Support
