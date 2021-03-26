@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Events;
 using NextGenSoftware.OASIS.API.Core.Helpers;
-using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Objects;
 
@@ -102,9 +101,11 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
         public async Task<IAvatar> SaveAvatarAsync(IAvatar avatar, ProviderType providerType = ProviderType.Default)
         {
+            bool needToChangeBack = false;
+            ProviderType currentProviderType = ProviderManager.CurrentStorageProviderType.Value;
+
             avatar = await ProviderManager.SetAndActivateCurrentStorageProvider(providerType).SaveAvatarAsync(PrepareAvatarForSaving(avatar));
 
-            bool needToChangeBack = false;
             foreach (EnumValue<ProviderType> type in ProviderManager.ProvidersThatAreAutoReplicating)
             {
                 if (type.Value != providerType && type.Value != ProviderManager.CurrentStorageProviderType.Value)
@@ -116,16 +117,18 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
             // Set the current provider back to the original provider.
             if (needToChangeBack)
-                ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
+                ProviderManager.SetAndActivateCurrentStorageProvider(currentProviderType);
 
             return avatar;
         }
 
         public IAvatar SaveAvatar(IAvatar avatar, ProviderType providerType = ProviderType.Default)
         {
+            bool needToChangeBack = false;
+            ProviderType currentProviderType = ProviderManager.CurrentStorageProviderType.Value;
+
             avatar = ProviderManager.SetAndActivateCurrentStorageProvider(providerType).SaveAvatar(PrepareAvatarForSaving(avatar));
 
-            bool needToChangeBack = false;
             foreach (EnumValue<ProviderType> type in ProviderManager.ProvidersThatAreAutoReplicating)
             {
                 if (type.Value != providerType && type.Value != ProviderManager.CurrentStorageProviderType.Value)
@@ -137,7 +140,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
             // Set the current provider back to the original provider.
             if (needToChangeBack)
-                ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
+                ProviderManager.SetAndActivateCurrentStorageProvider(currentProviderType);
 
             return avatar;
         }
