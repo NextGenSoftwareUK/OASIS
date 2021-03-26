@@ -7,16 +7,16 @@ EXPOSE 443
 
 FROM mcr.microsoft.com/dotnet/core/sdk:3.1-buster AS build
 WORKDIR /src
-COPY ["NextGenSoftware.OASIS.API.ONODE.WebUI.HTML/NextGenSoftware.OASIS.API.ONODE.WebUI.HTML.csproj", "NextGenSoftware.OASIS.API.ONODE.WebUI.HTML/"]
-RUN dotnet restore "NextGenSoftware.OASIS.API.ONODE.WebUI.HTML/NextGenSoftware.OASIS.API.ONODE.WebUI.HTML.csproj"
+COPY ["NextGenSoftware.OASIS.API.ONODE.WebUI.HTML2/NextGenSoftware.OASIS.API.ONODE.WebUI.HTML2.csproj", "NextGenSoftware.OASIS.API.ONODE.WebUI.HTML2/"]
+RUN dotnet restore "NextGenSoftware.OASIS.API.ONODE.WebUI.HTML2/NextGenSoftware.OASIS.API.ONODE.WebUI.HTML2.csproj"
 COPY . .
-WORKDIR "/src/NextGenSoftware.OASIS.API.ONODE.WebUI.HTML"
-RUN dotnet build "NextGenSoftware.OASIS.API.ONODE.WebUI.HTML.csproj" -c Release -o /app/build
+WORKDIR "/src/NextGenSoftware.OASIS.API.ONODE.WebUI.HTML2"
+RUN dotnet build "NextGenSoftware.OASIS.API.ONODE.WebUI.HTML2.csproj" -c Release -o /app/build
 
 FROM build AS publish
-RUN dotnet publish "NextGenSoftware.OASIS.API.ONODE.WebUI.HTML.csproj" -c Release -o /app/publish
+RUN dotnet publish "NextGenSoftware.OASIS.API.ONODE.WebUI.HTML2.csproj" -c Release -o /app/publish
 
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
-ENTRYPOINT ["dotnet", "NextGenSoftware.OASIS.API.ONODE.WebUI.HTML.dll"]
+ENTRYPOINT ["dotnet", "NextGenSoftware.OASIS.API.ONODE.WebUI.HTML2.dll"]

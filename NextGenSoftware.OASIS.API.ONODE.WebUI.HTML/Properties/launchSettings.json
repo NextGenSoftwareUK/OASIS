@@ -3,8 +3,8 @@
     "windowsAuthentication": false,
     "anonymousAuthentication": true,
     "iisExpress": {
-      "applicationUrl": "http://localhost:64918",
-      "sslPort": 44302
+      "applicationUrl": "http://localhost:54485",
+      "sslPort": 44363
     }
   },
   "profiles": {
@@ -15,7 +15,7 @@
         "ASPNETCORE_ENVIRONMENT": "Development"
       }
     },
-    "NextGenSoftware.OASIS.API.ONODE.WebUI.HTML": {
+    "NextGenSoftware.OASIS.API.ONODE.WebUI.HTML2": {
       "commandName": "Project",
       "launchBrowser": true,
       "environmentVariables": {

@@ -29,7 +29,6 @@
     <None Remove="Scripts\jquery.js" />
     <None Remove="Scripts\jquery.min.js" />
     <None Remove="Scripts\jquery.min.map" />
-    <None Remove="wwwroot\index.html" />
   </ItemGroup>
 
   <ItemGroup>
@@ -85,109 +84,6 @@
   <ItemGroup>
     <Folder Include="img\" />
     <Folder Include="Pages\" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Include="wwwroot\css\login\demo.css" />
-    <None Include="wwwroot\css\login\reset.css" />
-    <None Include="wwwroot\css\login\style.css" />
-    <None Include="wwwroot\img\abstract-futuristic-background-vector-570229.jpg" />
-    <None Include="wwwroot\img\background1.gif" />
-    <None Include="wwwroot\img\background10.gif" />
-    <None Include="wwwroot\img\background11.gif" />
-    <None Include="wwwroot\img\background12.gif" />
-    <None Include="wwwroot\img\background13.gif" />
-    <None Include="wwwroot\img\background14.gif" />
-    <None Include="wwwroot\img\background15.gif" />
-    <None Include="wwwroot\img\background16.gif" />
-    <None Include="wwwroot\img\background17.gif" />
-    <None Include="wwwroot\img\background18.gif" />
-    <None Include="wwwroot\img\background19.gif" />
-    <None Include="wwwroot\img\background2.gif" />
-    <None Include="wwwroot\img\background20.gif" />
-    <None Include="wwwroot\img\background21.gif" />
-    <None Include="wwwroot\img\background22.gif" />
-    <None Include="wwwroot\img\background23.gif" />
-    <None Include="wwwroot\img\background24.gif" />
-    <None Include="wwwroot\img\background25.gif" />
-    <None Include="wwwroot\img\background26.gif" />
-    <None Include="wwwroot\img\background27.gif" />
-    <None Include="wwwroot\img\background28.gif" />
-    <None Include="wwwroot\img\background29.gif" />
-    <None Include="wwwroot\img\background3.gif" />
-    <None Include="wwwroot\img\background30.gif" />
-    <None Include="wwwroot\img\background31.gif" />
-    <None Include="wwwroot\img\background32.gif" />
-    <None Include="wwwroot\img\background33.gif" />
-    <None Include="wwwroot\img\background34.gif" />
-    <None Include="wwwroot\img\background35.gif" />
-    <None Include="wwwroot\img\background36.gif" />
-    <None Include="wwwroot\img\background37.gif" />
-    <None Include="wwwroot\img\background38.gif" />
-    <None Include="wwwroot\img\background39.gif" />
-    <None Include="wwwroot\img\background4.gif" />
-    <None Include="wwwroot\img\background40.gif" />
-    <None Include="wwwroot\img\background41.gif" />
-    <None Include="wwwroot\img\background42.gif" />
-    <None Include="wwwroot\img\background43.gif" />
-    <None Include="wwwroot\img\background44.gif" />
-    <None Include="wwwroot\img\background45.gif" />
-    <None Include="wwwroot\img\background46.gif" />
-    <None Include="wwwroot\img\background47.gif" />
-    <None Include="wwwroot\img\background48.gif" />
-    <None Include="wwwroot\img\background49.gif" />
-    <None Include="wwwroot\img\background5.gif" />
-    <None Include="wwwroot\img\background50.gif" />
-    <None Include="wwwroot\img\background51.gif" />
-    <None Include="wwwroot\img\background52.gif" />
-    <None Include="wwwroot\img\background53.gif" />
-    <None Include="wwwroot\img\background54.gif" />
-    <None Include="wwwroot\img\background55.gif" />
-    <None Include="wwwroot\img\background56.gif" />
-    <None Include="wwwroot\img\background57.gif" />
-    <None Include="wwwroot\img\background58.gif" />
-    <None Include="wwwroot\img\background59.gif" />
-    <None Include="wwwroot\img\background6.gif" />
-    <None Include="wwwroot\img\background60.gif" />
-    <None Include="wwwroot\img\background61.gif" />
-    <None Include="wwwroot\img\background62.gif" />
-    <None Include="wwwroot\img\background63.gif" />
-    <None Include="wwwroot\img\background64.gif" />
-    <None Include="wwwroot\img\background65.gif" />
-    <None Include="wwwroot\img\background66.gif" />
-    <None Include="wwwroot\img\background67.gif" />
-    <None Include="wwwroot\img\background68.gif" />
-    <None Include="wwwroot\img\background69.gif" />
-    <None Include="wwwroot\img\background7.gif" />
-    <None Include="wwwroot\img\background70.gif" />
-    <None Include="wwwroot\img\background71.gif" />
-    <None Include="wwwroot\img\background72.gif" />
-    <None Include="wwwroot\img\background73.gif" />
-    <None Include="wwwroot\img\background74.gif" />
-    <None Include="wwwroot\img\background75.gif" />
-    <None Include="wwwroot\img\background76.gif" />
-    <None Include="wwwroot\img\background77.gif" />
-    <None Include="wwwroot\img\background78.gif" />
-    <None Include="wwwroot\img\background79.gif" />
-    <None Include="wwwroot\img\background8.gif" />
-    <None Include="wwwroot\img\background80.gif" />
-    <None Include="wwwroot\img\background81.gif" />
-    <None Include="wwwroot\img\background82.gif" />
-    <None Include="wwwroot\img\background9.gif" />
-    <None Include="wwwroot\img\oasis-background.jpg" />
-    <None Include="wwwroot\img\oasis-background2.jpg" />
-    <None Include="wwwroot\img\oasis-background3.jpg" />
-    <None Include="wwwroot\img\Overledger_Network-1536x864-1-1.jpg" />
-    <None Include="wwwroot\js\jquery-3.5.1.min.js" />
-    <None Include="wwwroot\js\login\login.js" />
-    <None Include="wwwroot\js\login\placeholders.min.js" />
-    <None Include="wwwroot\login.html" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Content Update="wwwroot\index.html">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
   </ItemGroup>
 
 </Project>
