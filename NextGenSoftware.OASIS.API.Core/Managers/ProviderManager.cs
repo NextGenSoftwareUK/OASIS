@@ -12,6 +12,9 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
     {
         private static List<IOASISProvider> _registeredProviders = new List<IOASISProvider>();
         private static List<EnumValue<ProviderType>> _registeredProviderTypes = new List<EnumValue<ProviderType>>();
+        private static List<EnumValue<ProviderType>> _providerAutoFailOverList { get; } = new List<EnumValue<ProviderType>>();
+        private static List<EnumValue<ProviderType>> _providerAutoLoadBalanceList { get; } = new List<EnumValue<ProviderType>>();
+        private static List<EnumValue<ProviderType>> _providersThatAreAutoReplicating { get; } = new List<EnumValue<ProviderType>>();
         private static bool _setProviderGlobally = false;
 
         public static EnumValue<ProviderType> CurrentStorageProviderType { get; private set; } = new EnumValue<ProviderType>(ProviderType.Default);
@@ -32,9 +35,8 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
         public static bool OverrideProviderType { get; set; } = false;
 
-        public static List<EnumValue<ProviderType>> ProvidersThatAreAutoReplicating { get; set; } = new List<EnumValue<ProviderType>>();
-        public static List<EnumValue<ProviderType>> ProviderAutoFailOverList { get; set; } = new List<EnumValue<ProviderType>>();
-        public static List<EnumValue<ProviderType>> ProviderAutoLoadBalanceList { get; set; } = new List<EnumValue<ProviderType>>();
+       
+        
 
         //public static List<ProviderType> RegisteredProviderTypes
         //{
@@ -327,7 +329,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
         public static bool SetAutoReplicateForProviders(bool autoReplicate, List<ProviderType> providers)
         {
-            return SetProviderList(autoReplicate, providers, ProvidersThatAreAutoReplicating);
+            return SetProviderList(autoReplicate, providers, _providersThatAreAutoReplicating);
         }
 
         public static bool SetAutoReplicateForAllProviders(bool autoReplicate)
@@ -337,7 +339,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
         public static bool SetAutoFailOverForProviders(bool addToFailOverList, List<ProviderType> providers)
         {
-            return SetProviderList(addToFailOverList, providers, ProviderAutoFailOverList);
+            return SetProviderList(addToFailOverList, providers, _providerAutoFailOverList);
         }
 
         public static bool SetAutoFailOverForAllProviders(bool addToFailOverList)
@@ -347,12 +349,27 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
         public static bool SetAutoLoadBalanceForProviders(bool addToLoadBalanceList, List<ProviderType> providers)
         {
-            return SetProviderList(addToLoadBalanceList, providers, ProviderAutoLoadBalanceList);
+            return SetProviderList(addToLoadBalanceList, providers, _providerAutoLoadBalanceList);
         }
 
         public static bool SetAutoLoadBalanceForAllProviders(bool addToLoadBalanceList)
         {
             return SetAutoLoadBalanceForProviders(addToLoadBalanceList, _registeredProviderTypes.Select(x => x.Value).ToList());
+        }
+
+        public static List<EnumValue<ProviderType>> GetProviderAutoLoadBalanceList()
+        {
+            return _providerAutoLoadBalanceList;
+        }
+
+        public static List<EnumValue<ProviderType>> GetProviderAutoFailOverList()
+        {
+            return _providerAutoFailOverList;
+        }
+
+        public static List<EnumValue<ProviderType>> GetProvidersThatAreAutoReplicating()
+        {
+            return _providersThatAreAutoReplicating;
         }
 
         private static bool SetProviderList(bool add, List<ProviderType> providers, List<EnumValue<ProviderType>> listToAddTo)

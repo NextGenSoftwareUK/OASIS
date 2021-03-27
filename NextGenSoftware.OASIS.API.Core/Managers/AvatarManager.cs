@@ -1,8 +1,6 @@
-﻿
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Events;
 using NextGenSoftware.OASIS.API.Core.Helpers;
@@ -94,9 +92,54 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return ProviderManager.SetAndActivateCurrentStorageProvider(providerType).LoadAvatar(username, password);
         }
 
+        //TODO: Replicate Auto-Fail over and Auto-Replication code for all Avatar, HolonManager methods etc...
         public IAvatar LoadAvatar(string username, ProviderType providerType = ProviderType.Default)
         {
-            return ProviderManager.SetAndActivateCurrentStorageProvider(providerType).LoadAvatar(username);
+            bool needToChangeBack = false;
+            ProviderType currentProviderType = ProviderManager.CurrentStorageProviderType.Value;
+            IAvatar avatar = null;
+
+            try
+            {
+                avatar = ProviderManager.SetAndActivateCurrentStorageProvider(providerType).LoadAvatar(username);
+            }
+            catch (Exception ex)
+            {
+                avatar = null;
+            }
+
+            if (avatar == null)
+            {
+                // Only try the next provider if they are not set to auto-replicate.
+                //   if (ProviderManager.ProvidersThatAreAutoReplicating.Count == 0)
+                // {
+                foreach (EnumValue<ProviderType> type in ProviderManager.GetProviderAutoFailOverList())
+                {
+                    if (type.Value != providerType && type.Value != ProviderManager.CurrentStorageProviderType.Value)
+                    {
+                        try
+                        {
+                            avatar = ProviderManager.SetAndActivateCurrentStorageProvider(type.Value).LoadAvatar(username);
+                            needToChangeBack = true;
+
+                            if (avatar != null)
+                                break;
+                        }
+                        catch (Exception ex2)
+                        {
+                            avatar = null;
+                            //If the next provider errors then just continue to the next provider.
+                        }
+                    }
+                }
+            }
+            //   }
+
+            // Set the current provider back to the original provider.
+            if (needToChangeBack)
+                ProviderManager.SetAndActivateCurrentStorageProvider(currentProviderType);
+
+            return avatar;
         }
 
         public async Task<IAvatar> SaveAvatarAsync(IAvatar avatar, ProviderType providerType = ProviderType.Default)
@@ -110,31 +153,37 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             }
             catch (Exception ex)
             {
-                // Only try the next provider if they are not set to auto-replicate.
-                if (ProviderManager.ProvidersThatAreAutoReplicating.Count == 0)
-                {
-                    foreach (EnumValue<ProviderType> type in ProviderManager.ProviderAutoFailOverList)
-                    {
-                        if (type.Value != providerType && type.Value != ProviderManager.CurrentStorageProviderType.Value)
-                        {
-                            try
-                            {
-                                avatar = await ProviderManager.SetAndActivateCurrentStorageProvider(type.Value).SaveAvatarAsync(avatar);
-                                needToChangeBack = true;
+                avatar = null;
+            }
 
-                                if (avatar != null)
-                                    break;
-                            }
-                            catch (Exception ex2)
-                            {
-                                //If the next provider errors then just continue to the next provider.
-                            }
+            if (avatar == null)
+            {
+                // Only try the next provider if they are not set to auto-replicate.
+                //   if (ProviderManager.ProvidersThatAreAutoReplicating.Count == 0)
+                // {
+                foreach (EnumValue<ProviderType> type in ProviderManager.GetProviderAutoFailOverList())
+                {
+                    if (type.Value != providerType && type.Value != ProviderManager.CurrentStorageProviderType.Value)
+                    {
+                        try
+                        {
+                            avatar = await ProviderManager.SetAndActivateCurrentStorageProvider(type.Value).SaveAvatarAsync(avatar);
+                            needToChangeBack = true;
+
+                            if (avatar != null)
+                                break;
+                        }
+                        catch (Exception ex2)
+                        {
+                            avatar = null;
+                            //If the next provider errors then just continue to the next provider.
                         }
                     }
                 }
+                //   }
             }
 
-            foreach (EnumValue<ProviderType> type in ProviderManager.ProvidersThatAreAutoReplicating)
+            foreach (EnumValue<ProviderType> type in ProviderManager.GetProvidersThatAreAutoReplicating())
             {
                 if (type.Value != providerType && type.Value != ProviderManager.CurrentStorageProviderType.Value)
                 {
@@ -167,9 +216,9 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             if (avatar == null)
             {
                 // Only try the next provider if they are not set to auto-replicate.
-                if (ProviderManager.ProvidersThatAreAutoReplicating.Count == 0)
-                {
-                    foreach (EnumValue<ProviderType> type in ProviderManager.ProviderAutoFailOverList)
+              //  if (ProviderManager.ProvidersThatAreAutoReplicating.Count == 0)
+              //  {
+                    foreach (EnumValue<ProviderType> type in ProviderManager.GetProviderAutoFailOverList())
                     {
                         if (type.Value != providerType && type.Value != ProviderManager.CurrentStorageProviderType.Value)
                         {
@@ -188,10 +237,10 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                             }
                         }
                     }
-                }
+             //   }
             }
 
-            foreach (EnumValue<ProviderType> type in ProviderManager.ProvidersThatAreAutoReplicating)
+            foreach (EnumValue<ProviderType> type in ProviderManager.GetProvidersThatAreAutoReplicating())
             {
                 if (type.Value != providerType && type.Value != ProviderManager.CurrentStorageProviderType.Value)
                 {

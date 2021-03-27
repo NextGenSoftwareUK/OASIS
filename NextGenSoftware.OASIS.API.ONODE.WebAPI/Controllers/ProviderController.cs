@@ -149,7 +149,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpGet("GetProvidersThatAreAutoReplicating")]
         public ActionResult<EnumValue<ProviderType>[]> GetProvidersThatAreAutoReplicating()
         {
-            return Ok(ProviderManager.ProvidersThatAreAutoReplicating);
+            return Ok(ProviderManager.GetProvidersThatAreAutoReplicating());
         }
 
         /// <summary>
@@ -160,7 +160,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpGet("GetProvidersThatHaveAutoFailOverEnabled")]
         public ActionResult<EnumValue<ProviderType>[]> GetProvidersThatHaveAutoFailOverEnabled()
         {
-            return Ok(ProviderManager.ProviderAutoFailOverList);
+            return Ok(ProviderManager.GetProviderAutoFailOverList());
         }
 
         /// <summary>
@@ -171,7 +171,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpGet("GetProvidersThatHaveAutoLoadBalanceEnabled")]
         public ActionResult<EnumValue<ProviderType>[]> GetProvidersThatHaveAutoLoadBalanceEnabled()
         {
-            return Ok(ProviderManager.ProviderAutoLoadBalanceList);
+            return Ok(ProviderManager.GetProviderAutoLoadBalanceList());
         }
 
         /// <summary>
