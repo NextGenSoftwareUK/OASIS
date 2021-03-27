@@ -8,7 +8,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi.Models;
-using NextGenSoftware.OASIS.API.Config;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Interfaces;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Middleware;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Services;
@@ -17,7 +16,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
 {
     public class Startup
     {
-        private const string VERSION = "OASIS API v0.09 ALPHA";
+        private const string VERSION = "OASIS API v0.10 ALPHA";
         readonly string MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
 
         public Startup(IConfiguration configuration)

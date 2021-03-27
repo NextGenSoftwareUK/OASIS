@@ -1200,6 +1200,70 @@
 					"response": []
 				},
 				{
+					"name": "Get Providers That Have Auto FailOver Enabled",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImVlMTVhZGFlLTlmODQtNDk0ZC1hM2UzLTU4MTU1N2FhZTdiYyIsIm5iZiI6MTYxNjc4Nzg1NywiZXhwIjoxNjE2Nzg4NzU3LCJpYXQiOjE2MTY3ODc4NTd9.iwQNeMTWNECHXAOpAEih3NDvwTl05vYN8z8s0TIcZ6M",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://api.oasisplatform.world/api/provider/GetProvidersThatHaveAutoFailOverEnabled",
+							"protocol": "https",
+							"host": [
+								"api",
+								"oasisplatform",
+								"world"
+							],
+							"path": [
+								"api",
+								"provider",
+								"GetProvidersThatHaveAutoFailOverEnabled"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Providers That Have Auto Load Balance Enabled",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImVlMTVhZGFlLTlmODQtNDk0ZC1hM2UzLTU4MTU1N2FhZTdiYyIsIm5iZiI6MTYxNjY4OTE0MSwiZXhwIjoxNjE2NjkwMDQxLCJpYXQiOjE2MTY2ODkxNDF9.Y3a3nwdkiqPTNJscKzShkVVRJ5oUnPCvmJWi-hv6iBg",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://api.oasisplatform.world/api/provider/GetProvidersThatHaveAutoLoadBalanceEnabled",
+							"protocol": "https",
+							"host": [
+								"api",
+								"oasisplatform",
+								"world"
+							],
+							"path": [
+								"api",
+								"provider",
+								"GetProvidersThatHaveAutoLoadBalanceEnabled"
+							]
+						}
+					},
+					"response": []
+				},
+				{
 					"name": "Register Provider",
 					"request": {
 						"auth": {
@@ -1240,7 +1304,7 @@
 							"bearer": [
 								{
 									"key": "token",
-									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImVlMTVhZGFlLTlmODQtNDk0ZC1hM2UzLTU4MTU1N2FhZTdiYyIsIm5iZiI6MTYxNjY5MTQ0NiwiZXhwIjoxNjE2NjkyMzQ2LCJpYXQiOjE2MTY2OTE0NDZ9.JEPCz5Lo5GTk-PKcnIHJYJYMyWOWYDqwOx0mwqzRiR4",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImVlMTVhZGFlLTlmODQtNDk0ZC1hM2UzLTU4MTU1N2FhZTdiYyIsIm5iZiI6MTYxNjc4Nzg1NywiZXhwIjoxNjE2Nzg4NzU3LCJpYXQiOjE2MTY3ODc4NTd9.iwQNeMTWNECHXAOpAEih3NDvwTl05vYN8z8s0TIcZ6M",
 									"type": "string"
 								}
 							]
@@ -1466,7 +1530,7 @@
 							"bearer": [
 								{
 									"key": "token",
-									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImVlMTVhZGFlLTlmODQtNDk0ZC1hM2UzLTU4MTU1N2FhZTdiYyIsIm5iZiI6MTYxNjY3ODYyNCwiZXhwIjoxNjE2Njc5NTI0LCJpYXQiOjE2MTY2Nzg2MjR9.Bq0WHIORkyjc-Vmad6XLugEb70xgAiZtq1djNZWIyOY",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImVlMTVhZGFlLTlmODQtNDk0ZC1hM2UzLTU4MTU1N2FhZTdiYyIsIm5iZiI6MTYxNjc4ODMzMCwiZXhwIjoxNjE2Nzg5MjMwLCJpYXQiOjE2MTY3ODgzMzB9.pcZc4ZEzPV3kO4ap3F91dmYLbGkm5gssMYEo7tkqru8",
 									"type": "string"
 								}
 							]
@@ -1474,7 +1538,7 @@
 						"method": "POST",
 						"header": [],
 						"url": {
-							"raw": "https://api.oasisplatform.world/api/provider/SetAndActivateCurrentStorageProvider",
+							"raw": "https://api.oasisplatform.world/api/provider/SetAndActivateCurrentStorageProvider/HoloOASIS",
 							"protocol": "https",
 							"host": [
 								"api",
@@ -1484,7 +1548,8 @@
 							"path": [
 								"api",
 								"provider",
-								"SetAndActivateCurrentStorageProvider"
+								"SetAndActivateCurrentStorageProvider",
+								"HoloOASIS"
 							]
 						}
 					},
@@ -1587,38 +1652,6 @@
 					"response": []
 				},
 				{
-					"name": "Set Fail Over",
-					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImVlMTVhZGFlLTlmODQtNDk0ZC1hM2UzLTU4MTU1N2FhZTdiYyIsIm5iZiI6MTYxNjY3ODYyNCwiZXhwIjoxNjE2Njc5NTI0LCJpYXQiOjE2MTY2Nzg2MjR9.Bq0WHIORkyjc-Vmad6XLugEb70xgAiZtq1djNZWIyOY",
-									"type": "string"
-								}
-							]
-						},
-						"method": "POST",
-						"header": [],
-						"url": {
-							"raw": "https://api.oasisplatform.world/api/provider/SetFailOver",
-							"protocol": "https",
-							"host": [
-								"api",
-								"oasisplatform",
-								"world"
-							],
-							"path": [
-								"api",
-								"provider",
-								"SetFailOver"
-							]
-						}
-					},
-					"response": []
-				},
-				{
 					"name": "Set Load Balance",
 					"request": {
 						"auth": {
@@ -1651,49 +1684,6 @@
 					"response": []
 				},
 				{
-					"name": "Set Auto Replicate For Provider",
-					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImVlMTVhZGFlLTlmODQtNDk0ZC1hM2UzLTU4MTU1N2FhZTdiYyIsIm5iZiI6MTYxNjY4ODQ0OSwiZXhwIjoxNjE2Njg5MzQ5LCJpYXQiOjE2MTY2ODg0NDl9.Me72FgQ5FZ1FT0nOKBBqwE8DwX9oYhuRqQ3xJJnbpg8",
-									"type": "string"
-								}
-							]
-						},
-						"method": "POST",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\r\n    \"providers\": \"HoloOASIS\"\r\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "https://api.oasisplatform.world/api/provider/SetAutoReplicateForProvider/false/HoloOASIS",
-							"protocol": "https",
-							"host": [
-								"api",
-								"oasisplatform",
-								"world"
-							],
-							"path": [
-								"api",
-								"provider",
-								"SetAutoReplicateForProvider",
-								"false",
-								"HoloOASIS"
-							]
-						}
-					},
-					"response": []
-				},
-				{
 					"name": "Set Auto Replicate For List Of Providers",
 					"request": {
 						"auth": {
@@ -1718,13 +1708,12 @@
 							}
 						},
 						"url": {
-							"raw": "https://api.oasisplatform.world/api/provider/SetAutoReplicateForListOfProviders/false/HoloOASIS",
-							"protocol": "https",
+							"raw": "http://localhost:5000/api/provider/SetAutoReplicateForListOfProviders/false/HoloOASIS",
+							"protocol": "http",
 							"host": [
-								"api",
-								"oasisplatform",
-								"world"
+								"localhost"
 							],
+							"port": "5000",
 							"path": [
 								"api",
 								"provider",
@@ -1764,6 +1753,176 @@
 								"provider",
 								"SetAutoReplicateForAllProviders",
 								"true"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Set Auto FailOver For List Of Providers",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImVlMTVhZGFlLTlmODQtNDk0ZC1hM2UzLTU4MTU1N2FhZTdiYyIsIm5iZiI6MTYxNjY4ODQ0OSwiZXhwIjoxNjE2Njg5MzQ5LCJpYXQiOjE2MTY2ODg0NDl9.Me72FgQ5FZ1FT0nOKBBqwE8DwX9oYhuRqQ3xJJnbpg8",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"providers\": \"HoloOASIS\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://api.oasisplatform.world/api/provider/SetAutoFailOverForListOfProviders/false/HoloOASIS",
+							"protocol": "https",
+							"host": [
+								"api",
+								"oasisplatform",
+								"world"
+							],
+							"path": [
+								"api",
+								"provider",
+								"SetAutoFailOverForListOfProviders",
+								"false",
+								"HoloOASIS"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Set Auto FailOver For All Providers",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImVlMTVhZGFlLTlmODQtNDk0ZC1hM2UzLTU4MTU1N2FhZTdiYyIsIm5iZiI6MTYxNjc4Nzg1NywiZXhwIjoxNjE2Nzg4NzU3LCJpYXQiOjE2MTY3ODc4NTd9.iwQNeMTWNECHXAOpAEih3NDvwTl05vYN8z8s0TIcZ6M",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"providers\": \"HoloOASIS\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://api.oasisplatform.world/api/provider/SetAutoFailOverForAllProviders/true",
+							"protocol": "https",
+							"host": [
+								"api",
+								"oasisplatform",
+								"world"
+							],
+							"path": [
+								"api",
+								"provider",
+								"SetAutoFailOverForAllProviders",
+								"true"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Set Auto Load Balance For List Of Providers",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImVlMTVhZGFlLTlmODQtNDk0ZC1hM2UzLTU4MTU1N2FhZTdiYyIsIm5iZiI6MTYxNjY4ODQ0OSwiZXhwIjoxNjE2Njg5MzQ5LCJpYXQiOjE2MTY2ODg0NDl9.Me72FgQ5FZ1FT0nOKBBqwE8DwX9oYhuRqQ3xJJnbpg8",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"providers\": \"HoloOASIS\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://api.oasisplatform.world/api/provider/SetAutoLoadBalanceForListOfProviders/false/HoloOASIS",
+							"protocol": "https",
+							"host": [
+								"api",
+								"oasisplatform",
+								"world"
+							],
+							"path": [
+								"api",
+								"provider",
+								"SetAutoLoadBalanceForListOfProviders",
+								"false",
+								"HoloOASIS"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Set Auto Load Balance For All Providers",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImVlMTVhZGFlLTlmODQtNDk0ZC1hM2UzLTU4MTU1N2FhZTdiYyIsIm5iZiI6MTYxNjY4ODQ0OSwiZXhwIjoxNjE2Njg5MzQ5LCJpYXQiOjE2MTY2ODg0NDl9.Me72FgQ5FZ1FT0nOKBBqwE8DwX9oYhuRqQ3xJJnbpg8",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"providers\": \"HoloOASIS\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://api.oasisplatform.world/api/provider/SetAutoLoadBalanceForAllProviders/false",
+							"protocol": "https",
+							"host": [
+								"api",
+								"oasisplatform",
+								"world"
+							],
+							"path": [
+								"api",
+								"provider",
+								"SetAutoLoadBalanceForAllProviders",
+								"false"
 							]
 						}
 					},
