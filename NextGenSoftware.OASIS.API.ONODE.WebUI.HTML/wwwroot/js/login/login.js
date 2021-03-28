@@ -153,15 +153,15 @@ var loggedIn;
 				//var xhr = createCORSRequest('POST', "https://oasisplatform.world/api/avatar/authenticate");
 				//console.log("xhr = " + xhr);
 
-				$.post("https://oasisplatform.world/api/avatar/authenticate",
-					{
-						name: "Donald Duck",
-						city: "Duckburg"
-					},
-					function (data, status)
-					{
-						alert("Data: " + data + "\nStatus: " + status);
-					});
+				// $.post("https://api.oasisplatform.world/api/avatar/authenticate/",
+				// 	{
+				// 		name: "Donald Duck",
+				// 		city: "Duckburg"
+				// 	},
+				// 	function (data, status)
+				// 	{
+				// 		alert("Data: " + data + "\nStatus: " + status);
+				// 	});
 
 				/*
 				if (!xhr) 
@@ -202,96 +202,97 @@ var loggedIn;
 				*/
 
 				//xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-				xhr.send("username=david@nextgensoftware.co.uk&password=lettherebelight!");
+				// xhr.send("username=david@nextgensoftware.co.uk&password=lettherebelight!");
 
-				if (document.getElementById("signin-email").value == 'david@nextgensoftware.co.uk' && document.getElementById("signin-password").value == 'lettherebelight!')
+				// if (document.getElementById("signin-email").value == 'david@nextgensoftware.co.uk' && document.getElementById("signin-password").value == 'lettherebelight!')
+				// {
+				// 	loggedIn = true;
+				// 	document.getElementById("loggedInUser").innerText = "Logged In: david@nextgensoftware.co.uk";
+				// 	document.getElementById("loggedInUser").style.display = "block";
+				// 	document.getElementById("LogInButtons").style.display = "none";
+
+				// 	//document.getElementById("loggedIn").value = "true";
+				// 	removeClass(self.element, 'cd-signin-modal--is-visible');
+				// }
+				// else
+				// {
+				// 		Swal.fire({
+				// 		title: 'Incorrect UserName & Password',
+				// 		text: 'Incorrect UserName & Password.',
+				// 		icon: 'error',
+				// 		confirmButtonText: 'Ok'
+				// 	})
+                // }
+
+				// else if
+					(document.getElementById("signin-email").value == 'david@nextgensoftware.co.uk' && document.getElementById("signin-password").value == 'lettherebelight!')
 				{
 					loggedIn = true;
+
+					// var today = new Date();
+					// var date = today.getFullYear()+'-'+(today.getMonth()+1)+'-'+today.getDate();
+					// var time = today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds();
+					// var dateTime = date+' '+time;
+
+
+
+
+
 					document.getElementById("loggedInUser").innerText = "Logged In: david@nextgensoftware.co.uk";
 					document.getElementById("loggedInUser").style.display = "block";
 					document.getElementById("LogInButtons").style.display = "none";
 
-					//document.getElementById("loggedIn").value = "true";
-					removeClass(self.element, 'cd-signin-modal--is-visible');
+					alert("logged in!");
+					//removeClass(self.element, 'cd-signin-modal--is-visible');
 				}
-				else
+				// else
 				{
-						Swal.fire({
-						title: 'Incorrect UserName & Password',
-						text: 'Incorrect UserName & Password.',
-						icon: 'error',
-						confirmButtonText: 'Ok'
-					})
-                }
-
-				//else if (document.getElementById("signin-email").value == 'david@nextgensoftware.co.uk' && document.getElementById("signin-password").value == 'lettherebelight!')
-				//{
-				//	loggedIn = true;
-
-				//	// var today = new Date();
-				//	// var date = today.getFullYear()+'-'+(today.getMonth()+1)+'-'+today.getDate();
-				//	// var time = today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds();
-				//	// var dateTime = date+' '+time;
 
 
+					//Swal.fire({
+					//	title: 'Incorrect UserName & Password',
+					//	text: 'Incorrect UserName & Password.',
+					//	icon: 'error',
+					//	confirmButtonText: 'Ok'
+					//})
 
-
-
-				//	document.getElementById("loggedInUser").innerText = "Logged In: david@nextgensoftware.co.uk";
-				//	document.getElementById("loggedInUser").style.display = "block";
-				//	document.getElementById("LogInButtons").style.display = "none";
-
-				//	alert("logged in!");
-				//	//removeClass(self.element, 'cd-signin-modal--is-visible');
-				//}
-				//else
-				//{
-
-
-				//	//Swal.fire({
-				//	//	title: 'Incorrect UserName & Password',
-				//	//	text: 'Incorrect UserName & Password.',
-				//	//	icon: 'error',
-				//	//	confirmButtonText: 'Ok'
-				//	//})
-
-				//	alert("Incorrect UserName & Password.");
-				//	//document.getElementById('signin-email').focus();
-				//}
+					alert("Incorrect UserName & Password.");
+					//document.getElementById('signin-email').focus();
+				}
 			}
 
 				//self.toggleError(document.getElementById('signin-email'), false);
 		});
 
-		this.blocks[1].getElementsByTagName('form')[0].addEventListener('submit', function (event)
-		{
-			//alert("Functionality Coming Soon...");
-			event.preventDefault();
+		// this.blocks[1].getElementsByTagName('form')[0].addEventListener('submit', function (event)
+		// {
+		// 	alert("Functionality Coming Soon...");
+		// 	event.preventDefault();
 
-			Swal.fire({
-				title: 'Coming Soon',
-				text: 'Functionality Coming Soon...',
-				icon: 'info',
-				confirmButtonText: 'Ok'
-			})
+		// 	Swal.fire({
+		// 		title: 'Coming Soon',
+		// 		text: 'Functionality Coming Soon...',
+		// 		icon: 'info',
+		// 		confirmButtonText: 'Ok'
+		// 	})
 
-			//self.toggleError(document.getElementById('signup-username'), true);
-		});
+		// 	self.toggleError(document.getElementById('signup-username'), true);
+		// });
 
-		this.blocks[2].getElementsByTagName('form')[0].addEventListener('submit', function (event)
-		{
-			//alert("Functionality Coming Soon...");
-			event.preventDefault();
+		// this.blocks[2].getElementsByTagName('form')[0].addEventListener('submit', function (event)
+		// {
+		// 	alert("Functionality Coming Soon...");
+		// 	event.preventDefault();
 
-			Swal.fire({
-				title: 'Coming Soon',
-				text: 'Functionality Coming Soon...',
-				icon: 'info',
-				confirmButtonText: 'Ok'
-			})
+		// 	Swal.fire({
+		// 		title: 'Coming Soon',
+		// 		text: 'Functionality Coming Soon...',
+		// 		icon: 'info',
+		// 		confirmButtonText: 'Ok'
+		// 	})
 
-			//self.toggleError(document.getElementById('signup-username'), true);
-		});
+		// 	self.toggleError(document.getElementById('signup-username'), true);
+		// });
 	};
 
 
