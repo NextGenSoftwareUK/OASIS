@@ -50,14 +50,9 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
             Console.WriteLine($"********************************************************************");
 
 
-            //string dnaFolder = @"C:\CODE\Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK\NextGenSoftware.OASIS.STAR.TestHarness\CelestialBodyDNA";
-            //string cSharpGeneisFolder = @"C:\CODE\Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK\NextGenSoftware.OASIS.STAR.TestHarness\bin\Release\net5.0\Genesis\CSharp";
-            //string rustGenesisFolder = @"C:\CODE\Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK\NextGenSoftware.OASIS.STAR.TestHarness\bin\Release\net5.0\Genesis\Rust";
-
-            string dnaFolder = "C:\\CODE\\Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK\\NextGenSoftware.OASIS.STAR.TestHarness\\CelestialBodyDNA";
-            string cSharpGeneisFolder = "C:\\CODE\\Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK\\NextGenSoftware.OASIS.STAR.TestHarness\\bin\\Release\\net5.0\\Genesis\\CSharp";
-            string rustGenesisFolder = "C:\\CODE\\Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK\\NextGenSoftware.OASIS.STAR.TestHarness\\bin\\Release\\net5.0\\Genesis\\Rust";
-
+            string dnaFolder = @"C:\CODE\Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK\NextGenSoftware.OASIS.STAR.TestHarness\CelestialBodyDNA";
+            string cSharpGeneisFolder = @"C:\CODE\Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK\NextGenSoftware.OASIS.STAR.TestHarness\bin\Release\net5.0\Genesis\CSharp";
+            string rustGenesisFolder = @"C:\CODE\Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK\NextGenSoftware.OASIS.STAR.TestHarness\bin\Release\net5.0\Genesis\Rust";
 
             // TODO: Not sure what events should expose on Star, StarCore and HoloNETClient?
             // I feel the events should at least be on the Star object, but then they need to be on the others to bubble them up (maybe could be hidden somehow?)
@@ -89,185 +84,171 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
 
                 if (result.ErrorOccured)
                     Console.WriteLine(string.Concat("ERROR OCCURED: Error Message: ", result.Message));
-
                 else
                 {
-                Console.WriteLine("Planet Our World Generated.");
-                ourWorld = result.CelestialBody as Planet;
+                    Console.WriteLine("Planet Our World Generated.");
+                    ourWorld = result.CelestialBody as Planet;
 
-                ourWorld.OnHolonLoaded += OurWorld_OnHolonLoaded;
-                ourWorld.OnHolonSaved += OurWorld_OnHolonSaved;
-                ourWorld.OnZomeError += OurWorld_OnZomeError;
+                    ourWorld.OnHolonLoaded += OurWorld_OnHolonLoaded;
+                    ourWorld.OnHolonSaved += OurWorld_OnHolonSaved;
+                    ourWorld.OnZomeError += OurWorld_OnZomeError;
 
-                ourWorld.LoadAll();
-                //ourWorld.Zomes.Add()
+                    ourWorld.LoadAll();
+                    //ourWorld.Zomes.Add()
 
-                Holon newHolon = new Holon();
-                newHolon.Name = "Test Data";
-                newHolon.Description = "Test Desc";
-                newHolon.HolonType = HolonType.Park;
+                    Holon newHolon = new Holon();
+                    newHolon.Name = "Test Data";
+                    newHolon.Description = "Test Desc";
+                    newHolon.HolonType = HolonType.Park;
 
-                Console.WriteLine("Saving Holon...");
+                    Console.WriteLine("Saving Holon...");
 
-                // If you are using the generated code from Light above (highly recommended) you do not need to pass the HolonTypeName in, you only need to pass the holon in.
-                //ourWorld.CelestialBodyCore.SaveHolonAsync("Test", newHolon);
-                await ourWorld.CelestialBodyCore.SaveHolonAsync(newHolon);
-
-
-                // BEGIN OASIS API DEMO ***********************************************************************************
-
-                //Set auto-replicate for all providers except IPFS and Neo4j.
-                ProviderManager.SetAutoReplicateForAllProviders(true);
-                ProviderManager.SetAutoReplicateForProviders(false, new List<ProviderType>() { ProviderType.IPFSOASIS, ProviderType.Neo4jOASIS });
-
-                //Set auto-failover for all providers except Holochain.
-                ProviderManager.SetAutoFailOverForAllProviders(true);
-                ProviderManager.SetAutoFailOverForProviders(false, new List<ProviderType>() { ProviderType.HoloOASIS });
-
-                //Set auto-load balance for all providers except Ethereum.
-                ProviderManager.SetAutoLoadBalanceForAllProviders(true);
-                ProviderManager.SetAutoLoadBalanceForProviders(false, new List<ProviderType>() { ProviderType.EthereumOASIS });
-
-                //  Set the default provider to MongoDB.
-                ProviderManager.SetAndActivateCurrentStorageProvider(ProviderType.MongoDBOASIS, true); // Set last param to false if you wish only the next call to use this provider.
-
-                //  Give HoloOASIS Store permission for the Name field(the field will only be stored on Holochain).
-                OASISAPI.Avatar.Config.FieldToProviderMappings.Name.Add(new ProviderManagerConfig.FieldToProviderMappingAccess { Access = ProviderManagerConfig.ProviderAccess.Store, Provider = ProviderType.HoloOASIS });
-
-                // Give all providers read/write access to the Karma field (will allow them to read and write to the field but it will only be stored on Holochain).
-                // You could choose to store it on more than one provider if you wanted the extra redundancy (but not normally needed since Holochain has a lot of redundancy built in).
-                OASISAPI.Avatar.Config.FieldToProviderMappings.Karma.Add(new ProviderManagerConfig.FieldToProviderMappingAccess { Access = ProviderManagerConfig.ProviderAccess.ReadWrite, Provider = ProviderType.All });
-
-                //Give Ethereum read-only access to the DOB field.
-                OASISAPI.Avatar.Config.FieldToProviderMappings.DOB.Add(new ProviderManagerConfig.FieldToProviderMappingAccess { Access = ProviderManagerConfig.ProviderAccess.ReadOnly, Provider = ProviderType.EthereumOASIS });
+                    // If you are using the generated code from Light above (highly recommended) you do not need to pass the HolonTypeName in, you only need to pass the holon in.
+                    //ourWorld.CelestialBodyCore.SaveHolonAsync("Test", newHolon);
+                    await ourWorld.CelestialBodyCore.SaveHolonAsync(newHolon);
 
 
-                // All calls are load-balanced and have multiple redudancy/fail over for all supported OASIS Providers.
-                OASISAPI.Avatar.LoadAllAvatars(); // Load-balanced across all providers.
-                OASISAPI.Avatar.LoadAllAvatars(ProviderType.MongoDBOASIS); // Only loads from MongoDB.
-                OASISAPI.Avatar.LoadAvatar(avatar.Id, ProviderType.HoloOASIS); // Only loads from Holochain.
-                OASISAPI.Map.CreateAndDrawRouteOnMapBetweenHolons(newHolon, newHolon); // Load-balanced across all providers.
+                    //Set auto-replicate for all providers except IPFS and Neo4j.
+                    ProviderManager.SetAutoReplicate(true);
+                    ProviderManager.SetAutoReplicate(false, new List<ProviderType>() { ProviderType.IPFSOASIS, ProviderType.Neo4jOASIS });
 
-                OASISAPI.Data.LoadHolon(newHolon.Id); // Load-balanced across all providers.
-                OASISAPI.Data.LoadHolon(newHolon.Id, HolonType.All, ProviderType.IPFSOASIS); // Only loads from IPFS.
-                OASISAPI.Data.LoadAllHolons(HolonType.Moon, ProviderType.HoloOASIS); // Loads all moon (OAPPs) from Holochain.
-                OASISAPI.Data.SaveHolon(newHolon); // Load-balanced across all providers.
-                OASISAPI.Data.SaveHolon(newHolon, ProviderType.EthereumOASIS); //  Only saves to Etherum.
+                    // Set the default provider to MongoDB.
+                    ProviderManager.SetAndActivateCurrentStorageProvider(ProviderType.MongoDBOASIS, true); // Set last param to false if you wish only the next call to use this provider.
+.
+                    // Give HoloOASIS Store permission for the Name field (the field will only be stored on Holochain).
+                    OASISAPI.Avatar.Config.FieldToProviderMappings.Name.Add(new ProviderManagerConfig.FieldToProviderMappingAccess { Access = ProviderManagerConfig.ProviderAccess.Store, Provider = ProviderType.HoloOASIS });
 
-                OASISAPI.Data.LoadAllHolons(HolonType.All, ProviderType.Default); // Loads all parks from current default provider.
-                OASISAPI.Data.LoadAllHolons(HolonType.Park, ProviderType.All); // Loads all parks from all providers (load-balanced/fail over).
-                OASISAPI.Data.LoadAllHolons(HolonType.Park); // shorthand for above.
-                OASISAPI.Data.LoadAllHolons(HolonType.Quest); //  Loads all quests from all providers.
-                OASISAPI.Data.LoadAllHolons(HolonType.Restaurant); //  Loads all resaurants from all providers.
+                    // Give all providers read/write access to the Karma field (will allow them to read and write to the field but it will only be stored on Holochain).
+                    // You could choose to store it on more than one provider if you wanted the extra redundancy (but not normally needed since Holochain has a lot of redundancy built in).
+                    OASISAPI.Avatar.Config.FieldToProviderMappings.Karma.Add(new ProviderManagerConfig.FieldToProviderMappingAccess { Access = ProviderManagerConfig.ProviderAccess.ReadWrite, Provider = ProviderType.All });
 
-                // Holochain Support
-                await OASISAPI.Providers.Holochain.HoloNETClient.CallZomeFunctionAsync(OASISAPI.Providers.Holochain.HoloNETClient.AgentPubKey, "our_world_core", "load_holons", null);
-
-                // IPFS Support
-                await OASISAPI.Providers.IPFS.IPFSEngine.FileSystem.ReadFileAsync("");
-                await OASISAPI.Providers.IPFS.IPFSEngine.FileSystem.AddFileAsync("");
-                await OASISAPI.Providers.IPFS.IPFSEngine.Swarm.PeersAsync();
-                await OASISAPI.Providers.IPFS.IPFSEngine.KeyChainAsync();
-                await OASISAPI.Providers.IPFS.IPFSEngine.Dns.ResolveAsync("test");
-                await OASISAPI.Providers.IPFS.IPFSEngine.Dag.GetAsync(new Ipfs.Cid() { Hash = "" });
-                await OASISAPI.Providers.IPFS.IPFSEngine.Dag.PutAsync(new Ipfs.Cid() { Hash = "" });
-
-                // EOSIO Support
-                OASISAPI.Providers.EOSIO.ChainAPI.GetTableRows("accounts", "accounts", "users", "true", 0, 0, 1, 3);
-                OASISAPI.Providers.EOSIO.ChainAPI.GetBlock("block");
-                OASISAPI.Providers.EOSIO.ChainAPI.GetAccount("test.account");
-                OASISAPI.Providers.EOSIO.ChainAPI.GetCurrencyBalance("test.account", "", "");
-
-                // Ethereum Support
-               // OASISAPI.Providers.Ethereum.Web3.
+                    //Give Ethereum read-only access to the DOB field.
+                    OASISAPI.Avatar.Config.FieldToProviderMappings.DOB.Add(new ProviderManagerConfig.FieldToProviderMappingAccess { Access = ProviderManagerConfig.ProviderAccess.ReadOnly, Provider = ProviderType.EthereumOASIS });
 
 
-                // Graph DB Support
-                await OASISAPI.Providers.Neo4j.GraphClient.Cypher.Merge("(a:Avatar { Id: avatar.Id })").OnCreate().Set("a = avatar").ExecuteWithoutResultsAsync(); //Insert/Update Avatar.
-                Avatar newAvatar = OASISAPI.Providers.Neo4j.GraphClient.Cypher.Match("(p:Avatar {Username: {nameParam}})").WithParam("nameParam", "davidellams@hotmail.com").Return(p => p.As<Avatar>()).ResultsAsync.Result.Single(); //Load Avatar.
+                    // All calls are load-balanced and have multiple redudancy/fail over for all supported OASIS Providers.
+                    OASISAPI.Avatar.LoadAllAvatars(); // Load-balanced across all providers.
+                    OASISAPI.Avatar.LoadAllAvatars(ProviderType.MongoDBOASIS); // Only loads from MongoDB.
+                    OASISAPI.Avatar.LoadAvatar(avatar.Id, ProviderType.HoloOASIS); // Only loads from Holochain.
+                    OASISAPI.Map.CreateAndDrawRouteOnMapBetweenHolons(newHolon, newHolon); // Load-balanced across all providers.
+                    
+                    OASISAPI.Data.LoadHolon(newHolon.Id); // Load-balanced across all providers.
+                    OASISAPI.Data.LoadHolon(newHolon.Id, HolonType.All, ProviderType.IPFSOASIS); // Only loads from IPFS.
+                    OASISAPI.Data.LoadAllHolons(HolonType.Moon, ProviderType.HoloOASIS); // Loads all moon (OAPPs) from Holochain.
+                    OASISAPI.Data.SaveHolon(newHolon); // Load-balanced across all providers.
+                    OASISAPI.Data.SaveHolon(newHolon, ProviderType.EthereumOASIS); //  Only saves to Etherum.
 
-                // Document/Object DB Support
-                OASISAPI.Providers.MongoDB.Database.MongoDB.ListCollectionNames();
-                OASISAPI.Providers.MongoDB.Database.MongoDB.GetCollection<Avatar>("testCollection");
+                    OASISAPI.Data.LoadAllHolons(HolonType.All, ProviderType.Default); // Loads all parks from current default provider.
+                    OASISAPI.Data.LoadAllHolons(HolonType.Park, ProviderType.All); // Loads all parks from all providers (load-balanced/fail over).
+                    OASISAPI.Data.LoadAllHolons(HolonType.Park); // shorthand for above.
+                    OASISAPI.Data.LoadAllHolons(HolonType.Quest); //  Loads all quests from all providers.
+                    OASISAPI.Data.LoadAllHolons(HolonType.Restaurant); //  Loads all resaurants from all providers.
 
-                // SEEDS Support
-                string balance = OASISAPI.Providers.SEEDS.GetBalance("test.account");
-                Account account = OASISAPI.Providers.SEEDS.GetUser("test.account");
+                    // Holochain Support
+                    await OASISAPI.Providers.Holochain.HoloNETClient.CallZomeFunctionAsync(OASISAPI.Providers.Holochain.HoloNETClient.AgentPubKey, "our_world_core", "load_holons", null);
+                   
+                    // IPFS Support
+                    await OASISAPI.Providers.IPFS.IPFSEngine.FileSystem.ReadFileAsync("");
+                    await OASISAPI.Providers.IPFS.IPFSEngine.FileSystem.AddFileAsync("");
+                    await OASISAPI.Providers.IPFS.IPFSEngine.Swarm.PeersAsync();
+                    await OASISAPI.Providers.IPFS.IPFSEngine.KeyChainAsync();
+                    await OASISAPI.Providers.IPFS.IPFSEngine.Dns.ResolveAsync("test");
+                    await OASISAPI.Providers.IPFS.IPFSEngine.Dag.GetAsync(new Ipfs.Cid() { Hash = "" });
+                    await OASISAPI.Providers.IPFS.IPFSEngine.Dag.PutAsync(new Ipfs.Cid() { Hash = "" });
 
-                Console.WriteLine(string.Concat("Balance Before: ", balance));
-                Console.WriteLine(string.Concat("Account.account_name: ", account.account_name));
-                Console.WriteLine(string.Concat("Account.core_liquid_balance Before: ", account.core_liquid_balance));
+                    // EOSIO Support
+                    OASISAPI.Providers.EOSIO.ChainAPI.GetTableRows("accounts", "accounts", "users", "true", 0, 0, 1, 3);
+                    OASISAPI.Providers.EOSIO.ChainAPI.GetBlock("block");
+                    OASISAPI.Providers.EOSIO.ChainAPI.GetAccount("test.account");
+                    OASISAPI.Providers.EOSIO.ChainAPI.GetCurrencyBalance("test.account", "", "");
 
-                OASISAPI.Providers.SEEDS.PayWithSeeds("test.account", "test.account2", 7, "test memo");
-                balance = OASISAPI.Providers.SEEDS.GetBalance("test.account");
-                account = OASISAPI.Providers.SEEDS.GetUser("test.account");
-
-                Console.WriteLine(string.Concat("Balance After: ", balance));
-                Console.WriteLine(string.Concat("Account.core_liquid_balance After: ", account.core_liquid_balance));
-
-                string orgs = OASISAPI.Providers.SEEDS.GetAllOrganisationsAsJSON();
-                Console.WriteLine(string.Concat("Organisations: ", orgs));
-
-                string qrCode = OASISAPI.Providers.SEEDS.GenerateSignInQRCode();
-                Console.WriteLine(string.Concat("SEEDS Sign-In QRCode: ", qrCode));
-
-                SendInviteResult inviteResult = OASISAPI.Providers.SEEDS.SendInviteToJoinSeeds("test.account", "test.account", 5, 5);
-                Console.WriteLine(string.Concat("Invite Sent To Join SEEDS. Invite Secrert: ", inviteResult.InviteSecret, ". Transction ID: ", inviteResult.TransactionId));
-
-                string transactionID = OASISAPI.Providers.SEEDS.AcceptInviteToJoinSeeds("test.account2", inviteResult.InviteSecret);
-                Console.WriteLine(string.Concat("Invite Accepted To Join SEEDS. Invite Secrert: ", inviteResult.InviteSecret, ". Transction ID: ", transactionID));
-
-                // ThreeFold, AcivityPub, SOLID, Cross/Off Chain, Smart Contract Interoperability & lots more coming soon! :)
-
-                // END OASIS API DEMO ***********************************************************************************
+                    // Ethereum Support
+                  //  OASISAPI.Providers.Ethereum.Web3.
 
 
-                // Build
-                CoronalEjection ejection = ourWorld.Flare();
-                //OR
-                //CoronalEjection ejection = Star.Flare(ourWorld);
+                    // Graph DB Support
+                    await OASISAPI.Providers.Neo4j.GraphClient.Cypher.Merge("(a:Avatar { Id: avatar.Id })").OnCreate().Set("a = avatar").ExecuteWithoutResultsAsync(); //Insert/Update Avatar.
+                    Avatar newAvatar = OASISAPI.Providers.Neo4j.GraphClient.Cypher.Match("(p:Avatar {Username: {nameParam}})").WithParam("nameParam", "davidellams@hotmail.com").Return(p => p.As<Avatar>()).ResultsAsync.Result.Single(); //Load Avatar.
 
-                // Activate & Launch - Launch & activate the planet (OAPP) by shining the star's light upon it...
-                SuperStar.Shine(ourWorld);
-                ourWorld.Shine();
+                    // Document/Object DB Support
+                    OASISAPI.Providers.MongoDB.Database.MongoDB.ListCollectionNames();
+                    OASISAPI.Providers.MongoDB.Database.MongoDB.GetCollection<Avatar>("testCollection");
+                    
+                    // SEEDS Support
+                    string balance = OASISAPI.Providers.SEEDS.GetBalance("test.account");
+                    Account account = OASISAPI.Providers.SEEDS.GetUser("test.account");
 
-                // Deactivate the planet (OAPP)
-                SuperStar.Dim(ourWorld);
+                    Console.WriteLine(string.Concat("Balance Before: ", balance));
+                    Console.WriteLine(string.Concat("Account.account_name: ", account.account_name));
+                    Console.WriteLine(string.Concat("Account.core_liquid_balance Before: ", account.core_liquid_balance));
 
-                // Deploy the planet (OAPP)
-                SuperStar.Seed(ourWorld);
+                    OASISAPI.Providers.SEEDS.PayWithSeeds("test.account", "test.account2", 7, "test memo");
+                    balance = OASISAPI.Providers.SEEDS.GetBalance("test.account");
+                    account = OASISAPI.Providers.SEEDS.GetUser("test.account");
 
-                // Run Tests
-                SuperStar.Twinkle(ourWorld);
+                    Console.WriteLine(string.Concat("Balance After: ", balance));
+                    Console.WriteLine(string.Concat("Account.core_liquid_balance After: ", account.core_liquid_balance));
 
-                // Highlight the Planet (OAPP) in the OAPP Store (StarNET). *Admin Only*
-                SuperStar.Radiate(ourWorld);
+                    string orgs = OASISAPI.Providers.SEEDS.GetAllOrganisationsAsJSON();
+                    Console.WriteLine(string.Concat("Organisations: ", orgs));
 
-                // Show how much light the planet (OAPP) is emitting into the solar system (StarNET/HoloNET)
-                SuperStar.Emit(ourWorld);
+                    string qrCode = OASISAPI.Providers.SEEDS.GenerateSignInQRCode();
+                    Console.WriteLine(string.Concat("SEEDS Sign-In QRCode: ", qrCode));
 
-                // Show stats of the Planet (OAPP).
-                SuperStar.Reflect(ourWorld);
+                    SendInviteResult inviteResult = OASISAPI.Providers.SEEDS.SendInviteToJoinSeeds("test.account", "test.account", 5, 5);
+                    Console.WriteLine(string.Concat("Invite Sent To Join SEEDS. Invite Secrert: ", inviteResult.InviteSecret, ". Transction ID: ", inviteResult.TransactionId));
 
-                // Upgrade/update a Planet (OAPP).
-                SuperStar.Evolve(ourWorld);
+                    string transactionID = OASISAPI.Providers.SEEDS.AcceptInviteToJoinSeeds("test.account2", inviteResult.InviteSecret);
+                    Console.WriteLine(string.Concat("Invite Accepted To Join SEEDS. Invite Secrert: ", inviteResult.InviteSecret, ". Transction ID: ", transactionID));
+                    
 
-                // Import/Export hApp, dApp & others.
-                SuperStar.Mutate(ourWorld);
 
-                // Send/Receive Love
-                SuperStar.Love(ourWorld);
+                    // Build
+                    CoronalEjection ejection = ourWorld.Flare();
+                    //OR
+                    //CoronalEjection ejection = Star.Flare(ourWorld);
 
-                // Show network stats/management/settings
-                SuperStar.Burst(ourWorld);
+                    // Activate & Launch - Launch & activate the planet (OAPP) by shining the star's light upon it...
+                    SuperStar.Shine(ourWorld);
+                    ourWorld.Shine();
 
-                // Reserved For Future Use...
-                SuperStar.Super(ourWorld);
+                    // Deactivate the planet (OAPP)
+                    SuperStar.Dim(ourWorld);
 
-                // Delete a planet (OAPP).
-                SuperStar.Dust(ourWorld);
+                    // Deploy the planet (OAPP)
+                    SuperStar.Seed(ourWorld);
+
+                    // Run Tests
+                    SuperStar.Twinkle(ourWorld);
+
+                    // Highlight the Planet (OAPP) in the OAPP Store (StarNET). *Admin Only*
+                    SuperStar.Radiate(ourWorld);
+
+                    // Show how much light the planet (OAPP) is emitting into the solar system (StarNET/HoloNET)
+                    SuperStar.Emit(ourWorld);
+
+                    // Show stats of the Planet (OAPP).
+                    SuperStar.Reflect(ourWorld);
+
+                    // Upgrade/update a Planet (OAPP).
+                    SuperStar.Evolve(ourWorld);
+
+                    // Import/Export hApp, dApp & others.
+                    SuperStar.Mutate(ourWorld);
+
+                    // Send/Receive Love
+                    SuperStar.Love(ourWorld);
+
+                    // Show network stats/management/settings
+                    SuperStar.Burst(ourWorld);
+
+                    // Reserved For Future Use...
+                    SuperStar.Super(ourWorld);
+
+                    // Delete a planet (OAPP).
+                    SuperStar.Dust(ourWorld);
+                }
             }
-        }
             else
                 Console.WriteLine("Error Beaming In.");
         }
