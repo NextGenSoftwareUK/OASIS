@@ -79,6 +79,9 @@ namespace NextGenSoftware.OASIS.API.Core.Enums
         ContributingTowardsAGoodCauseFunder,
         ContributingTowardsAGoodCauseSpeaker,
         ContributingTowardsAGoodCausePeacefulProtesterActivist,
+        PayWithSeeds,
+        DonateWithSeeds,
+        RewardWithSeeds,
         Other
     }
 
@@ -105,3 +108,4 @@ namespace NextGenSoftware.OASIS.API.Core.Enums
         Other
     }
 }
+,

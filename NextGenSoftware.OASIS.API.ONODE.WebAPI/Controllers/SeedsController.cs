@@ -3,6 +3,7 @@ using Microsoft.Extensions.Options;
 using System;
 using NextGenSoftware.OASIS.API.Core;
 using NextGenSoftware.OASIS.API.Config;
+using NextGenSoftware.OASIS.API.Providers.SEEDSOASIS;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 {
@@ -16,6 +17,19 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         //{
         //    _settings = OASISSettings.Value;
         //}
+
+        SEEDSManager _SEEDSManager = null;
+
+        SEEDSManager SEEDSManager
+        {
+            get
+            {
+                if (_SEEDSManager == null)
+                    _SEEDSManager = new SEEDSManager();
+
+                return _SEEDSManager;
+            }
+        }
 
         public SeedsController()
         {
@@ -31,7 +45,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpGet("RewardSeeds")]
         public ActionResult<bool> RewardSeeds()
         {
-            // TODO: Finish implementing.
+            SEEDSManager.PayWithSeeds()
             return Ok();
         }
     }
