@@ -1,19 +1,19 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
-using Newtonsoft.Json;
-using EOSNewYork.EOSCore;
-using EOSNewYork.EOSCore.ActionArgs;
-using EOSNewYork.EOSCore.Params;
-using EOSNewYork.EOSCore.Response.API;
-using EOSNewYork.EOSCore.Utilities;
-using NextGenSoftware.OASIS.API.Core.Interfaces;
-using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS;
-using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.EOSIOClasses;
-using NextGenSoftware.OASIS.API.Providers.SEEDSOASIS.ParamObjects;
 using System;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
+using Newtonsoft.Json;
+using EOSNewYork.EOSCore;
+using EOSNewYork.EOSCore.ActionArgs;
+using EOSNewYork.EOSCore.Response.API;
+using EOSNewYork.EOSCore.Utilities;
+using NextGenSoftware.OASIS.API.Core.Managers;
+using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.EOSIOClasses;
+using NextGenSoftware.OASIS.API.Providers.SEEDSOASIS.ParamObjects;
+using NextGenSoftware.OASIS.API.Core.Enums;
 
 namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS
 {
@@ -33,16 +33,30 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS
         public const string APIKEY_LIVE = "EOS7YXUpe1EyMAqmuFWUheuMaJoVuY3qTD33WN4TrXbEt8xSKrdH9";
 
         private static Random _random = new Random();
-        private ChainAPI _chainAPI = new ChainAPI(ENDPOINT_TEST);
+        //private ChainAPI _eosioOaisis.ChainAPI = new ChainAPI(ENDPOINT_TEST);
+        //AvatarManager _avatarManager = new AvatarManager(_eosioOasis);
+        private AvatarManager _avatarManager = null;
+        private EOSIOOASIS.EOSIOOASIS _eosioOaisis = null;
 
-        public SEEDSManager()
+        private AvatarManager AvatarManager
         {
-            
+            get
+            {
+                if (_avatarManager == null && _eosioOaisis != null)
+                    _avatarManager = new AvatarManager(_eosioOaisis);
+
+                return _avatarManager;
+            }
+        }
+
+        public SEEDSManager(EOSIOOASIS.EOSIOOASIS eosioOaisis)
+        {
+            _eosioOaisis = eosioOaisis;
         }
 
         public async Task<string> GetUserAsync(string user)
         {
-            var rows = await _chainAPI.GetTableRowsAsync("accounts", "accounts", "users", "true", user, user, 1, 3);
+            var rows = await _eosioOaisis.ChainAPI.GetTableRowsAsync("accounts", "accounts", "users", "true", user, user, 1, 3);
 
             if (rows.rows.Count == 0)
                 return "";
@@ -57,7 +71,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS
         public Account GetUser(string user)
         {
             //TODO: Finish this...
-          //  var rows = _chainAPI.GetTableRows("accounts", "accounts", "users", "true", user, user, 1, 3);
+          //  var rows = _eosioOaisis.ChainAPI.GetTableRows("accounts", "accounts", "users", "true", user, user, 1, 3);
 
            // if (rows.rows.Count == 0)
             //    return "";
@@ -66,7 +80,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS
             //var Avatar = AvatarRow.ToAvatar();
             // Avatar.Password = StringCipher.Decrypt(Avatar.Password, OASIS_PASS_PHRASE);
 
-            var account = _chainAPI.GetAccount(user);
+            var account = _eosioOaisis.ChainAPI.GetAccount(user);
           //  logger.Info("{0} is currently the returned account name", account.account_name);
             string json = JsonConvert.SerializeObject(account);
             // logger.Info("{0}", json);
@@ -76,25 +90,25 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS
 
         public async Task<TableRows> GetAllOrganisationsAsync()
         {
-            TableRows rows = await _chainAPI.GetTableRowsAsync("orgs.seeds", "orgs.seeds", "organization", "true", 0, -1, 99999);
+            TableRows rows = await _eosioOaisis.ChainAPI.GetTableRowsAsync("orgs.seeds", "orgs.seeds", "organization", "true", 0, -1, 99999);
             return rows;
         }
 
         public TableRows GetAllOrganisations()
         {
-            TableRows rows = _chainAPI.GetTableRows("orgs.seeds", "orgs.seeds", "organization", "true", 0, -1, 99999);
+            TableRows rows = _eosioOaisis.ChainAPI.GetTableRows("orgs.seeds", "orgs.seeds", "organization", "true", 0, -1, 99999);
             return rows;
         }
 
         public async Task<string> GetAllOrganisationsAsJSONAsync()
         {
-            TableRows rows = await _chainAPI.GetTableRowsAsync("orgs.seeds", "orgs.seeds", "organization", "true", 0, -1, 99999);
+            TableRows rows = await _eosioOaisis.ChainAPI.GetTableRowsAsync("orgs.seeds", "orgs.seeds", "organization", "true", 0, -1, 99999);
             return JsonConvert.SerializeObject(rows);
         }
 
         public string GetAllOrganisationsAsJSON()
         {
-            TableRows rows = _chainAPI.GetTableRows("orgs.seeds", "orgs.seeds", "organization", "true", 0, -1, 99999);
+            TableRows rows = _eosioOaisis.ChainAPI.GetTableRows("orgs.seeds", "orgs.seeds", "organization", "true", 0, -1, 99999);
             return JsonConvert.SerializeObject(rows);
         }
 
@@ -107,7 +121,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS
             //Console.WriteLine(accountBalance[0].balance_decimal);
             //Console.WriteLine(accountBalance[0].symbol);
 
-            var currencyBalance = await _chainAPI.GetCurrencyBalanceAsync(account, "token.seeds", "SEEDS");
+            var currencyBalance = await _eosioOaisis.ChainAPI.GetCurrencyBalanceAsync(account, "token.seeds", "SEEDS");
             return currencyBalance.balances[0];
         }
 
@@ -116,7 +130,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS
             //https://github.com/JoinSEEDS/seeds-smart-contracts/blob/master/scripts/balancecheck.js
             //eos.getCurrencyBalance("token.seeds", account, 'SEEDS')
 
-            var currencyBalance =  _chainAPI.GetCurrencyBalance(account, "token.seeds", "SEEDS");
+            var currencyBalance =  _eosioOaisis.ChainAPI.GetCurrencyBalance(account, "token.seeds", "SEEDS");
             return currencyBalance.balances[0];
         }
 
@@ -136,7 +150,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS
 
 
             TransferArgs args = new TransferArgs() { from = fromAccount, to = toAccount, quantity = "1.0000 EOS", memo = memo };
-           // var abiJsonToBin = _chainAPI.GetAbiJsonToBin("eosio.token", "transfer", args);
+           // var abiJsonToBin = _eosioOaisis.ChainAPI.GetAbiJsonToBin("eosio.token", "transfer", args);
 
             //prepare action object
             EOSNewYork.EOSCore.Params.Action action = new ActionUtility(ENDPOINT_TEST).GetActionObject("transfer", fromAccount, "active", "eosio.token", args);
@@ -148,7 +162,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS
             
 
             //push transaction
-            var transactionResult = _chainAPI.PushTransaction(new[] { action }, privateKeysInWIF);
+            var transactionResult = _eosioOaisis.ChainAPI.PushTransaction(new[] { action }, privateKeysInWIF);
             // logger.Info(transactionResult.transaction_id);
 
             //transactionResult.processed
@@ -156,18 +170,66 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS
 
 
             // string accountName = "eosio";
-            //var abi = _chainAPI.GetAbi(accountName);
+            //var abi = _eosioOaisis.ChainAPI.GetAbi(accountName);
 
             //abi.abi.actions[0].
             //abi.abi.tables
 
             //logger.Info("For account {0} recieved abi {1}", accountName, JsonConvert.SerializeObject(abi));
         }
-        public void DonateSeeds()
+
+        public string PayWithSeeds(Guid fromAvatarId, Guid toAvatarId, int qty, string memo, KarmaSourceType receivingKarmaFor, string appWebsiteServiceName, string appWebsiteServiceDesc)
         {
-            //Use standard TELOS/EOS Token API.Use Transfer action.
-            //https://developers.eos.io/manuals/eosjs/latest/basic-usage/browser
+            AvatarManager.AddKarmaToAvatar(fromAvatarId, KarmaTypePositive.BeASuperHero, receivingKarmaFor, appWebsiteServiceName, appWebsiteServiceDesc, ProviderType.SEEDSOASIS);
+            AddKarmaForSeeds(fromAvatarId, toAvatarId, KarmaTypePositive.PayWithSeeds, receivingKarmaFor, appWebsiteServiceName, appWebsiteServiceDesc);
+
+            IAvatar fromAvatar = AvatarManager.LoadAvatar(fromAvatarId);
+            IAvatar toAvatar = AvatarManager.LoadAvatar(fromAvatarId);
+            return PayWithSeeds(fromAvatar.ProviderKey, toAvatar.ProviderKey, qty, memo);
         }
+    }
+
+        public string DonateSeeds(string fromTelosAccount, string toTelosAccount, int qty, string memo)
+        {
+            return PayWithSeeds(fromTelosAccount, toTelosAccount, qty, memo);
+        }
+
+        public string DonateSeeds(Guid fromAvatarId, Guid toAvatarId, int qty, string memo, KarmaSourceType receivingKarmaFor, string appWebsiteServiceName, string appWebsiteServiceDesc)
+        {
+            AvatarManager.AddKarmaToAvatar(fromAvatarId, KarmaTypePositive.BeASuperHero, receivingKarmaFor, appWebsiteServiceName, appWebsiteServiceDesc, ProviderType.SEEDSOASIS);
+            AddKarmaForSeeds(fromAvatarId, toAvatarId, KarmaTypePositive.DonateWithSeeds, receivingKarmaFor, appWebsiteServiceName, appWebsiteServiceDesc);
+
+            IAvatar fromAvatar = AvatarManager.LoadAvatar(fromAvatarId);
+            IAvatar toAvatar = AvatarManager.LoadAvatar(fromAvatarId);
+            return PayWithSeeds(fromAvatar.ProviderKey, toAvatar.ProviderKey, qty, memo);
+        }
+
+        private bool AddKarmaForSeeds(Guid fromAvatarId, Guid toAvatarId, KarmaTypePositive seedsKarmaType, KarmaSourceType karmaSourceType, string karmaSourceTitle, string karmaSourceDesc)
+        {
+            if (!ProviderManager.IsProviderRegistered(ProviderType.EOSOASIS))
+            {
+                throw new Exception("EOSIOOASIS Provider Not Registered. Please register and try again.")
+            }
+
+            //AvatarManager.AddKarmaToAvatar(fromAvatarId.Id, KarmaTypePositive.BeAHero);
+            AvatarManager.AddKarmaToAvatar(fromAvatarId, seedsKarmaType, karmaSourceType, karmaSourceTitle, karmaSourceDesc, ProviderType.SEEDSOASIS);
+            return true;
+        }
+
+        public string RewardWithSeeds(string fromAccount, string toAccount, int qty, string memo)
+        {
+            return PayWithSeeds(fromAccount, toAccount, qty, memo);
+        }
+
+        public string RewardWithSeeds(Guid fromAvatarId, Guid toAvatarId, int qty, string memo, KarmaSourceType receivingKarmaFor, string appWebsiteServiceName, string appWebsiteServiceDesc)
+        {
+            AvatarManager.AddKarmaToAvatar(fromAvatarId, KarmaTypePositive.BeASuperHero, receivingKarmaFor, appWebsiteServiceName, appWebsiteServiceDesc, ProviderType.SEEDSOASIS);
+            AddKarmaForSeeds(fromAvatarId, toAvatarId, KarmaTypePositive.RewardWithSeeds, receivingKarmaFor, appWebsiteServiceName, appWebsiteServiceDesc);
+
+            IAvatar fromAvatar = AvatarManager.LoadAvatar(fromAvatarId);
+            IAvatar toAvatar = AvatarManager.LoadAvatar(fromAvatarId);
+            return PayWithSeeds(fromAvatar.ProviderKey, toAvatar.ProviderKey, qty, memo);
+    }
 
         public SendInviteResult SendInviteToJoinSeeds(string sponsor, string referrer, int transferQuantitiy, int sowQuantitiy)
         {
@@ -180,7 +242,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS
             List<string> privateKeysInWIF = new List<string> { keypair.PrivateKey };
 
             EOSNewYork.EOSCore.Params.Action action = new ActionUtility(ENDPOINT_TEST).GetActionObject("invitefor", sponsor, "active", "join.seeds", new Invite() { sponsor = sponsor, referrer = referrer,  invite_hash = inviteHash, transfer_quantity = transferQuantitiy, sow_quantity = sowQuantitiy });
-            var transactionResult = _chainAPI.PushTransaction(new[] { action }, privateKeysInWIF);
+            var transactionResult = _eosioOaisis.ChainAPI.PushTransaction(new[] { action }, privateKeysInWIF);
 
             return new SendInviteResult() { TransactionId = transactionResult.transaction_id, InviteSecret = inviteHash };
         }
@@ -194,7 +256,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS
             List<string> privateKeysInWIF = new List<string> { keypair.PrivateKey };
 
             EOSNewYork.EOSCore.Params.Action action = new ActionUtility(ENDPOINT_TEST).GetActionObject("accept", account, "active", "join.seeds", new Accept() { account = account, invite_secret = inviteSecret, publicKey = keypair.PublicKey });
-            var transactionResult = _chainAPI.PushTransaction(new[] { action }, privateKeysInWIF);
+            var transactionResult = _eosioOaisis.ChainAPI.PushTransaction(new[] { action }, privateKeysInWIF);
 
             return transactionResult.transaction_id;
         }
