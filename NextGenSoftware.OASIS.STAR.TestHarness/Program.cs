@@ -179,7 +179,7 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
                 OASISAPI.Providers.EOSIO.ChainAPI.GetCurrencyBalance("test.account", "", "");
 
                 // Ethereum Support
-                //  OASISAPI.Providers.Ethereum.Web3.
+               // OASISAPI.Providers.Ethereum.Web3.
 
 
                 // Graph DB Support
