@@ -14,8 +14,8 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
         {
             this.ProviderName = "HashgraphOASIS";
             this.ProviderDescription = "Hashgraph Provider";
-            this.ProviderType.Value = API.Core.Enums.ProviderType.HashgraphOASIS;
-            this.ProviderCategory.Value = API.Core.Enums.ProviderCategory.StorageAndNetwork;
+            this.ProviderType = new Core.Helpers.EnumValue<ProviderType>(Core.Enums.ProviderType.HashgraphOASIS);
+            this.ProviderCategory = new Core.Helpers.EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
         }
 
         public override bool DeleteAvatar(Guid id, bool softDelete = true)
