@@ -1,22 +1,8 @@
 var loggedIn;
 
-//if (loggedIn)
-//{
-//	console.log("LOGGED IN!");
-//	document.getElementById("loggedInUser").innerText = "Logged In: david@nextgensoftware.co.uk";
-//	document.getElementById("loggedInUser").style.display = "block";
-//	document.getElementById("LogInButtons").style.display = "none";
-//}
-//else
-//{
-//	console.log("NOT LOGGED IN!");
-//}
-
-(function ()
-{
+(function () {
 	//Login/Signup modal window - by CodyHouse.co
-	function ModalSignin(element) 
-	{
+	function ModalSignin(element) {
 		this.element = element;
 		this.blocks = this.element.getElementsByClassName('js-signin-modal-block');
 		this.switchers = this.element.getElementsByClassName('js-signin-modal-switcher')[0].getElementsByTagName('a');
@@ -25,27 +11,22 @@ var loggedIn;
 		this.init();
 	};
 
-	ModalSignin.prototype.init = function ()
-	{
+	ModalSignin.prototype.init = function () {
 		//alert("ModalSignin.prototype.init");
 
 		var self = this;
 		//open modal/switch form
-		for (var i = 0; i < this.triggers.length; i++) 
-		{
+		for (var i = 0; i < this.triggers.length; i++) 	{
 			//alert("trigger " + i);
 
-			(function (i)
-			{
+			(function (i) {
 				//alert("self = " + self);
 				//alert("self.triggers[i] = " + self.triggers[i]);
 
-				self.triggers[i].addEventListener('click', function (event)
-				{
+				self.triggers[i].addEventListener('click', function (event) {
 					//	alert("here");
 
-					if (event.target.hasAttribute('data-signin')) 
-					{
+					if (event.target.hasAttribute('data-signin')) {
 						//	alert("has sign in");
 
 						event.preventDefault();
@@ -56,11 +37,9 @@ var loggedIn;
 		}
 
 		//close modal
-		this.element.addEventListener('click', function (event)
-		{
+		this.element.addEventListener('click', function (event) {
 			//if( hasClass(event.target, 'js-close') ) {
-			if (hasClass(event.target, 'js-signin-modal') || hasClass(event.target, 'js-close')) 
-			{
+			if (hasClass(event.target, 'js-signin-modal') || hasClass(event.target, 'js-close')) {
 				// document.getElementById("divNewAccount").style.display = "none";
 				// document.getElementById("divLogin").style.display = "block";
 				// document.getElementById("divForgotPassword").style.display = "none";
@@ -69,25 +48,20 @@ var loggedIn;
 			}
 		});
 		//close modal when clicking the esc keyboard button
-		document.addEventListener('keydown', function (event)
-		{
+		document.addEventListener('keydown', function (event) {
 			(event.which == '27') && removeClass(self.element, 'cd-signin-modal--is-visible');
 		});
 
 		//hide/show password
-		for (var i = 0; i < this.hidePassword.length; i++)
-		{
-			(function (i)
-			{
-				self.hidePassword[i].addEventListener('click', function (event)
-				{
+		for (var i = 0; i < this.hidePassword.length; i++) {
+			(function (i) {
+				self.hidePassword[i].addEventListener('click', function (event) {
 					self.togglePassword(self.hidePassword[i]);
 				});
 			})(i);
 		}
 
-		this.blocks[0].getElementsByTagName('form')[0].addEventListener('submit', function (event)
-		{
+		this.blocks[0].getElementsByTagName('form')[0].addEventListener('submit', function (event) {
 			//alert("submit");
 			/*
 			var now = Date.now();
@@ -112,17 +86,14 @@ var loggedIn;
 			//alert("read cookie = " + readCookie("loggedInUser"));
 			*/
 
-			if (document.getElementById('signin-email').value == '' || document.getElementById('signin-email').value == null || document.getElementById('signin-email').value == undefined)
-			{
+			if (document.getElementById('signin-email').value == '' || document.getElementById('signin-email').value == null || document.getElementById('signin-email').value == undefined) {
 				event.preventDefault();
-
 				Swal.fire({
 					title: 'Email Blank',
 					text: 'The email cannot be blank.',
 					icon: 'error',
 					confirmButtonText: 'Ok'
 				})
-
 				document.getElementById('signin-email').focus();
 				//self.toggleError(document.getElementById('signin-email'), true);
 			}
@@ -242,7 +213,7 @@ var loggedIn;
 					document.getElementById("loggedInUser").style.display = "block";
 					document.getElementById("LogInButtons").style.display = "none";
 
-					alert("logged in!");
+					// alert("logged in!");
 					//removeClass(self.element, 'cd-signin-modal--is-visible');
 				}
 				// else
@@ -256,7 +227,7 @@ var loggedIn;
 					//	confirmButtonText: 'Ok'
 					//})
 
-					alert("Incorrect UserName & Password.");
+					// alert("Incorrect Email and/or Password.");
 					//document.getElementById('signin-email').focus();
 				}
 			}
