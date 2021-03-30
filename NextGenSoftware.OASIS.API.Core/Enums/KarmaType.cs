@@ -82,6 +82,15 @@ namespace NextGenSoftware.OASIS.API.Core.Enums
         PayWithSeeds,
         DonateWithSeeds,
         RewardWithSeeds,
+        SendInviteToJoinSeeds,
+        AcceptInviteToJoinSeeds,
+        ContributingToTheOASISWithCode,
+        ContributingToTheOASISWithPR,
+        ContributingToTheOASISWithSupport,
+        ContributingToTheOASISWithMarketing,
+        ContributingToTheOASISWithFunding,
+        ContributingToTheOASISWithSales,
+        ContributingToTheOASIS,
         Other
     }
 
@@ -108,4 +117,3 @@ namespace NextGenSoftware.OASIS.API.Core.Enums
         Other
     }
 }
-,

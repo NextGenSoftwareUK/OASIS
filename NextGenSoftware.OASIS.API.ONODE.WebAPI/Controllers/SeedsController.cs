@@ -36,6 +36,19 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             //_settings = OASISSettings.Value;
         }
 
+
+        /// <summary>
+        /// Get's all of the SEEDS Organisations.
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        [Authorize]
+        [HttpGet("GetAllOrganisations")]
+        public ActionResult<bool> GetAllOrganisations()
+        {
+            return Ok(SEEDSManager.GetAllOrganisationsAsJSON());
+        }
+
         /// <summary>
         /// Reward Seeds. PREVIEW - COMING SOON...
         /// </summary>
