@@ -137,10 +137,10 @@
                             <tr>
                                 <td> <a style="color:white;white-space: nowrap; "
                                         class="cd-main-nav__item cd-main-nav__item--signin" href="#0"
-                                        onclick="showLogin()" data-signin="login" data-type="login">Log In</a> </td>
+                                       data-signin="login" data-type="login">Log In</a> </td>
                                 <td> <a style="color:white;margin-left:10px; white-space: nowrap; "
                                         class="cd-main-nav__item cd-main-nav__item--signup" href="#0"
-                                        onclick="showNewAccount()" data-signin="signup">Sign Up</a> </td>
+                                        data-signin="signup">Sign Up</a> </td>
                             </tr>
                         </table>
                     </div>
@@ -157,31 +157,30 @@
             <div class="cd-signin-modal__container">
                 <!-- this is the container wrapper -->
                 <ul class="cd-signin-modal__switcher js-signin-modal-switcher js-signin-modal-trigger">
-                    <li><a href="#0" onclick=showLogin() data-signin="login" data-type="login">Sign in</a></li>
-                    <li><a href="#0" onclick=showNewAccount() data-signin="signup" data-type="signup">New Avatar</a>
+                    <li><a href="#0" data-signin="login" data-type="login">Sign in</a></li>
+                    <li><a href="#0" data-signin="signup" data-type="signup">New Avatar</a>
                     </li>
                 </ul>
                 <div id="divLogin" class="cd-signin-modal__block js-signin-modal-block" data-type="login">
                     <!-- log in form -->
-                    <form class="cd-signin-modal__form"
-                        action="https://api.oasisplatform.world/api/avatar/authenticate/" method="POST">
+                    <form class="cd-signin-modal__form" id="LoginForm">
                         <div class="cd-signin-modal__fieldset">
                             <label
                                 class="cd-signin-modal__label cd-signin-modal__label--email cd-signin-modal__label--image-replace"
-                                for="signin-email">E-mail</label>
+                                for="login-email">E-mail</label>
                             <input
                                 class="cd-signin-modal__input cd-signin-modal__input--full-width cd-signin-modal__input--has-padding cd-signin-modal__input--has-border"
-                                id="signin-email" type="email" placeholder="E-mail">
+                                id="login-email" type="email" placeholder="E-mail">
                             <span class="cd-signin-modal__error">Error message here!</span>
                         </div>
 
                         <div class="cd-signin-modal__fieldset">
                             <label
                                 class="cd-signin-modal__label cd-signin-modal__label--password cd-signin-modal__label--image-replace"
-                                for="signin-password">Password</label>
+                                for="login-password">Password</label>
                             <input
                                 class="cd-signin-modal__input cd-signin-modal__input--full-width cd-signin-modal__input--has-padding cd-signin-modal__input--has-border"
-                                id="signin-password" type="password" pattern=".{8,}" placeholder="Password">
+                                id="login-password" type="password" pattern=".{8,}" placeholder="Password">
                             <a href="#0" class="cd-signin-modal__hide-password js-hide-password">Show</a>
                             <span class="cd-signin-modal__error">Error message here!</span>
                         </div>
@@ -192,7 +191,7 @@
                         </div>
 
                         <div class="cd-signin-modal__fieldset">
-                            <input class="cd-signin-modal__input cd-signin-modal__input--full-width" id="submit_login"
+                            <input class="cd-signin-modal__input cd-signin-modal__input--full-width" id="login-submit"
                                 type="submit" value="Login">
                         </div>
                     </form>
@@ -204,7 +203,7 @@
 
                 <div id="divNewAccount" class="cd-signin-modal__block js-signin-modal-block" data-type="signup">
                     <!-- sign up form -->
-                    <form class="cd-signin-modal__form">
+                    <form class="cd-signin-modal__form" id="SignupForm">
 
                         <div class="cd-signin-modal__fieldset">
                             <label
@@ -287,7 +286,7 @@
                     <div class="cd-signin-modal__message">Lost your password? Please enter your
                         email address. You will receive a link to create a new password.</div>
 
-                    <form class="cd-signin-modal__form">
+                    <form class="cd-signin-modal__form" id="ForgotForm">
                         <div class="cd-signin-modal__fieldset">
                             <label
                                 class="cd-signin-modal__label cd-signin-modal__label--email cd-signin-modal__label--image-replace"
@@ -316,7 +315,7 @@
 
         <script src="js/jquery-3.5.1.min.js"></script>
         <script src="js/login/login.js"></script>
-        <script src="js/login/submit.js"></script>
+        <!-- <script src="js/login/submit.js"></script> -->
         <script src="js/login/placeholders.min.js"></script>
         <!-- <script src="js/login/search.js"></script> -->
         <script src="js/sweetalert2.all.min.js"></script>
