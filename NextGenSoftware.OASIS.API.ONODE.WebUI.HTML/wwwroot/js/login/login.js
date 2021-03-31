@@ -16,7 +16,7 @@ var loggedIn;
 
 		var self = this;
 		//open modal/switch form
-		for (var i = 0; i < this.triggers.length; i++) 	{
+		for (var i = 0; i < this.triggers.length; i++) {
 			//alert("trigger " + i);
 
 			(function (i) {
@@ -60,221 +60,16 @@ var loggedIn;
 				});
 			})(i);
 		}
-
-		this.blocks[0].getElementsByTagName('form')[0].addEventListener('submit', function (event) {
-			//alert("submit");
-			/*
-			var now = Date.now();
-			//alert("now = " + now);
-
-			var h = 1;
-			var expiryTime = now + (h*60*60*1000);
-			
-			//alert("expiryTime = " + expiryTime);
-
-			//alert("cookies enabled = " + navigator.cookieEnabled);
-			console.log("Cookies Enabled: " + navigator.cookieEnabled);
-
-
-			//var expiryTime = now.addHours(1);
-			//alert("expiryTime=" + expiryTime);
-
-			//createCookie("loggedInUser", "david@nextgensoftware.co.uk", Date.UTC(2017, 8, 1));
-			createCookie("loggedInUser", "david@nextgensoftware.co.uk", expiryTime);
-			
-			
-			//alert("read cookie = " + readCookie("loggedInUser"));
-			*/
-
-			if (document.getElementById('signin-email').value == '' || document.getElementById('signin-email').value == null || document.getElementById('signin-email').value == undefined) {
-				event.preventDefault();
-				Swal.fire({
-					title: 'Email Blank',
-					text: 'The email cannot be blank.',
-					icon: 'error',
-					confirmButtonText: 'Ok'
-				})
-				document.getElementById('signin-email').focus();
-				//self.toggleError(document.getElementById('signin-email'), true);
-			}
-			else if (document.getElementById('signin-password').value == '' || document.getElementById('signin-password').value == null || document.getElementById('signin-password').value == undefined)
-			{
-				event.preventDefault();
-
-				Swal.fire({
-					title: 'Password Blank',
-					text: 'The password cannot be blank.',
-					icon: 'error',
-					confirmButtonText: 'Ok'
-				})
-
-				document.getElementById('signin-password').focus();
-				//self.toggleError(document.getElementById('signin-email'), true);
-			}
-			else
-			{
-				//xhttp.open("POST", "https://localhost:44371/api/users/authenticate", true);
-
-				console.log("Calling OASIS API...");
-
-				event.preventDefault();
-
-				//var xhr = createCORSRequest('POST', "https://localhost:44371/api/users/authenticate");
-				//var xhr = createCORSRequest('POST', "https://localhost:5001/api/avatar/authenticate");
-				//var xhr = createCORSRequest('POST', "https://oasisplatform.world/api/avatar/authenticate");
-				//console.log("xhr = " + xhr);
-
-				// $.post("https://api.oasisplatform.world/api/avatar/authenticate/",
-				// 	{
-				// 		name: "Donald Duck",
-				// 		city: "Duckburg"
-				// 	},
-				// 	function (data, status)
-				// 	{
-				// 		alert("Data: " + data + "\nStatus: " + status);
-				// 	});
-
-				/*
-				if (!xhr) 
-				{
-					alert("Error Occured. CORS Not Supported. Please Try Another Browser...");
-					return;
-				}
-
-
-				// Response handlers.
-				xhr.onload = function () 
-				{
-					var data = JSON.stringify(xhr.responseText);
-					console.log("RAW DATA = " + data);
-					//alert("raw data = " + data);
-
-					// Need to parse twice for some unknown reason!
-					var jsonData = JSON.parse(data)
-					jsonData = JSON.parse(jsonData)
-
-					if (jsonData != '' & jsonData != undefined & jsonData != null)
-					{
-						console.log("data found");
-						
-					}
-					else
-					{
-						console.log("No Data Found!");
-						//HandleError(iSequence, iPhase, tab, "No Data Found");
-					}
-				};
-
-				xhr.onerror = function () 
-				{
-					console.log("There was an error making the request.");
-				//	HandleError(iSequence, iPhase, tab, "Unknown Error Occured!");
-				};
-				*/
-
-				//xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-				// xhr.send("username=david@nextgensoftware.co.uk&password=lettherebelight!");
-
-				// if (document.getElementById("signin-email").value == 'david@nextgensoftware.co.uk' && document.getElementById("signin-password").value == 'lettherebelight!')
-				// {
-				// 	loggedIn = true;
-				// 	document.getElementById("loggedInUser").innerText = "Logged In: david@nextgensoftware.co.uk";
-				// 	document.getElementById("loggedInUser").style.display = "block";
-				// 	document.getElementById("LogInButtons").style.display = "none";
-
-				// 	//document.getElementById("loggedIn").value = "true";
-				// 	removeClass(self.element, 'cd-signin-modal--is-visible');
-				// }
-				// else
-				// {
-				// 		Swal.fire({
-				// 		title: 'Incorrect UserName & Password',
-				// 		text: 'Incorrect UserName & Password.',
-				// 		icon: 'error',
-				// 		confirmButtonText: 'Ok'
-				// 	})
-                // }
-
-				// else if
-					(document.getElementById("signin-email").value == 'david@nextgensoftware.co.uk' && document.getElementById("signin-password").value == 'lettherebelight!')
-				{
-					loggedIn = true;
-
-					// var today = new Date();
-					// var date = today.getFullYear()+'-'+(today.getMonth()+1)+'-'+today.getDate();
-					// var time = today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds();
-					// var dateTime = date+' '+time;
-
-
-
-
-
-					document.getElementById("loggedInUser").innerText = "Logged In: david@nextgensoftware.co.uk";
-					document.getElementById("loggedInUser").style.display = "block";
-					document.getElementById("LogInButtons").style.display = "none";
-
-					// alert("logged in!");
-					//removeClass(self.element, 'cd-signin-modal--is-visible');
-				}
-				// else
-				{
-
-
-					//Swal.fire({
-					//	title: 'Incorrect UserName & Password',
-					//	text: 'Incorrect UserName & Password.',
-					//	icon: 'error',
-					//	confirmButtonText: 'Ok'
-					//})
-
-					// alert("Incorrect Email and/or Password.");
-					//document.getElementById('signin-email').focus();
-				}
-			}
-
-				//self.toggleError(document.getElementById('signin-email'), false);
-		});
-
-		// this.blocks[1].getElementsByTagName('form')[0].addEventListener('submit', function (event)
-		// {
-		// 	alert("Functionality Coming Soon...");
-		// 	event.preventDefault();
-
-		// 	Swal.fire({
-		// 		title: 'Coming Soon',
-		// 		text: 'Functionality Coming Soon...',
-		// 		icon: 'info',
-		// 		confirmButtonText: 'Ok'
-		// 	})
-
-		// 	self.toggleError(document.getElementById('signup-username'), true);
-		// });
-
-		// this.blocks[2].getElementsByTagName('form')[0].addEventListener('submit', function (event)
-		// {
-		// 	alert("Functionality Coming Soon...");
-		// 	event.preventDefault();
-
-		// 	Swal.fire({
-		// 		title: 'Coming Soon',
-		// 		text: 'Functionality Coming Soon...',
-		// 		icon: 'info',
-		// 		confirmButtonText: 'Ok'
-		// 	})
-
-		// 	self.toggleError(document.getElementById('signup-username'), true);
-		// });
 	};
 
 
 
-	ModalSignin.prototype.togglePassword = function (target)
-	{
+	ModalSignin.prototype.togglePassword = function (target) {
 		var password = target.previousElementSibling;
 		('password' == password.getAttribute('type')) ? password.setAttribute('type', 'text') : password.setAttribute('type', 'password');
 		target.textContent = ('Hide' == target.textContent) ? 'Show' : 'Hide';
 		putCursorAtEnd(password);
-	}
+	};
 
 	ModalSignin.prototype.showSigninForm = function (type) 
 	{
@@ -300,19 +95,18 @@ var loggedIn;
 		}
 	};
 
-	ModalSignin.prototype.toggleError = function (input, bool)
-	{
+	ModalSignin.prototype.toggleError = function (input, bool) {
 		// used to show error messages in the form
 		toggleClass(input, 'cd-signin-modal__input--has-error', bool);
 		toggleClass(input.nextElementSibling, 'cd-signin-modal__error--is-visible', bool);
-	}
+	};
 
 	var signinModal = document.getElementsByClassName("js-signin-modal")[0];
 	if (signinModal)
 	{
 		//console.log("here");
 		new ModalSignin(signinModal);
-	}
+	};
 
 	// toggle main navigation on mobile
 	var mainNav = document.getElementsByClassName('js-main-nav')[0];
@@ -324,23 +118,23 @@ var loggedIn;
 			{
 				var navList = mainNav.getElementsByTagName('ul')[0];
 				toggleClass(navList, 'cd-main-nav__list--is-visible', !hasClass(navList, 'cd-main-nav__list--is-visible'));
-			}
+			};
 		});
-	}
+	};
 
 	//class manipulations - needed if classList is not supported
 	function hasClass(el, className)
 	{
 		if (el.classList) return el.classList.contains(className);
 		else return !!el.className.match(new RegExp('(\\s|^)' + className + '(\\s|$)'));
-	}
+	};
 	function addClass(el, className)
 	{
 		var classList = className.split(' ');
 		if (el.classList) el.classList.add(classList[0]);
 		else if (!hasClass(el, classList[0])) el.className += " " + classList[0];
 		if (classList.length > 1) addClass(el, classList.slice(1).join(' '));
-	}
+	};
 	function removeClass(el, className)
 	{
 		var classList = className.split(' ');
@@ -351,12 +145,12 @@ var loggedIn;
 			el.className = el.className.replace(reg, ' ');
 		}
 		if (classList.length > 1) removeClass(el, classList.slice(1).join(' '));
-	}
+	};
 	function toggleClass(el, className, bool)
 	{
 		if (bool) addClass(el, className);
 		else removeClass(el, className);
-	}
+	};
 
 	//credits http://css-tricks.com/snippets/jquery/move-cursor-to-end-of-textarea-or-input/
 	function putCursorAtEnd(el)
@@ -371,83 +165,119 @@ var loggedIn;
 			el.value = el.value;
 		}
 	};
-	//})();
 })();
 
+	$("#login-submit").click(function (e) {
+		e.preventDefault();
+		// var validate = Validate();
+		// var token = localStorage.getItem("AccessToken");
+		// var password = $("#login-password").val();
+		// var email = $("#login-email").val();
+		// var confirmPassword = $("#signup-password-confirm").val();
+		// var form = $(this);
+		// var url = form.attr('action');
 
+		var settings = {
+			url: "https://api.oasisplatform.world/api/avatar/authenticate/",
+			method: "POST",
+			timeout: 0,
+			headers: {
+				"Content-type": "application/json",
+			},
+			data: JSON.stringify({
+				"email": $("#login-email").val(),
+				"password": $("#login-password").val()
+			}),
+		};
+		$.ajax(settings).done(function (response) {
+			console.log(response);
+		});
+	});
 
-function showResetPassword()
-{
-	document.getElementById("divForgotPassword").style.display = "block";
-	document.getElementById("divLogin").style.display = "none";
-	document.getElementById("divNewAccount").style.display = "none";	
-}
+var submit = document.getElementById('login-submit')
+//check for empty
+function validate(event) {
+	event.preventDefault();
+	var email = document.getElementById('login-email');
+	var password = document.getElementById('login-password');
 
-
-function showLogin()
-{
-	console.log("SHOW LOGIN");
-	console.log("b4 = " + document.getElementById("divLogin").style.display);
-
-	document.getElementById("divLogin").style.display = "block";
-	document.getElementById("divForgotPassword").style.display = "none";
-	document.getElementById("divNewAccount").style.display = "none";	
-
-	console.log("after = " + document.getElementById("divLogin").style.display);
-}
-
-function showNewAccount()
-{
-	document.getElementById("divNewAccount").style.display = "block";
-	document.getElementById("divLogin").style.display = "none";
-	document.getElementById("divForgotPassword").style.display = "none";
-}
-
-/*
-function hasClass(el, className) {
-	if (el.classList) return el.classList.contains(className);
-	else return !!el.className.match(new RegExp('(\\s|^)' + className + '(\\s|$)'));
-}
-function addClass(el, className) {
-  var classList = className.split(' ');
-   if (el.classList) el.classList.add(classList[0]);
-   else if (!hasClass(el, classList[0])) el.className += " " + classList[0];
-   if (classList.length > 1) addClass(el, classList.slice(1).join(' '));
-}
-function removeClass(el, className) {
-  var classList = className.split(' ');
-	if (el.classList) el.classList.remove(classList[0]);	
-	else if(hasClass(el, classList[0])) {
-		var reg = new RegExp('(\\s|^)' + classList[0] + '(\\s|$)');
-		el.className=el.className.replace(reg, ' ');
+	if (email.value === "") {
+		Swal.fire({
+			title: 'Email Blank',
+			text: 'Please enter your email address.',
+			icon: 'error',
+			confirmButtonText: 'Ok'
+		});
+		email.focus();
+		return false;
 	}
-	if (classList.length > 1) removeClass(el, classList.slice(1).join(' '));
+
+	if (!emailIsValid(email.value)) {
+		Swal.fire({
+			title: 'Email Invalid',
+			text: 'Please enter a valid email address.',
+			icon: 'error',
+			confirmButtonText: 'OK'
+		})
+		email.focus();
+		return false;
+	}
+
+	if (password.value === "") {
+		Swal.fire({
+			title: 'Password Blank',
+			text: 'Please enter your password.',
+			icon: 'error',
+			confirmButtonText: 'Ok'
+		});
+		password.focus();
+		return false;
+	}
+
+	return true;
 }
-function toggleClass(el, className, bool) {
-  if(bool) addClass(el, className);
-  else removeClass(el, className);
-}*/
 
+emailIsValid = email => {
+	return /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/.test(email);
+}
 
+// submit.addEventListener('click', validate);
 
-
-// function createCookie(key, value) 
+// function showResetPassword()
 // {
-// 	let cookie = escape(key) + "=" + escape(value) + ";";
-// 	document.cookie = cookie;
-// 	console.log(cookie);
-// 	console.log("Creating new cookie with key: " + key + " value: " + value);
-// }
+// 	document.getElementById("divForgotPassword").style.display = "block";
+// 	document.getElementById("divLogin").style.display = "none";
+// 	document.getElementById("divNewAccount").style.display = "none";	
+// };
 
+
+// function showLogin()
+// {
+// 	console.log("SHOW LOGIN");
+// 	console.log("b4 = " + document.getElementById("divLogin").style.display);
+
+// 	document.getElementById("divLogin").style.display = "block";
+// 	document.getElementById("divForgotPassword").style.display = "none";
+// 	document.getElementById("divNewAccount").style.display = "none";	
+
+// 	console.log("after = " + document.getElementById("divLogin").style.display);
+// };
+
+// function showNewAccount()
+// {
+// 	document.getElementById("divNewAccount").style.display = "block";
+// 	document.getElementById("divLogin").style.display = "none";
+// 	document.getElementById("divForgotPassword").style.display = "none";
+// };
 
 function createCookie(key, value, date) 
-{
+{;
 	let expiration = new Date(date).toUTCString();
 	let cookie = escape(key) + "=" + escape(value) + ";expires=" + expiration + ";";
 	document.cookie = cookie;
 	console.log(cookie);
 	console.log("Creating new cookie with key: " + key + " value: " + value + " expiration: " + expiration);
-}
+};
 
 
 
@@ -468,12 +298,12 @@ function readCookie(name)
 		}
 	}
 	return null;
-}
+};
 
 
 function createCORSRequest(method, url) 
 {
-	var xhr = new XMLHttpRequest();
+	const xhr = new XMLHttpRequest();
 	if ("withCredentials" in xhr) 
 	{
 		// Check if the XMLHttpRequest object has a "withCredentials" property.
@@ -497,4 +327,4 @@ function createCORSRequest(method, url)
 	}
 
 	return xhr;
-}
+};
