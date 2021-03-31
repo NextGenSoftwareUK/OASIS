@@ -335,16 +335,24 @@ x sigin/signup popup
   background-position: 50% 0;
 }
 
-.cd-signin-modal__label.cd-signin-modal__label--username {
-  background-image: url("../img/login/cd-icon-username.svg");
-}
-
 .cd-signin-modal__label.cd-signin-modal__label--email {
   background-image: url("../img/login/cd-icon-email.svg");
 }
 
 .cd-signin-modal__label.cd-signin-modal__label--password {
   background-image: url("../img/login/cd-icon-password.svg");
+}
+
+.cd-signin-modal__label.cd-signin-modal__label--title {
+  background-image: url("../img/login/cd-icon-username.svg");
+}
+
+.cd-signin-modal__label.cd-signin-modal__label--firstName {
+  background-image: url("../img/login/cd-icon-username.svg");
+}
+
+.cd-signin-modal__label.cd-signin-modal__label--lastName {
+  background-image: url("../img/login/cd-icon-username.svg");
 }
 
 .cd-signin-modal__input {
