@@ -133,9 +133,9 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
             return record;
         }*/
 
-        public async Task<KarmaAkashicRecord> KarmaEarntAsync(KarmaTypePositive karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc, bool autoSave = true, int karmaOverride = 0)
+        public async Task<KarmaAkashicRecord> KarmaEarntAsync(KarmaTypePositive karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc, string webLink = null, bool autoSave = true, int karmaOverride = 0)
         {
-            KarmaAkashicRecord record = AddKarmaToAkashicRecord(karmaType, karmaSourceType, karamSourceTitle, karmaSourceDesc, karmaOverride);
+            KarmaAkashicRecord record = AddKarmaToAkashicRecord(karmaType, karmaSourceType, karamSourceTitle, karmaSourceDesc, webLink, karmaOverride);
 
             if (autoSave)
                 await SaveAsync();
@@ -143,9 +143,9 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
             return record;
         }
 
-        public KarmaAkashicRecord KarmaEarnt(KarmaTypePositive karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc, bool autoSave = true, int karmaOverride = 0)
+        public KarmaAkashicRecord KarmaEarnt(KarmaTypePositive karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc, string webLink = null, bool autoSave = true, int karmaOverride = 0)
         {
-            KarmaAkashicRecord record = AddKarmaToAkashicRecord(karmaType, karmaSourceType, karamSourceTitle, karmaSourceDesc, karmaOverride);
+            KarmaAkashicRecord record = AddKarmaToAkashicRecord(karmaType, karmaSourceType, karamSourceTitle, karmaSourceDesc, webLink, karmaOverride);
 
             if (autoSave)
                 Save();
@@ -153,9 +153,9 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
             return record;
         }
 
-        public async Task<KarmaAkashicRecord> KarmaLostAsync(KarmaTypeNegative karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc, bool autoSave = true, int karmaOverride = 0)
+        public async Task<KarmaAkashicRecord> KarmaLostAsync(KarmaTypeNegative karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc, string webLink = null, bool autoSave = true, int karmaOverride = 0)
         {
-            KarmaAkashicRecord record = RemoveKarmaFromAkashicRecord(karmaType, karmaSourceType, karamSourceTitle, karmaSourceDesc, karmaOverride);
+            KarmaAkashicRecord record = RemoveKarmaFromAkashicRecord(karmaType, karmaSourceType, karamSourceTitle, karmaSourceDesc, webLink, karmaOverride);
 
             if (autoSave)
                 await SaveAsync();
@@ -163,9 +163,9 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
             return record;
         }
 
-        public KarmaAkashicRecord KarmaLost(KarmaTypeNegative karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc, bool autoSave = true, int karmaOverride = 0)
+        public KarmaAkashicRecord KarmaLost(KarmaTypeNegative karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc, string webLink = null, bool autoSave = true, int karmaOverride = 0)
         {
-            KarmaAkashicRecord record = RemoveKarmaFromAkashicRecord(karmaType, karmaSourceType, karamSourceTitle, karmaSourceDesc, karmaOverride);
+            KarmaAkashicRecord record = RemoveKarmaFromAkashicRecord(karmaType, karmaSourceType, karamSourceTitle, karmaSourceDesc, webLink, karmaOverride);
 
             if (autoSave)
                 Save();
@@ -173,7 +173,7 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
             return record;
         }
 
-        private KarmaAkashicRecord AddKarmaToAkashicRecord(KarmaTypePositive karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc, int karmaOverride = 0)
+        private KarmaAkashicRecord AddKarmaToAkashicRecord(KarmaTypePositive karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc, string webLink = null, int karmaOverride = 0)
         {
             int karma = GetKarmaForType(karmaType);
 
@@ -181,8 +181,22 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
                 karma = karmaOverride;
 
             this.Karma += karma;
-            //KarmaAkashicRecord record = new KarmaAkashicRecord { TotalKarma = this.Karma, KarmaEarntOrLost = new EnumValue<KarmaEarntOrLost>(KarmaEarntOrLost.Earnt), KarmaTypeNegative = new EnumValue<KarmaTypeNegative>(KarmaTypeNegative.None), Date = DateTime.Now, Karma = karma, KarmaSource = new EnumValue<KarmaSourceType>(karmaSourceType), KarmaSourceTitle = karamSourceTitle, KarmaSourceDesc = karmaSourceDesc, KarmaTypePositive = new EnumValue<KarmaTypePositive>(karmaType), AvatarId = Id, Provider = new EnumValue<ProviderType>(ProviderManager.CurrentStorageProviderType.Value) };
-            KarmaAkashicRecord record = new KarmaAkashicRecord { TotalKarma = this.Karma, KarmaEarntOrLost = new EnumValue<KarmaEarntOrLost>(KarmaEarntOrLost.Earnt), KarmaTypeNegative = new EnumValue<KarmaTypeNegative>(KarmaTypeNegative.None), Date = DateTime.Now, Karma = karma, KarmaSource = new EnumValue<KarmaSourceType>(karmaSourceType), KarmaSourceTitle = karamSourceTitle, KarmaSourceDesc = karmaSourceDesc, KarmaTypePositive = new EnumValue<KarmaTypePositive>(karmaType), AvatarId = Id, Provider = ProviderManager.CurrentStorageProviderType };
+            
+            KarmaAkashicRecord record = new KarmaAkashicRecord 
+            {
+                AvatarId = Id,
+                Date = DateTime.Now,
+                Karma = karma,
+                TotalKarma = this.Karma,
+                Provider = ProviderManager.CurrentStorageProviderType,
+                KarmaSourceTitle = karamSourceTitle,
+                KarmaSourceDesc = karmaSourceDesc,
+                WebLink = webLink,
+                KarmaSource = new EnumValue<KarmaSourceType>(karmaSourceType),
+                KarmaEarntOrLost = new EnumValue<KarmaEarntOrLost>(KarmaEarntOrLost.Earnt), 
+                KarmaTypeNegative = new EnumValue<KarmaTypeNegative>(KarmaTypeNegative.None), 
+                KarmaTypePositive = new EnumValue<KarmaTypePositive>(karmaType), 
+            };
 
             if (this.KarmaAkashicRecords == null)
                 this.KarmaAkashicRecords = new List<KarmaAkashicRecord>();
@@ -191,7 +205,7 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
             return record;
         }
 
-        private KarmaAkashicRecord RemoveKarmaFromAkashicRecord(KarmaTypeNegative karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc, int karmaOverride = 0)
+        private KarmaAkashicRecord RemoveKarmaFromAkashicRecord(KarmaTypeNegative karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc, string webLink = null, int karmaOverride = 0)
         {
             int karma = GetKarmaForType(karmaType);
 
@@ -199,8 +213,22 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
                 karma = karmaOverride;
 
             this.Karma -= karma;
-            //KarmaAkashicRecord record = new KarmaAkashicRecord { TotalKarma = this.Karma,KarmaEarntOrLost = new EnumValue<KarmaEarntOrLost>(KarmaEarntOrLost.Lost), KarmaTypePositive = new EnumValue<KarmaTypePositive>(KarmaTypePositive.None), Date = DateTime.Now, Karma = karma, KarmaSource = new EnumValue<KarmaSourceType>(karmaSourceType), KarmaSourceTitle = karamSourceTitle, KarmaSourceDesc = karmaSourceDesc, KarmaTypeNegative = new EnumValue<KarmaTypeNegative>(karmaType), AvatarId = Id, Provider = new EnumValue<ProviderType>(ProviderManager.CurrentStorageProviderType.Value) };
-            KarmaAkashicRecord record = new KarmaAkashicRecord { TotalKarma = this.Karma, KarmaEarntOrLost = new EnumValue<KarmaEarntOrLost>(KarmaEarntOrLost.Lost), KarmaTypePositive = new EnumValue<KarmaTypePositive>(KarmaTypePositive.None), Date = DateTime.Now, Karma = karma, KarmaSource = new EnumValue<KarmaSourceType>(karmaSourceType), KarmaSourceTitle = karamSourceTitle, KarmaSourceDesc = karmaSourceDesc, KarmaTypeNegative = new EnumValue<KarmaTypeNegative>(karmaType), AvatarId = Id, Provider = ProviderManager.CurrentStorageProviderType };
+
+            KarmaAkashicRecord record = new KarmaAkashicRecord
+            {
+                AvatarId = Id,
+                Date = DateTime.Now,
+                Karma = karma,
+                TotalKarma = this.Karma,
+                Provider = ProviderManager.CurrentStorageProviderType,
+                KarmaSourceTitle = karamSourceTitle,
+                KarmaSourceDesc = karmaSourceDesc,
+                WebLink = webLink,
+                KarmaSource = new EnumValue<KarmaSourceType>(karmaSourceType),
+                KarmaEarntOrLost = new EnumValue<KarmaEarntOrLost>(KarmaEarntOrLost.Lost),
+                KarmaTypeNegative = new EnumValue<KarmaTypeNegative>(karmaType),
+                KarmaTypePositive = new EnumValue<KarmaTypePositive>(KarmaTypePositive.None),
+            };
 
             if (this.KarmaAkashicRecords == null)
                 this.KarmaAkashicRecords = new List<KarmaAkashicRecord>();
