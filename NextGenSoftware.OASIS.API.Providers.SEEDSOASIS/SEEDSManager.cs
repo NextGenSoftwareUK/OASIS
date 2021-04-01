@@ -253,7 +253,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS
 
         public string GetTelosAccountNameForAvatar(Guid avatarId)
         {
-            return AvatarManagerInstance.LoadAvatar(avatarId).ProviderKey;
+            return AvatarManagerInstance.LoadAvatar(avatarId).ProviderKey[ProviderType.TelosOASIS];
         }
 
         public Account GetTelosAccountForAvatar(Guid avatarId)
@@ -263,12 +263,12 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS
 
         public Guid GetAvatarIdForTelosAccountName(string telosAccountName)
         {
-            return AvatarManagerInstance.LoadAllAvatars().FirstOrDefault(x => x.ProviderKey == telosAccountName).Id;
+            return AvatarManagerInstance.LoadAllAvatars().FirstOrDefault(x => x.ProviderKey[ProviderType.TelosOASIS] == telosAccountName).Id;
         }
 
         public IAvatar GetAvatarForTelosAccountName(string telosAccountName)
         {
-            return AvatarManagerInstance.LoadAllAvatars().FirstOrDefault(x => x.ProviderKey == telosAccountName);
+            return AvatarManagerInstance.LoadAllAvatars().FirstOrDefault(x => x.ProviderKey[ProviderType.TelosOASIS] == telosAccountName);
         }
 
         public string GenerateSignInQRCode(string telosAccountName)

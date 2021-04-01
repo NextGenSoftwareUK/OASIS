@@ -222,7 +222,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
 
             oasisAvatar.Id = Guid.Parse(avatar.AvatarId);
 
-            oasisAvatar.ProviderKey = avatar.Id;
+            oasisAvatar.ProviderKey[Core.Enums.ProviderType.MongoDBOASIS] = avatar.Id;
             oasisAvatar.Name = avatar.Name;
             oasisAvatar.Description = avatar.Description;
             oasisAvatar.HolonType = avatar.HolonType;
@@ -289,12 +289,12 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             Avatar mongoAvatar = new Avatar();
 
             //TODO: Refactor to move this top block into generic base holon conversion code.
-            mongoAvatar.Id = avatar.ProviderKey;
+            mongoAvatar.Id = avatar.ProviderKey[Core.Enums.ProviderType.MongoDBOASIS];
             mongoAvatar.AvatarId = avatar.Id.ToString();
             mongoAvatar.Name = avatar.Name;
             mongoAvatar.Description = avatar.Description;
             mongoAvatar.HolonType = avatar.HolonType;
-            mongoAvatar.ProviderKey = avatar.ProviderKey;
+            mongoAvatar.ProviderKey = avatar.ProviderKey[Core.Enums.ProviderType.MongoDBOASIS];
             mongoAvatar.ProviderType = avatar.ProviderType.Value;
             mongoAvatar.CelestialBody = avatar.CelestialBody;
             mongoAvatar.Nodes = avatar.Nodes;
@@ -357,7 +357,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
 
             //oasisHolon.Id = Guid.Parse(holon.Id);
             oasisHolon.Id = holon.HolonId;
-            oasisHolon.ProviderKey = holon.ProviderKey;
+            oasisHolon.ProviderKey[Core.Enums.ProviderType.MongoDBOASIS] = holon.ProviderKey;
             oasisHolon.Name = holon.Name;
             oasisHolon.Description = holon.Description;
             oasisHolon.HolonType = holon.HolonType;
@@ -395,7 +395,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             mongoHolon.Name = holon.Name;
             mongoHolon.Description = holon.Description;
             mongoHolon.HolonType = holon.HolonType;
-            mongoHolon.ProviderKey = holon.ProviderKey;
+            mongoHolon.ProviderKey = holon.ProviderKey[Core.Enums.ProviderType.MongoDBOASIS];
             mongoHolon.ProviderType = holon.ProviderType.Value;
             mongoHolon.CelestialBody = holon.CelestialBody;
             mongoHolon.Nodes = holon.Nodes;

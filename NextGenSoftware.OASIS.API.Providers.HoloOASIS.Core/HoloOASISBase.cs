@@ -370,7 +370,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Core
                 last_name = Avatar.LastName,
                 password = Avatar.Password,
                 address = Avatar.Address,
-                provider_key = Avatar.ProviderKey == null ? string.Empty : Avatar.ProviderKey,
+                provider_key = Avatar.ProviderKey == null ? string.Empty : Avatar.ProviderKey[API.Core.Enums.ProviderType.HoloOASIS],
                 title = Avatar.Title,
                 username = Avatar.Username
             };
@@ -389,12 +389,14 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Core
                 LastName = hcAvatar.last_name,
                 Password = hcAvatar.password,
                 Address = hcAvatar.address,
-                ProviderKey = hcAvatar.provider_key,
+                //ProviderKey = new Dictionary<ProviderType, string>(),
+                //ProviderKey[API.Core.Enums.ProviderType.HoloOASIS] = hcAvatar.provider_key,
                 Title = hcAvatar.title,
                 Username = hcAvatar.username
             };
 
             //avatar.SetKarmaForDataObject(hcAvatar.karma);
+            avatar.ProviderKey[API.Core.Enums.ProviderType.HoloOASIS] = hcAvatar.provider_key;
             return avatar;
 
             /*
