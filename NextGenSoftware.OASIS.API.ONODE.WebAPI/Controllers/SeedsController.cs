@@ -51,170 +51,123 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         }
 
         /// <summary>
-        /// Pay someone with seeds.
+        /// Pay someone with seeds using their telos account and receive karma and the PayWithSeeds &amp; Hero gifts
         /// </summary>
-        /// <param name="fromTelosAccountName"></param>
-        /// <param name="toTelosAccountName"></param>
-        /// <param name="qty"></param>
-        /// <param name="memo"></param>
+        /// <param name="request"></param>
         /// <returns></returns>
         [Authorize]
-        [HttpPost("PayWithSeeds")]
-        //public ActionResult<string> PayWithSeeds(string fromTelosAccountName, string toTelosAccountName, float qty, string memo)
-        public ActionResult<string> PayWithSeeds(PayWithSeedsRequest request)
+        [HttpPost("PayWithSeedsUsingTelosAccount")]
+        public ActionResult<string> PayWithSeedsUsingTelosAccount(PayWithSeedsUsingTelosAccountRequest request)
         {
-            //return Ok(SEEDSManager.PayWithSeeds(fromTelosAccountName, toTelosAccountName, qty, memo));
-            return Ok(SEEDSManager.PayWithSeeds(request.FromTelosAccountName, request.ToTelosAccountName, request.Qty, request.Memo));
+            return Ok(SEEDSManager.PayWithSeedsUsingTelosAccount(request.FromTelosAccountName, request.ToTelosAccountName, request.Quanitity, request.ReceivingKarmaFor, request.AppWebsiteServiceName, request.AppWebsiteServiceDesc, request.AppWebsiteServiceWebLink, request.Memo));
         }
 
         /// <summary>
-        /// Pay an avatar with seeds and receive karma and the PayWithSeeds &amp; Hero gifts.
+        /// Pay someone with seeds using their avatar and receive karma and the PayWithSeeds &amp; Hero gifts.
         /// </summary>
-        /// <param name="fromAvatarId"></param>
-        /// <param name="toAvatarId"></param>
-        /// <param name="qty"></param>
-        /// <param name="memo"></param>
-        /// <param name="receivingKarmaFor"></param>
-        /// <param name="appWebsiteServiceName"></param>
-        /// <param name="appWebsiteServiceDesc"></param>
+        /// <param name="request"></param>
         /// <returns></returns>
         [Authorize]
-        [HttpPost("PayAvatarWithSeeds")]
-        public ActionResult<string> PayAvatarWithSeeds(Guid fromAvatarId, Guid toAvatarId, float qty, string memo, KarmaSourceType receivingKarmaFor, string appWebsiteServiceName, string appWebsiteServiceDesc)
+        [HttpPost("PayWithSeedsUsingAvatar")]
+        public ActionResult<string> PayWithSeedsUsingAvatar(PayWithSeedsUsingAvatarRequest request)
         {
-            return Ok(SEEDSManager.PayWithSeeds(fromAvatarId, toAvatarId, qty, memo, receivingKarmaFor, appWebsiteServiceName, appWebsiteServiceDesc));
+            return Ok(SEEDSManager.PayWithSeedsUsingAvatar(request.FromAvatarId, request.ToAvatarId, request.Quanitity, request.ReceivingKarmaFor, request.AppWebsiteServiceName, request.AppWebsiteServiceDesc, request.AppWebsiteServiceWebLink, request.Memo));
         }
 
         /// <summary>
-        /// Reward someone with seeds.
+        /// Reward someone with seeds using their telos account and receive karma and the RewardWithSeeds &amp; Hero gifts.
         /// </summary>
-        /// <param name="fromTelosAccountName"></param>
-        /// <param name="toTelosAccountName"></param>
-        /// <param name="qty"></param>
-        /// <param name="memo"></param>
+        /// <param name="request"></param>
         /// <returns></returns>
         [Authorize]
-        [HttpPost("RewardWithSeeds")]
-        public ActionResult<string> RewardWithSeeds(string fromTelosAccountName, string toTelosAccountName, float qty, string memo)
+        [HttpPost("RewardWithSeedsUsingTelosAccount")]
+        public ActionResult<string> RewardWithSeedsUsingTelosAccount(PayWithSeedsUsingTelosAccountRequest request)
         {
-            return Ok(SEEDSManager.RewardWithSeeds(fromTelosAccountName, toTelosAccountName, qty, memo));
+            return Ok(SEEDSManager.RewardWithSeedsUsingTelosAccount(request.FromTelosAccountName, request.ToTelosAccountName, request.Quanitity, request.ReceivingKarmaFor, request.AppWebsiteServiceName, request.AppWebsiteServiceDesc, request.AppWebsiteServiceWebLink, request.Memo));
         }
 
         /// <summary>
-        /// Reward an avatar with seeds and receive karma and the RewardWithSeeds &amp; Hero gifts.
+        /// Reward someone with seeds using their avatar and receive karma and the RewardWithSeeds &amp; Hero gifts.
         /// </summary>
-        /// <param name="fromAvatarId"></param>
-        /// <param name="toAvatarId"></param>
-        /// <param name="qty"></param>
-        /// <param name="memo"></param>
-        /// <param name="receivingKarmaFor"></param>
-        /// <param name="appWebsiteServiceName"></param>
-        /// <param name="appWebsiteServiceDesc"></param>
+        /// <param name="request"></param>
         /// <returns></returns>
         [Authorize]
-        [HttpPost("RewardAvatarWithSeeds")]
-        public ActionResult<string> RewardAvatarWithSeeds(Guid fromAvatarId, Guid toAvatarId, float qty, string memo, KarmaSourceType receivingKarmaFor, string appWebsiteServiceName, string appWebsiteServiceDesc)
+        [HttpPost("RewardWithSeedsUsingAvatar")]
+        public ActionResult<string> RewardWithSeedsUsingAvatar(PayWithSeedsUsingAvatarRequest request)
         {
-            return Ok(SEEDSManager.RewardWithSeeds(fromAvatarId, toAvatarId, qty, memo, receivingKarmaFor, appWebsiteServiceName, appWebsiteServiceDesc));
+            return Ok(SEEDSManager.PayWithSeedsUsingAvatar(request.FromAvatarId, request.ToAvatarId, request.Quanitity, request.ReceivingKarmaFor, request.AppWebsiteServiceName, request.AppWebsiteServiceDesc, request.AppWebsiteServiceWebLink, request.Memo));
         }
 
         /// <summary>
-        /// Donate someone with seeds.
+        /// Donate someone with seeds using their telos account and receive karma and the DonateWithSeeds &amp; SuperHero gifts.
         /// </summary>
-        /// <param name="fromTelosAccountName"></param>
-        /// <param name="toTelosAccountName"></param>
-        /// <param name="qty"></param>
-        /// <param name="memo"></param>
+        /// <param name="request"></param>
         /// <returns></returns>
         [Authorize]
-        [HttpPost("DonateWithSeeds")]
-        public ActionResult<string> DonateWithSeeds(string fromTelosAccountName, string toTelosAccountName, float qty, string memo)
+        [HttpPost("DonateWithSeedsUsingTelosAccount")]
+        public ActionResult<string> DonateWithSeedsUsingTelosAccount(PayWithSeedsUsingTelosAccountRequest request)
         {
-            return Ok(SEEDSManager.DonateWithSeeds(fromTelosAccountName, toTelosAccountName, qty, memo));
+            return Ok(SEEDSManager.RewardWithSeedsUsingTelosAccount(request.FromTelosAccountName, request.ToTelosAccountName, request.Quanitity, request.ReceivingKarmaFor, request.AppWebsiteServiceName, request.AppWebsiteServiceDesc, request.AppWebsiteServiceWebLink, request.Memo));
         }
 
         /// <summary>
-        /// Donate an avatar with seeds and receive karma and the DonateWithSeeds &amp; SuperHero gifts.
+        /// Donate someone with seeds using their avatar and receive karma and the DonateWithSeeds &amp; SuperHero gifts.
         /// </summary>
-        /// <param name="fromAvatarId"></param>
-        /// <param name="toAvatarId"></param>
-        /// <param name="qty"></param>
-        /// <param name="memo"></param>
-        /// <param name="receivingKarmaFor"></param>
-        /// <param name="appWebsiteServiceName"></param>
-        /// <param name="appWebsiteServiceDesc"></param>
+        /// <param name="request"></param>
         /// <returns></returns>
         [Authorize]
-        [HttpPost("DonateAvatarWithSeeds")]
-        public ActionResult<string> DonateAvatarWithSeeds(Guid fromAvatarId, Guid toAvatarId, float qty, string memo, KarmaSourceType receivingKarmaFor, string appWebsiteServiceName, string appWebsiteServiceDesc)
+        [HttpPost("DonateWithSeedssUsingAvatar")]
+        public ActionResult<string> DonateWithSeedssUsingAvatar(PayWithSeedsUsingAvatarRequest request)
         {
-            return Ok(SEEDSManager.DonateWithSeeds(fromAvatarId, toAvatarId, qty, memo, receivingKarmaFor, appWebsiteServiceName, appWebsiteServiceDesc));
+            return Ok(SEEDSManager.PayWithSeedsUsingAvatar(request.FromAvatarId, request.ToAvatarId, request.Quanitity, request.ReceivingKarmaFor, request.AppWebsiteServiceName, request.AppWebsiteServiceDesc, request.AppWebsiteServiceWebLink, request.Memo));
         }
 
         /// <summary>
-        /// Send an invite to someone to join Seeds.
+        /// Send an invite to someone to join Seeds using their telos account and then receive karma and the RewardWithSeeds &amp; Hero gifts.
         /// </summary>
-        /// <param name="sponsorTelosAccountName"></param>
-        /// <param name="referrerTelosAccountName"></param>
-        /// <param name="transferQuantitiy"></param>
-        /// <param name="sowQuantitiy"></param>
+        /// <param name="request"></param>
         /// <returns></returns>
         [Authorize]
-        [HttpPost("SendInviteToJoinSeeds")]
-        public ActionResult<string> SendInviteToJoinSeeds(string sponsorTelosAccountName, string referrerTelosAccountName, float transferQuantitiy, float sowQuantitiy)
+        [HttpPost("SendInviteToJoinSeedsUsingTelosAccount")]
+        public ActionResult<string> SendInviteToJoinSeedsUsingTelosAccount(SendInviteToJoinSeedsUsingTelosAccountRequest request)
         {
-            return Ok(SEEDSManager.SendInviteToJoinSeeds(sponsorTelosAccountName, referrerTelosAccountName, transferQuantitiy, sowQuantitiy));
+            return Ok(SEEDSManager.SendInviteToJoinSeedsUsingTelosAccount(request.SponsorTelosAccountName, request.RefererTelosAccountName, request.TransferQuanitity, request.SowQuanitity, request.ReceivingKarmaFor, request.AppWebsiteServiceName, request.AppWebsiteServiceDesc, request.AppWebsiteServiceWebLink));
         }
 
         /// <summary>
-        /// Send an invite to someone to join Seeds.
+        /// Send an invite to someone to join Seeds using avatar and then receive karma and the SendInviteToJoinSeeds &amp; Hero gifts.
         /// </summary>
-        /// <param name="sponsorAvatarId"></param>
-        /// <param name="referrerAvatarId"></param>
-        /// <param name="transferQuantitiy"></param>
-        /// <param name="sowQuantitiy"></param>
-        /// <param name="receivingKarmaFor"></param>
-        /// <param name="appWebsiteServiceName"></param>
-        /// <param name="appWebsiteServiceDesc"></param>
+        /// <param name="request"></param>
         /// <returns></returns>
         [Authorize]
-        [HttpPost("SendInviteToAvatarJoinSeeds")]
-        public ActionResult<string> SendInviteToAvatarJoinSeeds(Guid sponsorAvatarId, Guid referrerAvatarId, float transferQuantitiy, float sowQuantitiy, KarmaSourceType receivingKarmaFor, string appWebsiteServiceName, string appWebsiteServiceDesc)
+        [HttpPost("SendInviteToJoinSeedsUsingAvatar")]
+        public ActionResult<string> SendInviteToJoinSeedsUsingAvatar(SendInviteToJoinSeedsUsingAvatarRequest request)
         {
-            return Ok(SEEDSManager.SendInviteToJoinSeeds(sponsorAvatarId, referrerAvatarId, transferQuantitiy, sowQuantitiy, receivingKarmaFor, appWebsiteServiceName, appWebsiteServiceDesc));
+            return Ok(SEEDSManager.SendInviteToJoinSeedsUsingAvatar(request.SponsorAvatarId, request.RefererAvatarId, request.TransferQuanitity, request.SowQuanitity, request.ReceivingKarmaFor, request.AppWebsiteServiceName, request.AppWebsiteServiceDesc, request.AppWebsiteServiceWebLink));
         }
 
         /// <summary>
-        /// Accept an invite to join Seeds.
+        /// Accept an invite to join Seeds using their telos account and then receive karma and the AcceptInviteToJoinSeeds &amp; Hero gifts.
         /// </summary>
-        /// <param name="sponsorTelosAccountName"></param>
-        /// <param name="referrerTelosAccountName"></param>
-        /// <param name="transferQuantitiy"></param>
-        /// <param name="sowQuantitiy"></param>
+        /// <param name="request"></param>
         /// <returns></returns>
         [Authorize]
-        [HttpPost("AcceptInviteToJoinSeeds")]
-        public ActionResult<string> AcceptInviteToJoinSeeds(string sponsorTelosAccountName, string referrerTelosAccountName, float transferQuantitiy, float sowQuantitiy)
+        [HttpPost("AcceptInviteToJoinSeedsUsingTelosAccount")]
+        public ActionResult<string> AcceptInviteToJoinSeedsUsingTelosAccount(AcceptInviteToJoinSeedsUsingTelosAccountRequest request)
         {
-            return Ok(SEEDSManager.SendInviteToJoinSeeds(sponsorTelosAccountName, referrerTelosAccountName, transferQuantitiy, sowQuantitiy));
+            return Ok(SEEDSManager.AcceptInviteToJoinSeedsUsingTelosAccount(request.TelosAccountName, request.InviteSecret, request.ReceivingKarmaFor, request.AppWebsiteServiceName, request.AppWebsiteServiceDesc, request.AppWebsiteServiceWebLink));
         }
 
         /// <summary>
-        /// Accept an invite to join Seeds.
+        /// Accept an invite to join Seeds using their avatar and then receive karma and the AcceptInviteToJoinSeeds &amp; Hero gifts.
         /// </summary>
-        /// <param name="sponsorAvatarId"></param>
-        /// <param name="referrerAvatarId"></param>
-        /// <param name="transferQuantitiy"></param>
-        /// <param name="sowQuantitiy"></param>
-        /// <param name="receivingKarmaFor"></param>
-        /// <param name="appWebsiteServiceName"></param>
-        /// <param name="appWebsiteServiceDesc"></param>
+        /// <param name="request"></param>
         /// <returns></returns>
         [Authorize]
-        [HttpPost("AcceptInviteToJoinSeeds")]
-        public ActionResult<string> AcceptInviteToJoinSeeds(Guid sponsorAvatarId, Guid referrerAvatarId, float transferQuantitiy, float sowQuantitiy, KarmaSourceType receivingKarmaFor, string appWebsiteServiceName, string appWebsiteServiceDesc)
+        [HttpPost("AcceptInviteToJoinSeedsUsingAvatar")]
+        public ActionResult<string> AcceptInviteToJoinSeedsUsingAvatar(AcceptInviteToJoinSeedsUsingAvatarRequest request)
         {
-            return Ok(SEEDSManager.SendInviteToJoinSeeds(sponsorAvatarId, referrerAvatarId, transferQuantitiy, sowQuantitiy, receivingKarmaFor, appWebsiteServiceName, appWebsiteServiceDesc));
+            return Ok(SEEDSManager.AcceptInviteToJoinSeedsUsingAvatar(request.AvatarId, request.InviteSecret, request.ReceivingKarmaFor, request.AppWebsiteServiceName, request.AppWebsiteServiceDesc, request.AppWebsiteServiceWebLink));
         }
 
         /// <summary>
@@ -325,20 +278,20 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             return Ok(SEEDSManager.GenerateSignInQRCodeForAvatar(avatarId));
         }
 
-        /// <summary>
-        /// Generates a QR Code for logging into your Seeds Passport.
-        /// </summary>
-        /// <param name="avatarId"></param>
-        /// <param name="seedsKarmaType"></param>
-        /// <param name="receivingKarmaFor"></param>
-        /// <param name="appWebsiteServiceName"></param>
-        /// <param name="appWebsiteServiceDesc"></param>
-        /// <returns></returns>
-        [Authorize]
-        [HttpPost("AddKarmaForSeeds")]
-        public ActionResult<bool> AddKarmaForSeeds(Guid avatarId, KarmaTypePositive seedsKarmaType, KarmaSourceType receivingKarmaFor, string appWebsiteServiceName, string appWebsiteServiceDesc)
-        {
-            return Ok(SEEDSManager.AddKarmaForSeeds(avatarId, seedsKarmaType, receivingKarmaFor, appWebsiteServiceName, appWebsiteServiceDesc));
-        }
+        ///// <summary>
+        ///// Generates a QR Code for logging into your Seeds Passport.
+        ///// </summary>
+        ///// <param name="avatarId"></param>
+        ///// <param name="seedsKarmaType"></param>
+        ///// <param name="receivingKarmaFor"></param>
+        ///// <param name="appWebsiteServiceName"></param>
+        ///// <param name="appWebsiteServiceDesc"></param>
+        ///// <returns></returns>
+        //[Authorize]
+        //[HttpPost("AddKarmaForSeeds")]
+        //public ActionResult<bool> AddKarmaForSeeds(Guid avatarId, KarmaTypePositive seedsKarmaType, KarmaSourceType receivingKarmaFor, string appWebsiteServiceName, string appWebsiteServiceDesc)
+        //{
+        //    return Ok(SEEDSManager.AddKarmaForSeeds(avatarId, seedsKarmaType, receivingKarmaFor, appWebsiteServiceName, appWebsiteServiceDesc));
+        //}
     }
 }
