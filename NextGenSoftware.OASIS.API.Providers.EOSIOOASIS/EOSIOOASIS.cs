@@ -7,16 +7,37 @@ using NextGenSoftware.OASIS.API.Core;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.EOSIOClasses;
+using EOSNewYork.EOSCore.Response.API;
+using NextGenSoftware.OASIS.API.Core.Managers;
+using System.Linq;
 
 namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
 {
     public class EOSIOOASIS : OASISStorageBase, IOASISStorage, IOASISNET, IOASISSuperStar
     {
+        // Lookup Cache. TODO: Move to generic CacheManager in OASIS.API.Core, maybe also in ProviderManager so other providers can also share the cache.
+        private static Dictionary<Guid, string> _avatarIdToEOSAccountNameLookup = new Dictionary<Guid, string>();
+        private static Dictionary<Guid, Account> _avatarIdToEOSAccountLookup = new Dictionary<Guid, Account>();
+        private static Dictionary<string, Guid> _eosAccountNameToAvatarIdLookup = new Dictionary<string, Guid>();
+        private static Dictionary<string, IAvatar> _eosAccountNameToAvatarLookup = new Dictionary<string, IAvatar>();
+        private AvatarManager _avatarManager = null;
+
         public const string OASIS_EOSIO_ACCOUNT = "oasis";
         //public const string OASIS_PASS_PHRASE = "oasis";
         public const string OASIS_PASS_PHRASE = "7g7GJ557j549':;#~~#$4jf&hjj4";
 
         public ChainAPI ChainAPI { get; set; }
+
+        private AvatarManager AvatarManagerInstance
+        {
+            get
+            {
+                if (_avatarManager == null)
+                     _avatarManager = new AvatarManager(this);
+
+                return _avatarManager;
+            }
+        }
 
         public EOSIOOASIS(string host)
         {
@@ -273,5 +294,79 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
         {
             throw new NotImplementedException();
         }
+
+
+        public async Task<Account> GetEOSAccountAsync(string eosAccountName)
+        {
+            var account = await ChainAPI.GetAccountAsync(eosAccountName);
+            return account;
+        }
+
+        public Account GetEOSAccount(string eosAccountName)
+        {
+            var account = ChainAPI.GetAccount(eosAccountName);
+            return account;
+        }
+
+        public async Task<string> GetBalanceAsync(string eosAccountName, string code, string symbol)
+        {
+            //https://github.com/JoinSEEDS/seeds-smart-contracts/blob/master/scripts/balancecheck.js
+            //eos.getCurrencyBalance("token.seeds", account, 'SEEDS')
+
+            //var accountBalance = tableAPI.GetTokenAccountBalance(new GetTokenAccountBalanceConstructorSettings() { accountName = "wozzawozza11", tokenContract = "epraofficial" });
+            //Console.WriteLine(accountBalance[0].balance_decimal);
+            //Console.WriteLine(accountBalance[0].symbol);
+
+            //var currencyBalance = await _eosioOaisis.ChainAPI.GetCurrencyBalanceAsync(eosAccountName, "seeds.seeds", "SEEDS");
+            var currencyBalance = await ChainAPI.GetCurrencyBalanceAsync(eosAccountName, code, symbol);
+            return currencyBalance.balances[0];
+        }
+
+        public string GetBalanceForEOSAccount(string eosAccountName, string code, string symbol)
+        {
+            //https://github.com/JoinSEEDS/seeds-smart-contracts/blob/master/scripts/balancecheck.js
+            //eos.getCurrencyBalance("token.seeds", account, 'SEEDS')
+
+            var currencyBalance = ChainAPI.GetCurrencyBalance(eosAccountName, code, symbol);
+            return currencyBalance.balances[0];
+        }
+
+        public string GetBalanceForAvatar(Guid avatarId, string code, string symbol)
+        {
+            return GetBalanceForEOSAccount(GetEOSAccountNameForAvatar(avatarId), code, symbol);
+        }
+
+        public string GetEOSAccountNameForAvatar(Guid avatarId)
+        {
+            if (!_avatarIdToEOSAccountNameLookup.ContainsKey(avatarId))
+                _avatarIdToEOSAccountNameLookup[avatarId] = AvatarManagerInstance.LoadAvatar(avatarId).ProviderKey[Core.Enums.ProviderType.EOSOASIS];
+
+            return _avatarIdToEOSAccountNameLookup[avatarId];
+        }
+
+        public Account GetEOSAccountForAvatar(Guid avatarId)
+        {
+            if (!_avatarIdToEOSAccountLookup.ContainsKey(avatarId))
+                _avatarIdToEOSAccountLookup[avatarId] = GetEOSAccount(GetEOSAccountNameForAvatar(avatarId));
+
+            return _avatarIdToEOSAccountLookup[avatarId];
+        }
+
+        public Guid GetAvatarIdForEOSAccountName(string eosAccountName)
+        {
+            if (!_eosAccountNameToAvatarIdLookup.ContainsKey(eosAccountName))
+                _eosAccountNameToAvatarIdLookup[eosAccountName] = AvatarManagerInstance.LoadAllAvatars().FirstOrDefault(x => x.ProviderKey[Core.Enums.ProviderType.EOSOASIS] == eosAccountName).Id;
+
+            return _eosAccountNameToAvatarIdLookup[eosAccountName];
+        }
+
+        public IAvatar GetAvatarForEOSAccountName(string eosAccountName)
+        {
+            if (!_eosAccountNameToAvatarLookup.ContainsKey(eosAccountName))
+                _eosAccountNameToAvatarLookup[eosAccountName] = AvatarManagerInstance.LoadAllAvatars().FirstOrDefault(x => x.ProviderKey[Core.Enums.ProviderType.EOSOASIS] == eosAccountName);
+
+            return _eosAccountNameToAvatarLookup[eosAccountName];
+        }
+
     }
 }
