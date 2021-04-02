@@ -13,7 +13,7 @@ $(document).ready(function () {
 		
 		var settings = {
 			url: "https: //api.oasisplatform.world/api/avatar/authenticate/",
-			methos: "POST",
+			method: "POST",
 			timeout: 0,
 			headers: {
 				"Content-type": "application/json",
