@@ -1,207 +1,426 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using System.Linq;
+using System.Security.Cryptography;
+using System.Text;
+using Newtonsoft.Json;
+using EOSNewYork.EOSCore.ActionArgs;
+using EOSNewYork.EOSCore.Response.API;
+using EOSNewYork.EOSCore.Utilities;
 using NextGenSoftware.OASIS.API.Core;
+using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.Providers.SEEDSOASIS.ParamObjects;
+using NextGenSoftware.OASIS.API.Core.Helpers;
 
 namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS
 {
-    public class SEEDSOASIS : OASISStorageBase, IOASISStorage, IOASISNET
+    public class SEEDSOASIS : OASISProvider, IOASISApplicationProvider
     {
-        public SEEDSOASIS()
+        public const string ENDPOINT_TEST = "https://test.hypha.earth";
+        public const string ENDPOINT_LIVE = "https://node.hypha.earth";
+        public const string SEEDS_EOSIO_ACCOUNT_TEST = "seeds";
+        public const string SEEDS_EOSIO_ACCOUNT_LIVE = "seed.seeds";
+        public const string CHAINID_TEST = "1eaa0824707c8c16bd25145493bf062aecddfeb56c736f6ba6397f3195f33c9f";
+        public const string CHAINID_LIVE = "4667b205c6838ef70ff7988f6e8257e8be0e1284a2f59699054a018f743b1d11";
+        public const string PUBLICKEY_TEST = "EOS8MHrY9xo9HZP4LvZcWEpzMVv1cqSLxiN2QMVNy8naSi1xWZH29";
+        public const string PUBLICKEY_TEST2 = "EOS8C9tXuPMkmB6EA7vDgGtzA99k1BN6UxjkGisC1QKpQ6YV7MFqm";
+        public const string PUBLICKEY_LIVE = "EOS6kp3dm9Ug5D3LddB8kCMqmHg2gxKpmRvTNJ6bDFPiop93sGyLR";
+        public const string PUBLICKEY_LIVE2 = "EOS6kp3dm9Ug5D3LddB8kCMqmHg2gxKpmRvTNJ6bDFPiop93sGyLR";
+        public const string APIKEY_TEST = "EOS7YXUpe1EyMAqmuFWUheuMaJoVuY3qTD33WN4TrXbEt8xSKrdH9";
+        public const string APIKEY_LIVE = "EOS7YXUpe1EyMAqmuFWUheuMaJoVuY3qTD33WN4TrXbEt8xSKrdH9";
+
+        // Lookup Cache. TODO: Move to generic CacheManager in OASIS.API.Core, maybe also in ProviderManager so other providers can also share the cache.
+        //private static Dictionary<Guid, string> _avatarIdToTelosAccountNameLookup = new Dictionary<Guid, string>();
+        //private static Dictionary<Guid, Account> _avatarIdToTelosAccountLookup = new Dictionary<Guid, Account>();
+        //private static Dictionary<string, Guid> _telosAccountNameToAvatarIdLookup = new Dictionary<string, Guid>();
+        //private static Dictionary<string, IAvatar> _telosAccountNameToAvatarLookup = new Dictionary<string, IAvatar>();
+
+        private static Random _random = new Random();
+        private AvatarManager _avatarManager = null;
+      //  private EOSIOOASIS.EOSIOOASIS EOSIOOASIS = null;
+
+        public EOSIOOASIS.EOSIOOASIS EOSIOOASIS { get; }
+
+
+        //TODO: Not sure if this should share the EOSOASIS AvatarManagerInstance? May be better to have seperate?
+        private AvatarManager AvatarManagerInstance
+        {
+            get
+            {
+                if (_avatarManager == null)
+                {
+                    if (EOSIOOASIS != null)
+                        _avatarManager = new AvatarManager(EOSIOOASIS);
+
+                    else
+                    {
+                        if (!ProviderManager.IsProviderRegistered(Core.Enums.ProviderType.EOSOASIS))
+                            throw new Exception("EOSIOOASIS Provider Not Registered. Please register and try again.");
+                        else
+                            throw new Exception("EOSIOOASIS Provider Is Registered But Was Not Injected Into SEEDSOASIS Provider.");
+                    }
+                }
+
+                return _avatarManager;
+            }
+        }
+
+        public SEEDSOASIS(EOSIOOASIS.EOSIOOASIS eosioOaisis)
         {
             this.ProviderName = "SEEDSOASIS";
             this.ProviderDescription = "SEEDS Provider";
-            this.ProviderType = new Core.Helpers.EnumValue<ProviderType>(Core.Enums.ProviderType.SEEDSOASIS);
-            this.ProviderCategory = new Core.Helpers.EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
+            this.ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.SEEDSOASIS);
+            this.ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Application);
+            EOSIOOASIS = eosioOaisis;
         }
 
-        public override bool DeleteAvatar(Guid id, bool softDelete = true)
+        //public async Task<Account> GetTelosAccountAsync(string telosAccountName)
+        //{
+        //    var account = await EOSIOOASIS.ChainAPI.GetAccountAsync(telosAccountName);
+        //    return account;
+        //}
+
+        //public Account GetTelosAccount(string telosAccountName)
+        //{
+        //    var account = EOSIOOASIS.ChainAPI.GetAccount(telosAccountName);
+        //    return account;
+        //}
+
+        public async Task<string> GetBalanceAsync(string telosAccountName)
         {
-            throw new NotImplementedException();
+            //var currencyBalance = await EOSIOOASIS.ChainAPI.GetCurrencyBalanceAsync(telosAccountName, "seeds.seeds", "SEEDS");
+            //var currencyBalance = await EOSIOOASIS.ChainAPI.GetCurrencyBalanceAsync(telosAccountName, "token.seeds", "SEEDS");
+            //return currencyBalance.balances[0];
+
+            return await EOSIOOASIS.GetBalanceAsync(telosAccountName, "token.seeds", "SEEDS");
         }
 
-        public override bool DeleteAvatar(string providerKey, bool softDelete = true)
+        public string GetBalanceForTelosAccount(string telosAccountName)
         {
-            throw new NotImplementedException();
+            //https://github.com/JoinSEEDS/seeds-smart-contracts/blob/master/scripts/balancecheck.js
+            //eos.getCurrencyBalance("token.seeds", account, 'SEEDS')
+
+            // var currencyBalance = EOSIOOASIS.ChainAPI.GetCurrencyBalance(telosAccountName, "token.seeds", "SEEDS");
+            //return currencyBalance.balances[0];
+
+            return EOSIOOASIS.GetBalanceForEOSAccount(telosAccountName, "token.seeds", "SEEDS");
         }
 
-        public override Task<bool> DeleteAvatarAsync(Guid id, bool softDelete = true)
+        public string GetBalanceForAvatar(Guid avatarId)
         {
-            throw new NotImplementedException();
+            //return GetBalanceForTelosAccount(GetTelosAccountNameForAvatar(avatarId));
+            return EOSIOOASIS.GetBalanceForAvatar(avatarId, "token.seeds", "SEEDS");
         }
 
-        public override Task<bool> DeleteAvatarAsync(string providerKey, bool softDelete = true)
+
+        // TODO: URGENT - NEED TO MOVE THESE TO THE TELOSOASIS PROVIDER (EOSOASIS is a different chain so the account names will be different so cant use the EOS methods as SEEDSOASIS currently does).
+        // Need to make these cache lookups generic for all OASIS Providers, sort this ASAP! ;-)
+
+        //public string GetTelosAccountNameForAvatar(Guid avatarId)
+        //{
+        //    if (!_avatarIdToTelosAccountNameLookup.ContainsKey(avatarId))
+        //        _avatarIdToTelosAccountNameLookup[avatarId] = AvatarManagerInstance.LoadAvatar(avatarId).ProviderKey[Core.Enums.ProviderType.TelosOASIS];
+
+        //    return _avatarIdToTelosAccountNameLookup[avatarId];
+        //}
+
+        //public Account GetTelosAccountForAvatar(Guid avatarId)
+        //{
+        //    if (!_avatarIdToTelosAccountLookup.ContainsKey(avatarId))
+        //        _avatarIdToTelosAccountLookup[avatarId] = GetTelosAccount(GetTelosAccountNameForAvatar(avatarId));
+
+        //    return _avatarIdToTelosAccountLookup[avatarId];
+        //}
+
+        //public Guid GetAvatarIdForTelosAccountName(string telosAccountName)
+        //{
+        //    if (!_telosAccountNameToAvatarIdLookup.ContainsKey(telosAccountName))
+        //        _telosAccountNameToAvatarIdLookup[telosAccountName] = AvatarManagerInstance.LoadAllAvatars().FirstOrDefault(x => x.ProviderKey[Core.Enums.ProviderType.TelosOASIS] == telosAccountName).Id;
+
+        //    return _telosAccountNameToAvatarIdLookup[telosAccountName];
+        //}
+
+        //public IAvatar GetAvatarForTelosAccountName(string telosAccountName)
+        //{
+        //    if (!_telosAccountNameToAvatarLookup.ContainsKey(telosAccountName))
+        //        _telosAccountNameToAvatarLookup[telosAccountName] = AvatarManagerInstance.LoadAllAvatars().FirstOrDefault(x => x.ProviderKey[Core.Enums.ProviderType.TelosOASIS] == telosAccountName);
+
+        //    return _telosAccountNameToAvatarLookup[telosAccountName];
+        //}
+
+
+        public async Task<TableRows> GetAllOrganisationsAsync()
         {
-            throw new NotImplementedException();
+            TableRows rows = await EOSIOOASIS.ChainAPI.GetTableRowsAsync("orgs.seeds", "orgs.seeds", "organization", "true", 0, -1, 99999);
+            return rows;
         }
 
-        public override bool DeleteHolon(Guid id, bool softDelete = true)
+
+        public TableRows GetAllOrganisations()
         {
-            throw new NotImplementedException();
+            TableRows rows = EOSIOOASIS.ChainAPI.GetTableRows("orgs.seeds", "orgs.seeds", "organization", "true", 0, -1, 99999);
+            return rows;
         }
 
-        public override bool DeleteHolon(string providerKey, bool softDelete = true)
+        public async Task<string> GetAllOrganisationsAsJSONAsync()
         {
-            throw new NotImplementedException();
+            TableRows rows = await EOSIOOASIS.ChainAPI.GetTableRowsAsync("orgs.seeds", "orgs.seeds", "organization", "true", 0, -1, 99999);
+            return JsonConvert.SerializeObject(rows);
         }
 
-        public override Task<bool> DeleteHolonAsync(Guid id, bool softDelete = true)
+        public string GetAllOrganisationsAsJSON()
         {
-            throw new NotImplementedException();
+            TableRows rows = EOSIOOASIS.ChainAPI.GetTableRows("orgs.seeds", "orgs.seeds", "organization", "true", 0, -1, 99999);
+            return JsonConvert.SerializeObject(rows);
         }
 
-        public override Task<bool> DeleteHolonAsync(string providerKey, bool softDelete = true)
+        public ManagerResult<string> PayWithSeedsUsingTelosAccount(string fromTelosAccountName, string toTelosAccountName, float quanitity, KarmaSourceType receivingKarmaFor, string appWebsiteServiceName, string appWebsiteServiceDesc, string appWebsiteServiceLink = null, string memo = null)
         {
-            throw new NotImplementedException();
+            // TODO: Make generic and apply to all other calls...
+            ManagerResult<string> result = new ManagerResult<string>();
+
+            try
+            {
+                result.Result = PayWithSeeds(fromTelosAccountName, toTelosAccountName, quanitity, memo);
+            }
+            catch (Exception ex)
+            {
+                result.IsError = true;
+                result.ErrorMessage = string.Concat("Error occured pushing the transaction onto the EOSIO chain. Error Message: ", ex.ToString());
+            }
+
+            if (!result.IsError && !string.IsNullOrEmpty(result.Result))
+                AddKarmaForSeeds(EOSIOOASIS.GetAvatarIdForEOSAccountName(fromTelosAccountName), KarmaTypePositive.PayWithSeeds, KarmaTypePositive.BeAHero, receivingKarmaFor, appWebsiteServiceName, appWebsiteServiceDesc, appWebsiteServiceLink);
+            else
+            {
+                if (!result.IsError)
+                {
+                    result.IsError = true;
+                    result.ErrorMessage = "Unknown error occured pushing the transaction onto the EOSIO chain.";
+                }
+            }
+
+            return result;
         }
 
-        public IEnumerable<IHolon> GetHolonsNearMe(HolonType Type)
+        public string PayWithSeedsUsingAvatar(Guid fromAvatarId, Guid toAvatarId, float quanitity, KarmaSourceType receivingKarmaFor, string appWebsiteServiceName, string appWebsiteServiceDesc, string appWebsiteServiceLink = null, string memo = null)
         {
-            throw new NotImplementedException();
+            AddKarmaForSeeds(fromAvatarId, KarmaTypePositive.PayWithSeeds, KarmaTypePositive.BeAHero, receivingKarmaFor, appWebsiteServiceName, appWebsiteServiceDesc, appWebsiteServiceLink);
+            return PayWithSeeds(EOSIOOASIS.GetEOSAccountNameForAvatar(fromAvatarId), EOSIOOASIS.GetEOSAccountNameForAvatar(toAvatarId), quanitity, memo);
         }
 
-        public IEnumerable<IPlayer> GetPlayersNearMe()
+        public string DonateWithSeedsUsingTelosAccount(string fromTelosAccountName, string toTelosAccountName, float quanitity, KarmaSourceType receivingKarmaFor, string appWebsiteServiceName, string appWebsiteServiceDesc, string appWebsiteServiceLink = null, string memo = null)
         {
-            throw new NotImplementedException();
+            AddKarmaForSeeds(EOSIOOASIS.GetAvatarIdForEOSAccountName(fromTelosAccountName), KarmaTypePositive.DonateWithSeeds, KarmaTypePositive.BeASuperHero, receivingKarmaFor, appWebsiteServiceName, appWebsiteServiceDesc, appWebsiteServiceLink);
+            return PayWithSeeds(fromTelosAccountName, toTelosAccountName, quanitity, memo);
         }
 
-        public override IEnumerable<IAvatar> LoadAllAvatars()
+        public string DonateWithSeedsUsingAvatar(Guid fromAvatarId, Guid toAvatarId, float quanitity, KarmaSourceType receivingKarmaFor, string appWebsiteServiceName, string appWebsiteServiceDesc, string appWebsiteServiceLink = null, string memo = null)
         {
-            throw new NotImplementedException();
+            AddKarmaForSeeds(fromAvatarId, KarmaTypePositive.DonateWithSeeds, KarmaTypePositive.BeASuperHero, receivingKarmaFor, appWebsiteServiceName, appWebsiteServiceDesc, appWebsiteServiceLink);
+            return PayWithSeeds(EOSIOOASIS.GetEOSAccountNameForAvatar(fromAvatarId), EOSIOOASIS.GetEOSAccountNameForAvatar(toAvatarId), quanitity, memo);
         }
 
-        public override Task<IEnumerable<IAvatar>> LoadAllAvatarsAsync()
+        public string RewardWithSeedsUsingTelosAccount(string fromTelosAccountName, string toTelosAccountName, float quanitity, KarmaSourceType receivingKarmaFor, string appWebsiteServiceName, string appWebsiteServiceDesc, string appWebsiteServiceLink = null, string memo = null)
         {
-            throw new NotImplementedException();
+            AddKarmaForSeeds(EOSIOOASIS.GetAvatarIdForEOSAccountName(fromTelosAccountName), KarmaTypePositive.RewardWithSeeds, KarmaTypePositive.BeASuperHero, receivingKarmaFor, appWebsiteServiceName, appWebsiteServiceDesc, appWebsiteServiceLink);
+            return PayWithSeeds(fromTelosAccountName, toTelosAccountName, quanitity, memo);
         }
 
-        public override IEnumerable<IHolon> LoadAllHolons(HolonType type = HolonType.Holon)
+        public string RewardWithSeedsUsingAvatar(Guid fromAvatarId, Guid toAvatarId, float quanitity, KarmaSourceType receivingKarmaFor, string appWebsiteServiceName, string appWebsiteServiceDesc, string appWebsiteServiceLink = null, string memo = null)
         {
-            throw new NotImplementedException();
+            AddKarmaForSeeds(fromAvatarId, KarmaTypePositive.RewardWithSeeds, KarmaTypePositive.BeAHero, receivingKarmaFor, appWebsiteServiceName, appWebsiteServiceDesc, appWebsiteServiceLink);
+            return PayWithSeeds(EOSIOOASIS.GetEOSAccountNameForAvatar(fromAvatarId), EOSIOOASIS.GetEOSAccountNameForAvatar(toAvatarId), quanitity, memo);
         }
 
-        public override Task<IEnumerable<IHolon>> LoadAllHolonsAsync(HolonType type = HolonType.Holon)
+        public SendInviteResult SendInviteToJoinSeedsUsingTelosAccount(string sponsorTelosAccountName, string referrerTelosAccountName, float transferQuantitiy, float sowQuantitiy, KarmaSourceType receivingKarmaFor, string appWebsiteServiceName, string appWebsiteServiceDesc, string appWebsiteServiceLink = null)
         {
-            throw new NotImplementedException();
+            AddKarmaForSeeds(EOSIOOASIS.GetAvatarIdForEOSAccountName(sponsorTelosAccountName), KarmaTypePositive.SendInviteToJoinSeeds, KarmaTypePositive.BeAHero, receivingKarmaFor, appWebsiteServiceName, appWebsiteServiceDesc, appWebsiteServiceLink);
+            return SendInviteToJoinSeeds(sponsorTelosAccountName, referrerTelosAccountName, transferQuantitiy, sowQuantitiy);
         }
 
-        public override IAvatar LoadAvatar(Guid Id)
+        public SendInviteResult SendInviteToJoinSeedsUsingAvatar(Guid sponsorAvatarId, Guid referrerAvatarId, float transferQuantitiy, float sowQuantitiy, KarmaSourceType receivingKarmaFor, string appWebsiteServiceName, string appWebsiteServiceDesc, string appWebsiteServiceLink = null)
         {
-            throw new NotImplementedException();
+            AddKarmaForSeeds(sponsorAvatarId, KarmaTypePositive.SendInviteToJoinSeeds, KarmaTypePositive.BeAHero, receivingKarmaFor, appWebsiteServiceName, appWebsiteServiceDesc, appWebsiteServiceLink);
+            return SendInviteToJoinSeeds(EOSIOOASIS.GetEOSAccountNameForAvatar(sponsorAvatarId), EOSIOOASIS.GetEOSAccountNameForAvatar(referrerAvatarId), transferQuantitiy, sowQuantitiy);
         }
 
-        public override IAvatar LoadAvatar(string username, string password)
+        public string AcceptInviteToJoinSeedsUsingTelosAccount(string telosAccountName, string inviteSecret, KarmaSourceType receivingKarmaFor, string appWebsiteServiceName, string appWebsiteServiceDesc, string appWebsiteServiceLink = null)
         {
-            throw new NotImplementedException();
+            AddKarmaForSeeds(EOSIOOASIS.GetAvatarIdForEOSAccountName(telosAccountName), KarmaTypePositive.AcceptInviteToJoinSeeds, KarmaTypePositive.BeAHero, receivingKarmaFor, appWebsiteServiceName, appWebsiteServiceDesc, appWebsiteServiceLink);
+            return AcceptInviteToJoinSeeds(telosAccountName, inviteSecret);
         }
 
-        public override IAvatar LoadAvatar(string username)
+        public string AcceptInviteToJoinSeedsUsingAvatar(Guid avatarId, string inviteSecret, KarmaSourceType receivingKarmaFor, string appWebsiteServiceName, string appWebsiteServiceDesc, string appWebsiteServiceLink = null)
         {
-            throw new NotImplementedException();
+            AddKarmaForSeeds(avatarId, KarmaTypePositive.AcceptInviteToJoinSeeds, KarmaTypePositive.BeAHero, receivingKarmaFor, appWebsiteServiceName, appWebsiteServiceDesc, appWebsiteServiceLink);
+            return AcceptInviteToJoinSeeds(EOSIOOASIS.GetEOSAccountNameForAvatar(avatarId), inviteSecret);
         }
 
-        public override Task<IAvatar> LoadAvatarAsync(string providerKey)
+        public string GenerateSignInQRCode(string telosAccountName)
         {
-            throw new NotImplementedException();
+            //https://github.com/JoinSEEDS/encode-transaction-service/blob/master/buildTransaction.js
+            return "";
         }
 
-        public override Task<IAvatar> LoadAvatarAsync(Guid Id)
+        public string GenerateSignInQRCodeForAvatar(Guid avatarId)
         {
-            throw new NotImplementedException();
+            return GenerateSignInQRCode(EOSIOOASIS.GetEOSAccountNameForAvatar(avatarId));
         }
 
-        public override Task<IAvatar> LoadAvatarAsync(string username, string password)
+        private string PayWithSeeds(string fromTelosAccountName, string toTelosAccountName, float quanitity, string memo)
         {
-            throw new NotImplementedException();
+            return PayWithSeeds(fromTelosAccountName, toTelosAccountName, string.Concat(quanitity, " SEEDS"), memo);
         }
 
-        public override IAvatar LoadAvatarForProviderKey(string providerKey)
+        private string PayWithSeeds(string fromTelosAccountName, string toTelosAccountName, string quanitity, string memo)
         {
-            throw new NotImplementedException();
+            //Use standard TELOS/EOS Token API.Use Transfer action.
+            //https://developers.eos.io/manuals/eosjs/latest/basic-usage/browser
+
+            //string _code = "eosio.token", _action = "transfer", _memo = "";
+            //TransferArgs _args = new TransferArgs() { from = "yatendra1", to = "yatendra1", quantity = "1.0000 EOS", memo = _memo };
+            //var abiJsonToBin = chainAPI.GetAbiJsonToBin(_code, _action, _args);
+            //logger.Info("For code {0}, action {1}, args {2} and memo {3} recieved bin {4}", _code, _action, _args, _memo, abiJsonToBin.binargs);
+
+            //var abiBinToJson = chainAPI.GetAbiBinToJson(_code, _action, abiJsonToBin.binargs);
+            //logger.Info("Received args json {0}", JsonConvert.SerializeObject(abiBinToJson.args));
+
+
+            //TransferArgs args = new TransferArgs() { from = fromTelosAccountName, to = toTelosAccountName, quantity = "1.0000 EOS", memo = memo };
+            TransferArgs args = new TransferArgs() { from = fromTelosAccountName, to = toTelosAccountName, quantity = quanitity, memo = memo };
+            // var abiJsonToBin = EOSIOOASIS.ChainAPI.GetAbiJsonToBin("eosio.token", "transfer", args);
+
+            //prepare action object
+            //EOSNewYork.EOSCore.Params.Action action = new ActionUtility(ENDPOINT_TEST).GetActionObject("transfer", fromTelosAccountName, "active", "eosio.token", args);
+            //EOSNewYork.EOSCore.Params.Action action = new ActionUtility(ENDPOINT_TEST).GetActionObject("transfer", fromTelosAccountName, "active", "seed.seeds", args);
+            EOSNewYork.EOSCore.Params.Action action = new ActionUtility(ENDPOINT_TEST).GetActionObject("transfer", fromTelosAccountName, "active", "token.seeds", args);
+
+            var keypair = KeyManager.GenerateKeyPair();
+            //List<string> privateKeysInWIF = new List<string> { keypair.PrivateKey }; //TODO: Set Private Key
+            List<string> privateKeysInWIF = new List<string> { "5KW2jynm7kHw9XfAJ6WKPFk9xfP6rrDB6ggpuk48i3sTZCwVnz4" }; //TODO: Set Private Key
+
+            //push transaction
+            var transactionResult = EOSIOOASIS.ChainAPI.PushTransaction(new[] { action }, privateKeysInWIF);
+
+
+            // logger.Info(transactionResult.transaction_id);
+
+            //transactionResult.processed
+            return transactionResult.transaction_id;
+
+
+            // string accountName = "eosio";
+            //var abi = EOSIOOASIS.ChainAPI.GetAbi(accountName);
+
+            //abi.abi.actions[0].
+            //abi.abi.tables
+
+            //logger.Info("For account {0} recieved abi {1}", accountName, JsonConvert.SerializeObject(abi));
         }
 
-        public override Task<IAvatar> LoadAvatarForProviderKeyAsync(string providerKey)
+        private SendInviteResult SendInviteToJoinSeeds(string sponsorTelosAccountName, string referrerTelosAccountName, float transferQuantitiy, float sowQuantitiy)
         {
-            throw new NotImplementedException();
+            //https://joinseeds.github.io/seeds-smart-contracts/onboarding.html
+            //https://github.com/JoinSEEDS/seeds-smart-contracts/blob/master/scripts/onboarding-helper.js
+
+            string randomHex = GetRandomHexNumber(64); //16
+            string inviteHash = GetSHA256Hash(randomHex);
+            var keypair = KeyManager.GenerateKeyPair();
+            List<string> privateKeysInWIF = new List<string> { keypair.PrivateKey };
+
+            EOSNewYork.EOSCore.Params.Action action = new ActionUtility(ENDPOINT_TEST).GetActionObject("invitefor", sponsorTelosAccountName, "active", "join.seeds", new Invite() { sponsor = sponsorTelosAccountName, referrer = referrerTelosAccountName, invite_hash = inviteHash, transfer_quantity = transferQuantitiy, sow_quantity = sowQuantitiy });
+            var transactionResult = EOSIOOASIS.ChainAPI.PushTransaction(new[] { action }, privateKeysInWIF);
+
+            return new SendInviteResult() { TransactionId = transactionResult.transaction_id, InviteSecret = inviteHash };
         }
 
-        public override IHolon LoadHolon(Guid id, HolonType type = HolonType.Holon)
+        private string AcceptInviteToJoinSeeds(string telosAccountName, string inviteSecret)
         {
-            throw new NotImplementedException();
+            //https://joinseeds.github.io/seeds-smart-contracts/onboarding.html
+            //inviteSecret = inviteHash
+
+            var keypair = KeyManager.GenerateKeyPair();
+            List<string> privateKeysInWIF = new List<string> { keypair.PrivateKey };
+
+            EOSNewYork.EOSCore.Params.Action action = new ActionUtility(ENDPOINT_TEST).GetActionObject("accept", telosAccountName, "active", "join.seeds", new Accept() { account = telosAccountName, invite_secret = inviteSecret, publicKey = keypair.PublicKey });
+            var transactionResult = EOSIOOASIS.ChainAPI.PushTransaction(new[] { action }, privateKeysInWIF);
+
+            return transactionResult.transaction_id;
         }
 
-        public override IHolon LoadHolon(string providerKey, HolonType type = HolonType.Holon)
+        private bool AddKarmaForSeeds(Guid avatarId, KarmaTypePositive seedsKarmaType, KarmaTypePositive seedsKarmaHeroType, KarmaSourceType receivingKarmaFor, string appWebsiteServiceName, string appWebsiteServiceDesc, string appWebsiteServiceLink = null)
         {
-            throw new NotImplementedException();
+            //TODO: Add new karma methods OASIS.API.CORE that allow bulk/batch karma to be added in one call (maybe use params?)
+            bool karmaHeroResult = !AvatarManagerInstance.AddKarmaToAvatar(avatarId, seedsKarmaHeroType, receivingKarmaFor, appWebsiteServiceName, appWebsiteServiceDesc, appWebsiteServiceLink, Core.Enums.ProviderType.SEEDSOASIS).IsError;
+            bool karmaSeedsResult = AvatarManagerInstance.AddKarmaToAvatar(avatarId, seedsKarmaType, receivingKarmaFor, appWebsiteServiceName, appWebsiteServiceDesc, appWebsiteServiceLink, Core.Enums.ProviderType.SEEDSOASIS).IsError;
+            return karmaHeroResult && karmaSeedsResult;
         }
 
-        public override Task<IHolon> LoadHolonAsync(Guid id, HolonType type = HolonType.Holon)
+        private static string GetRandomHexNumber(int digits)
         {
-            throw new NotImplementedException();
+            byte[] buffer = new byte[digits / 2];
+            _random.NextBytes(buffer);
+
+            string result = String.Concat(buffer.Select(x => x.ToString("X2")).ToArray());
+
+            if (digits % 2 == 0)
+                return result;
+
+            return result + _random.Next(16).ToString("X");
         }
 
-        public override Task<IHolon> LoadHolonAsync(string providerKey, HolonType type = HolonType.Holon)
+        private static string GetSHA256Hash(string value)
         {
-            throw new NotImplementedException();
+            using (SHA256 sha256Hash = SHA256.Create())
+            {
+                string hash = GetHash(sha256Hash, value);
+
+                /*
+                Console.WriteLine($"The SHA256 hash of {value} is: {hash}.");
+                Console.WriteLine("Verifying the hash...");
+
+                if (VerifyHash(sha256Hash, value, hash))
+                    Console.WriteLine("The hashes are the same.");
+                else
+                    Console.WriteLine("The hashes are not same.");
+                */
+
+                return hash;
+            }
         }
 
-        public override IEnumerable<IHolon> LoadHolonsForParent(Guid id, HolonType type = HolonType.Holon)
+        private static string GetHash(HashAlgorithm hashAlgorithm, string input)
         {
-            throw new NotImplementedException();
+            // Convert the input string to a byte array and compute the hash.
+            byte[] data = hashAlgorithm.ComputeHash(Encoding.UTF8.GetBytes(input));
+
+            // Create a new Stringbuilder to collect the bytes
+            // and create a string.
+            var sBuilder = new StringBuilder();
+
+            // Loop through each byte of the hashed data
+            // and format each one as a hexadecimal string.
+            for (int i = 0; i < data.Length; i++)
+                sBuilder.Append(data[i].ToString("x2"));
+
+            // Return the hexadecimal string.
+            return sBuilder.ToString();
         }
 
-        public override IEnumerable<IHolon> LoadHolonsForParent(string providerKey, HolonType type = HolonType.Holon)
+        // Verify a hash against a string.
+        private static bool VerifyHash(HashAlgorithm hashAlgorithm, string input, string hash)
         {
-            throw new NotImplementedException();
-        }
+            // Hash the input.
+            var hashOfInput = GetHash(hashAlgorithm, input);
 
-        public override Task<IEnumerable<IHolon>> LoadHolonsForParentAsync(Guid id, HolonType type = HolonType.Holon)
-        {
-            throw new NotImplementedException();
-        }
+            // Create a StringComparer an compare the hashes.
+            StringComparer comparer = StringComparer.OrdinalIgnoreCase;
 
-        public override Task<IEnumerable<IHolon>> LoadHolonsForParentAsync(string providerKey, HolonType type = HolonType.Holon)
-        {
-            throw new NotImplementedException();
+            return comparer.Compare(hashOfInput, hash) == 0;
         }
-
-        public override IAvatar SaveAvatar(IAvatar Avatar)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override Task<IAvatar> SaveAvatarAsync(IAvatar Avatar)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override IHolon SaveHolon(IHolon holon)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override Task<IHolon> SaveHolonAsync(IHolon holon)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override IEnumerable<IHolon> SaveHolons(IEnumerable<IHolon> holons)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override Task<IEnumerable<IHolon>> SaveHolonsAsync(IEnumerable<IHolon> holons)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override Task<ISearchResults> SearchAsync(ISearchParams searchParams)
-        {
-            throw new NotImplementedException();
-        }
-
-       // IOASISCustomProviderCalls
     }
 }

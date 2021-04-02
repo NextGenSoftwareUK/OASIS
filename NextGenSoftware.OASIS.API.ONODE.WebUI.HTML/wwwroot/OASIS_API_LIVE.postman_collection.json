@@ -518,6 +518,88 @@
 						}
 					},
 					"response": []
+				},
+				{
+					"name": "Link Telos Account To Avatar",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjM2ODVkZjg0LTc3ZmMtNDM1OS1iNjdkLTA4ZDk0MTE1MjgwZiIsIm5iZiI6MTYxNTQ4MTM4NCwiZXhwIjoxNjE1NDgyMjg0LCJpYXQiOjE2MTU0ODEzODR9.U8OvF-oRUuJ7kQFcMy6Xlc2s96LhN-462WjLnUeOSjQ",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"KarmaType\": \"DropLitter\",\r\n    \"karmaSourceType\": \"AndroidApp\",\r\n    \"KaramSourceTitle\": \"SEEDS\",\r\n    \"KarmaSourceDesc\": \"SEEDS\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://api.oasisplatform.world/api/avatar/LinkTelosAccountToAvatar",
+							"protocol": "https",
+							"host": [
+								"api",
+								"oasisplatform",
+								"world"
+							],
+							"path": [
+								"api",
+								"avatar",
+								"LinkTelosAccountToAvatar"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Link EOS Account To Avatar",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjM2ODVkZjg0LTc3ZmMtNDM1OS1iNjdkLTA4ZDk0MTE1MjgwZiIsIm5iZiI6MTYxNTQ4MTM4NCwiZXhwIjoxNjE1NDgyMjg0LCJpYXQiOjE2MTU0ODEzODR9.U8OvF-oRUuJ7kQFcMy6Xlc2s96LhN-462WjLnUeOSjQ",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"KarmaType\": \"DropLitter\",\r\n    \"karmaSourceType\": \"AndroidApp\",\r\n    \"KaramSourceTitle\": \"SEEDS\",\r\n    \"KarmaSourceDesc\": \"SEEDS\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://api.oasisplatform.world/api/avatar/LinkEOSAccountToAvatar",
+							"protocol": "https",
+							"host": [
+								"api",
+								"oasisplatform",
+								"world"
+							],
+							"path": [
+								"api",
+								"avatar",
+								"LinkEOSAccountToAvatar"
+							]
+						}
+					},
+					"response": []
 				}
 			]
 		},
@@ -2080,6 +2162,1565 @@
 								"33",
 								"33",
 								"33"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "SEEDS",
+			"item": [
+				{
+					"name": "Pay With Seeds Using Telos Account",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImVlMTVhZGFlLTlmODQtNDk0ZC1hM2UzLTU4MTU1N2FhZTdiYyIsIm5iZiI6MTYxNzIxMjUyMiwiZXhwIjoxNjE3MjEzNDIyLCJpYXQiOjE2MTcyMTI1MjJ9.XKGiIG8Xb8_ol_MhftcynQOgMekq1rLpD92Eaimr0sQ",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"fromTelosAccountName\": \"davidsellams\",\r\n    \"toTelosAccountName\": \"nextgenworld\",\r\n    \"qty\": \"7.0000\",\r\n    \"memo\": \"TEST\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://api.oasisplatform.world/api/seeds/PayWithSeedsUsingTelosAccount",
+							"protocol": "https",
+							"host": [
+								"api",
+								"oasisplatform",
+								"world"
+							],
+							"path": [
+								"api",
+								"seeds",
+								"PayWithSeedsUsingTelosAccount"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Pay With Seeds Using Avatar",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImVlMTVhZGFlLTlmODQtNDk0ZC1hM2UzLTU4MTU1N2FhZTdiYyIsIm5iZiI6MTYxNzIxMjUyMiwiZXhwIjoxNjE3MjEzNDIyLCJpYXQiOjE2MTcyMTI1MjJ9.XKGiIG8Xb8_ol_MhftcynQOgMekq1rLpD92Eaimr0sQ",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"fromTelosAccountName\": \"davidsellams\",\r\n    \"toTelosAccountName\": \"nextgenworld\",\r\n    \"qty\": \"7.0000\",\r\n    \"memo\": \"TEST\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://api.oasisplatform.world/api/seeds/PayWithSeedsUsingAvatar",
+							"protocol": "https",
+							"host": [
+								"api",
+								"oasisplatform",
+								"world"
+							],
+							"path": [
+								"api",
+								"seeds",
+								"PayWithSeedsUsingAvatar"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Reward With Seeds Using Telos Account",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImVlMTVhZGFlLTlmODQtNDk0ZC1hM2UzLTU4MTU1N2FhZTdiYyIsIm5iZiI6MTYxNzIxMjUyMiwiZXhwIjoxNjE3MjEzNDIyLCJpYXQiOjE2MTcyMTI1MjJ9.XKGiIG8Xb8_ol_MhftcynQOgMekq1rLpD92Eaimr0sQ",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"fromTelosAccountName\": \"davidsellams\",\r\n    \"toTelosAccountName\": \"nextgenworld\",\r\n    \"qty\": \"7.0000\",\r\n    \"memo\": \"TEST\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://api.oasisplatform.world/api/seeds/RewardWithSeedsUsingTelosAccount",
+							"protocol": "https",
+							"host": [
+								"api",
+								"oasisplatform",
+								"world"
+							],
+							"path": [
+								"api",
+								"seeds",
+								"RewardWithSeedsUsingTelosAccount"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Reward With Seeds Using Avatar",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImVlMTVhZGFlLTlmODQtNDk0ZC1hM2UzLTU4MTU1N2FhZTdiYyIsIm5iZiI6MTYxNzIxMjUyMiwiZXhwIjoxNjE3MjEzNDIyLCJpYXQiOjE2MTcyMTI1MjJ9.XKGiIG8Xb8_ol_MhftcynQOgMekq1rLpD92Eaimr0sQ",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"fromTelosAccountName\": \"davidsellams\",\r\n    \"toTelosAccountName\": \"nextgenworld\",\r\n    \"qty\": \"7.0000\",\r\n    \"memo\": \"TEST\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://api.oasisplatform.world/api/seeds/RewardWithSeedsUsingAvatar",
+							"protocol": "https",
+							"host": [
+								"api",
+								"oasisplatform",
+								"world"
+							],
+							"path": [
+								"api",
+								"seeds",
+								"RewardWithSeedsUsingAvatar"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Donate With Seeds Using Telos Account",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImVlMTVhZGFlLTlmODQtNDk0ZC1hM2UzLTU4MTU1N2FhZTdiYyIsIm5iZiI6MTYxNzIxMjUyMiwiZXhwIjoxNjE3MjEzNDIyLCJpYXQiOjE2MTcyMTI1MjJ9.XKGiIG8Xb8_ol_MhftcynQOgMekq1rLpD92Eaimr0sQ",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"fromTelosAccountName\": \"davidsellams\",\r\n    \"toTelosAccountName\": \"nextgenworld\",\r\n    \"qty\": \"7.0000\",\r\n    \"memo\": \"TEST\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://api.oasisplatform.world/api/seeds/DonateWithSeedsUsingTelosAccount",
+							"protocol": "https",
+							"host": [
+								"api",
+								"oasisplatform",
+								"world"
+							],
+							"path": [
+								"api",
+								"seeds",
+								"DonateWithSeedsUsingTelosAccount"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Donate With Seeds Using Avatar",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImVlMTVhZGFlLTlmODQtNDk0ZC1hM2UzLTU4MTU1N2FhZTdiYyIsIm5iZiI6MTYxNzIxMjUyMiwiZXhwIjoxNjE3MjEzNDIyLCJpYXQiOjE2MTcyMTI1MjJ9.XKGiIG8Xb8_ol_MhftcynQOgMekq1rLpD92Eaimr0sQ",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"fromTelosAccountName\": \"davidsellams\",\r\n    \"toTelosAccountName\": \"nextgenworld\",\r\n    \"qty\": \"7.0000\",\r\n    \"memo\": \"TEST\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://api.oasisplatform.world/api/seeds/DonateWithSeedssUsingAvatar",
+							"protocol": "https",
+							"host": [
+								"api",
+								"oasisplatform",
+								"world"
+							],
+							"path": [
+								"api",
+								"seeds",
+								"DonateWithSeedssUsingAvatar"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Send Invite To Join Seeds Using Telos Account",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImVlMTVhZGFlLTlmODQtNDk0ZC1hM2UzLTU4MTU1N2FhZTdiYyIsIm5iZiI6MTYxNzIxMjUyMiwiZXhwIjoxNjE3MjEzNDIyLCJpYXQiOjE2MTcyMTI1MjJ9.XKGiIG8Xb8_ol_MhftcynQOgMekq1rLpD92Eaimr0sQ",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"fromTelosAccountName\": \"davidsellams\",\r\n    \"toTelosAccountName\": \"nextgenworld\",\r\n    \"qty\": \"7.0000\",\r\n    \"memo\": \"TEST\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://api.oasisplatform.world/api/seeds/SendInviteToJoinSeedsUsingTelosAccount",
+							"protocol": "https",
+							"host": [
+								"api",
+								"oasisplatform",
+								"world"
+							],
+							"path": [
+								"api",
+								"seeds",
+								"SendInviteToJoinSeedsUsingTelosAccount"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Send Invite To Join Seeds Using Avatar",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImVlMTVhZGFlLTlmODQtNDk0ZC1hM2UzLTU4MTU1N2FhZTdiYyIsIm5iZiI6MTYxNzIxMjUyMiwiZXhwIjoxNjE3MjEzNDIyLCJpYXQiOjE2MTcyMTI1MjJ9.XKGiIG8Xb8_ol_MhftcynQOgMekq1rLpD92Eaimr0sQ",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"fromTelosAccountName\": \"davidsellams\",\r\n    \"toTelosAccountName\": \"nextgenworld\",\r\n    \"qty\": \"7.0000\",\r\n    \"memo\": \"TEST\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://api.oasisplatform.world/api/seeds/SendInviteToJoinSeedsUsingAvatar",
+							"protocol": "https",
+							"host": [
+								"api",
+								"oasisplatform",
+								"world"
+							],
+							"path": [
+								"api",
+								"seeds",
+								"SendInviteToJoinSeedsUsingAvatar"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Accept Invite To Join Seeds Using Telos Account",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImVlMTVhZGFlLTlmODQtNDk0ZC1hM2UzLTU4MTU1N2FhZTdiYyIsIm5iZiI6MTYxNzIxMjUyMiwiZXhwIjoxNjE3MjEzNDIyLCJpYXQiOjE2MTcyMTI1MjJ9.XKGiIG8Xb8_ol_MhftcynQOgMekq1rLpD92Eaimr0sQ",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"fromTelosAccountName\": \"davidsellams\",\r\n    \"toTelosAccountName\": \"nextgenworld\",\r\n    \"qty\": \"7.0000\",\r\n    \"memo\": \"TEST\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://api.oasisplatform.worldapi/seeds/AcceptInviteToJoinSeedsUsingTelosAccount",
+							"protocol": "https",
+							"host": [
+								"api",
+								"oasisplatform",
+								"worldapi"
+							],
+							"path": [
+								"seeds",
+								"AcceptInviteToJoinSeedsUsingTelosAccount"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Accept Invite To Join Seeds Using Avatar",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImVlMTVhZGFlLTlmODQtNDk0ZC1hM2UzLTU4MTU1N2FhZTdiYyIsIm5iZiI6MTYxNzIxMjUyMiwiZXhwIjoxNjE3MjEzNDIyLCJpYXQiOjE2MTcyMTI1MjJ9.XKGiIG8Xb8_ol_MhftcynQOgMekq1rLpD92Eaimr0sQ",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"fromTelosAccountName\": \"davidsellams\",\r\n    \"toTelosAccountName\": \"nextgenworld\",\r\n    \"qty\": \"7.0000\",\r\n    \"memo\": \"TEST\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://api.oasisplatform.world/api/seeds/AcceptInviteToJoinSeedsUsingAvatar",
+							"protocol": "https",
+							"host": [
+								"api",
+								"oasisplatform",
+								"world"
+							],
+							"path": [
+								"api",
+								"seeds",
+								"AcceptInviteToJoinSeedsUsingAvatar"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Telos Account For Avatar",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImVlMTVhZGFlLTlmODQtNDk0ZC1hM2UzLTU4MTU1N2FhZTdiYyIsIm5iZiI6MTYxNzIxMjUyMiwiZXhwIjoxNjE3MjEzNDIyLCJpYXQiOjE2MTcyMTI1MjJ9.XKGiIG8Xb8_ol_MhftcynQOgMekq1rLpD92Eaimr0sQ",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"fromTelosAccountName\": \"davidsellams\",\r\n    \"toTelosAccountName\": \"nextgenworld\",\r\n    \"qty\": \"7.0000\",\r\n    \"memo\": \"TEST\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://api.oasisplatform.worldapi/seeds/GetTelosAccountForAvatar",
+							"protocol": "https",
+							"host": [
+								"api",
+								"oasisplatform",
+								"worldapi"
+							],
+							"path": [
+								"seeds",
+								"GetTelosAccountForAvatar"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Telos Account Name For Avatar",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImVlMTVhZGFlLTlmODQtNDk0ZC1hM2UzLTU4MTU1N2FhZTdiYyIsIm5iZiI6MTYxNzIxMjUyMiwiZXhwIjoxNjE3MjEzNDIyLCJpYXQiOjE2MTcyMTI1MjJ9.XKGiIG8Xb8_ol_MhftcynQOgMekq1rLpD92Eaimr0sQ",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"fromTelosAccountName\": \"davidsellams\",\r\n    \"toTelosAccountName\": \"nextgenworld\",\r\n    \"qty\": \"7.0000\",\r\n    \"memo\": \"TEST\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://api.oasisplatform.world/api/seeds/GetTelosAccountNameForAvatar",
+							"protocol": "https",
+							"host": [
+								"api",
+								"oasisplatform",
+								"world"
+							],
+							"path": [
+								"api",
+								"seeds",
+								"GetTelosAccountNameForAvatar"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Telos Account",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImVlMTVhZGFlLTlmODQtNDk0ZC1hM2UzLTU4MTU1N2FhZTdiYyIsIm5iZiI6MTYxNzIxMjUyMiwiZXhwIjoxNjE3MjEzNDIyLCJpYXQiOjE2MTcyMTI1MjJ9.XKGiIG8Xb8_ol_MhftcynQOgMekq1rLpD92Eaimr0sQ",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"fromTelosAccountName\": \"davidsellams\",\r\n    \"toTelosAccountName\": \"nextgenworld\",\r\n    \"qty\": \"7.0000\",\r\n    \"memo\": \"TEST\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://api.oasisplatform.world/api/seeds/GetTelosAccount",
+							"protocol": "https",
+							"host": [
+								"api",
+								"oasisplatform",
+								"world"
+							],
+							"path": [
+								"api",
+								"seeds",
+								"GetTelosAccount"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Avatar Id For Telos Account Name",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImVlMTVhZGFlLTlmODQtNDk0ZC1hM2UzLTU4MTU1N2FhZTdiYyIsIm5iZiI6MTYxNzIxMjUyMiwiZXhwIjoxNjE3MjEzNDIyLCJpYXQiOjE2MTcyMTI1MjJ9.XKGiIG8Xb8_ol_MhftcynQOgMekq1rLpD92Eaimr0sQ",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"fromTelosAccountName\": \"davidsellams\",\r\n    \"toTelosAccountName\": \"nextgenworld\",\r\n    \"qty\": \"7.0000\",\r\n    \"memo\": \"TEST\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://api.oasisplatform.world/api/seeds/GetAvatarIdForTelosAccountName",
+							"protocol": "https",
+							"host": [
+								"api",
+								"oasisplatform",
+								"world"
+							],
+							"path": [
+								"api",
+								"seeds",
+								"GetAvatarIdForTelosAccountName"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Avatar For Telos Account Name",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImVlMTVhZGFlLTlmODQtNDk0ZC1hM2UzLTU4MTU1N2FhZTdiYyIsIm5iZiI6MTYxNzIxMjUyMiwiZXhwIjoxNjE3MjEzNDIyLCJpYXQiOjE2MTcyMTI1MjJ9.XKGiIG8Xb8_ol_MhftcynQOgMekq1rLpD92Eaimr0sQ",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"fromTelosAccountName\": \"davidsellams\",\r\n    \"toTelosAccountName\": \"nextgenworld\",\r\n    \"qty\": \"7.0000\",\r\n    \"memo\": \"TEST\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://api.oasisplatform.world/api/seeds/GetAvatarForTelosAccountName",
+							"protocol": "https",
+							"host": [
+								"api",
+								"oasisplatform",
+								"world"
+							],
+							"path": [
+								"api",
+								"seeds",
+								"GetAvatarForTelosAccountName"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Balance For Telos Account Name",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImVlMTVhZGFlLTlmODQtNDk0ZC1hM2UzLTU4MTU1N2FhZTdiYyIsIm5iZiI6MTYxNzIxMjUyMiwiZXhwIjoxNjE3MjEzNDIyLCJpYXQiOjE2MTcyMTI1MjJ9.XKGiIG8Xb8_ol_MhftcynQOgMekq1rLpD92Eaimr0sQ",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"fromTelosAccountName\": \"davidsellams\",\r\n    \"toTelosAccountName\": \"nextgenworld\",\r\n    \"qty\": \"7.0000\",\r\n    \"memo\": \"TEST\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://api.oasisplatform.world/api/seeds/GetBalanceForTelosAccount",
+							"protocol": "https",
+							"host": [
+								"api",
+								"oasisplatform",
+								"world"
+							],
+							"path": [
+								"api",
+								"seeds",
+								"GetBalanceForTelosAccount"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Balance For Avatar",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImVlMTVhZGFlLTlmODQtNDk0ZC1hM2UzLTU4MTU1N2FhZTdiYyIsIm5iZiI6MTYxNzIxMjUyMiwiZXhwIjoxNjE3MjEzNDIyLCJpYXQiOjE2MTcyMTI1MjJ9.XKGiIG8Xb8_ol_MhftcynQOgMekq1rLpD92Eaimr0sQ",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"fromTelosAccountName\": \"davidsellams\",\r\n    \"toTelosAccountName\": \"nextgenworld\",\r\n    \"qty\": \"7.0000\",\r\n    \"memo\": \"TEST\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://api.oasisplatform.world/api/seeds/GetBalanceForAvatar",
+							"protocol": "https",
+							"host": [
+								"api",
+								"oasisplatform",
+								"world"
+							],
+							"path": [
+								"api",
+								"seeds",
+								"GetBalanceForAvatar"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Generate Seeds Passport SignIn QR Code",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImVlMTVhZGFlLTlmODQtNDk0ZC1hM2UzLTU4MTU1N2FhZTdiYyIsIm5iZiI6MTYxNzIxMjUyMiwiZXhwIjoxNjE3MjEzNDIyLCJpYXQiOjE2MTcyMTI1MjJ9.XKGiIG8Xb8_ol_MhftcynQOgMekq1rLpD92Eaimr0sQ",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"fromTelosAccountName\": \"davidsellams\",\r\n    \"toTelosAccountName\": \"nextgenworld\",\r\n    \"qty\": \"7.0000\",\r\n    \"memo\": \"TEST\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://api.oasisplatform.world/api/seeds/GenerateSeedsPassportSignInQRCode",
+							"protocol": "https",
+							"host": [
+								"api",
+								"oasisplatform",
+								"world"
+							],
+							"path": [
+								"api",
+								"seeds",
+								"GenerateSeedsPassportSignInQRCode"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Generate Seeds Passport SignIn QR Code For Avatar",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImVlMTVhZGFlLTlmODQtNDk0ZC1hM2UzLTU4MTU1N2FhZTdiYyIsIm5iZiI6MTYxNzIxMjUyMiwiZXhwIjoxNjE3MjEzNDIyLCJpYXQiOjE2MTcyMTI1MjJ9.XKGiIG8Xb8_ol_MhftcynQOgMekq1rLpD92Eaimr0sQ",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"fromTelosAccountName\": \"davidsellams\",\r\n    \"toTelosAccountName\": \"nextgenworld\",\r\n    \"qty\": \"7.0000\",\r\n    \"memo\": \"TEST\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://api.oasisplatform.world/api/seeds/GenerateSeedsPassportSignInQRCodeForAvatar",
+							"protocol": "https",
+							"host": [
+								"api",
+								"oasisplatform",
+								"world"
+							],
+							"path": [
+								"api",
+								"seeds",
+								"GenerateSeedsPassportSignInQRCodeForAvatar"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Organisations",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImVlMTVhZGFlLTlmODQtNDk0ZC1hM2UzLTU4MTU1N2FhZTdiYyIsIm5iZiI6MTYxNzIxMzYxMSwiZXhwIjoxNjE3MjE0NTExLCJpYXQiOjE2MTcyMTM2MTF9.jZfeqwEjRQHoS5PtfCRfUgKH17yiCTbnPMY-_WR9aS4",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"fromTelosAccountName\": \"davidsellams\",\r\n    \"toTelosAccountName\": \"nextgenworld\",\r\n    \"qty\": \"7.0000\",\r\n    \"memo\": \"TEST\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://api.oasisplatform.world/api/seeds/GetAllOrganisations",
+							"protocol": "https",
+							"host": [
+								"api",
+								"oasisplatform",
+								"world"
+							],
+							"path": [
+								"api",
+								"seeds",
+								"GetAllOrganisations"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Telos",
+			"item": [
+				{
+					"name": "Get Telos Account For Avatar",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImVlMTVhZGFlLTlmODQtNDk0ZC1hM2UzLTU4MTU1N2FhZTdiYyIsIm5iZiI6MTYxNzIxMjUyMiwiZXhwIjoxNjE3MjEzNDIyLCJpYXQiOjE2MTcyMTI1MjJ9.XKGiIG8Xb8_ol_MhftcynQOgMekq1rLpD92Eaimr0sQ",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"fromTelosAccountName\": \"davidsellams\",\r\n    \"toTelosAccountName\": \"nextgenworld\",\r\n    \"qty\": \"7.0000\",\r\n    \"memo\": \"TEST\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://api.oasisplatform.worldapi/seeds/GetTelosAccountForAvatar",
+							"protocol": "https",
+							"host": [
+								"api",
+								"oasisplatform",
+								"worldapi"
+							],
+							"path": [
+								"seeds",
+								"GetTelosAccountForAvatar"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Telos Account Name For Avatar",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImVlMTVhZGFlLTlmODQtNDk0ZC1hM2UzLTU4MTU1N2FhZTdiYyIsIm5iZiI6MTYxNzIxMjUyMiwiZXhwIjoxNjE3MjEzNDIyLCJpYXQiOjE2MTcyMTI1MjJ9.XKGiIG8Xb8_ol_MhftcynQOgMekq1rLpD92Eaimr0sQ",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"fromTelosAccountName\": \"davidsellams\",\r\n    \"toTelosAccountName\": \"nextgenworld\",\r\n    \"qty\": \"7.0000\",\r\n    \"memo\": \"TEST\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://api.oasisplatform.world/api/seeds/GetTelosAccountNameForAvatar",
+							"protocol": "https",
+							"host": [
+								"api",
+								"oasisplatform",
+								"world"
+							],
+							"path": [
+								"api",
+								"seeds",
+								"GetTelosAccountNameForAvatar"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Telos Account",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImVlMTVhZGFlLTlmODQtNDk0ZC1hM2UzLTU4MTU1N2FhZTdiYyIsIm5iZiI6MTYxNzIxMjUyMiwiZXhwIjoxNjE3MjEzNDIyLCJpYXQiOjE2MTcyMTI1MjJ9.XKGiIG8Xb8_ol_MhftcynQOgMekq1rLpD92Eaimr0sQ",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"fromTelosAccountName\": \"davidsellams\",\r\n    \"toTelosAccountName\": \"nextgenworld\",\r\n    \"qty\": \"7.0000\",\r\n    \"memo\": \"TEST\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://api.oasisplatform.world/api/seeds/GetTelosAccount",
+							"protocol": "https",
+							"host": [
+								"api",
+								"oasisplatform",
+								"world"
+							],
+							"path": [
+								"api",
+								"seeds",
+								"GetTelosAccount"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Avatar Id For Telos Account Name",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImVlMTVhZGFlLTlmODQtNDk0ZC1hM2UzLTU4MTU1N2FhZTdiYyIsIm5iZiI6MTYxNzIxMjUyMiwiZXhwIjoxNjE3MjEzNDIyLCJpYXQiOjE2MTcyMTI1MjJ9.XKGiIG8Xb8_ol_MhftcynQOgMekq1rLpD92Eaimr0sQ",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"fromTelosAccountName\": \"davidsellams\",\r\n    \"toTelosAccountName\": \"nextgenworld\",\r\n    \"qty\": \"7.0000\",\r\n    \"memo\": \"TEST\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://api.oasisplatform.world/api/seeds/GetAvatarIdForTelosAccountName",
+							"protocol": "https",
+							"host": [
+								"api",
+								"oasisplatform",
+								"world"
+							],
+							"path": [
+								"api",
+								"seeds",
+								"GetAvatarIdForTelosAccountName"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Avatar For Telos Account Name",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImVlMTVhZGFlLTlmODQtNDk0ZC1hM2UzLTU4MTU1N2FhZTdiYyIsIm5iZiI6MTYxNzIxMjUyMiwiZXhwIjoxNjE3MjEzNDIyLCJpYXQiOjE2MTcyMTI1MjJ9.XKGiIG8Xb8_ol_MhftcynQOgMekq1rLpD92Eaimr0sQ",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"fromTelosAccountName\": \"davidsellams\",\r\n    \"toTelosAccountName\": \"nextgenworld\",\r\n    \"qty\": \"7.0000\",\r\n    \"memo\": \"TEST\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://api.oasisplatform.world/api/seeds/GetAvatarForTelosAccountName",
+							"protocol": "https",
+							"host": [
+								"api",
+								"oasisplatform",
+								"world"
+							],
+							"path": [
+								"api",
+								"seeds",
+								"GetAvatarForTelosAccountName"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Balance For Telos Account Name",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImVlMTVhZGFlLTlmODQtNDk0ZC1hM2UzLTU4MTU1N2FhZTdiYyIsIm5iZiI6MTYxNzIxMjUyMiwiZXhwIjoxNjE3MjEzNDIyLCJpYXQiOjE2MTcyMTI1MjJ9.XKGiIG8Xb8_ol_MhftcynQOgMekq1rLpD92Eaimr0sQ",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"fromTelosAccountName\": \"davidsellams\",\r\n    \"toTelosAccountName\": \"nextgenworld\",\r\n    \"qty\": \"7.0000\",\r\n    \"memo\": \"TEST\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://api.oasisplatform.world/api/seeds/GetBalanceForTelosAccount",
+							"protocol": "https",
+							"host": [
+								"api",
+								"oasisplatform",
+								"world"
+							],
+							"path": [
+								"api",
+								"seeds",
+								"GetBalanceForTelosAccount"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Balance For Avatar",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImVlMTVhZGFlLTlmODQtNDk0ZC1hM2UzLTU4MTU1N2FhZTdiYyIsIm5iZiI6MTYxNzIxMjUyMiwiZXhwIjoxNjE3MjEzNDIyLCJpYXQiOjE2MTcyMTI1MjJ9.XKGiIG8Xb8_ol_MhftcynQOgMekq1rLpD92Eaimr0sQ",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"fromTelosAccountName\": \"davidsellams\",\r\n    \"toTelosAccountName\": \"nextgenworld\",\r\n    \"qty\": \"7.0000\",\r\n    \"memo\": \"TEST\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://api.oasisplatform.world/api/seeds/GetBalanceForAvatar",
+							"protocol": "https",
+							"host": [
+								"api",
+								"oasisplatform",
+								"world"
+							],
+							"path": [
+								"api",
+								"seeds",
+								"GetBalanceForAvatar"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Link Telos Account To Avatar",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjM2ODVkZjg0LTc3ZmMtNDM1OS1iNjdkLTA4ZDk0MTE1MjgwZiIsIm5iZiI6MTYxNTQ4MTM4NCwiZXhwIjoxNjE1NDgyMjg0LCJpYXQiOjE2MTU0ODEzODR9.U8OvF-oRUuJ7kQFcMy6Xlc2s96LhN-462WjLnUeOSjQ",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"KarmaType\": \"DropLitter\",\r\n    \"karmaSourceType\": \"AndroidApp\",\r\n    \"KaramSourceTitle\": \"SEEDS\",\r\n    \"KarmaSourceDesc\": \"SEEDS\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://api.oasisplatform.world/api/avatar/LinkTelosAccountToAvatar",
+							"protocol": "https",
+							"host": [
+								"api",
+								"oasisplatform",
+								"world"
+							],
+							"path": [
+								"api",
+								"avatar",
+								"LinkTelosAccountToAvatar"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "EOS",
+			"item": [
+				{
+					"name": "Get EOS Account For Avatar",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImVlMTVhZGFlLTlmODQtNDk0ZC1hM2UzLTU4MTU1N2FhZTdiYyIsIm5iZiI6MTYxNzIxMjUyMiwiZXhwIjoxNjE3MjEzNDIyLCJpYXQiOjE2MTcyMTI1MjJ9.XKGiIG8Xb8_ol_MhftcynQOgMekq1rLpD92Eaimr0sQ",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"fromTelosAccountName\": \"davidsellams\",\r\n    \"toTelosAccountName\": \"nextgenworld\",\r\n    \"qty\": \"7.0000\",\r\n    \"memo\": \"TEST\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://api.oasisplatform.worldapi/seeds/GetEOSAccountForAvatar",
+							"protocol": "https",
+							"host": [
+								"api",
+								"oasisplatform",
+								"worldapi"
+							],
+							"path": [
+								"seeds",
+								"GetEOSAccountForAvatar"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get EOS Account Name For Avatar",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImVlMTVhZGFlLTlmODQtNDk0ZC1hM2UzLTU4MTU1N2FhZTdiYyIsIm5iZiI6MTYxNzIxMjUyMiwiZXhwIjoxNjE3MjEzNDIyLCJpYXQiOjE2MTcyMTI1MjJ9.XKGiIG8Xb8_ol_MhftcynQOgMekq1rLpD92Eaimr0sQ",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"fromTelosAccountName\": \"davidsellams\",\r\n    \"toTelosAccountName\": \"nextgenworld\",\r\n    \"qty\": \"7.0000\",\r\n    \"memo\": \"TEST\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://api.oasisplatform.world/api/seeds/GetEOSAccountNameForAvatar",
+							"protocol": "https",
+							"host": [
+								"api",
+								"oasisplatform",
+								"world"
+							],
+							"path": [
+								"api",
+								"seeds",
+								"GetEOSAccountNameForAvatar"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get EOS Account",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImVlMTVhZGFlLTlmODQtNDk0ZC1hM2UzLTU4MTU1N2FhZTdiYyIsIm5iZiI6MTYxNzIxMjUyMiwiZXhwIjoxNjE3MjEzNDIyLCJpYXQiOjE2MTcyMTI1MjJ9.XKGiIG8Xb8_ol_MhftcynQOgMekq1rLpD92Eaimr0sQ",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"fromTelosAccountName\": \"davidsellams\",\r\n    \"toTelosAccountName\": \"nextgenworld\",\r\n    \"qty\": \"7.0000\",\r\n    \"memo\": \"TEST\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://api.oasisplatform.world/api/seeds/GetEOSAccount",
+							"protocol": "https",
+							"host": [
+								"api",
+								"oasisplatform",
+								"world"
+							],
+							"path": [
+								"api",
+								"seeds",
+								"GetEOSAccount"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Avatar Id For EOS Account Name",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImVlMTVhZGFlLTlmODQtNDk0ZC1hM2UzLTU4MTU1N2FhZTdiYyIsIm5iZiI6MTYxNzIxMjUyMiwiZXhwIjoxNjE3MjEzNDIyLCJpYXQiOjE2MTcyMTI1MjJ9.XKGiIG8Xb8_ol_MhftcynQOgMekq1rLpD92Eaimr0sQ",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"fromTelosAccountName\": \"davidsellams\",\r\n    \"toTelosAccountName\": \"nextgenworld\",\r\n    \"qty\": \"7.0000\",\r\n    \"memo\": \"TEST\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://api.oasisplatform.world/api/seeds/GetAvatarIdForEOS AccountName",
+							"protocol": "https",
+							"host": [
+								"api",
+								"oasisplatform",
+								"world"
+							],
+							"path": [
+								"api",
+								"seeds",
+								"GetAvatarIdForEOS AccountName"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Avatar For EOS Account Name",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImVlMTVhZGFlLTlmODQtNDk0ZC1hM2UzLTU4MTU1N2FhZTdiYyIsIm5iZiI6MTYxNzIxMjUyMiwiZXhwIjoxNjE3MjEzNDIyLCJpYXQiOjE2MTcyMTI1MjJ9.XKGiIG8Xb8_ol_MhftcynQOgMekq1rLpD92Eaimr0sQ",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"fromTelosAccountName\": \"davidsellams\",\r\n    \"toTelosAccountName\": \"nextgenworld\",\r\n    \"qty\": \"7.0000\",\r\n    \"memo\": \"TEST\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://api.oasisplatform.world/api/seeds/GetAvatarForEOS AccountName",
+							"protocol": "https",
+							"host": [
+								"api",
+								"oasisplatform",
+								"world"
+							],
+							"path": [
+								"api",
+								"seeds",
+								"GetAvatarForEOS AccountName"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Balance For EOS Account Name",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImVlMTVhZGFlLTlmODQtNDk0ZC1hM2UzLTU4MTU1N2FhZTdiYyIsIm5iZiI6MTYxNzIxMjUyMiwiZXhwIjoxNjE3MjEzNDIyLCJpYXQiOjE2MTcyMTI1MjJ9.XKGiIG8Xb8_ol_MhftcynQOgMekq1rLpD92Eaimr0sQ",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"fromTelosAccountName\": \"davidsellams\",\r\n    \"toTelosAccountName\": \"nextgenworld\",\r\n    \"qty\": \"7.0000\",\r\n    \"memo\": \"TEST\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://api.oasisplatform.world/api/seeds/GetBalanceForEOSAccount",
+							"protocol": "https",
+							"host": [
+								"api",
+								"oasisplatform",
+								"world"
+							],
+							"path": [
+								"api",
+								"seeds",
+								"GetBalanceForEOSAccount"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Balance For Avatar",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImVlMTVhZGFlLTlmODQtNDk0ZC1hM2UzLTU4MTU1N2FhZTdiYyIsIm5iZiI6MTYxNzIxMjUyMiwiZXhwIjoxNjE3MjEzNDIyLCJpYXQiOjE2MTcyMTI1MjJ9.XKGiIG8Xb8_ol_MhftcynQOgMekq1rLpD92Eaimr0sQ",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"fromTelosAccountName\": \"davidsellams\",\r\n    \"toTelosAccountName\": \"nextgenworld\",\r\n    \"qty\": \"7.0000\",\r\n    \"memo\": \"TEST\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://api.oasisplatform.world/api/seeds/GetBalanceForAvatar",
+							"protocol": "https",
+							"host": [
+								"api",
+								"oasisplatform",
+								"world"
+							],
+							"path": [
+								"api",
+								"seeds",
+								"GetBalanceForAvatar"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Link EOS Account To Avatar",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjM2ODVkZjg0LTc3ZmMtNDM1OS1iNjdkLTA4ZDk0MTE1MjgwZiIsIm5iZiI6MTYxNTQ4MTM4NCwiZXhwIjoxNjE1NDgyMjg0LCJpYXQiOjE2MTU0ODEzODR9.U8OvF-oRUuJ7kQFcMy6Xlc2s96LhN-462WjLnUeOSjQ",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"KarmaType\": \"DropLitter\",\r\n    \"karmaSourceType\": \"AndroidApp\",\r\n    \"KaramSourceTitle\": \"SEEDS\",\r\n    \"KarmaSourceDesc\": \"SEEDS\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://api.oasisplatform.world/api/avatar/LinkEOSAccountToAvatar",
+							"protocol": "https",
+							"host": [
+								"api",
+								"oasisplatform",
+								"world"
+							],
+							"path": [
+								"api",
+								"avatar",
+								"LinkEOSAccountToAvatar"
 							]
 						}
 					},

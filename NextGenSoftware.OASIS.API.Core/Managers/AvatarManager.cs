@@ -330,6 +330,23 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return result;
         }
 
+        public IAvatar LinkTelosAccountToAvatar(Guid avatarId, string telosAccountName, ProviderType provider = ProviderType.Default)
+        {
+            IAvatar avatar = ProviderManager.SetAndActivateCurrentStorageProvider(provider).LoadAvatar(avatarId);
+            avatar.ProviderKey[ProviderType.TelosOASIS] = telosAccountName;
+            avatar = avatar.Save();
+            return avatar;
+        }
+
+        public IAvatar LinkEOSAccountToAvatar(Guid avatarId, string EOSAccountName, ProviderType provider = ProviderType.Default)
+        {
+            IAvatar avatar = ProviderManager.SetAndActivateCurrentStorageProvider(provider).LoadAvatar(avatarId);
+            avatar.ProviderKey[ProviderType.EOSOASIS] = EOSAccountName;
+            avatar = avatar.Save();
+            return avatar;
+        }
+
+
         private IAvatar PrepareAvatarForSaving(IAvatar avatar)
         {
             if (string.IsNullOrEmpty(avatar.Username))

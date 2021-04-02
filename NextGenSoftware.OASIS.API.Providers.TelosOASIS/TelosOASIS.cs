@@ -10,6 +10,11 @@ namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS
 {
     public class TelosOASIS : OASISStorageBase, IOASISStorage, IOASISNET
     {
+        //private static Dictionary<Guid, string> _avatarIdToTelosAccountNameLookup = new Dictionary<Guid, string>();
+        //private static Dictionary<Guid, Account> _avatarIdToTelosAccountLookup = new Dictionary<Guid, Account>();
+        //private static Dictionary<string, Guid> _telosAccountNameToAvatarIdLookup = new Dictionary<string, Guid>();
+        //private static Dictionary<string, IAvatar> _telosAccountNameToAvatarLookup = new Dictionary<string, IAvatar>();
+
         public TelosOASIS()
         {
             this.ProviderName = "TelosOASIS";
@@ -202,5 +207,82 @@ namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS
         {
             throw new NotImplementedException();
         }
+
+
+        /*
+        public async Task<Account> GetTelosAccountAsync(string telosAccountName)
+        {
+            var account = await EOSIOOASIS.ChainAPI.GetAccountAsync(telosAccountName);
+            return account;
+        }
+
+        public Account GetTelosAccount(string telosAccountName)
+        {
+            var account = EOSIOOASIS.ChainAPI.GetAccount(telosAccountName);
+            return account;
+        }
+
+        public async Task<string> GetBalanceAsync(string telosAccountName)
+        {
+            //var currencyBalance = await EOSIOOASIS.ChainAPI.GetCurrencyBalanceAsync(telosAccountName, "seeds.seeds", "SEEDS");
+            //var currencyBalance = await EOSIOOASIS.ChainAPI.GetCurrencyBalanceAsync(telosAccountName, "token.seeds", "SEEDS");
+            //return currencyBalance.balances[0];
+
+            return await EOSIOOASIS.GetBalanceAsync(telosAccountName, "token.seeds", "SEEDS");
+        }
+
+        public string GetBalanceForTelosAccount(string telosAccountName)
+        {
+            //https://github.com/JoinSEEDS/seeds-smart-contracts/blob/master/scripts/balancecheck.js
+            //eos.getCurrencyBalance("token.seeds", account, 'SEEDS')
+
+            // var currencyBalance = EOSIOOASIS.ChainAPI.GetCurrencyBalance(telosAccountName, "token.seeds", "SEEDS");
+            //return currencyBalance.balances[0];
+
+            return EOSIOOASIS.GetBalanceForEOSAccount(telosAccountName, "token.seeds", "SEEDS");
+        }
+
+        public string GetBalanceForAvatar(Guid avatarId)
+        {
+            //return GetBalanceForTelosAccount(GetTelosAccountNameForAvatar(avatarId));
+            return EOSIOOASIS.GetBalanceForAvatar(avatarId, "token.seeds", "SEEDS");
+        }
+
+
+        // TODO: URGENT - NEED TO MOVE THESE TO THE TELOSOASIS PROVIDER (EOSOASIS is a different chain so the account names will be different so cant use the EOS methods as SEEDSOASIS currently does).
+        // Need to make these cache lookups generic for all OASIS Providers, sort this ASAP! ;-)
+
+        public string GetTelosAccountNameForAvatar(Guid avatarId)
+        {
+            if (!_avatarIdToTelosAccountNameLookup.ContainsKey(avatarId))
+                _avatarIdToTelosAccountNameLookup[avatarId] = AvatarManagerInstance.LoadAvatar(avatarId).ProviderKey[Core.Enums.ProviderType.TelosOASIS];
+
+            return _avatarIdToTelosAccountNameLookup[avatarId];
+        }
+
+        public Account GetTelosAccountForAvatar(Guid avatarId)
+        {
+            if (!_avatarIdToTelosAccountLookup.ContainsKey(avatarId))
+                _avatarIdToTelosAccountLookup[avatarId] = GetTelosAccount(GetTelosAccountNameForAvatar(avatarId));
+
+            return _avatarIdToTelosAccountLookup[avatarId];
+        }
+
+        public Guid GetAvatarIdForTelosAccountName(string telosAccountName)
+        {
+            if (!_telosAccountNameToAvatarIdLookup.ContainsKey(telosAccountName))
+                _telosAccountNameToAvatarIdLookup[telosAccountName] = AvatarManagerInstance.LoadAllAvatars().FirstOrDefault(x => x.ProviderKey[Core.Enums.ProviderType.TelosOASIS] == telosAccountName).Id;
+
+            return _telosAccountNameToAvatarIdLookup[telosAccountName];
+        }
+
+        public IAvatar GetAvatarForTelosAccountName(string telosAccountName)
+        {
+            if (!_telosAccountNameToAvatarLookup.ContainsKey(telosAccountName))
+                _telosAccountNameToAvatarLookup[telosAccountName] = AvatarManagerInstance.LoadAllAvatars().FirstOrDefault(x => x.ProviderKey[Core.Enums.ProviderType.TelosOASIS] == telosAccountName);
+
+            return _telosAccountNameToAvatarLookup[telosAccountName];
+        }
+        */
     }
 }
