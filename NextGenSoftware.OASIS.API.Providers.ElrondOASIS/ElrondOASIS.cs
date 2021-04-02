@@ -5,15 +5,15 @@ using NextGenSoftware.OASIS.API.Core;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Enums;
 
-namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS
+namespace NextGenSoftware.OASIS.API.Providers.ElrondOASIS
 {
-    public class SEEDSOASIS : OASISStorageBase, IOASISStorage, IOASISNET
+    public class ElrondOASISOASIS : OASISStorageBase, IOASISStorage, IOASISNET
     {
-        public SEEDSOASIS()
+        public ElrondOASISOASIS()
         {
-            this.ProviderName = "SEEDSOASIS";
-            this.ProviderDescription = "SEEDS Provider";
-            this.ProviderType = new Core.Helpers.EnumValue<ProviderType>(Core.Enums.ProviderType.SEEDSOASIS);
+            this.ProviderName = "ElrondOASIS";
+            this.ProviderDescription = "Elrond Provider";
+            this.ProviderType = new Core.Helpers.EnumValue<ProviderType>(Core.Enums.ProviderType.ElrondOASIS);
             this.ProviderCategory = new Core.Helpers.EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
         }
 
@@ -201,7 +201,5 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS
         {
             throw new NotImplementedException();
         }
-
-       // IOASISCustomProviderCalls
     }
 }

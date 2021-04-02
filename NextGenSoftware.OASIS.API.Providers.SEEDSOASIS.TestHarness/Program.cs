@@ -13,8 +13,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS.TestHarness
 
             SEEDSManager seedsManager = new SEEDSManager();
 
-             string balance = seedsManager.GetBalance("test.account");
-             Account account = seedsManager.GetUser("test.account");
+             string balance = seedsManager.GetBalance("davidsellams");
+             Account account = seedsManager.GetUser("davidsellams");
 
             Console.WriteLine(string.Concat("Balance Before: ", balance));
             Console.WriteLine(string.Concat("Account.account_name: ", account.account_name));

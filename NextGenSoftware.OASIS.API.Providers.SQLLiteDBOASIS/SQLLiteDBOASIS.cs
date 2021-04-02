@@ -60,7 +60,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
 
         public override Task<IAvatar> LoadAvatarAsync(string providerKey)
         {
-            return new Task<IAvatar>(() =>  _context.Avatars.FirstOrDefault(x => x.ProviderKey == providerKey));
+            return new Task<IAvatar>(() =>  _context.Avatars.FirstOrDefault(x => x.ProviderKey[Core.Enums.ProviderType.SQLLiteDBOASIS] == providerKey));
         }
 
         public override Task<IAvatar> LoadAvatarAsync(Guid id)
