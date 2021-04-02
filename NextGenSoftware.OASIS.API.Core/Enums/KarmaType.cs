@@ -79,6 +79,18 @@ namespace NextGenSoftware.OASIS.API.Core.Enums
         ContributingTowardsAGoodCauseFunder,
         ContributingTowardsAGoodCauseSpeaker,
         ContributingTowardsAGoodCausePeacefulProtesterActivist,
+        PayWithSeeds,
+        DonateWithSeeds,
+        RewardWithSeeds,
+        SendInviteToJoinSeeds,
+        AcceptInviteToJoinSeeds,
+        ContributingToTheOASISWithCode,
+        ContributingToTheOASISWithPR,
+        ContributingToTheOASISWithSupport,
+        ContributingToTheOASISWithMarketing,
+        ContributingToTheOASISWithFunding,
+        ContributingToTheOASISWithSales,
+        ContributingToTheOASIS,
         Other
     }
 

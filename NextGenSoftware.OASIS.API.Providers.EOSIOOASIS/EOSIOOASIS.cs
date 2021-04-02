@@ -231,7 +231,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
                     {
                         userid = Avatar.Id.ToString(),
                         eosio_acc = Avatar.Username,
-                        providerkey = Avatar.ProviderKey,
+                        providerkey = Avatar.ProviderKey[Core.Enums.ProviderType.EOSOASIS],
                         password = StringCipher.Encrypt(Avatar.Password, OASIS_PASS_PHRASE),
                         email = Avatar.Email,
                         title = Avatar.Title,

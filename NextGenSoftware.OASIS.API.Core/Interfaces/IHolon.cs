@@ -12,7 +12,7 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces
         Guid Id { get; set; }
         string Name { get; set; }
         string Description { get; set; }
-        string ProviderKey { get; set; }
+        public Dictionary<ProviderType, string> ProviderKey { get; set; }
         HolonType HolonType { get; set; }
         ICelestialBody CelestialBody { get; set; }
         IZome ParentZome { get; set; }
