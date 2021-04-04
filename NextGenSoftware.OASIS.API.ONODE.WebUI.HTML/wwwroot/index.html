@@ -12,7 +12,7 @@
         <link rel="stylesheet" href="css/sweetalert2.min.css">
         <link rel="stylesheet" href="css/bootstrap.css">
         <link rel="stylesheet" href="css/style.css"> <!-- Resource style -->
-        <!-- <link rel="stylesheet" href="css/login/demo.css"> Demo style -->
+        <!-- <link rel="stylesheet" href="css/login/demo.css"> -->
     </head>
 
     <body>
@@ -190,11 +190,9 @@
                         <table class="cd-main-nav__list js-signin-modal-trigger">
                             <tr>
                                 <td> <a style="color:white;white-space: nowrap; "
-                                        class="cd-main-nav__item cd-main-nav__item--signin" href="#0"
-                                        onclick="showLogin()" data-signin="login" data-type="login">Log In</a> </td>
+                                        class="cd-main-nav__item cd-main-nav__item--signin" href="#0" data-signin="login" data-type="login">Sign In</a> </td>
                                 <td> <a style="color:white;margin-left:10px; white-space: nowrap; "
-                                        class="cd-main-nav__item cd-main-nav__item--signup" href="#0"
-                                        onclick="showNewAccount()" data-signin="signup">Sign Up</a> </td>
+                                        class="cd-main-nav__item cd-main-nav__item--signup" href="#0" data-signin="signup">Sign Up</a> </td>
                             </tr>
                         </table>
                     </div>
@@ -211,20 +209,20 @@
             <div class="cd-signin-modal__container">
                 <!-- this is the container wrapper -->
                 <ul class="cd-signin-modal__switcher js-signin-modal-switcher js-signin-modal-trigger">
-                    <li><a href="#0" data-signin="login" data-type="login">Sign in</a></li>
-                    <li><a href="#0" data-signin="signup" data-type="signup">New Avatar</a>
+                    <li><a href="#0" data-signin="login" data-type="login">Sign In</a></li>
+                    <li><a href="#0" data-signin="signup" data-type="signup">Sign Up</a>
                     </li>
                 </ul>
                 <div id="divLogin" class="cd-signin-modal__block js-signin-modal-block" data-type="login">
                     <!-- log in form -->
-                    <form class="cd-signin-modal__form" id="LoginForm">
+                    <form class="cd-signin-modal__form" novalidate id="loginForm">
                         <div class="cd-signin-modal__fieldset">
                             <label
                                 class="cd-signin-modal__label cd-signin-modal__label--email cd-signin-modal__label--image-replace"
                                 for="login-email">E-mail</label>
                             <input
                                 class="cd-signin-modal__input cd-signin-modal__input--full-width cd-signin-modal__input--has-padding cd-signin-modal__input--has-border"
-                                id="login-email" type="email" placeholder="E-mail">
+                                id="login-email" type="email" placeholder="E-mail" required>
                             <span class="cd-signin-modal__error">Error message here!</span>
                         </div>
 
@@ -234,14 +232,14 @@
                                 for="login-password">Password</label>
                             <input
                                 class="cd-signin-modal__input cd-signin-modal__input--full-width cd-signin-modal__input--has-padding cd-signin-modal__input--has-border"
-                                id="login-password" type="password" pattern=".{8,}" placeholder="Password">
+                                id="login-password" type="password" pattern=".{8,}" placeholder="Password" required>
                             <a href="#0" class="cd-signin-modal__hide-password js-hide-password">Show</a>
                             <span class="cd-signin-modal__error">Error message here!</span>
                         </div>
 
                         <div class="cd-signin-modal__fieldset">
-                            <input type="checkbox" id="remember-me" checked class="cd-signin-modal__input ">
-                            <label for="remember-me">Remember me</label>
+                            <input type="checkbox" id="remember-me" checked class="cd-signin-modal__input "> 
+                            <label class="cd-signin-modal__label"  for="remember-me">Remember me</label>
                         </div>
 
                         <div class="cd-signin-modal__fieldset">
@@ -262,30 +260,30 @@
                         <div class="cd-signin-modal__fieldset">
                             <label
                                 class="cd-signin-modal__label cd-signin-modal__label--title cd-signin-modal__label--image-replace"
-                                for="signup-title">Title</label>
+                                for="signup-honorific-prefix">Honorific Prefix</label>
                             <input
                                 class="cd-signin-modal__input cd-signin-modal__input--full-width cd-signin-modal__input--has-padding cd-signin-modal__input--has-border"
-                                id="signup-username" type="text" placeholder="Mr. / Mrs. / Ms.">
+                                id="signup-honorific-prefix" type="text" placeholder="'Mr.'', 'Ms.', 'Dr.'">
                             <span class="cd-signin-modal__error">Error message here!</span>
                         </div>
 
                         <div class="cd-signin-modal__fieldset">
                             <label
                                 class="cd-signin-modal__label cd-signin-modal__label--firstName cd-signin-modal__label--image-replace"
-                                for="signup-firstName">First Name</label>
+                                for="signup-given-name">Given Name</label>
                             <input
                                 class="cd-signin-modal__input cd-signin-modal__input--full-width cd-signin-modal__input--has-padding cd-signin-modal__input--has-border"
-                                id="signup-firstName" type="text" placeholder="First Name">
+                                id="signup-given-name" type="text" placeholder="Given (First) Name">
                             <span class="cd-signin-modal__error">Error message here!</span>
                         </div>
 
                         <div class="cd-signin-modal__fieldset">
                             <label
                                 class="cd-signin-modal__label cd-signin-modal__label--lastName cd-signin-modal__label--image-replace"
-                                for="signup-lastName">Last Name</label>
+                                for="signup-lastName">Family Name</label>
                             <input
                                 class="cd-signin-modal__input cd-signin-modal__input--full-width cd-signin-modal__input--has-padding cd-signin-modal__input--has-border"
-                                id="signup-lastName" type="text" placeholder="Last Name">
+                                id="signup-family-name" type="text" placeholder="Family (Last) Name">
                             <span class="cd-signin-modal__error">Error message here!</span>
                         </div>
 
@@ -305,7 +303,7 @@
                                 for="signup-new-password">Password</label>
                             <input
                                 class="cd-signin-modal__input cd-signin-modal__input--full-width cd-signin-modal__input--has-padding cd-signin-modal__input--has-border"
-                                id="signup-new-password" type="password" pattern=".{8,}" placeholder="Password">
+                                id="signup-new-password" type="password" pattern=".{8,}" placeholder="Password (must be at least 8 characters)">
                             <a href="#0" class="cd-signin-modal__hide-password js-hide-password">Show</a>
                             <span class="cd-signin-modal__error">Error message here!</span>
                         </div>
@@ -313,24 +311,24 @@
                         <div class="cd-signin-modal__fieldset">
                             <label
                                 class="cd-signin-modal__label cd-signin-modal__label--password cd-signin-modal__label--image-replace"
-                                for="signup-password-confirm">Confirm Password</label>
+                                for="signup-new-password-confirm">Confirm Password</label>
                             <input
                                 class="cd-signin-modal__input cd-signin-modal__input--full-width cd-signin-modal__input--has-padding cd-signin-modal__input--has-border"
-                                id="signup-password-confirm" type="password" pattern=".{8,}"
+                                id="signup-new-password-confirm" type="password" pattern=".{8,}"
                                 placeholder="Confirm Password">
                             <a href="#0" class="cd-signin-modal__hide-password js-hide-password">Show</a>
-                            <span class="cd-signin-modal__error" id="CheckPasswordMatch">Error message here!</span>
+                            <span class="cd-signin-modal__error" >Error message here!</span>
                         </div>
 
                         <div class="cd-signin-modal__fieldset">
-                            <input type="checkbox" id="accept-terms" class="cd-signin-modal__input ">
+                            <input type="checkbox" id="accept-terms" class="cd-signin-modal__input " required>
                             <label for="accept-terms">I agree to the <a href="#0">Terms</a></label>
                         </div>
 
                         <div class="cd-signin-modal__fieldset">
                             <input
                                 class="cd-signin-modal__input cd-signin-modal__input--full-width cd-signin-modal__input--has-padding"
-                                id="submit_signup" type="submit" value="Create Avatar">
+                                id="submit_signup" type="submit" value="Sign Up">
                         </div>
                     </form>
                 </div> <!-- cd-signin-modal__block -->
