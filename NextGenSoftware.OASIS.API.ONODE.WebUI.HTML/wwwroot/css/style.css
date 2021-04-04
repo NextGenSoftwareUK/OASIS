@@ -16,10 +16,10 @@ html {
 body {
   background: url('../img/background40.gif') no-repeat;
   font-size: 1.6rem;
-  font-family: "PT Sans", sans-serif;
+  font-family: 'PT Sans', sans-serif;
   color: #505260;
   background-color: white;
-   text-align: center;
+   /* text-align: center; */
    margin-bottom: 0px;
    /* background-repeat: no-repeat; */
    background-size: cover;
@@ -311,9 +311,9 @@ x sigin/signup popup
   margin-bottom: 0;
 }
 
-.cd-signin-modal__label {
+/* .cd-signin-modal__label {
   font-size: 1.4rem;
-}
+} */
 
 .cd-signin-modal__label.cd-signin-modal__label--image-replace {
   /* replace text with an icon */
@@ -392,7 +392,7 @@ x sigin/signup popup
   cursor: pointer;
   background: #2f889a;
   color: #FFF;
-  font-weight: bold;
+  font-weight: normal;
   border: none;
   -webkit-appearance: none;
      -moz-appearance: none;
@@ -413,10 +413,11 @@ x sigin/signup popup
   top: 0;
   padding: 6px 15px;
   border-left: 1px solid #d2d8d8;
+  top: 50%;
   bottom: auto;
-  /* -webkit-transform: translateY(-50%);
+  -webkit-transform: translateY(-50%);
       -ms-transform: translateY(-50%);
-          transform: translateY(-50%); */
+          transform: translateY(-50%);
   font-size: 1.4rem;
   color: #343642;
 }
