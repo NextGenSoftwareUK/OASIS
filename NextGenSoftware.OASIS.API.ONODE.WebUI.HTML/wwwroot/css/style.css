@@ -413,10 +413,11 @@ x sigin/signup popup
   top: 0;
   padding: 6px 15px;
   border-left: 1px solid #d2d8d8;
+  top: 50%;
   bottom: auto;
-  /* -webkit-transform: translateY(-50%);
+  -webkit-transform: translateY(-50%);
       -ms-transform: translateY(-50%);
-          transform: translateY(-50%); */
+          transform: translateY(-50%);
   font-size: 1.4rem;
   color: #343642;
 }
