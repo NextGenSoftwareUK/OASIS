@@ -1,7 +1,7 @@
 {
 	"info": {
-		"_postman_id": "44e57d52-2459-4d70-8278-887872ba6aac",
-		"name": "OASIS API LIVE",
+		"_postman_id": "a1065653-d330-4549-b03c-3ada31c70def",
+		"name": "OASIS API",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
 	"item": [
@@ -23,12 +23,9 @@
 							}
 						},
 						"url": {
-							"raw": "https://api.oasisplatform.world/api/avatar/register",
-							"protocol": "https",
+							"raw": "{{host}}/api/avatar/register",
 							"host": [
-								"api",
-								"oasisplatform",
-								"world"
+								"{{host}}"
 							],
 							"path": [
 								"api",
@@ -54,12 +51,9 @@
 							}
 						},
 						"url": {
-							"raw": "https://api.oasisplatform.world/api/avatar/authenticate/",
-							"protocol": "https",
+							"raw": "{{host}}/api/avatar/authenticate/",
 							"host": [
-								"api",
-								"oasisplatform",
-								"world"
+								"{{host}}"
 							],
 							"path": [
 								"api",
@@ -89,12 +83,9 @@
 							}
 						},
 						"url": {
-							"raw": "https://api.oasisplatform.world/api/avatar/verify-email/MongoDBOASIS/false",
-							"protocol": "https",
+							"raw": "{{host}}/api/avatar/verify-email/MongoDBOASIS/false",
 							"host": [
-								"api",
-								"oasisplatform",
-								"world"
+								"{{host}}"
 							],
 							"path": [
 								"api",
@@ -125,12 +116,9 @@
 							}
 						},
 						"url": {
-							"raw": "https://api.oasisplatform.world/api/avatar/verify-email",
-							"protocol": "https",
+							"raw": "{{host}}/api/avatar/verify-email",
 							"host": [
-								"api",
-								"oasisplatform",
-								"world"
+								"{{host}}"
 							],
 							"path": [
 								"api",
@@ -166,12 +154,9 @@
 							}
 						},
 						"url": {
-							"raw": "https://api.oasisplatform.world/api/avatar/forgot-password",
-							"protocol": "https",
+							"raw": "{{host}}/api/avatar/forgot-password",
 							"host": [
-								"api",
-								"oasisplatform",
-								"world"
+								"{{host}}"
 							],
 							"path": [
 								"api",
@@ -207,12 +192,9 @@
 							}
 						},
 						"url": {
-							"raw": "https://api.oasisplatform.world/api/avatar/reset-password",
-							"protocol": "https",
+							"raw": "{{host}}/api/avatar/reset-password",
 							"host": [
-								"api",
-								"oasisplatform",
-								"world"
+								"{{host}}"
 							],
 							"path": [
 								"api",
@@ -239,12 +221,9 @@
 						"method": "POST",
 						"header": [],
 						"url": {
-							"raw": "https://api.oasisplatform.world/api/avatar/refresh-token",
-							"protocol": "https",
+							"raw": "{{host}}/api/avatar/refresh-token",
 							"host": [
-								"api",
-								"oasisplatform",
-								"world"
+								"{{host}}"
 							],
 							"path": [
 								"api",
@@ -280,12 +259,9 @@
 							}
 						},
 						"url": {
-							"raw": "https://api.oasisplatform.world/api/avatar/revoke-token",
-							"protocol": "https",
+							"raw": "{{host}}/api/avatar/revoke-token",
 							"host": [
-								"api",
-								"oasisplatform",
-								"world"
+								"{{host}}"
 							],
 							"path": [
 								"api",
@@ -312,12 +288,9 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "https://api.oasisplatform.world/api/avatar/GetById/ee15adae-9f84-494d-a3e3-581557aae7bc",
-							"protocol": "https",
+							"raw": "{{host}}/api/avatar/GetById/ee15adae-9f84-494d-a3e3-581557aae7bc",
 							"host": [
-								"api",
-								"oasisplatform",
-								"world"
+								"{{host}}"
 							],
 							"path": [
 								"api",
@@ -345,12 +318,9 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "https://api.oasisplatform.world/api/avatar/GetAll",
-							"protocol": "https",
+							"raw": "{{host}}/api/avatar/GetAll",
 							"host": [
-								"api",
-								"oasisplatform",
-								"world"
+								"{{host}}"
 							],
 							"path": [
 								"api",
@@ -386,12 +356,9 @@
 							}
 						},
 						"url": {
-							"raw": "https://api.oasisplatform.world/api/avatar/Update/ee15adae-9f84-494d-a3e3-581557aae7bc",
-							"protocol": "https",
+							"raw": "{{host}}/api/avatar/Update/ee15adae-9f84-494d-a3e3-581557aae7bc",
 							"host": [
-								"api",
-								"oasisplatform",
-								"world"
+								"{{host}}"
 							],
 							"path": [
 								"api",
@@ -419,12 +386,9 @@
 						"method": "DELETE",
 						"header": [],
 						"url": {
-							"raw": "https://api.oasisplatform.world/api/avatar/1dccf565-9f64-49e6-bf20-0aaf1470b453",
-							"protocol": "https",
+							"raw": "{{host}}/api/avatar/1dccf565-9f64-49e6-bf20-0aaf1470b453",
 							"host": [
-								"api",
-								"oasisplatform",
-								"world"
+								"{{host}}"
 							],
 							"path": [
 								"api",
@@ -460,12 +424,9 @@
 							}
 						},
 						"url": {
-							"raw": "https://api.oasisplatform.world/api/avatar/AddKarmaToAvatar/3685df84-77fc-4359-b67d-08d94115280f",
-							"protocol": "https",
+							"raw": "{{host}}/api/avatar/AddKarmaToAvatar/3685df84-77fc-4359-b67d-08d94115280f",
 							"host": [
-								"api",
-								"oasisplatform",
-								"world"
+								"{{host}}"
 							],
 							"path": [
 								"api",
@@ -502,12 +463,9 @@
 							}
 						},
 						"url": {
-							"raw": "https://api.oasisplatform.world/api/avatar/RemoveKarmaFromAvatar/3685df84-77fc-4359-b67d-08d94115280f",
-							"protocol": "https",
+							"raw": "{{host}}/api/avatar/RemoveKarmaFromAvatar/3685df84-77fc-4359-b67d-08d94115280f",
 							"host": [
-								"api",
-								"oasisplatform",
-								"world"
+								"{{host}}"
 							],
 							"path": [
 								"api",
@@ -544,12 +502,9 @@
 							}
 						},
 						"url": {
-							"raw": "https://api.oasisplatform.world/api/avatar/LinkTelosAccountToAvatar",
-							"protocol": "https",
+							"raw": "{{host}}/api/avatar/LinkTelosAccountToAvatar",
 							"host": [
-								"api",
-								"oasisplatform",
-								"world"
+								"{{host}}"
 							],
 							"path": [
 								"api",
@@ -585,12 +540,9 @@
 							}
 						},
 						"url": {
-							"raw": "https://api.oasisplatform.world/api/avatar/LinkEOSAccountToAvatar",
-							"protocol": "https",
+							"raw": "{{host}}/api/avatar/LinkEOSAccountToAvatar",
 							"host": [
-								"api",
-								"oasisplatform",
-								"world"
+								"{{host}}"
 							],
 							"path": [
 								"api",
@@ -634,12 +586,9 @@
 							}
 						},
 						"url": {
-							"raw": "https://api.oasisplatform.world/api/karma/GetKarmaForAvatar/13afd357-3715-4e90-927e-6aedcbd2c9c5",
-							"protocol": "https",
+							"raw": "{{host}}/api/karma/GetKarmaForAvatar/13afd357-3715-4e90-927e-6aedcbd2c9c5",
 							"host": [
-								"api",
-								"oasisplatform",
-								"world"
+								"{{host}}"
 							],
 							"path": [
 								"api",
@@ -679,12 +628,9 @@
 							}
 						},
 						"url": {
-							"raw": "https://api.oasisplatform.world/api/karma/GetKarmaAkashicRecordsForAvatar/13afd357-3715-4e90-927e-6aedcbd2c9c5",
-							"protocol": "https",
+							"raw": "{{host}}/api/karma/GetKarmaAkashicRecordsForAvatar/13afd357-3715-4e90-927e-6aedcbd2c9c5",
 							"host": [
-								"api",
-								"oasisplatform",
-								"world"
+								"{{host}}"
 							],
 							"path": [
 								"api",
@@ -721,12 +667,9 @@
 							}
 						},
 						"url": {
-							"raw": "https://api.oasisplatform.world/api/karma/AddKarmaToAvatar/3685df84-77fc-4359-b67d-08d94115280f",
-							"protocol": "https",
+							"raw": "{{host}}/api/karma/AddKarmaToAvatar/3685df84-77fc-4359-b67d-08d94115280f",
 							"host": [
-								"api",
-								"oasisplatform",
-								"world"
+								"{{host}}"
 							],
 							"path": [
 								"api",
@@ -763,12 +706,9 @@
 							}
 						},
 						"url": {
-							"raw": "https://api.oasisplatform.world/api/karma/RemoveKarmaFromAvatar/3685df84-77fc-4359-b67d-08d94115280f",
-							"protocol": "https",
+							"raw": "{{host}}/api/karma/RemoveKarmaFromAvatar/3685df84-77fc-4359-b67d-08d94115280f",
 							"host": [
-								"api",
-								"oasisplatform",
-								"world"
+								"{{host}}"
 							],
 							"path": [
 								"api",
@@ -801,12 +741,9 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "https://api.oasisplatform.world/api/data/loadholon/0588e043-58f8-408a-af46-e0a45861b149",
-							"protocol": "https",
+							"raw": "{{host}}/api/data/loadholon/0588e043-58f8-408a-af46-e0a45861b149",
 							"host": [
-								"api",
-								"oasisplatform",
-								"world"
+								"{{host}}"
 							],
 							"path": [
 								"api",
@@ -834,12 +771,9 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "https://api.oasisplatform.world/api/data/LoadAllHolons",
-							"protocol": "https",
+							"raw": "{{host}}/api/data/LoadAllHolons",
 							"host": [
-								"api",
-								"oasisplatform",
-								"world"
+								"{{host}}"
 							],
 							"path": [
 								"api",
@@ -866,12 +800,9 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "https://api.oasisplatform.world/api/data/LoadAllHolonsForParent/89a935f4-d0ad-44af-b954-558041a76c18",
-							"protocol": "https",
+							"raw": "{{host}}/api/data/LoadAllHolonsForParent/89a935f4-d0ad-44af-b954-558041a76c18",
 							"host": [
-								"api",
-								"oasisplatform",
-								"world"
+								"{{host}}"
 							],
 							"path": [
 								"api",
@@ -908,12 +839,9 @@
 							}
 						},
 						"url": {
-							"raw": "https://api.oasisplatform.worldapi/data/saveholon",
-							"protocol": "https",
+							"raw": "{{host}}api/data/saveholon",
 							"host": [
-								"api",
-								"oasisplatform",
-								"worldapi"
+								"{{host}}api"
 							],
 							"path": [
 								"data",
@@ -944,12 +872,9 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "https://api.oasisplatform.world/api/provider/GetCurrentStorageProvider",
-							"protocol": "https",
+							"raw": "{{host}}/api/provider/GetCurrentStorageProvider",
 							"host": [
-								"api",
-								"oasisplatform",
-								"world"
+								"{{host}}"
 							],
 							"path": [
 								"api",
@@ -976,12 +901,9 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "https://api.oasisplatform.world/api/provider/GetCurrentStorageProviderType",
-							"protocol": "https",
+							"raw": "{{host}}/api/provider/GetCurrentStorageProviderType",
 							"host": [
-								"api",
-								"oasisplatform",
-								"world"
+								"{{host}}"
 							],
 							"path": [
 								"api",
@@ -1008,12 +930,9 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "https://api.oasisplatform.world/api/provider/GetAllRegisteredProviders",
-							"protocol": "https",
+							"raw": "{{host}}/api/provider/GetAllRegisteredProviders",
 							"host": [
-								"api",
-								"oasisplatform",
-								"world"
+								"{{host}}"
 							],
 							"path": [
 								"api",
@@ -1040,12 +959,9 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "https://api.oasisplatform.world/api/provider/GetAllRegisteredProviderTypes",
-							"protocol": "https",
+							"raw": "{{host}}/api/provider/GetAllRegisteredProviderTypes",
 							"host": [
-								"api",
-								"oasisplatform",
-								"world"
+								"{{host}}"
 							],
 							"path": [
 								"api",
@@ -1072,12 +988,9 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "https://api.oasisplatform.world/api/provider/GetAllRegisteredProvidersForCategory/StorageAndNetwork",
-							"protocol": "https",
+							"raw": "{{host}}/api/provider/GetAllRegisteredProvidersForCategory/StorageAndNetwork",
 							"host": [
-								"api",
-								"oasisplatform",
-								"world"
+								"{{host}}"
 							],
 							"path": [
 								"api",
@@ -1105,12 +1018,9 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "https://api.oasisplatform.world/api/provider/GetAllRegisteredStorageProviders",
-							"protocol": "https",
+							"raw": "{{host}}/api/provider/GetAllRegisteredStorageProviders",
 							"host": [
-								"api",
-								"oasisplatform",
-								"world"
+								"{{host}}"
 							],
 							"path": [
 								"api",
@@ -1137,12 +1047,9 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "https://api.oasisplatform.world/api/provider/GetAllRegisteredNetworkProviders",
-							"protocol": "https",
+							"raw": "{{host}}/api/provider/GetAllRegisteredNetworkProviders",
 							"host": [
-								"api",
-								"oasisplatform",
-								"world"
+								"{{host}}"
 							],
 							"path": [
 								"api",
@@ -1169,12 +1076,9 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "https://api.oasisplatform.world/api/provider/GetAllRegisteredRendererProviders",
-							"protocol": "https",
+							"raw": "{{host}}/api/provider/GetAllRegisteredRendererProviders",
 							"host": [
-								"api",
-								"oasisplatform",
-								"world"
+								"{{host}}"
 							],
 							"path": [
 								"api",
@@ -1201,12 +1105,9 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "https://api.oasisplatform.world/api/provider/GetRegisteredProvider",
-							"protocol": "https",
+							"raw": "{{host}}/api/provider/GetRegisteredProvider",
 							"host": [
-								"api",
-								"oasisplatform",
-								"world"
+								"{{host}}"
 							],
 							"path": [
 								"api",
@@ -1233,12 +1134,9 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "https://api.oasisplatform.world/api/provider/IsProviderRegistered",
-							"protocol": "https",
+							"raw": "{{host}}/api/provider/IsProviderRegistered",
 							"host": [
-								"api",
-								"oasisplatform",
-								"world"
+								"{{host}}"
 							],
 							"path": [
 								"api",
@@ -1265,12 +1163,9 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "https://api.oasisplatform.world/api/provider/GetProvidersThatAreAutoReplicating",
-							"protocol": "https",
+							"raw": "{{host}}/api/provider/GetProvidersThatAreAutoReplicating",
 							"host": [
-								"api",
-								"oasisplatform",
-								"world"
+								"{{host}}"
 							],
 							"path": [
 								"api",
@@ -1297,12 +1192,9 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "https://api.oasisplatform.world/api/provider/GetProvidersThatHaveAutoFailOverEnabled",
-							"protocol": "https",
+							"raw": "{{host}}/api/provider/GetProvidersThatHaveAutoFailOverEnabled",
 							"host": [
-								"api",
-								"oasisplatform",
-								"world"
+								"{{host}}"
 							],
 							"path": [
 								"api",
@@ -1329,12 +1221,9 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "https://api.oasisplatform.world/api/provider/GetProvidersThatHaveAutoLoadBalanceEnabled",
-							"protocol": "https",
+							"raw": "{{host}}/api/provider/GetProvidersThatHaveAutoLoadBalanceEnabled",
 							"host": [
-								"api",
-								"oasisplatform",
-								"world"
+								"{{host}}"
 							],
 							"path": [
 								"api",
@@ -1361,12 +1250,9 @@
 						"method": "POST",
 						"header": [],
 						"url": {
-							"raw": "https://api.oasisplatform.world/api/provider/RegisterProvider/HoloOASIS",
-							"protocol": "https",
+							"raw": "{{host}}/api/provider/RegisterProvider/HoloOASIS",
 							"host": [
-								"api",
-								"oasisplatform",
-								"world"
+								"{{host}}"
 							],
 							"path": [
 								"api",
@@ -1394,12 +1280,9 @@
 						"method": "POST",
 						"header": [],
 						"url": {
-							"raw": "https://api.oasisplatform.world/api/provider/RegisterProviderType/HoloOASIS",
-							"protocol": "https",
+							"raw": "{{host}}/api/provider/RegisterProviderType/HoloOASIS",
 							"host": [
-								"api",
-								"oasisplatform",
-								"world"
+								"{{host}}"
 							],
 							"path": [
 								"api",
@@ -1427,12 +1310,9 @@
 						"method": "POST",
 						"header": [],
 						"url": {
-							"raw": "https://api.oasisplatform.world/api/provider/RegisterProviderTypes",
-							"protocol": "https",
+							"raw": "{{host}}/api/provider/RegisterProviderTypes",
 							"host": [
-								"api",
-								"oasisplatform",
-								"world"
+								"{{host}}"
 							],
 							"path": [
 								"api",
@@ -1459,12 +1339,9 @@
 						"method": "POST",
 						"header": [],
 						"url": {
-							"raw": "https://api.oasisplatform.world/api/provider/RegisterProviders",
-							"protocol": "https",
+							"raw": "{{host}}/api/provider/RegisterProviders",
 							"host": [
-								"api",
-								"oasisplatform",
-								"world"
+								"{{host}}"
 							],
 							"path": [
 								"api",
@@ -1491,12 +1368,9 @@
 						"method": "POST",
 						"header": [],
 						"url": {
-							"raw": "https://api.oasisplatform.world/api/provider/UnRegisterProvider",
-							"protocol": "https",
+							"raw": "{{host}}/api/provider/UnRegisterProvider",
 							"host": [
-								"api",
-								"oasisplatform",
-								"world"
+								"{{host}}"
 							],
 							"path": [
 								"api",
@@ -1523,12 +1397,9 @@
 						"method": "POST",
 						"header": [],
 						"url": {
-							"raw": "https://api.oasisplatform.world/api/provider/UnRegisterProviderType/HoloOASIS",
-							"protocol": "https",
+							"raw": "{{host}}/api/provider/UnRegisterProviderType/HoloOASIS",
 							"host": [
-								"api",
-								"oasisplatform",
-								"world"
+								"{{host}}"
 							],
 							"path": [
 								"api",
@@ -1556,12 +1427,9 @@
 						"method": "POST",
 						"header": [],
 						"url": {
-							"raw": "https://api.oasisplatform.world/api/provider/UnRegisterProviders",
-							"protocol": "https",
+							"raw": "{{host}}/api/provider/UnRegisterProviders",
 							"host": [
-								"api",
-								"oasisplatform",
-								"world"
+								"{{host}}"
 							],
 							"path": [
 								"api",
@@ -1588,12 +1456,9 @@
 						"method": "POST",
 						"header": [],
 						"url": {
-							"raw": "https://api.oasisplatform.world/api/provider/UnRegisterProviderTypes",
-							"protocol": "https",
+							"raw": "{{host}}/api/provider/UnRegisterProviderTypes",
 							"host": [
-								"api",
-								"oasisplatform",
-								"world"
+								"{{host}}"
 							],
 							"path": [
 								"api",
@@ -1620,12 +1485,9 @@
 						"method": "POST",
 						"header": [],
 						"url": {
-							"raw": "https://api.oasisplatform.world/api/provider/SetAndActivateCurrentStorageProvider/HoloOASIS",
-							"protocol": "https",
+							"raw": "{{host}}/api/provider/SetAndActivateCurrentStorageProvider/HoloOASIS",
 							"host": [
-								"api",
-								"oasisplatform",
-								"world"
+								"{{host}}"
 							],
 							"path": [
 								"api",
@@ -1653,12 +1515,9 @@
 						"method": "POST",
 						"header": [],
 						"url": {
-							"raw": "https://api.oasisplatform.world/api/provider/ActivateProvider",
-							"protocol": "https",
+							"raw": "{{host}}/api/provider/ActivateProvider",
 							"host": [
-								"api",
-								"oasisplatform",
-								"world"
+								"{{host}}"
 							],
 							"path": [
 								"api",
@@ -1685,12 +1544,9 @@
 						"method": "POST",
 						"header": [],
 						"url": {
-							"raw": "https://api.oasisplatform.world/api/provider/DeActivateProvider",
-							"protocol": "https",
+							"raw": "{{host}}/api/provider/DeActivateProvider",
 							"host": [
-								"api",
-								"oasisplatform",
-								"world"
+								"{{host}}"
 							],
 							"path": [
 								"api",
@@ -1717,12 +1573,9 @@
 						"method": "POST",
 						"header": [],
 						"url": {
-							"raw": "https://api.oasisplatform.world/api/provider/SetDefaultProviders",
-							"protocol": "https",
+							"raw": "{{host}}/api/provider/SetDefaultProviders",
 							"host": [
-								"api",
-								"oasisplatform",
-								"world"
+								"{{host}}"
 							],
 							"path": [
 								"api",
@@ -1749,12 +1602,9 @@
 						"method": "POST",
 						"header": [],
 						"url": {
-							"raw": "https://api.oasisplatform.world/api/provider/SetLoadBalance",
-							"protocol": "https",
+							"raw": "{{host}}/api/provider/SetLoadBalance",
 							"host": [
-								"api",
-								"oasisplatform",
-								"world"
+								"{{host}}"
 							],
 							"path": [
 								"api",
@@ -1823,12 +1673,9 @@
 						"method": "POST",
 						"header": [],
 						"url": {
-							"raw": "https://api.oasisplatform.world/api/provider/SetAutoReplicateForAllProviders/true",
-							"protocol": "https",
+							"raw": "{{host}}/api/provider/SetAutoReplicateForAllProviders/true",
 							"host": [
-								"api",
-								"oasisplatform",
-								"world"
+								"{{host}}"
 							],
 							"path": [
 								"api",
@@ -1865,12 +1712,9 @@
 							}
 						},
 						"url": {
-							"raw": "https://api.oasisplatform.world/api/provider/SetAutoFailOverForListOfProviders/false/HoloOASIS",
-							"protocol": "https",
+							"raw": "{{host}}/api/provider/SetAutoFailOverForListOfProviders/false/HoloOASIS",
 							"host": [
-								"api",
-								"oasisplatform",
-								"world"
+								"{{host}}"
 							],
 							"path": [
 								"api",
@@ -1908,12 +1752,9 @@
 							}
 						},
 						"url": {
-							"raw": "https://api.oasisplatform.world/api/provider/SetAutoFailOverForAllProviders/true",
-							"protocol": "https",
+							"raw": "{{host}}/api/provider/SetAutoFailOverForAllProviders/true",
 							"host": [
-								"api",
-								"oasisplatform",
-								"world"
+								"{{host}}"
 							],
 							"path": [
 								"api",
@@ -1950,12 +1791,9 @@
 							}
 						},
 						"url": {
-							"raw": "https://api.oasisplatform.world/api/provider/SetAutoLoadBalanceForListOfProviders/false/HoloOASIS",
-							"protocol": "https",
+							"raw": "{{host}}/api/provider/SetAutoLoadBalanceForListOfProviders/false/HoloOASIS",
 							"host": [
-								"api",
-								"oasisplatform",
-								"world"
+								"{{host}}"
 							],
 							"path": [
 								"api",
@@ -1993,12 +1831,9 @@
 							}
 						},
 						"url": {
-							"raw": "https://api.oasisplatform.world/api/provider/SetAutoLoadBalanceForAllProviders/false",
-							"protocol": "https",
+							"raw": "{{host}}/api/provider/SetAutoLoadBalanceForAllProviders/false",
 							"host": [
-								"api",
-								"oasisplatform",
-								"world"
+								"{{host}}"
 							],
 							"path": [
 								"api",
@@ -2026,12 +1861,9 @@
 						"method": "POST",
 						"header": [],
 						"url": {
-							"raw": "https://api.oasisplatform.world/api/provider/SetProviderConfig",
-							"protocol": "https",
+							"raw": "{{host}}/api/provider/SetProviderConfig",
 							"host": [
-								"api",
-								"oasisplatform",
-								"world"
+								"{{host}}"
 							],
 							"path": [
 								"api",
@@ -2072,12 +1904,9 @@
 							}
 						},
 						"url": {
-							"raw": "https://api.oasisplatform.world/api/search/search",
-							"protocol": "https",
+							"raw": "{{host}}/api/search/search",
 							"host": [
-								"api",
-								"oasisplatform",
-								"world"
+								"{{host}}"
 							],
 							"path": [
 								"api",
@@ -2099,12 +1928,9 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "https://api.oasisplatform.world/api/map/Draw2DSpriteOnMap/tttt/111/111",
-							"protocol": "https",
+							"raw": "{{host}}/api/map/Draw2DSpriteOnMap/tttt/111/111",
 							"host": [
-								"api",
-								"oasisplatform",
-								"world"
+								"{{host}}"
 							],
 							"path": [
 								"api",
@@ -2124,12 +1950,9 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "https://api.oasisplatform.world/api/map/CreateRouteBetweenHolons/5/5",
-							"protocol": "https",
+							"raw": "{{host}}/api/map/CreateRouteBetweenHolons/5/5",
 							"host": [
-								"api",
-								"oasisplatform",
-								"world"
+								"{{host}}"
 							],
 							"path": [
 								"api",
@@ -2148,12 +1971,9 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "https://api.oasisplatform.world/api/map/Draw2DSpriteOnHUD/33/33/33",
-							"protocol": "https",
+							"raw": "{{host}}/api/map/Draw2DSpriteOnHUD/33/33/33",
 							"host": [
-								"api",
-								"oasisplatform",
-								"world"
+								"{{host}}"
 							],
 							"path": [
 								"api",
@@ -2197,12 +2017,9 @@
 							}
 						},
 						"url": {
-							"raw": "https://api.oasisplatform.world/api/seeds/PayWithSeedsUsingTelosAccount",
-							"protocol": "https",
+							"raw": "{{host}}/api/seeds/PayWithSeedsUsingTelosAccount",
 							"host": [
-								"api",
-								"oasisplatform",
-								"world"
+								"{{host}}"
 							],
 							"path": [
 								"api",
@@ -2238,12 +2055,9 @@
 							}
 						},
 						"url": {
-							"raw": "https://api.oasisplatform.world/api/seeds/PayWithSeedsUsingAvatar",
-							"protocol": "https",
+							"raw": "{{host}}/api/seeds/PayWithSeedsUsingAvatar",
 							"host": [
-								"api",
-								"oasisplatform",
-								"world"
+								"{{host}}"
 							],
 							"path": [
 								"api",
@@ -2279,12 +2093,9 @@
 							}
 						},
 						"url": {
-							"raw": "https://api.oasisplatform.world/api/seeds/RewardWithSeedsUsingTelosAccount",
-							"protocol": "https",
+							"raw": "{{host}}/api/seeds/RewardWithSeedsUsingTelosAccount",
 							"host": [
-								"api",
-								"oasisplatform",
-								"world"
+								"{{host}}"
 							],
 							"path": [
 								"api",
@@ -2320,12 +2131,9 @@
 							}
 						},
 						"url": {
-							"raw": "https://api.oasisplatform.world/api/seeds/RewardWithSeedsUsingAvatar",
-							"protocol": "https",
+							"raw": "{{host}}/api/seeds/RewardWithSeedsUsingAvatar",
 							"host": [
-								"api",
-								"oasisplatform",
-								"world"
+								"{{host}}"
 							],
 							"path": [
 								"api",
@@ -2361,12 +2169,9 @@
 							}
 						},
 						"url": {
-							"raw": "https://api.oasisplatform.world/api/seeds/DonateWithSeedsUsingTelosAccount",
-							"protocol": "https",
+							"raw": "{{host}}/api/seeds/DonateWithSeedsUsingTelosAccount",
 							"host": [
-								"api",
-								"oasisplatform",
-								"world"
+								"{{host}}"
 							],
 							"path": [
 								"api",
@@ -2402,12 +2207,9 @@
 							}
 						},
 						"url": {
-							"raw": "https://api.oasisplatform.world/api/seeds/DonateWithSeedssUsingAvatar",
-							"protocol": "https",
+							"raw": "{{host}}/api/seeds/DonateWithSeedssUsingAvatar",
 							"host": [
-								"api",
-								"oasisplatform",
-								"world"
+								"{{host}}"
 							],
 							"path": [
 								"api",
@@ -2443,12 +2245,9 @@
 							}
 						},
 						"url": {
-							"raw": "https://api.oasisplatform.world/api/seeds/SendInviteToJoinSeedsUsingTelosAccount",
-							"protocol": "https",
+							"raw": "{{host}}/api/seeds/SendInviteToJoinSeedsUsingTelosAccount",
 							"host": [
-								"api",
-								"oasisplatform",
-								"world"
+								"{{host}}"
 							],
 							"path": [
 								"api",
@@ -2484,12 +2283,9 @@
 							}
 						},
 						"url": {
-							"raw": "https://api.oasisplatform.world/api/seeds/SendInviteToJoinSeedsUsingAvatar",
-							"protocol": "https",
+							"raw": "{{host}}/api/seeds/SendInviteToJoinSeedsUsingAvatar",
 							"host": [
-								"api",
-								"oasisplatform",
-								"world"
+								"{{host}}"
 							],
 							"path": [
 								"api",
@@ -2525,12 +2321,9 @@
 							}
 						},
 						"url": {
-							"raw": "https://api.oasisplatform.worldapi/seeds/AcceptInviteToJoinSeedsUsingTelosAccount",
-							"protocol": "https",
+							"raw": "{{host}}api/seeds/AcceptInviteToJoinSeedsUsingTelosAccount",
 							"host": [
-								"api",
-								"oasisplatform",
-								"worldapi"
+								"{{host}}api"
 							],
 							"path": [
 								"seeds",
@@ -2565,12 +2358,9 @@
 							}
 						},
 						"url": {
-							"raw": "https://api.oasisplatform.world/api/seeds/AcceptInviteToJoinSeedsUsingAvatar",
-							"protocol": "https",
+							"raw": "{{host}}/api/seeds/AcceptInviteToJoinSeedsUsingAvatar",
 							"host": [
-								"api",
-								"oasisplatform",
-								"world"
+								"{{host}}"
 							],
 							"path": [
 								"api",
@@ -2609,12 +2399,9 @@
 							}
 						},
 						"url": {
-							"raw": "https://api.oasisplatform.worldapi/seeds/GetTelosAccountForAvatar",
-							"protocol": "https",
+							"raw": "{{host}}api/seeds/GetTelosAccountForAvatar",
 							"host": [
-								"api",
-								"oasisplatform",
-								"worldapi"
+								"{{host}}api"
 							],
 							"path": [
 								"seeds",
@@ -2652,12 +2439,9 @@
 							}
 						},
 						"url": {
-							"raw": "https://api.oasisplatform.world/api/seeds/GetTelosAccountNameForAvatar",
-							"protocol": "https",
+							"raw": "{{host}}/api/seeds/GetTelosAccountNameForAvatar",
 							"host": [
-								"api",
-								"oasisplatform",
-								"world"
+								"{{host}}"
 							],
 							"path": [
 								"api",
@@ -2696,12 +2480,9 @@
 							}
 						},
 						"url": {
-							"raw": "https://api.oasisplatform.world/api/seeds/GetTelosAccount",
-							"protocol": "https",
+							"raw": "{{host}}/api/seeds/GetTelosAccount",
 							"host": [
-								"api",
-								"oasisplatform",
-								"world"
+								"{{host}}"
 							],
 							"path": [
 								"api",
@@ -2740,12 +2521,9 @@
 							}
 						},
 						"url": {
-							"raw": "https://api.oasisplatform.world/api/seeds/GetAvatarIdForTelosAccountName",
-							"protocol": "https",
+							"raw": "{{host}}/api/seeds/GetAvatarIdForTelosAccountName",
 							"host": [
-								"api",
-								"oasisplatform",
-								"world"
+								"{{host}}"
 							],
 							"path": [
 								"api",
@@ -2784,12 +2562,9 @@
 							}
 						},
 						"url": {
-							"raw": "https://api.oasisplatform.world/api/seeds/GetAvatarForTelosAccountName",
-							"protocol": "https",
+							"raw": "{{host}}/api/seeds/GetAvatarForTelosAccountName",
 							"host": [
-								"api",
-								"oasisplatform",
-								"world"
+								"{{host}}"
 							],
 							"path": [
 								"api",
@@ -2828,12 +2603,9 @@
 							}
 						},
 						"url": {
-							"raw": "https://api.oasisplatform.world/api/seeds/GetBalanceForTelosAccount",
-							"protocol": "https",
+							"raw": "{{host}}/api/seeds/GetBalanceForTelosAccount",
 							"host": [
-								"api",
-								"oasisplatform",
-								"world"
+								"{{host}}"
 							],
 							"path": [
 								"api",
@@ -2872,12 +2644,9 @@
 							}
 						},
 						"url": {
-							"raw": "https://api.oasisplatform.world/api/seeds/GetBalanceForAvatar",
-							"protocol": "https",
+							"raw": "{{host}}/api/seeds/GetBalanceForAvatar",
 							"host": [
-								"api",
-								"oasisplatform",
-								"world"
+								"{{host}}"
 							],
 							"path": [
 								"api",
@@ -2916,12 +2685,9 @@
 							}
 						},
 						"url": {
-							"raw": "https://api.oasisplatform.world/api/seeds/GenerateSeedsPassportSignInQRCode",
-							"protocol": "https",
+							"raw": "{{host}}/api/seeds/GenerateSeedsPassportSignInQRCode",
 							"host": [
-								"api",
-								"oasisplatform",
-								"world"
+								"{{host}}"
 							],
 							"path": [
 								"api",
@@ -2960,12 +2726,9 @@
 							}
 						},
 						"url": {
-							"raw": "https://api.oasisplatform.world/api/seeds/GenerateSeedsPassportSignInQRCodeForAvatar",
-							"protocol": "https",
+							"raw": "{{host}}/api/seeds/GenerateSeedsPassportSignInQRCodeForAvatar",
 							"host": [
-								"api",
-								"oasisplatform",
-								"world"
+								"{{host}}"
 							],
 							"path": [
 								"api",
@@ -2987,7 +2750,7 @@
 							"bearer": [
 								{
 									"key": "token",
-									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImVlMTVhZGFlLTlmODQtNDk0ZC1hM2UzLTU4MTU1N2FhZTdiYyIsIm5iZiI6MTYxNzIxMzYxMSwiZXhwIjoxNjE3MjE0NTExLCJpYXQiOjE2MTcyMTM2MTF9.jZfeqwEjRQHoS5PtfCRfUgKH17yiCTbnPMY-_WR9aS4",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjIwNGQ2YTkzLTFkNGYtNGNkNi05ZDlmLWQ3OTAwMWIzNDU4NSIsIm5iZiI6MTYxNzYzMjA1MCwiZXhwIjoxNjE3NjMyOTUwLCJpYXQiOjE2MTc2MzIwNTB9.fjLiHh4cz_SxSqIx2PLw3_KBEOPpXvcFBfPt4v3ajFk",
 									"type": "string"
 								}
 							]
@@ -3004,12 +2767,9 @@
 							}
 						},
 						"url": {
-							"raw": "https://api.oasisplatform.world/api/seeds/GetAllOrganisations",
-							"protocol": "https",
+							"raw": "{{host}}/api/seeds/GetAllOrganisations",
 							"host": [
-								"api",
-								"oasisplatform",
-								"world"
+								"{{host}}"
 							],
 							"path": [
 								"api",
@@ -3053,12 +2813,9 @@
 							}
 						},
 						"url": {
-							"raw": "https://api.oasisplatform.worldapi/seeds/GetTelosAccountForAvatar",
-							"protocol": "https",
+							"raw": "{{host}}api/seeds/GetTelosAccountForAvatar",
 							"host": [
-								"api",
-								"oasisplatform",
-								"worldapi"
+								"{{host}}api"
 							],
 							"path": [
 								"seeds",
@@ -3096,12 +2853,9 @@
 							}
 						},
 						"url": {
-							"raw": "https://api.oasisplatform.world/api/seeds/GetTelosAccountNameForAvatar",
-							"protocol": "https",
+							"raw": "{{host}}/api/seeds/GetTelosAccountNameForAvatar",
 							"host": [
-								"api",
-								"oasisplatform",
-								"world"
+								"{{host}}"
 							],
 							"path": [
 								"api",
@@ -3140,12 +2894,9 @@
 							}
 						},
 						"url": {
-							"raw": "https://api.oasisplatform.world/api/seeds/GetTelosAccount",
-							"protocol": "https",
+							"raw": "{{host}}/api/seeds/GetTelosAccount",
 							"host": [
-								"api",
-								"oasisplatform",
-								"world"
+								"{{host}}"
 							],
 							"path": [
 								"api",
@@ -3184,12 +2935,9 @@
 							}
 						},
 						"url": {
-							"raw": "https://api.oasisplatform.world/api/seeds/GetAvatarIdForTelosAccountName",
-							"protocol": "https",
+							"raw": "{{host}}/api/seeds/GetAvatarIdForTelosAccountName",
 							"host": [
-								"api",
-								"oasisplatform",
-								"world"
+								"{{host}}"
 							],
 							"path": [
 								"api",
@@ -3228,12 +2976,9 @@
 							}
 						},
 						"url": {
-							"raw": "https://api.oasisplatform.world/api/seeds/GetAvatarForTelosAccountName",
-							"protocol": "https",
+							"raw": "{{host}}/api/seeds/GetAvatarForTelosAccountName",
 							"host": [
-								"api",
-								"oasisplatform",
-								"world"
+								"{{host}}"
 							],
 							"path": [
 								"api",
@@ -3272,12 +3017,9 @@
 							}
 						},
 						"url": {
-							"raw": "https://api.oasisplatform.world/api/seeds/GetBalanceForTelosAccount",
-							"protocol": "https",
+							"raw": "{{host}}/api/seeds/GetBalanceForTelosAccount",
 							"host": [
-								"api",
-								"oasisplatform",
-								"world"
+								"{{host}}"
 							],
 							"path": [
 								"api",
@@ -3316,12 +3058,9 @@
 							}
 						},
 						"url": {
-							"raw": "https://api.oasisplatform.world/api/seeds/GetBalanceForAvatar",
-							"protocol": "https",
+							"raw": "{{host}}/api/seeds/GetBalanceForAvatar",
 							"host": [
-								"api",
-								"oasisplatform",
-								"world"
+								"{{host}}"
 							],
 							"path": [
 								"api",
@@ -3357,12 +3096,9 @@
 							}
 						},
 						"url": {
-							"raw": "https://api.oasisplatform.world/api/avatar/LinkTelosAccountToAvatar",
-							"protocol": "https",
+							"raw": "{{host}}/api/avatar/LinkTelosAccountToAvatar",
 							"host": [
-								"api",
-								"oasisplatform",
-								"world"
+								"{{host}}"
 							],
 							"path": [
 								"api",
@@ -3406,12 +3142,9 @@
 							}
 						},
 						"url": {
-							"raw": "https://api.oasisplatform.worldapi/seeds/GetEOSAccountForAvatar",
-							"protocol": "https",
+							"raw": "{{host}}api/seeds/GetEOSAccountForAvatar",
 							"host": [
-								"api",
-								"oasisplatform",
-								"worldapi"
+								"{{host}}api"
 							],
 							"path": [
 								"seeds",
@@ -3449,12 +3182,9 @@
 							}
 						},
 						"url": {
-							"raw": "https://api.oasisplatform.world/api/seeds/GetEOSAccountNameForAvatar",
-							"protocol": "https",
+							"raw": "{{host}}/api/seeds/GetEOSAccountNameForAvatar",
 							"host": [
-								"api",
-								"oasisplatform",
-								"world"
+								"{{host}}"
 							],
 							"path": [
 								"api",
@@ -3493,12 +3223,9 @@
 							}
 						},
 						"url": {
-							"raw": "https://api.oasisplatform.world/api/seeds/GetEOSAccount",
-							"protocol": "https",
+							"raw": "{{host}}/api/seeds/GetEOSAccount",
 							"host": [
-								"api",
-								"oasisplatform",
-								"world"
+								"{{host}}"
 							],
 							"path": [
 								"api",
@@ -3537,12 +3264,9 @@
 							}
 						},
 						"url": {
-							"raw": "https://api.oasisplatform.world/api/seeds/GetAvatarIdForEOS AccountName",
-							"protocol": "https",
+							"raw": "{{host}}/api/seeds/GetAvatarIdForEOS AccountName",
 							"host": [
-								"api",
-								"oasisplatform",
-								"world"
+								"{{host}}"
 							],
 							"path": [
 								"api",
@@ -3581,12 +3305,9 @@
 							}
 						},
 						"url": {
-							"raw": "https://api.oasisplatform.world/api/seeds/GetAvatarForEOS AccountName",
-							"protocol": "https",
+							"raw": "{{host}}/api/seeds/GetAvatarForEOS AccountName",
 							"host": [
-								"api",
-								"oasisplatform",
-								"world"
+								"{{host}}"
 							],
 							"path": [
 								"api",
@@ -3625,12 +3346,9 @@
 							}
 						},
 						"url": {
-							"raw": "https://api.oasisplatform.world/api/seeds/GetBalanceForEOSAccount",
-							"protocol": "https",
+							"raw": "{{host}}/api/seeds/GetBalanceForEOSAccount",
 							"host": [
-								"api",
-								"oasisplatform",
-								"world"
+								"{{host}}"
 							],
 							"path": [
 								"api",
@@ -3669,12 +3387,9 @@
 							}
 						},
 						"url": {
-							"raw": "https://api.oasisplatform.world/api/seeds/GetBalanceForAvatar",
-							"protocol": "https",
+							"raw": "{{host}}/api/seeds/GetBalanceForAvatar",
 							"host": [
-								"api",
-								"oasisplatform",
-								"world"
+								"{{host}}"
 							],
 							"path": [
 								"api",
@@ -3710,12 +3425,9 @@
 							}
 						},
 						"url": {
-							"raw": "https://api.oasisplatform.world/api/avatar/LinkEOSAccountToAvatar",
-							"protocol": "https",
+							"raw": "{{host}}/api/avatar/LinkEOSAccountToAvatar",
 							"host": [
-								"api",
-								"oasisplatform",
-								"world"
+								"{{host}}"
 							],
 							"path": [
 								"api",
