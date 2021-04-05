@@ -313,7 +313,7 @@
     <Content Update="wwwroot\js\login\placeholders.min.js">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Update="wwwroot\js\login\search.js">
+    <Content Update="wwwroot\js\search.js">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Update="wwwroot\js\login\submit.js">
@@ -331,7 +331,7 @@
     <Content Update="wwwroot\js\sweetalert2.min.js">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Update="wwwroot\login.html">
+    <Content Update="wwwroot\popups\login.html">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Update="wwwroot\OASIS_API_LIVE.postman_collection.json">
