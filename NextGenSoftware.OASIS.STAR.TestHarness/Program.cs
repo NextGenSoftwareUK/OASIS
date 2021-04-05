@@ -191,16 +191,16 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
                 OASISAPI.Providers.MongoDB.Database.MongoDB.GetCollection<Avatar>("testCollection");
 
                 // SEEDS Support
-                string balance = OASISAPI.Providers.SEEDS.GetBalance("test.account");
-                Account account = OASISAPI.Providers.SEEDS.GetUser("test.account");
+                string balance = OASISAPI.Providers.SEEDS.GetBalanceForTelosAccount("test.account");
+                Account account = OASISAPI.Providers.SEEDS.EOSIOOASIS.GetEOSAccount("test.account");
 
                 Console.WriteLine(string.Concat("Balance Before: ", balance));
                 Console.WriteLine(string.Concat("Account.account_name: ", account.account_name));
                 Console.WriteLine(string.Concat("Account.core_liquid_balance Before: ", account.core_liquid_balance));
 
-                OASISAPI.Providers.SEEDS.PayWithSeeds("test.account", "test.account2", 7, "test memo");
-                balance = OASISAPI.Providers.SEEDS.GetBalance("test.account");
-                account = OASISAPI.Providers.SEEDS.GetUser("test.account");
+                OASISAPI.Providers.SEEDS.PayWithSeedsUsingTelosAccount("test.account", "test.account2", 7, KarmaSourceType.API, "test", "test", "test", "test memo");
+                balance = OASISAPI.Providers.SEEDS.GetBalanceForTelosAccount("test.account");
+                account = OASISAPI.Providers.SEEDS.EOSIOOASIS.GetEOSAccount("test.account");
 
                 Console.WriteLine(string.Concat("Balance After: ", balance));
                 Console.WriteLine(string.Concat("Account.core_liquid_balance After: ", account.core_liquid_balance));
@@ -208,13 +208,13 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
                 string orgs = OASISAPI.Providers.SEEDS.GetAllOrganisationsAsJSON();
                 Console.WriteLine(string.Concat("Organisations: ", orgs));
 
-                string qrCode = OASISAPI.Providers.SEEDS.GenerateSignInQRCode();
+                string qrCode = OASISAPI.Providers.SEEDS.GenerateSignInQRCode("davidsellams");
                 Console.WriteLine(string.Concat("SEEDS Sign-In QRCode: ", qrCode));
 
-                SendInviteResult inviteResult = OASISAPI.Providers.SEEDS.SendInviteToJoinSeeds("test.account", "test.account", 5, 5);
+                SendInviteResult inviteResult = OASISAPI.Providers.SEEDS.SendInviteToJoinSeedsUsingTelosAccount("test.account", "test.account", 5, 5, KarmaSourceType.API, "test", "test", "test");
                 Console.WriteLine(string.Concat("Invite Sent To Join SEEDS. Invite Secrert: ", inviteResult.InviteSecret, ". Transction ID: ", inviteResult.TransactionId));
 
-                string transactionID = OASISAPI.Providers.SEEDS.AcceptInviteToJoinSeeds("test.account2", inviteResult.InviteSecret);
+                string transactionID = OASISAPI.Providers.SEEDS.AcceptInviteToJoinSeedsUsingTelosAccount("test.account2", inviteResult.InviteSecret, KarmaSourceType.API, "test", "test", "test");
                 Console.WriteLine(string.Concat("Invite Accepted To Join SEEDS. Invite Secrert: ", inviteResult.InviteSecret, ". Transction ID: ", transactionID));
 
                 // ThreeFold, AcivityPub, SOLID, Cross/Off Chain, Smart Contract Interoperability & lots more coming soon! :)
@@ -328,7 +328,7 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
 
             Console.WriteLine("Loading Holon...");
             //ourWorld.CelestialBodyCore.LoadHolonAsync(e.Holon.Name, e.Holon.ProviderKey);
-            ourWorld.CelestialBodyCore.LoadHolonAsync(e.Holon.ProviderKey);
+            ourWorld.CelestialBodyCore.LoadHolonAsync(e.Holon.Id);
         }
 
         private static void OurWorld_OnHolonLoaded(object sender, HolonLoadedEventArgs e)
