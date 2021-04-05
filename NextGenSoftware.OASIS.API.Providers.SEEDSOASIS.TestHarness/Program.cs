@@ -8,35 +8,35 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS.TestHarness
     {
         static void Main(string[] args)
         {
-            Console.WriteLine("NEXTGEN SOFTWARE SEEDSOASIS TEST HARNESS V1.O");
+            Console.WriteLine("NEXTGEN SOFTWARE SEEDSOASIS TEST HARNESS V1.1");
             Console.WriteLine("");
 
-            SEEDSManager seedsManager = new SEEDSManager();
+            SEEDSOASIS seedsOASIS = new SEEDSOASIS(new EOSIOOASIS.EOSIOOASIS("https://node.hypha.earth"));
 
-             string balance = seedsManager.GetBalance("davidsellams");
-             Account account = seedsManager.GetUser("davidsellams");
+            string balance = seedsOASIS.GetBalanceForTelosAccount("davidsellams");
+            Account account = seedsOASIS.EOSIOOASIS.GetEOSAccount("davidsellams");
 
             Console.WriteLine(string.Concat("Balance Before: ", balance));
             Console.WriteLine(string.Concat("Account.account_name: ", account.account_name));
             Console.WriteLine(string.Concat("Account.core_liquid_balance Before: ", account.core_liquid_balance));
 
-            seedsManager.PayWithSeeds("test.account", "test.account2", 7, "test memo");
-            balance = seedsManager.GetBalance("test.account");
-            account = seedsManager.GetUser("test.account");
+            seedsOASIS.PayWithSeedsUsingTelosAccount("test.account", "test.account2", 7, Core.Enums.KarmaSourceType.API, "test", "test", "test", "test memo");
+            balance = seedsOASIS.GetBalanceForTelosAccount("test.account");
+            account = seedsOASIS.EOSIOOASIS.GetEOSAccount("test.account");
 
             Console.WriteLine(string.Concat("Balance After: ", balance));
             Console.WriteLine(string.Concat("Account.core_liquid_balance After: ", account.core_liquid_balance));
 
-            string orgs = seedsManager.GetAllOrganisationsAsJSON();
+            string orgs = seedsOASIS.GetAllOrganisationsAsJSON();
             Console.WriteLine(string.Concat("Organisations: ", orgs));
 
-            string qrCode = seedsManager.GenerateSignInQRCode();
+            string qrCode = seedsOASIS.GenerateSignInQRCode("davidsellams");
             Console.WriteLine(string.Concat("SEEDS Sign-In QRCode: ", qrCode));
 
-            SendInviteResult result = seedsManager.SendInviteToJoinSeeds("test.account", "test.account", 5, 5);
+            SendInviteResult result = seedsOASIS.SendInviteToJoinSeedsUsingTelosAccount("test.account", "test.account", 5, 5, Core.Enums.KarmaSourceType.API, "test", "test", "test");
             Console.WriteLine(string.Concat("Invite Sent To Join SEEDS. Invite Secrert: ", result.InviteSecret, ". Transction ID: ", result.TransactionId));
 
-            string transactionID = seedsManager.AcceptInviteToJoinSeeds("test.account2", result.InviteSecret);
+            string transactionID = seedsOASIS.AcceptInviteToJoinSeedsUsingTelosAccount("test.account2", result.InviteSecret, Core.Enums.KarmaSourceType.API, "test", "test", "test");
             Console.WriteLine(string.Concat("Invite Accepted To Join SEEDS. Invite Secrert: ", result.InviteSecret, ". Transction ID: ", transactionID));
 
             Console.ReadKey();

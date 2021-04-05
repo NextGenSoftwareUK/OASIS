@@ -1,10 +1,8 @@
 ﻿using System.Collections.Generic;
 using NextGenSoftware.OASIS.API.Config;
 using NextGenSoftware.OASIS.API.Core.Apollo.Server;
-using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Managers;
-using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.Providers.AcitvityPubOASIS;
 using NextGenSoftware.OASIS.API.Providers.BlockStackOASIS;
 using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS;
@@ -19,7 +17,7 @@ namespace NextGenSoftware.OASIS.API.OASISAPIManager
 {
     public class OASISProviders
     {
-        public SEEDSManager SEEDS { get; set; } = new SEEDSManager();
+        public SEEDSOASIS SEEDS { get; set; }
         public IPFSOASIS IPFS { get; set; }
         public EOSIOOASIS EOSIO { get; set; }
         public HoloOASIS Holochain { get; set; }
@@ -66,6 +64,9 @@ namespace NextGenSoftware.OASIS.API.OASISAPIManager
             Providers.Neo4j = new Neo4jOASIS(OASISDNA.OASIS.StorageProviders.Neo4jOASIS.ConnectionString, OASISDNA.OASIS.StorageProviders.Neo4jOASIS.Username,  OASISDNA.OASIS.StorageProviders.Neo4jOASIS.Password);
             Providers.ThreeFold = new ThreeFoldOASIS();
             Providers.ActivityPub = new AcitvityPubOASIS();
+
+            //TODO: Add SEEDS ConnectionString to OASIS.DNA ASAP! Then can pass it through constructor below along with EOS Provider (2 params)
+            Providers.SEEDS = new SEEDSOASIS(Providers.EOSIO); //TODO: May need to find way to pass custom EOS connectionstring into here.
 
             ProviderManager.RegisterProvider(Providers.IPFS);
             ProviderManager.RegisterProvider(Providers.EOSIO);
