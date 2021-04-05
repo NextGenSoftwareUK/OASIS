@@ -1,3 +1,14 @@
+var loggedIn;
+
+if (loggedIn) {
+	console.log("LOGGED IN!");
+	document.getElementById("loggedInUser").innerText = "Logged In: david@nextgensoftware.co.uk";
+	document.getElementById("loggedInUser").style.display = "block";
+	document.getElementById("LogInButtons").style.display = "none";
+} else {
+	console.log("NOT LOGGED IN!");
+}
+
 (function () {
 	//Login/Signup modal window - by CodyHouse.co
 	function ModalSignin(element) {
@@ -38,9 +49,9 @@
 		this.element.addEventListener('click', function (event) {
 			//if( hasClass(event.target, 'js-close') ) {
 			if (hasClass(event.target, 'js-signin-modal') || hasClass(event.target, 'js-close')) {
-				// $("#NewAccount").style.display = "none";
-				// $("#Login").style.display = "block";
-				// $("#ForgotPassword").style.display = "none";
+				// document.getElementById("divNewAccount").style.display = "none";
+				// document.getElementById("divLogin").style.display = "block";
+				// document.getElementById("divForgotPassword").style.display = "none";
 				event.preventDefault();
 				removeClass(self.element, 'cd-signin-modal--is-visible');
 			}
@@ -386,92 +397,112 @@ $("#loginForm").submit(function (event) {
 
 });
 
-
-// Logout
-
-window.addEventListener('storage', this.syncLogout);
-
-
-
-
-
-
-
-// function showResetPassword()
-// {
-// 	$("#ForgotPassword").style.display = "block";
-// 	$("#Login").style.display = "none";
-// 	$("#NewAccount").style.display = "none";	
-// };
-
-
-// function showLogin()
-// {
-// 	console.log("SHOW LOGIN");
-// 	console.log("b4 = " + $("#Login").style.display);
-
-// 	$("#Login").style.display = "block";
-// 	$("#ForgotPassword").style.display = "none";
-// 	$("#NewAccount").style.display = "none";	
-
-// 	console.log("after = " + $("#Login").style.display);
+// 	console.log("after = " + document.getElementById("divLogin").style.display);
 // };
 
 // function showNewAccount()
 // {
-// 	$("#NewAccount").style.display = "block";
-// 	$("#Login").style.display = "none";
-// 	$("#ForgotPassword").style.display = "none";
+// 	document.getElementById("divNewAccount").style.display = "block";
+// 	document.getElementById("divLogin").style.display = "none";
+// 	document.getElementById("divForgotPassword").style.display = "none";
 // };
 
-// function createCookie(key, value, date) {
-// 	;
-// 	let expiration = new Date(date).toUTCString();
-// 	let cookie = escape(key) + "=" + escape(value) + ";expires=" + expiration + ";";
-// 	document.cookie = cookie;
-// 	console.log(cookie);
-// 	console.log("Creating new cookie with key: " + key + " value: " + value + " expiration: " + expiration);
-// };
+function createCookie(key, value, date) {
+	;
+	let expiration = new Date(date).toUTCString();
+	let cookie = escape(key) + "=" + escape(value) + ";expires=" + expiration + ";";
+	document.cookie = cookie;
+	console.log(cookie);
+	console.log("Creating new cookie with key: " + key + " value: " + value + " expiration: " + expiration);
+};
+
+window.addEventListener('storage', this.syncLogout);
+
+
+function readCookie(name) {
+	let key = name + "=";
+	let cookies = document.cookie.split(';');
 
 
 
-// function readCookie(name) {
-// 	let key = name + "=";
-// 	let cookies = document.cookie.split(';');
-
-// 	console.log("cookies = " + cookies);
-
-// 	for (let i = 0; i < cookies.length; i++) {
-// 		let cookie = cookies[i];
-// 		while (cookie.charAt(0) === ' ') {
-// 			cookie = cookie.substring(1, cookie.length);
-// 		}
-// 		if (cookie.indexOf(key) === 0) {
-// 			return cookie.substring(key.length, cookie.length);
-// 		}
-// 	}
-// 	return null;
-// };
 
 
-// function createCORSRequest(method, url) {
-// 	const xhr = new XMLHttpRequest();
-// 	if ("withCredentials" in xhr) {
-// 		// Check if the XMLHttpRequest object has a "withCredentials" property.
-// 		// "withCredentials" only exists on XMLHTTPRequest2 objects.
-// 		console.log("CORS withCredentials");
-// 		xhr.open(method, url, true);
-// 	} else if (typeof XDomainRequest != "undefined") {
-// 		// Otherwise, check if XDomainRequest.
-// 		// XDomainRequest only exists in IE, and is IE's way of making CORS requests.
-// 		console.log("CORS IE");
-// 		xhr = new XDomainRequest();
-// 		xhr.open(method, url);
-// 	} else {
-// 		// Otherwise, CORS is not supported by the browser.
-// 		console.log("CORS NOT SUPPORTED");
-// 		xhr = null;
-// 	}
+	// function showResetPassword()
+	// {
+	// 	$("#ForgotPassword").style.display = "block";
+	// 	$("#Login").style.display = "none";
+	// 	$("#NewAccount").style.display = "none";	
+	// };
 
-// 	return xhr;
-// }
+
+	// function showLogin()
+	// {
+	// 	console.log("SHOW LOGIN");
+	// 	console.log("b4 = " + $("#Login").style.display);
+
+	// 	$("#Login").style.display = "block";
+	// 	$("#ForgotPassword").style.display = "none";
+	// 	$("#NewAccount").style.display = "none";	
+
+	// 	console.log("after = " + $("#Login").style.display);
+	// };
+
+	// function showNewAccount()
+	// {
+	// 	$("#NewAccount").style.display = "block";
+	// 	$("#Login").style.display = "none";
+	// 	$("#ForgotPassword").style.display = "none";
+	// };
+
+	// function createCookie(key, value, date) {
+	// 	;
+	// 	let expiration = new Date(date).toUTCString();
+	// 	let cookie = escape(key) + "=" + escape(value) + ";expires=" + expiration + ";";
+	// 	document.cookie = cookie;
+	// 	console.log(cookie);
+	// 	console.log("Creating new cookie with key: " + key + " value: " + value + " expiration: " + expiration);
+	// };
+
+
+
+	// function readCookie(name) {
+	// 	let key = name + "=";
+	// 	let cookies = document.cookie.split(';');
+
+	// 	console.log("cookies = " + cookies);
+
+	// 	for (let i = 0; i < cookies.length; i++) {
+	// 		let cookie = cookies[i];
+	// 		while (cookie.charAt(0) === ' ') {
+	// 			cookie = cookie.substring(1, cookie.length);
+	// 		}
+	// 		if (cookie.indexOf(key) === 0) {
+	// 			return cookie.substring(key.length, cookie.length);
+	// 		}
+	// 	}
+	// 	return null;
+	// };
+
+
+	// function createCORSRequest(method, url) {
+	// 	const xhr = new XMLHttpRequest();
+	// 	if ("withCredentials" in xhr) {
+	// 		// Check if the XMLHttpRequest object has a "withCredentials" property.
+	// 		// "withCredentials" only exists on XMLHTTPRequest2 objects.
+	// 		console.log("CORS withCredentials");
+	// 		xhr.open(method, url, true);
+	// 	} else if (typeof XDomainRequest != "undefined") {
+	// 		// Otherwise, check if XDomainRequest.
+	// 		// XDomainRequest only exists in IE, and is IE's way of making CORS requests.
+	// 		console.log("CORS IE");
+	// 		xhr = new XDomainRequest();
+	// 		xhr.open(method, url);
+	// 	} else {
+	// 		// Otherwise, CORS is not supported by the browser.
+	// 		console.log("CORS NOT SUPPORTED");
+	// 		xhr = null;
+	// 	}
+
+	// 	return xhr;
+	// }
+}

@@ -659,6 +659,32 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             return Delete(id);
         }
 
+        /// <summary>
+        /// Link's a given telosAccount to the given avatar.
+        /// </summary>
+        /// <param name="avatarId">The id of the avatar.</param>
+        /// <param name="telosAccountName"></param>
+        /// <returns></returns>
+        [Authorize]
+        [HttpPost("{avatarId}/{telosAccountName}")]
+        public IActionResult LinkTelosAccountToAvatar(Guid avatarId, string telosAccountName)
+        {
+            return Ok(AvatarManager.LinkTelosAccountToAvatar(avatarId, telosAccountName));
+        }
+
+        /// <summary>
+        /// Link's a given eosAccountName to the given avatar.
+        /// </summary>
+        /// <param name="avatarId">The id of the avatar.</param>
+        /// <param name="eosAccountName"></param>
+        /// <returns></returns>
+        [Authorize]
+        [HttpPost("{avatarId}/{eosAccountName}")]
+        public IActionResult LinkEOSAccountToAvatar(Guid avatarId, string eosAccountName)
+        {
+            return Ok(AvatarManager.LinkEOSAccountToAvatar(avatarId, eosAccountName));
+        }
+
         private void setTokenCookie(string token)
         {
             var cookieOptions = new CookieOptions

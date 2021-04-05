@@ -1,6 +1,10 @@
 ﻿<!doctype html>
 <html lang="en" class="no-js">
 
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -19,6 +23,7 @@
 
     <body>
 
+    <body>
         <div class="container">
             <nav class="nav nav5">
                 <ul>
@@ -44,7 +49,7 @@
                     </li>
                     <li>
                         <a href="#">Karma</a>
-                        <ul style="width:270px;">
+                        <ul style="width:280px;">
                             <li><a onclick="showComingSoonMessage();" href="#">View Curent Karma Weightings</a></li>
                             <li><a onclick="showComingSoonMessage();" href="#">Vote For Karma Weightings</a></li>
                             <li><a onclick="showCheckAPIMessage();" href="#">View Avatar Karma</a></li>
@@ -53,7 +58,7 @@
                     </li>
                     <li>
                         <a href="#">Data</a>
-                        <ul>
+                        <ul style="width:220px;">
                             <li><a onclick="showCheckAPIMessage();" href="#">Load Data</a></li>
                             <li><a onclick="showCheckAPIMessage();" href="#">Send Data</a></li>
                             <li><a onclick="showCheckAPIMessage();" href="#">Manage Data</a></li>
@@ -64,7 +69,7 @@
                     </li>
                     <li>
                         <a href="#">SEEDS</a>
-                        <ul>
+                        <ul style="width:220px;">
                             <li><a onclick="showCheckAPIMessage();" href="#">Pay With SEEDS</a></li>
                             <li><a onclick="showCheckAPIMessage();" href="#">Donate SEEDS</a></li>
                             <li><a onclick="showCheckAPIMessage();" href="#">Reward SEEDS</a></li>
@@ -78,7 +83,7 @@
                     </li>
                     <li>
                         <a href="#">Provider</a>
-                        <ul>
+                        <ul style="width:220px;">
                             <li><a onclick="showCheckAPIMessage();" href="#">View Providers</a></li>
                             <li><a onclick="showCheckAPIMessage();" href="#">Manage Providers</a></li>
                             <li><a onclick="showCheckAPIMessage();" ref="#">Manage Auto-Replication</a></li>
@@ -174,16 +179,18 @@
                     </li>
                     <li>
                         <a href="#">Developer</a>
-                        <ul style="width:270px;">
-                            <li><a target="_blank" href="https://api.oasisplatform.world">OASIS API</a></li>
+                        <ul style="width:397px; white-space:nowrap">
+                            <li><a target="_blank" href="https://api.oasisplatform.world">OASIS API LIVE</a></li>
+                            <li><a target="_blank" href="https://staging.api.oasisplatform.world">OASIS API STAGING</a></li>
+                            <li><a target="_blank" href="https://oasisplatform.world">OASIS API UI LIVE</a></li>
+                            <li><a target="_blank" href="https://staging.oasisplatform.world">OASIS API UI STAGING</a></li>
                             <li><a onclick="showSTARMessage();" href="#">STAR ODK</a></li>
-                            <li><a target="_blank" href="OASIS_API_LIVE.postman_collection.json">Postman JSON File</a>
-                            </li>
-                            <li><a target="_blank"
-                                    href="https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK">Code/Documentation</a>
-                            </li>
-                            <li><a target="_blank" href="https://www.thejusticeleagueaccademy.icu/">The Justice League
-                                    Academy</a></li>
+                            <li><a target="_blank" href="postman/OASIS_API.postman_collection.json">OASIS API Postman JSON File</a></li>
+                            <li><a target="_blank" href="postman/OASIS_API_DEV.postman_environment.json">OASIS API DEV ENVIROMENT Postman JSON File</a></li>
+                            <li><a target="_blank" href="postman/OASIS_API_STAGING.postman_environment.json">OASIS API STAGING ENVIROMENT Postman JSON File</a></li>
+                            <li><a target="_blank" href="postman/OASIS_API_LIVE.postman_environment.json">OASIS API LIVE ENVIROMENT Postman JSON File</a></li>
+                            <li><a target="_blank" href="https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK">Code/Documentation</a></li>
+                            <li><a target="_blank" href="https://www.thejusticeleagueaccademy.icu/">The Justice League Academy</a></li>
                         </ul>
                     </li>
 
@@ -192,9 +199,11 @@
                         <table class="cd-main-nav__list js-signin-modal-trigger">
                             <tr>
                                 <td> <a style="color:white;white-space: nowrap; "
-                                        class="cd-main-nav__item cd-main-nav__item--signin" href="#0" data-signin="login" data-type="login">Sign In</a> </td>
+                                        class="cd-main-nav__item cd-main-nav__item--signin" href="#0"
+                                        onclick="showLogin()" data-signin="login" data-type="login">Log In</a> </td>
                                 <td> <a style="color:white;margin-left:10px; white-space: nowrap; "
-                                        class="cd-main-nav__item cd-main-nav__item--signup" href="#0" data-signin="signup">Sign Up</a> </td>
+                                        class="cd-main-nav__item cd-main-nav__item--signup" href="#0"
+                                        onclick="showNewAccount()" data-signin="signup">Sign Up</a> </td>
                             </tr>
                         </table>
                     </div>
@@ -211,20 +220,20 @@
             <div class="cd-signin-modal__container">
                 <!-- this is the container wrapper -->
                 <ul class="cd-signin-modal__switcher js-signin-modal-switcher js-signin-modal-trigger">
-                    <li><a href="#0" data-signin="login" data-type="login">Sign In</a></li>
-                    <li><a href="#0" data-signin="signup" data-type="signup">Sign Up</a>
+                    <li><a href="#0" data-signin="login" data-type="login">Sign in</a></li>
+                    <li><a href="#0" data-signin="signup" data-type="signup">New Avatar</a>
                     </li>
                 </ul>
                 <div id="divLogin" class="cd-signin-modal__block js-signin-modal-block" data-type="login">
                     <!-- log in form -->
-                    <form class="cd-signin-modal__form" id="loginForm">
+                    <form class="cd-signin-modal__form" id="LoginForm">
                         <div class="cd-signin-modal__fieldset">
                             <label
                                 class="cd-signin-modal__label cd-signin-modal__label--email cd-signin-modal__label--image-replace"
                                 for="login-email">E-mail</label>
                             <input
                                 class="cd-signin-modal__input cd-signin-modal__input--full-width cd-signin-modal__input--has-padding cd-signin-modal__input--has-border"
-                                id="login-email" type="email" placeholder="E-mail" required>
+                                id="login-email" type="email" placeholder="E-mail">
                             <span class="cd-signin-modal__error">Error message here!</span>
                         </div>
 
@@ -234,14 +243,14 @@
                                 for="login-password">Password</label>
                             <input
                                 class="cd-signin-modal__input cd-signin-modal__input--full-width cd-signin-modal__input--has-padding cd-signin-modal__input--has-border"
-                                id="login-password" type="password" pattern=".{8,}" placeholder="Password" required>
+                                id="login-password" type="password" pattern=".{8,}" placeholder="Password">
                             <a href="#0" class="cd-signin-modal__hide-password js-hide-password">Show</a>
                             <span class="cd-signin-modal__error">Error message here!</span>
                         </div>
 
                         <div class="cd-signin-modal__fieldset">
-                            <input type="checkbox" id="remember-me" checked class="cd-signin-modal__input "> 
-                            <label class="cd-signin-modal__label"  for="remember-me">Remember me</label>
+                            <input type="checkbox" id="remember-me" checked class="cd-signin-modal__input ">
+                            <label for="remember-me">Remember me</label>
                         </div>
 
                         <div class="cd-signin-modal__fieldset">
@@ -330,7 +339,7 @@
                         <div class="cd-signin-modal__fieldset">
                             <input
                                 class="cd-signin-modal__input cd-signin-modal__input--full-width cd-signin-modal__input--has-padding"
-                                id="submit_signup" type="submit" value="Sign Up">
+                                id="submit_signup" type="submit" value="Create Avatar">
                         </div>
                     </form>
                 </div> <!-- cd-signin-modal__block -->
