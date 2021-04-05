@@ -1,14 +1,3 @@
-var loggedIn;
-
-if (loggedIn) {
-	console.log("LOGGED IN!");
-	document.getElementById("loggedInUser").innerText = "Logged In: david@nextgensoftware.co.uk";
-	document.getElementById("loggedInUser").style.display = "block";
-	document.getElementById("LogInButtons").style.display = "none";
-} else {
-	console.log("NOT LOGGED IN!");
-}
-
 (function () {
 	//Login/Signup modal window - by CodyHouse.co
 	function ModalSignin(element) {
@@ -49,9 +38,9 @@ if (loggedIn) {
 		this.element.addEventListener('click', function (event) {
 			//if( hasClass(event.target, 'js-close') ) {
 			if (hasClass(event.target, 'js-signin-modal') || hasClass(event.target, 'js-close')) {
-				// document.getElementById("divNewAccount").style.display = "none";
-				// document.getElementById("divLogin").style.display = "block";
-				// document.getElementById("divForgotPassword").style.display = "none";
+				// $("#NewAccount").style.display = "none";
+				// $("#Login").style.display = "block";
+				// $("#ForgotPassword").style.display = "none";
 				event.preventDefault();
 				removeClass(self.element, 'cd-signin-modal--is-visible');
 			}
@@ -397,31 +386,33 @@ $("#loginForm").submit(function (event) {
 
 });
 
-// 	console.log("after = " + document.getElementById("divLogin").style.display);
+// 	console.log("after = " + $("#Login").style.display);
 // };
 
 // function showNewAccount()
 // {
-// 	document.getElementById("divNewAccount").style.display = "block";
-// 	document.getElementById("divLogin").style.display = "none";
-// 	document.getElementById("divForgotPassword").style.display = "none";
+// 	$("#NewAccount").style.display = "block";
+// 	$("#Login").style.display = "none";
+// 	$("#ForgotPassword").style.display = "none";
 // };
 
-function createCookie(key, value, date) {
-	;
-	let expiration = new Date(date).toUTCString();
-	let cookie = escape(key) + "=" + escape(value) + ";expires=" + expiration + ";";
-	document.cookie = cookie;
-	console.log(cookie);
-	console.log("Creating new cookie with key: " + key + " value: " + value + " expiration: " + expiration);
-};
+// function createCookie(key, value, date) {
+// 	;
+// 	let expiration = new Date(date).toUTCString();
+// 	let cookie = escape(key) + "=" + escape(value) + ";expires=" + expiration + ";";
+// 	document.cookie = cookie;
+// 	console.log(cookie);
+// 	console.log("Creating new cookie with key: " + key + " value: " + value + " expiration: " + expiration);
+// };
+
 
 window.addEventListener('storage', this.syncLogout);
 
+// function readCookie(name) {
+// 	let key = name + "=";
+// 	let cookies = document.cookie.split(';');
 
-function readCookie(name) {
-	let key = name + "=";
-	let cookies = document.cookie.split(';');
+// 	console.log("cookies = " + cookies);
 
 
 
@@ -505,4 +496,3 @@ function readCookie(name) {
 
 	// 	return xhr;
 	// }
-}
