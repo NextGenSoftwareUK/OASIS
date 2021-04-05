@@ -32,7 +32,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
                 //avatar.Id =  //TODO: Check if Mongo populates the id automatically or if we need to re-load it...
                 return avatar;
             }
-            catch
+            catch (Exception ex)
             {
                 throw;
             }
