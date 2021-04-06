@@ -14,7 +14,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS.TestHarness
             SEEDSOASIS seedsOASIS = new SEEDSOASIS(new EOSIOOASIS.EOSIOOASIS("https://node.hypha.earth"));
 
             string balance = seedsOASIS.GetBalanceForTelosAccount("davidsellams");
-            Account account = seedsOASIS.EOSIOOASIS.GetEOSAccount("davidsellams");
+            Account account = seedsOASIS.EOSIOOASIS.GetEOSIOAccount("davidsellams");
 
             Console.WriteLine(string.Concat("Balance Before: ", balance));
             Console.WriteLine(string.Concat("Account.account_name: ", account.account_name));
@@ -22,7 +22,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS.TestHarness
 
             seedsOASIS.PayWithSeedsUsingTelosAccount("test.account", "test.account2", 7, Core.Enums.KarmaSourceType.API, "test", "test", "test", "test memo");
             balance = seedsOASIS.GetBalanceForTelosAccount("test.account");
-            account = seedsOASIS.EOSIOOASIS.GetEOSAccount("test.account");
+            account = seedsOASIS.EOSIOOASIS.GetEOSIOAccount("test.account");
 
             Console.WriteLine(string.Concat("Balance After: ", balance));
             Console.WriteLine(string.Concat("Account.core_liquid_balance After: ", account.core_liquid_balance));

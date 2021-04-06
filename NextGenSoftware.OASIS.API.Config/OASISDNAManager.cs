@@ -1,7 +1,6 @@
 ﻿using System;
 using System.IO;
 using Newtonsoft.Json;
-using NextGenSoftware.Holochain.HoloNET.Client.Core;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Events;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
@@ -12,17 +11,19 @@ using NextGenSoftware.OASIS.API.Providers.MongoDBOASIS;
 using NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS;
 using NextGenSoftware.OASIS.API.Providers.IPFSOASIS;
 using NextGenSoftware.OASIS.API.Providers.Neo4jOASIS;
+using System.Collections.Generic;
+using NextGenSoftware.OASIS.API.Core.Helpers;
 
 namespace NextGenSoftware.OASIS.API.Config
 {
-    public static class OASISConfigManager 
+    public static class OASISDNAManager 
     {
         public static string OASISDNAFileName { get; set; } = "OASIS_DNA.json";
         public static OASISDNA OASISDNA;
 
         public static void LoadOASISDNA(string OASISDNAFileName)
         {
-            OASISConfigManager.OASISDNAFileName = OASISDNAFileName;
+            OASISDNAManager.OASISDNAFileName = OASISDNAFileName;
 
             if (File.Exists(OASISDNAFileName))
             {
@@ -32,6 +33,13 @@ namespace NextGenSoftware.OASIS.API.Config
                     OASISDNA = JsonConvert.DeserializeObject<OASISDNA>(json);
                 }
             }
+            else
+                throw new ArgumentNullException("OASISDNAFileName", string.Concat("ERROR: OASIS DNA file not found. Path: ", OASISDNAFileName));
+
+           // ProviderManager.DefaultProviderTypes = OASISDNA.OASIS.StorageProviders.DefaultProviders.Split(",");
+            ProviderManager.SetAutoFailOverForProviders(true, GetProviderTypesFromDNA("AutoFailOverProviders", OASISDNA.OASIS.StorageProviders.AutoFailOverProviders));
+            ProviderManager.SetAutoLoadBalanceForProviders(true, GetProviderTypesFromDNA("AutoLoadBalanceProviders", OASISDNA.OASIS.StorageProviders.AutoLoadBalanceProviders));
+            ProviderManager.SetAutoReplicationForProviders(true, GetProviderTypesFromDNA("AutoReplicationProviders", OASISDNA.OASIS.StorageProviders.AutoReplicationProviders));
         }
 
         public static IOASISStorage GetAndActivateProvider()
@@ -41,13 +49,29 @@ namespace NextGenSoftware.OASIS.API.Config
                 if (OASISDNA == null)
                     LoadOASISDNA(OASISDNAFileName);
 
-                ProviderManager.DefaultProviderTypes = OASISDNA.OASIS.StorageProviders.DefaultProviders.Split(",");
-
-                //TODO: Need to add additional logic later for when the first provider and others fail or are too laggy and so need to switch to a faster provider, etc...
-                return GetAndActivateProvider((ProviderType)Enum.Parse(typeof(ProviderType), ProviderManager.DefaultProviderTypes[0]));
+                //TODO: Need to add additional logic later for when the first provider and others fail or are too laggy and so need to switch to a faster provider, etc... DONE! :)
+                //return GetAndActivateProvider((ProviderType)Enum.Parse(typeof(ProviderType), ProviderManager.DefaultProviderTypes[0]));
+                return GetAndActivateProvider(ProviderManager.GetProviderAutoFailOverList()[0].Value);
             }
             else
                 return ProviderManager.CurrentStorageProvider;
+        }
+
+        private static List<ProviderType> GetProviderTypesFromDNA(string providerListName, string providerList)
+        {
+            List<ProviderType> providerTypes = new List<ProviderType>();
+            string[] providers = providerList.Split(",");
+            object providerTypeObject = null;
+
+            foreach (string provider in providers)
+            {
+                if (Enum.TryParse(typeof(ProviderType), provider.Trim(), out providerTypeObject))
+                    providerTypes.Add((ProviderType)providerTypeObject);
+                else
+                    throw new ArgumentOutOfRangeException(providerListName, string.Concat("ERROR: The OASIS DNA file ", OASISDNAFileName, " contains an invalid entry in the ", providerListName, " comma delimited list. Entry found was ", provider.Trim(), ". Valid entries are:\n\n", EnumHelper.GetEnumValues(typeof(ProviderType))));
+            }
+
+            return providerTypes;
         }
 
         public static IOASISStorage GetAndActivateProvider(ProviderType providerType, bool setGlobally = false)
@@ -83,7 +107,7 @@ namespace NextGenSoftware.OASIS.API.Config
                 {
                     case ProviderType.HoloOASIS:
                         {
-                            HoloOASIS holoOASIS = new HoloOASIS(OASISDNA.OASIS.StorageProviders.HoloOASIS.ConnectionString, HolochainVersion.Redux); //TODO: Move hc version to config.
+                            HoloOASIS holoOASIS = new HoloOASIS(OASISDNA.OASIS.StorageProviders.HoloOASIS.ConnectionString, OASISDNA.OASIS.StorageProviders.HoloOASIS.HolochainVersion);
                             holoOASIS.OnHoloOASISError += HoloOASIS_OnHoloOASISError;
                             holoOASIS.StorageProviderError += HoloOASIS_StorageProviderError;
                             ProviderManager.RegisterProvider(holoOASIS);
@@ -109,20 +133,28 @@ namespace NextGenSoftware.OASIS.API.Config
                         }
                         break;
 
-                    case ProviderType.EOSOASIS:
+                    case ProviderType.EOSIOOASIS:
                         {
                             EOSIOOASIS EOSIOOASIS = new EOSIOOASIS(OASISDNA.OASIS.StorageProviders.EOSIOOASIS.ConnectionString);
                             EOSIOOASIS.StorageProviderError += EOSIOOASIS_StorageProviderError;
-                            ProviderManager.RegisterProvider(EOSIOOASIS); //TODO: Need to pass connection string in.
+                            ProviderManager.RegisterProvider(EOSIOOASIS); 
                             registeredProvider = EOSIOOASIS;
                         }
                         break;
+
+                    //case ProviderType.SEEDSOASIS:
+                    //    {
+                    //        SEEDSOASIS SEEDSOASIS = new SEEDSOASIS(new EOSIOOASIS(OASISDNA.OASIS.StorageProviders.SEEDSOASIS.ConnectionString));
+                    //        ProviderManager.RegisterProvider(SEEDSOASIS);
+                    //        registeredProvider = SEEDSOASIS;
+                    //    }
+                    //    break;
 
                     case ProviderType.Neo4jOASIS:
                         {
                             Neo4jOASIS Neo4jOASIS = new Neo4jOASIS(OASISDNA.OASIS.StorageProviders.Neo4jOASIS.ConnectionString, OASISDNA.OASIS.StorageProviders.Neo4jOASIS.Username, OASISDNA.OASIS.StorageProviders.Neo4jOASIS.Password);
                             Neo4jOASIS.StorageProviderError += Neo4jOASIS_StorageProviderError;
-                            ProviderManager.RegisterProvider(Neo4jOASIS); //TODO: Need to pass connection string in.
+                            ProviderManager.RegisterProvider(Neo4jOASIS); 
                             registeredProvider = Neo4jOASIS;
                         }
                         break;
@@ -131,7 +163,7 @@ namespace NextGenSoftware.OASIS.API.Config
                         {
                             IPFSOASIS IPFSOASIS = new IPFSOASIS(OASISDNA.OASIS.StorageProviders.IPFSOASIS.ConnectionString);
                             IPFSOASIS.StorageProviderError += IPFSOASIS_StorageProviderError;
-                            ProviderManager.RegisterProvider(IPFSOASIS); //TODO: Need to pass connection string in.
+                            ProviderManager.RegisterProvider(IPFSOASIS); 
                             registeredProvider = IPFSOASIS;
                         }
                         break;

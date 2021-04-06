@@ -118,7 +118,7 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
 
                 //Set auto-replicate for all providers except IPFS and Neo4j.
                 ProviderManager.SetAutoReplicateForAllProviders(true);
-                ProviderManager.SetAutoReplicateForProviders(false, new List<ProviderType>() { ProviderType.IPFSOASIS, ProviderType.Neo4jOASIS });
+                ProviderManager.SetAutoReplicationForProviders(false, new List<ProviderType>() { ProviderType.IPFSOASIS, ProviderType.Neo4jOASIS });
 
                 //Set auto-failover for all providers except Holochain.
                 ProviderManager.SetAutoFailOverForAllProviders(true);
@@ -192,7 +192,7 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
 
                 // SEEDS Support
                 string balance = OASISAPI.Providers.SEEDS.GetBalanceForTelosAccount("test.account");
-                Account account = OASISAPI.Providers.SEEDS.EOSIOOASIS.GetEOSAccount("test.account");
+                Account account = OASISAPI.Providers.SEEDS.EOSIOOASIS.GetEOSIOAccount("test.account");
 
                 Console.WriteLine(string.Concat("Balance Before: ", balance));
                 Console.WriteLine(string.Concat("Account.account_name: ", account.account_name));
@@ -200,7 +200,7 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
 
                 OASISAPI.Providers.SEEDS.PayWithSeedsUsingTelosAccount("test.account", "test.account2", 7, KarmaSourceType.API, "test", "test", "test", "test memo");
                 balance = OASISAPI.Providers.SEEDS.GetBalanceForTelosAccount("test.account");
-                account = OASISAPI.Providers.SEEDS.EOSIOOASIS.GetEOSAccount("test.account");
+                account = OASISAPI.Providers.SEEDS.EOSIOOASIS.GetEOSIOAccount("test.account");
 
                 Console.WriteLine(string.Concat("Balance After: ", balance));
                 Console.WriteLine(string.Concat("Account.core_liquid_balance After: ", account.core_liquid_balance));

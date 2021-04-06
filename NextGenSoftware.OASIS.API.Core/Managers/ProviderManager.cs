@@ -27,7 +27,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         //    }
         //}
 
-        public static string[] DefaultProviderTypes { get; set; }
+       // public static string[] DefaultProviderTypes { get; set; }
 
         public static IOASISStorage DefaultGlobalStorageProvider { get; set; }
 
@@ -241,7 +241,8 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 return SetAndActivateCurrentStorageProvider(DefaultGlobalStorageProvider);
 
             // Otherwise set to default provider (configured in appSettings.json) if the provider has not been overiden in the REST call.
-            else if (!OverrideProviderType && DefaultProviderTypes != null && CurrentStorageProviderType.Value != (ProviderType)Enum.Parse(typeof(ProviderType), DefaultProviderTypes[0]))
+            //else if (!OverrideProviderType && DefaultProviderTypes != null && CurrentStorageProviderType.Value != (ProviderType)Enum.Parse(typeof(ProviderType), DefaultProviderTypes[0]))
+            else if (!OverrideProviderType && CurrentStorageProviderType.Value != _providerAutoFailOverList[0].Value) // TODO: Come back to this, not sure we should be setting the first entry every time? Needs thinking and testing through! ;-)
                 return SetAndActivateCurrentStorageProvider(ProviderType.Default, false);
 
             if (!_setProviderGlobally)
@@ -273,9 +274,11 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         {
             _setProviderGlobally = setGlobally;
 
-            //TODO: Need to get this to use the next provider in the list if there is an issue with the first/current provider...
+            // TODO: Need to get this to use the next provider in the list if there is an issue with the first/current provider...
+            // This is automatically handled in the Managers (AvatarManager, HolonManager, etc) whenever a provider throws an exception, it will try the next provider in the list... :)
             if (providerType == ProviderType.Default && !OverrideProviderType)
-                providerType = (ProviderType)Enum.Parse(typeof(ProviderType), DefaultProviderTypes[0]);
+                providerType = _providerAutoFailOverList[0].Value;
+                //providerType = (ProviderType)Enum.Parse(typeof(ProviderType), DefaultProviderTypes[0]);
 
             if (providerType != CurrentStorageProviderType.Value)
             {
@@ -327,14 +330,14 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return false;
         }
 
-        public static bool SetAutoReplicateForProviders(bool autoReplicate, List<ProviderType> providers)
+        public static bool SetAutoReplicationForProviders(bool autoReplicate, List<ProviderType> providers)
         {
             return SetProviderList(autoReplicate, providers, _providersThatAreAutoReplicating);
         }
 
         public static bool SetAutoReplicateForAllProviders(bool autoReplicate)
         {
-            return SetAutoReplicateForProviders(autoReplicate, _registeredProviderTypes.Select(x => x.Value).ToList());
+            return SetAutoReplicationForProviders(autoReplicate, _registeredProviderTypes.Select(x => x.Value).ToList());
         }
 
         public static bool SetAutoFailOverForProviders(bool addToFailOverList, List<ProviderType> providers)

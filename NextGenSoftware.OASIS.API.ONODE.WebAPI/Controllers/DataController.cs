@@ -22,7 +22,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             get
             {
                 if (_holonManager == null)
-                    _holonManager = new HolonManager(OASISConfigManager.GetAndActivateProvider());
+                    _holonManager = new HolonManager(OASISDNAManager.GetAndActivateProvider());
 
                 return _holonManager;
             }

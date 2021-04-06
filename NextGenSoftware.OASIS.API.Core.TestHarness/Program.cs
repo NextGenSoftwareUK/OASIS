@@ -25,8 +25,8 @@ namespace NextGenSoftware.OASIS.API.Core.TestHarness
             //OASISConfigManager.GetAndActivateProvider();
 
             //Init with the Holochain Provider.
-            OASISConfigManager.GetAndActivateProvider(ProviderType.HoloOASIS, true);
-            OASISAPI.Init(InitOptions.InitWithCurrentDefaultProvider, OASISConfigManager.OASISDNA);
+            OASISDNAManager.GetAndActivateProvider(ProviderType.HoloOASIS, true);
+            OASISAPI.Init(InitOptions.InitWithCurrentDefaultProvider, OASISDNAManager.OASISDNA);
             //OASISAPI.Init(new List<IOASISProvider> { new HoloOASIS("ws://localhost:8888", Holochain.HoloNET.Client.Core.HolochainVersion.Redux) }, OASISConfigManager.OASISDNA);
             //OASISAPI.Init(InitOptions.InitWithAllProviders, OASISConfigManager.OASISDNA);
             

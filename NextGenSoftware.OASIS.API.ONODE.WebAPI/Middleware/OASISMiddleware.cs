@@ -13,8 +13,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Middleware
         {
             _next = next;
 
-            if (OASISConfigManager.OASISDNA == null)
-                OASISConfigManager.LoadOASISDNA("OASIS_DNA.json");
+            if (OASISDNAManager.OASISDNA == null)
+                OASISDNAManager.LoadOASISDNA("OASIS_DNA.json");
 
             //OASISProviderManager.OASISSettings = OASISSettings.Value;
         }

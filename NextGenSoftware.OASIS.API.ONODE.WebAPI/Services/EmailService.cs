@@ -29,7 +29,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
         {
             // create message
             var email = new MimeMessage();
-            email.Sender = MailboxAddress.Parse(from ?? OASISConfigManager.OASISDNA.OASIS.Email.EmailFrom);
+            email.Sender = MailboxAddress.Parse(from ?? OASISDNAManager.OASISDNA.OASIS.Email.EmailFrom);
             email.To.Add(MailboxAddress.Parse(to));
             email.Subject = subject;
             email.Body = new TextPart(TextFormat.Html) { Text = html };
@@ -37,8 +37,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
             // send email
             using var smtp = new SmtpClient();
             //smtp.Connect(_appSettings.SmtpHost, _appSettings.SmtpPort, SecureSocketOptions.StartTls);
-            smtp.Connect(OASISConfigManager.OASISDNA.OASIS.Email.SmtpHost, OASISConfigManager.OASISDNA.OASIS.Email.SmtpPort, SecureSocketOptions.None);
-            smtp.Authenticate(OASISConfigManager.OASISDNA.OASIS.Email.SmtpUser, OASISConfigManager.OASISDNA.OASIS.Email.SmtpPass);
+            smtp.Connect(OASISDNAManager.OASISDNA.OASIS.Email.SmtpHost, OASISDNAManager.OASISDNA.OASIS.Email.SmtpPort, SecureSocketOptions.None);
+            smtp.Authenticate(OASISDNAManager.OASISDNA.OASIS.Email.SmtpUser, OASISDNAManager.OASISDNA.OASIS.Email.SmtpPass);
             smtp.Send(email);
             smtp.Disconnect(true);
         }

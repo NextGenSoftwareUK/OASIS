@@ -67,11 +67,11 @@ namespace NextGenSoftware.OASIS.STAR
         public static void Initialize(string providerKey)
         {
             //By default the OASISConfigManager will load the settings from OASIS_DNA.json in the current working dir but you can override using below:
-            OASISConfigManager.OASISDNAFileName = OASIS_DNA;
+            OASISDNAManager.OASISDNAFileName = OASIS_DNA;
 
             // Will initialize the default OASIS Provider defined OASIS_DNA config file.
-            OASISConfigManager.GetAndActivateProvider(); //TODO: May move this method into OASISAPI below?
-            OASISAPI.Init(InitOptions.InitWithCurrentDefaultProvider, OASISConfigManager.OASISDNA);
+            OASISDNAManager.GetAndActivateProvider(); //TODO: May move this method into OASISAPI below?
+            OASISAPI.Init(InitOptions.InitWithCurrentDefaultProvider, OASISDNAManager.OASISDNA);
 
             SuperStarCore = new SuperStarCore(providerKey);
             InnerStar = new Star(providerKey);
