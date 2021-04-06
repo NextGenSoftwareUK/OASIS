@@ -17,7 +17,7 @@ namespace NextGenSoftware.OASIS.API.Config
 {
     public static class OASISConfigManager 
     {
-        public static string OASISDNAFileName { get; set; } = "appsettings.json";
+        public static string OASISDNAFileName { get; set; } = "OASIS_DNA.json";
         public static OASISDNA OASISDNA;
 
         public static void LoadOASISDNA(string OASISDNAFileName)

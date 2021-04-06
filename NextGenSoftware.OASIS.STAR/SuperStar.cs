@@ -66,7 +66,7 @@ namespace NextGenSoftware.OASIS.STAR
         //public static void Initialize(string holochainConductorURI, HoloNETClientType type, string providerKey)
         public static void Initialize(string providerKey)
         {
-            //By default the OASISConfigManager will load the settings from appsettings.json but you can override using below:
+            //By default the OASISConfigManager will load the settings from OASIS_DNA.json in the current working dir but you can override using below:
             OASISConfigManager.OASISDNAFileName = OASIS_DNA;
 
             // Will initialize the default OASIS Provider defined OASIS_DNA config file.

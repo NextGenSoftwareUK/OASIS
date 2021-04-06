@@ -1,0 +1,50 @@
+{
+  "Logging": {
+    "LogLevel": {
+      "Default": "Warning"
+    }
+  },
+  "AllowedHosts": "*",
+
+  "OASIS": {
+    "Secret": "",
+    "Email": {
+      "EmailFrom": "",
+      "SmtpHost": "",
+      "SmtpPort": 25,
+      "SmtpUser": "",
+      "SmtpPass": ""
+    },
+    "StorageProviders": {
+      "DefaultProviders": "MongoDBOASIS, SQLLiteDBOASIS, Neo4JOASIS, IPFSOASIS, HoloOASIS, EOSIOOASIS, EthereumOASIS, ThreeFoldOASIS",
+      "HoloOASIS": {
+        "ConnectionString": "ws://localhost:8888",
+        "HolochainVersion": "Redux" //Can be Redux or RSM.
+      },
+      "MongoDBOASIS": {
+        "ConnectionString": "bbbb",
+        "DBName": "OASISAPI"
+      },
+      "SQLLiteDBOASIS": {
+        "ConnectionString": "Data Source=OASISSQLLiteDB.db"
+      },
+      "EOSIOOASIS": {
+        "ConnectionString": ""
+      },
+      "ThreeFoldOASIS": {
+        "ConnectionString": ""
+      },
+      "EthereumOASIS": {
+        "ConnectionString": ""
+      },
+      "Neo4JOASIS": {
+        "ConnectionString": "",
+        "Username": "",
+        "Password": ""
+      },
+      "IPFSOASIS": {
+        "ConnectionString": ""
+      }
+    }
+  }
+}
