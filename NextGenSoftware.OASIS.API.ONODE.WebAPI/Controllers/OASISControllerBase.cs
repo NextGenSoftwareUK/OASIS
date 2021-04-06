@@ -47,12 +47,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 
         protected IOASISStorage GetAndActivateProvider()
         {
-            return OASISConfigManager.GetAndActivateProvider();
+            return OASISDNAManager.GetAndActivateProvider();
         }
 
         protected IOASISStorage GetAndActivateProvider(ProviderType providerType, bool setGlobally = false)
         {
-            return OASISConfigManager.GetAndActivateProvider(providerType, setGlobally);
+            return OASISDNAManager.GetAndActivateProvider(providerType, setGlobally);
         }
     }
 }

@@ -51,7 +51,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
         {
             _mapper = mapper;
             //_OASISSettings = OASISSettings.Value;
-            _OASISDNA = OASISConfigManager.OASISDNA;
+            _OASISDNA = OASISDNAManager.OASISDNA;
             _emailService = emailService;
         }
 

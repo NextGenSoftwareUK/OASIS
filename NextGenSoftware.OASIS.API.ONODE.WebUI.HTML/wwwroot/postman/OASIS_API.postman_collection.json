@@ -3112,10 +3112,10 @@
 			]
 		},
 		{
-			"name": "EOS",
+			"name": "EOSIO",
 			"item": [
 				{
-					"name": "Get EOS Account For Avatar",
+					"name": "Get EOSIO Account For Avatar",
 					"protocolProfileBehavior": {
 						"disableBodyPruning": true
 					},
@@ -3142,20 +3142,20 @@
 							}
 						},
 						"url": {
-							"raw": "{{host}}api/seeds/GetEOSAccountForAvatar",
+							"raw": "{{host}}api/seeds/GetEOSIOAccountForAvatar",
 							"host": [
 								"{{host}}api"
 							],
 							"path": [
 								"seeds",
-								"GetEOSAccountForAvatar"
+								"GetEOSIOAccountForAvatar"
 							]
 						}
 					},
 					"response": []
 				},
 				{
-					"name": "Get EOS Account Name For Avatar",
+					"name": "Get EOSIO Account Name For Avatar",
 					"protocolProfileBehavior": {
 						"disableBodyPruning": true
 					},
@@ -3182,21 +3182,21 @@
 							}
 						},
 						"url": {
-							"raw": "{{host}}/api/seeds/GetEOSAccountNameForAvatar",
+							"raw": "{{host}}/api/seeds/GetEOSIOAccountNameForAvatar",
 							"host": [
 								"{{host}}"
 							],
 							"path": [
 								"api",
 								"seeds",
-								"GetEOSAccountNameForAvatar"
+								"GetEOSIOAccountNameForAvatar"
 							]
 						}
 					},
 					"response": []
 				},
 				{
-					"name": "Get EOS Account",
+					"name": "Get EOSIO Account",
 					"protocolProfileBehavior": {
 						"disableBodyPruning": true
 					},
@@ -3223,21 +3223,21 @@
 							}
 						},
 						"url": {
-							"raw": "{{host}}/api/seeds/GetEOSAccount",
+							"raw": "{{host}}/api/seeds/GetEOSIOAccount",
 							"host": [
 								"{{host}}"
 							],
 							"path": [
 								"api",
 								"seeds",
-								"GetEOSAccount"
+								"GetEOSIOAccount"
 							]
 						}
 					},
 					"response": []
 				},
 				{
-					"name": "Get Avatar Id For EOS Account Name",
+					"name": "Get Avatar Id For EOSIO Account Name",
 					"protocolProfileBehavior": {
 						"disableBodyPruning": true
 					},
@@ -3264,21 +3264,21 @@
 							}
 						},
 						"url": {
-							"raw": "{{host}}/api/seeds/GetAvatarIdForEOS AccountName",
+							"raw": "{{host}}/api/seeds/GetAvatarIdForEOSIOAccountName",
 							"host": [
 								"{{host}}"
 							],
 							"path": [
 								"api",
 								"seeds",
-								"GetAvatarIdForEOS AccountName"
+								"GetAvatarIdForEOSIOAccountName"
 							]
 						}
 					},
 					"response": []
 				},
 				{
-					"name": "Get Avatar For EOS Account Name",
+					"name": "Get Avatar For EOSIO Account Name",
 					"protocolProfileBehavior": {
 						"disableBodyPruning": true
 					},
@@ -3305,21 +3305,21 @@
 							}
 						},
 						"url": {
-							"raw": "{{host}}/api/seeds/GetAvatarForEOS AccountName",
+							"raw": "{{host}}/api/seeds/GetAvatarForEOSIOAccountName",
 							"host": [
 								"{{host}}"
 							],
 							"path": [
 								"api",
 								"seeds",
-								"GetAvatarForEOS AccountName"
+								"GetAvatarForEOSIOAccountName"
 							]
 						}
 					},
 					"response": []
 				},
 				{
-					"name": "Get Balance For EOS Account Name",
+					"name": "Get Balance For EOSIO Account Name",
 					"protocolProfileBehavior": {
 						"disableBodyPruning": true
 					},
@@ -3346,14 +3346,14 @@
 							}
 						},
 						"url": {
-							"raw": "{{host}}/api/seeds/GetBalanceForEOSAccount",
+							"raw": "{{host}}/api/seeds/GetBalanceForEOSIOAccount",
 							"host": [
 								"{{host}}"
 							],
 							"path": [
 								"api",
 								"seeds",
-								"GetBalanceForEOSAccount"
+								"GetBalanceForEOSIOAccount"
 							]
 						}
 					},

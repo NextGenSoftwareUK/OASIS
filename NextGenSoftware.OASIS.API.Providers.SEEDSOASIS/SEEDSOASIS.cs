@@ -57,7 +57,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS
 
                     else
                     {
-                        if (!ProviderManager.IsProviderRegistered(Core.Enums.ProviderType.EOSOASIS))
+                        if (!ProviderManager.IsProviderRegistered(Core.Enums.ProviderType.EOSIOOASIS))
                             throw new Exception("EOSIOOASIS Provider Not Registered. Please register and try again.");
                         else
                             throw new Exception("EOSIOOASIS Provider Is Registered But Was Not Injected Into SEEDSOASIS Provider.");
@@ -106,7 +106,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS
             // var currencyBalance = EOSIOOASIS.ChainAPI.GetCurrencyBalance(telosAccountName, "token.seeds", "SEEDS");
             //return currencyBalance.balances[0];
 
-            return EOSIOOASIS.GetBalanceForEOSAccount(telosAccountName, "token.seeds", "SEEDS");
+            return EOSIOOASIS.GetBalanceForEOSIOAccount(telosAccountName, "token.seeds", "SEEDS");
         }
 
         public string GetBalanceForAvatar(Guid avatarId)
@@ -193,7 +193,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS
             }
 
             if (!result.IsError && !string.IsNullOrEmpty(result.Result))
-                AddKarmaForSeeds(EOSIOOASIS.GetAvatarIdForEOSAccountName(fromTelosAccountName), KarmaTypePositive.PayWithSeeds, KarmaTypePositive.BeAHero, receivingKarmaFor, appWebsiteServiceName, appWebsiteServiceDesc, appWebsiteServiceLink);
+                AddKarmaForSeeds(EOSIOOASIS.GetAvatarIdForEOSIOAccountName(fromTelosAccountName), KarmaTypePositive.PayWithSeeds, KarmaTypePositive.BeAHero, receivingKarmaFor, appWebsiteServiceName, appWebsiteServiceDesc, appWebsiteServiceLink);
             else
             {
                 if (!result.IsError)
@@ -209,55 +209,55 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS
         public string PayWithSeedsUsingAvatar(Guid fromAvatarId, Guid toAvatarId, float quanitity, KarmaSourceType receivingKarmaFor, string appWebsiteServiceName, string appWebsiteServiceDesc, string appWebsiteServiceLink = null, string memo = null)
         {
             AddKarmaForSeeds(fromAvatarId, KarmaTypePositive.PayWithSeeds, KarmaTypePositive.BeAHero, receivingKarmaFor, appWebsiteServiceName, appWebsiteServiceDesc, appWebsiteServiceLink);
-            return PayWithSeeds(EOSIOOASIS.GetEOSAccountNameForAvatar(fromAvatarId), EOSIOOASIS.GetEOSAccountNameForAvatar(toAvatarId), quanitity, memo);
+            return PayWithSeeds(EOSIOOASIS.GetEOSIOAccountNameForAvatar(fromAvatarId), EOSIOOASIS.GetEOSIOAccountNameForAvatar(toAvatarId), quanitity, memo);
         }
 
         public string DonateWithSeedsUsingTelosAccount(string fromTelosAccountName, string toTelosAccountName, float quanitity, KarmaSourceType receivingKarmaFor, string appWebsiteServiceName, string appWebsiteServiceDesc, string appWebsiteServiceLink = null, string memo = null)
         {
-            AddKarmaForSeeds(EOSIOOASIS.GetAvatarIdForEOSAccountName(fromTelosAccountName), KarmaTypePositive.DonateWithSeeds, KarmaTypePositive.BeASuperHero, receivingKarmaFor, appWebsiteServiceName, appWebsiteServiceDesc, appWebsiteServiceLink);
+            AddKarmaForSeeds(EOSIOOASIS.GetAvatarIdForEOSIOAccountName(fromTelosAccountName), KarmaTypePositive.DonateWithSeeds, KarmaTypePositive.BeASuperHero, receivingKarmaFor, appWebsiteServiceName, appWebsiteServiceDesc, appWebsiteServiceLink);
             return PayWithSeeds(fromTelosAccountName, toTelosAccountName, quanitity, memo);
         }
 
         public string DonateWithSeedsUsingAvatar(Guid fromAvatarId, Guid toAvatarId, float quanitity, KarmaSourceType receivingKarmaFor, string appWebsiteServiceName, string appWebsiteServiceDesc, string appWebsiteServiceLink = null, string memo = null)
         {
             AddKarmaForSeeds(fromAvatarId, KarmaTypePositive.DonateWithSeeds, KarmaTypePositive.BeASuperHero, receivingKarmaFor, appWebsiteServiceName, appWebsiteServiceDesc, appWebsiteServiceLink);
-            return PayWithSeeds(EOSIOOASIS.GetEOSAccountNameForAvatar(fromAvatarId), EOSIOOASIS.GetEOSAccountNameForAvatar(toAvatarId), quanitity, memo);
+            return PayWithSeeds(EOSIOOASIS.GetEOSIOAccountNameForAvatar(fromAvatarId), EOSIOOASIS.GetEOSIOAccountNameForAvatar(toAvatarId), quanitity, memo);
         }
 
         public string RewardWithSeedsUsingTelosAccount(string fromTelosAccountName, string toTelosAccountName, float quanitity, KarmaSourceType receivingKarmaFor, string appWebsiteServiceName, string appWebsiteServiceDesc, string appWebsiteServiceLink = null, string memo = null)
         {
-            AddKarmaForSeeds(EOSIOOASIS.GetAvatarIdForEOSAccountName(fromTelosAccountName), KarmaTypePositive.RewardWithSeeds, KarmaTypePositive.BeASuperHero, receivingKarmaFor, appWebsiteServiceName, appWebsiteServiceDesc, appWebsiteServiceLink);
+            AddKarmaForSeeds(EOSIOOASIS.GetAvatarIdForEOSIOAccountName(fromTelosAccountName), KarmaTypePositive.RewardWithSeeds, KarmaTypePositive.BeASuperHero, receivingKarmaFor, appWebsiteServiceName, appWebsiteServiceDesc, appWebsiteServiceLink);
             return PayWithSeeds(fromTelosAccountName, toTelosAccountName, quanitity, memo);
         }
 
         public string RewardWithSeedsUsingAvatar(Guid fromAvatarId, Guid toAvatarId, float quanitity, KarmaSourceType receivingKarmaFor, string appWebsiteServiceName, string appWebsiteServiceDesc, string appWebsiteServiceLink = null, string memo = null)
         {
             AddKarmaForSeeds(fromAvatarId, KarmaTypePositive.RewardWithSeeds, KarmaTypePositive.BeAHero, receivingKarmaFor, appWebsiteServiceName, appWebsiteServiceDesc, appWebsiteServiceLink);
-            return PayWithSeeds(EOSIOOASIS.GetEOSAccountNameForAvatar(fromAvatarId), EOSIOOASIS.GetEOSAccountNameForAvatar(toAvatarId), quanitity, memo);
+            return PayWithSeeds(EOSIOOASIS.GetEOSIOAccountNameForAvatar(fromAvatarId), EOSIOOASIS.GetEOSIOAccountNameForAvatar(toAvatarId), quanitity, memo);
         }
 
         public SendInviteResult SendInviteToJoinSeedsUsingTelosAccount(string sponsorTelosAccountName, string referrerTelosAccountName, float transferQuantitiy, float sowQuantitiy, KarmaSourceType receivingKarmaFor, string appWebsiteServiceName, string appWebsiteServiceDesc, string appWebsiteServiceLink = null)
         {
-            AddKarmaForSeeds(EOSIOOASIS.GetAvatarIdForEOSAccountName(sponsorTelosAccountName), KarmaTypePositive.SendInviteToJoinSeeds, KarmaTypePositive.BeAHero, receivingKarmaFor, appWebsiteServiceName, appWebsiteServiceDesc, appWebsiteServiceLink);
+            AddKarmaForSeeds(EOSIOOASIS.GetAvatarIdForEOSIOAccountName(sponsorTelosAccountName), KarmaTypePositive.SendInviteToJoinSeeds, KarmaTypePositive.BeAHero, receivingKarmaFor, appWebsiteServiceName, appWebsiteServiceDesc, appWebsiteServiceLink);
             return SendInviteToJoinSeeds(sponsorTelosAccountName, referrerTelosAccountName, transferQuantitiy, sowQuantitiy);
         }
 
         public SendInviteResult SendInviteToJoinSeedsUsingAvatar(Guid sponsorAvatarId, Guid referrerAvatarId, float transferQuantitiy, float sowQuantitiy, KarmaSourceType receivingKarmaFor, string appWebsiteServiceName, string appWebsiteServiceDesc, string appWebsiteServiceLink = null)
         {
             AddKarmaForSeeds(sponsorAvatarId, KarmaTypePositive.SendInviteToJoinSeeds, KarmaTypePositive.BeAHero, receivingKarmaFor, appWebsiteServiceName, appWebsiteServiceDesc, appWebsiteServiceLink);
-            return SendInviteToJoinSeeds(EOSIOOASIS.GetEOSAccountNameForAvatar(sponsorAvatarId), EOSIOOASIS.GetEOSAccountNameForAvatar(referrerAvatarId), transferQuantitiy, sowQuantitiy);
+            return SendInviteToJoinSeeds(EOSIOOASIS.GetEOSIOAccountNameForAvatar(sponsorAvatarId), EOSIOOASIS.GetEOSIOAccountNameForAvatar(referrerAvatarId), transferQuantitiy, sowQuantitiy);
         }
 
         public string AcceptInviteToJoinSeedsUsingTelosAccount(string telosAccountName, string inviteSecret, KarmaSourceType receivingKarmaFor, string appWebsiteServiceName, string appWebsiteServiceDesc, string appWebsiteServiceLink = null)
         {
-            AddKarmaForSeeds(EOSIOOASIS.GetAvatarIdForEOSAccountName(telosAccountName), KarmaTypePositive.AcceptInviteToJoinSeeds, KarmaTypePositive.BeAHero, receivingKarmaFor, appWebsiteServiceName, appWebsiteServiceDesc, appWebsiteServiceLink);
+            AddKarmaForSeeds(EOSIOOASIS.GetAvatarIdForEOSIOAccountName(telosAccountName), KarmaTypePositive.AcceptInviteToJoinSeeds, KarmaTypePositive.BeAHero, receivingKarmaFor, appWebsiteServiceName, appWebsiteServiceDesc, appWebsiteServiceLink);
             return AcceptInviteToJoinSeeds(telosAccountName, inviteSecret);
         }
 
         public string AcceptInviteToJoinSeedsUsingAvatar(Guid avatarId, string inviteSecret, KarmaSourceType receivingKarmaFor, string appWebsiteServiceName, string appWebsiteServiceDesc, string appWebsiteServiceLink = null)
         {
             AddKarmaForSeeds(avatarId, KarmaTypePositive.AcceptInviteToJoinSeeds, KarmaTypePositive.BeAHero, receivingKarmaFor, appWebsiteServiceName, appWebsiteServiceDesc, appWebsiteServiceLink);
-            return AcceptInviteToJoinSeeds(EOSIOOASIS.GetEOSAccountNameForAvatar(avatarId), inviteSecret);
+            return AcceptInviteToJoinSeeds(EOSIOOASIS.GetEOSIOAccountNameForAvatar(avatarId), inviteSecret);
         }
 
         public string GenerateSignInQRCode(string telosAccountName)
@@ -268,7 +268,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS
 
         public string GenerateSignInQRCodeForAvatar(Guid avatarId)
         {
-            return GenerateSignInQRCode(EOSIOOASIS.GetEOSAccountNameForAvatar(avatarId));
+            return GenerateSignInQRCode(EOSIOOASIS.GetEOSIOAccountNameForAvatar(avatarId));
         }
 
         private string PayWithSeeds(string fromTelosAccountName, string toTelosAccountName, float quanitity, string memo)

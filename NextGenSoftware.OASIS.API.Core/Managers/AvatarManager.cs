@@ -341,7 +341,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         public IAvatar LinkEOSAccountToAvatar(Guid avatarId, string EOSAccountName, ProviderType provider = ProviderType.Default)
         {
             IAvatar avatar = ProviderManager.SetAndActivateCurrentStorageProvider(provider).LoadAvatar(avatarId);
-            avatar.ProviderKey[ProviderType.EOSOASIS] = EOSAccountName;
+            avatar.ProviderKey[ProviderType.EOSIOOASIS] = EOSAccountName;
             avatar = avatar.Save();
             return avatar;
         }

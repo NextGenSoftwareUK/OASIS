@@ -16,10 +16,10 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
     public class EOSIOOASIS : OASISStorageBase, IOASISStorage, IOASISNET, IOASISSuperStar
     {
         // Lookup Cache. TODO: Move to generic CacheManager in OASIS.API.Core, maybe also in ProviderManager so other providers can also share the cache.
-        private static Dictionary<Guid, string> _avatarIdToEOSAccountNameLookup = new Dictionary<Guid, string>();
-        private static Dictionary<Guid, Account> _avatarIdToEOSAccountLookup = new Dictionary<Guid, Account>();
-        private static Dictionary<string, Guid> _eosAccountNameToAvatarIdLookup = new Dictionary<string, Guid>();
-        private static Dictionary<string, IAvatar> _eosAccountNameToAvatarLookup = new Dictionary<string, IAvatar>();
+        private static Dictionary<Guid, string> _avatarIdToEOSIOAccountNameLookup = new Dictionary<Guid, string>();
+        private static Dictionary<Guid, Account> _avatarIdToEOSIOAccountLookup = new Dictionary<Guid, Account>();
+        private static Dictionary<string, Guid> _eosioAccountNameToAvatarIdLookup = new Dictionary<string, Guid>();
+        private static Dictionary<string, IAvatar> _eosioAccountNameToAvatarLookup = new Dictionary<string, IAvatar>();
         private AvatarManager _avatarManager = null;
 
         public const string OASIS_EOSIO_ACCOUNT = "oasis";
@@ -43,7 +43,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
         {
             this.ProviderName = "EOSIOOASIS";
             this.ProviderDescription = "EOSIO Provider";
-            this.ProviderType = new Core.Helpers.EnumValue<ProviderType>(Core.Enums.ProviderType.EOSOASIS);
+            this.ProviderType = new Core.Helpers.EnumValue<ProviderType>(Core.Enums.ProviderType.EOSIOOASIS);
             this.ProviderCategory = new Core.Helpers.EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
 
             ChainAPI = new ChainAPI(host);
@@ -252,7 +252,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
                     {
                         userid = Avatar.Id.ToString(),
                         eosio_acc = Avatar.Username,
-                        providerkey = Avatar.ProviderKey[Core.Enums.ProviderType.EOSOASIS],
+                        providerkey = Avatar.ProviderKey[Core.Enums.ProviderType.EOSIOOASIS],
                         password = StringCipher.Encrypt(Avatar.Password, OASIS_PASS_PHRASE),
                         email = Avatar.Email,
                         title = Avatar.Title,
@@ -296,19 +296,19 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
         }
 
 
-        public async Task<Account> GetEOSAccountAsync(string eosAccountName)
+        public async Task<Account> GetEOSIOAccountAsync(string eosioAccountName)
         {
-            var account = await ChainAPI.GetAccountAsync(eosAccountName);
+            var account = await ChainAPI.GetAccountAsync(eosioAccountName);
             return account;
         }
 
-        public Account GetEOSAccount(string eosAccountName)
+        public Account GetEOSIOAccount(string eosioAccountName)
         {
-            var account = ChainAPI.GetAccount(eosAccountName);
+            var account = ChainAPI.GetAccount(eosioAccountName);
             return account;
         }
 
-        public async Task<string> GetBalanceAsync(string eosAccountName, string code, string symbol)
+        public async Task<string> GetBalanceAsync(string eosioAccountName, string code, string symbol)
         {
             //https://github.com/JoinSEEDS/seeds-smart-contracts/blob/master/scripts/balancecheck.js
             //eos.getCurrencyBalance("token.seeds", account, 'SEEDS')
@@ -318,55 +318,54 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             //Console.WriteLine(accountBalance[0].symbol);
 
             //var currencyBalance = await _eosioOaisis.ChainAPI.GetCurrencyBalanceAsync(eosAccountName, "seeds.seeds", "SEEDS");
-            var currencyBalance = await ChainAPI.GetCurrencyBalanceAsync(eosAccountName, code, symbol);
+            var currencyBalance = await ChainAPI.GetCurrencyBalanceAsync(eosioAccountName, code, symbol);
             return currencyBalance.balances[0];
         }
 
-        public string GetBalanceForEOSAccount(string eosAccountName, string code, string symbol)
+        public string GetBalanceForEOSIOAccount(string eosioAccountName, string code, string symbol)
         {
             //https://github.com/JoinSEEDS/seeds-smart-contracts/blob/master/scripts/balancecheck.js
             //eos.getCurrencyBalance("token.seeds", account, 'SEEDS')
 
-            var currencyBalance = ChainAPI.GetCurrencyBalance(eosAccountName, code, symbol);
+            var currencyBalance = ChainAPI.GetCurrencyBalance(eosioAccountName, code, symbol);
             return currencyBalance.balances[0];
         }
 
         public string GetBalanceForAvatar(Guid avatarId, string code, string symbol)
         {
-            return GetBalanceForEOSAccount(GetEOSAccountNameForAvatar(avatarId), code, symbol);
+            return GetBalanceForEOSIOAccount(GetEOSIOAccountNameForAvatar(avatarId), code, symbol);
         }
 
-        public string GetEOSAccountNameForAvatar(Guid avatarId)
+        public string GetEOSIOAccountNameForAvatar(Guid avatarId)
         {
-            if (!_avatarIdToEOSAccountNameLookup.ContainsKey(avatarId))
-                _avatarIdToEOSAccountNameLookup[avatarId] = AvatarManagerInstance.LoadAvatar(avatarId).ProviderKey[Core.Enums.ProviderType.EOSOASIS];
+            if (!_avatarIdToEOSIOAccountNameLookup.ContainsKey(avatarId))
+                _avatarIdToEOSIOAccountNameLookup[avatarId] = AvatarManagerInstance.LoadAvatar(avatarId).ProviderKey[Core.Enums.ProviderType.EOSIOOASIS];
 
-            return _avatarIdToEOSAccountNameLookup[avatarId];
+            return _avatarIdToEOSIOAccountNameLookup[avatarId];
         }
 
-        public Account GetEOSAccountForAvatar(Guid avatarId)
+        public Account GetEOSIOAccountForAvatar(Guid avatarId)
         {
-            if (!_avatarIdToEOSAccountLookup.ContainsKey(avatarId))
-                _avatarIdToEOSAccountLookup[avatarId] = GetEOSAccount(GetEOSAccountNameForAvatar(avatarId));
+            if (!_avatarIdToEOSIOAccountLookup.ContainsKey(avatarId))
+                _avatarIdToEOSIOAccountLookup[avatarId] = GetEOSIOAccount(GetEOSIOAccountNameForAvatar(avatarId));
 
-            return _avatarIdToEOSAccountLookup[avatarId];
+            return _avatarIdToEOSIOAccountLookup[avatarId];
         }
 
-        public Guid GetAvatarIdForEOSAccountName(string eosAccountName)
+        public Guid GetAvatarIdForEOSIOAccountName(string eosioAccountName)
         {
-            if (!_eosAccountNameToAvatarIdLookup.ContainsKey(eosAccountName))
-                _eosAccountNameToAvatarIdLookup[eosAccountName] = AvatarManagerInstance.LoadAllAvatars().FirstOrDefault(x => x.ProviderKey[Core.Enums.ProviderType.EOSOASIS] == eosAccountName).Id;
+            if (!_eosioAccountNameToAvatarIdLookup.ContainsKey(eosioAccountName))
+                _eosioAccountNameToAvatarIdLookup[eosioAccountName] = AvatarManagerInstance.LoadAllAvatars().FirstOrDefault(x => x.ProviderKey[Core.Enums.ProviderType.EOSIOOASIS] == eosioAccountName).Id;
 
-            return _eosAccountNameToAvatarIdLookup[eosAccountName];
+            return _eosioAccountNameToAvatarIdLookup[eosioAccountName];
         }
 
-        public IAvatar GetAvatarForEOSAccountName(string eosAccountName)
+        public IAvatar GetAvatarForEOSIOAccountName(string eosioAccountName)
         {
-            if (!_eosAccountNameToAvatarLookup.ContainsKey(eosAccountName))
-                _eosAccountNameToAvatarLookup[eosAccountName] = AvatarManagerInstance.LoadAllAvatars().FirstOrDefault(x => x.ProviderKey[Core.Enums.ProviderType.EOSOASIS] == eosAccountName);
+            if (!_eosioAccountNameToAvatarLookup.ContainsKey(eosioAccountName))
+                _eosioAccountNameToAvatarLookup[eosioAccountName] = AvatarManagerInstance.LoadAllAvatars().FirstOrDefault(x => x.ProviderKey[Core.Enums.ProviderType.EOSIOOASIS] == eosioAccountName);
 
-            return _eosAccountNameToAvatarLookup[eosAccountName];
+            return _eosioAccountNameToAvatarLookup[eosioAccountName];
         }
-
     }
 }
