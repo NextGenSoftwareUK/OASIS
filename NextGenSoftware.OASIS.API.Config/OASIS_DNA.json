@@ -22,7 +22,7 @@
         "HolochainVersion": "Redux" //Can be Redux or RSM.
       },
       "MongoDBOASIS": {
-        "ConnectionString": "",
+        "ConnectionString": "bbbb",
         "DBName": "OASISAPI"
       },
       "SQLLiteDBOASIS": {

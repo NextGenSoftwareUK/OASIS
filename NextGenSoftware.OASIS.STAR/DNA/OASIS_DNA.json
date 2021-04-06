@@ -18,7 +18,8 @@
     "StorageProviders": {
       "DefaultProviders": "MongoDBOASIS, SQLLiteDBOASIS, Neo4JOASIS, IPFSOASIS, HoloOASIS, EOSIOOASIS, EthereumOASIS, ThreeFoldOASIS",
       "HoloOASIS": {
-        "ConnectionString": "ws://localhost:8888"
+        "ConnectionString": "ws://localhost:8888",
+        "HolochainVersion": "Redux" //Can be Redux or RSM.
       },
       "MongoDBOASIS": {
         "ConnectionString": "",
