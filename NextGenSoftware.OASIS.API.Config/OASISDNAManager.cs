@@ -14,7 +14,7 @@ using NextGenSoftware.OASIS.API.Providers.Neo4jOASIS;
 using System.Collections.Generic;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 
-namespace NextGenSoftware.OASIS.API.Config
+namespace NextGenSoftware.OASIS.API.DNA
 {
     public static class OASISDNAManager 
     {

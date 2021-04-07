@@ -2,9 +2,6 @@
 using System.Collections.Generic;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Options;
-
-using NextGenSoftware.OASIS.API.Config;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
@@ -673,16 +670,16 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         }
 
         /// <summary>
-        /// Link's a given eosAccountName to the given avatar.
+        /// Link's a given eosioAccountName to the given avatar.
         /// </summary>
         /// <param name="avatarId">The id of the avatar.</param>
-        /// <param name="eosAccountName"></param>
+        /// <param name="eosioAccountName"></param>
         /// <returns></returns>
         [Authorize]
-        [HttpPost("{avatarId}/{eosAccountName}")]
-        public IActionResult LinkEOSAccountToAvatar(Guid avatarId, string eosAccountName)
+        [HttpPost("{avatarId}/{eosioAccountName}")]
+        public IActionResult LinkEOSIOAccountToAvatar(Guid avatarId, string eosioAccountName)
         {
-            return Ok(AvatarManager.LinkEOSAccountToAvatar(avatarId, eosAccountName));
+            return Ok(AvatarManager.LinkEOSIOAccountToAvatar(avatarId, eosioAccountName));
         }
 
         private void setTokenCookie(string token)
