@@ -1,15 +1,13 @@
 ﻿using Newtonsoft.Json;
 using NextGenSoftware.Holochain.HoloNET.Client.Core;
-using NextGenSoftware.OASIS.API.Config;
-using NextGenSoftware.OASIS.API.Core;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Events;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Objects;
+using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.API.OASISAPIManager;
-using NextGenSoftware.OASIS.API.Providers.SEEDSOASIS;
 using System;
 using System.Collections.Generic;
 using System.IO;

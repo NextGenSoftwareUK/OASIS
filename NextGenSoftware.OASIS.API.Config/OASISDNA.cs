@@ -1,7 +1,7 @@
 ﻿
 using NextGenSoftware.Holochain.HoloNET.Client.Core;
 
-namespace NextGenSoftware.OASIS.API.Config
+namespace NextGenSoftware.OASIS.API.DNA
 {
     public class OASISDNA
     {

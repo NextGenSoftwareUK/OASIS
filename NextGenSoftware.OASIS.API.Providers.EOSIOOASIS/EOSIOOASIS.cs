@@ -10,6 +10,7 @@ using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.EOSIOClasses;
 using EOSNewYork.EOSCore.Response.API;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using System.Linq;
+using NextGenSoftware.OASIS.API.Core.Holons;
 
 namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
 {
@@ -33,7 +34,8 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             get
             {
                 if (_avatarManager == null)
-                     _avatarManager = new AvatarManager(this);
+                    _avatarManager = new AvatarManager(ProviderManager.GetStorageProvider(Core.Enums.ProviderType.MongoDBOASIS));
+                    //_avatarManager = new AvatarManager(this); // TODO: URGENT: PUT THIS BACK IN ASAP! TEMP USING MONGO UNTIL EOSIO METHODS IMPLEMENTED...
 
                 return _avatarManager;
             }
@@ -339,7 +341,19 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
         public string GetEOSIOAccountNameForAvatar(Guid avatarId)
         {
             if (!_avatarIdToEOSIOAccountNameLookup.ContainsKey(avatarId))
-                _avatarIdToEOSIOAccountNameLookup[avatarId] = AvatarManagerInstance.LoadAvatar(avatarId).ProviderKey[Core.Enums.ProviderType.EOSIOOASIS];
+            {
+                IAvatar avatar = AvatarManagerInstance.LoadAvatar(avatarId);
+
+                if (avatar != null)
+                {
+                    if (avatar.ProviderKey.ContainsKey(Core.Enums.ProviderType.EOSIOOASIS))
+                        _avatarIdToEOSIOAccountNameLookup[avatarId] = avatar.ProviderKey[Core.Enums.ProviderType.EOSIOOASIS];
+                    else
+                        throw new InvalidOperationException(string.Concat("The avatar with id ", avatarId, " has not been linked to a EOSIO account. Please use the LinkEOSIOAccountToAvatar method on the AvatarManager or avatar REST API."));
+                }
+                else
+                    throw new InvalidOperationException(string.Concat("The avatar with id ", avatarId, " was not found."));
+            }
 
             return _avatarIdToEOSIOAccountNameLookup[avatarId];
         }
@@ -354,8 +368,10 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
 
         public Guid GetAvatarIdForEOSIOAccountName(string eosioAccountName)
         {
+            // TODO: Do we need to store both the id and whole avatar in the cache? Think only need one? Just storing the id would use less memory and be faster but there may be use cases for when we need the whole avatar?
+            // In future, if there is not a use case for the whole avatar we will just use the id cache and remove the other.
             if (!_eosioAccountNameToAvatarIdLookup.ContainsKey(eosioAccountName))
-                _eosioAccountNameToAvatarIdLookup[eosioAccountName] = AvatarManagerInstance.LoadAllAvatars().FirstOrDefault(x => x.ProviderKey[Core.Enums.ProviderType.EOSIOOASIS] == eosioAccountName).Id;
+                _eosioAccountNameToAvatarIdLookup[eosioAccountName] = GetAvatarForEOSIOAccountName(eosioAccountName).Id;       
 
             return _eosioAccountNameToAvatarIdLookup[eosioAccountName];
         }
@@ -363,7 +379,14 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
         public IAvatar GetAvatarForEOSIOAccountName(string eosioAccountName)
         {
             if (!_eosioAccountNameToAvatarLookup.ContainsKey(eosioAccountName))
-                _eosioAccountNameToAvatarLookup[eosioAccountName] = AvatarManagerInstance.LoadAllAvatars().FirstOrDefault(x => x.ProviderKey[Core.Enums.ProviderType.EOSIOOASIS] == eosioAccountName);
+            {
+                IAvatar avatar = AvatarManagerInstance.LoadAllAvatars().FirstOrDefault(x => x.ProviderKey.ContainsKey(Core.Enums.ProviderType.EOSIOOASIS) && x.ProviderKey[Core.Enums.ProviderType.EOSIOOASIS] == eosioAccountName);
+
+                if (avatar != null)
+                    _eosioAccountNameToAvatarIdLookup[eosioAccountName] = avatar.Id;
+                else
+                    throw new InvalidOperationException(string.Concat("The EOSIO account ", eosioAccountName, " has not been linked to an avatar. Please use the LinkEOSIOAccountToAvatar method on the AvatarManager or avatar REST API."));
+            }
 
             return _eosioAccountNameToAvatarLookup[eosioAccountName];
         }

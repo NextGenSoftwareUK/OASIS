@@ -227,10 +227,17 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         // Called from Managers.
         public static IOASISStorage SetAndActivateCurrentStorageProvider(ProviderType providerType)
         {
+            IOASISStorage storgageProvider = null;
+
             if (providerType == ProviderType.Default)
-                return SetAndActivateCurrentStorageProvider();
+                storgageProvider = SetAndActivateCurrentStorageProvider();
             else
-                return SetAndActivateCurrentStorageProvider(providerType, false);
+                storgageProvider = SetAndActivateCurrentStorageProvider(providerType, false);
+
+            if (storgageProvider != null)
+                return storgageProvider;
+            else
+                throw new InvalidOperationException(string.Concat("ERROR: The ", Enum.GetName(providerType), " provider is not registered. Please register it before calling this method."));
         }
 
         //TODO: Called internally (make private ?)
@@ -242,7 +249,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
             // Otherwise set to default provider (configured in appSettings.json) if the provider has not been overiden in the REST call.
             //else if (!OverrideProviderType && DefaultProviderTypes != null && CurrentStorageProviderType.Value != (ProviderType)Enum.Parse(typeof(ProviderType), DefaultProviderTypes[0]))
-            else if (!OverrideProviderType && CurrentStorageProviderType.Value != _providerAutoFailOverList[0].Value) // TODO: Come back to this, not sure we should be setting the first entry every time? Needs thinking and testing through! ;-)
+            else if (!OverrideProviderType && _providerAutoFailOverList.Count > 0 && CurrentStorageProviderType.Value != _providerAutoFailOverList[0].Value) // TODO: Come back to this, not sure we should be setting the first entry every time? Needs thinking and testing through! ;-)
                 return SetAndActivateCurrentStorageProvider(ProviderType.Default, false);
 
             if (!_setProviderGlobally)
@@ -276,7 +283,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
             // TODO: Need to get this to use the next provider in the list if there is an issue with the first/current provider...
             // This is automatically handled in the Managers (AvatarManager, HolonManager, etc) whenever a provider throws an exception, it will try the next provider in the list... :)
-            if (providerType == ProviderType.Default && !OverrideProviderType)
+            if (providerType == ProviderType.Default && !OverrideProviderType && _providerAutoFailOverList.Count > 0)
                 providerType = _providerAutoFailOverList[0].Value;
                 //providerType = (ProviderType)Enum.Parse(typeof(ProviderType), DefaultProviderTypes[0]);
 

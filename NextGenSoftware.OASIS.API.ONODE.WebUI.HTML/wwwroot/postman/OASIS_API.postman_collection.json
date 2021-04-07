@@ -516,7 +516,7 @@
 					"response": []
 				},
 				{
-					"name": "Link EOS Account To Avatar",
+					"name": "Link EOSIO Account To Avatar",
 					"request": {
 						"auth": {
 							"type": "bearer",
@@ -540,14 +540,14 @@
 							}
 						},
 						"url": {
-							"raw": "{{host}}/api/avatar/LinkEOSAccountToAvatar",
+							"raw": "{{host}}/api/avatar/LinkEOSIOAccountToAvatar",
 							"host": [
 								"{{host}}"
 							],
 							"path": [
 								"api",
 								"avatar",
-								"LinkEOSAccountToAvatar"
+								"LinkEOSIOAccountToAvatar"
 							]
 						}
 					},
@@ -3401,7 +3401,7 @@
 					"response": []
 				},
 				{
-					"name": "Link EOS Account To Avatar",
+					"name": "Link EOSIO Account To Avatar",
 					"request": {
 						"auth": {
 							"type": "bearer",
@@ -3425,14 +3425,14 @@
 							}
 						},
 						"url": {
-							"raw": "{{host}}/api/avatar/LinkEOSAccountToAvatar",
+							"raw": "{{host}}/api/avatar/LinkEOSIOAccountToAvatar",
 							"host": [
 								"{{host}}"
 							],
 							"path": [
 								"api",
 								"avatar",
-								"LinkEOSAccountToAvatar"
+								"LinkEOSIOAccountToAvatar"
 							]
 						}
 					},
