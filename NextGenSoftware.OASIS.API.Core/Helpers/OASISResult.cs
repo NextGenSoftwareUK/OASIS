@@ -1,18 +1,18 @@
 ﻿
 namespace NextGenSoftware.OASIS.API.Core.Helpers
 {
-    public class ManagerResult<T>
+    public class OASISResult<T>
     {
         public bool IsError { get; set; }
         public string ErrorMessage { get; set; }
         public T Result { get; set; }
 
-        public ManagerResult()
+        public OASISResult()
         {
 
         }
 
-        public ManagerResult(T value)
+        public OASISResult(T value)
         {
             Result = value;
         }

@@ -1,10 +1,9 @@
-﻿
-using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
-using NextGenSoftware.OASIS.API.Config;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.DNA;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 {
@@ -47,12 +46,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 
         protected IOASISStorage GetAndActivateProvider()
         {
-            return OASISConfigManager.GetAndActivateProvider();
+            return OASISDNAManager.GetAndActivateProvider();
         }
 
         protected IOASISStorage GetAndActivateProvider(ProviderType providerType, bool setGlobally = false)
         {
-            return OASISConfigManager.GetAndActivateProvider(providerType, setGlobally);
+            return OASISDNAManager.GetAndActivateProvider(providerType, setGlobally);
         }
     }
 }

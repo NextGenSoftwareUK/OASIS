@@ -1,19 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-
-using NextGenSoftware.OASIS.API.Config;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Events;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Managers;
+using NextGenSoftware.OASIS.API.DNA;
 
 namespace NextGenSoftware.OASIS.STAR
 {
     //public abstract class ZomeBase: Holon, IZome
     public abstract class ZomeBase : Holon, IZomeBase
     {
-        private HolonManager _holonManager = new HolonManager(OASISConfigManager.GetAndActivateProvider());
+        private HolonManager _holonManager = new HolonManager(OASISDNAManager.GetAndActivateProvider());
         public List<Holon> _holons = new List<Holon>();
 
         public List<Holon> Holons

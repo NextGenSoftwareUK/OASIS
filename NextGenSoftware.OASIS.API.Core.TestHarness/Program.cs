@@ -1,11 +1,11 @@
-﻿using NextGenSoftware.OASIS.API.Providers.HoloOASIS.Desktop;
-using System;
-using System.Collections.Generic;
+﻿using System;
 using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core.Events;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.OASISAPIManager;
+using NextGenSoftware.OASIS.API.DNA;
 
 namespace NextGenSoftware.OASIS.API.Core.TestHarness
 {
@@ -13,10 +13,20 @@ namespace NextGenSoftware.OASIS.API.Core.TestHarness
     {
         static async Task Main(string[] args)
         {
-            Console.WriteLine("NextGenSoftware.OASIS.API.Core Test Harness v1.0");
+            Console.WriteLine("NextGenSoftware.OASIS.API.Core Test Harness v1.1");
             Console.WriteLine("");
 
-            OASISAPIManager.OASISAPIManager.Init(new List<IOASISProvider> { new HoloOASIS("ws://localhost:8888", Holochain.HoloNET.Client.Core.HolochainVersion.Redux) });
+            //By default the OASISConfigManager will load the settings from OASIS_DNA.json in the current working dir but you can override using below:
+         //   OASISConfigManager.OASISDNAFileName = "OASIS_DNA_Override.json";
+
+            // Will initialize the default OASIS Provider defined OASIS_DNA config file.
+            //OASISConfigManager.GetAndActivateProvider();
+
+            //Init with the Holochain Provider.
+            OASISDNAManager.GetAndActivateProvider(ProviderType.HoloOASIS, true);
+            OASISAPI.Init(InitOptions.InitWithCurrentDefaultProvider, OASISDNAManager.OASISDNA);
+            //OASISAPI.Init(new List<IOASISProvider> { new HoloOASIS("ws://localhost:8888", Holochain.HoloNET.Client.Core.HolochainVersion.Redux) }, OASISConfigManager.OASISDNA);
+            //OASISAPI.Init(InitOptions.InitWithAllProviders, OASISConfigManager.OASISDNA);
             
             //AvatarManager AvatarManager = new AvatarManager(new HoloOASIS("ws://localhost:8888"));
             //AvatarManager.OnAvatarManagerError += AvatarManager_OnAvatarManagerError;
@@ -29,7 +39,7 @@ namespace NextGenSoftware.OASIS.API.Core.TestHarness
             
             
             await newAvatar.KarmaEarntAsync(KarmaTypePositive.HelpingTheEnvironment, KarmaSourceType.hApp, "Our World", "XR Educational Game To Make The World A Better Place");
-            Avatar savedAvatar = (Avatar)await OASISAPIManager.OASISAPIManager.AvatarManager.SaveAvatarAsync(newAvatar);
+            Avatar savedAvatar = (Avatar)await OASISAPI.Avatar.SaveAvatarAsync(newAvatar);
             //IAvatar savedAvatar = await AvatarManager.SaveAvatarAsync(newAvatar);
 
             if (savedAvatar != null)
@@ -50,7 +60,7 @@ namespace NextGenSoftware.OASIS.API.Core.TestHarness
 
             Console.WriteLine("\nLoading Avatar...");
             //IAvatar Avatar = await AvatarManager.LoadAvatarAsync("dellams", "1234");
-            IAvatar Avatar = await OASISAPIManager.OASISAPIManager.AvatarManager.LoadAvatarAsync("QmR6A1gkSmCsxnbDF7V9Eswnd4Kw9SWhuf8r4R643eDshg");
+            IAvatar Avatar = await OASISAPI.Avatar.LoadAvatarAsync("QmR6A1gkSmCsxnbDF7V9Eswnd4Kw9SWhuf8r4R643eDshg");
 
             if (Avatar != null)
             {

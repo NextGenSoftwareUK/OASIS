@@ -1,7 +1,8 @@
 ﻿
-namespace NextGenSoftware.OASIS.API.Config
+using NextGenSoftware.Holochain.HoloNET.Client.Core;
+
+namespace NextGenSoftware.OASIS.API.DNA
 {
-    //public class OASISSettings
     public class OASISDNA
     {
         public OASIS OASIS { get; set; }
@@ -20,10 +21,14 @@ namespace NextGenSoftware.OASIS.API.Config
 
     public class StorageProviderSettings
     {
-        public string DefaultProviders { get; set; }
+      //  public string DefaultProviders { get; set; }
+        public string AutoReplicationProviders { get; set; }
+        public string AutoFailOverProviders { get; set; }
+        public string AutoLoadBalanceProviders { get; set; }
         public HoloOASISProviderSettings HoloOASIS { get; set; }
         public MongoDBOASISProviderSettings MongoDBOASIS { get; set; }
         public EOSIOASISProviderSettings EOSIOOASIS { get; set; }
+        public SEEDSOASISProviderSettings SEEDSOASIS { get; set; }
         public ThreeFoldOASISProviderSettings ThreeFoldOASIS { get; set; }
         public EthereumOASISProviderSettings EthereumOASIS { get; set; }
         public SQLLiteDBOASISSettings SQLLiteDBOASIS { get; set; }
@@ -47,6 +52,8 @@ namespace NextGenSoftware.OASIS.API.Config
 
     public class HoloOASISProviderSettings : ProviderSettingsBase
     {
+        //public string HolochainVersion { get; set; }
+        public HolochainVersion HolochainVersion { get; set; }
     }
 
     public class MongoDBOASISProviderSettings : ProviderSettingsBase
@@ -55,6 +62,10 @@ namespace NextGenSoftware.OASIS.API.Config
     }
 
     public class EOSIOASISProviderSettings : ProviderSettingsBase
+    {
+    }
+
+    public class SEEDSOASISProviderSettings : ProviderSettingsBase
     {
     }
 

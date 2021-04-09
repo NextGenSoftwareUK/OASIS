@@ -278,13 +278,13 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return await ProviderManager.CurrentStorageProvider.AddKarmaToAvatarAsync(avatar, karmaType, karmaSourceType, karamSourceTitle, karmaSourceDesc, karmaSourceWebLink);
         }
 
-        public ManagerResult<KarmaAkashicRecord> AddKarmaToAvatar(IAvatar Avatar, KarmaTypePositive karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc, string karmaSourceWebLink = null, ProviderType provider = ProviderType.Default)
+        public OASISResult<KarmaAkashicRecord> AddKarmaToAvatar(IAvatar Avatar, KarmaTypePositive karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc, string karmaSourceWebLink = null, ProviderType provider = ProviderType.Default)
         {
-            return new ManagerResult<KarmaAkashicRecord>(ProviderManager.SetAndActivateCurrentStorageProvider(provider).AddKarmaToAvatar(Avatar, karmaType, karmaSourceType, karamSourceTitle, karmaSourceDesc, karmaSourceWebLink));
+            return new OASISResult<KarmaAkashicRecord>(ProviderManager.SetAndActivateCurrentStorageProvider(provider).AddKarmaToAvatar(Avatar, karmaType, karmaSourceType, karamSourceTitle, karmaSourceDesc, karmaSourceWebLink));
         }
-        public ManagerResult<KarmaAkashicRecord> AddKarmaToAvatar(Guid avatarId, KarmaTypePositive karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc, string karmaSourceWebLink = null, ProviderType provider = ProviderType.Default)
+        public OASISResult<KarmaAkashicRecord> AddKarmaToAvatar(Guid avatarId, KarmaTypePositive karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc, string karmaSourceWebLink = null, ProviderType provider = ProviderType.Default)
         {
-            ManagerResult<KarmaAkashicRecord> result = new ManagerResult<KarmaAkashicRecord>();
+            OASISResult<KarmaAkashicRecord> result = new OASISResult<KarmaAkashicRecord>();
             IAvatar avatar = ProviderManager.SetAndActivateCurrentStorageProvider(provider).LoadAvatar(avatarId);
             
             if (avatar != null)
@@ -314,9 +314,9 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return ProviderManager.SetAndActivateCurrentStorageProvider(provider).RemoveKarmaFromAvatar(Avatar, karmaType, karmaSourceType, karamSourceTitle, karmaSourceDesc, karmaSourceWebLink);
         }
 
-        public ManagerResult<KarmaAkashicRecord> RemoveKarmaFromAvatar(Guid avatarId, KarmaTypeNegative karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc, string karmaSourceWebLink = null, ProviderType provider = ProviderType.Default)
+        public OASISResult<KarmaAkashicRecord> RemoveKarmaFromAvatar(Guid avatarId, KarmaTypeNegative karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc, string karmaSourceWebLink = null, ProviderType provider = ProviderType.Default)
         {
-            ManagerResult<KarmaAkashicRecord> result = new ManagerResult<KarmaAkashicRecord>();
+            OASISResult<KarmaAkashicRecord> result = new OASISResult<KarmaAkashicRecord>();
             IAvatar avatar = ProviderManager.SetAndActivateCurrentStorageProvider(provider).LoadAvatar(avatarId);
 
             if (avatar != null)
@@ -338,14 +338,13 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return avatar;
         }
 
-        public IAvatar LinkEOSAccountToAvatar(Guid avatarId, string EOSAccountName, ProviderType provider = ProviderType.Default)
+        public IAvatar LinkEOSIOAccountToAvatar(Guid avatarId, string EOSIOAccountName, ProviderType provider = ProviderType.Default)
         {
             IAvatar avatar = ProviderManager.SetAndActivateCurrentStorageProvider(provider).LoadAvatar(avatarId);
-            avatar.ProviderKey[ProviderType.EOSOASIS] = EOSAccountName;
+            avatar.ProviderKey[ProviderType.EOSIOOASIS] = EOSIOAccountName;
             avatar = avatar.Save();
             return avatar;
         }
-
 
         private IAvatar PrepareAvatarForSaving(IAvatar avatar)
         {

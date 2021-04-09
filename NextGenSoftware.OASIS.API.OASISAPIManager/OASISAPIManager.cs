@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
-using NextGenSoftware.OASIS.API.Config;
 using NextGenSoftware.OASIS.API.Core.Apollo.Server;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Managers;
+using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.API.Providers.AcitvityPubOASIS;
 using NextGenSoftware.OASIS.API.Providers.BlockStackOASIS;
 using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS;
@@ -65,8 +65,10 @@ namespace NextGenSoftware.OASIS.API.OASISAPIManager
             Providers.ThreeFold = new ThreeFoldOASIS();
             Providers.ActivityPub = new AcitvityPubOASIS();
 
-            //TODO: Add SEEDS ConnectionString to OASIS.DNA ASAP! Then can pass it through constructor below along with EOS Provider (2 params)
-            Providers.SEEDS = new SEEDSOASIS(Providers.EOSIO); //TODO: May need to find way to pass custom EOS connectionstring into here.
+            // We could re-use the EOSIOOASIS Provider but it could have a different connection string to SEEDSOASIS so they need to be seperate.
+            // TODO: The only other way is to share it and have to keep disconnecting and re-connecting with the different connections (SEEDS or EOSIO may even work with any EOSIO node end point? NEED TO TEST... if so then we can use the commented out line below).
+            //Providers.SEEDS = new SEEDSOASIS(Providers.EOSIO); 
+            Providers.SEEDS = new SEEDSOASIS(new EOSIOOASIS(OASISDNA.OASIS.StorageProviders.SEEDSOASIS.ConnectionString));
 
             ProviderManager.RegisterProvider(Providers.IPFS);
             ProviderManager.RegisterProvider(Providers.EOSIO);

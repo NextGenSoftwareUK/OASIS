@@ -11,6 +11,7 @@ using System.Linq;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core.Objects;
+using NextGenSoftware.OASIS.API.Core.Managers;
 
 namespace NextGenSoftware.OASIS.STAR
 {
@@ -90,7 +91,7 @@ namespace NextGenSoftware.OASIS.STAR
         public CelestialBody(string providerKey, GenesisType genesisType)
         {
             this.GenesisType = genesisType;
-            this.ProviderKey = providerKey;
+            this.ProviderKey[ProviderManager.CurrentStorageProviderType.Value] = providerKey;
         }
 
         public void LoadAll()
@@ -350,9 +351,9 @@ namespace NextGenSoftware.OASIS.STAR
             }
            
 
-            if (!string.IsNullOrEmpty(this.ProviderKey))
+            if (!string.IsNullOrEmpty(this.ProviderKey[ProviderManager.CurrentStorageProviderType.Value]))
             {
-                CelestialBodyCore.ProviderKey = this.ProviderKey; //_coreProviderKey = hc anchor.
+                CelestialBodyCore.ProviderKey = this.ProviderKey[ProviderManager.CurrentStorageProviderType.Value]; //_coreProviderKey = hc anchor.
                 await LoadCelestialBody();
 
                 //TODO: Load the planets Zome collection here? Or is it passed in from the sub-class implementation? Probably 2nd one... ;-)
