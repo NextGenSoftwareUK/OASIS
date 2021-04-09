@@ -15,7 +15,7 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
     public class IPFSOASIS : OASISStorageBase, IOASISStorage, IOASISNET
     {
         public IpfsClient IPFSClient;
-        public IpfsEngine IPFSEngine = new IpfsEngine();
+        public IpfsEngine IPFSEngine; //= new IpfsEngine();
 
         public IPFSOASIS(string host)
         {
@@ -127,7 +127,7 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
         {
            
 
-            IPFSEngine.Start();
+           // IPFSEngine.Start();
 
             //https://ipfs.io/ipfs/QmWDkvhfbt5kwyd8K3W1shXuJynSkyAfpoXQ3nChj1QBC1?filename=LICENSES.chromium.html
 
@@ -138,7 +138,7 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
           //  Stream stream = await ipfs.DownloadAsync("", new System.Threading.CancellationToken());
             //ipfs.FileSystem.AddFileAsync
             //ipfs.FileSystem.AddTextAsync
-            Stream stream2 = await IPFSEngine.FileSystem.ReadFileAsync(filename);
+         //   Stream stream2 = await IPFSEngine.FileSystem.ReadFileAsync(filename);
 
             //ipfs.Name.PublishAsync
 

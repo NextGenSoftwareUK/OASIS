@@ -4,7 +4,7 @@
     {
         HoloOASIS,
         EthereumOASIS,
-        EOSOASIS,
+        EOSIOOASIS,
         TelosOASIS,
         SEEDSOASIS,
         LoomOASIS,

@@ -1,14 +1,11 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Options;
 using System.Collections.Generic;
-
-using NextGenSoftware.OASIS.API.Core;
-using NextGenSoftware.OASIS.API.Config;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using System;
+using NextGenSoftware.OASIS.API.DNA;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 {
@@ -195,7 +192,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpPost("RegisterProviderType/{providerType}")]
         public ActionResult<bool> RegisterProviderType(ProviderType providerType)
         {
-            return Ok(OASISConfigManager.RegisterProvider(providerType) != null);
+            return Ok(OASISDNAManager.RegisterProvider(providerType) != null);
         }
 
         /// <summary>
@@ -223,7 +220,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             List<IOASISStorage> providers = new List<IOASISStorage>();
 
             foreach (string type in types)
-                OASISConfigManager.RegisterProvider((ProviderType)Enum.Parse(typeof(ProviderType), type));
+                OASISDNAManager.RegisterProvider((ProviderType)Enum.Parse(typeof(ProviderType), type));
 
             return Ok(providers);
         }
@@ -319,18 +316,18 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             return Ok(ProviderManager.DeActivateProvider(providerType));
         }
 
-        /// <summary>
-        /// Set's the default providers to be used (in priority order).
-        /// </summary>
-        /// <param name="providers"></param>
-        /// <returns></returns>
-        [Authorize]
-        [HttpPost("SetDefaultProviders/{providers}")]
-        public ActionResult<bool> SetDefaultProviders(string[] providers)
-        {
-            ProviderManager.DefaultProviderTypes = providers;
-            return Ok(true);
-        }
+        ///// <summary>
+        ///// Set's the default providers to be used (in priority order).
+        ///// </summary>
+        ///// <param name="providers"></param>
+        ///// <returns></returns>
+        //[Authorize]
+        //[HttpPost("SetDefaultProviders/{providers}")]
+        //public ActionResult<bool> SetDefaultProviders(string[] providers)
+        //{
+        //    ProviderManager.DefaultProviderTypes = providers;
+        //    return Ok(true);
+        //}
 
         /// <summary>
         /// Enable/disable auto-replication between providers. If this is set to true then the OASIS will automatically replicate all data including the user's avatar to all available providers.
@@ -361,7 +358,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             foreach (string type in types)
                 providerTypesList.Add((ProviderType)Enum.Parse(typeof(ProviderType), type));
 
-            return Ok(ProviderManager.SetAutoReplicateForProviders(autoReplicate, new List<ProviderType>(providerTypesList)));
+            return Ok(ProviderManager.SetAutoReplicationForProviders(autoReplicate, new List<ProviderType>(providerTypesList)));
         }
 
         ///// <summary>
@@ -469,7 +466,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             {
                 case ProviderType.MongoDBOASIS:
                     {
-                        OASISConfigManager.OASISDNA.OASIS.StorageProviders.MongoDBOASIS.ConnectionString = connectionString;
+                        OASISDNAManager.OASISDNA.OASIS.StorageProviders.MongoDBOASIS.ConnectionString = connectionString;
 
                         ProviderManager.DeActivateProvider(ProviderType.MongoDBOASIS);
                         ProviderManager.UnRegisterProvider(ProviderType.MongoDBOASIS);

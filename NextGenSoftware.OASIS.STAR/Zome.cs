@@ -1,4 +1,5 @@
 ﻿
+using NextGenSoftware.OASIS.API.Core.Managers;
 using System;
 
 namespace NextGenSoftware.OASIS.STAR
@@ -26,7 +27,7 @@ namespace NextGenSoftware.OASIS.STAR
 
         public Zome(string providerKey) : base()
         {
-            this.ProviderKey = providerKey;
+            this.ProviderKey[ProviderManager.CurrentStorageProviderType.Value] = providerKey;
         }
 
 
