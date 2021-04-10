@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
-using NextGenSoftware.OASIS.API.Config;
+using NextGenSoftware.OASIS.API.DNA;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -24,7 +24,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpGet]
         public async Task<IEnumerable<Contact>> GetAllContacts()
         {
-            GetAndActivateProvider();
+            GetAndActivateDefaultProvider();
             return await Task.Run(() => _scmsRepository.GetAllContacts());
         }
 
@@ -32,7 +32,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         //[HttpGet("/{sequenceNo}/{phaseNo}")]
         public async Task<IEnumerable<Contact>> GetAllContactsForSequenceAndPhase(int sequenceNo, int phaseNo)
         {
-            GetAndActivateProvider();
+            GetAndActivateDefaultProvider();
             return await Task.Run(() => _scmsRepository.GetAllContacts(sequenceNo, phaseNo, false));
         }
 
@@ -40,7 +40,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         //[HttpGet("/{sequenceNo}/{phaseNo}")]
         public async Task<IEnumerable<Contact>> GetAllContactsForSequenceAndPhase(int sequenceNo, int phaseNo, bool loadPhase = false)
         {
-            GetAndActivateProvider();
+            GetAndActivateDefaultProvider();
             return await Task.Run(() => _scmsRepository.GetAllContacts(sequenceNo, phaseNo, loadPhase));
         }
     }

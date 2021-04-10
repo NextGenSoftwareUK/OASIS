@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using System;
 using NextGenSoftware.OASIS.API.Core.Enums;
-using NextGenSoftware.OASIS.API.Config;
+using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS;
 using NextGenSoftware.OASIS.API.Providers.SEEDSOASIS;
 using EOSNewYork.EOSCore.Response.API;
@@ -127,7 +127,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpPost("{avatarId}/{eosioAccountName}")]
         public IActionResult LinkEOSAccountToAvatar(Guid avatarId, string eosioAccountName)
         {
-            return Ok(Program.AvatarManager.LinkEOSAccountToAvatar(avatarId, eosioAccountName));
+            return Ok(Program.AvatarManager.LinkEOSIOAccountToAvatar(avatarId, eosioAccountName));
         }
     }
 }

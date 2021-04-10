@@ -1,18 +1,18 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using Newtonsoft.Json;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Events;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Managers;
+using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS;
 using NextGenSoftware.OASIS.API.Providers.HoloOASIS.Desktop;
 using NextGenSoftware.OASIS.API.Providers.MongoDBOASIS;
 using NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS;
 using NextGenSoftware.OASIS.API.Providers.IPFSOASIS;
 using NextGenSoftware.OASIS.API.Providers.Neo4jOASIS;
-using System.Collections.Generic;
-using NextGenSoftware.OASIS.API.Core.Helpers;
 
 namespace NextGenSoftware.OASIS.API.DNA
 {
@@ -21,33 +21,32 @@ namespace NextGenSoftware.OASIS.API.DNA
         public static string OASISDNAFileName { get; set; } = "OASIS_DNA.json";
         public static OASISDNA OASISDNA;
 
-        public static void LoadOASISDNA(string OASISDNAFileName)
+        public static bool IsInitialized
         {
-            OASISDNAManager.OASISDNAFileName = OASISDNAFileName;
-
-            if (File.Exists(OASISDNAFileName))
+            get
             {
-                using (StreamReader r = new StreamReader(OASISDNAFileName))
-                {
-                    string json = r.ReadToEnd();
-                    OASISDNA = JsonConvert.DeserializeObject<OASISDNA>(json);
-                }
+                return OASISDNA != null;
             }
-            else
-                throw new ArgumentNullException("OASISDNAFileName", string.Concat("ERROR: OASIS DNA file not found. Path: ", OASISDNAFileName));
-
-           // ProviderManager.DefaultProviderTypes = OASISDNA.OASIS.StorageProviders.DefaultProviders.Split(",");
-            ProviderManager.SetAutoFailOverForProviders(true, GetProviderTypesFromDNA("AutoFailOverProviders", OASISDNA.OASIS.StorageProviders.AutoFailOverProviders));
-            ProviderManager.SetAutoLoadBalanceForProviders(true, GetProviderTypesFromDNA("AutoLoadBalanceProviders", OASISDNA.OASIS.StorageProviders.AutoLoadBalanceProviders));
-            ProviderManager.SetAutoReplicationForProviders(true, GetProviderTypesFromDNA("AutoReplicationProviders", OASISDNA.OASIS.StorageProviders.AutoReplicationProviders));
         }
 
-        public static IOASISStorage GetAndActivateProvider()
+        public static void Initialize(string OASISDNAFileName)
+        {
+            LoadOASISDNA(OASISDNAFileName);
+            LoadProviderLists();
+            RegisterProvidersInAllLists();
+        }
+
+        public static void Initialize()
+        {
+            Initialize(OASISDNAFileName);
+        }
+
+        public static IOASISStorage GetAndActivateDefaultProvider()
         {
             if (ProviderManager.CurrentStorageProvider == null)
             {
-                if (OASISDNA == null)
-                    LoadOASISDNA(OASISDNAFileName);
+                if (!IsInitialized)
+                    Initialize(OASISDNAFileName);
 
                 //TODO: Need to add additional logic later for when the first provider and others fail or are too laggy and so need to switch to a faster provider, etc... DONE! :)
                 //return GetAndActivateProvider((ProviderType)Enum.Parse(typeof(ProviderType), ProviderManager.DefaultProviderTypes[0]));
@@ -57,34 +56,16 @@ namespace NextGenSoftware.OASIS.API.DNA
                 return ProviderManager.CurrentStorageProvider;
         }
 
-        private static List<ProviderType> GetProviderTypesFromDNA(string providerListName, string providerList)
-        {
-            List<ProviderType> providerTypes = new List<ProviderType>();
-            string[] providers = providerList.Split(",");
-            object providerTypeObject = null;
-
-            foreach (string provider in providers)
-            {
-                if (Enum.TryParse(typeof(ProviderType), provider.Trim(), out providerTypeObject))
-                    providerTypes.Add((ProviderType)providerTypeObject);
-                else
-                    throw new ArgumentOutOfRangeException(providerListName, string.Concat("ERROR: The OASIS DNA file ", OASISDNAFileName, " contains an invalid entry in the ", providerListName, " comma delimited list. Entry found was ", provider.Trim(), ". Valid entries are:\n\n", EnumHelper.GetEnumValues(typeof(ProviderType))));
-            }
-
-            return providerTypes;
-        }
-
         public static IOASISStorage GetAndActivateProvider(ProviderType providerType, bool setGlobally = false)
         {
-            if (OASISDNA == null)
-                LoadOASISDNA(OASISDNAFileName);
+            if (!IsInitialized)
+                Initialize(OASISDNAFileName);
 
             //TODO: Think we can have this in ProviderManger and have default connection strings/settings for each provider.
             if (providerType != ProviderManager.CurrentStorageProviderType.Value)
             {
                 RegisterProvider(providerType);
                 ProviderManager.SetAndActivateCurrentStorageProvider(providerType, setGlobally);
-
             }
 
             if (setGlobally && ProviderManager.CurrentStorageProvider != ProviderManager.DefaultGlobalStorageProvider)
@@ -98,8 +79,8 @@ namespace NextGenSoftware.OASIS.API.DNA
         {
             IOASISStorage registeredProvider = null;
 
-            if (OASISDNA == null)
-                LoadOASISDNA(OASISDNAFileName);
+            if (!IsInitialized)
+                Initialize(OASISDNAFileName);
 
             if (!ProviderManager.IsProviderRegistered(providerType))
             {
@@ -175,6 +156,78 @@ namespace NextGenSoftware.OASIS.API.DNA
             return registeredProvider;
         }
 
+        public static bool RegisterProvidersInAutoFailOverList()
+        {
+            foreach (EnumValue<ProviderType> providerType in ProviderManager.GetProviderAutoFailOverList())
+                RegisterProvider(providerType.Value);
+
+            return true;
+        }
+
+        public static bool RegisterProvidersInAutoLoadBalanceList()
+        {
+            foreach (EnumValue<ProviderType> providerType in ProviderManager.GetProviderAutoLoadBalanceList())
+                RegisterProvider(providerType.Value);
+
+            return true;
+        }
+
+        public static bool RegisterProvidersInAutoReplicatingList()
+        {
+            foreach (EnumValue<ProviderType> providerType in ProviderManager.GetProvidersThatAreAutoReplicating())
+                RegisterProvider(providerType.Value);
+
+            return true;
+        }
+
+        public static bool RegisterProvidersInAllLists()
+        {
+            RegisterProvidersInAutoFailOverList();
+            RegisterProvidersInAutoLoadBalanceList();
+            RegisterProvidersInAutoReplicatingList();
+            return true;
+        }
+
+        private static List<ProviderType> GetProviderTypesFromDNA(string providerListName, string providerList)
+        {
+            List<ProviderType> providerTypes = new List<ProviderType>();
+            string[] providers = providerList.Split(",");
+            object providerTypeObject = null;
+
+            foreach (string provider in providers)
+            {
+                if (Enum.TryParse(typeof(ProviderType), provider.Trim(), out providerTypeObject))
+                    providerTypes.Add((ProviderType)providerTypeObject);
+                else
+                    throw new ArgumentOutOfRangeException(providerListName, string.Concat("ERROR: The OASIS DNA file ", OASISDNAFileName, " contains an invalid entry in the ", providerListName, " comma delimited list. Entry found was ", provider.Trim(), ". Valid entries are:\n\n", EnumHelper.GetEnumValues(typeof(ProviderType))));
+            }
+
+            return providerTypes;
+        }
+
+        private static void LoadOASISDNA(string OASISDNAFileName)
+        {
+            OASISDNAManager.OASISDNAFileName = OASISDNAFileName;
+
+            if (File.Exists(OASISDNAFileName))
+            {
+                using (StreamReader r = new StreamReader(OASISDNAFileName))
+                {
+                    string json = r.ReadToEnd();
+                    OASISDNA = JsonConvert.DeserializeObject<OASISDNA>(json);
+                }
+            }
+            else
+                throw new ArgumentNullException("OASISDNAFileName", string.Concat("ERROR: OASIS DNA file not found. Path: ", OASISDNAFileName));
+        }
+
+        private static void LoadProviderLists()
+        {
+            // ProviderManager.DefaultProviderTypes = OASISDNA.OASIS.StorageProviders.DefaultProviders.Split(",");
+            ProviderManager.SetAutoFailOverForProviders(true, GetProviderTypesFromDNA("AutoFailOverProviders", OASISDNA.OASIS.StorageProviders.AutoFailOverProviders));
+            ProviderManager.SetAutoLoadBalanceForProviders(true, GetProviderTypesFromDNA("AutoLoadBalanceProviders", OASISDNA.OASIS.StorageProviders.AutoLoadBalanceProviders));
+            ProviderManager.SetAutoReplicationForProviders(true, GetProviderTypesFromDNA("AutoReplicationProviders", OASISDNA.OASIS.StorageProviders.AutoReplicationProviders));
+        }
 
         private static void IPFSOASIS_StorageProviderError(object sender, AvatarManagerErrorEventArgs e)
         {

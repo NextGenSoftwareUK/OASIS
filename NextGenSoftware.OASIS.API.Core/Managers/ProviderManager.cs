@@ -297,11 +297,29 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 if (provider != null && (provider.ProviderCategory.Value == ProviderCategory.Storage || provider.ProviderCategory.Value == ProviderCategory.StorageAndNetwork))
                 {
                     if (CurrentStorageProvider != null)
-                        CurrentStorageProvider.DeActivateProvider();
+                    {
+                        try
+                        {
+                            CurrentStorageProvider.DeActivateProvider();
+                        }
+                        catch (Exception ex)
+                        {
+                            //TODO: Add logging here and handle properly.
+                        }
+                    }
                    
                     CurrentStorageProviderType.Value = providerType;
                     CurrentStorageProvider = (IOASISStorage)provider;
-                    CurrentStorageProvider.ActivateProvider();
+
+                    try
+                    {
+                        CurrentStorageProvider.ActivateProvider();
+                    }
+                    catch (Exception ex)
+                    {
+                        //TODO: Add logging here and handle properly.
+                        throw ex;
+                    }
 
                     if (setGlobally)
                         DefaultGlobalStorageProvider = CurrentStorageProvider;

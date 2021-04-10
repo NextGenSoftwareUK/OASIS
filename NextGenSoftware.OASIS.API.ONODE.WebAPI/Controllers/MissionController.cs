@@ -2,7 +2,7 @@
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
-using NextGenSoftware.OASIS.API.Config;
+using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
@@ -24,7 +24,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             get
             {
                 if (_missionManager == null)
-                    _missionManager = new MissionManager(GetAndActivateProvider());
+                    _missionManager = new MissionManager(GetAndActivateDefaultProvider());
 
                 return _missionManager;
             }

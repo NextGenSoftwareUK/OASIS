@@ -62,7 +62,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             }
 
             // Set the current provider back to the original provider.
-            if (needToChangeBack)
+          //  if (needToChangeBack)
                 ProviderManager.SetAndActivateCurrentStorageProvider(currentProviderType);
 
             return holon;
@@ -159,13 +159,20 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             {
                 if (type.Value != providerType && type.Value != ProviderManager.CurrentStorageProviderType.Value)
                 {
-                    ProviderManager.SetAndActivateCurrentStorageProvider(type.Value).SaveHolon(holon);
-                    needToChangeBack = true;
+                    try
+                    {
+                        ProviderManager.SetAndActivateCurrentStorageProvider(type.Value).SaveHolon(holon);
+                        needToChangeBack = true;
+                    }
+                    catch (Exception ex)
+                    {
+                        // Add logging here.
+                    }
                 }
             }
 
             // Set the current provider back to the original provider.
-            if (needToChangeBack)
+          //  if (needToChangeBack)
                 ProviderManager.SetAndActivateCurrentStorageProvider(currentProviderType);
 
             return holon;
@@ -216,13 +223,20 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             {
                 if (type.Value != providerType && type.Value != ProviderManager.CurrentStorageProviderType.Value)
                 {
-                    await ProviderManager.SetAndActivateCurrentStorageProvider(type.Value).SaveHolonAsync(holon);
-                    needToChangeBack = true;
+                    try
+                    {
+                        await ProviderManager.SetAndActivateCurrentStorageProvider(type.Value).SaveHolonAsync(holon);
+                        needToChangeBack = true;
+                    }
+                    catch (Exception ex)
+                    {
+                        // Add logging here.
+                    }
                 }
             }
 
             // Set the current provider back to the original provider.
-            if (needToChangeBack)
+          //  if (needToChangeBack)
                 ProviderManager.SetAndActivateCurrentStorageProvider(currentProviderType);
 
             return holon;
@@ -273,13 +287,20 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             {
                 if (type.Value != providerType && type.Value != ProviderManager.CurrentStorageProviderType.Value)
                 {
-                    ProviderManager.SetAndActivateCurrentStorageProvider(type.Value).SaveHolons(holons);
-                    needToChangeBack = true;
+                    try
+                    {
+                        ProviderManager.SetAndActivateCurrentStorageProvider(type.Value).SaveHolons(holons);
+                        needToChangeBack = true;
+                    }
+                    catch (Exception ex)
+                    {
+                        // Add logging here.
+                    }
                 }
             }
 
             // Set the current provider back to the original provider.
-            if (needToChangeBack)
+           // if (needToChangeBack)
                 ProviderManager.SetAndActivateCurrentStorageProvider(currentProviderType);
 
             return holons;
@@ -330,13 +351,20 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             {
                 if (type.Value != providerType && type.Value != ProviderManager.CurrentStorageProviderType.Value)
                 {
-                    await ProviderManager.SetAndActivateCurrentStorageProvider(type.Value).SaveHolonsAsync(holons);
-                    needToChangeBack = true;
+                    try
+                    {
+                        await ProviderManager.SetAndActivateCurrentStorageProvider(type.Value).SaveHolonsAsync(holons);
+                        needToChangeBack = true;
+                    }
+                    catch (Exception ex)
+                    {
+                        // Add logging here.
+                    }
                 }
             }
 
             // Set the current provider back to the original provider.
-            if (needToChangeBack)
+         //   if (needToChangeBack)
                 ProviderManager.SetAndActivateCurrentStorageProvider(currentProviderType);
 
             return holons;
