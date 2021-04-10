@@ -44,9 +44,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             // OASISProviderManager.OASISSettings = settings.Value;
         }
 
-        protected IOASISStorage GetAndActivateProvider()
+        protected IOASISStorage GetAndActivateDefaultProvider()
         {
-            return OASISDNAManager.GetAndActivateProvider();
+            return OASISDNAManager.GetAndActivateDefaultProvider();
         }
 
         protected IOASISStorage GetAndActivateProvider(ProviderType providerType, bool setGlobally = false)

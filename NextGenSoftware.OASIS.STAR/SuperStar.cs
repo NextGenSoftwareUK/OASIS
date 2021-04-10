@@ -68,7 +68,7 @@ namespace NextGenSoftware.OASIS.STAR
             OASISDNAManager.OASISDNAFileName = OASIS_DNA;
 
             // Will initialize the default OASIS Provider defined OASIS_DNA config file.
-            OASISDNAManager.GetAndActivateProvider(); //TODO: May move this method into OASISAPI below?
+            OASISDNAManager.GetAndActivateDefaultProvider(); //TODO: May move this method into OASISAPI below?
             OASISAPI.Init(InitOptions.InitWithCurrentDefaultProvider, OASISDNAManager.OASISDNA);
 
             SuperStarCore = new SuperStarCore(providerKey);

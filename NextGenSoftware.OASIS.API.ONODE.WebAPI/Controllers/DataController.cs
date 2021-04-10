@@ -1,7 +1,6 @@
 ﻿using System;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Options;
-using NextGenSoftware.OASIS.API.Config;
+using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Managers;
@@ -22,7 +21,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             get
             {
                 if (_holonManager == null)
-                    _holonManager = new HolonManager(OASISDNAManager.GetAndActivateProvider());
+                    _holonManager = new HolonManager(OASISDNAManager.GetAndActivateDefaultProvider());
 
                 return _holonManager;
             }

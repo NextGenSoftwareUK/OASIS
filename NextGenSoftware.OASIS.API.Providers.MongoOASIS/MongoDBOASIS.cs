@@ -222,7 +222,13 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
 
             oasisAvatar.Id = Guid.Parse(avatar.AvatarId);
 
-            oasisAvatar.ProviderKey[Core.Enums.ProviderType.MongoDBOASIS] = avatar.Id;
+            //oasisAvatar.ProviderKey[Core.Enums.ProviderType.MongoDBOASIS] = avatar.Id;
+            oasisAvatar.ProviderKey = avatar.ProviderKey;
+
+            // If the mongo Key has not been set then set it now (unique id for mongo)
+            if (!oasisAvatar.ProviderKey.ContainsKey(Core.Enums.ProviderType.MongoDBOASIS))
+                oasisAvatar.ProviderKey[Core.Enums.ProviderType.MongoDBOASIS] = avatar.Id;
+
             oasisAvatar.Name = avatar.Name;
             oasisAvatar.Description = avatar.Description;
             oasisAvatar.HolonType = avatar.HolonType;
@@ -297,8 +303,10 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             mongoAvatar.Description = avatar.Description;
             mongoAvatar.HolonType = avatar.HolonType;
 
-            if (avatar.ProviderKey.ContainsKey(Core.Enums.ProviderType.MongoDBOASIS))
-                mongoAvatar.ProviderKey = avatar.ProviderKey[Core.Enums.ProviderType.MongoDBOASIS];
+            mongoAvatar.ProviderKey = avatar.ProviderKey;
+
+            //if (avatar.ProviderKey.ContainsKey(Core.Enums.ProviderType.MongoDBOASIS))
+            //    mongoAvatar.ProviderKey[Core.Enums.ProviderType.MongoDBOASIS] = avatar.Id;
 
             if (avatar.ProviderType != null)
                 mongoAvatar.ProviderType = avatar.ProviderType.Value;
@@ -365,9 +373,10 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             //oasisHolon.Id = Guid.Parse(holon.Id);
             oasisHolon.Id = holon.HolonId;
 
-           // if (oasisHolon.ProviderKey.ContainsKey(Core.Enums.ProviderType.MongoDBOASIS))
-                oasisHolon.ProviderKey[Core.Enums.ProviderType.MongoDBOASIS] = holon.ProviderKey;
+            // if (oasisHolon.ProviderKey.ContainsKey(Core.Enums.ProviderType.MongoDBOASIS))
+            // oasisHolon.ProviderKey[Core.Enums.ProviderType.MongoDBOASIS] = holon.ProviderKey;
 
+            oasisHolon.ProviderKey = holon.ProviderKey;
             oasisHolon.Name = holon.Name;
             oasisHolon.Description = holon.Description;
             oasisHolon.HolonType = holon.HolonType;
@@ -406,8 +415,9 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             mongoHolon.Description = holon.Description;
             mongoHolon.HolonType = holon.HolonType;
 
-            if (holon.ProviderKey.ContainsKey(Core.Enums.ProviderType.MongoDBOASIS))
-                mongoHolon.ProviderKey = holon.ProviderKey[Core.Enums.ProviderType.MongoDBOASIS];
+            // if (holon.ProviderKey.ContainsKey(Core.Enums.ProviderType.MongoDBOASIS))
+            //   mongoHolon.ProviderKey = holon.ProviderKey[Core.Enums.ProviderType.MongoDBOASIS];
+            mongoHolon.ProviderKey = holon.ProviderKey;
 
             if (holon.ProviderType != null)
                 mongoHolon.ProviderType = holon.ProviderType.Value;

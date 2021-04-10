@@ -4,7 +4,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Models
 {
     public abstract class SendInviteToJoinSeedsRequestBase : SeedsKarmaBase
     {
-        public float TransferQuanitity { get; set; }
-        public float SowQuanitity { get; set; }
+        public int TransferQuanitity { get; set; }
+        public int SowQuanitity { get; set; }
     }
 }

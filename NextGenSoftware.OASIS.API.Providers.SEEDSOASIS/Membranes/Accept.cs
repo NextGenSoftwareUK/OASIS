@@ -1,5 +1,5 @@
 ﻿
-namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS.ParamObjects
+namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS.Membranes
 {
     public class Accept
     {

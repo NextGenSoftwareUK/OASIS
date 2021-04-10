@@ -1,5 +1,6 @@
 using MongoDB.Bson;  
 using MongoDB.Bson.Serialization.Attributes;
+using MongoDB.Bson.Serialization.Options;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using System;
@@ -29,9 +30,9 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
         public List<INode> Nodes { get; set; }
 
 
-
-
-        public string ProviderKey { get; set; }
+        //public string ProviderKey { get; set; }
+        [BsonDictionaryOptions(DictionaryRepresentation.ArrayOfArrays)]
+        public Dictionary<ProviderType, string> ProviderKey { get; set; } = new Dictionary<ProviderType, string>();
 
         [BsonRepresentation(BsonType.DateTime)]
         public DateTime CreatedDate { get; set; }

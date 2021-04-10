@@ -187,13 +187,20 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             {
                 if (type.Value != providerType && type.Value != ProviderManager.CurrentStorageProviderType.Value)
                 {
-                    await ProviderManager.SetAndActivateCurrentStorageProvider(type.Value).SaveAvatarAsync(avatar);
-                    needToChangeBack = true;
+                    try
+                    {
+                        await ProviderManager.SetAndActivateCurrentStorageProvider(type.Value).SaveAvatarAsync(avatar);
+                        needToChangeBack = true;
+                    }
+                    catch (Exception ex)
+                    {
+                        // Add logging here.
+                    }
                 }
             }
 
             // Set the current provider back to the original provider.
-            if (needToChangeBack)
+          // if (needToChangeBack)
                 ProviderManager.SetAndActivateCurrentStorageProvider(currentProviderType);
 
             return avatar;
@@ -240,17 +247,25 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
              //   }
             }
 
+
             foreach (EnumValue<ProviderType> type in ProviderManager.GetProvidersThatAreAutoReplicating())
             {
                 if (type.Value != providerType && type.Value != ProviderManager.CurrentStorageProviderType.Value)
                 {
-                    ProviderManager.SetAndActivateCurrentStorageProvider(type.Value).SaveAvatar(avatar);
-                    needToChangeBack = true;
+                    try
+                    {
+                        ProviderManager.SetAndActivateCurrentStorageProvider(type.Value).SaveAvatar(avatar);
+                        needToChangeBack = true;
+                    }
+                    catch (Exception ex)
+                    {
+                        // Add logging here.
+                    }
                 }
             }
 
             // Set the current provider back to the original provider.
-            if (needToChangeBack)
+           // if (needToChangeBack)
                 ProviderManager.SetAndActivateCurrentStorageProvider(currentProviderType);
 
             return avatar;
