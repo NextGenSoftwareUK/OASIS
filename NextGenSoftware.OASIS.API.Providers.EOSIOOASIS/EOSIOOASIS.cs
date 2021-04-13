@@ -3,29 +3,22 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using EOSNewYork.EOSCore;
 using EOSNewYork.EOSCore.Utilities;
+using EOSNewYork.EOSCore.Response.API;
 using NextGenSoftware.OASIS.API.Core;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Enums;
-using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.EOSIOClasses;
-using EOSNewYork.EOSCore.Response.API;
 using NextGenSoftware.OASIS.API.Core.Managers;
-using System.Linq;
 using NextGenSoftware.OASIS.API.Core.Holons;
+using NextGenSoftware.OASIS.API.Core.Security;
+using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.EOSIOClasses;
 
 namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
 {
     public class EOSIOOASIS : OASISStorageBase, IOASISStorage, IOASISNET, IOASISSuperStar
     {
-        // Lookup Cache. TODO: Move to generic CacheManager in OASIS.API.Core, maybe also in ProviderManager so other providers can also share the cache.
-        private static Dictionary<Guid, string> _avatarIdToEOSIOAccountNameLookup = new Dictionary<Guid, string>();
         private static Dictionary<Guid, Account> _avatarIdToEOSIOAccountLookup = new Dictionary<Guid, Account>();
-        private static Dictionary<string, Guid> _eosioAccountNameToAvatarIdLookup = new Dictionary<string, Guid>();
-        private static Dictionary<string, IAvatar> _eosioAccountNameToAvatarLookup = new Dictionary<string, IAvatar>();
         private AvatarManager _avatarManager = null;
-
-        public const string OASIS_EOSIO_ACCOUNT = "oasis";
-        //public const string OASIS_PASS_PHRASE = "oasis";
-        public const string OASIS_PASS_PHRASE = "7g7GJ557j549':;#~~#$4jf&hjj4";
+        private const string OASIS_EOSIO_ACCOUNT = "oasis";
 
         public ChainAPI ChainAPI { get; set; }
 
@@ -145,7 +138,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
 
             var AvatarRow = (EOSIOAccountTableRow)rows.rows[0];
             var Avatar = AvatarRow.ToAvatar();
-            Avatar.Password = StringCipher.Decrypt(Avatar.Password, OASIS_PASS_PHRASE);
+            Avatar.Password = StringCipher.Decrypt(Avatar.Password);
 
             return Avatar;
         }
@@ -161,7 +154,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             var AvatarRow = (EOSIOAccountTableRow)rows.rows[0];
             var Avatar = AvatarRow.ToAvatar();
 
-            Avatar.Password = StringCipher.Decrypt(Avatar.Password, OASIS_PASS_PHRASE);
+            Avatar.Password = StringCipher.Decrypt(Avatar.Password);
             return Avatar;
         }
 
@@ -175,7 +168,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             var AvatarRow = (EOSIOAccountTableRow)rows.rows[0];
             var Avatar = AvatarRow.ToAvatar();
 
-            Avatar.Password = StringCipher.Decrypt(Avatar.Password, OASIS_PASS_PHRASE);
+            Avatar.Password = StringCipher.Decrypt(Avatar.Password);
             return Avatar;
         }
 
@@ -255,7 +248,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
                         userid = Avatar.Id.ToString(),
                         eosio_acc = Avatar.Username,
                         providerkey = Avatar.ProviderKey[Core.Enums.ProviderType.EOSIOOASIS],
-                        password = StringCipher.Encrypt(Avatar.Password, OASIS_PASS_PHRASE),
+                        password = StringCipher.Encrypt(Avatar.Password),
                         email = Avatar.Email,
                         title = Avatar.Title,
                         firstname = Avatar.FirstName,
@@ -312,23 +305,12 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
 
         public async Task<string> GetBalanceAsync(string eosioAccountName, string code, string symbol)
         {
-            //https://github.com/JoinSEEDS/seeds-smart-contracts/blob/master/scripts/balancecheck.js
-            //eos.getCurrencyBalance("token.seeds", account, 'SEEDS')
-
-            //var accountBalance = tableAPI.GetTokenAccountBalance(new GetTokenAccountBalanceConstructorSettings() { accountName = "wozzawozza11", tokenContract = "epraofficial" });
-            //Console.WriteLine(accountBalance[0].balance_decimal);
-            //Console.WriteLine(accountBalance[0].symbol);
-
-            //var currencyBalance = await _eosioOaisis.ChainAPI.GetCurrencyBalanceAsync(eosAccountName, "seeds.seeds", "SEEDS");
             var currencyBalance = await ChainAPI.GetCurrencyBalanceAsync(eosioAccountName, code, symbol);
             return currencyBalance.balances[0];
         }
 
         public string GetBalanceForEOSIOAccount(string eosioAccountName, string code, string symbol)
         {
-            //https://github.com/JoinSEEDS/seeds-smart-contracts/blob/master/scripts/balancecheck.js
-            //eos.getCurrencyBalance("token.seeds", account, 'SEEDS')
-
             var currencyBalance = ChainAPI.GetCurrencyBalance(eosioAccountName, code, symbol);
             return currencyBalance.balances[0];
         }
@@ -340,26 +322,17 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
 
         public string GetEOSIOAccountNameForAvatar(Guid avatarId)
         {
-            if (!_avatarIdToEOSIOAccountNameLookup.ContainsKey(avatarId))
-            {
-                IAvatar avatar = AvatarManagerInstance.LoadAvatar(avatarId);
+            return AvatarManagerInstance.GetProviderKeyForAvatar(avatarId, Core.Enums.ProviderType.EOSIOOASIS);
+        }
 
-                if (avatar != null)
-                {
-                    if (avatar.ProviderKey.ContainsKey(Core.Enums.ProviderType.EOSIOOASIS))
-                        _avatarIdToEOSIOAccountNameLookup[avatarId] = avatar.ProviderKey[Core.Enums.ProviderType.EOSIOOASIS];
-                    else
-                        throw new InvalidOperationException(string.Concat("The avatar with id ", avatarId, " has not been linked to a EOSIO account. Please use the LinkEOSIOAccountToAvatar method on the AvatarManager or avatar REST API."));
-                }
-                else
-                    throw new InvalidOperationException(string.Concat("The avatar with id ", avatarId, " was not found."));
-            }
-
-            return _avatarIdToEOSIOAccountNameLookup[avatarId];
+        public string GetEOSIOAccountPrivateKeyForAvatar(Guid avatarId)
+        {
+            return AvatarManagerInstance.GetProviderPrivateKeyForAvatar(avatarId, Core.Enums.ProviderType.EOSIOOASIS);
         }
 
         public Account GetEOSIOAccountForAvatar(Guid avatarId)
         {
+            //TODO: Do we need to cache this?
             if (!_avatarIdToEOSIOAccountLookup.ContainsKey(avatarId))
                 _avatarIdToEOSIOAccountLookup[avatarId] = GetEOSIOAccount(GetEOSIOAccountNameForAvatar(avatarId));
 
@@ -368,27 +341,12 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
 
         public Guid GetAvatarIdForEOSIOAccountName(string eosioAccountName)
         {
-            // TODO: Do we need to store both the id and whole avatar in the cache? Think only need one? Just storing the id would use less memory and be faster but there may be use cases for when we need the whole avatar?
-            // In future, if there is not a use case for the whole avatar we will just use the id cache and remove the other.
-            if (!_eosioAccountNameToAvatarIdLookup.ContainsKey(eosioAccountName))
-                _eosioAccountNameToAvatarIdLookup[eosioAccountName] = GetAvatarForEOSIOAccountName(eosioAccountName).Id;       
-
-            return _eosioAccountNameToAvatarIdLookup[eosioAccountName];
+            return AvatarManagerInstance.GetAvatarIdForProviderKey(eosioAccountName, Core.Enums.ProviderType.EOSIOOASIS);
         }
 
         public IAvatar GetAvatarForEOSIOAccountName(string eosioAccountName)
         {
-            if (!_eosioAccountNameToAvatarLookup.ContainsKey(eosioAccountName))
-            {
-                IAvatar avatar = AvatarManagerInstance.LoadAllAvatars().FirstOrDefault(x => x.ProviderKey.ContainsKey(Core.Enums.ProviderType.EOSIOOASIS) && x.ProviderKey[Core.Enums.ProviderType.EOSIOOASIS] == eosioAccountName);
-
-                if (avatar != null)
-                    _eosioAccountNameToAvatarIdLookup[eosioAccountName] = avatar.Id;
-                else
-                    throw new InvalidOperationException(string.Concat("The EOSIO account ", eosioAccountName, " has not been linked to an avatar. Please use the LinkEOSIOAccountToAvatar method on the AvatarManager or avatar REST API."));
-            }
-
-            return _eosioAccountNameToAvatarLookup[eosioAccountName];
+            return AvatarManagerInstance.GetAvatarForProviderKey(eosioAccountName, Core.Enums.ProviderType.EOSIOOASIS);
         }
     }
 }

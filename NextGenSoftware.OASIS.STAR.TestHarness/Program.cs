@@ -9,8 +9,9 @@ using NextGenSoftware.OASIS.API.Core.Events;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Objects;
+using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.OASISAPIManager;
-using NextGenSoftware.OASIS.API.Providers.SEEDSOASIS.ParamObjects;
+using NextGenSoftware.OASIS.API.Providers.SEEDSOASIS.Membranes;
 
 namespace NextGenSoftware.OASIS.STAR.TestHarness
 {
@@ -20,6 +21,7 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
 
         static async Task Main(string[] args)
         {
+            string privateKey = ""; //Set to privatekey when testing BUT remember to remove again before checking in code! Better to use avatar methods so private key is retreived from avatar and then no need to pass them in.
             var versionString = Assembly.GetEntryAssembly()
                                        .GetCustomAttribute<AssemblyInformationalVersionAttribute>()
                                        .InformationalVersion
@@ -191,39 +193,83 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
                 OASISAPI.Providers.MongoDB.Database.MongoDB.GetCollection<Avatar>("testCollection");
 
                 // SEEDS Support
-                string balance = OASISAPI.Providers.SEEDS.GetBalanceForTelosAccount("test.account");
-                Account account = OASISAPI.Providers.SEEDS.EOSIOOASIS.GetEOSIOAccount("test.account");
+                Console.WriteLine("Getting Balance for account davidsellams...");
+                string balance = OASISAPI.Providers.SEEDS.GetBalanceForTelosAccount("davidsellams");
+                Console.WriteLine(string.Concat("Balance: ", balance));
 
-                Console.WriteLine(string.Concat("Balance Before: ", balance));
+                Console.WriteLine("Getting Balance for account nextgenworld...");
+                balance = OASISAPI.Providers.SEEDS.GetBalanceForTelosAccount("nextgenworld");
+                Console.WriteLine(string.Concat("Balance: ", balance));
+
+                Console.WriteLine("Getting Account for account davidsellams...");
+                Account account = OASISAPI.Providers.SEEDS.TelosOASIS.GetTelosAccount("davidsellams");
                 Console.WriteLine(string.Concat("Account.account_name: ", account.account_name));
-                Console.WriteLine(string.Concat("Account.core_liquid_balance Before: ", account.core_liquid_balance));
+                Console.WriteLine(string.Concat("Account.created: ", account.created_datetime.ToString()));
 
-                OASISAPI.Providers.SEEDS.PayWithSeedsUsingTelosAccount("test.account", "test.account2", 7, KarmaSourceType.API, "test", "test", "test", "test memo");
-                balance = OASISAPI.Providers.SEEDS.GetBalanceForTelosAccount("test.account");
-                account = OASISAPI.Providers.SEEDS.EOSIOOASIS.GetEOSIOAccount("test.account");
+                Console.WriteLine("Getting Account for account nextgenworld...");
+                account = OASISAPI.Providers.SEEDS.TelosOASIS.GetTelosAccount("nextgenworld");
+                Console.WriteLine(string.Concat("Account.account_name: ", account.account_name));
+                Console.WriteLine(string.Concat("Account.created: ", account.created_datetime.ToString()));
 
-                Console.WriteLine(string.Concat("Balance After: ", balance));
-                Console.WriteLine(string.Concat("Account.core_liquid_balance After: ", account.core_liquid_balance));
+                // Check that the Telos account name is linked to the avatar and link it if it is not (PayWithSeeds will fail if it is not linked when it tries to add the karma points).
+                if (!avatar.ProviderKey.ContainsKey(ProviderType.TelosOASIS))
+                        OASISAPI.Avatar.LinkProviderKeyToAvatar(avatar.Id, ProviderType.TelosOASIS, "davidsellams");
 
+                Console.WriteLine("Sending SEEDS from nextgenworld to davidsellams...");
+                OASISResult<string> payWithSeedsResult = OASISAPI.Providers.SEEDS.PayWithSeedsUsingTelosAccount("davidsellams", privateKey, "nextgenworld", 1, KarmaSourceType.API, "test", "test", "test", "test memo");
+                Console.WriteLine(string.Concat("Success: ", payWithSeedsResult.IsError ? "false" : "true"));
+
+                if (payWithSeedsResult.IsError)
+                    Console.WriteLine(string.Concat("Error Message: ", payWithSeedsResult.ErrorMessage));
+
+                Console.WriteLine(string.Concat("Result: ", payWithSeedsResult.Result));
+
+                Console.WriteLine("Getting Balance for account davidsellams...");
+                balance = OASISAPI.Providers.SEEDS.GetBalanceForTelosAccount("davidsellams");
+                Console.WriteLine(string.Concat("Balance: ", balance));
+
+                Console.WriteLine("Getting Balance for account nextgenworld...");
+                balance = OASISAPI.Providers.SEEDS.GetBalanceForTelosAccount("nextgenworld");
+                Console.WriteLine(string.Concat("Balance: ", balance));
+
+                Console.WriteLine("Getting Organsiations...");
                 string orgs = OASISAPI.Providers.SEEDS.GetAllOrganisationsAsJSON();
                 Console.WriteLine(string.Concat("Organisations: ", orgs));
 
+                //Console.WriteLine("Getting nextgenworld organsiation...");
+                //string org = OASISAPI.Providers.SEEDS.GetOrganisation("nextgenworld");
+                //Console.WriteLine(string.Concat("nextgenworld org: ", org));
+
+                Console.WriteLine("Generating QR Code for davidsellams...");
                 string qrCode = OASISAPI.Providers.SEEDS.GenerateSignInQRCode("davidsellams");
                 Console.WriteLine(string.Concat("SEEDS Sign-In QRCode: ", qrCode));
 
-                SendInviteResult inviteResult = OASISAPI.Providers.SEEDS.SendInviteToJoinSeedsUsingTelosAccount("test.account", "test.account", 5, 5, KarmaSourceType.API, "test", "test", "test");
-                Console.WriteLine(string.Concat("Invite Sent To Join SEEDS. Invite Secrert: ", inviteResult.InviteSecret, ". Transction ID: ", inviteResult.TransactionId));
+                Console.WriteLine("Sending invite to davidsellams...");
+                OASISResult<SendInviteResult> sendInviteResult = OASISAPI.Providers.SEEDS.SendInviteToJoinSeedsUsingTelosAccount("davidsellams", privateKey, "davidsellams", 1, 1, KarmaSourceType.API, "test", "test", "test");
+                Console.WriteLine(string.Concat("Success: ", sendInviteResult.IsError ? "false" : "true"));
 
-                string transactionID = OASISAPI.Providers.SEEDS.AcceptInviteToJoinSeedsUsingTelosAccount("test.account2", inviteResult.InviteSecret, KarmaSourceType.API, "test", "test", "test");
-                Console.WriteLine(string.Concat("Invite Accepted To Join SEEDS. Invite Secrert: ", inviteResult.InviteSecret, ". Transction ID: ", transactionID));
+                if (sendInviteResult.IsError)
+                    Console.WriteLine(string.Concat("Error Message: ", sendInviteResult.ErrorMessage));
+                else
+                {
+                    Console.WriteLine(string.Concat("Invite Sent To Join SEEDS. Invite Secret: ", sendInviteResult.Result.InviteSecret, ". Transction ID: ", sendInviteResult.Result.TransactionId));
 
+                    Console.WriteLine("Accepting invite to davidsellams...");
+                    OASISResult<string> acceptInviteResult = OASISAPI.Providers.SEEDS.AcceptInviteToJoinSeedsUsingTelosAccount("davidsellams", sendInviteResult.Result.InviteSecret, KarmaSourceType.API, "test", "test", "test");
+                    Console.WriteLine(string.Concat("Success: ", acceptInviteResult.IsError ? "false" : "true"));
+
+                    if (acceptInviteResult.IsError)
+                        Console.WriteLine(string.Concat("Error Message: ", acceptInviteResult.ErrorMessage));
+                    else
+                        Console.WriteLine(string.Concat("Invite Accepted To Join SEEDS. Transction ID: ", acceptInviteResult.Result));
+                }
                 // ThreeFold, AcivityPub, SOLID, Cross/Off Chain, Smart Contract Interoperability & lots more coming soon! :)
 
                 // END OASIS API DEMO ***********************************************************************************
 
 
-                // Build
-                CoronalEjection ejection = ourWorld.Flare();
+                 // Build
+                 CoronalEjection ejection = ourWorld.Flare();
                 //OR
                 //CoronalEjection ejection = Star.Flare(ourWorld);
 

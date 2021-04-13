@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using NextGenSoftware.OASIS.API.DNA;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
@@ -16,7 +15,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
     {
         SCMSRepository _scmsRepository = new SCMSRepository();
 
-        public SCMSDeliveries(IOptions<OASISDNA> OASISSettings) : base(OASISSettings)
+        public SCMSDeliveries() : base()
         {
 
         }

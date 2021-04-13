@@ -23,6 +23,8 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
             }
         }
 
+        //TODO: Think best to encrypt these?
+        public Dictionary<ProviderType, string> ProviderPrivateKey { get; set; } = new Dictionary<ProviderType, string>(); //Unique private key used by each provider (part of private/public key pair).
         public string Username { get; set; } //TODO: Might get rid of this and use Avatar.Name instead (from base Holon)? Would that be confusing?
         public string Password { get; set; }
         public string Email { get; set; }

@@ -28,6 +28,7 @@ namespace NextGenSoftware.OASIS.API.DNA
         public HoloOASISProviderSettings HoloOASIS { get; set; }
         public MongoDBOASISProviderSettings MongoDBOASIS { get; set; }
         public EOSIOASISProviderSettings EOSIOOASIS { get; set; }
+        public TelosOASISProviderSettings TelosOASIS { get; set; }
         public SEEDSOASISProviderSettings SEEDSOASIS { get; set; }
         public ThreeFoldOASISProviderSettings ThreeFoldOASIS { get; set; }
         public EthereumOASISProviderSettings EthereumOASIS { get; set; }
@@ -52,7 +53,6 @@ namespace NextGenSoftware.OASIS.API.DNA
 
     public class HoloOASISProviderSettings : ProviderSettingsBase
     {
-        //public string HolochainVersion { get; set; }
         public HolochainVersion HolochainVersion { get; set; }
     }
 
@@ -62,6 +62,10 @@ namespace NextGenSoftware.OASIS.API.DNA
     }
 
     public class EOSIOASISProviderSettings : ProviderSettingsBase
+    {
+    }
+
+    public class TelosOASISProviderSettings : ProviderSettingsBase
     {
     }
 
