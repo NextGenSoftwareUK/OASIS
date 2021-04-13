@@ -131,6 +131,13 @@ Login/Signup modal window - by CodyHouse.co
   top: 0;
   left: 0;
   width: 100%;
+  color: white;
+  white-space: nowrap;
+  text-align: right;
+  margin-top: 5px;
+  margin-right:10px;
+  align-content: right;
+  float:right;
   -webkit-transform: translateY(-100%);
       -ms-transform: translateY(-100%);
           transform: translateY(-100%);
@@ -194,9 +201,14 @@ Login/Signup modal window - by CodyHouse.co
   }
   .cd-main-nav__item.cd-main-nav__item--signin {
     border: 1px solid rgba(255, 255, 255, 0.6);
+    color:white;
+    white-space: nowrap;
   }
   .cd-main-nav__item.cd-main-nav__item--signup {
-    background: #2f889a;
+    background: #273754;
+    color:white;
+    margin-left:10px;
+    white-space: nowrap;
   }
 }
 
@@ -410,7 +422,6 @@ x sigin/signup popup
   display: inline-block;
   position: absolute;
   right: 0;
-  top: 0;
   padding: 6px 15px;
   border-left: 1px solid #d2d8d8;
   top: 50%;

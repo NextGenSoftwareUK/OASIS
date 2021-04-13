@@ -1,15 +1,12 @@
 ﻿<!doctype html>
 <html lang="en" class="no-js">
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
 
         <!-- <link rel="stylesheet" type="text/css" href="css/menu.css">    -->
+        <!-- <link rel="preconnectg" href="https://gstatic.com"> -->
         <link href='https://fonts.googleapis.com/css?family=PT+Sans:400,700' rel='stylesheet' type='text/css'>
 
         <link rel="stylesheet" href="css/login/reset.css"> <!-- CSS reset -->
@@ -22,9 +19,8 @@
     </head>
 
     <body>
-
-    <body>
-        <div class="container">
+        
+        <div class="container desktop">
             <nav class="nav nav5">
                 <ul>
                     <li>
@@ -224,7 +220,7 @@
                 </ul>
                 <div id="divLogin" class="cd-signin-modal__block js-signin-modal-block" data-type="login">
                     <!-- log in form -->
-                    <form class="cd-signin-modal__form" novalidate id="loginForm">
+                    <form method="post" class="cd-signin-modal__form" novalidate id="loginForm">
                         <div class="cd-signin-modal__fieldset">
                             <label
                                 class="cd-signin-modal__label cd-signin-modal__label--email cd-signin-modal__label--image-replace"
@@ -261,9 +257,10 @@
                             data-signin="reset">Forgot your password?</a>
                     </div>
                 </div>
+                
+                <!-- sign up form -->
 
                 <div id="divNewAccount" class="cd-signin-modal__block js-signin-modal-block" data-type="signup">
-                    <!-- sign up form -->
                     <form class="cd-signin-modal__form" id="SignupForm">
 
                         <div class="cd-signin-modal__fieldset">
