@@ -32,7 +32,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             get
             {
                 if (_SearchManager == null)
-                    _SearchManager = new SearchManager(GetAndActivateProvider());
+                    _SearchManager = new SearchManager(GetAndActivateDefaultProvider());
 
                 return _SearchManager;
             }

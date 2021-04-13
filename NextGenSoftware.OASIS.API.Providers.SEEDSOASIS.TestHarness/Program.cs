@@ -1,8 +1,10 @@
-﻿using EOSNewYork.EOSCore.Response.API;
+﻿using System;
+using EOSNewYork.EOSCore.Response.API;
 using NextGenSoftware.OASIS.API.Core.Helpers;
+using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.DNA;
-using NextGenSoftware.OASIS.API.Providers.SEEDSOASIS.ParamObjects;
-using System;
+using NextGenSoftware.OASIS.API.Providers.SEEDSOASIS.Membranes;
 
 namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS.TestHarness
 {
@@ -10,26 +12,41 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS.TestHarness
     {
         static void Main(string[] args)
         {
-            Console.WriteLine("NEXTGEN SOFTWARE SEEDSOASIS TEST HARNESS V1.1");
+            Console.WriteLine("NEXTGEN SOFTWARE SEEDSOASIS TEST HARNESS V1.2");
             Console.WriteLine("");
 
             SEEDSOASIS seedsOASIS = new SEEDSOASIS(new EOSIOOASIS.EOSIOOASIS("https://node.hypha.earth"));
-            OASISDNAManager.GetAndActivateProvider(); //TODO: TEMP - Take out once EOSIOOASIS has rest of AvatarManager methods implemented.
+
+            // Will initialize the default OASIS Provider defined OASIS_DNA config file.
+            OASISDNAManager.GetAndActivateDefaultProvider(); //TODO: TEMP - Take out once EOSIOOASIS has rest of AvatarManager methods implemented.
 
             Console.WriteLine("Getting Balance for account davidsellams...");
             string balance = seedsOASIS.GetBalanceForTelosAccount("davidsellams");
             Console.WriteLine(string.Concat("Balance: ", balance));
 
+            Console.WriteLine("Getting Balance for account nextgenworld...");
+            balance = seedsOASIS.GetBalanceForTelosAccount("nextgenworld");
+            Console.WriteLine(string.Concat("Balance: ", balance));
+
             Console.WriteLine("Getting Account for account davidsellams...");
             Account account = seedsOASIS.EOSIOOASIS.GetEOSIOAccount("davidsellams");
             Console.WriteLine(string.Concat("Account.account_name: ", account.account_name));
-            Console.WriteLine(string.Concat("Account.created: ", account.created));
             Console.WriteLine(string.Concat("Account.created: ", account.created_datetime.ToString()));
-            Console.WriteLine(string.Concat("Account.created: ", account.created_datetime.ToShortDateString()));
-            Console.WriteLine(string.Concat("Account.core_liquid_balance: ", account.core_liquid_balance));
 
-            Console.WriteLine("Sending SEEDS to davidsellams...");
-            OASISResult<string> result = seedsOASIS.PayWithSeedsUsingTelosAccount("davidsellams", "davidsellams", 1, Core.Enums.KarmaSourceType.API, "test", "test", "test", "test memo");
+            Console.WriteLine("Getting Account for account nextgenworld...");
+            account = seedsOASIS.EOSIOOASIS.GetEOSIOAccount("nextgenworld");
+            Console.WriteLine(string.Concat("Account.account_name: ", account.account_name));
+            Console.WriteLine(string.Concat("Account.created: ", account.created_datetime.ToString()));
+
+            AvatarManager avatarManager = new AvatarManager(ProviderManager.CurrentStorageProvider);
+            IAvatar avatar = avatarManager.LoadAvatar("davidellams@hotmail.com");
+
+            // Check that the Telos account name is linked to the avatar and link it if it is not (PayWithSeeds will fail if it is not linked when it tries to add the karma points).
+            if (!avatar.ProviderKey.ContainsKey(Core.Enums.ProviderType.TelosOASIS))
+                avatarManager.LinkTelosAccountToAvatar(avatar.Id, "davidsellams");
+
+            Console.WriteLine("Sending SEEDS from nextgenworld to davidsellams...");
+            OASISResult<string> result = seedsOASIS.PayWithSeedsUsingTelosAccount("davidsellams", "nextgenworld", 1, Core.Enums.KarmaSourceType.API, "test", "test", "test", "test memo");
             Console.WriteLine(string.Concat("Success: ", result.IsError ? "false" : "true"));
 
             if (result.IsError)
@@ -41,16 +58,24 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS.TestHarness
             balance = seedsOASIS.GetBalanceForTelosAccount("davidsellams");
             Console.WriteLine(string.Concat("Balance: ", balance));
 
+            Console.WriteLine("Getting Balance for account nextgenworld...");
+            balance = seedsOASIS.GetBalanceForTelosAccount("nextgenworld");
+            Console.WriteLine(string.Concat("Balance: ", balance));
+
             Console.WriteLine("Getting Organsiations...");
             string orgs = seedsOASIS.GetAllOrganisationsAsJSON();
             Console.WriteLine(string.Concat("Organisations: ", orgs));
+
+            //Console.WriteLine("Getting nextgenworld organsiation...");
+            //string org = seedsOASIS.GetOrganisation("nextgenworld");
+            //Console.WriteLine(string.Concat("nextgenworld org: ", org));
 
             Console.WriteLine("Generating QR Code for davidsellams...");
             string qrCode = seedsOASIS.GenerateSignInQRCode("davidsellams");
             Console.WriteLine(string.Concat("SEEDS Sign-In QRCode: ", qrCode));
 
             Console.WriteLine("Sending invite to davidsellams...");
-            OASISResult<SendInviteResult> sendInviteResult = seedsOASIS.SendInviteToJoinSeedsUsingTelosAccount("davidsellams", "davidsellams", 5, 5, Core.Enums.KarmaSourceType.API, "test", "test", "test");
+            OASISResult<SendInviteResult> sendInviteResult = seedsOASIS.SendInviteToJoinSeedsUsingTelosAccount("davidsellams", "davidsellams",1 , 1, Core.Enums.KarmaSourceType.API, "test", "test", "test");
             Console.WriteLine(string.Concat("Success: ", sendInviteResult.IsError ? "false" : "true"));
 
             if (sendInviteResult.IsError)

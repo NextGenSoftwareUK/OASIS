@@ -12,7 +12,7 @@ namespace NextGenSoftware.OASIS.STAR
     //public abstract class ZomeBase: Holon, IZome
     public abstract class ZomeBase : Holon, IZomeBase
     {
-        private HolonManager _holonManager = new HolonManager(OASISDNAManager.GetAndActivateProvider());
+        private HolonManager _holonManager = new HolonManager(OASISDNAManager.GetAndActivateDefaultProvider());
         public List<Holon> _holons = new List<Holon>();
 
         public List<Holon> Holons

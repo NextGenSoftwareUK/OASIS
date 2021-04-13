@@ -338,7 +338,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpPost("SetAutoReplicateForAllProviders/{autoReplicate}")]
         public ActionResult<bool> SetAutoReplicateForAllProviders(bool autoReplicate)
         {
-            return Ok(ProviderManager.SetAutoReplicateForAllProviders(autoReplicate));
+            if (ProviderManager.SetAutoReplicateForAllProviders(autoReplicate))
+                return Ok(OASISDNAManager.RegisterProvidersInAutoReplicatingList());
+            else
+                return (Ok(false));
         }
 
         /// <summary>
@@ -349,7 +352,6 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpPost("SetAutoReplicateForListOfProviders/{autoReplicate}/{providerTypes}")]
-        //public ActionResult<bool> SetAutoReplicateForListOfProviders(bool autoReplicate, ProviderType[] providerTypes)
         public ActionResult<bool> SetAutoReplicateForListOfProviders(bool autoReplicate, string providerTypes)
         {
             string[] types = providerTypes.Split(',');
@@ -358,7 +360,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             foreach (string type in types)
                 providerTypesList.Add((ProviderType)Enum.Parse(typeof(ProviderType), type));
 
-            return Ok(ProviderManager.SetAutoReplicationForProviders(autoReplicate, new List<ProviderType>(providerTypesList)));
+            if (ProviderManager.SetAutoReplicationForProviders(autoReplicate, new List<ProviderType>(providerTypesList)))
+                return Ok(OASISDNAManager.RegisterProvidersInAutoReplicatingList());
+            else
+                return (Ok(false));
         }
 
         ///// <summary>
@@ -384,7 +389,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpPost("SetAutoFailOverForAllProviders/{addToFailOverList}")]
         public ActionResult<bool> SetAutoFailOverForAllProviders(bool addToFailOverList)
         {
-            return Ok(ProviderManager.SetAutoFailOverForAllProviders(addToFailOverList));
+            if (ProviderManager.SetAutoFailOverForAllProviders(addToFailOverList))
+                return Ok(OASISDNAManager.RegisterProvidersInAutoFailOverList());
+            else
+                return (Ok(false));
         }
 
         /// <summary>
@@ -403,7 +411,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             foreach (string type in types)
                 providerTypesList.Add((ProviderType)Enum.Parse(typeof(ProviderType), type));
 
-            return Ok(ProviderManager.SetAutoFailOverForProviders(addToFailOverList, new List<ProviderType>(providerTypesList)));
+            if (ProviderManager.SetAutoFailOverForProviders(addToFailOverList, new List<ProviderType>(providerTypesList)))
+                return Ok(OASISDNAManager.RegisterProvidersInAutoFailOverList());
+            else
+                return (Ok(false));
         }
 
         /// <summary>
@@ -415,7 +426,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpPost("SetAutoLoadBalanceForAllProviders/{addToLoadBalanceList}")]
         public ActionResult<bool> SetAutoLoadBalanceForAllProviders(bool addToLoadBalanceList)
         {
-            return Ok(ProviderManager.SetAutoLoadBalanceForAllProviders(addToLoadBalanceList));
+            if (ProviderManager.SetAutoLoadBalanceForAllProviders(addToLoadBalanceList))
+                return Ok(OASISDNAManager.RegisterProvidersInAutoLoadBalanceList());
+            else
+                return (Ok(false));
         }
 
         /// <summary>
@@ -433,8 +447,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 
             foreach (string type in types)
                 providerTypesList.Add((ProviderType)Enum.Parse(typeof(ProviderType), type));
-
-            return Ok(ProviderManager.SetAutoLoadBalanceForProviders(addToLoadBalanceList, new List<ProviderType>(providerTypesList)));
+            
+            if (ProviderManager.SetAutoLoadBalanceForProviders(addToLoadBalanceList, new List<ProviderType>(providerTypesList)))
+                return Ok(OASISDNAManager.RegisterProvidersInAutoLoadBalanceList());
+            else
+                return (Ok(false));
         }
 
         ///// <summary>

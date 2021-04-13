@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Http;
 using System.Threading.Tasks;
-using NextGenSoftware.OASIS.API.Config;
+using NextGenSoftware.OASIS.API.DNA;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Middleware
 {
@@ -13,8 +13,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Middleware
         {
             _next = next;
 
-            if (OASISDNAManager.OASISDNA == null)
-                OASISDNAManager.LoadOASISDNA("OASIS_DNA.json");
+            if (!OASISDNAManager.IsInitialized)
+                OASISDNAManager.Initialize(); // Will default to OASIS_DNA.json
+                //OASISDNAManager.Initialize("OASIS_DNA.json");
 
             //OASISProviderManager.OASISSettings = OASISSettings.Value;
         }
