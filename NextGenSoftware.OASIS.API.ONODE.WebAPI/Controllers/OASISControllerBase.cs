@@ -1,6 +1,5 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Options;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.DNA;
@@ -38,11 +37,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         }
 
         //TODO: REMOVE ASAP, NOT USED ANYMORE
-        public OASISControllerBase(IOptions<OASISDNA> settings)
-        {
-            //OASISSettings = settings;
-            // OASISProviderManager.OASISSettings = settings.Value;
-        }
+        //public OASISControllerBase(IOptions<OASISDNA> settings)
+        //{
+        //    //OASISSettings = settings;
+        //    // OASISProviderManager.OASISSettings = settings.Value;
+        //}
 
         protected IOASISStorage GetAndActivateDefaultProvider()
         {
@@ -51,7 +50,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 
         protected IOASISStorage GetAndActivateProvider(ProviderType providerType, bool setGlobally = false)
         {
-            return OASISDNAManager.GetAndActivateProvider(providerType, setGlobally);
+            return OASISDNAManager.GetAndActivateProvider(providerType, null, false, setGlobally);
+        }
+
+        protected IOASISStorage GetAndActivateProvider(ProviderType providerType, string customConnectionString = null, bool forceRegister = false, bool setGlobally = false)
+        {
+            return OASISDNAManager.GetAndActivateProvider(providerType, customConnectionString, forceRegister, setGlobally);
         }
     }
 }

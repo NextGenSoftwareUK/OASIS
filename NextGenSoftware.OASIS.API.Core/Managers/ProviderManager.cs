@@ -74,6 +74,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
         public static bool UnRegisterProvider(IOASISProvider provider)
         {
+            provider.DeActivateProvider();
             _registeredProviders.Remove(provider);
             _registeredProviderTypes.Remove(provider.ProviderType);
             return true;

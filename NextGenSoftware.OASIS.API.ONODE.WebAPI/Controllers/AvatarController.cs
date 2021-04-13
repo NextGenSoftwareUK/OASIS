@@ -666,7 +666,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpPost("{avatarId}/{telosAccountName}")]
         public IActionResult LinkTelosAccountToAvatar(Guid avatarId, string telosAccountName)
         {
-            return Ok(AvatarManager.LinkTelosAccountToAvatar(avatarId, telosAccountName));
+            return Ok(AvatarManager.LinkProviderKeyToAvatar(avatarId, ProviderType.TelosOASIS, telosAccountName));
         }
 
         /// <summary>
@@ -679,8 +679,22 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpPost("{avatarId}/{eosioAccountName}")]
         public IActionResult LinkEOSIOAccountToAvatar(Guid avatarId, string eosioAccountName)
         {
-            return Ok(AvatarManager.LinkEOSIOAccountToAvatar(avatarId, eosioAccountName));
+            return Ok(AvatarManager.LinkProviderKeyToAvatar(avatarId, ProviderType.EOSIOOASIS, eosioAccountName));
         }
+
+        /// <summary>
+        /// Link's a given holochain AgentID to the given avatar.
+        /// </summary>
+        /// <param name="avatarId">The id of the avatar.</param>
+        /// <param name="holochainAgentID"></param>
+        /// <returns></returns>
+        [Authorize]
+        [HttpPost("{avatarId}/{holochainAgentID}")]
+        public IActionResult LinkHolochainAgentIDToAvatar(Guid avatarId, string holochainAgentID)
+        {
+            return Ok(AvatarManager.LinkProviderKeyToAvatar(avatarId, ProviderType.HoloOASIS, holochainAgentID));
+        }
+
 
         private void setTokenCookie(string token)
         {

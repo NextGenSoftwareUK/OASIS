@@ -13,6 +13,7 @@ using NextGenSoftware.OASIS.API.Providers.MongoDBOASIS;
 using NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS;
 using NextGenSoftware.OASIS.API.Providers.IPFSOASIS;
 using NextGenSoftware.OASIS.API.Providers.Neo4jOASIS;
+using NextGenSoftware.OASIS.API.Providers.TelosOASIS;
 
 namespace NextGenSoftware.OASIS.API.DNA
 {
@@ -56,7 +57,7 @@ namespace NextGenSoftware.OASIS.API.DNA
                 return ProviderManager.CurrentStorageProvider;
         }
 
-        public static IOASISStorage GetAndActivateProvider(ProviderType providerType, bool setGlobally = false)
+        public static IOASISStorage GetAndActivateProvider(ProviderType providerType, string customConnectionString = null, bool forceRegister = false, bool setGlobally = false)
         {
             if (!IsInitialized)
                 Initialize(OASISDNAFileName);
@@ -64,7 +65,7 @@ namespace NextGenSoftware.OASIS.API.DNA
             //TODO: Think we can have this in ProviderManger and have default connection strings/settings for each provider.
             if (providerType != ProviderManager.CurrentStorageProviderType.Value)
             {
-                RegisterProvider(providerType);
+                RegisterProvider(providerType, customConnectionString, forceRegister);
                 ProviderManager.SetAndActivateCurrentStorageProvider(providerType, setGlobally);
             }
 
@@ -75,12 +76,16 @@ namespace NextGenSoftware.OASIS.API.DNA
             return ProviderManager.CurrentStorageProvider; 
         }
 
-        public static IOASISStorage RegisterProvider(ProviderType providerType)
+        public static IOASISStorage RegisterProvider(ProviderType providerType, string customConnectionString = null, bool forceRegister = false)
         {
             IOASISStorage registeredProvider = null;
 
             if (!IsInitialized)
                 Initialize(OASISDNAFileName);
+
+            // If they wish to forceRegister then if it is already registered then unregister it first.
+            if (forceRegister && ProviderManager.IsProviderRegistered(providerType))
+                ProviderManager.UnRegisterProvider(providerType);
 
             if (!ProviderManager.IsProviderRegistered(providerType))
             {
@@ -88,7 +93,7 @@ namespace NextGenSoftware.OASIS.API.DNA
                 {
                     case ProviderType.HoloOASIS:
                         {
-                            HoloOASIS holoOASIS = new HoloOASIS(OASISDNA.OASIS.StorageProviders.HoloOASIS.ConnectionString, OASISDNA.OASIS.StorageProviders.HoloOASIS.HolochainVersion);
+                            HoloOASIS holoOASIS = new HoloOASIS(customConnectionString == null ? OASISDNA.OASIS.StorageProviders.HoloOASIS.ConnectionString : customConnectionString, OASISDNA.OASIS.StorageProviders.HoloOASIS.HolochainVersion);
                             holoOASIS.OnHoloOASISError += HoloOASIS_OnHoloOASISError;
                             holoOASIS.StorageProviderError += HoloOASIS_StorageProviderError;
                             ProviderManager.RegisterProvider(holoOASIS);
@@ -98,7 +103,7 @@ namespace NextGenSoftware.OASIS.API.DNA
 
                     case ProviderType.SQLLiteDBOASIS:
                         {
-                            SQLLiteDBOASIS SQLLiteDBOASIS = new SQLLiteDBOASIS(OASISDNA.OASIS.StorageProviders.SQLLiteDBOASIS.ConnectionString);
+                            SQLLiteDBOASIS SQLLiteDBOASIS = new SQLLiteDBOASIS(customConnectionString == null ? OASISDNA.OASIS.StorageProviders.SQLLiteDBOASIS.ConnectionString : customConnectionString);
                             SQLLiteDBOASIS.StorageProviderError += SQLLiteDBOASIS_StorageProviderError;
                             ProviderManager.RegisterProvider(SQLLiteDBOASIS);
                             registeredProvider = SQLLiteDBOASIS;
@@ -107,7 +112,7 @@ namespace NextGenSoftware.OASIS.API.DNA
 
                     case ProviderType.MongoDBOASIS:
                         {
-                            MongoDBOASIS mongoOASIS = new MongoDBOASIS(OASISDNA.OASIS.StorageProviders.MongoDBOASIS.ConnectionString, OASISDNA.OASIS.StorageProviders.MongoDBOASIS.DBName);
+                            MongoDBOASIS mongoOASIS = new MongoDBOASIS(customConnectionString == null ? OASISDNA.OASIS.StorageProviders.MongoDBOASIS.ConnectionString : customConnectionString, OASISDNA.OASIS.StorageProviders.MongoDBOASIS.DBName);
                             mongoOASIS.StorageProviderError += MongoOASIS_StorageProviderError;
                             ProviderManager.RegisterProvider(mongoOASIS);
                             registeredProvider = mongoOASIS;
@@ -116,10 +121,19 @@ namespace NextGenSoftware.OASIS.API.DNA
 
                     case ProviderType.EOSIOOASIS:
                         {
-                            EOSIOOASIS EOSIOOASIS = new EOSIOOASIS(OASISDNA.OASIS.StorageProviders.EOSIOOASIS.ConnectionString);
+                            EOSIOOASIS EOSIOOASIS = new EOSIOOASIS(customConnectionString == null ? OASISDNA.OASIS.StorageProviders.EOSIOOASIS.ConnectionString : customConnectionString);
                             EOSIOOASIS.StorageProviderError += EOSIOOASIS_StorageProviderError;
                             ProviderManager.RegisterProvider(EOSIOOASIS); 
                             registeredProvider = EOSIOOASIS;
+                        }
+                        break;
+
+                    case ProviderType.TelosOASIS:
+                        {
+                            TelosOASIS TelosOASIS = new TelosOASIS(customConnectionString == null ? OASISDNA.OASIS.StorageProviders.TelosOASIS.ConnectionString: customConnectionString);
+                            TelosOASIS.StorageProviderError += TelosOASIS_StorageProviderError;
+                            ProviderManager.RegisterProvider(TelosOASIS);
+                            registeredProvider = TelosOASIS;
                         }
                         break;
 
@@ -133,7 +147,7 @@ namespace NextGenSoftware.OASIS.API.DNA
 
                     case ProviderType.Neo4jOASIS:
                         {
-                            Neo4jOASIS Neo4jOASIS = new Neo4jOASIS(OASISDNA.OASIS.StorageProviders.Neo4jOASIS.ConnectionString, OASISDNA.OASIS.StorageProviders.Neo4jOASIS.Username, OASISDNA.OASIS.StorageProviders.Neo4jOASIS.Password);
+                            Neo4jOASIS Neo4jOASIS = new Neo4jOASIS(customConnectionString == null ? OASISDNA.OASIS.StorageProviders.Neo4jOASIS.ConnectionString : customConnectionString, OASISDNA.OASIS.StorageProviders.Neo4jOASIS.Username, OASISDNA.OASIS.StorageProviders.Neo4jOASIS.Password);
                             Neo4jOASIS.StorageProviderError += Neo4jOASIS_StorageProviderError;
                             ProviderManager.RegisterProvider(Neo4jOASIS); 
                             registeredProvider = Neo4jOASIS;
@@ -142,7 +156,7 @@ namespace NextGenSoftware.OASIS.API.DNA
 
                     case ProviderType.IPFSOASIS:
                         {
-                            IPFSOASIS IPFSOASIS = new IPFSOASIS(OASISDNA.OASIS.StorageProviders.IPFSOASIS.ConnectionString);
+                            IPFSOASIS IPFSOASIS = new IPFSOASIS(customConnectionString == null ? OASISDNA.OASIS.StorageProviders.IPFSOASIS.ConnectionString : customConnectionString);
                             IPFSOASIS.StorageProviderError += IPFSOASIS_StorageProviderError;
                             ProviderManager.RegisterProvider(IPFSOASIS); 
                             registeredProvider = IPFSOASIS;
@@ -154,6 +168,11 @@ namespace NextGenSoftware.OASIS.API.DNA
                 registeredProvider = (IOASISStorage)ProviderManager.GetProvider(providerType);
 
             return registeredProvider;
+        }
+
+        private static void TelosOASIS_StorageProviderError(object sender, AvatarManagerErrorEventArgs e)
+        {
+            throw new NotImplementedException();
         }
 
         public static bool RegisterProvidersInAutoFailOverList()

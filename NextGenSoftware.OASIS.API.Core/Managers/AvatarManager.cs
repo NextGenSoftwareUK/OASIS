@@ -1,16 +1,23 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Events;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Objects;
+using NextGenSoftware.OASIS.API.Core.Security;
 
 namespace NextGenSoftware.OASIS.API.Core.Managers
 {
     public class AvatarManager : OASISManager
     {
+        private static Dictionary<string, string> _avatarIdToProviderKeyLookup = new Dictionary<string, string>();
+        private static Dictionary<string, string> _avatarIdToProviderPrivateKeyLookup = new Dictionary<string, string>();
+        private static Dictionary<string, Guid> _providerKeyToAvatarIdLookup = new Dictionary<string, Guid>();
+        private static Dictionary<string, IAvatar> _providerKeyToAvatarLookup = new Dictionary<string, IAvatar>();
+
         public static IAvatar LoggedInAvatar { get; set; }
         private ProviderManagerConfig _config;
         
@@ -345,20 +352,100 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return result;
         }
 
-        public IAvatar LinkTelosAccountToAvatar(Guid avatarId, string telosAccountName, ProviderType provider = ProviderType.Default)
+        // Could be used as the public key for private/public key pairs. Could also be a username/accountname/unique id/etc, etc.
+        public IAvatar LinkProviderKeyToAvatar(Guid avatarId, ProviderType providerTypeToLinkTo, string providerKey, ProviderType providerToLoadAvatarFrom = ProviderType.Default)
         {
-            IAvatar avatar = ProviderManager.SetAndActivateCurrentStorageProvider(provider).LoadAvatar(avatarId);
-            avatar.ProviderKey[ProviderType.TelosOASIS] = telosAccountName;
+            IAvatar avatar = ProviderManager.SetAndActivateCurrentStorageProvider(providerToLoadAvatarFrom).LoadAvatar(avatarId);
+            avatar.ProviderKey[providerTypeToLinkTo] = providerKey;
             avatar = avatar.Save();
             return avatar;
         }
 
-        public IAvatar LinkEOSIOAccountToAvatar(Guid avatarId, string EOSIOAccountName, ProviderType provider = ProviderType.Default)
+        // Private key for a public/private keypair.
+        public IAvatar LinkProviderPrivateKeyToAvatar(Guid avatarId, ProviderType providerTypeToLinkTo, string providerPrivateKey, ProviderType providerToLoadAvatarFrom = ProviderType.Default)
         {
-            IAvatar avatar = ProviderManager.SetAndActivateCurrentStorageProvider(provider).LoadAvatar(avatarId);
-            avatar.ProviderKey[ProviderType.EOSIOOASIS] = EOSIOAccountName;
+            IAvatar avatar = ProviderManager.SetAndActivateCurrentStorageProvider(providerToLoadAvatarFrom).LoadAvatar(avatarId);
+            avatar.ProviderPrivateKey[providerTypeToLinkTo] = StringCipher.Encrypt(providerPrivateKey);
             avatar = avatar.Save();
             return avatar;
+        }
+
+        public string GetProviderKeyForAvatar(Guid avatarId, ProviderType providerType)
+        {
+            string key = string.Concat(Enum.GetName(providerType), avatarId);
+
+            if (!_avatarIdToProviderKeyLookup.ContainsKey(key))
+            {
+                IAvatar avatar = LoadAvatar(avatarId);
+
+                if (avatar != null)
+                {
+                    if (avatar.ProviderKey.ContainsKey(providerType))
+                        _avatarIdToProviderKeyLookup[key] = avatar.ProviderKey[providerType];
+                    else
+                        throw new InvalidOperationException(string.Concat("The avatar with id ", avatarId, " has not been linked to the ", Enum.GetName(providerType), " provider. Please use the LinkProviderKeyToAvatar method on the AvatarManager or avatar REST API."));
+                }
+                else
+                    throw new InvalidOperationException(string.Concat("The avatar with id ", avatarId, " was not found."));
+            }
+
+            return _avatarIdToProviderKeyLookup[key];
+        }
+
+        public string GetProviderPrivateKeyForAvatar(Guid avatarId, ProviderType providerType)
+        {
+            string key = string.Concat(Enum.GetName(providerType), avatarId);
+
+            if (LoggedInAvatar.Id != avatarId)
+                throw new InvalidOperationException("You cannot retreive the private key for another person's avatar. Please login to this account and try again.");
+
+            if (!_avatarIdToProviderPrivateKeyLookup.ContainsKey(key))
+            {
+                IAvatar avatar = LoadAvatar(avatarId);
+
+                if (avatar != null)
+                {
+                    if (avatar.ProviderPrivateKey.ContainsKey(providerType))
+                        _avatarIdToProviderPrivateKeyLookup[key] = avatar.ProviderPrivateKey[providerType];
+                    else
+                        throw new InvalidOperationException(string.Concat("The avatar with id ", avatarId, " has not been linked to the ", Enum.GetName(providerType), " provider. Please use the LinkProviderPrivateKeyToAvatar method on the AvatarManager or avatar REST API."));
+                }
+                else
+                    throw new InvalidOperationException(string.Concat("The avatar with id ", avatarId, " was not found."));
+            }
+
+            return StringCipher.Decrypt(_avatarIdToProviderPrivateKeyLookup[key]);
+        }
+
+        public Guid GetAvatarIdForProviderKey(string providerKey, ProviderType providerType)
+        {
+            // TODO: Do we need to store both the id and whole avatar in the cache? Think only need one? Just storing the id would use less memory and be faster but there may be use cases for when we need the whole avatar?
+            // In future, if there is not a use case for the whole avatar we will just use the id cache and remove the other.
+
+            string key = string.Concat(Enum.GetName(providerType), providerKey);
+
+            if (!_providerKeyToAvatarIdLookup.ContainsKey(key))
+                _providerKeyToAvatarIdLookup[key] = GetAvatarForProviderKey(providerKey, providerType).Id;
+
+            return _providerKeyToAvatarIdLookup[key];
+        }
+
+        //TODO: Think will remove this if there is no good use case for it?
+        public IAvatar GetAvatarForProviderKey(string providerKey, ProviderType providerType)
+        {
+            string key = string.Concat(Enum.GetName(providerType), providerKey);
+
+            if (!_providerKeyToAvatarLookup.ContainsKey(key))
+            {
+                IAvatar avatar = LoadAllAvatars().FirstOrDefault(x => x.ProviderKey.ContainsKey(providerType) && x.ProviderKey[providerType] == providerKey);
+
+                if (avatar != null)
+                    _providerKeyToAvatarIdLookup[key] = avatar.Id;
+                else
+                    throw new InvalidOperationException(string.Concat("The provider Key ", providerKey, " for the ", Enum.GetName(providerType), " providerType has not been linked to an avatar. Please use the LinkProviderKeyToAvatar method on the AvatarManager or avatar REST API."));
+            }
+
+            return _providerKeyToAvatarLookup[key];
         }
 
         private IAvatar PrepareAvatarForSaving(IAvatar avatar)

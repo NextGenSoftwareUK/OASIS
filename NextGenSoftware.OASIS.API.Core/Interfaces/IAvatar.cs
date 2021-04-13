@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Objects;
@@ -10,7 +9,8 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces
 {
     public interface IAvatar : IHolon
     {
-        Guid AvatarId { get; }
+       // Guid AvatarId { get; }
+        Dictionary<ProviderType, string> ProviderPrivateKey { get; set; }
         string Username { get; set; }
         string Password { get; set; }
         string Email { get; set; }

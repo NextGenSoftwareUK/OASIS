@@ -18,20 +18,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
     [EnableCors()]
     public class KarmaController : OASISControllerBase
     {
-        //private MissionManager _missionManager;
-
-        //private MissionManager MissionManager
-        //{
-        //    get
-        //    {
-        //        if (_missionManager == null)
-        //            _missionManager = new MissionManager(GetAndActivateProvider());
-
-        //        return _missionManager;
-        //    }
-        //}
-
-        public KarmaController(IOptions<OASISDNA> OASISSettings) : base(OASISSettings)
+        public KarmaController()
         {
 
         }
