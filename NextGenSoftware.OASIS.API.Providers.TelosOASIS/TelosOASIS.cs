@@ -257,7 +257,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS
 
         public string GetTelosAccountPrivateKeyForAvatar(Guid avatarId)
         {
-            return AvatarManagerInstance.GetProviderPrivateKeyForAvatar(avatarId, Core.Enums.ProviderType.TelosOASIS);
+            return AvatarManagerInstance.GetPrivateProviderKeyForAvatar(avatarId, Core.Enums.ProviderType.TelosOASIS);
         }
 
         public Account GetTelosAccountForAvatar(Guid avatarId)
