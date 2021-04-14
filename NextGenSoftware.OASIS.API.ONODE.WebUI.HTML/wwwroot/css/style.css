@@ -196,7 +196,7 @@ Login/Signup modal window - by CodyHouse.co
     background: transparent;
   }
   .cd-main-nav__item.cd-main-nav__item--signin, .cd-main-nav__item.cd-main-nav__item--signup {
-    padding: .6em 1em;
+    padding: .25em 1em;
     border-radius: 50em;
   }
   .cd-main-nav__item.cd-main-nav__item--signin {
