@@ -14,6 +14,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
     public class AvatarManager : OASISManager
     {
         private static Dictionary<string, string> _avatarIdToProviderKeyLookup = new Dictionary<string, string>();
+        private static Dictionary<string, string> _avatarUsernameToProviderKeyLookup = new Dictionary<string, string>();
         private static Dictionary<string, string> _avatarIdToProviderPrivateKeyLookup = new Dictionary<string, string>();
         private static Dictionary<string, Guid> _providerKeyToAvatarIdLookup = new Dictionary<string, Guid>();
         private static Dictionary<string, IAvatar> _providerKeyToAvatarLookup = new Dictionary<string, IAvatar>();
@@ -377,22 +378,42 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             if (!_avatarIdToProviderKeyLookup.ContainsKey(key))
             {
                 IAvatar avatar = LoadAvatar(avatarId);
-
-                if (avatar != null)
-                {
-                    if (avatar.ProviderKey.ContainsKey(providerType))
-                        _avatarIdToProviderKeyLookup[key] = avatar.ProviderKey[providerType];
-                    else
-                        throw new InvalidOperationException(string.Concat("The avatar with id ", avatarId, " has not been linked to the ", Enum.GetName(providerType), " provider. Please use the LinkProviderKeyToAvatar method on the AvatarManager or avatar REST API."));
-                }
-                else
-                    throw new InvalidOperationException(string.Concat("The avatar with id ", avatarId, " was not found."));
+                GetProviderKeyForAvatar(avatar, providerType, key, _avatarIdToProviderKeyLookup);
             }
 
             return _avatarIdToProviderKeyLookup[key];
         }
 
-        public string GetProviderPrivateKeyForAvatar(Guid avatarId, ProviderType providerType)
+        public string GetProviderKeyForAvatar(string avatarUsername, ProviderType providerType)
+        {
+            string key = string.Concat(Enum.GetName(providerType), avatarUsername);
+
+            if (!_avatarUsernameToProviderKeyLookup.ContainsKey(key))
+            {
+                IAvatar avatar = LoadAvatar(avatarUsername);
+                GetProviderKeyForAvatar(avatar, providerType, key, _avatarUsernameToProviderKeyLookup);
+            }
+
+            return _avatarUsernameToProviderKeyLookup[key];
+        }
+
+        //TODO: COME BACK TO THIS! EVENTUALLY NEED TO MAKE ALL AVATAR FUNCTIONS ACCEPT EITHER AVATAR ID OR AVATAR USERNAME...
+        private string GetProviderKeyForAvatar(IAvatar avatar, ProviderType providerType, string key, Dictionary<string, string> dictionaryCache)
+        {
+            if (avatar != null)
+            {
+                if (avatar.ProviderKey.ContainsKey(providerType))
+                    dictionaryCache[key] = avatar.ProviderKey[providerType];
+                else
+                    throw new InvalidOperationException(string.Concat("The avatar with id ", avatar.Id, " and username ", avatar.Username, " was not been linked to the ", Enum.GetName(providerType), " provider. Please use the LinkProviderKeyToAvatar method on the AvatarManager or avatar REST API."));
+            }
+            else
+                throw new InvalidOperationException(string.Concat("The avatar with id ", avatar.Id, " and username ", avatar.Username, " was not found."));
+
+            return dictionaryCache[key];
+        }
+
+        public string GetPrivateProviderKeyForAvatar(Guid avatarId, ProviderType providerType)
         {
             string key = string.Concat(Enum.GetName(providerType), avatarId);
 
@@ -430,6 +451,19 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return _providerKeyToAvatarIdLookup[key];
         }
 
+        //public string GetAvatarUsernameForProviderKey(string providerKey, ProviderType providerType)
+        //{
+        //    // TODO: Do we need to store both the id and whole avatar in the cache? Think only need one? Just storing the id would use less memory and be faster but there may be use cases for when we need the whole avatar?
+        //    // In future, if there is not a use case for the whole avatar we will just use the id cache and remove the other.
+
+        //    string key = string.Concat(Enum.GetName(providerType), providerKey);
+
+        //    if (!_providerKeyToAvatarIdLookup.ContainsKey(key))
+        //        _providerKeyToAvatarIdLookup[key] = GetAvatarForProviderKey(providerKey, providerType).Id;
+
+        //    return _providerKeyToAvatarIdLookup[key];
+        //}
+
         //TODO: Think will remove this if there is no good use case for it?
         public IAvatar GetAvatarForProviderKey(string providerKey, ProviderType providerType)
         {
@@ -446,6 +480,59 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             }
 
             return _providerKeyToAvatarLookup[key];
+        }
+
+        public OASISResult<Dictionary<ProviderType, string>> GetAllProviderKeysForAvatar(Guid avatarId)
+        {
+            OASISResult<Dictionary<ProviderType, string>> result = new OASISResult<Dictionary<ProviderType, string>>();
+            IAvatar avatar = LoadAvatar(avatarId);
+
+            if (avatar != null)
+                result.Result = avatar.ProviderKey;
+            else
+            {
+                result.IsError = true;
+                result.ErrorMessage = string.Concat("No avatar was found for the id ", avatarId);
+                //throw new InvalidOperationException(string.Concat("No avatar was found for the id ", avatarId));
+                // NOTE: Would rather return OASISResult's rather than throw exceptions because less overhead (exceptions return a full stack trace).
+                // TODO: Eventually need OASISResult's implemented for ALL OASIS functions (this includes replacing all exceptions where possible).
+            }
+
+            return result;
+        }
+
+        public OASISResult<Dictionary<ProviderType, string>> GetAllPrivateProviderKeysForAvatar(Guid avatarId)
+        {
+            OASISResult<Dictionary<ProviderType, string>> result = new OASISResult<Dictionary<ProviderType, string>>();
+
+            if (LoggedInAvatar.Id != avatarId)
+            {
+                result.IsError = true;
+                result.ErrorMessage = "ERROR: You can only retreive your own private keys, not another persons avatar.";
+            }
+            else
+            {
+                IAvatar avatar = LoadAvatar(avatarId);
+
+                if (avatar != null)
+                {
+                    result.Result = avatar.ProviderPrivateKey;
+
+                    // Decrypt the keys only for this return object (there are not stored in memory or storage unenrypted).
+                    foreach (ProviderType providerType in result.Result.Keys)
+                        result.Result[providerType] = StringCipher.Decrypt(result.Result[providerType]);
+                }
+                else
+                {
+                    result.IsError = true;
+                    result.ErrorMessage = string.Concat("No avatar was found for the id ", avatarId);
+                    //throw new InvalidOperationException(string.Concat("No avatar was found for the id ", avatarId));
+                    // NOTE: Would rather return OASISResult's rather than throw exceptions because less overhead (exceptions return a full stack trace).
+                    // TODO: Eventually need OASISResult's implemented for ALL OASIS functions (this includes replacing all exceptions where possible).
+                }
+            }
+
+            return result;
         }
 
         private IAvatar PrepareAvatarForSaving(IAvatar avatar)

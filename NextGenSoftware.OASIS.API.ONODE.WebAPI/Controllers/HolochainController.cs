@@ -35,7 +35,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpGet("GetHolochainAgentPrivateKeyForAvatar")]
         public ActionResult<string> GetHolochainAgentPrivateKeyForAvatar(Guid avatarId)
         {
-            return Ok(Program.AvatarManager.GetProviderPrivateKeyForAvatar(avatarId, ProviderType.HoloOASIS));
+            return Ok(Program.AvatarManager.GetPrivateProviderKeyForAvatar(avatarId, ProviderType.HoloOASIS));
         }
 
         ///// <summary>

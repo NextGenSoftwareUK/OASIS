@@ -74,7 +74,8 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
         public static bool UnRegisterProvider(IOASISProvider provider)
         {
-            provider.DeActivateProvider();
+            DeActivateProvider(provider);
+
             _registeredProviders.Remove(provider);
             _registeredProviderTypes.Remove(provider.ProviderType);
             return true;
@@ -298,29 +299,12 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 if (provider != null && (provider.ProviderCategory.Value == ProviderCategory.Storage || provider.ProviderCategory.Value == ProviderCategory.StorageAndNetwork))
                 {
                     if (CurrentStorageProvider != null)
-                    {
-                        try
-                        {
-                            CurrentStorageProvider.DeActivateProvider();
-                        }
-                        catch (Exception ex)
-                        {
-                            //TODO: Add logging here and handle properly.
-                        }
-                    }
+                        DeActivateProvider(CurrentStorageProvider);
                    
                     CurrentStorageProviderType.Value = providerType;
                     CurrentStorageProvider = (IOASISStorage)provider;
 
-                    try
-                    {
-                        CurrentStorageProvider.ActivateProvider();
-                    }
-                    catch (Exception ex)
-                    {
-                        //TODO: Add logging here and handle properly.
-                        throw ex;
-                    }
+                    ActivateProvider(CurrentStorageProvider);
 
                     if (setGlobally)
                         DefaultGlobalStorageProvider = CurrentStorageProvider;
@@ -332,11 +316,23 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
         public static bool ActivateProvider(ProviderType type)
         {
-            IOASISProvider provider = _registeredProviders.FirstOrDefault(x => x.ProviderType.Value == type);
+            return ActivateProvider(_registeredProviders.FirstOrDefault(x => x.ProviderType.Value == type));
+        }
 
+        public static bool ActivateProvider(IOASISProvider provider)
+        {
             if (provider != null)
             {
-                provider.ActivateProvider();
+                try
+                {
+                    provider.ActivateProvider();
+                }
+                catch (Exception ex)
+                {
+                    //TODO: Add logging here and handle properly.
+                    throw ex;
+                }
+                
                 return true;
             }
 
@@ -345,11 +341,22 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
         public static bool DeActivateProvider(ProviderType type)
         {
-            IOASISProvider provider = _registeredProviders.FirstOrDefault(x => x.ProviderType.Value == type);
+            return DeActivateProvider(_registeredProviders.FirstOrDefault(x => x.ProviderType.Value == type));
+        }
 
+        public static bool DeActivateProvider(IOASISProvider provider)
+        {
             if (provider != null)
             {
-                provider.DeActivateProvider();
+                try
+                {
+                    provider.DeActivateProvider();
+                }
+                catch (Exception ex)
+                {
+                    //TODO: Add logging and handle properly here.
+                }
+
                 return true;
             }
 

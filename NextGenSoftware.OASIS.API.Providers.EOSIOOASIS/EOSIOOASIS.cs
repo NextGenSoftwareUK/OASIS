@@ -327,7 +327,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
 
         public string GetEOSIOAccountPrivateKeyForAvatar(Guid avatarId)
         {
-            return AvatarManagerInstance.GetProviderPrivateKeyForAvatar(avatarId, Core.Enums.ProviderType.EOSIOOASIS);
+            return AvatarManagerInstance.GetPrivateProviderKeyForAvatar(avatarId, Core.Enums.ProviderType.EOSIOOASIS);
         }
 
         public Account GetEOSIOAccountForAvatar(Guid avatarId)

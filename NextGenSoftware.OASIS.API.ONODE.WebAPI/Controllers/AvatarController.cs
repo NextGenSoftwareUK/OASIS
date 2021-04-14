@@ -655,7 +655,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             GetAndActivateProvider(providerType, setGlobally);
             return Delete(id);
         }
-
+       
         /// <summary>
         /// Link's a given telosAccount to the given avatar.
         /// </summary>
@@ -695,7 +695,70 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             return Ok(AvatarManager.LinkProviderKeyToAvatar(avatarId, ProviderType.HoloOASIS, holochainAgentID));
         }
 
+        ///// <summary>
+        ///// Get's the provider key for the given avatar and provider type.
+        ///// </summary>
+        ///// <param name="avatarId">The id of the avatar.</param>
+        ///// <param name="providerType">The provider type.</param>
+        ///// <returns></returns>
+        //[Authorize]
+        //[HttpPost("{avatarId}")]
+        //public IActionResult GetProviderKeyForAvatar(Guid avatarId, ProviderType providerType)
+        //{
+        //    return Ok(AvatarManager.GetProviderKeyForAvatar(avatarId, providerType));
+        //}
 
+        /// <summary>
+        /// Get's the provider key for the given avatar and provider type.
+        /// </summary>
+        /// <param name="avatarUsername">The avatar username.</param>
+        /// <param name="providerType">The provider type.</param>
+        /// <returns></returns>
+        [Authorize]
+        [HttpPost("{avatarUsername}/{providerType}")]
+        public IActionResult GetProviderKeyForAvatar(string avatarUsername, ProviderType providerType)
+        {
+            return Ok(AvatarManager.GetProviderKeyForAvatar(avatarUsername, providerType));
+        }
+
+        /// <summary>
+        /// Get's the private provider key for the given avatar and provider type.
+        /// </summary>
+        /// <param name="avatarId">The id of the avatar.</param>
+        /// <param name="providerType">The id of the avatar.</param>
+        /// <returns></returns>
+        [Authorize]
+       [HttpPost("{avatarId}/{providerType}")]
+       public IActionResult GetPrivateProviderKeyForAvatar(Guid avatarId, ProviderType providerType)
+       {
+           return Ok(AvatarManager.GetPrivateProviderKeyForAvatar(avatarId, providerType));
+       }
+
+        /*
+       /// <summary>
+       /// Get's all the provider keys for the given avatar.
+       /// </summary>
+       /// <param name="avatarId">The id of the avatar.</param>
+       /// <returns></returns>
+       [Authorize]
+       [HttpPost("{avatarId}")]
+       public IActionResult GetAllProviderKeysForAvatar(Guid avatarId)
+       {
+           return Ok(AvatarManager.GetAllProviderKeysForAvatar(avatarId));
+       }
+
+       /// <summary>
+       /// Get's all the private provider keys for the given avatar.
+       /// </summary>
+       /// <param name="avatarId">The id of the avatar.</param>
+       /// <returns></returns>
+       [Authorize]
+       [HttpPost("{avatarId}")]
+       public IActionResult GetAllPrivateProviderKeysForAvatar(Guid avatarId)
+       {
+           return Ok(AvatarManager.GetAllPrivateProviderKeysForAvatar(avatarId));
+       }*/
+    
         private void setTokenCookie(string token)
         {
             var cookieOptions = new CookieOptions
