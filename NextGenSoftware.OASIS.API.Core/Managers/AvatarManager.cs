@@ -1,7 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
+using System.Security.Claims;
+using System.Security.Cryptography;
+using Microsoft.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
 using System.Threading.Tasks;
+using BC = BCrypt.Net.BCrypt;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Events;
 using NextGenSoftware.OASIS.API.Core.Helpers;
@@ -41,6 +47,61 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         public AvatarManager(IOASISStorage OASISStorageProvider) : base(OASISStorageProvider)
         {
 
+        }
+
+        // TODO: Not sure if we want to move methods from the AvatarService in WebAPI here?
+        // For integration with STAR and others like Unity can just call the REST API service?
+        // What advantage is there to making it native through dll's? Would be slightly faster than having to make a HTTP request/response round trip...
+        // BUT would STILL need to call out to a OASIS Storage Provider so depending if that was also running locally is how fast it would be...
+        // For now just easier to call the REST API service from STAR... can come back to this later... :)
+        public OASISResult<IAvatar> Authenticate(string username, string password, string ipAddress, string secret)
+        {
+            OASISResult<IAvatar> result = new OASISResult<IAvatar>();
+            result.Result = LoadAvatar(username);
+
+            if (result.Result == null)
+            {
+                result.IsError = true;
+                result.ErrorMessage = "This avatar does not exist. Please contact support or create a new avatar.";
+            }
+
+            if (result.Result.DeletedDate != DateTime.MinValue)
+            {
+                result.IsError = true;
+                result.ErrorMessage = "This avatar has been deleted. Please contact support or create a new avatar.";
+            }
+
+            // TODO: Implement Activate/Deactivate methods in AvatarManager & Providers...
+            if (!result.Result.IsActive)
+            {
+                result.IsError = true;
+                result.ErrorMessage = "This avatar is no longer active. Please contact support or create a new avatar.";
+            }
+
+            if (!result.Result.IsVerified)
+            {
+                result.IsError = true;
+                result.ErrorMessage = "Avatar has not been verified. Please check your email.";
+            }
+
+            if (result.Result == null || !BC.Verify(password, result.Result.Password))
+            {
+                result.IsError = true;
+                result.ErrorMessage = "Email or password is incorrect";
+            }
+
+            // authentication successful so generate jwt and refresh tokens
+            var jwtToken = generateJwtToken(result.Result, secret);
+            var refreshToken = generateRefreshToken(ipAddress);
+
+            result.Result.RefreshTokens.Add(refreshToken);
+            result.Result.JwtToken = jwtToken;
+            result.Result.RefreshToken = refreshToken.Token;
+
+            LoggedInAvatar = result.Result;
+
+            result.Result = RemoveAuthDetails(SaveAvatar(result.Result));
+            return result;
         }
 
         public IEnumerable<IAvatar> LoadAllAvatarsWithPasswords(ProviderType provider = ProviderType.Default)
@@ -557,6 +618,51 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 if (LoggedInAvatar != null)
                     avatar.CreatedByAvatarId = LoggedInAvatar.Id;
             }
+
+            return avatar;
+        }
+
+        private string generateJwtToken(IAvatar account, string secret)
+        {
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var key = Encoding.ASCII.GetBytes(secret);
+            var tokenDescriptor = new SecurityTokenDescriptor
+            {
+                Subject = new ClaimsIdentity(new[] { new Claim("id", account.Id.ToString()) }),
+                Expires = DateTime.UtcNow.AddMinutes(15),
+                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
+            };
+            var token = tokenHandler.CreateToken(tokenDescriptor);
+            return tokenHandler.WriteToken(token);
+        }
+
+        private RefreshToken generateRefreshToken(string ipAddress)
+        {
+            return new RefreshToken
+            {
+                Token = randomTokenString(),
+                Expires = DateTime.UtcNow.AddDays(7),
+                Created = DateTime.UtcNow,
+                CreatedByIp = ipAddress
+            };
+        }
+
+        private string randomTokenString()
+        {
+            using var rngCryptoServiceProvider = new RNGCryptoServiceProvider();
+            var randomBytes = new byte[40];
+            rngCryptoServiceProvider.GetBytes(randomBytes);
+            // convert random bytes to hex string
+            return BitConverter.ToString(randomBytes).Replace("-", "");
+        }
+
+        private IAvatar RemoveAuthDetails(IAvatar avatar)
+        {
+            //  avatar.VerificationToken = null; //TODO: Put back in when LIVE!
+
+            avatar.Password = null;
+            // avatar.RefreshToken = null;
+            //avatar.RefreshTokens = null;
 
             return avatar;
         }
