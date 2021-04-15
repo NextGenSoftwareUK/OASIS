@@ -12,6 +12,7 @@ using NextGenSoftware.OASIS.API.Providers.IPFSOASIS;
 using NextGenSoftware.OASIS.API.Providers.MongoDBOASIS;
 using NextGenSoftware.OASIS.API.Providers.Neo4jOASIS;
 using NextGenSoftware.OASIS.API.Providers.SEEDSOASIS;
+using NextGenSoftware.OASIS.API.Providers.TelosOASIS;
 
 namespace NextGenSoftware.OASIS.API.OASISAPIManager
 {
@@ -65,10 +66,10 @@ namespace NextGenSoftware.OASIS.API.OASISAPIManager
             Providers.ThreeFold = new ThreeFoldOASIS();
             Providers.ActivityPub = new AcitvityPubOASIS();
 
-            // We could re-use the EOSIOOASIS Provider but it could have a different connection string to SEEDSOASIS so they need to be seperate.
+            // We could re-use the TelosOASIS Provider but it could have a different connection string to SEEDSOASIS so they need to be seperate.
             // TODO: The only other way is to share it and have to keep disconnecting and re-connecting with the different connections (SEEDS or EOSIO may even work with any EOSIO node end point? NEED TO TEST... if so then we can use the commented out line below).
             //Providers.SEEDS = new SEEDSOASIS(Providers.EOSIO); 
-            Providers.SEEDS = new SEEDSOASIS(new EOSIOOASIS(OASISDNA.OASIS.StorageProviders.SEEDSOASIS.ConnectionString));
+            Providers.SEEDS = new SEEDSOASIS(new TelosOASIS(OASISDNA.OASIS.StorageProviders.SEEDSOASIS.ConnectionString));
 
             ProviderManager.RegisterProvider(Providers.IPFS);
             ProviderManager.RegisterProvider(Providers.EOSIO);

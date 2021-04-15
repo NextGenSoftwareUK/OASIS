@@ -17,6 +17,7 @@ using NextGenSoftware.OASIS.API.ONODE.WebAPI.Interfaces;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Security;
 using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.DNA;
+using NextGenSoftware.OASIS.API.Core.Helpers;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
 {
@@ -56,6 +57,14 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
 
         public AuthenticateResponse Authenticate(AuthenticateRequest model, string ipAddress)
         {
+            OASISResult<IAvatar> result = AvatarManager.Authenticate(model.Email, model.Password, ipAddress, _OASISDNA.OASIS.Secret);
+
+            if (!result.IsError)
+                return new AuthenticateResponse() { Message = "Avatar Successfully Authenticated.", Avatar = result.Result };
+            else
+                return new AuthenticateResponse() { Message = result.ErrorMessage, IsError = true };
+
+            /*
             //IAvatar avatar = AvatarManager.LoadAvatar(model.Email, setGlobally);
             IAvatar avatar = AvatarManager.LoadAvatar(model.Email);
 
@@ -93,6 +102,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
 
             //TODO: Get Async working!
             return new AuthenticateResponse() { Message = "Avatar Successfully Authenticated.", Avatar = RemoveAuthDetails(AvatarManager.SaveAvatar(avatar)) };
+            */
         }
 
         //public AuthenticateResponse RefreshToken(string token, string ipAddress)

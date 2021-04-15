@@ -1,7 +1,9 @@
-﻿using Newtonsoft.Json;
+﻿using Microsoft.AspNetCore.Http;
+using Newtonsoft.Json;
 using NextGenSoftware.Holochain.HoloNET.Client.Core;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Events;
+using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Managers;
@@ -11,6 +13,7 @@ using NextGenSoftware.OASIS.API.OASISAPIManager;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Net;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
@@ -116,14 +119,33 @@ namespace NextGenSoftware.OASIS.STAR
             OnHolonsLoaded?.Invoke(sender, e);
         }
 
-        //Log in
-        public static async Task<Avatar> BeamIn(string username, string password)
+        public static async Task<OASISResult<IAvatar>> BeamInAsync(string username, string password)
         {
-            //TODO: Implement login code here.
-            // LoggedInUser = new Avatar() { Karma = 777, Name = "David Ellams", HolonType = HolonType.Avatar };
+            string hostName = Dns.GetHostName();  
+            string IPAddress = Dns.GetHostByName(hostName).AddressList[0].ToString();
 
-            LoggedInUser = (Avatar)ProviderManager.CurrentStorageProvider.LoadAvatar(username, password);
-            return LoggedInUser;
+            //TODO: Implement Async version of Authenticate.
+            OASISResult<IAvatar> result = OASISAPI.Avatar.Authenticate(username, password, IPAddress, OASISDNAManager.OASISDNA.OASIS.Secret);
+
+            if (!result.IsError)
+                LoggedInUser = (Avatar)result.Result;
+
+            return result;
+        }
+
+        public static OASISResult<IAvatar> BeamIn(string username, string password)
+        {
+            string hostName = Dns.GetHostName();
+            string IPAddress = Dns.GetHostByName(hostName).AddressList[2].ToString();
+            //string IPAddress = Dns.GetHostByName(hostName).AddressList[3].ToString();
+            //+string IPAddress = Dns.GetHostByName(hostName).AddressList[4].ToString();
+
+            OASISResult<IAvatar> result = OASISAPI.Avatar.Authenticate(username, password, IPAddress, OASISDNAManager.OASISDNA.OASIS.Secret);
+
+            if (!result.IsError)
+                LoggedInUser = (Avatar)result.Result;
+
+            return result;
         }
 
         public static async Task<CoronalEjection> Light(GenesisType type, string name, string dnaFolder = "", string genesisCSharpFolder = "", string genesisRustFolder = "", string genesisNameSpace = "")

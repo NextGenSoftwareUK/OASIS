@@ -229,7 +229,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             if (!oasisAvatar.ProviderKey.ContainsKey(Core.Enums.ProviderType.MongoDBOASIS))
                 oasisAvatar.ProviderKey[Core.Enums.ProviderType.MongoDBOASIS] = avatar.Id;
 
-            oasisAvatar.Name = avatar.Name;
+           // oasisAvatar.Name = avatar.Name;
             oasisAvatar.Description = avatar.Description;
             oasisAvatar.HolonType = avatar.HolonType;
             oasisAvatar.ProviderType = new Core.Helpers.EnumValue<ProviderType>(avatar.ProviderType);
@@ -299,7 +299,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
                 mongoAvatar.Id = avatar.ProviderKey[Core.Enums.ProviderType.MongoDBOASIS];
 
             mongoAvatar.AvatarId = avatar.Id.ToString();
-            mongoAvatar.Name = avatar.Name;
+           // mongoAvatar.Name = avatar.Name;
             mongoAvatar.Description = avatar.Description;
             mongoAvatar.HolonType = avatar.HolonType;
 
