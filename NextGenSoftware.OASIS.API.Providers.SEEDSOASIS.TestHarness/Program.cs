@@ -3,7 +3,7 @@ using EOSNewYork.EOSCore.Response.API;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Managers;
-using NextGenSoftware.OASIS.API.DNA;
+using NextGenSoftware.OASIS.API.DNA.Manager;
 using NextGenSoftware.OASIS.API.Providers.SEEDSOASIS.Membranes;
 
 namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS.TestHarness

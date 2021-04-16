@@ -4,15 +4,15 @@ using System.Reflection;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using EOSNewYork.EOSCore.Response.API;
+using NextGenSoftware.OASIS.API.Manager;
+using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Events;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.Core.Helpers;
-using NextGenSoftware.OASIS.API.OASISAPIManager;
 using NextGenSoftware.OASIS.API.Providers.SEEDSOASIS.Membranes;
-using NextGenSoftware.OASIS.API.Core.Interfaces;
 
 namespace NextGenSoftware.OASIS.STAR.TestHarness
 {

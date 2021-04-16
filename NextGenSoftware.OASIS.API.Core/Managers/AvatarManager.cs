@@ -14,6 +14,7 @@ using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.Core.Security;
+using NextGenSoftware.OASIS.API.DNA;
 
 namespace NextGenSoftware.OASIS.API.Core.Managers
 {
@@ -27,6 +28,8 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
         public static IAvatar LoggedInAvatar { get; set; }
         private ProviderManagerConfig _config;
+
+        public OASISDNA OASISDNA { get; set; }
         
         public List<IOASISStorage> OASISStorageProviders { get; set; }
         
@@ -43,6 +46,12 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
         public delegate void StorageProviderError(object sender, AvatarManagerErrorEventArgs e);
 
+       //TODO: Not sure we want to pass the OASISDNA here?
+        public AvatarManager(IOASISStorage OASISStorageProvider, OASISDNA OASISDNA) : base(OASISStorageProvider)
+        {
+            this.OASISDNA = OASISDNA;
+        }
+
         //TODO: In future more than one storage provider can be active at a time where each call can specify which provider to use.
         public AvatarManager(IOASISStorage OASISStorageProvider) : base(OASISStorageProvider)
         {
@@ -54,7 +63,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         // What advantage is there to making it native through dll's? Would be slightly faster than having to make a HTTP request/response round trip...
         // BUT would STILL need to call out to a OASIS Storage Provider so depending if that was also running locally is how fast it would be...
         // For now just easier to call the REST API service from STAR... can come back to this later... :)
-        public OASISResult<IAvatar> Authenticate(string username, string password, string ipAddress, string secret)
+        public OASISResult<IAvatar> Authenticate(string username, string password, string ipAddress)
         {
             OASISResult<IAvatar> result = new OASISResult<IAvatar>();
             result.Result = LoadAvatar(username);
@@ -90,8 +99,11 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 result.ErrorMessage = "Email or password is incorrect";
             }
 
+            //TODO: Come back to this.
+            //if (OASISDNA.OASIS.Security.AvatarPassword.)
+
             // authentication successful so generate jwt and refresh tokens
-            var jwtToken = generateJwtToken(result.Result, secret);
+            var jwtToken = generateJwtToken(result.Result);
             var refreshToken = generateRefreshToken(ipAddress);
 
             result.Result.RefreshTokens.Add(refreshToken);
@@ -622,10 +634,10 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return avatar;
         }
 
-        private string generateJwtToken(IAvatar account, string secret)
+        private string generateJwtToken(IAvatar account)
         {
             var tokenHandler = new JwtSecurityTokenHandler();
-            var key = Encoding.ASCII.GetBytes(secret);
+            var key = Encoding.ASCII.GetBytes(OASISDNA.OASIS.Security.Secret);
             var tokenDescriptor = new SecurityTokenDescriptor
             {
                 Subject = new ClaimsIdentity(new[] { new Claim("id", account.Id.ToString()) }),

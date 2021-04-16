@@ -15,7 +15,7 @@ using NextGenSoftware.OASIS.API.Providers.IPFSOASIS;
 using NextGenSoftware.OASIS.API.Providers.Neo4jOASIS;
 using NextGenSoftware.OASIS.API.Providers.TelosOASIS;
 
-namespace NextGenSoftware.OASIS.API.DNA
+namespace NextGenSoftware.OASIS.API.DNA.Manager
 {
     public static class OASISDNAManager 
     {

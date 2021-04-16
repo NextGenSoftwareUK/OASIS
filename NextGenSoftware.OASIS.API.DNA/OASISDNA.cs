@@ -6,22 +6,37 @@ namespace NextGenSoftware.OASIS.API.DNA
     public class OASISDNA
     {
         public OASIS OASIS { get; set; }
-
-        //public string Secret { get; set; }
-        //public EmailSettings Email { get; set; }
-        //public StorageProviderSettings StorageProviders { get; set; }
     }
 
     public class OASIS
     {
-        public string Secret { get; set; }
+       // public string Secret { get; set; }
+        public SecuritySettings Security { get; set; }
         public EmailSettings Email { get; set; }
         public StorageProviderSettings StorageProviders { get; set; }
     }
 
+    public class SecuritySettings
+    {
+        public string Secret { get; set; }
+        public EncryptionSettings AvatarPassword { get; set; }
+        public EncryptionSettings OASISProviderPrivateKeys { get; set; }
+    }
+
+    public class EncryptionSettings
+    {
+        public bool BCryptEncryptionEnabled { get; set; }
+        public bool Rijndael256EncryptionEnabled { get; set; }
+        public bool QuantumEncryptionEnabled { get; set; }
+    }
+
     public class StorageProviderSettings
     {
-      //  public string DefaultProviders { get; set; }
+        public bool AutoReplicationEnabled { get; set; }
+        public bool AutoFailOverEnabled { get; set; }
+        public bool AutoLoadBalanceEnabled { get; set; }
+        public int AutoLoadBalanceReadPollIntervalMins { get; set; }
+        public int AutoLoadBalanceWritePollIntervalMins { get; set; }
         public string AutoReplicationProviders { get; set; }
         public string AutoFailOverProviders { get; set; }
         public string AutoLoadBalanceProviders { get; set; }

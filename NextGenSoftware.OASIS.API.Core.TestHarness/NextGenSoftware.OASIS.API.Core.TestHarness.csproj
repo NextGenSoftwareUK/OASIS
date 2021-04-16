@@ -19,7 +19,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj" />
-    <ProjectReference Include="..\NextGenSoftware.OASIS.API.OASISAPIManager\NextGenSoftware.OASIS.API.OASISAPIManager.csproj" />
+    <ProjectReference Include="..\NextGenSoftware.OASIS.API.OASISAPIManager\NextGenSoftware.OASIS.API.Manager.csproj" />
     <ProjectReference Include="..\NextGenSoftware.OASIS.API.Providers.HoloOASIS.Desktop\NextGenSoftware.OASIS.API.Providers.HoloOASIS.Desktop.csproj" />
   </ItemGroup>
 

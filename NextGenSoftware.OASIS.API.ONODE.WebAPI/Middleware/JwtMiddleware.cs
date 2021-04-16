@@ -8,6 +8,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using NextGenSoftware.OASIS.API.DNA.Manager;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Middleware
 {
@@ -41,7 +42,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Middleware
             try
             {
                 var tokenHandler = new JwtSecurityTokenHandler();
-                var key = Encoding.ASCII.GetBytes(OASISDNAManager.OASISDNA.OASIS.Secret);
+                var key = Encoding.ASCII.GetBytes(OASISDNAManager.OASISDNA.OASIS.Security.Secret);
                 tokenHandler.ValidateToken(token, new TokenValidationParameters
                 {
                     ValidateIssuerSigningKey = true,
