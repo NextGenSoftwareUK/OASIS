@@ -1,5 +1,5 @@
 ﻿
-namespace NextGenSoftware.OASIS.API.OASISAPIManager
+namespace NextGenSoftware.OASIS.API.Manager
 {
     public enum InitOptions
     {

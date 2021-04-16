@@ -18,6 +18,7 @@ using NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Security;
 using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.API.Core.Helpers;
+using NextGenSoftware.OASIS.API.DNA.Manager;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
 {
@@ -57,7 +58,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
 
         public AuthenticateResponse Authenticate(AuthenticateRequest model, string ipAddress)
         {
-            OASISResult<IAvatar> result = AvatarManager.Authenticate(model.Email, model.Password, ipAddress, _OASISDNA.OASIS.Secret);
+            //OASISResult<IAvatar> result = AvatarManager.Authenticate(model.Email, model.Password, ipAddress, _OASISDNA.OASIS.Security.Secret);
+            OASISResult<IAvatar> result = AvatarManager.Authenticate(model.Email, model.Password, ipAddress);
 
             if (!result.IsError)
                 return new AuthenticateResponse() { Message = "Avatar Successfully Authenticated.", Avatar = result.Result };
@@ -380,10 +382,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
             return (refreshToken, avatar);
         }
 
+        //TODO: Finish moving everything into AvatarManager.
         private string generateJwtToken(IAvatar account)
         {
             var tokenHandler = new JwtSecurityTokenHandler();
-            var key = Encoding.ASCII.GetBytes(_OASISDNA.OASIS.Secret);
+            var key = Encoding.ASCII.GetBytes(_OASISDNA.OASIS.Security.Secret);
             var tokenDescriptor = new SecurityTokenDescriptor
             {
                 Subject = new ClaimsIdentity(new[] { new Claim("id", account.Id.ToString()) }),

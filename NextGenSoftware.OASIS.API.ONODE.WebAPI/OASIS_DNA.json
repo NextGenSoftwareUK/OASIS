@@ -7,7 +7,19 @@
   "AllowedHosts": "*",
 
   "OASIS": {
-    "Secret": "",
+    "Security": {
+      "Secret": "",
+      "AvatarPassword": {
+        "BCryptEncryptionEnabled": "true",
+        "Rijndael256EncryptionEnabled": "true",
+        "QuantumEncryptionEnabled": "true"
+      },
+      "OASISProviderPrivateKeys": {
+        "BCryptEncryptionEnabled": "true",
+        "Rijndael256EncryptionEnabled": "true",
+        "QuantumEncryptionEnabled": "true"
+      }
+    },
     "Email": {
       "EmailFrom": "",
       "SmtpHost": "",
@@ -16,7 +28,11 @@
       "SmtpPass": ""
     },
     "StorageProviders": {
-      //"DefaultProviders": "MongoDBOASIS, SQLLiteDBOASIS, Neo4JOASIS, IPFSOASIS, HoloOASIS, EOSIOOASIS, EthereumOASIS, ThreeFoldOASIS",
+      "AutoReplicationEnabled": "true",
+      "AutoFailOverEnabled": "true",
+      "AutoLoadBalanceEnabled": "true",
+      "AutoLoadBalanceReadPollIntervalMins": "10",
+      "AutoLoadBalanceWritePollIntervalMins": "10",
       "AutoReplicationProviders": "MongoDBOASIS, SQLLiteDBOASIS, Neo4jOASIS, IPFSOASIS, HoloOASIS, TelosOASIS, EOSIOOASIS, EthereumOASIS, ThreeFoldOASIS",
       "AutoFailOverProviders": "MongoDBOASIS, SQLLiteDBOASIS, Neo4jOASIS, IPFSOASIS, HoloOASIS, TelosOASIS, EOSIOOASIS, EthereumOASIS, ThreeFoldOASIS",
       "AutoLoadBalanceProviders": "MongoDBOASIS, SQLLiteDBOASIS, Neo4jOASIS, IPFSOASIS, HoloOASIS, TelosOASIS, EOSIOOASIS, EthereumOASIS, ThreeFoldOASIS",

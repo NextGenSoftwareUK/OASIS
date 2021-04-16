@@ -2,8 +2,8 @@
 using System;
 using EOSNewYork.EOSCore.Response.API;
 using NextGenSoftware.OASIS.API.Core.Enums;
-using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.API.Providers.TelosOASIS;
+using NextGenSoftware.OASIS.API.DNA.Manager;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 {

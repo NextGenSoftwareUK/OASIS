@@ -1,6 +1,12 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Net;
+using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 using Newtonsoft.Json;
-using NextGenSoftware.Holochain.HoloNET.Client.Core;
+using NextGenSoftware.OASIS.API.DNA.Manager;
+using NextGenSoftware.OASIS.API.Manager;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Events;
 using NextGenSoftware.OASIS.API.Core.Helpers;
@@ -8,14 +14,7 @@ using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Objects;
-using NextGenSoftware.OASIS.API.DNA;
-using NextGenSoftware.OASIS.API.OASISAPIManager;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Net;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
+using NextGenSoftware.Holochain.HoloNET.Client.Core;
 
 namespace NextGenSoftware.OASIS.STAR
 {
@@ -125,7 +124,8 @@ namespace NextGenSoftware.OASIS.STAR
             string IPAddress = Dns.GetHostByName(hostName).AddressList[0].ToString();
 
             //TODO: Implement Async version of Authenticate.
-            OASISResult<IAvatar> result = OASISAPI.Avatar.Authenticate(username, password, IPAddress, OASISDNAManager.OASISDNA.OASIS.Secret);
+            //OASISResult<IAvatar> result = OASISAPI.Avatar.Authenticate(username, password, IPAddress, OASISDNAManager.OASISDNA.OASIS.Security.Secret);
+            OASISResult<IAvatar> result = OASISAPI.Avatar.Authenticate(username, password, IPAddress);
 
             if (!result.IsError)
                 LoggedInUser = (Avatar)result.Result;
@@ -140,7 +140,7 @@ namespace NextGenSoftware.OASIS.STAR
             //string IPAddress = Dns.GetHostByName(hostName).AddressList[3].ToString();
             //+string IPAddress = Dns.GetHostByName(hostName).AddressList[4].ToString();
 
-            OASISResult<IAvatar> result = OASISAPI.Avatar.Authenticate(username, password, IPAddress, OASISDNAManager.OASISDNA.OASIS.Secret);
+            OASISResult<IAvatar> result = OASISAPI.Avatar.Authenticate(username, password, IPAddress);
 
             if (!result.IsError)
                 LoggedInUser = (Avatar)result.Result;

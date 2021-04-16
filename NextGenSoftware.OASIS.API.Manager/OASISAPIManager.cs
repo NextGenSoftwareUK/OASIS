@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
-using NextGenSoftware.OASIS.API.Core.Apollo.Server;
+using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Managers;
-using NextGenSoftware.OASIS.API.DNA;
+using NextGenSoftware.OASIS.API.Core.Apollo.Server;
 using NextGenSoftware.OASIS.API.Providers.AcitvityPubOASIS;
 using NextGenSoftware.OASIS.API.Providers.BlockStackOASIS;
 using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS;
@@ -14,7 +14,7 @@ using NextGenSoftware.OASIS.API.Providers.Neo4jOASIS;
 using NextGenSoftware.OASIS.API.Providers.SEEDSOASIS;
 using NextGenSoftware.OASIS.API.Providers.TelosOASIS;
 
-namespace NextGenSoftware.OASIS.API.OASISAPIManager
+namespace NextGenSoftware.OASIS.API.Manager
 {
     public class OASISProviders
     {
@@ -56,7 +56,7 @@ namespace NextGenSoftware.OASIS.API.OASISAPIManager
 
             // TODO: Soon you will not need to inject in a provider because the mappings below will be used instead...
             Map = new MapManager((IOASISStorage)OASISProviders[0]); 
-            Avatar = new AvatarManager((IOASISStorage)OASISProviders[0]);
+            Avatar = new AvatarManager((IOASISStorage)OASISProviders[0], OASISDNA);
             Data = new HolonManager((IOASISStorage)OASISProviders[0]);
             Providers.IPFS = new IPFSOASIS(OASISDNA.OASIS.StorageProviders.IPFSOASIS.ConnectionString);
             Providers.EOSIO = new EOSIOOASIS(OASISDNA.OASIS.StorageProviders.EOSIOOASIS.ConnectionString);

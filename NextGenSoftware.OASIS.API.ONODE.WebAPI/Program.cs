@@ -1,7 +1,7 @@
 ﻿
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
-using NextGenSoftware.OASIS.API.DNA;
+using NextGenSoftware.OASIS.API.DNA.Manager;
 using NextGenSoftware.OASIS.API.Core.Events;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using System;
@@ -94,7 +94,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
                     //_avatarManager = new AvatarManager(OASISControllerBase.GetAndActivateProviderStatic(CurrentStorageProviderType));
                     //_avatarManager = new AvatarManager();
 
-                    _avatarManager = new AvatarManager(OASISDNAManager.GetAndActivateDefaultProvider());
+                    _avatarManager = new AvatarManager(OASISDNAManager.GetAndActivateDefaultProvider(), OASISDNAManager.OASISDNA);
 
                     /*
                     if (ProviderManager.CurrentStorageProvider == null)

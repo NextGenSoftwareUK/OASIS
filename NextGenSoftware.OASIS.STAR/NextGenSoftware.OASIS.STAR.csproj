@@ -32,8 +32,10 @@
 
   <ItemGroup>
     <ProjectReference Include="..\NextGenSoftware.OASIS.API.Config\NextGenSoftware.OASIS.API.DNA.csproj" />
+    <ProjectReference Include="..\NextGenSoftware.OASIS.API.Config\NextGenSoftware.OASIS.API.DNA.Manager.csproj" />
     <ProjectReference Include="..\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj" />
-    <ProjectReference Include="..\NextGenSoftware.OASIS.API.OASISAPIManager\NextGenSoftware.OASIS.API.OASISAPIManager.csproj" />
+    <ProjectReference Include="..\NextGenSoftware.OASIS.API.DNA\NextGenSoftware.OASIS.API.DNA.csproj" />
+    <ProjectReference Include="..\NextGenSoftware.OASIS.API.OASISAPIManager\NextGenSoftware.OASIS.API.Manager.csproj" />
     <ProjectReference Include="..\NextGenSoftware.OASIS.API.Providers.SEEDSOASIS\NextGenSoftware.OASIS.API.Providers.SEEDSOASIS.csproj" />
   </ItemGroup>
 
