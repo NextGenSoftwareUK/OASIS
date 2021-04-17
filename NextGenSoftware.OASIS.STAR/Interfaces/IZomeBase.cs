@@ -2,9 +2,11 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.STAR.Zomes;
 
-namespace NextGenSoftware.OASIS.STAR
+namespace NextGenSoftware.OASIS.STAR.Interfaces
 {
     public interface IZomeBase : IHolon
     {

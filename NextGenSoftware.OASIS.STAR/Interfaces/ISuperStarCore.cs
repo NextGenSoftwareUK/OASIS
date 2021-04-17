@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace NextGenSoftware.OASIS.STAR
+namespace NextGenSoftware.OASIS.STAR.Interfaces
 {
     public interface ISuperStarCore
     {

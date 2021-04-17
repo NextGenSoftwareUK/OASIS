@@ -1,7 +1,8 @@
-﻿
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
+using NextGenSoftware.OASIS.STAR.CelestialBodies;
+using NextGenSoftware.OASIS.STAR.Enums;
 
-namespace NextGenSoftware.OASIS.STAR
+namespace NextGenSoftware.OASIS.STAR.Interfaces
 {
     public interface ICelestialBody : API.Core.Interfaces.ICelestialBody
     {

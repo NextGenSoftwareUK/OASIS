@@ -1,9 +1,5 @@
-﻿using NextGenSoftware.Holochain.HoloNET.Client.Core;
-using NextGenSoftware.OASIS.API.Core;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-
-namespace NextGenSoftware.OASIS.STAR
+﻿
+namespace NextGenSoftware.OASIS.STAR.Interfaces
 {
     //public interface IZome : OASIS.API.Core.IZome
     public interface IZome : IZomeBase
