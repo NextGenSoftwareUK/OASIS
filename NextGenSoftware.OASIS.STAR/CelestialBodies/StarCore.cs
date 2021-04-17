@@ -1,11 +1,10 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
-using NextGenSoftware.OASIS.STAR.CelestialBodies;
 using NextGenSoftware.OASIS.STAR.Interfaces;
 
-namespace NextGenSoftware.OASIS.STAR
+namespace NextGenSoftware.OASIS.STAR.CelestialBodies
 {
-    public class SuperStarCore : CelestialBodyCore, ISuperStarCore
+    public class StarCore : CelestialBodyCore, IStarCore
     {
         /*
       //  private string _providerKey = "";
@@ -44,66 +43,65 @@ namespace NextGenSoftware.OASIS.STAR
         }
         */
 
-        // public SuperStar SuperStar { get; set; }
+        public IStar Star { get; set; }
 
-        //public SuperStarCore(SuperStar star) : base()
-        //{
-        //    this.Star = star;
-        //}
-
-        //public SuperStarCore(string providerKey, IStar star) : base(providerKey)
-        //{
-        //    this.Star = star;
-        //}
-
-        public SuperStarCore(string providerKey) : base(providerKey)
+        public StarCore(IStar star) : base()
         {
-
+            this.Star = star;
         }
 
-        public async Task<IStar> AddStarAsync(IStar star)
+        public StarCore(string providerKey, IStar star) : base(providerKey)
         {
-            //TODO: Do we want to add the new star to the main star? Can a Star have a collection of Stars?
-            // Yes, I think we do, but that means if we can create Stars, then the first main star needs to be either SuperStar, BlueStar or GreatCentralSun! ;-)
-            // Then SuperStar/BlueStar/GreatCentralSun is the only object that can contain a collection of other stars. Normal Stars only contain collections of planets.
-            // I feel GreatCentralSun would be best because it then accurately models the Galaxy/Universe! ;-)
-
-            //TODO: SO.... tomorrow need to rename the existing Star to GreatCentralSun and then create a normal Star...
-            // Think StarBody can be renamed to Star and Star renamed to GreatCentralSun...
-
-            SuperStar.Stars.Add((Star)star);
-            return (IStar)await base.SaveHolonAsync((Star)star);
+            this.Star = star;
         }
 
-        // DONT NEED BECAUSE INNERSTAR CONTAINS THIS.
-        //public async Task<IPlanet> AddPlanetAsync(IPlanet planet)
+        //ONLY SUPERSTAR CAN HAVE A COLLECTION OF OTHER STARS.
+
+        //public async Task<IStar> AddStarAsync(IStar star)
         //{
-        //    SuperStar.Planets.Add((Planet)planet);
-        //    return (IPlanet)await base.SaveHolonAsync(planet);
+        //    //TODO: Do we want to add the new star to the main star? Can a Star have a collection of Stars?
+        //    // Yes, I think we do, but that means if we can create Stars, then the first main star needs to be either SuperStar, BlueStar or GreatCentralSun! ;-)
+        //    // Then SuperStar/BlueStar/GreatCentralSun is the only object that can contain a collection of other stars. Normal Stars only contain collections of planets.
+        //    // I feel GreatCentralSun would be best because it then accurately models the Galaxy/Universe! ;-)
+
+        //    //TODO: SO.... tomorrow need to rename the existing Star to GreatCentralSun and then create a normal Star...
+        //    // Think StarBody can be renamed to Star and Star renamed to GreatCentralSun...
+
+        //    return (IStar)await base.SaveHolonAsync((IHolon)star);
+        //    //return (IPlanet)await base.CallZomeFunctionAsync(STAR_ADD_STAR, planet);
         //}
 
-
-
-        public async Task<List<IStar>> GetStars()
+        public async Task<IPlanet> AddPlanetAsync(IPlanet planet)
         {
-            if (string.IsNullOrEmpty(ProviderKey))
-                throw new System.ArgumentException("ERROR: ProviderKey is null, please set this before calling this method.", "ProviderKey");
-
-            return (List<IStar>)await base.LoadHolonsAsync(ProviderKey, API.Core.Enums.HolonType.Star);
-            //return (List<IMoon>)await base.CallZomeFunctionAsync(STAR_GET_STARS, ProviderKey);
+            this.Star.Planets.Add(planet);
+            return (IPlanet)await base.SaveHolonAsync(planet);
+            //return (IPlanet)await base.CallZomeFunctionAsync(STAR_ADD_PLANET, planet);
         }
 
-        // DONT NEED BECAUSE INNERSTAR CONTAINS THIS.
-        //public async Task<List<IPlanet>> GetPlanets()
+
+        //ONLY SUPERSTAR CAN HAVE A COLLECTION OF OTHER STARS.
+
+        //public async Task<List<IStar>> GetStars()
         //{
         //    if (string.IsNullOrEmpty(ProviderKey))
         //        throw new System.ArgumentException("ERROR: ProviderKey is null, please set this before calling this method.", "ProviderKey");
 
-        //    return (List<IPlanet>)await base.LoadHolonsAsync(ProviderKey, API.Core.HolonType.Planet);
-        //    //return (List<IPlanet>)await base.CallZomeFunctionAsync(STAR_GET_PLANETS, ProviderKey);
+        //    return (List<IStar>)await base.LoadHolonsAsync(ProviderKey, API.Core.HolonType.Star);
+        //    //return (List<IMoon>)await base.CallZomeFunctionAsync(STAR_GET_STARS, ProviderKey);
         //}
 
+        public async Task<List<IPlanet>> GetPlanets()
+        {
+            if (string.IsNullOrEmpty(ProviderKey))
+                throw new System.ArgumentException("ERROR: ProviderKey is null, please set this before calling this method.", "ProviderKey");
+
+            return (List<IPlanet>)await base.LoadHolonsAsync(ProviderKey, API.Core.Enums.HolonType.Planet);
+            //return (List<IPlanet>)await base.CallZomeFunctionAsync(STAR_GET_PLANETS, ProviderKey);
+        }
+
         //TODO: I think we need to also add back in these Moon functions because Star can also create Moons...
+        // BUT I THINK ONLY A SUPERSTAR CAN CREATE MOONS?
+        // THINK A NORMAL STAR CAN GET COLLECTION OF MOONS AND PLANETS THAT BELONG TO ITS SOLAR SYSTEM?
 
         //public async Task<IMoon> AddMoonAsync(IMoon moon)
         //{

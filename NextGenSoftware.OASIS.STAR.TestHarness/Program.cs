@@ -4,7 +4,7 @@ using System.Reflection;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using EOSNewYork.EOSCore.Response.API;
-using NextGenSoftware.OASIS.API.Manager;
+using Nethereum.Contracts;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Events;
@@ -12,6 +12,9 @@ using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.Core.Helpers;
+using NextGenSoftware.OASIS.STAR.ErrorEventArgs;
+using NextGenSoftware.OASIS.STAR.CelestialBodies;
+using NextGenSoftware.OASIS.STAR.Enums;
 using NextGenSoftware.OASIS.API.Providers.SEEDSOASIS.Membranes;
 
 namespace NextGenSoftware.OASIS.STAR.TestHarness
@@ -77,9 +80,8 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
             Console.WriteLine("Beaming In...");
             Console.WriteLine("");
 
-            SuperStar.Initialize(""); //TODO: Not sure why we need to pass in a provider key?
-            //Avatar avatar = SuperStar.BeamIn("davidellams@hotmail.com", "my-super-secret-password");
-
+            // If you wish to change the default init options for STAR then manually call the Initialize method below, otherwise STAR will init with default options.
+            //SuperStar.Initialize(InitOptions.InitWithCurrentDefaultProvider);
             OASISResult<IAvatar> beamInResult = SuperStar.BeamIn("davidellams@hotmail.com", "my-super-secret-password");
 
             if (beamInResult.IsError)
@@ -140,139 +142,143 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
                     //  Set the default provider to MongoDB.
                     ProviderManager.SetAndActivateCurrentStorageProvider(ProviderType.MongoDBOASIS, true); // Set last param to false if you wish only the next call to use this provider.
 
+
+                     
                     //  Give HoloOASIS Store permission for the Name field(the field will only be stored on Holochain).
-                    OASISAPI.Avatar.Config.FieldToProviderMappings.Name.Add(new ProviderManagerConfig.FieldToProviderMappingAccess { Access = ProviderManagerConfig.ProviderAccess.Store, Provider = ProviderType.HoloOASIS });
+                    SuperStar.OASISAPI.Avatar.Config.FieldToProviderMappings.Name.Add(new ProviderManagerConfig.FieldToProviderMappingAccess { Access = ProviderManagerConfig.ProviderAccess.Store, Provider = ProviderType.HoloOASIS });
 
                     // Give all providers read/write access to the Karma field (will allow them to read and write to the field but it will only be stored on Holochain).
                     // You could choose to store it on more than one provider if you wanted the extra redundancy (but not normally needed since Holochain has a lot of redundancy built in).
-                    OASISAPI.Avatar.Config.FieldToProviderMappings.Karma.Add(new ProviderManagerConfig.FieldToProviderMappingAccess { Access = ProviderManagerConfig.ProviderAccess.ReadWrite, Provider = ProviderType.All });
+                    SuperStar.OASISAPI.Avatar.Config.FieldToProviderMappings.Karma.Add(new ProviderManagerConfig.FieldToProviderMappingAccess { Access = ProviderManagerConfig.ProviderAccess.ReadWrite, Provider = ProviderType.All });
 
                     //Give Ethereum read-only access to the DOB field.
-                    OASISAPI.Avatar.Config.FieldToProviderMappings.DOB.Add(new ProviderManagerConfig.FieldToProviderMappingAccess { Access = ProviderManagerConfig.ProviderAccess.ReadOnly, Provider = ProviderType.EthereumOASIS });
+                    SuperStar.OASISAPI.Avatar.Config.FieldToProviderMappings.DOB.Add(new ProviderManagerConfig.FieldToProviderMappingAccess { Access = ProviderManagerConfig.ProviderAccess.ReadOnly, Provider = ProviderType.EthereumOASIS });
 
 
                     // All calls are load-balanced and have multiple redudancy/fail over for all supported OASIS Providers.
-                    OASISAPI.Avatar.LoadAllAvatars(); // Load-balanced across all providers.
-                    OASISAPI.Avatar.LoadAllAvatars(ProviderType.MongoDBOASIS); // Only loads from MongoDB.
-                    OASISAPI.Avatar.LoadAvatar(SuperStar.LoggedInUser.Id, ProviderType.HoloOASIS); // Only loads from Holochain.
-                    OASISAPI.Map.CreateAndDrawRouteOnMapBetweenHolons(newHolon, newHolon); // Load-balanced across all providers.
+                    SuperStar.OASISAPI.Avatar.LoadAllAvatars(); // Load-balanced across all providers.
+                    SuperStar.OASISAPI.Avatar.LoadAllAvatars(ProviderType.MongoDBOASIS); // Only loads from MongoDB.
+                    SuperStar.OASISAPI.Avatar.LoadAvatar(SuperStar.LoggedInUser.Id, ProviderType.HoloOASIS); // Only loads from Holochain.
+                    SuperStar.OASISAPI.Map.CreateAndDrawRouteOnMapBetweenHolons(newHolon, newHolon); // Load-balanced across all providers.
 
-                    OASISAPI.Data.LoadHolon(newHolon.Id); // Load-balanced across all providers.
-                    OASISAPI.Data.LoadHolon(newHolon.Id, HolonType.All, ProviderType.IPFSOASIS); // Only loads from IPFS.
-                    OASISAPI.Data.LoadAllHolons(HolonType.Moon, ProviderType.HoloOASIS); // Loads all moon (OAPPs) from Holochain.
-                    OASISAPI.Data.SaveHolon(newHolon); // Load-balanced across all providers.
-                    OASISAPI.Data.SaveHolon(newHolon, ProviderType.EthereumOASIS); //  Only saves to Etherum.
+                    SuperStar.OASISAPI.Data.LoadHolon(newHolon.Id); // Load-balanced across all providers.
+                    SuperStar.OASISAPI.Data.LoadHolon(newHolon.Id, HolonType.All, ProviderType.IPFSOASIS); // Only loads from IPFS.
+                    SuperStar.OASISAPI.Data.LoadAllHolons(HolonType.Moon, ProviderType.HoloOASIS); // Loads all moon (OAPPs) from Holochain.
+                    SuperStar.OASISAPI.Data.SaveHolon(newHolon); // Load-balanced across all providers.
+                    SuperStar.OASISAPI.Data.SaveHolon(newHolon, ProviderType.EthereumOASIS); //  Only saves to Etherum.
 
-                    OASISAPI.Data.LoadAllHolons(HolonType.All, ProviderType.Default); // Loads all parks from current default provider.
-                    OASISAPI.Data.LoadAllHolons(HolonType.Park, ProviderType.All); // Loads all parks from all providers (load-balanced/fail over).
-                    OASISAPI.Data.LoadAllHolons(HolonType.Park); // shorthand for above.
-                    OASISAPI.Data.LoadAllHolons(HolonType.Quest); //  Loads all quests from all providers.
-                    OASISAPI.Data.LoadAllHolons(HolonType.Restaurant); //  Loads all resaurants from all providers.
+                    SuperStar.OASISAPI.Data.LoadAllHolons(HolonType.All, ProviderType.Default); // Loads all parks from current default provider.
+                    SuperStar.OASISAPI.Data.LoadAllHolons(HolonType.Park, ProviderType.All); // Loads all parks from all providers (load-balanced/fail over).
+                    SuperStar.OASISAPI.Data.LoadAllHolons(HolonType.Park); // shorthand for above.
+                    SuperStar.OASISAPI.Data.LoadAllHolons(HolonType.Quest); //  Loads all quests from all providers.
+                    SuperStar.OASISAPI.Data.LoadAllHolons(HolonType.Restaurant); //  Loads all resaurants from all providers.
 
-                    // Holochain Support
-                    await OASISAPI.Providers.Holochain.HoloNETClient.CallZomeFunctionAsync(OASISAPI.Providers.Holochain.HoloNETClient.AgentPubKey, "our_world_core", "load_holons", null);
+                     // Holochain Support
+                     await SuperStar.OASISAPI.Providers.Holochain.HoloNETClient.CallZomeFunctionAsync(SuperStar.OASISAPI.Providers.Holochain.HoloNETClient.AgentPubKey, "our_world_core", "load_holons", null);
 
-                    // IPFS Support
-                    await OASISAPI.Providers.IPFS.IPFSEngine.FileSystem.ReadFileAsync("");
-                    await OASISAPI.Providers.IPFS.IPFSEngine.FileSystem.AddFileAsync("");
-                    await OASISAPI.Providers.IPFS.IPFSEngine.Swarm.PeersAsync();
-                    await OASISAPI.Providers.IPFS.IPFSEngine.KeyChainAsync();
-                    await OASISAPI.Providers.IPFS.IPFSEngine.Dns.ResolveAsync("test");
-                    await OASISAPI.Providers.IPFS.IPFSEngine.Dag.GetAsync(new Ipfs.Cid() { Hash = "" });
-                    await OASISAPI.Providers.IPFS.IPFSEngine.Dag.PutAsync(new Ipfs.Cid() { Hash = "" });
-
-                    // EOSIO Support
-                    OASISAPI.Providers.EOSIO.ChainAPI.GetTableRows("accounts", "accounts", "users", "true", 0, 0, 1, 3);
-                    OASISAPI.Providers.EOSIO.ChainAPI.GetBlock("block");
-                    OASISAPI.Providers.EOSIO.ChainAPI.GetAccount("test.account");
-                    OASISAPI.Providers.EOSIO.ChainAPI.GetCurrencyBalance("test.account", "", "");
+                     // IPFS Support
+                     await SuperStar.OASISAPI.Providers.IPFS.IPFSEngine.FileSystem.ReadFileAsync("");
+                     await SuperStar.OASISAPI.Providers.IPFS.IPFSEngine.FileSystem.AddFileAsync("");
+                     await SuperStar.OASISAPI.Providers.IPFS.IPFSEngine.Swarm.PeersAsync();
+                     await SuperStar.OASISAPI.Providers.IPFS.IPFSEngine.KeyChainAsync();
+                     await SuperStar.OASISAPI.Providers.IPFS.IPFSEngine.Dns.ResolveAsync("test");
+                     await SuperStar.OASISAPI.Providers.IPFS.IPFSEngine.Dag.GetAsync(new Ipfs.Cid() { Hash = "" });
+                     await SuperStar.OASISAPI.Providers.IPFS.IPFSEngine.Dag.PutAsync(new Ipfs.Cid() { Hash = "" });
 
                     // Ethereum Support
-                   // OASISAPI.Providers.Ethereum.Web3.
+                    await SuperStar.OASISAPI.Providers.Ethereum.Web3.Client.SendRequestAsync(new Nethereum.JsonRpc.Client.RpcRequest("id", "test"));
+                    await SuperStar.OASISAPI.Providers.Ethereum.Web3.Eth.Blocks.GetBlockNumber.SendRequestAsync("");
+                    Contract contract = SuperStar.OASISAPI.Providers.Ethereum.Web3.Eth.GetContract("abi", "contractAddress");
 
+                    // EOSIO Support
+                    SuperStar.OASISAPI.Providers.EOSIO.ChainAPI.GetTableRows("accounts", "accounts", "users", "true", 0, 0, 1, 3);
+                    SuperStar.OASISAPI.Providers.EOSIO.ChainAPI.GetBlock("block");
+                    SuperStar.OASISAPI.Providers.EOSIO.ChainAPI.GetAccount("test.account");
+                    SuperStar.OASISAPI.Providers.EOSIO.ChainAPI.GetCurrencyBalance("test.account", "", "");
 
-                    // Graph DB Support
-                    await OASISAPI.Providers.Neo4j.GraphClient.Cypher.Merge("(a:Avatar { Id: avatar.Id })").OnCreate().Set("a = avatar").ExecuteWithoutResultsAsync(); //Insert/Update Avatar.
-                    Avatar newAvatar = OASISAPI.Providers.Neo4j.GraphClient.Cypher.Match("(p:Avatar {Username: {nameParam}})").WithParam("nameParam", "davidellams@hotmail.com").Return(p => p.As<Avatar>()).ResultsAsync.Result.Single(); //Load Avatar.
+                     // Graph DB Support
+                     await SuperStar.OASISAPI.Providers.Neo4j.GraphClient.Cypher.Merge("(a:Avatar { Id: avatar.Id })").OnCreate().Set("a = avatar").ExecuteWithoutResultsAsync(); //Insert/Update Avatar.
+                     Avatar newAvatar = SuperStar.OASISAPI.Providers.Neo4j.GraphClient.Cypher.Match("(p:Avatar {Username: {nameParam}})").WithParam("nameParam", "davidellams@hotmail.com").Return(p => p.As<Avatar>()).ResultsAsync.Result.Single(); //Load Avatar.
 
                     // Document/Object DB Support
-                    OASISAPI.Providers.MongoDB.Database.MongoDB.ListCollectionNames();
-                    OASISAPI.Providers.MongoDB.Database.MongoDB.GetCollection<Avatar>("testCollection");
+                    SuperStar.OASISAPI.Providers.MongoDB.Database.MongoDB.ListCollectionNames();
+                    SuperStar.OASISAPI.Providers.MongoDB.Database.MongoDB.GetCollection<Avatar>("testCollection");
 
-                    // SEEDS Support
-                    Console.WriteLine("Getting Balance for account davidsellams...");
-                    string balance = OASISAPI.Providers.SEEDS.GetBalanceForTelosAccount("davidsellams");
-                    Console.WriteLine(string.Concat("Balance: ", balance));
+                     // SEEDS Support
+                     Console.WriteLine("Getting Balance for account davidsellams...");
+                     string balance = SuperStar.OASISAPI.Providers.SEEDS.GetBalanceForTelosAccount("davidsellams");
+                     Console.WriteLine(string.Concat("Balance: ", balance));
 
-                    Console.WriteLine("Getting Balance for account nextgenworld...");
-                    balance = OASISAPI.Providers.SEEDS.GetBalanceForTelosAccount("nextgenworld");
-                    Console.WriteLine(string.Concat("Balance: ", balance));
+                     Console.WriteLine("Getting Balance for account nextgenworld...");
+                     balance = SuperStar.OASISAPI.Providers.SEEDS.GetBalanceForTelosAccount("nextgenworld");
+                     Console.WriteLine(string.Concat("Balance: ", balance));
 
-                    Console.WriteLine("Getting Account for account davidsellams...");
-                    Account account = OASISAPI.Providers.SEEDS.TelosOASIS.GetTelosAccount("davidsellams");
-                    Console.WriteLine(string.Concat("Account.account_name: ", account.account_name));
-                    Console.WriteLine(string.Concat("Account.created: ", account.created_datetime.ToString()));
+                     Console.WriteLine("Getting Account for account davidsellams...");
+                     Account account = SuperStar.OASISAPI.Providers.SEEDS.TelosOASIS.GetTelosAccount("davidsellams");
+                     Console.WriteLine(string.Concat("Account.account_name: ", account.account_name));
+                     Console.WriteLine(string.Concat("Account.created: ", account.created_datetime.ToString()));
 
-                    Console.WriteLine("Getting Account for account nextgenworld...");
-                    account = OASISAPI.Providers.SEEDS.TelosOASIS.GetTelosAccount("nextgenworld");
-                    Console.WriteLine(string.Concat("Account.account_name: ", account.account_name));
-                    Console.WriteLine(string.Concat("Account.created: ", account.created_datetime.ToString()));
+                     Console.WriteLine("Getting Account for account nextgenworld...");
+                     account = SuperStar.OASISAPI.Providers.SEEDS.TelosOASIS.GetTelosAccount("nextgenworld");
+                     Console.WriteLine(string.Concat("Account.account_name: ", account.account_name));
+                     Console.WriteLine(string.Concat("Account.created: ", account.created_datetime.ToString()));
 
-                    // Check that the Telos account name is linked to the avatar and link it if it is not (PayWithSeeds will fail if it is not linked when it tries to add the karma points).
-                    if (!SuperStar.LoggedInUser.ProviderKey.ContainsKey(ProviderType.TelosOASIS))
-                            OASISAPI.Avatar.LinkProviderKeyToAvatar(SuperStar.LoggedInUser.Id, ProviderType.TelosOASIS, "davidsellams");
+                     // Check that the Telos account name is linked to the avatar and link it if it is not (PayWithSeeds will fail if it is not linked when it tries to add the karma points).
+                     if (!SuperStar.LoggedInUser.ProviderKey.ContainsKey(ProviderType.TelosOASIS))
+                        SuperStar.OASISAPI.Avatar.LinkProviderKeyToAvatar(SuperStar.LoggedInUser.Id, ProviderType.TelosOASIS, "davidsellams");
 
-                    Console.WriteLine("Sending SEEDS from nextgenworld to davidsellams...");
-                    OASISResult<string> payWithSeedsResult = OASISAPI.Providers.SEEDS.PayWithSeedsUsingTelosAccount("davidsellams", privateKey, "nextgenworld", 1, KarmaSourceType.API, "test", "test", "test", "test memo");
-                    Console.WriteLine(string.Concat("Success: ", payWithSeedsResult.IsError ? "false" : "true"));
+                     Console.WriteLine("Sending SEEDS from nextgenworld to davidsellams...");
+                     OASISResult<string> payWithSeedsResult = SuperStar.OASISAPI.Providers.SEEDS.PayWithSeedsUsingTelosAccount("davidsellams", privateKey, "nextgenworld", 1, KarmaSourceType.API, "test", "test", "test", "test memo");
+                     Console.WriteLine(string.Concat("Success: ", payWithSeedsResult.IsError ? "false" : "true"));
 
-                    if (payWithSeedsResult.IsError)
-                        Console.WriteLine(string.Concat("Error Message: ", payWithSeedsResult.ErrorMessage));
+                     if (payWithSeedsResult.IsError)
+                         Console.WriteLine(string.Concat("Error Message: ", payWithSeedsResult.ErrorMessage));
 
-                    Console.WriteLine(string.Concat("Result: ", payWithSeedsResult.Result));
+                     Console.WriteLine(string.Concat("Result: ", payWithSeedsResult.Result));
 
-                    Console.WriteLine("Getting Balance for account davidsellams...");
-                    balance = OASISAPI.Providers.SEEDS.GetBalanceForTelosAccount("davidsellams");
-                    Console.WriteLine(string.Concat("Balance: ", balance));
+                     Console.WriteLine("Getting Balance for account davidsellams...");
+                     balance = SuperStar.OASISAPI.Providers.SEEDS.GetBalanceForTelosAccount("davidsellams");
+                     Console.WriteLine(string.Concat("Balance: ", balance));
 
-                    Console.WriteLine("Getting Balance for account nextgenworld...");
-                    balance = OASISAPI.Providers.SEEDS.GetBalanceForTelosAccount("nextgenworld");
-                    Console.WriteLine(string.Concat("Balance: ", balance));
+                     Console.WriteLine("Getting Balance for account nextgenworld...");
+                     balance = SuperStar.OASISAPI.Providers.SEEDS.GetBalanceForTelosAccount("nextgenworld");
+                     Console.WriteLine(string.Concat("Balance: ", balance));
 
-                    Console.WriteLine("Getting Organsiations...");
-                    string orgs = OASISAPI.Providers.SEEDS.GetAllOrganisationsAsJSON();
-                    Console.WriteLine(string.Concat("Organisations: ", orgs));
+                     Console.WriteLine("Getting Organsiations...");
+                     string orgs = SuperStar.OASISAPI.Providers.SEEDS.GetAllOrganisationsAsJSON();
+                     Console.WriteLine(string.Concat("Organisations: ", orgs));
 
-                    //Console.WriteLine("Getting nextgenworld organsiation...");
-                    //string org = OASISAPI.Providers.SEEDS.GetOrganisation("nextgenworld");
-                    //Console.WriteLine(string.Concat("nextgenworld org: ", org));
+                     //Console.WriteLine("Getting nextgenworld organsiation...");
+                     //string org = OASISAPI.Providers.SEEDS.GetOrganisation("nextgenworld");
+                     //Console.WriteLine(string.Concat("nextgenworld org: ", org));
 
-                    Console.WriteLine("Generating QR Code for davidsellams...");
-                    string qrCode = OASISAPI.Providers.SEEDS.GenerateSignInQRCode("davidsellams");
-                    Console.WriteLine(string.Concat("SEEDS Sign-In QRCode: ", qrCode));
+                     Console.WriteLine("Generating QR Code for davidsellams...");
+                     string qrCode = SuperStar.OASISAPI.Providers.SEEDS.GenerateSignInQRCode("davidsellams");
+                     Console.WriteLine(string.Concat("SEEDS Sign-In QRCode: ", qrCode));
 
-                    Console.WriteLine("Sending invite to davidsellams...");
-                    OASISResult<SendInviteResult> sendInviteResult = OASISAPI.Providers.SEEDS.SendInviteToJoinSeedsUsingTelosAccount("davidsellams", privateKey, "davidsellams", 1, 1, KarmaSourceType.API, "test", "test", "test");
-                    Console.WriteLine(string.Concat("Success: ", sendInviteResult.IsError ? "false" : "true"));
+                     Console.WriteLine("Sending invite to davidsellams...");
+                     OASISResult<SendInviteResult> sendInviteResult = SuperStar.OASISAPI.Providers.SEEDS.SendInviteToJoinSeedsUsingTelosAccount("davidsellams", privateKey, "davidsellams", 1, 1, KarmaSourceType.API, "test", "test", "test");
+                     Console.WriteLine(string.Concat("Success: ", sendInviteResult.IsError ? "false" : "true"));
 
-                    if (sendInviteResult.IsError)
-                        Console.WriteLine(string.Concat("Error Message: ", sendInviteResult.ErrorMessage));
-                    else
-                    {
-                        Console.WriteLine(string.Concat("Invite Sent To Join SEEDS. Invite Secret: ", sendInviteResult.Result.InviteSecret, ". Transction ID: ", sendInviteResult.Result.TransactionId));
+                     if (sendInviteResult.IsError)
+                         Console.WriteLine(string.Concat("Error Message: ", sendInviteResult.ErrorMessage));
+                     else
+                     {
+                         Console.WriteLine(string.Concat("Invite Sent To Join SEEDS. Invite Secret: ", sendInviteResult.Result.InviteSecret, ". Transction ID: ", sendInviteResult.Result.TransactionId));
 
-                        Console.WriteLine("Accepting invite to davidsellams...");
-                        OASISResult<string> acceptInviteResult = OASISAPI.Providers.SEEDS.AcceptInviteToJoinSeedsUsingTelosAccount("davidsellams", sendInviteResult.Result.InviteSecret, KarmaSourceType.API, "test", "test", "test");
-                        Console.WriteLine(string.Concat("Success: ", acceptInviteResult.IsError ? "false" : "true"));
+                         Console.WriteLine("Accepting invite to davidsellams...");
+                         OASISResult<string> acceptInviteResult = SuperStar.OASISAPI.Providers.SEEDS.AcceptInviteToJoinSeedsUsingTelosAccount("davidsellams", sendInviteResult.Result.InviteSecret, KarmaSourceType.API, "test", "test", "test");
+                         Console.WriteLine(string.Concat("Success: ", acceptInviteResult.IsError ? "false" : "true"));
 
-                        if (acceptInviteResult.IsError)
-                            Console.WriteLine(string.Concat("Error Message: ", acceptInviteResult.ErrorMessage));
-                        else
-                            Console.WriteLine(string.Concat("Invite Accepted To Join SEEDS. Transction ID: ", acceptInviteResult.Result));
-                    }
-                    // ThreeFold, AcivityPub, SOLID, Cross/Off Chain, Smart Contract Interoperability & lots more coming soon! :)
+                         if (acceptInviteResult.IsError)
+                             Console.WriteLine(string.Concat("Error Message: ", acceptInviteResult.ErrorMessage));
+                         else
+                             Console.WriteLine(string.Concat("Invite Accepted To Join SEEDS. Transction ID: ", acceptInviteResult.Result));
+                     }
+                     // ThreeFold, AcivityPub, SOLID, Cross/Off Chain, Smart Contract Interoperability & lots more coming soon! :)
 
-                    // END OASIS API DEMO ***********************************************************************************
+                     // END OASIS API DEMO ***********************************************************************************
+                     
 
 
                      // Build
@@ -337,7 +343,8 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
 
         private static void StarCore_OnZomeError(object sender, ZomeErrorEventArgs e)
         {
-            Console.WriteLine(string.Concat("Star Core Error Occured. EndPoint: ", e.EndPoint, ". Reason: ", e.Reason, ". Error Details: ", e.ErrorDetails, "HoloNETErrorDetails.Reason: ", e.HoloNETErrorDetails.Reason, "HoloNETErrorDetails.ErrorDetails: ", e.HoloNETErrorDetails.ErrorDetails));
+            //Console.WriteLine(string.Concat("Star Core Error Occured. EndPoint: ", e.EndPoint, ". Reason: ", e.Reason, ". Error Details: ", e.ErrorDetails, "HoloNETErrorDetails.Reason: ", e.HoloNETErrorDetails.Reason, "HoloNETErrorDetails.ErrorDetails: ", e.HoloNETErrorDetails.ErrorDetails));
+            Console.WriteLine(string.Concat("Star Core Error Occured. EndPoint: ", e.EndPoint, ". Reason: ", e.Reason, ". Error Details: ", e.ErrorDetails));
         }
 
         private static void Star_OnInitialized(object sender, EventArgs e)
@@ -362,12 +369,14 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
 
         private static void Star_OnZomeError(object sender, ZomeErrorEventArgs e)
         {
-            Console.WriteLine(string.Concat("Star Error Occured. EndPoint: ", e.EndPoint, ". Reason: ", e.Reason, ". Error Details: ", e.ErrorDetails, "HoloNETErrorDetails.Reason: ", e.HoloNETErrorDetails.Reason, "HoloNETErrorDetails.ErrorDetails: ", e.HoloNETErrorDetails.ErrorDetails));
+            //Console.WriteLine(string.Concat("Star Error Occured. EndPoint: ", e.EndPoint, ". Reason: ", e.Reason, ". Error Details: ", e.ErrorDetails, "HoloNETErrorDetails.Reason: ", e.HoloNETErrorDetails.Reason, "HoloNETErrorDetails.ErrorDetails: ", e.HoloNETErrorDetails.ErrorDetails));
+            Console.WriteLine(string.Concat("Star Error Occured. EndPoint: ", e.EndPoint, ". Reason: ", e.Reason, ". Error Details: ", e.ErrorDetails));
         }
 
         private static void OurWorld_OnZomeError(object sender, ZomeErrorEventArgs e)
         {
-            Console.WriteLine(string.Concat("Our World Error Occured. EndPoint: ", e.EndPoint, ". Reason: ", e.Reason, ". Error Details: ", e.ErrorDetails, "HoloNETErrorDetails.Reason: ", e.HoloNETErrorDetails.Reason, "HoloNETErrorDetails.ErrorDetails: ", e.HoloNETErrorDetails.ErrorDetails));
+            //Console.WriteLine(string.Concat("Our World Error Occured. EndPoint: ", e.EndPoint, ". Reason: ", e.Reason, ". Error Details: ", e.ErrorDetails, "HoloNETErrorDetails.Reason: ", e.HoloNETErrorDetails.Reason, "HoloNETErrorDetails.ErrorDetails: ", e.HoloNETErrorDetails.ErrorDetails));
+            Console.WriteLine(string.Concat("Our World Error Occured. EndPoint: ", e.EndPoint, ". Reason: ", e.Reason, ". Error Details: ", e.ErrorDetails));
         }
 
         private static void OurWorld_OnHolonSaved(object sender, HolonSavedEventArgs e)

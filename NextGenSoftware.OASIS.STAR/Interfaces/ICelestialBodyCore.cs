@@ -1,9 +1,10 @@
 ﻿using NextGenSoftware.OASIS.API.Core;
-using NextGenSoftware.OASIS.API.Core.Interfaces;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.STAR.CelestialBodies;
 
-namespace NextGenSoftware.OASIS.STAR
+namespace NextGenSoftware.OASIS.STAR.Interfaces
 {
     public interface ICelestialBodyCore : IZome
     {
