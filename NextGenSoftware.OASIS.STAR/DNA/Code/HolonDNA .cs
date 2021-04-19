@@ -1,7 +1,4 @@
 ﻿
-using NextGenSoftware.Holochain.HoloNET.Client.Core;
-using System;
-using System.Threading.Tasks;
 
 namespace NextGenSoftware.OASIS.STAR.DNA
 {
