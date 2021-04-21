@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Events;
+using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Managers;
@@ -71,24 +72,24 @@ namespace NextGenSoftware.OASIS.STAR.Zomes
             return await _holonManager.LoadHolonsForParentAsync(providerKey, type);
         }
 
-        public virtual async Task<IHolon> SaveHolonAsync(IHolon savingHolon)
+        public virtual async Task<OASISResult<IHolon>> SaveHolonAsync(IHolon savingHolon)
         {
             return await _holonManager.SaveHolonAsync(savingHolon);
         }
 
-        public virtual async Task<IEnumerable<IHolon>> SaveHolonsAsync(IEnumerable<IHolon> savingHolons)
+        public virtual async Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> savingHolons)
         {
             return await _holonManager.SaveHolonsAsync(savingHolons);
         }
 
-        public async Task<IEnumerable<IHolon>> AddHolon(IHolon holon)
+        public async Task<OASISResult<IEnumerable<IHolon>>> AddHolon(IHolon holon)
         {
             //return await base.SaveHolonAsync(string.Concat(this.Name, HOLONS_ADD), zome);
             this.Holons.Add((Holon)holon);
             return await SaveHolonsAsync(this.Holons);
         }
 
-        public async Task<IEnumerable<IHolon>> RemoveHolon(IHolon holon)
+        public async Task<OASISResult<IEnumerable<IHolon>>> RemoveHolon(IHolon holon)
         {
             //return await base.SaveHolonAsync(string.Concat(this.Name, HOLONS_REMOVE), zome);
             this.Holons.Remove((Holon)holon);

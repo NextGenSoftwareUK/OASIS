@@ -4,7 +4,7 @@ using NextGenSoftware.OASIS.API.Core.Enums;
 
 namespace NextGenSoftware.OASIS.API.Core.Interfaces
 {
-    public interface IZome : IHolon
+    public interface IZome : IZomeBase
     {
        // HoloNETClientBase HoloNETClient { get; }
         //  string ZomeName { get; set; }
@@ -20,8 +20,21 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces
 
         //Task Initialize(string zomeName, HoloNETClientBase holoNETClient);
         //Task Initialize(string zomeName, string holochainConductorURI, HoloNETClientType type);
-        Task<IHolon> LoadHolonAsync(string providerKey, HolonType type = HolonType.Holon);
-        Task<IHolon> LoadHolonAsync(Guid id, HolonType type = HolonType.Holon);
-        Task<IHolon> SaveHolonAsync(IHolon holon);
+
+
+
+
+
+
+
+
+
+
+
+
+
+        //Task<IHolon> LoadHolonAsync(string providerKey, HolonType type = HolonType.Holon);
+        //Task<IHolon> LoadHolonAsync(Guid id, HolonType type = HolonType.Holon);
+        //Task<IHolon> SaveHolonAsync(IHolon holon);
     }
 }

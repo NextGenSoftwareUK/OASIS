@@ -1,7 +1,8 @@
 ﻿using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.STAR.CelestialBodies;
-using NextGenSoftware.OASIS.STAR.Enums;
+using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.Core.Helpers;
 
 namespace NextGenSoftware.OASIS.STAR.DNATemplates.CSharpTemplates
 {
@@ -45,7 +46,7 @@ namespace NextGenSoftware.OASIS.STAR.DNATemplates.CSharpTemplates
             return await base.CelestialBodyCore.LoadHolonAsync(hcEntryAddressHash);
         }
 
-        public async Task<IHolon> SaveHOLONAsync(IHolon holon)
+        public async Task<OASISResult<IHolon>> SaveHOLONAsync(IHolon holon)
         {
             //return await base.CelestialBodyCore.SaveHolonAsync("{holon}", holon);
             return await base.CelestialBodyCore.SaveHolonAsync(holon);

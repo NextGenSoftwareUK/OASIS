@@ -9,8 +9,8 @@ using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Holons;
-using NextGenSoftware.OASIS.STAR.Enums;
 using NextGenSoftware.OASIS.STAR.Zomes;
+using NextGenSoftware.OASIS.STAR.Interfaces;
 using NextGenSoftware.Holochain.HoloNET.Client.Core;
 
 namespace NextGenSoftware.OASIS.STAR.CelestialBodies
@@ -21,13 +21,23 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
         protected string _hcinstance;
         protected TaskCompletionSource<string> _taskCompletionSourceGetInstance = new TaskCompletionSource<string>();
 
-        public CelestialBodyCore CelestialBodyCore { get; set; } // This is the core zome of the planet (OAPP), which links to all the other planet zomes/holons...
+        //public CelestialBodyCore CelestialBodyCore { get; set; } // This is the core zome of the planet (OAPP), which links to all the other planet zomes/holons...
+        public ICelestialBodyCore CelestialBodyCore { get; set; } // This is the core zome of the planet (OAPP), which links to all the other planet zomes/holons...
 
         //public OASISAPIManager OASISAPI = new OASISAPIManager(new List<IOASISProvider>() { new SEEDSOASIS() });
-       
+
         // public string RustHolonType { get; set; }
         //  public string RustCelestialBodyType { get; set; }
         public GenesisType GenesisType { get; set; }
+       // ICelestialBodyCore ICelestialBody.CelestialBodyCore { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+
+        public bool IsInitialized
+        {
+            get
+            {
+                return CelestialBodyCore != null;
+            }
+        }
 
         //TODO: Should these be in PlanetCore?
         //public List<IZome> Zomes { get; set; }
@@ -79,12 +89,13 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
 
         public CelestialBody()
         {
-
+            Initialize(); //TODO: It never called this from the constructor before, was there a good reason? Will soon find out! ;-)
         }
 
         public CelestialBody(GenesisType genesisType)
         {
             this.GenesisType = genesisType;
+            Initialize();  //TODO: It never called this from the constructor before, was there a good reason? Will soon find out! ;-)
         }
 
         //TODO: Don't think we need to pass Id in if we are using ProviderKey?
@@ -92,6 +103,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
         {
             this.GenesisType = genesisType;
             this.ProviderKey[ProviderManager.CurrentStorageProviderType.Value] = providerKey;
+            Initialize();  //TODO: It never called this from the constructor before, was there a good reason? Will soon find out! ;-)
         }
 
         public void LoadAll()
@@ -336,22 +348,22 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
             {
                 case GenesisType.Planet:
                     //CelestialBodyCore = new PlanetCore(holoNETClient);
-                    CelestialBodyCore = new PlanetCore((Interfaces.IPlanet)this);
+                    CelestialBodyCore = new PlanetCore((IPlanet)this);
                     break;
 
                 case GenesisType.Moon:
                     //CelestialBodyCore = new MoonCore(holoNETClient);
-                    CelestialBodyCore = new MoonCore((Interfaces.IMoon)this);
+                    CelestialBodyCore = new MoonCore((IMoon)this);
                     break;
 
                 case GenesisType.Star:
                     //CelestialBodyCore = new StarCore(holoNETClient);
-                    CelestialBodyCore = new StarCore((Interfaces.IStar)this);
+                    CelestialBodyCore = new StarCore((IStar)this);
                     break;
             }
            
 
-            if (!string.IsNullOrEmpty(this.ProviderKey[ProviderManager.CurrentStorageProviderType.Value]))
+            if (ProviderKey.ContainsKey(ProviderManager.CurrentStorageProviderType.Value) && !string.IsNullOrEmpty(ProviderKey[ProviderManager.CurrentStorageProviderType.Value]))
             {
                 CelestialBodyCore.ProviderKey = this.ProviderKey[ProviderManager.CurrentStorageProviderType.Value]; //_coreProviderKey = hc anchor.
                 await LoadCelestialBody();
@@ -385,10 +397,10 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
             HoloNETClient.OnZomeFunctionCallBack += HoloNETClient_OnZomeFunctionCallBack;
             */
 
-            CelestialBodyCore.OnHolonsLoaded += PlanetCore_OnHolonsLoaded;
-            CelestialBodyCore.OnZomesLoaded += PlanetCore_OnZomesLoaded;
-            CelestialBodyCore.OnHolonSaved += PlanetCore_OnHolonSaved;
-            CelestialBodyCore.OnZomeError += PlanetCore_OnZomeError;
+            ((CelestialBodyCore)CelestialBodyCore).OnHolonsLoaded += PlanetCore_OnHolonsLoaded;
+            ((CelestialBodyCore)CelestialBodyCore).OnZomesLoaded += PlanetCore_OnZomesLoaded;
+            ((CelestialBodyCore)CelestialBodyCore).OnHolonSaved += PlanetCore_OnHolonSaved;
+            ((CelestialBodyCore)CelestialBodyCore).OnZomeError += PlanetCore_OnZomeError;
         }
 
         private async void PlanetCore_OnHolonSaved(object sender, HolonSavedEventArgs e)
@@ -470,7 +482,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
         {
             if (e.Holon.HolonType == HolonType.Zome)
             {
-                Interfaces.IZome zome = GetZomeById(e.Holon.Id);
+                IZome zome = GetZomeById(e.Holon.Id);
 
                 //Update the providerKey (address hash returned from hc)
                 if (zome != null)
@@ -509,17 +521,17 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
             return (Zome)CelestialBodyCore.Holons.FirstOrDefault(x => x.Id == holon.Id).Parent;
         }
 
-        private List<IHolon> GetHolonsThatBelongToZome(Interfaces.IZome zome)
+        private List<IHolon> GetHolonsThatBelongToZome(IZome zome)
         {
             return CelestialBodyCore.Holons.Where(x => x.Parent.Id == zome.Id).ToList();
         }
 
-        private Interfaces.IZome GetZomeByName(string name)
+        private IZome GetZomeByName(string name)
         {
             return CelestialBodyCore.Zomes.FirstOrDefault(x => x.Name == name);
         }
 
-        private Interfaces.IZome GetZomeById(Guid id)
+        private IZome GetZomeById(Guid id)
         {
             return CelestialBodyCore.Zomes.FirstOrDefault(x => x.Id == id);
         }

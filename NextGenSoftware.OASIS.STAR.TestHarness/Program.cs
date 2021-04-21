@@ -14,7 +14,6 @@ using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.STAR.ErrorEventArgs;
 using NextGenSoftware.OASIS.STAR.CelestialBodies;
-using NextGenSoftware.OASIS.STAR.Enums;
 using NextGenSoftware.OASIS.API.Providers.SEEDSOASIS.Membranes;
 
 namespace NextGenSoftware.OASIS.STAR.TestHarness
@@ -96,10 +95,11 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
 
                 // Create Planet (OAPP) by generating dynamic template/scaffolding code.
                 Console.WriteLine("Generating Planet Our World...");
+                Console.WriteLine("");
                 CoronalEjection result = SuperStar.Light(GenesisType.Planet, "Our World", dnaFolder, cSharpGeneisFolder, rustGenesisFolder, "NextGenSoftware.Holochain.HoloNET.HDK.Core.TestHarness.Genesis").Result;
 
                 if (result.ErrorOccured)
-                    Console.WriteLine(string.Concat("ERROR OCCURED: Error Message: ", result.Message));
+                    Console.WriteLine(string.Concat("ERROR OCCURED. Error Message: ", result.Message));
 
                 else
                 {

@@ -1,4 +1,5 @@
 ﻿using System.Threading.Tasks;
+using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.STAR.Zomes;
 
@@ -24,7 +25,7 @@ namespace NextGenSoftware.OASIS.STAR.DNATemplates.CSharpTemplates
             return await base.LoadHolonAsync(hcEntryAddressHash);
         }
 
-        public async Task<IHolon> SaveHOLONAsync(IHolon holon)
+        public async Task<OASISResult<IHolon>> SaveHOLONAsync(IHolon holon)
         {
             //return await base.SaveHolonAsync("{holon}", holon);
             return await base.SaveHolonAsync(holon);

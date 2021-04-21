@@ -403,6 +403,34 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return _providerAutoFailOverList;
         }
 
+        public static string GetProviderAutoFailOverListAsString()
+        {
+            return GetProviderListAsString(GetProviderAutoFailOverList());
+        }
+        public static string GetProvidersThatAreAutoReplicatingAsString()
+        {
+            return GetProviderListAsString(GetProvidersThatAreAutoReplicating());
+        }
+        public static string GetProviderAutoLoadBalanceListAsString()
+        {
+            return GetProviderListAsString(GetProviderAutoLoadBalanceList());
+        }
+
+        private static string GetProviderListAsString(List<EnumValue<ProviderType>> providerList)
+        {
+            string list = "";
+
+            for (int i = 0; i < providerList.Count(); i++)
+            {
+                if (i == providerList.Count() - 1)
+                    list = string.Concat(list.Substring(0, list.Length - 2), " & ", list, providerList[i].Name);
+                else
+                    list = string.Concat(list, providerList[i].Name, ", ");
+            }
+
+            return list;
+        }
+
         public static List<EnumValue<ProviderType>> GetProvidersThatAreAutoReplicating()
         {
             return _providersThatAreAutoReplicating;

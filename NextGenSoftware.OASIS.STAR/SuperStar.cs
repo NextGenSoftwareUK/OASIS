@@ -14,7 +14,6 @@ using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Objects;
-using NextGenSoftware.OASIS.STAR.Enums;
 using NextGenSoftware.OASIS.STAR.CelestialBodies;
 using NextGenSoftware.OASIS.STAR.ExtensionMethods;
 using NextGenSoftware.OASIS.STAR.DNA;
@@ -22,6 +21,7 @@ using NextGenSoftware.OASIS.STAR.ErrorEventArgs;
 using NextGenSoftware.OASIS.STAR.OASISAPIManager;
 using NextGenSoftware.OASIS.STAR.Zomes;
 using NextGenSoftware.Holochain.HoloNET.Client.Core;
+using NextGenSoftware.OASIS.STAR.Interfaces;
 
 namespace NextGenSoftware.OASIS.STAR
 {
@@ -210,22 +210,22 @@ namespace NextGenSoftware.OASIS.STAR
 
         public static async Task<CoronalEjection> Light(GenesisType type, string name, string dnaFolder = "", string genesisCSharpFolder = "", string genesisRustFolder = "", string genesisNameSpace = "")
         {
-            return await Light(type, name, (Interfaces.ICelestialBody)null, dnaFolder, genesisCSharpFolder, genesisRustFolder, genesisNameSpace);
+            return await Light(type, name, (ICelestialBody)null, dnaFolder, genesisCSharpFolder, genesisRustFolder, genesisNameSpace);
             //return await Light(type, name, new Planet("", HoloNETClientType.Desktop, ""), dnaFolder, genesisCSharpFolder, genesisRustFolder, genesisNameSpace);
         }
 
 
         public static async Task<CoronalEjection> Light(GenesisType type, string name, IStar starToAddPlanetTo = null, string dnaFolder = "", string genesisCSharpFolder = "", string genesisRustFolder = "", string genesisNameSpace = "")
         {
-            return await Light(type, name, (Interfaces.ICelestialBody)starToAddPlanetTo, dnaFolder, genesisCSharpFolder, genesisRustFolder, genesisNameSpace);
+            return await Light(type, name, (ICelestialBody)starToAddPlanetTo, dnaFolder, genesisCSharpFolder, genesisRustFolder, genesisNameSpace);
         }
 
         public static async Task<CoronalEjection> Light(GenesisType type, string name, IPlanet planetToAddMoonTo = null, string dnaFolder = "", string genesisCSharpFolder = "", string genesisRustFolder = "", string genesisNameSpace = "")
         {
-            return await Light(type, name, (Interfaces.ICelestialBody)planetToAddMoonTo, dnaFolder, genesisCSharpFolder, genesisRustFolder, genesisNameSpace);
+            return await Light(type, name, (ICelestialBody)planetToAddMoonTo, dnaFolder, genesisCSharpFolder, genesisRustFolder, genesisNameSpace);
         }
 
-        private static async Task<CoronalEjection> Light(GenesisType type, string name, Interfaces.ICelestialBody celestialBodyParent = null, string dnaFolder = "", string genesisCSharpFolder = "", string genesisRustFolder = "", string genesisNameSpace = "")
+        private static async Task<CoronalEjection> Light(GenesisType type, string name, ICelestialBody celestialBodyParent = null, string dnaFolder = "", string genesisCSharpFolder = "", string genesisRustFolder = "", string genesisNameSpace = "")
         {
             CelestialBody newBody = null;
             bool holonReached = false;
@@ -779,36 +779,45 @@ namespace NextGenSoftware.OASIS.STAR
             // Remove any white space from the name.
             File.WriteAllText(string.Concat(genesisCSharpFolder, "\\", Regex.Replace(name, @"\s+", ""), Enum.GetName(typeof(GenesisType), type), ".cs"), celestialBodyBufferCsharp);
 
-            
+
 
 
             //TODO: Need to save the collection of Zomes/Holons that belong to this planet here...
-           // await newBody.Save();
+            // await newBody.Save();
 
             //TODO: Might be more efficient if the planet can be saved and then added to the list of planets in the star in one go?
             switch (type)
             {
                 case GenesisType.Moon:
-                {
-                     await ((PlanetCore)celestialBodyParent.CelestialBodyCore).AddMoonAsync((Interfaces.IMoon)newBody);
-                     return new CoronalEjection() { ErrorOccured = false, Message = "Moon Successfully Created.", CelestialBody = newBody };
-                }
+                    {
+                        await ((PlanetCore)celestialBodyParent.CelestialBodyCore).AddMoonAsync((IMoon)newBody);
+                        return new CoronalEjection() { ErrorOccured = false, Message = "Moon Successfully Created.", CelestialBody = newBody };
+                    }
 
                 case GenesisType.Planet:
-                {
-                    // If a star is not passed in, then add the planet to the main star.
-                    if (celestialBodyParent == null)
-                        celestialBodyParent = (Interfaces.ICelestialBody)InnerStar;
+                    {
+                        // If a star is not passed in, then add the planet to the main star.
+                        if (celestialBodyParent == null)
+                            celestialBodyParent = InnerStar;
 
-                    await ((StarCore)celestialBodyParent.CelestialBodyCore).AddPlanetAsync((Interfaces.IPlanet)newBody);
-                    return new CoronalEjection() { ErrorOccured = false, Message = "Planet Successfully Created.", CelestialBody = newBody };
-                }
+                        OASISResult<IPlanet> result = await ((StarCore)celestialBodyParent.CelestialBodyCore).AddPlanetAsync((IPlanet)newBody);
+
+                        if (result != null)
+                        { 
+                            if (result.IsError)
+                                return new CoronalEjection() { ErrorOccured = true, Message = result.ErrorMessage, CelestialBody = result.Result };
+                            else
+                                return new CoronalEjection() { ErrorOccured = false, Message = "Planet Successfully Created.", CelestialBody = result.Result };
+                        }
+                        else
+                            return new CoronalEjection() { ErrorOccured = true, Message = "Unknown Error Occured Creating Planet." };
+                    }
 
                 case GenesisType.Star:
-                {
-                    await SuperStarCore.AddStarAsync((Interfaces.IStar)newBody);
-                    return new CoronalEjection() { ErrorOccured = false, Message = "Star Successfully Created.", CelestialBody = newBody };
-                }
+                    {
+                        await SuperStarCore.AddStarAsync((IStar)newBody);
+                        return new CoronalEjection() { ErrorOccured = false, Message = "Star Successfully Created.", CelestialBody = newBody };
+                    }
                 default:
                     return new CoronalEjection() { ErrorOccured = true, Message = "Unknown Error Occured.", CelestialBody = newBody };
             }

@@ -1,5 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
+using NextGenSoftware.OASIS.API.Core.Helpers;
+using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.STAR.Interfaces;
 
 namespace NextGenSoftware.OASIS.STAR.CelestialBodies
@@ -71,10 +73,17 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
         //    //return (IPlanet)await base.CallZomeFunctionAsync(STAR_ADD_STAR, planet);
         //}
 
-        public async Task<IPlanet> AddPlanetAsync(IPlanet planet)
+        public async Task<OASISResult<IPlanet>> AddPlanetAsync(IPlanet planet)
         {
+            if (this.Star.Planets == null)
+                this.Star.Planets = new List<IPlanet>();
+
             this.Star.Planets.Add(planet);
-            return (IPlanet)await base.SaveHolonAsync(planet);
+            //return (OASISResult<IPlanet>)await base.SaveHolonAsync(planet);
+
+            OASISResult<IHolon> result = await base.SaveHolonAsync(planet);
+            return new OASISResult<IPlanet>() { Result = (IPlanet)result.Result, ErrorMessage = result.ErrorMessage, IsError = result.IsError };
+
             //return (IPlanet)await base.CallZomeFunctionAsync(STAR_ADD_PLANET, planet);
         }
 

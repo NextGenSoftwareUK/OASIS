@@ -178,21 +178,23 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return holon;
         }
 
-        public async Task<IHolon> SaveHolonAsync(IHolon holon, ProviderType providerType = ProviderType.Default)
+        //public async Task<IHolon> SaveHolonAsync(IHolon holon, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon, ProviderType providerType = ProviderType.Default)
         {
             bool needToChangeBack = false;
             ProviderType currentProviderType = ProviderManager.CurrentStorageProviderType.Value;
+            OASISResult<IHolon> result = new OASISResult<IHolon>();
 
             try
             {
-                holon = await ProviderManager.SetAndActivateCurrentStorageProvider(providerType).SaveHolonAsync(PrepareHolonForSaving(holon));
+                result.Result = await ProviderManager.SetAndActivateCurrentStorageProvider(providerType).SaveHolonAsync(PrepareHolonForSaving(holon));
             }
             catch (Exception ex)
             {
-                holon = null;
+                result.Result = null;
             }
 
-            if (holon == null)
+            if (result.Result == null)
             {
                 // Only try the next provider if they are not set to auto-replicate.
                 //  if (ProviderManager.ProvidersThatAreAutoReplicating.Count == 0)
@@ -203,20 +205,26 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                     {
                         try
                         {
-                            holon = await ProviderManager.SetAndActivateCurrentStorageProvider(type.Value).SaveHolonAsync(PrepareHolonForSaving(holon));
+                            result.Result = await ProviderManager.SetAndActivateCurrentStorageProvider(type.Value).SaveHolonAsync(PrepareHolonForSaving(holon));
                             needToChangeBack = true;
 
-                            if (holon != null)
+                            if (result.Result != null)
                                 break;
                         }
                         catch (Exception ex2)
                         {
-                            holon = null;
+                            result.Result = null;
                             //If the next provider errors then just continue to the next provider.
                         }
                     }
                 }
                 //   }
+            }
+
+            if (result.Result == null)
+            {
+                result.IsError = true;
+                result.ErrorMessage = string.Concat("All Registered OASIS Providers In The AutoFailOverList Failed To Save The Holon. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString());
             }
 
             foreach (EnumValue<ProviderType> type in ProviderManager.GetProvidersThatAreAutoReplicating())
@@ -239,7 +247,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
           //  if (needToChangeBack)
                 ProviderManager.SetAndActivateCurrentStorageProvider(currentProviderType);
 
-            return holon;
+            return result;
         }
 
         public IEnumerable<IHolon> SaveHolons(IEnumerable<IHolon> holons, ProviderType providerType = ProviderType.Default)
@@ -306,21 +314,22 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return holons;
         }
 
-        public async Task<IEnumerable<IHolon>> SaveHolonsAsync(IEnumerable<IHolon> holons, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons, ProviderType providerType = ProviderType.Default)
         {
             bool needToChangeBack = false;
             ProviderType currentProviderType = ProviderManager.CurrentStorageProviderType.Value;
+            OASISResult<IEnumerable<IHolon>> result = new OASISResult<IEnumerable<IHolon>>();
 
             try
             {
-                holons = await ProviderManager.SetAndActivateCurrentStorageProvider(providerType).SaveHolonsAsync(PrepareHolonsForSaving(holons));
+                result.Result = await ProviderManager.SetAndActivateCurrentStorageProvider(providerType).SaveHolonsAsync(PrepareHolonsForSaving(holons));
             }
             catch (Exception ex)
             {
-                holons = null;
+                result.Result = null;
             }
 
-            if (holons == null)
+            if (result.Result == null)
             {
                 // Only try the next provider if they are not set to auto-replicate.
                 //  if (ProviderManager.ProvidersThatAreAutoReplicating.Count == 0)
@@ -331,20 +340,26 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                     {
                         try
                         {
-                            await ProviderManager.SetAndActivateCurrentStorageProvider(type.Value).SaveHolonsAsync(holons);
+                            result.Result = await ProviderManager.SetAndActivateCurrentStorageProvider(type.Value).SaveHolonsAsync(holons);
                             needToChangeBack = true;
 
-                            if (holons != null)
+                            if (result.Result != null)
                                 break;
                         }
                         catch (Exception ex2)
                         {
-                            holons = null;
+                            result.Result = null;
                             //If the next provider errors then just continue to the next provider.
                         }
                     }
                 }
                 //   }
+            }
+
+            if (result.Result == null)
+            {
+                result.IsError = true;
+                result.ErrorMessage = string.Concat("All Registered OASIS Providers In The AutoFailOverList Failed To Save The Holons. Providers in list are ", ProviderManager.GetProviderAutoFailOverListAsString());
             }
 
             foreach (EnumValue<ProviderType> type in ProviderManager.GetProvidersThatAreAutoReplicating())
@@ -367,7 +382,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
          //   if (needToChangeBack)
                 ProviderManager.SetAndActivateCurrentStorageProvider(currentProviderType);
 
-            return holons;
+            return result;
         }
 
         public bool DeleteHolon(Guid id, bool softDelete = true, ProviderType provider = ProviderType.Default)

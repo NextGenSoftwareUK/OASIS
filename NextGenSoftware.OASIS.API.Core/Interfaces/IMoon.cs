@@ -1,8 +1,8 @@
 ﻿
-namespace NextGenSoftware.OASIS.API.Core.Interfaces
-{
-    public interface IMoon : ICelestialBody
-    {
+//namespace NextGenSoftware.OASIS.API.Core.Interfaces
+//{
+//    public interface IMoon : ICelestialBody
+//    {
        
-    }
-}
+//    }
+//}
