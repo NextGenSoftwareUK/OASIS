@@ -1,12 +1,14 @@
-﻿
-using NextGenSoftware.OASIS.API.Core.Holons;
+﻿using System.Threading.Tasks;
+using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Objects;
-using System.Threading.Tasks;
 
 namespace NextGenSoftware.OASIS.API.Core.Interfaces
 {
     public interface ICelestialBody : IHolon
     {
+        ICelestialBodyCore CelestialBodyCore { get; set; }
+        GenesisType GenesisType { get; set; }
+
         //HoloNETClientBase HoloNETClient { get; }
 
 
@@ -23,7 +25,7 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces
         */
 
         //List<IZome> Zomes { get; set; }
-      //  List<IHolon> Holons { get; }
+        //  List<IHolon> Holons { get; }
 
         void Dim();
         void Emit();

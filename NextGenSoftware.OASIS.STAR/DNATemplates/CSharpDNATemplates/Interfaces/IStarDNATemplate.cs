@@ -1,5 +1,5 @@
 ﻿
-using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.STAR.Interfaces;
 
 namespace NextGenSoftware.OASIS.STAR.DNATemplates.CSharpTemplates.Interfaces
 {

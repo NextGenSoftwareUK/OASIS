@@ -1,6 +1,6 @@
 ﻿
-using NextGenSoftware.OASIS.API.Core.Interfaces;
-using NextGenSoftware.OASIS.STAR.Enums;
+using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.STAR.Interfaces;
 
 namespace NextGenSoftware.OASIS.STAR.CelestialBodies
 {

@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using NextGenSoftware.OASIS.API.Core.Interfaces;
+using System.Collections.Generic;
 
 namespace NextGenSoftware.OASIS.STAR.Interfaces
 {
