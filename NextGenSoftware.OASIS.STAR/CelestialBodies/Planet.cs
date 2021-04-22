@@ -12,12 +12,12 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
 
         public Planet(string providerKey) : base(providerKey, GenesisType.Planet)
         {
-
+            this.HolonType = HolonType.Planet;
         }
 
         public Planet() : base(GenesisType.Planet)
         {
-
+            this.HolonType = HolonType.Planet;
         }
 
         //public Planet(HoloNETClientBase holoNETClient, string providerKey) : base(holoNETClient, providerKey, GenesisType.Planet)

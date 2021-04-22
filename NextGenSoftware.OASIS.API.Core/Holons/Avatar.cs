@@ -2,7 +2,6 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
@@ -57,6 +56,10 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
         public EnumValue<AvatarType> AvatarType { get; set; }
         // public int Karma { get; private set; }
         public int Karma { get; set; } //TODO: This really needs to have a private setter but in the HoloOASIS provider it needs to copy the object along with each property... would prefer another work around if possible?
+        public int XP { get; set; }
+        public List<Gift> Gifts { get; set; }
+        public List<Chakra> Chakras { get; set; }
+        public int AuraLevel { get; set; } //TODO: Will add more to this later (will be seperate Aura object ref here with additional properties, etc.
         public int Level
         {
             get

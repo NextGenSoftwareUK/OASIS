@@ -368,15 +368,16 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             if (holon == null)
                 return null;
 
-            Core.Holons.Holon oasisHolon = new Core.Holons.Holon();
+            IHolon oasisHolon = new Core.Holons.Holon();
 
             //oasisHolon.Id = Guid.Parse(holon.Id);
             oasisHolon.Id = holon.HolonId;
 
-            // if (oasisHolon.ProviderKey.ContainsKey(Core.Enums.ProviderType.MongoDBOASIS))
-            // oasisHolon.ProviderKey[Core.Enums.ProviderType.MongoDBOASIS] = holon.ProviderKey;
-
             oasisHolon.ProviderKey = holon.ProviderKey;
+
+            if (!oasisHolon.ProviderKey.ContainsKey(Core.Enums.ProviderType.MongoDBOASIS))
+                oasisHolon.ProviderKey[Core.Enums.ProviderType.MongoDBOASIS] = holon.Id;
+
             oasisHolon.Name = holon.Name;
             oasisHolon.Description = holon.Description;
             oasisHolon.HolonType = holon.HolonType;
@@ -452,6 +453,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             {
                 Database = new MongoDbContext(ConnectionString, DBName);
                 _avatarRepository = new AvatarRepository(Database);
+                _holonRepository = new HolonRepository(Database);
             }
 
             base.ActivateProvider();
@@ -530,11 +532,9 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
 
         public override async Task<IHolon> SaveHolonAsync(IHolon holon)
         {
-            throw new NotImplementedException();
-
-            //return holon.Id == Guid.Empty ?
-            //    _avatarRepository.Add(holon).Result :
-            //    _avatarRepository.Update(holon).Result;
+            return ConvertMongoEntityToOASISHolon(holon.Id == Guid.Empty ?
+              _holonRepository.Add(ConvertOASISHolonToMongoEntity(holon)).Result :
+              _holonRepository.Update(ConvertOASISHolonToMongoEntity(holon)).Result);
         }
 
         public override async Task<IEnumerable<IHolon>> SaveHolonsAsync(IEnumerable<IHolon> holons)

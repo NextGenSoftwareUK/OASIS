@@ -422,10 +422,13 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
             for (int i = 0; i < providerList.Count(); i++)
             {
-                if (i == providerList.Count() - 1)
-                    list = string.Concat(list.Substring(0, list.Length - 2), " & ", list, providerList[i].Name);
-                else
-                    list = string.Concat(list, providerList[i].Name, ", ");
+                list = string.Concat(list, providerList[i].Name);
+
+                if (i < providerList.Count - 2)
+                    list = string.Concat(list, ", ");
+
+                else if (i == providerList.Count() - 2)
+                    list = string.Concat(list, " & ");
             }
 
             return list;

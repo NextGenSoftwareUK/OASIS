@@ -17,7 +17,6 @@ using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.STAR.CelestialBodies;
 using NextGenSoftware.OASIS.STAR.ExtensionMethods;
 using NextGenSoftware.OASIS.STAR.DNA;
-using NextGenSoftware.OASIS.STAR.ErrorEventArgs;
 using NextGenSoftware.OASIS.STAR.OASISAPIManager;
 using NextGenSoftware.OASIS.STAR.Zomes;
 using NextGenSoftware.Holochain.HoloNET.Client.Core;
@@ -104,6 +103,9 @@ namespace NextGenSoftware.OASIS.STAR
 
         public static void Initialize(InitOptions OASISAPIInitOptions, string STARDNAPath = STAR_DNA_DEFAULT_PATH, string OASISDNAPath = OASIS_DNA_DEFAULT_PATH, string starProviderKey = null)
         {
+            // If you wish to change the logging framework from the default (NLog) then set it below (or just change in OASIS_DNA - prefered way)
+            //LoggingManager.CurrentLoggingFramework = LoggingFramework.NLog;
+
             SuperStar.OASISDNAPath = OASISDNAPath;
             //By default the OASISDNAManager will load the settings from OASIS_DNA.json in the current working dir but you can override using below:
             OASISDNAManager.OASISDNAFileName = SuperStar.OASISDNAPath;
@@ -331,7 +333,7 @@ namespace NextGenSoftware.OASIS.STAR
                     break;
             }
 
-            newBody.Id = Guid.NewGuid();
+          //  newBody.Id = Guid.NewGuid();
             newBody.Name = name;
             newBody.OnZomeError += NewBody_OnZomeError;
             //await newBody.Initialize(StarBody.HoloNETClient);
@@ -586,6 +588,12 @@ namespace NextGenSoftware.OASIS.STAR
                             zomeBufferCsharp = zomeBufferCsharp.Replace("ZomeDNATemplate", parts[6].ToPascalCase());
                             zomeBufferCsharp = zomeBufferCsharp.Replace("{zome}", parts[6].ToSnakeCase());
                             zomeName = parts[6].ToPascalCase();
+
+                            //newBody.CelestialBody //TODO: Come back this, dont think should have CelestialBody.CelestialBody?
+
+                            if (currentZome != null)
+                                newBody.CelestialBodyCore.AddHolon()
+                                newBody.CelestialBodyCore.Zomes.Add(currentZome);
 
                             currentZome = new Zome() { Name = zomeName };
                             //newBody.CelestialBodyCore.Zomes.Add(currentZome);

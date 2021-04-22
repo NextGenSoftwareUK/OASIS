@@ -10,7 +10,7 @@ namespace NextGenSoftware.OASIS.API.DNA
 
     public class OASIS
     {
-       // public string Secret { get; set; }
+        public Logging Logging { get; set; }
         public SecuritySettings Security { get; set; }
         public EmailSettings Email { get; set; }
         public StorageProviderSettings StorageProviders { get; set; }
@@ -21,6 +21,11 @@ namespace NextGenSoftware.OASIS.API.DNA
         public string Secret { get; set; }
         public EncryptionSettings AvatarPassword { get; set; }
         public EncryptionSettings OASISProviderPrivateKeys { get; set; }
+    }
+
+    public class Logging
+    {
+        public string LoggingFramework { get; set; }
     }
 
     public class EncryptionSettings

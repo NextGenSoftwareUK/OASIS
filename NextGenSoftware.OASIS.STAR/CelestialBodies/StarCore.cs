@@ -82,7 +82,18 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
             //return (OASISResult<IPlanet>)await base.SaveHolonAsync(planet);
 
             OASISResult<IHolon> result = await base.SaveHolonAsync(planet);
-            return new OASISResult<IPlanet>() { Result = (IPlanet)result.Result, ErrorMessage = result.ErrorMessage, IsError = result.IsError };
+
+            if (result.Result != null)
+            {
+                planet.Id = result.Result.Id;
+                planet.ProviderKey = result.Result.ProviderKey;
+                planet.CreatedByAvatar = result.Result.CreatedByAvatar;
+                planet.CreatedDate = result.Result.CreatedDate;
+                planet.ModifiedByAvatar = result.Result.ModifiedByAvatar;
+                planet.ModifiedDate = result.Result.ModifiedDate;
+            }
+
+            return new OASISResult<IPlanet>() { Result = planet, ErrorMessage = result.ErrorMessage, IsError = result.IsError };
 
             //return (IPlanet)await base.CallZomeFunctionAsync(STAR_ADD_PLANET, planet);
         }

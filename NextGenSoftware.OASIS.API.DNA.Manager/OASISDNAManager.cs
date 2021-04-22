@@ -33,6 +33,8 @@ namespace NextGenSoftware.OASIS.API.DNA.Manager
         public static void Initialize(string OASISDNAFileName)
         {
             LoadOASISDNA(OASISDNAFileName);
+            //TODO: Add validation here.
+            LoggingManager.CurrentLoggingFramework = (LoggingFramework)Enum.Parse(typeof(LoggingFramework), OASISDNA.OASIS.Logging.LoggingFramework);
             LoadProviderLists();
             RegisterProvidersInAllLists();
         }

@@ -14,7 +14,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
         //private const string ZOMES_ADD = "_zomes_add";
         //private const string ZOMES_REMOVE = "_zomes_remove";
 
-       
+
         //private const string ZOMES_ADD = "planet_holons_add";  //Holons Collection on CelestialBody only loads all holons in all zomes belonging to that body (like a shortcut). So a body does not store holons directly, only zomes (containing holons).
         //private const string ZOMES_REMOVE = "planet_holons_remove";
         //private const string HOLONS_LOAD_ALL = "_holons_loadall";
@@ -24,10 +24,12 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
         public string ProviderKey { get; set; } //Anchor address in hc.
 
         public delegate void HolonsLoaded(object sender, HolonsLoadedEventArgs e);
-        public event HolonsLoaded OnHolonsLoaded;
+        //  public event HolonsLoaded OnHolonsLoaded;
+        public event Events.HolonsLoaded OnHolonsLoaded;
 
         public delegate void ZomesLoaded(object sender, ZomesLoadedEventArgs e);
-        public event ZomesLoaded OnZomesLoaded;
+        //public event ZomesLoaded OnZomesLoaded;
+        public event Events.ZomesLoaded OnZomesLoaded;
 
         public List<IZome> Zomes { get; set; } = new List<IZome>();
 
@@ -70,6 +72,32 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
         public CelestialBodyCore() : base()
         {
         }
+
+        //event Events.HolonsLoaded ICelestialBodyCore.OnHolonsLoaded
+        //{
+        //    add
+        //    {
+        //        throw new NotImplementedException();
+        //    }
+
+        //    remove
+        //    {
+        //        throw new NotImplementedException();
+        //    }
+        //}
+
+        //event Events.ZomesLoaded ICelestialBodyCore.OnZomesLoaded
+        //{
+        //    add
+        //    {
+        //        throw new NotImplementedException();
+        //    }
+
+        //    remove
+        //    {
+        //        throw new NotImplementedException();
+        //    }
+        //}
 
         /*
         public CelestialBodyCore(string coreZomeName, string coreHolonBase, string providerKey) : base(coreZomeName)
@@ -130,7 +158,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
                 throw new ArgumentNullException("ProviderKey", "The ProviderKey must be set before this method can be called.");
 
             //TODO: Check to see if the method awaits till the zomes(holons) are loaded before returning (if it doesn't need to refacoring to subscribe to events like LoadHolons does)
-           // List<IZome> coreZomes = new List<IZome>();
+            // List<IZome> coreZomes = new List<IZome>();
 
             if (Zomes == null)
                 Zomes = new List<IZome>();
@@ -139,7 +167,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
             {
                 //TODO: Why we we need two versions of IZome? Can't remember why now?!
                 Zomes.Add((IZome)holon);
-               // coreZomes.Add((IZome)holon);
+                // coreZomes.Add((IZome)holon);
             }
 
             //OnZomesLoaded?.Invoke(this, new ZomesLoadedEventArgs { Zomes = coreZomes });
