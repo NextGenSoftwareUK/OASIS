@@ -8,12 +8,12 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
     {
         public Moon(string providerKey) : base(providerKey, GenesisType.Moon)
         {
-
+            this.HolonType = HolonType.Moon;
         }
 
         public Moon() : base(GenesisType.Moon)
         {
-
+            this.HolonType = HolonType.Moon;
         }
 
         //public Moon(HoloNETClientBase holoNETClient, string providerKey) : base(holoNETClient, providerKey, GenesisType.Moon)

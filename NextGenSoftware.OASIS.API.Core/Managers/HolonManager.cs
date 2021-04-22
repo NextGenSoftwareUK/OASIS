@@ -192,6 +192,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             catch (Exception ex)
             {
                 result.Result = null;
+                LogError(holon, providerType, ex.ToString());
             }
 
             if (result.Result == null)
@@ -215,6 +216,8 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                         {
                             result.Result = null;
                             //If the next provider errors then just continue to the next provider.
+
+                            LogError(holon, type.Value, ex2.ToString());
                         }
                     }
                 }
@@ -224,7 +227,9 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             if (result.Result == null)
             {
                 result.IsError = true;
-                result.ErrorMessage = string.Concat("All Registered OASIS Providers In The AutoFailOverList Failed To Save The Holon. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString());
+                string errorMessage = string.Concat("All registered OASIS Providers in the AutoFailOverList failed to save ", GetHolonInfoForLogging(holon), ". Please view the logs for more information. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString());
+                result.ErrorMessage = errorMessage;
+                LoggingManager.Log(errorMessage, LogType.Error);
             }
 
             foreach (EnumValue<ProviderType> type in ProviderManager.GetProvidersThatAreAutoReplicating())
@@ -238,7 +243,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                     }
                     catch (Exception ex)
                     {
-                        // Add logging here.
+                         LogError(holon, type.Value, ex.ToString());
                     }
                 }
             }
@@ -436,6 +441,16 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 holonsToReturn.Add(PrepareHolonForSaving(holon));
 
             return holonsToReturn;
+        }
+
+        private void LogError(IHolon holon, ProviderType providerType, string errorMessage)
+        {
+            LoggingManager.Log(string.Concat("An error occured attempting to save the ", GetHolonInfoForLogging(holon), " using the ", Enum.GetName(providerType), " provider. Error Details: ", errorMessage), LogType.Error);
+        }
+
+        private string GetHolonInfoForLogging(IHolon holon)
+        {
+            return string.Concat("holon with id ", holon.Id, " and name ", holon.Name, " of type ", Enum.GetName(holon.HolonType));
         }
     }
 }

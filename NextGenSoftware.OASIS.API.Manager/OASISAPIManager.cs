@@ -52,6 +52,9 @@ namespace NextGenSoftware.OASIS.API.Manager
 
         public static void Init(List<IOASISProvider> OASISProviders, OASISDNA OASISDNA, bool startApolloServer = true)
         {
+            // If you wish to change the logging framework from the default (NLog) then set it below (or just change in OASIS_DNA - prefered way)
+            //LoggingManager.CurrentLoggingFramework = Core.Enums.LoggingFramework.NLog;
+
             ProviderManager.RegisterProviders(OASISProviders); //TODO: Soon you will not need to pass these in since MEF will taKe care of this for us.
 
             // TODO: Soon you will not need to inject in a provider because the mappings below will be used instead...

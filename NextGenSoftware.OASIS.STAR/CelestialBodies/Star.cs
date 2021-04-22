@@ -12,12 +12,12 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
 
         public Star(string providerKey) : base(providerKey, GenesisType.Star)
         {
-
+            this.HolonType = HolonType.Star;
         }
 
         public Star() : base(GenesisType.Star)
         {
-
+            this.HolonType = HolonType.Star;
         }
 
 

@@ -7,6 +7,9 @@
   "AllowedHosts": "*",
 
   "OASIS": {
+    "Logging": {
+      "LoggingFramework": "NLog"
+    },
     "Security": {
       "Secret": "",
       "AvatarPassword": {
