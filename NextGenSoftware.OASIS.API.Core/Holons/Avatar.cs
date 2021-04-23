@@ -31,11 +31,11 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
         }
 
         //TODO: Think best to encrypt these?
-        public Dictionary<ProviderType, string> ProviderPrivateKey { get; set; } = new Dictionary<ProviderType, string>(); //Unique private key used by each provider (part of private/public key pair).
-        public Dictionary<ProviderType, string> ProviderPublicKey { get; set; } = new Dictionary<ProviderType, string>(); 
-        public Dictionary<ProviderType, string> ProviderUsername { get; set; } = new Dictionary<ProviderType, string>(); 
-        public Dictionary<ProviderType, string> ProviderId { get; set; } = new Dictionary<ProviderType, string>();
-        public Dictionary<ProviderType, string> ProviderWalletAddress { get; set; } = new Dictionary<ProviderType, string>(); 
+        public Dictionary<ProviderType, string> ProviderPrivateKey { get; set; } = new Dictionary<ProviderType, string>();  //Unique private key used by each provider (part of private/public key pair).
+        public Dictionary<ProviderType, string> ProviderPublicKey { get; set; } = new Dictionary<ProviderType, string>();  
+        public Dictionary<ProviderType, string> ProviderUsername { get; set; } = new Dictionary<ProviderType, string>();  
+        public Dictionary<ProviderType, string> ProviderId { get; set; } = new Dictionary<ProviderType, string>(); 
+        public Dictionary<ProviderType, string> ProviderWalletAddress { get; set; } = new Dictionary<ProviderType, string>();  
         public string Username { get; set; } 
         public string Password { get; set; }
         public string Email { get; set; }
