@@ -73,9 +73,10 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
             SuperStar.OnInitialized += Star_OnInitialized;
             SuperStar.OnStarError += Star_OnStarError;
 
-          //  Star.StarCore.OnZomeError += StarCore_OnZomeError;
-          //  Star.StarCore.HoloNETClient.OnError += HoloNETClient_OnError;
-
+            //  Star.StarCore.OnZomeError += StarCore_OnZomeError;
+            //  Star.StarCore.HoloNETClient.OnError += HoloNETClient_OnError;
+           
+            Console.WriteLine("");
             Console.WriteLine("Beaming In...");
             Console.WriteLine("");
 
@@ -89,8 +90,68 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
             else if (SuperStar.LoggedInUser != null)
             {
                 Console.WriteLine(string.Concat("Successfully Beamed In! Welcome back ", SuperStar.LoggedInUser.FullName, ". Have a nice day! :)"));
+                Console.WriteLine("");
                 Console.WriteLine(string.Concat("Karma: ", SuperStar.LoggedInUser.Karma));
                 Console.WriteLine(string.Concat("Level: ", SuperStar.LoggedInUser.Level));
+                Console.WriteLine(string.Concat("XP: ", SuperStar.LoggedInUser.XP));
+                Console.WriteLine("");
+                Console.WriteLine("Chakras:");
+                Console.WriteLine(string.Concat("Crown XP: ", SuperStar.LoggedInUser.Chakras.Crown.XP));
+                Console.WriteLine(string.Concat("Crown Level: ", SuperStar.LoggedInUser.Chakras.Crown.Level));
+                Console.WriteLine(string.Concat("ThirdEye XP: ", SuperStar.LoggedInUser.Chakras.ThirdEye.XP));
+                Console.WriteLine(string.Concat("ThirdEye Level: ", SuperStar.LoggedInUser.Chakras.ThirdEye.Level));
+                Console.WriteLine(string.Concat("Throat XP: ", SuperStar.LoggedInUser.Chakras.Throat.XP));
+                Console.WriteLine(string.Concat("Throat Level: ", SuperStar.LoggedInUser.Chakras.Throat.Level));
+                Console.WriteLine(string.Concat("Heart XP: ", SuperStar.LoggedInUser.Chakras.Heart.XP));
+                Console.WriteLine(string.Concat("Heart Level: ", SuperStar.LoggedInUser.Chakras.Heart.Level));
+                Console.WriteLine(string.Concat("SoloarPlexus XP: ", SuperStar.LoggedInUser.Chakras.SoloarPlexus.XP));
+                Console.WriteLine(string.Concat("SoloarPlexus Level: ", SuperStar.LoggedInUser.Chakras.SoloarPlexus.Level));
+                Console.WriteLine(string.Concat("Sacral XP: ", SuperStar.LoggedInUser.Chakras.Sacral.XP));
+                Console.WriteLine(string.Concat("Sacral Level: ", SuperStar.LoggedInUser.Chakras.Sacral.Level));
+                Console.WriteLine(string.Concat("Root XP: ", SuperStar.LoggedInUser.Chakras.Root.XP));
+                Console.WriteLine(string.Concat("Root Level: ", SuperStar.LoggedInUser.Chakras.Root.Level));
+                Console.WriteLine("");
+                Console.WriteLine("Attributes:");
+                Console.WriteLine(string.Concat("Strength: ", SuperStar.LoggedInUser.Attributes.Strength));
+                Console.WriteLine(string.Concat("Speed: ", SuperStar.LoggedInUser.Attributes.Speed));
+                Console.WriteLine(string.Concat("Dexterity: ", SuperStar.LoggedInUser.Attributes.Dexterity));
+                Console.WriteLine(string.Concat("Intelligence: ", SuperStar.LoggedInUser.Attributes.Intelligence));
+                Console.WriteLine(string.Concat("Magic: ", SuperStar.LoggedInUser.Attributes.Magic));
+                Console.WriteLine(string.Concat("Wisdom: ", SuperStar.LoggedInUser.Attributes.Wisdom));
+                Console.WriteLine(string.Concat("Toughness: ", SuperStar.LoggedInUser.Attributes.Toughness));
+                Console.WriteLine("");
+                Console.WriteLine("Super Powers:");
+                Console.WriteLine(string.Concat("Flight: ", SuperStar.LoggedInUser.SuperPowers.Flight));
+                Console.WriteLine(string.Concat("AstralProjection: ", SuperStar.LoggedInUser.SuperPowers.AstralProjection));
+                Console.WriteLine(string.Concat("BioLocatation: ", SuperStar.LoggedInUser.SuperPowers.BioLocatation));
+                Console.WriteLine(string.Concat("HeatVision: ", SuperStar.LoggedInUser.SuperPowers.HeatVision));
+                Console.WriteLine(string.Concat("Invulerability: ", SuperStar.LoggedInUser.SuperPowers.Invulerability));
+                Console.WriteLine(string.Concat("RemoteViewing: ", SuperStar.LoggedInUser.SuperPowers.RemoteViewing));
+                Console.WriteLine(string.Concat("SuperSpeed: ", SuperStar.LoggedInUser.SuperPowers.SuperSpeed));
+                Console.WriteLine(string.Concat("SuperStrength: ", SuperStar.LoggedInUser.SuperPowers.SuperStrength));
+                Console.WriteLine(string.Concat("Telekineseis: ", SuperStar.LoggedInUser.SuperPowers.Telekineseis));
+                Console.WriteLine(string.Concat("XRayVision: ", SuperStar.LoggedInUser.SuperPowers.XRayVision));
+                Console.WriteLine("");
+                Console.WriteLine("Skills:");
+                Console.WriteLine(string.Concat("Computers: ", SuperStar.LoggedInUser.Skills.Computers));
+                Console.WriteLine(string.Concat("Engineering: ", SuperStar.LoggedInUser.Skills.Engineering));
+                Console.WriteLine(string.Concat("Farming: ", SuperStar.LoggedInUser.Skills.Farming));
+                Console.WriteLine(string.Concat("FireStarting: ", SuperStar.LoggedInUser.Skills.FireStarting));
+                Console.WriteLine(string.Concat("Fishing: ", SuperStar.LoggedInUser.Skills.Fishing));
+                Console.WriteLine(string.Concat("Languages: ", SuperStar.LoggedInUser.Skills.Languages));
+                Console.WriteLine(string.Concat("Meditation: ", SuperStar.LoggedInUser.Skills.Meditation));
+                Console.WriteLine(string.Concat("MelleeCombat: ", SuperStar.LoggedInUser.Skills.MelleeCombat));
+                Console.WriteLine(string.Concat("Mindfulness: ", SuperStar.LoggedInUser.Skills.Mindfulness));
+                Console.WriteLine(string.Concat("Negotiating: ", SuperStar.LoggedInUser.Skills.Negotiating));
+                Console.WriteLine(string.Concat("RangeCombat: ", SuperStar.LoggedInUser.Skills.RangeCombat));
+                Console.WriteLine(string.Concat("Research: ", SuperStar.LoggedInUser.Skills.Research));
+                Console.WriteLine(string.Concat("Science: ", SuperStar.LoggedInUser.Skills.Science));
+                Console.WriteLine(string.Concat("SpellCasting: ", SuperStar.LoggedInUser.Skills.SpellCasting));
+                Console.WriteLine(string.Concat("Translating: ", SuperStar.LoggedInUser.Skills.Translating));
+                Console.WriteLine(string.Concat("Yoga: ", SuperStar.LoggedInUser.Skills.Yoga));
+
+                Console.WriteLine("");
+                Console.WriteLine("READY PLAYER ONE?");
                 Console.WriteLine("");
 
                 // Create Planet (OAPP) by generating dynamic template/scaffolding code.
@@ -106,10 +167,17 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
                     Console.WriteLine("Planet Our World Generated.");
                     ourWorld = result.CelestialBody as Planet;
 
+                    Console.WriteLine("");
+                    Console.WriteLine(string.Concat("Id: ", ourWorld.Id));
+                    Console.WriteLine(string.Concat("CreatedByAvatarId: ", ourWorld.CreatedByAvatarId));
+                    Console.WriteLine(string.Concat("CreatedDate: ", ourWorld.CreatedDate));
+                    Console.WriteLine("");
+
                     ourWorld.OnHolonLoaded += OurWorld_OnHolonLoaded;
                     ourWorld.OnHolonSaved += OurWorld_OnHolonSaved;
                     ourWorld.OnZomeError += OurWorld_OnZomeError;
 
+                    Console.WriteLine("Loading Zomes & Holons...");
                     ourWorld.LoadAll();
                     //ourWorld.Zomes.Add()
 

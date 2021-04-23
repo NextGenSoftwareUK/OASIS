@@ -32,7 +32,11 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
 
         //TODO: Think best to encrypt these?
         public Dictionary<ProviderType, string> ProviderPrivateKey { get; set; } = new Dictionary<ProviderType, string>(); //Unique private key used by each provider (part of private/public key pair).
-        public string Username { get; set; } //TODO: Might get rid of this and use Avatar.Name instead (from base Holon)? Would that be confusing?
+        public Dictionary<ProviderType, string> ProviderPublicKey { get; set; } = new Dictionary<ProviderType, string>(); 
+        public Dictionary<ProviderType, string> ProviderUsername { get; set; } = new Dictionary<ProviderType, string>(); 
+        public Dictionary<ProviderType, string> ProviderId { get; set; } = new Dictionary<ProviderType, string>();
+        public Dictionary<ProviderType, string> ProviderWalletAddress { get; set; } = new Dictionary<ProviderType, string>(); 
+        public string Username { get; set; } 
         public string Password { get; set; }
         public string Email { get; set; }
         public string Title { get; set; }
@@ -57,9 +61,13 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
         // public int Karma { get; private set; }
         public int Karma { get; set; } //TODO: This really needs to have a private setter but in the HoloOASIS provider it needs to copy the object along with each property... would prefer another work around if possible?
         public int XP { get; set; }
-        public List<Gift> Gifts { get; set; }
-        public List<Chakra> Chakras { get; set; }
-        public int AuraLevel { get; set; } //TODO: Will add more to this later (will be seperate Aura object ref here with additional properties, etc.
+        public List<AvatarGift> Gifts { get; set; }
+        //public List<Chakra> Chakras { get; set; }
+        public AvatarChakras Chakras { get; set; } = new AvatarChakras();
+        public AvatarAura Aura { get; set; } = new AvatarAura();
+        public AvatarSkills Skills { get; set; } = new AvatarSkills();
+        public AvatarAttributes Attributes { get; set; } = new AvatarAttributes();
+        public AvatarSuperPowers SuperPowers { get; set; } = new AvatarSuperPowers();
         public int Level
         {
             get

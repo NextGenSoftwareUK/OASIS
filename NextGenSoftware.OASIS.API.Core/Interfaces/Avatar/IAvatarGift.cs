@@ -4,7 +4,7 @@ using System;
 
 namespace NextGenSoftware.OASIS.API.Core.Interfaces
 {
-    public interface IGift
+    public interface IAvatarGift
     {
         Guid AvatarId { get; set; }
         DateTime GiftEarnt { get; set; }

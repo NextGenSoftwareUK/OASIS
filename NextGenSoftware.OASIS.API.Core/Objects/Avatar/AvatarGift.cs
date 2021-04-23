@@ -6,7 +6,7 @@ using System;
 
 namespace NextGenSoftware.OASIS.API.Core.Objects
 {
-    public class Gift : IGift
+    public class AvatarGift : IAvatarGift
     {
         public Guid AvatarId { get; set; }
         public KarmaTypePositive GiftType { get; set; }

@@ -21,6 +21,7 @@ using NextGenSoftware.OASIS.STAR.OASISAPIManager;
 using NextGenSoftware.OASIS.STAR.Zomes;
 using NextGenSoftware.Holochain.HoloNET.Client.Core;
 using NextGenSoftware.OASIS.STAR.Interfaces;
+using NextGenSoftware.OASIS.STAR.ErrorEventArgs;
 
 namespace NextGenSoftware.OASIS.STAR
 {
@@ -592,7 +593,7 @@ namespace NextGenSoftware.OASIS.STAR
                             //newBody.CelestialBody //TODO: Come back this, dont think should have CelestialBody.CelestialBody?
 
                             if (currentZome != null)
-                                newBody.CelestialBodyCore.AddHolon()
+                              //  newBody.CelestialBodyCore.AddHolon();
                                 newBody.CelestialBodyCore.Zomes.Add(currentZome);
 
                             currentZome = new Zome() { Name = zomeName };

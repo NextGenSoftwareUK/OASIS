@@ -6,6 +6,6 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces
     {
         int Level { get; set; }
         ChakraType Type { get; set; }
-        int Value { get; set; }
+        int XP { get; set; }
     }
 }
