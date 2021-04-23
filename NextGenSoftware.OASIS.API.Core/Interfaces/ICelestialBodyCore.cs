@@ -5,7 +5,7 @@ using static NextGenSoftware.OASIS.API.Core.Events.Events;
 
 namespace NextGenSoftware.OASIS.API.Core.Interfaces
 {
-    public interface ICelestialBodyCore
+    public interface ICelestialBodyCore : IZome
     {
         List<IHolon> Holons { get; }
         string ProviderKey { get; set; }

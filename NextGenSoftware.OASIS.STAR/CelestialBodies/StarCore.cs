@@ -88,8 +88,10 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
                 planet.Id = result.Result.Id;
                 planet.ProviderKey = result.Result.ProviderKey;
                 planet.CreatedByAvatar = result.Result.CreatedByAvatar;
+                planet.CreatedByAvatarId = result.Result.CreatedByAvatarId;
                 planet.CreatedDate = result.Result.CreatedDate;
                 planet.ModifiedByAvatar = result.Result.ModifiedByAvatar;
+                planet.ModifiedByAvatarId = result.Result.ModifiedByAvatarId;
                 planet.ModifiedDate = result.Result.ModifiedDate;
             }
 

@@ -73,46 +73,51 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 result.IsError = true;
                 result.ErrorMessage = "This avatar does not exist. Please contact support or create a new avatar.";
             }
-
-            if (result.Result.DeletedDate != DateTime.MinValue)
+            else
             {
-                result.IsError = true;
-                result.ErrorMessage = "This avatar has been deleted. Please contact support or create a new avatar.";
-            }
+                if (result.Result.DeletedDate != DateTime.MinValue)
+                {
+                    result.IsError = true;
+                    result.ErrorMessage = "This avatar has been deleted. Please contact support or create a new avatar.";
+                }
 
-            // TODO: Implement Activate/Deactivate methods in AvatarManager & Providers...
-            if (!result.Result.IsActive)
-            {
-                result.IsError = true;
-                result.ErrorMessage = "This avatar is no longer active. Please contact support or create a new avatar.";
-            }
+                // TODO: Implement Activate/Deactivate methods in AvatarManager & Providers...
+                if (!result.Result.IsActive)
+                {
+                    result.IsError = true;
+                    result.ErrorMessage = "This avatar is no longer active. Please contact support or create a new avatar.";
+                }
 
-            if (!result.Result.IsVerified)
-            {
-                result.IsError = true;
-                result.ErrorMessage = "Avatar has not been verified. Please check your email.";
-            }
+                if (!result.Result.IsVerified)
+                {
+                    result.IsError = true;
+                    result.ErrorMessage = "Avatar has not been verified. Please check your email.";
+                }
 
-            if (result.Result == null || !BC.Verify(password, result.Result.Password))
-            {
-                result.IsError = true;
-                result.ErrorMessage = "Email or password is incorrect";
+                if (!BC.Verify(password, result.Result.Password))
+                {
+                    result.IsError = true;
+                    result.ErrorMessage = "Email or password is incorrect";
+                }
             }
 
             //TODO: Come back to this.
             //if (OASISDNA.OASIS.Security.AvatarPassword.)
 
-            // authentication successful so generate jwt and refresh tokens
-            var jwtToken = generateJwtToken(result.Result);
-            var refreshToken = generateRefreshToken(ipAddress);
+            if (result.Result != null & !result.IsError)
+            {
+                var jwtToken = generateJwtToken(result.Result);
+                var refreshToken = generateRefreshToken(ipAddress);
 
-            result.Result.RefreshTokens.Add(refreshToken);
-            result.Result.JwtToken = jwtToken;
-            result.Result.RefreshToken = refreshToken.Token;
+                result.Result.RefreshTokens.Add(refreshToken);
+                result.Result.JwtToken = jwtToken;
+                result.Result.RefreshToken = refreshToken.Token;
 
-            LoggedInAvatar = result.Result;
+                LoggedInAvatar = result.Result;
 
-            result.Result = RemoveAuthDetails(SaveAvatar(result.Result));
+                result.Result = RemoveAuthDetails(SaveAvatar(result.Result));
+            }
+
             return result;
         }
 
