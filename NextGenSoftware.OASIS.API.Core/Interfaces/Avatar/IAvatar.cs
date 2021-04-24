@@ -22,6 +22,19 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces
         string Address { get; set; }
         int Karma { get; }
         int Level { get; }
+        int XP { get; set; }
+        List<AvatarGift> Gifts { get; set; }
+        //public List<Chakra> Chakras { get; set; }
+        AvatarChakras Chakras { get; set; }
+        AvatarAura Aura { get; set; } 
+        List<GeneKey> GeneKeys { get; set; } 
+        HumanDesign HumanDesign { get; set; } 
+        AvatarSkills Skills { get; set; } 
+        AvatarAttributes Attributes { get; set; }
+        AvatarSuperPowers SuperPowers { get; set; } 
+        List<Spell> Spells { get; set; } 
+        List<Achievement> Achievements { get; set; } 
+        List<InventoryItem> Inventory { get; set; } 
         string Town { get; set; }
         string County { get; set; }
         string Country { get; set; }

@@ -55,8 +55,8 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
         }
 
         //TODO: FIX THIS TOMORROW!
-        string ICelestialBodyCore.ProviderKey { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-        List<IZome> ICelestialBodyCore.Zomes { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        //string ICelestialBodyCore.ProviderKey { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        //List<IZome> ICelestialBodyCore.Zomes { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 
         List<IHolon> ICelestialBodyCore.Holons => throw new NotImplementedException();
 
