@@ -65,9 +65,14 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
         //public List<Chakra> Chakras { get; set; }
         public AvatarChakras Chakras { get; set; } = new AvatarChakras();
         public AvatarAura Aura { get; set; } = new AvatarAura();
+        public List<GeneKey> GeneKeys { get; set; }
+        public HumanDesign HumanDesign { get; set; }
         public AvatarSkills Skills { get; set; } = new AvatarSkills();
         public AvatarAttributes Attributes { get; set; } = new AvatarAttributes();
         public AvatarSuperPowers SuperPowers { get; set; } = new AvatarSuperPowers();
+        public List<Spell> Spells { get; set; }
+        public List<Achievement> Achievements { get; set; }
+        public List<InventoryItem> Inventory { get; set; }
         public int Level
         {
             get
