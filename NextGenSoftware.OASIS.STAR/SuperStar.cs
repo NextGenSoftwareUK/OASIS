@@ -206,6 +206,42 @@ namespace NextGenSoftware.OASIS.STAR
             if (!result.IsError)
                 LoggedInUser = (Avatar)result.Result;
 
+            if (username == "davidellams@hotmail.com")
+            {
+                result.Result.GeneKeys.Add(new GeneKey() { Name = "Expectation", Gift = "a gift", Shadow = "a shadow", Sidhi = "a sidhi" });
+                result.Result.GeneKeys.Add(new GeneKey() { Name = "Invisibility", Gift = "a gift", Shadow = "a shadow", Sidhi = "a sidhi" });
+                result.Result.GeneKeys.Add(new GeneKey() { Name = "Rapture", Gift = "a gift", Shadow = "a shadow", Sidhi = "a sidhi" });
+
+                result.Result.HumanDesign.Type = "Generator";
+                result.Result.Inventory.Add(new InventoryItem() { Name = "Magical Armour" });
+                result.Result.Inventory.Add(new InventoryItem() { Name = "Mighty Wizard Sword" });
+                //result.Result.Inventory.Add(new InventoryItem() { Name = "Mighty Wizard" });
+
+                result.Result.Spells.Add(new Spell() { Name = "Super Spell" });
+                result.Result.Spells.Add(new Spell() { Name = "Super Speed Spell" });
+                result.Result.Spells.Add(new Spell() { Name = "Super Srength Spell" });
+
+                result.Result.Achievements.Add(new Achievement() { Name = "Becoming Superman!" });
+                result.Result.Achievements.Add(new Achievement() { Name = "Completing STAR!" });
+
+                result.Result.Gifts.Add(new AvatarGift() { GiftType = KarmaTypePositive.BeASuperHero });
+
+                result.Result.SuperPowers.AstralProjection = 99;
+                result.Result.SuperPowers.BioLocatation = 88;
+                result.Result.SuperPowers.Flight = 99;
+                result.Result.SuperPowers.FreezeBreath = 88;
+                result.Result.SuperPowers.HeatVision = 99;
+                result.Result.SuperPowers.Invulerability = 99;
+                result.Result.SuperPowers.SuperSpeed = 99;
+                result.Result.SuperPowers.SuperStrength = 99;
+                result.Result.SuperPowers.XRayVision = 99;
+                result.Result.SuperPowers.Teleportation = 99;
+                result.Result.SuperPowers.Telekineseis = 99;
+
+                result.Result.Skills.Computers = 99;
+                result.Result.Skills.Engineering = 99;
+            }
+
             return result;
 
             //return null;
@@ -334,7 +370,8 @@ namespace NextGenSoftware.OASIS.STAR
                     break;
             }
 
-          //  newBody.Id = Guid.NewGuid();
+            //  newBody.Id = Guid.NewGuid();
+            newBody.CelestialBody = newBody;
             newBody.Name = name;
             newBody.OnZomeError += NewBody_OnZomeError;
             //await newBody.Initialize(StarBody.HoloNETClient);
@@ -628,7 +665,7 @@ namespace NextGenSoftware.OASIS.STAR
                                         if (currentHolon.Nodes == null)
                                             currentHolon.Nodes = new List<INode>();
 
-                                        currentHolon.Nodes.Add(new Node { NodeName = fieldName, NodeType = NodeType.String });
+                                        currentHolon.Nodes.Add(new Node { NodeName = fieldName.ToPascalCase(), NodeType = NodeType.String });
                                     }
                                     break;
 
@@ -646,7 +683,7 @@ namespace NextGenSoftware.OASIS.STAR
                                         if (currentHolon.Nodes == null)
                                             currentHolon.Nodes = new List<INode>();
 
-                                        currentHolon.Nodes.Add(new Node { NodeName = fieldName, NodeType = NodeType.Int });
+                                        currentHolon.Nodes.Add(new Node { NodeName = fieldName.ToPascalCase(), NodeType = NodeType.Int });
                                     }
                                     break;
 
@@ -664,7 +701,7 @@ namespace NextGenSoftware.OASIS.STAR
                                         if (currentHolon.Nodes == null)
                                             currentHolon.Nodes = new List<INode>();
 
-                                        currentHolon.Nodes.Add(new Node { NodeName = fieldName, NodeType = NodeType.Bool });
+                                        currentHolon.Nodes.Add(new Node { NodeName = fieldName.ToPascalCase(), NodeType = NodeType.Bool });
                                     }
                                     break;
                             }
@@ -769,11 +806,11 @@ namespace NextGenSoftware.OASIS.STAR
                                     break;
                             }*/
 
-                            holonName = holonName.ToSnakeCase();
-                            holonReached = true;
-
                             currentHolon = new Holon() { Name = holonName, HolonType = HolonType.Holon };
                             currentZome.Holons.Add(currentHolon); //TODO: May need to add this once all nodes/fields have been added to it?
+
+                            holonName = holonName.ToSnakeCase();
+                            holonReached = true;
                         }
                     }
 
@@ -788,8 +825,8 @@ namespace NextGenSoftware.OASIS.STAR
             // Remove any white space from the name.
             File.WriteAllText(string.Concat(genesisCSharpFolder, "\\", Regex.Replace(name, @"\s+", ""), Enum.GetName(typeof(GenesisType), type), ".cs"), celestialBodyBufferCsharp);
 
-
-
+            if (currentZome != null)
+                newBody.CelestialBodyCore.Zomes.Add(currentZome);
 
             //TODO: Need to save the collection of Zomes/Holons that belong to this planet here...
             // await newBody.Save();

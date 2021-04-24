@@ -383,6 +383,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             oasisHolon.HolonType = holon.HolonType;
             oasisHolon.ProviderType = new Core.Helpers.EnumValue<ProviderType>(holon.ProviderType);
             oasisHolon.CelestialBody = holon.CelestialBody;
+            oasisHolon.Children = holon.Children;
             oasisHolon.Nodes = holon.Nodes;
             oasisHolon.Parent = holon.Parent;
             oasisHolon.ParentZome = holon.ParentZome;
@@ -423,7 +424,11 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             if (holon.ProviderType != null)
                 mongoHolon.ProviderType = holon.ProviderType.Value;
 
+
             mongoHolon.CelestialBody = holon.CelestialBody;
+            mongoHolon.Children = holon.Children;
+            // mongoHolon.CelestialBodyCore = holon.CelestialBodyCore;
+
             mongoHolon.Nodes = holon.Nodes;
             mongoHolon.Parent = holon.Parent;
             mongoHolon.ParentZome = holon.ParentZome;

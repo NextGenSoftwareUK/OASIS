@@ -1,8 +1,10 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core.Helpers;
+using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.STAR.Interfaces;
+using NextGenSoftware.OASIS.STAR.Zomes;
 
 namespace NextGenSoftware.OASIS.STAR.CelestialBodies
 {
@@ -81,6 +83,13 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
             this.Star.Planets.Add(planet);
             //return (OASISResult<IPlanet>)await base.SaveHolonAsync(planet);
 
+            planet.Children = new List<Holon>();
+            foreach (Zome zome in planet.CelestialBodyCore.Zomes)
+            {
+                foreach (Holon holon in zome.Holons)
+                    ((List<Holon>)planet.Children).Add(holon);
+            }
+
             OASISResult<IHolon> result = await base.SaveHolonAsync(planet);
 
             if (result.Result != null)
@@ -93,6 +102,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
                 planet.ModifiedByAvatar = result.Result.ModifiedByAvatar;
                 planet.ModifiedByAvatarId = result.Result.ModifiedByAvatarId;
                 planet.ModifiedDate = result.Result.ModifiedDate;
+                planet.Children = result.Result.Children;
             }
 
             return new OASISResult<IPlanet>() { Result = planet, ErrorMessage = result.ErrorMessage, IsError = result.IsError };
