@@ -20,10 +20,11 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces
         Task<OASISResult<IEnumerable<IHolon>>> AddHolon(IHolon holon);
         Task<OASISResult<IEnumerable<IHolon>>> RemoveHolon(IHolon holon);
         Task<IHolon> LoadHolonAsync(Guid id, HolonType type = HolonType.Holon);
-        Task<IHolon> LoadHolonAsync(string providerKey, HolonType type = HolonType.Holon);
+        Task<IHolon> LoadHolonAsync(Dictionary<ProviderType, string> providerKey, HolonType type = HolonType.Holon);
         Task<IEnumerable<IHolon>> LoadHolonsAsync(Guid id, HolonType type = HolonType.Holon);
-        Task<IEnumerable<IHolon>> LoadHolonsAsync(string providerKey, HolonType type = HolonType.Holon);
+        Task<IEnumerable<IHolon>> LoadHolonsAsync(Dictionary<ProviderType, string> providerKey, HolonType type = HolonType.Holon);
         Task<OASISResult<IHolon>> SaveHolonAsync(IHolon savingHolon);
+        Task<OASISResult<IEnumerable<IHolon>>> Save();
         Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> savingHolons);
     }
 }

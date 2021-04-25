@@ -1,10 +1,11 @@
 ﻿using NextGenSoftware.OASIS.API.Core.Helpers;
+using NextGenSoftware.OASIS.API.Core.Interfaces;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace NextGenSoftware.OASIS.STAR.Interfaces
 {
-    public interface IStarCore
+    public interface IStarCore : ICelestialBodyCore
     {
         IStar Star { get; set; }
 

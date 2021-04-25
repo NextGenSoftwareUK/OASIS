@@ -1,12 +1,13 @@
 ﻿
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.STAR.Interfaces;
+using System.Collections.Generic;
 
 namespace NextGenSoftware.OASIS.STAR.CelestialBodies
 {
     public class Moon : CelestialBody, IMoon
     {
-        public Moon(string providerKey) : base(providerKey, GenesisType.Moon)
+        public Moon(Dictionary<ProviderType, string> providerKey) : base(providerKey, GenesisType.Moon)
         {
             this.HolonType = HolonType.Moon;
         }

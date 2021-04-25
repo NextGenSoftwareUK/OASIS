@@ -12,7 +12,7 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
         public string Name { get; set; }
         public string Description { get; set; }
         //public string ProviderKey { get; set; } //Unique key used by each provider (e.g. hashaddress in hc, etc).
-        public Dictionary<ProviderType, string> ProviderKey { get; set; } = new Dictionary<ProviderType, string>(); //Unique key used by each provider (e.g. hashaddress in hc, accountname for Telos etc).
+        public Dictionary<ProviderType, string> ProviderKey { get; set; } = new Dictionary<ProviderType, string>(); //Unique key used by each provider (e.g. hashaddress in hc, accountname for Telos etc).        
         public HolonType HolonType { get; set; }
         public ICelestialBody CelestialBody { get; set; } //The CelestialBody (Star, Planet or Moon) this Holon belongs to.
         public IZome ParentZome { get; set; } //TODO: Wire this up in the HDK.Core.Star code... not used yet because only just added...
