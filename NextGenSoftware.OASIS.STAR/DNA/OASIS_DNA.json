@@ -11,7 +11,7 @@
       "LoggingFramework": "NLog"
     },
     "Security": {
-      "Secret": "",
+      "Secret": "F64DAE56-D03C-482D-AEA6-69950A0042909131E81A-5170-401A-BE9F-275BE73851F7",
       "AvatarPassword": {
         "BCryptEncryptionEnabled": "true",
         "Rijndael256EncryptionEnabled": "true",
@@ -24,11 +24,12 @@
       }
     },
     "Email": {
-      "EmailFrom": "",
-      "SmtpHost": "",
-      "SmtpPort": 25,
-      "SmtpUser": "",
-      "SmtpPass": ""
+      "EmailFrom": "anorak@theoasisplatform.world",
+      "SmtpHost": "mailuk2.promailserver.com",
+      "SmtpPort": 587,
+      // "SmtpPort": 25,
+      "SmtpUser": "anorak@oasisplatform.world",
+      "SmtpPass": "qipwofvyx7rs]zdk&b4ganljcuemth"
     },
     "StorageProviders": {
       "AutoReplicationEnabled": "true",
@@ -45,17 +46,18 @@
         "HolochainVersion": "Redux" //Can be Redux or RSM.
       },
       "MongoDBOASIS": {
-        "ConnectionString": "",
+        "ConnectionString": "mongodb+srv://dbadmin:xeMmcobxK80k7IRf@oasisapi-oipck.mongodb.net/OASISAPI?retryWrites=true&w=majority",
+        // "ConnectionString": "mongodb+srv://oasisuser:EHPpjGAmW74lg8qS@oasisapi-oipck.mongodb.net/OASISAPI?retryWrites=true&w=majority",
         "DBName": "OASISAPI"
       },
       "SQLLiteDBOASIS": {
         "ConnectionString": "Data Source=OASISSQLLiteDB.db"
       },
       "EOSIOOASIS": {
-        "ConnectionString": ""
+        "ConnectionString": "https://node.hypha.earth"
       },
       "TelosOASIS": {
-        "ConnectionString": ""
+        "ConnectionString": "https://node.hypha.earth"
       },
       "SEEDSOASIS": {
         "ConnectionString": "https://node.hypha.earth"
@@ -66,10 +68,10 @@
       "EthereumOASIS": {
         "ConnectionString": ""
       },
-      "Neo4jOASIS": {
+      "Neo4JOASIS": {
         "ConnectionString": "http://localhost:7474",
-        "Username": "",
-        "Password": ""
+        "Username": "neo4j",
+        "Password": "letthereb@light!"
       },
       "IPFSOASIS": {
         "ConnectionString": "http://localhost:5001"
