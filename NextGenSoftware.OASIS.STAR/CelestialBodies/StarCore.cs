@@ -1,10 +1,10 @@
-﻿using System.Collections.Generic;
+﻿using System.Linq;
+using System.Collections.Generic;
 using System.Threading.Tasks;
+using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
-using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.STAR.Interfaces;
-using NextGenSoftware.OASIS.STAR.Zomes;
 
 namespace NextGenSoftware.OASIS.STAR.CelestialBodies
 {
@@ -54,7 +54,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
             this.Star = star;
         }
 
-        public StarCore(string providerKey, IStar star) : base(providerKey)
+        public StarCore(Dictionary<ProviderType, string> providerKey, IStar star) : base(providerKey)
         {
             this.Star = star;
         }
@@ -77,37 +77,38 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
 
         public async Task<OASISResult<IPlanet>> AddPlanetAsync(IPlanet planet)
         {
+            OASISResult<ICelestialBody> result = new OASISResult<ICelestialBody>();
+
             if (this.Star.Planets == null)
                 this.Star.Planets = new List<IPlanet>();
 
             this.Star.Planets.Add(planet);
-            //return (OASISResult<IPlanet>)await base.SaveHolonAsync(planet);
+            result = await this.Star.Save();
 
-            planet.Children = new List<Holon>();
-            foreach (Zome zome in planet.CelestialBodyCore.Zomes)
+            // TODO: This will only work if the planet names are unique (which we want to enforce anyway!) - need to add this soon!
+            IPlanet savedPlanet = this.Star.Planets.FirstOrDefault(x => x.Name == planet.Name);
+            return new OASISResult<IPlanet>() { Result = savedPlanet, ErrorMessage = result.ErrorMessage, IsError = result.IsError };
+
+            // Alternative way is to save the planet first and then then the star (as code below does):
+
+            /*
+            // If the planet has now been saved yet then save it now.
+            if (planet.Id == Guid.Empty)
+                result = await planet.Save();
+
+            if (result.IsError)
+                return new OASISResult<IPlanet>() { Result = (IPlanet)result.Result, ErrorMessage = result.ErrorMessage, IsError = result.IsError };
+            else
             {
-                foreach (Holon holon in zome.Holons)
-                    ((List<Holon>)planet.Children).Add(holon);
-            }
+                planet = (IPlanet)result.Result;
 
-            OASISResult<IHolon> result = await base.SaveHolonAsync(planet);
+                if (this.Star.Planets == null)
+                    this.Star.Planets = new List<IPlanet>();
 
-            if (result.Result != null)
-            {
-                planet.Id = result.Result.Id;
-                planet.ProviderKey = result.Result.ProviderKey;
-                planet.CreatedByAvatar = result.Result.CreatedByAvatar;
-                planet.CreatedByAvatarId = result.Result.CreatedByAvatarId;
-                planet.CreatedDate = result.Result.CreatedDate;
-                planet.ModifiedByAvatar = result.Result.ModifiedByAvatar;
-                planet.ModifiedByAvatarId = result.Result.ModifiedByAvatarId;
-                planet.ModifiedDate = result.Result.ModifiedDate;
-                planet.Children = result.Result.Children;
-            }
-
-            return new OASISResult<IPlanet>() { Result = planet, ErrorMessage = result.ErrorMessage, IsError = result.IsError };
-
-            //return (IPlanet)await base.CallZomeFunctionAsync(STAR_ADD_PLANET, planet);
+                this.Star.Planets.Add(planet);
+                result = await this.Star.Save(); //TODO: Even though this will save the planet and all its child zomes and holons, we want to save the planet as its own indiviudal holon (and not just be embedded as a child object). This also applies to saving each child zome/holon indivudally so we can get a unique id for each. But this depends on how each OASIS Provider implements this. This is where graphDB (neo4j) would be better?
+                return new OASISResult<IPlanet>() { Result = planet, ErrorMessage = result.ErrorMessage, IsError = result.IsError };
+            }*/
         }
 
 
@@ -124,11 +125,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
 
         public async Task<List<IPlanet>> GetPlanets()
         {
-            if (string.IsNullOrEmpty(ProviderKey))
-                throw new System.ArgumentException("ERROR: ProviderKey is null, please set this before calling this method.", "ProviderKey");
-
-            return (List<IPlanet>)await base.LoadHolonsAsync(ProviderKey, API.Core.Enums.HolonType.Planet);
-            //return (List<IPlanet>)await base.CallZomeFunctionAsync(STAR_GET_PLANETS, ProviderKey);
+            return (List<IPlanet>)await base.LoadHolonsAsync(ProviderKey, HolonType.Planet);
         }
 
         //TODO: I think we need to also add back in these Moon functions because Star can also create Moons...

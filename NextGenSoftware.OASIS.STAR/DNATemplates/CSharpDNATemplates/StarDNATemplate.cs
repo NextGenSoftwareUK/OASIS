@@ -1,4 +1,6 @@
-﻿using System.Threading.Tasks;
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
+using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.STAR.CelestialBodies;
@@ -8,7 +10,7 @@ namespace NextGenSoftware.OASIS.STAR.DNATemplates.CSharpTemplates
 {
     public class StarDNATemplate : Star, IStar
     {
-        public StarDNATemplate(string providerKey) : base(providerKey)
+        public StarDNATemplate(Dictionary<ProviderType, string> providerKey) : base(providerKey)
         {
 
         }
@@ -39,10 +41,14 @@ namespace NextGenSoftware.OASIS.STAR.DNATemplates.CSharpTemplates
 
         //}
 
-        public async Task<IHolon> LoadHOLONAsync(string hcEntryAddressHash)
+        //public async Task<IHolon> LoadHOLONAsync(string hcEntryAddressHash)
+        //{
+        //    return await CelestialBodyCore.LoadHolonAsync(hcEntryAddressHash);
+        //}
+
+        public async Task<IHolon> LoadHOLONAsync(Dictionary<ProviderType, string> providerKey)
         {
-            //return await CelestialBodyCore.LoadHolonAsync("{holon}", hcEntryAddressHash);
-            return await CelestialBodyCore.LoadHolonAsync(hcEntryAddressHash);
+            return await CelestialBodyCore.LoadHolonAsync(providerKey);
         }
 
         public async Task<OASISResult<IHolon>> SaveHOLONAsync(IHolon holon)

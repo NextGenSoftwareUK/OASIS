@@ -1,5 +1,7 @@
 ﻿using NextGenSoftware.Holochain.HoloNET.Client.Core;
+using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.STAR.Interfaces;
+using System.Collections.Generic;
 
 namespace NextGenSoftware.OASIS.STAR.CelestialBodies
 {
@@ -12,7 +14,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
             this.Moon = moon;
         }
 
-        public MoonCore(string providerKey, IMoon moon) : base(providerKey)
+        public MoonCore(Dictionary<ProviderType, string> providerKey, IMoon moon) : base(providerKey)
         {
             this.Moon = moon;
         }
