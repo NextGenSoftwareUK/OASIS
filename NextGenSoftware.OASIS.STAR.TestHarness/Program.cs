@@ -15,6 +15,7 @@ using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.STAR.ErrorEventArgs;
 using NextGenSoftware.OASIS.STAR.CelestialBodies;
 using NextGenSoftware.OASIS.API.Providers.SEEDSOASIS.Membranes;
+using NextGenSoftware.OASIS.STAR.Zomes;
 
 namespace NextGenSoftware.OASIS.STAR.TestHarness
 {
@@ -249,6 +250,24 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
                 Console.WriteLine(string.Concat("CreatedByAvatarId: ", ourWorld.CreatedByAvatarId));
                 Console.WriteLine(string.Concat("CreatedDate: ", ourWorld.CreatedDate));
                 Console.WriteLine("");
+                Console.WriteLine(string.Concat("Planet contains ", ourWorld.CelestialBodyCore.Zomes.Count(), " Zomes: "));
+
+                foreach (Zome zome in ourWorld.CelestialBodyCore.Zomes)
+                {
+                    Console.WriteLine(string.Concat(" Zome Name: ", zome.Name, " Zome Id: ", zome.Id, " containing ", zome.Holons.Count(), " holons:"));
+
+                    foreach (Holon holon in zome.Holons)
+                    {
+                        Console.WriteLine("");
+                        Console.WriteLine(string.Concat("  Holon Name: ", holon.Name, " Holon Id: ", holon.Id, " containing ", holon.Nodes.Count(), " nodes: "));
+                        
+                        foreach (Node node in holon.Nodes)
+                        {
+                            Console.WriteLine("");
+                            Console.WriteLine(string.Concat("   Node Name: ", node.NodeName, " Node Id: ", node.Id, " Node Type: ", Enum.GetName(node.NodeType)));
+                        }
+                    }
+                }
 
                 ourWorld.OnHolonLoaded += OurWorld_OnHolonLoaded;
                 ourWorld.OnHolonSaved += OurWorld_OnHolonSaved;

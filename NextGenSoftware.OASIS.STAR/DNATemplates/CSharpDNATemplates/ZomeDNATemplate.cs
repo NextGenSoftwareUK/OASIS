@@ -1,4 +1,6 @@
-﻿using System.Threading.Tasks;
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
+using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.STAR.Zomes;
@@ -19,10 +21,14 @@ namespace NextGenSoftware.OASIS.STAR.DNATemplates.CSharpTemplates
 
         }*/
 
-        public async Task<IHolon> LoadHOLONAsync(string hcEntryAddressHash)
+        //public async Task<IHolon> LoadHOLONAsync(string hcEntryAddressHash)
+        //{
+        //    return await base.LoadHolonAsync(hcEntryAddressHash);
+        //}
+
+        public async Task<IHolon> LoadHOLONAsync(Dictionary<ProviderType, string> providerKey)
         {
-            //return await base.LoadHolonAsync("{holon}", hcEntryAddressHash);
-            return await base.LoadHolonAsync(hcEntryAddressHash);
+            return await base.LoadHolonAsync(providerKey);
         }
 
         public async Task<OASISResult<IHolon>> SaveHOLONAsync(IHolon holon)

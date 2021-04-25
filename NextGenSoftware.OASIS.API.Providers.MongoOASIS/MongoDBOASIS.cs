@@ -424,6 +424,9 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             if (holon.ProviderType != null)
                 mongoHolon.ProviderType = holon.ProviderType.Value;
 
+            ICelestialBody celestialBody = (ICelestialBody)holon;
+
+            //celestialBody.CelestialBodyCore
 
             mongoHolon.CelestialBody = holon.CelestialBody;
             mongoHolon.Children = holon.Children;

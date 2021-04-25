@@ -20,7 +20,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
             this.Planet = planet;
         }
 
-        public PlanetCore(string providerKey, IPlanet planet) : base(providerKey)
+        public PlanetCore(Dictionary<ProviderType, string> providerKey, IPlanet planet) : base(providerKey)
         {
             this.Planet = planet;
         }
@@ -75,9 +75,6 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
 
         public async Task<List<IMoon>> GetMoons()
         {
-            if (string.IsNullOrEmpty(ProviderKey))
-                throw new ArgumentException("ERROR: ProviderKey is null, please set this before calling this method.", "ProviderKey");
-
             if (this.Planet.Moons == null)
                 this.Planet.Moons = (List<IMoon>)base.LoadHolonsAsync(ProviderKey, HolonType.Moon).Result;
 

@@ -10,7 +10,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
         //then they can create a planet. The user needs to log into their avatar Star before they can create a moon/planet with the Genesis command.
         public List<IPlanet> Planets { get; set; }
 
-        public Star(string providerKey) : base(providerKey, GenesisType.Star)
+        public Star(Dictionary<ProviderType, string> providerKey) : base(providerKey, GenesisType.Star)
         {
             this.HolonType = HolonType.Star;
         }

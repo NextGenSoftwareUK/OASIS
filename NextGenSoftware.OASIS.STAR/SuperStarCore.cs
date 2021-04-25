@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
+using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.STAR.CelestialBodies;
 using NextGenSoftware.OASIS.STAR.Interfaces;
 
@@ -56,7 +57,7 @@ namespace NextGenSoftware.OASIS.STAR
         //    this.Star = star;
         //}
 
-        public SuperStarCore(string providerKey) : base(providerKey)
+        public SuperStarCore(Dictionary<ProviderType, string> providerKey) : base(providerKey)
         {
 
         }
@@ -86,11 +87,7 @@ namespace NextGenSoftware.OASIS.STAR
 
         public async Task<List<IStar>> GetStars()
         {
-            if (string.IsNullOrEmpty(ProviderKey))
-                throw new System.ArgumentException("ERROR: ProviderKey is null, please set this before calling this method.", "ProviderKey");
-
-            return (List<IStar>)await base.LoadHolonsAsync(ProviderKey, API.Core.Enums.HolonType.Star);
-            //return (List<IMoon>)await base.CallZomeFunctionAsync(STAR_GET_STARS, ProviderKey);
+            return (List<IStar>)await base.LoadHolonsAsync(ProviderKey, HolonType.Star);
         }
 
         // DONT NEED BECAUSE INNERSTAR CONTAINS THIS.
