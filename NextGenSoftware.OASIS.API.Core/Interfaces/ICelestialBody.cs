@@ -1,5 +1,6 @@
 ﻿using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Objects;
 
 namespace NextGenSoftware.OASIS.API.Core.Interfaces
@@ -49,7 +50,7 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces
         void Mutate();
         void Radiate();
         void Reflect();
-        Task<bool> Save();
+        Task<OASISResult<ICelestialBody>> Save();
         //Task<IHolon> SaveHolonAsync(string rustHolonType, IHolon savingHolon);
         //abstract Task<IHolon> SaveHolonAsync(IHolon savingHolon);
         void Seed();

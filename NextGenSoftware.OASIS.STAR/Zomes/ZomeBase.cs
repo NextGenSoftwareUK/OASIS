@@ -8,7 +8,6 @@ using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.DNA.Manager;
-using NextGenSoftware.OASIS.STAR.Interfaces;
 
 namespace NextGenSoftware.OASIS.STAR.Zomes
 {
@@ -57,9 +56,9 @@ namespace NextGenSoftware.OASIS.STAR.Zomes
             return await _holonManager.LoadHolonAsync(id, type);
         }
 
-        public virtual async Task<IHolon> LoadHolonAsync(string providerKey, HolonType type = HolonType.Holon)
+        public virtual async Task<IHolon> LoadHolonAsync(Dictionary<ProviderType, string> providerKey, HolonType type = HolonType.Holon)
         {
-            return await _holonManager.LoadHolonAsync(providerKey, type);
+            return await _holonManager.LoadHolonAsync(GetCurrentProviderKey(providerKey));
         }
 
         public virtual async Task<IEnumerable<IHolon>> LoadHolonsAsync(Guid id, HolonType type = HolonType.Holon)
@@ -67,9 +66,9 @@ namespace NextGenSoftware.OASIS.STAR.Zomes
             return await _holonManager.LoadHolonsForParentAsync(id, type);
         }
 
-        public virtual async Task<IEnumerable<IHolon>> LoadHolonsAsync(string providerKey, HolonType type = HolonType.Holon)
+        public virtual async Task<IEnumerable<IHolon>> LoadHolonsAsync(Dictionary<ProviderType, string> providerKey, HolonType type = HolonType.Holon)
         {
-            return await _holonManager.LoadHolonsForParentAsync(providerKey, type);
+            return await _holonManager.LoadHolonsForParentAsync(GetCurrentProviderKey(providerKey), type);
         }
 
         public virtual async Task<OASISResult<IHolon>> SaveHolonAsync(IHolon savingHolon)
@@ -80,6 +79,11 @@ namespace NextGenSoftware.OASIS.STAR.Zomes
         public virtual async Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> savingHolons)
         {
             return await _holonManager.SaveHolonsAsync(savingHolons);
+        }
+
+        public virtual async Task<OASISResult<IEnumerable<IHolon>>> Save()
+        {
+            return await _holonManager.SaveHolonsAsync(this.Holons);
         }
 
         public async Task<OASISResult<IEnumerable<IHolon>>> AddHolon(IHolon holon)
@@ -96,5 +100,14 @@ namespace NextGenSoftware.OASIS.STAR.Zomes
             return await SaveHolonsAsync(this.Holons);
         }
 
+        private string GetCurrentProviderKey(Dictionary<ProviderType, string> providerKey)
+        {
+            if (ProviderKey.ContainsKey(ProviderManager.CurrentStorageProviderType.Value) && !string.IsNullOrEmpty(ProviderKey[ProviderManager.CurrentStorageProviderType.Value]))
+                return providerKey[ProviderManager.CurrentStorageProviderType.Value];
+            else
+                throw new Exception(string.Concat("ProviderKey not found for CurrentStorageProviderType ", ProviderManager.CurrentStorageProviderType.Name));
+
+            //TODO: Return OASISResult instead of throwing exceptions for ALL OASIS methods!
+        }
     }
 }

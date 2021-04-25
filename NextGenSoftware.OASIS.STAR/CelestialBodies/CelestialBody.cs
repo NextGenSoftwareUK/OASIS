@@ -12,6 +12,7 @@ using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.STAR.Zomes;
 using NextGenSoftware.OASIS.STAR.Interfaces;
 using NextGenSoftware.Holochain.HoloNET.Client.Core;
+using NextGenSoftware.OASIS.API.Core.Helpers;
 
 namespace NextGenSoftware.OASIS.STAR.CelestialBodies
 {
@@ -99,10 +100,12 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
         }
 
         //TODO: Don't think we need to pass Id in if we are using ProviderKey?
-        public CelestialBody(string providerKey, GenesisType genesisType)
+        public CelestialBody(Dictionary<ProviderType, string> providerKey, GenesisType genesisType)
         {
             this.GenesisType = genesisType;
-            this.ProviderKey[ProviderManager.CurrentStorageProviderType.Value] = providerKey;
+            //this.ProviderKey[ProviderManager.CurrentStorageProviderType.Value] = providerKey;
+            this.ProviderKey = providerKey;
+
             Initialize();  //TODO: It never called this from the constructor before, was there a good reason? Will soon find out! ;-)
         }
 
@@ -112,15 +115,15 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
             LoadZomes();
         }
 
-        public async Task<bool> Save()
+        public async Task<OASISResult<ICelestialBody>> Save()
         {
             //TODO: Save Zomes/Holons added to collections here...
             //TODO: Better if we can pass in collections rather than saving one at a time...
 
             //TODO: Need to save the planet holon itself so we can get its anchor address (we can use later to load its collections of zomes/holons).
 
-            if (Id == Guid.Empty)
-                Id = Guid.NewGuid();
+            //  if (Id == Guid.Empty)
+            //      Id = Guid.NewGuid();
 
             /*
             //Just in case the zomes/holons have been added since the planet was last saved.
@@ -156,13 +159,65 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
                     break;
             }*/
 
-            //TODO: Not sure why we need to create a new holon here? CelestialBody (planet, moon, star, etc) are all Holons themselves.
-            // So why not just have a Save method directly on them? Save code should be here?
-            // Why did I put all IO code in Core? Hmmmm.... Need to remember! lol ;-)
 
-            //await CelestialBodyCore.SaveCelestialBodyAsync(new Holon() { Id = this.Id, Name = this.Name, Description = this.Description, HolonType = holonType });
-            await CelestialBodyCore.SaveCelestialBodyAsync(this);
-            return true;
+            this.Children = new List<Holon>();
+
+            //TODO: We need to indivudally save each planet/zome/holon first so we get their unique id's. We can then set the parentId's etc.
+            OASISResult<ICelestialBody> result = new OASISResult<ICelestialBody>();
+
+            if (this.HolonType == HolonType.Star)
+            {
+                foreach (Planet planet in ((IStar)this).Planets)
+                {
+                    if (planet.Id == Guid.Empty)
+                    {
+                        result = await planet.Save();
+
+                        if (result.IsError)
+                        {
+                            //TODO: Not sure how to handle errors? Log yes but do we want to abort saving anymore?
+                            // Think will continue to save but return a collection of these results below.
+                        }
+                    }
+
+                    ((List<Holon>)this.Children).Add(planet);
+                }
+            }
+            else
+            {
+                OASISResult<IEnumerable<IHolon>> holonsResult = new OASISResult<IEnumerable<IHolon>>(); 
+
+                foreach (Zome zome in this.CelestialBodyCore.Zomes)
+                {
+                    if (zome.Id == Guid.Empty)
+                        holonsResult = await zome.Save(); //TODO: Be nice to add Save() methods to Zomes so they can save their child holon collections.
+
+                    if (holonsResult.IsError)
+                    {
+                        //TODO: handle here (same as above).
+                    }
+
+                    ((List<Holon>)this.Children).Add(zome);
+                }
+            }
+
+            OASISResult<IHolon> holonResult = await CelestialBodyCore.SaveCelestialBodyAsync(this);
+
+            if (holonResult.Result != null)
+            {
+                this.Id = holonResult.Result.Id;
+                this.ProviderKey = holonResult.Result.ProviderKey;
+                this.CelestialBodyCore.ProviderKey = holonResult.Result.ProviderKey;
+                this.CreatedByAvatar = holonResult.Result.CreatedByAvatar;
+                this.CreatedByAvatarId = holonResult.Result.CreatedByAvatarId;
+                this.CreatedDate = holonResult.Result.CreatedDate;
+                this.ModifiedByAvatar = holonResult.Result.ModifiedByAvatar;
+                this.ModifiedByAvatarId = holonResult.Result.ModifiedByAvatarId;
+                this.ModifiedDate = holonResult.Result.ModifiedDate;
+                this.Children = holonResult.Result.Children;
+            }
+
+            return new OASISResult<ICelestialBody>() { Result = this, ErrorMessage = holonResult.ErrorMessage, IsError = holonResult.IsError };
         }
 
         /*
@@ -297,75 +352,26 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
             CelestialBodyCore.LoadZomes();
         }
 
-        /*
-        public async void LoadHolons()
-        {
-            Holons = await CelestialBodyCore.LoadHolons();
-        }*/
-
-        /*
-        public async Task Initialize(string holochainConductorURI, HoloNETClientType type)
-        {
-            
-            switch (type)
-            {
-                case HoloNETClientType.Desktop:
-                    this.HoloNETClient = new Holochain.HoloNET.Client.Desktop.HoloNETClient(holochainConductorURI);
-                    break;
-
-                case HoloNETClientType.Unity:
-                    this.HoloNETClient = new Holochain.HoloNET.Client.Unity.HoloNETClient(holochainConductorURI);
-                    break;
-            }
-
-            await Initialize(this.HoloNETClient);
-        }
-        */
-
-        //TODO: What use case is the Guid Id used for when we have Provider Key?
-        //public async Task Initialize(Guid id, string holochainConductorURI, HoloNETClientType type)
-        //{
-        //   // this.Id = id;
-        //    await Initialize(holochainConductorURI, type);
-        //}
-
-        //public async Task Initialize(Guid id, HoloNETClientBase holoNETClient)
-        //{
-        //   // this.Id = id;
-        //    await Initialize(holoNETClient);
-        //}
-
-        //public async Task Initialize(HoloNETClientBase holoNETClient)
         public async Task Initialize()
         {
-            /*
-           // HoloNETClient = holoNETClient;
-            this.Zomes = new List<IZome>();
-           // this.Holons = new List<IHolon>();
-             */
-
             switch (this.GenesisType)
             {
                 case GenesisType.Planet:
-                    //CelestialBodyCore = new PlanetCore(holoNETClient);
-                    CelestialBodyCore = new PlanetCore((IPlanet)this);
+                    CelestialBodyCore = new PlanetCore(this.ProviderKey, (IPlanet)this);
                     break;
 
                 case GenesisType.Moon:
-                    //CelestialBodyCore = new MoonCore(holoNETClient);
-                    CelestialBodyCore = new MoonCore((IMoon)this);
+                    CelestialBodyCore = new MoonCore(this.ProviderKey, (IMoon)this);
                     break;
 
                 case GenesisType.Star:
-                    //CelestialBodyCore = new StarCore(holoNETClient);
-                    CelestialBodyCore = new StarCore((IStar)this);
+                    CelestialBodyCore = new StarCore(this.ProviderKey, (IStar)this);
                     break;
             }
            
-
-            if (ProviderKey.ContainsKey(ProviderManager.CurrentStorageProviderType.Value) && !string.IsNullOrEmpty(ProviderKey[ProviderManager.CurrentStorageProviderType.Value]))
+            if (ProviderKey != null && ProviderKey.ContainsKey(ProviderManager.CurrentStorageProviderType.Value) && !string.IsNullOrEmpty(ProviderKey[ProviderManager.CurrentStorageProviderType.Value]))
             {
-                CelestialBodyCore.ProviderKey = this.ProviderKey[ProviderManager.CurrentStorageProviderType.Value]; //_coreProviderKey = hc anchor.
+               // CelestialBodyCore.ProviderKey = this.ProviderKey[ProviderManager.CurrentStorageProviderType.Value]; //_coreProviderKey = hc anchor.
                 await LoadCelestialBody();
 
                 //TODO: Load the planets Zome collection here? Or is it passed in from the sub-class implementation? Probably 2nd one... ;-)

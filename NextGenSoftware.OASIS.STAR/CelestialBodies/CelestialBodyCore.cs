@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Events;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
@@ -21,7 +22,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
 
 
 
-        public string ProviderKey { get; set; } //Anchor address in hc.
+       // public string ProviderKey { get; set; } //Anchor address in hc.
 
         public delegate void HolonsLoaded(object sender, HolonsLoadedEventArgs e);
         //  public event HolonsLoaded OnHolonsLoaded;
@@ -58,13 +59,13 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
         //string ICelestialBodyCore.ProviderKey { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
         //List<IZome> ICelestialBodyCore.Zomes { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 
-        List<IHolon> ICelestialBodyCore.Holons => throw new NotImplementedException();
+      //  List<IHolon> ICelestialBodyCore.Holons => throw new NotImplementedException();
 
         //public string CoreZomeName { get; set; }
         //public string CoreHolonType { get; set; }
 
 
-        public CelestialBodyCore(string providerKey) : base()
+        public CelestialBodyCore(Dictionary<ProviderType, string> providerKey) : base()
         {
             this.ProviderKey = providerKey;
         }
@@ -154,23 +155,14 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
         // Maybe load list of holons too?
         public List<IZome> LoadZomes()
         {
-            if (string.IsNullOrEmpty(ProviderKey))
-                throw new ArgumentNullException("ProviderKey", "The ProviderKey must be set before this method can be called.");
-
             //TODO: Check to see if the method awaits till the zomes(holons) are loaded before returning (if it doesn't need to refacoring to subscribe to events like LoadHolons does)
-            // List<IZome> coreZomes = new List<IZome>();
 
             if (Zomes == null)
                 Zomes = new List<IZome>();
 
             foreach (IHolon holon in base.LoadHolonsAsync(ProviderKey).Result)
-            {
-                //TODO: Why we we need two versions of IZome? Can't remember why now?!
                 Zomes.Add((IZome)holon);
-                // coreZomes.Add((IZome)holon);
-            }
 
-            //OnZomesLoaded?.Invoke(this, new ZomesLoadedEventArgs { Zomes = coreZomes });
             OnZomesLoaded?.Invoke(this, new ZomesLoadedEventArgs { Zomes = Zomes });
 
             //TODO: Make this return a Task so is awaitable...
@@ -196,25 +188,22 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
 
         public async Task<IHolon> LoadCelestialBodyAsync()
         {
-            if (string.IsNullOrEmpty(ProviderKey))
-                throw new ArgumentNullException("ProviderKey", "The ProviderKey must be set before this method can be called.");
-
             return await base.LoadHolonAsync(ProviderKey);
         }
 
-        Task<IHolon> ICelestialBodyCore.LoadCelestialBodyAsync()
-        {
-            throw new NotImplementedException();
-        }
+        //Task<IHolon> ICelestialBodyCore.LoadCelestialBodyAsync()
+        //{
+        //    throw new NotImplementedException();
+        //}
 
-        List<IZome> ICelestialBodyCore.LoadZomes()
-        {
-            throw new NotImplementedException();
-        }
+        //List<IZome> ICelestialBodyCore.LoadZomes()
+        //{
+        //    throw new NotImplementedException();
+        //}
 
-        Task<OASISResult<IHolon>> ICelestialBodyCore.SaveCelestialBodyAsync(IHolon savingHolon)
-        {
-            throw new NotImplementedException();
-        }
+        //Task<OASISResult<IHolon>> ICelestialBodyCore.SaveCelestialBodyAsync(IHolon savingHolon)
+        //{
+        //    throw new NotImplementedException();
+        //}
     }
 }
