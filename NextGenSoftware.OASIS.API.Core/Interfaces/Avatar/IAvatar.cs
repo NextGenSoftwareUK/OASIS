@@ -26,7 +26,8 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces
         List<AvatarGift> Gifts { get; set; }
         //public List<Chakra> Chakras { get; set; }
         AvatarChakras Chakras { get; set; }
-        AvatarAura Aura { get; set; } 
+        AvatarAura Aura { get; set; }
+        AvatarStats Stats { get; set; }
         List<GeneKey> GeneKeys { get; set; } 
         HumanDesign HumanDesign { get; set; } 
         AvatarSkills Skills { get; set; } 

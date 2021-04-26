@@ -10,5 +10,7 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces
         int Strength { get; set; }
         int Toughness { get; set; }
         int Wisdom { get; set; }
+        int Vitality { get; set; }
+        int Endurance { get; set; }
     }
 }
