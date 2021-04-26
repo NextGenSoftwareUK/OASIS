@@ -214,6 +214,25 @@ namespace NextGenSoftware.OASIS.STAR
 
                 result.Result.Gifts.Add(new AvatarGift() { GiftType = KarmaTypePositive.BeASuperHero });
 
+                result.Result.Attributes.Dexterity = 99;
+                result.Result.Attributes.Endurance = 99;
+                result.Result.Attributes.Intelligence = 99;
+                result.Result.Attributes.Magic = 99;
+                result.Result.Attributes.Speed = 99;
+                result.Result.Attributes.Strength = 99;
+                result.Result.Attributes.Toughness = 99;
+                result.Result.Attributes.Vitality = 99;
+                result.Result.Attributes.Wisdom = 99;
+
+                result.Result.Stats.Energy.Current = 99;
+                result.Result.Stats.Energy.Max = 99;
+                result.Result.Stats.HP.Current = 99;
+                result.Result.Stats.HP.Max = 99;
+                result.Result.Stats.Mana.Current = 99;
+                result.Result.Stats.Mana.Max = 99;
+                result.Result.Stats.Staminia.Current = 99;
+                result.Result.Stats.Staminia.Max = 99;
+
                 result.Result.SuperPowers.AstralProjection = 99;
                 result.Result.SuperPowers.BioLocatation = 88;
                 result.Result.SuperPowers.Flight = 99;

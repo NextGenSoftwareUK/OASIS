@@ -33,8 +33,8 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
         //TODO: Think best to encrypt these?
         public Dictionary<ProviderType, string> ProviderPrivateKey { get; set; } = new Dictionary<ProviderType, string>();  //Unique private key used by each provider (part of private/public key pair).
         public Dictionary<ProviderType, string> ProviderPublicKey { get; set; } = new Dictionary<ProviderType, string>();  
-        public Dictionary<ProviderType, string> ProviderUsername { get; set; } = new Dictionary<ProviderType, string>();  
-        public Dictionary<ProviderType, string> ProviderId { get; set; } = new Dictionary<ProviderType, string>(); 
+        public Dictionary<ProviderType, string> ProviderUsername { get; set; } = new Dictionary<ProviderType, string>();  // This is only really needed when we need to store BOTH a id and username for a provider (ProviderKey on Holon already stores either id/username etc).
+       // public Dictionary<ProviderType, string> ProviderId { get; set; } = new Dictionary<ProviderType, string>(); // The ProviderKey property on the base Holon object can store ids, usernames, etc that uniqueliy identity that holon in the provider (although the Guid is globally unique we still need to map the Holons the unique id/username/etc for each provider).
         public Dictionary<ProviderType, string> ProviderWalletAddress { get; set; } = new Dictionary<ProviderType, string>();  
         public string Username { get; set; } 
         public string Password { get; set; }
@@ -65,6 +65,7 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
         //public List<Chakra> Chakras { get; set; }
         public AvatarChakras Chakras { get; set; } = new AvatarChakras();
         public AvatarAura Aura { get; set; } = new AvatarAura();
+        public AvatarStats Stats { get; set; } = new AvatarStats();
         public List<GeneKey> GeneKeys { get; set; } = new List<GeneKey>();
         public HumanDesign HumanDesign { get; set; } = new HumanDesign();
         public AvatarSkills Skills { get; set; } = new AvatarSkills();

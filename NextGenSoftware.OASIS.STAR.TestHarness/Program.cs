@@ -161,6 +161,15 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
             Console.WriteLine(string.Concat("Magic: ", SuperStar.LoggedInUser.Attributes.Magic));
             Console.WriteLine(string.Concat("Wisdom: ", SuperStar.LoggedInUser.Attributes.Wisdom));
             Console.WriteLine(string.Concat("Toughness: ", SuperStar.LoggedInUser.Attributes.Toughness));
+            Console.WriteLine(string.Concat("Vitality: ", SuperStar.LoggedInUser.Attributes.Vitality));
+            Console.WriteLine(string.Concat("Endurance: ", SuperStar.LoggedInUser.Attributes.Endurance));
+
+            Console.WriteLine("");
+            Console.WriteLine("Stats:");
+            Console.WriteLine(string.Concat("HP: ", SuperStar.LoggedInUser.Stats.HP.Current, "/", SuperStar.LoggedInUser.Stats.HP.Max));
+            Console.WriteLine(string.Concat("Mana: ", SuperStar.LoggedInUser.Stats.Mana.Current, "/", SuperStar.LoggedInUser.Stats.Mana.Max));
+            Console.WriteLine(string.Concat("Energy: ", SuperStar.LoggedInUser.Stats.Energy.Current, "/", SuperStar.LoggedInUser.Stats.Energy.Max));
+            Console.WriteLine(string.Concat("Staminia: ", SuperStar.LoggedInUser.Stats.Staminia.Current, "/", SuperStar.LoggedInUser.Stats.Staminia.Max));
 
             Console.WriteLine("");
             Console.WriteLine("Super Powers:");

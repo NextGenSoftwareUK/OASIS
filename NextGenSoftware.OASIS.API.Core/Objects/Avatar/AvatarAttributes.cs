@@ -12,5 +12,7 @@ namespace NextGenSoftware.OASIS.API.Core.Objects
         public int Wisdom { get; set; }
         public int Intelligence { get; set; }
         public int Magic { get; set; }
+        public int Vitality { get; set; }
+        public int Endurance { get; set; }
     }
 }
