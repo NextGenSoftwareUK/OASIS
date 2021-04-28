@@ -98,7 +98,6 @@ namespace NextGenSoftware.OASIS.API.DNA.Manager
                             HoloOASIS holoOASIS = new HoloOASIS(customConnectionString == null ? OASISDNA.OASIS.StorageProviders.HoloOASIS.ConnectionString : customConnectionString, OASISDNA.OASIS.StorageProviders.HoloOASIS.HolochainVersion);
                             holoOASIS.OnHoloOASISError += HoloOASIS_OnHoloOASISError;
                             holoOASIS.StorageProviderError += HoloOASIS_StorageProviderError;
-                            ProviderManager.RegisterProvider(holoOASIS);
                             registeredProvider = holoOASIS;
                         }
                         break;
@@ -107,7 +106,6 @@ namespace NextGenSoftware.OASIS.API.DNA.Manager
                         {
                             SQLLiteDBOASIS SQLLiteDBOASIS = new SQLLiteDBOASIS(customConnectionString == null ? OASISDNA.OASIS.StorageProviders.SQLLiteDBOASIS.ConnectionString : customConnectionString);
                             SQLLiteDBOASIS.StorageProviderError += SQLLiteDBOASIS_StorageProviderError;
-                            ProviderManager.RegisterProvider(SQLLiteDBOASIS);
                             registeredProvider = SQLLiteDBOASIS;
                         }
                         break;
@@ -116,7 +114,6 @@ namespace NextGenSoftware.OASIS.API.DNA.Manager
                         {
                             MongoDBOASIS mongoOASIS = new MongoDBOASIS(customConnectionString == null ? OASISDNA.OASIS.StorageProviders.MongoDBOASIS.ConnectionString : customConnectionString, OASISDNA.OASIS.StorageProviders.MongoDBOASIS.DBName);
                             mongoOASIS.StorageProviderError += MongoOASIS_StorageProviderError;
-                            ProviderManager.RegisterProvider(mongoOASIS);
                             registeredProvider = mongoOASIS;
                         }
                         break;
@@ -125,7 +122,6 @@ namespace NextGenSoftware.OASIS.API.DNA.Manager
                         {
                             EOSIOOASIS EOSIOOASIS = new EOSIOOASIS(customConnectionString == null ? OASISDNA.OASIS.StorageProviders.EOSIOOASIS.ConnectionString : customConnectionString);
                             EOSIOOASIS.StorageProviderError += EOSIOOASIS_StorageProviderError;
-                            ProviderManager.RegisterProvider(EOSIOOASIS); 
                             registeredProvider = EOSIOOASIS;
                         }
                         break;
@@ -134,7 +130,6 @@ namespace NextGenSoftware.OASIS.API.DNA.Manager
                         {
                             TelosOASIS TelosOASIS = new TelosOASIS(customConnectionString == null ? OASISDNA.OASIS.StorageProviders.TelosOASIS.ConnectionString: customConnectionString);
                             TelosOASIS.StorageProviderError += TelosOASIS_StorageProviderError;
-                            ProviderManager.RegisterProvider(TelosOASIS);
                             registeredProvider = TelosOASIS;
                         }
                         break;
@@ -151,7 +146,6 @@ namespace NextGenSoftware.OASIS.API.DNA.Manager
                         {
                             Neo4jOASIS Neo4jOASIS = new Neo4jOASIS(customConnectionString == null ? OASISDNA.OASIS.StorageProviders.Neo4jOASIS.ConnectionString : customConnectionString, OASISDNA.OASIS.StorageProviders.Neo4jOASIS.Username, OASISDNA.OASIS.StorageProviders.Neo4jOASIS.Password);
                             Neo4jOASIS.StorageProviderError += Neo4jOASIS_StorageProviderError;
-                            ProviderManager.RegisterProvider(Neo4jOASIS); 
                             registeredProvider = Neo4jOASIS;
                         }
                         break;
@@ -160,11 +154,13 @@ namespace NextGenSoftware.OASIS.API.DNA.Manager
                         {
                             IPFSOASIS IPFSOASIS = new IPFSOASIS(customConnectionString == null ? OASISDNA.OASIS.StorageProviders.IPFSOASIS.ConnectionString : customConnectionString);
                             IPFSOASIS.StorageProviderError += IPFSOASIS_StorageProviderError;
-                            ProviderManager.RegisterProvider(IPFSOASIS); 
                             registeredProvider = IPFSOASIS;
                         }
                         break;
                 }
+
+                if (registeredProvider != null)
+                    ProviderManager.RegisterProvider(registeredProvider);;
             }
             else
                 registeredProvider = (IOASISStorage)ProviderManager.GetProvider(providerType);

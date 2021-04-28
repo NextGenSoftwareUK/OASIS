@@ -179,13 +179,15 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.STAR.
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.Manager.Standard", "NextGenSoftware.OASIS.API.Manager.Standard\NextGenSoftware.OASIS.API.Manager.Standard.csproj", "{2EEA5ECD-FABE-4E9E-BCDA-CD92D1976BA5}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.STAR.Templates.Blazor5", "NextGenSoftware.OASIS.STAR.Templates.Blazor5\NextGenSoftware.OASIS.STAR.Templates.Blazor5.csproj", "{C20F6AD7-747A-434E-AAFB-EF0116E64889}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.STAR.Templates.Blazor5", "NextGenSoftware.OASIS.STAR.Templates.Blazor5\NextGenSoftware.OASIS.STAR.Templates.Blazor5.csproj", "{C20F6AD7-747A-434E-AAFB-EF0116E64889}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.STAR.Templates.Blazor6.Server", "NextGenSoftware.OASIS.STAR.Templates.Blazor6\Server\NextGenSoftware.OASIS.STAR.Templates.Blazor6.Server.csproj", "{81306844-1268-4F61-88AB-81D546B238C0}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.STAR.Templates.Blazor6.Server", "NextGenSoftware.OASIS.STAR.Templates.Blazor6\Server\NextGenSoftware.OASIS.STAR.Templates.Blazor6.Server.csproj", "{81306844-1268-4F61-88AB-81D546B238C0}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.STAR.Templates.Blazor6.Client", "NextGenSoftware.OASIS.STAR.Templates.Blazor6\Client\NextGenSoftware.OASIS.STAR.Templates.Blazor6.Client.csproj", "{980789D2-70EF-4AFE-97B8-D3FFAD75C738}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.STAR.Templates.Blazor6.Client", "NextGenSoftware.OASIS.STAR.Templates.Blazor6\Client\NextGenSoftware.OASIS.STAR.Templates.Blazor6.Client.csproj", "{980789D2-70EF-4AFE-97B8-D3FFAD75C738}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.STAR.Templates.Blazor6.Shared", "NextGenSoftware.OASIS.STAR.Templates.Blazor6\Shared\NextGenSoftware.OASIS.STAR.Templates.Blazor6.Shared.csproj", "{EC03B385-20D9-4219-921A-244E068915EC}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.STAR.Templates.Blazor6.Shared", "NextGenSoftware.OASIS.STAR.Templates.Blazor6\Shared\NextGenSoftware.OASIS.STAR.Templates.Blazor6.Shared.csproj", "{EC03B385-20D9-4219-921A-244E068915EC}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Spectre.Console", "Spectre.Console\Spectre.Console\Spectre.Console.csproj", "{C784D458-E0EE-4194-98A6-87517ACA68B0}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -1494,6 +1496,24 @@ Global
 		{EC03B385-20D9-4219-921A-244E068915EC}.Release|x64.Build.0 = Release|Any CPU
 		{EC03B385-20D9-4219-921A-244E068915EC}.Release|x86.ActiveCfg = Release|Any CPU
 		{EC03B385-20D9-4219-921A-244E068915EC}.Release|x86.Build.0 = Release|Any CPU
+		{C784D458-E0EE-4194-98A6-87517ACA68B0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C784D458-E0EE-4194-98A6-87517ACA68B0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C784D458-E0EE-4194-98A6-87517ACA68B0}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{C784D458-E0EE-4194-98A6-87517ACA68B0}.Debug|x64.Build.0 = Debug|Any CPU
+		{C784D458-E0EE-4194-98A6-87517ACA68B0}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{C784D458-E0EE-4194-98A6-87517ACA68B0}.Debug|x86.Build.0 = Debug|Any CPU
+		{C784D458-E0EE-4194-98A6-87517ACA68B0}.Linux|Any CPU.ActiveCfg = Debug|Any CPU
+		{C784D458-E0EE-4194-98A6-87517ACA68B0}.Linux|Any CPU.Build.0 = Debug|Any CPU
+		{C784D458-E0EE-4194-98A6-87517ACA68B0}.Linux|x64.ActiveCfg = Debug|Any CPU
+		{C784D458-E0EE-4194-98A6-87517ACA68B0}.Linux|x64.Build.0 = Debug|Any CPU
+		{C784D458-E0EE-4194-98A6-87517ACA68B0}.Linux|x86.ActiveCfg = Debug|Any CPU
+		{C784D458-E0EE-4194-98A6-87517ACA68B0}.Linux|x86.Build.0 = Debug|Any CPU
+		{C784D458-E0EE-4194-98A6-87517ACA68B0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C784D458-E0EE-4194-98A6-87517ACA68B0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C784D458-E0EE-4194-98A6-87517ACA68B0}.Release|x64.ActiveCfg = Release|Any CPU
+		{C784D458-E0EE-4194-98A6-87517ACA68B0}.Release|x64.Build.0 = Release|Any CPU
+		{C784D458-E0EE-4194-98A6-87517ACA68B0}.Release|x86.ActiveCfg = Release|Any CPU
+		{C784D458-E0EE-4194-98A6-87517ACA68B0}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

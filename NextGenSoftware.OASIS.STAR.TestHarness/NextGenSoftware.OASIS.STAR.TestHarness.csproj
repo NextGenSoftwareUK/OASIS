@@ -16,6 +16,28 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Remove="Lib\Spectre.Console.deps.json" />
+    <None Remove="Lib\Spectre.Console.xml" />
+    <None Remove="Spectre.Console.deps.json" />
+    <None Remove="Spectre.Console.xml" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="Lib\Spectre.Console.deps.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Lib\Spectre.Console.xml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Spectre.Console.deps.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Spectre.Console.xml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
     <Folder Include="Genesis - Copy\CSharp\" />
     <Folder Include="Genesis\CSharp\" />
     <Folder Include="Genesis\Rust\" />

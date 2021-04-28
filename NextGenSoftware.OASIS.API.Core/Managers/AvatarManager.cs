@@ -15,6 +15,7 @@ using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.Core.Security;
 using NextGenSoftware.OASIS.API.DNA;
+using NextGenSoftware.OASIS.API.Core.Holons;
 
 namespace NextGenSoftware.OASIS.API.Core.Managers
 {
@@ -121,6 +122,111 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return result;
         }
 
+        public async Task<OASISResult<IAvatar>> AuthenticateAsync(string username, string password, string ipAddress)
+        {
+            OASISResult<IAvatar> result = new OASISResult<IAvatar>();
+            result.Result = await LoadAvatarAsync(username);
+
+            if (result.Result == null)
+            {
+                result.IsError = true;
+                result.ErrorMessage = "This avatar does not exist. Please contact support or create a new avatar.";
+            }
+            else
+            {
+                if (result.Result.DeletedDate != DateTime.MinValue)
+                {
+                    result.IsError = true;
+                    result.ErrorMessage = "This avatar has been deleted. Please contact support or create a new avatar.";
+                }
+
+                // TODO: Implement Activate/Deactivate methods in AvatarManager & Providers...
+                if (!result.Result.IsActive)
+                {
+                    result.IsError = true;
+                    result.ErrorMessage = "This avatar is no longer active. Please contact support or create a new avatar.";
+                }
+
+                if (!result.Result.IsVerified)
+                {
+                    result.IsError = true;
+                    result.ErrorMessage = "Avatar has not been verified. Please check your email.";
+                }
+
+                if (!BC.Verify(password, result.Result.Password))
+                {
+                    result.IsError = true;
+                    result.ErrorMessage = "Email or password is incorrect";
+                }
+            }
+
+            //TODO: Come back to this.
+            //if (OASISDNA.OASIS.Security.AvatarPassword.)
+
+            if (result.Result != null & !result.IsError)
+            {
+                var jwtToken = generateJwtToken(result.Result);
+                var refreshToken = generateRefreshToken(ipAddress);
+
+                result.Result.RefreshTokens.Add(refreshToken);
+                result.Result.JwtToken = jwtToken;
+                result.Result.RefreshToken = refreshToken.Token;
+
+                LoggedInAvatar = result.Result;
+
+                result.Result = RemoveAuthDetails(SaveAvatar(result.Result));
+            }
+
+            return result;
+        }
+
+        public OASISResult<IAvatar> Register(string avatarTitle, string firstName, string lastName, string email, string password, AvatarType avatarType, string origin)
+        {
+            OASISResult<IAvatar> result = new OASISResult<IAvatar>();
+            IEnumerable<IAvatar> avatars = LoadAllAvatars();
+
+            //TODO: {PERFORMANCE} Add this method to the providers so more efficient.
+            //if (_context.Accounts.Any(x => x.Email == model.Email))
+            if (avatars.Any(x => x.Email == email))
+            //if (AvatarManager.LoadAvatar(model.Email) == null)
+            {
+                // send already registered error in email to prevent account enumeration
+                sendAlreadyRegisteredEmail(email, origin);
+                result.IsError = true;
+                result.ErrorMessage = "Avatar Already Registered.";
+            }
+
+            IAvatar avatar = new Avatar() { FirstName = firstName, LastName = lastName, Password = password, Title = avatarTitle, Email = email, AvatarType = new EnumValue<AvatarType>(avatarType) };
+
+
+            // first registered account is an admin
+            //var isFirstAccount = _context.Accounts.Count() == 0;
+
+            //TODO: PERFORMANCE} Implement in Providers so more efficient and do not need to return whole list!
+
+            //TODO: Not sure if this is a good idea or not? Currently you can register as a wizard (admin) or normal user.
+            // The normal register screen will create user types but if logged in as a wizard, then they can create other wizards.
+            //var isFirstAccount = avatars.Count() == 0;
+            //avatar.AvatarType = isFirstAccount ? AvatarType.Wizard : AvatarType.User;
+
+            avatar.CreatedDate = DateTime.UtcNow;
+            avatar.VerificationToken = randomTokenString();
+
+            // hash password
+            avatar.Password = BC.HashPassword(password);
+
+            // save account
+            //  _context.Accounts.Add(account);
+            // _context.SaveChanges();
+            //AvatarManager.SaveAvatarAsync(avatar);
+
+            //TODO: Get async version working ASAP! :)
+            avatar = SaveAvatar(avatar);
+            sendVerificationEmail(avatar, origin);
+            result.Result = RemoveAuthDetails(avatar);
+
+            return result;
+        }
         public IEnumerable<IAvatar> LoadAllAvatarsWithPasswords(ProviderType provider = ProviderType.Default)
         {
             IEnumerable<IAvatar> avatars = ProviderManager.SetAndActivateCurrentStorageProvider(provider).LoadAllAvatars();
@@ -147,9 +253,9 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return avatars;
         }
 
-        public async Task<IAvatar> LoadAvatarAsync(string providerKey, ProviderType provider = ProviderType.Default)
+        public async Task<IAvatar> LoadAvatarAsync(string username, ProviderType provider = ProviderType.Default)
         {
-            IAvatar avatar = ProviderManager.SetAndActivateCurrentStorageProvider(provider).LoadAvatarAsync(providerKey).Result;
+            IAvatar avatar = await ProviderManager.SetAndActivateCurrentStorageProvider(provider).LoadAvatarAsync(username);
             // avatar.Password = null;
             return avatar;
         }
@@ -682,6 +788,57 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             //avatar.RefreshTokens = null;
 
             return avatar;
+        }
+
+        private void sendAlreadyRegisteredEmail(string email, string origin)
+        {
+            // if (string.IsNullOrEmpty(origin))
+            //     origin = Program.CURRENT_OASISAPI; //TODO: Come back to this....
+
+            string message;
+            if (!string.IsNullOrEmpty(origin))
+                message = $@"<p>If you don't know your password please visit the <a href=""{origin}/avatar/forgot-password"">forgot password</a> page.</p>";
+            else
+                message = "<p>If you don't know your password you can reset it via the <code>/avatar/forgot-password</code> api route.</p>";
+
+             EmailManager.Send(
+                to: email,
+                subject: "OASIS Sign-up Verification - Email Already Registered",
+                html: $@"<h4>Email Already Registered</h4>
+                         <p>Your email <strong>{email}</strong> is already registered.</p>
+                         {message}"
+            );
+        }
+
+        private void sendVerificationEmail(IAvatar avatar, string origin)
+        {
+            string message;
+
+          //  if (string.IsNullOrEmpty(origin))
+          //      origin = Program.CURRENT_OASISAPI; //TODO: Come back to this....
+
+            if (!string.IsNullOrEmpty(origin))
+            {
+                var verifyUrl = $"{origin}/avatar/verify-email?token={avatar.VerificationToken}";
+                message = $@"<p>Please click the below link to verify your email address:</p>
+                             <p><a href=""{verifyUrl}"">{verifyUrl}</a></p>";
+            }
+            else
+            {
+                message = $@"<p>Please use the below token to verify your email address with the <code>/avatar/verify-email</code> api route:</p>
+                             <p><code>{avatar.VerificationToken}</code></p>";
+            }
+
+            EmailManager.Send(
+                to: avatar.Email,
+                subject: "OASIS Sign-up Verification - Verify Email",
+                //html: $@"<h4>Verify Email</h4>
+                html: $@"<h4>Verify Email</h4>
+                         <p>Thanks for registering!</p>
+                         <p>Welcome to the OASIS!</p>
+                         <p>Ready Player One?</p>
+                         {message}"
+            );
         }
     }
 }
