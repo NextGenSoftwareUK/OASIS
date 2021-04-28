@@ -1,22 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Driver;
-
 using NextGenSoftware.OASIS.API.Core;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Objects;
-using NextGenSoftware.OASIS.API.Core.Holons;
 
 namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
 {
     public class MongoDBOASIS : OASISStorageBase, IOASISStorage, IOASISNET, IOASISSuperStar
     {
-        //MongoDbContext db = new MongoDbContext();
         public MongoDbContext Database { get; set; }
         private AvatarRepository _avatarRepository = null;
         private HolonRepository _holonRepository = null;
@@ -232,8 +228,8 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
            // oasisAvatar.Name = avatar.Name;
             oasisAvatar.Description = avatar.Description;
             oasisAvatar.HolonType = avatar.HolonType;
-            oasisAvatar.ProviderType = new Core.Helpers.EnumValue<ProviderType>(avatar.ProviderType);
-            oasisAvatar.CelestialBody = avatar.CelestialBody;
+            oasisAvatar.CreatedProviderType = new Core.Helpers.EnumValue<ProviderType>(avatar.CreatedProviderType);
+            oasisAvatar.ParentCelestialBody = avatar.ParentCelestialBody;
             oasisAvatar.Nodes = avatar.Nodes;
             oasisAvatar.Parent = avatar.Parent;
             oasisAvatar.ParentZome = avatar.ParentZome;
@@ -280,7 +276,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             oasisAvatar.ResetTokenExpires = avatar.ResetTokenExpires;
             oasisAvatar.VerificationToken = avatar.VerificationToken;
             oasisAvatar.Verified = avatar.Verified;
-            oasisAvatar.ProviderType = new Core.Helpers.EnumValue<ProviderType>(Core.Enums.ProviderType.MongoDBOASIS);
+            oasisAvatar.CreatedProviderType = new Core.Helpers.EnumValue<ProviderType>(Core.Enums.ProviderType.MongoDBOASIS);
             oasisAvatar.IsActive = avatar.IsActive;
 
           //  oasisAvatar.SetKarmaForDataObject(avatar.Karma);
@@ -308,10 +304,10 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             //if (avatar.ProviderKey.ContainsKey(Core.Enums.ProviderType.MongoDBOASIS))
             //    mongoAvatar.ProviderKey[Core.Enums.ProviderType.MongoDBOASIS] = avatar.Id;
 
-            if (avatar.ProviderType != null)
-                mongoAvatar.ProviderType = avatar.ProviderType.Value;
+            if (avatar.CreatedProviderType != null)
+                mongoAvatar.CreatedProviderType = avatar.CreatedProviderType.Value;
             
-            mongoAvatar.CelestialBody = avatar.CelestialBody;
+            mongoAvatar.ParentCelestialBody = avatar.ParentCelestialBody;
             mongoAvatar.Nodes = avatar.Nodes;
             mongoAvatar.Parent = avatar.Parent;
             mongoAvatar.ParentZome = avatar.ParentZome;
@@ -381,8 +377,8 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             oasisHolon.Name = holon.Name;
             oasisHolon.Description = holon.Description;
             oasisHolon.HolonType = holon.HolonType;
-            oasisHolon.ProviderType = new Core.Helpers.EnumValue<ProviderType>(holon.ProviderType);
-            oasisHolon.CelestialBody = holon.CelestialBody;
+            oasisHolon.CreatedProviderType = new Core.Helpers.EnumValue<ProviderType>(holon.CreatedProviderType);
+            oasisHolon.ParentCelestialBody = holon.ParentCelestialBody;
             oasisHolon.Children = holon.Children;
             oasisHolon.Nodes = holon.Nodes;
             oasisHolon.Parent = holon.Parent;
@@ -399,7 +395,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             oasisHolon.ModifiedDate = holon.ModifiedDate;
             oasisHolon.DeletedDate = holon.DeletedDate;
             oasisHolon.Version = holon.Version;
-            oasisHolon.ProviderType.Value = Core.Enums.ProviderType.MongoDBOASIS;
+            oasisHolon.CreatedProviderType.Value = Core.Enums.ProviderType.MongoDBOASIS;
             oasisHolon.IsActive = holon.IsActive;
 
             return oasisHolon;
@@ -421,14 +417,14 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             //   mongoHolon.ProviderKey = holon.ProviderKey[Core.Enums.ProviderType.MongoDBOASIS];
             mongoHolon.ProviderKey = holon.ProviderKey;
 
-            if (holon.ProviderType != null)
-                mongoHolon.ProviderType = holon.ProviderType.Value;
+            if (holon.CreatedProviderType != null)
+                mongoHolon.CreatedProviderType = holon.CreatedProviderType.Value;
 
             ICelestialBody celestialBody = (ICelestialBody)holon;
 
             //celestialBody.CelestialBodyCore
 
-            mongoHolon.CelestialBody = holon.CelestialBody;
+            mongoHolon.ParentCelestialBody = holon.ParentCelestialBody;
             mongoHolon.Children = holon.Children;
             // mongoHolon.CelestialBodyCore = holon.CelestialBodyCore;
 

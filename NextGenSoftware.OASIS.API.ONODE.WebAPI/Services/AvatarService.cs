@@ -142,6 +142,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
 
         public IAvatar Register(RegisterRequest model, string origin)
         {
+            return AvatarManager.Register(model.Title, model.FirstName, model.LastName, model.Email, model.Password, (AvatarType)Enum.Parse(typeof(AvatarType), model.AvatarType), origin).Result;
+
+            /*
             IEnumerable<IAvatar> avatars = AvatarManager.LoadAllAvatars();
 
             //TODO: {PERFORMANCE} Add this method to the providers so more efficient.
@@ -185,6 +188,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
             sendVerificationEmail(avatar, origin);
 
             return RemoveAuthDetails(avatar);
+            */
         }
 
         public void VerifyEmail(string token)
@@ -428,56 +432,56 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
             return BitConverter.ToString(randomBytes).Replace("-", "");
         }
 
-        private void sendVerificationEmail(IAvatar avatar, string origin)
-        {
-            string message;
+        //private void sendVerificationEmail(IAvatar avatar, string origin)
+        //{
+        //    string message;
 
-            if (string.IsNullOrEmpty(origin))
-                origin = Program.CURRENT_OASISAPI;
+        //    if (string.IsNullOrEmpty(origin))
+        //        origin = Program.CURRENT_OASISAPI;
 
-            if (!string.IsNullOrEmpty(origin))
-            {
-                var verifyUrl = $"{origin}/avatar/verify-email?token={avatar.VerificationToken}";
-                message = $@"<p>Please click the below link to verify your email address:</p>
-                             <p><a href=""{verifyUrl}"">{verifyUrl}</a></p>";
-            }
-            else
-            {
-                message = $@"<p>Please use the below token to verify your email address with the <code>/avatar/verify-email</code> api route:</p>
-                             <p><code>{avatar.VerificationToken}</code></p>";
-            }
+        //    if (!string.IsNullOrEmpty(origin))
+        //    {
+        //        var verifyUrl = $"{origin}/avatar/verify-email?token={avatar.VerificationToken}";
+        //        message = $@"<p>Please click the below link to verify your email address:</p>
+        //                     <p><a href=""{verifyUrl}"">{verifyUrl}</a></p>";
+        //    }
+        //    else
+        //    {
+        //        message = $@"<p>Please use the below token to verify your email address with the <code>/avatar/verify-email</code> api route:</p>
+        //                     <p><code>{avatar.VerificationToken}</code></p>";
+        //    }
 
-            _emailService.Send(
-                to: avatar.Email,
-                subject: "OASIS Sign-up Verification - Verify Email",
-                //html: $@"<h4>Verify Email</h4>
-                html: $@"<h4>Verify Email</h4>
-                         <p>Thanks for registering!</p>
-                         <p>Welcome to the OASIS!</p>
-                         <p>Ready Player One?</p>
-                         {message}"
-            );
-        }
+        //    _emailService.Send(
+        //        to: avatar.Email,
+        //        subject: "OASIS Sign-up Verification - Verify Email",
+        //        //html: $@"<h4>Verify Email</h4>
+        //        html: $@"<h4>Verify Email</h4>
+        //                 <p>Thanks for registering!</p>
+        //                 <p>Welcome to the OASIS!</p>
+        //                 <p>Ready Player One?</p>
+        //                 {message}"
+        //    );
+        //}
 
-        private void sendAlreadyRegisteredEmail(string email, string origin)
-        {
-            if (string.IsNullOrEmpty(origin))
-                origin = Program.CURRENT_OASISAPI;
+        //private void sendAlreadyRegisteredEmail(string email, string origin)
+        //{
+        //    if (string.IsNullOrEmpty(origin))
+        //        origin = Program.CURRENT_OASISAPI;
 
-            string message;
-            if (!string.IsNullOrEmpty(origin))
-                message = $@"<p>If you don't know your password please visit the <a href=""{origin}/avatar/forgot-password"">forgot password</a> page.</p>";
-            else
-                message = "<p>If you don't know your password you can reset it via the <code>/avatar/forgot-password</code> api route.</p>";
+        //    string message;
+        //    if (!string.IsNullOrEmpty(origin))
+        //        message = $@"<p>If you don't know your password please visit the <a href=""{origin}/avatar/forgot-password"">forgot password</a> page.</p>";
+        //    else
+        //        message = "<p>If you don't know your password you can reset it via the <code>/avatar/forgot-password</code> api route.</p>";
 
-            _emailService.Send(
-                to: email,
-                subject: "OASIS Sign-up Verification - Email Already Registered",
-                html: $@"<h4>Email Already Registered</h4>
-                         <p>Your email <strong>{email}</strong> is already registered.</p>
-                         {message}"
-            );
-        }
+        //    _emailService.Send(
+        //        to: email,
+        //        subject: "OASIS Sign-up Verification - Email Already Registered",
+        //        html: $@"<h4>Email Already Registered</h4>
+        //                 <p>Your email <strong>{email}</strong> is already registered.</p>
+        //                 {message}"
+        //    );
+        //}
 
         private void sendPasswordResetEmail(IAvatar avatar, string origin)
         {

@@ -171,13 +171,20 @@ namespace NextGenSoftware.OASIS.STAR
             if (!IsInitialized)
                 Initialize();
 
-            //TODO: Implement Async version of Authenticate.
-            OASISResult<IAvatar> result = OASISAPI.Avatar.Authenticate(username, password, IPAddress);
+            OASISResult<IAvatar> result = await OASISAPI.Avatar.AuthenticateAsync(username, password, IPAddress);
 
             if (!result.IsError)
                 LoggedInUser = (Avatar)result.Result;
 
             return result;
+        }
+
+        public static OASISResult<IAvatar> CreateAvatar(string title, string firstName, string lastName, string username, string password)
+        {
+            if (!IsInitialized)
+                Initialize();
+
+            return OASISAPI.Avatar.Register(title, firstName, lastName, username, password, AvatarType.User, "http://oasisplatform.world/api");
         }
 
         public static OASISResult<IAvatar> BeamIn(string username, string password)

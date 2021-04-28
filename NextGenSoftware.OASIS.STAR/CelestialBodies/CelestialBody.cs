@@ -419,7 +419,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
                 //Just in case the zomes/holons have been added since the planet was last saved.
                 foreach (Zome zome in CelestialBodyCore.Zomes)
                 {
-                    zome.CelestialBody = this;
+                    zome.ParentCelestialBody = this;
                     zome.Parent = this;
 
                     // TODO: Need to sort this.Holons collection too (this is a list of ALL holons that belong to ALL zomes for this planet.
@@ -427,7 +427,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
                     foreach (Holon holon in zome.Holons)
                     {
                         holon.Parent = zome;
-                        holon.CelestialBody = this;
+                        holon.ParentCelestialBody = this;
                     }
 
                     await zome.SaveHolonsAsync(zome.Holons);
@@ -498,7 +498,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
                     // {
                     zome.ProviderKey = e.Holon.ProviderKey;
                     zome.Parent = e.Holon;
-                    zome.CelestialBody = this;
+                    zome.ParentCelestialBody = this;
 
                     foreach (Holon holon in GetHolonsThatBelongToZome(zome))
                         zome.SaveHolonAsync(holon);
@@ -515,7 +515,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
                 {
                     holon.ProviderKey = e.Holon.ProviderKey;
                     //holon.Parent = e.Holon;
-                    holon.CelestialBody = this;
+                    holon.ParentCelestialBody = this;
                 }
             }
 
