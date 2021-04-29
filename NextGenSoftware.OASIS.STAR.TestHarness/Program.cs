@@ -1,5 +1,8 @@
 ﻿using System;
 using System.Linq;
+using System.Drawing;
+using System.Drawing.Imaging;
+using System.Threading;
 using System.Reflection;
 using System.Threading.Tasks;
 using System.Collections.Generic;
@@ -16,6 +19,8 @@ using NextGenSoftware.OASIS.STAR.ErrorEventArgs;
 using NextGenSoftware.OASIS.STAR.CelestialBodies;
 using NextGenSoftware.OASIS.API.Providers.SEEDSOASIS.Membranes;
 using NextGenSoftware.OASIS.STAR.Zomes;
+using Colorful;
+using Console = System.Console;
 //using Spectre.Console;
 
 namespace NextGenSoftware.OASIS.STAR.TestHarness
@@ -36,9 +41,19 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
                                            .ToString();
 
                 Console.ForegroundColor = ConsoleColor.Green;
-                Console.WriteLine($"********************************************************************");
-                Console.WriteLine($"NextGen Software STAR (Synergiser Transformer Aggregator Resolver) HDK/ODK TEST HARNESS v{versionString}");
-                Console.WriteLine($"********************************************************************");
+                Console.WriteLine("************************************************************************************************");
+                Console.WriteLine("NextGen Software STAR (Synergiser Transformer Aggregator Resolver) HDK/ODK TEST HARNESS v{versionString}");
+                Console.WriteLine("************************************************************************************************");
+                Console.WriteLine("");
+                Console.WriteLine("       ,O,");
+                Console.WriteLine("      ,OOO,");
+                Console.WriteLine("'oooooOOOOOooooo'");
+                Console.WriteLine("  `OOOOOOOOOOO`");
+                Console.WriteLine("    `OOOOOOO`");
+                Console.WriteLine("    OOOO'OOOO");
+                Console.WriteLine("   OOO'   'OOO");
+                Console.WriteLine("  O'         'O");
+                Console.WriteLine("");
                 Console.WriteLine("\nUsage:");
                 Console.WriteLine("  star beamin = Log in");
                 Console.WriteLine("  star beamout = Log out");
@@ -58,24 +73,64 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
                 Console.WriteLine("  star love -planetName = Send/Receive Love.");
                 Console.WriteLine("  star burst = View network stats/management/settings.");
                 Console.WriteLine("  star super - Reserved For Future Use...");
-                Console.WriteLine($"********************************************************************");
+                Console.WriteLine("************************************************************************************************");
 
-                /*
-                var tree = new Tree("src");
-                tree.AddNode("foo").AddNode("bar.cs");
-                tree.AddNode("baz").AddNode("qux").AddNode("corgi.txt");
-                tree.AddNode("waldo.xml");
+                //  _ | | _ __ _ _ __ ___
+                /// __ | __ / _` | '__/ __|
+                //\__ \ || (_ | | |  \__ \
+                //| ___ /\__\__,_ | _ |  | ___ /
 
-                AnsiConsole.Render(tree);
-                // AnsiConsole.WriteException()
-                AnsiConsole.Progress();
-                */
 
-                //string dnaFolder = @"C:\CODE\Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK\NextGenSoftware.OASIS.STAR.TestHarness\CelestialBodyDNA";
-                //string cSharpGeneisFolder = @"C:\CODE\Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK\NextGenSoftware.OASIS.STAR.TestHarness\bin\Release\net5.0\Genesis\CSharp";
-                //string rustGenesisFolder = @"C:\CODE\Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK\NextGenSoftware.OASIS.STAR.TestHarness\bin\Release\net5.0\Genesis\Rust";
+                Colorful.Console.WriteAscii("MichalBialecki.com", Color.FromArgb(131, 184, 214));
+                Colorful.Console.WriteLine();
 
-                string dnaFolder = "C:\\CODE\\Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK\\NextGenSoftware.OASIS.STAR.TestHarness\\CelestialBodyDNA";
+                var font = FigletFont.Load("fonts/larry3d.flf");
+                Figlet figlet = new Figlet(font);
+                Colorful.Console.WriteLine(figlet.ToAscii("MichalBialecki.com"), Color.FromArgb(67, 144, 198));
+
+                //Image Picture = Image.FromFile("images/FinalLogo.jpg");
+                Image Picture = Image.FromFile("images/star1.jpg");
+                Console.SetBufferSize((Picture.Width * 0x2), (Picture.Height * 0x2));
+                  Console.WindowWidth = 180;
+                  Console.WindowHeight = 61;
+
+                  FrameDimension Dimension = new FrameDimension(Picture.FrameDimensionsList[0x0]);
+                  int FrameCount = Picture.GetFrameCount(Dimension);
+                  int Left = Console.WindowLeft, Top = Console.WindowTop;
+                  char[] Chars = { '#', '#', '@', '%', '=', '+', '*', ':', '-', '.', ' ' };
+                  Picture.SelectActiveFrame(Dimension, 0x0);
+                  for (int i = 0x0; i < Picture.Height; i++)
+                  {
+                      for (int x = 0x0; x < Picture.Width; x++)
+                      {
+                          Color Color = ((Bitmap)Picture).GetPixel(x, i);
+                          int Gray = (Color.R + Color.G + Color.B) / 0x3;
+                          int Index = (Gray * (Chars.Length - 0x1)) / 0xFF;
+                          Console.Write(Chars[Index]);
+                      }
+                      Console.Write('\n');
+                      Thread.Sleep(50);
+                  }
+                  Console.SetCursorPosition(Left, Top);
+                  Console.Read();
+                  
+
+                  /*
+                  var tree = new Tree("src");
+                  tree.AddNode("foo").AddNode("bar.cs");
+                  tree.AddNode("baz").AddNode("qux").AddNode("corgi.txt");
+                  tree.AddNode("waldo.xml");
+
+                  AnsiConsole.Render(tree);
+                  // AnsiConsole.WriteException()
+                  AnsiConsole.Progress();
+                  */
+
+                  //string dnaFolder = @"C:\CODE\Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK\NextGenSoftware.OASIS.STAR.TestHarness\CelestialBodyDNA";
+                  //string cSharpGeneisFolder = @"C:\CODE\Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK\NextGenSoftware.OASIS.STAR.TestHarness\bin\Release\net5.0\Genesis\CSharp";
+                  //string rustGenesisFolder = @"C:\CODE\Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK\NextGenSoftware.OASIS.STAR.TestHarness\bin\Release\net5.0\Genesis\Rust";
+
+                  string dnaFolder = "C:\\CODE\\Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK\\NextGenSoftware.OASIS.STAR.TestHarness\\CelestialBodyDNA";
                 string cSharpGeneisFolder = "C:\\CODE\\Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK\\NextGenSoftware.OASIS.STAR.TestHarness\\bin\\Release\\net5.0\\Genesis\\CSharp";
                 string rustGenesisFolder = "C:\\CODE\\Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK\\NextGenSoftware.OASIS.STAR.TestHarness\\bin\\Release\\net5.0\\Genesis\\Rust";
 
