@@ -179,12 +179,12 @@ namespace NextGenSoftware.OASIS.STAR
             return result;
         }
 
-        public static OASISResult<IAvatar> CreateAvatar(string title, string firstName, string lastName, string username, string password)
+        public static OASISResult<IAvatar> CreateAvatar(string title, string firstName, string lastName, string username, string password, ConsoleColor cliColour = ConsoleColor.Green, ConsoleColor favColour = ConsoleColor.Green)
         {
             if (!IsInitialized)
                 Initialize();
 
-            return OASISAPI.Avatar.Register(title, firstName, lastName, username, password, AvatarType.User, "http://oasisplatform.world/api");
+            return OASISAPI.Avatar.Register(title, firstName, lastName, username, password, AvatarType.User, "http://oasisplatform.world/api", cliColour, favColour);
         }
 
         public static OASISResult<IAvatar> BeamIn(string username, string password)
