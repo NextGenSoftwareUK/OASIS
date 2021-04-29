@@ -180,7 +180,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return result;
         }
 
-        public OASISResult<IAvatar> Register(string avatarTitle, string firstName, string lastName, string email, string password, AvatarType avatarType, string origin)
+        public OASISResult<IAvatar> Register(string avatarTitle, string firstName, string lastName, string email, string password, AvatarType avatarType, string origin, ConsoleColor cliColour = ConsoleColor.Green, ConsoleColor favColour = ConsoleColor.Green)
         {
             OASISResult<IAvatar> result = new OASISResult<IAvatar>();
             IEnumerable<IAvatar> avatars = LoadAllAvatars();
@@ -196,7 +196,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 result.ErrorMessage = "Avatar Already Registered.";
             }
 
-            IAvatar avatar = new Avatar() { FirstName = firstName, LastName = lastName, Password = password, Title = avatarTitle, Email = email, AvatarType = new EnumValue<AvatarType>(avatarType) };
+            IAvatar avatar = new Avatar() { FirstName = firstName, LastName = lastName, Password = password, Title = avatarTitle, Email = email, AvatarType = new EnumValue<AvatarType>(avatarType), STARCLIColour = cliColour, FavouriteColour = favColour };
 
 
             // first registered account is an admin

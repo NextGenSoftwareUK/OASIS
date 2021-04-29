@@ -42,6 +42,8 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
         public string Title { get; set; }
         public string FirstName { get; set; }
         public string LastName { get; set; }
+        public ConsoleColor FavouriteColour { get; set; }
+        public ConsoleColor STARCLIColour { get; set; }
         public string FullName
         {
             get

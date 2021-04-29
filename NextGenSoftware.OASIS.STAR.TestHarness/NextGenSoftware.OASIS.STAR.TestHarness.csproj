@@ -448,6 +448,13 @@
     <None Remove="fonts\wideterm.tlf" />
     <None Remove="fonts\Wow.flf" />
     <None Remove="images\FinalLogo.jpg" />
+    <None Remove="images\star1.png" />
+    <None Remove="images\star2.jpg" />
+    <None Remove="images\star3.png" />
+    <None Remove="images\star4.png" />
+    <None Remove="images\star5.png" />
+    <None Remove="images\star6.jpg" />
+    <None Remove="images\star6b.jpg" />
     <None Remove="Lib\Spectre.Console.deps.json" />
     <None Remove="Lib\Spectre.Console.xml" />
     <None Remove="Spectre.Console.deps.json" />
@@ -889,8 +896,31 @@
     <Content Include="fonts\wetletter.flf" />
     <Content Include="fonts\Whimsy.flf" />
     <Content Include="fonts\wideterm.tlf" />
-    <Content Include="fonts\Wow.flf" />
+    <Content Include="fonts\Wow.flf">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="images\FinalLogo.jpg">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="images\star1.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="images\star2.jpg">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="images\star3.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="images\star4.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="images\star5.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="images\star6.jpg">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="images\star6b.jpg">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="Lib\Spectre.Console.deps.json">
