@@ -142,6 +142,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
 
         public IAvatar Register(RegisterRequest model, string origin)
         {
+             if (string.IsNullOrEmpty(origin))
+                 origin = Program.CURRENT_OASISAPI; 
+
             return AvatarManager.Register(model.Title, model.FirstName, model.LastName, model.Email, model.Password, (AvatarType)Enum.Parse(typeof(AvatarType), model.AvatarType), origin).Result;
 
             /*

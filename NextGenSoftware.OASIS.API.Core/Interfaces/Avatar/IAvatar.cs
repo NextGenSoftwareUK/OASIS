@@ -17,6 +17,8 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces
         string Title { get; set; }
         string FirstName { get; set; }
         string LastName { get; set; }
+        ConsoleColor FavouriteColour { get; set; }
+        ConsoleColor STARCLIColour { get; set; }
         string FullName { get; }
         DateTime DOB { get; set; }
         string Address { get; set; }

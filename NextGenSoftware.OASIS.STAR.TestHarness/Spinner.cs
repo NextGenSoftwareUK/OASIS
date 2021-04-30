@@ -5,48 +5,57 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
 {
     public class Spinner : IDisposable
     {
-        private const string Sequence = @"/-\|";
-        private int counter = 0;
-        private readonly int left;
-        private readonly int top;
-        private readonly int delay;
-        private bool active;
         private readonly Thread thread;
+        private int counter = 0;
+
+        public string Sequence { get; set; } = @"/-\|";
+        public int Left { get; set; }
+        public int Top { get; set; }
+        public int Delay { get; set; } = 100;
+        public bool IsActive { get; set; }
+        public ConsoleColor Colour { get; set; } = ConsoleColor.Green;
+
+        public Spinner()
+        {
+            thread = new Thread(Spin);
+        }
 
         public Spinner(int left, int top, int delay = 100)
         {
-            this.left = left;
-            this.top = top;
-            this.delay = delay;
+            this.Left = left;
+            this.Top = top;
+            this.Delay = delay;
             thread = new Thread(Spin);
         }
 
         public void Start()
         {
-            active = true;
+            Console.CursorVisible = false;
+
+            IsActive = true;
             if (!thread.IsAlive)
                 thread.Start();
         }
 
         public void Stop()
         {
-            active = false;
+            IsActive = false;
             Draw(' ');
         }
 
         private void Spin()
         {
-            while (active)
+            while (IsActive)
             {
                 Turn();
-                Thread.Sleep(delay);
+                Thread.Sleep(Delay);
             }
         }
 
         private void Draw(char c)
         {
-            Console.SetCursorPosition(left, top);
-            Console.ForegroundColor = ConsoleColor.Green;
+            Console.SetCursorPosition(Left, Top);
+            Console.ForegroundColor = Colour;
             Console.Write(c);
         }
 
