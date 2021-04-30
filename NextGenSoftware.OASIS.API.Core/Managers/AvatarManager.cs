@@ -185,6 +185,13 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             OASISResult<IAvatar> result = new OASISResult<IAvatar>();
             IEnumerable<IAvatar> avatars = LoadAllAvatars();
 
+            if (!ValidationHelper.IsValidEmail(email) || !ValidationHelper.IsValidEmail2(email))
+            {
+                result.IsError = true;
+                result.ErrorMessage = "The email is not valid.";
+                return result;
+            }
+
             //TODO: {PERFORMANCE} Add this method to the providers so more efficient.
             //if (_context.Accounts.Any(x => x.Email == model.Email))
             if (avatars.Any(x => x.Email == email))
@@ -194,6 +201,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 sendAlreadyRegisteredEmail(email, origin);
                 result.IsError = true;
                 result.ErrorMessage = "Avatar Already Registered.";
+                return result;
             }
 
             IAvatar avatar = new Avatar() { FirstName = firstName, LastName = lastName, Password = password, Title = avatarTitle, Email = email, AvatarType = new EnumValue<AvatarType>(avatarType), STARCLIColour = cliColour, FavouriteColour = favColour };
@@ -792,9 +800,6 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
         private void sendAlreadyRegisteredEmail(string email, string origin)
         {
-            // if (string.IsNullOrEmpty(origin))
-            //     origin = Program.CURRENT_OASISAPI; //TODO: Come back to this....
-
             string message;
             if (!string.IsNullOrEmpty(origin))
                 message = $@"<p>If you don't know your password please visit the <a href=""{origin}/avatar/forgot-password"">forgot password</a> page.</p>";
@@ -813,9 +818,6 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         private void sendVerificationEmail(IAvatar avatar, string origin)
         {
             string message;
-
-          //  if (string.IsNullOrEmpty(origin))
-          //      origin = Program.CURRENT_OASISAPI; //TODO: Come back to this....
 
             if (!string.IsNullOrEmpty(origin))
             {

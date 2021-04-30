@@ -184,24 +184,8 @@ namespace NextGenSoftware.OASIS.STAR
             if (!IsInitialized)
                 Initialize();
 
-            return OASISAPI.Avatar.Register(title, firstName, lastName, username, password, AvatarType.User, "http://oasisplatform.world/api", cliColour, favColour);
-        }
-
-        public static OASISResult<IAvatar> BeamIn(string username, string password)
-        {
-            string hostName = Dns.GetHostName();
-            string IPAddress = Dns.GetHostByName(hostName).AddressList[2].ToString();
-            //string IPAddress = Dns.GetHostByName(hostName).AddressList[3].ToString();
-            //+string IPAddress = Dns.GetHostByName(hostName).AddressList[4].ToString();
-
-            if (!IsInitialized)
-                Initialize();
-
-            OASISResult<IAvatar> result = OASISAPI.Avatar.Authenticate(username, password, IPAddress);
-
-            if (!result.IsError)
-                LoggedInUser = (Avatar)result.Result;
-
+            //TODO: Sort tomorrow! ;-)
+            /*
             if (username == "davidellams@hotmail.com")
             {
                 result.Result.GeneKeys.Add(new GeneKey() { Name = "Expectation", Gift = "a gift", Shadow = "a shadow", Sidhi = "a sidhi" });
@@ -254,7 +238,25 @@ namespace NextGenSoftware.OASIS.STAR
 
                 result.Result.Skills.Computers = 99;
                 result.Result.Skills.Engineering = 99;
-            }
+            }*/
+
+            return OASISAPI.Avatar.Register(title, firstName, lastName, username, password, AvatarType.User, "http://oasisplatform.world/api", cliColour, favColour);
+        }
+
+        public static OASISResult<IAvatar> BeamIn(string username, string password)
+        {
+            string hostName = Dns.GetHostName();
+            string IPAddress = Dns.GetHostByName(hostName).AddressList[2].ToString();
+            //string IPAddress = Dns.GetHostByName(hostName).AddressList[3].ToString();
+            //+string IPAddress = Dns.GetHostByName(hostName).AddressList[4].ToString();
+
+            if (!IsInitialized)
+                Initialize();
+
+            OASISResult<IAvatar> result = OASISAPI.Avatar.Authenticate(username, password, IPAddress);
+
+            if (!result.IsError)
+                LoggedInUser = (Avatar)result.Result;
 
             return result;
         }
