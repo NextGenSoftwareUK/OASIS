@@ -5,8 +5,8 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
 {
     public class Spinner : IDisposable
     {
-        private readonly Thread thread;
-        private int counter = 0;
+        private Thread _thread;
+        private int _counter = 0;
 
         public string Sequence { get; set; } = @"/-\|";
         public int Left { get; set; }
@@ -17,7 +17,7 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
 
         public Spinner()
         {
-            thread = new Thread(Spin);
+            _thread = new Thread(Spin);
         }
 
         public Spinner(int left, int top, int delay = 100)
@@ -25,7 +25,7 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
             this.Left = left;
             this.Top = top;
             this.Delay = delay;
-            thread = new Thread(Spin);
+            _thread = new Thread(Spin);
         }
 
         public void Start()
@@ -33,8 +33,22 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
             Console.CursorVisible = false;
 
             IsActive = true;
-            if (!thread.IsAlive)
-                thread.Start();
+            if (!_thread.IsAlive)
+            {
+                if (_thread.ThreadState == ThreadState.Stopped)
+                    _thread = new Thread(Spin);
+                else
+                {
+                    try
+                    {
+                        _thread.Start();
+                    }
+                    catch (Exception ex)
+                    {
+                        _thread = new Thread(Spin);
+                    }
+                }
+            }
         }
 
         public void Stop()
@@ -55,13 +69,15 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
         private void Draw(char c)
         {
             Console.SetCursorPosition(Left, Top);
+            ConsoleColor existingColour = Console.ForegroundColor;
             Console.ForegroundColor = Colour;
             Console.Write(c);
+            Console.ForegroundColor = existingColour;
         }
 
         private void Turn()
         {
-            Draw(Sequence[++counter % Sequence.Length]);
+            Draw(Sequence[++_counter % Sequence.Length]);
         }
 
         public void Dispose()

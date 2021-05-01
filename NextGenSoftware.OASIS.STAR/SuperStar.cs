@@ -184,63 +184,7 @@ namespace NextGenSoftware.OASIS.STAR
             if (!IsInitialized)
                 Initialize();
 
-            //TODO: Sort tomorrow! ;-)
-            /*
-            if (username == "davidellams@hotmail.com")
-            {
-                result.Result.GeneKeys.Add(new GeneKey() { Name = "Expectation", Gift = "a gift", Shadow = "a shadow", Sidhi = "a sidhi" });
-                result.Result.GeneKeys.Add(new GeneKey() { Name = "Invisibility", Gift = "a gift", Shadow = "a shadow", Sidhi = "a sidhi" });
-                result.Result.GeneKeys.Add(new GeneKey() { Name = "Rapture", Gift = "a gift", Shadow = "a shadow", Sidhi = "a sidhi" });
-
-                result.Result.HumanDesign.Type = "Generator";
-                result.Result.Inventory.Add(new InventoryItem() { Name = "Magical Armour" });
-                result.Result.Inventory.Add(new InventoryItem() { Name = "Mighty Wizard Sword" });
-
-                result.Result.Spells.Add(new Spell() { Name = "Super Spell" });
-                result.Result.Spells.Add(new Spell() { Name = "Super Speed Spell" });
-                result.Result.Spells.Add(new Spell() { Name = "Super Srength Spell" });
-
-                result.Result.Achievements.Add(new Achievement() { Name = "Becoming Superman!" });
-                result.Result.Achievements.Add(new Achievement() { Name = "Completing STAR!" });
-
-                result.Result.Gifts.Add(new AvatarGift() { GiftType = KarmaTypePositive.BeASuperHero });
-
-                result.Result.Attributes.Dexterity = 99;
-                result.Result.Attributes.Endurance = 99;
-                result.Result.Attributes.Intelligence = 99;
-                result.Result.Attributes.Magic = 99;
-                result.Result.Attributes.Speed = 99;
-                result.Result.Attributes.Strength = 99;
-                result.Result.Attributes.Toughness = 99;
-                result.Result.Attributes.Vitality = 99;
-                result.Result.Attributes.Wisdom = 99;
-
-                result.Result.Stats.Energy.Current = 99;
-                result.Result.Stats.Energy.Max = 99;
-                result.Result.Stats.HP.Current = 99;
-                result.Result.Stats.HP.Max = 99;
-                result.Result.Stats.Mana.Current = 99;
-                result.Result.Stats.Mana.Max = 99;
-                result.Result.Stats.Staminia.Current = 99;
-                result.Result.Stats.Staminia.Max = 99;
-
-                result.Result.SuperPowers.AstralProjection = 99;
-                result.Result.SuperPowers.BioLocatation = 88;
-                result.Result.SuperPowers.Flight = 99;
-                result.Result.SuperPowers.FreezeBreath = 88;
-                result.Result.SuperPowers.HeatVision = 99;
-                result.Result.SuperPowers.Invulerability = 99;
-                result.Result.SuperPowers.SuperSpeed = 99;
-                result.Result.SuperPowers.SuperStrength = 99;
-                result.Result.SuperPowers.XRayVision = 99;
-                result.Result.SuperPowers.Teleportation = 99;
-                result.Result.SuperPowers.Telekineseis = 99;
-
-                result.Result.Skills.Computers = 99;
-                result.Result.Skills.Engineering = 99;
-            }*/
-
-            return OASISAPI.Avatar.Register(title, firstName, lastName, username, password, AvatarType.User, "http://oasisplatform.world/api", cliColour, favColour);
+            return OASISAPI.Avatar.Register(title, firstName, lastName, username, password, AvatarType.User, "https://api.oasisplatform.world/api", cliColour, favColour);
         }
 
         public static OASISResult<IAvatar> BeamIn(string username, string password)
