@@ -206,6 +206,60 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
             IAvatar avatar = new Avatar() { FirstName = firstName, LastName = lastName, Password = password, Title = avatarTitle, Email = email, AvatarType = new EnumValue<AvatarType>(avatarType), STARCLIColour = cliColour, FavouriteColour = favColour };
 
+            // TODO: Temp! Remove later!
+            if (email == "davidellams@hotmail.com")
+            {
+                avatar.GeneKeys.Add(new GeneKey() { Name = "Expectation", Gift = "a gift", Shadow = "a shadow", Sidhi = "a sidhi" });
+                avatar.GeneKeys.Add(new GeneKey() { Name = "Invisibility", Gift = "a gift", Shadow = "a shadow", Sidhi = "a sidhi" });
+                avatar.GeneKeys.Add(new GeneKey() { Name = "Rapture", Gift = "a gift", Shadow = "a shadow", Sidhi = "a sidhi" });
+
+                avatar.HumanDesign.Type = "Generator";
+                avatar.Inventory.Add(new InventoryItem() { Name = "Magical Armour" });
+                avatar.Inventory.Add(new InventoryItem() { Name = "Mighty Wizard Sword" });
+
+                avatar.Spells.Add(new Spell() { Name = "Super Spell" });
+                avatar.Spells.Add(new Spell() { Name = "Super Speed Spell" });
+                avatar.Spells.Add(new Spell() { Name = "Super Srength Spell" });
+
+                avatar.Achievements.Add(new Achievement() { Name = "Becoming Superman!" });
+                avatar.Achievements.Add(new Achievement() { Name = "Completing STAR!" });
+
+                avatar.Gifts.Add(new AvatarGift() { GiftType = KarmaTypePositive.BeASuperHero });
+
+                avatar.Attributes.Dexterity = 99;
+                avatar.Attributes.Endurance = 99;
+                avatar.Attributes.Intelligence = 99;
+                avatar.Attributes.Magic = 99;
+                avatar.Attributes.Speed = 99;
+                avatar.Attributes.Strength = 99;
+                avatar.Attributes.Toughness = 99;
+                avatar.Attributes.Vitality = 99;
+                avatar.Attributes.Wisdom = 99;
+
+                avatar.Stats.Energy.Current = 99;
+                avatar.Stats.Energy.Max = 99;
+                avatar.Stats.HP.Current = 99;
+                avatar.Stats.HP.Max = 99;
+                avatar.Stats.Mana.Current = 99;
+                avatar.Stats.Mana.Max = 99;
+                avatar.Stats.Staminia.Current = 99;
+                avatar.Stats.Staminia.Max = 99;
+
+                avatar.SuperPowers.AstralProjection = 99;
+                avatar.SuperPowers.BioLocatation = 88;
+                avatar.SuperPowers.Flight = 99;
+                avatar.SuperPowers.FreezeBreath = 88;
+                avatar.SuperPowers.HeatVision = 99;
+                avatar.SuperPowers.Invulerability = 99;
+                avatar.SuperPowers.SuperSpeed = 99;
+                avatar.SuperPowers.SuperStrength = 99;
+                avatar.SuperPowers.XRayVision = 99;
+                avatar.SuperPowers.Teleportation = 99;
+                avatar.SuperPowers.Telekineseis = 99;
+
+                avatar.Skills.Computers = 99;
+                avatar.Skills.Engineering = 99;
+            }
 
             // first registered account is an admin
             //var isFirstAccount = _context.Accounts.Count() == 0;
@@ -801,12 +855,16 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         private void sendAlreadyRegisteredEmail(string email, string origin)
         {
             string message;
+
             if (!string.IsNullOrEmpty(origin))
                 message = $@"<p>If you don't know your password please visit the <a href=""{origin}/avatar/forgot-password"">forgot password</a> page.</p>";
             else
                 message = "<p>If you don't know your password you can reset it via the <code>/avatar/forgot-password</code> api route.</p>";
 
-             EmailManager.Send(
+            if (!EmailManager.IsInitialized)
+                EmailManager.Initialize(OASISDNA);
+
+            EmailManager.Send(
                 to: email,
                 subject: "OASIS Sign-up Verification - Email Already Registered",
                 html: $@"<h4>Email Already Registered</h4>
@@ -830,6 +888,9 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 message = $@"<p>Please use the below token to verify your email address with the <code>/avatar/verify-email</code> api route:</p>
                              <p><code>{avatar.VerificationToken}</code></p>";
             }
+
+            if (!EmailManager.IsInitialized)
+                EmailManager.Initialize(OASISDNA);
 
             EmailManager.Send(
                 to: avatar.Email,

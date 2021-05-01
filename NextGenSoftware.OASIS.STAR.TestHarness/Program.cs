@@ -442,8 +442,15 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
 
         private static void ShowSuccessMessage(string message)
         {
+            if (_spinner.IsActive)
+            {
+                _spinner.Stop();
+                Console.WriteLine("");
+            }
+
             ConsoleColor existingColour = Console.ForegroundColor;
             Console.ForegroundColor = ConsoleColor.Green;
+            Console.WriteLine("");
             Console.WriteLine(message);
             Console.ForegroundColor = existingColour;
 
@@ -451,13 +458,16 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
             //    Console.ForegroundColor = SuperStar.LoggedInUser.STARCLIColour;
             //else
             //    Console.ForegroundColor = ConsoleColor.Yellow;
-
-            if (_spinner.IsActive)
-                _spinner.Stop();
         }
 
         private static void ShowErrorMessage(string message)
         {
+            if (_spinner.IsActive)
+            {
+                _spinner.Stop();
+                Console.WriteLine("");
+            }
+
             ConsoleColor existingColour = Console.ForegroundColor;
             Console.ForegroundColor = ConsoleColor.Red;
             Console.WriteLine("");
@@ -468,9 +478,6 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
             //    Console.ForegroundColor = SuperStar.LoggedInUser.STARCLIColour;
             //else
             //    Console.ForegroundColor = ConsoleColor.Yellow;
-
-            if (_spinner.IsActive)
-                _spinner.Stop();
         }
 
         private static string GetValidTitle(string message)
@@ -832,40 +839,12 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
 
             while (beamInResult == null || (beamInResult != null && beamInResult.IsError))
             {
-                Console.WriteLine("");
+                //Console.WriteLine("");
                 Console.WriteLine("");
                 Console.WriteLine(" Please login below:");
                 string username = GetValidEmail(" Username/Email? ");
-                string password = "";
-
-                while (string.IsNullOrEmpty(password) || string.IsNullOrWhiteSpace(password))
-                {
-                    Console.WriteLine("");
-                    Console.Write(" Password? ");
-                    ConsoleKey key;
-
-                    do
-                    {
-                        var keyInfo = Console.ReadKey(intercept: true);
-                        key = keyInfo.Key;
-
-                        if (key == ConsoleKey.Backspace && password.Length > 0)
-                        {
-                            Console.Write("\b \b");
-                            password = password[0..^1];
-                        }
-                        else if (!char.IsControl(keyInfo.KeyChar))
-                        {
-                            Console.Write("*");
-                            password += keyInfo.KeyChar;
-                        }
-                    } while (key != ConsoleKey.Enter);
-
-                    Console.WriteLine("");
-                }
-
+                string password = ReadPassword(" Password? ");
                 Console.WriteLine("");
-                //Console.WriteLine("");
                 Console.Write(" Beaming In... ");
 
                 int left = Console.CursorLeft;
@@ -877,8 +856,8 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
                 _spinner.Top = Console.CursorTop;
                 _spinner.Start();
 
-                // beamInResult = SuperStar.BeamIn(username, password);
-                beamInResult = SuperStar.BeamIn("davidellams@hotmail.com", "my-super-secret-password");
+                beamInResult = SuperStar.BeamIn(username, password);
+               // beamInResult = SuperStar.BeamIn("davidellams@hotmail.com", "my-super-secret-password");
                 Console.WriteLine("");
 
                 if (beamInResult.IsError)
