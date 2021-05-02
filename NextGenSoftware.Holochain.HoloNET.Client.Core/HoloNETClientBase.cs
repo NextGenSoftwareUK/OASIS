@@ -9,8 +9,7 @@ using System.Threading.Tasks;
 using System.IO;
 using System.Diagnostics;
 using MessagePack;
-
-//Testing Linux Dev...
+using NextGenSoftware.OASIS.API.DNA.Enums;
 
 namespace NextGenSoftware.Holochain.HoloNET.Client.Core
 {
@@ -233,7 +232,7 @@ namespace NextGenSoftware.Holochain.HoloNET.Client.Core
                 if (Logger == null)
                     throw new HoloNETException("ERROR: No Logger Has Been Specified! Please set a Logger with the Logger Property.");
 
-                if (WebSocket.State != WebSocketState.Closed && WebSocket.State != WebSocketState.Aborted && WebSocket.State != WebSocketState.CloseSent && WebSocket.State != WebSocketState.CloseReceived)
+                if (WebSocket.State != WebSocketState.Connecting && WebSocket.State != WebSocketState.Closed && WebSocket.State != WebSocketState.Aborted && WebSocket.State != WebSocketState.CloseSent && WebSocket.State != WebSocketState.CloseReceived)
                 {
                     Logger.Log(string.Concat("Disconnecting from ", EndPoint, "..."), LogType.Info);
                     await WebSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Client manually disconnected.", CancellationToken.None);

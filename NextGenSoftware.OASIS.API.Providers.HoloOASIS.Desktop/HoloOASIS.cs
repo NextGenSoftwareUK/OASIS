@@ -1,5 +1,6 @@
 ﻿using NextGenSoftware.Holochain.HoloNET.Client.Core;
 using NextGenSoftware.Holochain.HoloNET.Client.Desktop;
+using NextGenSoftware.OASIS.API.DNA.Enums;
 using NextGenSoftware.OASIS.API.Providers.HoloOASIS.Core;
 
 namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Desktop

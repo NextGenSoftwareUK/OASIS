@@ -1,5 +1,6 @@
 ﻿
 using NextGenSoftware.Holochain.HoloNET.Client.Core;
+using NextGenSoftware.OASIS.API.DNA.Enums;
 
 namespace NextGenSoftware.Holochain.HoloNET.Client.Unity
 {

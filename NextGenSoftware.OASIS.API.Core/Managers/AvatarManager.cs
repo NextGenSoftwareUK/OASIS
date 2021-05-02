@@ -183,9 +183,9 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         public OASISResult<IAvatar> Register(string avatarTitle, string firstName, string lastName, string email, string password, AvatarType avatarType, string origin, ConsoleColor cliColour = ConsoleColor.Green, ConsoleColor favColour = ConsoleColor.Green)
         {
             OASISResult<IAvatar> result = new OASISResult<IAvatar>();
-            IEnumerable<IAvatar> avatars = LoadAllAvatars();
+           // IEnumerable<IAvatar> avatars = LoadAllAvatars();
 
-            if (!ValidationHelper.IsValidEmail(email) || !ValidationHelper.IsValidEmail2(email))
+            if (!ValidationHelper.IsValidEmail(email))
             {
                 result.IsError = true;
                 result.ErrorMessage = "The email is not valid.";
@@ -193,9 +193,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             }
 
             //TODO: {PERFORMANCE} Add this method to the providers so more efficient.
-            //if (_context.Accounts.Any(x => x.Email == model.Email))
-            if (avatars.Any(x => x.Email == email))
-            //if (AvatarManager.LoadAvatar(model.Email) == null)
+            if (CheckIfEmailIsAlreadyInUse(email))
             {
                 // send already registered error in email to prevent account enumeration
                 sendAlreadyRegisteredEmail(email, origin);
@@ -779,6 +777,11 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             }
 
             return result;
+        }
+
+        public bool CheckIfEmailIsAlreadyInUse(string email)
+        {
+            return LoadAllAvatars().Any(x => x.Email == email);
         }
 
         private IAvatar PrepareAvatarForSaving(IAvatar avatar)

@@ -19,6 +19,7 @@ using NextGenSoftware.OASIS.API.Providers.SEEDSOASIS.Membranes;
 using NextGenSoftware.OASIS.STAR.Zomes;
 using Colorful;
 using Console = System.Console;
+using NextGenSoftware.OASIS.STAR.OASISAPIManager;
 //using Spectre.Console;
 
 namespace NextGenSoftware.OASIS.STAR.TestHarness
@@ -38,7 +39,7 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
                 string rustGenesisFolder = "C:\\CODE\\Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK\\NextGenSoftware.OASIS.STAR.TestHarness\\bin\\Release\\net5.0\\Genesis\\Rust";
 
                 // If you wish to change the default init options for STAR then manually call the Initialize method below, otherwise STAR will init with default options.
-                //SuperStar.Initialize(InitOptions.InitWithCurrentDefaultProvider);
+                SuperStar.Initialize(InitOptions.InitWithCurrentDefaultProvider);
                 ShowHeader();
 
                 // TODO: Not sure what events should expose on Star, StarCore and HoloNETClient?
@@ -52,6 +53,8 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
 
                 if (!GetConfirmation(" Do you have an existing avatar? "))
                     CreateAvatar();
+                else
+                    Console.WriteLine("");
 
                 LoginAvatar();
 
@@ -542,7 +545,7 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
             return confirm;
         }
 
-        private static string GetValidEmail(string message)
+        private static string GetValidEmail(string message, bool checkIfEmailAlreadyInUse)
         {
             bool emailValid = false;
             string email = "";
@@ -553,8 +556,24 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
                 Console.Write(message);
                 email = Console.ReadLine();
 
-                if (!ValidationHelper.IsValidEmail(email) || !ValidationHelper.IsValidEmail2(email))
+                if (!ValidationHelper.IsValidEmail(email))
                     ShowErrorMessage(" That email is not valid. Please try again.");
+
+                else if (checkIfEmailAlreadyInUse)
+                {
+                    Console.WriteLine("");
+                    Console.Write(" Checking if email already in use...");
+                    _spinner.Start();
+
+                    if (SuperStar.OASISAPI.Avatar.CheckIfEmailIsAlreadyInUse(email))
+                        ShowErrorMessage(" Sorry, that email is already in use, please use another one.");
+                    else
+                    {
+                        emailValid = true;
+                        _spinner.Stop();
+                        Console.WriteLine("");
+                    }
+                }
                 else
                     emailValid = true;
             }
@@ -698,7 +717,7 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
             Console.WriteLine("");
             Console.WriteLine(string.Concat(" Nice to meet you ", firstName, ". :)"));
             string lastName = GetValidInput(string.Concat(" What is your last name ", firstName, "? "));
-            string email = GetValidEmail(" What is your email address? ");
+            string email = GetValidEmail(" What is your email address? ", true);
             GetValidColour(ref favColour, ref cliColour);
 
            // Console.WriteLine("");
@@ -706,15 +725,15 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
 
             Console.WriteLine("");
            // Console.WriteLine("");
-            Console.Write(" Creating Avatar... ");
-
+            Console.Write(" Creating Avatar...");
+            /*
             int left = Console.CursorLeft;
 
             if (left < 0)
                 left = 0;
 
             _spinner.Left = left;
-            _spinner.Top = Console.CursorTop;
+            _spinner.Top = Console.CursorTop;*/
             _spinner.Start();
 
             OASISResult<IAvatar> createAvatarResult = SuperStar.CreateAvatar(title, firstName, lastName, email, password, cliColour, favColour);
@@ -842,18 +861,19 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
                 //Console.WriteLine("");
                 Console.WriteLine("");
                 Console.WriteLine(" Please login below:");
-                string username = GetValidEmail(" Username/Email? ");
+                string username = GetValidEmail(" Username/Email? ", false);
                 string password = ReadPassword(" Password? ");
                 Console.WriteLine("");
-                Console.Write(" Beaming In... ");
+                Console.Write(" Beaming In...");
 
+                /*
                 int left = Console.CursorLeft;
 
                 if (left < 0)
                     left = 0;
 
                 _spinner.Left = left;
-                _spinner.Top = Console.CursorTop;
+                _spinner.Top = Console.CursorTop;*/
                 _spinner.Start();
 
                 beamInResult = SuperStar.BeamIn(username, password);

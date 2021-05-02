@@ -1,6 +1,7 @@
 ﻿
 using NextGenSoftware.Holochain.HoloNET.Client.Core;
 using NextGenSoftware.Holochain.HoloNET.Client.Desktop;
+using NextGenSoftware.OASIS.API.DNA.Enums;
 using System;
 using System.Threading.Tasks;
 
