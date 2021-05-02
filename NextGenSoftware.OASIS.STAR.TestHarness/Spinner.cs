@@ -20,23 +20,20 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
             _thread = new Thread(Spin);
         }
 
-        public Spinner(int left, int top, int delay = 100)
+        public void Start(int left, int top, int delay = 100)
         {
             this.Left = left;
             this.Top = top;
             this.Delay = delay;
-            _thread = new Thread(Spin);
-        }
-
-        public void Start()
-        {
-            Console.CursorVisible = false;
 
             IsActive = true;
             if (!_thread.IsAlive)
             {
                 if (_thread.ThreadState == ThreadState.Stopped)
+                {
                     _thread = new Thread(Spin);
+                    _thread.Start();
+                }
                 else
                 {
                     try
@@ -46,9 +43,23 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
                     catch (Exception ex)
                     {
                         _thread = new Thread(Spin);
+                        _thread.Start();
                     }
                 }
             }
+        }
+
+        public void Start()
+        {
+            Console.CursorVisible = false;
+
+            int left = Console.CursorLeft;
+
+            if (left < 0)
+                left = 0;
+
+            left = left + 1;
+            Start(left, Console.CursorTop);
         }
 
         public void Stop()

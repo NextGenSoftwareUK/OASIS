@@ -8,21 +8,27 @@ namespace NextGenSoftware.OASIS.API.Core.Helpers
     {
         public static bool IsValidEmail(string email)
         {
+            bool emailValid = false;
+
             try
             {
                 var addr = new System.Net.Mail.MailAddress(email);
-                return addr.Address == email;
+                emailValid = addr.Address == email;
             }
             catch
             {
                 return false;
             }
 
-           // return IsValidEmail2(email);
+            //TODO: Not sure if we need to verify the email again?
+            if (emailValid)
+                return IsValidEmail2(email);
+
+            return emailValid;
         }
 
         //TODO: Need to check which of these methods is best to use? :)
-        public static bool IsValidEmail2(string email)
+        private static bool IsValidEmail2(string email)
         {
             if (string.IsNullOrWhiteSpace(email))
                 return false;

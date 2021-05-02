@@ -8,6 +8,7 @@ using NextGenSoftware.OASIS.API.Core;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Objects;
+using System.Threading;
 
 namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
 {
@@ -111,6 +112,8 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
         public override IAvatar LoadAvatar(string username)
         {
             //return new Task<IAvatar>(() => ConvertMongoEntityToOASISAvatar(_avatarRepository.GetAvatar(username, password).Result));
+
+            Thread.Sleep(5000);
 
             Avatar avatar = _avatarRepository.GetAvatar(username).Result;
             IAvatar oasisAvatar = ConvertMongoEntityToOASISAvatar(avatar);
