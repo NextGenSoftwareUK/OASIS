@@ -1,5 +1,4 @@
 ﻿
-using NextGenSoftware.OASIS.API.DNA.Enums;
 
 namespace NextGenSoftware.OASIS.API.DNA
 {
@@ -73,7 +72,8 @@ namespace NextGenSoftware.OASIS.API.DNA
 
     public class HoloOASISProviderSettings : ProviderSettingsBase
     {
-        public HolochainVersion HolochainVersion { get; set; }
+        //public HolochainVersion HolochainVersion { get; set; }
+        public string HolochainVersion { get; set; }
     }
 
     public class MongoDBOASISProviderSettings : ProviderSettingsBase

@@ -1,5 +1,5 @@
-﻿using NextGenSoftware.Holochain.HoloNET.Client.Unity;
-using NextGenSoftware.OASIS.API.DNA.Enums;
+﻿using NextGenSoftware.Holochain.HoloNET.Client.Core;
+using NextGenSoftware.Holochain.HoloNET.Client.Unity;
 using NextGenSoftware.OASIS.API.Providers.HoloOASIS.Core;
 
 
