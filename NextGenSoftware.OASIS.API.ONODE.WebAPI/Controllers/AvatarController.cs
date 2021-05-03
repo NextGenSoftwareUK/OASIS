@@ -8,6 +8,7 @@ using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Interfaces;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Models;
+using NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Avatar;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Security;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
@@ -663,11 +664,25 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <param name="telosAccountName"></param>
         /// <returns></returns>
         [Authorize]
-        [HttpPost("{avatarId}/{telosAccountName}")]
+        [HttpPost("{avatarId:Guid}/{telosAccountName}")]
         public IActionResult LinkTelosAccountToAvatar(Guid avatarId, string telosAccountName)
         {
             return Ok(AvatarManager.LinkProviderKeyToAvatar(avatarId, ProviderType.TelosOASIS, telosAccountName));
         }
+
+        /// <summary>
+        /// Link's a given telosAccount to the given avatar.
+        /// </summary>
+        /// <param name="avatarId">The id of the avatar.</param>
+        /// <param name="telosAccountName"></param>
+        /// <returns></returns>
+        [Authorize]
+        [HttpPost()]
+        public IActionResult LinkTelosAccountToAvatar2(LinkProviderKeyToAvatar linkProviderKeyToAvatar)
+        {
+            return Ok(AvatarManager.LinkProviderKeyToAvatar(linkProviderKeyToAvatar.AvatarID, ProviderType.TelosOASIS, linkProviderKeyToAvatar.ProviderKey));
+        }
+
 
         /// <summary>
         /// Link's a given eosioAccountName to the given avatar.

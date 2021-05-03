@@ -1,4 +1,3 @@
-using NextGenSoftware.OASIS.API.Core;
 using System.ComponentModel.DataAnnotations;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Security
