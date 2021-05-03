@@ -1,8 +1,8 @@
-﻿using NextGenSoftware.OASIS.API.Core.Interfaces;
+﻿using NextGenSoftware.Holochain.HoloNET.Client.Core;
+using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Providers.HoloOASIS.Unity;
 using System.Threading.Tasks;
-using NextGenSoftware.OASIS.API.DNA.Enums;
 
 //using UnityEngine;
 //using UnityEngine.UI;

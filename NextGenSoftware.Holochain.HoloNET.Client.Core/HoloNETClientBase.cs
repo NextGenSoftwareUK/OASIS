@@ -9,7 +9,6 @@ using System.Threading.Tasks;
 using System.IO;
 using System.Diagnostics;
 using MessagePack;
-using NextGenSoftware.OASIS.API.DNA.Enums;
 
 namespace NextGenSoftware.Holochain.HoloNET.Client.Core
 {

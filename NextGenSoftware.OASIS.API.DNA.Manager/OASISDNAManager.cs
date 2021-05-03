@@ -14,6 +14,7 @@ using NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS;
 using NextGenSoftware.OASIS.API.Providers.IPFSOASIS;
 using NextGenSoftware.OASIS.API.Providers.Neo4jOASIS;
 using NextGenSoftware.OASIS.API.Providers.TelosOASIS;
+using NextGenSoftware.Holochain.HoloNET.Client.Core;
 
 namespace NextGenSoftware.OASIS.API.DNA.Manager
 {
@@ -95,10 +96,17 @@ namespace NextGenSoftware.OASIS.API.DNA.Manager
                 {
                     case ProviderType.HoloOASIS:
                         {
-                            HoloOASIS holoOASIS = new HoloOASIS(customConnectionString == null ? OASISDNA.OASIS.StorageProviders.HoloOASIS.ConnectionString : customConnectionString, OASISDNA.OASIS.StorageProviders.HoloOASIS.HolochainVersion);
-                            holoOASIS.OnHoloOASISError += HoloOASIS_OnHoloOASISError;
-                            holoOASIS.StorageProviderError += HoloOASIS_StorageProviderError;
-                            registeredProvider = holoOASIS;
+                            object hcVersion = null;
+
+                            if (Enum.TryParse(typeof(HolochainVersion), OASISDNA.OASIS.StorageProviders.HoloOASIS.HolochainVersion, out hcVersion))
+                            {
+                                HoloOASIS holoOASIS = new HoloOASIS(customConnectionString == null ? OASISDNA.OASIS.StorageProviders.HoloOASIS.ConnectionString : customConnectionString, (HolochainVersion)hcVersion);
+                                holoOASIS.OnHoloOASISError += HoloOASIS_OnHoloOASISError;
+                                holoOASIS.StorageProviderError += HoloOASIS_StorageProviderError;
+                                registeredProvider = holoOASIS;
+                            }
+                            else
+                                throw new ArgumentOutOfRangeException("OASISDNA.OASIS.StorageProviders.HoloOASIS.HolochainVersion", OASISDNA.OASIS.StorageProviders.HoloOASIS.HolochainVersion, "The HolochainVersion needs to be either RSM or Redux.");
                         }
                         break;
 

@@ -8,7 +8,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi.Models;
-using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Interfaces;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Middleware;
@@ -31,6 +30,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            LoggingManager.Log("Starting up The OASIS... (REST API)", Core.Enums.LogType.Info);
+            LoggingManager.Log("Test Debug", Core.Enums.LogType.Debug);
+            LoggingManager.Log("Test Info", Core.Enums.LogType.Info);
+            LoggingManager.Log("Test Warning", Core.Enums.LogType.Warn);
+            LoggingManager.Log("Test Error", Core.Enums.LogType.Error);
+
             // If you wish to change the logging framework from the default (NLog) then set it below (or just change in OASIS_DNA - prefered way)
             //LoggingManager.CurrentLoggingFramework = LoggingFramework.NLog;
 
