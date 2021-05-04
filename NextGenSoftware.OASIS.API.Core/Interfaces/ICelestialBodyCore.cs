@@ -17,7 +17,7 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces
         event HolonsLoaded OnHolonsLoaded;
         event ZomesLoaded OnZomesLoaded;
 
-        Task<OASISResult<IEnumerable<IHolon>>> AddZome(IZome zome);
+        Task<OASISResult<IZome>> AddZome(IZome zome);
         Task<IHolon> LoadCelestialBodyAsync();
         List<IZome> LoadZomes();
         Task<OASISResult<IEnumerable<IHolon>>> RemoveZome(IZome zome);

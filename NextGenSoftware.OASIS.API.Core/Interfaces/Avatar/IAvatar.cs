@@ -11,6 +11,10 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces
     {
        // Guid AvatarId { get; }
         Dictionary<ProviderType, string> ProviderPrivateKey { get; set; }
+        Dictionary<ProviderType, string> ProviderPublicKey { get; set; } 
+        Dictionary<ProviderType, string> ProviderUsername { get; set; } 
+        Dictionary<ProviderType, string> ProviderWalletAddress { get; set; }
+
         string Username { get; set; }
         string Password { get; set; }
         string Email { get; set; }
@@ -22,7 +26,7 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces
         string FullName { get; }
         DateTime DOB { get; set; }
         string Address { get; set; }
-        int Karma { get; }
+        int Karma { get; set; }
         int Level { get; }
         int XP { get; set; }
         List<AvatarGift> Gifts { get; set; }
@@ -45,6 +49,7 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces
         string Mobile { get; set; }
         string Landline { get; set; }
         EnumValue<AvatarType> AvatarType { get; set; }
+        EnumValue<OASISType> CreatedOASISType { get; set; }
         bool AcceptTerms { get; set; }
         public string VerificationToken { get; set; }
         DateTime? Verified { get; set; }

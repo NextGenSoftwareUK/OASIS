@@ -8,22 +8,28 @@ using System.Collections.Generic;
 
 namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
 {
-    public class BaseEntity
+    public class BaseEntity // Equvilant to the base Holon object in OASIS.API.Core.
     {
         [BsonId]  
         [BsonRepresentation(BsonType.ObjectId)]  
         public string Id { get; set; }
 
 
-
+        public Dictionary<ProviderType, Dictionary<string, string>> ProviderMetaData { get; set; } = new Dictionary<ProviderType, Dictionary<string, string>>(); // Key/Value pair meta data can be stored here, which is unique for that provider.
+        public Dictionary<string, string> MetaData { get; set; } = new Dictionary<string, string>(); // Key/Value pair meta data can be stored here that applies globally across ALL providers.
 
         public Guid HolonId { get; set; } //Unique id within the OASIS.
         public string Name { get; set; }
         public string Description { get; set; }
         //  public string ProviderKey { get; set; } //Unique key used by each provider (e.g. hashaddress in hc, etc).
         public HolonType HolonType { get; set; }
+        public Guid ParentStarId { get; set; } //The Star this Holon belongs to.
+        public ICelestialBody ParentStar { get; set; } //The Star this Holon belongs to.
+        public Guid ParentCelestialBodyId { get; set; } //The CelestialBody (Star, Planet or Moon) this Holon belongs to.
         public ICelestialBody ParentCelestialBody { get; set; } //The CelestialBody (Star, Planet or Moon) this Holon belongs to.
-        public IZome ParentZome { get; set; } //TODO: Wire this up in the HDK.Core.Star code... not used yet because only just added...
+        public Guid ParentZomeId { get; set; }
+        public IZome ParentZome { get; set; } // The zome this holon belongs to. Zomes are like re-usable modules that other OAPP's can be composed of. Zomes contain collections of nested holons (data objects). Holons can be infinite depth.
+        public Guid ParentId { get; set; }
         public IHolon Parent { get; set; }
         public IEnumerable<IHolon> Children { get; set; }
         public ProviderType CreatedProviderType { get; set; }

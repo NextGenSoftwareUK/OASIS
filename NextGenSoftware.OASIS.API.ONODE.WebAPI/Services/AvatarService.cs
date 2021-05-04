@@ -145,7 +145,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
              if (string.IsNullOrEmpty(origin))
                  origin = Program.CURRENT_OASISAPI; 
 
-            return AvatarManager.Register(model.Title, model.FirstName, model.LastName, model.Email, model.Password, (AvatarType)Enum.Parse(typeof(AvatarType), model.AvatarType), origin).Result;
+            return AvatarManager.Register(model.Title, model.FirstName, model.LastName, model.Email, model.Password, (AvatarType)Enum.Parse(typeof(AvatarType), model.AvatarType), origin, model.CreatedOASISType).Result;
 
             /*
             IEnumerable<IAvatar> avatars = AvatarManager.LoadAllAvatars();
@@ -194,8 +194,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
             */
         }
 
-        public void VerifyEmail(string token)
+        public OASISResult<bool> VerifyEmail(string token)
         {
+            return AvatarManager.VerifyEmail(token);
+
+            /*
             //var account = _context.Accounts.SingleOrDefault(x => x.VerificationToken == token);
 
             //TODO: PERFORMANCE} Implement in Providers so more efficient and do not need to return whole list!
@@ -207,8 +210,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
             avatar.VerificationToken = null;
 
             AvatarManager.SaveAvatar(avatar);
-           //_context.Accounts.Update(account);
-           // _context.SaveChanges();
+            //_context.Accounts.Update(account);
+            // _context.SaveChanges();
+            */
         }
 
         public void ForgotPassword(ForgotPasswordRequest model, string origin)

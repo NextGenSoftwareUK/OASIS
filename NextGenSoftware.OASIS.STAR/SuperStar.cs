@@ -184,7 +184,7 @@ namespace NextGenSoftware.OASIS.STAR
             if (!IsInitialized)
                 Initialize();
 
-            return OASISAPI.Avatar.Register(title, firstName, lastName, username, password, AvatarType.User, "https://api.oasisplatform.world/api", cliColour, favColour);
+            return OASISAPI.Avatar.Register(title, firstName, lastName, username, password, AvatarType.User, "https://api.oasisplatform.world/api", OASISType.STARCLI, cliColour, favColour);
         }
 
         public static OASISResult<IAvatar> BeamIn(string username, string password)
@@ -373,16 +373,8 @@ namespace NextGenSoftware.OASIS.STAR
 
                             //newBody.CelestialBody //TODO: Come back this, dont think should have CelestialBody.CelestialBody?
 
-                            if (currentZome != null)
-                              //  newBody.CelestialBodyCore.AddHolon();
-                                newBody.CelestialBodyCore.Zomes.Add(currentZome);
-
-                            //TODO: Need to save newBody first so we can set the ParentId correctly.
-                            //currentZome = new Zome() { Name = zomeName, HolonType = HolonType.Zome, Parent = newBody, ParentId = newBody.Id };
-                            currentZome = new Zome() { Name = zomeName, HolonType = HolonType.Zome, ParentId = newBody.Id };
-
-                            //TODO: Not sure await this? 
-                            //await newBody.CelestialBodyCore.AddZome(currentZome); //TODO: May need to save this once holons and nodes/fields have been added?
+                            currentZome = new Zome() { Name = zomeName, HolonType = HolonType.Zome, ParentId = newBody.Id, ParentCelestialBodyId = newBody.Id };
+                            await newBody.CelestialBodyCore.AddZome(currentZome); //TODO: May need to save this once holons and nodes/fields have been added?
                         }
 
                         if (holonReached && buffer.Contains("string") || buffer.Contains("int") || buffer.Contains("bool"))
@@ -507,7 +499,7 @@ namespace NextGenSoftware.OASIS.STAR
 
                             // TODO: Current Zome Id will be empty here so need to save the zome before? (above when the zome is first created and added to the newBody zomes collection).
                             //currentHolon = new Holon() { Name = holonName, HolonType = HolonType.Holon, Parent = currentZome, ParentId = currentZome.Id };
-                            currentHolon = new Holon() { Name = holonName, HolonType = HolonType.Holon, ParentId = currentZome.Id };
+                            currentHolon = new Holon() { Name = holonName, HolonType = HolonType.Holon, ParentId = currentZome.Id, ParentZomeId = currentZome.Id, ParentCelestialBodyId = newBody.Id };
                             currentZome.Holons.Add((Holon)currentHolon); 
 
                             holonName = holonName.ToSnakeCase();
@@ -526,11 +518,11 @@ namespace NextGenSoftware.OASIS.STAR
             // Remove any white space from the name.
             File.WriteAllText(string.Concat(genesisCSharpFolder, "\\", Regex.Replace(name, @"\s+", ""), Enum.GetName(typeof(GenesisType), type), ".cs"), celestialBodyBufferCsharp);
 
-            if (currentZome != null)
-                newBody.CelestialBodyCore.Zomes.Add(currentZome);
+          //  if (currentZome != null)
+           //     newBody.CelestialBodyCore.Zomes.Add(currentZome);
 
             //TODO: Need to save the collection of Zomes/Holons that belong to this planet here...
-           // await newBody.Save(); // The NewBody is Saved in the AddMonn/AddPlanet/AddStar methods below once its been added to the collection (better way than having to save it before hand?
+            await newBody.Save(); // Need to save again so newly added zomes/holons/nodes are also saved.
 
             switch (type)
             {

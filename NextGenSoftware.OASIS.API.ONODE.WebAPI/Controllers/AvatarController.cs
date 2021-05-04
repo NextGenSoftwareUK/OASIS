@@ -257,27 +257,30 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 
 
         /// <summary>
-        /// Verify a newly created avatar by passing in the validation token sent in the verify email.
+        /// Verify a newly created avatar by passing in the validation token sent in the verify email. This method is used by the link in the email.
         /// </summary>
         /// <param name="model"></param>
         /// <returns></returns>
         [HttpGet("verify-email")]
         public IActionResult VerifyEmail(string token)
         {
-            _avatarService.VerifyEmail(token);
-            return Ok(new { message = "Verification successful, you can now login" });
+            OASISResult<bool> result = _avatarService.VerifyEmail(token);
+
+            if (result.Result)
+                return Ok(new { message = "Verification successful, you can now login" });
+            else
+                return Ok(new { message = result.ErrorMessage });
         }
 
         /// <summary>
-        /// Verify a newly created avatar by passing in the validation token sent in the verify email.
+        /// Verify a newly created avatar by passing in the validation token sent in the verify email. This method is used by the REST API or other methods that need to POST the data rather than GET.
         /// </summary>
         /// <param name="model"></param>
         /// <returns></returns>
         [HttpPost("verify-email")]
         public IActionResult VerifyEmail(VerifyEmailRequest model)
         {
-            _avatarService.VerifyEmail(model.Token);
-            return Ok(new { message = "Verification successful, you can now login" });
+            return VerifyEmail(model.Token); 
         }
 
         /// <summary>

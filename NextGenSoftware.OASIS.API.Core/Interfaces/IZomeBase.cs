@@ -24,7 +24,7 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces
         Task<IEnumerable<IHolon>> LoadHolonsAsync(Guid id, HolonType type = HolonType.Holon);
         Task<IEnumerable<IHolon>> LoadHolonsAsync(Dictionary<ProviderType, string> providerKey, HolonType type = HolonType.Holon);
         Task<OASISResult<IHolon>> SaveHolonAsync(IHolon savingHolon);
-        Task<OASISResult<IEnumerable<IHolon>>> Save();
+        Task<OASISResult<IZome>> Save();
         Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> savingHolons);
     }
 }

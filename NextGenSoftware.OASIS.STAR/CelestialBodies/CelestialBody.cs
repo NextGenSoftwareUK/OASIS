@@ -117,84 +117,117 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
 
         public async Task<OASISResult<ICelestialBody>> Save()
         {
-            //TODO: Save Zomes/Holons added to collections here...
-            //TODO: Better if we can pass in collections rather than saving one at a time...
+            OASISResult<ICelestialBody> result = new OASISResult<ICelestialBody>();
+            OASISResult<IHolon> celestialBodyHolonResult = new OASISResult<IHolon>();
 
-            //TODO: Need to save the planet holon itself so we can get its anchor address (we can use later to load its collections of zomes/holons).
+            if (this.Children == null)
+                this.Children = new List<Holon>();
 
-            //  if (Id == Guid.Empty)
-            //      Id = Guid.NewGuid();
-
-            /*
-            //Just in case the zomes/holons have been added since the planet was last saved.
-            foreach (Zome zome in CelestialBodyCore.Zomes)
+            // If the celestiablBody has not been saved yet then save now so its children can set the parentId's.
+            if (this.Id == Guid.Empty)
             {
-                zome.CelestialBody = this;
-                zome.Parent = this;
-
-                // TODO: Need to sort this.Holons collection too (this is a list of ALL holons that belong to ALL zomes for this planet.
-                // So the same holon will be in both collections, just that this.Holons has been flatterned. Why it's Fractal Holonic! ;-)
-                foreach (Holon holon in zome.Holons)
+                celestialBodyHolonResult = await CelestialBodyCore.SaveCelestialBodyAsync(this);
+                
+                if (celestialBodyHolonResult.IsError)
                 {
-                    holon.Parent = zome;
-                    holon.CelestialBody = this;
+                    result.IsError = true;
+                    result.ErrorMessage = celestialBodyHolonResult.ErrorMessage;
+                    return result;
                 }
-            }/*
+                else
+                {
+                    this.Id = celestialBodyHolonResult.Result.Id;
+                    this.ProviderKey = celestialBodyHolonResult.Result.ProviderKey;
+                    this.CelestialBodyCore.ProviderKey = celestialBodyHolonResult.Result.ProviderKey;
+                    this.CreatedByAvatar = celestialBodyHolonResult.Result.CreatedByAvatar;
+                    this.CreatedByAvatarId = celestialBodyHolonResult.Result.CreatedByAvatarId;
+                    this.CreatedDate = celestialBodyHolonResult.Result.CreatedDate;
+                    this.ModifiedByAvatar = celestialBodyHolonResult.Result.ModifiedByAvatar;
+                    this.ModifiedByAvatarId = celestialBodyHolonResult.Result.ModifiedByAvatarId;
+                    this.ModifiedDate = celestialBodyHolonResult.Result.ModifiedDate;
+                    this.Children = celestialBodyHolonResult.Result.Children;
 
-            /*
-            HolonType holonType = HolonType.Holon;
+                    if (this.HolonType == HolonType.Star)
+                    {
+                        foreach (Planet planet in ((IStar)this).Planets)
+                        {
+                            planet.ParentId = this.Id;
+                            planet.Parent = this;
+                            planet.ParentStar = this;
+                            planet.ParentStarId = this.Id;
 
-            switch (GenesisType)
-            {
-                case GenesisType.Planet:
-                    holonType = HolonType.Planet;
-                    break;
+                            foreach (Zome zome in planet.CelestialBodyCore.Zomes)
+                            {
+                                zome.ParentStar = this;
+                                zome.ParentStarId = this.Id;
 
-                case GenesisType.Moon:
-                    holonType = HolonType.Moon;
-                    break;
+                                foreach (Holon holon in zome.Holons)
+                                {
+                                    holon.ParentStar = this;
+                                    holon.ParentStarId = this.Id;
 
-                case GenesisType.Star:
-                    holonType = HolonType.Star;
-                    break;
-            }*/
+                                    //TODO: Need recursive loop function here for the nested holons... (if there are any).
+                                    foreach (Holon innerHolon in holon.Children)
+                                    {
+                                        innerHolon.ParentStar = this;
+                                        innerHolon.ParentStarId = this.Id;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    else
+                    {
+                        //TODO: Move this into function so above code can share...
+                        foreach (Zome zome in CelestialBodyCore.Zomes)
+                        {
+                            zome.ParentStar = this;
+                            zome.ParentStarId = this.Id;
 
+                            foreach (Holon holon in zome.Holons)
+                            {
+                                holon.ParentStar = this;
+                                holon.ParentStarId = this.Id;
 
-            this.Children = new List<Holon>();
+                                //TODO: Need recursive loop function here for the nested holons... (if there are any).
+                                foreach (Holon innerHolon in holon.Children)
+                                {
+                                    innerHolon.ParentStar = this;
+                                    innerHolon.ParentStarId = this.Id;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
 
             //TODO: We need to indivudally save each planet/zome/holon first so we get their unique id's. We can then set the parentId's etc.
-            OASISResult<ICelestialBody> result = new OASISResult<ICelestialBody>();
-
             if (this.HolonType == HolonType.Star)
             {
                 foreach (Planet planet in ((IStar)this).Planets)
                 {
-                    if (planet.Id == Guid.Empty)
-                    {
-                        result = await planet.Save();
+                    result = await planet.Save(); // TODO: Think we need to save again even if id is not null just in case its children have changed since last time it was saved?
 
-                        if (result.IsError)
-                        {
-                            //TODO: Not sure how to handle errors? Log yes but do we want to abort saving anymore?
-                            // Think will continue to save but return a collection of these results below.
-                        }
-                    }
+                    if (result.IsError)
+                        return result;
 
                     ((List<Holon>)this.Children).Add(planet);
                 }
             }
             else
             {
-                OASISResult<IEnumerable<IHolon>> holonsResult = new OASISResult<IEnumerable<IHolon>>(); 
+                OASISResult<IZome> zomeResult = new OASISResult<IZome>(); 
 
                 foreach (Zome zome in this.CelestialBodyCore.Zomes)
                 {
-                    if (zome.Id == Guid.Empty)
-                        holonsResult = await zome.Save(); //TODO: Be nice to add Save() methods to Zomes so they can save their child holon collections.
+                    // if (zome.Id == Guid.Empty)
+                    zomeResult = await zome.Save(); // TODO: Think we need to save again even if id is not null just in case its children have changed since last time it was saved?
 
-                    if (holonsResult.IsError)
+                    if (zomeResult.IsError)
                     {
-                        //TODO: handle here (same as above).
+                        result.IsError = true;
+                        result.ErrorMessage = zomeResult.ErrorMessage;
+                        return result;
                     }
 
                     ((List<Holon>)this.Children).Add(zome);

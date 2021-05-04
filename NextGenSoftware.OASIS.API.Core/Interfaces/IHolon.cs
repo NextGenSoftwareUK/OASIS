@@ -15,8 +15,13 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces
         Dictionary<ProviderType, Dictionary<string, string>> ProviderMetaData { get; set; } 
         Dictionary<string, string> MetaData { get; set; } 
         HolonType HolonType { get; set; }
+        Guid ParentStarId { get; set; } //The Star this Holon belongs to.
+        ICelestialBody ParentStar { get; set; } //The Star this Holon belongs to.
+        Guid ParentCelestialBodyId { get; set; }
         ICelestialBody ParentCelestialBody { get; set; }
+        Guid ParentZomeId { get; set; }
         IZome ParentZome { get; set; }
+        Guid ParentId { get; set; }
         IHolon Parent { get; set; }
         IEnumerable<IHolon> Children { get; set; }
         Guid CreatedByAvatarId { get; set; }
@@ -31,6 +36,6 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces
         bool IsActive { get; set; }
         int Version { get; set; }
         EnumValue<ProviderType> CreatedProviderType { get; set; }
-        public List<INode> Nodes { get; set; }
+        List<INode> Nodes { get; set; }
     }
 }

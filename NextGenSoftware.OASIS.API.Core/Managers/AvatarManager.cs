@@ -180,7 +180,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return result;
         }
 
-        public OASISResult<IAvatar> Register(string avatarTitle, string firstName, string lastName, string email, string password, AvatarType avatarType, string origin, ConsoleColor cliColour = ConsoleColor.Green, ConsoleColor favColour = ConsoleColor.Green)
+        public OASISResult<IAvatar> Register(string avatarTitle, string firstName, string lastName, string email, string password, AvatarType avatarType, string origin, OASISType createdOASISType, ConsoleColor cliColour = ConsoleColor.Green, ConsoleColor favColour = ConsoleColor.Green)
         {
             OASISResult<IAvatar> result = new OASISResult<IAvatar>();
            // IEnumerable<IAvatar> avatars = LoadAllAvatars();
@@ -202,11 +202,14 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 return result;
             }
 
-            IAvatar avatar = new Avatar() { FirstName = firstName, LastName = lastName, Password = password, Title = avatarTitle, Email = email, AvatarType = new EnumValue<AvatarType>(avatarType), STARCLIColour = cliColour, FavouriteColour = favColour };
+            IAvatar avatar = new Avatar() { FirstName = firstName, LastName = lastName, Password = password, Title = avatarTitle, Email = email, AvatarType = new EnumValue<AvatarType>(avatarType), CreatedOASISType = new EnumValue<OASISType>(createdOASISType), STARCLIColour = cliColour, FavouriteColour = favColour };
 
             // TODO: Temp! Remove later!
             if (email == "davidellams@hotmail.com")
             {
+                avatar.Karma = 777777;
+                avatar.XP = 2222222;
+
                 avatar.GeneKeys.Add(new GeneKey() { Name = "Expectation", Gift = "a gift", Shadow = "a shadow", Sidhi = "a sidhi" });
                 avatar.GeneKeys.Add(new GeneKey() { Name = "Invisibility", Gift = "a gift", Shadow = "a shadow", Sidhi = "a sidhi" });
                 avatar.GeneKeys.Add(new GeneKey() { Name = "Rapture", Gift = "a gift", Shadow = "a shadow", Sidhi = "a sidhi" });
@@ -287,6 +290,31 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
             return result;
         }
+
+        public OASISResult<bool> VerifyEmail(string token)
+        {
+            OASISResult<bool> result = new OASISResult<bool>();
+            
+            //TODO: PERFORMANCE} Implement in Providers so more efficient and do not need to return whole list!
+            IAvatar avatar = LoadAllAvatarsWithPasswords().FirstOrDefault(x => x.VerificationToken == token);
+
+            if (avatar == null)
+            {
+                result.Result = false;
+                result.IsError = true;
+                result.ErrorMessage = "Verification Failed";
+            }
+            else
+            {
+                result.Result = true;
+                avatar.Verified = DateTime.UtcNow;
+                avatar.VerificationToken = null;
+                SaveAvatar(avatar);
+            }
+
+            return result;
+        }
+
         public IEnumerable<IAvatar> LoadAllAvatarsWithPasswords(ProviderType provider = ProviderType.Default)
         {
             IEnumerable<IAvatar> avatars = ProviderManager.SetAndActivateCurrentStorageProvider(provider).LoadAllAvatars();

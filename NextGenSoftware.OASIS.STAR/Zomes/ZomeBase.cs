@@ -81,9 +81,42 @@ namespace NextGenSoftware.OASIS.STAR.Zomes
             return await _holonManager.SaveHolonsAsync(savingHolons);
         }
 
-        public virtual async Task<OASISResult<IEnumerable<IHolon>>> Save()
+        public virtual async Task<OASISResult<IZome>> Save()
         {
-            return await _holonManager.SaveHolonsAsync(this.Holons);
+            OASISResult<IZome> zomeResult = new OASISResult<IZome>();
+
+            //First save the zome.
+            OASISResult<IHolon> holonResult = await _holonManager.SaveHolonAsync(this);
+
+            if (!zomeResult.IsError)
+            {
+                zomeResult.Result = (IZome)holonResult.Result;
+
+                // Now set its child holons parent ids.
+                foreach (IHolon holon in Holons)
+                {
+                    holon.ParentId = this.Id;
+                    holon.Parent = this;
+                    holon.ParentZomeId = this.Id;
+                    holon.ParentZome = (IZome)this;
+                }
+
+                // Now save the zome child holons.
+                OASISResult<IEnumerable<IHolon>> holonsResult = await _holonManager.SaveHolonsAsync(this.Holons);
+
+                if (holonsResult.IsError)
+                {
+                    zomeResult.IsError = true;
+                    zomeResult.ErrorMessage = holonsResult.ErrorMessage;
+                }
+            }
+            else
+            {
+                zomeResult.IsError = true;
+                zomeResult.ErrorMessage = holonResult.ErrorMessage;
+            }
+
+            return zomeResult;
         }
 
         public async Task<OASISResult<IEnumerable<IHolon>>> AddHolon(IHolon holon)
