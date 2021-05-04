@@ -60,6 +60,7 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
         public string Mobile { get; set; }
         public string Landline { get; set; }
         public EnumValue<AvatarType> AvatarType { get; set; }
+        public EnumValue<OASISType> CreatedOASISType { get; set; }
         // public int Karma { get; private set; }
         public int Karma { get; set; } //TODO: This really needs to have a private setter but in the HoloOASIS provider it needs to copy the object along with each property... would prefer another work around if possible?
         public int XP { get; set; }

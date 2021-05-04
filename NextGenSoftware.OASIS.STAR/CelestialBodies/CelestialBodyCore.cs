@@ -169,10 +169,26 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
             return Zomes;
         }
 
-        public async Task<OASISResult<IEnumerable<IHolon>>> AddZome(IZome zome)
+        public async Task<OASISResult<IZome>> AddZome(IZome zome)
         {
-            this.Zomes.Add(zome);
-            return await base.SaveHolonsAsync(this.Zomes);
+            OASISResult<IZome> result = new OASISResult<IZome>();
+
+            if (zome.Id == Guid.Empty)
+                result = await zome.Save();
+ 
+            if (!result.IsError)
+            {
+                this.Zomes.Add(zome);
+                OASISResult<IEnumerable<IHolon>> holonsResult = await base.SaveHolonsAsync(this.Zomes);
+
+                if (holonsResult.IsError)
+                {
+                    result.IsError = true;
+                    result.ErrorMessage = holonsResult.ErrorMessage;
+                }
+            }
+
+            return result;
         }
 
         public async Task<OASISResult<IEnumerable<IHolon>>> RemoveZome(IZome zome)

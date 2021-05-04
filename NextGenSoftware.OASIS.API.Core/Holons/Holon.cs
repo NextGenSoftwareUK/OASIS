@@ -15,10 +15,14 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
         public Dictionary<ProviderType, Dictionary<string, string>> ProviderMetaData { get; set; } = new Dictionary<ProviderType, Dictionary<string, string>>(); // Key/Value pair meta data can be stored here, which is unique for that provider.
         public Dictionary<string, string> MetaData { get; set; } = new Dictionary<string, string>(); // Key/Value pair meta data can be stored here that applies globally across ALL providers.
         public HolonType HolonType { get; set; }
-        public ICelestialBody ParentCelestialBody { get; set; } //The CelestialBody (Star, Planet or Moon) this Holon belongs to.
+        public Guid ParentStarId { get; set; } //The Star this Holon belongs to.
+        public ICelestialBody ParentStar { get; set; } //The Star this Holon belongs to.
+        public Guid ParentCelestialBodyId { get; set; } //The CelestialBody (Planet or Moon (OAPP)) this Holon belongs to.
+        public ICelestialBody ParentCelestialBody { get; set; } //The CelestialBody (Planet or Moon (OAPP)) this Holon belongs to.
+        public Guid ParentZomeId { get; set; } // The zome this holon belongs to. Zomes are like re-usable modules that other OAPP's can be composed of. Zomes contain collections of nested holons (data objects). Holons can be infinite depth.
         public IZome ParentZome { get; set; } // The zome this holon belongs to. Zomes are like re-usable modules that other OAPP's can be composed of. Zomes contain collections of nested holons (data objects). Holons can be infinite depth.
-        public IHolon Parent { get; set; }
         public Guid ParentId { get; set; }
+        public IHolon Parent { get; set; }
         public IEnumerable<IHolon> Children { get; set; }
         public Guid CreatedByAvatarId { get; set; }
         public Avatar CreatedByAvatar { get; set; }

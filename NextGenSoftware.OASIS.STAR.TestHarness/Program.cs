@@ -51,17 +51,16 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
                 SuperStar.OnInitialized += Star_OnInitialized;
                 SuperStar.OnStarError += Star_OnStarError;
 
-                if (!GetConfirmation(" Do you have an existing avatar? "))
+                if (!GetConfirmation("Do you have an existing avatar? "))
                     CreateAvatar();
                 else
-                    Console.WriteLine("");
+                    ShowMessage("", false);
 
                 LoginAvatar();
 
-                Console.WriteLine("");
+                ShowMessage("", false);
                 Colorful.Console.WriteAscii(" READY PLAYER ONE?", Color.Green);
-                //Console.WriteLine(" READY PLAYER ONE?");
-                Console.WriteLine("");
+                ShowMessage("", false);
 
                 await Test(dnaFolder, cSharpGeneisFolder, rustGenesisFolder);
             }
@@ -76,8 +75,7 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
         private static async Task Test(string dnaFolder, string cSharpGeneisFolder, string rustGenesisFolder)
         {
             // Create Planet (OAPP) by generating dynamic template/scaffolding code.
-            Console.WriteLine(" Generating Planet Our World...");
-            Console.WriteLine("");
+            ShowWorkingMessage("Generating Planet Our World...");
             CoronalEjection result = SuperStar.Light(GenesisType.Planet, "Our World", dnaFolder, cSharpGeneisFolder, rustGenesisFolder, "NextGenSoftware.Holochain.HoloNET.HDK.Core.TestHarness.Genesis").Result;
 
             if (result.ErrorOccured)
@@ -115,16 +113,16 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
                 _ourWorld.OnHolonSaved += OurWorld_OnHolonSaved;
                 _ourWorld.OnZomeError += OurWorld_OnZomeError;
 
-                Console.WriteLine(" Loading Zomes & Holons...");
+                ShowWorkingMessage("Loading Zomes & Holons...");
                 _ourWorld.LoadAll();
-                //ourWorld.Zomes.Add()
+                _spinner.Stop();
 
                 Holon newHolon = new Holon();
                 newHolon.Name = "Test Data";
                 newHolon.Description = "Test Desc";
                 newHolon.HolonType = HolonType.Park;
 
-                Console.WriteLine(" Saving Holon...");
+                ShowWorkingMessage("Saving Holon...");
 
                 // If you are using the generated code from Light above (highly recommended) you do not need to pass the HolonTypeName in, you only need to pass the holon in.
                 //ourWorld.CelestialBodyCore.SaveHolonAsync("Test", newHolon);
@@ -411,10 +409,9 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
 
         private static void ShowColoursAvailable()
         {
-            Console.WriteLine("");
+            ShowMessage("", false);
             ConsoleColor oldColour = Console.ForegroundColor;
             Console.ForegroundColor = ConsoleColor.Red;
-            //Console.WriteLine(string.Concat(" Sorry, that colour is not valid. Please try again. The colour needs to be one of the following: ", EnumHelper.GetEnumValues(typeof(ConsoleColor), EnumHelper.ListType.ItemsSeperatedByComma)));
             Console.Write(" Sorry, that colour is not valid. Please try again. The colour needs to be one of the following: ");
 
             string[] values = Enum.GetNames(typeof(ConsoleColor));
@@ -433,7 +430,7 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
                 }
             }
 
-            Console.WriteLine("");
+            ShowMessage("", false);
             Console.ForegroundColor = oldColour;
         }
 
@@ -443,7 +440,7 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
             Console.Write(colour);
         }
 
-        private static void ShowSuccessMessage(string message)
+        private static void ShowSuccessMessage(string message, bool lineSpace = true)
         {
             if (_spinner.IsActive)
             {
@@ -453,8 +450,11 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
 
             ConsoleColor existingColour = Console.ForegroundColor;
             Console.ForegroundColor = ConsoleColor.Green;
-            Console.WriteLine("");
-            Console.WriteLine(message);
+
+            if (lineSpace)
+                Console.WriteLine("");
+
+            Console.WriteLine(string.Concat(" ", message));
             Console.ForegroundColor = existingColour;
 
             //if (SuperStar.LoggedInUser != null)
@@ -463,7 +463,27 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
             //    Console.ForegroundColor = ConsoleColor.Yellow;
         }
 
-        private static void ShowErrorMessage(string message)
+        private static void ShowMessage(string message, bool lineSpace = true, bool noLineBreaks = false)
+        {
+            if (lineSpace)
+                Console.WriteLine(" ");
+            
+            if (noLineBreaks)
+                Console.Write(string.Concat(" ", message));
+            else
+                Console.WriteLine(string.Concat(" ", message));
+        }
+
+        private static void ShowWorkingMessage(string message, bool lineSpace = true)
+        {
+            if (lineSpace)
+                Console.WriteLine(" ");
+
+            Console.Write(string.Concat(" ", message));
+            _spinner.Start();
+        }
+
+        private static void ShowErrorMessage(string message, bool lineSpace = true)
         {
             if (_spinner.IsActive)
             {
@@ -473,8 +493,11 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
 
             ConsoleColor existingColour = Console.ForegroundColor;
             Console.ForegroundColor = ConsoleColor.Red;
-            Console.WriteLine("");
-            Console.WriteLine(message);
+            
+            if (lineSpace)
+                Console.WriteLine("");
+
+            Console.WriteLine(string.Concat(" ", message));
             Console.ForegroundColor = existingColour;
 
             //if (SuperStar.LoggedInUser != null)
@@ -494,7 +517,7 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
             {
                 if (!validTitles.Contains(title))
                 {
-                    ShowErrorMessage(" Title invalid. Please try again.");
+                    ShowErrorMessage("Title invalid. Please try again.");
                     title = GetValidInput(message).ToUpper();
                 }
                 else
@@ -509,8 +532,7 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
             string input = "";
             while (string.IsNullOrEmpty(input) || string.IsNullOrWhiteSpace(input))
             {
-                Console.WriteLine("");
-                Console.Write(message);
+                ShowMessage(string.Concat("", message), true, true);
                 input = Console.ReadLine();
             }
 
@@ -524,9 +546,8 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
 
             while (!validKey)
             {
-                Console.WriteLine("");
-                Console.WriteLine("");
-                Console.Write(message);
+                ShowMessage("", false);
+                ShowMessage(message, true, true);
                 ConsoleKey key = Console.ReadKey().Key;
 
                 if (key == ConsoleKey.Y)
@@ -552,26 +573,23 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
 
             while (!emailValid)
             {
-                Console.WriteLine("");
-                Console.Write(message);
+                ShowMessage(string.Concat("", message), true, true);
                 email = Console.ReadLine();
 
                 if (!ValidationHelper.IsValidEmail(email))
-                    ShowErrorMessage(" That email is not valid. Please try again.");
+                    ShowErrorMessage("That email is not valid. Please try again.");
 
                 else if (checkIfEmailAlreadyInUse)
                 {
-                    Console.WriteLine("");
-                    Console.Write(" Checking if email already in use...");
-                    _spinner.Start();
+                    ShowWorkingMessage("Checking if email already in use...");
 
                     if (SuperStar.OASISAPI.Avatar.CheckIfEmailIsAlreadyInUse(email))
-                        ShowErrorMessage(" Sorry, that email is already in use, please use another one.");
+                        ShowErrorMessage("Sorry, that email is already in use, please use another one.");
                     else
                     {
                         emailValid = true;
                         _spinner.Stop();
-                        Console.WriteLine("");
+                        ShowMessage("", false);
                     }
                 }
                 else
@@ -585,27 +603,15 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
         {
             string password = "";
             string password2 = "";
-
-            Console.WriteLine("");
+            ShowMessage("", false);
 
             while ((string.IsNullOrEmpty(password) && string.IsNullOrEmpty(password2)) || password != password2)
             {
-               // password = "";
-              //  password2 = "";
-
-               // Console.WriteLine("");
-                password = ReadPassword(" What is the password you wish to use? ");
-
-                //Console.WriteLine("");
-                // Console.WriteLine("");
-                password2 = ReadPassword(" Please confirm password: ");
+                password = ReadPassword("What is the password you wish to use? ");
+                password2 = ReadPassword("Please confirm password: ");
 
                 if (password != password2)
-                {
-                    //Console.WriteLine("");
-                    //Console.WriteLine("");
-                    ShowErrorMessage(" The passwords do not match. Please try again.");
-                }
+                    ShowErrorMessage("The passwords do not match. Please try again.");
             }
 
             return password;
@@ -618,9 +624,7 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
 
             while (string.IsNullOrEmpty(password) && string.IsNullOrWhiteSpace(password))
             {
-                Console.WriteLine("");
-                //Console.WriteLine("");
-                Console.Write(message);
+                ShowMessage(string.Concat("", message), true, true);
 
                 do
                 {
@@ -639,7 +643,7 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
                     }
                 } while (key != ConsoleKey.Enter);
 
-                Console.WriteLine("");
+                ShowMessage("", false);
             }
 
             return password;
@@ -650,8 +654,7 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
             bool colourSet = false;
             while (!colourSet)
             {
-                Console.WriteLine("");
-                Console.Write(" What is your favourite colour? ");
+                ShowMessage("What is your favourite colour? ", true, true);
                 string colour = Console.ReadLine();
                 colour = ExtensionMethods.ExtensionMethods.ToPascalCase(colour);
                 object colourObj = null;
@@ -660,8 +663,7 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
                 {
                     favColour = (ConsoleColor)colourObj;
                     Console.ForegroundColor = favColour;
-                    Console.WriteLine("");
-                    Console.Write(" Do you prefer to use your favourite colour? :) ");
+                    ShowMessage("Do you prefer to use your favourite colour? :) ", true, true);
 
                     if (Console.ReadKey().Key != ConsoleKey.Y)
                     {
@@ -670,10 +672,7 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
                         while (!colourSet)
                         {
                             Console.ForegroundColor = ConsoleColor.Yellow;
-                            Console.WriteLine("");
-                            // Console.WriteLine("");
-                            Console.Write(" Which colour would you prefer? ");
-
+                            ShowMessage("Which colour would you prefer? ", true, true);
                             colour = Console.ReadLine();
                             colour = ExtensionMethods.ExtensionMethods.ToPascalCase(colour);
                             colourObj = null;
@@ -683,13 +682,13 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
                                 cliColour = (ConsoleColor)colourObj;
                                 Console.ForegroundColor = cliColour;
 
-                                Console.WriteLine("");
-                                Console.Write(" This colour ok? ");
+                               // ShowMessage("", false);
+                                ShowMessage("This colour ok? ", true, true);
 
                                 if (Console.ReadKey().Key == ConsoleKey.Y)
                                     colourSet = true;
                                 else
-                                    Console.WriteLine("");
+                                    ShowMessage("", false);
                             }
                             else
                                 ShowColoursAvailable();
@@ -708,43 +707,25 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
             ConsoleColor favColour = ConsoleColor.Green;
             ConsoleColor cliColour = ConsoleColor.Green;
 
-            Console.WriteLine("");
-            Console.WriteLine("");
-            Console.WriteLine(" Please create an avatar below:");
+            ShowMessage("");
+            ShowMessage("Please create an avatar below:", false);
 
-            string title = GetValidTitle(" What is your title? ");
-            string firstName = GetValidInput(" What is your first name? ");
-            Console.WriteLine("");
-            Console.WriteLine(string.Concat(" Nice to meet you ", firstName, ". :)"));
-            string lastName = GetValidInput(string.Concat(" What is your last name ", firstName, "? "));
-            string email = GetValidEmail(" What is your email address? ", true);
+            string title = GetValidTitle("What is your title? ");
+            string firstName = GetValidInput("What is your first name? ");
+            ShowMessage(string.Concat("Nice to meet you ", firstName, ". :)"));
+            string lastName = GetValidInput(string.Concat("What is your last name ", firstName, "? "));
+            string email = GetValidEmail("What is your email address? ", true);
             GetValidColour(ref favColour, ref cliColour);
-
-           // Console.WriteLine("");
             string password = GetValidPassword();
-
-            Console.WriteLine("");
-           // Console.WriteLine("");
-            Console.Write(" Creating Avatar...");
-            /*
-            int left = Console.CursorLeft;
-
-            if (left < 0)
-                left = 0;
-
-            _spinner.Left = left;
-            _spinner.Top = Console.CursorTop;*/
-            _spinner.Start();
+            ShowWorkingMessage("Creating Avatar...");
 
             OASISResult<IAvatar> createAvatarResult = SuperStar.CreateAvatar(title, firstName, lastName, email, password, cliColour, favColour);
-
-            Console.WriteLine("");
-            Console.WriteLine("");
+            ShowMessage("");
 
             if (createAvatarResult.IsError)
-                ShowErrorMessage(string.Concat(" Error creating avatar. Error message: ", createAvatarResult.ErrorMessage));
+                ShowErrorMessage(string.Concat("Error creating avatar. Error message: ", createAvatarResult.ErrorMessage));
             else
-                ShowSuccessMessage(" Successfully Created Avatar. Please Check Your Email To Verify Your Account Before Logging In.");
+                ShowSuccessMessage("Successfully Created Avatar. Please Check Your Email To Verify Your Account Before Logging In.");
         }
 
         private static void ShowHeader()
@@ -858,42 +839,51 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
 
             while (beamInResult == null || (beamInResult != null && beamInResult.IsError))
             {
-                //Console.WriteLine("");
-                Console.WriteLine("");
-                Console.WriteLine(" Please login below:");
-                string username = GetValidEmail(" Username/Email? ", false);
-                string password = ReadPassword(" Password? ");
-                Console.WriteLine("");
-                Console.Write(" Beaming In...");
-
-                /*
-                int left = Console.CursorLeft;
-
-                if (left < 0)
-                    left = 0;
-
-                _spinner.Left = left;
-                _spinner.Top = Console.CursorTop;*/
-                _spinner.Start();
-
+                ShowMessage("Please login below:");
+                string username = GetValidEmail("Username/Email? ", false);
+                string password = ReadPassword("Password? ");
+                ShowWorkingMessage("Beaming In...");
                 beamInResult = SuperStar.BeamIn(username, password);
-               // beamInResult = SuperStar.BeamIn("davidellams@hotmail.com", "my-super-secret-password");
-                Console.WriteLine("");
+                // beamInResult = SuperStar.BeamIn("davidellams@hotmail.com", "my-super-secret-password");
+                ShowMessage("");
 
                 if (beamInResult.IsError)
-                    ShowErrorMessage(string.Concat(" Error logging in. Error Message: ", beamInResult.ErrorMessage));
+                {
+                    ShowErrorMessage(string.Concat("Error logging in. Error Message: ", beamInResult.ErrorMessage));
+
+                    if (beamInResult.ErrorMessage == "Avatar has not been verified. Please check your email.")
+                    {
+                        ShowErrorMessage("Then either click the link in the email to activate your avatar or enter the validation token contained in the email below:", false);
+
+                        bool validToken = false;
+                        while (!validToken)
+                        {
+                            string token = GetValidInput("Enter validation token: ");
+                            ShowWorkingMessage("Verifying Token...");
+                            OASISResult<bool> verifyEmailResult = SuperStar.OASISAPI.Avatar.VerifyEmail(token);
+
+                            if (verifyEmailResult.IsError)
+                                ShowErrorMessage(verifyEmailResult.ErrorMessage);
+                            else
+                            {
+                                ShowSuccessMessage("Verification successful, you can now login");
+                                validToken = true;
+                            }
+                        }
+                    }
+                }
 
                 else if (SuperStar.LoggedInUser == null)
-                    ShowErrorMessage(" Error Beaming In. Username/Password may be incorrect.");
+                    ShowErrorMessage("Error Beaming In. Username/Password may be incorrect.");
             }
 
-            ShowSuccessMessage(string.Concat(" Successfully Beamed In! Welcome back ", SuperStar.LoggedInUser.FullName, ". Have a nice day! :)"));
+            ShowSuccessMessage(string.Concat("Successfully Beamed In! Welcome back ", SuperStar.LoggedInUser.FullName, ". Have a nice day! :)"));
             ShowAvatarStats();
         }
 
         private static void ShowAvatarStats()
         {
-            Console.WriteLine("");
+            ShowMessage("", false);
             Console.WriteLine(string.Concat(" Karma: ", SuperStar.LoggedInUser.Karma));
             Console.WriteLine(string.Concat(" Level: ", SuperStar.LoggedInUser.Level));
             Console.WriteLine(string.Concat(" XP: ", SuperStar.LoggedInUser.XP));
@@ -939,7 +929,7 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
             Console.WriteLine(string.Concat(" Flight: ", SuperStar.LoggedInUser.SuperPowers.Flight));
             Console.WriteLine(string.Concat(" Astral Projection: ", SuperStar.LoggedInUser.SuperPowers.AstralProjection));
             Console.WriteLine(string.Concat(" Bio-Locatation: ", SuperStar.LoggedInUser.SuperPowers.BioLocatation));
-            Console.WriteLine(string.Concat("Heat Vision: ", SuperStar.LoggedInUser.SuperPowers.HeatVision));
+            Console.WriteLine(string.Concat(" Heat Vision: ", SuperStar.LoggedInUser.SuperPowers.HeatVision));
             Console.WriteLine(string.Concat(" Invulerability: ", SuperStar.LoggedInUser.SuperPowers.Invulerability));
             Console.WriteLine(string.Concat(" Remote Viewing: ", SuperStar.LoggedInUser.SuperPowers.RemoteViewing));
             Console.WriteLine(string.Concat(" Super Speed: ", SuperStar.LoggedInUser.SuperPowers.SuperSpeed));
