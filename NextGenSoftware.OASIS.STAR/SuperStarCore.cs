@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using NextGenSoftware.OASIS.STAR.CelestialBodies;
-using NextGenSoftware.OASIS.STAR.Interfaces;
 
 namespace NextGenSoftware.OASIS.STAR
 {

@@ -10,11 +10,12 @@
         OASISAPIGraphQL,
         OASISAPIgRPC,
         OurWorld,
-        WebApp,
-        App,
-        Game,
-        Service,
-        Platform,
-        API,
+        OAPPWeb,
+        OAPPApp,
+        OAPPGame,
+        OAPPService,
+        OAPPPlatform,
+        OAPPAPI,
+        OAPPOther
     }
 }

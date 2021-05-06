@@ -105,7 +105,14 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
                         holon.CreatedByAvatarId = originalHolon.CreatedByAvatarId;
                         holon.CreatedDate = originalHolon.CreatedDate;
                         holon.HolonType = originalHolon.HolonType;
-                        holon.ParentCelestialBody = originalHolon.ParentCelestialBody;
+                        //holon.ParentCelestialBody = originalHolon.ParentCelestialBody;
+
+                        holon.ParentZome = originalHolon.ParentZome;
+                        holon.ParentZomeId = originalHolon.ParentZomeId;
+                        holon.ParentMoon = originalHolon.ParentMoon;
+                        holon.ParentPlanet = originalHolon.ParentPlanet;
+                        holon.ParentMoonId = originalHolon.ParentMoonId;
+                        holon.ParentPlanetId = originalHolon.ParentPlanetId;
                         holon.Children = originalHolon.Children;
                         holon.DeletedByAvatarId = originalHolon.DeletedByAvatarId;
                         holon.DeletedDate = originalHolon.DeletedDate;

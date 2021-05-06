@@ -9,6 +9,7 @@ using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Objects;
 using System.Threading;
+using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 
 namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
 {
@@ -113,7 +114,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
         {
             //return new Task<IAvatar>(() => ConvertMongoEntityToOASISAvatar(_avatarRepository.GetAvatar(username, password).Result));
 
-            Thread.Sleep(5000);
+          //  Thread.Sleep(5000);
 
             Avatar avatar = _avatarRepository.GetAvatar(username).Result;
             IAvatar oasisAvatar = ConvertMongoEntityToOASISAvatar(avatar);
@@ -252,14 +253,17 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             oasisAvatar.HolonType = avatar.HolonType;
             oasisAvatar.CreatedProviderType = new Core.Helpers.EnumValue<ProviderType>(avatar.CreatedProviderType);
 
-            oasisAvatar.ParentId = avatar.ParentId;
-            oasisAvatar.Parent = avatar.Parent;
+            oasisAvatar.ChangesSaved = avatar.ChangesSaved;
+            oasisAvatar.ParentHolonId = avatar.ParentHolonId;
+            oasisAvatar.ParentHolon = avatar.ParentHolon;
             oasisAvatar.ParentZomeId = avatar.ParentZomeId;
             oasisAvatar.ParentZome = avatar.ParentZome;
             oasisAvatar.ParentStarId = avatar.ParentStarId;
             oasisAvatar.ParentStar = avatar.ParentStar;
-            oasisAvatar.ParentCelestialBodyId = avatar.ParentCelestialBodyId;
-            oasisAvatar.ParentCelestialBody = avatar.ParentCelestialBody;
+            oasisAvatar.ParentPlanetId = avatar.ParentPlanetId;
+            oasisAvatar.ParentPlanet = avatar.ParentPlanet;
+            oasisAvatar.ParentMoonId = avatar.ParentMoonId;
+            oasisAvatar.ParentMoon = avatar.ParentMoon;
             oasisAvatar.Children = avatar.Children;
             oasisAvatar.Nodes = avatar.Nodes;
 
@@ -306,6 +310,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             oasisAvatar.Verified = avatar.Verified;
             oasisAvatar.CreatedProviderType = new Core.Helpers.EnumValue<ProviderType>(Core.Enums.ProviderType.MongoDBOASIS);
             oasisAvatar.IsActive = avatar.IsActive;
+         //   oasisAvatar.ChangesSaved = true;
 
           //  oasisAvatar.SetKarmaForDataObject(avatar.Karma);
             return oasisAvatar;
@@ -356,14 +361,19 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             if (avatar.CreatedProviderType != null)
                 mongoAvatar.CreatedProviderType = avatar.CreatedProviderType.Value;
 
-            mongoAvatar.ParentId = avatar.ParentId;
-            mongoAvatar.Parent = avatar.Parent;
+            mongoAvatar.ChangesSaved = avatar.ChangesSaved;
+            mongoAvatar.ParentHolonId = avatar.ParentHolonId;
+            mongoAvatar.ParentHolon = avatar.ParentHolon;
             mongoAvatar.ParentZomeId = avatar.ParentZomeId;
             mongoAvatar.ParentZome = avatar.ParentZome;
             mongoAvatar.ParentStarId = avatar.ParentStarId;
             mongoAvatar.ParentStar = avatar.ParentStar;
-            mongoAvatar.ParentCelestialBodyId = avatar.ParentCelestialBodyId;
-            mongoAvatar.ParentCelestialBody = avatar.ParentCelestialBody;
+            mongoAvatar.ParentPlanetId = avatar.ParentPlanetId;
+            mongoAvatar.ParentPlanet = avatar.ParentPlanet;
+            mongoAvatar.ParentMoonId = avatar.ParentMoonId;
+            mongoAvatar.ParentMoon = avatar.ParentMoon;
+            //mongoAvatar.ParentCelestialBodyId = avatar.ParentCelestialBodyId;
+            //mongoAvatar.ParentCelestialBody = avatar.ParentCelestialBody;
             mongoAvatar.Children = avatar.Children;
             mongoAvatar.Nodes = avatar.Nodes;
 
@@ -437,14 +447,17 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             oasisHolon.HolonType = holon.HolonType;
             oasisHolon.CreatedProviderType = new Core.Helpers.EnumValue<ProviderType>(holon.CreatedProviderType);
 
-            oasisHolon.ParentId = holon.ParentId;
-            oasisHolon.Parent = holon.Parent;
+            oasisHolon.ChangesSaved = holon.ChangesSaved;
+            oasisHolon.ParentHolonId = holon.ParentHolonId;
+            oasisHolon.ParentHolon = holon.ParentHolon;
             oasisHolon.ParentZomeId = holon.ParentZomeId;
             oasisHolon.ParentZome = holon.ParentZome;
             oasisHolon.ParentStarId = holon.ParentStarId;
             oasisHolon.ParentStar = holon.ParentStar;
-            oasisHolon.ParentCelestialBodyId = holon.ParentCelestialBodyId;
-            oasisHolon.ParentCelestialBody = holon.ParentCelestialBody;
+            oasisHolon.ParentPlanetId = holon.ParentPlanetId;
+            oasisHolon.ParentPlanet = holon.ParentPlanet;
+            oasisHolon.ParentMoonId = holon.ParentMoonId;
+            oasisHolon.ParentMoon = holon.ParentMoon;
             oasisHolon.Children = holon.Children;
             oasisHolon.Nodes = holon.Nodes;
             
@@ -487,14 +500,17 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             if (holon.CreatedProviderType != null)
                 mongoHolon.CreatedProviderType = holon.CreatedProviderType.Value;
 
-            mongoHolon.ParentId = holon.ParentId;
-            mongoHolon.Parent = holon.Parent;
+            mongoHolon.ChangesSaved = holon.ChangesSaved;
+            mongoHolon.ParentHolonId = holon.ParentHolonId;
+            mongoHolon.ParentHolon = holon.ParentHolon;
             mongoHolon.ParentZomeId = holon.ParentZomeId;
             mongoHolon.ParentZome = holon.ParentZome;
             mongoHolon.ParentStarId = holon.ParentStarId;
             mongoHolon.ParentStar = holon.ParentStar;
-            mongoHolon.ParentCelestialBodyId = holon.ParentCelestialBodyId;
-            mongoHolon.ParentCelestialBody = holon.ParentCelestialBody;
+            mongoHolon.ParentPlanetId = holon.ParentPlanetId;
+            mongoHolon.ParentPlanet = holon.ParentPlanet;
+            mongoHolon.ParentMoonId = holon.ParentMoonId;
+            mongoHolon.ParentMoon = holon.ParentMoon;
             mongoHolon.Children = holon.Children;
             mongoHolon.Nodes = holon.Nodes;
 

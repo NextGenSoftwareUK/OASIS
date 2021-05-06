@@ -287,6 +287,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             avatar = SaveAvatar(avatar);
             sendVerificationEmail(avatar, origin);
             result.Result = RemoveAuthDetails(avatar);
+            result.IsSaved = true;
 
             return result;
         }
@@ -386,6 +387,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             catch (Exception ex)
             {
                 avatar = null;
+                LoggingManager.Log(string.Concat("Error loading avatar ", username, " for provider ", ProviderManager.CurrentStorageProviderType.Name, ". Error Message: ", ex.ToString()), LogType.Error);
             }
 
             if (avatar == null)
@@ -405,15 +407,21 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                             if (avatar != null)
                                 break;
                         }
-                        catch (Exception ex2)
+                        catch (Exception ex)
                         {
                             avatar = null;
-                            //If the next provider errors then just continue to the next provider.
+                            LoggingManager.Log(string.Concat("Error loading avatar ", username, " for provider ", ProviderManager.CurrentStorageProviderType.Name, ". Error Message: ", ex.ToString()), LogType.Error);
                         }
                     }
                 }
             }
             //   }
+
+            if (avatar == null)
+            {
+                string errorMessage = string.Concat("All registered OASIS Providers in the AutoFailOverList failed to load avatar, ", username, ". Please view the logs for more information. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString());
+                LoggingManager.Log(errorMessage, LogType.Error);
+            }
 
             // Set the current provider back to the original provider.
             if (needToChangeBack)
@@ -517,7 +525,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                                 if (avatar != null)
                                     break;
                             }
-                            catch (Exception ex2)
+                            catch (Exception ex)
                             {
                                 avatar = null;
                                 //If the next provider errors then just continue to the next provider.

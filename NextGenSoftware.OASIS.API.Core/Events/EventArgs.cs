@@ -1,7 +1,7 @@
-﻿using NextGenSoftware.OASIS.API.Core.Interfaces;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Text;
+using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 
 namespace NextGenSoftware.OASIS.API.Core.Events
 {

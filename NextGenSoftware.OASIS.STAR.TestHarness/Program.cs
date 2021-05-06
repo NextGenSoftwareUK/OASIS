@@ -38,9 +38,14 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
                 string cSharpGeneisFolder = "C:\\CODE\\Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK\\NextGenSoftware.OASIS.STAR.TestHarness\\bin\\Release\\net5.0\\Genesis\\CSharp";
                 string rustGenesisFolder = "C:\\CODE\\Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK\\NextGenSoftware.OASIS.STAR.TestHarness\\bin\\Release\\net5.0\\Genesis\\Rust";
 
-                // If you wish to change the default init options for STAR then manually call the Initialize method below, otherwise STAR will init with default options.
-                SuperStar.Initialize(InitOptions.InitWithCurrentDefaultProvider);
                 ShowHeader();
+
+                // If you wish to change the default init options for STAR then manually call the Initialize method below, otherwise STAR will init with default options.
+                ShowMessage("", false);
+                ShowWorkingMessage("Igniting Star...");
+                SuperStar.Initialize(InitOptions.InitWithCurrentDefaultProvider);
+                ShowSuccessMessage("STAR Ignited");
+
 
                 // TODO: Not sure what events should expose on Star, StarCore and HoloNETClient?
                 // I feel the events should at least be on the Star object, but then they need to be on the others to bubble them up (maybe could be hidden somehow?)
@@ -546,7 +551,7 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
 
             while (!validKey)
             {
-                ShowMessage("", false);
+                //ShowMessage("", false);
                 ShowMessage(message, true, true);
                 ConsoleKey key = Console.ReadKey().Key;
 
