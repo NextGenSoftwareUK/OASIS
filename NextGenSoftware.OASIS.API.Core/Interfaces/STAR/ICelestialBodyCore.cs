@@ -1,9 +1,9 @@
-﻿using NextGenSoftware.OASIS.API.Core.Helpers;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using static NextGenSoftware.OASIS.API.Core.Events.Events;
+using NextGenSoftware.OASIS.API.Core.Helpers;
 
-namespace NextGenSoftware.OASIS.API.Core.Interfaces
+namespace NextGenSoftware.OASIS.API.Core.Interfaces.STAR
 {
     public interface ICelestialBodyCore : IZome
     {

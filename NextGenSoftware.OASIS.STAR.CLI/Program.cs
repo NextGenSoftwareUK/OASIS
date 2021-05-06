@@ -1,4 +1,5 @@
-﻿using System;
+﻿using NextGenSoftware.OASIS.API.Core.Enums;
+using System;
 using System.Reflection;
 
 namespace NextGenSoftware.OASIS.STAR.CLI

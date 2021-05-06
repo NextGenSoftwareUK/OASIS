@@ -1,10 +1,10 @@
 ﻿
-using NextGenSoftware.OASIS.API.Core.Interfaces;
+//using NextGenSoftware.OASIS.API.Core.Interfaces;
 
-namespace NextGenSoftware.OASIS.STAR.Interfaces
-{
-    public interface IPlanetCore : ICelestialBodyCore
-    {
+//namespace NextGenSoftware.OASIS.STAR.Interfaces
+//{
+//    public interface IPlanetCore : ICelestialBodyCore
+//    {
 
-    }
-}
+//    }
+//}

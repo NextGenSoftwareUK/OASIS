@@ -11,6 +11,7 @@ using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Security;
 using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.EOSIOClasses;
+using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 
 namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
 {

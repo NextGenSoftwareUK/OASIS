@@ -1,8 +1,5 @@
-﻿using System;
-using System.Threading.Tasks;
-using NextGenSoftware.OASIS.API.Core.Enums;
-
-namespace NextGenSoftware.OASIS.API.Core.Interfaces
+﻿
+namespace NextGenSoftware.OASIS.API.Core.Interfaces.STAR
 {
     public interface IZome : IZomeBase
     {

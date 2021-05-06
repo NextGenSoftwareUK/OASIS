@@ -6,12 +6,12 @@ using NextGenSoftware.OASIS.API.Core.Events;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.DNA.Manager;
 
 namespace NextGenSoftware.OASIS.STAR.Zomes
 {
-    //public abstract class ZomeBase: Holon, IZome
     public abstract class ZomeBase : Holon, IZomeBase
     {
         private HolonManager _holonManager = new HolonManager(OASISDNAManager.GetAndActivateDefaultProvider());
@@ -95,8 +95,8 @@ namespace NextGenSoftware.OASIS.STAR.Zomes
                 // Now set its child holons parent ids.
                 foreach (IHolon holon in Holons)
                 {
-                    holon.ParentId = this.Id;
-                    holon.Parent = this;
+                    holon.ParentHolonId = this.Id;
+                    holon.ParentHolon = this;
                     holon.ParentZomeId = this.Id;
                     holon.ParentZome = (IZome)this;
                 }

@@ -20,8 +20,8 @@ using NextGenSoftware.OASIS.STAR.DNA;
 using NextGenSoftware.OASIS.STAR.OASISAPIManager;
 using NextGenSoftware.OASIS.STAR.Zomes;
 using NextGenSoftware.Holochain.HoloNET.Client.Core;
-using NextGenSoftware.OASIS.STAR.Interfaces;
 using NextGenSoftware.OASIS.STAR.ErrorEventArgs;
+using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 
 namespace NextGenSoftware.OASIS.STAR
 {
@@ -371,9 +371,16 @@ namespace NextGenSoftware.OASIS.STAR
                             zomeBufferCsharp = zomeBufferCsharp.Replace("{zome}", parts[6].ToSnakeCase());
                             zomeName = parts[6].ToPascalCase();
 
-                            //newBody.CelestialBody //TODO: Come back this, dont think should have CelestialBody.CelestialBody?
+                            currentZome = new Zome()
+                            {
+                                Name = zomeName,
+                                HolonType = HolonType.Zome,
+                                ParentHolonId = newBody.Id,
+                                ParentPlanetId = newBody.HolonType == HolonType.Planet ? newBody.Id : Guid.Empty,
+                                ParentMoonId = newBody.HolonType == HolonType.Moon ? newBody.Id : Guid.Empty
+                            };
 
-                            currentZome = new Zome() { Name = zomeName, HolonType = HolonType.Zome, ParentId = newBody.Id, ParentCelestialBodyId = newBody.Id };
+                            //currentZome = new Zome() { Name = zomeName, HolonType = HolonType.Zome, ParentId = newBody.Id, ParentCelestialBodyId = newBody.Id };
                             await newBody.CelestialBodyCore.AddZome(currentZome); //TODO: May need to save this once holons and nodes/fields have been added?
                         }
 
@@ -498,8 +505,16 @@ namespace NextGenSoftware.OASIS.STAR
                             }*/
 
                             // TODO: Current Zome Id will be empty here so need to save the zome before? (above when the zome is first created and added to the newBody zomes collection).
-                            //currentHolon = new Holon() { Name = holonName, HolonType = HolonType.Holon, Parent = currentZome, ParentId = currentZome.Id };
-                            currentHolon = new Holon() { Name = holonName, HolonType = HolonType.Holon, ParentId = currentZome.Id, ParentZomeId = currentZome.Id, ParentCelestialBodyId = newBody.Id };
+                            currentHolon = new Holon() 
+                            { 
+                                Name = holonName, 
+                                HolonType = HolonType.Holon, 
+                                ParentHolonId = currentZome.Id, 
+                                ParentZomeId = currentZome.Id, 
+                                ParentPlanetId = newBody.HolonType == HolonType.Planet ? newBody.Id : Guid.Empty, 
+                                ParentMoonId = newBody.HolonType == HolonType.Moon ? newBody.Id : Guid.Empty 
+                            };
+
                             currentZome.Holons.Add((Holon)currentHolon); 
 
                             holonName = holonName.ToSnakeCase();

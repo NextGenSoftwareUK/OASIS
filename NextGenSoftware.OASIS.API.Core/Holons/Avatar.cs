@@ -276,6 +276,22 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
             return ((IOASISStorage)ProviderManager.CurrentStorageProvider).SaveAvatar(this);
         }
 
+        public override bool HasHolonChanged()
+        {
+            if (Original != null)
+            {
+                if (((IAvatar)Original).DOB != DOB)
+                    return true;
+
+                if (((IAvatar)Original).Email != Email)
+                    return true;
+
+                //TODO: Finish this ASAP!
+            }
+
+            return base.HasHolonChanged();
+        }
+
         public Avatar()
         {
             this.HolonType = HolonType.Avatar;
