@@ -1,36 +1,33 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using System;
-using NextGenSoftware.OASIS.API.Core.Enums;
-using NextGenSoftware.OASIS.API.DNA;
-using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS;
-using NextGenSoftware.OASIS.API.Providers.SEEDSOASIS;
 using EOSNewYork.EOSCore.Response.API;
+using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.DNA.Manager;
+using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 {
     [ApiController]
-    [Route("api/eos")]
+    [Route("api/eosio")]
     public class EOSIOController : OASISControllerBase
     {
-        //TODO: Finish moving these to EOSOASIS and making the cache avatar lookups generic for all providers.
-        SEEDSOASIS _SEEDSOASIS = null;
+        EOSIOOASIS _EOSIOOASIS = null;
 
-        SEEDSOASIS SEEDSOASIS
+        EOSIOOASIS EOSIOOASIS
         {
             get
             {
-                if (_SEEDSOASIS == null)
-                    _SEEDSOASIS = new SEEDSOASIS((EOSIOOASIS)OASISDNAManager.GetAndActivateProvider(ProviderType.EOSIOOASIS));
+                if (_EOSIOOASIS == null)
+                    _EOSIOOASIS = (EOSIOOASIS)OASISDNAManager.GetAndActivateProvider(ProviderType.EOSIOOASIS);
 
-                return _SEEDSOASIS;
+                return _EOSIOOASIS;
             }
         }
 
         public EOSIOController()
         {
-            //_settings = OASISSettings.Value;
-        }
 
+        }
 
         /// <summary>
         /// Get's the EOSIO account name for the given Avatar.
@@ -41,7 +38,19 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpGet("GetEOSIOAccountNameForAvatar")]
         public ActionResult<string> GetEOSIOAccountNameForAvatar(Guid avatarId)
         {
-            return Ok(SEEDSOASIS.EOSIOOASIS.GetEOSIOAccountNameForAvatar(avatarId));
+            return Ok(EOSIOOASIS.GetEOSIOAccountNameForAvatar(avatarId));
+        }
+
+        /// <summary>
+        /// Get's the EOSIO private key for the given Avatar.
+        /// </summary>
+        /// <param name="avatarId"></param>
+        /// <returns></returns>
+        [Authorize]
+        [HttpGet("GetEOSIOAccounPrivateKeyForAvatar")]
+        public ActionResult<string> GetTelosAccounPrivateKeyForAvatar(Guid avatarId)
+        {
+            return Ok(EOSIOOASIS.GetEOSIOAccountPrivateKeyForAvatar(avatarId));
         }
 
         /// <summary>
@@ -53,7 +62,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpGet("GetEOSIOAccount")]
         public ActionResult<Account> GetEOSIOAccount(string eosioAccountName)
         {
-            return Ok(SEEDSOASIS.EOSIOOASIS.GetEOSIOAccount(eosioAccountName));
+            return Ok(EOSIOOASIS.GetEOSIOAccount(eosioAccountName));
         }
 
         /// <summary>
@@ -65,7 +74,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpGet("GetEOSIOAccountForAvatar")]
         public ActionResult<Account> GetEOSIOAccountForAvatar(Guid avatarId)
         {
-            return Ok(SEEDSOASIS.EOSIOOASIS.GetEOSIOAccountForAvatar(avatarId));
+            return Ok(EOSIOOASIS.GetEOSIOAccountForAvatar(avatarId));
         }
 
         /// <summary>
@@ -77,7 +86,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpGet("GetAvatarIdForEOSIOAccountName")]
         public ActionResult<string> GetAvatarIdForEOSIOAccountName(string eosioAccountName)
         {
-            return Ok(SEEDSOASIS.EOSIOOASIS.GetAvatarIdForEOSIOAccountName(eosioAccountName));
+            return Ok(EOSIOOASIS.GetAvatarIdForEOSIOAccountName(eosioAccountName));
         }
 
         /// <summary>
@@ -89,32 +98,35 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpGet("GetAvatarForEOSIOAccountName")]
         public ActionResult<string> GetAvatarForEOSIOAccountName(string eosioAccountName)
         {
-            return Ok(SEEDSOASIS.EOSIOOASIS.GetAvatarForEOSIOAccountName(eosioAccountName));
+            return Ok(EOSIOOASIS.GetAvatarForEOSIOAccountName(eosioAccountName));
         }
 
         /// <summary>
         /// Get's the EOSIO balance for the given EOSIO account.
         /// </summary>
         /// <param name="eosioAccountName"></param>
+        /// <param name="code"></param>
+        /// <param name="symbol"></param>
         /// <returns></returns>
         [Authorize]
         [HttpGet("GetBalanceForEOSIOAccount")]
-        public ActionResult<string> GetBalanceForEOSIOAccount(string eosioAccountName)
+        public ActionResult<string> GetBalanceForEOSIOAccount(string eosioAccountName, string code, string symbol)
         {
-            return Ok();
-           // return Ok(SEEDSOASIS.GetBalanceForEOSAccount(eosAccountName));
+            return Ok(EOSIOOASIS.GetBalanceForEOSIOAccount(eosioAccountName, code, symbol));
         }
 
         /// <summary>
         /// Get's the EOSIO balance for the given avatar.
         /// </summary>
         /// <param name="avatarId"></param>
+        /// <param name="code"></param>
+        /// <param name="symbol"></param>
         /// <returns></returns>
         [Authorize]
         [HttpGet("GetBalanceForAvatar")]
-        public ActionResult<string> GetBalanceForAvatar(Guid avatarId)
+        public ActionResult<string> GetBalanceForAvatar(Guid avatarId, string code, string symbol)
         {
-            return Ok(SEEDSOASIS.GetBalanceForAvatar(avatarId));
+            return Ok(EOSIOOASIS.GetBalanceForAvatar(avatarId, code, symbol));
         }
 
         /// <summary>
@@ -125,9 +137,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpPost("{avatarId}/{eosioAccountName}")]
-        public IActionResult LinkEOSAccountToAvatar(Guid avatarId, string eosioAccountName)
+        public IActionResult LinkEOSIOAccountToAvatar(Guid avatarId, string eosioAccountName)
         {
-            return Ok(Program.AvatarManager.LinkEOSIOAccountToAvatar(avatarId, eosioAccountName));
+            //return Ok(Program.AvatarManager.LinkEOSIOAccountToAvatar(avatarId, eosioAccountName));
+            return Ok(Program.AvatarManager.LinkProviderKeyToAvatar(avatarId, ProviderType.EOSIOOASIS, eosioAccountName));
         }
     }
 }

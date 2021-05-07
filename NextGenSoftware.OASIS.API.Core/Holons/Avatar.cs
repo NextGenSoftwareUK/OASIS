@@ -2,7 +2,6 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
@@ -23,12 +22,28 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
             }
         }
 
-        public string Username { get; set; } //TODO: Might get rid of this and use Avatar.Name instead (from base Holon)? Would that be confusing?
+        public new string Name
+        {
+            get
+            {
+                return FullName;
+            }
+        }
+
+        //TODO: Think best to encrypt these?
+        public Dictionary<ProviderType, string> ProviderPrivateKey { get; set; } = new Dictionary<ProviderType, string>();  //Unique private key used by each provider (part of private/public key pair).
+        public Dictionary<ProviderType, string> ProviderPublicKey { get; set; } = new Dictionary<ProviderType, string>();  
+        public Dictionary<ProviderType, string> ProviderUsername { get; set; } = new Dictionary<ProviderType, string>();  // This is only really needed when we need to store BOTH a id and username for a provider (ProviderKey on Holon already stores either id/username etc).
+       // public Dictionary<ProviderType, string> ProviderId { get; set; } = new Dictionary<ProviderType, string>(); // The ProviderKey property on the base Holon object can store ids, usernames, etc that uniqueliy identity that holon in the provider (although the Guid is globally unique we still need to map the Holons the unique id/username/etc for each provider).
+        public Dictionary<ProviderType, string> ProviderWalletAddress { get; set; } = new Dictionary<ProviderType, string>();  
+        public string Username { get; set; } 
         public string Password { get; set; }
         public string Email { get; set; }
         public string Title { get; set; }
         public string FirstName { get; set; }
         public string LastName { get; set; }
+        public ConsoleColor FavouriteColour { get; set; }
+        public ConsoleColor STARCLIColour { get; set; }
         public string FullName
         {
             get
@@ -45,8 +60,23 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
         public string Mobile { get; set; }
         public string Landline { get; set; }
         public EnumValue<AvatarType> AvatarType { get; set; }
+        public EnumValue<OASISType> CreatedOASISType { get; set; }
         // public int Karma { get; private set; }
         public int Karma { get; set; } //TODO: This really needs to have a private setter but in the HoloOASIS provider it needs to copy the object along with each property... would prefer another work around if possible?
+        public int XP { get; set; }
+        public List<AvatarGift> Gifts { get; set; } = new List<AvatarGift>();
+        //public List<Chakra> Chakras { get; set; }
+        public AvatarChakras Chakras { get; set; } = new AvatarChakras();
+        public AvatarAura Aura { get; set; } = new AvatarAura();
+        public AvatarStats Stats { get; set; } = new AvatarStats();
+        public List<GeneKey> GeneKeys { get; set; } = new List<GeneKey>();
+        public HumanDesign HumanDesign { get; set; } = new HumanDesign();
+        public AvatarSkills Skills { get; set; } = new AvatarSkills();
+        public AvatarAttributes Attributes { get; set; } = new AvatarAttributes();
+        public AvatarSuperPowers SuperPowers { get; set; } = new AvatarSuperPowers();
+        public List<Spell> Spells { get; set; } = new List<Spell>();
+        public List<Achievement> Achievements { get; set; } = new List<Achievement>();
+        public List<InventoryItem> Inventory { get; set; } = new List<InventoryItem>();
         public int Level
         {
             get
@@ -244,6 +274,22 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
         public IAvatar Save()
         {
             return ((IOASISStorage)ProviderManager.CurrentStorageProvider).SaveAvatar(this);
+        }
+
+        public override bool HasHolonChanged()
+        {
+            if (Original != null)
+            {
+                if (((IAvatar)Original).DOB != DOB)
+                    return true;
+
+                if (((IAvatar)Original).Email != Email)
+                    return true;
+
+                //TODO: Finish this ASAP!
+            }
+
+            return base.HasHolonChanged();
         }
 
         public Avatar()

@@ -7,24 +7,23 @@
   <ItemGroup>
     <None Remove="appsettings.Development.json" />
     <None Remove="CelestialBodyDNA.json" />
-    <None Remove="DNA\STAR_DNA.json" />
     <None Remove="OASIS_DNA.json" />
     <None Remove="STAR_DNA.json" />
   </ItemGroup>
 
   <ItemGroup>
     <Content Include="DNA\OASIS_DNA.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
     </Content>
     <Content Include="DNA\CelestialBodyDNA.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
     </Content>
     <Content Include="DNA\STAR_DNA.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
     </Content>
@@ -32,18 +31,21 @@
 
   <ItemGroup>
     <ProjectReference Include="..\NextGenSoftware.OASIS.API.Config\NextGenSoftware.OASIS.API.DNA.csproj" />
+    <ProjectReference Include="..\NextGenSoftware.OASIS.API.Config\NextGenSoftware.OASIS.API.DNA.Manager.csproj" />
     <ProjectReference Include="..\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj" />
-    <ProjectReference Include="..\NextGenSoftware.OASIS.API.OASISAPIManager\NextGenSoftware.OASIS.API.OASISAPIManager.csproj" />
+    <ProjectReference Include="..\NextGenSoftware.OASIS.API.DNA.Manager\NextGenSoftware.OASIS.API.DNA.Manager.csproj" />
+    <ProjectReference Include="..\NextGenSoftware.OASIS.API.DNA\NextGenSoftware.OASIS.API.DNA.csproj" />
+    <ProjectReference Include="..\NextGenSoftware.OASIS.API.OASISAPIManager\NextGenSoftware.OASIS.API.Manager.csproj" />
     <ProjectReference Include="..\NextGenSoftware.OASIS.API.Providers.SEEDSOASIS\NextGenSoftware.OASIS.API.Providers.SEEDSOASIS.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Update="CSharpDNATemplates\ZomeTemplate.cs">
+    <Compile Update="DNATemplates\CSharpDNATemplates\ZomeTemplate.cs">
       <DependentUpon>ZomeTemplate.tt</DependentUpon>
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
     </Compile>
-    <Compile Update="NETHDKEFModel.cs">
+    <Compile Update="EntityFramework\NETHDKEFModel.cs">
       <DependentUpon>NETHDKEFModel.tt</DependentUpon>
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
@@ -51,11 +53,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="CSharpDNATemplates\ZomeTemplate.tt">
+    <None Update="DNATemplates\CSharpDNATemplates\ZomeTemplate.tt">
       <LastGenOutput>ZomeTemplate.cs</LastGenOutput>
       <Generator>TextTemplatingFileGenerator</Generator>
     </None>
-    <None Update="NETHDKEFModel.tt">
+    <None Update="EntityFramework\NETHDKEFModel.tt">
       <LastGenOutput>NETHDKEFModel.cs</LastGenOutput>
       <Generator>TextTemplatingFileGenerator</Generator>
     </None>
@@ -66,10 +68,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="RustDNATemplates\RSM\" />
+    <Folder Include="DNATemplates\RustDNATemplates\RSM\" />
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.2.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="5.0.3" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="5.0.3">
       <PrivateAssets>all</PrivateAssets>

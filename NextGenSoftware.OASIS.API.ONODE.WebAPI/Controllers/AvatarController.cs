@@ -8,6 +8,7 @@ using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Interfaces;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Models;
+using NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Avatar;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Security;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
@@ -256,27 +257,30 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 
 
         /// <summary>
-        /// Verify a newly created avatar by passing in the validation token sent in the verify email.
+        /// Verify a newly created avatar by passing in the validation token sent in the verify email. This method is used by the link in the email.
         /// </summary>
         /// <param name="model"></param>
         /// <returns></returns>
         [HttpGet("verify-email")]
         public IActionResult VerifyEmail(string token)
         {
-            _avatarService.VerifyEmail(token);
-            return Ok(new { message = "Verification successful, you can now login" });
+            OASISResult<bool> result = _avatarService.VerifyEmail(token);
+
+            if (result.Result)
+                return Ok(new { message = "Verification successful, you can now login" });
+            else
+                return Ok(new { message = result.ErrorMessage });
         }
 
         /// <summary>
-        /// Verify a newly created avatar by passing in the validation token sent in the verify email.
+        /// Verify a newly created avatar by passing in the validation token sent in the verify email. This method is used by the REST API or other methods that need to POST the data rather than GET.
         /// </summary>
         /// <param name="model"></param>
         /// <returns></returns>
         [HttpPost("verify-email")]
         public IActionResult VerifyEmail(VerifyEmailRequest model)
         {
-            _avatarService.VerifyEmail(model.Token);
-            return Ok(new { message = "Verification successful, you can now login" });
+            return VerifyEmail(model.Token); 
         }
 
         /// <summary>
@@ -655,6 +659,19 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             GetAndActivateProvider(providerType, setGlobally);
             return Delete(id);
         }
+       
+        /// <summary>
+        /// Link's a given telosAccount to the given avatar.
+        /// </summary>
+        /// <param name="avatarId">The id of the avatar.</param>
+        /// <param name="telosAccountName"></param>
+        /// <returns></returns>
+        [Authorize]
+        [HttpPost("{avatarId:Guid}/{telosAccountName}")]
+        public IActionResult LinkTelosAccountToAvatar(Guid avatarId, string telosAccountName)
+        {
+            return Ok(AvatarManager.LinkProviderKeyToAvatar(avatarId, ProviderType.TelosOASIS, telosAccountName));
+        }
 
         /// <summary>
         /// Link's a given telosAccount to the given avatar.
@@ -663,11 +680,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <param name="telosAccountName"></param>
         /// <returns></returns>
         [Authorize]
-        [HttpPost("{avatarId}/{telosAccountName}")]
-        public IActionResult LinkTelosAccountToAvatar(Guid avatarId, string telosAccountName)
+        [HttpPost()]
+        public IActionResult LinkTelosAccountToAvatar2(LinkProviderKeyToAvatar linkProviderKeyToAvatar)
         {
-            return Ok(AvatarManager.LinkTelosAccountToAvatar(avatarId, telosAccountName));
+            return Ok(AvatarManager.LinkProviderKeyToAvatar(linkProviderKeyToAvatar.AvatarID, ProviderType.TelosOASIS, linkProviderKeyToAvatar.ProviderKey));
         }
+
 
         /// <summary>
         /// Link's a given eosioAccountName to the given avatar.
@@ -679,9 +697,86 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpPost("{avatarId}/{eosioAccountName}")]
         public IActionResult LinkEOSIOAccountToAvatar(Guid avatarId, string eosioAccountName)
         {
-            return Ok(AvatarManager.LinkEOSIOAccountToAvatar(avatarId, eosioAccountName));
+            return Ok(AvatarManager.LinkProviderKeyToAvatar(avatarId, ProviderType.EOSIOOASIS, eosioAccountName));
         }
 
+        /// <summary>
+        /// Link's a given holochain AgentID to the given avatar.
+        /// </summary>
+        /// <param name="avatarId">The id of the avatar.</param>
+        /// <param name="holochainAgentID"></param>
+        /// <returns></returns>
+        [Authorize]
+        [HttpPost("{avatarId}/{holochainAgentID}")]
+        public IActionResult LinkHolochainAgentIDToAvatar(Guid avatarId, string holochainAgentID)
+        {
+            return Ok(AvatarManager.LinkProviderKeyToAvatar(avatarId, ProviderType.HoloOASIS, holochainAgentID));
+        }
+
+        ///// <summary>
+        ///// Get's the provider key for the given avatar and provider type.
+        ///// </summary>
+        ///// <param name="avatarId">The id of the avatar.</param>
+        ///// <param name="providerType">The provider type.</param>
+        ///// <returns></returns>
+        //[Authorize]
+        //[HttpPost("{avatarId}")]
+        //public IActionResult GetProviderKeyForAvatar(Guid avatarId, ProviderType providerType)
+        //{
+        //    return Ok(AvatarManager.GetProviderKeyForAvatar(avatarId, providerType));
+        //}
+
+        /// <summary>
+        /// Get's the provider key for the given avatar and provider type.
+        /// </summary>
+        /// <param name="avatarUsername">The avatar username.</param>
+        /// <param name="providerType">The provider type.</param>
+        /// <returns></returns>
+        [Authorize]
+        [HttpPost("{avatarUsername}/{providerType}")]
+        public IActionResult GetProviderKeyForAvatar(string avatarUsername, ProviderType providerType)
+        {
+            return Ok(AvatarManager.GetProviderKeyForAvatar(avatarUsername, providerType));
+        }
+
+        /// <summary>
+        /// Get's the private provider key for the given avatar and provider type.
+        /// </summary>
+        /// <param name="avatarId">The id of the avatar.</param>
+        /// <param name="providerType">The id of the avatar.</param>
+        /// <returns></returns>
+        [Authorize]
+       [HttpPost("{avatarId}/{providerType}")]
+       public IActionResult GetPrivateProviderKeyForAvatar(Guid avatarId, ProviderType providerType)
+       {
+           return Ok(AvatarManager.GetPrivateProviderKeyForAvatar(avatarId, providerType));
+       }
+
+        /*
+       /// <summary>
+       /// Get's all the provider keys for the given avatar.
+       /// </summary>
+       /// <param name="avatarId">The id of the avatar.</param>
+       /// <returns></returns>
+       [Authorize]
+       [HttpPost("{avatarId}")]
+       public IActionResult GetAllProviderKeysForAvatar(Guid avatarId)
+       {
+           return Ok(AvatarManager.GetAllProviderKeysForAvatar(avatarId));
+       }
+
+       /// <summary>
+       /// Get's all the private provider keys for the given avatar.
+       /// </summary>
+       /// <param name="avatarId">The id of the avatar.</param>
+       /// <returns></returns>
+       [Authorize]
+       [HttpPost("{avatarId}")]
+       public IActionResult GetAllPrivateProviderKeysForAvatar(Guid avatarId)
+       {
+           return Ok(AvatarManager.GetAllPrivateProviderKeysForAvatar(avatarId));
+       }*/
+    
         private void setTokenCookie(string token)
         {
             var cookieOptions = new CookieOptions

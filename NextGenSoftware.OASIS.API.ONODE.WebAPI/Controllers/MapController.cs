@@ -19,7 +19,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
     {
         private MapManager _mapManager;
 
-        public MapController(IOptions<OASISDNA> OASISSettings) : base(OASISSettings)
+        public MapController()
         {
 
         }

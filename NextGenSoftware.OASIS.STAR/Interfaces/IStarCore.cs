@@ -1,15 +1,17 @@
-﻿using System.Collections.Generic;
-using System.Threading.Tasks;
+﻿//using NextGenSoftware.OASIS.API.Core.Helpers;
+//using NextGenSoftware.OASIS.API.Core.Interfaces;
+//using System.Collections.Generic;
+//using System.Threading.Tasks;
 
-namespace NextGenSoftware.OASIS.STAR
-{
-    public interface IStarCore
-    {
-        IStar Star { get; set; }
+//namespace NextGenSoftware.OASIS.STAR.Interfaces
+//{
+//    public interface IStarCore : ICelestialBodyCore
+//    {
+//        IStar Star { get; set; }
 
-        Task<IPlanet> AddPlanetAsync(IPlanet planet);
-       // Task<IStar> AddStarAsync(IStar star);
-        Task<List<IPlanet>> GetPlanets();
-      //  Task<List<IStar>> GetStars();
-    }
-}
+//        Task<OASISResult<IPlanet>> AddPlanetAsync(IPlanet planet);
+//       // Task<IStar> AddStarAsync(IStar star);
+//        Task<List<IPlanet>> GetPlanets();
+//      //  Task<List<IStar>> GetStars();
+//    }
+//}

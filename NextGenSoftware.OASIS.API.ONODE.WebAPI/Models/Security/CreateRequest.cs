@@ -1,4 +1,4 @@
-using NextGenSoftware.OASIS.API.Core;
+using NextGenSoftware.OASIS.API.Core.Enums;
 using System.ComponentModel.DataAnnotations;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Security
@@ -29,5 +29,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Security
         [Required]
         [Compare("Password")]
         public string ConfirmPassword { get; set; }
+
+        public OASISType CreatedOASISType { get; set; } = OASISType.OASISAPIREST;
     }
 }
