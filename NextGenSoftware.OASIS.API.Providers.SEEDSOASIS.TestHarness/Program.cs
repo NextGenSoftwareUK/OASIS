@@ -3,7 +3,7 @@ using EOSNewYork.EOSCore.Response.API;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Managers;
-using NextGenSoftware.OASIS.API.DNA;
+using NextGenSoftware.OASIS.API.DNA.Manager;
 using NextGenSoftware.OASIS.API.Providers.SEEDSOASIS.Membranes;
 
 namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS.TestHarness
@@ -12,10 +12,11 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS.TestHarness
     {
         static void Main(string[] args)
         {
+            string privateKey = ""; //Set to privatekey when testing BUT remember to remove again before checking in code! Better to use avatar methods so private key is retreived from avatar and then no need to pass them in.
             Console.WriteLine("NEXTGEN SOFTWARE SEEDSOASIS TEST HARNESS V1.2");
             Console.WriteLine("");
 
-            SEEDSOASIS seedsOASIS = new SEEDSOASIS(new EOSIOOASIS.EOSIOOASIS("https://node.hypha.earth"));
+            SEEDSOASIS seedsOASIS = new SEEDSOASIS(new TelosOASIS.TelosOASIS("https://node.hypha.earth"));
 
             // Will initialize the default OASIS Provider defined OASIS_DNA config file.
             OASISDNAManager.GetAndActivateDefaultProvider(); //TODO: TEMP - Take out once EOSIOOASIS has rest of AvatarManager methods implemented.
@@ -29,12 +30,12 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS.TestHarness
             Console.WriteLine(string.Concat("Balance: ", balance));
 
             Console.WriteLine("Getting Account for account davidsellams...");
-            Account account = seedsOASIS.EOSIOOASIS.GetEOSIOAccount("davidsellams");
+            Account account = seedsOASIS.TelosOASIS.GetTelosAccount("davidsellams");
             Console.WriteLine(string.Concat("Account.account_name: ", account.account_name));
             Console.WriteLine(string.Concat("Account.created: ", account.created_datetime.ToString()));
 
             Console.WriteLine("Getting Account for account nextgenworld...");
-            account = seedsOASIS.EOSIOOASIS.GetEOSIOAccount("nextgenworld");
+            account = seedsOASIS.TelosOASIS.GetTelosAccount("nextgenworld");
             Console.WriteLine(string.Concat("Account.account_name: ", account.account_name));
             Console.WriteLine(string.Concat("Account.created: ", account.created_datetime.ToString()));
 
@@ -43,10 +44,10 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS.TestHarness
 
             // Check that the Telos account name is linked to the avatar and link it if it is not (PayWithSeeds will fail if it is not linked when it tries to add the karma points).
             if (!avatar.ProviderKey.ContainsKey(Core.Enums.ProviderType.TelosOASIS))
-                avatarManager.LinkTelosAccountToAvatar(avatar.Id, "davidsellams");
+                avatarManager.LinkProviderKeyToAvatar(avatar.Id, Core.Enums.ProviderType.TelosOASIS, "davidsellams");
 
             Console.WriteLine("Sending SEEDS from nextgenworld to davidsellams...");
-            OASISResult<string> result = seedsOASIS.PayWithSeedsUsingTelosAccount("davidsellams", "nextgenworld", 1, Core.Enums.KarmaSourceType.API, "test", "test", "test", "test memo");
+            OASISResult<string> result = seedsOASIS.PayWithSeedsUsingTelosAccount("davidsellams", privateKey, "nextgenworld",  1, Core.Enums.KarmaSourceType.API, "test", "test", "test", "test memo");
             Console.WriteLine(string.Concat("Success: ", result.IsError ? "false" : "true"));
 
             if (result.IsError)
@@ -75,7 +76,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS.TestHarness
             Console.WriteLine(string.Concat("SEEDS Sign-In QRCode: ", qrCode));
 
             Console.WriteLine("Sending invite to davidsellams...");
-            OASISResult<SendInviteResult> sendInviteResult = seedsOASIS.SendInviteToJoinSeedsUsingTelosAccount("davidsellams", "davidsellams",1 , 1, Core.Enums.KarmaSourceType.API, "test", "test", "test");
+            OASISResult<SendInviteResult> sendInviteResult = seedsOASIS.SendInviteToJoinSeedsUsingTelosAccount("davidsellams", privateKey, "davidsellams",1 , 1, Core.Enums.KarmaSourceType.API, "test", "test", "test");
             Console.WriteLine(string.Concat("Success: ", sendInviteResult.IsError ? "false" : "true"));
 
             if (sendInviteResult.IsError)

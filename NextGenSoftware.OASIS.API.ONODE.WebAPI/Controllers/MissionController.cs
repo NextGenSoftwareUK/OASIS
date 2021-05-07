@@ -1,8 +1,6 @@
 ﻿using System;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Options;
-using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
@@ -30,7 +28,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             }
         }
 
-        public MissionController(IOptions<OASISDNA> OASISSettings) : base(OASISSettings)
+        public MissionController()
         {
 
         }

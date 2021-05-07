@@ -17,6 +17,8 @@ using NextGenSoftware.OASIS.API.ONODE.WebAPI.Interfaces;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Security;
 using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.DNA;
+using NextGenSoftware.OASIS.API.Core.Helpers;
+using NextGenSoftware.OASIS.API.DNA.Manager;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
 {
@@ -56,6 +58,15 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
 
         public AuthenticateResponse Authenticate(AuthenticateRequest model, string ipAddress)
         {
+            //OASISResult<IAvatar> result = AvatarManager.Authenticate(model.Email, model.Password, ipAddress, _OASISDNA.OASIS.Security.Secret);
+            OASISResult<IAvatar> result = AvatarManager.Authenticate(model.Email, model.Password, ipAddress);
+
+            if (!result.IsError)
+                return new AuthenticateResponse() { Message = "Avatar Successfully Authenticated.", Avatar = result.Result };
+            else
+                return new AuthenticateResponse() { Message = result.ErrorMessage, IsError = true };
+
+            /*
             //IAvatar avatar = AvatarManager.LoadAvatar(model.Email, setGlobally);
             IAvatar avatar = AvatarManager.LoadAvatar(model.Email);
 
@@ -93,6 +104,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
 
             //TODO: Get Async working!
             return new AuthenticateResponse() { Message = "Avatar Successfully Authenticated.", Avatar = RemoveAuthDetails(AvatarManager.SaveAvatar(avatar)) };
+            */
         }
 
         //public AuthenticateResponse RefreshToken(string token, string ipAddress)
@@ -130,6 +142,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
 
         public IAvatar Register(RegisterRequest model, string origin)
         {
+             if (string.IsNullOrEmpty(origin))
+                 origin = Program.CURRENT_OASISAPI; 
+
+            return AvatarManager.Register(model.Title, model.FirstName, model.LastName, model.Email, model.Password, (AvatarType)Enum.Parse(typeof(AvatarType), model.AvatarType), origin, model.CreatedOASISType).Result;
+
+            /*
             IEnumerable<IAvatar> avatars = AvatarManager.LoadAllAvatars();
 
             //TODO: {PERFORMANCE} Add this method to the providers so more efficient.
@@ -173,10 +191,14 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
             sendVerificationEmail(avatar, origin);
 
             return RemoveAuthDetails(avatar);
+            */
         }
 
-        public void VerifyEmail(string token)
+        public OASISResult<bool> VerifyEmail(string token)
         {
+            return AvatarManager.VerifyEmail(token);
+
+            /*
             //var account = _context.Accounts.SingleOrDefault(x => x.VerificationToken == token);
 
             //TODO: PERFORMANCE} Implement in Providers so more efficient and do not need to return whole list!
@@ -188,8 +210,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
             avatar.VerificationToken = null;
 
             AvatarManager.SaveAvatar(avatar);
-           //_context.Accounts.Update(account);
-           // _context.SaveChanges();
+            //_context.Accounts.Update(account);
+            // _context.SaveChanges();
+            */
         }
 
         public void ForgotPassword(ForgotPasswordRequest model, string origin)
@@ -370,10 +393,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
             return (refreshToken, avatar);
         }
 
+        //TODO: Finish moving everything into AvatarManager.
         private string generateJwtToken(IAvatar account)
         {
             var tokenHandler = new JwtSecurityTokenHandler();
-            var key = Encoding.ASCII.GetBytes(_OASISDNA.OASIS.Secret);
+            var key = Encoding.ASCII.GetBytes(_OASISDNA.OASIS.Security.Secret);
             var tokenDescriptor = new SecurityTokenDescriptor
             {
                 Subject = new ClaimsIdentity(new[] { new Claim("id", account.Id.ToString()) }),
@@ -415,56 +439,56 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
             return BitConverter.ToString(randomBytes).Replace("-", "");
         }
 
-        private void sendVerificationEmail(IAvatar avatar, string origin)
-        {
-            string message;
+        //private void sendVerificationEmail(IAvatar avatar, string origin)
+        //{
+        //    string message;
 
-            if (string.IsNullOrEmpty(origin))
-                origin = Program.CURRENT_OASISAPI;
+        //    if (string.IsNullOrEmpty(origin))
+        //        origin = Program.CURRENT_OASISAPI;
 
-            if (!string.IsNullOrEmpty(origin))
-            {
-                var verifyUrl = $"{origin}/avatar/verify-email?token={avatar.VerificationToken}";
-                message = $@"<p>Please click the below link to verify your email address:</p>
-                             <p><a href=""{verifyUrl}"">{verifyUrl}</a></p>";
-            }
-            else
-            {
-                message = $@"<p>Please use the below token to verify your email address with the <code>/avatar/verify-email</code> api route:</p>
-                             <p><code>{avatar.VerificationToken}</code></p>";
-            }
+        //    if (!string.IsNullOrEmpty(origin))
+        //    {
+        //        var verifyUrl = $"{origin}/avatar/verify-email?token={avatar.VerificationToken}";
+        //        message = $@"<p>Please click the below link to verify your email address:</p>
+        //                     <p><a href=""{verifyUrl}"">{verifyUrl}</a></p>";
+        //    }
+        //    else
+        //    {
+        //        message = $@"<p>Please use the below token to verify your email address with the <code>/avatar/verify-email</code> api route:</p>
+        //                     <p><code>{avatar.VerificationToken}</code></p>";
+        //    }
 
-            _emailService.Send(
-                to: avatar.Email,
-                subject: "OASIS Sign-up Verification - Verify Email",
-                //html: $@"<h4>Verify Email</h4>
-                html: $@"<h4>Verify Email</h4>
-                         <p>Thanks for registering!</p>
-                         <p>Welcome to the OASIS!</p>
-                         <p>Ready Player One?</p>
-                         {message}"
-            );
-        }
+        //    _emailService.Send(
+        //        to: avatar.Email,
+        //        subject: "OASIS Sign-up Verification - Verify Email",
+        //        //html: $@"<h4>Verify Email</h4>
+        //        html: $@"<h4>Verify Email</h4>
+        //                 <p>Thanks for registering!</p>
+        //                 <p>Welcome to the OASIS!</p>
+        //                 <p>Ready Player One?</p>
+        //                 {message}"
+        //    );
+        //}
 
-        private void sendAlreadyRegisteredEmail(string email, string origin)
-        {
-            if (string.IsNullOrEmpty(origin))
-                origin = Program.CURRENT_OASISAPI;
+        //private void sendAlreadyRegisteredEmail(string email, string origin)
+        //{
+        //    if (string.IsNullOrEmpty(origin))
+        //        origin = Program.CURRENT_OASISAPI;
 
-            string message;
-            if (!string.IsNullOrEmpty(origin))
-                message = $@"<p>If you don't know your password please visit the <a href=""{origin}/avatar/forgot-password"">forgot password</a> page.</p>";
-            else
-                message = "<p>If you don't know your password you can reset it via the <code>/avatar/forgot-password</code> api route.</p>";
+        //    string message;
+        //    if (!string.IsNullOrEmpty(origin))
+        //        message = $@"<p>If you don't know your password please visit the <a href=""{origin}/avatar/forgot-password"">forgot password</a> page.</p>";
+        //    else
+        //        message = "<p>If you don't know your password you can reset it via the <code>/avatar/forgot-password</code> api route.</p>";
 
-            _emailService.Send(
-                to: email,
-                subject: "OASIS Sign-up Verification - Email Already Registered",
-                html: $@"<h4>Email Already Registered</h4>
-                         <p>Your email <strong>{email}</strong> is already registered.</p>
-                         {message}"
-            );
-        }
+        //    _emailService.Send(
+        //        to: email,
+        //        subject: "OASIS Sign-up Verification - Email Already Registered",
+        //        html: $@"<h4>Email Already Registered</h4>
+        //                 <p>Your email <strong>{email}</strong> is already registered.</p>
+        //                 {message}"
+        //    );
+        //}
 
         private void sendPasswordResetEmail(IAvatar avatar, string origin)
         {

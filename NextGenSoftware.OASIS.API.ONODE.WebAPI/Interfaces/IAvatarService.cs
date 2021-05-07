@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Security;
 
@@ -12,7 +13,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Interfaces
         IAvatar RefreshToken(string token, string ipAddress);
         void RevokeToken(string token, string ipAddress);
         IAvatar Register(RegisterRequest model, string origin);
-        void VerifyEmail(string token);
+        OASISResult<bool> VerifyEmail(string token);
         void ForgotPassword(ForgotPasswordRequest model, string origin);
         void ValidateResetToken(ValidateResetTokenRequest model);
         void ResetPassword(ResetPasswordRequest model);

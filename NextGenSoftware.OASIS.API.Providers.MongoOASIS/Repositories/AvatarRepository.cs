@@ -65,7 +65,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
                 Avatar avatar = await _dbContext.Avatar.Find(filter).FirstOrDefaultAsync();
                 return avatar;
             }
-            catch
+            catch (Exception ex)
             {
                 throw;
             }

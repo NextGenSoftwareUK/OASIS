@@ -1,10 +1,9 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using System;
-using NextGenSoftware.OASIS.API.Core.Enums;
-using NextGenSoftware.OASIS.API.DNA;
-using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS;
-using NextGenSoftware.OASIS.API.Providers.SEEDSOASIS;
 using EOSNewYork.EOSCore.Response.API;
+using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.Providers.TelosOASIS;
+using NextGenSoftware.OASIS.API.DNA.Manager;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 {
@@ -12,25 +11,23 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
     [Route("api/telos")]
     public class TelosController : OASISControllerBase
     {
-        //TODO: Finish moving these to TelosOASIS and making the cache avatar lookups generic for all providers.
-        SEEDSOASIS _SEEDSOASIS = null;
+        TelosOASIS _telosOASIS = null;
 
-        SEEDSOASIS SEEDSOASIS
+        TelosOASIS TelosOASIS
         {
             get
             {
-                if (_SEEDSOASIS == null)
-                    _SEEDSOASIS = new SEEDSOASIS((EOSIOOASIS)OASISDNAManager.GetAndActivateProvider(ProviderType.EOSIOOASIS));
+                if (_telosOASIS == null)
+                    _telosOASIS = (TelosOASIS)OASISDNAManager.GetAndActivateProvider(ProviderType.TelosOASIS);
 
-                return _SEEDSOASIS;
+                return _telosOASIS;
             }
         }
 
         public TelosController()
         {
-            //_settings = OASISSettings.Value;
-        }
 
+        }
 
         /// <summary>
         /// Get's the Telos account name for the given Avatar.
@@ -41,7 +38,19 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpGet("GetTelosAccountNameForAvatar")]
         public ActionResult<string> GetTelosAccountNameForAvatar(Guid avatarId)
         {
-            return Ok(SEEDSOASIS.EOSIOOASIS.GetEOSIOAccountNameForAvatar(avatarId));
+            return Ok(TelosOASIS.GetTelosAccountNameForAvatar(avatarId));
+        }
+
+        /// <summary>
+        /// Get's the Telos private key for the given Avatar.
+        /// </summary>
+        /// <param name="avatarId"></param>
+        /// <returns></returns>
+        [Authorize]
+        [HttpGet("GetTelosAccounPrivateKeyForAvatar")]
+        public ActionResult<string> GetTelosAccounPrivateKeyForAvatar(Guid avatarId)
+        {
+            return Ok(TelosOASIS.GetTelosAccountPrivateKeyForAvatar(avatarId));
         }
 
         /// <summary>
@@ -53,7 +62,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpGet("GetTelosAccount")]
         public ActionResult<Account> GetTelosAccount(string telosAccountName)
         {
-            return Ok(SEEDSOASIS.EOSIOOASIS.GetEOSIOAccount(telosAccountName));
+            return Ok(TelosOASIS.GetTelosAccount(telosAccountName));
         }
 
         /// <summary>
@@ -65,7 +74,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpGet("GetTelosAccountForAvatar")]
         public ActionResult<Account> GetTelosAccountForAvatar(Guid avatarId)
         {
-            return Ok(SEEDSOASIS.EOSIOOASIS.GetEOSIOAccountForAvatar(avatarId));
+            return Ok(TelosOASIS.GetTelosAccountForAvatar(avatarId));
         }
 
         /// <summary>
@@ -77,7 +86,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpGet("GetAvatarIdForTelosAccountName")]
         public ActionResult<string> GetAvatarIdForTelosAccountName(string telosAccountName)
         {
-            return Ok(SEEDSOASIS.EOSIOOASIS.GetAvatarIdForEOSIOAccountName(telosAccountName));
+            return Ok(TelosOASIS.GetAvatarIdForTelosAccountName(telosAccountName));
         }
 
         /// <summary>
@@ -89,31 +98,35 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpGet("GetAvatarForTelosAccountName")]
         public ActionResult<string> GetAvatarForTelosAccountName(string telosAccountName)
         {
-            return Ok(SEEDSOASIS.EOSIOOASIS.GetAvatarForEOSIOAccountName(telosAccountName));
+            return Ok(TelosOASIS.GetAvatarForTelosAccountName(telosAccountName));
         }
 
         /// <summary>
         /// Get's the Telos balance for the given Telos account.
         /// </summary>
         /// <param name="telosAccountName"></param>
+        /// <param name="code"></param>
+        /// <param name="symbol"></param>
         /// <returns></returns>
         [Authorize]
         [HttpGet("GetBalanceForTelosAccount")]
-        public ActionResult<string> GetBalanceForTelosAccount(string telosAccountName)
+        public ActionResult<string> GetBalanceForTelosAccount(string telosAccountName, string code, string symbol)
         {
-            return Ok(SEEDSOASIS.GetBalanceForTelosAccount(telosAccountName));
+            return Ok(TelosOASIS.GetBalanceForTelosAccount(telosAccountName, code, symbol));
         }
 
         /// <summary>
         /// Get's the Telos balance for the given avatar.
         /// </summary>
         /// <param name="avatarId"></param>
+        /// <param name="code"></param>
+        /// <param name="symbol"></param>
         /// <returns></returns>
         [Authorize]
         [HttpGet("GetBalanceForAvatar")]
-        public ActionResult<string> GetBalanceForAvatar(Guid avatarId)
+        public ActionResult<string> GetBalanceForAvatar(Guid avatarId, string code, string symbol)
         {
-            return Ok(SEEDSOASIS.GetBalanceForAvatar(avatarId));
+            return Ok(TelosOASIS.GetBalanceForAvatar(avatarId, code, symbol));
         }
 
         /// <summary>
@@ -126,7 +139,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpPost("{avatarId}/{telosAccountName}")]
         public IActionResult LinkTelosAccountToAvatar(Guid avatarId, string telosAccountName)
         {
-            return Ok(Program.AvatarManager.LinkTelosAccountToAvatar(avatarId, telosAccountName));
+            return Ok(Program.AvatarManager.LinkProviderKeyToAvatar(avatarId, ProviderType.TelosOASIS, telosAccountName));
         }
     }
 }

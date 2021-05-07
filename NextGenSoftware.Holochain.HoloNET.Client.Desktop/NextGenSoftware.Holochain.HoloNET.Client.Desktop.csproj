@@ -5,6 +5,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="C:\Users\david\.nuget\packages\nlog.config\4.6.3\contentFiles\any\any\NLog.config" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="NLog" Version="4.6.3" />
     <PackageReference Include="NLog.Config" Version="4.6.3" />
   </ItemGroup>

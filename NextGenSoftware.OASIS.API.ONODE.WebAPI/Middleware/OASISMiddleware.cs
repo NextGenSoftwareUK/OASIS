@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Http;
 using System.Threading.Tasks;
-using NextGenSoftware.OASIS.API.DNA;
+using NextGenSoftware.OASIS.API.DNA.Manager;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Middleware
 {

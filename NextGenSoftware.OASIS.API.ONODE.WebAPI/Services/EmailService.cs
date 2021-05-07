@@ -2,7 +2,7 @@ using MailKit.Net.Smtp;
 using MailKit.Security;
 using MimeKit;
 using MimeKit.Text;
-using NextGenSoftware.OASIS.API.DNA;
+using NextGenSoftware.OASIS.API.DNA.Manager;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
 {

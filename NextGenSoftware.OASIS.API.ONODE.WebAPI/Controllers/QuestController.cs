@@ -1,8 +1,6 @@
-﻿using Microsoft.AspNetCore.Cors;
+﻿using System;
+using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Options;
-using System;
-using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Managers;
@@ -30,7 +28,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             }
         }
 
-        public QuestController(IOptions<OASISDNA> OASISSettings) : base(OASISSettings)
+        public QuestController() : base()
         {
 
         }

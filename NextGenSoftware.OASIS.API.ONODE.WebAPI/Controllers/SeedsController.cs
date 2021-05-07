@@ -1,10 +1,10 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using System;
-using NextGenSoftware.OASIS.API.Core.Enums;
-using NextGenSoftware.OASIS.API.DNA;
-using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS;
-using NextGenSoftware.OASIS.API.Providers.SEEDSOASIS;
 using EOSNewYork.EOSCore.Response.API;
+using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.DNA.Manager;
+using NextGenSoftware.OASIS.API.Providers.SEEDSOASIS;
+using NextGenSoftware.OASIS.API.Providers.TelosOASIS;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Models;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
@@ -19,8 +19,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         {
             get
             {
+                // TODO: Currently SEEDSOASIS is injected in with a TelosOASIS provider with a SEEDS connectionstring and will unregister the TelosOASIS Provider first if it is already registered so it uses the SEEDS connection string instead.
+                // Not sure if we want SEEDSOASIS to use its own seperate private instance of the TelosOASIS provider using the SEEDS connection string allowing others to use the existing TelosOASIS Provider on the default Telos connectionstring?
+                // If that is the case then uncomment the bottom line and comment the top line.
                 if (_SEEDSOASIS == null)
-                    _SEEDSOASIS = new SEEDSOASIS((EOSIOOASIS)OASISDNAManager.GetAndActivateProvider(ProviderType.EOSIOOASIS));
+                    _SEEDSOASIS = new SEEDSOASIS((TelosOASIS)OASISDNAManager.GetAndActivateProvider(ProviderType.TelosOASIS, OASISDNAManager.OASISDNA.OASIS.StorageProviders.SEEDSOASIS.ConnectionString, true));
+                    //_SEEDSOASIS = new SEEDSOASIS(new TelosOASIS(OASISDNAManager.OASISDNA.OASIS.StorageProviders.SEEDSOASIS.ConnectionString));
 
                 return _SEEDSOASIS;
             }
@@ -51,7 +55,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpPost("PayWithSeedsUsingTelosAccount")]
         public ActionResult<string> PayWithSeedsUsingTelosAccount(PayWithSeedsUsingTelosAccountRequest request)
         {
-            return Ok(SEEDSOASIS.PayWithSeedsUsingTelosAccount(request.FromTelosAccountName, request.ToTelosAccountName, request.Quanitity, request.ReceivingKarmaFor, request.AppWebsiteServiceName, request.AppWebsiteServiceDesc, request.AppWebsiteServiceWebLink, request.Memo));
+            return Ok(SEEDSOASIS.PayWithSeedsUsingTelosAccount(request.FromTelosAccountName, request.FromTelosAccountPrivateKey, request.ToTelosAccountName, request.Quanitity, request.ReceivingKarmaFor, request.AppWebsiteServiceName, request.AppWebsiteServiceDesc, request.AppWebsiteServiceWebLink, request.Memo));
         }
 
         /// <summary>
@@ -75,7 +79,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpPost("RewardWithSeedsUsingTelosAccount")]
         public ActionResult<string> RewardWithSeedsUsingTelosAccount(PayWithSeedsUsingTelosAccountRequest request)
         {
-            return Ok(SEEDSOASIS.RewardWithSeedsUsingTelosAccount(request.FromTelosAccountName, request.ToTelosAccountName, request.Quanitity, request.ReceivingKarmaFor, request.AppWebsiteServiceName, request.AppWebsiteServiceDesc, request.AppWebsiteServiceWebLink, request.Memo));
+            return Ok(SEEDSOASIS.RewardWithSeedsUsingTelosAccount(request.FromTelosAccountName, request.FromTelosAccountPrivateKey, request.ToTelosAccountName, request.Quanitity, request.ReceivingKarmaFor, request.AppWebsiteServiceName, request.AppWebsiteServiceDesc, request.AppWebsiteServiceWebLink, request.Memo));
         }
 
         /// <summary>
@@ -99,7 +103,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpPost("DonateWithSeedsUsingTelosAccount")]
         public ActionResult<string> DonateWithSeedsUsingTelosAccount(PayWithSeedsUsingTelosAccountRequest request)
         {
-            return Ok(SEEDSOASIS.RewardWithSeedsUsingTelosAccount(request.FromTelosAccountName, request.ToTelosAccountName, request.Quanitity, request.ReceivingKarmaFor, request.AppWebsiteServiceName, request.AppWebsiteServiceDesc, request.AppWebsiteServiceWebLink, request.Memo));
+            return Ok(SEEDSOASIS.RewardWithSeedsUsingTelosAccount(request.FromTelosAccountName, request.FromTelosAccountPrivateKey, request.ToTelosAccountName, request.Quanitity, request.ReceivingKarmaFor, request.AppWebsiteServiceName, request.AppWebsiteServiceDesc, request.AppWebsiteServiceWebLink, request.Memo));
         }
 
         /// <summary>
@@ -123,7 +127,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpPost("SendInviteToJoinSeedsUsingTelosAccount")]
         public ActionResult<string> SendInviteToJoinSeedsUsingTelosAccount(SendInviteToJoinSeedsUsingTelosAccountRequest request)
         {
-            return Ok(SEEDSOASIS.SendInviteToJoinSeedsUsingTelosAccount(request.SponsorTelosAccountName, request.RefererTelosAccountName, request.TransferQuanitity, request.SowQuanitity, request.ReceivingKarmaFor, request.AppWebsiteServiceName, request.AppWebsiteServiceDesc, request.AppWebsiteServiceWebLink));
+            return Ok(SEEDSOASIS.SendInviteToJoinSeedsUsingTelosAccount(request.SponsorTelosAccountName, request.SponsorTelosAccountPrivateKey, request.RefererTelosAccountName, request.TransferQuanitity, request.SowQuanitity, request.ReceivingKarmaFor, request.AppWebsiteServiceName, request.AppWebsiteServiceDesc, request.AppWebsiteServiceWebLink));
         }
 
         /// <summary>
@@ -171,7 +175,19 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpGet("GetTelosAccountNameForAvatar")]
         public ActionResult<string> GetTelosAccountNameForAvatar(Guid avatarId)
         {
-            return Ok(SEEDSOASIS.EOSIOOASIS.GetEOSIOAccountNameForAvatar(avatarId));
+            return Ok(SEEDSOASIS.TelosOASIS.GetTelosAccountNameForAvatar(avatarId));
+        }
+
+        /// <summary>
+        /// Get's the Telos account name for the given Avatar.
+        /// </summary>
+        /// <param name="avatarId"></param>
+        /// <returns></returns>
+        [Authorize]
+        [HttpGet("GetTelosAccountPrivateKeyForAvatar")]
+        public ActionResult<string> GetTelosAccountPrivateKeyForAvatar(Guid avatarId)
+        {
+            return Ok(SEEDSOASIS.TelosOASIS.GetTelosAccountPrivateKeyForAvatar(avatarId));
         }
 
         /// <summary>
@@ -183,7 +199,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpGet("GetTelosAccount")]
         public ActionResult<Account> GetTelosAccount(string telosAccountName)
         {
-            return Ok(SEEDSOASIS.EOSIOOASIS.GetEOSIOAccount(telosAccountName));
+            return Ok(SEEDSOASIS.TelosOASIS.GetTelosAccount(telosAccountName));
         }
 
         /// <summary>
@@ -195,7 +211,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpGet("GetTelosAccountForAvatar")]
         public ActionResult<Account> GetTelosAccountForAvatar(Guid avatarId)
         {
-            return Ok(SEEDSOASIS.EOSIOOASIS.GetEOSIOAccountForAvatar(avatarId));
+            return Ok(SEEDSOASIS.TelosOASIS.GetTelosAccountForAvatar(avatarId));
         }
 
         /// <summary>
@@ -207,7 +223,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpGet("GetAvatarIdForTelosAccountName")]
         public ActionResult<string> GetAvatarIdForTelosAccountName(string telosAccountName)
         {
-            return Ok(SEEDSOASIS.EOSIOOASIS.GetAvatarIdForEOSIOAccountName(telosAccountName));
+            return Ok(SEEDSOASIS.TelosOASIS.GetAvatarIdForTelosAccountName(telosAccountName));
         }
 
         /// <summary>
@@ -219,7 +235,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpGet("GetAvatarForTelosAccountName")]
         public ActionResult<string> GetAvatarForTelosAccountName(string telosAccountName)
         {
-            return Ok(SEEDSOASIS.EOSIOOASIS.GetAvatarForEOSIOAccountName(telosAccountName));
+            return Ok(SEEDSOASIS.TelosOASIS.GetAvatarForTelosAccountName(telosAccountName));
         }
 
         /// <summary>

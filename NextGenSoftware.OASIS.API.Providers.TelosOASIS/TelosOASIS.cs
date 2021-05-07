@@ -1,26 +1,41 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-
+using EOSNewYork.EOSCore.Response.API;
 using NextGenSoftware.OASIS.API.Core;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.Core.Managers;
 
 namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS
 {
     public class TelosOASIS : OASISStorageBase, IOASISStorage, IOASISNET
     {
-        //private static Dictionary<Guid, string> _avatarIdToTelosAccountNameLookup = new Dictionary<Guid, string>();
-        //private static Dictionary<Guid, Account> _avatarIdToTelosAccountLookup = new Dictionary<Guid, Account>();
-        //private static Dictionary<string, Guid> _telosAccountNameToAvatarIdLookup = new Dictionary<string, Guid>();
-        //private static Dictionary<string, IAvatar> _telosAccountNameToAvatarLookup = new Dictionary<string, IAvatar>();
+        private static Dictionary<Guid, Account> _avatarIdToTelosAccountLookup = new Dictionary<Guid, Account>();
+        private AvatarManager _avatarManager = null;
 
-        public TelosOASIS()
+        public EOSIOOASIS.EOSIOOASIS EOSIOOASIS { get; set; }
+
+        public TelosOASIS(string host)
         {
             this.ProviderName = "TelosOASIS";
             this.ProviderDescription = "Telos Provider";
             this.ProviderType = new API.Core.Helpers.EnumValue<ProviderType>(API.Core.Enums.ProviderType.TelosOASIS);
             this.ProviderCategory = new Core.Helpers.EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
+
+            EOSIOOASIS = new EOSIOOASIS.EOSIOOASIS(host);
+        }
+
+        private AvatarManager AvatarManagerInstance
+        {
+            get
+            {
+                if (_avatarManager == null)
+                    _avatarManager = new AvatarManager(ProviderManager.GetStorageProvider(Core.Enums.ProviderType.MongoDBOASIS));
+                    //_avatarManager = new AvatarManager(this); // TODO: URGENT: PUT THIS BACK IN ASAP! TEMP USING MONGO UNTIL EOSIO/Telos METHODS IMPLEMENTED...
+
+                return _avatarManager;
+            }
         }
 
         public override bool DeleteAvatar(Guid id, bool softDelete = true)
@@ -208,8 +223,6 @@ namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS
             throw new NotImplementedException();
         }
 
-
-        /*
         public async Task<Account> GetTelosAccountAsync(string telosAccountName)
         {
             var account = await EOSIOOASIS.ChainAPI.GetAccountAsync(telosAccountName);
@@ -222,46 +235,34 @@ namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS
             return account;
         }
 
-        public async Task<string> GetBalanceAsync(string telosAccountName)
+        public async Task<string> GetBalanceAsync(string telosAccountName, string code, string symbol)
         {
-            //var currencyBalance = await EOSIOOASIS.ChainAPI.GetCurrencyBalanceAsync(telosAccountName, "seeds.seeds", "SEEDS");
-            //var currencyBalance = await EOSIOOASIS.ChainAPI.GetCurrencyBalanceAsync(telosAccountName, "token.seeds", "SEEDS");
-            //return currencyBalance.balances[0];
-
-            return await EOSIOOASIS.GetBalanceAsync(telosAccountName, "token.seeds", "SEEDS");
+            return await EOSIOOASIS.GetBalanceAsync(telosAccountName, code, symbol);
         }
 
-        public string GetBalanceForTelosAccount(string telosAccountName)
+        public string GetBalanceForTelosAccount(string telosAccountName, string code, string symbol)
         {
-            //https://github.com/JoinSEEDS/seeds-smart-contracts/blob/master/scripts/balancecheck.js
-            //eos.getCurrencyBalance("token.seeds", account, 'SEEDS')
-
-            // var currencyBalance = EOSIOOASIS.ChainAPI.GetCurrencyBalance(telosAccountName, "token.seeds", "SEEDS");
-            //return currencyBalance.balances[0];
-
-            return EOSIOOASIS.GetBalanceForEOSAccount(telosAccountName, "token.seeds", "SEEDS");
+            return EOSIOOASIS.GetBalanceForEOSIOAccount(telosAccountName, code, symbol);
         }
 
-        public string GetBalanceForAvatar(Guid avatarId)
+        public string GetBalanceForAvatar(Guid avatarId, string code, string symbol)
         {
-            //return GetBalanceForTelosAccount(GetTelosAccountNameForAvatar(avatarId));
-            return EOSIOOASIS.GetBalanceForAvatar(avatarId, "token.seeds", "SEEDS");
+            return EOSIOOASIS.GetBalanceForAvatar(avatarId, code, symbol);
         }
-
-
-        // TODO: URGENT - NEED TO MOVE THESE TO THE TELOSOASIS PROVIDER (EOSOASIS is a different chain so the account names will be different so cant use the EOS methods as SEEDSOASIS currently does).
-        // Need to make these cache lookups generic for all OASIS Providers, sort this ASAP! ;-)
 
         public string GetTelosAccountNameForAvatar(Guid avatarId)
         {
-            if (!_avatarIdToTelosAccountNameLookup.ContainsKey(avatarId))
-                _avatarIdToTelosAccountNameLookup[avatarId] = AvatarManagerInstance.LoadAvatar(avatarId).ProviderKey[Core.Enums.ProviderType.TelosOASIS];
+            return AvatarManagerInstance.GetProviderKeyForAvatar(avatarId, Core.Enums.ProviderType.TelosOASIS);
+        }
 
-            return _avatarIdToTelosAccountNameLookup[avatarId];
+        public string GetTelosAccountPrivateKeyForAvatar(Guid avatarId)
+        {
+            return AvatarManagerInstance.GetPrivateProviderKeyForAvatar(avatarId, Core.Enums.ProviderType.TelosOASIS);
         }
 
         public Account GetTelosAccountForAvatar(Guid avatarId)
         {
+            //TODO: Do we need to cache this?
             if (!_avatarIdToTelosAccountLookup.ContainsKey(avatarId))
                 _avatarIdToTelosAccountLookup[avatarId] = GetTelosAccount(GetTelosAccountNameForAvatar(avatarId));
 
@@ -270,19 +271,12 @@ namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS
 
         public Guid GetAvatarIdForTelosAccountName(string telosAccountName)
         {
-            if (!_telosAccountNameToAvatarIdLookup.ContainsKey(telosAccountName))
-                _telosAccountNameToAvatarIdLookup[telosAccountName] = AvatarManagerInstance.LoadAllAvatars().FirstOrDefault(x => x.ProviderKey[Core.Enums.ProviderType.TelosOASIS] == telosAccountName).Id;
-
-            return _telosAccountNameToAvatarIdLookup[telosAccountName];
+            return AvatarManagerInstance.GetAvatarIdForProviderKey(telosAccountName, Core.Enums.ProviderType.TelosOASIS);
         }
 
         public IAvatar GetAvatarForTelosAccountName(string telosAccountName)
         {
-            if (!_telosAccountNameToAvatarLookup.ContainsKey(telosAccountName))
-                _telosAccountNameToAvatarLookup[telosAccountName] = AvatarManagerInstance.LoadAllAvatars().FirstOrDefault(x => x.ProviderKey[Core.Enums.ProviderType.TelosOASIS] == telosAccountName);
-
-            return _telosAccountNameToAvatarLookup[telosAccountName];
+            return AvatarManagerInstance.GetAvatarForProviderKey(telosAccountName, Core.Enums.ProviderType.TelosOASIS);
         }
-        */
     }
 }

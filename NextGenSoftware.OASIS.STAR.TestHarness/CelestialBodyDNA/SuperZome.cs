@@ -1,4 +1,6 @@
 ﻿
+using NextGenSoftware.OASIS.STAR.DNA;
+
 namespace NextGenSoftware.OASIS.STAR.TestHarness.DNA
 {
     //TODO: Replace base class with attribute.
