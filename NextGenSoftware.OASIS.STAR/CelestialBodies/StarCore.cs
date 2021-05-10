@@ -82,7 +82,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
                 this.Star.Planets = new List<IPlanet>();
 
             this.Star.Planets.Add(planet);
-            result = await this.Star.Save();
+            result = await this.Star.SaveAsync();
 
             // TODO: This will only work if the planet names are unique (which we want to enforce anyway!) - need to add this soon!
             IPlanet savedPlanet = this.Star.Planets.FirstOrDefault(x => x.Name == planet.Name);

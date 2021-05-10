@@ -9,6 +9,7 @@ namespace NextGenSoftware.OASIS.API.Core.Helpers
         public bool IsError { get; set; }
         public bool IsSaved { get; set; }
         public string ErrorMessage { get; set; }
+        public string Message { get; set; }
         public T Result { get; set; }
 
         public OASISResult()

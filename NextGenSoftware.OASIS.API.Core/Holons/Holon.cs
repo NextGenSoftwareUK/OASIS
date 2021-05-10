@@ -112,7 +112,7 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
             }
             //TODO: Finish this ASAP!
 
-            return false;
+            return Id == Guid.Empty;
         }
     }
 }

@@ -16,6 +16,7 @@ namespace NextGenSoftware.OASIS.API.Core.Enums
         TrainStation,
         UndergroundStation,
         BusStation,
+        SuperStar,
         Star,
         Planet,
         Moon,
