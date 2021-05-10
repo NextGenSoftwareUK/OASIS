@@ -43,7 +43,7 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
                 // If you wish to change the default init options for STAR then manually call the Initialize method below, otherwise STAR will init with default options.
                 ShowMessage("", false);
                 ShowWorkingMessage("Igniting Star...");
-                SuperStar.Initialize(InitOptions.InitWithCurrentDefaultProvider);
+                await SuperStar.IgniteSuperStarAsync(InitOptions.InitWithCurrentDefaultProvider);
                 ShowSuccessMessage("STAR Ignited");
 
 
@@ -81,7 +81,7 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
         {
             // Create Planet (OAPP) by generating dynamic template/scaffolding code.
             ShowWorkingMessage("Generating Planet Our World...");
-            CoronalEjection result = SuperStar.Light(GenesisType.Planet, "Our World", dnaFolder, cSharpGeneisFolder, rustGenesisFolder, "NextGenSoftware.Holochain.HoloNET.HDK.Core.TestHarness.Genesis").Result;
+            CoronalEjection result = SuperStar.LightAsync(GenesisType.Planet, "Our World", dnaFolder, cSharpGeneisFolder, rustGenesisFolder, "NextGenSoftware.Holochain.HoloNET.HDK.Core.TestHarness.Genesis").Result;
 
             if (result.ErrorOccured)
                 ShowErrorMessage(string.Concat(" ERROR OCCURED. Error Message: ", result.Message));
@@ -844,12 +844,18 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
 
             while (beamInResult == null || (beamInResult != null && beamInResult.IsError))
             {
+                //TODO: TEMP - PUT BACK IN WHEN GOING LIVE!
+                /*
                 ShowMessage("Please login below:");
                 string username = GetValidEmail("Username/Email? ", false);
                 string password = ReadPassword("Password? ");
                 ShowWorkingMessage("Beaming In...");
                 beamInResult = SuperStar.BeamIn(username, password);
-                // beamInResult = SuperStar.BeamIn("davidellams@hotmail.com", "my-super-secret-password");
+                */
+
+                ShowWorkingMessage("Beaming In...");
+                //beamInResult = SuperStar.BeamIn("davidellams@hotmail.com", "my-super-secret-password");
+                beamInResult = SuperStar.BeamIn("davidellams@hotmail.com", "test");
                 ShowMessage("");
 
                 if (beamInResult.IsError)

@@ -115,7 +115,14 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
             LoadZomes();
         }
 
-        public async Task<OASISResult<ICelestialBody>> Save()
+       //public OASISResult<ICelestialBody> Save()
+       //{
+
+       //}
+
+     //  private OASISResult<ICelestialBody> 
+
+        public async Task<OASISResult<ICelestialBody>> SaveAsync()
         {
             OASISResult<ICelestialBody> result = new OASISResult<ICelestialBody>();
             OASISResult<IHolon> celestialBodyHolonResult = new OASISResult<IHolon>();
@@ -128,6 +135,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
             {
                 result.Result = this;
                 result.IsSaved = false;
+                result.Message = "No changes need saving";
                 return result;
             }
 
@@ -178,7 +186,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
             {
                 foreach (Planet planet in ((IStar)this).Planets)
                 {
-                    result = await planet.Save(); // TODO: Think we need to save again even if id is not null just in case its children have changed since last time it was saved?
+                    result = await planet.SaveAsync(); // TODO: Think we need to save again even if id is not null just in case its children have changed since last time it was saved?
 
                     if (result.IsError)
                         return result;
@@ -194,7 +202,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
                 {
                     foreach (Moon moon in ((IPlanet)this).Moons)
                     {
-                        result = await moon.Save();
+                        result = await moon.SaveAsync();
 
                         if (result.IsError)
                             return result;

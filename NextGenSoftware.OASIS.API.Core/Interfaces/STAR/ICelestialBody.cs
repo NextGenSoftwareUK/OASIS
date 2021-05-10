@@ -50,7 +50,7 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces.STAR
         void Mutate();
         void Radiate();
         void Reflect();
-        Task<OASISResult<ICelestialBody>> Save();
+        Task<OASISResult<ICelestialBody>> SaveAsync();
         //Task<IHolon> SaveHolonAsync(string rustHolonType, IHolon savingHolon);
         //abstract Task<IHolon> SaveHolonAsync(IHolon savingHolon);
         void Seed();

@@ -44,7 +44,7 @@ namespace NextGenSoftware.OASIS.STAR
             }
         }
 
-        public static bool IsInitialized 
+        public static bool IsSuperStarIgnited
         { 
             get
             {
@@ -97,13 +97,80 @@ namespace NextGenSoftware.OASIS.STAR
         public delegate void DataReceived(object sender, DataReceivedEventArgs e);
         public static event DataReceived OnDataReceived;
 
-        public static void Initialize()
+        public static OASISResult<ICelestialBody> IgniteSuperStar()
         {
-            Initialize(InitOptions.InitWithCurrentDefaultProvider);
+            return IgniteSuperStar(InitOptions.InitWithCurrentDefaultProvider);
         }
 
-        public static void Initialize(InitOptions OASISAPIInitOptions, string STARDNAPath = STAR_DNA_DEFAULT_PATH, string OASISDNAPath = OASIS_DNA_DEFAULT_PATH, Dictionary<ProviderType, string> starProviderKey = null)
+        public static async Task<OASISResult<ICelestialBody>> IgniteSuperStarAsync()
         {
+            return await IgniteSuperStarAsync(InitOptions.InitWithCurrentDefaultProvider);
+        }
+
+        public static OASISResult<ICelestialBody> IgniteSuperStar(InitOptions OASISAPIInitOptions, string STARDNAPath = STAR_DNA_DEFAULT_PATH, string OASISDNAPath = OASIS_DNA_DEFAULT_PATH, Dictionary<ProviderType, string> starProviderKey = null)
+        {
+            OASISResult<ICelestialBody> result = new OASISResult<ICelestialBody>();
+
+            // If you wish to change the logging framework from the default (NLog) then set it below (or just change in OASIS_DNA - prefered way)
+            //LoggingManager.CurrentLoggingFramework = LoggingFramework.NLog;
+
+            if (File.Exists(STARDNAPath))
+                LoadDNA();
+            else
+            {
+                STARDNA = new STARDNA();
+                SaveDNA();
+            }
+
+            ValidateSTARDNA(STARDNA);
+
+            SuperStar.OASISDNAPath = OASISDNAPath;
+            //By default the OASISDNAManager will load the settings from OASIS_DNA.json in the current working dir but you can override using below:
+            OASISDNAManager.OASISDNAFileName = SuperStar.OASISDNAPath;
+            OASISDNAManager.GetAndActivateDefaultProvider(); //TODO: May move this method into OASISAPI below?
+
+            if (string.IsNullOrEmpty(STARDNA.OASISProviders))
+            {
+                // Will initialize the default OASIS Provider defined OASIS_DNA config file.
+                OASISAPI.Init(OASISAPIInitOptions, OASISDNAManager.OASISDNA);
+            }
+            else
+            {
+                string[] parts = STARDNA.OASISProviders.Split(',');
+
+                List<ProviderType> providerTypes = new List<ProviderType>();
+                foreach (string part in parts)
+                    providerTypes.Add((ProviderType)Enum.Parse(typeof(ProviderType), part));
+
+                //TODO: Finish! ;-)
+                //OASISAPI.Init(providerTypes, OASISDNAManager.OASISDNA);
+            }
+
+
+           // if (starProviderKey == null)
+            //    starProviderId = STARDNA.StarProviderId
+
+            //SuperStarCore = new SuperStarCore(starProviderKey);
+            InnerStar = new Star(starProviderKey);
+
+            if (InnerStar.Id == Guid.Empty)
+            {
+                //TODO: Implement Save method (non async version) and call instead of below:
+                result = InnerStar.SaveAsync().Result;
+
+                if (!result.IsError && result.IsSaved)
+                    result.Message = "SuperSTAR Ignited";
+            }
+            else
+                result.Message = "SuperSTAR Ignited";
+
+            WireUpEvents();
+            return result;
+        }
+
+        public static async Task<OASISResult<ICelestialBody>> IgniteSuperStarAsync(InitOptions OASISAPIInitOptions, string STARDNAPath = STAR_DNA_DEFAULT_PATH, string OASISDNAPath = OASIS_DNA_DEFAULT_PATH, Dictionary<ProviderType, string> starProviderKey = null)
+        {
+            OASISResult<ICelestialBody> result = new OASISResult<ICelestialBody>();
             // If you wish to change the logging framework from the default (NLog) then set it below (or just change in OASIS_DNA - prefered way)
             //LoggingManager.CurrentLoggingFramework = LoggingFramework.NLog;
 
@@ -125,12 +192,36 @@ namespace NextGenSoftware.OASIS.STAR
 
             ValidateSTARDNA(STARDNA);
 
-            if (starProviderKey == null)
-                starProviderKey = STARDNA.StarProviderKey;
+        //    if (starProviderId == null)
+           //     starProviderId = STARDNA.StarProviderId;
 
             SuperStarCore = new SuperStarCore(starProviderKey);
             InnerStar = new Star(starProviderKey);
 
+            if (InnerStar.Id == Guid.Empty)
+            {
+                // TODO: May possibly have one SuperStar per Provider Type? Or list of ProviderTypes? People can host whichever provider(s) they wish as a ONODE. Each ONODE will be a SuperStar, which can choose which Glaxies/Provider Types to host. Therefore the entire ONET (OASIS Network) is the distributed de-centralised network of SuperStars/Galaxies forming the OASIS Universe or OASIS meta-verse/magicverse. :)
+                InnerStar.Name = "SuperStar";
+                InnerStar.Description = "SuperStar at the centre of a Galaxy. Can create other stars, planets (Super OAPPS) and moons (OAPPS)";
+                InnerStar.HolonType = HolonType.SuperStar;
+                result = await InnerStar.SaveAsync();
+
+                if (!result.IsError && result.IsSaved)
+                {
+                    result.Message = "SuperSTAR Ignited";
+                    STARDNA.StarProviderId = InnerStar.Id; //TODO: May just store this internally by adding a LoadSuperStar method which would call LoadHolon passing in HolonType SuperStar (depends if if there will be more than one SuperStar in future? ;-) ) Maybe for distributing so can easier handle load? It's one SuperStar per Galaxy so could have more than one Galaxy? So The OASIS and COSMIC would be a full Universe with multiple Galaxies with their own SuperStar in the centre... ;-) YES! But would we need a GrandSuperStar then? For the centre of the Universe? Which will connect to other Universes and creates SuperStars? Or could a SuperStar just create other SuperStars? :) Yes think better to just for now allow SuperStar to create other SuperStars... ;-)
+                    //STARDNA.StarProviderKey = InnerStar.ProviderKey[ProviderManager.CurrentStorageProviderType.Value]
+                }
+            }
+            else
+                result.Message = "SuperSTAR Ignited";
+
+            WireUpEvents();
+            return result;
+        }
+
+        private static void WireUpEvents()
+        {
             SuperStarCore.OnHolonLoaded += SuperStarCore_OnHolonLoaded;
             SuperStarCore.OnHolonSaved += SuperStarCore_OnHolonSaved;
             SuperStarCore.OnHolonsLoaded += SuperStarCore_OnHolonsLoaded;
@@ -165,11 +256,11 @@ namespace NextGenSoftware.OASIS.STAR
 
         public static async Task<OASISResult<IAvatar>> BeamInAsync(string username, string password)
         {
-            string hostName = Dns.GetHostName();  
-            string IPAddress = Dns.GetHostByName(hostName).AddressList[0].ToString();
+            string hostName = Dns.GetHostName();
+            string IPAddress = Dns.GetHostEntry(hostName).AddressList[0].ToString();
 
-            if (!IsInitialized)
-                Initialize();
+            if (!IsSuperStarIgnited)
+                await IgniteSuperStarAsync();
 
             OASISResult<IAvatar> result = await OASISAPI.Avatar.AuthenticateAsync(username, password, IPAddress);
 
@@ -181,21 +272,30 @@ namespace NextGenSoftware.OASIS.STAR
 
         public static OASISResult<IAvatar> CreateAvatar(string title, string firstName, string lastName, string username, string password, ConsoleColor cliColour = ConsoleColor.Green, ConsoleColor favColour = ConsoleColor.Green)
         {
-            if (!IsInitialized)
-                Initialize();
+            if (!IsSuperStarIgnited)
+                IgniteSuperStar();
 
+            return OASISAPI.Avatar.Register(title, firstName, lastName, username, password, AvatarType.User, "https://api.oasisplatform.world/api", OASISType.STARCLI, cliColour, favColour);
+        }
+
+        public static async Task<OASISResult<IAvatar>> CreateAvatarAsync(string title, string firstName, string lastName, string username, string password, ConsoleColor cliColour = ConsoleColor.Green, ConsoleColor favColour = ConsoleColor.Green)
+        {
+            if (!IsSuperStarIgnited)
+                await IgniteSuperStarAsync();
+
+            //TODO: Implement Async version of Register and call instead of below:
             return OASISAPI.Avatar.Register(title, firstName, lastName, username, password, AvatarType.User, "https://api.oasisplatform.world/api", OASISType.STARCLI, cliColour, favColour);
         }
 
         public static OASISResult<IAvatar> BeamIn(string username, string password)
         {
             string hostName = Dns.GetHostName();
-            string IPAddress = Dns.GetHostByName(hostName).AddressList[2].ToString();
+            string IPAddress = Dns.GetHostEntry(hostName).AddressList[2].ToString();
             //string IPAddress = Dns.GetHostByName(hostName).AddressList[3].ToString();
             //+string IPAddress = Dns.GetHostByName(hostName).AddressList[4].ToString();
 
-            if (!IsInitialized)
-                Initialize();
+            if (!IsSuperStarIgnited)
+                IgniteSuperStar();
 
             OASISResult<IAvatar> result = OASISAPI.Avatar.Authenticate(username, password, IPAddress);
 
@@ -205,22 +305,23 @@ namespace NextGenSoftware.OASIS.STAR
             return result;
         }
 
-        public static async Task<CoronalEjection> Light(GenesisType type, string name, string dnaFolder = "", string genesisCSharpFolder = "", string genesisRustFolder = "", string genesisNameSpace = "")
+        public static async Task<CoronalEjection> LightAsync(GenesisType type, string name, string dnaFolder = "", string genesisCSharpFolder = "", string genesisRustFolder = "", string genesisNameSpace = "")
         {
-            return await Light(type, name, (ICelestialBody)null, dnaFolder, genesisCSharpFolder, genesisRustFolder, genesisNameSpace);
+            return await LightAsync(type, name, (ICelestialBody)null, dnaFolder, genesisCSharpFolder, genesisRustFolder, genesisNameSpace);
         }
 
-        public static async Task<CoronalEjection> Light(GenesisType type, string name, IStar starToAddPlanetTo = null, string dnaFolder = "", string genesisCSharpFolder = "", string genesisRustFolder = "", string genesisNameSpace = "")
+        public static async Task<CoronalEjection> LightAsync(GenesisType type, string name, IStar starToAddPlanetTo = null, string dnaFolder = "", string genesisCSharpFolder = "", string genesisRustFolder = "", string genesisNameSpace = "")
         {
-            return await Light(type, name, (ICelestialBody)starToAddPlanetTo, dnaFolder, genesisCSharpFolder, genesisRustFolder, genesisNameSpace);
+            return await LightAsync(type, name, (ICelestialBody)starToAddPlanetTo, dnaFolder, genesisCSharpFolder, genesisRustFolder, genesisNameSpace);
         }
 
-        public static async Task<CoronalEjection> Light(GenesisType type, string name, IPlanet planetToAddMoonTo = null, string dnaFolder = "", string genesisCSharpFolder = "", string genesisRustFolder = "", string genesisNameSpace = "")
+        public static async Task<CoronalEjection> LightAsync(GenesisType type, string name, IPlanet planetToAddMoonTo = null, string dnaFolder = "", string genesisCSharpFolder = "", string genesisRustFolder = "", string genesisNameSpace = "")
         {
-            return await Light(type, name, (ICelestialBody)planetToAddMoonTo, dnaFolder, genesisCSharpFolder, genesisRustFolder, genesisNameSpace);
+            return await LightAsync(type, name, (ICelestialBody)planetToAddMoonTo, dnaFolder, genesisCSharpFolder, genesisRustFolder, genesisNameSpace);
         }
 
-        private static async Task<CoronalEjection> Light(GenesisType type, string name, ICelestialBody celestialBodyParent = null, string dnaFolder = "", string genesisCSharpFolder = "", string genesisRustFolder = "", string genesisNameSpace = "")
+        //TODO: Create non async version of Light();
+        private static async Task<CoronalEjection> LightAsync(GenesisType type, string name, ICelestialBody celestialBodyParent = null, string dnaFolder = "", string genesisCSharpFolder = "", string genesisRustFolder = "", string genesisNameSpace = "")
         {
             CelestialBody newBody = null;
             bool holonReached = false;
@@ -234,7 +335,6 @@ namespace NextGenSoftware.OASIS.STAR
             bool firstField = true;
             string iholonBuffer = "";
             string zomeBufferCsharp = "";
-            //string planetBufferCsharp = "";
             string celestialBodyBufferCsharp = "";
             bool firstHolon = true;
 
@@ -247,8 +347,8 @@ namespace NextGenSoftware.OASIS.STAR
             if (celestialBodyParent == null && type == GenesisType.Moon)
                 return new CoronalEjection() { ErrorOccured = true, Message = "You must specify the planet to add the moon to." };
 
-            if (!IsInitialized)
-                Initialize();
+            if (!IsSuperStarIgnited)
+                await IgniteSuperStarAsync();
 
             ValidateLightDNA(dnaFolder, genesisCSharpFolder, genesisRustFolder);
 
@@ -311,23 +411,50 @@ namespace NextGenSoftware.OASIS.STAR
             switch (type)
             {
                 case GenesisType.Moon:
-                    newBody = new Moon();
+                    {
+                        newBody = new Moon();
+                        newBody.ParentHolon = celestialBodyParent;
+                        newBody.ParentHolonId = celestialBodyParent.Id;
+                        newBody.ParentPlanet = (IPlanet)celestialBodyParent;
+                        newBody.ParentPlanetId = celestialBodyParent.ParentPlanetId;
+                        newBody.ParentStar = celestialBodyParent.ParentStar;
+                        newBody.ParentStarId = celestialBodyParent.ParentStarId;
+                    }
                     break;
 
                 case GenesisType.Planet:
-                    newBody = new Planet();
-                    break;
+                    {
+                        newBody = new Planet();
+
+                        //If new parent Star is passed in then set the parent star to SuperStar.
+                        if (celestialBodyParent == null)
+                            celestialBodyParent = InnerStar;
+
+                        newBody.ParentHolon = celestialBodyParent;
+                        newBody.ParentStar = InnerStar;
+                        newBody.ParentHolon = celestialBodyParent;
+                        newBody.ParentHolonId = celestialBodyParent.Id;
+                        newBody.ParentStar = celestialBodyParent.ParentStar;
+                        newBody.ParentStarId = celestialBodyParent.ParentStarId;
+                    }
+                break;
 
                 case GenesisType.Star:
-                    newBody = new Star();
-                    break;
+                    {
+                        newBody = new Star();
+                        newBody.ParentHolon = InnerStar;
+                        newBody.ParentHolonId = InnerStar.Id;
+                        newBody.ParentStar = InnerStar;
+                        newBody.ParentStarId = celestialBodyParent.ParentStarId;
+                    }
+                break;
             }
 
            // newBody.CelestialBody = newBody; //TODO: Causes an infinite recursion because CelestialBody is a Holon itself so its linking to itself.
             newBody.Name = name;
             newBody.OnZomeError += NewBody_OnZomeError;
             await newBody.Initialize();
-            OASISResult<ICelestialBody> newBodyResult = await newBody.Save(); //Need to save to get the id to be used for ParentId below (zomes, holons & nodes).
+            OASISResult<ICelestialBody> newBodyResult = await newBody.SaveAsync(); //Need to save to get the id to be used for ParentId below (zomes, holons & nodes).
 
             if (newBodyResult.IsError)
             {
@@ -537,7 +664,7 @@ namespace NextGenSoftware.OASIS.STAR
            //     newBody.CelestialBodyCore.Zomes.Add(currentZome);
 
             //TODO: Need to save the collection of Zomes/Holons that belong to this planet here...
-            await newBody.Save(); // Need to save again so newly added zomes/holons/nodes are also saved.
+            await newBody.SaveAsync(); // Need to save again so newly added zomes/holons/nodes are also saved.
 
             switch (type)
             {
