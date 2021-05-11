@@ -71,6 +71,11 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
             this.ProviderKey = providerKey;
         }
 
+        public CelestialBodyCore(Guid id) : base()
+        {
+            this.Id = id;
+        }
+
         public CelestialBodyCore() : base()
         {
         }

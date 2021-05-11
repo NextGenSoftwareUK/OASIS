@@ -12,6 +12,7 @@ using NextGenSoftware.OASIS.API.Core.Events;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.STAR.CelestialBodies;
@@ -19,9 +20,8 @@ using NextGenSoftware.OASIS.STAR.ExtensionMethods;
 using NextGenSoftware.OASIS.STAR.DNA;
 using NextGenSoftware.OASIS.STAR.OASISAPIManager;
 using NextGenSoftware.OASIS.STAR.Zomes;
-using NextGenSoftware.Holochain.HoloNET.Client.Core;
 using NextGenSoftware.OASIS.STAR.ErrorEventArgs;
-using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
+using NextGenSoftware.Holochain.HoloNET.Client.Core;
 
 namespace NextGenSoftware.OASIS.STAR
 {
@@ -107,116 +107,43 @@ namespace NextGenSoftware.OASIS.STAR
             return await IgniteSuperStarAsync(InitOptions.InitWithCurrentDefaultProvider);
         }
 
-        public static OASISResult<ICelestialBody> IgniteSuperStar(InitOptions OASISAPIInitOptions, string STARDNAPath = STAR_DNA_DEFAULT_PATH, string OASISDNAPath = OASIS_DNA_DEFAULT_PATH, Dictionary<ProviderType, string> starProviderKey = null)
+        //public static OASISResult<ICelestialBody> IgniteSuperStar(InitOptions OASISAPIInitOptions, string STARDNAPath = STAR_DNA_DEFAULT_PATH, string OASISDNAPath = OASIS_DNA_DEFAULT_PATH, Dictionary<ProviderType, string> starProviderKey = null)
+        public static OASISResult<ICelestialBody> IgniteSuperStar(InitOptions OASISAPIInitOptions, string STARDNAPath = STAR_DNA_DEFAULT_PATH, string OASISDNAPath = OASIS_DNA_DEFAULT_PATH, string starId = null)
         {
-            OASISResult<ICelestialBody> result = new OASISResult<ICelestialBody>();
+            OASISResult<ICelestialBody> result = IgniteSuperStarInternal(OASISAPIInitOptions, STARDNAPath, OASISDNAPath, starId);
 
-            // If you wish to change the logging framework from the default (NLog) then set it below (or just change in OASIS_DNA - prefered way)
-            //LoggingManager.CurrentLoggingFramework = LoggingFramework.NLog;
-
-            if (File.Exists(STARDNAPath))
-                LoadDNA();
-            else
-            {
-                STARDNA = new STARDNA();
-                SaveDNA();
-            }
-
-            ValidateSTARDNA(STARDNA);
-
-            SuperStar.OASISDNAPath = OASISDNAPath;
-            //By default the OASISDNAManager will load the settings from OASIS_DNA.json in the current working dir but you can override using below:
-            OASISDNAManager.OASISDNAFileName = SuperStar.OASISDNAPath;
-            OASISDNAManager.GetAndActivateDefaultProvider(); //TODO: May move this method into OASISAPI below?
-
-            if (string.IsNullOrEmpty(STARDNA.OASISProviders))
-            {
-                // Will initialize the default OASIS Provider defined OASIS_DNA config file.
-                OASISAPI.Init(OASISAPIInitOptions, OASISDNAManager.OASISDNA);
-            }
-            else
-            {
-                string[] parts = STARDNA.OASISProviders.Split(',');
-
-                List<ProviderType> providerTypes = new List<ProviderType>();
-                foreach (string part in parts)
-                    providerTypes.Add((ProviderType)Enum.Parse(typeof(ProviderType), part));
-
-                //TODO: Finish! ;-)
-                //OASISAPI.Init(providerTypes, OASISDNAManager.OASISDNA);
-            }
-
-
-           // if (starProviderKey == null)
-            //    starProviderId = STARDNA.StarProviderId
-
-            //SuperStarCore = new SuperStarCore(starProviderKey);
-            InnerStar = new Star(starProviderKey);
-
-            if (InnerStar.Id == Guid.Empty)
+            if (!result.IsError && InnerStar.Id == Guid.Empty)
             {
                 //TODO: Implement Save method (non async version) and call instead of below:
                 result = InnerStar.SaveAsync().Result;
 
                 if (!result.IsError && result.IsSaved)
+                {
                     result.Message = "SuperSTAR Ignited";
+                    STARDNA.StarId = InnerStar.Id; 
+                    SaveDNA();
+                }
             }
-            else
-                result.Message = "SuperSTAR Ignited";
 
-            WireUpEvents();
             return result;
         }
 
-        public static async Task<OASISResult<ICelestialBody>> IgniteSuperStarAsync(InitOptions OASISAPIInitOptions, string STARDNAPath = STAR_DNA_DEFAULT_PATH, string OASISDNAPath = OASIS_DNA_DEFAULT_PATH, Dictionary<ProviderType, string> starProviderKey = null)
+        public static async Task<OASISResult<ICelestialBody>> IgniteSuperStarAsync(InitOptions OASISAPIInitOptions, string STARDNAPath = STAR_DNA_DEFAULT_PATH, string OASISDNAPath = OASIS_DNA_DEFAULT_PATH, string starId = null)
         {
-            OASISResult<ICelestialBody> result = new OASISResult<ICelestialBody>();
-            // If you wish to change the logging framework from the default (NLog) then set it below (or just change in OASIS_DNA - prefered way)
-            //LoggingManager.CurrentLoggingFramework = LoggingFramework.NLog;
+            OASISResult<ICelestialBody> result = IgniteSuperStarInternal(OASISAPIInitOptions, STARDNAPath, OASISDNAPath, starId);
 
-            SuperStar.OASISDNAPath = OASISDNAPath;
-            //By default the OASISDNAManager will load the settings from OASIS_DNA.json in the current working dir but you can override using below:
-            OASISDNAManager.OASISDNAFileName = SuperStar.OASISDNAPath;
-
-            // Will initialize the default OASIS Provider defined OASIS_DNA config file.
-            OASISDNAManager.GetAndActivateDefaultProvider(); //TODO: May move this method into OASISAPI below?
-            OASISAPI.Init(OASISAPIInitOptions, OASISDNAManager.OASISDNA);
-
-            if (File.Exists(STARDNAPath))
-                LoadDNA();
-            else
+            if (!result.IsError && InnerStar.Id == Guid.Empty)
             {
-                STARDNA = new STARDNA();
-                SaveDNA();
-            }
-
-            ValidateSTARDNA(STARDNA);
-
-        //    if (starProviderId == null)
-           //     starProviderId = STARDNA.StarProviderId;
-
-            SuperStarCore = new SuperStarCore(starProviderKey);
-            InnerStar = new Star(starProviderKey);
-
-            if (InnerStar.Id == Guid.Empty)
-            {
-                // TODO: May possibly have one SuperStar per Provider Type? Or list of ProviderTypes? People can host whichever provider(s) they wish as a ONODE. Each ONODE will be a SuperStar, which can choose which Glaxies/Provider Types to host. Therefore the entire ONET (OASIS Network) is the distributed de-centralised network of SuperStars/Galaxies forming the OASIS Universe or OASIS meta-verse/magicverse. :)
-                InnerStar.Name = "SuperStar";
-                InnerStar.Description = "SuperStar at the centre of a Galaxy. Can create other stars, planets (Super OAPPS) and moons (OAPPS)";
-                InnerStar.HolonType = HolonType.SuperStar;
-                result = await InnerStar.SaveAsync();
+                result = InnerStar.SaveAsync().Result;
 
                 if (!result.IsError && result.IsSaved)
                 {
                     result.Message = "SuperSTAR Ignited";
-                    STARDNA.StarProviderId = InnerStar.Id; //TODO: May just store this internally by adding a LoadSuperStar method which would call LoadHolon passing in HolonType SuperStar (depends if if there will be more than one SuperStar in future? ;-) ) Maybe for distributing so can easier handle load? It's one SuperStar per Galaxy so could have more than one Galaxy? So The OASIS and COSMIC would be a full Universe with multiple Galaxies with their own SuperStar in the centre... ;-) YES! But would we need a GrandSuperStar then? For the centre of the Universe? Which will connect to other Universes and creates SuperStars? Or could a SuperStar just create other SuperStars? :) Yes think better to just for now allow SuperStar to create other SuperStars... ;-)
-                    //STARDNA.StarProviderKey = InnerStar.ProviderKey[ProviderManager.CurrentStorageProviderType.Value]
+                    STARDNA.StarId = InnerStar.Id; //TODO: May just store this internally by adding a LoadSuperStar method which would call LoadHolon passing in HolonType SuperStar (depends if if there will be more than one SuperStar in future? ;-) ) Maybe for distributing so can easier handle load? It's one SuperStar per Galaxy so could have more than one Galaxy? So The OASIS and COSMIC would be a full Universe with multiple Galaxies with their own SuperStar in the centre... ;-) YES! But would we need a GrandSuperStar then? For the centre of the Universe? Which will connect to other Universes and creates SuperStars? Or could a SuperStar just create other SuperStars? :) Yes think better to just for now allow SuperStar to create other SuperStars... ;-)
+                    SaveDNA();
                 }
             }
-            else
-                result.Message = "SuperSTAR Ignited";
 
-            WireUpEvents();
             return result;
         }
 
@@ -971,7 +898,6 @@ namespace NextGenSoftware.OASIS.STAR
                 return STARDNA;
             }
         }
-
         private static bool SaveDNA()
         {
             string json = JsonConvert.SerializeObject(STARDNA);
@@ -1013,6 +939,118 @@ namespace NextGenSoftware.OASIS.STAR
 
             //currentHolon.Nodes.Add(new Node { NodeName = fieldName.ToPascalCase(), NodeType = nodeType, Parent = currentHolon, ParentId = currentHolon.Id });
             currentHolon.Nodes.Add(new Node { NodeName = fieldName.ToPascalCase(), NodeType = nodeType, ParentId = currentHolon.Id });
+        }
+
+        private static OASISResult<T> HandleError<T>(ref OASISResult<T> result, string errorMessage)
+        {
+            result.IsError = true;
+            result.ErrorMessage = errorMessage;
+            LoggingManager.Log(errorMessage, API.Core.Enums.LogType.Error);
+            return result;
+        }
+
+        private static OASISResult<T> HandleWarning<T>(ref OASISResult<T> result, string message)
+        {
+            result.IsWarning = true;
+            result.Message = message;
+            LoggingManager.Log(message, API.Core.Enums.LogType.Warn);
+            return result;
+        }
+
+        private static void InitializeOASISAPI(ref OASISResult<ICelestialBody> result, InitOptions OASISAPIInitOptions, string STARDNAPath = STAR_DNA_DEFAULT_PATH, string OASISDNAPath = OASIS_DNA_DEFAULT_PATH)
+        {
+            SuperStar.OASISDNAPath = OASISDNAPath;
+            //By default the OASISDNAManager will load the settings from OASIS_DNA.json in the current working dir but you can override using below:
+            OASISDNAManager.OASISDNAFileName = SuperStar.OASISDNAPath;
+            OASISDNAManager.GetAndActivateDefaultProvider(); //TODO: May move this method into OASISAPI below?
+
+            // TODO: Not sure if we want to store the OASIS Providers in the STARDNA? Maybe better to just use those listed in OASISDNA? Think it may be, lol! ;-)
+            if (string.IsNullOrEmpty(STARDNA.OASISProviders))
+            {
+                // Will initialize the default OASIS Provider defined OASIS_DNA config file.
+                OASISAPI.Init(OASISAPIInitOptions, OASISDNAManager.OASISDNA);
+                HandleWarning(ref result, "No providers were found in the OASISProviders list in the STARDNA file so initializing the OASIS API using defaults in the OASISDNA file.");
+            }
+            else
+            {
+                string[] parts = STARDNA.OASISProviders.Split(',');
+                List<ProviderType> providerTypes = new List<ProviderType>();
+
+                object providerTypeObject = null;
+                foreach (string part in parts)
+                {
+                    if (Enum.TryParse(typeof(ProviderType), part, out providerTypeObject))
+                        providerTypes.Add((ProviderType)providerTypeObject);
+                    else
+                    {
+                        HandleError(ref result, string.Concat("The provider type ", part, " specified in the OASISProviders list in the STARDNA file is not valid. Valid providers are: ", EnumHelper.GetEnumValues(typeof(ProviderType), EnumHelper.ListType.ItemsSeperatedByComma)));
+                        return;
+                    }
+                }
+
+                OASISResult<bool> oasisAPIResult = OASISAPI.Init(providerTypes, OASISDNAManager.OASISDNA);
+
+                if (oasisAPIResult.IsError)
+                    HandleError(ref result, string.Concat("Error initialiazing OASIS API. Reason: ", oasisAPIResult.ErrorMessage));
+            }
+        }
+
+        private static void IgniteInnerStar(ref OASISResult<ICelestialBody> result, string starId = null)
+        {
+            Guid starIdGuid = Guid.Empty;
+
+            // If the starId is passed in and is valid then convert to Guid, otherwise get it from the STARDNA file.
+            if (!string.IsNullOrEmpty(starId) && !string.IsNullOrWhiteSpace(starId))
+            {
+                if (!Guid.TryParse(starId, out starIdGuid))
+                {
+                    HandleError(ref result, "StarID passed in is invalid.");
+                    return;
+                }
+            }
+            else
+                starIdGuid = STARDNA.StarId;
+
+            InnerStar = new Star(starIdGuid);
+
+            if (InnerStar.Id == Guid.Empty)
+            {
+                // TODO: May possibly have one SuperStar per Provider Type? Or list of ProviderTypes? People can host whichever provider(s) they wish as a ONODE. Each ONODE will be a SuperStar, which can choose which Glaxies/Provider Types to host. Therefore the entire ONET (OASIS Network) is the distributed de-centralised network of SuperStars/Galaxies forming the OASIS Universe or OASIS meta-verse/magicverse. :)
+                InnerStar.Name = "SuperStar";
+                InnerStar.Description = "SuperStar at the centre of a Galaxy. Can create other stars, planets (Super OAPPS) and moons (OAPPS)";
+                InnerStar.HolonType = HolonType.SuperStar;
+            }
+            else
+                result.Message = "SuperSTAR Ignited";
+        }
+
+        private static OASISResult<ICelestialBody> IgniteSuperStarInternal(InitOptions OASISAPIInitOptions, string STARDNAPath = STAR_DNA_DEFAULT_PATH, string OASISDNAPath = OASIS_DNA_DEFAULT_PATH, string starId = null)
+        {
+           // Guid starIdGuid = Guid.Empty;
+            OASISResult<ICelestialBody> result = new OASISResult<ICelestialBody>();
+
+            // If you wish to change the logging framework from the default (NLog) then set it below (or just change in OASIS_DNA - prefered way)
+            //LoggingManager.CurrentLoggingFramework = LoggingFramework.NLog;
+
+            if (File.Exists(STARDNAPath))
+                LoadDNA();
+            else
+            {
+                STARDNA = new STARDNA();
+                SaveDNA();
+            }
+
+            WireUpEvents();
+            ValidateSTARDNA(STARDNA);
+            InitializeOASISAPI(ref result, OASISAPIInitOptions, STARDNAPath, OASISDNAPath);
+
+            if (!result.IsError)
+                IgniteInnerStar(ref result, starId);
+
+            if (!result.IsError)
+                SuperStarCore = new SuperStarCore(InnerStar.Id);
+
+            return result;
         }
     }
 }

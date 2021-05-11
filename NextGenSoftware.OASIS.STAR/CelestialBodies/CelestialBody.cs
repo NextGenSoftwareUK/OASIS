@@ -99,7 +99,12 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
             Initialize();  //TODO: It never called this from the constructor before, was there a good reason? Will soon find out! ;-)
         }
 
-        //TODO: Don't think we need to pass Id in if we are using ProviderKey?
+        public CelestialBody(Guid id, GenesisType genesisType)
+        {
+            this.GenesisType = genesisType;
+            this.Id = id;
+        }
+
         public CelestialBody(Dictionary<ProviderType, string> providerKey, GenesisType genesisType)
         {
             this.GenesisType = genesisType;
@@ -478,6 +483,11 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
                 //No we load the holons and zomes linked to the planetcore zome via the coreProviderKey anchor...
                 LoadZomes();
                // LoadHolons();
+            }
+            else if (Id != Guid.Empty)
+            {
+                await LoadCelestialBody();
+                LoadZomes();
             }
 
             await WireUpEvents();
