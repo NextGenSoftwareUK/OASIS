@@ -913,8 +913,33 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
             Console.WriteLine(string.Concat(" SoloarPlexus Level: ", SuperStar.LoggedInUser.Chakras.SoloarPlexus.Level));
             Console.WriteLine(string.Concat(" Sacral XP: ", SuperStar.LoggedInUser.Chakras.Sacral.XP));
             Console.WriteLine(string.Concat(" Sacral Level: ", SuperStar.LoggedInUser.Chakras.Sacral.Level));
+
+            Console.WriteLine(string.Concat(" Root SanskritName: ", SuperStar.LoggedInUser.Chakras.Root.SanskritName));
             Console.WriteLine(string.Concat(" Root XP: ", SuperStar.LoggedInUser.Chakras.Root.XP));
             Console.WriteLine(string.Concat(" Root Level: ", SuperStar.LoggedInUser.Chakras.Root.Level));
+            Console.WriteLine(string.Concat(" Root Progress: ", SuperStar.LoggedInUser.Chakras.Root.Progress));
+            Console.WriteLine(string.Concat(" Root Color: ", SuperStar.LoggedInUser.Chakras.Root.Color.Name));
+            Console.WriteLine(string.Concat(" Root Element: ", SuperStar.LoggedInUser.Chakras.Root.Element.Name));
+            Console.WriteLine(string.Concat(" Root YogaPose: ", SuperStar.LoggedInUser.Chakras.Root.YogaPose.Name));
+            Console.WriteLine(string.Concat(" Root WhatItControls: ", SuperStar.LoggedInUser.Chakras.Root.WhatItControls));
+            Console.WriteLine(string.Concat(" Root WhenItDevelops: ", SuperStar.LoggedInUser.Chakras.Root.WhenItDevelops));
+            Console.WriteLine(string.Concat(" Root Crystal Name: ", SuperStar.LoggedInUser.Chakras.Root.Crystal.Name.Name));
+            Console.WriteLine(string.Concat(" Root Crystal AmplifyicationLevel: ", SuperStar.LoggedInUser.Chakras.Root.Crystal.AmplifyicationLevel));
+            Console.WriteLine(string.Concat(" Root Crystal CleansingLevel: ", SuperStar.LoggedInUser.Chakras.Root.Crystal.CleansingLevel));
+            Console.WriteLine(string.Concat(" Root Crystal EnergisingLevel: ", SuperStar.LoggedInUser.Chakras.Root.Crystal.EnergisingLevel));
+            Console.WriteLine(string.Concat(" Root Crystal GroundingLevel: ", SuperStar.LoggedInUser.Chakras.Root.Crystal.GroundingLevel));
+            Console.WriteLine(string.Concat(" Root Crystal ProtectionLevel: ", SuperStar.LoggedInUser.Chakras.Root.Crystal.ProtectionLevel));
+
+            Console.WriteLine("");
+            Console.WriteLine(" Aurua:");
+            Console.WriteLine(string.Concat(" Brightness: ", SuperStar.LoggedInUser.Aura.Brightness));
+            Console.WriteLine(string.Concat(" Size: ", SuperStar.LoggedInUser.Aura.Size));
+            Console.WriteLine(string.Concat(" Level: ", SuperStar.LoggedInUser.Aura.Level));
+            Console.WriteLine(string.Concat(" Value: ", SuperStar.LoggedInUser.Aura.Value));
+            Console.WriteLine(string.Concat(" Progress: ", SuperStar.LoggedInUser.Aura.Progress));
+            Console.WriteLine(string.Concat(" ColourRed: ", SuperStar.LoggedInUser.Aura.ColourRed));
+            Console.WriteLine(string.Concat(" ColourGreen: ", SuperStar.LoggedInUser.Aura.ColourGreen));
+            Console.WriteLine(string.Concat(" ColourBlue: ", SuperStar.LoggedInUser.Aura.ColourBlue));
 
             Console.WriteLine("");
             Console.WriteLine(" Attributes:");

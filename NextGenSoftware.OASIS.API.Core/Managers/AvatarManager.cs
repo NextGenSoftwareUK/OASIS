@@ -227,6 +227,16 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
                 avatar.Gifts.Add(new AvatarGift() { GiftType = KarmaTypePositive.BeASuperHero });
 
+                avatar.Aura.Brightness = 99;
+                avatar.Aura.Level = 77;
+                avatar.Aura.Progress = 88;
+                avatar.Aura.Size = 10;
+                avatar.Aura.Value = 777;
+
+                avatar.Chakras.Root.Level = 77;
+                avatar.Chakras.Root.Progress = 99;
+                avatar.Chakras.Root.XP = 8783;
+
                 avatar.Attributes.Dexterity = 99;
                 avatar.Attributes.Endurance = 99;
                 avatar.Attributes.Intelligence = 99;

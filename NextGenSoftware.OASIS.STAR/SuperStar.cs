@@ -120,7 +120,7 @@ namespace NextGenSoftware.OASIS.STAR
                 if (!result.IsError && result.IsSaved)
                 {
                     result.Message = "SuperSTAR Ignited";
-                    STARDNA.StarId = InnerStar.Id; 
+                    STARDNA.StarId = InnerStar.Id.ToString(); 
                     SaveDNA();
                 }
             }
@@ -134,12 +134,12 @@ namespace NextGenSoftware.OASIS.STAR
 
             if (!result.IsError && InnerStar.Id == Guid.Empty)
             {
-                result = InnerStar.SaveAsync().Result;
+                result = await InnerStar.SaveAsync();
 
                 if (!result.IsError && result.IsSaved)
                 {
                     result.Message = "SuperSTAR Ignited";
-                    STARDNA.StarId = InnerStar.Id; //TODO: May just store this internally by adding a LoadSuperStar method which would call LoadHolon passing in HolonType SuperStar (depends if if there will be more than one SuperStar in future? ;-) ) Maybe for distributing so can easier handle load? It's one SuperStar per Galaxy so could have more than one Galaxy? So The OASIS and COSMIC would be a full Universe with multiple Galaxies with their own SuperStar in the centre... ;-) YES! But would we need a GrandSuperStar then? For the centre of the Universe? Which will connect to other Universes and creates SuperStars? Or could a SuperStar just create other SuperStars? :) Yes think better to just for now allow SuperStar to create other SuperStars... ;-)
+                    STARDNA.StarId = InnerStar.Id.ToString(); //TODO: May just store this internally by adding a LoadSuperStar method which would call LoadHolon passing in HolonType SuperStar (depends if if there will be more than one SuperStar in future? ;-) ) Maybe for distributing so can easier handle load? It's one SuperStar per Galaxy so could have more than one Galaxy? So The OASIS and COSMIC would be a full Universe with multiple Galaxies with their own SuperStar in the centre... ;-) YES! But would we need a GrandSuperStar then? For the centre of the Universe? Which will connect to other Universes and creates SuperStars? Or could a SuperStar just create other SuperStars? :) Yes think better to just for now allow SuperStar to create other SuperStars... ;-)
                     SaveDNA();
                 }
             }
@@ -1004,12 +1004,18 @@ namespace NextGenSoftware.OASIS.STAR
             {
                 if (!Guid.TryParse(starId, out starIdGuid))
                 {
-                    HandleError(ref result, "StarID passed in is invalid.");
+                    HandleError(ref result, "StarID passed in is invalid. It needs to be a valid Guid.");
                     return;
                 }
             }
             else
-                starIdGuid = STARDNA.StarId;
+            {
+                if (!Guid.TryParse(STARDNA.StarId, out starIdGuid))
+                {
+                    HandleError(ref result, "StarID defined in the STARDNA file in is invalid. It needs to be a valid Guid.");
+                    return;
+                }
+            }
 
             InnerStar = new Star(starIdGuid);
 
