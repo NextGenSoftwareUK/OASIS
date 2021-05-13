@@ -1,6 +1,5 @@
-﻿
-using NextGenSoftware.OASIS.API.Core.Enums;
-using NextGenSoftware.OASIS.API.Core.Interfaces;
+﻿using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.Core.Helpers;
 
 namespace NextGenSoftware.OASIS.API.Core.Objects
 {
@@ -8,7 +7,7 @@ namespace NextGenSoftware.OASIS.API.Core.Objects
     {
         public ThirdEyeChakra()
         {
-            Type = ChakraType.ThirdEye;
+            Type = new EnumValue<ChakraType>(ChakraType.ThirdEye);
         }
     }
 }

@@ -6,7 +6,7 @@ using System;
 
 namespace NextGenSoftware.OASIS.API.Core.Objects
 {
-    public class AvatarGift : IAvatarGift
+    public class AvatarGift : IAvatarGift //TODO: Needs more thought... How does this relate to Achievements/Badges/Virtues/Karma, etc? Think Achievements and Badges are the same thing, but prefer Achievements.
     {
         public Guid AvatarId { get; set; }
         public KarmaTypePositive GiftType { get; set; }
