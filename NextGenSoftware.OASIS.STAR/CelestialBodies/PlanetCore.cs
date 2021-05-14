@@ -26,6 +26,11 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
             this.Planet = planet;
         }
 
+        public PlanetCore(Guid id, IPlanet planet) : base(id)
+        {
+            this.Planet = planet;
+        }
+
 
         //public PlanetCore(IPlanet planet) : base(PLANET_CORE_ZOME, PLANET_HOLON_TYPE)
         //{

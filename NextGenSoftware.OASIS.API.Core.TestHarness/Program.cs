@@ -6,6 +6,7 @@ using NextGenSoftware.OASIS.API.Core.Events;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.Core.Managers;
 
 namespace NextGenSoftware.OASIS.API.Core.TestHarness
 {
@@ -24,7 +25,7 @@ namespace NextGenSoftware.OASIS.API.Core.TestHarness
 
             //Init with the Holochain Provider.
             OASISDNAManager.GetAndActivateProvider(ProviderType.HoloOASIS, null, false, true);
-            OASISAPI.Init(InitOptions.InitWithCurrentDefaultProvider, OASISDNAManager.OASISDNA);
+            OASISAPI.Initialize(ProviderManager.CurrentStorageProvider, OASISDNAManager.OASISDNA);
             //OASISAPI.Init(new List<IOASISProvider> { new HoloOASIS("ws://localhost:8888", Holochain.HoloNET.Client.Core.HolochainVersion.Redux) }, OASISConfigManager.OASISDNA);
             //OASISAPI.Init(InitOptions.InitWithAllProviders, OASISConfigManager.OASISDNA);
             
