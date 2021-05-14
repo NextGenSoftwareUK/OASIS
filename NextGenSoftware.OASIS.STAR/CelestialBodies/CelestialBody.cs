@@ -103,14 +103,13 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
         {
             this.GenesisType = genesisType;
             this.Id = id;
+            Initialize();
         }
 
         public CelestialBody(Dictionary<ProviderType, string> providerKey, GenesisType genesisType)
         {
             this.GenesisType = genesisType;
-            //this.ProviderKey[ProviderManager.CurrentStorageProviderType.Value] = providerKey;
             this.ProviderKey = providerKey;
-
             Initialize();  //TODO: It never called this from the constructor before, was there a good reason? Will soon find out! ;-)
         }
 
@@ -462,18 +461,19 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
             switch (this.GenesisType)
             {
                 case GenesisType.Planet:
-                    CelestialBodyCore = new PlanetCore(this.ProviderKey, (IPlanet)this);
+                    CelestialBodyCore = new PlanetCore(this.Id, (IPlanet)this);
                     break;
 
                 case GenesisType.Moon:
-                    CelestialBodyCore = new MoonCore(this.ProviderKey, (IMoon)this);
+                    CelestialBodyCore = new MoonCore(this.Id, (IMoon)this);
                     break;
 
                 case GenesisType.Star:
-                    CelestialBodyCore = new StarCore(this.ProviderKey, (IStar)this);
+                    CelestialBodyCore = new StarCore(this.Id, (IStar)this);
                     break;
             }
            
+            //TODO: Not even sure if we need to bother with providerKey at all when we have the id guid?
             if (ProviderKey != null && ProviderKey.ContainsKey(ProviderManager.CurrentStorageProviderType.Value) && !string.IsNullOrEmpty(ProviderKey[ProviderManager.CurrentStorageProviderType.Value]))
             {
                // CelestialBodyCore.ProviderKey = this.ProviderKey[ProviderManager.CurrentStorageProviderType.Value]; //_coreProviderKey = hc anchor.

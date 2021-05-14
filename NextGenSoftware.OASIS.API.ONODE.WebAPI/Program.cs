@@ -40,7 +40,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
 
                     //TODO: Eventually want to replace all exceptions with OASISResult throughout the OASIS because then it makes sure errors are handled properly and friendly messages are shown (plus less overhead of throwing an entire stack trace!)
                     if (result.IsError)
-                        ErrorHandling.HandleError(ref result, string.Concat("Error calling OASISDNAManager.GetAndActivateDefaultProvider(). Error details: ", result.Message), true);
+                        ErrorHandling.HandleError(ref result, string.Concat("Error calling OASISDNAManager.GetAndActivateDefaultProvider(). Error details: ", result.Message), true, false, true);
 
                     _avatarManager = new AvatarManager(result.Result, OASISDNAManager.OASISDNA);
                     _avatarManager.OnOASISManagerError += _avatarManager_OnOASISManagerError;

@@ -1,21 +1,23 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-
 using NextGenSoftware.OASIS.API.Core;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Enums;
 
-namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
+namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
 {
     public class ThreeFoldOASIS : OASISStorageBase, IOASISStorage, IOASISNET
     {
-        public ThreeFoldOASIS()
+        public string HostUri { get; set; }
+
+        public ThreeFoldOASIS(string hostURI)
         {
             this.ProviderName = "ThreeFoldOASIS";
             this.ProviderDescription = "ThreeFold Provider";
             this.ProviderType = new API.Core.Helpers.EnumValue<ProviderType>(API.Core.Enums.ProviderType.ThreeFoldOASIS);
             this.ProviderCategory = new Core.Helpers.EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
+            this.HostUri = hostURI;
         }
 
         public override bool DeleteAvatar(Guid id, bool softDelete = true)

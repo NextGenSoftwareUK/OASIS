@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
+using System;
 
 namespace NextGenSoftware.OASIS.STAR.CelestialBodies
 {
@@ -54,6 +55,11 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
         }
 
         public StarCore(Dictionary<ProviderType, string> providerKey, IStar star) : base(providerKey)
+        {
+            this.Star = star;
+        }
+
+        public StarCore(Guid id, IStar star) : base(id)
         {
             this.Star = star;
         }

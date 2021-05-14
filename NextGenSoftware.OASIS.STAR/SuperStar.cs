@@ -96,22 +96,12 @@ namespace NextGenSoftware.OASIS.STAR
 
         public delegate void DataReceived(object sender, DataReceivedEventArgs e);
         public static event DataReceived OnDataReceived;
-
-        public static OASISResult<ICelestialBody> IgniteSuperStar()
+       
+        public static OASISResult<ICelestialBody> IgniteSuperStar(string STARDNAPath = STAR_DNA_DEFAULT_PATH, string OASISDNAPath = OASIS_DNA_DEFAULT_PATH, string starId = null)
         {
-            return IgniteSuperStar(InitOptions.InitWithCurrentDefaultProvider);
-        }
+            OASISResult<ICelestialBody> result = IgniteSuperStarInternal(STARDNAPath, OASISDNAPath, starId);
 
-        public static async Task<OASISResult<ICelestialBody>> IgniteSuperStarAsync()
-        {
-            return await IgniteSuperStarAsync(InitOptions.InitWithCurrentDefaultProvider);
-        }
-
-        //public static OASISResult<ICelestialBody> IgniteSuperStar(InitOptions OASISAPIInitOptions, string STARDNAPath = STAR_DNA_DEFAULT_PATH, string OASISDNAPath = OASIS_DNA_DEFAULT_PATH, Dictionary<ProviderType, string> starProviderKey = null)
-        public static OASISResult<ICelestialBody> IgniteSuperStar(InitOptions OASISAPIInitOptions, string STARDNAPath = STAR_DNA_DEFAULT_PATH, string OASISDNAPath = OASIS_DNA_DEFAULT_PATH, string starId = null)
-        {
-            OASISResult<ICelestialBody> result = IgniteSuperStarInternal(OASISAPIInitOptions, STARDNAPath, OASISDNAPath, starId);
-
+            /*
             if (!result.IsError && InnerStar.Id == Guid.Empty)
             {
                 //TODO: Implement Save method (non async version) and call instead of below:
@@ -123,14 +113,14 @@ namespace NextGenSoftware.OASIS.STAR
                     STARDNA.StarId = InnerStar.Id.ToString(); 
                     SaveDNA();
                 }
-            }
+            }*/
 
             return result;
         }
 
-        public static async Task<OASISResult<ICelestialBody>> IgniteSuperStarAsync(InitOptions OASISAPIInitOptions, string STARDNAPath = STAR_DNA_DEFAULT_PATH, string OASISDNAPath = OASIS_DNA_DEFAULT_PATH, string starId = null)
+        public static async Task<OASISResult<ICelestialBody>> IgniteSuperStarAsync(string STARDNAPath = STAR_DNA_DEFAULT_PATH, string OASISDNAPath = OASIS_DNA_DEFAULT_PATH, string starId = null)
         {
-            OASISResult<ICelestialBody> result = IgniteSuperStarInternal(OASISAPIInitOptions, STARDNAPath, OASISDNAPath, starId);
+            OASISResult<ICelestialBody> result = IgniteSuperStarInternal(STARDNAPath, OASISDNAPath, starId);
 
             if (!result.IsError && InnerStar.Id == Guid.Empty)
             {
@@ -145,6 +135,24 @@ namespace NextGenSoftware.OASIS.STAR
             }
 
             return result;
+        }
+
+        private static void IgniteInnerStar(Guid starId)
+        {
+            IgniteInnerStar(ref result, starId);
+
+            if (!result.IsError && InnerStar.Id == Guid.Empty)
+            {
+                //TODO: Implement Save method (non async version) and call instead of below:
+                result = InnerStar.SaveAsync().Result;
+
+                if (!result.IsError && result.IsSaved)
+                {
+                    result.Message = "SuperSTAR Ignited";
+                    STARDNA.StarId = InnerStar.Id.ToString(); 
+                    SaveDNA();
+                }
+            }
         }
 
         private static void WireUpEvents()
@@ -941,29 +949,30 @@ namespace NextGenSoftware.OASIS.STAR
             currentHolon.Nodes.Add(new Node { NodeName = fieldName.ToPascalCase(), NodeType = nodeType, ParentId = currentHolon.Id });
         }
 
-        //private static OASISResult<T> HandleError<T>(ref OASISResult<T> result, string errorMessage)
-        //{
-        //    result.IsError = true;
-        //    result.ErrorMessage = errorMessage;
-        //    LoggingManager.Log(errorMessage, API.Core.Enums.LogType.Error);
-        //    return result;
-        //}
-
-        //private static OASISResult<T> HandleWarning<T>(ref OASISResult<T> result, string message)
-        //{
-        //    result.IsWarning = true;
-        //    result.Message = message;
-        //    LoggingManager.Log(message, API.Core.Enums.LogType.Warn);
-        //    return result;
-        //}
-
-        private static OASISResult<IOASISStorage> InitializeOASISAPI(ref OASISResult<ICelestialBody> result, InitOptions OASISAPIInitOptions, string STARDNAPath = STAR_DNA_DEFAULT_PATH, string OASISDNAPath = OASIS_DNA_DEFAULT_PATH)
+        //private static OASISResult<IOASISStorage> IgniteOASISAPI(ref OASISResult<ICelestialBody> result, IgniteOptions OASISAPIgniteOptions, string STARDNAPath = STAR_DNA_DEFAULT_PATH, string OASISDNAPath = OASIS_DNA_DEFAULT_PATH)
+        private static OASISResult<IOASISStorage> IgniteOASISAPI(string OASISDNAPath = OASIS_DNA_DEFAULT_PATH)
         {
+            OASISResult<IOASISStorage> result = new OASISResult<IOASISStorage>();
             SuperStar.OASISDNAPath = OASISDNAPath;
 
             //By default the OASISDNAManager will load the settings from OASIS_DNA.json in the current working dir but you can override using below:
-            OASISDNAManager.OASISDNAFileName = SuperStar.OASISDNAPath;
-            return OASISDNAManager.GetAndActivateDefaultProvider(); 
+            OASISResult<bool> oasisInitResult = OASISDNAManager.Initialize(SuperStar.OASISDNAPath);
+
+            if (oasisInitResult.IsError)
+            {
+                result.IsError = true;
+                result.Message = oasisInitResult.Message;
+                return result;
+            }
+
+            result = OASISDNAManager.GetAndActivateDefaultProvider();
+
+            if (!result.IsError)
+                OASISAPI.Ignite(result.Result, OASISDNAManager.OASISDNA);
+                //OASISAPI.Ignite(OASISAPIgniteOptions, OASISDNAManager.OASISDNA);
+
+            return result;
+
 
             /*
             // TODO: Not sure if we want to store the OASIS Providers in the STARDNA? Maybe better to just use those listed in OASISDNA? Think it may be, lol! ;-)
@@ -1011,13 +1020,10 @@ namespace NextGenSoftware.OASIS.STAR
                     return;
                 }
             }
-            else
+            else if (!string.IsNullOrEmpty(STARDNA.StarId) && !string.IsNullOrWhiteSpace(STARDNA.StarId) && !Guid.TryParse(STARDNA.StarId, out starIdGuid))
             {
-                if (!Guid.TryParse(STARDNA.StarId, out starIdGuid))
-                {
-                    ErrorHandling.HandleError(ref result, "StarID defined in the STARDNA file in is invalid. It needs to be a valid Guid.");
-                    return;
-                }
+                ErrorHandling.HandleError(ref result, "StarID defined in the STARDNA file in is invalid. It needs to be a valid Guid.");
+                return;
             }
 
             InnerStar = new Star(starIdGuid);
@@ -1033,7 +1039,7 @@ namespace NextGenSoftware.OASIS.STAR
                 result.Message = "SuperSTAR Ignited";
         }
 
-        private static OASISResult<ICelestialBody> IgniteSuperStarInternal(InitOptions OASISAPIInitOptions, string STARDNAPath = STAR_DNA_DEFAULT_PATH, string OASISDNAPath = OASIS_DNA_DEFAULT_PATH, string starId = null)
+        private static OASISResult<ICelestialBody> IgniteSuperStarInternal(string STARDNAPath = STAR_DNA_DEFAULT_PATH, string OASISDNAPath = OASIS_DNA_DEFAULT_PATH, string starId = null)
         {
             OASISResult<ICelestialBody> result = new OASISResult<ICelestialBody>();
 
@@ -1049,7 +1055,7 @@ namespace NextGenSoftware.OASIS.STAR
             }
 
             ValidateSTARDNA(STARDNA);
-            OASISResult<IOASISStorage> oasisResult = InitializeOASISAPI(ref result, OASISAPIInitOptions, STARDNAPath, OASISDNAPath);
+            OASISResult<IOASISStorage> oasisResult = IgniteOASISAPI(OASISDNAPath);
 
             if (oasisResult.IsError)
             {
@@ -1058,14 +1064,15 @@ namespace NextGenSoftware.OASIS.STAR
                 return result;
             }
 
-            if (!result.IsError)
-                IgniteInnerStar(ref result, starId);
+            WireUpEvents();
 
-            if (!result.IsError)
-            {
-                SuperStarCore = new SuperStarCore(InnerStar.Id);
-                WireUpEvents();
-            }
+            //IgniteInnerStar(ref result, starId);
+
+            //if (!result.IsError)
+            //{
+            //    SuperStarCore = new SuperStarCore(InnerStar.Id);
+            //    WireUpEvents();
+            //}
 
             return result;
         }

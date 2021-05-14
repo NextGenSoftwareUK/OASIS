@@ -15,6 +15,9 @@ using NextGenSoftware.OASIS.API.Providers.IPFSOASIS;
 using NextGenSoftware.OASIS.API.Providers.Neo4jOASIS;
 using NextGenSoftware.OASIS.API.Providers.TelosOASIS;
 using NextGenSoftware.Holochain.HoloNET.Client.Core;
+using NextGenSoftware.OASIS.API.Providers.EthereumOASIS;
+using NextGenSoftware.OASIS.API.Providers.BlockStackOASIS;
+using NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS;
 
 namespace NextGenSoftware.OASIS.API.DNA.Manager
 {
@@ -182,6 +185,22 @@ namespace NextGenSoftware.OASIS.API.DNA.Manager
                             registeredProvider = IPFSOASIS;
                         }
                         break;
+
+                    case ProviderType.EthereumOASIS:
+                        {
+                            EthereumOASIS EthereumOASIS = new EthereumOASIS(overrideConnectionString == null ? OASISDNA.OASIS.StorageProviders.EthereumOASIS.ConnectionString : overrideConnectionString);
+                            EthereumOASIS.StorageProviderError += EthereumOASIS_StorageProviderError;
+                            registeredProvider = EthereumOASIS;
+                        }
+                        break;
+
+                    case ProviderType.ThreeFoldOASIS:
+                        {
+                            ThreeFoldOASIS ThreeFoldOASIS = new ThreeFoldOASIS(overrideConnectionString == null ? OASISDNA.OASIS.StorageProviders.ThreeFoldOASIS.ConnectionString : overrideConnectionString);
+                            ThreeFoldOASIS.StorageProviderError += ThreeFoldOASIS_StorageProviderError;
+                            registeredProvider = ThreeFoldOASIS;
+                        }
+                        break;
                 }
 
                 if (registeredProvider != null)
@@ -191,6 +210,16 @@ namespace NextGenSoftware.OASIS.API.DNA.Manager
                 registeredProvider = (IOASISStorage)ProviderManager.GetProvider(providerType);
 
             return registeredProvider;
+        }
+
+        private static void ThreeFoldOASIS_StorageProviderError(object sender, AvatarManagerErrorEventArgs e)
+        {
+            throw new NotImplementedException();
+        }
+
+        private static void EthereumOASIS_StorageProviderError(object sender, AvatarManagerErrorEventArgs e)
+        {
+            throw new NotImplementedException();
         }
 
         private static void TelosOASIS_StorageProviderError(object sender, AvatarManagerErrorEventArgs e)
@@ -253,7 +282,7 @@ namespace NextGenSoftware.OASIS.API.DNA.Manager
                     result.Result = false;
                     result.IsError = true;
                     
-                    string errorMessage = string.Concat("OASIS Provider ", Enum.GetName(typeof(ProviderType), providerTypes), " failed to register.\n");
+                    string errorMessage = string.Concat("OASIS Provider ", Enum.GetName(typeof(ProviderType), providerType), " failed to register.\n");
                     result.Message = string.Concat(result.Message, errorMessage);
                     LoggingManager.Log(errorMessage, Core.Enums.LogType.Error);
 

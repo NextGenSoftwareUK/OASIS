@@ -6,21 +6,21 @@ using System.Threading.Tasks;
 using System.Collections.Generic;
 using EOSNewYork.EOSCore.Response.API;
 using Nethereum.Contracts;
+using Console = System.Console;
+//using Spectre.Console;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Events;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.Core.Helpers;
+using NextGenSoftware.OASIS.API.Providers.SEEDSOASIS.Membranes;
 using NextGenSoftware.OASIS.STAR.ErrorEventArgs;
 using NextGenSoftware.OASIS.STAR.CelestialBodies;
-using NextGenSoftware.OASIS.API.Providers.SEEDSOASIS.Membranes;
 using NextGenSoftware.OASIS.STAR.Zomes;
-using Colorful;
-using Console = System.Console;
 using NextGenSoftware.OASIS.STAR.OASISAPIManager;
-//using Spectre.Console;
 
 namespace NextGenSoftware.OASIS.STAR.TestHarness
 {
@@ -39,35 +39,38 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
                 string rustGenesisFolder = "C:\\CODE\\Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK\\NextGenSoftware.OASIS.STAR.TestHarness\\bin\\Release\\net5.0\\Genesis\\Rust";
 
                 ShowHeader();
-
-                // If you wish to change the default init options for STAR then manually call the Initialize method below, otherwise STAR will init with default options.
                 ShowMessage("", false);
                 ShowWorkingMessage("Igniting Star...");
-                await SuperStar.IgniteSuperStarAsync(InitOptions.InitWithCurrentDefaultProvider);
-                ShowSuccessMessage("STAR Ignited");
+                OASISResult<ICelestialBody> result = await SuperStar.IgniteSuperStarAsync();
 
-
-                // TODO: Not sure what events should expose on Star, StarCore and HoloNETClient?
-                // I feel the events should at least be on the Star object, but then they need to be on the others to bubble them up (maybe could be hidden somehow?)
-                SuperStar.OnZomeError += Star_OnZomeError;
-                SuperStar.OnHolonLoaded += Star_OnHolonLoaded;
-                SuperStar.OnHolonsLoaded += Star_OnHolonsLoaded;
-                SuperStar.OnHolonSaved += Star_OnHolonSaved;
-                SuperStar.OnInitialized += Star_OnInitialized;
-                SuperStar.OnStarError += Star_OnStarError;
-
-                if (!GetConfirmation("Do you have an existing avatar? "))
-                    CreateAvatar();
+                if (result.IsError)
+                    ShowErrorMessage(string.Concat("Error Igniting Star. Error Message: ", result.Message));
                 else
+                {
+                    ShowSuccessMessage("STAR Ignited");
+
+                    // TODO: Not sure what events should expose on Star, StarCore and HoloNETClient?
+                    // I feel the events should at least be on the Star object, but then they need to be on the others to bubble them up (maybe could be hidden somehow?)
+                    SuperStar.OnZomeError += Star_OnZomeError;
+                    SuperStar.OnHolonLoaded += Star_OnHolonLoaded;
+                    SuperStar.OnHolonsLoaded += Star_OnHolonsLoaded;
+                    SuperStar.OnHolonSaved += Star_OnHolonSaved;
+                    SuperStar.OnInitialized += Star_OnInitialized;
+                    SuperStar.OnStarError += Star_OnStarError;
+
+                    if (!GetConfirmation("Do you have an existing avatar? "))
+                        CreateAvatar();
+                    else
+                        ShowMessage("", false);
+
+                    LoginAvatar();
+
+                    ShowMessage("", false);
+                    Colorful.Console.WriteAscii(" READY PLAYER ONE?", Color.Green);
                     ShowMessage("", false);
 
-                LoginAvatar();
-
-                ShowMessage("", false);
-                Colorful.Console.WriteAscii(" READY PLAYER ONE?", Color.Green);
-                ShowMessage("", false);
-
-                await Test(dnaFolder, cSharpGeneisFolder, rustGenesisFolder);
+                    await Test(dnaFolder, cSharpGeneisFolder, rustGenesisFolder);
+                }
             }
             catch (Exception ex)
             {
