@@ -64,7 +64,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
             if (!result.IsError)
                 return new AuthenticateResponse() { Message = "Avatar Successfully Authenticated.", Avatar = result.Result };
             else
-                return new AuthenticateResponse() { Message = result.ErrorMessage, IsError = true };
+                return new AuthenticateResponse() { Message = result.Message, IsError = true };
 
             /*
             //IAvatar avatar = AvatarManager.LoadAvatar(model.Email, setGlobally);

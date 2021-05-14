@@ -612,7 +612,7 @@ namespace NextGenSoftware.OASIS.STAR
                         if (result != null)
                         { 
                             if (result.IsError)
-                                return new CoronalEjection() { ErrorOccured = true, Message = result.ErrorMessage, CelestialBody = result.Result };
+                                return new CoronalEjection() { ErrorOccured = true, Message = result.Message, CelestialBody = result.Result };
                             else
                                 return new CoronalEjection() { ErrorOccured = false, Message = "Planet Successfully Created.", CelestialBody = result.Result };
                         }
@@ -941,29 +941,31 @@ namespace NextGenSoftware.OASIS.STAR
             currentHolon.Nodes.Add(new Node { NodeName = fieldName.ToPascalCase(), NodeType = nodeType, ParentId = currentHolon.Id });
         }
 
-        private static OASISResult<T> HandleError<T>(ref OASISResult<T> result, string errorMessage)
-        {
-            result.IsError = true;
-            result.ErrorMessage = errorMessage;
-            LoggingManager.Log(errorMessage, API.Core.Enums.LogType.Error);
-            return result;
-        }
+        //private static OASISResult<T> HandleError<T>(ref OASISResult<T> result, string errorMessage)
+        //{
+        //    result.IsError = true;
+        //    result.ErrorMessage = errorMessage;
+        //    LoggingManager.Log(errorMessage, API.Core.Enums.LogType.Error);
+        //    return result;
+        //}
 
-        private static OASISResult<T> HandleWarning<T>(ref OASISResult<T> result, string message)
-        {
-            result.IsWarning = true;
-            result.Message = message;
-            LoggingManager.Log(message, API.Core.Enums.LogType.Warn);
-            return result;
-        }
+        //private static OASISResult<T> HandleWarning<T>(ref OASISResult<T> result, string message)
+        //{
+        //    result.IsWarning = true;
+        //    result.Message = message;
+        //    LoggingManager.Log(message, API.Core.Enums.LogType.Warn);
+        //    return result;
+        //}
 
-        private static void InitializeOASISAPI(ref OASISResult<ICelestialBody> result, InitOptions OASISAPIInitOptions, string STARDNAPath = STAR_DNA_DEFAULT_PATH, string OASISDNAPath = OASIS_DNA_DEFAULT_PATH)
+        private static OASISResult<IOASISStorage> InitializeOASISAPI(ref OASISResult<ICelestialBody> result, InitOptions OASISAPIInitOptions, string STARDNAPath = STAR_DNA_DEFAULT_PATH, string OASISDNAPath = OASIS_DNA_DEFAULT_PATH)
         {
             SuperStar.OASISDNAPath = OASISDNAPath;
+
             //By default the OASISDNAManager will load the settings from OASIS_DNA.json in the current working dir but you can override using below:
             OASISDNAManager.OASISDNAFileName = SuperStar.OASISDNAPath;
-            OASISDNAManager.GetAndActivateDefaultProvider(); //TODO: May move this method into OASISAPI below?
+            return OASISDNAManager.GetAndActivateDefaultProvider(); 
 
+            /*
             // TODO: Not sure if we want to store the OASIS Providers in the STARDNA? Maybe better to just use those listed in OASISDNA? Think it may be, lol! ;-)
             if (string.IsNullOrEmpty(STARDNA.OASISProviders))
             {
@@ -992,7 +994,7 @@ namespace NextGenSoftware.OASIS.STAR
 
                 if (oasisAPIResult.IsError)
                     HandleError(ref result, string.Concat("Error initialiazing OASIS API. Reason: ", oasisAPIResult.ErrorMessage));
-            }
+            }*/
         }
 
         private static void IgniteInnerStar(ref OASISResult<ICelestialBody> result, string starId = null)
@@ -1004,7 +1006,8 @@ namespace NextGenSoftware.OASIS.STAR
             {
                 if (!Guid.TryParse(starId, out starIdGuid))
                 {
-                    HandleError(ref result, "StarID passed in is invalid. It needs to be a valid Guid.");
+                    //TODO: Need to apply this error handling across the entire OASIS eventually...
+                    ErrorHandling.HandleError(ref result, "StarID passed in is invalid. It needs to be a valid Guid.");
                     return;
                 }
             }
@@ -1012,7 +1015,7 @@ namespace NextGenSoftware.OASIS.STAR
             {
                 if (!Guid.TryParse(STARDNA.StarId, out starIdGuid))
                 {
-                    HandleError(ref result, "StarID defined in the STARDNA file in is invalid. It needs to be a valid Guid.");
+                    ErrorHandling.HandleError(ref result, "StarID defined in the STARDNA file in is invalid. It needs to be a valid Guid.");
                     return;
                 }
             }
@@ -1032,7 +1035,6 @@ namespace NextGenSoftware.OASIS.STAR
 
         private static OASISResult<ICelestialBody> IgniteSuperStarInternal(InitOptions OASISAPIInitOptions, string STARDNAPath = STAR_DNA_DEFAULT_PATH, string OASISDNAPath = OASIS_DNA_DEFAULT_PATH, string starId = null)
         {
-           // Guid starIdGuid = Guid.Empty;
             OASISResult<ICelestialBody> result = new OASISResult<ICelestialBody>();
 
             // If you wish to change the logging framework from the default (NLog) then set it below (or just change in OASIS_DNA - prefered way)
@@ -1046,15 +1048,24 @@ namespace NextGenSoftware.OASIS.STAR
                 SaveDNA();
             }
 
-            WireUpEvents();
             ValidateSTARDNA(STARDNA);
-            InitializeOASISAPI(ref result, OASISAPIInitOptions, STARDNAPath, OASISDNAPath);
+            OASISResult<IOASISStorage> oasisResult = InitializeOASISAPI(ref result, OASISAPIInitOptions, STARDNAPath, OASISDNAPath);
+
+            if (oasisResult.IsError)
+            {
+                result.IsError = true;
+                result.Message = oasisResult.Message;
+                return result;
+            }
 
             if (!result.IsError)
                 IgniteInnerStar(ref result, starId);
 
             if (!result.IsError)
+            {
                 SuperStarCore = new SuperStarCore(InnerStar.Id);
+                WireUpEvents();
+            }
 
             return result;
         }

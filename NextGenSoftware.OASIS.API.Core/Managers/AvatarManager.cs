@@ -72,33 +72,33 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             if (result.Result == null)
             {
                 result.IsError = true;
-                result.ErrorMessage = "This avatar does not exist. Please contact support or create a new avatar.";
+                result.Message = "This avatar does not exist. Please contact support or create a new avatar.";
             }
             else
             {
                 if (result.Result.DeletedDate != DateTime.MinValue)
                 {
                     result.IsError = true;
-                    result.ErrorMessage = "This avatar has been deleted. Please contact support or create a new avatar.";
+                    result.Message = "This avatar has been deleted. Please contact support or create a new avatar.";
                 }
 
                 // TODO: Implement Activate/Deactivate methods in AvatarManager & Providers...
                 if (!result.Result.IsActive)
                 {
                     result.IsError = true;
-                    result.ErrorMessage = "This avatar is no longer active. Please contact support or create a new avatar.";
+                    result.Message = "This avatar is no longer active. Please contact support or create a new avatar.";
                 }
 
                 if (!result.Result.IsVerified)
                 {
                     result.IsError = true;
-                    result.ErrorMessage = "Avatar has not been verified. Please check your email.";
+                    result.Message = "Avatar has not been verified. Please check your email.";
                 }
 
                 if (!BC.Verify(password, result.Result.Password))
                 {
                     result.IsError = true;
-                    result.ErrorMessage = "Email or password is incorrect";
+                    result.Message = "Email or password is incorrect";
                 }
             }
 
@@ -130,33 +130,33 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             if (result.Result == null)
             {
                 result.IsError = true;
-                result.ErrorMessage = "This avatar does not exist. Please contact support or create a new avatar.";
+                result.Message = "This avatar does not exist. Please contact support or create a new avatar.";
             }
             else
             {
                 if (result.Result.DeletedDate != DateTime.MinValue)
                 {
                     result.IsError = true;
-                    result.ErrorMessage = "This avatar has been deleted. Please contact support or create a new avatar.";
+                    result.Message = "This avatar has been deleted. Please contact support or create a new avatar.";
                 }
 
                 // TODO: Implement Activate/Deactivate methods in AvatarManager & Providers...
                 if (!result.Result.IsActive)
                 {
                     result.IsError = true;
-                    result.ErrorMessage = "This avatar is no longer active. Please contact support or create a new avatar.";
+                    result.Message = "This avatar is no longer active. Please contact support or create a new avatar.";
                 }
 
                 if (!result.Result.IsVerified)
                 {
                     result.IsError = true;
-                    result.ErrorMessage = "Avatar has not been verified. Please check your email.";
+                    result.Message = "Avatar has not been verified. Please check your email.";
                 }
 
                 if (!BC.Verify(password, result.Result.Password))
                 {
                     result.IsError = true;
-                    result.ErrorMessage = "Email or password is incorrect";
+                    result.Message = "Email or password is incorrect";
                 }
             }
 
@@ -188,7 +188,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             if (!ValidationHelper.IsValidEmail(email))
             {
                 result.IsError = true;
-                result.ErrorMessage = "The email is not valid.";
+                result.Message = "The email is not valid.";
                 return result;
             }
 
@@ -198,7 +198,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 // send already registered error in email to prevent account enumeration
                 sendAlreadyRegisteredEmail(email, origin);
                 result.IsError = true;
-                result.ErrorMessage = "Avatar Already Registered.";
+                result.Message = "Avatar Already Registered.";
                 return result;
             }
 
@@ -313,7 +313,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             {
                 result.Result = false;
                 result.IsError = true;
-                result.ErrorMessage = "Verification Failed";
+                result.Message = "Verification Failed";
             }
             else
             {
@@ -605,7 +605,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             else
             {
                 result.IsError = true;
-                result.ErrorMessage = "Avatar Not Found";
+                result.Message = "Avatar Not Found";
             }
 
             return result;
@@ -637,7 +637,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             else
             {
                 result.IsError = true;
-                result.ErrorMessage = "Avatar Not Found";
+                result.Message = "Avatar Not Found";
             }
 
             return result;
@@ -782,7 +782,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             else
             {
                 result.IsError = true;
-                result.ErrorMessage = string.Concat("No avatar was found for the id ", avatarId);
+                result.Message = string.Concat("No avatar was found for the id ", avatarId);
                 //throw new InvalidOperationException(string.Concat("No avatar was found for the id ", avatarId));
                 // NOTE: Would rather return OASISResult's rather than throw exceptions because less overhead (exceptions return a full stack trace).
                 // TODO: Eventually need OASISResult's implemented for ALL OASIS functions (this includes replacing all exceptions where possible).
@@ -798,7 +798,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             if (LoggedInAvatar.Id != avatarId)
             {
                 result.IsError = true;
-                result.ErrorMessage = "ERROR: You can only retreive your own private keys, not another persons avatar.";
+                result.Message = "ERROR: You can only retreive your own private keys, not another persons avatar.";
             }
             else
             {
@@ -815,7 +815,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 else
                 {
                     result.IsError = true;
-                    result.ErrorMessage = string.Concat("No avatar was found for the id ", avatarId);
+                    result.Message = string.Concat("No avatar was found for the id ", avatarId);
                     //throw new InvalidOperationException(string.Concat("No avatar was found for the id ", avatarId));
                     // NOTE: Would rather return OASISResult's rather than throw exceptions because less overhead (exceptions return a full stack trace).
                     // TODO: Eventually need OASISResult's implemented for ALL OASIS functions (this includes replacing all exceptions where possible).

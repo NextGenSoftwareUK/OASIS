@@ -51,7 +51,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS.TestHarness
             Console.WriteLine(string.Concat("Success: ", result.IsError ? "false" : "true"));
 
             if (result.IsError)
-                Console.WriteLine(string.Concat("Error Message: ", result.ErrorMessage));
+                Console.WriteLine(string.Concat("Error Message: ", result.Message));
 
             Console.WriteLine(string.Concat("Result: ", result.Result));
             
@@ -80,7 +80,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS.TestHarness
             Console.WriteLine(string.Concat("Success: ", sendInviteResult.IsError ? "false" : "true"));
 
             if (sendInviteResult.IsError)
-                Console.WriteLine(string.Concat("Error Message: ", sendInviteResult.ErrorMessage));
+                Console.WriteLine(string.Concat("Error Message: ", sendInviteResult.Message));
             else
             {
                 Console.WriteLine(string.Concat("Invite Sent To Join SEEDS. Invite Secret: ", sendInviteResult.Result.InviteSecret, ". Transction ID: ", sendInviteResult.Result.TransactionId));
@@ -90,7 +90,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS.TestHarness
                 Console.WriteLine(string.Concat("Success: ", acceptInviteResult.IsError ? "false" : "true"));
 
                 if (acceptInviteResult.IsError)
-                    Console.WriteLine(string.Concat("Error Message: ", acceptInviteResult.ErrorMessage));
+                    Console.WriteLine(string.Concat("Error Message: ", acceptInviteResult.Message));
                 else
                     Console.WriteLine(string.Concat("Invite Accepted To Join SEEDS. Transction ID: ", acceptInviteResult.Result));
             }

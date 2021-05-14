@@ -241,7 +241,7 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
                 Console.WriteLine(string.Concat(" Success: ", payWithSeedsResult.IsError ? "false" : "true"));
 
                 if (payWithSeedsResult.IsError)
-                    Console.WriteLine(string.Concat(" Error Message: ", payWithSeedsResult.ErrorMessage));
+                    Console.WriteLine(string.Concat(" Error Message: ", payWithSeedsResult.Message));
 
                 Console.WriteLine(string.Concat(" Result: ", payWithSeedsResult.Result));
 
@@ -270,7 +270,7 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
                 Console.WriteLine(string.Concat(" Success: ", sendInviteResult.IsError ? "false" : "true"));
 
                 if (sendInviteResult.IsError)
-                    Console.WriteLine(string.Concat(" Error Message: ", sendInviteResult.ErrorMessage));
+                    Console.WriteLine(string.Concat(" Error Message: ", sendInviteResult.Message));
                 else
                 {
                     Console.WriteLine(string.Concat(" Invite Sent To Join SEEDS. Invite Secret: ", sendInviteResult.Result.InviteSecret, ". Transction ID: ", sendInviteResult.Result.TransactionId));
@@ -280,7 +280,7 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
                     Console.WriteLine(string.Concat("Success: ", acceptInviteResult.IsError ? "false" : "true"));
 
                     if (acceptInviteResult.IsError)
-                        Console.WriteLine(string.Concat(" Error Message: ", acceptInviteResult.ErrorMessage));
+                        Console.WriteLine(string.Concat(" Error Message: ", acceptInviteResult.Message));
                     else
                         Console.WriteLine(string.Concat(" Invite Accepted To Join SEEDS. Transction ID: ", acceptInviteResult.Result));
                 }
@@ -728,7 +728,7 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
             ShowMessage("");
 
             if (createAvatarResult.IsError)
-                ShowErrorMessage(string.Concat("Error creating avatar. Error message: ", createAvatarResult.ErrorMessage));
+                ShowErrorMessage(string.Concat("Error creating avatar. Error message: ", createAvatarResult.Message));
             else
                 ShowSuccessMessage("Successfully Created Avatar. Please Check Your Email To Verify Your Account Before Logging In.");
         }
@@ -860,9 +860,9 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
 
                 if (beamInResult.IsError)
                 {
-                    ShowErrorMessage(string.Concat("Error logging in. Error Message: ", beamInResult.ErrorMessage));
+                    ShowErrorMessage(string.Concat("Error logging in. Error Message: ", beamInResult.Message));
 
-                    if (beamInResult.ErrorMessage == "Avatar has not been verified. Please check your email.")
+                    if (beamInResult.Message == "Avatar has not been verified. Please check your email.")
                     {
                         ShowErrorMessage("Then either click the link in the email to activate your avatar or enter the validation token contained in the email below:", false);
 
@@ -874,7 +874,7 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
                             OASISResult<bool> verifyEmailResult = SuperStar.OASISAPI.Avatar.VerifyEmail(token);
 
                             if (verifyEmailResult.IsError)
-                                ShowErrorMessage(verifyEmailResult.ErrorMessage);
+                                ShowErrorMessage(verifyEmailResult.Message);
                             else
                             {
                                 ShowSuccessMessage("Verification successful, you can now login");

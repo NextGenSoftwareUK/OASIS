@@ -14,7 +14,8 @@ namespace NextGenSoftware.OASIS.STAR.Zomes
 {
     public abstract class ZomeBase : Holon, IZomeBase
     {
-        private HolonManager _holonManager = new HolonManager(OASISDNAManager.GetAndActivateDefaultProvider());
+        //private HolonManager _holonManager = new HolonManager(OASISDNAManager.GetAndActivateDefaultProvider());
+        private HolonManager _holonManager = null;
         public List<Holon> _holons = new List<Holon>();
 
         public List<Holon> Holons
@@ -50,6 +51,16 @@ namespace NextGenSoftware.OASIS.STAR.Zomes
 
         //public delegate void DataReceived(object sender, DataReceivedEventArgs e);
         //public event DataReceived OnDataReceived;
+
+        public ZomeBase()
+        {
+            OASISResult<IOASISStorage> result = OASISDNAManager.GetAndActivateDefaultProvider();
+
+            if (result.IsError)
+                ErrorHandling.HandleError(ref result, string.Concat("Error calling OASISDNAManager.GetAndActivateDefaultProvider(). Error details: ", result.Message), true);
+           
+            _holonManager = new HolonManager(result.Result);
+        }
 
         public virtual async Task<IHolon> LoadHolonAsync(Guid id, HolonType type = HolonType.Holon)
         {
@@ -107,13 +118,13 @@ namespace NextGenSoftware.OASIS.STAR.Zomes
                 if (holonsResult.IsError)
                 {
                     zomeResult.IsError = true;
-                    zomeResult.ErrorMessage = holonsResult.ErrorMessage;
+                    zomeResult.Message = holonsResult.Message;
                 }
             }
             else
             {
                 zomeResult.IsError = true;
-                zomeResult.ErrorMessage = holonResult.ErrorMessage;
+                zomeResult.Message = holonResult.Message;
             }
 
             return zomeResult;

@@ -1,8 +1,10 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.DNA.Manager;
+using System;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 {
@@ -45,7 +47,13 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 
         protected IOASISStorage GetAndActivateDefaultProvider()
         {
-            return OASISDNAManager.GetAndActivateDefaultProvider();
+            OASISResult<IOASISStorage> result = OASISDNAManager.GetAndActivateDefaultProvider();
+
+            //TODO: Eventually want to replace all exceptions with OASISResult throughout the OASIS because then it makes sure errors are handled properly and friendly messages are shown (plus less overhead of throwing an entire stack trace!)
+            if (result.IsError)
+                ErrorHandling.HandleError(ref result, string.Concat("Error calling OASISDNAManager.GetAndActivateDefaultProvider(). Error details: ", result.Message), true);
+
+            return result.Result;
         }
 
         protected IOASISStorage GetAndActivateProvider(ProviderType providerType, bool setGlobally = false)

@@ -229,7 +229,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             {
                 result.IsError = true;
                 string errorMessage = string.Concat("All registered OASIS Providers in the AutoFailOverList failed to save ", GetHolonInfoForLogging(holon), ". Please view the logs for more information. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString());
-                result.ErrorMessage = errorMessage;
+                result.Message = errorMessage;
                 LoggingManager.Log(errorMessage, LogType.Error);
             }
 
@@ -367,7 +367,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             if (result.Result == null)
             {
                 result.IsError = true;
-                result.ErrorMessage = string.Concat("All Registered OASIS Providers In The AutoFailOverList Failed To Save The Holons. Providers in list are ", ProviderManager.GetProviderAutoFailOverListAsString());
+                result.Message = string.Concat("All Registered OASIS Providers In The AutoFailOverList Failed To Save The Holons. Providers in list are ", ProviderManager.GetProviderAutoFailOverListAsString());
             }
 
             foreach (EnumValue<ProviderType> type in ProviderManager.GetProvidersThatAreAutoReplicating())
