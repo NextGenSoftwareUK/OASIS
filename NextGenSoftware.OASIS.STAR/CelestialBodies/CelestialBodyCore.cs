@@ -190,7 +190,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
                 if (holonsResult.IsError)
                 {
                     result.IsError = true;
-                    result.ErrorMessage = holonsResult.ErrorMessage;
+                    result.Message = holonsResult.Message;
                 }
             }
 

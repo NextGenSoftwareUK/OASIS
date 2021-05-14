@@ -86,7 +86,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
 
             // TODO: This will only work if the planet names are unique (which we want to enforce anyway!) - need to add this soon!
             IPlanet savedPlanet = this.Star.Planets.FirstOrDefault(x => x.Name == planet.Name);
-            return new OASISResult<IPlanet>() { Result = savedPlanet, ErrorMessage = result.ErrorMessage, IsError = result.IsError };
+            return new OASISResult<IPlanet>() { Result = savedPlanet, Message = result.Message, IsError = result.IsError };
 
             // Alternative way is to save the planet first and then then the star (as code below does):
 

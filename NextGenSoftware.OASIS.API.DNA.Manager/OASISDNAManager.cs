@@ -31,37 +31,50 @@ namespace NextGenSoftware.OASIS.API.DNA.Manager
             }
         }
 
-        public static void Initialize(string OASISDNAFileName)
+        public static OASISResult<bool> Initialize(string OASISDNAFileName)
         {
             LoadOASISDNA(OASISDNAFileName);
-            Initialize(OASISDNA);
+            return Initialize(OASISDNA);
         }
 
-        public static void Initialize(OASISDNA OASISDNA)
+        public static OASISResult<bool> Initialize(OASISDNA OASISDNA)
         {
             LoggingManager.CurrentLoggingFramework = (LoggingFramework)Enum.Parse(typeof(LoggingFramework), OASISDNA.OASIS.Logging.LoggingFramework);
             LoadProviderLists();
-            RegisterProvidersInAllLists();
+            return RegisterProvidersInAllLists();
         }
 
-        public static void Initialize()
+        public static OASISResult<bool> Initialize()
         {
-            Initialize(OASISDNAFileName);
+            return Initialize(OASISDNAFileName);
         }
 
-        public static IOASISStorage GetAndActivateDefaultProvider()
+        public static OASISResult<IOASISStorage>GetAndActivateDefaultProvider()
         {
+            OASISResult<IOASISStorage> result = new OASISResult<IOASISStorage>();
+
             if (ProviderManager.CurrentStorageProvider == null)
             {
                 if (!IsInitialized)
-                    Initialize(OASISDNAFileName);
+                {
+                    OASISResult<bool> initResult = Initialize(OASISDNAFileName);
+
+                    if (initResult.IsError)
+                    {
+                        result.IsError = true;
+                        result.Message = initResult.Message;
+                        return result;
+                    }
+                }
 
                 //TODO: Need to add additional logic later for when the first provider and others fail or are too laggy and so need to switch to a faster provider, etc... DONE! :)
                 //return GetAndActivateProvider((ProviderType)Enum.Parse(typeof(ProviderType), ProviderManager.DefaultProviderTypes[0]));
-                return GetAndActivateProvider(ProviderManager.GetProviderAutoFailOverList()[0].Value);
+                result.Result = GetAndActivateProvider(ProviderManager.GetProviderAutoFailOverList()[0].Value);
             }
             else
-                return ProviderManager.CurrentStorageProvider;
+                result.Result = ProviderManager.CurrentStorageProvider;
+
+            return result;
         }
 
         public static IOASISStorage GetAndActivateProvider(ProviderType providerType, string customConnectionString = null, bool forceRegister = false, bool setGlobally = false)
@@ -241,7 +254,7 @@ namespace NextGenSoftware.OASIS.API.DNA.Manager
                     result.IsError = true;
                     
                     string errorMessage = string.Concat("OASIS Provider ", Enum.GetName(typeof(ProviderType), providerTypes), " failed to register.\n");
-                    result.ErrorMessage = string.Concat(result.ErrorMessage, errorMessage);
+                    result.Message = string.Concat(result.Message, errorMessage);
                     LoggingManager.Log(errorMessage, Core.Enums.LogType.Error);
 
                     if (abortIfOneProviderFailsToRegister)
@@ -256,9 +269,9 @@ namespace NextGenSoftware.OASIS.API.DNA.Manager
         {
             if (listResult.IsError)
             {
-                string errorMessage = string.Concat("Error registering providers in ", listName, ". Error Details: \n", listResult.ErrorMessage);
+                string errorMessage = string.Concat("Error registering providers in ", listName, ". Error Details: \n", listResult.Message);
                 allListResult.IsError = true;
-                allListResult.ErrorMessage = string.Concat(allListResult.ErrorMessage, errorMessage);
+                allListResult.Message = string.Concat(allListResult.Message, errorMessage);
                 LoggingManager.Log(errorMessage, Core.Enums.LogType.Error);
             }
 

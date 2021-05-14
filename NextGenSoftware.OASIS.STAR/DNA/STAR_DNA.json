@@ -32,7 +32,7 @@
   "CSharpTemplateCelestialBodyDNA": "CelestialBodyDNATemplate.cs",
   "StarProviderKey": "",
   "StarId": "",
-  "OASISProviders": "HoloOASIS,MongoDBOASIS",
+  //"OASISProviders": "HoloOASIS,MongoDBOASIS",
   //"HolochainConductorURI": "ws://localhost:8888",
   //"HoloNETClientType": "Desktop",
   "HolochainVersion": "Redux"

@@ -152,7 +152,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
                 if (celestialBodyHolonResult.IsError)
                 {
                     result.IsError = true;
-                    result.ErrorMessage = celestialBodyHolonResult.ErrorMessage;
+                    result.Message = celestialBodyHolonResult.Message;
                     return result;
                 }
                 else
@@ -222,7 +222,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
                     if (zomeResult.IsError)
                     {
                         result.IsError = true;
-                        result.ErrorMessage = zomeResult.ErrorMessage;
+                        result.Message = zomeResult.Message;
                         return result;
                     }
 
@@ -246,7 +246,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
                 this.Children = holonResult.Result.Children;
             }
 
-            return new OASISResult<ICelestialBody>() { Result = this, ErrorMessage = holonResult.ErrorMessage, IsError = holonResult.IsError };
+            return new OASISResult<ICelestialBody>() { Result = this, Message = holonResult.Message, IsError = holonResult.IsError };
         }
 
         
