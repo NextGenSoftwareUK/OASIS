@@ -177,8 +177,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.STAR.
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.STAR.Templates.Blazor4", "NextGenSoftware.OASIS.STAR.Templates.Blazor4\NextGenSoftware.OASIS.STAR.Templates.Blazor4.csproj", "{6E1E2ED6-01F7-427B-99B8-1E6AFB50C875}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.Manager.Standard", "NextGenSoftware.OASIS.API.Manager.Standard\NextGenSoftware.OASIS.API.Manager.Standard.csproj", "{2EEA5ECD-FABE-4E9E-BCDA-CD92D1976BA5}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.STAR.Templates.Blazor5", "NextGenSoftware.OASIS.STAR.Templates.Blazor5\NextGenSoftware.OASIS.STAR.Templates.Blazor5.csproj", "{C20F6AD7-747A-434E-AAFB-EF0116E64889}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.STAR.Templates.Blazor6.Server", "NextGenSoftware.OASIS.STAR.Templates.Blazor6\Server\NextGenSoftware.OASIS.STAR.Templates.Blazor6.Server.csproj", "{81306844-1268-4F61-88AB-81D546B238C0}"
@@ -1406,24 +1404,6 @@ Global
 		{6E1E2ED6-01F7-427B-99B8-1E6AFB50C875}.Release|x64.Build.0 = Release|Any CPU
 		{6E1E2ED6-01F7-427B-99B8-1E6AFB50C875}.Release|x86.ActiveCfg = Release|Any CPU
 		{6E1E2ED6-01F7-427B-99B8-1E6AFB50C875}.Release|x86.Build.0 = Release|Any CPU
-		{2EEA5ECD-FABE-4E9E-BCDA-CD92D1976BA5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{2EEA5ECD-FABE-4E9E-BCDA-CD92D1976BA5}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{2EEA5ECD-FABE-4E9E-BCDA-CD92D1976BA5}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{2EEA5ECD-FABE-4E9E-BCDA-CD92D1976BA5}.Debug|x64.Build.0 = Debug|Any CPU
-		{2EEA5ECD-FABE-4E9E-BCDA-CD92D1976BA5}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{2EEA5ECD-FABE-4E9E-BCDA-CD92D1976BA5}.Debug|x86.Build.0 = Debug|Any CPU
-		{2EEA5ECD-FABE-4E9E-BCDA-CD92D1976BA5}.Linux|Any CPU.ActiveCfg = Debug|Any CPU
-		{2EEA5ECD-FABE-4E9E-BCDA-CD92D1976BA5}.Linux|Any CPU.Build.0 = Debug|Any CPU
-		{2EEA5ECD-FABE-4E9E-BCDA-CD92D1976BA5}.Linux|x64.ActiveCfg = Debug|Any CPU
-		{2EEA5ECD-FABE-4E9E-BCDA-CD92D1976BA5}.Linux|x64.Build.0 = Debug|Any CPU
-		{2EEA5ECD-FABE-4E9E-BCDA-CD92D1976BA5}.Linux|x86.ActiveCfg = Debug|Any CPU
-		{2EEA5ECD-FABE-4E9E-BCDA-CD92D1976BA5}.Linux|x86.Build.0 = Debug|Any CPU
-		{2EEA5ECD-FABE-4E9E-BCDA-CD92D1976BA5}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{2EEA5ECD-FABE-4E9E-BCDA-CD92D1976BA5}.Release|Any CPU.Build.0 = Release|Any CPU
-		{2EEA5ECD-FABE-4E9E-BCDA-CD92D1976BA5}.Release|x64.ActiveCfg = Release|Any CPU
-		{2EEA5ECD-FABE-4E9E-BCDA-CD92D1976BA5}.Release|x64.Build.0 = Release|Any CPU
-		{2EEA5ECD-FABE-4E9E-BCDA-CD92D1976BA5}.Release|x86.ActiveCfg = Release|Any CPU
-		{2EEA5ECD-FABE-4E9E-BCDA-CD92D1976BA5}.Release|x86.Build.0 = Release|Any CPU
 		{C20F6AD7-747A-434E-AAFB-EF0116E64889}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{C20F6AD7-747A-434E-AAFB-EF0116E64889}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C20F6AD7-747A-434E-AAFB-EF0116E64889}.Debug|x64.ActiveCfg = Debug|Any CPU

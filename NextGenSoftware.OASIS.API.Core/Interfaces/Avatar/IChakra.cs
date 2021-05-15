@@ -12,7 +12,7 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces
         EnumValue<ChakraType> Type { get; set; }
         string SanskritName { get; set; }
         string Description { get; set; }
-        Color Color { get; set; }
+       // Color Color { get; set; }
         EnumValue<ElementType> Element { get; set; }
         Crystal Crystal { get; set; }
         EnumValue<YogaPoseType> YogaPose { get; set; }

@@ -4,7 +4,8 @@ using NextGenSoftware.OASIS.API.Core.Interfaces;
 
 namespace NextGenSoftware.OASIS.API.Core.Objects
 {
-    public abstract class Crystal : ICrystal
+    public class Crystal : ICrystal
+    //public abstract class Crystal : ICrystal //TODO: Would rather it was virtual but MongoDB does not support this unless you apply this: https://stackoverflow.com/questions/57015856/invalidoperationexception-cant-compile-a-newexpression-with-a-constructor-decl but then that means need to create copies of the objects in MongoDB. Will do this later... :)
     {
         public EnumValue<CrystalName> Name { get; set; }
         public EnumValue<CrystalType> Type { get; set; }
@@ -14,7 +15,6 @@ namespace NextGenSoftware.OASIS.API.Core.Objects
         public int GroundingLevel { get; set; }
         public int CleansingLevel { get; set; }
         public int AmplifyicationLevel { get; set; }
-        
 
         //TODO: Lots more to be added soon... ;-)
     }

@@ -41,7 +41,7 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
                 ShowHeader();
                 ShowMessage("", false);
                 ShowWorkingMessage("Igniting Star...");
-                OASISResult<ICelestialBody> result = await SuperStar.IgniteSuperStarAsync();
+                OASISResult<ICelestialBody> result = SuperStar.IgniteSuperStar();
 
                 if (result.IsError)
                     ShowErrorMessage(string.Concat("Error Igniting Star. Error Message: ", result.Message));
@@ -921,7 +921,7 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
             Console.WriteLine(string.Concat(" Root XP: ", SuperStar.LoggedInUser.Chakras.Root.XP));
             Console.WriteLine(string.Concat(" Root Level: ", SuperStar.LoggedInUser.Chakras.Root.Level));
             Console.WriteLine(string.Concat(" Root Progress: ", SuperStar.LoggedInUser.Chakras.Root.Progress));
-            Console.WriteLine(string.Concat(" Root Color: ", SuperStar.LoggedInUser.Chakras.Root.Color.Name));
+           // Console.WriteLine(string.Concat(" Root Color: ", SuperStar.LoggedInUser.Chakras.Root.Color.Name));
             Console.WriteLine(string.Concat(" Root Element: ", SuperStar.LoggedInUser.Chakras.Root.Element.Name));
             Console.WriteLine(string.Concat(" Root YogaPose: ", SuperStar.LoggedInUser.Chakras.Root.YogaPose.Name));
             Console.WriteLine(string.Concat(" Root WhatItControls: ", SuperStar.LoggedInUser.Chakras.Root.WhatItControls));

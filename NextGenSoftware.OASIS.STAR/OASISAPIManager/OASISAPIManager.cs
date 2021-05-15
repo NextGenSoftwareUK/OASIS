@@ -36,7 +36,10 @@ namespace NextGenSoftware.OASIS.STAR.OASISAPIManager
                 result = OASISDNAManager.Initialize(OASISDNAPath);
 
             if (!result.IsError && result.Result)
+            {
+                OASISDNAManager.GetAndActivateDefaultProvider();
                 Ignite(startApolloServer);
+            }
 
             return result;
         }
