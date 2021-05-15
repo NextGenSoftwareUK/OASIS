@@ -18,6 +18,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         private static bool _setProviderGlobally = false;
 
         public static EnumValue<ProviderType> CurrentStorageProviderType { get; private set; } = new EnumValue<ProviderType>(ProviderType.Default);
+        public static OASISProviderBootType OASISProviderBootType { get; set; } = OASISProviderBootType.Hot;
 
         //public static string CurrentStorageProviderName
         //{
@@ -27,7 +28,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         //    }
         //}
 
-       // public static string[] DefaultProviderTypes { get; set; }
+        // public static string[] DefaultProviderTypes { get; set; }
 
         public static IOASISStorage DefaultGlobalStorageProvider { get; set; }
 

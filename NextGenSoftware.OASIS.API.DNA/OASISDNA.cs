@@ -10,6 +10,7 @@ namespace NextGenSoftware.OASIS.API.DNA
     public class OASIS
     {
         public Logging Logging { get; set; }
+        public ErrorHandlingSettings ErrorHandling { get; set; }
         public SecuritySettings Security { get; set; }
         public EmailSettings Email { get; set; }
         public StorageProviderSettings StorageProviders { get; set; }
@@ -20,6 +21,15 @@ namespace NextGenSoftware.OASIS.API.DNA
         public string Secret { get; set; }
         public EncryptionSettings AvatarPassword { get; set; }
         public EncryptionSettings OASISProviderPrivateKeys { get; set; }
+    }
+
+    public class ErrorHandlingSettings
+    {
+        public bool ShowStackTrace { get; set; }
+        public bool ThrowExceptionsOnErrors { get; set; }
+        public bool ThrowExceptionsOnWarnings { get; set; }
+        public bool LogAllErrors { get; set; }
+        public bool LogAllWarnings { get; set; }
     }
 
     public class Logging
@@ -44,6 +54,7 @@ namespace NextGenSoftware.OASIS.API.DNA
         public string AutoReplicationProviders { get; set; }
         public string AutoFailOverProviders { get; set; }
         public string AutoLoadBalanceProviders { get; set; }
+        public string OASISProviderBootType { get; set; }
         public HoloOASISProviderSettings HoloOASIS { get; set; }
         public MongoDBOASISProviderSettings MongoDBOASIS { get; set; }
         public EOSIOASISProviderSettings EOSIOOASIS { get; set; }

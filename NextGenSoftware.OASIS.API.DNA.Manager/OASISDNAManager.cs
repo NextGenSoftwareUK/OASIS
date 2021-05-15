@@ -14,10 +14,9 @@ using NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS;
 using NextGenSoftware.OASIS.API.Providers.IPFSOASIS;
 using NextGenSoftware.OASIS.API.Providers.Neo4jOASIS;
 using NextGenSoftware.OASIS.API.Providers.TelosOASIS;
-using NextGenSoftware.Holochain.HoloNET.Client.Core;
 using NextGenSoftware.OASIS.API.Providers.EthereumOASIS;
-using NextGenSoftware.OASIS.API.Providers.BlockStackOASIS;
 using NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS;
+using NextGenSoftware.Holochain.HoloNET.Client.Core;
 
 namespace NextGenSoftware.OASIS.API.DNA.Manager
 {
@@ -25,15 +24,8 @@ namespace NextGenSoftware.OASIS.API.DNA.Manager
     {
         public static string OASISDNAFileName { get; set; } = "OASIS_DNA.json";
         public static OASISDNA OASISDNA;
-
-        public static bool IsInitialized
-        {
-            get
-            {
-                return OASISDNA != null;
-            }
-        }
-
+        public static bool IsInitialized { get; private set; } = false;
+ 
         public static OASISResult<bool> Initialize(string OASISDNAFileName)
         {
             LoadOASISDNA(OASISDNAFileName);
@@ -42,9 +34,41 @@ namespace NextGenSoftware.OASIS.API.DNA.Manager
 
         public static OASISResult<bool> Initialize(OASISDNA OASISDNA)
         {
+            OASISResult<bool> result = new OASISResult<bool>(false);
+            object OASISProviderBootTypeObject = null;
+            
             LoggingManager.CurrentLoggingFramework = (LoggingFramework)Enum.Parse(typeof(LoggingFramework), OASISDNA.OASIS.Logging.LoggingFramework);
+            Core.Helpers.ErrorHandling.LogAllErrors = OASISDNA.OASIS.ErrorHandling.LogAllErrors;
+            Core.Helpers.ErrorHandling.LogAllWarnings = OASISDNA.OASIS.ErrorHandling.LogAllWarnings;
+            Core.Helpers.ErrorHandling.ShowStackTrace = OASISDNA.OASIS.ErrorHandling.ShowStackTrace;
+            Core.Helpers.ErrorHandling.ThrowExceptionsOnErrors = OASISDNA.OASIS.ErrorHandling.ThrowExceptionsOnErrors;
+            Core.Helpers.ErrorHandling.ThrowExceptionsOnWarnings = OASISDNA.OASIS.ErrorHandling.ThrowExceptionsOnWarnings;
+
             LoadProviderLists();
-            return RegisterProvidersInAllLists();
+
+            //TODO: Need to apply this logic to rest of methods in this DNAManager such as RegisterProvider(s) etc... (Actually dont think we need to because this is our the OASIS is booted so it only applies here (the other methods override it).
+            if (Enum.TryParse(typeof(OASISProviderBootType), OASISDNA.OASIS.StorageProviders.OASISProviderBootType, out OASISProviderBootTypeObject))
+            {
+                ProviderManager.OASISProviderBootType = (OASISProviderBootType)OASISProviderBootTypeObject;
+
+                if (ProviderManager.OASISProviderBootType == OASISProviderBootType.Warm || ProviderManager.OASISProviderBootType == OASISProviderBootType.Hot)
+                    result = RegisterProvidersInAllLists();
+                else
+                {
+                    result.Result = true;
+                    result.Message = "OASIS initialized but OASISProviderBootType is set to Cold so no providers have been registered or activated.";
+                }
+            }
+            else
+            {
+                result.IsError = true;
+                result.Message = string.Concat("OASISProviderBootType '", OASISDNA.OASIS.StorageProviders.OASISProviderBootType, "' defined in OASISDNA is invalid. Valid values are: ", EnumHelper.GetEnumValues(typeof(OASISProviderBootType), EnumHelper.ListType.ItemsSeperatedByComma));
+            }
+                
+            if (result.Result && !result.IsError)
+                IsInitialized = true;
+
+            return result;
         }
 
         public static OASISResult<bool> Initialize()
@@ -208,6 +232,9 @@ namespace NextGenSoftware.OASIS.API.DNA.Manager
             }
             else
                 registeredProvider = (IOASISStorage)ProviderManager.GetProvider(providerType);
+
+            if (ProviderManager.OASISProviderBootType == OASISProviderBootType.Hot)
+                ProviderManager.ActivateProvider(registeredProvider);
 
             return registeredProvider;
         }

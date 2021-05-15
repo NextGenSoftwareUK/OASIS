@@ -36,10 +36,6 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             ConnectionString = connectionString;
             DBName = dbName;
 
-            Database = new MongoDbContext(connectionString, dbName);
-            _avatarRepository = new AvatarRepository(Database);
-            _holonRepository = new HolonRepository(Database);
-
             this.ProviderName = "MongoDBOASIS";
             this.ProviderDescription = "MongoDB Atlas Provider";
             this.ProviderType = new Core.Helpers.EnumValue<ProviderType>(Core.Enums.ProviderType.MongoDBOASIS);
@@ -533,8 +529,6 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
         public override void ActivateProvider()
         {
             //TODO: {URGENT} Find out how to check if MongoDB is connected, etc here...
-            //if (_db.MongoDB.)
-
             if (Database == null)
             {
                 Database = new MongoDbContext(ConnectionString, DBName);
