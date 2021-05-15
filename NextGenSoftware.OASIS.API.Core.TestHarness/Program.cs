@@ -17,15 +17,14 @@ namespace NextGenSoftware.OASIS.API.Core.TestHarness
             Console.WriteLine("NextGenSoftware.OASIS.API.Core Test Harness v1.1");
             Console.WriteLine("");
 
-            //By default the OASISConfigManager will load the settings from OASIS_DNA.json in the current working dir but you can override using below:
-         //   OASISConfigManager.OASISDNAFileName = "OASIS_DNA_Override.json";
-
-            // Will initialize the default OASIS Provider defined OASIS_DNA config file.
-            //OASISConfigManager.GetAndActivateProvider();
+            //By default it will load the settings from OASIS_DNA.json in the current working dir but you can override using below:
+            //OASISAPI.Initialize("OASIS_DNA_Override.json");
+            OASISAPI.Initialize();
 
             //Init with the Holochain Provider.
             OASISDNAManager.GetAndActivateProvider(ProviderType.HoloOASIS, null, false, true);
-            OASISAPI.Initialize(ProviderManager.CurrentStorageProvider, OASISDNAManager.OASISDNA);
+            //ProviderManager.ActivateProvider(ProviderType.HoloOASIS); // Can also do it this way.
+
             //OASISAPI.Init(new List<IOASISProvider> { new HoloOASIS("ws://localhost:8888", Holochain.HoloNET.Client.Core.HolochainVersion.Redux) }, OASISConfigManager.OASISDNA);
             //OASISAPI.Init(InitOptions.InitWithAllProviders, OASISConfigManager.OASISDNA);
             

@@ -1,6 +1,7 @@
 ﻿using NextGenSoftware.OASIS.API.DNA;
-using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.DNA.Manager;
 using NextGenSoftware.OASIS.API.Core.Managers;
+using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Apollo.Server;
 
 namespace NextGenSoftware.OASIS.STAR.OASISAPIManager
@@ -12,51 +13,40 @@ namespace NextGenSoftware.OASIS.STAR.OASISAPIManager
         public MapManager Map { get; set; }
         public OASISProviders Providers { get; private set; }
 
-        //TODO: Not sure we need any of these methods? Because OASISDNAManager does all this for you! ;-) 
-        /*
-        public void Ignite(IgniteOptions options, OASISDNA OASISDNA, bool startApolloServer = true)
+        public OASISResult<bool> Ignite(OASISDNA OASISDNA, bool startApolloServer = true)
         {
-            switch (options)
-            {
-                case IgniteOptions.IgniteWithAllProviders:
-                    Ignite(ProviderManager.GetAllRegisteredProviders(), OASISDNA, startApolloServer);
-                    break;
+            OASISResult<bool> result = new OASISResult<bool>();
 
-                case IgniteOptions.IgniteWithCurrentDefaultProvider:
-                    Ignite(new List<IOASISProvider>() { ProviderManager.CurrentStorageProvider }, OASISDNA, startApolloServer);
-                    break;
-            }
-        }
-
-        public OASISResult<bool> Ignite(List<ProviderType> OASISProviderTypes, OASISDNA OASISDNA, bool startApolloServer = true)
-        {
+            // TODO: Soon you will not need to inject in a provider because the mappings below will be used instead...
             if (!OASISDNAManager.IsInitialized)
-                OASISDNAManager.Initialize(OASISDNA);
+                result = OASISDNAManager.Initialize(OASISDNA);
 
-            OASISResult<bool> result = OASISDNAManager.RegisterProviders(OASISProviderTypes);
-
-            // Set and Activate the first provider in the list. (may change in future how default provider is set but for now it will always be the first item in any list throughout the OASIS).
-            if (!result.IsError)
-                Ignite(ProviderManager.SetAndActivateCurrentStorageProvider(OASISProviderTypes[0]), OASISDNA, startApolloServer);
+            if (!result.IsError && result.Result)
+                Ignite(startApolloServer);
 
             return result;
         }
 
-        public void Ignite(List<IOASISProvider> OASISProviders, OASISDNA OASISDNA, bool startApolloServer = true)
+        public OASISResult<bool> Ignite(string OASISDNAPath = "OASIS_DNA.json", bool startApolloServer = true)
         {
-            //TODO: Soon you will not need to pass these in since MEF will taKe care of this for us.
-            if (ProviderManager.RegisterProviders(OASISProviders))
-                Ignite(ProviderManager.SetAndActivateCurrentStorageProvider(OASISProviders[0]), OASISDNA, startApolloServer);
-        }
-        */
+            OASISResult<bool> result = new OASISResult<bool>();
 
-        public void Ignite(IOASISProvider currentStorageProvider, OASISDNA OASISDNA, bool startApolloServer = true)
-        {
             // TODO: Soon you will not need to inject in a provider because the mappings below will be used instead...
-            Map = new MapManager((IOASISStorage)currentStorageProvider);
-            Avatar = new AvatarManager((IOASISStorage)currentStorageProvider, OASISDNA);
-            Data = new HolonManager((IOASISStorage)currentStorageProvider);
-            Providers = new OASISProviders(OASISDNA);
+            if (!OASISDNAManager.IsInitialized)
+                result = OASISDNAManager.Initialize(OASISDNAPath);
+
+            if (!result.IsError && result.Result)
+                Ignite(startApolloServer);
+
+            return result;
+        }
+
+        private void Ignite(bool startApolloServer = true)
+        {
+            Map = new MapManager(ProviderManager.CurrentStorageProvider);
+            Avatar = new AvatarManager(ProviderManager.CurrentStorageProvider, OASISDNAManager.OASISDNA);
+            Data = new HolonManager(ProviderManager.CurrentStorageProvider);
+            Providers = new OASISProviders(OASISDNAManager.OASISDNA);
 
             if (startApolloServer)
                 ApolloServer.StartServer();

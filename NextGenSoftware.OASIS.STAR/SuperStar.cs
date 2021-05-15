@@ -949,61 +949,11 @@ namespace NextGenSoftware.OASIS.STAR
             currentHolon.Nodes.Add(new Node { NodeName = fieldName.ToPascalCase(), NodeType = nodeType, ParentId = currentHolon.Id });
         }
 
-        //private static OASISResult<IOASISStorage> IgniteOASISAPI(ref OASISResult<ICelestialBody> result, IgniteOptions OASISAPIgniteOptions, string STARDNAPath = STAR_DNA_DEFAULT_PATH, string OASISDNAPath = OASIS_DNA_DEFAULT_PATH)
-        private static OASISResult<IOASISStorage> IgniteOASISAPI(string OASISDNAPath = OASIS_DNA_DEFAULT_PATH)
+       
+        private static OASISResult<bool> IgniteOASISAPI(string OASISDNAPath = OASIS_DNA_DEFAULT_PATH)
         {
-            OASISResult<IOASISStorage> result = new OASISResult<IOASISStorage>();
             SuperStar.OASISDNAPath = OASISDNAPath;
-
-            //By default the OASISDNAManager will load the settings from OASIS_DNA.json in the current working dir but you can override using below:
-            OASISResult<bool> oasisInitResult = OASISDNAManager.Initialize(SuperStar.OASISDNAPath);
-
-            if (oasisInitResult.IsError)
-            {
-                result.IsError = true;
-                result.Message = oasisInitResult.Message;
-                return result;
-            }
-
-            result = OASISDNAManager.GetAndActivateDefaultProvider();
-
-            if (!result.IsError)
-                OASISAPI.Ignite(result.Result, OASISDNAManager.OASISDNA);
-                //OASISAPI.Ignite(OASISAPIgniteOptions, OASISDNAManager.OASISDNA);
-
-            return result;
-
-
-            /*
-            // TODO: Not sure if we want to store the OASIS Providers in the STARDNA? Maybe better to just use those listed in OASISDNA? Think it may be, lol! ;-)
-            if (string.IsNullOrEmpty(STARDNA.OASISProviders))
-            {
-                // Will initialize the default OASIS Provider defined OASIS_DNA config file.
-                OASISAPI.Init(OASISAPIInitOptions, OASISDNAManager.OASISDNA);
-                HandleWarning(ref result, "No providers were found in the OASISProviders list in the STARDNA file so initializing the OASIS API using defaults in the OASISDNA file.");
-            }
-            else
-            {
-                string[] parts = STARDNA.OASISProviders.Split(',');
-                List<ProviderType> providerTypes = new List<ProviderType>();
-
-                object providerTypeObject = null;
-                foreach (string part in parts)
-                {
-                    if (Enum.TryParse(typeof(ProviderType), part, out providerTypeObject))
-                        providerTypes.Add((ProviderType)providerTypeObject);
-                    else
-                    {
-                        HandleError(ref result, string.Concat("The provider type ", part, " specified in the OASISProviders list in the STARDNA file is not valid. Valid providers are: ", EnumHelper.GetEnumValues(typeof(ProviderType), EnumHelper.ListType.ItemsSeperatedByComma)));
-                        return;
-                    }
-                }
-
-                OASISResult<bool> oasisAPIResult = OASISAPI.Init(providerTypes, OASISDNAManager.OASISDNA);
-
-                if (oasisAPIResult.IsError)
-                    HandleError(ref result, string.Concat("Error initialiazing OASIS API. Reason: ", oasisAPIResult.ErrorMessage));
-            }*/
+            return OASISAPI.Ignite(SuperStar.OASISDNAPath);
         }
 
         private static void IgniteInnerStar(ref OASISResult<ICelestialBody> result, string starId = null)
@@ -1055,7 +1005,7 @@ namespace NextGenSoftware.OASIS.STAR
             }
 
             ValidateSTARDNA(STARDNA);
-            OASISResult<IOASISStorage> oasisResult = IgniteOASISAPI(OASISDNAPath);
+            OASISResult<bool> oasisResult = IgniteOASISAPI(OASISDNAPath);
 
             if (oasisResult.IsError)
             {
