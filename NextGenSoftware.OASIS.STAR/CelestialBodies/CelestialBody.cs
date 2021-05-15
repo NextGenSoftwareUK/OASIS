@@ -128,7 +128,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
 
         public async Task<OASISResult<ICelestialBody>> SaveAsync()
         {
-            OASISResult<ICelestialBody> result = new OASISResult<ICelestialBody>();
+            OASISResult<ICelestialBody> result = new OASISResult<ICelestialBody>(this);
             OASISResult<IHolon> celestialBodyHolonResult = new OASISResult<IHolon>();
 
             if (this.Children == null)
@@ -147,11 +147,12 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
            // if (this.Id == Guid.Empty)
            // {
                 celestialBodyHolonResult = await CelestialBodyCore.SaveCelestialBodyAsync(this);
-                
-                if (celestialBodyHolonResult.IsError)
+                result.Message = celestialBodyHolonResult.Message;
+                result.IsSaved = celestialBodyHolonResult.IsSaved;
+
+                if (celestialBodyHolonResult.IsError || !celestialBodyHolonResult.IsSaved)
                 {
-                    result.IsError = true;
-                    result.Message = celestialBodyHolonResult.Message;
+                    result.IsError = celestialBodyHolonResult.IsError;
                     return result;
                 }
                 else
@@ -170,6 +171,10 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
                     // TODO: Not sure if ParentStar and ParentPlanet will be set?
                     switch (this.HolonType)
                     {
+                        case HolonType.SuperStar:
+                            SetParentIdsForSuperStar(); 
+                            break;
+
                         case HolonType.Star:
                             SetParentIdsForStar((IStar)this);
                             break;
@@ -184,6 +189,18 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
                     }
                 }
            // }
+
+            if (this.HolonType == HolonType.SuperStar)
+            {
+                //TODO: Eventually this will use "this" rather than static SuperStar when SuperStar inherits from Star and a new static GrandSuperStar is created... :)
+                foreach (Star star in SuperStar.Stars) 
+                {
+                    result = await star.SaveAsync();
+
+                    if (result.IsError)
+                        return result;
+                }
+            }
 
             //TODO: We need to indivudally save each planet/zome/holon first so we get their unique id's. We can then set the parentId's etc.
             if (this.HolonType == HolonType.Star)
@@ -229,26 +246,38 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
                 }
             }
 
-            OASISResult<IHolon> holonResult = await CelestialBodyCore.SaveCelestialBodyAsync(this);
-
-            if (holonResult.Result != null)
+            // TODO: Dont think we need to save again now? Check...
+            /*
+            // If any changes have been made (child objects added/changed) then need to save again.
+            if (!HasHolonChanged())
             {
-                this.Id = holonResult.Result.Id;
-                this.ProviderKey = holonResult.Result.ProviderKey;
-                this.CelestialBodyCore.ProviderKey = holonResult.Result.ProviderKey;
-                this.CreatedByAvatar = holonResult.Result.CreatedByAvatar;
-                this.CreatedByAvatarId = holonResult.Result.CreatedByAvatarId;
-                this.CreatedDate = holonResult.Result.CreatedDate;
-                this.ModifiedByAvatar = holonResult.Result.ModifiedByAvatar;
-                this.ModifiedByAvatarId = holonResult.Result.ModifiedByAvatarId;
-                this.ModifiedDate = holonResult.Result.ModifiedDate;
-                this.Children = holonResult.Result.Children;
-            }
+                OASISResult<IHolon> holonResult = await CelestialBodyCore.SaveCelestialBodyAsync(this);
 
-            return new OASISResult<ICelestialBody>() { Result = this, Message = holonResult.Message, IsError = holonResult.IsError };
+                if (holonResult.Result != null)
+                {
+                    holonResult.IsSaved = celestialBodyHolonResult.IsSaved;
+                    this.Id = holonResult.Result.Id;
+                    this.ProviderKey = holonResult.Result.ProviderKey;
+                    this.CelestialBodyCore.ProviderKey = holonResult.Result.ProviderKey;
+                    this.CreatedByAvatar = holonResult.Result.CreatedByAvatar;
+                    this.CreatedByAvatarId = holonResult.Result.CreatedByAvatarId;
+                    this.CreatedDate = holonResult.Result.CreatedDate;
+                    this.ModifiedByAvatar = holonResult.Result.ModifiedByAvatar;
+                    this.ModifiedByAvatarId = holonResult.Result.ModifiedByAvatarId;
+                    this.ModifiedDate = holonResult.Result.ModifiedDate;
+                    this.Children = holonResult.Result.Children;
+                }
+
+                result.Result = this;
+                result.Message = holonResult.Message;
+                result.IsError = holonResult.IsError;
+
+                //return new OASISResult<ICelestialBody>() { Result = this, Message = holonResult.Message, IsError = holonResult.IsError };
+            }*/
+
+            return result;
         }
 
-        
         private void SetParentIdsForHolon(IStar star, IPlanet planet, IMoon moon, IZome zome, IHolon holon)
         {
             foreach (Holon innerHolon in holon.Children)
@@ -320,6 +349,16 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
                 SetParentIdsForPlanet(star, planet);
 
             //TODO: Do we want to add Zomes to a Star? Maybe?
+        }
+
+        //TODO: We may one day pass in a SuperStar here? Currently its static when we thought there would be only one SuperStar but now think we will have more than one so will likely make SuperStar inherit from Star, etc. And need to change existing static SuperStar class to GrandSuperStar or something! ;-)
+        private void SetParentIdsForSuperStar()
+        {
+            foreach (IStar star in SuperStar.Stars)
+                SetParentIdsForStar(star);
+
+           // foreach (IPlanet planet in SuperStar.Planets)
+           //     SetParentIdsForPlanet(SuperStar.InnerStar, planet);
         }
 
 

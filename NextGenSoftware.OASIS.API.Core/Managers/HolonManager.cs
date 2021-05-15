@@ -207,7 +207,6 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                         try
                         {
                             result.Result = await ProviderManager.SetAndActivateCurrentStorageProvider(type.Value).SaveHolonAsync(PrepareHolonForSaving(holon));
-                            result.IsSaved = true;
                             needToChangeBack = true;
 
                             if (result.Result != null)
@@ -253,6 +252,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
           //  if (needToChangeBack)
                 ProviderManager.SetAndActivateCurrentStorageProvider(currentProviderType);
 
+            result.IsSaved = result.Result != null && result.Result.Id != Guid.Empty;
             return result;
         }
 

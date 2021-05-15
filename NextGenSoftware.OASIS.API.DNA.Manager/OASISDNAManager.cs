@@ -25,7 +25,8 @@ namespace NextGenSoftware.OASIS.API.DNA.Manager
         public static string OASISDNAFileName { get; set; } = "OASIS_DNA.json";
         public static OASISDNA OASISDNA;
         public static bool IsInitialized { get; private set; } = false;
- 
+        public static bool IsInitializing { get; private set; } = false;
+
         public static OASISResult<bool> Initialize(string OASISDNAFileName)
         {
             LoadOASISDNA(OASISDNAFileName);
@@ -36,37 +37,49 @@ namespace NextGenSoftware.OASIS.API.DNA.Manager
         {
             OASISResult<bool> result = new OASISResult<bool>(false);
             object OASISProviderBootTypeObject = null;
-            
-            LoggingManager.CurrentLoggingFramework = (LoggingFramework)Enum.Parse(typeof(LoggingFramework), OASISDNA.OASIS.Logging.LoggingFramework);
-            Core.Helpers.ErrorHandling.LogAllErrors = OASISDNA.OASIS.ErrorHandling.LogAllErrors;
-            Core.Helpers.ErrorHandling.LogAllWarnings = OASISDNA.OASIS.ErrorHandling.LogAllWarnings;
-            Core.Helpers.ErrorHandling.ShowStackTrace = OASISDNA.OASIS.ErrorHandling.ShowStackTrace;
-            Core.Helpers.ErrorHandling.ThrowExceptionsOnErrors = OASISDNA.OASIS.ErrorHandling.ThrowExceptionsOnErrors;
-            Core.Helpers.ErrorHandling.ThrowExceptionsOnWarnings = OASISDNA.OASIS.ErrorHandling.ThrowExceptionsOnWarnings;
 
-            LoadProviderLists();
-
-            //TODO: Need to apply this logic to rest of methods in this DNAManager such as RegisterProvider(s) etc... (Actually dont think we need to because this is our the OASIS is booted so it only applies here (the other methods override it).
-            if (Enum.TryParse(typeof(OASISProviderBootType), OASISDNA.OASIS.StorageProviders.OASISProviderBootType, out OASISProviderBootTypeObject))
+            if (!IsInitializing)
             {
-                ProviderManager.OASISProviderBootType = (OASISProviderBootType)OASISProviderBootTypeObject;
+                IsInitializing = true;
+                LoggingManager.CurrentLoggingFramework = (LoggingFramework)Enum.Parse(typeof(LoggingFramework), OASISDNA.OASIS.Logging.LoggingFramework);
+                ErrorHandling.LogAllErrors = OASISDNA.OASIS.ErrorHandling.LogAllErrors;
+                ErrorHandling.LogAllWarnings = OASISDNA.OASIS.ErrorHandling.LogAllWarnings;
+                ErrorHandling.ShowStackTrace = OASISDNA.OASIS.ErrorHandling.ShowStackTrace;
+                ErrorHandling.ThrowExceptionsOnErrors = OASISDNA.OASIS.ErrorHandling.ThrowExceptionsOnErrors;
+                ErrorHandling.ThrowExceptionsOnWarnings = OASISDNA.OASIS.ErrorHandling.ThrowExceptionsOnWarnings;
 
-                if (ProviderManager.OASISProviderBootType == OASISProviderBootType.Warm || ProviderManager.OASISProviderBootType == OASISProviderBootType.Hot)
-                    result = RegisterProvidersInAllLists();
+                LoadProviderLists();
+
+                //TODO: Need to apply this logic to rest of methods in this DNAManager such as RegisterProvider(s) etc... (Actually dont think we need to because this is our the OASIS is booted so it only applies here (the other methods override it).
+                if (Enum.TryParse(typeof(OASISProviderBootType), OASISDNA.OASIS.StorageProviders.OASISProviderBootType, out OASISProviderBootTypeObject))
+                {
+                    ProviderManager.OASISProviderBootType = (OASISProviderBootType)OASISProviderBootTypeObject;
+
+                    if (ProviderManager.OASISProviderBootType == OASISProviderBootType.Warm || ProviderManager.OASISProviderBootType == OASISProviderBootType.Hot)
+                        result = RegisterProvidersInAllLists();
+                    else
+                    {
+                        IsInitialized = true;
+                        result.Result = true;
+                        result.Message = "OASIS initialized but OASISProviderBootType is set to Cold so no providers have been registered or activated.";
+                    }
+                }
                 else
                 {
-                    result.Result = true;
-                    result.Message = "OASIS initialized but OASISProviderBootType is set to Cold so no providers have been registered or activated.";
+                    result.IsError = true;
+                    result.Message = string.Concat("OASISProviderBootType '", OASISDNA.OASIS.StorageProviders.OASISProviderBootType, "' defined in OASISDNA is invalid. Valid values are: ", EnumHelper.GetEnumValues(typeof(OASISProviderBootType), EnumHelper.ListType.ItemsSeperatedByComma));
                 }
+
+                if (result.Result && !result.IsError)
+                    IsInitialized = true;
+
+                IsInitializing = false;
             }
             else
             {
-                result.IsError = true;
-                result.Message = string.Concat("OASISProviderBootType '", OASISDNA.OASIS.StorageProviders.OASISProviderBootType, "' defined in OASISDNA is invalid. Valid values are: ", EnumHelper.GetEnumValues(typeof(OASISProviderBootType), EnumHelper.ListType.ItemsSeperatedByComma));
+                result.Result = false;
+                result.Message = "Already Initializing...";
             }
-                
-            if (result.Result && !result.IsError)
-                IsInitialized = true;
 
             return result;
         }
@@ -106,7 +119,7 @@ namespace NextGenSoftware.OASIS.API.DNA.Manager
 
         public static IOASISStorage GetAndActivateProvider(ProviderType providerType, string customConnectionString = null, bool forceRegister = false, bool setGlobally = false)
         {
-            if (!IsInitialized)
+            if (!IsInitialized && !IsInitializing)
                 Initialize(OASISDNAFileName);
 
             //TODO: Think we can have this in ProviderManger and have default connection strings/settings for each provider.
@@ -127,7 +140,7 @@ namespace NextGenSoftware.OASIS.API.DNA.Manager
         {
             IOASISStorage registeredProvider = null;
 
-            if (!IsInitialized)
+            if (!IsInitialized && !IsInitializing)
                 Initialize(OASISDNAFileName);
 
             // If they wish to forceRegister then if it is already registered then unregister it first (when connectionstring changes for example).

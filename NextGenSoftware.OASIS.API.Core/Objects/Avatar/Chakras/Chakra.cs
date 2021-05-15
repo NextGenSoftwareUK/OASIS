@@ -16,7 +16,7 @@ namespace NextGenSoftware.OASIS.API.Core.Objects
         public string WhenItDevelops { get; set; }
         public EnumValue<ElementType> Element { get; set; } 
         public Crystal Crystal { get; set; }
-        public Color Color { get; set; }
+        //public Color Color { get; set; } //TODO: Put back in later when have time to fix deserialization issue with MongoDB...
         public int Level { get; set; }
         public int Progress { get; set; }
         public int XP { get; set; }
