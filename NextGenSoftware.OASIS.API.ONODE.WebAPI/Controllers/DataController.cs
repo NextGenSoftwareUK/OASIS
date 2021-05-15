@@ -6,6 +6,7 @@ using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using System.Collections.Generic;
+using NextGenSoftware.OASIS.API.Core.Helpers;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 {
@@ -21,7 +22,15 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             get
             {
                 if (_holonManager == null)
-                    _holonManager = new HolonManager(OASISDNAManager.GetAndActivateDefaultProvider());
+                {
+                    OASISResult<IOASISStorage> result = OASISDNAManager.GetAndActivateDefaultProvider();
+
+                    //TODO: Eventually want to replace all exceptions with OASISResult throughout the OASIS because then it makes sure errors are handled properly and friendly messages are shown (plus less overhead of throwing an entire stack trace!)
+                    if (result.IsError)
+                        ErrorHandling.HandleError(ref result, string.Concat("Error calling OASISDNAManager.GetAndActivateDefaultProvider(). Error details: ", result.Message), true, false, true);
+
+                    _holonManager = new HolonManager(result.Result);
+                }
 
                 return _holonManager;
             }

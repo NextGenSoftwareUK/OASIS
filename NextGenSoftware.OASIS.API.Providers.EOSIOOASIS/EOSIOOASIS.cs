@@ -21,6 +21,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
         private AvatarManager _avatarManager = null;
         private const string OASIS_EOSIO_ACCOUNT = "oasis";
 
+        public string HostURI { get; set; }
         public ChainAPI ChainAPI { get; set; }
 
         private AvatarManager AvatarManagerInstance
@@ -35,14 +36,27 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             }
         }
 
-        public EOSIOOASIS(string host)
+        public EOSIOOASIS(string hostURI)
         {
             this.ProviderName = "EOSIOOASIS";
             this.ProviderDescription = "EOSIO Provider";
             this.ProviderType = new Core.Helpers.EnumValue<ProviderType>(Core.Enums.ProviderType.EOSIOOASIS);
             this.ProviderCategory = new Core.Helpers.EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
 
-            ChainAPI = new ChainAPI(host);
+            HostURI = hostURI;
+        }
+
+        public override void ActivateProvider()
+        {
+            ChainAPI = new ChainAPI(HostURI);
+            base.ActivateProvider();
+        }
+
+        public override void DeActivateProvider()
+        {
+            //TODO: Find if there is a disconnect/shutdown 
+            ChainAPI = null;
+            base.DeActivateProvider();
         }
 
         public override bool DeleteAvatar(Guid id, bool softDelete = true)

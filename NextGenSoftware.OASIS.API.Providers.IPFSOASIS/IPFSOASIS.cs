@@ -14,18 +14,30 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
 {
     public class IPFSOASIS : OASISStorageBase, IOASISStorage, IOASISNET
     {
+        public string HostURI { get; set; }
         public IpfsClient IPFSClient;
         public IpfsEngine IPFSEngine; //= new IpfsEngine();
 
-        public IPFSOASIS(string host)
+        public IPFSOASIS(string hostURI)
         {
             this.ProviderName = "IPFSOASIS";
             this.ProviderDescription = "IPFS Provider";
             this.ProviderType = new Core.Helpers.EnumValue<ProviderType>(Core.Enums.ProviderType.IPFSOASIS);
             this.ProviderCategory = new Core.Helpers.EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
+            this.HostURI = hostURI;
+        }
 
-            //IPFSClient = new IpfsClient("http://localhost:5002");
-            IPFSClient = new IpfsClient(host);
+        public override void ActivateProvider()
+        {
+            IPFSClient = new IpfsClient(HostURI);
+            base.ActivateProvider();
+        }
+
+        public override void DeActivateProvider()
+        {
+            IPFSClient.ShutdownAsync();
+            IPFSClient = null;
+            base.DeActivateProvider();
         }
 
         public override bool DeleteAvatar(Guid id, bool softDelete = true)

@@ -29,7 +29,7 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
             Password = password;
         }
 
-        public async Task<bool> Connect()
+        private async Task<bool> Connect()
         {
             GraphClient = new GraphClient(new Uri(Host), Username, Password);
             GraphClient.OperationCompleted += _graphClient_OperationCompleted;
@@ -37,10 +37,12 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
             return true;
         }
 
-        public async Task Disconnect()
+        private async Task Disconnect()
         {
+            //TODO: Find if there is a disconnect/shutdown function?
             GraphClient.Dispose();
             GraphClient.OperationCompleted -= _graphClient_OperationCompleted;
+            GraphClient = null;
         }
 
         private void _graphClient_OperationCompleted(object sender, OperationCompletedEventArgs e)
@@ -316,6 +318,12 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
         {
             Connect();
             base.ActivateProvider();
+        }
+
+        public override void DeActivateProvider()
+        {
+            Disconnect();
+            base.DeActivateProvider();
         }
 
         public override IEnumerable<IHolon> LoadHolonsForParent(Guid id, HolonType type = HolonType.Holon)

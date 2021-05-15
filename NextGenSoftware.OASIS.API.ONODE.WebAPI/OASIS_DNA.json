@@ -10,6 +10,13 @@
     "Logging": {
       "LoggingFramework": "NLog"
     },
+    "ErrorHandling": {
+      "ShowStackTrace": "false",
+      "ThrowExceptionsOnErrors": "false",
+      "ThrowExceptionsOnWarnings": "false",
+      "LogAllErrors": "true",
+      "LogAllWarnings": "true"
+    },
     "Security": {
       "Secret": "",
       "AvatarPassword": {
@@ -39,6 +46,12 @@
       "AutoReplicationProviders": "MongoDBOASIS, SQLLiteDBOASIS, Neo4jOASIS, IPFSOASIS, HoloOASIS, TelosOASIS, EOSIOOASIS, EthereumOASIS, ThreeFoldOASIS",
       "AutoFailOverProviders": "MongoDBOASIS, SQLLiteDBOASIS, Neo4jOASIS, IPFSOASIS, HoloOASIS, TelosOASIS, EOSIOOASIS, EthereumOASIS, ThreeFoldOASIS",
       "AutoLoadBalanceProviders": "MongoDBOASIS, SQLLiteDBOASIS, Neo4jOASIS, IPFSOASIS, HoloOASIS, TelosOASIS, EOSIOOASIS, EthereumOASIS, ThreeFoldOASIS",
+
+      //Can be:
+      //Cold (will only register and activate (connect, etc) each provider when you fist make a call into it - fastest initial OASIS boot but slowest initial call into each OASIS Provider as it is registered and activated. Has the smallest initial memory footprint.
+      //Warm (will register each provider but not activate it - average boot and slight delay intially calling into an OASIS Provider as it activates for the first time).
+      //Hot (will register and activate each provider (connect, etc) - slower inital boot of OASIS but subsequent calls to OASIS Providers will be faster, also has slightly higher initial memory footprint).
+      "OASISProviderBootType": "Warm",
 
       "HoloOASIS": {
         "ConnectionString": "ws://localhost:8888",
