@@ -228,23 +228,23 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
       //  }
 
         // Called from Managers.
-        public static IOASISStorage SetAndActivateCurrentStorageProvider(ProviderType providerType)
+        public static OASISResult<IOASISStorage> SetAndActivateCurrentStorageProvider(ProviderType providerType)
         {
-            IOASISStorage storgageProvider = null;
+            OASISResult<IOASISStorage> result = new OASISResult<IOASISStorage>();
 
             if (providerType == ProviderType.Default)
-                storgageProvider = SetAndActivateCurrentStorageProvider();
+                result = SetAndActivateCurrentStorageProvider();
             else
-                storgageProvider = SetAndActivateCurrentStorageProvider(providerType, false);
+                result = SetAndActivateCurrentStorageProvider(providerType, false);
 
-            if (storgageProvider != null)
-                return storgageProvider;
-            else
-                throw new InvalidOperationException(string.Concat("ERROR: The ", Enum.GetName(providerType), " provider is not registered. Please register it before calling this method."));
+            if (result.IsError)
+                result.Message = string.Concat("ERROR: The ", Enum.GetName(providerType), " provider is not registered. Please register it before calling this method. Reason: ", result.Message);
+
+            return result;
         }
 
         //TODO: Called internally (make private ?)
-        public static IOASISStorage SetAndActivateCurrentStorageProvider()
+        public static OASISResult<IOASISStorage> SetAndActivateCurrentStorageProvider()
         {
             // If a global provider has been set and the REST API call has not overiden the provider (OverrideProviderType) then set to global provider.
             if (DefaultGlobalStorageProvider != null && DefaultGlobalStorageProvider != CurrentStorageProvider && !OverrideProviderType)
@@ -258,11 +258,11 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             if (!_setProviderGlobally)
                 OverrideProviderType = false;
 
-            return CurrentStorageProvider;
+            return new OASISResult<IOASISStorage>(CurrentStorageProvider);
         }
 
         // Called from ONODE.WebAPI.OASISProviderManager.
-        public static IOASISStorage SetAndActivateCurrentStorageProvider(IOASISProvider OASISProvider)
+        public static OASISResult<IOASISStorage> SetAndActivateCurrentStorageProvider(IOASISProvider OASISProvider)
         {
             if (OASISProvider != CurrentStorageProvider)
             {
@@ -275,13 +275,14 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 }
             }
 
-            return CurrentStorageProvider;
+            return new OASISResult<IOASISStorage>(CurrentStorageProvider);
         }
 
         // Called from ONODE.WebAPI.OASISProviderManager.
         //TODO: In future more than one StorageProvider will be active at a time so we need to work out how to handle this...
-        public static IOASISStorage SetAndActivateCurrentStorageProvider(ProviderType providerType, bool setGlobally = false)
+        public static OASISResult<IOASISStorage> SetAndActivateCurrentStorageProvider(ProviderType providerType, bool setGlobally = false)
         {
+            OASISResult<IOASISStorage> result = new OASISResult<IOASISStorage>();
             _setProviderGlobally = setGlobally;
 
             // TODO: Need to get this to use the next provider in the list if there is an issue with the first/current provider...
@@ -294,34 +295,52 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             {
                 IOASISProvider provider = _registeredProviders.FirstOrDefault(x => x.ProviderType.Value == providerType);
 
+                //TODO: Use OASISResult instead.
                 if (provider == null)
                     throw new InvalidOperationException(string.Concat(Enum.GetName(typeof(ProviderType), providerType), " ProviderType is not registered. Please call RegisterProvider() method to register the provider before calling this method."));
 
                 if (provider != null && (provider.ProviderCategory.Value == ProviderCategory.Storage || provider.ProviderCategory.Value == ProviderCategory.StorageAndNetwork))
                 {
                     if (CurrentStorageProvider != null)
-                        DeActivateProvider(CurrentStorageProvider);
+                    {
+                        OASISResult<bool> deactivateProviderResult = DeActivateProvider(CurrentStorageProvider);
+
+                        if (deactivateProviderResult.IsError)
+                        {
+                           // result.IsError = true; // TODO: Think its not an error as long as it can activate a provider below?
+                            result.Message = deactivateProviderResult.Message;
+                        }
+                    }
                    
                     CurrentStorageProviderType.Value = providerType;
                     CurrentStorageProvider = (IOASISStorage)provider;
 
-                    ActivateProvider(CurrentStorageProvider);
+                    OASISResult<bool> activateProviderResult = ActivateProvider(CurrentStorageProvider);
+
+                    if (activateProviderResult.IsError)
+                    {
+                        result.IsError = true;
+                        result.Message = activateProviderResult.Message;
+                    }
 
                     if (setGlobally)
                         DefaultGlobalStorageProvider = CurrentStorageProvider;
                 }
             }
 
-            return CurrentStorageProvider;
+            result.Result = CurrentStorageProvider;
+            return result;
         }
 
-        public static bool ActivateProvider(ProviderType type)
+        public static OASISResult<bool> ActivateProvider(ProviderType type)
         {
             return ActivateProvider(_registeredProviders.FirstOrDefault(x => x.ProviderType.Value == type));
         }
 
-        public static bool ActivateProvider(IOASISProvider provider)
+        public static OASISResult<bool> ActivateProvider(IOASISProvider provider)
         {
+            OASISResult<bool> result = new OASISResult<bool>();
+
             if (provider != null)
             {
                 try
@@ -330,23 +349,24 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 }
                 catch (Exception ex)
                 {
-                    //TODO: Add logging here and handle properly.
-                    throw ex;
+                    ErrorHandling.HandleError(ref result, string.Concat("Error Activating Provider ", provider.ProviderType.Name, ". Reason: ", ex.ToString()));
                 }
-                
-                return true;
             }
+            else
+                ErrorHandling.HandleError(ref result, "Error Activating Provider. Provider passed in is null!");
 
-            return false;
+            return result;
         }
 
-        public static bool DeActivateProvider(ProviderType type)
+        public static OASISResult<bool> DeActivateProvider(ProviderType type)
         {
             return DeActivateProvider(_registeredProviders.FirstOrDefault(x => x.ProviderType.Value == type));
         }
 
-        public static bool DeActivateProvider(IOASISProvider provider)
+        public static OASISResult<bool> DeActivateProvider(IOASISProvider provider)
         {
+            OASISResult<bool> result = new OASISResult<bool>();
+
             if (provider != null)
             {
                 try
@@ -355,13 +375,13 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 }
                 catch (Exception ex)
                 {
-                    //TODO: Add logging and handle properly here.
+                    ErrorHandling.HandleError(ref result, string.Concat("Error DeActivating Provider ", provider.ProviderType.Name, ". Reason: ", ex.ToString()));
                 }
-
-                return true;
             }
+            else
+                ErrorHandling.HandleError(ref result, "Error DeActivating Provider. Provider passed in is null!");
 
-            return false;
+            return result;
         }
 
         public static bool SetAutoReplicationForProviders(bool autoReplicate, List<ProviderType> providers)

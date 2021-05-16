@@ -1,5 +1,5 @@
-﻿using NextGenSoftware.OASIS.API.DNA;
-using NextGenSoftware.OASIS.API.DNA.Manager;
+﻿using NextGenSoftware.OASIS.OASISBootLoader;
+using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Apollo.Server;
@@ -18,8 +18,8 @@ namespace NextGenSoftware.OASIS.API.Manager
             OASISResult<bool> result = new OASISResult<bool>();
 
             // TODO: Soon you will not need to inject in a provider because the mappings below will be used instead...
-            if (!OASISDNAManager.IsInitialized)
-                result = OASISDNAManager.Initialize(OASISDNA);
+            if (!OASISBootLoader.OASISBootLoader.IsOASISBooted)
+                result = OASISBootLoader.OASISBootLoader.BootOASIS(OASISDNA);
 
             if (!result.IsError && result.Result)
                 Init(startApolloServer);
@@ -32,12 +32,12 @@ namespace NextGenSoftware.OASIS.API.Manager
             OASISResult<bool> result = new OASISResult<bool>();
 
             // TODO: Soon you will not need to inject in a provider because the mappings below will be used instead...
-            if (!OASISDNAManager.IsInitialized)
-                result = OASISDNAManager.Initialize(OASISDNAPath);
+            if (!OASISBootLoader.OASISBootLoader.IsOASISBooted)
+                result = OASISBootLoader.OASISBootLoader.BootOASIS(OASISDNAPath);
 
             if (!result.IsError && result.Result)
             {
-                OASISDNAManager.GetAndActivateDefaultProvider();
+                OASISBootLoader.OASISBootLoader.GetAndActivateDefaultProvider();
                 Init(startApolloServer);
             }
 
@@ -47,9 +47,9 @@ namespace NextGenSoftware.OASIS.API.Manager
         private static void Init(bool startApolloServer = true)
         {
             Map = new MapManager(ProviderManager.CurrentStorageProvider);
-            Avatar = new AvatarManager(ProviderManager.CurrentStorageProvider, OASISDNAManager.OASISDNA);
+            Avatar = new AvatarManager(ProviderManager.CurrentStorageProvider, OASISBootLoader.OASISBootLoader.OASISDNA);
             Data = new HolonManager(ProviderManager.CurrentStorageProvider);
-            Providers = new OASISProviders(OASISDNAManager.OASISDNA);
+            Providers = new OASISProviders(OASISBootLoader.OASISBootLoader.OASISDNA);
 
             if (startApolloServer)
                 ApolloServer.StartServer();

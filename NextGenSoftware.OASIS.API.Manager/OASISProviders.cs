@@ -1,5 +1,5 @@
-﻿using NextGenSoftware.OASIS.API.DNA;
-using NextGenSoftware.OASIS.API.DNA.Manager;
+﻿using NextGenSoftware.OASIS.OASISBootLoader;
+using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Providers.AcitvityPubOASIS;
@@ -56,7 +56,7 @@ namespace NextGenSoftware.OASIS.API.Manager
             get
             {
                 if (_IPFS == null)
-                    _IPFS = (IPFSOASIS)OASISDNAManager.RegisterProvider(ProviderType.IPFSOASIS);
+                    _IPFS = (IPFSOASIS)OASISBootLoader.OASISBootLoader.RegisterProvider(ProviderType.IPFSOASIS);
 
                 return _IPFS;
             }
@@ -67,7 +67,7 @@ namespace NextGenSoftware.OASIS.API.Manager
             get
             {
                 if (_EOSIO == null)
-                    _EOSIO = (EOSIOOASIS)OASISDNAManager.RegisterProvider(ProviderType.EOSIOOASIS);
+                    _EOSIO = (EOSIOOASIS)OASISBootLoader.OASISBootLoader.RegisterProvider(ProviderType.EOSIOOASIS);
 
                 return _EOSIO;
             }
@@ -78,7 +78,7 @@ namespace NextGenSoftware.OASIS.API.Manager
             get
             {
                 if (_Telos == null)
-                    _Telos = (TelosOASIS)OASISDNAManager.RegisterProvider(ProviderType.TelosOASIS);
+                    _Telos = (TelosOASIS)OASISBootLoader.OASISBootLoader.RegisterProvider(ProviderType.TelosOASIS);
 
                 return _Telos;
             }
@@ -89,7 +89,7 @@ namespace NextGenSoftware.OASIS.API.Manager
             get
             {
                 if (_Holochain == null)
-                    _Holochain = (HoloOASIS)OASISDNAManager.RegisterProvider(ProviderType.HoloOASIS);
+                    _Holochain = (HoloOASIS)OASISBootLoader.OASISBootLoader.RegisterProvider(ProviderType.HoloOASIS);
 
                 return _Holochain;
             }
@@ -100,7 +100,7 @@ namespace NextGenSoftware.OASIS.API.Manager
             get
             {
                 if (_MongoDB == null)
-                    _MongoDB = (MongoDBOASIS)OASISDNAManager.RegisterProvider(ProviderType.MongoDBOASIS);
+                    _MongoDB = (MongoDBOASIS)OASISBootLoader.OASISBootLoader.RegisterProvider(ProviderType.MongoDBOASIS);
 
                 return _MongoDB;
             }
@@ -111,7 +111,7 @@ namespace NextGenSoftware.OASIS.API.Manager
             get
             {
                 if (_Neo4j == null)
-                    _Neo4j = (Neo4jOASIS)OASISDNAManager.RegisterProvider(ProviderType.Neo4jOASIS);
+                    _Neo4j = (Neo4jOASIS)OASISBootLoader.OASISBootLoader.RegisterProvider(ProviderType.Neo4jOASIS);
 
                 return _Neo4j;
             }
@@ -122,7 +122,7 @@ namespace NextGenSoftware.OASIS.API.Manager
             get
             {
                 if (_Ethereum == null)
-                    _Ethereum = (EthereumOASIS)OASISDNAManager.RegisterProvider(ProviderType.EthereumOASIS);
+                    _Ethereum = (EthereumOASIS)OASISBootLoader.OASISBootLoader.RegisterProvider(ProviderType.EthereumOASIS);
 
                 return _Ethereum;
             }
@@ -133,7 +133,7 @@ namespace NextGenSoftware.OASIS.API.Manager
             get
             {
                 if (_ThreeFold == null)
-                    _ThreeFold = (ThreeFoldOASIS)OASISDNAManager.RegisterProvider(ProviderType.ThreeFoldOASIS);
+                    _ThreeFold = (ThreeFoldOASIS)OASISBootLoader.OASISBootLoader.RegisterProvider(ProviderType.ThreeFoldOASIS);
 
                 return _ThreeFold;
             }
@@ -144,7 +144,7 @@ namespace NextGenSoftware.OASIS.API.Manager
             get
             {
                 if (_ActivityPub == null)
-                    _ActivityPub = (AcitvityPubOASIS)OASISDNAManager.RegisterProvider(ProviderType.ActivityPubOASIS);
+                    _ActivityPub = (AcitvityPubOASIS)OASISBootLoader.OASISBootLoader.RegisterProvider(ProviderType.ActivityPubOASIS);
 
                 return _ActivityPub;
             }

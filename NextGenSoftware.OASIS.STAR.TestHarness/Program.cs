@@ -20,7 +20,6 @@ using NextGenSoftware.OASIS.API.Providers.SEEDSOASIS.Membranes;
 using NextGenSoftware.OASIS.STAR.ErrorEventArgs;
 using NextGenSoftware.OASIS.STAR.CelestialBodies;
 using NextGenSoftware.OASIS.STAR.Zomes;
-using NextGenSoftware.OASIS.STAR.OASISAPIManager;
 
 namespace NextGenSoftware.OASIS.STAR.TestHarness
 {
@@ -40,23 +39,26 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
 
                 ShowHeader();
                 ShowMessage("", false);
-                ShowWorkingMessage("Igniting Star...");
+
+                // TODO: Not sure what events should expose on Star, StarCore and HoloNETClient?
+                // I feel the events should at least be on the Star object, but then they need to be on the others to bubble them up (maybe could be hidden somehow?)
+                SuperStar.OnZomeError += Star_OnZomeError;
+                SuperStar.OnHolonLoaded += Star_OnHolonLoaded;
+                SuperStar.OnHolonsLoaded += Star_OnHolonsLoaded;
+                SuperStar.OnHolonSaved += Star_OnHolonSaved;
+                SuperStar.OnSuperStarIgnited += SuperStar_OnSuperStarIgnited;
+                SuperStar.OnSuperStarError += SuperStar_OnSuperStarError;
+                SuperStar.OnSuperStarStatusChanged += SuperStar_OnSuperStarStatusChanged;
+                SuperStar.OnOASISBooted += SuperStar_OnOASISBooted;
+                SuperStar.OnOASISBootError += SuperStar_OnOASISBootError;
+
                 OASISResult<ICelestialBody> result = SuperStar.IgniteSuperStar();
 
                 if (result.IsError)
-                    ShowErrorMessage(string.Concat("Error Igniting Star. Error Message: ", result.Message));
+                    ShowErrorMessage(string.Concat("Error Igniting SuperStar. Error Message: ", result.Message));
                 else
                 {
-                    ShowSuccessMessage("STAR Ignited");
-
-                    // TODO: Not sure what events should expose on Star, StarCore and HoloNETClient?
-                    // I feel the events should at least be on the Star object, but then they need to be on the others to bubble them up (maybe could be hidden somehow?)
-                    SuperStar.OnZomeError += Star_OnZomeError;
-                    SuperStar.OnHolonLoaded += Star_OnHolonLoaded;
-                    SuperStar.OnHolonsLoaded += Star_OnHolonsLoaded;
-                    SuperStar.OnHolonSaved += Star_OnHolonSaved;
-                    SuperStar.OnInitialized += Star_OnInitialized;
-                    SuperStar.OnStarError += Star_OnStarError;
+                    //Console.ForegroundColor = ConsoleColor.Yellow;
 
                     if (!GetConfirmation("Do you have an existing avatar? "))
                         CreateAvatar();
@@ -78,6 +80,52 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
                 ShowErrorMessage(string.Concat("An unknown error has occured. Error Details: ", ex.ToString()));
                 //AnsiConsole.WriteException(ex, ExceptionFormats.ShortenEverything);
             }
+        }
+
+        private static void SuperStar_OnSuperStarStatusChanged(object sender, EventArgs.SuperStarStatusChangedEventArgs e)
+        {
+            switch (e.Status)
+            {
+                case Enums.SuperStarStatus.BootingOASIS:
+                    ShowWorkingMessage("BOOTING OASIS...");
+                    break;
+
+                case Enums.SuperStarStatus.OASISBooted:
+                    ShowSuccessMessage("OASIS BOOTED");
+                    break;
+
+                case Enums.SuperStarStatus.Igniting:
+                    ShowWorkingMessage("IGNITING SUPERSTAR..."); 
+                    break;
+
+                case Enums.SuperStarStatus.Ingited:
+                    ShowSuccessMessage("SUPERSTAR IGNITED");
+                    break;
+
+                    //case Enums.SuperStarStatus.Error:
+                    //  ShowErrorMessage("SuperStar Error");
+            }
+        }
+
+        private static void SuperStar_OnOASISBootError(object sender, OASISBootErrorEventArgs e)
+        {
+            //ShowErrorMessage(string.Concat("OASIS Boot Error. Reason: ", e.ErrorReason));
+            ShowErrorMessage(e.ErrorReason);
+        }
+
+        private static void SuperStar_OnOASISBooted(object sender, EventArgs.OASISBootedEventArgs e)
+        {
+            //ShowSuccessMessage(string.Concat("OASIS BOOTED.", e.Message));
+        }
+
+        private static void SuperStar_OnSuperStarError(object sender, EventArgs.SuperStarErrorEventArgs e)
+        {
+           // ShowErrorMessage(string.Concat("Error Igniting SuperStar. Reason: ", e.Reason));
+        }
+
+        private static void SuperStar_OnSuperStarIgnited(object sender, System.EventArgs e)
+        {
+            //ShowSuccessMessage("SUPERSTAR IGNITED");
         }
 
         private static async Task Test(string dnaFolder, string cSharpGeneisFolder, string rustGenesisFolder)
@@ -340,10 +388,10 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
             }
         }
 
-        private static void Star_OnStarError(object sender, StarErrorEventArgs e)
-        {
-            ShowErrorMessage(string.Concat(" Star Error Occured. EndPoint: ", e.EndPoint, ". Reason: ", e.Reason, ". Error Details: ", e.ErrorDetails, "EndPoint: ", e.EndPoint));
-        }
+        //private static void Star_OnStarError(object sender, StarErrorEventArgs e)
+        //{
+        //    ShowErrorMessage(string.Concat(" Star Error Occured. EndPoint: ", e.EndPoint, ". Reason: ", e.Reason, ". Error Details: ", e.ErrorDetails, "EndPoint: ", e.EndPoint));
+        //}
 
         //private static void HoloNETClient_OnError(object sender, Client.Core.HoloNETErrorEventArgs e)
         //{
@@ -356,24 +404,24 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
             ShowErrorMessage(string.Concat(" Star Core Error Occured. EndPoint: ", e.EndPoint, ". Reason: ", e.Reason, ". Error Details: ", e.ErrorDetails));
         }
 
-        private static void Star_OnInitialized(object sender, EventArgs e)
+        private static void Star_OnInitialized(object sender, System.EventArgs e)
         {
-            ShowErrorMessage(" Star Initialized.");
+            ShowSuccessMessage(" Star Initialized.");
         }
 
         private static void Star_OnHolonSaved(object sender, HolonSavedEventArgs e)
         {
-            ShowErrorMessage(string.Concat(" Star Holons Saved. Holon Saved: ", e.Holon.Name));
+            ShowSuccessMessage(string.Concat(" Star Holons Saved. Holon Saved: ", e.Holon.Name));
         }
 
         private static void Star_OnHolonsLoaded(object sender, HolonsLoadedEventArgs e)
         {
-            ShowErrorMessage(string.Concat(" Star Holons Loaded. Holons Loaded: ", e.Holons.Count));
+            ShowSuccessMessage(string.Concat(" Star Holons Loaded. Holons Loaded: ", e.Holons.Count));
         }
 
         private static void Star_OnHolonLoaded(object sender, HolonLoadedEventArgs e)
         {
-            ShowErrorMessage(string.Concat(" Star Holons Loaded. Holon Name: ", e.Holon.Name));
+            ShowSuccessMessage(string.Concat(" Star Holons Loaded. Holon Name: ", e.Holon.Name));
         }
 
         private static void Star_OnZomeError(object sender, ZomeErrorEventArgs e)
@@ -484,6 +532,12 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
 
         private static void ShowWorkingMessage(string message, bool lineSpace = true)
         {
+            if (_spinner.IsActive)
+            {
+                _spinner.Stop();
+                Console.WriteLine("");
+            }
+
             if (lineSpace)
                 Console.WriteLine(" ");
 

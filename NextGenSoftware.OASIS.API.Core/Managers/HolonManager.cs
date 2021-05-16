@@ -27,7 +27,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
             try
             {
-                holon = ProviderManager.SetAndActivateCurrentStorageProvider(providerType).LoadHolon(id, type);
+                holon = ProviderManager.SetAndActivateCurrentStorageProvider(providerType).Result.LoadHolon(id, type);
             }
             catch (Exception ex)
             {
@@ -45,7 +45,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                     {
                         try
                         {
-                            holon = ProviderManager.SetAndActivateCurrentStorageProvider(providerTypeInternal.Value).LoadHolon(id, type);
+                            holon = ProviderManager.SetAndActivateCurrentStorageProvider(providerTypeInternal.Value).Result.LoadHolon(id, type);
                             needToChangeBack = true;
 
                             if (holon != null)
@@ -70,48 +70,48 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
      
         public Task<IHolon> LoadHolonAsync(Guid id, HolonType type = HolonType.Holon, ProviderType provider = ProviderType.Default)
         {
-            return ProviderManager.SetAndActivateCurrentStorageProvider(provider).LoadHolonAsync(id, type);
+            return ProviderManager.SetAndActivateCurrentStorageProvider(provider).Result.LoadHolonAsync(id, type);
         }
 
         public IHolon LoadHolon(string providerKey, HolonType type = HolonType.Holon, ProviderType provider = ProviderType.Default)
         {
-            return ProviderManager.SetAndActivateCurrentStorageProvider(provider).LoadHolon(providerKey, type);
+            return ProviderManager.SetAndActivateCurrentStorageProvider(provider).Result.LoadHolon(providerKey, type);
         }
 
         public Task<IHolon> LoadHolonAsync(string providerKey, HolonType type = HolonType.Holon, ProviderType provider = ProviderType.Default)
         {
-            return ProviderManager.SetAndActivateCurrentStorageProvider(provider).LoadHolonAsync(providerKey, type);
+            return ProviderManager.SetAndActivateCurrentStorageProvider(provider).Result.LoadHolonAsync(providerKey, type);
         }
 
 
         public IEnumerable<IHolon> LoadHolonsForParent(Guid id, HolonType type = HolonType.Holon, ProviderType provider = ProviderType.Default)
         {
-            return ProviderManager.SetAndActivateCurrentStorageProvider(provider).LoadHolonsForParent(id, type);
+            return ProviderManager.SetAndActivateCurrentStorageProvider(provider).Result.LoadHolonsForParent(id, type);
         }
 
         public Task<IEnumerable<IHolon>> LoadHolonsForParentAsync(Guid id, HolonType type = HolonType.Holon, ProviderType provider = ProviderType.Default)
         {
-            return ProviderManager.SetAndActivateCurrentStorageProvider(provider).LoadHolonsForParentAsync(id, type);
+            return ProviderManager.SetAndActivateCurrentStorageProvider(provider).Result.LoadHolonsForParentAsync(id, type);
         }
 
         public IEnumerable<IHolon> LoadHolonsForParent(string providerKey, HolonType type = HolonType.Holon, ProviderType provider = ProviderType.Default)
         {
-            return ProviderManager.SetAndActivateCurrentStorageProvider(provider).LoadHolonsForParent(providerKey, type);
+            return ProviderManager.SetAndActivateCurrentStorageProvider(provider).Result.LoadHolonsForParent(providerKey, type);
         }
 
         public Task<IEnumerable<IHolon>> LoadHolonsForParentAsync(string providerKey, HolonType type = HolonType.Holon, ProviderType provider = ProviderType.Default)
         {
-            return ProviderManager.SetAndActivateCurrentStorageProvider(provider).LoadHolonsForParentAsync(providerKey, type);
+            return ProviderManager.SetAndActivateCurrentStorageProvider(provider).Result.LoadHolonsForParentAsync(providerKey, type);
         }
 
         public IEnumerable<IHolon> LoadAllHolons(HolonType type = HolonType.Holon, ProviderType provider = ProviderType.Default)
         {
-            return ProviderManager.SetAndActivateCurrentStorageProvider(provider).LoadAllHolons(type);
+            return ProviderManager.SetAndActivateCurrentStorageProvider(provider).Result.LoadAllHolons(type);
         }
 
         public Task<IEnumerable<IHolon>> LoadAllHolonsAsync(HolonType type = HolonType.Holon, ProviderType provider = ProviderType.Default)
         {
-            return ProviderManager.SetAndActivateCurrentStorageProvider(provider).LoadAllHolonsAsync(type);
+            return ProviderManager.SetAndActivateCurrentStorageProvider(provider).Result.LoadAllHolonsAsync(type);
         }
 
         public IHolon SaveHolon(IHolon holon, ProviderType providerType = ProviderType.Default)
@@ -121,7 +121,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
             try
             {
-                holon = ProviderManager.SetAndActivateCurrentStorageProvider(providerType).SaveHolon(PrepareHolonForSaving(holon));
+                holon = ProviderManager.SetAndActivateCurrentStorageProvider(providerType).Result.SaveHolon(PrepareHolonForSaving(holon));
             }
             catch (Exception ex)
             {
@@ -139,7 +139,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                     {
                         try
                         {
-                            holon = ProviderManager.SetAndActivateCurrentStorageProvider(type.Value).SaveHolon(PrepareHolonForSaving(holon));
+                            holon = ProviderManager.SetAndActivateCurrentStorageProvider(type.Value).Result.SaveHolon(PrepareHolonForSaving(holon));
                             needToChangeBack = true;
 
                             if (holon != null)
@@ -161,7 +161,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 {
                     try
                     {
-                        ProviderManager.SetAndActivateCurrentStorageProvider(type.Value).SaveHolon(holon);
+                        ProviderManager.SetAndActivateCurrentStorageProvider(type.Value).Result.SaveHolon(holon);
                         needToChangeBack = true;
                     }
                     catch (Exception ex)
@@ -187,7 +187,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
             try
             {
-                result.Result = await ProviderManager.SetAndActivateCurrentStorageProvider(providerType).SaveHolonAsync(PrepareHolonForSaving(holon));
+                result.Result = await ProviderManager.SetAndActivateCurrentStorageProvider(providerType).Result.SaveHolonAsync(PrepareHolonForSaving(holon));
             }
             catch (Exception ex)
             {
@@ -206,7 +206,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                     {
                         try
                         {
-                            result.Result = await ProviderManager.SetAndActivateCurrentStorageProvider(type.Value).SaveHolonAsync(PrepareHolonForSaving(holon));
+                            result.Result = await ProviderManager.SetAndActivateCurrentStorageProvider(type.Value).Result.SaveHolonAsync(PrepareHolonForSaving(holon));
                             needToChangeBack = true;
 
                             if (result.Result != null)
@@ -238,7 +238,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 {
                     try
                     {
-                        await ProviderManager.SetAndActivateCurrentStorageProvider(type.Value).SaveHolonAsync(holon);
+                        await ProviderManager.SetAndActivateCurrentStorageProvider(type.Value).Result.SaveHolonAsync(holon);
                         needToChangeBack = true;
                     }
                     catch (Exception ex)
@@ -263,7 +263,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
             try
             {
-                holons = ProviderManager.SetAndActivateCurrentStorageProvider(providerType).SaveHolons(PrepareHolonsForSaving(holons));
+                holons = ProviderManager.SetAndActivateCurrentStorageProvider(providerType).Result.SaveHolons(PrepareHolonsForSaving(holons));
             }
             catch (Exception ex)
             {
@@ -281,7 +281,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                     {
                         try
                         {
-                            holons = ProviderManager.SetAndActivateCurrentStorageProvider(type.Value).SaveHolons(PrepareHolonsForSaving(holons));
+                            holons = ProviderManager.SetAndActivateCurrentStorageProvider(type.Value).Result.SaveHolons(PrepareHolonsForSaving(holons));
                             needToChangeBack = true;
 
                             if (holons != null)
@@ -303,7 +303,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 {
                     try
                     {
-                        ProviderManager.SetAndActivateCurrentStorageProvider(type.Value).SaveHolons(holons);
+                        ProviderManager.SetAndActivateCurrentStorageProvider(type.Value).Result.SaveHolons(holons);
                         needToChangeBack = true;
                     }
                     catch (Exception ex)
@@ -328,7 +328,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
             try
             {
-                result.Result = await ProviderManager.SetAndActivateCurrentStorageProvider(providerType).SaveHolonsAsync(PrepareHolonsForSaving(holons));
+                result.Result = await ProviderManager.SetAndActivateCurrentStorageProvider(providerType).Result.SaveHolonsAsync(PrepareHolonsForSaving(holons));
                 result.IsSaved = true;
             }
             catch (Exception ex)
@@ -347,7 +347,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                     {
                         try
                         {
-                            result.Result = await ProviderManager.SetAndActivateCurrentStorageProvider(type.Value).SaveHolonsAsync(holons);
+                            result.Result = await ProviderManager.SetAndActivateCurrentStorageProvider(type.Value).Result.SaveHolonsAsync(holons);
                             result.IsSaved = true;
                             needToChangeBack = true;
 
@@ -376,7 +376,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 {
                     try
                     {
-                        await ProviderManager.SetAndActivateCurrentStorageProvider(type.Value).SaveHolonsAsync(holons);
+                        await ProviderManager.SetAndActivateCurrentStorageProvider(type.Value).Result.SaveHolonsAsync(holons);
                         needToChangeBack = true;
                     }
                     catch (Exception ex)
@@ -395,22 +395,22 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
         public bool DeleteHolon(Guid id, bool softDelete = true, ProviderType provider = ProviderType.Default)
         {
-            return ProviderManager.SetAndActivateCurrentStorageProvider(provider).DeleteHolon(id, softDelete);
+            return ProviderManager.SetAndActivateCurrentStorageProvider(provider).Result.DeleteHolon(id, softDelete);
         }
 
         public Task<bool> DeleteHolonAsync(Guid id, bool softDelete = true, ProviderType provider = ProviderType.Default)
         {
-            return ProviderManager.SetAndActivateCurrentStorageProvider(provider).DeleteHolonAsync(id, softDelete);
+            return ProviderManager.SetAndActivateCurrentStorageProvider(provider).Result.DeleteHolonAsync(id, softDelete);
         }
 
         public bool DeleteHolon(string providerKey, bool softDelete = true, ProviderType provider = ProviderType.Default)
         {
-            return ProviderManager.SetAndActivateCurrentStorageProvider(provider).DeleteHolon(providerKey, softDelete);
+            return ProviderManager.SetAndActivateCurrentStorageProvider(provider).Result.DeleteHolon(providerKey, softDelete);
         }
 
         public Task<bool> DeleteHolonAsync(string providerKey, bool softDelete = true, ProviderType provider = ProviderType.Default)
         {
-            return ProviderManager.SetAndActivateCurrentStorageProvider(provider).DeleteHolonAsync(providerKey, softDelete);
+            return ProviderManager.SetAndActivateCurrentStorageProvider(provider).Result.DeleteHolonAsync(providerKey, softDelete);
         }
 
         private IHolon PrepareHolonForSaving(IHolon holon)
