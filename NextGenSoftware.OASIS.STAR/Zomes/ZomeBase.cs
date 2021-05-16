@@ -8,7 +8,6 @@ using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using NextGenSoftware.OASIS.API.Core.Managers;
-using NextGenSoftware.OASIS.API.DNA.Manager;
 
 namespace NextGenSoftware.OASIS.STAR.Zomes
 {
@@ -39,7 +38,7 @@ namespace NextGenSoftware.OASIS.STAR.Zomes
         public delegate void HolonsLoaded(object sender, HolonsLoadedEventArgs e);
         public event HolonsLoaded OnHolonsLoaded;
 
-        public delegate void Initialized(object sender, EventArgs e);
+        public delegate void Initialized(object sender, System.EventArgs e);
         public event Initialized OnInitialized;
 
         public delegate void ZomeError(object sender, ZomeErrorEventArgs e);
@@ -54,7 +53,7 @@ namespace NextGenSoftware.OASIS.STAR.Zomes
 
         public ZomeBase()
         {
-            OASISResult<IOASISStorage> result = OASISDNAManager.GetAndActivateDefaultProvider();
+            OASISResult<IOASISStorage> result = OASISBootLoader.OASISBootLoader.GetAndActivateDefaultProvider();
 
             //TODO: Eventually want to replace all exceptions with OASISResult throughout the OASIS because then it makes sure errors are handled properly and friendly messages are shown (plus less overhead of throwing an entire stack trace!)
             if (result.IsError)

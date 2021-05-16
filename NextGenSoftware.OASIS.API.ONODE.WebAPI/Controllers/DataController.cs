@@ -1,11 +1,10 @@
 ﻿using System;
 using Microsoft.AspNetCore.Mvc;
-using NextGenSoftware.OASIS.API.DNA.Manager;
+using System.Collections.Generic;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Holons;
-using System.Collections.Generic;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
@@ -23,7 +22,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             {
                 if (_holonManager == null)
                 {
-                    OASISResult<IOASISStorage> result = OASISDNAManager.GetAndActivateDefaultProvider();
+                    OASISResult<IOASISStorage> result = OASISBootLoader.OASISBootLoader.GetAndActivateDefaultProvider();
 
                     //TODO: Eventually want to replace all exceptions with OASISResult throughout the OASIS because then it makes sure errors are handled properly and friendly messages are shown (plus less overhead of throwing an entire stack trace!)
                     if (result.IsError)

@@ -73,7 +73,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
         public delegate void HolonLoaded(object sender, HolonLoadedEventArgs e);
         public event HolonLoaded OnHolonLoaded;
 
-        public delegate void Initialized(object sender, EventArgs e);
+        public delegate void Initialized(object sender, System.EventArgs e);
         public event Initialized OnInitialized;
 
         public delegate void ZomeError(object sender, ZomeErrorEventArgs e);

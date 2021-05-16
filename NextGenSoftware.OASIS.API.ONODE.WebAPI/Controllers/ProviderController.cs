@@ -1,7 +1,6 @@
 ﻿using System;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
-using NextGenSoftware.OASIS.API.DNA.Manager;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Managers;
@@ -192,7 +191,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpPost("RegisterProviderType/{providerType}")]
         public ActionResult<bool> RegisterProviderType(ProviderType providerType)
         {
-            return Ok(OASISDNAManager.RegisterProvider(providerType) != null);
+            return Ok(OASISBootLoader.OASISBootLoader.RegisterProvider(providerType) != null);
         }
 
         /// <summary>
@@ -220,7 +219,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             List<IOASISStorage> providers = new List<IOASISStorage>();
 
             foreach (string type in types)
-                OASISDNAManager.RegisterProvider((ProviderType)Enum.Parse(typeof(ProviderType), type));
+                OASISBootLoader.OASISBootLoader.RegisterProvider((ProviderType)Enum.Parse(typeof(ProviderType), type));
 
             return Ok(providers);
         }
@@ -339,7 +338,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         public ActionResult<bool> SetAutoReplicateForAllProviders(bool autoReplicate)
         {
             if (ProviderManager.SetAutoReplicateForAllProviders(autoReplicate))
-                return Ok(OASISDNAManager.RegisterProvidersInAutoReplicatingList());
+                return Ok(OASISBootLoader.OASISBootLoader.RegisterProvidersInAutoReplicatingList());
             else
                 return (Ok(false));
         }
@@ -361,7 +360,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 providerTypesList.Add((ProviderType)Enum.Parse(typeof(ProviderType), type));
 
             if (ProviderManager.SetAutoReplicationForProviders(autoReplicate, new List<ProviderType>(providerTypesList)))
-                return Ok(OASISDNAManager.RegisterProvidersInAutoReplicatingList());
+                return Ok(OASISBootLoader.OASISBootLoader.RegisterProvidersInAutoReplicatingList());
             else
                 return (Ok(false));
         }
@@ -390,7 +389,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         public ActionResult<bool> SetAutoFailOverForAllProviders(bool addToFailOverList)
         {
             if (ProviderManager.SetAutoFailOverForAllProviders(addToFailOverList))
-                return Ok(OASISDNAManager.RegisterProvidersInAutoFailOverList());
+                return Ok(OASISBootLoader.OASISBootLoader.RegisterProvidersInAutoFailOverList());
             else
                 return (Ok(false));
         }
@@ -412,7 +411,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 providerTypesList.Add((ProviderType)Enum.Parse(typeof(ProviderType), type));
 
             if (ProviderManager.SetAutoFailOverForProviders(addToFailOverList, new List<ProviderType>(providerTypesList)))
-                return Ok(OASISDNAManager.RegisterProvidersInAutoFailOverList());
+                return Ok(OASISBootLoader.OASISBootLoader.RegisterProvidersInAutoFailOverList());
             else
                 return (Ok(false));
         }
@@ -427,7 +426,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         public ActionResult<bool> SetAutoLoadBalanceForAllProviders(bool addToLoadBalanceList)
         {
             if (ProviderManager.SetAutoLoadBalanceForAllProviders(addToLoadBalanceList))
-                return Ok(OASISDNAManager.RegisterProvidersInAutoLoadBalanceList());
+                return Ok(OASISBootLoader.OASISBootLoader.RegisterProvidersInAutoLoadBalanceList());
             else
                 return (Ok(false));
         }
@@ -449,7 +448,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 providerTypesList.Add((ProviderType)Enum.Parse(typeof(ProviderType), type));
             
             if (ProviderManager.SetAutoLoadBalanceForProviders(addToLoadBalanceList, new List<ProviderType>(providerTypesList)))
-                return Ok(OASISDNAManager.RegisterProvidersInAutoLoadBalanceList());
+                return Ok(OASISBootLoader.OASISBootLoader.RegisterProvidersInAutoLoadBalanceList());
             else
                 return (Ok(false));
         }
@@ -483,7 +482,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             {
                 case ProviderType.MongoDBOASIS:
                     {
-                        OASISDNAManager.OASISDNA.OASIS.StorageProviders.MongoDBOASIS.ConnectionString = connectionString;
+                        OASISBootLoader.OASISBootLoader.OASISDNA.OASIS.StorageProviders.MongoDBOASIS.ConnectionString = connectionString;
 
                         ProviderManager.DeActivateProvider(ProviderType.MongoDBOASIS);
                         ProviderManager.UnRegisterProvider(ProviderType.MongoDBOASIS);

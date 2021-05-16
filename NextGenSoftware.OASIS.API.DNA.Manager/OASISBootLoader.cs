@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using Newtonsoft.Json;
+using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Events;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
@@ -18,29 +19,29 @@ using NextGenSoftware.OASIS.API.Providers.EthereumOASIS;
 using NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS;
 using NextGenSoftware.Holochain.HoloNET.Client.Core;
 
-namespace NextGenSoftware.OASIS.API.DNA.Manager
+namespace NextGenSoftware.OASIS.OASISBootLoader
 {
-    public static class OASISDNAManager 
+    public static class OASISBootLoader
     {
         public static string OASISDNAFileName { get; set; } = "OASIS_DNA.json";
         public static OASISDNA OASISDNA;
-        public static bool IsInitialized { get; private set; } = false;
-        public static bool IsInitializing { get; private set; } = false;
+        public static bool IsOASISBooted { get; private set; } = false;
+        public static bool IsOASISBooting { get; private set; } = false;
 
-        public static OASISResult<bool> Initialize(string OASISDNAFileName)
+        public static OASISResult<bool> BootOASIS(string OASISDNAFileName)
         {
             LoadOASISDNA(OASISDNAFileName);
-            return Initialize(OASISDNA);
+            return BootOASIS(OASISDNA);
         }
 
-        public static OASISResult<bool> Initialize(OASISDNA OASISDNA)
+        public static OASISResult<bool> BootOASIS(OASISDNA OASISDNA)
         {
             OASISResult<bool> result = new OASISResult<bool>(false);
             object OASISProviderBootTypeObject = null;
 
-            if (!IsInitializing)
+            if (!IsOASISBooting)
             {
-                IsInitializing = true;
+                IsOASISBooting = true;
                 LoggingManager.CurrentLoggingFramework = (LoggingFramework)Enum.Parse(typeof(LoggingFramework), OASISDNA.OASIS.Logging.LoggingFramework);
                 ErrorHandling.LogAllErrors = OASISDNA.OASIS.ErrorHandling.LogAllErrors;
                 ErrorHandling.LogAllWarnings = OASISDNA.OASIS.ErrorHandling.LogAllWarnings;
@@ -59,9 +60,9 @@ namespace NextGenSoftware.OASIS.API.DNA.Manager
                         result = RegisterProvidersInAllLists();
                     else
                     {
-                        IsInitialized = true;
+                        IsOASISBooted = true;
                         result.Result = true;
-                        result.Message = "OASIS initialized but OASISProviderBootType is set to Cold so no providers have been registered or activated.";
+                        result.Message = "OASIS Booted but OASISProviderBootType is set to Cold so no providers have been registered or activated.";
                     }
                 }
                 else
@@ -71,9 +72,9 @@ namespace NextGenSoftware.OASIS.API.DNA.Manager
                 }
 
                 if (result.Result && !result.IsError)
-                    IsInitialized = true;
+                    IsOASISBooted = true;
 
-                IsInitializing = false;
+                IsOASISBooting = false;
             }
             else
             {
@@ -86,7 +87,7 @@ namespace NextGenSoftware.OASIS.API.DNA.Manager
 
         public static OASISResult<bool> Initialize()
         {
-            return Initialize(OASISDNAFileName);
+            return BootOASIS(OASISDNAFileName);
         }
 
         public static OASISResult<IOASISStorage>GetAndActivateDefaultProvider()
@@ -95,9 +96,9 @@ namespace NextGenSoftware.OASIS.API.DNA.Manager
 
             if (ProviderManager.CurrentStorageProvider == null)
             {
-                if (!IsInitialized)
+                if (!IsOASISBooted)
                 {
-                    OASISResult<bool> initResult = Initialize(OASISDNAFileName);
+                    OASISResult<bool> initResult = BootOASIS(OASISDNAFileName);
 
                     if (initResult.IsError)
                     {
@@ -107,9 +108,15 @@ namespace NextGenSoftware.OASIS.API.DNA.Manager
                     }
                 }
 
-                //TODO: Need to add additional logic later for when the first provider and others fail or are too laggy and so need to switch to a faster provider, etc... DONE! :)
-                //return GetAndActivateProvider((ProviderType)Enum.Parse(typeof(ProviderType), ProviderManager.DefaultProviderTypes[0]));
-                result.Result = GetAndActivateProvider(ProviderManager.GetProviderAutoFailOverList()[0].Value);
+                OASISResult<IOASISStorage> providerManagerResult = GetAndActivateProvider(ProviderManager.GetProviderAutoFailOverList()[0].Value);
+
+                if (providerManagerResult.IsError)
+                {
+                    result.IsError = true;
+                    result.Message = providerManagerResult.Message;
+                }
+                else
+                    result.Result = providerManagerResult.Result;
             }
             else
                 result.Result = ProviderManager.CurrentStorageProvider;
@@ -117,31 +124,56 @@ namespace NextGenSoftware.OASIS.API.DNA.Manager
             return result;
         }
 
-        public static IOASISStorage GetAndActivateProvider(ProviderType providerType, string customConnectionString = null, bool forceRegister = false, bool setGlobally = false)
+        public static OASISResult<IOASISStorage> GetAndActivateProvider(ProviderType providerType, string customConnectionString = null, bool forceRegister = false, bool setGlobally = false)
         {
-            if (!IsInitialized && !IsInitializing)
-                Initialize(OASISDNAFileName);
+            OASISResult<IOASISStorage> result = new OASISResult<IOASISStorage>();
+
+            if (!IsOASISBooted && !IsOASISBooting)
+            {
+                OASISResult<bool> bootResult = BootOASIS(OASISDNAFileName);
+
+                if (bootResult.IsError)
+                {
+                    result.IsError = true;
+                    result.Message = string.Concat("Error booting OASIS. Reason: ", bootResult.Message);
+                    return result;
+                }
+            }
 
             //TODO: Think we can have this in ProviderManger and have default connection strings/settings for each provider.
             if (providerType != ProviderManager.CurrentStorageProviderType.Value)
             {
                 RegisterProvider(providerType, customConnectionString, forceRegister);
-                ProviderManager.SetAndActivateCurrentStorageProvider(providerType, setGlobally);
+                OASISResult<IOASISStorage> providerManagerResult = ProviderManager.SetAndActivateCurrentStorageProvider(providerType, setGlobally);
+
+                if (providerManagerResult.IsError)
+                {
+                    result.IsError = true;
+                    result.Message = providerManagerResult.Message;
+                    //result.Message = string.Concat("Error activating provider ", Enum.GetName(typeof(ProviderType), providerType), ". Reason: ", providerManagerResult.Message);
+                }
+                else
+                    result.Result = providerManagerResult.Result;
             }
 
-            if (setGlobally && ProviderManager.CurrentStorageProvider != ProviderManager.DefaultGlobalStorageProvider)
-                ProviderManager.DefaultGlobalStorageProvider = ProviderManager.CurrentStorageProvider;
+            if (result.IsError != true)
+            {
+                if (setGlobally && ProviderManager.CurrentStorageProvider != ProviderManager.DefaultGlobalStorageProvider)
+                    ProviderManager.DefaultGlobalStorageProvider = ProviderManager.CurrentStorageProvider;
 
-            ProviderManager.OverrideProviderType = true;
-            return ProviderManager.CurrentStorageProvider; 
+                ProviderManager.OverrideProviderType = true;
+                result.Result = ProviderManager.CurrentStorageProvider;
+            }
+
+            return result;
         }
 
         public static IOASISStorage RegisterProvider(ProviderType providerType, string overrideConnectionString = null, bool forceRegister = false)
         {
             IOASISStorage registeredProvider = null;
 
-            if (!IsInitialized && !IsInitializing)
-                Initialize(OASISDNAFileName);
+            if (!IsOASISBooted && !IsOASISBooting)
+                BootOASIS(OASISDNAFileName);
 
             // If they wish to forceRegister then if it is already registered then unregister it first (when connectionstring changes for example).
             if (forceRegister && ProviderManager.IsProviderRegistered(providerType))
@@ -324,7 +356,7 @@ namespace NextGenSoftware.OASIS.API.DNA.Manager
                     
                     string errorMessage = string.Concat("OASIS Provider ", Enum.GetName(typeof(ProviderType), providerType), " failed to register.\n");
                     result.Message = string.Concat(result.Message, errorMessage);
-                    LoggingManager.Log(errorMessage, Core.Enums.LogType.Error);
+                    LoggingManager.Log(errorMessage, API.Core.Enums.LogType.Error);
 
                     if (abortIfOneProviderFailsToRegister)
                         break;
@@ -341,7 +373,7 @@ namespace NextGenSoftware.OASIS.API.DNA.Manager
                 string errorMessage = string.Concat("Error registering providers in ", listName, ". Error Details: \n", listResult.Message);
                 allListResult.IsError = true;
                 allListResult.Message = string.Concat(allListResult.Message, errorMessage);
-                LoggingManager.Log(errorMessage, Core.Enums.LogType.Error);
+                LoggingManager.Log(errorMessage, API.Core.Enums.LogType.Error);
             }
 
             return allListResult;
@@ -366,7 +398,7 @@ namespace NextGenSoftware.OASIS.API.DNA.Manager
 
         private static void LoadOASISDNA(string OASISDNAFileName)
         {
-            OASISDNAManager.OASISDNAFileName = OASISDNAFileName;
+            OASISBootLoader.OASISDNAFileName = OASISDNAFileName;
 
             if (File.Exists(OASISDNAFileName))
             {
@@ -422,7 +454,7 @@ namespace NextGenSoftware.OASIS.API.DNA.Manager
             //  throw new Exception(string.Concat("ERROR: HoloOASIS_StorageProviderError. EndPoint: ", e.EndPoint, "Reason: ", e.Reason, ". Error Details: ", e.ErrorDetails));
         }
 
-        private static void HoloOASIS_OnHoloOASISError(object sender, Providers.HoloOASIS.Core.HoloOASISErrorEventArgs e)
+        private static void HoloOASIS_OnHoloOASISError(object sender, API.Providers.HoloOASIS.Core.HoloOASISErrorEventArgs e)
         {
             //TODO: {URGENT} Handle Errors properly here (log, etc)
             //  throw new Exception(string.Concat("ERROR: HoloOASIS_OnHoloOASISError. EndPoint: ", e.EndPoint, "Reason: ", e.Reason, ". Error Details: ", e.ErrorDetails, "HoloNET.Reason: ", e.HoloNETErrorDetails.Reason, "HoloNET.ErrorDetails: ", e.HoloNETErrorDetails.ErrorDetails));

@@ -161,7 +161,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.P
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.Providers.ElrondOASIS", "NextGenSoftware.OASIS.API.Providers.ElrondOASIS\NextGenSoftware.OASIS.API.Providers.ElrondOASIS.csproj", "{D319C961-ADCA-4943-B68F-E9F96DCAAD83}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.DNA.Manager", "NextGenSoftware.OASIS.API.DNA.Manager\NextGenSoftware.OASIS.API.DNA.Manager.csproj", "{31C911F1-4B19-42BA-B48F-628CB3A9C574}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.OASISBootLoader", "NextGenSoftware.OASIS.API.DNA.Manager\NextGenSoftware.OASIS.OASISBootLoader.csproj", "{31C911F1-4B19-42BA-B48F-628CB3A9C574}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.DNA", "NextGenSoftware.OASIS.API.DNA\NextGenSoftware.OASIS.API.DNA.csproj", "{F220B28D-A9A8-4329-92CE-208C87EF1AF0}"
 EndProject
