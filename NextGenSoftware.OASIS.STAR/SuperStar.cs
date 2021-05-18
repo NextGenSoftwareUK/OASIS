@@ -224,6 +224,11 @@ namespace NextGenSoftware.OASIS.STAR
             return result;
         }*/
 
+        public static OASISResult<bool> ExtinguishSuperStar()
+        {
+            return OASISAPI.ShutdownOASIS();
+        }
+
         private static void WireUpEvents()
         {
             SuperStarCore.OnHolonLoaded += SuperStarCore_OnHolonLoaded;
