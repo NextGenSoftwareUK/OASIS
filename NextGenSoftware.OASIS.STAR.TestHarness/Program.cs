@@ -874,6 +874,8 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
         {
             Console.ForegroundColor = ConsoleColor.Green;
             Console.WriteLine("\n Usage:");
+            Console.WriteLine("   star ignite = Ignite SuperStar & Boot The OASIS");
+            Console.WriteLine("   star extinguish = Extinguish SuperStar & Shutdown The OASIS");
             Console.WriteLine("   star beamin = Log in");
             Console.WriteLine("   star beamout = Log out");
             Console.WriteLine("   star light -dnaFolder -cSharpGeneisFolder -rustGenesisFolder = Creates a new Planet (OAPP) at the given folder genesis locations, from the given OAPP DNA.");

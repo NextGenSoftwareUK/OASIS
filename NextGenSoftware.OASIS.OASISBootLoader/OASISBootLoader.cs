@@ -85,9 +85,20 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
             return result;
         }
 
-        public static OASISResult<bool> Initialize()
+        public static OASISResult<bool> BootOASIS()
         {
             return BootOASIS(OASISDNAFileName);
+        }
+
+        public static OASISResult<bool> ShutdownOASIS()
+        {
+            OASISResult<bool> result = new OASISResult<bool>(true);
+
+            //TODO: Add OASISResult to ActivateProvider and DeActivateProvider so more detailed data can be returned... 
+            foreach (IOASISStorage provider in ProviderManager.GetStorageProviders())
+                provider.DeActivateProvider();
+
+            return result;
         }
 
         public static OASISResult<IOASISStorage>GetAndActivateDefaultProvider()

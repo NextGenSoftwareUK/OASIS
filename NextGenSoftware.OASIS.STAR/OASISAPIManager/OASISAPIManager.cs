@@ -52,6 +52,11 @@ namespace NextGenSoftware.OASIS.STAR.OASISAPIManager
             return result;
         }
 
+        public OASISResult<bool> ShutdownOASIS()
+        {
+            return OASISBootLoader.OASISBootLoader.ShutdownOASIS();
+        }
+
         private void BootOASIS(bool startApolloServer = true)
         {
             Map = new MapManager(ProviderManager.CurrentStorageProvider);
