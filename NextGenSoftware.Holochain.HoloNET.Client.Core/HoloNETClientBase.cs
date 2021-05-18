@@ -90,8 +90,8 @@ namespace NextGenSoftware.Holochain.HoloNET.Client.Core
         public IHoloNETClientNET NetworkServiceProvider { get; set; }
         public NetworkServiceProviderMode NetworkServiceProviderMode { get; set; }
         public HolochainVersion HolochainVersion { get; set; }
-       // public string AgentPubKey { get; set; } = "000000000000000000000000000000000000";
-       // public string HoloHash { get; set; } = "000000000000000000000000000000000000";
+        public string AgentPubKey { get; set; } = "000000000000000000000000000000000000";
+        public string HoloHash { get; set; } = "000000000000000000000000000000000000";
 
         public HoloNETClientBase(string holochainConductorURI, HolochainVersion version)
         {
@@ -353,8 +353,8 @@ namespace NextGenSoftware.Holochain.HoloNET.Client.Core
                             }) 
                         };*/
 
-                        string AgentPubKey = "000000000000000000000000000000000000";
-                        string HoloHash = "000000000000000000000000000000000000";
+                      //  string AgentPubKey = "000000000000000000000000000000000000";
+                       // string HoloHash = "000000000000000000000000000000000000";
 
                         HoloNETData holoNETData = new HoloNETData()
                         {

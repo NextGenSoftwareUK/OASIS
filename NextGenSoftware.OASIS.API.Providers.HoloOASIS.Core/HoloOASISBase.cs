@@ -443,6 +443,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Core
         public async override void DeActivateProvider()
         {
             await HoloNETClient.Disconnect();
+           // HoloNETClient = null;
             base.DeActivateProvider();
         }
 
