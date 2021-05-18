@@ -47,8 +47,8 @@ namespace NextGenSoftware.OASIS.STAR
             }
         }
 
-        public static SuperStarStatus Status 
-        { 
+        public static SuperStarStatus Status
+        {
             get
             {
                 return _status;
@@ -59,12 +59,19 @@ namespace NextGenSoftware.OASIS.STAR
                 OnSuperStarStatusChanged?.Invoke(null, new SuperStarStatusChangedEventArgs() { Status = value });
             }
         }
+
         public static bool IsSuperStarIgnited { get; private set; }
-      
         public static Star InnerStar { get; set; }
         public static SuperStarCore SuperStarCore { get; set; }
-        public static List<Star> Stars { get; set; }
-       // public static List<Planet> Planets { get; set; } // Wouldn't this just be InnerStar.Planets ?
+        public static List<Star> Stars { get; set; } = new List<Star>();
+        public static List<IPlanet> Planets
+        {
+            get
+            {
+                return InnerStar.Planets;
+            }
+        }
+
         public static Avatar LoggedInUser { get; set; }
 
         public static OASISAPI OASISAPI
@@ -347,6 +354,7 @@ namespace NextGenSoftware.OASIS.STAR
             string zomeBufferCsharp = "";
             string celestialBodyBufferCsharp = "";
             bool firstHolon = true;
+            string rustDNAFolder = string.Empty;
 
             if (LoggedInUser == null)
                 return new CoronalEjection() { ErrorOccured = true, Message = "Avatar is not logged in. Please log in before calling this command." };
@@ -364,11 +372,14 @@ namespace NextGenSoftware.OASIS.STAR
                 IgniteSuperStar();
 
             if (InnerStar == null)
-                await IgniteInnerStarAsync();
+            {
+                OASISResult<ICelestialBody> result = await IgniteInnerStarAsync();
+
+                if (result.IsError)
+                    return new CoronalEjection() { ErrorOccured = true, Message = string.Concat("Error Igniting Inner Star. Reason: ", result.Message) };
+            }
 
             ValidateLightDNA(dnaFolder, genesisCSharpFolder, genesisRustFolder);
-
-            string rustDNAFolder = string.Empty;
 
             switch (STARDNA.HolochainVersion.ToUpper())
             {
@@ -447,11 +458,9 @@ namespace NextGenSoftware.OASIS.STAR
                             celestialBodyParent = InnerStar;
 
                         newBody.ParentHolon = celestialBodyParent;
-                        newBody.ParentStar = InnerStar;
-                        newBody.ParentHolon = celestialBodyParent;
                         newBody.ParentHolonId = celestialBodyParent.Id;
-                        newBody.ParentStar = celestialBodyParent.ParentStar;
-                        newBody.ParentStarId = celestialBodyParent.ParentStarId;
+                        newBody.ParentStar = (IStar)celestialBodyParent;
+                        newBody.ParentStarId = celestialBodyParent.Id;
                     }
                 break;
 
@@ -461,7 +470,7 @@ namespace NextGenSoftware.OASIS.STAR
                         newBody.ParentHolon = InnerStar;
                         newBody.ParentHolonId = InnerStar.Id;
                         newBody.ParentStar = InnerStar;
-                        newBody.ParentStarId = celestialBodyParent.ParentStarId;
+                        newBody.ParentStarId = InnerStar.Id;
                     }
                 break;
             }
@@ -473,9 +482,7 @@ namespace NextGenSoftware.OASIS.STAR
             OASISResult<ICelestialBody> newBodyResult = await newBody.SaveAsync(); //Need to save to get the id to be used for ParentId below (zomes, holons & nodes).
 
             if (newBodyResult.IsError)
-            {
-                //TODO: Handle error here.
-            }
+                return new CoronalEjection() { ErrorOccured = true, Message = string.Concat("Error Saving New CelestialBody. Reason: ", newBodyResult.Message) };
             else
                 newBody = (CelestialBody)newBodyResult.Result;
 

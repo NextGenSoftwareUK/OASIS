@@ -587,7 +587,8 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
 
         public override Task<IHolon> LoadHolonAsync(Guid id, HolonType type = HolonType.Holon)
         {
-            throw new NotImplementedException();
+            //TODO: Need to make this a true async method!
+            return Task.Run(() => ConvertMongoEntityToOASISHolon(_holonRepository.GetHolon(id).Result));
         }
 
         public override async Task<IHolon> LoadHolonAsync(string providerKey, HolonType type = HolonType.Holon)

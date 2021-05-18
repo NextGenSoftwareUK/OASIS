@@ -159,6 +159,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
                 {
                     this.Id = celestialBodyHolonResult.Result.Id;
                     this.ProviderKey = celestialBodyHolonResult.Result.ProviderKey;
+                    this.CelestialBodyCore.Id = celestialBodyHolonResult.Result.Id;
                     this.CelestialBodyCore.ProviderKey = celestialBodyHolonResult.Result.ProviderKey;
                     this.CreatedByAvatar = celestialBodyHolonResult.Result.CreatedByAvatar;
                     this.CreatedByAvatarId = celestialBodyHolonResult.Result.CreatedByAvatarId;
@@ -193,26 +194,32 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
             if (this.HolonType == HolonType.SuperStar)
             {
                 //TODO: Eventually this will use "this" rather than static SuperStar when SuperStar inherits from Star and a new static GrandSuperStar is created... :)
-                foreach (Star star in SuperStar.Stars) 
+                if (SuperStar.Stars != null)
                 {
-                    result = await star.SaveAsync();
+                    foreach (Star star in SuperStar.Stars)
+                    {
+                        result = await star.SaveAsync();
 
-                    if (result.IsError)
-                        return result;
+                        if (result.IsError)
+                            return result;
+                    }
                 }
             }
 
             //TODO: We need to indivudally save each planet/zome/holon first so we get their unique id's. We can then set the parentId's etc.
             if (this.HolonType == HolonType.Star)
             {
-                foreach (Planet planet in ((IStar)this).Planets)
+                if (((IStar)this).Planets != null)
                 {
-                    result = await planet.SaveAsync(); // TODO: Think we need to save again even if id is not null just in case its children have changed since last time it was saved?
+                    foreach (Planet planet in ((IStar)this).Planets)
+                    {
+                        result = await planet.SaveAsync(); // TODO: Think we need to save again even if id is not null just in case its children have changed since last time it was saved?
 
-                    if (result.IsError)
-                        return result;
+                        if (result.IsError)
+                            return result;
 
-                   // ((List<Holon>)this.Children).Add(planet);
+                        // ((List<Holon>)this.Children).Add(planet);
+                    }
                 }
             }
             else
@@ -221,28 +228,34 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
 
                 if (this.HolonType == HolonType.Planet)
                 {
-                    foreach (Moon moon in ((IPlanet)this).Moons)
+                    if (((IPlanet)this).Moons != null)
                     {
-                        result = await moon.SaveAsync();
+                        foreach (Moon moon in ((IPlanet)this).Moons)
+                        {
+                            result = await moon.SaveAsync();
 
-                        if (result.IsError)
-                            return result;
+                            if (result.IsError)
+                                return result;
+                        }
                     }
                 }
 
-                foreach (Zome zome in this.CelestialBodyCore.Zomes)
+                if (CelestialBodyCore.Zomes != null)
                 {
-                    // if (zome.Id == Guid.Empty)
-                    zomeResult = await zome.Save(); // TODO: Think we need to save again even if id is not null just in case its children have changed since last time it was saved?
-
-                    if (zomeResult.IsError)
+                    foreach (Zome zome in this.CelestialBodyCore.Zomes)
                     {
-                        result.IsError = true;
-                        result.Message = zomeResult.Message;
-                        return result;
-                    }
+                        // if (zome.Id == Guid.Empty)
+                        zomeResult = await zome.Save(); // TODO: Think we need to save again even if id is not null just in case its children have changed since last time it was saved?
 
-                   // ((List<Holon>)this.Children).Add(zome);
+                        if (zomeResult.IsError)
+                        {
+                            result.IsError = true;
+                            result.Message = zomeResult.Message;
+                            return result;
+                        }
+
+                        // ((List<Holon>)this.Children).Add(zome);
+                    }
                 }
             }
 
@@ -280,73 +293,97 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
 
         private void SetParentIdsForHolon(IStar star, IPlanet planet, IMoon moon, IZome zome, IHolon holon)
         {
-            foreach (Holon innerHolon in holon.Children)
+            if (holon.Children != null)
             {
-                innerHolon.ParentHolonId = holon.Id;
-                innerHolon.ParentHolon = holon;
-                innerHolon.ParentStar = star;
-                innerHolon.ParentStarId = star.Id;
-                innerHolon.ParentPlanet = planet;
-                innerHolon.ParentPlanetId = planet.Id;
-
-                if (moon != null)
+                foreach (Holon innerHolon in holon.Children)
                 {
-                    holon.ParentMoon = moon;
-                    holon.ParentMoonId = moon.Id;
+                    innerHolon.ParentHolonId = holon.Id;
+                    innerHolon.ParentHolon = holon;
+                    innerHolon.ParentStar = star;
+                    innerHolon.ParentStarId = star.Id;
+                    innerHolon.ParentPlanet = planet;
+                    innerHolon.ParentPlanetId = planet.Id;
+
+                    if (moon != null)
+                    {
+                        holon.ParentMoon = moon;
+                        holon.ParentMoonId = moon.Id;
+                    }
+
+                    innerHolon.ParentZome = zome;
+                    innerHolon.ParentZomeId = zome.Id;
+
+                    if (innerHolon.Children != null)
+                    {
+                        foreach (Holon childHolon in innerHolon.Children)
+                            SetParentIdsForHolon(star, planet, moon, zome, childHolon);
+                    }
                 }
-
-                innerHolon.ParentZome = zome;
-                innerHolon.ParentZomeId = zome.Id;
-
-                foreach (Holon childHolon in innerHolon.Children)
-                    SetParentIdsForHolon(star, planet, moon, zome, childHolon);
             }
         }
 
         private void SetParentIdsForZome(IStar star, IPlanet planet, IMoon moon, IZome zome)
         {
-            foreach (Holon holon in zome.Holons)
+            if (zome.Holons != null)
             {
-                holon.ParentHolonId = zome.Id;
-                holon.ParentHolon = zome;
-                holon.ParentStar = star;
-                holon.ParentStarId = star.Id;
-                holon.ParentPlanet = planet;
-                holon.ParentPlanetId = planet.Id;
+                foreach (Holon holon in zome.Holons)
+                {
+                    holon.ParentHolonId = zome.Id;
+                    holon.ParentHolon = zome;
+                    holon.ParentStar = star;
+                    holon.ParentStarId = star.Id;
+                    holon.ParentPlanet = planet;
+                    holon.ParentPlanetId = planet.Id;
 
-                if (moon != null)
-                { 
-                    holon.ParentMoon = moon;
-                    holon.ParentMoonId = moon.Id;
+                    if (moon != null)
+                    {
+                        holon.ParentMoon = moon;
+                        holon.ParentMoonId = moon.Id;
+                    }
+
+                    holon.ParentZome = zome;
+                    holon.ParentZomeId = zome.Id;
+
+                    if (holon.Children != null)
+                    {
+                        foreach (Holon childHolon in holon.Children)
+                            SetParentIdsForHolon(star, planet, moon, zome, childHolon);
+                    }
                 }
-
-                holon.ParentZome = zome;
-                holon.ParentZomeId = zome.Id;
-
-                foreach (Holon childHolon in holon.Children)
-                    SetParentIdsForHolon(star, planet, moon, zome, childHolon);
             }
         }
 
         private void SetParentIdsForMoon(IStar star, IPlanet planet, IMoon moon)
         {
-            foreach (Zome zome in moon.CelestialBodyCore.Zomes)
-                SetParentIdsForZome(star, planet, moon, (IZome)zome);
+            if (moon.CelestialBodyCore.Zomes != null)
+            {
+                foreach (Zome zome in moon.CelestialBodyCore.Zomes)
+                    SetParentIdsForZome(star, planet, moon, (IZome)zome);
+            }
         }
 
         private void SetParentIdsForPlanet(IStar star, IPlanet planet)
         {
-            foreach (IZome zome in planet.CelestialBodyCore.Zomes)
-                SetParentIdsForZome(star, planet, null, zome);
+            if (planet.CelestialBodyCore.Zomes != null)
+            {
+                foreach (IZome zome in planet.CelestialBodyCore.Zomes)
+                    SetParentIdsForZome(star, planet, null, zome);
+            }
 
-            foreach (IMoon moon in planet.Moons)
-                SetParentIdsForMoon(star, planet, moon);
+            if (planet.Moons != null)
+            {
+                foreach (IMoon moon in planet.Moons)
+                    SetParentIdsForMoon(star, planet, moon);
+            }
         }
 
         private void SetParentIdsForStar(IStar star)
         {
-            foreach (IPlanet planet in star.Planets)
-                SetParentIdsForPlanet(star, planet);
+            if (star.Planets != null)
+            {
+                foreach (IPlanet planet in star.Planets)
+                    SetParentIdsForPlanet(star, planet);
+            }
 
             //TODO: Do we want to add Zomes to a Star? Maybe?
         }
@@ -354,8 +391,11 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
         //TODO: We may one day pass in a SuperStar here? Currently its static when we thought there would be only one SuperStar but now think we will have more than one so will likely make SuperStar inherit from Star, etc. And need to change existing static SuperStar class to GrandSuperStar or something! ;-)
         private void SetParentIdsForSuperStar()
         {
-            foreach (IStar star in SuperStar.Stars)
-                SetParentIdsForStar(star);
+            if (SuperStar.Stars != null)
+            {
+                foreach (IStar star in SuperStar.Stars)
+                    SetParentIdsForStar(star);
+            }
 
            // foreach (IPlanet planet in SuperStar.Planets)
            //     SetParentIdsForPlanet(SuperStar.InnerStar, planet);
