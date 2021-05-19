@@ -106,8 +106,21 @@ namespace NextGenSoftware.OASIS.STAR.Zomes
 
             if (!zomeResult.IsError)
             {
-                zomeResult.Result = (IZome)holonResult.Result;
+                //zomeResult.Result = (IZome)holonResult.Result;
 
+                this.Id = holonResult.Result.Id;
+                this.ProviderKey = holonResult.Result.ProviderKey;
+                this.CreatedByAvatar = holonResult.Result.CreatedByAvatar;
+                this.CreatedByAvatarId = holonResult.Result.CreatedByAvatarId;
+                this.CreatedDate = holonResult.Result.CreatedDate;
+                this.ModifiedByAvatar = holonResult.Result.ModifiedByAvatar;
+                this.ModifiedByAvatarId = holonResult.Result.ModifiedByAvatarId;
+                this.ModifiedDate = holonResult.Result.ModifiedDate;
+                this.Children = holonResult.Result.Children;
+
+                ZomeHelper.SetParentIdsForZome(this.ParentStar, this.ParentPlanet, this.ParentMoon, (IZome)this);
+
+                /*
                 // Now set its child holons parent ids.
                 foreach (IHolon holon in Holons)
                 {
@@ -115,9 +128,9 @@ namespace NextGenSoftware.OASIS.STAR.Zomes
                     holon.ParentHolon = this;
                     holon.ParentZomeId = this.Id;
                     holon.ParentZome = (IZome)this;
-                }
+                }*/
 
-                // Now save the zome child holons.
+                // Now save the zome child holons (each OASIS Provider will recursively save each child holon, could do the recursion here and just save each holon indivudally with SaveHolonAsync but this way each OASIS Provider can optimise the the way it saves (batches, etc), which would be quicker than making multiple calls...)
                 OASISResult<IEnumerable<IHolon>> holonsResult = await _holonManager.SaveHolonsAsync(this.Holons);
 
                 if (holonsResult.IsError)
