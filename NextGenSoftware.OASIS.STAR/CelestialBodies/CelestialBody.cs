@@ -157,6 +157,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
                 }
                 else
                 {
+                    //this = HolonSavedHelper.MapBaseHolonProperties(celestialBodyHolonResult.Result, this);
                     this.Id = celestialBodyHolonResult.Result.Id;
                     this.ProviderKey = celestialBodyHolonResult.Result.ProviderKey;
                     this.CelestialBodyCore.Id = celestialBodyHolonResult.Result.Id;
@@ -291,74 +292,74 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
             return result;
         }
 
-        private void SetParentIdsForHolon(IStar star, IPlanet planet, IMoon moon, IZome zome, IHolon holon)
-        {
-            if (holon.Children != null)
-            {
-                foreach (Holon innerHolon in holon.Children)
-                {
-                    innerHolon.ParentHolonId = holon.Id;
-                    innerHolon.ParentHolon = holon;
-                    innerHolon.ParentStar = star;
-                    innerHolon.ParentStarId = star.Id;
-                    innerHolon.ParentPlanet = planet;
-                    innerHolon.ParentPlanetId = planet.Id;
+        //private void SetParentIdsForHolon(IStar star, IPlanet planet, IMoon moon, IZome zome, IHolon holon)
+        //{
+        //    if (holon.Children != null)
+        //    {
+        //        foreach (Holon innerHolon in holon.Children)
+        //        {
+        //            innerHolon.ParentHolonId = holon.Id;
+        //            innerHolon.ParentHolon = holon;
+        //            innerHolon.ParentStar = star;
+        //            innerHolon.ParentStarId = star.Id;
+        //            innerHolon.ParentPlanet = planet;
+        //            innerHolon.ParentPlanetId = planet.Id;
 
-                    if (moon != null)
-                    {
-                        holon.ParentMoon = moon;
-                        holon.ParentMoonId = moon.Id;
-                    }
+        //            if (moon != null)
+        //            {
+        //                holon.ParentMoon = moon;
+        //                holon.ParentMoonId = moon.Id;
+        //            }
 
-                    innerHolon.ParentZome = zome;
-                    innerHolon.ParentZomeId = zome.Id;
+        //            innerHolon.ParentZome = zome;
+        //            innerHolon.ParentZomeId = zome.Id;
 
-                    if (innerHolon.Children != null)
-                    {
-                        foreach (Holon childHolon in innerHolon.Children)
-                            SetParentIdsForHolon(star, planet, moon, zome, childHolon);
-                    }
-                }
-            }
-        }
+        //            if (innerHolon.Children != null)
+        //            {
+        //                foreach (Holon childHolon in innerHolon.Children)
+        //                    SetParentIdsForHolon(star, planet, moon, zome, childHolon);
+        //            }
+        //        }
+        //    }
+        //}
 
-        private void SetParentIdsForZome(IStar star, IPlanet planet, IMoon moon, IZome zome)
-        {
-            if (zome.Holons != null)
-            {
-                foreach (Holon holon in zome.Holons)
-                {
-                    holon.ParentHolonId = zome.Id;
-                    holon.ParentHolon = zome;
-                    holon.ParentStar = star;
-                    holon.ParentStarId = star.Id;
-                    holon.ParentPlanet = planet;
-                    holon.ParentPlanetId = planet.Id;
+        //private void SetParentIdsForZome(IStar star, IPlanet planet, IMoon moon, IZome zome)
+        //{
+        //    if (zome.Holons != null)
+        //    {
+        //        foreach (Holon holon in zome.Holons)
+        //        {
+        //            holon.ParentHolonId = zome.Id;
+        //            holon.ParentHolon = zome;
+        //            holon.ParentStar = star;
+        //            holon.ParentStarId = star.Id;
+        //            holon.ParentPlanet = planet;
+        //            holon.ParentPlanetId = planet.Id;
 
-                    if (moon != null)
-                    {
-                        holon.ParentMoon = moon;
-                        holon.ParentMoonId = moon.Id;
-                    }
+        //            if (moon != null)
+        //            {
+        //                holon.ParentMoon = moon;
+        //                holon.ParentMoonId = moon.Id;
+        //            }
 
-                    holon.ParentZome = zome;
-                    holon.ParentZomeId = zome.Id;
+        //            holon.ParentZome = zome;
+        //            holon.ParentZomeId = zome.Id;
 
-                    if (holon.Children != null)
-                    {
-                        foreach (Holon childHolon in holon.Children)
-                            SetParentIdsForHolon(star, planet, moon, zome, childHolon);
-                    }
-                }
-            }
-        }
+        //            if (holon.Children != null)
+        //            {
+        //                foreach (Holon childHolon in holon.Children)
+        //                    SetParentIdsForHolon(star, planet, moon, zome, childHolon);
+        //            }
+        //        }
+        //    }
+        //}
 
         private void SetParentIdsForMoon(IStar star, IPlanet planet, IMoon moon)
         {
             if (moon.CelestialBodyCore.Zomes != null)
             {
                 foreach (Zome zome in moon.CelestialBodyCore.Zomes)
-                    SetParentIdsForZome(star, planet, moon, (IZome)zome);
+                    ZomeHelper.SetParentIdsForZome(star, planet, moon, zome);
             }
         }
 
@@ -367,7 +368,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
             if (planet.CelestialBodyCore.Zomes != null)
             {
                 foreach (IZome zome in planet.CelestialBodyCore.Zomes)
-                    SetParentIdsForZome(star, planet, null, zome);
+                    ZomeHelper.SetParentIdsForZome(star, planet, null, zome);
             }
 
             if (planet.Moons != null)

@@ -620,10 +620,18 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
 
         public override async Task<IEnumerable<IHolon>> SaveHolonsAsync(IEnumerable<IHolon> holons)
         {
-            foreach (IHolon holon in holons)
-                await SaveHolonAsync(holon);
+            List<IHolon> savedHolons = new List<IHolon>();
+            IHolon savedHolon;
 
-            return holons;
+            // Recursively save all child holons.
+            foreach (IHolon holon in holons)
+            {
+                savedHolon = await SaveHolonAsync(holon);
+                savedHolon.Children = await SaveHolonsAsync(holon.Children);
+                savedHolons.Add(savedHolon);
+            }
+
+            return savedHolons;
         }
 
         public override async Task<IAvatar> LoadAvatarForProviderKeyAsync(string providerKey)
