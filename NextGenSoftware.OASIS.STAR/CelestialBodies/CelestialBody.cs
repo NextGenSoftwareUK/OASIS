@@ -119,13 +119,6 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
             LoadZomes();
         }
 
-       //public OASISResult<ICelestialBody> Save()
-       //{
-
-       //}
-
-     //  private OASISResult<ICelestialBody> 
-
         public async Task<OASISResult<ICelestialBody>> SaveAsync()
         {
             OASISResult<ICelestialBody> result = new OASISResult<ICelestialBody>(this);
@@ -143,55 +136,39 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
                 return result;
             }
 
-            // If the celestiablBody has not been saved yet then save now so its children can set the parentId's.
-           // if (this.Id == Guid.Empty)
-           // {
-                celestialBodyHolonResult = await CelestialBodyCore.SaveCelestialBodyAsync(this);
-                result.Message = celestialBodyHolonResult.Message;
-                result.IsSaved = celestialBodyHolonResult.IsSaved;
+            celestialBodyHolonResult = await CelestialBodyCore.SaveCelestialBodyAsync(this);
+            result.Message = celestialBodyHolonResult.Message;
+            result.IsSaved = celestialBodyHolonResult.IsSaved;
 
-                if (celestialBodyHolonResult.IsError || !celestialBodyHolonResult.IsSaved)
-                {
-                    result.IsError = celestialBodyHolonResult.IsError;
-                    return result;
-                }
-                else
-                {
-                    //this = HolonSavedHelper.MapBaseHolonProperties(celestialBodyHolonResult.Result, this);
-                    this.Id = celestialBodyHolonResult.Result.Id;
-                    this.ProviderKey = celestialBodyHolonResult.Result.ProviderKey;
-                    this.CelestialBodyCore.Id = celestialBodyHolonResult.Result.Id;
-                    this.CelestialBodyCore.ProviderKey = celestialBodyHolonResult.Result.ProviderKey;
-                    this.CreatedByAvatar = celestialBodyHolonResult.Result.CreatedByAvatar;
-                    this.CreatedByAvatarId = celestialBodyHolonResult.Result.CreatedByAvatarId;
-                    this.CreatedDate = celestialBodyHolonResult.Result.CreatedDate;
-                    this.ModifiedByAvatar = celestialBodyHolonResult.Result.ModifiedByAvatar;
-                    this.ModifiedByAvatarId = celestialBodyHolonResult.Result.ModifiedByAvatarId;
-                    this.ModifiedDate = celestialBodyHolonResult.Result.ModifiedDate;
-                    this.Children = celestialBodyHolonResult.Result.Children;
+            if (celestialBodyHolonResult.IsError || !celestialBodyHolonResult.IsSaved || celestialBodyHolonResult.Result == null)
+            {
+                result.IsError = celestialBodyHolonResult.IsError;
+                return result;
+            }
+           
+            //this = HolonSavedHelper.MapBaseHolonProperties(celestialBodyHolonResult.Result, this);
+            SetProperties(celestialBodyHolonResult.Result);
 
-                    // TODO: Not sure if ParentStar and ParentPlanet will be set?
-                    switch (this.HolonType)
-                    {
-                        case HolonType.SuperStar:
-                            SetParentIdsForSuperStar(); 
-                            break;
+            // TODO: Not sure if ParentStar and ParentPlanet will be set?
+            switch (this.HolonType)
+            {
+                case HolonType.SuperStar:
+                    SetParentIdsForSuperStar();
+                    break;
 
-                        case HolonType.Star:
-                            SetParentIdsForStar((IStar)this);
-                            break;
+                case HolonType.Star:
+                    SetParentIdsForStar((IStar)this);
+                    break;
 
-                        case HolonType.Planet:
-                            SetParentIdsForPlanet(this.ParentStar, (IPlanet)this);
-                            break;
+                case HolonType.Planet:
+                    SetParentIdsForPlanet(this.ParentStar, (IPlanet)this);
+                    break;
 
-                        case HolonType.Moon:
-                            SetParentIdsForMoon(this.ParentStar, this.ParentPlanet, (IMoon)this);
-                            break;
-                    }
-                }
-           // }
-
+                case HolonType.Moon:
+                    SetParentIdsForMoon(this.ParentStar, this.ParentPlanet, (IMoon)this);
+                    break;
+            }
+          
             if (this.HolonType == HolonType.SuperStar)
             {
                 //TODO: Eventually this will use "this" rather than static SuperStar when SuperStar inherits from Star and a new static GrandSuperStar is created... :)
@@ -260,99 +237,35 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
                 }
             }
 
-            // TODO: Dont think we need to save again now? Check...
-            /*
-            // If any changes have been made (child objects added/changed) then need to save again.
-            if (!HasHolonChanged())
-            {
-                OASISResult<IHolon> holonResult = await CelestialBodyCore.SaveCelestialBodyAsync(this);
+            // Finally we need to save again so the child holon ids's are stored in the graph...
+            // TODO: We may not need to do this save again in future since when we load the zome we could lazy load its child holons seperatley from their parentIds.
+            // But loading the celestialbody with all its child holons will be faster than loading them seperatley (but only if the current OASIS Provider supports this, so far MongoDBOASIS does).
+           
+            celestialBodyHolonResult = await CelestialBodyCore.SaveCelestialBodyAsync(this);
+            result.Message = celestialBodyHolonResult.Message;
+            result.IsSaved = celestialBodyHolonResult.IsSaved;
+            result.IsError = celestialBodyHolonResult.IsError;
 
-                if (holonResult.Result != null)
-                {
-                    holonResult.IsSaved = celestialBodyHolonResult.IsSaved;
-                    this.Id = holonResult.Result.Id;
-                    this.ProviderKey = holonResult.Result.ProviderKey;
-                    this.CelestialBodyCore.ProviderKey = holonResult.Result.ProviderKey;
-                    this.CreatedByAvatar = holonResult.Result.CreatedByAvatar;
-                    this.CreatedByAvatarId = holonResult.Result.CreatedByAvatarId;
-                    this.CreatedDate = holonResult.Result.CreatedDate;
-                    this.ModifiedByAvatar = holonResult.Result.ModifiedByAvatar;
-                    this.ModifiedByAvatarId = holonResult.Result.ModifiedByAvatarId;
-                    this.ModifiedDate = holonResult.Result.ModifiedDate;
-                    this.Children = holonResult.Result.Children;
-                }
-
-                result.Result = this;
-                result.Message = holonResult.Message;
-                result.IsError = holonResult.IsError;
-
-                //return new OASISResult<ICelestialBody>() { Result = this, Message = holonResult.Message, IsError = holonResult.IsError };
-            }*/
+            if (!celestialBodyHolonResult.IsError &&  celestialBodyHolonResult.Result != null)
+                SetProperties(celestialBodyHolonResult.Result);
 
             return result;
         }
 
-        //private void SetParentIdsForHolon(IStar star, IPlanet planet, IMoon moon, IZome zome, IHolon holon)
-        //{
-        //    if (holon.Children != null)
-        //    {
-        //        foreach (Holon innerHolon in holon.Children)
-        //        {
-        //            innerHolon.ParentHolonId = holon.Id;
-        //            innerHolon.ParentHolon = holon;
-        //            innerHolon.ParentStar = star;
-        //            innerHolon.ParentStarId = star.Id;
-        //            innerHolon.ParentPlanet = planet;
-        //            innerHolon.ParentPlanetId = planet.Id;
-
-        //            if (moon != null)
-        //            {
-        //                holon.ParentMoon = moon;
-        //                holon.ParentMoonId = moon.Id;
-        //            }
-
-        //            innerHolon.ParentZome = zome;
-        //            innerHolon.ParentZomeId = zome.Id;
-
-        //            if (innerHolon.Children != null)
-        //            {
-        //                foreach (Holon childHolon in innerHolon.Children)
-        //                    SetParentIdsForHolon(star, planet, moon, zome, childHolon);
-        //            }
-        //        }
-        //    }
-        //}
-
-        //private void SetParentIdsForZome(IStar star, IPlanet planet, IMoon moon, IZome zome)
-        //{
-        //    if (zome.Holons != null)
-        //    {
-        //        foreach (Holon holon in zome.Holons)
-        //        {
-        //            holon.ParentHolonId = zome.Id;
-        //            holon.ParentHolon = zome;
-        //            holon.ParentStar = star;
-        //            holon.ParentStarId = star.Id;
-        //            holon.ParentPlanet = planet;
-        //            holon.ParentPlanetId = planet.Id;
-
-        //            if (moon != null)
-        //            {
-        //                holon.ParentMoon = moon;
-        //                holon.ParentMoonId = moon.Id;
-        //            }
-
-        //            holon.ParentZome = zome;
-        //            holon.ParentZomeId = zome.Id;
-
-        //            if (holon.Children != null)
-        //            {
-        //                foreach (Holon childHolon in holon.Children)
-        //                    SetParentIdsForHolon(star, planet, moon, zome, childHolon);
-        //            }
-        //        }
-        //    }
-        //}
+        private void SetProperties(IHolon holon)
+        {
+            this.Id = holon.Id;
+            this.ProviderKey = holon.ProviderKey;
+            this.CelestialBodyCore.Id = holon.Id;
+            this.CelestialBodyCore.ProviderKey = holon.ProviderKey;
+            this.CreatedByAvatar = holon.CreatedByAvatar;
+            this.CreatedByAvatarId = holon.CreatedByAvatarId;
+            this.CreatedDate = holon.CreatedDate;
+            this.ModifiedByAvatar = holon.ModifiedByAvatar;
+            this.ModifiedByAvatarId = holon.ModifiedByAvatarId;
+            this.ModifiedDate = holon.ModifiedDate;
+            this.Children = holon.Children;
+        }
 
         private void SetParentIdsForMoon(IStar star, IPlanet planet, IMoon moon)
         {
