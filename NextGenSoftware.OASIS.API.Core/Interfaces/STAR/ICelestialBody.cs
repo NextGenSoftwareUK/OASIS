@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Objects;
@@ -37,8 +38,8 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces.STAR
         //Task Initialize(string holochainConductorURI, PlanetBase.HoloNETClientType type);
         CoronalEjection Flare();
 
-        void LoadAll();
-        void LoadZomes();
+       // Task LoadAllAsync();
+        Task<OASISResult<List<IZome>>> LoadZomesAsync();
         //void LoadHolons();
 
 

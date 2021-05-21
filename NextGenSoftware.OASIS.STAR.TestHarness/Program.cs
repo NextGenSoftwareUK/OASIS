@@ -170,7 +170,8 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
                 _ourWorld.OnZomeError += OurWorld_OnZomeError;
 
                 ShowWorkingMessage("Loading Zomes & Holons...");
-                _ourWorld.LoadAll();
+                //_ourWorld.LoadAllAsync();
+                await _ourWorld.LoadZomesAsync();
                 _spinner.Stop();
 
                 Holon newHolon = new Holon();
