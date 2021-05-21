@@ -157,22 +157,35 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
         }
         */
 
-        // Need to load list of zome names that belong to this Planet for PlanetBase to use...
-        // Maybe load list of holons too?
-        public List<IZome> LoadZomes()
+        public async Task<OASISResult<List<IZome>>> LoadZomesAsync()
         {
-            //TODO: Check to see if the method awaits till the zomes(holons) are loaded before returning (if it doesn't need to refacoring to subscribe to events like LoadHolons does)
-
+            OASISResult<List<IZome>> result = new OASISResult<List<IZome>>();
+            IEnumerable<IHolon> holons = null;
+            
             if (Zomes == null)
                 Zomes = new List<IZome>();
 
-            foreach (IHolon holon in base.LoadHolonsAsync(ProviderKey).Result)
-                Zomes.Add((IZome)holon);
+            if (Id != Guid.Empty)
+                holons = await base.LoadHolonsAsync(Id);
 
-            OnZomesLoaded?.Invoke(this, new ZomesLoadedEventArgs { Zomes = Zomes });
+            else if (ProviderKey != null)
+                holons = await base.LoadHolonsAsync(ProviderKey);
+            else
+            {
+                result.IsError = true;
+                result.Message = "Both Id and ProviderKey are null, one of these need to be set before calling this method.";
+            }
 
-            //TODO: Make this return a Task so is awaitable...
-            return Zomes;
+            if (holons != null && !result.IsError)
+            {
+                foreach (IHolon holon in holons)
+                    Zomes.Add((IZome)holon);
+
+                OnZomesLoaded?.Invoke(this, new ZomesLoadedEventArgs { Zomes = Zomes });
+                result.Result = Zomes;
+            }
+
+            return result;
         }
 
         public async Task<OASISResult<IZome>> AddZome(IZome zome)

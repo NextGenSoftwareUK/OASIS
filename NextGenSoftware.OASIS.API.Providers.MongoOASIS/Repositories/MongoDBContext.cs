@@ -1,7 +1,7 @@
 ﻿using MongoDB.Driver;
-using static NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.MongoDBOASIS;
+using NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities;
 
-namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
+namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
 {
     public class MongoDbContext
     {

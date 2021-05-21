@@ -1084,7 +1084,7 @@ namespace NextGenSoftware.OASIS.STAR
 
         private static OASISResult<ICelestialBody> IgniteInnerStar()
         {
-            OASISResult<ICelestialBody> result = PreIgniteInnerStar();
+            OASISResult<ICelestialBody> result = PreIgniteInnerStarAsync().Result; //TODO: Sort sync/async properly...
 
             //TODO: Implement Save method (non async version) and call instead of below:
             if (!result.IsError && InnerStar.Id == Guid.Empty)
@@ -1097,7 +1097,7 @@ namespace NextGenSoftware.OASIS.STAR
 
         private static async Task<OASISResult<ICelestialBody>> IgniteInnerStarAsync()
         {
-            OASISResult<ICelestialBody> result = PreIgniteInnerStar();
+            OASISResult<ICelestialBody> result = await PreIgniteInnerStarAsync();
 
             if (!result.IsError && InnerStar.Id == Guid.Empty)
             {
@@ -1108,10 +1108,11 @@ namespace NextGenSoftware.OASIS.STAR
             return result;
         }
 
-        private static OASISResult<ICelestialBody> PreIgniteInnerStar()
+        private static async Task<OASISResult<ICelestialBody>> PreIgniteInnerStarAsync()
         {
             OASISResult<ICelestialBody> result = new OASISResult<ICelestialBody>();
             InnerStar = new Star(_starId);
+            await InnerStar.Initialize();
 
             if (InnerStar.Id == Guid.Empty)
             {
