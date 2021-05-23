@@ -138,10 +138,6 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             return await _avatarRepository.DeleteAsync(providerKey, softDelete);
         }
 
-        //public Task<bool> AddKarmaToAvatarAsync(IAvatar Avatar, int karma)
-        //{
-        //    throw new NotImplementedException();
-        //}
 
         //TODO: {URGENT} FIX BEB SEARCH TO WORK WITH ISearchParams instead of string as it use to be!
         public override async Task<ISearchResults> SearchAsync(ISearchParams searchTerm)
@@ -149,54 +145,54 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             return await _searchRepository.SearchAsync(searchTerm);
         }
 
-        public override async Task<IHolon> LoadHolonAsync(Guid id, HolonType type = HolonType.Holon)
+        public override async Task<IHolon> LoadHolonAsync(Guid id)
         {
             return ConvertMongoEntityToOASISHolon(await _holonRepository.GetHolonAsync(id));
         }
 
-        public override IHolon LoadHolon(Guid id, HolonType type = HolonType.Holon)
+        public override IHolon LoadHolon(Guid id)
         {
             return ConvertMongoEntityToOASISHolon(_holonRepository.GetHolon(id));
         }
 
-        public override async Task<IHolon> LoadHolonAsync(string providerKey, HolonType type = HolonType.Holon)
+        public override async Task<IHolon> LoadHolonAsync(string providerKey)
         {
-            return ConvertMongoEntityToOASISHolon(await _holonRepository.GetHolonAsync(providerKey)); //TODO: Add HolonType to repro method.
+            return ConvertMongoEntityToOASISHolon(await _holonRepository.GetHolonAsync(providerKey)); 
         }
 
-        public override IHolon LoadHolon(string providerKey, HolonType type = HolonType.Holon)
+        public override IHolon LoadHolon(string providerKey)
         {
             return ConvertMongoEntityToOASISHolon(_holonRepository.GetHolon(providerKey));
         }
 
-        public override async Task<IEnumerable<IHolon>> LoadHolonsForParentAsync(Guid id, HolonType type = HolonType.Holon)
+        public override async Task<IEnumerable<IHolon>> LoadHolonsForParentAsync(Guid id, HolonType type = HolonType.All)
         {
             return ConvertMongoEntitysToOASISHolons(await _holonRepository.GetAllHolonsForParentAsync(id, type));
         }
 
-        public override IEnumerable<IHolon> LoadHolonsForParent(Guid id, HolonType type = HolonType.Holon)
+        public override IEnumerable<IHolon> LoadHolonsForParent(Guid id, HolonType type = HolonType.All)
         {
             return ConvertMongoEntitysToOASISHolons(_holonRepository.GetAllHolonsForParent(id, type));
         }
 
-        public override async Task<IEnumerable<IHolon>> LoadHolonsForParentAsync(string providerKey, HolonType type = HolonType.Holon)
+        public override async Task<IEnumerable<IHolon>> LoadHolonsForParentAsync(string providerKey, HolonType type = HolonType.All)
         {
             return ConvertMongoEntitysToOASISHolons(await _holonRepository.GetAllHolonsForParentAsync(providerKey, type));
         }
 
-        public override IEnumerable<IHolon> LoadHolonsForParent(string providerKey, HolonType type = HolonType.Holon)
+        public override IEnumerable<IHolon> LoadHolonsForParent(string providerKey, HolonType type = HolonType.All)
         {
             return ConvertMongoEntitysToOASISHolons(_holonRepository.GetAllHolonsForParent(providerKey, type));
         }
 
-        public override async Task<IEnumerable<IHolon>> LoadAllHolonsAsync(HolonType type = HolonType.Holon)
+        public override async Task<IEnumerable<IHolon>> LoadAllHolonsAsync(HolonType type = HolonType.All)
         {
-            return ConvertMongoEntitysToOASISHolons(await _holonRepository.GetAllHolonsAsync());
+            return ConvertMongoEntitysToOASISHolons(await _holonRepository.GetAllHolonsAsync(type));
         }
 
-        public override IEnumerable<IHolon> LoadAllHolons(HolonType type = HolonType.Holon)
+        public override IEnumerable<IHolon> LoadAllHolons(HolonType type = HolonType.All)
         {
-            return ConvertMongoEntitysToOASISHolons(_holonRepository.GetAllHolons());
+            return ConvertMongoEntitysToOASISHolons(_holonRepository.GetAllHolons(type));
         }
 
         public override async Task<IHolon> SaveHolonAsync(IHolon holon)

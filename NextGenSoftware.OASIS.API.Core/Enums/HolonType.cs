@@ -21,6 +21,6 @@ namespace NextGenSoftware.OASIS.API.Core.Enums
         Planet,
         Moon,
         Zome,
-        Holon
+        Holon,
     }
 }

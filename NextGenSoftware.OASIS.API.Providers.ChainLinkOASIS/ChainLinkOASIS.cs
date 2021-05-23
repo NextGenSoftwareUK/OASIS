@@ -128,22 +128,22 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
             throw new NotImplementedException();
         }
 
-        public override IHolon LoadHolon(Guid id, HolonType type = HolonType.Holon)
+        public override IHolon LoadHolon(Guid id)
         {
             throw new NotImplementedException();
         }
 
-        public override IHolon LoadHolon(string providerKey, HolonType type = HolonType.Holon)
+        public override IHolon LoadHolon(string providerKey)
         {
             throw new NotImplementedException();
         }
 
-        public override Task<IHolon> LoadHolonAsync(Guid id, HolonType type = HolonType.Holon)
+        public override Task<IHolon> LoadHolonAsync(Guid id)
         {
             throw new NotImplementedException();
         }
 
-        public override Task<IHolon> LoadHolonAsync(string providerKey, HolonType type = HolonType.Holon)
+        public override Task<IHolon> LoadHolonAsync(string providerKey)
         {
             throw new NotImplementedException();
         }

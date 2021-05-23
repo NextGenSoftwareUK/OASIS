@@ -21,20 +21,10 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
         {
             try
             {
-                //avatar.AvatarId = Guid.NewGuid().ToString();
                 avatar.HolonId = Guid.NewGuid();
-
-                //if (AvatarManager.LoggedInAvatar != null)
-                //    avatar.CreatedByAvatarId = AvatarManager.LoggedInAvatar.Id.ToString();
-
-                //avatar.CreatedDate = DateTime.Now;
-
                 await _dbContext.Avatar.InsertOneAsync(avatar);
-
                 avatar.ProviderKey[Core.Enums.ProviderType.MongoDBOASIS] = avatar.Id;
                 await UpdateAsync(avatar);
-
-                //avatar.Id =  //TODO: Check if Mongo populates the id automatically or if we need to re-load it...
                 return avatar;
             }
             catch (Exception ex)
@@ -47,7 +37,6 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
         {
             try
             {
-                //avatar.AvatarId = Guid.NewGuid().ToString();
                 avatar.HolonId = Guid.NewGuid();
                 _dbContext.Avatar.InsertOne(avatar);
                 avatar.ProviderKey[Core.Enums.ProviderType.MongoDBOASIS] = avatar.Id;
@@ -64,8 +53,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
         {
             try
             {
-                //FilterDefinition<Avatar> filter = Builders<Avatar>.Filter.Eq("Id", id);
-                FilterDefinition<Avatar> filter = Builders<Avatar>.Filter.Eq("AvatarId", id.ToString());
+                FilterDefinition<Avatar> filter = Builders<Avatar>.Filter.Where(x => x.HolonId == id);
                 return await _dbContext.Avatar.FindAsync(filter).Result.FirstOrDefaultAsync();
             }
             catch
@@ -78,7 +66,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
         {
             try
             {
-                FilterDefinition<Avatar> filter = Builders<Avatar>.Filter.Eq("AvatarId", id.ToString());
+                FilterDefinition<Avatar> filter = Builders<Avatar>.Filter.Where(x => x.HolonId == id);
                 return _dbContext.Avatar.Find(filter).FirstOrDefault();
             }
             catch
@@ -91,12 +79,8 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
         {
             try
             {
-                //TODO: (MONGOFIX) Better if can query more than field at once in Mongo? Must be possible.... Can a Mongo dev PLEASE sort this... thanks... :)
-                FilterDefinition<Avatar> filter = Builders<Avatar>.Filter.Eq("Username", username);
-                //FilterDefinition<Avatar> filter = Builders<Avatar>.Filter.AnyEq(new FieldDefinition<TDocument>)
-
-                Avatar avatar = await _dbContext.Avatar.FindAsync(filter).Result.FirstOrDefaultAsync();
-                return avatar;
+                FilterDefinition<Avatar> filter = Builders<Avatar>.Filter.Where(x => x.Username == username);
+                return await _dbContext.Avatar.FindAsync(filter).Result.FirstOrDefaultAsync();
             }
             catch (Exception ex)
             {
@@ -108,9 +92,8 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
         {
             try
             {
-                FilterDefinition<Avatar> filter = Builders<Avatar>.Filter.Eq("Username", username);
-                Avatar avatar = _dbContext.Avatar.Find(filter).FirstOrDefault();
-                return avatar;
+                FilterDefinition<Avatar> filter = Builders<Avatar>.Filter.Where(x => x.Username == username);
+                return _dbContext.Avatar.Find(filter).FirstOrDefault();
             }
             catch (Exception ex)
             {
@@ -122,7 +105,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
         {
             try
             {
-                FilterDefinition<Avatar> filter = Builders<Avatar>.Filter.Eq("Username", username);
+                FilterDefinition<Avatar> filter = Builders<Avatar>.Filter.Where(x => x.Username == username);
                 Avatar avatar = await _dbContext.Avatar.FindAsync(filter).Result.FirstOrDefaultAsync();
 
                 if (avatar != null && password != avatar.Password)
@@ -140,7 +123,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
         {
             try
             {
-                FilterDefinition<Avatar> filter = Builders<Avatar>.Filter.Eq("Username", username);
+                FilterDefinition<Avatar> filter = Builders<Avatar>.Filter.Where(x => x.Username == username);
                 Avatar avatar = _dbContext.Avatar.FindAsync(filter).Result.FirstOrDefault();
 
                 if (avatar != null && password != avatar.Password)
@@ -182,13 +165,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
         {
             try
             {
-                // if (AvatarManager.LoggedInAvatar != null)
-                //     avatar.ModifiedByAvatarId = AvatarManager.LoggedInAvatar.Id.ToString();
-
-                //avatar.ModifiedDate = DateTime.Now;
                 await _dbContext.Avatar.ReplaceOneAsync(filter: g => g.Id == avatar.Id, replacement: avatar);
-
-                //avatar.Id =  //TODO: Check if Mongo populates the id automatically or if we need to re-load it...
                 return avatar;
             }
             catch
@@ -201,13 +178,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
         {
             try
             {
-                // if (AvatarManager.LoggedInAvatar != null)
-                //     avatar.ModifiedByAvatarId = AvatarManager.LoggedInAvatar.Id.ToString();
-
-                //avatar.ModifiedDate = DateTime.Now;
                 _dbContext.Avatar.ReplaceOne(filter: g => g.Id == avatar.Id, replacement: avatar);
-
-                //avatar.Id =  //TODO: Check if Mongo populates the id automatically or if we need to re-load it...
                 return avatar;
             }
             catch
@@ -233,7 +204,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                 }
                 else
                 {
-                    FilterDefinition<Avatar> data = Builders<Avatar>.Filter.Eq("Id", id);
+                    FilterDefinition<Avatar> data = Builders<Avatar>.Filter.Where(x => x.HolonId == id);
                     await _dbContext.Avatar.DeleteOneAsync(data);
                     return true;
                 }
@@ -261,7 +232,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                 }
                 else
                 {
-                    FilterDefinition<Avatar> data = Builders<Avatar>.Filter.Eq("Id", id);
+                    FilterDefinition<Avatar> data = Builders<Avatar>.Filter.Where(x => x.HolonId == id);
                     _dbContext.Avatar.DeleteOne(data);
                     return true;
                 }
@@ -289,7 +260,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                 }
                 else
                 {
-                    FilterDefinition<Avatar> data = Builders<Avatar>.Filter.Eq("ProviderKey", providerKey);
+                    FilterDefinition<Avatar> data = Builders<Avatar>.Filter.Where(x => x.ProviderKey[Core.Enums.ProviderType.MongoDBOASIS] == providerKey);
                     await _dbContext.Avatar.DeleteOneAsync(data);
                     return true;
                 }
@@ -317,7 +288,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                 }
                 else
                 {
-                    FilterDefinition<Avatar> data = Builders<Avatar>.Filter.Eq("ProviderKey", providerKey);
+                    FilterDefinition<Avatar> data = Builders<Avatar>.Filter.Where(x => x.ProviderKey[Core.Enums.ProviderType.MongoDBOASIS] == providerKey);
                     _dbContext.Avatar.DeleteOne(data);
                     return true;
                 }

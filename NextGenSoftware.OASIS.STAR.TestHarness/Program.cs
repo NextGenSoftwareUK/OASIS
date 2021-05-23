@@ -223,7 +223,7 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
                 SuperStar.OASISAPI.Map.CreateAndDrawRouteOnMapBetweenHolons(newHolon, newHolon); // Load-balanced across all providers.
 
                 SuperStar.OASISAPI.Data.LoadHolon(newHolon.Id); // Load-balanced across all providers.
-                SuperStar.OASISAPI.Data.LoadHolon(newHolon.Id, HolonType.All, ProviderType.IPFSOASIS); // Only loads from IPFS.
+                SuperStar.OASISAPI.Data.LoadHolon(newHolon.Id, ProviderType.IPFSOASIS); // Only loads from IPFS.
                 SuperStar.OASISAPI.Data.LoadAllHolons(HolonType.Moon, ProviderType.HoloOASIS); // Loads all moon (OAPPs) from Holochain.
                 SuperStar.OASISAPI.Data.SaveHolon(newHolon); // Load-balanced across all providers.
                 SuperStar.OASISAPI.Data.SaveHolon(newHolon, ProviderType.EthereumOASIS); //  Only saves to Etherum.
