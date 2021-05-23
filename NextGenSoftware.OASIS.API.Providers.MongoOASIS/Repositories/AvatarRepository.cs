@@ -22,8 +22,11 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
             try
             {
                 avatar.HolonId = Guid.NewGuid();
+                avatar.CreatedProviderType = Core.Enums.ProviderType.MongoDBOASIS;
+                
                 await _dbContext.Avatar.InsertOneAsync(avatar);
                 avatar.ProviderKey[Core.Enums.ProviderType.MongoDBOASIS] = avatar.Id;
+                
                 await UpdateAsync(avatar);
                 return avatar;
             }
@@ -38,8 +41,11 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
             try
             {
                 avatar.HolonId = Guid.NewGuid();
+                avatar.CreatedProviderType = Core.Enums.ProviderType.MongoDBOASIS;
+
                 _dbContext.Avatar.InsertOne(avatar);
                 avatar.ProviderKey[Core.Enums.ProviderType.MongoDBOASIS] = avatar.Id;
+
                 Update(avatar);
                 return avatar;
             }
@@ -165,7 +171,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
         {
             try
             {
-                await _dbContext.Avatar.ReplaceOneAsync(filter: g => g.Id == avatar.Id, replacement: avatar);
+                await _dbContext.Avatar.ReplaceOneAsync(filter: g => g.HolonId == avatar.HolonId, replacement: avatar);
                 return avatar;
             }
             catch
@@ -178,7 +184,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
         {
             try
             {
-                _dbContext.Avatar.ReplaceOne(filter: g => g.Id == avatar.Id, replacement: avatar);
+                _dbContext.Avatar.ReplaceOne(filter: g => g.HolonId == avatar.HolonId, replacement: avatar);
                 return avatar;
             }
             catch
@@ -199,7 +205,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                         avatar.DeletedByAvatarId = AvatarManager.LoggedInAvatar.Id.ToString();
 
                     avatar.DeletedDate = DateTime.Now;
-                    await _dbContext.Avatar.ReplaceOneAsync(filter: g => g.Id == avatar.Id, replacement: avatar);
+                    await _dbContext.Avatar.ReplaceOneAsync(filter: g => g.HolonId == avatar.HolonId, replacement: avatar);
                     return true;
                 }
                 else
@@ -227,7 +233,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                         avatar.DeletedByAvatarId = AvatarManager.LoggedInAvatar.Id.ToString();
 
                     avatar.DeletedDate = DateTime.Now;
-                    _dbContext.Avatar.ReplaceOne(filter: g => g.Id == avatar.Id, replacement: avatar);
+                    _dbContext.Avatar.ReplaceOne(filter: g => g.HolonId == avatar.HolonId, replacement: avatar);
                     return true;
                 }
                 else
@@ -255,7 +261,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                         avatar.DeletedByAvatarId = AvatarManager.LoggedInAvatar.Id.ToString();
 
                     avatar.DeletedDate = DateTime.Now;
-                    await _dbContext.Avatar.ReplaceOneAsync(filter: g => g.Id == avatar.Id, replacement: avatar);
+                    await _dbContext.Avatar.ReplaceOneAsync(filter: g => g.HolonId == avatar.HolonId, replacement: avatar);
                     return true;
                 }
                 else
@@ -283,7 +289,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                         avatar.DeletedByAvatarId = AvatarManager.LoggedInAvatar.Id.ToString();
 
                     avatar.DeletedDate = DateTime.Now;
-                    _dbContext.Avatar.ReplaceOne(filter: g => g.Id == avatar.Id, replacement: avatar);
+                    _dbContext.Avatar.ReplaceOne(filter: g => g.HolonId == avatar.HolonId, replacement: avatar);
                     return true;
                 }
                 else

@@ -23,7 +23,12 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
             try
             {
                 holon.HolonId = Guid.NewGuid();
+                holon.CreatedProviderType = ProviderType.MongoDBOASIS;
+
                 await _dbContext.Holon.InsertOneAsync(holon);
+                holon.ProviderKey[ProviderType.MongoDBOASIS] = holon.Id;
+
+                await UpdateAsync(holon);
                 return holon;
             }
             catch (Exception ex)
@@ -37,7 +42,12 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
             try
             {
                 holon.HolonId = Guid.NewGuid();
+                holon.CreatedProviderType = ProviderType.MongoDBOASIS;
+
                 _dbContext.Holon.InsertOne(holon);
+                holon.ProviderKey[ProviderType.MongoDBOASIS] = holon.Id;
+
+                Update(holon);
                 return holon;
             }
             catch (Exception ex)
@@ -142,7 +152,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
         {
             try
             {
-                return await _dbContext.Holon.FindAsync(BuildFilter(id, holonType)).Result.ToListAsync();
+                return await _dbContext.Holon.FindAsync(BuildFilterForGetHolonsForParent(id, holonType)).Result.ToListAsync();
             }
             catch
             {
@@ -154,7 +164,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
         {
             try
             {
-                return _dbContext.Holon.Find(BuildFilter(id, holonType)).ToList();
+                return _dbContext.Holon.Find(BuildFilterForGetHolonsForParent(id, holonType)).ToList();
             }
             catch
             {
@@ -166,7 +176,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
         {
             try
             {
-                return await _dbContext.Holon.FindAsync(BuildFilter(providerKey, holonType)).Result.ToListAsync();
+                return await _dbContext.Holon.FindAsync(BuildFilterForGetHolonsForParent(providerKey, holonType)).Result.ToListAsync();
             }
             catch
             {
@@ -178,7 +188,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
         {
             try
             {
-                return _dbContext.Holon.Find(BuildFilter(providerKey, holonType)).ToList();
+                return _dbContext.Holon.Find(BuildFilterForGetHolonsForParent(providerKey, holonType)).ToList();
             }
             catch
             {
@@ -382,39 +392,27 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
             }
         }
 
-        private FilterDefinition<Holon> BuildFilter(string providerKey, HolonType holonType)
+        private FilterDefinition<Holon> BuildFilterForGetHolonsForParent(string providerKey, HolonType holonType)
         {
             FilterDefinition<Holon> filter = null;
-
-            if (holonType != HolonType.All)
-            {
-                filter = Builders<Holon>.Filter.And(
-                Builders<Holon>.Filter.Where(p => p.ProviderKey[ProviderType.MongoDBOASIS] == providerKey),
-                Builders<Holon>.Filter.Where(p => p.HolonType == holonType));
-            }
-            else
-            {
-                filter = Builders<Holon>.Filter.And(
-                Builders<Holon>.Filter.Where(p => p.ProviderKey[ProviderType.MongoDBOASIS] == providerKey));
-            }
-
-            return filter;
+            Holon holon = GetHolon(providerKey);
+            return BuildFilterForGetHolonsForParent(holon.HolonId, holonType);
         }
 
-        private FilterDefinition<Holon> BuildFilter(Guid id, HolonType holonType)
+        private FilterDefinition<Holon> BuildFilterForGetHolonsForParent(Guid id, HolonType holonType)
         {
             FilterDefinition<Holon> filter = null;
 
             if (holonType != HolonType.All)
             {
                 filter = Builders<Holon>.Filter.And(
-                Builders<Holon>.Filter.Where(p => p.HolonId == id),
+                Builders<Holon>.Filter.Where(p => p.ParentHolonId == id),
                 Builders<Holon>.Filter.Where(p => p.HolonType == holonType));
             }
             else
             {
                 filter = Builders<Holon>.Filter.And(
-                Builders<Holon>.Filter.Where(p => p.HolonId == id));
+                Builders<Holon>.Filter.Where(p => p.ParentHolonId == id));
             }
 
             return filter;

@@ -305,7 +305,8 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             if (avatar == null)
                 return null;
 
-            Core.Holons.Avatar oasisAvatar = (Core.Holons.Avatar)ConvertMongoEntityToOASISHolon(avatar);
+            //Core.Holons.Avatar oasisAvatar = (Core.Holons.Avatar)ConvertMongoEntityToOASISHolon(avatar);
+            Core.Holons.Avatar oasisAvatar = new Core.Holons.Avatar();
 
             oasisAvatar.ProviderPrivateKey = avatar.ProviderPrivateKey;
             oasisAvatar.ProviderPublicKey = avatar.ProviderPublicKey;
@@ -357,40 +358,41 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             oasisAvatar.VerificationToken = avatar.VerificationToken;
             oasisAvatar.Verified = avatar.Verified;
 
-            //// If the mongo Key has not been set then set it now (unique id for mongo)
-            //if (!oasisAvatar.ProviderKey.ContainsKey(Core.Enums.ProviderType.MongoDBOASIS))
-            //    oasisAvatar.ProviderKey[Core.Enums.ProviderType.MongoDBOASIS] = avatar.Id;
+            // If the mongo Key has not been set then set it now (unique id for mongo)
+          //  if (!oasisAvatar.ProviderKey.ContainsKey(Core.Enums.ProviderType.MongoDBOASIS))
+          //      oasisAvatar.ProviderKey[Core.Enums.ProviderType.MongoDBOASIS] = avatar.Id;
 
-            // oasisAvatar.Id = Guid.Parse(avatar.AvatarId);
-            //oasisAvatar.ProviderKey[Core.Enums.ProviderType.MongoDBOASIS] = avatar.Id;
-            //oasisAvatar.ProviderKey = avatar.ProviderKey;
-            //oasisAvatar.ProviderMetaData = avatar.ProviderMetaData;
-            //oasisAvatar.Description = avatar.Description;
-            //oasisAvatar.HolonType = avatar.HolonType;
-            //oasisAvatar.CreatedProviderType = new Core.Helpers.EnumValue<ProviderType>(avatar.CreatedProviderType);
-            //oasisAvatar.ChangesSaved = avatar.ChangesSaved;
-            //oasisAvatar.ParentHolonId = avatar.ParentHolonId;
-            //oasisAvatar.ParentHolon = avatar.ParentHolon;
-            //oasisAvatar.ParentZomeId = avatar.ParentZomeId;
-            //oasisAvatar.ParentZome = avatar.ParentZome;
-            //oasisAvatar.ParentStarId = avatar.ParentStarId;
-            //oasisAvatar.ParentStar = avatar.ParentStar;
-            //oasisAvatar.ParentPlanetId = avatar.ParentPlanetId;
-            //oasisAvatar.ParentPlanet = avatar.ParentPlanet;
-            //oasisAvatar.ParentMoonId = avatar.ParentMoonId;
-            //oasisAvatar.ParentMoon = avatar.ParentMoon;
-            //oasisAvatar.Children = avatar.Children;
-            //oasisAvatar.Nodes = avatar.Nodes;
-            //oasisAvatar.CreatedByAvatarId = Guid.Parse(avatar.CreatedByAvatarId);
-            //oasisAvatar.CreatedDate = avatar.CreatedDate;
-            //oasisAvatar.DeletedByAvatarId = Guid.Parse(avatar.DeletedByAvatarId);
-            //oasisAvatar.DeletedDate = avatar.DeletedDate;
-            //oasisAvatar.ModifiedByAvatarId = Guid.Parse(avatar.ModifiedByAvatarId);
-            //oasisAvatar.ModifiedDate = avatar.ModifiedDate;
-            //oasisAvatar.DeletedDate = avatar.DeletedDate;
-            //oasisAvatar.Version = avatar.Version;
+            oasisAvatar.Id = avatar.HolonId;
+           // oasisAvatar.ProviderKey[Core.Enums.ProviderType.MongoDBOASIS] = avatar.Id;
+            oasisAvatar.ProviderKey = avatar.ProviderKey;
+            oasisAvatar.ProviderMetaData = avatar.ProviderMetaData;
+            oasisAvatar.Description = avatar.Description;
+            oasisAvatar.HolonType = avatar.HolonType;
+            oasisAvatar.CreatedProviderType = new Core.Helpers.EnumValue<ProviderType>(avatar.CreatedProviderType);
+            oasisAvatar.ChangesSaved = avatar.ChangesSaved;
+            oasisAvatar.ParentHolonId = avatar.ParentHolonId;
+            oasisAvatar.ParentHolon = avatar.ParentHolon;
+            oasisAvatar.ParentZomeId = avatar.ParentZomeId;
+            oasisAvatar.ParentZome = avatar.ParentZome;
+            oasisAvatar.ParentStarId = avatar.ParentStarId;
+            oasisAvatar.ParentStar = avatar.ParentStar;
+            oasisAvatar.ParentPlanetId = avatar.ParentPlanetId;
+            oasisAvatar.ParentPlanet = avatar.ParentPlanet;
+            oasisAvatar.ParentMoonId = avatar.ParentMoonId;
+            oasisAvatar.ParentMoon = avatar.ParentMoon;
+            oasisAvatar.Children = avatar.Children;
+            oasisAvatar.Nodes = avatar.Nodes;
+            oasisAvatar.CreatedByAvatarId = Guid.Parse(avatar.CreatedByAvatarId);
+            oasisAvatar.CreatedDate = avatar.CreatedDate;
+            oasisAvatar.DeletedByAvatarId = Guid.Parse(avatar.DeletedByAvatarId);
+            oasisAvatar.DeletedDate = avatar.DeletedDate;
+            oasisAvatar.ModifiedByAvatarId = Guid.Parse(avatar.ModifiedByAvatarId);
+            oasisAvatar.ModifiedDate = avatar.ModifiedDate;
+            oasisAvatar.DeletedDate = avatar.DeletedDate;
+            oasisAvatar.Version = avatar.Version;
+            oasisAvatar.CreatedProviderType = new Core.Helpers.EnumValue<ProviderType>(avatar.CreatedProviderType);
             //oasisAvatar.CreatedProviderType = new Core.Helpers.EnumValue<ProviderType>(Core.Enums.ProviderType.MongoDBOASIS);
-            //oasisAvatar.IsActive = avatar.IsActive;
+            oasisAvatar.IsActive = avatar.IsActive;
 
             return oasisAvatar;
         }
@@ -400,9 +402,13 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             if (avatar == null)
                 return null;
 
-            Avatar mongoAvatar = (Avatar)ConvertOASISHolonToMongoEntity(avatar);
+            //Avatar mongoAvatar = (Avatar)ConvertOASISHolonToMongoEntity(avatar);
+            Avatar mongoAvatar = new Avatar();
 
-            //mongoAvatar.AvatarId = avatar.Id.ToString();
+            if (avatar.ProviderKey != null && avatar.ProviderKey.ContainsKey(Core.Enums.ProviderType.MongoDBOASIS))
+                mongoAvatar.Id = avatar.ProviderKey[Core.Enums.ProviderType.MongoDBOASIS];
+            
+            mongoAvatar.HolonId = avatar.Id;
             mongoAvatar.ProviderMetaData = avatar.ProviderMetaData;
             mongoAvatar.ProviderPrivateKey = avatar.ProviderPrivateKey;
             mongoAvatar.ProviderPublicKey = avatar.ProviderPublicKey;
@@ -455,40 +461,40 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             mongoAvatar.Karma = avatar.Karma;
 
             //TODO: Refactor to move this top block into generic base holon conversion code.
-            //if (avatar.ProviderKey.ContainsKey(Core.Enums.ProviderType.MongoDBOASIS))
-            //    mongoAvatar.Id = avatar.ProviderKey[Core.Enums.ProviderType.MongoDBOASIS];
+           // if (avatar.ProviderKey.ContainsKey(Core.Enums.ProviderType.MongoDBOASIS))
+           //     mongoAvatar.Id = avatar.ProviderKey[Core.Enums.ProviderType.MongoDBOASIS];
 
-            //if (avatar.CreatedProviderType != null)
-            //    mongoAvatar.CreatedProviderType = avatar.CreatedProviderType.Value;
+            if (avatar.CreatedProviderType != null)
+                mongoAvatar.CreatedProviderType = avatar.CreatedProviderType.Value;
 
-            //mongoAvatar.Name = avatar.Name;
-            //mongoAvatar.Description = avatar.Description;
-            //mongoAvatar.HolonType = avatar.HolonType;
+            mongoAvatar.Name = avatar.Name;
+            mongoAvatar.Description = avatar.Description;
+            mongoAvatar.HolonType = avatar.HolonType;
 
-            //mongoAvatar.ProviderKey = avatar.ProviderKey;
-            //mongoAvatar.MetaData = avatar.MetaData;
-            //mongoAvatar.ChangesSaved = avatar.ChangesSaved;
-            //mongoAvatar.ParentHolonId = avatar.ParentHolonId;
-            //mongoAvatar.ParentHolon = avatar.ParentHolon;
-            //mongoAvatar.ParentZomeId = avatar.ParentZomeId;
-            //mongoAvatar.ParentZome = avatar.ParentZome;
-            //mongoAvatar.ParentStarId = avatar.ParentStarId;
-            //mongoAvatar.ParentStar = avatar.ParentStar;
-            //mongoAvatar.ParentPlanetId = avatar.ParentPlanetId;
-            //mongoAvatar.ParentPlanet = avatar.ParentPlanet;
-            //mongoAvatar.ParentMoonId = avatar.ParentMoonId;
-            //mongoAvatar.ParentMoon = avatar.ParentMoon;
-            //mongoAvatar.Children = avatar.Children;
-            //mongoAvatar.Nodes = avatar.Nodes;
-            //mongoAvatar.CreatedByAvatarId = avatar.CreatedByAvatarId.ToString();
-            //mongoAvatar.CreatedDate = avatar.CreatedDate;
-            //mongoAvatar.DeletedByAvatarId = avatar.DeletedByAvatarId.ToString();
-            //mongoAvatar.DeletedDate = avatar.DeletedDate;
-            //mongoAvatar.ModifiedByAvatarId = avatar.ModifiedByAvatarId.ToString();
-            //mongoAvatar.ModifiedDate = avatar.ModifiedDate;
-            //mongoAvatar.DeletedDate = avatar.DeletedDate;
-            //mongoAvatar.Version = avatar.Version;
-            //mongoAvatar.IsActive = avatar.IsActive;
+            mongoAvatar.ProviderKey = avatar.ProviderKey;
+            mongoAvatar.MetaData = avatar.MetaData;
+            mongoAvatar.ChangesSaved = avatar.ChangesSaved;
+            mongoAvatar.ParentHolonId = avatar.ParentHolonId;
+            mongoAvatar.ParentHolon = avatar.ParentHolon;
+            mongoAvatar.ParentZomeId = avatar.ParentZomeId;
+            mongoAvatar.ParentZome = avatar.ParentZome;
+            mongoAvatar.ParentStarId = avatar.ParentStarId;
+            mongoAvatar.ParentStar = avatar.ParentStar;
+            mongoAvatar.ParentPlanetId = avatar.ParentPlanetId;
+            mongoAvatar.ParentPlanet = avatar.ParentPlanet;
+            mongoAvatar.ParentMoonId = avatar.ParentMoonId;
+            mongoAvatar.ParentMoon = avatar.ParentMoon;
+            mongoAvatar.Children = avatar.Children;
+            mongoAvatar.Nodes = avatar.Nodes;
+            mongoAvatar.CreatedByAvatarId = avatar.CreatedByAvatarId.ToString();
+            mongoAvatar.CreatedDate = avatar.CreatedDate;
+            mongoAvatar.DeletedByAvatarId = avatar.DeletedByAvatarId.ToString();
+            mongoAvatar.DeletedDate = avatar.DeletedDate;
+            mongoAvatar.ModifiedByAvatarId = avatar.ModifiedByAvatarId.ToString();
+            mongoAvatar.ModifiedDate = avatar.ModifiedDate;
+            mongoAvatar.DeletedDate = avatar.DeletedDate;
+            mongoAvatar.Version = avatar.Version;
+            mongoAvatar.IsActive = avatar.IsActive;
 
             return mongoAvatar;
         }
@@ -500,8 +506,8 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
 
             IHolon oasisHolon = new Core.Holons.Holon();
 
-            if (!oasisHolon.ProviderKey.ContainsKey(Core.Enums.ProviderType.MongoDBOASIS))
-                oasisHolon.ProviderKey[Core.Enums.ProviderType.MongoDBOASIS] = holon.Id;
+          //  if (!oasisHolon.ProviderKey.ContainsKey(Core.Enums.ProviderType.MongoDBOASIS))
+          //      oasisHolon.ProviderKey[Core.Enums.ProviderType.MongoDBOASIS] = holon.Id;
 
             //oasisHolon.Id = Guid.Parse(holon.Id);
             oasisHolon.Id = holon.HolonId;
@@ -548,6 +554,9 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
 
             if (holon.CreatedProviderType != null)
                 mongoHolon.CreatedProviderType = holon.CreatedProviderType.Value;
+
+            if (holon.ProviderKey != null && holon.ProviderKey.ContainsKey(Core.Enums.ProviderType.MongoDBOASIS))
+                mongoHolon.Id = holon.ProviderKey[Core.Enums.ProviderType.MongoDBOASIS];
 
             mongoHolon.HolonId = holon.Id;
             mongoHolon.Name = holon.Name;
