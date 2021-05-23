@@ -10,10 +10,8 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
 
         public MongoDbContext(string connectionString, string dbName)
         {
-            //MongoClient mongoClient = new MongoClient("mongodb+srv://dbadmin:PlRuNP9u4rG2nRdN@oasisapi-oipck.mongodb.net/test?retryWrites=true&w=majority");
             MongoClient = new MongoClient(connectionString);
             MongoDB = MongoClient.GetDatabase(dbName);
-            //_mongoDb = mongoClient.GetDatabase("OASISAPI");
         }
 
         public IMongoCollection<Avatar> Avatar

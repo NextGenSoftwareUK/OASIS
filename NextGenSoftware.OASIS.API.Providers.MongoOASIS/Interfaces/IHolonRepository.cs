@@ -1,8 +1,8 @@
-﻿using NextGenSoftware.OASIS.API.Core.Enums;
-using NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities;
 
 namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Interfaces
 {
@@ -14,8 +14,8 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Interfaces
         bool Delete(string providerKey, bool softDelete = true);
         Task<bool> DeleteAsync(Guid id, bool softDelete = true);
         Task<bool> DeleteAsync(string providerKey, bool softDelete = true);
-        IEnumerable<Holon> GetAllHolons();
-        Task<IEnumerable<Holon>> GetAllHolonsAsync();
+        IEnumerable<Holon> GetAllHolons(HolonType holonType = HolonType.All);
+        Task<IEnumerable<Holon>> GetAllHolonsAsync(HolonType holonType = HolonType.All);
         IEnumerable<Holon> GetAllHolonsForParent(Guid id, HolonType holonType);
         IEnumerable<Holon> GetAllHolonsForParent(string providerKey, HolonType holonType);
         Task<IEnumerable<Holon>> GetAllHolonsForParentAsync(Guid id, HolonType holonType);

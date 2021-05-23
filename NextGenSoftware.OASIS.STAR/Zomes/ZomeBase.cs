@@ -13,7 +13,6 @@ namespace NextGenSoftware.OASIS.STAR.Zomes
 {
     public abstract class ZomeBase : Holon, IZomeBase
     {
-        //private HolonManager _holonManager = new HolonManager(OASISDNAManager.GetAndActivateDefaultProvider());
         private HolonManager _holonManager = null;
         public List<Holon> _holons = new List<Holon>();
 
@@ -29,20 +28,20 @@ namespace NextGenSoftware.OASIS.STAR.Zomes
             }
         }
 
-        public delegate void HolonSaved(object sender, HolonSavedEventArgs e);
-        public event HolonSaved OnHolonSaved;
+        //public delegate void Events.HolonSaved(object sender, HolonSavedEventArgs e);
+        public event Events.HolonSaved OnHolonSaved;
 
-        public delegate void HolonLoaded(object sender, HolonLoadedEventArgs e);
-        public event HolonLoaded OnHolonLoaded;
+       // public delegate void Events.HolonLoaded(object sender, HolonLoadedEventArgs e);
+        public event Events.HolonLoaded OnHolonLoaded;
 
-        public delegate void HolonsLoaded(object sender, HolonsLoadedEventArgs e);
-        public event HolonsLoaded OnHolonsLoaded;
+       // public delegate void HolonsLoaded(object sender, HolonsLoadedEventArgs e);
+        public event Events.HolonsLoaded OnHolonsLoaded;
 
-        public delegate void Initialized(object sender, System.EventArgs e);
-        public event Initialized OnInitialized;
+       // public delegate void Initialized(object sender, System.EventArgs e);
+        public event Events.Initialized OnInitialized;
 
-        public delegate void ZomeError(object sender, ZomeErrorEventArgs e);
-        public event ZomeError OnZomeError;
+       // public delegate void ZomeError(object sender, ZomeErrorEventArgs e);
+        public event Events.ZomeError OnZomeError;
 
         ////TODO: Not sure if we want to expose the HoloNETClient events at this level? They can subscribe to them through the HoloNETClient property below...
         //public delegate void Disconnected(object sender, DisconnectedEventArgs e);
@@ -62,29 +61,37 @@ namespace NextGenSoftware.OASIS.STAR.Zomes
             _holonManager = new HolonManager(result.Result);
         }
 
-        public virtual async Task<IHolon> LoadHolonAsync(Guid id, HolonType type = HolonType.Holon)
+        public virtual async Task<IHolon> LoadHolonAsync(Guid id)
         {
-            return await _holonManager.LoadHolonAsync(id, type);
+            return await _holonManager.LoadHolonAsync(id);
         }
 
-        public virtual IHolon LoadHolon(Guid id, HolonType type = HolonType.Holon)
+        public virtual IHolon LoadHolon(Guid id)
         {
-            return _holonManager.LoadHolon(id, type);
+            return _holonManager.LoadHolon(id);
         }
 
-        public virtual async Task<IHolon> LoadHolonAsync(Dictionary<ProviderType, string> providerKey, HolonType type = HolonType.Holon)
+        public virtual async Task<IHolon> LoadHolonAsync(Dictionary<ProviderType, string> providerKey)
         {
             return await _holonManager.LoadHolonAsync(GetCurrentProviderKey(providerKey));
         }
 
-        public virtual async Task<IEnumerable<IHolon>> LoadHolonsAsync(Guid id, HolonType type = HolonType.Holon)
+        public virtual async Task<IEnumerable<IHolon>> LoadHolonsAsync(Guid id, HolonType type = HolonType.All)
         {
             return await _holonManager.LoadHolonsForParentAsync(id, type);
         }
+        public virtual IEnumerable<IHolon> LoadHolons(Guid id, HolonType type = HolonType.All)
+        {
+            return _holonManager.LoadHolonsForParent(id, type);
+        }
 
-        public virtual async Task<IEnumerable<IHolon>> LoadHolonsAsync(Dictionary<ProviderType, string> providerKey, HolonType type = HolonType.Holon)
+        public virtual async Task<IEnumerable<IHolon>> LoadHolonsAsync(Dictionary<ProviderType, string> providerKey, HolonType type = HolonType.All)
         {
             return await _holonManager.LoadHolonsForParentAsync(GetCurrentProviderKey(providerKey), type);
+        }
+        public virtual IEnumerable<IHolon> LoadHolons(Dictionary<ProviderType, string> providerKey, HolonType type = HolonType.All)
+        {
+            return _holonManager.LoadHolonsForParent(GetCurrentProviderKey(providerKey), type);
         }
 
         public virtual async Task<OASISResult<IHolon>> SaveHolonAsync(IHolon savingHolon)

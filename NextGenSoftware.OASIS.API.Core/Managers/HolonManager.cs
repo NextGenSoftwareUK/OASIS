@@ -19,7 +19,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         {
 
         }
-        public IHolon LoadHolon(Guid id, HolonType type = HolonType.Holon, ProviderType providerType = ProviderType.Default)
+        public IHolon LoadHolon(Guid id, ProviderType providerType = ProviderType.Default)
         {
             bool needToChangeBack = false;
             ProviderType currentProviderType = ProviderManager.CurrentStorageProviderType.Value;
@@ -27,7 +27,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
             try
             {
-                holon = ProviderManager.SetAndActivateCurrentStorageProvider(providerType).Result.LoadHolon(id, type);
+                holon = ProviderManager.SetAndActivateCurrentStorageProvider(providerType).Result.LoadHolon(id);
             }
             catch (Exception ex)
             {
@@ -45,7 +45,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                     {
                         try
                         {
-                            holon = ProviderManager.SetAndActivateCurrentStorageProvider(providerTypeInternal.Value).Result.LoadHolon(id, type);
+                            holon = ProviderManager.SetAndActivateCurrentStorageProvider(providerTypeInternal.Value).Result.LoadHolon(id);
                             needToChangeBack = true;
 
                             if (holon != null)
@@ -68,48 +68,48 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return holon;
         }
      
-        public Task<IHolon> LoadHolonAsync(Guid id, HolonType type = HolonType.Holon, ProviderType provider = ProviderType.Default)
+        public Task<IHolon> LoadHolonAsync(Guid id, ProviderType provider = ProviderType.Default)
         {
-            return ProviderManager.SetAndActivateCurrentStorageProvider(provider).Result.LoadHolonAsync(id, type);
+            return ProviderManager.SetAndActivateCurrentStorageProvider(provider).Result.LoadHolonAsync(id);
         }
 
-        public IHolon LoadHolon(string providerKey, HolonType type = HolonType.Holon, ProviderType provider = ProviderType.Default)
+        public IHolon LoadHolon(string providerKey, ProviderType provider = ProviderType.Default)
         {
-            return ProviderManager.SetAndActivateCurrentStorageProvider(provider).Result.LoadHolon(providerKey, type);
+            return ProviderManager.SetAndActivateCurrentStorageProvider(provider).Result.LoadHolon(providerKey);
         }
 
-        public Task<IHolon> LoadHolonAsync(string providerKey, HolonType type = HolonType.Holon, ProviderType provider = ProviderType.Default)
+        public Task<IHolon> LoadHolonAsync(string providerKey, ProviderType provider = ProviderType.Default)
         {
-            return ProviderManager.SetAndActivateCurrentStorageProvider(provider).Result.LoadHolonAsync(providerKey, type);
+            return ProviderManager.SetAndActivateCurrentStorageProvider(provider).Result.LoadHolonAsync(providerKey);
         }
 
 
-        public IEnumerable<IHolon> LoadHolonsForParent(Guid id, HolonType type = HolonType.Holon, ProviderType provider = ProviderType.Default)
+        public IEnumerable<IHolon> LoadHolonsForParent(Guid id, HolonType type = HolonType.All, ProviderType provider = ProviderType.Default)
         {
             return ProviderManager.SetAndActivateCurrentStorageProvider(provider).Result.LoadHolonsForParent(id, type);
         }
 
-        public Task<IEnumerable<IHolon>> LoadHolonsForParentAsync(Guid id, HolonType type = HolonType.Holon, ProviderType provider = ProviderType.Default)
+        public Task<IEnumerable<IHolon>> LoadHolonsForParentAsync(Guid id, HolonType type = HolonType.All, ProviderType provider = ProviderType.Default)
         {
             return ProviderManager.SetAndActivateCurrentStorageProvider(provider).Result.LoadHolonsForParentAsync(id, type);
         }
 
-        public IEnumerable<IHolon> LoadHolonsForParent(string providerKey, HolonType type = HolonType.Holon, ProviderType provider = ProviderType.Default)
+        public IEnumerable<IHolon> LoadHolonsForParent(string providerKey, HolonType type = HolonType.All, ProviderType provider = ProviderType.Default)
         {
             return ProviderManager.SetAndActivateCurrentStorageProvider(provider).Result.LoadHolonsForParent(providerKey, type);
         }
 
-        public Task<IEnumerable<IHolon>> LoadHolonsForParentAsync(string providerKey, HolonType type = HolonType.Holon, ProviderType provider = ProviderType.Default)
+        public Task<IEnumerable<IHolon>> LoadHolonsForParentAsync(string providerKey, HolonType type = HolonType.All, ProviderType provider = ProviderType.Default)
         {
             return ProviderManager.SetAndActivateCurrentStorageProvider(provider).Result.LoadHolonsForParentAsync(providerKey, type);
         }
 
-        public IEnumerable<IHolon> LoadAllHolons(HolonType type = HolonType.Holon, ProviderType provider = ProviderType.Default)
+        public IEnumerable<IHolon> LoadAllHolons(HolonType type = HolonType.All, ProviderType provider = ProviderType.Default)
         {
             return ProviderManager.SetAndActivateCurrentStorageProvider(provider).Result.LoadAllHolons(type);
         }
 
-        public Task<IEnumerable<IHolon>> LoadAllHolonsAsync(HolonType type = HolonType.Holon, ProviderType provider = ProviderType.Default)
+        public Task<IEnumerable<IHolon>> LoadAllHolonsAsync(HolonType type = HolonType.All, ProviderType provider = ProviderType.Default)
         {
             return ProviderManager.SetAndActivateCurrentStorageProvider(provider).Result.LoadAllHolonsAsync(type);
         }

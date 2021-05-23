@@ -9,7 +9,6 @@ using NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Interfaces;
 
 namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
 {
-    //TODO: Implement non async versions...
     public class HolonRepository : IHolonRepository
     {
         private MongoDbContext _dbContext;
@@ -23,18 +22,8 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
         {
             try
             {
-                //holon.HolonId = Guid.NewGuid().ToString();
                 holon.HolonId = Guid.NewGuid();
-
-                //TODO: Cant remember why this is commented out?! Need to look into... ;-)
-                //if (AvatarManager.LoggedInAvatar != null)
-                //    avatar.CreatedByAvatarId = AvatarManager.LoggedInAvatar.Id.ToString();
-
-                //avatar.CreatedDate = DateTime.Now;
-
                 await _dbContext.Holon.InsertOneAsync(holon);
-
-                //avatar.Id =  //TODO: Check if Mongo populates the id automatically or if we need to re-load it...
                 return holon;
             }
             catch (Exception ex)
@@ -47,18 +36,8 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
         {
             try
             {
-                //holon.HolonId = Guid.NewGuid().ToString();
                 holon.HolonId = Guid.NewGuid();
-
-                //TODO: Cant remember why this is commented out?! Need to look into... ;-)
-                //if (AvatarManager.LoggedInAvatar != null)
-                //    avatar.CreatedByAvatarId = AvatarManager.LoggedInAvatar.Id.ToString();
-
-                //avatar.CreatedDate = DateTime.Now;
-
                 _dbContext.Holon.InsertOne(holon);
-
-                //avatar.Id =  //TODO: Check if Mongo populates the id automatically or if we need to re-load it...
                 return holon;
             }
             catch (Exception ex)
@@ -71,8 +50,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
         {
             try
             {
-                //FilterDefinition<Avatar> filter = Builders<Avatar>.Filter.Eq("Id", id);
-                FilterDefinition<Holon> filter = Builders<Holon>.Filter.Eq("HolonId", id.ToString());
+                FilterDefinition<Holon> filter = Builders<Holon>.Filter.Where(x => x.HolonId == id);
                 return await _dbContext.Holon.FindAsync(filter).Result.FirstOrDefaultAsync();
             }
             catch
@@ -85,8 +63,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
         {
             try
             {
-                //FilterDefinition<Avatar> filter = Builders<Avatar>.Filter.Eq("Id", id);
-                FilterDefinition<Holon> filter = Builders<Holon>.Filter.Eq("HolonId", id.ToString());
+                FilterDefinition<Holon> filter = Builders<Holon>.Filter.Where(x => x.HolonId == id);
                 return _dbContext.Holon.Find(filter).FirstOrDefault();
             }
             catch
@@ -99,7 +76,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
         {
             try
             {
-                FilterDefinition<Holon> filter = Builders<Holon>.Filter.Eq("ProviderKey", providerKey);
+                FilterDefinition<Holon> filter = Builders<Holon>.Filter.Where(x => x.ProviderKey[ProviderType.MongoDBOASIS] == providerKey);
                 return await _dbContext.Holon.FindAsync(filter).Result.FirstOrDefaultAsync();
             }
             catch
@@ -112,7 +89,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
         {
             try
             {
-                FilterDefinition<Holon> filter = Builders<Holon>.Filter.Eq("ProviderKey", providerKey);
+                FilterDefinition<Holon> filter = Builders<Holon>.Filter.Where(x => x.ProviderKey[ProviderType.MongoDBOASIS] == providerKey);
                 return _dbContext.Holon.Find(filter).FirstOrDefault();
             }
             catch
@@ -121,11 +98,19 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
             }
         }
 
-        public async Task<IEnumerable<Holon>> GetAllHolonsAsync()
+        public async Task<IEnumerable<Holon>> GetAllHolonsAsync(HolonType holonType = HolonType.All)
         {
             try
             {
-                return await _dbContext.Holon.FindAsync(_ => true).Result.ToListAsync();
+                if (holonType != HolonType.All)
+                {
+                    return await _dbContext.Holon.FindAsync(_ => true).Result.ToListAsync();
+                }
+                else
+                {
+                    FilterDefinition<Holon> filter = Builders<Holon>.Filter.Where(x => x.HolonType == holonType);
+                    return await _dbContext.Holon.FindAsync(filter).Result.ToListAsync();
+                }
             }
             catch
             {
@@ -133,11 +118,19 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
             }
         }
 
-        public IEnumerable<Holon> GetAllHolons()
+        public IEnumerable<Holon> GetAllHolons(HolonType holonType = HolonType.All)
         {
             try
             {
-                return _dbContext.Holon.Find(_ => true).ToList();
+                if (holonType != HolonType.All)
+                {
+                    return _dbContext.Holon.Find(_ => true).ToList();
+                }
+                else
+                {
+                    FilterDefinition<Holon> filter = Builders<Holon>.Filter.Where(x => x.HolonType == holonType);
+                    return _dbContext.Holon.Find(filter).ToList();
+                }
             }
             catch
             {
@@ -149,11 +142,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
         {
             try
             {
-                FilterDefinition<Holon> filter = Builders<Holon>.Filter.And(
-                    Builders<Holon>.Filter.Where(p => p.ParentHolonId == id),
-                    Builders<Holon>.Filter.Where(p => p.HolonType == holonType));
-
-                return await _dbContext.Holon.FindAsync(filter).Result.ToListAsync();
+                return await _dbContext.Holon.FindAsync(BuildFilter(id, holonType)).Result.ToListAsync();
             }
             catch
             {
@@ -165,11 +154,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
         {
             try
             {
-                FilterDefinition<Holon> filter = Builders<Holon>.Filter.And(
-                    Builders<Holon>.Filter.Where(p => p.ParentHolonId == id),
-                    Builders<Holon>.Filter.Where(p => p.HolonType == holonType));
-
-                return _dbContext.Holon.Find(filter).ToList();
+                return _dbContext.Holon.Find(BuildFilter(id, holonType)).ToList();
             }
             catch
             {
@@ -181,11 +166,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
         {
             try
             {
-                FilterDefinition<Holon> filter = Builders<Holon>.Filter.And(
-                    Builders<Holon>.Filter.Where(p => p.ProviderKey[ProviderType.MongoDBOASIS] == providerKey),
-                    Builders<Holon>.Filter.Where(p => p.HolonType == holonType));
-
-                return await _dbContext.Holon.FindAsync(filter).Result.ToListAsync();
+                return await _dbContext.Holon.FindAsync(BuildFilter(providerKey, holonType)).Result.ToListAsync();
             }
             catch
             {
@@ -197,11 +178,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
         {
             try
             {
-                FilterDefinition<Holon> filter = Builders<Holon>.Filter.And(
-                    Builders<Holon>.Filter.Where(p => p.ProviderKey[ProviderType.MongoDBOASIS] == providerKey),
-                    Builders<Holon>.Filter.Where(p => p.HolonType == holonType));
-
-                return _dbContext.Holon.Find(filter).ToList();
+                return _dbContext.Holon.Find(BuildFilter(providerKey, holonType)).ToList();
             }
             catch
             {
@@ -223,8 +200,6 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                         holon.CreatedByAvatarId = originalHolon.CreatedByAvatarId;
                         holon.CreatedDate = originalHolon.CreatedDate;
                         holon.HolonType = originalHolon.HolonType;
-                        //holon.ParentCelestialBody = originalHolon.ParentCelestialBody;
-
                         holon.ParentZome = originalHolon.ParentZome;
                         holon.ParentZomeId = originalHolon.ParentZomeId;
                         holon.ParentMoon = originalHolon.ParentMoon;
@@ -239,14 +214,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                     }
                 }
 
-                //   if (AvatarManager.LoggedInAvatar != null)
-                //    holon.ModifiedByAvatarId = AvatarManager.LoggedInAvatar.Id.ToString();
-
-                //   holon.ModifiedDate = DateTime.Now;
-                //await _dbContext.Holon.ReplaceOneAsync(filter: g => g.Id == holon.Id, replacement: (Holon)holon);
-                await _dbContext.Holon.ReplaceOneAsync(filter: g => g.HolonId == holon.HolonId, replacement: (Holon)holon);
-
-                //avatar.Id =  //TODO: Check if Mongo populates the id automatically or if we need to re-load it...
+                await _dbContext.Holon.ReplaceOneAsync(filter: g => g.HolonId == holon.HolonId, replacement: holon);
                 return holon;
             }
             catch
@@ -269,8 +237,6 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                         holon.CreatedByAvatarId = originalHolon.CreatedByAvatarId;
                         holon.CreatedDate = originalHolon.CreatedDate;
                         holon.HolonType = originalHolon.HolonType;
-                        //holon.ParentCelestialBody = originalHolon.ParentCelestialBody;
-
                         holon.ParentZome = originalHolon.ParentZome;
                         holon.ParentZomeId = originalHolon.ParentZomeId;
                         holon.ParentMoon = originalHolon.ParentMoon;
@@ -285,14 +251,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                     }
                 }
 
-                //   if (AvatarManager.LoggedInAvatar != null)
-                //    holon.ModifiedByAvatarId = AvatarManager.LoggedInAvatar.Id.ToString();
-
-                //   holon.ModifiedDate = DateTime.Now;
-                //await _dbContext.Holon.ReplaceOneAsync(filter: g => g.Id == holon.Id, replacement: (Holon)holon);
                 _dbContext.Holon.ReplaceOne(filter: g => g.HolonId == holon.HolonId, replacement: holon);
-
-                //avatar.Id =  //TODO: Check if Mongo populates the id automatically or if we need to re-load it...
                 return holon;
             }
             catch
@@ -300,6 +259,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                 throw;
             }
         }
+
         public async Task<bool> DeleteAsync(Guid id, bool softDelete = true)
         {
             try
@@ -311,7 +271,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                 }
                 else
                 {
-                    FilterDefinition<Holon> data = Builders<Holon>.Filter.Eq("Id", id);
+                    FilterDefinition<Holon> data = Builders<Holon>.Filter.Where(x => x.HolonId == id);
                     await _dbContext.Holon.DeleteOneAsync(data);
                     return true;
                 }
@@ -333,7 +293,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                 }
                 else
                 {
-                    FilterDefinition<Holon> data = Builders<Holon>.Filter.Eq("Id", id);
+                    FilterDefinition<Holon> data = Builders<Holon>.Filter.Where(x => x.HolonId == id);
                     _dbContext.Holon.DeleteOne(data);
                     return true;
                 }
@@ -355,7 +315,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                 }
                 else
                 {
-                    FilterDefinition<Holon> data = Builders<Holon>.Filter.Eq("ProviderKey", providerKey);
+                    FilterDefinition<Holon> data = Builders<Holon>.Filter.Where(x => x.ProviderKey[ProviderType.MongoDBOASIS] == providerKey);
                     await _dbContext.Holon.DeleteOneAsync(data);
                     return true;
                 }
@@ -377,7 +337,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                 }
                 else
                 {
-                    FilterDefinition<Holon> data = Builders<Holon>.Filter.Eq("ProviderKey", providerKey);
+                    FilterDefinition<Holon> data = Builders<Holon>.Filter.Where(x => x.ProviderKey[ProviderType.MongoDBOASIS] == providerKey);
                     _dbContext.Holon.DeleteOne(data);
                     return true;
                 }
@@ -393,7 +353,6 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
             try
             {
                 if (AvatarManager.LoggedInAvatar != null)
-                    //holon.DeletedByAvatarId = AvatarManager.LoggedInAvatar.Id;
                     holon.DeletedByAvatarId = AvatarManager.LoggedInAvatar.Id.ToString();
 
                 holon.DeletedDate = DateTime.Now;
@@ -411,7 +370,6 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
             try
             {
                 if (AvatarManager.LoggedInAvatar != null)
-                    //holon.DeletedByAvatarId = AvatarManager.LoggedInAvatar.Id;
                     holon.DeletedByAvatarId = AvatarManager.LoggedInAvatar.Id.ToString();
 
                 holon.DeletedDate = DateTime.Now;
@@ -422,6 +380,44 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
             {
                 throw;
             }
+        }
+
+        private FilterDefinition<Holon> BuildFilter(string providerKey, HolonType holonType)
+        {
+            FilterDefinition<Holon> filter = null;
+
+            if (holonType != HolonType.All)
+            {
+                filter = Builders<Holon>.Filter.And(
+                Builders<Holon>.Filter.Where(p => p.ProviderKey[ProviderType.MongoDBOASIS] == providerKey),
+                Builders<Holon>.Filter.Where(p => p.HolonType == holonType));
+            }
+            else
+            {
+                filter = Builders<Holon>.Filter.And(
+                Builders<Holon>.Filter.Where(p => p.ProviderKey[ProviderType.MongoDBOASIS] == providerKey));
+            }
+
+            return filter;
+        }
+
+        private FilterDefinition<Holon> BuildFilter(Guid id, HolonType holonType)
+        {
+            FilterDefinition<Holon> filter = null;
+
+            if (holonType != HolonType.All)
+            {
+                filter = Builders<Holon>.Filter.And(
+                Builders<Holon>.Filter.Where(p => p.HolonId == id),
+                Builders<Holon>.Filter.Where(p => p.HolonType == holonType));
+            }
+            else
+            {
+                filter = Builders<Holon>.Filter.And(
+                Builders<Holon>.Filter.Where(p => p.HolonId == id));
+            }
+
+            return filter;
         }
     }
 }

@@ -113,12 +113,13 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// Load's all holons for parent
         /// </summary>
         /// <param name="id"></param>
+        /// <param name="holonType"></param>
         /// <returns></returns>
         [Authorize]
-        [HttpGet("LoadAllHolonsForParent/{id}")]
-        public ActionResult<Holon[]> LoadAllHolonsForParent(Guid id)
+        [HttpGet("LoadAllHolonsForParent/{id}/{holonType}")]
+        public ActionResult<Holon[]> LoadAllHolonsForParent(Guid id, HolonType holonType = HolonType.All)
         {
-            List<IHolon> data = (List<IHolon>)HolonManager.LoadHolonsForParent(id);
+            List<IHolon> data = (List<IHolon>)HolonManager.LoadHolonsForParent(id, holonType);
             List<Holon> holons = new List<Holon>();
 
             if (data == null)
@@ -134,15 +135,54 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// Load's all holons for parent
         /// </summary>
         /// <param name="id"></param>
+        /// <param name="holonType"></param>
         /// <param name="providerType">Pass in the provider you wish to use.</param>
         /// <param name="setGlobally"> Set this to false for this provider to be used only for this request or true for it to be used for all future requests too.</param>
         /// <returns></returns>
         [Authorize]
-        [HttpGet("LoadAllHolonsForParent/{id}/{providerType}/{setGlobally}")]
-        public ActionResult<Holon[]> LoadAllHolonsForParent(Guid id, ProviderType providerType, bool setGlobally = false)
+        [HttpGet("LoadAllHolonsForParent/{id}/{holonType}/{providerType}/{setGlobally}")]
+        public ActionResult<Holon[]> LoadAllHolonsForParent(Guid id, HolonType holonType = HolonType.All, ProviderType providerType = ProviderType.Default, bool setGlobally = false)
         {
             GetAndActivateProvider(providerType, setGlobally);
-            return LoadAllHolonsForParent(id);
+            return LoadAllHolonsForParent(id, holonType);
+        }
+
+        /// <summary>
+        /// Load's all holons for parent
+        /// </summary>
+        /// <param name="providerKey"></param>
+        /// <param name="holonType"></param>
+        /// <returns></returns>
+        [Authorize]
+        [HttpGet("LoadAllHolonsForParent/{providerKey}/{holonType}")]
+        public ActionResult<Holon[]> LoadAllHolonsForParent(string providerKey, HolonType holonType = HolonType.All)
+        {
+            List<IHolon> data = (List<IHolon>)HolonManager.LoadHolonsForParent(providerKey, holonType);
+            List<Holon> holons = new List<Holon>();
+
+            if (data == null)
+                return Ok("ERROR: No Holons Found.");
+
+            foreach (IHolon holon in data)
+                holons.Add((Holon)holon);
+
+            return Ok(holons);
+        }
+
+        /// <summary>
+        /// Load's all holons for parent
+        /// </summary>
+        /// <param name="providerKey"></param>
+        /// <param name="holonType"></param>
+        /// <param name="providerType">Pass in the provider you wish to use.</param>
+        /// <param name="setGlobally"> Set this to false for this provider to be used only for this request or true for it to be used for all future requests too.</param>
+        /// <returns></returns>
+        [Authorize]
+        [HttpGet("LoadAllHolonsForParent/{providerKey}/{holonType}/{providerType}/{setGlobally}")]
+        public ActionResult<Holon[]> LoadAllHolonsForParent(string providerKey, HolonType holonType = HolonType.All, ProviderType providerType = ProviderType.Default, bool setGlobally = false)
+        {
+            GetAndActivateProvider(providerType, setGlobally);
+            return LoadAllHolonsForParent(providerKey, holonType);
         }
 
         /// <summary>

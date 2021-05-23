@@ -22,19 +22,10 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
         {
             try
             {
-
-                //_db.SearchData.Find({ cuisine: "Hamburgers" } );
-                //_db.SearchData.Find(new FilterDefinition<SearchData>() { })
-
-                //FilterDefinition<SearchData> filter = Builders<SearchData>.Filter.Eq("searchData", searchTerm);
                 //FilterDefinition<SearchData> filter = Builders<SearchData>.Filter.Regex("searchData", new BsonRegularExpression("/" + searchTerm + "/G[a-b].*/i"));
                 FilterDefinition<SearchData> filter = Builders<SearchData>.Filter.Regex("searchData", new BsonRegularExpression("/" + searchTerm.SearchQuery.ToLower() + "/"));
                 //FilterDefinition<SearchData> filter = Builders<SearchData>.Filter.AnyIn("searchData", searchTerm);
                 IEnumerable<SearchData> data = await _dbContext.SearchData.Find(filter).ToListAsync();
-
-
-
-                //Query.Matches("name", "Joe")
 
                 if (data != null)
                 {
@@ -47,9 +38,6 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                 }
                 else
                     return null;
-
-                //System.InvalidOperationException: The serializer for field 'searchData' must implement IBsonArraySerializer and provide item serialization info.
-                //return await db.SearchData.Find(filter).FirstOrDefaultAsync();
             }
             catch
             {
