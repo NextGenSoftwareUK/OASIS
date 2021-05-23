@@ -120,7 +120,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
 
             avatar.RefreshToken = newRefreshToken.Token;
             avatar.JwtToken = generateJwtToken(avatar);
-            avatar = RemoveAuthDetails(AvatarManager.SaveAvatar(avatar));
+            avatar = RemoveAuthDetails(AvatarManager.SaveAvatar(avatar).Result);
            // avatar.RefreshToken = newRefreshToken.Token;
             return avatar;
         }
@@ -346,7 +346,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
             origAvatar.ModifiedDate = DateTime.UtcNow;
 
             // return RemoveAuthDetails(AvatarManager.SaveAvatar(origAvatar));
-            return RemoveAuthDetails(AvatarManager.SaveAvatar(origAvatar));
+            return RemoveAuthDetails(AvatarManager.SaveAvatar(origAvatar).Result);
 
 
             // _context.Accounts.Update(account);

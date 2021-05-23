@@ -116,7 +116,19 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
                 LoggedInAvatar = result.Result;
 
-                result.Result = RemoveAuthDetails(SaveAvatar(result.Result));
+                OASISResult<IAvatar> saveAvatarResult = SaveAvatar(result.Result);
+
+                if (!saveAvatarResult.IsError && saveAvatarResult.IsSaved)
+                {
+                    result.Result = RemoveAuthDetails(saveAvatarResult.Result);
+                    result.IsSaved = true;
+                }
+                else
+                {
+                    result.Message = saveAvatarResult.Message;
+                    result.IsError = saveAvatarResult.IsError;
+                    result.IsSaved = saveAvatarResult.IsSaved;
+                }
             }
 
             return result;
@@ -174,7 +186,19 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
                 LoggedInAvatar = result.Result;
 
-                result.Result = RemoveAuthDetails(SaveAvatar(result.Result));
+                OASISResult<IAvatar> saveAvatarResult = SaveAvatar(result.Result);
+
+                if (!saveAvatarResult.IsError && saveAvatarResult.IsSaved)
+                {
+                    result.Result = RemoveAuthDetails(saveAvatarResult.Result);
+                    result.IsSaved = true;
+                }
+                else
+                {
+                    result.Message = saveAvatarResult.Message;
+                    result.IsError = saveAvatarResult.IsError;
+                    result.IsSaved = saveAvatarResult.IsSaved;
+                }
             }
 
             return result;
@@ -294,10 +318,22 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             //AvatarManager.SaveAvatarAsync(avatar);
 
             //TODO: Get async version working ASAP! :)
-            avatar = SaveAvatar(avatar);
-            sendVerificationEmail(avatar, origin);
-            result.Result = RemoveAuthDetails(avatar);
-            result.IsSaved = true;
+
+            OASISResult<IAvatar> saveAvatarResult = SaveAvatar(avatar);
+            avatar = saveAvatarResult.Result;
+
+            if (!saveAvatarResult.IsError && saveAvatarResult.IsSaved)
+            {
+                sendVerificationEmail(avatar, origin);
+                result.Result = RemoveAuthDetails(avatar);
+                result.IsSaved = true;
+            }
+            else
+            {
+                result.Message = saveAvatarResult.Message;
+                result.IsError = saveAvatarResult.IsError;
+                result.IsSaved = saveAvatarResult.IsSaved;
+            }
 
             return result;
         }
@@ -320,8 +356,17 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 result.Result = true;
                 avatar.Verified = DateTime.UtcNow;
                 avatar.VerificationToken = null;
-                SaveAvatar(avatar);
+                OASISResult<IAvatar> saveAvatarResult = SaveAvatar(avatar);
+
+                result.IsError = saveAvatarResult.IsError;
+                result.IsSaved = saveAvatarResult.IsSaved;
+                result.Message = saveAvatarResult.Message;
             }
+
+            if (!result.IsError && result.IsSaved)
+                result.Result = true;
+            else
+                result.Result = false;
 
             return result;
         }
@@ -442,19 +487,19 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
         public async Task<IAvatar> SaveAvatarAsync(IAvatar avatar, ProviderType providerType = ProviderType.Default)
         {
-            bool needToChangeBack = false;
             ProviderType currentProviderType = ProviderManager.CurrentStorageProviderType.Value;
+            IAvatar savedAvatar = null;
 
             try
             {
-                avatar = await ProviderManager.SetAndActivateCurrentStorageProvider(providerType).Result.SaveAvatarAsync(PrepareAvatarForSaving(avatar));
+                savedAvatar = await ProviderManager.SetAndActivateCurrentStorageProvider(providerType).Result.SaveAvatarAsync(PrepareAvatarForSaving(avatar));
             }
             catch (Exception ex)
             {
-                avatar = null;
+                savedAvatar = null;
             }
 
-            if (avatar == null)
+            if (savedAvatar == null)
             {
                 // Only try the next provider if they are not set to auto-replicate.
                 //   if (ProviderManager.ProvidersThatAreAutoReplicating.Count == 0)
@@ -465,15 +510,14 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                     {
                         try
                         {
-                            avatar = await ProviderManager.SetAndActivateCurrentStorageProvider(type.Value).Result.SaveAvatarAsync(avatar);
-                            needToChangeBack = true;
+                            savedAvatar = await ProviderManager.SetAndActivateCurrentStorageProvider(type.Value).Result.SaveAvatarAsync(avatar);
 
-                            if (avatar != null)
+                            if (savedAvatar != null)
                                 break;
                         }
                         catch (Exception ex2)
                         {
-                            avatar = null;
+                            savedAvatar = null;
                             //If the next provider errors then just continue to the next provider.
                         }
                     }
@@ -488,7 +532,6 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                     try
                     {
                         await ProviderManager.SetAndActivateCurrentStorageProvider(type.Value).Result.SaveAvatarAsync(avatar);
-                        needToChangeBack = true;
                     }
                     catch (Exception ex)
                     {
@@ -501,50 +544,52 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
           // if (needToChangeBack)
                 ProviderManager.SetAndActivateCurrentStorageProvider(currentProviderType);
 
-            return avatar;
+            return savedAvatar;
         }
 
-        public IAvatar SaveAvatar(IAvatar avatar, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IAvatar> SaveAvatar(IAvatar avatar, ProviderType providerType = ProviderType.Default)
         {
-            bool needToChangeBack = false;
+            OASISResult<IAvatar> result = new OASISResult<IAvatar>();
             ProviderType currentProviderType = ProviderManager.CurrentStorageProviderType.Value;
 
             try
             {
-                avatar = ProviderManager.SetAndActivateCurrentStorageProvider(providerType).Result.SaveAvatar(PrepareAvatarForSaving(avatar));
+                result.Result = ProviderManager.SetAndActivateCurrentStorageProvider(providerType).Result.SaveAvatar(PrepareAvatarForSaving(avatar));
+                result.IsSaved = true;
             }
             catch (Exception ex)
             {
-                avatar = null;
+                result.Result = null;
             }
 
-            if (avatar == null)
+            if (result.Result == null)
             {
-                // Only try the next provider if they are not set to auto-replicate.
-              //  if (ProviderManager.ProvidersThatAreAutoReplicating.Count == 0)
-              //  {
-                    foreach (EnumValue<ProviderType> type in ProviderManager.GetProviderAutoFailOverList())
+                foreach (EnumValue<ProviderType> type in ProviderManager.GetProviderAutoFailOverList())
+                {
+                    if (type.Value != providerType && type.Value != ProviderManager.CurrentStorageProviderType.Value)
                     {
-                        if (type.Value != providerType && type.Value != ProviderManager.CurrentStorageProviderType.Value)
+                        try
                         {
-                            try
-                            {
-                                avatar = ProviderManager.SetAndActivateCurrentStorageProvider(type.Value).Result.SaveAvatar(avatar);
-                                needToChangeBack = true;
+                            result.Result = ProviderManager.SetAndActivateCurrentStorageProvider(type.Value).Result.SaveAvatar(avatar);
+                            result.IsSaved = true;
 
-                                if (avatar != null)
-                                    break;
-                            }
-                            catch (Exception ex)
-                            {
-                                avatar = null;
-                                //If the next provider errors then just continue to the next provider.
-                            }
+                        if (result.Result != null)
+                                break;
+                        }
+                        catch (Exception ex)
+                        {
+                            result.Result = null;
+                            //If the next provider errors then just continue to the next provider.
                         }
                     }
-             //   }
+                }
             }
 
+            if (result.Result == null)
+            {
+                result.IsError = true;
+                result.Message = string.Concat("All Registered OASIS Providers In The AutoFailOverList Failed To Save The Avatar. Providers in list are ", ProviderManager.GetProviderAutoFailOverListAsString());
+            }
 
             foreach (EnumValue<ProviderType> type in ProviderManager.GetProvidersThatAreAutoReplicating())
             {
@@ -553,7 +598,6 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                     try
                     {
                         ProviderManager.SetAndActivateCurrentStorageProvider(type.Value).Result.SaveAvatar(avatar);
-                        needToChangeBack = true;
                     }
                     catch (Exception ex)
                     {
@@ -562,11 +606,8 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 }
             }
 
-            // Set the current provider back to the original provider.
-           // if (needToChangeBack)
-                ProviderManager.SetAndActivateCurrentStorageProvider(currentProviderType);
-
-            return avatar;
+            ProviderManager.SetAndActivateCurrentStorageProvider(currentProviderType);
+            return result;
         }
 
 
