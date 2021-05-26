@@ -478,7 +478,7 @@ namespace NextGenSoftware.OASIS.STAR
            // newBody.CelestialBody = newBody; //TODO: Causes an infinite recursion because CelestialBody is a Holon itself so its linking to itself.
             newBody.Name = name;
             newBody.OnZomeError += NewBody_OnZomeError;
-            await newBody.Initialize();
+            await newBody.InitializeAsync();
             OASISResult<ICelestialBody> newBodyResult = await newBody.SaveAsync(); //Need to save to get the id to be used for ParentId below (zomes, holons & nodes).
 
             if (newBodyResult.IsError)
@@ -1084,20 +1084,30 @@ namespace NextGenSoftware.OASIS.STAR
 
         private static OASISResult<ICelestialBody> IgniteInnerStar()
         {
-            OASISResult<ICelestialBody> result = PreIgniteInnerStarAsync().Result; //TODO: Sort sync/async properly...
+            OASISResult<ICelestialBody> result = new OASISResult<ICelestialBody>();
+            InnerStar = new Star(_starId);
+            InnerStar.Initialize();
 
-            //TODO: Implement Save method (non async version) and call instead of below:
+            CreateNewInnerStar(ref result);
+
             if (!result.IsError && InnerStar.Id == Guid.Empty)
-                result = PostIgniteInnerStar(Task.Run(IgniteInnerStarAsync).GetAwaiter().GetResult()); //TODO: Not sure if this or below is better?
-                // result = PostIgniteInnerStar(Task.Run(() => IgniteInnerStarAsync()).Wait());
-                //result = PostIgniteInnerStar(InnerStar.SaveAsync().Result);
+            {
+                //result = InnerStar.Save(); //TODO: Implement non-async version...
+                result = InnerStar.SaveAsync().Result;
+                PostIgniteInnerStar(result);
+               // result = PostIgniteInnerStar(Task.Run(IgniteInnerStarAsync).GetAwaiter().GetResult());
+            }
 
             return result;
         }
 
         private static async Task<OASISResult<ICelestialBody>> IgniteInnerStarAsync()
         {
-            OASISResult<ICelestialBody> result = await PreIgniteInnerStarAsync();
+            OASISResult<ICelestialBody> result = new OASISResult<ICelestialBody>();
+            InnerStar = new Star(_starId);
+            await InnerStar.InitializeAsync();
+
+            CreateNewInnerStar(ref result);
 
             if (!result.IsError && InnerStar.Id == Guid.Empty)
             {
@@ -1108,12 +1118,8 @@ namespace NextGenSoftware.OASIS.STAR
             return result;
         }
 
-        private static async Task<OASISResult<ICelestialBody>> PreIgniteInnerStarAsync()
+        private static void CreateNewInnerStar(ref OASISResult<ICelestialBody> result)
         {
-            OASISResult<ICelestialBody> result = new OASISResult<ICelestialBody>();
-            InnerStar = new Star(_starId);
-            await InnerStar.Initialize();
-
             if (InnerStar.Id == Guid.Empty)
             {
                 // TODO: May possibly have one SuperStar per Provider Type? Or list of ProviderTypes? People can host whichever provider(s) they wish as a ONODE. Each ONODE will be a SuperStar, which can choose which Glaxies/Provider Types to host. Therefore the entire ONET (OASIS Network) is the distributed de-centralised network of SuperStars/Galaxies forming the OASIS Universe or OASIS meta-verse/magicverse. :)
@@ -1123,8 +1129,6 @@ namespace NextGenSoftware.OASIS.STAR
             }
             else
                 result.Message = "SuperSTAR Ignited";
-
-            return result;
         }
 
         private static OASISResult<ICelestialBody> PostIgniteInnerStar(OASISResult<ICelestialBody> result)
