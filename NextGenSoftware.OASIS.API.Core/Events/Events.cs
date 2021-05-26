@@ -20,8 +20,12 @@ namespace NextGenSoftware.OASIS.API.Core.Events
        // public event ZomeError OnZomeError;
 
         public delegate void ZomesLoaded(object sender, ZomesLoadedEventArgs e);
-       // public event ZomesLoaded OnZomesLoaded;
-        
+        // public event ZomesLoaded OnZomesLoaded;
+
+       // public delegate void Disconnected(object sender, DisconnectedEventArgs e);
+
+       // public delegate void DataReceived(object sender, DataReceivedEventArgs e);
+
 
         //TODO: Not sure if we want to expose the HoloNETClient events at this level? They can subscribe to them through the HoloNETClient property below...
         //public delegate void Disconnected(object sender, DisconnectedEventArgs e);

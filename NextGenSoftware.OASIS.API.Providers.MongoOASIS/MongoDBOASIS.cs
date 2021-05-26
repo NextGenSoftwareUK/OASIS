@@ -7,6 +7,8 @@ using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories;
 using NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities;
+using MongoDB.Bson.Serialization.Conventions;
+using MongoDB.Bson.Serialization.Options;
 
 namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
 {
@@ -29,6 +31,12 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             this.ProviderDescription = "MongoDB Atlas Provider";
             this.ProviderType = new Core.Helpers.EnumValue<ProviderType>(Core.Enums.ProviderType.MongoDBOASIS);
             this.ProviderCategory = new Core.Helpers.EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
+
+            /*
+            ConventionRegistry.Register(
+                   "DictionaryRepresentationConvention",
+                   new ConventionPack { new DictionaryRepresentationConvention(DictionaryRepresentation.ArrayOfArrays) },
+                   _ => true);*/
         }
 
         public override void ActivateProvider()

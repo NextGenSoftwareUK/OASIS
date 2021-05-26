@@ -19,9 +19,10 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces.STAR
         event ZomeError OnZomeError;
 
         Task<OASISResult<IEnumerable<IHolon>>> AddHolon(IHolon holon);
+        Task<IHolon> LoadHolonAsync(Guid id);
         IHolon LoadHolon(Guid id);
         Task<IHolon> LoadHolonAsync(Dictionary<ProviderType, string> providerKey);
-        Task<IHolon> LoadHolonAsync(Guid id);
+        IHolon LoadHolon(Dictionary<ProviderType, string> providerKey);
         IEnumerable<IHolon> LoadHolons(Dictionary<ProviderType, string> providerKey, HolonType type = HolonType.All);
         IEnumerable<IHolon> LoadHolons(Guid id, HolonType type = HolonType.All);
         Task<IEnumerable<IHolon>> LoadHolonsAsync(Dictionary<ProviderType, string> providerKey, HolonType type = HolonType.All);

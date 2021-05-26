@@ -45,6 +45,15 @@ namespace NextGenSoftware.OASIS.API.Core.Events
         public Exception ErrorDetails { get; set; }
         //public HoloNETErrorEventArgs HoloNETErrorDetails { get; set; }
     }
+    /*
+    public class ConnectedEventArgs : EventArgs
+    {
+        public string EndPoint { get; set; }
+    }
 
-
+    public class DisconnectedEventArgs : EventArgs
+    {
+        public string EndPoint { get; set; }
+        public string Reason { get; set; }
+    }*/
 }
