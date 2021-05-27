@@ -23,6 +23,7 @@ using NextGenSoftware.OASIS.STAR.EventArgs;
 using NextGenSoftware.Holochain.HoloNET.Client.Core;
 using NextGenSoftware.OASIS.STAR.ErrorEventArgs;
 using NextGenSoftware.OASIS.STAR.Enums;
+using AutoMapper;
 
 namespace NextGenSoftware.OASIS.STAR
 {
@@ -84,7 +85,9 @@ namespace NextGenSoftware.OASIS.STAR
                 return _OASISAPI;
             }
         }
-        
+
+        public static IMapper Mapper { get; set; }
+
         public delegate void HolonsLoaded(object sender, HolonsLoadedEventArgs e);
         public static event HolonsLoaded OnHolonsLoaded;
 
@@ -132,6 +135,14 @@ namespace NextGenSoftware.OASIS.STAR
 
             // If you wish to change the logging framework from the default (NLog) then set it below (or just change in OASIS_DNA - prefered way)
             //LoggingManager.CurrentLoggingFramework = LoggingFramework.NLog;
+
+            var config = new MapperConfiguration(cfg => {
+                //cfg.AddProfile<AppProfile>();
+                cfg.CreateMap<IHolon, CelestialBody>();
+                cfg.CreateMap<IHolon, Zome>();
+            });
+
+            Mapper = config.CreateMapper();
 
             if (File.Exists(STARDNAPath))
                 LoadDNA();
@@ -531,7 +542,7 @@ namespace NextGenSoftware.OASIS.STAR
                             };
 
                             //currentZome = new Zome() { Name = zomeName, HolonType = HolonType.Zome, ParentId = newBody.Id, ParentCelestialBodyId = newBody.Id };
-                            await newBody.CelestialBodyCore.AddZome(currentZome); //TODO: May need to save this once holons and nodes/fields have been added?
+                            await newBody.CelestialBodyCore.AddZomeAsync(currentZome); //TODO: May need to save this once holons and nodes/fields have been added?
                         }
 
                         if (holonReached && buffer.Contains("string") || buffer.Contains("int") || buffer.Contains("bool"))

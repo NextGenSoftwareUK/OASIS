@@ -412,7 +412,10 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
 
         private static void Star_OnHolonSaved(object sender, HolonSavedEventArgs e)
         {
-            ShowSuccessMessage(string.Concat(" Star Holons Saved. Holon Saved: ", e.Holon.Name));
+            if (e.Result.IsError)
+                ShowErrorMessage(e.Result.Message);
+            else
+                ShowSuccessMessage(string.Concat(" Star Holons Saved. Holon Saved: ", e.Result.Result.Name));
         }
 
         private static void Star_OnHolonsLoaded(object sender, HolonsLoadedEventArgs e)
@@ -439,16 +442,21 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
 
         private static void OurWorld_OnHolonSaved(object sender, HolonSavedEventArgs e)
         {
-            Console.WriteLine(" Holon Saved");
-            Console.WriteLine(string.Concat(" Holon Id: ", e.Holon.Id));
-            Console.WriteLine(string.Concat(" Holon ProviderKey: ", e.Holon.ProviderKey));
-            Console.WriteLine(string.Concat(" Holon Name: ", e.Holon.Name));
-            Console.WriteLine(string.Concat( "Holon Type: ", e.Holon.HolonType));
-            Console.WriteLine(string.Concat(" Holon Description: ", e.Holon.Description));
+            if (e.Result.IsError)
+                ShowErrorMessage(e.Result.Message);
+            else
+            {
+                Console.WriteLine(" Holon Saved");
+                Console.WriteLine(string.Concat(" Holon Id: ", e.Result.Result.Id));
+                Console.WriteLine(string.Concat(" Holon ProviderKey: ", e.Result.Result.ProviderKey));
+                Console.WriteLine(string.Concat(" Holon Name: ", e.Result.Result.Name));
+                Console.WriteLine(string.Concat("Holon Type: ", e.Result.Result.HolonType));
+                Console.WriteLine(string.Concat(" Holon Description: ", e.Result.Result.Description));
 
-            Console.WriteLine(" Loading Holon...");
-            //ourWorld.CelestialBodyCore.LoadHolonAsync(e.Holon.Name, e.Holon.ProviderKey);
-            _ourWorld.CelestialBodyCore.LoadHolonAsync(e.Holon.Id);
+                Console.WriteLine(" Loading Holon...");
+                //ourWorld.CelestialBodyCore.LoadHolonAsync(e.Holon.Name, e.Holon.ProviderKey);
+                _ourWorld.CelestialBodyCore.LoadHolonAsync(e.Result.Result.Id);
+            }
         }
 
         private static void OurWorld_OnHolonLoaded(object sender, HolonLoadedEventArgs e)

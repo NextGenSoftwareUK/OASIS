@@ -114,44 +114,50 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return ProviderManager.SetAndActivateCurrentStorageProvider(provider).Result.LoadAllHolonsAsync(type);
         }
 
-        public IHolon SaveHolon(IHolon holon, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IHolon> SaveHolon(IHolon holon, ProviderType providerType = ProviderType.Default)
         {
             ProviderType currentProviderType = ProviderManager.CurrentStorageProviderType.Value;
-            IHolon savedHolon;
+            OASISResult<IHolon> result = new OASISResult<IHolon>();
 
             try
             {
-                savedHolon = ProviderManager.SetAndActivateCurrentStorageProvider(providerType).Result.SaveHolon(PrepareHolonForSaving(holon));
+                result.Result = ProviderManager.SetAndActivateCurrentStorageProvider(providerType).Result.SaveHolon(PrepareHolonForSaving(holon));
             }
             catch (Exception ex)
             {
-                savedHolon = null;
+                result.Result = null;
+                LogError(holon, providerType, ex.ToString());
             }
 
-            if (savedHolon == null)
+            if (result.Result == null)
             {
-                // Only try the next provider if they are not set to auto-replicate.
-                //  if (ProviderManager.ProvidersThatAreAutoReplicating.Count == 0)
-                //  {
                 foreach (EnumValue<ProviderType> type in ProviderManager.GetProviderAutoFailOverList())
                 {
                     if (type.Value != providerType && type.Value != ProviderManager.CurrentStorageProviderType.Value)
                     {
                         try
                         {
-                            savedHolon = ProviderManager.SetAndActivateCurrentStorageProvider(type.Value).Result.SaveHolon(PrepareHolonForSaving(holon));
+                            result.Result = ProviderManager.SetAndActivateCurrentStorageProvider(type.Value).Result.SaveHolon(PrepareHolonForSaving(holon));
 
-                            if (savedHolon != null)
+                            if (result.Result != null)
                                 break;
                         }
-                        catch (Exception ex2)
+                        catch (Exception ex)
                         {
-                            savedHolon = null;
+                            result.Result = null;
+                            LogError(holon, providerType, ex.ToString());
                             //If the next provider errors then just continue to the next provider.
                         }
                     }
                 }
-                //   }
+            }
+
+            if (result.Result == null)
+            {
+                result.IsError = true;
+                string errorMessage = string.Concat("All registered OASIS Providers in the AutoFailOverList failed to save ", GetHolonInfoForLogging(holon), ". Please view the logs for more information. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString());
+                result.Message = errorMessage;
+                LoggingManager.Log(errorMessage, LogType.Error);
             }
 
             foreach (EnumValue<ProviderType> type in ProviderManager.GetProvidersThatAreAutoReplicating())
@@ -164,16 +170,15 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                     }
                     catch (Exception ex)
                     {
-                        // Add logging here.
+                        LogError(holon, providerType, ex.ToString());
                     }
                 }
             }
 
-            // Set the current provider back to the original provider.
-          //  if (needToChangeBack)
-                ProviderManager.SetAndActivateCurrentStorageProvider(currentProviderType);
+            ProviderManager.SetAndActivateCurrentStorageProvider(currentProviderType);
 
-            return savedHolon;
+            result.IsSaved = result.Result != null && result.Result.Id != Guid.Empty;
+            return result;
         }
 
         //TODO: Need to implement this format to ALL other Holon/Avatar Manager methods with OASISResult, etc.
@@ -245,44 +250,48 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return result;
         }
 
-        public IEnumerable<IHolon> SaveHolons(IEnumerable<IHolon> holons, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IEnumerable<IHolon>> SaveHolons(IEnumerable<IHolon> holons, ProviderType providerType = ProviderType.Default)
         {
             ProviderType currentProviderType = ProviderManager.CurrentStorageProviderType.Value;
-            IEnumerable<IHolon> savedHolons = null;
+            OASISResult<IEnumerable<IHolon>> result = new OASISResult<IEnumerable<IHolon>>();
 
             try
             {
-                savedHolons = ProviderManager.SetAndActivateCurrentStorageProvider(providerType).Result.SaveHolons(PrepareHolonsForSaving(holons));
+                result.Result = ProviderManager.SetAndActivateCurrentStorageProvider(providerType).Result.SaveHolons(PrepareHolonsForSaving(holons));
+                result.IsSaved = true;
             }
             catch (Exception ex)
             {
-                savedHolons = null;
+                result.Result = null;
             }
 
-            if (savedHolons == null)
+            if (result.Result == null)
             {
-                // Only try the next provider if they are not set to auto-replicate.
-                //  if (ProviderManager.ProvidersThatAreAutoReplicating.Count == 0)
-                //  {
                 foreach (EnumValue<ProviderType> type in ProviderManager.GetProviderAutoFailOverList())
                 {
                     if (type.Value != providerType && type.Value != ProviderManager.CurrentStorageProviderType.Value)
                     {
                         try
                         {
-                            savedHolons = ProviderManager.SetAndActivateCurrentStorageProvider(type.Value).Result.SaveHolons(PrepareHolonsForSaving(holons));
+                            result.Result = ProviderManager.SetAndActivateCurrentStorageProvider(type.Value).Result.SaveHolons(PrepareHolonsForSaving(holons));
+                            result.IsSaved = true;
 
-                            if (savedHolons != null)
+                            if (result.Result != null)
                                 break;
                         }
                         catch (Exception ex)
                         {
-                            savedHolons = null;
+                            result.Result = null;
                             //If the next provider errors then just continue to the next provider.
                         }
                     }
                 }
-                //   }
+            }
+
+            if (result.Result == null)
+            {
+                result.IsError = true;
+                result.Message = string.Concat("All Registered OASIS Providers In The AutoFailOverList Failed To Save The Holons. Providers in list are ", ProviderManager.GetProviderAutoFailOverListAsString());
             }
 
             foreach (EnumValue<ProviderType> type in ProviderManager.GetProvidersThatAreAutoReplicating())
@@ -300,11 +309,8 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 }
             }
 
-            // Set the current provider back to the original provider.
-           // if (needToChangeBack)
-                ProviderManager.SetAndActivateCurrentStorageProvider(currentProviderType);
-
-            return savedHolons;
+            ProviderManager.SetAndActivateCurrentStorageProvider(currentProviderType);
+            return result;
         }
 
         //TODO: Need to implement this format to ALL other Holon/Avatar Manager methods with OASISResult, etc.
@@ -368,7 +374,6 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             }
 
             ProviderManager.SetAndActivateCurrentStorageProvider(currentProviderType);
-
             return result;
         }
 

@@ -4,16 +4,10 @@ using NextGenSoftware.OASIS.API.Core.Managers;
 
 namespace NextGenSoftware.OASIS.STAR.Zomes
 {
-    // TODO: What was the point of this class?! Need to remember! ;-) lol
     public class Zome : ZomeBase, IZome
     {
-        //private const string HOLONS_LOAD_ALL = "_holons_loadall";
-        //private const string HOLONS_ADD = "_holons_add";
-        //private const string HOLONS_REMOVE = "_holons_remove";
-
         // public delegate void HolonsLoaded(object sender, HolonsLoadedEventArgs e);
         //public event HolonsLoaded OnHolonsLoaded;
-
 
         public Zome() : base()
         {
