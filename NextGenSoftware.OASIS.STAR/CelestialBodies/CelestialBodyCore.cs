@@ -180,7 +180,8 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
             if (holons != null && !result.IsError)
             {
                 foreach (IHolon holon in holons)
-                    Zomes.Add(holon.Adapt<Zome>());
+                    Zomes.Add(SuperStar.Mapper.Map<Zome>(holon));
+                    //Zomes.Add(holon.Adapt<Zome>());
 
                 OnZomesLoaded?.Invoke(this, new ZomesLoadedEventArgs { Zomes = Zomes });
                 result.Result = Zomes;
@@ -220,12 +221,12 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
             return result;
         }
 
-        public async Task<OASISResult<IZome>> AddZome(IZome zome)
+        public async Task<OASISResult<IZome>> AddZomeAsync(IZome zome)
         {
             OASISResult<IZome> result = new OASISResult<IZome>();
 
             if (zome.Id == Guid.Empty)
-                result = await zome.Save();
+                result = await zome.SaveAsync();
  
             if (!result.IsError)
             {
@@ -242,7 +243,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
             return result;
         }
 
-        public async Task<OASISResult<IEnumerable<IHolon>>> RemoveZome(IZome zome)
+        public async Task<OASISResult<IEnumerable<IHolon>>> RemoveZomeAsync(IZome zome)
         {
             this.Zomes.Remove(zome);
             return await base.SaveHolonsAsync(this.Zomes);

@@ -28,25 +28,20 @@ namespace NextGenSoftware.OASIS.STAR.Zomes
             }
         }
 
-        //public delegate void Events.HolonSaved(object sender, HolonSavedEventArgs e);
-        public event Events.HolonSaved OnHolonSaved;
-
-       // public delegate void Events.HolonLoaded(object sender, HolonLoadedEventArgs e);
-        public event Events.HolonLoaded OnHolonLoaded;
-
-       // public delegate void HolonsLoaded(object sender, HolonsLoadedEventArgs e);
-        public event Events.HolonsLoaded OnHolonsLoaded;
-
-       // public delegate void Initialized(object sender, System.EventArgs e);
         public event Events.Initialized OnInitialized;
-
-       // public delegate void ZomeError(object sender, ZomeErrorEventArgs e);
+        public event Events.HolonLoaded OnHolonLoaded;
+        public event Events.HolonsLoaded OnHolonsLoaded;
+        public event Events.HolonSaved OnHolonSaved;
+        public event Events.HolonsSaved OnHolonsSaved;
+        public event Events.ZomeSaved OnSaved;
+        public event Events.HolonAdded OnHolonAdded;
+        public event Events.HolonRemoved OnHolonRemoved;
+        //public event Events.ZomesLoaded OnZomesLoaded;
         public event Events.ZomeError OnZomeError;
 
         ////TODO: Not sure if we want to expose the HoloNETClient events at this level? They can subscribe to them through the HoloNETClient property below...
         //public delegate void Disconnected(object sender, DisconnectedEventArgs e);
         //public event Disconnected OnDisconnected;
-
         //public delegate void DataReceived(object sender, DataReceivedEventArgs e);
         //public event DataReceived OnDataReceived;
 
@@ -57,61 +52,99 @@ namespace NextGenSoftware.OASIS.STAR.Zomes
             //TODO: Eventually want to replace all exceptions with OASISResult throughout the OASIS because then it makes sure errors are handled properly and friendly messages are shown (plus less overhead of throwing an entire stack trace!)
             if (result.IsError)
                 ErrorHandling.HandleError(ref result, string.Concat("Error calling OASISDNAManager.GetAndActivateDefaultProvider(). Error details: ", result.Message), true, false, true);
-
-            _holonManager = new HolonManager(result.Result);
+            else
+            {
+                _holonManager = new HolonManager(result.Result);
+                OnInitialized?.Invoke(this, new System.EventArgs());
+            }
         }
 
         public virtual async Task<IHolon> LoadHolonAsync(Guid id)
         {
-            return await _holonManager.LoadHolonAsync(id);
+            IHolon holon = await _holonManager.LoadHolonAsync(id);
+            OnHolonLoaded?.Invoke(this, new HolonLoadedEventArgs() { Holon = holon });
+            return holon;
+        }
+
+        public virtual IHolon LoadHolon(Guid id)
+        {
+            IHolon holon = _holonManager.LoadHolon(id);
+            OnHolonLoaded?.Invoke(this, new HolonLoadedEventArgs() { Holon = holon });
+            return holon;
         }
 
 
         public virtual async Task<IHolon> LoadHolonAsync(Dictionary<ProviderType, string> providerKey)
         {
-            return await _holonManager.LoadHolonAsync(GetCurrentProviderKey(providerKey));
+            IHolon holon = await _holonManager.LoadHolonAsync(GetCurrentProviderKey(providerKey));
+            OnHolonLoaded?.Invoke(this, new HolonLoadedEventArgs() { Holon = holon });
+            return holon;
         }
 
         public virtual IHolon LoadHolon(Dictionary<ProviderType, string> providerKey)
         {
-            return _holonManager.LoadHolon(GetCurrentProviderKey(providerKey));
+            IHolon holon = _holonManager.LoadHolon(GetCurrentProviderKey(providerKey));
+            OnHolonLoaded?.Invoke(this, new HolonLoadedEventArgs() { Holon = holon });
+            return holon;
         }
 
         public virtual async Task<IEnumerable<IHolon>> LoadHolonsAsync(Guid id, HolonType type = HolonType.All)
         {
-            return await _holonManager.LoadHolonsForParentAsync(id, type);
-        }
-
-        public virtual IHolon LoadHolon(Guid id)
-        {
-            return _holonManager.LoadHolon(id);
+            IEnumerable<IHolon> holons = await _holonManager.LoadHolonsForParentAsync(id, type);
+            OnHolonsLoaded?.Invoke(this, new HolonsLoadedEventArgs() { Holons = (List<IHolon>)holons });
+            return holons;
         }
 
         public virtual IEnumerable<IHolon> LoadHolons(Guid id, HolonType type = HolonType.All)
         {
-            return _holonManager.LoadHolonsForParent(id, type);
+            IEnumerable<IHolon> holons = _holonManager.LoadHolonsForParent(id, type);
+            OnHolonsLoaded?.Invoke(this, new HolonsLoadedEventArgs() { Holons = (List<IHolon>)holons });
+            return holons;
         }
 
         public virtual async Task<IEnumerable<IHolon>> LoadHolonsAsync(Dictionary<ProviderType, string> providerKey, HolonType type = HolonType.All)
         {
-            return await _holonManager.LoadHolonsForParentAsync(GetCurrentProviderKey(providerKey), type);
+            IEnumerable<IHolon> holons = await _holonManager.LoadHolonsForParentAsync(GetCurrentProviderKey(providerKey), type);
+            OnHolonsLoaded?.Invoke(this, new HolonsLoadedEventArgs() { Holons = (List<IHolon>)holons });
+            return holons;
         }
+
         public virtual IEnumerable<IHolon> LoadHolons(Dictionary<ProviderType, string> providerKey, HolonType type = HolonType.All)
         {
-            return _holonManager.LoadHolonsForParent(GetCurrentProviderKey(providerKey), type);
+            IEnumerable<IHolon> holons = _holonManager.LoadHolonsForParent(GetCurrentProviderKey(providerKey), type);
+            OnHolonsLoaded?.Invoke(this, new HolonsLoadedEventArgs() { Holons = (List<IHolon>)holons });
+            return holons;
         }
 
         public virtual async Task<OASISResult<IHolon>> SaveHolonAsync(IHolon savingHolon)
         {
-            return await _holonManager.SaveHolonAsync(savingHolon);
+            OASISResult<IHolon> result = await _holonManager.SaveHolonAsync(savingHolon);
+            OnHolonSaved?.Invoke(this, new HolonSavedEventArgs() { Result = result });
+            return result;
+        }
+
+        public virtual OASISResult<IHolon> SaveHolon(IHolon savingHolon)
+        {
+            OASISResult<IHolon> result = _holonManager.SaveHolon(savingHolon);
+            OnHolonSaved?.Invoke(this, new HolonSavedEventArgs() { Result = result });
+            return result;
         }
 
         public virtual async Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> savingHolons)
         {
-            return await _holonManager.SaveHolonsAsync(savingHolons);
+            OASISResult<IEnumerable<IHolon>> result = await _holonManager.SaveHolonsAsync(savingHolons);
+            OnHolonsSaved?.Invoke(this, new HolonsSavedEventArgs() { Result = result });
+            return result;
         }
 
-        public virtual async Task<OASISResult<IZome>> Save()
+        public virtual OASISResult<IEnumerable<IHolon>> SaveHolons(IEnumerable<IHolon> savingHolons)
+        {
+            OASISResult<IEnumerable<IHolon>> result = _holonManager.SaveHolons(savingHolons);
+            OnHolonsSaved?.Invoke(this, new HolonsSavedEventArgs() { Result = result });
+            return result;
+        }
+
+        public virtual async Task<OASISResult<IZome>> SaveAsync()
         {
             OASISResult<IZome> zomeResult = new OASISResult<IZome>((IZome)this);
 
@@ -142,6 +175,7 @@ namespace NextGenSoftware.OASIS.STAR.Zomes
                 }
                 else
                 {
+                    //TODO Causes cast error - fix tomorrow! :)
                     this.Holons = (List<Holon>)holonsResult.Result; // Update the holons collection now the holons will have their id's set.
 
                     // Now we need to save the zome again so its child holons have their ids set.
@@ -162,21 +196,95 @@ namespace NextGenSoftware.OASIS.STAR.Zomes
                 zomeResult.Message = holonResult.Message;
             }
 
+            OnSaved?.Invoke(this, new ZomeSavedEventArgs() { Result = zomeResult });
             return zomeResult;
         }
 
-        public async Task<OASISResult<IEnumerable<IHolon>>> AddHolon(IHolon holon)
+        public virtual OASISResult<IZome> Save()
         {
-            //return await base.SaveHolonAsync(string.Concat(this.Name, HOLONS_ADD), zome);
-            this.Holons.Add((Holon)holon);
-            return await SaveHolonsAsync(this.Holons);
+            OASISResult<IZome> zomeResult = new OASISResult<IZome>((IZome)this);
+
+            //First save the zome.
+            OASISResult<IHolon> holonResult = _holonManager.SaveHolon(this);
+
+            if (!zomeResult.IsError)
+            {
+                this.Id = holonResult.Result.Id;
+                this.ProviderKey = holonResult.Result.ProviderKey;
+                this.CreatedByAvatar = holonResult.Result.CreatedByAvatar;
+                this.CreatedByAvatarId = holonResult.Result.CreatedByAvatarId;
+                this.CreatedDate = holonResult.Result.CreatedDate;
+                this.ModifiedByAvatar = holonResult.Result.ModifiedByAvatar;
+                this.ModifiedByAvatarId = holonResult.Result.ModifiedByAvatarId;
+                this.ModifiedDate = holonResult.Result.ModifiedDate;
+                this.Children = holonResult.Result.Children;
+
+                ZomeHelper.SetParentIdsForZome(this.ParentStar, this.ParentPlanet, this.ParentMoon, (IZome)this);
+
+                // Now save the zome child holons (each OASIS Provider will recursively save each child holon, could do the recursion here and just save each holon indivudally with SaveHolonAsync but this way each OASIS Provider can optimise the the way it saves (batches, etc), which would be quicker than making multiple calls...)
+                OASISResult<IEnumerable<IHolon>> holonsResult = _holonManager.SaveHolons(this.Holons);
+
+                if (holonsResult.IsError)
+                {
+                    zomeResult.IsError = true;
+                    zomeResult.Message = holonsResult.Message;
+                }
+                else
+                {
+                    this.Holons = (List<Holon>)holonsResult.Result; // Update the holons collection now the holons will have their id's set.
+
+                    // Now we need to save the zome again so its child holons have their ids set.
+                    // TODO: We may not need to do this save again in future since when we load the zome we could lazy load its child holons seperatley from their parentZomeIds.
+                    // But loading the zome with all its child holons will be faster than loading them seperatley (but only if the current OASIS Provider supports this, so far MongoDBOASIS does).
+                    holonResult = _holonManager.SaveHolon(this);
+
+                    if (holonsResult.IsError)
+                    {
+                        zomeResult.IsError = true;
+                        zomeResult.Message = holonsResult.Message;
+                    }
+                }
+            }
+            else
+            {
+                zomeResult.IsError = true;
+                zomeResult.Message = holonResult.Message;
+            }
+
+            OnSaved?.Invoke(this, new ZomeSavedEventArgs() { Result = zomeResult });
+            return zomeResult;
         }
 
-        public async Task<OASISResult<IEnumerable<IHolon>>> RemoveHolon(IHolon holon)
+        public async Task<OASISResult<IEnumerable<IHolon>>> AddHolonAsync(IHolon holon)
         {
-            //return await base.SaveHolonAsync(string.Concat(this.Name, HOLONS_REMOVE), zome);
+            this.Holons.Add((Holon)holon);
+            OASISResult<IEnumerable<IHolon>> result = await SaveHolonsAsync(this.Holons);
+            OnHolonAdded?.Invoke(this, new HolonAddedEventArgs() { Result = result });
+            return result;
+        }
+
+        public OASISResult<IEnumerable<IHolon>> AddHolon(IHolon holon)
+        {
+            this.Holons.Add((Holon)holon);
+            OASISResult<IEnumerable<IHolon>> result = SaveHolons(this.Holons);
+            OnHolonAdded?.Invoke(this, new HolonAddedEventArgs() { Result = result });
+            return result;
+        }
+
+        public async Task<OASISResult<IEnumerable<IHolon>>> RemoveHolonAsync(IHolon holon)
+        {
             this.Holons.Remove((Holon)holon);
-            return await SaveHolonsAsync(this.Holons);
+            OASISResult<IEnumerable<IHolon>> result = await SaveHolonsAsync(this.Holons);
+            OnHolonRemoved?.Invoke(this, new HolonRemovedEventArgs() { Result = result });
+            return result;
+        }
+
+        public OASISResult<IEnumerable<IHolon>> RemoveHolon(IHolon holon)
+        {
+            this.Holons.Remove((Holon)holon);
+            OASISResult<IEnumerable<IHolon>> result = SaveHolons(this.Holons);
+            OnHolonRemoved?.Invoke(this, new HolonRemovedEventArgs() { Result = result });
+            return result;
         }
 
         private string GetCurrentProviderKey(Dictionary<ProviderType, string> providerKey)

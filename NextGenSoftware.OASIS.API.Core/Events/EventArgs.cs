@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 
@@ -24,6 +25,11 @@ namespace NextGenSoftware.OASIS.API.Core.Events
         public List<IZome> Zomes { get; set; }
     }
 
+    public class ZomeSavedEventArgs : EventArgs
+    {
+        public OASISResult<IZome> Result { get; set; }
+    }
+
     public class HolonLoadedEventArgs : EventArgs
     {
         public IHolon Holon { get; set; }
@@ -36,8 +42,24 @@ namespace NextGenSoftware.OASIS.API.Core.Events
 
     public class HolonSavedEventArgs : EventArgs
     {
-        public IHolon Holon { get; set; }
+        public OASISResult<IHolon> Result { get; set; }
     }
+
+    public class HolonsSavedEventArgs : EventArgs
+    {
+        public OASISResult<IEnumerable<IHolon>> Result { get; set; }
+    }
+
+    public class HolonAddedEventArgs : EventArgs
+    {
+        public OASISResult<IEnumerable<IHolon>> Result { get; set; }
+    }
+
+    public class HolonRemovedEventArgs : EventArgs
+    {
+        public OASISResult<IEnumerable<IHolon>> Result { get; set; }
+    }
+
     public class ZomeErrorEventArgs : EventArgs
     {
         public string EndPoint { get; set; }
