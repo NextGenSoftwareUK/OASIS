@@ -9,6 +9,7 @@ using NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories;
 using NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities;
 using MongoDB.Bson.Serialization.Conventions;
 using MongoDB.Bson.Serialization.Options;
+using NextGenSoftware.OASIS.API.Core.Helpers;
 
 namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
 {
@@ -183,7 +184,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             return ConvertMongoEntitysToOASISHolons(_holonRepository.GetAllHolonsForParent(id, type));
         }
 
-        public override async Task<IEnumerable<IHolon>> LoadHolonsForParentAsync(string providerKey, HolonType type = HolonType.All)
+        public override async OASISResult<Task<IEnumerable<IHolon>>> LoadHolonsForParentAsync(string providerKey, HolonType type = HolonType.All)
         {
             return ConvertMongoEntitysToOASISHolons(await _holonRepository.GetAllHolonsForParentAsync(providerKey, type));
         }

@@ -99,8 +99,9 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return ProviderManager.SetAndActivateCurrentStorageProvider(provider).Result.LoadHolonsForParent(providerKey, type);
         }
 
-        public Task<IEnumerable<IHolon>> LoadHolonsForParentAsync(string providerKey, HolonType type = HolonType.All, ProviderType provider = ProviderType.Default)
+        public OASISResult<Task<IEnumerable<IHolon>>> LoadHolonsForParentAsync(string providerKey, HolonType type = HolonType.All, ProviderType provider = ProviderType.Default)
         {
+            //OASISResult < Task < IEnumerable < IHolon >>>
             return ProviderManager.SetAndActivateCurrentStorageProvider(provider).Result.LoadHolonsForParentAsync(providerKey, type);
         }
 
