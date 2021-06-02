@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Objects;
 using static NextGenSoftware.OASIS.API.Core.Managers.AvatarManager;
 
@@ -43,7 +44,7 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces
         IEnumerable<IHolon> LoadHolonsForParent(Guid id, HolonType type = HolonType.All);
         Task<IEnumerable<IHolon>> LoadHolonsForParentAsync(Guid id, HolonType type = HolonType.All);
         IEnumerable<IHolon> LoadHolonsForParent(string providerKey, HolonType type = HolonType.All);
-        Task<IEnumerable<IHolon>> LoadHolonsForParentAsync(string providerKey, HolonType type = HolonType.All);
+        Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(string providerKey, HolonType type = HolonType.All);
         IEnumerable<IHolon> LoadAllHolons(HolonType type = HolonType.All);
         Task<IEnumerable<IHolon>> LoadAllHolonsAsync(HolonType type = HolonType.All);
         bool DeleteHolon(Guid id, bool softDelete = true);

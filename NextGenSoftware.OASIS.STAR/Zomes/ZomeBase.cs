@@ -102,11 +102,14 @@ namespace NextGenSoftware.OASIS.STAR.Zomes
             return holons;
         }
 
-        public virtual async OASISResult<Task<IEnumerable<IHolon>>> LoadHolonsAsync(Dictionary<ProviderType, string> providerKey, HolonType type = HolonType.All)
+        public virtual async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsAsync(Dictionary<ProviderType, string> providerKey, HolonType type = HolonType.All)
         {
-            IEnumerable<IHolon> holons = await _holonManager.LoadHolonsForParentAsync(GetCurrentProviderKey(providerKey), type);
-            OnHolonsLoaded?.Invoke(this, new HolonsLoadedEventArgs() { Holons = (List<IHolon>)holons });
-            return holons;
+            OASISResult<IEnumerable<IHolon>> result = await _holonManager.LoadHolonsForParentAsync(GetCurrentProviderKey(providerKey), type);
+            
+            if (!result.IsError)
+                OnHolonsLoaded?.Invoke(this, new HolonsLoadedEventArgs() { Holons = (List<IHolon>)result.Result });
+
+            return result;
         }
 
         public virtual IEnumerable<IHolon> LoadHolons(Dictionary<ProviderType, string> providerKey, HolonType type = HolonType.All)

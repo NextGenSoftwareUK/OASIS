@@ -9,7 +9,9 @@ namespace NextGenSoftware.OASIS.API.Core.Helpers
         private bool _isWarning = false;
         private string _message = "";
 
-        public OASISResult<T> InnerResult { get; set; }
+        //public List<OASISResult<T2>> InnerResults { get; set; } = new List<OASISResult<T2>>();
+        public List<string> InnerMessages = new List<string>();
+        public Exception Exception { get; set; }
         public Dictionary<string, string> MetaData = new Dictionary<string, string>();
         public bool IsError 
         { 
@@ -44,7 +46,7 @@ namespace NextGenSoftware.OASIS.API.Core.Helpers
         }
 
         public bool IsSaved { get; set; }
-        //public string ErrorMessage { get; set; }
+
         public string Message
         {
             get
