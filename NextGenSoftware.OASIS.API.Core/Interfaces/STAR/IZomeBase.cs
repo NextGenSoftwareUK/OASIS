@@ -27,7 +27,7 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces.STAR
         IHolon LoadHolon(Guid id);
         Task<IHolon> LoadHolonAsync(Dictionary<ProviderType, string> providerKey);
         IHolon LoadHolon(Dictionary<ProviderType, string> providerKey);
-        Task<IEnumerable<IHolon>> LoadHolonsAsync(Guid id, HolonType type = HolonType.All);
+        Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsAsync(Guid id, HolonType type = HolonType.All);
         IEnumerable<IHolon> LoadHolons(Guid id, HolonType type = HolonType.All);
         OASISResult<Task<IEnumerable<IHolon>>> LoadHolonsAsync(Dictionary<ProviderType, string> providerKey, HolonType type = HolonType.All);
         IEnumerable<IHolon> LoadHolons(Dictionary<ProviderType, string> providerKey, HolonType type = HolonType.All);

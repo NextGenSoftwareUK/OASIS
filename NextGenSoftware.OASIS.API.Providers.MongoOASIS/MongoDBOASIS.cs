@@ -4,12 +4,10 @@ using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories;
 using NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities;
-using MongoDB.Bson.Serialization.Conventions;
-using MongoDB.Bson.Serialization.Options;
-using NextGenSoftware.OASIS.API.Core.Helpers;
 
 namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
 {
@@ -184,9 +182,22 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             return ConvertMongoEntitysToOASISHolons(_holonRepository.GetAllHolonsForParent(id, type));
         }
 
-        public override async OASISResult<Task<IEnumerable<IHolon>>> LoadHolonsForParentAsync(string providerKey, HolonType type = HolonType.All)
+        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(string providerKey, HolonType type = HolonType.All)
         {
-            return ConvertMongoEntitysToOASISHolons(await _holonRepository.GetAllHolonsForParentAsync(providerKey, type));
+            OASISResult<IEnumerable<IHolon>> result = new OASISResult<IEnumerable<IHolon>>();
+            OASISResult<IEnumerable<Holon>> repoResult = await _holonRepository.GetAllHolonsForParentAsync(providerKey, type);
+
+            if (repoResult.IsError)
+            {
+                result.IsError = true;
+                result.Message = repoResult.Message;
+            }
+            else
+                result.Result = ConvertMongoEntitysToOASISHolons(repoResult.Result);
+
+            return result;
+
+            //return ConvertMongoEntitysToOASISHolons(await _holonRepository.GetAllHolonsForParentAsync(providerKey, type));
         }
 
         public override IEnumerable<IHolon> LoadHolonsForParent(string providerKey, HolonType type = HolonType.All)
