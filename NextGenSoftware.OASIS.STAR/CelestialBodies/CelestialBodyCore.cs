@@ -179,6 +179,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
 
             if (holons != null && !result.IsError)
             {
+               // Zomes = SuperStar.Mapper.Map<List<Zome>(holons);
                 foreach (IHolon holon in holons)
                     Zomes.Add(SuperStar.Mapper.Map<Zome>(holon));
                     //Zomes.Add(holon.Adapt<Zome>());

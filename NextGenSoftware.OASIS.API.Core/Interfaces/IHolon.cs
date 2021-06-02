@@ -18,17 +18,18 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces
         Dictionary<ProviderType, Dictionary<string, string>> ProviderMetaData { get; set; } 
         Dictionary<string, string> MetaData { get; set; } 
         HolonType HolonType { get; set; }
+        public Guid ParentGreatGrandStarId { get; set; } //The GreatGrandSuperStar this Holon belongs to.
+        public IGreatGrandSuperStar ParentGreatGrandSuperStar { get; set; } //The GreatGrandSuperStar this Holon belongs to.
+        public Guid ParentGrandStarId { get; set; } //The GrandSuperStar this Holon belongs to.
+        public IGrandSuperStar ParentGrandSuperStar { get; set; } //The GrandSuperStar this Holon belongs to.
+        public Guid ParentSuperStarId { get; set; } //The SuperStar this Holon belongs to.
+        public IGrandSuperStar ParentSuperStar { get; set; } //The SuperStar this Holon belongs to.
         public Guid ParentStarId { get; set; } //The Star this Holon belongs to.
-        //public ICelestialBody ParentStar { get; set; } //The Star this Holon belongs to.
         public IStar ParentStar { get; set; } //The Star this Holon belongs to.
         public Guid ParentPlanetId { get; set; } //The Planet this Holon belongs to.
-        //public ICelestialBody ParentPlanet { get; set; } //The Planet this Holon belongs to.
         public IPlanet ParentPlanet { get; set; } //The Planet this Holon belongs to.
-        public Guid ParentMoonId { get; set; } //The Moon this Holon belongs to.
-        //public ICelestialBody ParentMoon { get; set; } //The Moon this Holon belongs to.
+        public Guid ParentMoonId { get; set; } //The Moon this Holon belongs to.    
         public IMoon ParentMoon { get; set; } //The Moon this Holon belongs to.
-        //public Guid ParentCelestialBodyId { get; set; } //The CelestialBody (Planet or Moon (OAPP)) this Holon belongs to.
-        //public ICelestialBody ParentCelestialBody { get; set; } //The CelestialBody (Planet or Moon (OAPP)) this Holon belongs to.
         public Guid ParentZomeId { get; set; } // The zome this holon belongs to. Zomes are like re-usable modules that other OAPP's can be composed of. Zomes contain collections of nested holons (data objects). Holons can be infinite depth.
         public IZome ParentZome { get; set; } // The zome this holon belongs to. Zomes are like re-usable modules that other OAPP's can be composed of. Zomes contain collections of nested holons (data objects). Holons can be infinite depth.
         public Guid ParentHolonId { get; set; }
