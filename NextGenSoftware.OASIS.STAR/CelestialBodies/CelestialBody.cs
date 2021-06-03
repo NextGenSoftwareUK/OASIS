@@ -13,6 +13,8 @@ using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.Holochain.HoloNET.Client.Core;
 using NextGenSoftware.OASIS.STAR.Zomes;
+using static NextGenSoftware.OASIS.API.Core.Events.Events;
+using Mapster;
 
 namespace NextGenSoftware.OASIS.STAR.CelestialBodies
 {
@@ -30,7 +32,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
         // public string RustHolonType { get; set; }
         //  public string RustCelestialBodyType { get; set; }
         public GenesisType GenesisType { get; set; }
-       // ICelestialBodyCore ICelestialBody.CelestialBodyCore { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        // ICelestialBodyCore ICelestialBody.CelestialBodyCore { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 
         public bool IsInitialized
         {
@@ -61,63 +63,47 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
         //    }
         //}
 
-        public delegate void HolonsLoaded(object sender, HolonsLoadedEventArgs e);
         public event HolonsLoaded OnHolonsLoaded;
-
-        public delegate void ZomesLoaded(object sender, ZomesLoadedEventArgs e);
         public event ZomesLoaded OnZomesLoaded;
-
-        public delegate void HolonSaved(object sender, HolonSavedEventArgs e);
         public event HolonSaved OnHolonSaved;
-
-        public delegate void HolonLoaded(object sender, HolonLoadedEventArgs e);
         public event HolonLoaded OnHolonLoaded;
-
-        public delegate void Initialized(object sender, EventArgs e);
         public event Initialized OnInitialized;
-
-        public delegate void ZomeError(object sender, ZomeErrorEventArgs e);
         public event ZomeError OnZomeError;
 
-        //TODO: Move these two events to IOASISStorage so can be shared...
-        public delegate void Disconnected(object sender, DisconnectedEventArgs e);
-        public event Disconnected OnDisconnected;
-
-        public delegate void DataReceived(object sender, DataReceivedEventArgs e);
-        public event DataReceived OnDataReceived;
-
-       // public HoloNETClientBase HoloNETClient { get; private set; }
+        //TODO: Think will remove these soon, these were only used for HoloNET...
+       // public event Disconnected OnDisconnected;
+       // public delegate void DataReceived(object sender, DataReceivedEventArgs e);
+       // public event DataReceived OnDataReceived;
+        // public HoloNETClientBase HoloNETClient { get; private set; }
 
         public CelestialBody()
         {
-            Initialize(); //TODO: It never called this from the constructor before, was there a good reason? Will soon find out! ;-)
+            //Initialize(); //TODO: It never called this from the constructor before, was there a good reason? Will soon find out! ;-)
         }
 
         public CelestialBody(GenesisType genesisType)
         {
             this.GenesisType = genesisType;
-            Initialize();  //TODO: It never called this from the constructor before, was there a good reason? Will soon find out! ;-)
+            //Initialize();  //TODO: It never called this from the constructor before, was there a good reason? Will soon find out! ;-)
         }
 
-        //TODO: Don't think we need to pass Id in if we are using ProviderKey?
+        public CelestialBody(Guid id, GenesisType genesisType)
+        {
+            this.GenesisType = genesisType;
+            this.Id = id;
+            //Initialize();
+        }
+
         public CelestialBody(Dictionary<ProviderType, string> providerKey, GenesisType genesisType)
         {
             this.GenesisType = genesisType;
-            //this.ProviderKey[ProviderManager.CurrentStorageProviderType.Value] = providerKey;
             this.ProviderKey = providerKey;
-
-            Initialize();  //TODO: It never called this from the constructor before, was there a good reason? Will soon find out! ;-)
+            //Initialize();  //TODO: It never called this from the constructor before, was there a good reason? Will soon find out! ;-)
         }
 
-        public void LoadAll()
+        public async Task<OASISResult<ICelestialBody>> SaveAsync()
         {
-          //  LoadHolons();
-            LoadZomes();
-        }
-
-        public async Task<OASISResult<ICelestialBody>> Save()
-        {
-            OASISResult<ICelestialBody> result = new OASISResult<ICelestialBody>();
+            OASISResult<ICelestialBody> result = new OASISResult<ICelestialBody>(this);
             OASISResult<IHolon> celestialBodyHolonResult = new OASISResult<IHolon>();
 
             if (this.Children == null)
@@ -128,186 +114,203 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
             {
                 result.Result = this;
                 result.IsSaved = false;
+                result.Message = "No changes need saving";
                 return result;
             }
 
-            // If the celestiablBody has not been saved yet then save now so its children can set the parentId's.
-           // if (this.Id == Guid.Empty)
-           // {
-                celestialBodyHolonResult = await CelestialBodyCore.SaveCelestialBodyAsync(this);
-                
-                if (celestialBodyHolonResult.IsError)
-                {
-                    result.IsError = true;
-                    result.ErrorMessage = celestialBodyHolonResult.ErrorMessage;
-                    return result;
-                }
-                else
-                {
-                    this.Id = celestialBodyHolonResult.Result.Id;
-                    this.ProviderKey = celestialBodyHolonResult.Result.ProviderKey;
-                    this.CelestialBodyCore.ProviderKey = celestialBodyHolonResult.Result.ProviderKey;
-                    this.CreatedByAvatar = celestialBodyHolonResult.Result.CreatedByAvatar;
-                    this.CreatedByAvatarId = celestialBodyHolonResult.Result.CreatedByAvatarId;
-                    this.CreatedDate = celestialBodyHolonResult.Result.CreatedDate;
-                    this.ModifiedByAvatar = celestialBodyHolonResult.Result.ModifiedByAvatar;
-                    this.ModifiedByAvatarId = celestialBodyHolonResult.Result.ModifiedByAvatarId;
-                    this.ModifiedDate = celestialBodyHolonResult.Result.ModifiedDate;
-                    this.Children = celestialBodyHolonResult.Result.Children;
+            celestialBodyHolonResult = await CelestialBodyCore.SaveCelestialBodyAsync(this);
+            result.Message = celestialBodyHolonResult.Message;
+            result.IsSaved = celestialBodyHolonResult.IsSaved;
 
-                    // TODO: Not sure if ParentStar and ParentPlanet will be set?
-                    switch (this.HolonType)
-                    {
-                        case HolonType.Star:
-                            SetParentIdsForStar((IStar)this);
-                            break;
-
-                        case HolonType.Planet:
-                            SetParentIdsForPlanet(this.ParentStar, (IPlanet)this);
-                            break;
-
-                        case HolonType.Moon:
-                            SetParentIdsForMoon(this.ParentStar, this.ParentPlanet, (IMoon)this);
-                            break;
-                    }
-                }
-           // }
-
-            //TODO: We need to indivudally save each planet/zome/holon first so we get their unique id's. We can then set the parentId's etc.
-            if (this.HolonType == HolonType.Star)
+            if (celestialBodyHolonResult.IsError || !celestialBodyHolonResult.IsSaved || celestialBodyHolonResult.Result == null)
             {
-                foreach (Planet planet in ((IStar)this).Planets)
-                {
-                    result = await planet.Save(); // TODO: Think we need to save again even if id is not null just in case its children have changed since last time it was saved?
-
-                    if (result.IsError)
-                        return result;
-
-                   // ((List<Holon>)this.Children).Add(planet);
-                }
+                result.IsError = celestialBodyHolonResult.IsError;
+                return result;
             }
-            else
-            {
-                OASISResult<IZome> zomeResult = new OASISResult<IZome>(); 
 
-                if (this.HolonType == HolonType.Planet)
+            //this = HolonSavedHelper.MapBaseHolonProperties(celestialBodyHolonResult.Result, this);
+            SetProperties(celestialBodyHolonResult.Result);
+            //celestialBodyHolonResult.Result.Adapt(this);
+            // SuperStar.Mapper.Map()
+            //this = SuperStar.Mapper.Map<CelestialBody>(celestialBodyHolonResult.Result);
+
+            // TODO: Not sure if ParentStar and ParentPlanet will be set?
+            switch (this.HolonType)
+            {
+                case HolonType.SuperStar:
+                    SetParentIdsForSuperStar();
+                    break;
+
+                case HolonType.Star:
+                    SetParentIdsForStar((IStar)this);
+                    break;
+
+                case HolonType.Planet:
+                    SetParentIdsForPlanet(this.ParentStar, (IPlanet)this);
+                    break;
+
+                case HolonType.Moon:
+                    SetParentIdsForMoon(this.ParentStar, this.ParentPlanet, (IMoon)this);
+                    break;
+            }
+
+            if (this.HolonType == HolonType.SuperStar)
+            {
+                //TODO: Eventually this will use "this" rather than static SuperStar when SuperStar inherits from Star and a new static GrandSuperStar is created... :)
+                if (SuperStar.Stars != null)
                 {
-                    foreach (Moon moon in ((IPlanet)this).Moons)
+                    foreach (Star star in SuperStar.Stars)
                     {
-                        result = await moon.Save();
+                        result = await star.SaveAsync();
 
                         if (result.IsError)
                             return result;
                     }
                 }
+            }
 
-                foreach (Zome zome in this.CelestialBodyCore.Zomes)
+            //TODO: We need to indivudally save each planet/zome/holon first so we get their unique id's. We can then set the parentId's etc.
+            if (this.HolonType == HolonType.Star)
+            {
+                if (((IStar)this).Planets != null)
                 {
-                    // if (zome.Id == Guid.Empty)
-                    zomeResult = await zome.Save(); // TODO: Think we need to save again even if id is not null just in case its children have changed since last time it was saved?
-
-                    if (zomeResult.IsError)
+                    foreach (Planet planet in ((IStar)this).Planets)
                     {
-                        result.IsError = true;
-                        result.ErrorMessage = zomeResult.ErrorMessage;
-                        return result;
-                    }
+                        result = await planet.SaveAsync(); // TODO: Think we need to save again even if id is not null just in case its children have changed since last time it was saved?
 
-                   // ((List<Holon>)this.Children).Add(zome);
+                        if (result.IsError)
+                            return result;
+
+                        // ((List<Holon>)this.Children).Add(planet);
+                    }
+                }
+            }
+            else
+            {
+                OASISResult<IZome> zomeResult = new OASISResult<IZome>();
+
+                if (this.HolonType == HolonType.Planet)
+                {
+                    if (((IPlanet)this).Moons != null)
+                    {
+                        foreach (Moon moon in ((IPlanet)this).Moons)
+                        {
+                            result = await moon.SaveAsync();
+
+                            if (result.IsError)
+                                return result;
+                        }
+                    }
+                }
+
+                if (CelestialBodyCore.Zomes != null)
+                {
+                    foreach (Zome zome in this.CelestialBodyCore.Zomes)
+                    {
+                        // if (zome.Id == Guid.Empty)
+                        zomeResult = await zome.SaveAsync(); // TODO: Think we need to save again even if id is not null just in case its children have changed since last time it was saved?
+
+                        if (zomeResult.IsError)
+                        {
+                            result.IsError = true;
+                            result.Message = zomeResult.Message;
+                            return result;
+                        }
+
+                        // ((List<Holon>)this.Children).Add(zome);
+                    }
                 }
             }
 
-            OASISResult<IHolon> holonResult = await CelestialBodyCore.SaveCelestialBodyAsync(this);
+            // Finally we need to save again so the child holon ids's are stored in the graph...
+            // TODO: We may not need to do this save again in future since when we load the zome we could lazy load its child holons seperatley from their parentIds.
+            // But loading the celestialbody with all its child holons will be faster than loading them seperatley (but only if the current OASIS Provider supports this, so far MongoDBOASIS does).
 
-            if (holonResult.Result != null)
-            {
-                this.Id = holonResult.Result.Id;
-                this.ProviderKey = holonResult.Result.ProviderKey;
-                this.CelestialBodyCore.ProviderKey = holonResult.Result.ProviderKey;
-                this.CreatedByAvatar = holonResult.Result.CreatedByAvatar;
-                this.CreatedByAvatarId = holonResult.Result.CreatedByAvatarId;
-                this.CreatedDate = holonResult.Result.CreatedDate;
-                this.ModifiedByAvatar = holonResult.Result.ModifiedByAvatar;
-                this.ModifiedByAvatarId = holonResult.Result.ModifiedByAvatarId;
-                this.ModifiedDate = holonResult.Result.ModifiedDate;
-                this.Children = holonResult.Result.Children;
-            }
+            celestialBodyHolonResult = await CelestialBodyCore.SaveCelestialBodyAsync(this);
+            result.Message = celestialBodyHolonResult.Message;
+            result.IsSaved = celestialBodyHolonResult.IsSaved;
+            result.IsError = celestialBodyHolonResult.IsError;
 
-            return new OASISResult<ICelestialBody>() { Result = this, ErrorMessage = holonResult.ErrorMessage, IsError = holonResult.IsError };
+            if (!celestialBodyHolonResult.IsError && celestialBodyHolonResult.Result != null)
+                //celestialBodyHolonResult.Result.Adapt(this);
+                SetProperties(celestialBodyHolonResult.Result);
+
+            return result;
         }
 
         
-        private void SetParentIdsForHolon(IStar star, IPlanet planet, IMoon moon, IZome zome, IHolon holon)
+        private void SetProperties(IHolon holon)
         {
-            foreach (Holon innerHolon in holon.Children)
-            {
-                innerHolon.ParentHolonId = holon.Id;
-                innerHolon.ParentHolon = holon;
-                innerHolon.ParentStar = star;
-                innerHolon.ParentStarId = star.Id;
-                innerHolon.ParentPlanet = planet;
-                innerHolon.ParentPlanetId = planet.Id;
-
-                if (moon != null)
-                {
-                    holon.ParentMoon = moon;
-                    holon.ParentMoonId = moon.Id;
-                }
-
-                innerHolon.ParentZome = zome;
-                innerHolon.ParentZomeId = zome.Id;
-
-                foreach (Holon childHolon in innerHolon.Children)
-                    SetParentIdsForHolon(star, planet, moon, zome, childHolon);
-            }
-        }
-
-        private void SetParentIdsForZome(IStar star, IPlanet planet, IMoon moon, IZome zome)
-        {
-            foreach (Holon holon in zome.Holons)
-            {
-                holon.ParentHolonId = zome.Id;
-                holon.ParentHolon = zome;
-                holon.ParentStar = star;
-                holon.ParentStarId = star.Id;
-                holon.ParentPlanet = planet;
-                holon.ParentPlanetId = planet.Id;
-
-                if (moon != null)
-                { 
-                    holon.ParentMoon = moon;
-                    holon.ParentMoonId = moon.Id;
-                }
-
-                holon.ParentZome = zome;
-                holon.ParentZomeId = zome.Id;
-
-                foreach (Holon childHolon in holon.Children)
-                    SetParentIdsForHolon(star, planet, moon, zome, childHolon);
-            }
+            this.Id = holon.Id;
+            this.Name = holon.Name;
+            this.Description = holon.Description;
+            this.HolonType = holon.HolonType;
+            this.ParentHolon = holon.ParentHolon;
+            this.ParentHolonId = holon.ParentHolonId;
+            this.ParentMoon = holon.ParentMoon;
+            this.ParentMoonId = holon.ParentMoonId;
+            this.ParentPlanet = holon.ParentPlanet;
+            this.ParentPlanetId = holon.ParentPlanetId;
+            this.ParentStar = holon.ParentStar;
+            this.ParentStarId = holon.ParentStarId;
+            this.ProviderKey = holon.ProviderKey;
+            this.CelestialBodyCore.Id = holon.Id;
+            this.CelestialBodyCore.ProviderKey = holon.ProviderKey;
+            this.CreatedByAvatar = holon.CreatedByAvatar;
+            this.CreatedByAvatarId = holon.CreatedByAvatarId;
+            this.CreatedDate = holon.CreatedDate;
+            this.ModifiedByAvatar = holon.ModifiedByAvatar;
+            this.ModifiedByAvatarId = holon.ModifiedByAvatarId;
+            this.ModifiedDate = holon.ModifiedDate;
+            this.Children = holon.Children;
         }
 
         private void SetParentIdsForMoon(IStar star, IPlanet planet, IMoon moon)
         {
-            foreach (Zome zome in moon.CelestialBodyCore.Zomes)
-                SetParentIdsForZome(star, planet, moon, (IZome)zome);
+            if (moon.CelestialBodyCore.Zomes != null)
+            {
+                foreach (Zome zome in moon.CelestialBodyCore.Zomes)
+                    ZomeHelper.SetParentIdsForZome(star, planet, moon, zome);
+            }
         }
 
         private void SetParentIdsForPlanet(IStar star, IPlanet planet)
         {
-            foreach (IZome zome in planet.CelestialBodyCore.Zomes)
-                SetParentIdsForZome(star, planet, null, zome);
+            if (planet.CelestialBodyCore.Zomes != null)
+            {
+                foreach (IZome zome in planet.CelestialBodyCore.Zomes)
+                    ZomeHelper.SetParentIdsForZome(star, planet, null, zome);
+            }
 
-            foreach (IMoon moon in planet.Moons)
-                SetParentIdsForMoon(star, planet, moon);
+            if (planet.Moons != null)
+            {
+                foreach (IMoon moon in planet.Moons)
+                    SetParentIdsForMoon(star, planet, moon);
+            }
         }
 
         private void SetParentIdsForStar(IStar star)
         {
-            foreach (IPlanet planet in star.Planets)
-                SetParentIdsForPlanet(star, planet);
+            if (star.Planets != null)
+            {
+                foreach (IPlanet planet in star.Planets)
+                    SetParentIdsForPlanet(star, planet);
+            }
 
             //TODO: Do we want to add Zomes to a Star? Maybe?
+        }
+
+        //TODO: We may one day pass in a SuperStar here? Currently its static when we thought there would be only one SuperStar but now think we will have more than one so will likely make SuperStar inherit from Star, etc. And need to change existing static SuperStar class to GrandSuperStar or something! ;-)
+        private void SetParentIdsForSuperStar()
+        {
+            if (SuperStar.Stars != null)
+            {
+                foreach (IStar star in SuperStar.Stars)
+                    SetParentIdsForStar(star);
+            }
+
+            // foreach (IPlanet planet in SuperStar.Planets)
+            //     SetParentIdsForPlanet(SuperStar.InnerStar, planet);
         }
 
 
@@ -433,68 +436,93 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
 
         }
 
-        //TODO: Make LoadZomes async once PlanetCore.LoadZomes() refactored to return a Task...
-        //public async void LoadZomes()
-        //{
-        //    Zomes = await PlanetCore.LoadZomes();
-        //}
-        public void LoadZomes()
+        public async Task<OASISResult<List<IZome>>> LoadZomesAsync()
         {
-            //Zomes = CelestialBodyCore.LoadZomes();
-            CelestialBodyCore.LoadZomes();
+            return await CelestialBodyCore.LoadZomesAsync(); 
         }
 
-        public async Task Initialize()
+        public OASISResult<List<IZome>> LoadZomes()
+        {
+            return CelestialBodyCore.LoadZomes();
+        } 
+
+        public async Task LoadCelestialBodyAsync()
+        {
+            SetProperties(await CelestialBodyCore.LoadCelestialBodyAsync());
+            //(await CelestialBodyCore.LoadCelestialBodyAsync()).Adapt(this);
+
+            //IHolon holon = await CelestialBodyCore.LoadCelestialBodyAsync();
+           // holon.Adapt(this);
+        }
+
+        public void LoadCelestialBody()
+        {
+            SetProperties(CelestialBodyCore.LoadCelestialBody());
+            //CelestialBodyCore.LoadCelestialBody().Adapt(this);
+        }
+
+        public async Task InitializeAsync()
+        {
+            InitCelestialBodyCore();
+
+            //TODO: Not even sure if we need to bother with providerKey at all when we have the id guid?
+            if (ProviderKey != null && ProviderKey.ContainsKey(ProviderManager.CurrentStorageProviderType.Value) && !string.IsNullOrEmpty(ProviderKey[ProviderManager.CurrentStorageProviderType.Value]))
+            {
+                await LoadCelestialBodyAsync();
+                await LoadZomesAsync();
+                // LoadHolons();
+            }
+            else if (Id != Guid.Empty)
+            {
+                await LoadCelestialBodyAsync();
+                await LoadZomesAsync();
+                // LoadHolons();
+            }
+
+            WireUpEvents();
+        }
+
+        public void Initialize()
+        {
+            InitCelestialBodyCore();
+
+            //TODO: Not even sure if we need to bother with providerKey at all when we have the id guid?
+            if (ProviderKey != null && ProviderKey.ContainsKey(ProviderManager.CurrentStorageProviderType.Value) && !string.IsNullOrEmpty(ProviderKey[ProviderManager.CurrentStorageProviderType.Value]))
+            {
+                LoadCelestialBody();
+                LoadZomes();
+                // LoadHolons();
+            }
+            else if (Id != Guid.Empty)
+            {
+                LoadCelestialBody();
+                LoadZomes();
+                // LoadHolons();
+            }
+
+            WireUpEvents();
+        }
+
+        private void InitCelestialBodyCore()
         {
             switch (this.GenesisType)
             {
                 case GenesisType.Planet:
-                    CelestialBodyCore = new PlanetCore(this.ProviderKey, (IPlanet)this);
+                    CelestialBodyCore = new PlanetCore(this.Id, (IPlanet)this);
                     break;
 
                 case GenesisType.Moon:
-                    CelestialBodyCore = new MoonCore(this.ProviderKey, (IMoon)this);
+                    CelestialBodyCore = new MoonCore(this.Id, (IMoon)this);
                     break;
 
                 case GenesisType.Star:
-                    CelestialBodyCore = new StarCore(this.ProviderKey, (IStar)this);
+                    CelestialBodyCore = new StarCore(this.Id, (IStar)this);
                     break;
             }
-           
-            if (ProviderKey != null && ProviderKey.ContainsKey(ProviderManager.CurrentStorageProviderType.Value) && !string.IsNullOrEmpty(ProviderKey[ProviderManager.CurrentStorageProviderType.Value]))
-            {
-               // CelestialBodyCore.ProviderKey = this.ProviderKey[ProviderManager.CurrentStorageProviderType.Value]; //_coreProviderKey = hc anchor.
-                await LoadCelestialBody();
-
-                //TODO: Load the planets Zome collection here? Or is it passed in from the sub-class implementation? Probably 2nd one... ;-)
-                //No we load the holons and zomes linked to the planetcore zome via the coreProviderKey anchor...
-                LoadZomes();
-               // LoadHolons();
-            }
-
-            await WireUpEvents();
         }
 
-        private async Task LoadCelestialBody()
+        private void WireUpEvents()
         {
-            //await PlanetCore.LoadHolonAsync(PLANET_HOLON, this.ProviderKey);
-            //await PlanetCore.LoadHolonAsync(string.Concat(this.RustHolonType, "_holon"), this.ProviderKey);
-
-            await CelestialBodyCore.LoadCelestialBodyAsync();
-        }
-
-        private async Task WireUpEvents()
-        {
-            /*
-            HoloNETClient.OnConnected += HoloNETClient_OnConnected;
-            HoloNETClient.OnDisconnected += HoloNETClient_OnDisconnected;
-          //  HoloNETClient.OnError += HoloNETClient_OnError;
-            HoloNETClient.OnDataReceived += HoloNETClient_OnDataReceived;
-            HoloNETClient.OnGetInstancesCallBack += HoloNETClient_OnGetInstancesCallBack;
-            HoloNETClient.OnSignalsCallBack += HoloNETClient_OnSignalsCallBack;
-            HoloNETClient.OnZomeFunctionCallBack += HoloNETClient_OnZomeFunctionCallBack;
-            */
-
             ((CelestialBodyCore)CelestialBodyCore).OnHolonsLoaded += PlanetCore_OnHolonsLoaded;
             ((CelestialBodyCore)CelestialBodyCore).OnZomesLoaded += PlanetCore_OnZomesLoaded;
             ((CelestialBodyCore)CelestialBodyCore).OnHolonSaved += PlanetCore_OnHolonSaved;
@@ -503,42 +531,20 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
 
         private async void PlanetCore_OnHolonSaved(object sender, HolonSavedEventArgs e)
         {
-            if (e.Holon.HolonType == HolonType.Planet)
+            //TODO: Come back to this...
+            return;
+
+            //TODO: Handle error.
+            if (!e.Result.IsError)
             {
-                // This is the hc Address of the planet (we can use this as the anchor/coreProviderKey to load all future zomes/holons belonging to this planet).
-                this.ProviderKey = e.Holon.ProviderKey;
-
-                //Just in case the zomes/holons have been added since the planet was last saved.
-                foreach (Zome zome in CelestialBodyCore.Zomes)
+                if (e.Result.Result.HolonType == HolonType.Planet)
                 {
-                    switch (HolonType)
+                    // This is the hc Address of the planet (we can use this as the anchor/coreProviderKey to load all future zomes/holons belonging to this planet).
+                    this.ProviderKey = e.Result.Result.ProviderKey;
+
+                    //Just in case the zomes/holons have been added since the planet was last saved.
+                    foreach (Zome zome in CelestialBodyCore.Zomes)
                     {
-                        case HolonType.Star:
-                            zome.ParentStar = (IStar)this;
-                            zome.ParentStarId = this.Id;
-                            break;
-
-                        case HolonType.Planet:
-                            zome.ParentPlanet = (IPlanet)this;
-                            zome.ParentPlanetId = this.Id;
-                            break;
-
-                        case HolonType.Moon:
-                            zome.ParentMoon = (IMoon)this;
-                            zome.ParentMoonId = this.Id;
-                            break;
-                    }
-
-                    zome.ParentHolonId = this.Id;
-                    zome.ParentHolon = this;
-
-                    // TODO: Need to sort this.Holons collection too (this is a list of ALL holons that belong to ALL zomes for this planet.
-                    // So the same holon will be in both collections, just that this.Holons has been flatterned. Why it's Fractal Holonic! ;-)
-                    foreach (Holon holon in zome.Holons)
-                    {
-                        holon.ParentHolon = zome;
-                        holon.ParentHolonId = zome.Id;
-
                         switch (HolonType)
                         {
                             case HolonType.Star:
@@ -556,9 +562,38 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
                                 zome.ParentMoonId = this.Id;
                                 break;
                         }
-                    }
 
-                    await zome.SaveHolonsAsync(zome.Holons);
+                        zome.ParentHolonId = this.Id;
+                        zome.ParentHolon = this;
+
+                        // TODO: Need to sort this.Holons collection too (this is a list of ALL holons that belong to ALL zomes for this planet.
+                        // So the same holon will be in both collections, just that this.Holons has been flatterned. Why it's Fractal Holonic! ;-)
+                        foreach (Holon holon in zome.Holons)
+                        {
+                            holon.ParentHolon = zome;
+                            holon.ParentHolonId = zome.Id;
+
+                            switch (HolonType)
+                            {
+                                case HolonType.Star:
+                                    zome.ParentStar = (IStar)this;
+                                    zome.ParentStarId = this.Id;
+                                    break;
+
+                                case HolonType.Planet:
+                                    zome.ParentPlanet = (IPlanet)this;
+                                    zome.ParentPlanetId = this.Id;
+                                    break;
+
+                                case HolonType.Moon:
+                                    zome.ParentMoon = (IMoon)this;
+                                    zome.ParentMoonId = this.Id;
+                                    break;
+                            }
+                        }
+
+                        await zome.SaveHolonsAsync(zome.Holons);
+                    }
                 }
             }
         }
@@ -614,75 +649,79 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
         //TODO: COME BACK TO THIS!!! 
         private void Zome_OnHolonSaved(object sender, HolonSavedEventArgs e)
         {
-            if (e.Holon.HolonType == HolonType.Zome)
+            //TODO: Handle Error.
+            if (!e.Result.IsError)
             {
-                IZome zome = GetZomeById(e.Holon.Id);
-
-                //Update the providerKey (address hash returned from hc)
-                if (zome != null)
+                if (e.Result.Result.HolonType == HolonType.Zome)
                 {
-                    //If the ProviderKey is empty then this is the first time the zome has been saved so we now need to save the zomes holons.
-                    //if (string.IsNullOrEmpty(zome.ProviderKey))
-                    // {
-                    zome.ProviderKey = e.Holon.ProviderKey;
-                    zome.ParentHolon = e.Holon;
-                    
-                    switch (HolonType)
+                    IZome zome = GetZomeById(e.Result.Result.Id);
+
+                    //Update the providerKey (address hash returned from hc)
+                    if (zome != null)
                     {
-                        case HolonType.Star:
-                            zome.ParentStar = (IStar)this;
-                            zome.ParentStarId = this.Id;
-                            break;
+                        //If the ProviderKey is empty then this is the first time the zome has been saved so we now need to save the zomes holons.
+                        //if (string.IsNullOrEmpty(zome.ProviderKey))
+                        // {
+                        zome.ProviderKey = e.Result.Result.ProviderKey;
+                        zome.ParentHolon = e.Result.Result;
 
-                        case HolonType.Planet:
-                            zome.ParentPlanet = (IPlanet)this;
-                            zome.ParentPlanetId = this.Id;
-                            break;
+                        switch (HolonType)
+                        {
+                            case HolonType.Star:
+                                zome.ParentStar = (IStar)this;
+                                zome.ParentStarId = this.Id;
+                                break;
 
-                        case HolonType.Moon:
-                            zome.ParentMoon = (IMoon)this;
-                            zome.ParentMoonId = this.Id;
-                            break;
-                    }
+                            case HolonType.Planet:
+                                zome.ParentPlanet = (IPlanet)this;
+                                zome.ParentPlanetId = this.Id;
+                                break;
 
-                    foreach (Holon holon in GetHolonsThatBelongToZome(zome))
-                        zome.SaveHolonAsync(holon);
-                    //zome.SaveHolonAsync(this.RustHolonType, holon);
-                    // }
-                }
-            }
-            else
-            {
-                IHolon holon = CelestialBodyCore.Holons.FirstOrDefault(x => x.Id == e.Holon.Id);
+                            case HolonType.Moon:
+                                zome.ParentMoon = (IMoon)this;
+                                zome.ParentMoonId = this.Id;
+                                break;
+                        }
 
-                //TODO: Come back to this... Wouldn't parent already be set? Same for zomes? Need to check...
-                if (holon != null)
-                {
-                    holon.ProviderKey = e.Holon.ProviderKey;
-                    //holon.Parent = e.Holon;
-                    //holon.ParentCelestialBody = this;
-
-                    switch (HolonType)
-                    {
-                        case HolonType.Star:
-                            holon.ParentStar = (IStar)this;
-                            holon.ParentStarId = this.Id;
-                            break;
-
-                        case HolonType.Planet:
-                            holon.ParentPlanet = (IPlanet)this;
-                            holon.ParentPlanetId = this.Id;
-                            break;
-
-                        case HolonType.Moon:
-                            holon.ParentMoon = (IMoon)this;
-                            holon.ParentMoonId = this.Id;
-                            break;
+                        foreach (Holon holon in GetHolonsThatBelongToZome(zome))
+                            zome.SaveHolonAsync(holon);
+                        //zome.SaveHolonAsync(this.RustHolonType, holon);
+                        // }
                     }
                 }
-            }
+                else
+                {
+                    IHolon holon = CelestialBodyCore.Holons.FirstOrDefault(x => x.Id == e.Result.Result.Id);
 
-            OnHolonSaved?.Invoke(this, e);
+                    //TODO: Come back to this... Wouldn't parent already be set? Same for zomes? Need to check...
+                    if (holon != null)
+                    {
+                        holon.ProviderKey = e.Result.Result.ProviderKey;
+                        //holon.Parent = e.Holon;
+                        //holon.ParentCelestialBody = this;
+
+                        switch (HolonType)
+                        {
+                            case HolonType.Star:
+                                holon.ParentStar = (IStar)this;
+                                holon.ParentStarId = this.Id;
+                                break;
+
+                            case HolonType.Planet:
+                                holon.ParentPlanet = (IPlanet)this;
+                                holon.ParentPlanetId = this.Id;
+                                break;
+
+                            case HolonType.Moon:
+                                holon.ParentMoon = (IMoon)this;
+                                holon.ParentMoonId = this.Id;
+                                break;
+                        }
+                    }
+                }
+
+                OnHolonSaved?.Invoke(this, e);
+            }
         }
 
         private Zome GetZomeThatHolonBelongsTo(Holon holon)
@@ -763,23 +802,23 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
         */
 
         //TODO: Should this be in PlanetCore?
-      /*
-        public virtual async Task<IHolon> LoadHolonAsync(string rustHolonType, string hcEntryAddressHash)
-        {
-            // Find the zome that the holon belongs to and then load it...
-            //TODO: May be more efficient way of doing this by loading it directly? But nice each zome manages its own collection of holons...
-            foreach (ZomeBase zome in Zomes)
-            {
-                foreach (Holon holon in zome.Holons)
-                {
-                    //if (holon.Name == holonName)
-                    if (holon.RustHolonType == rustHolonType)
-                        return await zome.LoadHolonAsync(rustHolonType, hcEntryAddressHash);
-                }
-            }
+        /*
+          public virtual async Task<IHolon> LoadHolonAsync(string rustHolonType, string hcEntryAddressHash)
+          {
+              // Find the zome that the holon belongs to and then load it...
+              //TODO: May be more efficient way of doing this by loading it directly? But nice each zome manages its own collection of holons...
+              foreach (ZomeBase zome in Zomes)
+              {
+                  foreach (Holon holon in zome.Holons)
+                  {
+                      //if (holon.Name == holonName)
+                      if (holon.RustHolonType == rustHolonType)
+                          return await zome.LoadHolonAsync(rustHolonType, hcEntryAddressHash);
+                  }
+              }
 
-            return null;
-        }*/
+              return null;
+          }*/
 
         /*
         //TODO: Should this be in PlanetCore?

@@ -8,19 +8,19 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces.STAR
     public interface ICelestialBodyCore : IZome
     {
         List<IHolon> Holons { get; }
-      //  string ProviderKey { get; set; }
         List<IZome> Zomes { get; set; }
 
         //event CelestialBodyCore.HolonsLoaded OnHolonsLoaded;
         //event CelestialBodyCore.ZomesLoaded OnZomesLoaded;
-
         event HolonsLoaded OnHolonsLoaded;
         event ZomesLoaded OnZomesLoaded;
 
-        Task<OASISResult<IZome>> AddZome(IZome zome);
         Task<IHolon> LoadCelestialBodyAsync();
-        List<IZome> LoadZomes();
-        Task<OASISResult<IEnumerable<IHolon>>> RemoveZome(IZome zome);
+        IHolon LoadCelestialBody();
+        Task<OASISResult<List<IZome>>> LoadZomesAsync();
+        OASISResult<List<IZome>> LoadZomes();
         Task<OASISResult<IHolon>> SaveCelestialBodyAsync(IHolon savingHolon);
+        Task<OASISResult<IZome>> AddZomeAsync(IZome zome);
+        Task<OASISResult<IEnumerable<IHolon>>> RemoveZomeAsync(IZome zome);
     }
 }

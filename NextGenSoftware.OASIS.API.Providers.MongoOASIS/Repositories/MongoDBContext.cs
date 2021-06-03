@@ -1,7 +1,7 @@
 ﻿using MongoDB.Driver;
-using static NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.MongoDBOASIS;
+using NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities;
 
-namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
+namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
 {
     public class MongoDbContext
     {
@@ -10,10 +10,8 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
 
         public MongoDbContext(string connectionString, string dbName)
         {
-            //MongoClient mongoClient = new MongoClient("mongodb+srv://dbadmin:PlRuNP9u4rG2nRdN@oasisapi-oipck.mongodb.net/test?retryWrites=true&w=majority");
             MongoClient = new MongoClient(connectionString);
             MongoDB = MongoClient.GetDatabase(dbName);
-            //_mongoDb = mongoClient.GetDatabase("OASISAPI");
         }
 
         public IMongoCollection<Avatar> Avatar

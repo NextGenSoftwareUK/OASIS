@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Mapster;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Events;
 using NextGenSoftware.OASIS.API.Core.Helpers;
@@ -69,6 +70,11 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
         public CelestialBodyCore(Dictionary<ProviderType, string> providerKey) : base()
         {
             this.ProviderKey = providerKey;
+        }
+
+        public CelestialBodyCore(Guid id) : base()
+        {
+            this.Id = id;
         }
 
         public CelestialBodyCore() : base()
@@ -152,30 +158,76 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
         }
         */
 
-        // Need to load list of zome names that belong to this Planet for PlanetBase to use...
-        // Maybe load list of holons too?
-        public List<IZome> LoadZomes()
+        public async Task<OASISResult<List<IZome>>> LoadZomesAsync()
         {
-            //TODO: Check to see if the method awaits till the zomes(holons) are loaded before returning (if it doesn't need to refacoring to subscribe to events like LoadHolons does)
+            OASISResult<List<IZome>> result = new OASISResult<List<IZome>>();
+            IEnumerable<IHolon> holons = null;
+            
+            if (Zomes == null)
+                Zomes = new List<IZome>();
+
+            if (Id != Guid.Empty)
+                holons = await base.LoadHolonsAsync(Id);
+
+            else if (ProviderKey != null)
+                holons = await base.LoadHolonsAsync(ProviderKey);
+            else
+            {
+                result.IsError = true;
+                result.Message = "Both Id and ProviderKey are null, one of these need to be set before calling this method.";
+            }
+
+            if (holons != null && !result.IsError)
+            {
+               // Zomes = SuperStar.Mapper.Map<List<Zome>(holons);
+                foreach (IHolon holon in holons)
+                    Zomes.Add(SuperStar.Mapper.Map<Zome>(holon));
+                    //Zomes.Add(holon.Adapt<Zome>());
+
+                OnZomesLoaded?.Invoke(this, new ZomesLoadedEventArgs { Zomes = Zomes });
+                result.Result = Zomes;
+            }
+
+            return result;
+        }
+
+        public OASISResult<List<IZome>> LoadZomes()
+        {
+            OASISResult<List<IZome>> result = new OASISResult<List<IZome>>();
+            IEnumerable<IHolon> holons = null;
 
             if (Zomes == null)
                 Zomes = new List<IZome>();
 
-            foreach (IHolon holon in base.LoadHolonsAsync(ProviderKey).Result)
-                Zomes.Add((IZome)holon);
+            if (Id != Guid.Empty)
+                holons = base.LoadHolons(Id);
 
-            OnZomesLoaded?.Invoke(this, new ZomesLoadedEventArgs { Zomes = Zomes });
+            else if (ProviderKey != null)
+                holons = base.LoadHolons(ProviderKey);
+            else
+            {
+                result.IsError = true;
+                result.Message = "Both Id and ProviderKey are null, one of these need to be set before calling this method.";
+            }
 
-            //TODO: Make this return a Task so is awaitable...
-            return Zomes;
+            if (holons != null && !result.IsError)
+            {
+                foreach (IHolon holon in holons)
+                    Zomes.Add((IZome)holon);
+
+                OnZomesLoaded?.Invoke(this, new ZomesLoadedEventArgs { Zomes = Zomes });
+                result.Result = Zomes;
+            }
+
+            return result;
         }
 
-        public async Task<OASISResult<IZome>> AddZome(IZome zome)
+        public async Task<OASISResult<IZome>> AddZomeAsync(IZome zome)
         {
             OASISResult<IZome> result = new OASISResult<IZome>();
 
             if (zome.Id == Guid.Empty)
-                result = await zome.Save();
+                result = await zome.SaveAsync();
  
             if (!result.IsError)
             {
@@ -185,14 +237,14 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
                 if (holonsResult.IsError)
                 {
                     result.IsError = true;
-                    result.ErrorMessage = holonsResult.ErrorMessage;
+                    result.Message = holonsResult.Message;
                 }
             }
 
             return result;
         }
 
-        public async Task<OASISResult<IEnumerable<IHolon>>> RemoveZome(IZome zome)
+        public async Task<OASISResult<IEnumerable<IHolon>>> RemoveZomeAsync(IZome zome)
         {
             this.Zomes.Remove(zome);
             return await base.SaveHolonsAsync(this.Zomes);
@@ -200,12 +252,219 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
 
         public async Task<OASISResult<IHolon>> SaveCelestialBodyAsync(IHolon savingHolon)
         {
-            return await base.SaveHolonAsync(savingHolon);
+            ICelestialBodyCore core = null;
+            IHolon parentHolon = null;
+            IStar parentStar = null;
+            IPlanet parentPlanet = null;
+            IMoon parentMoon = null;
+            //ICelestialBodyCore parentHolonCore = null;
+            //ICelestialBodyCore parentStarCore = null;
+            //ICelestialBodyCore parentPlanetCore = null;
+            //ICelestialBodyCore parentMoonCore = null;
+
+            ICelestialBody celestialBody = savingHolon as ICelestialBody;
+
+            if (celestialBody != null)
+            {
+                core = celestialBody.CelestialBodyCore;
+                celestialBody.CelestialBodyCore = null;
+            }
+
+            parentHolon = savingHolon.ParentHolon;
+            parentStar = savingHolon.ParentStar;
+            parentPlanet = savingHolon.ParentPlanet;
+            parentMoon = savingHolon.ParentMoon;
+            savingHolon.ParentHolon = null;
+            savingHolon.ParentStar = null;
+            savingHolon.ParentPlanet = null;
+            savingHolon.ParentMoon = null;
+
+            //ICelestialBody celestialBody = savingHolon as ICelestialBody;
+            /*
+            // Temp remove the cores from the celestialBody otherwise we have a infinite recursive issue in the OASIS Providers when saving/serialaizaing, etc.
+            if (celestialBody != null)
+            {
+                core = celestialBody.CelestialBodyCore;
+                celestialBody.CelestialBodyCore = null;
+
+                parentHolon = celestialBody.ParentHolon;
+                celestialBody.ParentHolon = null;
+
+                
+                //ICelestialBody parent = celestialBody.ParentHolon as ICelestialBody;
+
+                //if (parent != null)
+                //{
+                //    parentHolon = parent;
+                //    //parentHolonCore = parent.CelestialBodyCore;
+                //}
+
+                if (celestialBody.ParentStar != null)
+                {
+                    parentStar = celestialBody.ParentStar;
+                    //parentStarCore = celestialBody.ParentStar.CelestialBodyCore;
+                    //celestialBody.ParentStar.CelestialBodyCore = null;
+                    celestialBody.ParentStar = null;
+                }
+
+                if (celestialBody.ParentPlanet != null)
+                {
+                    parentPlanetCore = celestialBody.ParentPlanet.CelestialBodyCore;
+                    celestialBody.ParentPlanet.CelestialBodyCore = null;
+                }
+
+                if (celestialBody.ParentMoon != null)
+                {
+                    parentMoonCore = celestialBody.ParentMoon.CelestialBodyCore;
+                    celestialBody.ParentMoon.CelestialBodyCore = null;
+                }
+            }*/
+
+            // RemoveCores(savingHolon);
+            OASISResult<IHolon> result = await base.SaveHolonAsync(savingHolon);
+
+            // Restore the core.
+            if (result.Result != null && core != null)
+            {
+                celestialBody = savingHolon as ICelestialBody;
+
+                //Restore the cores.
+                if (celestialBody != null)
+                    celestialBody.CelestialBodyCore = core;
+
+                celestialBody.ParentHolon = parentHolon;
+                celestialBody.ParentStar = parentStar;
+                celestialBody.ParentPlanet = parentPlanet;
+                celestialBody.ParentMoon = parentMoon;
+
+                /*
+                ICelestialBody parent = celestialBody.ParentHolon as ICelestialBody;
+
+                if (parent != null)
+                    parent = parentHolon;
+                    //parent.CelestialBodyCore = parentHolonCore;
+                */
+                /*
+                if (celestialBody.ParentStar != null)
+                {
+                    celestialBody.ParentStar = parentStar;
+                    //celestialBody.ParentStar.CelestialBodyCore = parentStarCore;
+                }
+
+                if (celestialBody.ParentPlanet != null)
+                    celestialBody.ParentPlanet.CelestialBodyCore = parentPlanetCore;
+
+                if (celestialBody.ParentMoon != null)
+                    celestialBody.ParentMoon.CelestialBodyCore = parentMoonCore;*/
+            }
+
+            return result;
+        }
+
+        private void RemoveCores(IHolon holon)
+        {
+            // Temp remove the core from the celestialBody otherwise we have a infinite recursive issue in the OASIS Providers when saving/serialaizaing, etc.
+            ICelestialBodyCore core = null;
+            ICelestialBodyCore parentHolonCore = null;
+            ICelestialBodyCore parentStarCore = null;
+            ICelestialBodyCore parentPlanetCore = null;
+            ICelestialBodyCore parentMoonCore = null;
+            ICelestialBody celestialBody = holon as ICelestialBody;
+
+            if (celestialBody != null)
+            {
+                core = celestialBody.CelestialBodyCore;
+                celestialBody.CelestialBodyCore = null;
+
+                foreach (Zome zome in celestialBody.CelestialBodyCore.Zomes)
+                    RemoveCores(zome);
+
+                //ICelestialBody parent = celestialBody.ParentHolon as ICelestialBody;
+
+                //if (parent != null)
+                //    parentHolonCore = parent.CelestialBodyCore;
+
+                //parentStarCore = celestialBody.ParentStar.CelestialBodyCore;
+                //parentPlanetCore = celestialBody.ParentPlanet.CelestialBodyCore;
+                //parentMoonCore = celestialBody.ParentMoon.CelestialBodyCore;
+
+                RemoveCores(celestialBody.ParentHolon);
+                RemoveCores(celestialBody.ParentStar);
+                RemoveCores(celestialBody.ParentPlanet);
+                RemoveCores(celestialBody.ParentMoon);
+            }
+        }
+
+        private void RestoreCores(IHolon holon)
+        {
+            // Temp remove the core from the celestialBody otherwise we have a infinite recursive issue in the OASIS Providers when saving/serialaizaing, etc.
+            ICelestialBodyCore core = null;
+            ICelestialBodyCore parentHolonCore = null;
+            ICelestialBodyCore parentStarCore = null;
+            ICelestialBodyCore parentPlanetCore = null;
+            ICelestialBodyCore parentMoonCore = null;
+            ICelestialBody celestialBody = holon as ICelestialBody;
+
+            if (celestialBody != null)
+            {
+                switch (celestialBody.HolonType)
+                {
+                    case HolonType.Star:
+                        celestialBody.CelestialBodyCore = new StarCore(celestialBody.Id, (IStar)celestialBody);
+                        break;
+
+                    case HolonType.Planet:
+                        celestialBody.CelestialBodyCore = new PlanetCore(celestialBody.Id, (IPlanet)celestialBody);
+                        break;
+
+                    case HolonType.Moon:
+                        celestialBody.CelestialBodyCore = new MoonCore(celestialBody.Id, (IMoon)celestialBody);
+                        break;
+                }
+
+                foreach (Zome zome in celestialBody.CelestialBodyCore.Zomes)
+                    RemoveCores(zome);
+
+                ICelestialBody parent = celestialBody.ParentHolon as ICelestialBody;
+
+                if (parent != null)
+                    parentHolonCore = parent.CelestialBodyCore;
+
+                parentStarCore = celestialBody.ParentStar.CelestialBodyCore;
+                parentPlanetCore = celestialBody.ParentPlanet.CelestialBodyCore;
+                parentMoonCore = celestialBody.ParentMoon.CelestialBodyCore;
+
+                RestoreCores(celestialBody.ParentHolon);
+                RestoreCores(celestialBody.ParentStar);
+                RestoreCores(celestialBody.ParentPlanet);
+                RestoreCores(celestialBody.ParentMoon);
+            }
         }
 
         public async Task<IHolon> LoadCelestialBodyAsync()
         {
-            return await base.LoadHolonAsync(ProviderKey);
+            if (Id != Guid.Empty)
+                //return base.LoadHolon(Id); //TODO: Need to get LoadHolonAsync working in MongoDB Provider then can switch this back.
+                return await base.LoadHolonAsync(Id);
+
+            else if (ProviderKey != null)
+                return await base.LoadHolonAsync(ProviderKey);
+
+            //TODO: Will eventually return a OASISResult here and it would be IsError = True and Mesasge = Id and ProviderKey Not Set.
+            return null;
+        }
+
+        public IHolon LoadCelestialBody()
+        {
+            if (Id != Guid.Empty)
+                //return base.LoadHolon(Id); //TODO: Need to get LoadHolonAsync working in MongoDB Provider then can switch this back.
+                return base.LoadHolon(Id);
+
+            else if (ProviderKey != null)
+                return base.LoadHolon(ProviderKey);
+
+            //TODO: Will eventually return a OASISResult here and it would be IsError = True and Mesasge = Id and ProviderKey Not Set.
+            return null;
         }
 
         //Task<IHolon> ICelestialBodyCore.LoadCelestialBodyAsync()

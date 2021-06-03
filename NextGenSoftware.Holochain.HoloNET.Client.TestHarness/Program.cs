@@ -18,8 +18,21 @@ namespace NextGenSoftware.Holochain.HoloNET.Client.TestHarness
 
         private static async Task TestHoloNETClient()
         {
-            HoloNETClient holoNETClient = new HoloNETClient("ws://localhost:8888", HolochainVersion.RSM);
-           // holoNETClient.HolochainVersion = HolochainVersion.RSM;
+
+            HoloNETClient holoNETClient = new HoloNETClient("ws://localhost:8889", HolochainVersion.RSM);
+            //HoloNETClient holoNETClient = new HoloNETClient("ws://127.0.0.1:8889", HolochainVersion.RSM);
+            //HoloNETClient holoNETClient = new HoloNETClient("ws://172.24.159.255:8889", HolochainVersion.RSM);
+            //HoloNETClient holoNETClient = new HoloNETClient("ws://::1:8889", HolochainVersion.RSM);
+            //HoloNETClient holoNETClient = new HoloNETClient("ws://172.24.159.255:8889", HolochainVersion.RSM);
+            //HoloNETClient holoNETClient = new HoloNETClient("ws://172.24.144.1:8889", HolochainVersion.RSM);
+           // HoloNETClient holoNETClient = new HoloNETClient("ws://172.25.240.1:8889", HolochainVersion.RSM);
+
+            
+
+
+
+
+            // holoNETClient.HolochainVersion = HolochainVersion.RSM;
             holoNETClient.Config.NeverTimeOut = true;
             //holoNETClient.Config.ErrorHandlingBehaviour = ErrorHandlingBehaviour.OnlyThrowExceptionIfNoErrorHandlerSubscribedToOnErrorEvent
             holoNETClient.Config.AutoStartConductor = false;
@@ -39,7 +52,7 @@ namespace NextGenSoftware.Holochain.HoloNET.Client.TestHarness
 
             if (holoNETClient.State == System.Net.WebSockets.WebSocketState.Open)
            {
-                await holoNETClient.GetHolochainInstancesAsync();
+               // await holoNETClient.GetHolochainInstancesAsync();
                 await holoNETClient.CallZomeFunctionAsync("1", "test-instance", "our_world_core", "test", ZomeCallback, null);
 
                 await holoNETClient.CallZomeFunctionAsync("1", "test-instance", "our_world_core", "test", ZomeCallback, new { message = new { content = "blah!" } });

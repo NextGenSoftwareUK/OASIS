@@ -11,8 +11,8 @@ namespace NextGenSoftware.Holochain.HoloNET.Client.Core
         public string cap { get; set; } //CapSecret | null = string
 
         [Key(1)]
-        //public byte[][] cell_id { get; set; } //= new byte[][1, 2]; //CellId = [HoloHash, AgentPubKey] = [string, string] = 2 dimensional array.
-        public UInt32[] cell_id { get; set; } //= new byte[][1, 2]; //CellId = [HoloHash, AgentPubKey] = [string, string] = 2 dimensional array.
+        public byte[][] cell_id { get; set; } = new byte[2][]; 
+        //public UInt32[] cell_id { get; set; } //= new byte[][1, 2]; //CellId = [HoloHash, AgentPubKey] = [string, string] = 2 dimensional array.
 
         [Key(2)]
         public string zome_name { get; set; }

@@ -1,21 +1,23 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-
 using NextGenSoftware.OASIS.API.Core;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Enums;
 
-namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
+namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
 {
     public class ThreeFoldOASIS : OASISStorageBase, IOASISStorage, IOASISNET
     {
-        public ThreeFoldOASIS()
+        public string HostUri { get; set; }
+
+        public ThreeFoldOASIS(string hostURI)
         {
             this.ProviderName = "ThreeFoldOASIS";
             this.ProviderDescription = "ThreeFold Provider";
             this.ProviderType = new API.Core.Helpers.EnumValue<ProviderType>(API.Core.Enums.ProviderType.ThreeFoldOASIS);
             this.ProviderCategory = new Core.Helpers.EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
+            this.HostUri = hostURI;
         }
 
         public override bool DeleteAvatar(Guid id, bool softDelete = true)
@@ -128,46 +130,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
             throw new NotImplementedException();
         }
 
-        public override IHolon LoadHolon(Guid id, HolonType type = HolonType.Holon)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override IHolon LoadHolon(string providerKey, HolonType type = HolonType.Holon)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override Task<IHolon> LoadHolonAsync(Guid id, HolonType type = HolonType.Holon)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override Task<IHolon> LoadHolonAsync(string providerKey, HolonType type = HolonType.Holon)
-        {
-            throw new NotImplementedException();
-        }
      
-        public override IEnumerable<IHolon> LoadHolonsForParent(Guid id, HolonType type = HolonType.Holon)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override IEnumerable<IHolon> LoadHolonsForParent(string providerKey, HolonType type = HolonType.Holon)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override Task<IEnumerable<IHolon>> LoadHolonsForParentAsync(Guid id, HolonType type = HolonType.Holon)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override Task<IEnumerable<IHolon>> LoadHolonsForParentAsync(string providerKey, HolonType type = HolonType.Holon)
-        {
-            throw new NotImplementedException();
-        }
-
         public override IAvatar SaveAvatar(IAvatar Avatar)
         {
             throw new NotImplementedException();
@@ -199,6 +162,46 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
         }
 
         public override Task<ISearchResults> SearchAsync(ISearchParams searchParams)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override IHolon LoadHolon(Guid id)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override Task<IHolon> LoadHolonAsync(Guid id)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override IHolon LoadHolon(string providerKey)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override Task<IHolon> LoadHolonAsync(string providerKey)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override IEnumerable<IHolon> LoadHolonsForParent(Guid id, HolonType type = HolonType.All)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override Task<IEnumerable<IHolon>> LoadHolonsForParentAsync(Guid id, HolonType type = HolonType.All)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override IEnumerable<IHolon> LoadHolonsForParent(string providerKey, HolonType type = HolonType.All)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override Task<IEnumerable<IHolon>> LoadHolonsForParentAsync(string providerKey, HolonType type = HolonType.All)
         {
             throw new NotImplementedException();
         }

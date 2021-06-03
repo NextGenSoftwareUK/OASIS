@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
+﻿
 namespace NextGenSoftware.OASIS.API.Core.Enums
 {
     public enum HolonType
@@ -16,10 +13,11 @@ namespace NextGenSoftware.OASIS.API.Core.Enums
         TrainStation,
         UndergroundStation,
         BusStation,
+        SuperStar,
         Star,
         Planet,
         Moon,
         Zome,
-        Holon
+        Holon,
     }
 }

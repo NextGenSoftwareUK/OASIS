@@ -26,6 +26,8 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
             {
                 if (value != _name)
                     ChangesSaved = false;
+
+                _name = value;
             }
         }
         public string Description
@@ -39,6 +41,8 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
             {
                 if (value != _description)
                     ChangesSaved = false;
+
+                _description = value;
             }
         }
         public bool ChangesSaved { get; set; }
@@ -112,7 +116,7 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
             }
             //TODO: Finish this ASAP!
 
-            return false;
+            return Id == Guid.Empty;
         }
     }
 }

@@ -18,7 +18,6 @@ using NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Security;
 using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.API.Core.Helpers;
-using NextGenSoftware.OASIS.API.DNA.Manager;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
 {
@@ -52,7 +51,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
         {
             _mapper = mapper;
             //_OASISSettings = OASISSettings.Value;
-            _OASISDNA = OASISDNAManager.OASISDNA;
+            _OASISDNA = OASISBootLoader.OASISBootLoader.OASISDNA;
             _emailService = emailService;
         }
 
@@ -64,7 +63,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
             if (!result.IsError)
                 return new AuthenticateResponse() { Message = "Avatar Successfully Authenticated.", Avatar = result.Result };
             else
-                return new AuthenticateResponse() { Message = result.ErrorMessage, IsError = true };
+                return new AuthenticateResponse() { Message = result.Message, IsError = true };
 
             /*
             //IAvatar avatar = AvatarManager.LoadAvatar(model.Email, setGlobally);
@@ -121,7 +120,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
 
             avatar.RefreshToken = newRefreshToken.Token;
             avatar.JwtToken = generateJwtToken(avatar);
-            avatar = RemoveAuthDetails(AvatarManager.SaveAvatar(avatar));
+            avatar = RemoveAuthDetails(AvatarManager.SaveAvatar(avatar).Result);
            // avatar.RefreshToken = newRefreshToken.Token;
             return avatar;
         }
@@ -347,7 +346,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
             origAvatar.ModifiedDate = DateTime.UtcNow;
 
             // return RemoveAuthDetails(AvatarManager.SaveAvatar(origAvatar));
-            return RemoveAuthDetails(AvatarManager.SaveAvatar(origAvatar));
+            return RemoveAuthDetails(AvatarManager.SaveAvatar(origAvatar).Result);
 
 
             // _context.Accounts.Update(account);

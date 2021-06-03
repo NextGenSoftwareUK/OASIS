@@ -13,7 +13,7 @@
 
   <ItemGroup>
     <Content Include="DNA\OASIS_DNA.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
     </Content>
@@ -23,20 +23,16 @@
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
     </Content>
     <Content Include="DNA\STAR_DNA.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
     </Content>
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\NextGenSoftware.OASIS.API.Config\NextGenSoftware.OASIS.API.DNA.csproj" />
-    <ProjectReference Include="..\NextGenSoftware.OASIS.API.Config\NextGenSoftware.OASIS.API.DNA.Manager.csproj" />
     <ProjectReference Include="..\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj" />
-    <ProjectReference Include="..\NextGenSoftware.OASIS.API.DNA.Manager\NextGenSoftware.OASIS.API.DNA.Manager.csproj" />
-    <ProjectReference Include="..\NextGenSoftware.OASIS.API.DNA\NextGenSoftware.OASIS.API.DNA.csproj" />
-    <ProjectReference Include="..\NextGenSoftware.OASIS.API.OASISAPIManager\NextGenSoftware.OASIS.API.Manager.csproj" />
     <ProjectReference Include="..\NextGenSoftware.OASIS.API.Providers.SEEDSOASIS\NextGenSoftware.OASIS.API.Providers.SEEDSOASIS.csproj" />
+    <ProjectReference Include="..\NextGenSoftware.OASIS.OASISBootLoader\NextGenSoftware.OASIS.OASISBootLoader.csproj" />
   </ItemGroup>
 
   <ItemGroup>
@@ -69,9 +65,13 @@
 
   <ItemGroup>
     <Folder Include="DNATemplates\RustDNATemplates\RSM\" />
+    <Folder Include="Interfaces\" />
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="AutoMapper" Version="10.1.1" />
+    <PackageReference Include="MappingGenerator" Version="1.22.3" />
+    <PackageReference Include="Mapster" Version="7.2.0" />
     <PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.2.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="5.0.3" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="5.0.3">

@@ -3,7 +3,6 @@ using EOSNewYork.EOSCore.Response.API;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Managers;
-using NextGenSoftware.OASIS.API.DNA.Manager;
 using NextGenSoftware.OASIS.API.Providers.SEEDSOASIS.Membranes;
 
 namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS.TestHarness
@@ -19,7 +18,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS.TestHarness
             SEEDSOASIS seedsOASIS = new SEEDSOASIS(new TelosOASIS.TelosOASIS("https://node.hypha.earth"));
 
             // Will initialize the default OASIS Provider defined OASIS_DNA config file.
-            OASISDNAManager.GetAndActivateDefaultProvider(); //TODO: TEMP - Take out once EOSIOOASIS has rest of AvatarManager methods implemented.
+            OASISBootLoader.OASISBootLoader.GetAndActivateDefaultProvider(); //TODO: TEMP - Take out once EOSIOOASIS has rest of AvatarManager methods implemented.
 
             Console.WriteLine("Getting Balance for account davidsellams...");
             string balance = seedsOASIS.GetBalanceForTelosAccount("davidsellams");
@@ -51,7 +50,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS.TestHarness
             Console.WriteLine(string.Concat("Success: ", result.IsError ? "false" : "true"));
 
             if (result.IsError)
-                Console.WriteLine(string.Concat("Error Message: ", result.ErrorMessage));
+                Console.WriteLine(string.Concat("Error Message: ", result.Message));
 
             Console.WriteLine(string.Concat("Result: ", result.Result));
             
@@ -80,7 +79,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS.TestHarness
             Console.WriteLine(string.Concat("Success: ", sendInviteResult.IsError ? "false" : "true"));
 
             if (sendInviteResult.IsError)
-                Console.WriteLine(string.Concat("Error Message: ", sendInviteResult.ErrorMessage));
+                Console.WriteLine(string.Concat("Error Message: ", sendInviteResult.Message));
             else
             {
                 Console.WriteLine(string.Concat("Invite Sent To Join SEEDS. Invite Secret: ", sendInviteResult.Result.InviteSecret, ". Transction ID: ", sendInviteResult.Result.TransactionId));
@@ -90,7 +89,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS.TestHarness
                 Console.WriteLine(string.Concat("Success: ", acceptInviteResult.IsError ? "false" : "true"));
 
                 if (acceptInviteResult.IsError)
-                    Console.WriteLine(string.Concat("Error Message: ", acceptInviteResult.ErrorMessage));
+                    Console.WriteLine(string.Concat("Error Message: ", acceptInviteResult.Message));
                 else
                     Console.WriteLine(string.Concat("Invite Accepted To Join SEEDS. Transction ID: ", acceptInviteResult.Result));
             }

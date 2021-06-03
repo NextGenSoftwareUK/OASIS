@@ -353,6 +353,9 @@ namespace NextGenSoftware.Holochain.HoloNET.Client.Core
                             }) 
                         };*/
 
+                      //  string AgentPubKey = "000000000000000000000000000000000000";
+                       // string HoloHash = "000000000000000000000000000000000000";
+
                         HoloNETData holoNETData = new HoloNETData()
                         {
                             fn_name = function,
@@ -362,15 +365,15 @@ namespace NextGenSoftware.Holochain.HoloNET.Client.Core
                             cap = null
                         };
 
-                        //holoNETData.cell_id[0] = Encoding.UTF8.GetBytes(HoloHash);
-                        //holoNETData.cell_id[1] = Encoding.UTF8.GetBytes(HoloHash);
+                        holoNETData.cell_id[0] = Encoding.UTF8.GetBytes(HoloHash);
+                        holoNETData.cell_id[1] = Encoding.UTF8.GetBytes(AgentPubKey);
 
-                        UInt32 holoHash = 000000000000000000000000000000000000;
-                        UInt32 agentPubKey = 000000000000000000000000000000000000;
+                        // UInt32 holoHash = 000000000000000000000000000000000000;
+                        // UInt32 agentPubKey = 000000000000000000000000000000000000;
 
-                        holoNETData.cell_id = new UInt32[2];
-                        holoNETData.cell_id[0] = holoHash;
-                        holoNETData.cell_id[1] = agentPubKey;
+                        //holoNETData.cell_id = new UInt32[2];
+                        //holoNETData.cell_id[0] = holoHash;
+                        //holoNETData.cell_id[1] = agentPubKey;
 
                         HoloNETRequest request = new HoloNETRequest()
                         {

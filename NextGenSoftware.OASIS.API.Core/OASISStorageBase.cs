@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Events;
+using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Objects;
@@ -66,8 +67,6 @@ namespace NextGenSoftware.OASIS.API.Core
         public abstract Task<IEnumerable<IAvatar>> LoadAllAvatarsAsync();
         public abstract IEnumerable<IAvatar> LoadAllAvatars();
 
-      // public abstract Task<IAvatar> LoadAvatarAsync(string providerKey);
-
         public abstract Task<IAvatar> LoadAvatarAsync(Guid Id);
         public abstract IAvatar LoadAvatar(Guid Id);
 
@@ -85,32 +84,30 @@ namespace NextGenSoftware.OASIS.API.Core
 
         public abstract bool DeleteAvatar(Guid id, bool softDelete = true);
         public abstract Task<bool> DeleteAvatarAsync(Guid id, bool softDelete = true);
-
+        public abstract bool DeleteAvatar(string providerKey, bool softDelete = true);
+        public abstract Task<bool> DeleteAvatarAsync(string providerKey, bool softDelete = true);
         public abstract Task<ISearchResults> SearchAsync(ISearchParams searchParams);
 
-        public abstract IHolon LoadHolon(Guid id, HolonType type = HolonType.Holon);
-        public abstract Task<IHolon> LoadHolonAsync(Guid id, HolonType type = HolonType.Holon);
+        public abstract IHolon LoadHolon(Guid id);
+        public abstract Task<IHolon> LoadHolonAsync(Guid id);
 
-        public abstract IHolon LoadHolon(string providerKey, HolonType type = HolonType.Holon);
-        public abstract Task<IHolon> LoadHolonAsync(string providerKey, HolonType type = HolonType.Holon);
+        public abstract IHolon LoadHolon(string providerKey);
+        public abstract Task<IHolon> LoadHolonAsync(string providerKey);
 
-        public abstract IEnumerable<IHolon> LoadHolonsForParent(Guid id, HolonType type = HolonType.Holon);
-        public abstract Task<IEnumerable<IHolon>> LoadHolonsForParentAsync(Guid id, HolonType type = HolonType.Holon);
+        public abstract IEnumerable<IHolon> LoadHolonsForParent(Guid id, HolonType type = HolonType.All);
+        public abstract Task<IEnumerable<IHolon>> LoadHolonsForParentAsync(Guid id, HolonType type = HolonType.All);
 
-        public abstract IEnumerable<IHolon> LoadHolonsForParent(string providerKey, HolonType type = HolonType.Holon);
-        public abstract Task<IEnumerable<IHolon>> LoadHolonsForParentAsync(string providerKey, HolonType type = HolonType.Holon);
+        public abstract IEnumerable<IHolon> LoadHolonsForParent(string providerKey, HolonType type = HolonType.All);
+        public abstract Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(string providerKey, HolonType type = HolonType.All);
 
-        public abstract IEnumerable<IHolon> LoadAllHolons(HolonType type = HolonType.Holon);
-        public abstract Task<IEnumerable<IHolon>> LoadAllHolonsAsync(HolonType type = HolonType.Holon);
+        public abstract IEnumerable<IHolon> LoadAllHolons(HolonType type = HolonType.All);
+        public abstract Task<IEnumerable<IHolon>> LoadAllHolonsAsync(HolonType type = HolonType.All);
 
         public abstract IHolon SaveHolon(IHolon holon);
         public abstract Task<IHolon> SaveHolonAsync(IHolon holon);
 
         public abstract IEnumerable<IHolon> SaveHolons(IEnumerable<IHolon> holons);
         public abstract Task<IEnumerable<IHolon>> SaveHolonsAsync(IEnumerable<IHolon> holons);
-
-        public abstract bool DeleteAvatar(string providerKey, bool softDelete = true);
-        public abstract Task<bool> DeleteAvatarAsync(string providerKey, bool softDelete = true);
 
         public abstract bool DeleteHolon(Guid id, bool softDelete = true);
         public abstract Task<bool> DeleteHolonAsync(Guid id, bool softDelete = true);

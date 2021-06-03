@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
@@ -6,7 +7,8 @@ using NextGenSoftware.OASIS.STAR.CelestialBodies;
 
 namespace NextGenSoftware.OASIS.STAR
 {
-    public class SuperStarCore : CelestialBodyCore, ISuperStarCore
+    public class SuperStarCore : CelestialBodyCore, ISuperStarCore // TODO: Currently cannot inherit from StarCore because SuperStar is static (may change soon?)
+    // public class SuperStarCore : StarCore, ISuperStarCore //TODO: Come back to this...
     {
         /*
       //  private string _providerKey = "";
@@ -58,6 +60,11 @@ namespace NextGenSoftware.OASIS.STAR
         //}
 
         public SuperStarCore(Dictionary<ProviderType, string> providerKey) : base(providerKey)
+        {
+
+        }
+
+        public SuperStarCore(Guid id) : base(id)
         {
 
         }

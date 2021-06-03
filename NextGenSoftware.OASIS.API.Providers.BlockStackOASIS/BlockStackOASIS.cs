@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-
 using NextGenSoftware.OASIS.API.Core;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Enums;
@@ -128,27 +127,27 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
             throw new NotImplementedException();
         }
 
-        public override IHolon LoadHolon(Guid id, HolonType type = HolonType.Holon)
+        public override IHolon LoadHolon(Guid id)
         {
             throw new NotImplementedException();
         }
 
-        public override IHolon LoadHolon(string providerKey, HolonType type = HolonType.Holon)
+        public override IHolon LoadHolon(string providerKey)
         {
             throw new NotImplementedException();
         }
 
-        public override Task<IHolon> LoadHolonAsync(Guid id, HolonType type = HolonType.Holon)
+        public override Task<IHolon> LoadHolonAsync(Guid id)
         {
             throw new NotImplementedException();
         }
 
-        public override Task<IHolon> LoadHolonAsync(string providerKey, HolonType type = HolonType.Holon)
+        public override Task<IHolon> LoadHolonAsync(string providerKey)
         {
             throw new NotImplementedException();
         }
 
-      
+
         public override IEnumerable<IHolon> LoadHolonsForParent(Guid id, HolonType type = HolonType.Holon)
         {
             throw new NotImplementedException();

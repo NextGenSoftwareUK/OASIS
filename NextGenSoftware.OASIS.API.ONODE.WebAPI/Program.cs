@@ -1,9 +1,10 @@
 ﻿using System;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
-using NextGenSoftware.OASIS.API.DNA.Manager;
 using NextGenSoftware.OASIS.API.Core.Events;
 using NextGenSoftware.OASIS.API.Core.Managers;
+using NextGenSoftware.OASIS.API.Core.Helpers;
+using NextGenSoftware.OASIS.API.Core.Interfaces;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
 {
@@ -34,7 +35,13 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
                 // Normally code is simpler if you just pass the provider into the manager constructor like SearchManager does, it is just one instance that is disposed of again once the request has been serviced...
                 if (_avatarManager == null)
                 {
-                    _avatarManager = new AvatarManager(OASISDNAManager.GetAndActivateDefaultProvider(), OASISDNAManager.OASISDNA);
+                    OASISResult<IOASISStorage> result = OASISBootLoader.OASISBootLoader.GetAndActivateDefaultProvider();
+
+                    //TODO: Eventually want to replace all exceptions with OASISResult throughout the OASIS because then it makes sure errors are handled properly and friendly messages are shown (plus less overhead of throwing an entire stack trace!)
+                    if (result.IsError)
+                        ErrorHandling.HandleError(ref result, string.Concat("Error calling OASISDNAManager.GetAndActivateDefaultProvider(). Error details: ", result.Message), true, false, true);
+
+                    _avatarManager = new AvatarManager(result.Result, OASISBootLoader.OASISBootLoader.OASISDNA);
                     _avatarManager.OnOASISManagerError += _avatarManager_OnOASISManagerError;
                 }
 

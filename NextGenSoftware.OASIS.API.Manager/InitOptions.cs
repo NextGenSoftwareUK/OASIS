@@ -1,9 +1,9 @@
 ﻿
-namespace NextGenSoftware.OASIS.API.Manager
-{
-    public enum InitOptions
-    {
-        InitWithCurrentDefaultProvider,
-        InitWithAllProviders
-    }
-}
+//namespace NextGenSoftware.OASIS.API.Manager
+//{
+//    public enum InitOptions
+//    {
+//        InitWithCurrentDefaultProvider,
+//        InitWithAllProviders
+//    }
+//}
