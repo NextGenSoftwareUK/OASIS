@@ -10,8 +10,6 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 {
     public class HolonManager : OASISManager
     {
-       // public List<IOASISStorage> OASISStorageProviders { get; set; }
-        
         public delegate void StorageProviderError(object sender, AvatarManagerErrorEventArgs e);
 
         //TODO: In future more than one storage provider can be active at a time where each call can specify which provider to use.
@@ -19,122 +17,346 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         {
 
         }
-        public IHolon LoadHolon(Guid id, ProviderType providerType = ProviderType.Default)
+
+        public OASISResult<IHolon> LoadHolon(Guid id, ProviderType providerType = ProviderType.Default)
         {
-            bool needToChangeBack = false;
             ProviderType currentProviderType = ProviderManager.CurrentStorageProviderType.Value;
-            IHolon holon = null;
+            OASISResult<IHolon> result = new OASISResult<IHolon>();
 
-            try
-            {
-                holon = ProviderManager.SetAndActivateCurrentStorageProvider(providerType).Result.LoadHolon(id);
-            }
-            catch (Exception ex)
-            {
-                holon = null;
-            }
+            result = LoadHolonForProviderType(id, providerType, result);
 
-            if (holon == null)
+            if (result.Result == null)
             {
-                // Only try the next provider if they are not set to auto-replicate.
-                //   if (ProviderManager.ProvidersThatAreAutoReplicating.Count == 0)
-                // {
-                foreach (EnumValue<ProviderType> providerTypeInternal in ProviderManager.GetProviderAutoFailOverList())
+                foreach (EnumValue<ProviderType> type in ProviderManager.GetProviderAutoFailOverList())
                 {
-                    if (providerTypeInternal.Value != providerType && providerTypeInternal.Value != ProviderManager.CurrentStorageProviderType.Value)
+                    if (type.Value != providerType && type.Value != ProviderManager.CurrentStorageProviderType.Value)
                     {
-                        try
-                        {
-                            holon = ProviderManager.SetAndActivateCurrentStorageProvider(providerTypeInternal.Value).Result.LoadHolon(id);
-                            needToChangeBack = true;
+                        result = LoadHolonForProviderType(id, type.Value, result);
 
-                            if (holon != null)
-                                break;
-                        }
-                        catch (Exception ex)
-                        {
-                            holon = null;
-                            //If the next provider errors then just continue to the next provider.
-                        }
+                        if (result.Result != null)
+                            break;
                     }
                 }
-                //   }
             }
 
-            // Set the current provider back to the original provider.
-          //  if (needToChangeBack)
-                ProviderManager.SetAndActivateCurrentStorageProvider(currentProviderType);
-
-            return holon;
-        }
-     
-        public Task<IHolon> LoadHolonAsync(Guid id, ProviderType provider = ProviderType.Default)
-        {
-            return ProviderManager.SetAndActivateCurrentStorageProvider(provider).Result.LoadHolonAsync(id);
-        }
-
-        public IHolon LoadHolon(string providerKey, ProviderType provider = ProviderType.Default)
-        {
-            return ProviderManager.SetAndActivateCurrentStorageProvider(provider).Result.LoadHolon(providerKey);
-        }
-
-        public Task<IHolon> LoadHolonAsync(string providerKey, ProviderType provider = ProviderType.Default)
-        {
-            return ProviderManager.SetAndActivateCurrentStorageProvider(provider).Result.LoadHolonAsync(providerKey);
-        }
-
-        public IEnumerable<IHolon> LoadHolonsForParent(Guid id, HolonType type = HolonType.All, ProviderType provider = ProviderType.Default)
-        {
-            return ProviderManager.SetAndActivateCurrentStorageProvider(provider).Result.LoadHolonsForParent(id, type);
-        }
-
-        public Task<IEnumerable<IHolon>> LoadHolonsForParentAsync(Guid id, HolonType type = HolonType.All, ProviderType provider = ProviderType.Default)
-        {
-            return ProviderManager.SetAndActivateCurrentStorageProvider(provider).Result.LoadHolonsForParentAsync(id, type);
-        }
-
-        public IEnumerable<IHolon> LoadHolonsForParent(string providerKey, HolonType type = HolonType.All, ProviderType provider = ProviderType.Default)
-        {
-            return ProviderManager.SetAndActivateCurrentStorageProvider(provider).Result.LoadHolonsForParent(providerKey, type);
-        }
-
-        //TODO: Need to implement this proper way of calling an OASIS method across the entire OASIS...
-        public async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(string providerKey, HolonType holonType = HolonType.All, ProviderType provider = ProviderType.Default)
-        {
-            OASISResult<IEnumerable<IHolon>> result = new OASISResult<IEnumerable<IHolon>>();
-
-            try
+            if (result.Result == null)
             {
-                OASISResult<IOASISStorage> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(provider);
-
-                if (providerResult.IsError)
-                {
-                    result.IsError = true;
-                    result.Message = providerResult.Message;
-                }
-                else
-                    result = await providerResult.Result.LoadHolonsForParentAsync(providerKey, holonType);
-            }
-            catch (Exception ex)
-            {
-                string errorMessage = string.Concat("An unknown error occured in LoadHolonsForParentAsync method. providerKey: ", providerKey, ", holonType: ", Enum.GetName(typeof(HolonType), holonType), ", providerType = ", Enum.GetName(typeof(ProviderType), provider), " Error details: ", ex.ToString());
                 result.IsError = true;
+                string errorMessage = string.Concat("All registered OASIS Providers in the AutoFailOverList failed to load the holon with id ", id, ". Please view the logs for more information. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString());
                 result.Message = errorMessage;
                 LoggingManager.Log(errorMessage, LogType.Error);
-                result.Exception = ex;
             }
+
+            SwitchBackToCurrentProvider(currentProviderType, ref result);
+
+            return result;
+        }
+     
+        public async Task<OASISResult<IHolon>> LoadHolonAsync(Guid id, ProviderType providerType = ProviderType.Default)
+        {
+            ProviderType currentProviderType = ProviderManager.CurrentStorageProviderType.Value;
+            OASISResult<IHolon> result = new OASISResult<IHolon>();
+
+            result = await LoadHolonForProviderTypeAsync(id, providerType, result);
+
+            if (result.Result == null)
+            {
+                foreach (EnumValue<ProviderType> type in ProviderManager.GetProviderAutoFailOverList())
+                {
+                    if (type.Value != providerType && type.Value != ProviderManager.CurrentStorageProviderType.Value)
+                    {
+                        result = await LoadHolonForProviderTypeAsync(id, type.Value, result);
+
+                        if (result.Result != null)
+                            break;
+                    }
+                }
+            }
+
+            if (result.Result == null)
+            {
+                result.IsError = true;
+                string errorMessage = string.Concat("All registered OASIS Providers in the AutoFailOverList failed to load the holon with id ", id, ". Please view the logs for more information. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString());
+                result.Message = errorMessage;
+                LoggingManager.Log(errorMessage, LogType.Error);
+            }
+
+            SwitchBackToCurrentProvider(currentProviderType, ref result);
 
             return result;
         }
 
-        public IEnumerable<IHolon> LoadAllHolons(HolonType type = HolonType.All, ProviderType provider = ProviderType.Default)
+        public OASISResult<IHolon> LoadHolon(string providerKey, ProviderType providerType = ProviderType.Default)
         {
-            return ProviderManager.SetAndActivateCurrentStorageProvider(provider).Result.LoadAllHolons(type);
+            ProviderType currentProviderType = ProviderManager.CurrentStorageProviderType.Value;
+            OASISResult<IHolon> result = new OASISResult<IHolon>();
+
+            result = LoadHolonForProviderType(providerKey, providerType, result);
+
+            if (result.Result == null)
+            {
+                foreach (EnumValue<ProviderType> type in ProviderManager.GetProviderAutoFailOverList())
+                {
+                    if (type.Value != providerType && type.Value != ProviderManager.CurrentStorageProviderType.Value)
+                    {
+                        result = LoadHolonForProviderType(providerKey, type.Value, result);
+
+                        if (result.Result != null)
+                            break;
+                    }
+                }
+            }
+
+            if (result.Result == null)
+            {
+                result.IsError = true;
+                string errorMessage = string.Concat("All registered OASIS Providers in the AutoFailOverList failed to load the holon with providerKey ", providerKey, ". Please view the logs for more information. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString());
+                result.Message = errorMessage;
+                LoggingManager.Log(errorMessage, LogType.Error);
+            }
+
+            SwitchBackToCurrentProvider(currentProviderType, ref result);
+
+            return result;
         }
 
-        public Task<IEnumerable<IHolon>> LoadAllHolonsAsync(HolonType type = HolonType.All, ProviderType provider = ProviderType.Default)
+        public async Task<OASISResult<IHolon>> LoadHolonAsync(string providerKey, ProviderType providerType = ProviderType.Default)
         {
-            return ProviderManager.SetAndActivateCurrentStorageProvider(provider).Result.LoadAllHolonsAsync(type);
+            ProviderType currentProviderType = ProviderManager.CurrentStorageProviderType.Value;
+            OASISResult<IHolon> result = new OASISResult<IHolon>();
+
+            result = await LoadHolonForProviderTypeAsync(providerKey, providerType, result);
+
+            if (result.Result == null)
+            {
+                foreach (EnumValue<ProviderType> type in ProviderManager.GetProviderAutoFailOverList())
+                {
+                    if (type.Value != providerType && type.Value != ProviderManager.CurrentStorageProviderType.Value)
+                    {
+                        result = await LoadHolonForProviderTypeAsync(providerKey, type.Value, result);
+
+                        if (result.Result != null)
+                            break;
+                    }
+                }
+            }
+
+            if (result.Result == null)
+            {
+                result.IsError = true;
+                string errorMessage = string.Concat("All registered OASIS Providers in the AutoFailOverList failed to load the holon with providerKey ", providerKey, ". Please view the logs for more information. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString());
+                result.Message = errorMessage;
+                LoggingManager.Log(errorMessage, LogType.Error);
+            }
+
+            SwitchBackToCurrentProvider(currentProviderType, ref result);
+
+            return result;
+        }
+
+        public OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(Guid id, HolonType holonType = HolonType.All, ProviderType providerType = ProviderType.Default)
+        {
+            ProviderType currentProviderType = ProviderManager.CurrentStorageProviderType.Value;
+            OASISResult<IEnumerable<IHolon>> result = new OASISResult<IEnumerable<IHolon>>();
+
+            result = LoadHolonsForParentForProviderType(id, holonType, providerType, result);
+
+            if (result.Result == null)
+            {
+                foreach (EnumValue<ProviderType> type in ProviderManager.GetProviderAutoFailOverList())
+                {
+                    if (type.Value != providerType && type.Value != ProviderManager.CurrentStorageProviderType.Value)
+                    {
+                        result = LoadHolonsForParentForProviderType(id, holonType, type.Value, result);
+
+                        if (result.Result != null)
+                            break;
+                    }
+                }
+            }
+
+            if (result.Result == null)
+            {
+                result.IsError = true;
+                string errorMessage = string.Concat("All registered OASIS Providers in the AutoFailOverList failed to load holons for parent with id ", id, ", and holonType ", Enum.GetName(typeof(HolonType), holonType), ". Please view the logs for more information. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString());
+                result.Message = errorMessage;
+                LoggingManager.Log(errorMessage, LogType.Error);
+            }
+
+            SwitchBackToCurrentProvider(currentProviderType, ref result);
+
+            return result;
+        }
+
+        public async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(Guid id, HolonType holonType = HolonType.All, ProviderType providerType = ProviderType.Default)
+        {
+            ProviderType currentProviderType = ProviderManager.CurrentStorageProviderType.Value;
+            OASISResult<IEnumerable<IHolon>> result = new OASISResult<IEnumerable<IHolon>>();
+
+            result = await LoadHolonsForParentForProviderTypeAsync(id, holonType, providerType, result);
+
+            if (result.Result == null)
+            {
+                foreach (EnumValue<ProviderType> type in ProviderManager.GetProviderAutoFailOverList())
+                {
+                    if (type.Value != providerType && type.Value != ProviderManager.CurrentStorageProviderType.Value)
+                    {
+                        result = await LoadHolonsForParentForProviderTypeAsync(id, holonType, type.Value, result);
+
+                        if (result.Result != null)
+                            break;
+                    }
+                }
+            }
+
+            if (result.Result == null)
+            {
+                result.IsError = true;
+                string errorMessage = string.Concat("All registered OASIS Providers in the AutoFailOverList failed to load holons for parent with id ", id, ", and holonType ", Enum.GetName(typeof(HolonType), holonType), ". Please view the logs for more information. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString());
+                result.Message = errorMessage;
+                LoggingManager.Log(errorMessage, LogType.Error);
+            }
+
+            SwitchBackToCurrentProvider(currentProviderType, ref result);
+
+            return result;
+        }
+
+        public OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(string providerKey, HolonType holonType = HolonType.All, ProviderType providerType = ProviderType.Default)
+        {
+            ProviderType currentProviderType = ProviderManager.CurrentStorageProviderType.Value;
+            OASISResult<IEnumerable<IHolon>> result = new OASISResult<IEnumerable<IHolon>>();
+
+            result = LoadHolonsForParentForProviderType(providerKey, holonType, providerType, result);
+
+            if (result.Result == null)
+            {
+                foreach (EnumValue<ProviderType> type in ProviderManager.GetProviderAutoFailOverList())
+                {
+                    if (type.Value != providerType && type.Value != ProviderManager.CurrentStorageProviderType.Value)
+                    {
+                        result = LoadHolonsForParentForProviderType(providerKey, holonType, type.Value, result);
+
+                        if (result.Result != null)
+                            break;
+                    }
+                }
+            }
+
+            if (result.Result == null)
+            {
+                result.IsError = true;
+                string errorMessage = string.Concat("All registered OASIS Providers in the AutoFailOverList failed to load holons for parent with providerKey ", providerKey, ", and holonType ", Enum.GetName(typeof(HolonType), holonType), ". Please view the logs for more information. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString());
+                result.Message = errorMessage;
+                LoggingManager.Log(errorMessage, LogType.Error);
+            }
+
+            SwitchBackToCurrentProvider(currentProviderType, ref result);
+
+            return result;
+        }
+
+        //TODO: Need to implement this proper way of calling an OASIS method across the entire OASIS...
+        public async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(string providerKey, HolonType holonType = HolonType.All, ProviderType providerType = ProviderType.Default)
+        {
+            ProviderType currentProviderType = ProviderManager.CurrentStorageProviderType.Value;
+            OASISResult<IEnumerable<IHolon>> result = new OASISResult<IEnumerable<IHolon>>();
+
+            result = await LoadHolonsForParentForProviderTypeAsync(providerKey, holonType, providerType, result);
+
+            if (result.Result == null)
+            {
+                foreach (EnumValue<ProviderType> type in ProviderManager.GetProviderAutoFailOverList())
+                {
+                    if (type.Value != providerType && type.Value != ProviderManager.CurrentStorageProviderType.Value)
+                    {
+                        result = await LoadHolonsForParentForProviderTypeAsync(providerKey, holonType, type.Value, result);
+
+                        if (result.Result != null)
+                            break;
+                    }
+                }
+            }
+
+            if (result.Result == null)
+            {
+                result.IsError = true;
+                string errorMessage = string.Concat("All registered OASIS Providers in the AutoFailOverList failed to load holons for parent with providerKey ", providerKey, ", and holonType ", Enum.GetName(typeof(HolonType), holonType), ". Please view the logs for more information. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString());
+                result.Message = errorMessage;
+                LoggingManager.Log(errorMessage, LogType.Error);
+            }
+
+            SwitchBackToCurrentProvider(currentProviderType, ref result);
+
+            return result;
+        }
+
+        public OASISResult<IEnumerable<IHolon>> LoadAllHolons(HolonType holonType = HolonType.All, ProviderType providerType = ProviderType.Default)
+        {
+            ProviderType currentProviderType = ProviderManager.CurrentStorageProviderType.Value;
+            OASISResult<IEnumerable<IHolon>> result = new OASISResult<IEnumerable<IHolon>>();
+
+            result = LoadAllHolonsForProviderType(holonType, providerType, result);
+
+            if (result.Result == null)
+            {
+                foreach (EnumValue<ProviderType> type in ProviderManager.GetProviderAutoFailOverList())
+                {
+                    if (type.Value != providerType && type.Value != ProviderManager.CurrentStorageProviderType.Value)
+                    {
+                        result = LoadAllHolonsForProviderType(holonType, type.Value, result);
+
+                        if (result.Result != null)
+                            break;
+                    }
+                }
+            }
+
+            if (result.Result == null)
+            {
+                result.IsError = true;
+                string errorMessage = string.Concat("All registered OASIS Providers in the AutoFailOverList failed to load all holons for holonType ", Enum.GetName(typeof(HolonType), holonType), ". Please view the logs for more information. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString());
+                result.Message = errorMessage;
+                LoggingManager.Log(errorMessage, LogType.Error);
+            }
+
+            SwitchBackToCurrentProvider(currentProviderType, ref result);
+
+            return result;
+        }
+
+        public async Task<OASISResult<IEnumerable<IHolon>>> LoadAllHolonsAsync(HolonType holonType = HolonType.All, ProviderType providerType = ProviderType.Default)
+        {
+            ProviderType currentProviderType = ProviderManager.CurrentStorageProviderType.Value;
+            OASISResult<IEnumerable<IHolon>> result = new OASISResult<IEnumerable<IHolon>>();
+
+            result = await LoadAllHolonsForProviderTypeAsync(holonType, providerType, result);
+
+            if (result.Result == null)
+            {
+                foreach (EnumValue<ProviderType> type in ProviderManager.GetProviderAutoFailOverList())
+                {
+                    if (type.Value != providerType && type.Value != ProviderManager.CurrentStorageProviderType.Value)
+                    {
+                        result = await LoadAllHolonsForProviderTypeAsync(holonType, type.Value, result);
+
+                        if (result.Result != null)
+                            break;
+                    }
+                }
+            }
+
+            if (result.Result == null)
+            {
+                result.IsError = true;
+                string errorMessage = string.Concat("All registered OASIS Providers in the AutoFailOverList failed to load all holons for holonType ", Enum.GetName(typeof(HolonType), holonType), ". Please view the logs for more information. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString());
+                result.Message = errorMessage;
+                LoggingManager.Log(errorMessage, LogType.Error);
+            }
+
+            SwitchBackToCurrentProvider(currentProviderType, ref result);
+
+            return result;
         }
 
         public OASISResult<IHolon> SaveHolon(IHolon holon, ProviderType providerType = ProviderType.Default)
@@ -280,24 +502,116 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return result;
         }
 
-        public bool DeleteHolon(Guid id, bool softDelete = true, ProviderType provider = ProviderType.Default)
+        public OASISResult<bool> DeleteHolon(Guid id, bool softDelete = true, ProviderType provider = ProviderType.Default)
         {
-            return ProviderManager.SetAndActivateCurrentStorageProvider(provider).Result.DeleteHolon(id, softDelete);
+            OASISResult<bool> result = new OASISResult<bool>();
+
+            try
+            {
+                OASISResult<IOASISStorage> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(provider);
+
+                if (providerResult.IsError)
+                {
+                    result.IsError = true;
+                    result.Message = providerResult.Message;
+                }
+                else
+                    result.Result = providerResult.Result.DeleteHolon(id, softDelete);
+            }
+            catch (Exception ex)
+            {
+                string errorMessage = string.Concat("An unknown error occured in DeleteHolon method. id: ", id, ", softDelete = ", softDelete, ", providerType = ", Enum.GetName(typeof(ProviderType), provider), " Error details: ", ex.ToString());
+                result.IsError = true;
+                result.Message = errorMessage;
+                LoggingManager.Log(errorMessage, LogType.Error);
+                result.Exception = ex;
+            }
+
+            return result;
         }
 
-        public Task<bool> DeleteHolonAsync(Guid id, bool softDelete = true, ProviderType provider = ProviderType.Default)
+        public async Task<OASISResult<bool>> DeleteHolonAsync(Guid id, bool softDelete = true, ProviderType provider = ProviderType.Default)
         {
-            return ProviderManager.SetAndActivateCurrentStorageProvider(provider).Result.DeleteHolonAsync(id, softDelete);
+            OASISResult<bool> result = new OASISResult<bool>();
+
+            try
+            {
+                OASISResult<IOASISStorage> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(provider);
+
+                if (providerResult.IsError)
+                {
+                    result.IsError = true;
+                    result.Message = providerResult.Message;
+                }
+                else
+                    result.Result = await providerResult.Result.DeleteHolonAsync(id, softDelete);
+            }
+            catch (Exception ex)
+            {
+                string errorMessage = string.Concat("An unknown error occured in DeleteHolonAsync method. id: ", id, ", softDelete = ", softDelete, ", providerType = ", Enum.GetName(typeof(ProviderType), provider), " Error details: ", ex.ToString());
+                result.IsError = true;
+                result.Message = errorMessage;
+                LoggingManager.Log(errorMessage, LogType.Error);
+                result.Exception = ex;
+            }
+
+            return result;
         }
 
-        public bool DeleteHolon(string providerKey, bool softDelete = true, ProviderType provider = ProviderType.Default)
+        public OASISResult<bool> DeleteHolon(string providerKey, bool softDelete = true, ProviderType provider = ProviderType.Default)
         {
-            return ProviderManager.SetAndActivateCurrentStorageProvider(provider).Result.DeleteHolon(providerKey, softDelete);
+            OASISResult<bool> result = new OASISResult<bool>();
+
+            try
+            {
+                OASISResult<IOASISStorage> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(provider);
+
+                if (providerResult.IsError)
+                {
+                    result.IsError = true;
+                    result.Message = providerResult.Message;
+                }
+                else
+                    result.Result = providerResult.Result.DeleteHolon(providerKey, softDelete);
+            }
+            catch (Exception ex)
+            {
+                string errorMessage = string.Concat("An unknown error occured in DeleteHolonAsync method. providerKey: ", providerKey, ", softDelete = ", softDelete, ", providerType = ", Enum.GetName(typeof(ProviderType), provider), " Error details: ", ex.ToString());
+                result.IsError = true;
+                result.Message = errorMessage;
+                LoggingManager.Log(errorMessage, LogType.Error);
+                result.Exception = ex;
+            }
+
+            return result;
         }
 
-        public Task<bool> DeleteHolonAsync(string providerKey, bool softDelete = true, ProviderType provider = ProviderType.Default)
+        public async Task<OASISResult<bool>> DeleteHolonAsync(string providerKey, bool softDelete = true, ProviderType provider = ProviderType.Default)
         {
-            return ProviderManager.SetAndActivateCurrentStorageProvider(provider).Result.DeleteHolonAsync(providerKey, softDelete);
+            OASISResult<bool> result = new OASISResult<bool>();
+
+            try
+            {
+                OASISResult<IOASISStorage> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(provider);
+
+                if (providerResult.IsError)
+                {
+                    result.IsError = true;
+                    result.Message = providerResult.Message;
+                }
+                else
+                    result.Result = await providerResult.Result.DeleteHolonAsync(providerKey, softDelete);
+            }
+            catch (Exception ex)
+            {
+                string errorMessage = string.Concat("An unknown error occured in DeleteHolonAsync method. providerKey: ", providerKey, ", softDelete = ", softDelete, ", providerType = ", Enum.GetName(typeof(ProviderType), provider), " Error details: ", ex.ToString());
+                result.IsError = true;
+                result.Message = errorMessage;
+                LoggingManager.Log(errorMessage, LogType.Error);
+                result.Exception = ex;
+            }
+
+            return result;
         }
 
         private IHolon PrepareHolonForSaving(IHolon holon)
@@ -341,6 +655,336 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         private string GetHolonInfoForLogging(IHolon holon)
         {
             return string.Concat("holon with id ", holon.Id, " and name ", holon.Name, " of type ", Enum.GetName(holon.HolonType));
+        }
+
+        private OASISResult<IHolon> LoadHolonForProviderType(Guid id, ProviderType providerType, OASISResult<IHolon> result = null)
+        {
+            try
+            {
+                OASISResult<IOASISStorage> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
+
+                if (providerResult.IsError)
+                {
+                    LoggingManager.Log(providerResult.Message, LogType.Error);
+
+                    if (result != null)
+                    {
+                        result.IsError = true;
+                        result.Message = providerResult.Message;
+                    }
+                }
+                else if (result != null)
+                {
+                    result.Result = providerResult.Result.LoadHolon(id);
+                    result.IsSaved = true;
+                }
+            }
+            catch (Exception ex)
+            {
+                if (result != null)
+                    result.Result = null;
+
+                LoggingManager.Log(string.Concat("An error occured attempting to load the holon for id ", id, " using the ", Enum.GetName(providerType), " provider. Error Details: ", ex.ToString()), LogType.Error);
+            }
+
+            return result;
+        }
+
+        private async Task<OASISResult<IHolon>> LoadHolonForProviderTypeAsync(Guid id, ProviderType providerType, OASISResult<IHolon> result = null)
+        {
+            try
+            {
+                OASISResult<IOASISStorage> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
+
+                if (providerResult.IsError)
+                {
+                    LoggingManager.Log(providerResult.Message, LogType.Error);
+
+                    if (result != null)
+                    {
+                        result.IsError = true;
+                        result.Message = providerResult.Message;
+                    }
+                }
+                else if (result != null)
+                {
+                    result.Result = await providerResult.Result.LoadHolonAsync(id);
+                    result.IsSaved = true;
+                }
+            }
+            catch (Exception ex)
+            {
+                if (result != null)
+                    result.Result = null;
+
+                LoggingManager.Log(string.Concat("An error occured attempting to load the holon for id ", id, " using the ", Enum.GetName(providerType), " provider. Error Details: ", ex.ToString()), LogType.Error);
+            }
+
+            return result;
+        }
+
+        private OASISResult<IHolon> LoadHolonForProviderType(string providerKey, ProviderType providerType, OASISResult<IHolon> result = null)
+        {
+            try
+            {
+                OASISResult<IOASISStorage> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
+
+                if (providerResult.IsError)
+                {
+                    LoggingManager.Log(providerResult.Message, LogType.Error);
+
+                    if (result != null)
+                    {
+                        result.IsError = true;
+                        result.Message = providerResult.Message;
+                    }
+                }
+                else if (result != null)
+                {
+                    result.Result = providerResult.Result.LoadHolon(providerKey);
+                    result.IsSaved = true;
+                }
+            }
+            catch (Exception ex)
+            {
+                if (result != null)
+                    result.Result = null;
+
+                LoggingManager.Log(string.Concat("An error occured attempting to load the holon for providerKey ", providerKey, " using the ", Enum.GetName(providerType), " provider. Error Details: ", ex.ToString()), LogType.Error);
+            }
+
+            return result;
+        }
+
+        private async Task<OASISResult<IHolon>> LoadHolonForProviderTypeAsync(string providerKey, ProviderType providerType, OASISResult<IHolon> result = null)
+        {
+            try
+            {
+                OASISResult<IOASISStorage> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
+
+                if (providerResult.IsError)
+                {
+                    LoggingManager.Log(providerResult.Message, LogType.Error);
+
+                    if (result != null)
+                    {
+                        result.IsError = true;
+                        result.Message = providerResult.Message;
+                    }
+                }
+                else if (result != null)
+                {
+                    result.Result = await providerResult.Result.LoadHolonAsync(providerKey);
+                    result.IsSaved = true;
+                }
+            }
+            catch (Exception ex)
+            {
+                if (result != null)
+                    result.Result = null;
+
+                LoggingManager.Log(string.Concat("An error occured attempting to load the holon for providerKey ", providerKey, " using the ", Enum.GetName(providerType), " provider. Error Details: ", ex.ToString()), LogType.Error);
+            }
+
+            return result;
+        }
+
+        private OASISResult<IEnumerable<IHolon>> LoadHolonsForParentForProviderType(Guid id, HolonType holonType, ProviderType providerType, OASISResult<IEnumerable<IHolon>> result = null)
+        {
+            try
+            {
+                OASISResult<IOASISStorage> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
+
+                if (providerResult.IsError)
+                {
+                    LoggingManager.Log(providerResult.Message, LogType.Error);
+
+                    if (result != null)
+                    {
+                        result.IsError = true;
+                        result.Message = providerResult.Message;
+                    }
+                }
+                else if (result != null)
+                {
+                    result.Result = providerResult.Result.LoadHolonsForParent(id, holonType);
+                    result.IsSaved = true;
+                }
+            }
+            catch (Exception ex)
+            {
+                if (result != null)
+                    result.Result = null;
+
+                LoggingManager.Log(string.Concat("An error occured attempting to load the holons for parent with id ", id, " and holonType ", Enum.GetName(typeof(HolonType), holonType), " using the ", Enum.GetName(providerType), " provider. Error Details: ", ex.ToString()), LogType.Error);
+            }
+
+            return result;
+        }
+
+        private async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentForProviderTypeAsync(Guid id, HolonType holonType, ProviderType providerType, OASISResult<IEnumerable<IHolon>> result = null)
+        {
+            try
+            {
+                OASISResult<IOASISStorage> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
+
+                if (providerResult.IsError)
+                {
+                    LoggingManager.Log(providerResult.Message, LogType.Error);
+
+                    if (result != null)
+                    {
+                        result.IsError = true;
+                        result.Message = providerResult.Message;
+                    }
+                }
+                else if (result != null)
+                {
+                    result.Result = await providerResult.Result.LoadHolonsForParentAsync(id, holonType);
+                    result.IsSaved = true;
+                }
+            }
+            catch (Exception ex)
+            {
+                if (result != null)
+                    result.Result = null;
+
+                LoggingManager.Log(string.Concat("An error occured attempting to load the holons for parent with id ", id, " and holonType ", Enum.GetName(typeof(HolonType), holonType), " using the ", Enum.GetName(providerType), " provider. Error Details: ", ex.ToString()), LogType.Error);
+            }
+
+            return result;
+        }
+
+        private OASISResult<IEnumerable<IHolon>> LoadHolonsForParentForProviderType(string providerKey, HolonType holonType, ProviderType providerType, OASISResult<IEnumerable<IHolon>> result = null)
+        {
+            try
+            {
+                OASISResult<IOASISStorage> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
+
+                if (providerResult.IsError)
+                {
+                    LoggingManager.Log(providerResult.Message, LogType.Error);
+
+                    if (result != null)
+                    {
+                        result.IsError = true;
+                        result.Message = providerResult.Message;
+                    }
+                }
+                else if (result != null)
+                {
+                    result.Result = providerResult.Result.LoadHolonsForParent(providerKey, holonType);
+                    result.IsSaved = true;
+                }
+            }
+            catch (Exception ex)
+            {
+                if (result != null)
+                    result.Result = null;
+
+                LoggingManager.Log(string.Concat("An error occured attempting to load the holons for parent with providerKey ", providerKey, " and holonType ", Enum.GetName(typeof(HolonType), holonType), " using the ", Enum.GetName(providerType), " provider. Error Details: ", ex.ToString()), LogType.Error);
+            }
+
+            return result;
+        }
+
+        private async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentForProviderTypeAsync(string providerKey, HolonType holonType, ProviderType providerType, OASISResult<IEnumerable<IHolon>> result = null)
+        {
+            try
+            {
+                OASISResult<IOASISStorage> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
+
+                if (providerResult.IsError)
+                {
+                    LoggingManager.Log(providerResult.Message, LogType.Error);
+
+                    if (result != null)
+                    {
+                        result.IsError = true;
+                        result.Message = providerResult.Message;
+                    }
+                }
+                else if (result != null)
+                {
+                    result = await providerResult.Result.LoadHolonsForParentAsync(providerKey, holonType);
+                    result.IsSaved = true;
+                }
+            }
+            catch (Exception ex)
+            {
+                if (result != null)
+                    result.Result = null;
+
+                LoggingManager.Log(string.Concat("An error occured attempting to load the holons for parent with providerKey ", providerKey, " and holonType ", Enum.GetName(typeof(HolonType), holonType), " using the ", Enum.GetName(providerType), " provider. Error Details: ", ex.ToString()), LogType.Error);
+            }
+
+            return result;
+        }
+
+        private OASISResult<IEnumerable<IHolon>> LoadAllHolonsForProviderType(HolonType holonType, ProviderType providerType, OASISResult<IEnumerable<IHolon>> result = null)
+        {
+            try
+            {
+                OASISResult<IOASISStorage> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
+
+                if (providerResult.IsError)
+                {
+                    LoggingManager.Log(providerResult.Message, LogType.Error);
+
+                    if (result != null)
+                    {
+                        result.IsError = true;
+                        result.Message = providerResult.Message;
+                    }
+                }
+                else if (result != null)
+                {
+                    result.Result = providerResult.Result.LoadAllHolons(holonType);
+                    result.IsSaved = true;
+                }
+            }
+            catch (Exception ex)
+            {
+                if (result != null)
+                    result.Result = null;
+
+                LoggingManager.Log(string.Concat("An error occured attempting to load all holons for holonType ", Enum.GetName(typeof(HolonType), holonType), " using the ", Enum.GetName(providerType), " provider. Error Details: ", ex.ToString()), LogType.Error);
+            }
+
+            return result;
+        }
+
+        private async Task<OASISResult<IEnumerable<IHolon>>> LoadAllHolonsForProviderTypeAsync(HolonType holonType, ProviderType providerType, OASISResult<IEnumerable<IHolon>> result = null)
+        {
+            try
+            {
+                OASISResult<IOASISStorage> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
+
+                if (providerResult.IsError)
+                {
+                    LoggingManager.Log(providerResult.Message, LogType.Error);
+
+                    if (result != null)
+                    {
+                        result.IsError = true;
+                        result.Message = providerResult.Message;
+                    }
+                }
+                else if (result != null)
+                {
+                    result.Result = await providerResult.Result.LoadAllHolonsAsync(holonType);
+                    result.IsSaved = true;
+                }
+            }
+            catch (Exception ex)
+            {
+                if (result != null)
+                    result.Result = null;
+
+                LoggingManager.Log(string.Concat("An error occured attempting to load all holons for holonType ", Enum.GetName(typeof(HolonType), holonType), " using the ", Enum.GetName(providerType), " provider. Error Details: ", ex.ToString()), LogType.Error);
+            }
+
+            return result;
         }
 
         private OASISResult<IHolon> SaveHolonForProviderType(IHolon holon, ProviderType providerType, OASISResult<IHolon> result = null)

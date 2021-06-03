@@ -50,6 +50,12 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
         public Dictionary<ProviderType, Dictionary<string, string>> ProviderMetaData { get; set; } = new Dictionary<ProviderType, Dictionary<string, string>>(); // Key/Value pair meta data can be stored here, which is unique for that provider.
         public Dictionary<string, string> MetaData { get; set; } = new Dictionary<string, string>(); // Key/Value pair meta data can be stored here that applies globally across ALL providers.
         public HolonType HolonType { get; set; }
+        public Guid ParentGreatGrandSuperStarId { get; set; } //The GreatGrandSuperStar this Holon belongs to.
+        public IGreatGrandSuperStar ParentGreatGrandSuperStar { get; set; } //The GreatGrandSuperStar this Holon belongs to.
+        public Guid ParentGrandSuperStarId { get; set; } //The GrandSuperStar this Holon belongs to.
+        public IGrandSuperStar ParentGrandSuperStar { get; set; } //The GrandSuperStar this Holon belongs to.
+        public Guid ParentSuperStarId { get; set; } //The SuperStar this Holon belongs to.
+        public IGrandSuperStar ParentSuperStar { get; set; } //The SuperStar this Holon belongs to.
         public Guid ParentStarId { get; set; } //The Star this Holon belongs to.
         //public ICelestialBody ParentStar { get; set; } //The Star this Holon belongs to.
         public IStar ParentStar { get; set; } //The Star this Holon belongs to.
