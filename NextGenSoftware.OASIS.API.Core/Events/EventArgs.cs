@@ -32,12 +32,12 @@ namespace NextGenSoftware.OASIS.API.Core.Events
 
     public class HolonLoadedEventArgs : EventArgs
     {
-        public IHolon Holon { get; set; }
+        public OASISResult<IHolon> Result { get; set; }
     }
 
     public class HolonsLoadedEventArgs : EventArgs
     {
-        public List<IHolon> Holons { get; set; }
+        public OASISResult<IEnumerable<IHolon>> Result { get; set; }
     }
 
     public class HolonSavedEventArgs : EventArgs
