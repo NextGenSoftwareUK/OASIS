@@ -269,7 +269,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             if (result.Result)
                 return Ok(new { message = "Verification successful, you can now login" });
             else
-                return Ok(new { message = result.ErrorMessage });
+                return Ok(new { message = result.Message });
         }
 
         /// <summary>

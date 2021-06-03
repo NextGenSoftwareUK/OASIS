@@ -3,13 +3,13 @@ using System.Threading.Tasks;
 
 namespace NextGenSoftware.OASIS.API.Core.Interfaces.STAR
 {
-    public interface ISuperStarCore
+    // At the centre of each Galaxy (creates SolarSysyems (with a Star at the centre of each).
+    public interface ISuperStarCore : IStarCore
     {
-       // IStar Star { get; set; }
-
-       // Task<IPlanet> AddPlanetAsync(IPlanet planet);
+        ISuperStar SuperStar { get; set; }
         Task<IStar> AddStarAsync(IStar star);
-      //  Task<List<IPlanet>> GetPlanets();
+        Task<ISolarSystem> AddSolarSystemAsync(ISolarSystem star);
         Task<List<IStar>> GetStars();
+        Task<List<ISolarSystem>> GetSolarSystem();
     }
 }

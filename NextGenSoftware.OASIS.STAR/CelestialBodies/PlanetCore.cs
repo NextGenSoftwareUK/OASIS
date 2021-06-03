@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using NextGenSoftware.OASIS.STAR.Interfaces;
 
@@ -22,6 +23,11 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
         }
 
         public PlanetCore(Dictionary<ProviderType, string> providerKey, IPlanet planet) : base(providerKey)
+        {
+            this.Planet = planet;
+        }
+
+        public PlanetCore(Guid id, IPlanet planet) : base(id)
         {
             this.Planet = planet;
         }
@@ -74,7 +80,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
             // return (IMoon)await base.CallZomeFunctionAsync(PLANET_ADD_MOON, moon);
         }
 
-        public async Task<List<IMoon>> GetMoons()
+        public async Task<OASISResult<List<IMoon>>> GetMoons()
         {
             if (this.Planet.Moons == null)
                 this.Planet.Moons = (List<IMoon>)base.LoadHolonsAsync(ProviderKey, HolonType.Moon).Result;

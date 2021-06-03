@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
+using System;
 
 namespace NextGenSoftware.OASIS.STAR.CelestialBodies
 {
@@ -58,6 +59,11 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
             this.Star = star;
         }
 
+        public StarCore(Guid id, IStar star) : base(id)
+        {
+            this.Star = star;
+        }
+
         //ONLY SUPERSTAR CAN HAVE A COLLECTION OF OTHER STARS.
 
         //public async Task<IStar> AddStarAsync(IStar star)
@@ -82,11 +88,11 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
                 this.Star.Planets = new List<IPlanet>();
 
             this.Star.Planets.Add(planet);
-            result = await this.Star.Save();
+            result = await this.Star.SaveAsync();
 
             // TODO: This will only work if the planet names are unique (which we want to enforce anyway!) - need to add this soon!
             IPlanet savedPlanet = this.Star.Planets.FirstOrDefault(x => x.Name == planet.Name);
-            return new OASISResult<IPlanet>() { Result = savedPlanet, ErrorMessage = result.ErrorMessage, IsError = result.IsError };
+            return new OASISResult<IPlanet>() { Result = savedPlanet, Message = result.Message, IsError = result.IsError };
 
             // Alternative way is to save the planet first and then then the star (as code below does):
 

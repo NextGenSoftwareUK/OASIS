@@ -1,17 +1,30 @@
-﻿using NextGenSoftware.OASIS.API.Core;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities;
 
-namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
+namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Interfaces
 {
     public interface IHolonRepository
     {
-        Task<Holon> Add(Holon holon);
-        Task<Holon> Update(Holon holon);
-        Task<bool> Delete(Guid id, bool softDelete = true);
-        Task<Holon> GetHolon(Guid id);
-        Task<IEnumerable<Holon>> GetAllHolons();
+        Holon Add(Holon holon);
+        Task<Holon> AddAsync(Holon holon);
+        bool Delete(Guid id, bool softDelete = true);
+        bool Delete(string providerKey, bool softDelete = true);
+        Task<bool> DeleteAsync(Guid id, bool softDelete = true);
+        Task<bool> DeleteAsync(string providerKey, bool softDelete = true);
+        IEnumerable<Holon> GetAllHolons(HolonType holonType = HolonType.All);
+        Task<IEnumerable<Holon>> GetAllHolonsAsync(HolonType holonType = HolonType.All);
+        IEnumerable<Holon> GetAllHolonsForParent(Guid id, HolonType holonType);
+        IEnumerable<Holon> GetAllHolonsForParent(string providerKey, HolonType holonType);
+        Task<IEnumerable<Holon>> GetAllHolonsForParentAsync(Guid id, HolonType holonType);
+        Task<IEnumerable<Holon>> GetAllHolonsForParentAsync(string providerKey, HolonType holonType);
+        Holon GetHolon(Guid id);
+        Holon GetHolon(string providerKey);
+        Task<Holon> GetHolonAsync(Guid id);
+        Task<Holon> GetHolonAsync(string providerKey);
+        Holon Update(Holon holon);
+        Task<Holon> UpdateAsync(Holon holon);
     }
-
 }

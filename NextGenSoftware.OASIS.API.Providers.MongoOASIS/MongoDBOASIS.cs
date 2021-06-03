@@ -1,15 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using MongoDB.Bson;
-using MongoDB.Bson.Serialization.Attributes;
-using MongoDB.Driver;
 using NextGenSoftware.OASIS.API.Core;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Enums;
-using NextGenSoftware.OASIS.API.Core.Objects;
-using System.Threading;
+using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
+using NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories;
+using NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities;
 
 namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
 {
@@ -18,37 +16,269 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
         public MongoDbContext Database { get; set; }
         private AvatarRepository _avatarRepository = null;
         private HolonRepository _holonRepository = null;
+        private SearchRepository _searchRepository = null;
 
         public string ConnectionString { get; set; }
         public string DBName { get; set; }
-
-        public class SearchData
-        {
-            [BsonId]
-            [BsonRepresentation(BsonType.ObjectId)]
-            public string Id { get; set; }
-            //public int Id { get; set; }
-            public string searchData { get; set; }
-        }
 
         public MongoDBOASIS(string connectionString, string dbName)
         {
             ConnectionString = connectionString;
             DBName = dbName;
 
-            Database = new MongoDbContext(connectionString, dbName);
-            _avatarRepository = new AvatarRepository(Database);
-            _holonRepository = new HolonRepository(Database);
-
             this.ProviderName = "MongoDBOASIS";
             this.ProviderDescription = "MongoDB Atlas Provider";
             this.ProviderType = new Core.Helpers.EnumValue<ProviderType>(Core.Enums.ProviderType.MongoDBOASIS);
             this.ProviderCategory = new Core.Helpers.EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
+
+            /*
+            ConventionRegistry.Register(
+                   "DictionaryRepresentationConvention",
+                   new ConventionPack { new DictionaryRepresentationConvention(DictionaryRepresentation.ArrayOfArrays) },
+                   _ => true);*/
         }
 
-        public Task<bool> AddKarmaToAvatarAsync(IAvatar Avatar, int karma)
+        public override void ActivateProvider()
         {
-            throw new NotImplementedException();
+            //TODO: {URGENT} Find out how to check if MongoDB is connected, etc here...
+            if (Database == null)
+            {
+                Database = new MongoDbContext(ConnectionString, DBName);
+                _avatarRepository = new AvatarRepository(Database);
+                _holonRepository = new HolonRepository(Database);
+            }
+
+            base.ActivateProvider();
+        }
+
+        public override void DeActivateProvider()
+        {
+            //TODO: {URGENT} Disconnect, Dispose and release resources here.
+            Database.MongoDB = null;
+            Database.MongoClient = null;
+            Database = null;
+
+            base.DeActivateProvider();
+        }
+
+        public override async Task<IEnumerable<IAvatar>> LoadAllAvatarsAsync()
+        {
+            return ConvertMongoEntitysToOASISAvatars(await _avatarRepository.GetAvatarsAsync());
+        }
+
+        public override IEnumerable<IAvatar> LoadAllAvatars()
+        {
+            return ConvertMongoEntitysToOASISAvatars(_avatarRepository.GetAvatars());
+        }
+
+        public override async Task<IAvatar> LoadAvatarAsync(string username)
+        {
+            return ConvertMongoEntityToOASISAvatar(await _avatarRepository.GetAvatarAsync(username));
+        }
+
+        public override IAvatar LoadAvatar(string username)
+        {
+            return ConvertMongoEntityToOASISAvatar(_avatarRepository.GetAvatar(username));
+        }
+
+        public override async Task<IAvatar> LoadAvatarAsync(Guid Id)
+        {
+            return ConvertMongoEntityToOASISAvatar(await _avatarRepository.GetAvatarAsync(Id.ToString()));
+        }
+
+        public override IAvatar LoadAvatar(Guid Id)
+        {
+            return ConvertMongoEntityToOASISAvatar(_avatarRepository.GetAvatar(Id));
+        }
+
+        public override async Task<IAvatar> LoadAvatarAsync(string username, string password)
+        {
+            return ConvertMongoEntityToOASISAvatar(await _avatarRepository.GetAvatarAsync(username, password));
+        }
+
+        public override IAvatar LoadAvatar(string username, string password)
+        {
+            return ConvertMongoEntityToOASISAvatar(_avatarRepository.GetAvatar(username, password));
+        }
+
+        public override async Task<IAvatar> SaveAvatarAsync(IAvatar avatar)
+        {
+            return ConvertMongoEntityToOASISAvatar(avatar.Id == Guid.Empty ?
+               await _avatarRepository.AddAsync(ConvertOASISAvatarToMongoEntity(avatar)) :
+               await _avatarRepository.UpdateAsync(ConvertOASISAvatarToMongoEntity(avatar)));
+        }
+
+        public override IAvatar SaveAvatar(IAvatar avatar)
+        {
+            return ConvertMongoEntityToOASISAvatar(avatar.Id == Guid.Empty ?
+                _avatarRepository.Add(ConvertOASISAvatarToMongoEntity(avatar)) :
+                _avatarRepository.Update(ConvertOASISAvatarToMongoEntity(avatar)));
+        }
+
+        public override async Task<bool> DeleteAvatarAsync(Guid id, bool softDelete = true)
+        {
+            return await _avatarRepository.DeleteAsync(id, softDelete);
+        }
+
+        public override bool DeleteAvatar(Guid id, bool softDelete = true)
+        {
+            return _avatarRepository.Delete(id, softDelete);
+        }
+
+        public override async Task<IAvatar> LoadAvatarForProviderKeyAsync(string providerKey)
+        {
+            return ConvertMongoEntityToOASISAvatar(await _avatarRepository.GetAvatarAsync(providerKey));
+        }
+
+        public override IAvatar LoadAvatarForProviderKey(string providerKey)
+        {
+            return ConvertMongoEntityToOASISAvatar(_avatarRepository.GetAvatar(providerKey));
+        }
+
+        public override bool DeleteAvatar(string providerKey, bool softDelete = true)
+        {
+            return _avatarRepository.Delete(providerKey, softDelete);
+        }
+
+        public override async Task<bool> DeleteAvatarAsync(string providerKey, bool softDelete = true)
+        {
+            return await _avatarRepository.DeleteAsync(providerKey, softDelete);
+        }
+
+
+        //TODO: {URGENT} FIX BEB SEARCH TO WORK WITH ISearchParams instead of string as it use to be!
+        public override async Task<ISearchResults> SearchAsync(ISearchParams searchTerm)
+        {
+            return await _searchRepository.SearchAsync(searchTerm);
+        }
+
+        public override async Task<IHolon> LoadHolonAsync(Guid id)
+        {
+            return ConvertMongoEntityToOASISHolon(await _holonRepository.GetHolonAsync(id));
+        }
+
+        public override IHolon LoadHolon(Guid id)
+        {
+            return ConvertMongoEntityToOASISHolon(_holonRepository.GetHolon(id));
+        }
+
+        public override async Task<IHolon> LoadHolonAsync(string providerKey)
+        {
+            return ConvertMongoEntityToOASISHolon(await _holonRepository.GetHolonAsync(providerKey)); 
+        }
+
+        public override IHolon LoadHolon(string providerKey)
+        {
+            return ConvertMongoEntityToOASISHolon(_holonRepository.GetHolon(providerKey));
+        }
+
+        public override async Task<IEnumerable<IHolon>> LoadHolonsForParentAsync(Guid id, HolonType type = HolonType.All)
+        {
+            return ConvertMongoEntitysToOASISHolons(await _holonRepository.GetAllHolonsForParentAsync(id, type));
+        }
+
+        public override IEnumerable<IHolon> LoadHolonsForParent(Guid id, HolonType type = HolonType.All)
+        {
+            return ConvertMongoEntitysToOASISHolons(_holonRepository.GetAllHolonsForParent(id, type));
+        }
+
+        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(string providerKey, HolonType type = HolonType.All)
+        {
+            OASISResult<IEnumerable<IHolon>> result = new OASISResult<IEnumerable<IHolon>>();
+            OASISResult<IEnumerable<Holon>> repoResult = await _holonRepository.GetAllHolonsForParentAsync(providerKey, type);
+
+            if (repoResult.IsError)
+            {
+                result.IsError = true;
+                result.Message = repoResult.Message;
+            }
+            else
+                result.Result = ConvertMongoEntitysToOASISHolons(repoResult.Result);
+
+            return result;
+
+            //return ConvertMongoEntitysToOASISHolons(await _holonRepository.GetAllHolonsForParentAsync(providerKey, type));
+        }
+
+        public override IEnumerable<IHolon> LoadHolonsForParent(string providerKey, HolonType type = HolonType.All)
+        {
+            return ConvertMongoEntitysToOASISHolons(_holonRepository.GetAllHolonsForParent(providerKey, type));
+        }
+
+        public override async Task<IEnumerable<IHolon>> LoadAllHolonsAsync(HolonType type = HolonType.All)
+        {
+            return ConvertMongoEntitysToOASISHolons(await _holonRepository.GetAllHolonsAsync(type));
+        }
+
+        public override IEnumerable<IHolon> LoadAllHolons(HolonType type = HolonType.All)
+        {
+            return ConvertMongoEntitysToOASISHolons(_holonRepository.GetAllHolons(type));
+        }
+
+        public override async Task<IHolon> SaveHolonAsync(IHolon holon)
+        {
+            return ConvertMongoEntityToOASISHolon(holon.Id == Guid.Empty ?
+              await _holonRepository.AddAsync(ConvertOASISHolonToMongoEntity(holon)) :
+              await _holonRepository.UpdateAsync(ConvertOASISHolonToMongoEntity(holon)));
+        }
+
+        public override IHolon SaveHolon(IHolon holon)
+        {
+            return ConvertMongoEntityToOASISHolon(holon.Id == Guid.Empty ?
+               _holonRepository.AddAsync(ConvertOASISHolonToMongoEntity(holon)).Result :
+               _holonRepository.UpdateAsync(ConvertOASISHolonToMongoEntity(holon)).Result);
+        }
+
+        public override IEnumerable<IHolon> SaveHolons(IEnumerable<IHolon> holons)
+        {
+            List<IHolon> savedHolons = new List<IHolon>();
+            IHolon savedHolon;
+
+            // Recursively save all child holons.
+            foreach (IHolon holon in holons)
+            {
+                savedHolon = SaveHolon(holon);
+                savedHolon.Children = SaveHolons(holon.Children);
+                savedHolons.Add(savedHolon);
+            }
+
+            return savedHolons;
+        }
+
+        public override async Task<IEnumerable<IHolon>> SaveHolonsAsync(IEnumerable<IHolon> holons)
+        {
+            List<IHolon> savedHolons = new List<IHolon>();
+            IHolon savedHolon;
+
+            // Recursively save all child holons.
+            foreach (IHolon holon in holons)
+            {
+                savedHolon = await SaveHolonAsync(holon);
+                savedHolon.Children = await SaveHolonsAsync(holon.Children);
+                savedHolons.Add(savedHolon);
+            }
+
+            return savedHolons;
+        }
+
+        public override bool DeleteHolon(Guid id, bool softDelete = true)
+        {
+            return _holonRepository.Delete(id, softDelete);
+        }
+
+        public override async Task<bool> DeleteHolonAsync(Guid id, bool softDelete = true)
+        {
+            return await _holonRepository.DeleteAsync(id, softDelete);
+        }
+
+        public override bool DeleteHolon(string providerKey, bool softDelete = true)
+        {
+            return _holonRepository.Delete(providerKey, softDelete);
+        }
+
+        public override async Task<bool> DeleteHolonAsync(string providerKey, bool softDelete = true)
+        {
+            return await _holonRepository.DeleteAsync(providerKey, softDelete);
         }
 
         public IEnumerable<IHolon> GetHolonsNearMe(HolonType Type)
@@ -60,138 +290,15 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
         {
             throw new NotImplementedException();
         }
-        public override Task<IEnumerable<IAvatar>> LoadAllAvatarsAsync()
+
+
+        //IOASISSuperStar Interface Implementation
+
+        public bool NativeCodeGenesis(ICelestialBody celestialBody)
         {
-            return new Task<IEnumerable<IAvatar>>(() => ConvertMongoEntitysToOASISAvatars(_avatarRepository.GetAvatars().Result));
+            return true;
         }
 
-        public override IEnumerable<IAvatar> LoadAllAvatars()
-        {
-            return ConvertMongoEntitysToOASISAvatars(_avatarRepository.GetAvatars().Result);
-        }
-
-        public override Task<IAvatar> LoadAvatarAsync(string providerKey)
-        {
-            //TODO: Check if this is correct way to handle Task/async...
-            return new Task<IAvatar>(() => ConvertMongoEntityToOASISAvatar(_avatarRepository.GetAvatar(providerKey).Result));
-        }
-
-        public override Task<IAvatar> LoadAvatarAsync(Guid Id)
-        {
-            return new Task<IAvatar>(() => ConvertMongoEntityToOASISAvatar(_avatarRepository.GetAvatar(Id.ToString()).Result));
-        }
-
-        public override IAvatar LoadAvatar(Guid Id)
-        {
-            return ConvertMongoEntityToOASISAvatar(_avatarRepository.GetAvatar(Id).Result);
-        }
-
-        public override Task<IAvatar> LoadAvatarAsync(string username, string password)
-        {
-            //return new Task<IAvatar>(() => ConvertMongoEntityToOASISAvatar(_avatarRepository.GetAvatar(username, password).Result));
-
-            Avatar avatar = _avatarRepository.GetAvatar(username, password).Result;
-            IAvatar oasisAvatar = ConvertMongoEntityToOASISAvatar(avatar);
-
-            //TODO: {URGENT} The calling method never returns and waits forever, need to fix this ASAP
-            return new Task<IAvatar>(() => oasisAvatar);
-           // return oasisAvatar;
-        }
-
-        public override IAvatar LoadAvatar(string username, string password)
-        {
-            //return new Task<IAvatar>(() => ConvertMongoEntityToOASISAvatar(_avatarRepository.GetAvatar(username, password).Result));
-
-            Avatar avatar = _avatarRepository.GetAvatar(username, password).Result;
-            IAvatar oasisAvatar = ConvertMongoEntityToOASISAvatar(avatar);
-
-            //TODO: {URGENT} The calling method never returns and waits forever, need to fix this ASAP
-            return oasisAvatar;
-            // return oasisAvatar;
-        }
-
-        public override IAvatar LoadAvatar(string username)
-        {
-            //return new Task<IAvatar>(() => ConvertMongoEntityToOASISAvatar(_avatarRepository.GetAvatar(username, password).Result));
-
-          //  Thread.Sleep(5000);
-
-            Avatar avatar = _avatarRepository.GetAvatar(username).Result;
-            IAvatar oasisAvatar = ConvertMongoEntityToOASISAvatar(avatar);
-
-            //TODO: {URGENT} The calling method never returns and waits forever, need to fix this ASAP
-            return oasisAvatar;
-            // return oasisAvatar;
-        }
-
-        public override IAvatar SaveAvatar(IAvatar avatar)
-        {
-            return ConvertMongoEntityToOASISAvatar(avatar.Id == Guid.Empty ?
-                _avatarRepository.Add(ConvertOASISAvatarToMongoEntity(avatar)).Result :
-                _avatarRepository.Update(ConvertOASISAvatarToMongoEntity(avatar)).Result);
-        }
-
-        public override bool DeleteAvatar(Guid id, bool softDelete = true)
-        {
-            return _avatarRepository.Delete(id, softDelete).Result;
-        }
-
-        public override async Task<bool> DeleteAvatarAsync(Guid id, bool softDelete = true)
-        {
-            return await _avatarRepository.Delete(id, softDelete);
-        }
-
-        public override async Task<IAvatar> SaveAvatarAsync(IAvatar avatar)
-        {
-            //return new Task<IAvatar>(() => ConvertMongoEntityToOASISAvatar(avatar.Id == Guid.Empty ? 
-            //    _avatarRepository.Add(ConvertOASISAvatarToMongoEntity(avatar)).Result : 
-            //    _avatarRepository.Update(ConvertOASISAvatarToMongoEntity(avatar)).Result));
-
-            return  ConvertMongoEntityToOASISAvatar(avatar.Id == Guid.Empty ?
-               _avatarRepository.Add(ConvertOASISAvatarToMongoEntity(avatar)).Result :
-               _avatarRepository.Update(ConvertOASISAvatarToMongoEntity(avatar)).Result);
-        }
-
-        //TODO: Move this into Search Reposirary like Avatar is...
-        //TODO: {URGENT} FIX BEB SEARCH TO WORK WITH ISearchParams instead of string as it use to be!
-        public override async Task<ISearchResults> SearchAsync(ISearchParams searchTerm)
-        {
-            try
-            {
-
-                //_db.SearchData.Find({ cuisine: "Hamburgers" } );
-                //_db.SearchData.Find(new FilterDefinition<SearchData>() { })
-
-                //FilterDefinition<SearchData> filter = Builders<SearchData>.Filter.Eq("searchData", searchTerm);
-                //FilterDefinition<SearchData> filter = Builders<SearchData>.Filter.Regex("searchData", new BsonRegularExpression("/" + searchTerm + "/G[a-b].*/i"));
-                FilterDefinition<SearchData> filter = Builders<SearchData>.Filter.Regex("searchData", new BsonRegularExpression("/" + searchTerm.SearchQuery.ToLower() + "/"));
-                //FilterDefinition<SearchData> filter = Builders<SearchData>.Filter.AnyIn("searchData", searchTerm);
-                IEnumerable<SearchData> data = await Database.SearchData.Find(filter).ToListAsync();
-
-
-                
-                //Query.Matches("name", "Joe")
-
-                if (data != null)
-                {
-                    List<string> results = new List<string>();
-
-                    foreach (SearchData dataObj in data)
-                        results.Add( dataObj.searchData );
-
-                    return new SearchResults() {  SearchResultStrings = results };
-                }
-                else
-                    return null;
-                
-                //System.InvalidOperationException: The serializer for field 'searchData' must implement IBsonArraySerializer and provide item serialization info.
-                //return await db.SearchData.Find(filter).FirstOrDefaultAsync();
-            }
-            catch
-            {
-                throw;
-            }
-        }
 
         private IEnumerable<IAvatar> ConvertMongoEntitysToOASISAvatars(IEnumerable<Avatar> avatars)
         {
@@ -218,13 +325,9 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             if (avatar == null)
                 return null;
 
+            //Core.Holons.Avatar oasisAvatar = (Core.Holons.Avatar)ConvertMongoEntityToOASISHolon(avatar);
             Core.Holons.Avatar oasisAvatar = new Core.Holons.Avatar();
 
-            oasisAvatar.Id = Guid.Parse(avatar.AvatarId);
-
-            //oasisAvatar.ProviderKey[Core.Enums.ProviderType.MongoDBOASIS] = avatar.Id;
-            oasisAvatar.ProviderKey = avatar.ProviderKey;
-            oasisAvatar.ProviderMetaData = avatar.ProviderMetaData;
             oasisAvatar.ProviderPrivateKey = avatar.ProviderPrivateKey;
             oasisAvatar.ProviderPublicKey = avatar.ProviderPublicKey;
             oasisAvatar.ProviderUsername = avatar.ProviderUsername;
@@ -244,43 +347,10 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             oasisAvatar.Achievements = avatar.Achievements;
             oasisAvatar.Inventory = avatar.Inventory;
             oasisAvatar.CreatedOASISType = avatar.CreatedOASISType;
-
-            // If the mongo Key has not been set then set it now (unique id for mongo)
-            if (!oasisAvatar.ProviderKey.ContainsKey(Core.Enums.ProviderType.MongoDBOASIS))
-                oasisAvatar.ProviderKey[Core.Enums.ProviderType.MongoDBOASIS] = avatar.Id;
-
-            oasisAvatar.Description = avatar.Description;
-            oasisAvatar.HolonType = avatar.HolonType;
-            oasisAvatar.CreatedProviderType = new Core.Helpers.EnumValue<ProviderType>(avatar.CreatedProviderType);
-
-            oasisAvatar.ChangesSaved = avatar.ChangesSaved;
-            oasisAvatar.ParentHolonId = avatar.ParentHolonId;
-            oasisAvatar.ParentHolon = avatar.ParentHolon;
-            oasisAvatar.ParentZomeId = avatar.ParentZomeId;
-            oasisAvatar.ParentZome = avatar.ParentZome;
-            oasisAvatar.ParentStarId = avatar.ParentStarId;
-            oasisAvatar.ParentStar = avatar.ParentStar;
-            oasisAvatar.ParentPlanetId = avatar.ParentPlanetId;
-            oasisAvatar.ParentPlanet = avatar.ParentPlanet;
-            oasisAvatar.ParentMoonId = avatar.ParentMoonId;
-            oasisAvatar.ParentMoon = avatar.ParentMoon;
-            oasisAvatar.Children = avatar.Children;
-            oasisAvatar.Nodes = avatar.Nodes;
-
             oasisAvatar.Address = avatar.Address;
             oasisAvatar.AvatarType = avatar.AvatarType;
             oasisAvatar.Country = avatar.Country;
             oasisAvatar.County = avatar.County;
-            oasisAvatar.CreatedByAvatarId = Guid.Parse(avatar.CreatedByAvatarId);
-            //oasisAvatar.CreatedDate = Convert.ToDateTime(avatar.CreatedDate);
-            oasisAvatar.CreatedDate = avatar.CreatedDate;
-            oasisAvatar.DeletedByAvatarId = Guid.Parse(avatar.DeletedByAvatarId);
-            //oasisAvatar.DeletedDate = Convert.ToDateTime(avatar.DeletedDate);
-            oasisAvatar.DeletedDate = avatar.DeletedDate;
-            oasisAvatar.ModifiedByAvatarId = Guid.Parse(avatar.ModifiedByAvatarId);
-            //oasisAvatar.DeletedDate = Convert.ToDateTime(avatar.DeletedDate);
-            oasisAvatar.ModifiedDate = avatar.ModifiedDate;
-            oasisAvatar.DeletedDate = avatar.DeletedDate;
             oasisAvatar.FirstName = avatar.FirstName;
             oasisAvatar.LastName = avatar.LastName;
             oasisAvatar.Address = avatar.Address;
@@ -298,7 +368,6 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             oasisAvatar.AvatarType = avatar.AvatarType;
             oasisAvatar.Karma = avatar.Karma;
             oasisAvatar.KarmaAkashicRecords = avatar.KarmaAkashicRecords;
-            oasisAvatar.Version = avatar.Version;
             oasisAvatar.AcceptTerms = avatar.AcceptTerms;
             oasisAvatar.JwtToken = avatar.JwtToken;
             oasisAvatar.PasswordReset = avatar.PasswordReset;
@@ -308,11 +377,43 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             oasisAvatar.ResetTokenExpires = avatar.ResetTokenExpires;
             oasisAvatar.VerificationToken = avatar.VerificationToken;
             oasisAvatar.Verified = avatar.Verified;
-            oasisAvatar.CreatedProviderType = new Core.Helpers.EnumValue<ProviderType>(Core.Enums.ProviderType.MongoDBOASIS);
-            oasisAvatar.IsActive = avatar.IsActive;
-         //   oasisAvatar.ChangesSaved = true;
 
-          //  oasisAvatar.SetKarmaForDataObject(avatar.Karma);
+            // If the mongo Key has not been set then set it now (unique id for mongo)
+          //  if (!oasisAvatar.ProviderKey.ContainsKey(Core.Enums.ProviderType.MongoDBOASIS))
+          //      oasisAvatar.ProviderKey[Core.Enums.ProviderType.MongoDBOASIS] = avatar.Id;
+
+            oasisAvatar.Id = avatar.HolonId;
+           // oasisAvatar.ProviderKey[Core.Enums.ProviderType.MongoDBOASIS] = avatar.Id;
+            oasisAvatar.ProviderKey = avatar.ProviderKey;
+            oasisAvatar.ProviderMetaData = avatar.ProviderMetaData;
+            oasisAvatar.Description = avatar.Description;
+            oasisAvatar.HolonType = avatar.HolonType;
+            oasisAvatar.CreatedProviderType = new Core.Helpers.EnumValue<ProviderType>(avatar.CreatedProviderType);
+            oasisAvatar.ChangesSaved = avatar.ChangesSaved;
+            oasisAvatar.ParentHolonId = avatar.ParentHolonId;
+            oasisAvatar.ParentHolon = avatar.ParentHolon;
+            oasisAvatar.ParentZomeId = avatar.ParentZomeId;
+            oasisAvatar.ParentZome = avatar.ParentZome;
+            oasisAvatar.ParentStarId = avatar.ParentStarId;
+            oasisAvatar.ParentStar = avatar.ParentStar;
+            oasisAvatar.ParentPlanetId = avatar.ParentPlanetId;
+            oasisAvatar.ParentPlanet = avatar.ParentPlanet;
+            oasisAvatar.ParentMoonId = avatar.ParentMoonId;
+            oasisAvatar.ParentMoon = avatar.ParentMoon;
+            oasisAvatar.Children = avatar.Children;
+            oasisAvatar.Nodes = avatar.Nodes;
+            oasisAvatar.CreatedByAvatarId = Guid.Parse(avatar.CreatedByAvatarId);
+            oasisAvatar.CreatedDate = avatar.CreatedDate;
+            oasisAvatar.DeletedByAvatarId = Guid.Parse(avatar.DeletedByAvatarId);
+            oasisAvatar.DeletedDate = avatar.DeletedDate;
+            oasisAvatar.ModifiedByAvatarId = Guid.Parse(avatar.ModifiedByAvatarId);
+            oasisAvatar.ModifiedDate = avatar.ModifiedDate;
+            oasisAvatar.DeletedDate = avatar.DeletedDate;
+            oasisAvatar.Version = avatar.Version;
+            oasisAvatar.CreatedProviderType = new Core.Helpers.EnumValue<ProviderType>(avatar.CreatedProviderType);
+            //oasisAvatar.CreatedProviderType = new Core.Helpers.EnumValue<ProviderType>(Core.Enums.ProviderType.MongoDBOASIS);
+            oasisAvatar.IsActive = avatar.IsActive;
+
             return oasisAvatar;
         }
 
@@ -321,19 +422,13 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             if (avatar == null)
                 return null;
 
+            //Avatar mongoAvatar = (Avatar)ConvertOASISHolonToMongoEntity(avatar);
             Avatar mongoAvatar = new Avatar();
 
-            //TODO: Refactor to move this top block into generic base holon conversion code.
-            if (avatar.ProviderKey.ContainsKey(Core.Enums.ProviderType.MongoDBOASIS))
+            if (avatar.ProviderKey != null && avatar.ProviderKey.ContainsKey(Core.Enums.ProviderType.MongoDBOASIS))
                 mongoAvatar.Id = avatar.ProviderKey[Core.Enums.ProviderType.MongoDBOASIS];
-
-            mongoAvatar.AvatarId = avatar.Id.ToString();
-           // mongoAvatar.Name = avatar.Name;
-            mongoAvatar.Description = avatar.Description;
-            mongoAvatar.HolonType = avatar.HolonType;
-
-            mongoAvatar.ProviderKey = avatar.ProviderKey;
-            mongoAvatar.MetaData = avatar.MetaData;
+            
+            mongoAvatar.HolonId = avatar.Id;
             mongoAvatar.ProviderMetaData = avatar.ProviderMetaData;
             mongoAvatar.ProviderPrivateKey = avatar.ProviderPrivateKey;
             mongoAvatar.ProviderPublicKey = avatar.ProviderPublicKey;
@@ -354,40 +449,10 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             mongoAvatar.Achievements = avatar.Achievements;
             mongoAvatar.Inventory = avatar.Inventory;
             mongoAvatar.CreatedOASISType = avatar.CreatedOASISType;
-
-            //if (avatar.ProviderKey.ContainsKey(Core.Enums.ProviderType.MongoDBOASIS))
-            //    mongoAvatar.ProviderKey[Core.Enums.ProviderType.MongoDBOASIS] = avatar.Id;
-
-            if (avatar.CreatedProviderType != null)
-                mongoAvatar.CreatedProviderType = avatar.CreatedProviderType.Value;
-
-            mongoAvatar.ChangesSaved = avatar.ChangesSaved;
-            mongoAvatar.ParentHolonId = avatar.ParentHolonId;
-            mongoAvatar.ParentHolon = avatar.ParentHolon;
-            mongoAvatar.ParentZomeId = avatar.ParentZomeId;
-            mongoAvatar.ParentZome = avatar.ParentZome;
-            mongoAvatar.ParentStarId = avatar.ParentStarId;
-            mongoAvatar.ParentStar = avatar.ParentStar;
-            mongoAvatar.ParentPlanetId = avatar.ParentPlanetId;
-            mongoAvatar.ParentPlanet = avatar.ParentPlanet;
-            mongoAvatar.ParentMoonId = avatar.ParentMoonId;
-            mongoAvatar.ParentMoon = avatar.ParentMoon;
-            //mongoAvatar.ParentCelestialBodyId = avatar.ParentCelestialBodyId;
-            //mongoAvatar.ParentCelestialBody = avatar.ParentCelestialBody;
-            mongoAvatar.Children = avatar.Children;
-            mongoAvatar.Nodes = avatar.Nodes;
-
             mongoAvatar.Address = avatar.Address;
             mongoAvatar.AvatarType = avatar.AvatarType;
             mongoAvatar.Country = avatar.Country;
             mongoAvatar.County = avatar.County;
-            mongoAvatar.CreatedByAvatarId = avatar.CreatedByAvatarId.ToString();
-            mongoAvatar.CreatedDate = avatar.CreatedDate;
-            mongoAvatar.DeletedByAvatarId = avatar.DeletedByAvatarId.ToString();
-            mongoAvatar.DeletedDate = avatar.DeletedDate;
-            mongoAvatar.ModifiedByAvatarId = avatar.ModifiedByAvatarId.ToString();
-            mongoAvatar.ModifiedDate = avatar.ModifiedDate;
-            mongoAvatar.DeletedDate = avatar.DeletedDate;
             mongoAvatar.FirstName = avatar.FirstName;
             mongoAvatar.LastName = avatar.LastName;
             mongoAvatar.Address = avatar.Address;
@@ -403,8 +468,6 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             mongoAvatar.Town = avatar.Town;
             mongoAvatar.Username = avatar.Username;
             mongoAvatar.AvatarType = avatar.AvatarType;
-            mongoAvatar.Version = avatar.Version;
-           // mongoAvatar.Karma = avatar.Karma;
             mongoAvatar.KarmaAkashicRecords = avatar.KarmaAkashicRecords;
             mongoAvatar.AcceptTerms = avatar.AcceptTerms;
             mongoAvatar.JwtToken = avatar.JwtToken;
@@ -415,11 +478,43 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             mongoAvatar.ResetTokenExpires = avatar.ResetTokenExpires;
             mongoAvatar.VerificationToken = avatar.VerificationToken;
             mongoAvatar.Verified = avatar.Verified;
-            mongoAvatar.IsActive = avatar.IsActive;
-
-            //mongoAvatar.Karma = avatar.Karma;
-
             mongoAvatar.Karma = avatar.Karma;
+
+            //TODO: Refactor to move this top block into generic base holon conversion code.
+           // if (avatar.ProviderKey.ContainsKey(Core.Enums.ProviderType.MongoDBOASIS))
+           //     mongoAvatar.Id = avatar.ProviderKey[Core.Enums.ProviderType.MongoDBOASIS];
+
+            if (avatar.CreatedProviderType != null)
+                mongoAvatar.CreatedProviderType = avatar.CreatedProviderType.Value;
+
+            mongoAvatar.Name = avatar.Name;
+            mongoAvatar.Description = avatar.Description;
+            mongoAvatar.HolonType = avatar.HolonType;
+
+            mongoAvatar.ProviderKey = avatar.ProviderKey;
+            mongoAvatar.MetaData = avatar.MetaData;
+            mongoAvatar.ChangesSaved = avatar.ChangesSaved;
+            mongoAvatar.ParentHolonId = avatar.ParentHolonId;
+            mongoAvatar.ParentHolon = avatar.ParentHolon;
+            mongoAvatar.ParentZomeId = avatar.ParentZomeId;
+            mongoAvatar.ParentZome = avatar.ParentZome;
+            mongoAvatar.ParentStarId = avatar.ParentStarId;
+            mongoAvatar.ParentStar = avatar.ParentStar;
+            mongoAvatar.ParentPlanetId = avatar.ParentPlanetId;
+            mongoAvatar.ParentPlanet = avatar.ParentPlanet;
+            mongoAvatar.ParentMoonId = avatar.ParentMoonId;
+            mongoAvatar.ParentMoon = avatar.ParentMoon;
+            mongoAvatar.Children = avatar.Children;
+            mongoAvatar.Nodes = avatar.Nodes;
+            mongoAvatar.CreatedByAvatarId = avatar.CreatedByAvatarId.ToString();
+            mongoAvatar.CreatedDate = avatar.CreatedDate;
+            mongoAvatar.DeletedByAvatarId = avatar.DeletedByAvatarId.ToString();
+            mongoAvatar.DeletedDate = avatar.DeletedDate;
+            mongoAvatar.ModifiedByAvatarId = avatar.ModifiedByAvatarId.ToString();
+            mongoAvatar.ModifiedDate = avatar.ModifiedDate;
+            mongoAvatar.DeletedDate = avatar.DeletedDate;
+            mongoAvatar.Version = avatar.Version;
+            mongoAvatar.IsActive = avatar.IsActive;
 
             return mongoAvatar;
         }
@@ -431,22 +526,18 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
 
             IHolon oasisHolon = new Core.Holons.Holon();
 
+          //  if (!oasisHolon.ProviderKey.ContainsKey(Core.Enums.ProviderType.MongoDBOASIS))
+          //      oasisHolon.ProviderKey[Core.Enums.ProviderType.MongoDBOASIS] = holon.Id;
+
             //oasisHolon.Id = Guid.Parse(holon.Id);
             oasisHolon.Id = holon.HolonId;
-
             oasisHolon.ProviderKey = holon.ProviderKey;
-
-            if (!oasisHolon.ProviderKey.ContainsKey(Core.Enums.ProviderType.MongoDBOASIS))
-                oasisHolon.ProviderKey[Core.Enums.ProviderType.MongoDBOASIS] = holon.Id;
-
             oasisHolon.MetaData = holon.MetaData;
             oasisHolon.ProviderMetaData = holon.ProviderMetaData;
-
             oasisHolon.Name = holon.Name;
             oasisHolon.Description = holon.Description;
             oasisHolon.HolonType = holon.HolonType;
             oasisHolon.CreatedProviderType = new Core.Helpers.EnumValue<ProviderType>(holon.CreatedProviderType);
-
             oasisHolon.ChangesSaved = holon.ChangesSaved;
             oasisHolon.ParentHolonId = holon.ParentHolonId;
             oasisHolon.ParentHolon = holon.ParentHolon;
@@ -460,15 +551,11 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             oasisHolon.ParentMoon = holon.ParentMoon;
             oasisHolon.Children = holon.Children;
             oasisHolon.Nodes = holon.Nodes;
-            
             oasisHolon.CreatedByAvatarId = Guid.Parse(holon.CreatedByAvatarId);
-            //oasisHolon.CreatedByAvatarId = holon.CreatedByAvatarId;
             oasisHolon.CreatedDate = holon.CreatedDate;
             oasisHolon.DeletedByAvatarId = Guid.Parse(holon.DeletedByAvatarId);
-            //oasisHolon.DeletedByAvatarId = holon.DeletedByAvatarId;
             oasisHolon.DeletedDate = holon.DeletedDate;
             oasisHolon.ModifiedByAvatarId = Guid.Parse(holon.ModifiedByAvatarId);
-            //oasisHolon.ModifiedByAvatarId = holon.ModifiedByAvatarId;
             oasisHolon.ModifiedDate = holon.ModifiedDate;
             oasisHolon.DeletedDate = holon.DeletedDate;
             oasisHolon.Version = holon.Version;
@@ -485,21 +572,19 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
 
             Holon mongoHolon = new Holon();
 
+            if (holon.CreatedProviderType != null)
+                mongoHolon.CreatedProviderType = holon.CreatedProviderType.Value;
+
+            if (holon.ProviderKey != null && holon.ProviderKey.ContainsKey(Core.Enums.ProviderType.MongoDBOASIS))
+                mongoHolon.Id = holon.ProviderKey[Core.Enums.ProviderType.MongoDBOASIS];
+
             mongoHolon.HolonId = holon.Id;
             mongoHolon.Name = holon.Name;
             mongoHolon.Description = holon.Description;
             mongoHolon.HolonType = holon.HolonType;
-
             mongoHolon.MetaData = holon.MetaData;
             mongoHolon.ProviderMetaData = holon.ProviderMetaData;
-
-            // if (holon.ProviderKey.ContainsKey(Core.Enums.ProviderType.MongoDBOASIS))
-            //   mongoHolon.ProviderKey = holon.ProviderKey[Core.Enums.ProviderType.MongoDBOASIS];
             mongoHolon.ProviderKey = holon.ProviderKey;
-
-            if (holon.CreatedProviderType != null)
-                mongoHolon.CreatedProviderType = holon.CreatedProviderType.Value;
-
             mongoHolon.ChangesSaved = holon.ChangesSaved;
             mongoHolon.ParentHolonId = holon.ParentHolonId;
             mongoHolon.ParentHolon = holon.ParentHolon;
@@ -513,170 +598,17 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             mongoHolon.ParentMoon = holon.ParentMoon;
             mongoHolon.Children = holon.Children;
             mongoHolon.Nodes = holon.Nodes;
-
             mongoHolon.CreatedByAvatarId = holon.CreatedByAvatarId.ToString();
-            //mongoHolon.CreatedByAvatarId = holon.CreatedByAvatarId;
             mongoHolon.CreatedDate = holon.CreatedDate;
             mongoHolon.DeletedByAvatarId = holon.DeletedByAvatarId.ToString();
-            //mongoHolon.DeletedByAvatarId = holon.DeletedByAvatarId;
             mongoHolon.DeletedDate = holon.DeletedDate;
             mongoHolon.ModifiedByAvatarId = holon.ModifiedByAvatarId.ToString();
-            //mongoHolon.ModifiedByAvatarId = holon.ModifiedByAvatarId;
             mongoHolon.ModifiedDate = holon.ModifiedDate;
             mongoHolon.DeletedDate = holon.DeletedDate;
             mongoHolon.Version = holon.Version;
             mongoHolon.IsActive = holon.IsActive;
-
+            
             return mongoHolon;
-        }
-
-        public override void ActivateProvider()
-        {
-            //TODO: {URGENT} Find out how to check if MongoDB is connected, etc here...
-            //if (_db.MongoDB.)
-
-            if (Database == null)
-            {
-                Database = new MongoDbContext(ConnectionString, DBName);
-                _avatarRepository = new AvatarRepository(Database);
-                _holonRepository = new HolonRepository(Database);
-            }
-
-            base.ActivateProvider();
-        }
-
-        public override void DeActivateProvider()
-        {
-            //TODO: {URGENT} Disconnect, Dispose and release resources here.
-            Database.MongoDB = null;
-            Database.MongoClient = null;
-            Database = null;
-
-            base.DeActivateProvider();
-        }
-
-        public override IHolon LoadHolon(Guid id, HolonType type = HolonType.Holon)
-        {
-            return ConvertMongoEntityToOASISHolon(_holonRepository.GetHolon(id).Result);
-        }
-
-        public override IHolon LoadHolon(string providerKey, HolonType type = HolonType.Holon)
-        {
-            return ConvertMongoEntityToOASISHolon(_holonRepository.GetHolon(providerKey).Result);
-        }
-
-        public override IEnumerable<IHolon> LoadHolonsForParent(Guid id, HolonType type = HolonType.Holon)
-        {
-            return ConvertMongoEntitysToOASISHolons(_holonRepository.GetAllHolonsForParent(id).Result);
-        }
-
-        public override IEnumerable<IHolon> LoadHolonsForParent(string providerKey, HolonType type = HolonType.Holon)
-        {
-            throw new NotImplementedException();
-        }
-        public override IEnumerable<IHolon> LoadAllHolons(HolonType type = HolonType.Holon)
-        {
-            return ConvertMongoEntitysToOASISHolons(_holonRepository.GetAllHolons().Result);
-        }
-
-        public override IHolon SaveHolon(IHolon holon)
-        {
-            return ConvertMongoEntityToOASISHolon(holon.Id == Guid.Empty ?
-               _holonRepository.Add(ConvertOASISHolonToMongoEntity(holon)).Result :
-               _holonRepository.Update(ConvertOASISHolonToMongoEntity(holon)).Result);
-        }
-
-        public override IEnumerable<IHolon> SaveHolons(IEnumerable<IHolon> holons)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override Task<IHolon> LoadHolonAsync(Guid id, HolonType type = HolonType.Holon)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override async Task<IHolon> LoadHolonAsync(string providerKey, HolonType type = HolonType.Holon)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override async Task<IEnumerable<IHolon>> LoadHolonsForParentAsync(Guid id, HolonType type = HolonType.Holon)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override async Task<IEnumerable<IHolon>> LoadHolonsForParentAsync(string providerKey, HolonType type = HolonType.Holon)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override async Task<IEnumerable<IHolon>> LoadAllHolonsAsync(HolonType type = HolonType.Holon)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override async Task<IHolon> SaveHolonAsync(IHolon holon)
-        {
-            return ConvertMongoEntityToOASISHolon(holon.Id == Guid.Empty ?
-              _holonRepository.Add(ConvertOASISHolonToMongoEntity(holon)).Result :
-              _holonRepository.Update(ConvertOASISHolonToMongoEntity(holon)).Result);
-        }
-
-        public override async Task<IEnumerable<IHolon>> SaveHolonsAsync(IEnumerable<IHolon> holons)
-        {
-            foreach (IHolon holon in holons)
-                await SaveHolonAsync(holon);
-
-            return holons;
-        }
-
-        public override async Task<IAvatar> LoadAvatarForProviderKeyAsync(string providerKey)
-        {
-            return ConvertMongoEntityToOASISAvatar(_avatarRepository.GetAvatar(providerKey).Result);
-        }
-
-        public override IAvatar LoadAvatarForProviderKey(string providerKey)
-        {
-            return ConvertMongoEntityToOASISAvatar(_avatarRepository.GetAvatar(providerKey).Result);
-        }
-
-        public override bool DeleteAvatar(string providerKey, bool softDelete = true)
-        {
-            return _avatarRepository.Delete(providerKey, softDelete).Result;
-        }
-
-        public override async Task<bool> DeleteAvatarAsync(string providerKey, bool softDelete = true)
-        {
-            return await _avatarRepository.Delete(providerKey, softDelete);
-        }
-
-        public override bool DeleteHolon(Guid id, bool softDelete = true)
-        {
-            return _holonRepository.Delete(id, softDelete).Result;
-        }
-
-        public override async Task<bool> DeleteHolonAsync(Guid id, bool softDelete = true)
-        {
-            return await _holonRepository.Delete(id, softDelete);
-        }
-
-        public override bool DeleteHolon(string providerKey, bool softDelete = true)
-        {
-            return _holonRepository.Delete(providerKey, softDelete).Result;
-        }
-
-        public override async Task<bool> DeleteHolonAsync(string providerKey, bool softDelete = true)
-        {
-            return await _holonRepository.Delete(providerKey, softDelete);
-        }
-
-
-        //IOASISSuperStar Interface Implementation
-
-        public bool NativeCodeGenesis(ICelestialBody celestialBody)
-        {
-            return true;
         }
     }
 }

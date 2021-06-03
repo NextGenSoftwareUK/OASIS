@@ -1,9 +1,9 @@
 ﻿
 using NextGenSoftware.OASIS.API.Core.Events;
 
-namespace NextGenSoftware.OASIS.STAR.ErrorEventArgs
+namespace NextGenSoftware.OASIS.STAR.EventArgs
 {
-    public class StarErrorEventArgs : ZomeErrorEventArgs
+    public class SuperStarErrorEventArgs : ZomeErrorEventArgs
     {
        // public HoloNETErrorEventArgs HoloNETErrorDetails { get; set; }
     }

@@ -14,7 +14,7 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.TestHarness
 
             Console.WriteLine("Connecting To Graph DB...");
             Neo4jOASIS neo = new Neo4jOASIS("http://localhost:7474", "neo4j", "letthereb@light!");
-            await neo.Connect();
+            neo.ActivateProvider();
     
             neo.GraphClient.OperationCompleted += GraphClient_OperationCompleted;
 

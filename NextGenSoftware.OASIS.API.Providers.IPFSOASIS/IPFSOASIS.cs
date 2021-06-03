@@ -14,18 +14,30 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
 {
     public class IPFSOASIS : OASISStorageBase, IOASISStorage, IOASISNET
     {
+        public string HostURI { get; set; }
         public IpfsClient IPFSClient;
         public IpfsEngine IPFSEngine; //= new IpfsEngine();
 
-        public IPFSOASIS(string host)
+        public IPFSOASIS(string hostURI)
         {
             this.ProviderName = "IPFSOASIS";
             this.ProviderDescription = "IPFS Provider";
             this.ProviderType = new Core.Helpers.EnumValue<ProviderType>(Core.Enums.ProviderType.IPFSOASIS);
             this.ProviderCategory = new Core.Helpers.EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
+            this.HostURI = hostURI;
+        }
 
-            //IPFSClient = new IpfsClient("http://localhost:5002");
-            IPFSClient = new IpfsClient(host);
+        public override void ActivateProvider()
+        {
+            IPFSClient = new IpfsClient(HostURI);
+            base.ActivateProvider();
+        }
+
+        public override void DeActivateProvider()
+        {
+            IPFSClient.ShutdownAsync();
+            IPFSClient = null;
+            base.DeActivateProvider();
         }
 
         public override bool DeleteAvatar(Guid id, bool softDelete = true)
@@ -160,42 +172,8 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
             throw new NotImplementedException();
         }
 
-        public override IHolon LoadHolon(Guid id, HolonType type = HolonType.Holon)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override IHolon LoadHolon(string providerKey, HolonType type = HolonType.Holon)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override Task<IHolon> LoadHolonAsync(Guid id, HolonType type = HolonType.Holon)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override Task<IHolon> LoadHolonAsync(string providerKey, HolonType type = HolonType.Holon)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override IEnumerable<IHolon> LoadHolonsForParent(Guid id, HolonType type = HolonType.Holon)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override IEnumerable<IHolon> LoadHolonsForParent(string providerKey, HolonType type = HolonType.Holon)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override Task<IEnumerable<IHolon>> LoadHolonsForParentAsync(Guid id, HolonType type = HolonType.Holon)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override Task<IEnumerable<IHolon>> LoadHolonsForParentAsync(string providerKey, HolonType type = HolonType.Holon)
+       
+        public override Task<IEnumerable<IHolon>> LoadHolonsForParentAsync(string providerKey, HolonType type = HolonType.All)
         {
             throw new NotImplementedException();
         }
@@ -231,6 +209,41 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
         }
 
         public override Task<ISearchResults> SearchAsync(ISearchParams searchTerm)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override IHolon LoadHolon(Guid id)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override Task<IHolon> LoadHolonAsync(Guid id)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override IHolon LoadHolon(string providerKey)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override Task<IHolon> LoadHolonAsync(string providerKey)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override IEnumerable<IHolon> LoadHolonsForParent(Guid id, HolonType type = HolonType.All)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override Task<IEnumerable<IHolon>> LoadHolonsForParentAsync(Guid id, HolonType type = HolonType.All)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override IEnumerable<IHolon> LoadHolonsForParent(string providerKey, HolonType type = HolonType.All)
         {
             throw new NotImplementedException();
         }

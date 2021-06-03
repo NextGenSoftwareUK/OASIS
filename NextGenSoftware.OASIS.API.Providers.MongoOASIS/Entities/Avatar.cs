@@ -1,16 +1,14 @@
-
-using NextGenSoftware.OASIS.API.Core;
+using System;
+using System.Collections.Generic;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Objects;
-using System;
-using System.Collections.Generic;
 
-namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
+namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities
 {
-    public class Avatar : BaseEntity
+    public class Avatar : Holon
     {
-        public string AvatarId { get; set; }
+       // public string AvatarId { get; set; }
         public string Title { get; set; }
         public string FirstName { get; set; }
         public string LastName { get; set; }

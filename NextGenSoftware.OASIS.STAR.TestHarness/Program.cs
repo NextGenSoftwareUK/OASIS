@@ -6,21 +6,20 @@ using System.Threading.Tasks;
 using System.Collections.Generic;
 using EOSNewYork.EOSCore.Response.API;
 using Nethereum.Contracts;
+using Console = System.Console;
+//using Spectre.Console;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Events;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.Core.Helpers;
+using NextGenSoftware.OASIS.API.Providers.SEEDSOASIS.Membranes;
 using NextGenSoftware.OASIS.STAR.ErrorEventArgs;
 using NextGenSoftware.OASIS.STAR.CelestialBodies;
-using NextGenSoftware.OASIS.API.Providers.SEEDSOASIS.Membranes;
 using NextGenSoftware.OASIS.STAR.Zomes;
-using Colorful;
-using Console = System.Console;
-using NextGenSoftware.OASIS.STAR.OASISAPIManager;
-//using Spectre.Console;
 
 namespace NextGenSoftware.OASIS.STAR.TestHarness
 {
@@ -39,13 +38,7 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
                 string rustGenesisFolder = "C:\\CODE\\Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK\\NextGenSoftware.OASIS.STAR.TestHarness\\bin\\Release\\net5.0\\Genesis\\Rust";
 
                 ShowHeader();
-
-                // If you wish to change the default init options for STAR then manually call the Initialize method below, otherwise STAR will init with default options.
                 ShowMessage("", false);
-                ShowWorkingMessage("Igniting Star...");
-                SuperStar.Initialize(InitOptions.InitWithCurrentDefaultProvider);
-                ShowSuccessMessage("STAR Ignited");
-
 
                 // TODO: Not sure what events should expose on Star, StarCore and HoloNETClient?
                 // I feel the events should at least be on the Star object, but then they need to be on the others to bubble them up (maybe could be hidden somehow?)
@@ -53,21 +46,33 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
                 SuperStar.OnHolonLoaded += Star_OnHolonLoaded;
                 SuperStar.OnHolonsLoaded += Star_OnHolonsLoaded;
                 SuperStar.OnHolonSaved += Star_OnHolonSaved;
-                SuperStar.OnInitialized += Star_OnInitialized;
-                SuperStar.OnStarError += Star_OnStarError;
+                SuperStar.OnSuperStarIgnited += SuperStar_OnSuperStarIgnited;
+                SuperStar.OnSuperStarError += SuperStar_OnSuperStarError;
+                SuperStar.OnSuperStarStatusChanged += SuperStar_OnSuperStarStatusChanged;
+                SuperStar.OnOASISBooted += SuperStar_OnOASISBooted;
+                SuperStar.OnOASISBootError += SuperStar_OnOASISBootError;
 
-                if (!GetConfirmation("Do you have an existing avatar? "))
-                    CreateAvatar();
+                OASISResult<ICelestialBody> result = SuperStar.IgniteSuperStar();
+
+                if (result.IsError)
+                    ShowErrorMessage(string.Concat("Error Igniting SuperStar. Error Message: ", result.Message));
                 else
+                {
+                    //Console.ForegroundColor = ConsoleColor.Yellow;
+
+                    if (!GetConfirmation("Do you have an existing avatar? "))
+                        CreateAvatar();
+                    else
+                        ShowMessage("", false);
+
+                    LoginAvatar();
+
+                    ShowMessage("", false);
+                    Colorful.Console.WriteAscii(" READY PLAYER ONE?", Color.Green);
                     ShowMessage("", false);
 
-                LoginAvatar();
-
-                ShowMessage("", false);
-                Colorful.Console.WriteAscii(" READY PLAYER ONE?", Color.Green);
-                ShowMessage("", false);
-
-                await Test(dnaFolder, cSharpGeneisFolder, rustGenesisFolder);
+                    await Test(dnaFolder, cSharpGeneisFolder, rustGenesisFolder);
+                }
             }
             catch (Exception ex)
             {
@@ -77,11 +82,57 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
             }
         }
 
+        private static void SuperStar_OnSuperStarStatusChanged(object sender, EventArgs.SuperStarStatusChangedEventArgs e)
+        {
+            switch (e.Status)
+            {
+                case Enums.SuperStarStatus.BootingOASIS:
+                    ShowWorkingMessage("BOOTING OASIS...");
+                    break;
+
+                case Enums.SuperStarStatus.OASISBooted:
+                    ShowSuccessMessage("OASIS BOOTED");
+                    break;
+
+                case Enums.SuperStarStatus.Igniting:
+                    ShowWorkingMessage("IGNITING SUPERSTAR..."); 
+                    break;
+
+                case Enums.SuperStarStatus.Ingited:
+                    ShowSuccessMessage("SUPERSTAR IGNITED");
+                    break;
+
+                    //case Enums.SuperStarStatus.Error:
+                    //  ShowErrorMessage("SuperStar Error");
+            }
+        }
+
+        private static void SuperStar_OnOASISBootError(object sender, OASISBootErrorEventArgs e)
+        {
+            //ShowErrorMessage(string.Concat("OASIS Boot Error. Reason: ", e.ErrorReason));
+            ShowErrorMessage(e.ErrorReason);
+        }
+
+        private static void SuperStar_OnOASISBooted(object sender, EventArgs.OASISBootedEventArgs e)
+        {
+            //ShowSuccessMessage(string.Concat("OASIS BOOTED.", e.Message));
+        }
+
+        private static void SuperStar_OnSuperStarError(object sender, EventArgs.SuperStarErrorEventArgs e)
+        {
+           // ShowErrorMessage(string.Concat("Error Igniting SuperStar. Reason: ", e.Reason));
+        }
+
+        private static void SuperStar_OnSuperStarIgnited(object sender, System.EventArgs e)
+        {
+            //ShowSuccessMessage("SUPERSTAR IGNITED");
+        }
+
         private static async Task Test(string dnaFolder, string cSharpGeneisFolder, string rustGenesisFolder)
         {
             // Create Planet (OAPP) by generating dynamic template/scaffolding code.
             ShowWorkingMessage("Generating Planet Our World...");
-            CoronalEjection result = SuperStar.Light(GenesisType.Planet, "Our World", dnaFolder, cSharpGeneisFolder, rustGenesisFolder, "NextGenSoftware.Holochain.HoloNET.HDK.Core.TestHarness.Genesis").Result;
+            CoronalEjection result = SuperStar.LightAsync(GenesisType.Planet, "Our World", dnaFolder, cSharpGeneisFolder, rustGenesisFolder, "NextGenSoftware.Holochain.HoloNET.HDK.Core.TestHarness.Genesis").Result;
 
             if (result.ErrorOccured)
                 ShowErrorMessage(string.Concat(" ERROR OCCURED. Error Message: ", result.Message));
@@ -119,7 +170,8 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
                 _ourWorld.OnZomeError += OurWorld_OnZomeError;
 
                 ShowWorkingMessage("Loading Zomes & Holons...");
-                _ourWorld.LoadAll();
+                //_ourWorld.LoadAllAsync();
+                await _ourWorld.LoadZomesAsync();
                 _spinner.Stop();
 
                 Holon newHolon = new Holon();
@@ -171,7 +223,7 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
                 SuperStar.OASISAPI.Map.CreateAndDrawRouteOnMapBetweenHolons(newHolon, newHolon); // Load-balanced across all providers.
 
                 SuperStar.OASISAPI.Data.LoadHolon(newHolon.Id); // Load-balanced across all providers.
-                SuperStar.OASISAPI.Data.LoadHolon(newHolon.Id, HolonType.All, ProviderType.IPFSOASIS); // Only loads from IPFS.
+                SuperStar.OASISAPI.Data.LoadHolon(newHolon.Id, ProviderType.IPFSOASIS); // Only loads from IPFS.
                 SuperStar.OASISAPI.Data.LoadAllHolons(HolonType.Moon, ProviderType.HoloOASIS); // Loads all moon (OAPPs) from Holochain.
                 SuperStar.OASISAPI.Data.SaveHolon(newHolon); // Load-balanced across all providers.
                 SuperStar.OASISAPI.Data.SaveHolon(newHolon, ProviderType.EthereumOASIS); //  Only saves to Etherum.
@@ -241,7 +293,7 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
                 Console.WriteLine(string.Concat(" Success: ", payWithSeedsResult.IsError ? "false" : "true"));
 
                 if (payWithSeedsResult.IsError)
-                    Console.WriteLine(string.Concat(" Error Message: ", payWithSeedsResult.ErrorMessage));
+                    Console.WriteLine(string.Concat(" Error Message: ", payWithSeedsResult.Message));
 
                 Console.WriteLine(string.Concat(" Result: ", payWithSeedsResult.Result));
 
@@ -270,7 +322,7 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
                 Console.WriteLine(string.Concat(" Success: ", sendInviteResult.IsError ? "false" : "true"));
 
                 if (sendInviteResult.IsError)
-                    Console.WriteLine(string.Concat(" Error Message: ", sendInviteResult.ErrorMessage));
+                    Console.WriteLine(string.Concat(" Error Message: ", sendInviteResult.Message));
                 else
                 {
                     Console.WriteLine(string.Concat(" Invite Sent To Join SEEDS. Invite Secret: ", sendInviteResult.Result.InviteSecret, ". Transction ID: ", sendInviteResult.Result.TransactionId));
@@ -280,7 +332,7 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
                     Console.WriteLine(string.Concat("Success: ", acceptInviteResult.IsError ? "false" : "true"));
 
                     if (acceptInviteResult.IsError)
-                        Console.WriteLine(string.Concat(" Error Message: ", acceptInviteResult.ErrorMessage));
+                        Console.WriteLine(string.Concat(" Error Message: ", acceptInviteResult.Message));
                     else
                         Console.WriteLine(string.Concat(" Invite Accepted To Join SEEDS. Transction ID: ", acceptInviteResult.Result));
                 }
@@ -337,10 +389,10 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
             }
         }
 
-        private static void Star_OnStarError(object sender, StarErrorEventArgs e)
-        {
-            ShowErrorMessage(string.Concat(" Star Error Occured. EndPoint: ", e.EndPoint, ". Reason: ", e.Reason, ". Error Details: ", e.ErrorDetails, "EndPoint: ", e.EndPoint));
-        }
+        //private static void Star_OnStarError(object sender, StarErrorEventArgs e)
+        //{
+        //    ShowErrorMessage(string.Concat(" Star Error Occured. EndPoint: ", e.EndPoint, ". Reason: ", e.Reason, ". Error Details: ", e.ErrorDetails, "EndPoint: ", e.EndPoint));
+        //}
 
         //private static void HoloNETClient_OnError(object sender, Client.Core.HoloNETErrorEventArgs e)
         //{
@@ -353,24 +405,27 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
             ShowErrorMessage(string.Concat(" Star Core Error Occured. EndPoint: ", e.EndPoint, ". Reason: ", e.Reason, ". Error Details: ", e.ErrorDetails));
         }
 
-        private static void Star_OnInitialized(object sender, EventArgs e)
+        private static void Star_OnInitialized(object sender, System.EventArgs e)
         {
-            ShowErrorMessage(" Star Initialized.");
+            ShowSuccessMessage(" Star Initialized.");
         }
 
         private static void Star_OnHolonSaved(object sender, HolonSavedEventArgs e)
         {
-            ShowErrorMessage(string.Concat(" Star Holons Saved. Holon Saved: ", e.Holon.Name));
+            if (e.Result.IsError)
+                ShowErrorMessage(e.Result.Message);
+            else
+                ShowSuccessMessage(string.Concat(" Star Holons Saved. Holon Saved: ", e.Result.Result.Name));
         }
 
         private static void Star_OnHolonsLoaded(object sender, HolonsLoadedEventArgs e)
         {
-            ShowErrorMessage(string.Concat(" Star Holons Loaded. Holons Loaded: ", e.Holons.Count));
+            ShowSuccessMessage(string.Concat(" Star Holons Loaded. Holons Loaded: ", e.Holons.Count));
         }
 
         private static void Star_OnHolonLoaded(object sender, HolonLoadedEventArgs e)
         {
-            ShowErrorMessage(string.Concat(" Star Holons Loaded. Holon Name: ", e.Holon.Name));
+            ShowSuccessMessage(string.Concat(" Star Holons Loaded. Holon Name: ", e.Holon.Name));
         }
 
         private static void Star_OnZomeError(object sender, ZomeErrorEventArgs e)
@@ -387,16 +442,21 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
 
         private static void OurWorld_OnHolonSaved(object sender, HolonSavedEventArgs e)
         {
-            Console.WriteLine(" Holon Saved");
-            Console.WriteLine(string.Concat(" Holon Id: ", e.Holon.Id));
-            Console.WriteLine(string.Concat(" Holon ProviderKey: ", e.Holon.ProviderKey));
-            Console.WriteLine(string.Concat(" Holon Name: ", e.Holon.Name));
-            Console.WriteLine(string.Concat( "Holon Type: ", e.Holon.HolonType));
-            Console.WriteLine(string.Concat(" Holon Description: ", e.Holon.Description));
+            if (e.Result.IsError)
+                ShowErrorMessage(e.Result.Message);
+            else
+            {
+                Console.WriteLine(" Holon Saved");
+                Console.WriteLine(string.Concat(" Holon Id: ", e.Result.Result.Id));
+                Console.WriteLine(string.Concat(" Holon ProviderKey: ", e.Result.Result.ProviderKey));
+                Console.WriteLine(string.Concat(" Holon Name: ", e.Result.Result.Name));
+                Console.WriteLine(string.Concat("Holon Type: ", e.Result.Result.HolonType));
+                Console.WriteLine(string.Concat(" Holon Description: ", e.Result.Result.Description));
 
-            Console.WriteLine(" Loading Holon...");
-            //ourWorld.CelestialBodyCore.LoadHolonAsync(e.Holon.Name, e.Holon.ProviderKey);
-            _ourWorld.CelestialBodyCore.LoadHolonAsync(e.Holon.Id);
+                Console.WriteLine(" Loading Holon...");
+                //ourWorld.CelestialBodyCore.LoadHolonAsync(e.Holon.Name, e.Holon.ProviderKey);
+                _ourWorld.CelestialBodyCore.LoadHolonAsync(e.Result.Result.Id);
+            }
         }
 
         private static void OurWorld_OnHolonLoaded(object sender, HolonLoadedEventArgs e)
@@ -481,6 +541,12 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
 
         private static void ShowWorkingMessage(string message, bool lineSpace = true)
         {
+            if (_spinner.IsActive)
+            {
+                _spinner.Stop();
+                Console.WriteLine("");
+            }
+
             if (lineSpace)
                 Console.WriteLine(" ");
 
@@ -728,7 +794,7 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
             ShowMessage("");
 
             if (createAvatarResult.IsError)
-                ShowErrorMessage(string.Concat("Error creating avatar. Error message: ", createAvatarResult.ErrorMessage));
+                ShowErrorMessage(string.Concat("Error creating avatar. Error message: ", createAvatarResult.Message));
             else
                 ShowSuccessMessage("Successfully Created Avatar. Please Check Your Email To Verify Your Account Before Logging In.");
         }
@@ -817,6 +883,8 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
         {
             Console.ForegroundColor = ConsoleColor.Green;
             Console.WriteLine("\n Usage:");
+            Console.WriteLine("   star ignite = Ignite SuperStar & Boot The OASIS");
+            Console.WriteLine("   star extinguish = Extinguish SuperStar & Shutdown The OASIS");
             Console.WriteLine("   star beamin = Log in");
             Console.WriteLine("   star beamout = Log out");
             Console.WriteLine("   star light -dnaFolder -cSharpGeneisFolder -rustGenesisFolder = Creates a new Planet (OAPP) at the given folder genesis locations, from the given OAPP DNA.");
@@ -844,19 +912,25 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
 
             while (beamInResult == null || (beamInResult != null && beamInResult.IsError))
             {
+                //TODO: TEMP - PUT BACK IN WHEN GOING LIVE!
+                /*
                 ShowMessage("Please login below:");
                 string username = GetValidEmail("Username/Email? ", false);
                 string password = ReadPassword("Password? ");
                 ShowWorkingMessage("Beaming In...");
                 beamInResult = SuperStar.BeamIn(username, password);
-                // beamInResult = SuperStar.BeamIn("davidellams@hotmail.com", "my-super-secret-password");
+                */
+
+                ShowWorkingMessage("Beaming In...");
+                //beamInResult = SuperStar.BeamIn("davidellams@hotmail.com", "my-super-secret-password");
+                beamInResult = SuperStar.BeamIn("davidellams@hotmail.com", "test!");
                 ShowMessage("");
 
                 if (beamInResult.IsError)
                 {
-                    ShowErrorMessage(string.Concat("Error logging in. Error Message: ", beamInResult.ErrorMessage));
+                    ShowErrorMessage(string.Concat("Error logging in. Error Message: ", beamInResult.Message));
 
-                    if (beamInResult.ErrorMessage == "Avatar has not been verified. Please check your email.")
+                    if (beamInResult.Message == "Avatar has not been verified. Please check your email.")
                     {
                         ShowErrorMessage("Then either click the link in the email to activate your avatar or enter the validation token contained in the email below:", false);
 
@@ -868,7 +942,7 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
                             OASISResult<bool> verifyEmailResult = SuperStar.OASISAPI.Avatar.VerifyEmail(token);
 
                             if (verifyEmailResult.IsError)
-                                ShowErrorMessage(verifyEmailResult.ErrorMessage);
+                                ShowErrorMessage(verifyEmailResult.Message);
                             else
                             {
                                 ShowSuccessMessage("Verification successful, you can now login");
@@ -907,8 +981,33 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
             Console.WriteLine(string.Concat(" SoloarPlexus Level: ", SuperStar.LoggedInUser.Chakras.SoloarPlexus.Level));
             Console.WriteLine(string.Concat(" Sacral XP: ", SuperStar.LoggedInUser.Chakras.Sacral.XP));
             Console.WriteLine(string.Concat(" Sacral Level: ", SuperStar.LoggedInUser.Chakras.Sacral.Level));
+
+            Console.WriteLine(string.Concat(" Root SanskritName: ", SuperStar.LoggedInUser.Chakras.Root.SanskritName));
             Console.WriteLine(string.Concat(" Root XP: ", SuperStar.LoggedInUser.Chakras.Root.XP));
             Console.WriteLine(string.Concat(" Root Level: ", SuperStar.LoggedInUser.Chakras.Root.Level));
+            Console.WriteLine(string.Concat(" Root Progress: ", SuperStar.LoggedInUser.Chakras.Root.Progress));
+           // Console.WriteLine(string.Concat(" Root Color: ", SuperStar.LoggedInUser.Chakras.Root.Color.Name));
+            Console.WriteLine(string.Concat(" Root Element: ", SuperStar.LoggedInUser.Chakras.Root.Element.Name));
+            Console.WriteLine(string.Concat(" Root YogaPose: ", SuperStar.LoggedInUser.Chakras.Root.YogaPose.Name));
+            Console.WriteLine(string.Concat(" Root WhatItControls: ", SuperStar.LoggedInUser.Chakras.Root.WhatItControls));
+            Console.WriteLine(string.Concat(" Root WhenItDevelops: ", SuperStar.LoggedInUser.Chakras.Root.WhenItDevelops));
+            Console.WriteLine(string.Concat(" Root Crystal Name: ", SuperStar.LoggedInUser.Chakras.Root.Crystal.Name.Name));
+            Console.WriteLine(string.Concat(" Root Crystal AmplifyicationLevel: ", SuperStar.LoggedInUser.Chakras.Root.Crystal.AmplifyicationLevel));
+            Console.WriteLine(string.Concat(" Root Crystal CleansingLevel: ", SuperStar.LoggedInUser.Chakras.Root.Crystal.CleansingLevel));
+            Console.WriteLine(string.Concat(" Root Crystal EnergisingLevel: ", SuperStar.LoggedInUser.Chakras.Root.Crystal.EnergisingLevel));
+            Console.WriteLine(string.Concat(" Root Crystal GroundingLevel: ", SuperStar.LoggedInUser.Chakras.Root.Crystal.GroundingLevel));
+            Console.WriteLine(string.Concat(" Root Crystal ProtectionLevel: ", SuperStar.LoggedInUser.Chakras.Root.Crystal.ProtectionLevel));
+
+            Console.WriteLine("");
+            Console.WriteLine(" Aurua:");
+            Console.WriteLine(string.Concat(" Brightness: ", SuperStar.LoggedInUser.Aura.Brightness));
+            Console.WriteLine(string.Concat(" Size: ", SuperStar.LoggedInUser.Aura.Size));
+            Console.WriteLine(string.Concat(" Level: ", SuperStar.LoggedInUser.Aura.Level));
+            Console.WriteLine(string.Concat(" Value: ", SuperStar.LoggedInUser.Aura.Value));
+            Console.WriteLine(string.Concat(" Progress: ", SuperStar.LoggedInUser.Aura.Progress));
+            Console.WriteLine(string.Concat(" ColourRed: ", SuperStar.LoggedInUser.Aura.ColourRed));
+            Console.WriteLine(string.Concat(" ColourGreen: ", SuperStar.LoggedInUser.Aura.ColourGreen));
+            Console.WriteLine(string.Concat(" ColourBlue: ", SuperStar.LoggedInUser.Aura.ColourBlue));
 
             Console.WriteLine("");
             Console.WriteLine(" Attributes:");
