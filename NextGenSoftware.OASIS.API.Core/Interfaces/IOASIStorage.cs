@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
@@ -35,8 +36,8 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces
 
         IHolon SaveHolon(IHolon holon);
         Task<IHolon> SaveHolonAsync(IHolon holon);
-        IEnumerable<IHolon> SaveHolons(IEnumerable<IHolon> holons);
-        Task<IEnumerable<IHolon>> SaveHolonsAsync(IEnumerable<IHolon> holons);
+        ObservableCollection<IHolon> SaveHolons(ObservableCollection<IHolon> holons);
+        Task<ObservableCollection<IHolon>> SaveHolonsAsync(ObservableCollection<IHolon> holons);
         IHolon LoadHolon(Guid id);
         Task<IHolon> LoadHolonAsync(Guid id);
         IHolon LoadHolon(string providerKey);

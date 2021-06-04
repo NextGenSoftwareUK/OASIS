@@ -51,7 +51,11 @@ namespace NextGenSoftware.OASIS.STAR.Zomes
 
             //TODO: Eventually want to replace all exceptions with OASISResult throughout the OASIS because then it makes sure errors are handled properly and friendly messages are shown (plus less overhead of throwing an entire stack trace!)
             if (result.IsError)
-                ErrorHandling.HandleError(ref result, string.Concat("Error calling OASISDNAManager.GetAndActivateDefaultProvider(). Error details: ", result.Message), true, false, true);
+            {
+                string errorMessage = string.Concat("Error calling OASISDNAManager.GetAndActivateDefaultProvider(). Error details: ", result.Message);
+                ErrorHandling.HandleError(ref result, errorMessage, true, false, true);
+                OnZomeError?.Invoke(this, new ZomeErrorEventArgs() { Reason = errorMessage });
+            }
             else
             {
                 _holonManager = new HolonManager(result.Result);
@@ -63,9 +67,10 @@ namespace NextGenSoftware.OASIS.STAR.Zomes
         {
             OASISResult<IHolon> result = await _holonManager.LoadHolonAsync(id);
 
-            if (!result.IsError)
-                OnHolonLoaded?.Invoke(this, new HolonLoadedEventArgs() { Result = result });
+            if (result.IsError)
+                OnZomeError?.Invoke(this, new ZomeErrorEventArgs() { Reason = string.Concat("Error in LoadHolonAsync method with id ", id, ". Error Details: ", result.Message), ErrorDetails = result.Exception });
 
+            OnHolonLoaded?.Invoke(this, new HolonLoadedEventArgs() { Result = result });
             return result;
         }
 
@@ -73,9 +78,10 @@ namespace NextGenSoftware.OASIS.STAR.Zomes
         {
             OASISResult<IHolon> result = _holonManager.LoadHolon(id);
 
-            if (!result.IsError)
-                OnHolonLoaded?.Invoke(this, new HolonLoadedEventArgs() { Result = result });
+            if (result.IsError)
+                OnZomeError?.Invoke(this, new ZomeErrorEventArgs() { Reason = string.Concat("Error in LoadHolon method with id ", id, ". Error Details: ", result.Message), ErrorDetails = result.Exception });
 
+            OnHolonLoaded?.Invoke(this, new HolonLoadedEventArgs() { Result = result });
             return result;
         }
 
@@ -84,9 +90,10 @@ namespace NextGenSoftware.OASIS.STAR.Zomes
         {
             OASISResult<IHolon> result = await _holonManager.LoadHolonAsync(GetCurrentProviderKey(providerKey));
 
-            if (!result.IsError)
-                OnHolonLoaded?.Invoke(this, new HolonLoadedEventArgs() { Result = result });
+            if (result.IsError)
+                OnZomeError?.Invoke(this, new ZomeErrorEventArgs() { Reason = string.Concat("Error in LoadHolonAsync method with providerKey ", providerKey, ". Error Details: ", result.Message), ErrorDetails = result.Exception });
 
+            OnHolonLoaded?.Invoke(this, new HolonLoadedEventArgs() { Result = result });
             return result;
         }
 
@@ -94,9 +101,10 @@ namespace NextGenSoftware.OASIS.STAR.Zomes
         {
             OASISResult<IHolon> result = _holonManager.LoadHolon(GetCurrentProviderKey(providerKey));
 
-            if (!result.IsError)
-                OnHolonLoaded?.Invoke(this, new HolonLoadedEventArgs() { Result = result });
+            if (result.IsError)
+                OnZomeError?.Invoke(this, new ZomeErrorEventArgs() { Reason = string.Concat("Error in LoadHolon method with providerKey ", providerKey, ". Error Details: ", result.Message), ErrorDetails = result.Exception });
 
+            OnHolonLoaded?.Invoke(this, new HolonLoadedEventArgs() { Result = result });
             return result;
         }
 
@@ -104,9 +112,10 @@ namespace NextGenSoftware.OASIS.STAR.Zomes
         {
             OASISResult<IEnumerable<IHolon>> result = await _holonManager.LoadHolonsForParentAsync(id, holonType);
 
-            if (!result.IsError)
-                OnHolonsLoaded?.Invoke(this, new HolonsLoadedEventArgs() { Result = result });
+            if (result.IsError)
+                OnZomeError?.Invoke(this, new ZomeErrorEventArgs() { Reason = string.Concat("Error in LoadHolonsForParentAsync method with id ", id, " and holonType ", Enum.GetName(typeof(HolonType), holonType), ". Error Details: ", result.Message), ErrorDetails = result.Exception });
 
+            OnHolonsLoaded?.Invoke(this, new HolonsLoadedEventArgs() { Result = result });
             return result;
         }
 
@@ -114,19 +123,21 @@ namespace NextGenSoftware.OASIS.STAR.Zomes
         {
             OASISResult<IEnumerable<IHolon>> result = _holonManager.LoadHolonsForParent(id, holonType);
 
-            if (!result.IsError)
-                OnHolonsLoaded?.Invoke(this, new HolonsLoadedEventArgs() { Result = result });
+            if (result.IsError)
+                OnZomeError?.Invoke(this, new ZomeErrorEventArgs() { Reason = string.Concat("Error in LoadHolonsForParent method with id ", id, " and holonType ", Enum.GetName(typeof(HolonType), holonType), ". Error Details: ", result.Message), ErrorDetails = result.Exception });
 
+            OnHolonsLoaded?.Invoke(this, new HolonsLoadedEventArgs() { Result = result });
             return result;
         }
 
         public virtual async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(Dictionary<ProviderType, string> providerKey, HolonType holonType = HolonType.All)
         {
             OASISResult<IEnumerable<IHolon>> result = await _holonManager.LoadHolonsForParentAsync(GetCurrentProviderKey(providerKey), holonType);
-            
-            if (!result.IsError)
-                OnHolonsLoaded?.Invoke(this, new HolonsLoadedEventArgs() { Result = result });
 
+            if (result.IsError)
+                OnZomeError?.Invoke(this, new ZomeErrorEventArgs() { Reason = string.Concat("Error in LoadHolonsForParentAsync method with providerKey ", GetCurrentProviderKey(providerKey), " and holonType ", Enum.GetName(typeof(HolonType), holonType), ". Error Details: ", result.Message), ErrorDetails = result.Exception });
+
+            OnHolonsLoaded?.Invoke(this, new HolonsLoadedEventArgs() { Result = result });
             return result;
         }
 
@@ -134,19 +145,21 @@ namespace NextGenSoftware.OASIS.STAR.Zomes
         {
             OASISResult<IEnumerable<IHolon>> result = _holonManager.LoadHolonsForParent(GetCurrentProviderKey(providerKey), holonType);
 
-            if (!result.IsError)
-                OnHolonsLoaded?.Invoke(this, new HolonsLoadedEventArgs() { Result = result });
+            if (result.IsError)
+                OnZomeError?.Invoke(this, new ZomeErrorEventArgs() { Reason = string.Concat("Error in LoadHolonsForParent method with providerKey ", GetCurrentProviderKey(providerKey), " and holonType ", Enum.GetName(typeof(HolonType), holonType), ". Error Details: ", result.Message), ErrorDetails = result.Exception });
 
+            OnHolonsLoaded?.Invoke(this, new HolonsLoadedEventArgs() { Result = result });
             return result;
         }
 
         public virtual async Task<OASISResult<IHolon>> SaveHolonAsync(IHolon savingHolon)
         {
             OASISResult<IHolon> result = await _holonManager.SaveHolonAsync(savingHolon);
-            
-            if (!result.IsError)
-                OnHolonSaved?.Invoke(this, new HolonSavedEventArgs() { Result = result });
 
+            if (result.IsError)
+                OnZomeError?.Invoke(this, new ZomeErrorEventArgs() { Reason = string.Concat("Error in SaveHolonAsync method for holon with ", LoggingHelper.GetHolonInfoForLogging(savingHolon), Enum.GetName(typeof(HolonType), savingHolon.HolonType), ". Error Details: ", result.Message), ErrorDetails = result.Exception });
+
+            OnHolonSaved?.Invoke(this, new HolonSavedEventArgs() { Result = result });
             return result;
         }
 
@@ -154,9 +167,10 @@ namespace NextGenSoftware.OASIS.STAR.Zomes
         {
             OASISResult<IHolon> result = _holonManager.SaveHolon(savingHolon);
 
-            if (!result.IsError)
-                OnHolonSaved?.Invoke(this, new HolonSavedEventArgs() { Result = result });
+            if (result.IsError)
+                OnZomeError?.Invoke(this, new ZomeErrorEventArgs() { Reason = string.Concat("Error in SaveHolon method for holon with ", LoggingHelper.GetHolonInfoForLogging(savingHolon), Enum.GetName(typeof(HolonType), savingHolon.HolonType), ". Error Details: ", result.Message), ErrorDetails = result.Exception });
 
+            OnHolonSaved?.Invoke(this, new HolonSavedEventArgs() { Result = result });
             return result;
         }
 
@@ -164,9 +178,10 @@ namespace NextGenSoftware.OASIS.STAR.Zomes
         {
             OASISResult<IEnumerable<IHolon>> result = await _holonManager.SaveHolonsAsync(savingHolons);
 
-            if (!result.IsError)
-                OnHolonsSaved?.Invoke(this, new HolonsSavedEventArgs() { Result = result });
+            if (result.IsError)
+                OnZomeError?.Invoke(this, new ZomeErrorEventArgs() { Reason = string.Concat("Error in SaveHolonsAsync method. Error Details: ", result.Message), ErrorDetails = result.Exception });
 
+            OnHolonsSaved?.Invoke(this, new HolonsSavedEventArgs() { Result = result });
             return result;
         }
 
@@ -174,9 +189,10 @@ namespace NextGenSoftware.OASIS.STAR.Zomes
         {
             OASISResult<IEnumerable<IHolon>> result = _holonManager.SaveHolons(savingHolons);
 
-            if (!result.IsError)
-                OnHolonsSaved?.Invoke(this, new HolonsSavedEventArgs() { Result = result });
+            if (result.IsError)
+                OnZomeError?.Invoke(this, new ZomeErrorEventArgs() { Reason = string.Concat("Error in SaveHolons method. Error Details: ", result.Message), ErrorDetails = result.Exception });
 
+            OnHolonsSaved?.Invoke(this, new HolonsSavedEventArgs() { Result = result });
             return result;
         }
 
@@ -295,9 +311,10 @@ namespace NextGenSoftware.OASIS.STAR.Zomes
             this.Holons.Add(holon);
             OASISResult<IEnumerable<IHolon>> result = await SaveHolonsAsync(this.Holons);
 
-            if (!result.IsError)
-                OnHolonAdded?.Invoke(this, new HolonAddedEventArgs() { Result = result });
+            if (result.IsError)
+                OnZomeError?.Invoke(this, new ZomeErrorEventArgs() { Reason = string.Concat("Error in AddHolonAsync method with ", LoggingHelper.GetHolonInfoForLogging(holon), ". Error Details: ", result.Message), ErrorDetails = result.Exception });
 
+            OnHolonAdded?.Invoke(this, new HolonAddedEventArgs() { Result = result });
             return result;
         }
 
@@ -305,10 +322,7 @@ namespace NextGenSoftware.OASIS.STAR.Zomes
         {
             this.Holons.Add(holon);
             OASISResult<IEnumerable<IHolon>> result = SaveHolons(this.Holons);
-
-            if (!result.IsError)
-                OnHolonAdded?.Invoke(this, new HolonAddedEventArgs() { Result = result });
-
+            OnHolonAdded?.Invoke(this, new HolonAddedEventArgs() { Result = result });
             return result;
         }
 
@@ -317,9 +331,10 @@ namespace NextGenSoftware.OASIS.STAR.Zomes
             this.Holons.Remove(holon);
             OASISResult<IEnumerable<IHolon>> result = await SaveHolonsAsync(this.Holons);
 
-            if (!result.IsError)
-                OnHolonRemoved?.Invoke(this, new HolonRemovedEventArgs() { Result = result });
+            if (result.IsError)
+                OnZomeError?.Invoke(this, new ZomeErrorEventArgs() { Reason = string.Concat("Error in LoadHolonAsync method with ", LoggingHelper.GetHolonInfoForLogging(holon), ". Error Details: ", result.Message), ErrorDetails = result.Exception });
 
+            OnHolonRemoved?.Invoke(this, new HolonRemovedEventArgs() { Result = result });
             return result;
         }
 
@@ -328,9 +343,10 @@ namespace NextGenSoftware.OASIS.STAR.Zomes
             this.Holons.Remove(holon);
             OASISResult<IEnumerable<IHolon>> result = SaveHolons(this.Holons);
 
-            if (!result.IsError)
-                OnHolonRemoved?.Invoke(this, new HolonRemovedEventArgs() { Result = result });
+            if (result.IsError)
+                OnZomeError?.Invoke(this, new ZomeErrorEventArgs() { Reason = string.Concat("Error in LoadHolonAsync method with ", LoggingHelper.GetHolonInfoForLogging(holon), ". Error Details: ", result.Message), ErrorDetails = result.Exception });
 
+            OnHolonRemoved?.Invoke(this, new HolonRemovedEventArgs() { Result = result });
             return result;
         }
 

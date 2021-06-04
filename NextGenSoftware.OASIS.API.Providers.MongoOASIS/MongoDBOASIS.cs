@@ -8,6 +8,7 @@ using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories;
 using NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities;
+using System.Collections.ObjectModel;
 
 namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
 {
@@ -217,21 +218,29 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
 
         public override async Task<IHolon> SaveHolonAsync(IHolon holon)
         {
-            return ConvertMongoEntityToOASISHolon(holon.Id == Guid.Empty ?
-              await _holonRepository.AddAsync(ConvertOASISHolonToMongoEntity(holon)) :
-              await _holonRepository.UpdateAsync(ConvertOASISHolonToMongoEntity(holon)));
+            return ConvertMongoEntityToOASISHolon(holon.IsNewHolon ?
+               _holonRepository.AddAsync(ConvertOASISHolonToMongoEntity(holon)).Result :
+               _holonRepository.UpdateAsync(ConvertOASISHolonToMongoEntity(holon)).Result);
+
+            //return ConvertMongoEntityToOASISHolon(holon.Id == Guid.Empty ?
+            //  await _holonRepository.AddAsync(ConvertOASISHolonToMongoEntity(holon)) :
+            //  await _holonRepository.UpdateAsync(ConvertOASISHolonToMongoEntity(holon)));
         }
 
         public override IHolon SaveHolon(IHolon holon)
         {
-            return ConvertMongoEntityToOASISHolon(holon.Id == Guid.Empty ?
-               _holonRepository.AddAsync(ConvertOASISHolonToMongoEntity(holon)).Result :
-               _holonRepository.UpdateAsync(ConvertOASISHolonToMongoEntity(holon)).Result);
+            return ConvertMongoEntityToOASISHolon(holon.IsNewHolon ?
+               _holonRepository.Add(ConvertOASISHolonToMongoEntity(holon)) :
+               _holonRepository.Update(ConvertOASISHolonToMongoEntity(holon)));
+
+            //return ConvertMongoEntityToOASISHolon(holon.Id == Guid.Empty ?
+            //   _holonRepository.AddAsync(ConvertOASISHolonToMongoEntity(holon)).Result :
+            //   _holonRepository.UpdateAsync(ConvertOASISHolonToMongoEntity(holon)).Result);
         }
 
-        public override IEnumerable<IHolon> SaveHolons(IEnumerable<IHolon> holons)
+        public override ObservableCollection<IHolon> SaveHolons(ObservableCollection<IHolon> holons)
         {
-            List<IHolon> savedHolons = new List<IHolon>();
+            ObservableCollection<IHolon> savedHolons = new ObservableCollection<IHolon>();
             IHolon savedHolon;
 
             // Recursively save all child holons.
@@ -245,9 +254,9 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             return savedHolons;
         }
 
-        public override async Task<IEnumerable<IHolon>> SaveHolonsAsync(IEnumerable<IHolon> holons)
+        public override async Task<ObservableCollection<IHolon>> SaveHolonsAsync(ObservableCollection<IHolon> holons)
         {
-            List<IHolon> savedHolons = new List<IHolon>();
+            ObservableCollection<IHolon> savedHolons = new ObservableCollection<IHolon>();
             IHolon savedHolon;
 
             // Recursively save all child holons.
@@ -389,7 +398,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             oasisAvatar.Description = avatar.Description;
             oasisAvatar.HolonType = avatar.HolonType;
             oasisAvatar.CreatedProviderType = new Core.Helpers.EnumValue<ProviderType>(avatar.CreatedProviderType);
-            oasisAvatar.ChangesSaved = avatar.ChangesSaved;
+            oasisAvatar.IsChanged = avatar.IsChanged;
             oasisAvatar.ParentHolonId = avatar.ParentHolonId;
             oasisAvatar.ParentHolon = avatar.ParentHolon;
             oasisAvatar.ParentZomeId = avatar.ParentZomeId;
@@ -493,7 +502,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
 
             mongoAvatar.ProviderKey = avatar.ProviderKey;
             mongoAvatar.MetaData = avatar.MetaData;
-            mongoAvatar.ChangesSaved = avatar.ChangesSaved;
+            mongoAvatar.IsChanged = avatar.IsChanged;
             mongoAvatar.ParentHolonId = avatar.ParentHolonId;
             mongoAvatar.ParentHolon = avatar.ParentHolon;
             mongoAvatar.ParentZomeId = avatar.ParentZomeId;
@@ -537,8 +546,8 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             oasisHolon.Name = holon.Name;
             oasisHolon.Description = holon.Description;
             oasisHolon.HolonType = holon.HolonType;
-            oasisHolon.CreatedProviderType = new Core.Helpers.EnumValue<ProviderType>(holon.CreatedProviderType);
-            oasisHolon.ChangesSaved = holon.ChangesSaved;
+            oasisHolon.CreatedProviderType = new EnumValue<ProviderType>(holon.CreatedProviderType);
+            oasisHolon.IsChanged = holon.IsChanged;
             oasisHolon.ParentHolonId = holon.ParentHolonId;
             oasisHolon.ParentHolon = holon.ParentHolon;
             oasisHolon.ParentZomeId = holon.ParentZomeId;
@@ -585,7 +594,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             mongoHolon.MetaData = holon.MetaData;
             mongoHolon.ProviderMetaData = holon.ProviderMetaData;
             mongoHolon.ProviderKey = holon.ProviderKey;
-            mongoHolon.ChangesSaved = holon.ChangesSaved;
+            mongoHolon.IsChanged = holon.IsChanged;
             mongoHolon.ParentHolonId = holon.ParentHolonId;
             mongoHolon.ParentHolon = holon.ParentHolon;
             mongoHolon.ParentZomeId = holon.ParentZomeId;

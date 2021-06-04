@@ -15,6 +15,7 @@ using NextGenSoftware.Holochain.HoloNET.Client.Core;
 using NextGenSoftware.OASIS.STAR.Zomes;
 using static NextGenSoftware.OASIS.API.Core.Events.Events;
 using Mapster;
+using System.Collections.ObjectModel;
 
 namespace NextGenSoftware.OASIS.STAR.CelestialBodies
 {
@@ -107,7 +108,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
             OASISResult<IHolon> celestialBodyHolonResult = new OASISResult<IHolon>();
 
             if (this.Children == null)
-                this.Children = new List<Holon>();
+                this.Children = new ObservableCollection<IHolon>();
 
             // Only save if the holon has any changes.
             if (!HasHolonChanged())
@@ -118,6 +119,14 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
                 return result;
             }
 
+            //TODO: Don't think we need to save here to get the Id (saves having to save it twice!), we can generate it here instead and set the IsNewHolon property so the providers know it is a new holon (they use to check if the Id had been set).
+            if (this.Id == Guid.Empty)
+            {
+                Id = Guid.NewGuid();
+                IsNewHolon = true;
+            }
+
+            /*
             celestialBodyHolonResult = await CelestialBodyCore.SaveCelestialBodyAsync(this);
             result.Message = celestialBodyHolonResult.Message;
             result.IsSaved = celestialBodyHolonResult.IsSaved;
@@ -127,6 +136,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
                 result.IsError = celestialBodyHolonResult.IsError;
                 return result;
             }
+            */
 
             //this = HolonSavedHelper.MapBaseHolonProperties(celestialBodyHolonResult.Result, this);
             SetProperties(celestialBodyHolonResult.Result);
