@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Bson.Serialization.Options;
@@ -15,7 +16,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities
         [BsonRepresentation(BsonType.ObjectId)]  
         public string Id { get; set; }
 
-        public bool ChangesSaved { get; set; }
+        public bool IsChanged { get; set; }
 
         [BsonDictionaryOptions(DictionaryRepresentation.ArrayOfArrays)]
         public Dictionary<ProviderType, Dictionary<string, string>> ProviderMetaData { get; set; } = new Dictionary<ProviderType, Dictionary<string, string>>(); // Key/Value pair meta data can be stored here, which is unique for that provider.
@@ -43,9 +44,9 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities
         public IZome ParentZome { get; set; } // The zome this holon belongs to. Zomes are like re-usable modules that other OAPP's can be composed of. Zomes contain collections of nested holons (data objects). Holons can be infinite depth.
         public Guid ParentHolonId { get; set; }
         public IHolon ParentHolon { get; set; }
-        public IEnumerable<IHolon> Children { get; set; }
+        public ObservableCollection<IHolon> Children { get; set; }
         public ProviderType CreatedProviderType { get; set; }
-        public List<INode> Nodes { get; set; }
+        public ObservableCollection<INode> Nodes { get; set; }
 
 
         //public string ProviderKey { get; set; }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Holons;
@@ -9,11 +10,12 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces
 {
     public interface IHolon
     {
-        public IHolon Original { get; set; }
         Guid Id { get; set; }
         string Name { get; set; }
         string Description { get; set; }
-        public bool ChangesSaved { get; set; }
+        public IHolon Original { get; set; }
+        public bool IsNewHolon { get; set; }
+        public bool IsChanged { get; set; }
         Dictionary<ProviderType, string> ProviderKey { get; set; }
         Dictionary<ProviderType, Dictionary<string, string>> ProviderMetaData { get; set; } 
         Dictionary<string, string> MetaData { get; set; } 
@@ -34,7 +36,7 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces
         public IZome ParentZome { get; set; } // The zome this holon belongs to. Zomes are like re-usable modules that other OAPP's can be composed of. Zomes contain collections of nested holons (data objects). Holons can be infinite depth.
         public Guid ParentHolonId { get; set; }
         public IHolon ParentHolon { get; set; }
-        IEnumerable<IHolon> Children { get; set; }
+        ObservableCollection<IHolon> Children { get; set; }
         Guid CreatedByAvatarId { get; set; }
         Avatar CreatedByAvatar { get; set; }
         DateTime CreatedDate { get; set; }
@@ -47,6 +49,8 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces
         bool IsActive { get; set; }
         int Version { get; set; }
         EnumValue<ProviderType> CreatedProviderType { get; set; }
-        List<INode> Nodes { get; set; }
+        ObservableCollection<INode> Nodes { get; set; }
+
+        bool HasHolonChanged(bool checkChildren = true);
     }
 }
