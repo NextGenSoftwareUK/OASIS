@@ -269,14 +269,14 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
 
         public async Task<IAvatar> SaveAsync()
         {
-            return await ((IOASISStorage)ProviderManager.CurrentStorageProvider).SaveAvatarAsync(this);
+            return await (ProviderManager.CurrentStorageProvider).SaveAvatarAsync(this);
         }
         public IAvatar Save()
         {
-            return ((IOASISStorage)ProviderManager.CurrentStorageProvider).SaveAvatar(this);
+            return (ProviderManager.CurrentStorageProvider).SaveAvatar(this);
         }
 
-        public override bool HasHolonChanged()
+        public override bool HasHolonChanged(bool checkChildren = true)
         {
             if (Original != null)
             {
@@ -289,8 +289,8 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
                 //TODO: Finish this ASAP!
             }
 
-            return base.HasHolonChanged();
-        }
+            return base.HasHolonChanged(checkChildren);
+}
 
         public Avatar()
         {

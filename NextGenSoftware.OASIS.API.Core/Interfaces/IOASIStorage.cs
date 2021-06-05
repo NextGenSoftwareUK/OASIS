@@ -36,8 +36,8 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces
 
         IHolon SaveHolon(IHolon holon);
         Task<IHolon> SaveHolonAsync(IHolon holon);
-        ObservableCollection<IHolon> SaveHolons(ObservableCollection<IHolon> holons);
-        Task<ObservableCollection<IHolon>> SaveHolonsAsync(ObservableCollection<IHolon> holons);
+        IEnumerable<IHolon> SaveHolons(IEnumerable<IHolon> holons);
+        Task<IEnumerable<IHolon>> SaveHolonsAsync(IEnumerable<IHolon> holons);
         IHolon LoadHolon(Guid id);
         Task<IHolon> LoadHolonAsync(Guid id);
         IHolon LoadHolon(string providerKey);

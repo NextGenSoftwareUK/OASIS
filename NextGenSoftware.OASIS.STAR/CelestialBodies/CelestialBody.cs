@@ -136,10 +136,10 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
                 result.IsError = celestialBodyHolonResult.IsError;
                 return result;
             }
+
+            SetProperties(celestialBodyHolonResult.Result);
             */
 
-            //this = HolonSavedHelper.MapBaseHolonProperties(celestialBodyHolonResult.Result, this);
-            SetProperties(celestialBodyHolonResult.Result);
             //celestialBodyHolonResult.Result.Adapt(this);
             // SuperStar.Mapper.Map()
             //this = SuperStar.Mapper.Map<CelestialBody>(celestialBodyHolonResult.Result);
@@ -171,7 +171,8 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
                 {
                     foreach (Star star in SuperStar.Stars)
                     {
-                        result = await star.SaveAsync();
+                        if (star.HasHolonChanged())
+                            result = await star.SaveAsync();
 
                         if (result.IsError)
                             return result;
@@ -186,12 +187,11 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
                 {
                     foreach (Planet planet in ((IStar)this).Planets)
                     {
-                        result = await planet.SaveAsync(); // TODO: Think we need to save again even if id is not null just in case its children have changed since last time it was saved?
+                        if (planet.HasHolonChanged())
+                            result = await planet.SaveAsync(); 
 
                         if (result.IsError)
                             return result;
-
-                        // ((List<Holon>)this.Children).Add(planet);
                     }
                 }
             }
@@ -205,7 +205,8 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
                     {
                         foreach (Moon moon in ((IPlanet)this).Moons)
                         {
-                            result = await moon.SaveAsync();
+                            if (moon.HasHolonChanged())
+                                result = await moon.SaveAsync();
 
                             if (result.IsError)
                                 return result;
@@ -217,8 +218,8 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
                 {
                     foreach (Zome zome in this.CelestialBodyCore.Zomes)
                     {
-                        // if (zome.Id == Guid.Empty)
-                        zomeResult = await zome.SaveAsync(); // TODO: Think we need to save again even if id is not null just in case its children have changed since last time it was saved?
+                        if (zome.HasHolonChanged())
+                            zomeResult = await zome.SaveAsync(); 
 
                         if (zomeResult.IsError)
                         {
@@ -226,8 +227,6 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
                             result.Message = zomeResult.Message;
                             return result;
                         }
-
-                        // ((List<Holon>)this.Children).Add(zome);
                     }
                 }
             }

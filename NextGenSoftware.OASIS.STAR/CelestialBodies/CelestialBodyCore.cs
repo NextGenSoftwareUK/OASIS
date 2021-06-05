@@ -161,26 +161,33 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
         public async Task<OASISResult<List<IZome>>> LoadZomesAsync()
         {
             OASISResult<List<IZome>> result = new OASISResult<List<IZome>>();
-            IEnumerable<IHolon> holons = null;
-            
+            OASISResult<IEnumerable<IHolon>> holonResult = null; 
+
             if (Zomes == null)
                 Zomes = new List<IZome>();
 
             if (Id != Guid.Empty)
-                holons = await base.LoadHolonsAsync(Id);
+                holonResult = await base.LoadHolonsForParentAsync(Id);
 
             else if (ProviderKey != null)
-                holons = await base.LoadHolonsAsync(ProviderKey);
+                holonResult = await base.LoadHolonsForParentAsync(ProviderKey);
             else
             {
                 result.IsError = true;
                 result.Message = "Both Id and ProviderKey are null, one of these need to be set before calling this method.";
             }
 
-            if (holons != null && !result.IsError)
+            if (holonResult.IsError)
             {
-               // Zomes = SuperStar.Mapper.Map<List<Zome>(holons);
-                foreach (IHolon holon in holons)
+                result.IsError = true;
+                result.Message = holonResult.Message;
+            }
+
+            if (holonResult.Result != null && !result.IsError)
+            {
+               // Zomes = SuperStar.Mapper.Map<List<Zome>(holons); //TODO: Use AutoMapper for Collection instead so is faster.
+               //TODO: Want to use MapGenerator if possible so it auto-generates the code since this would be faster still.. :)
+                foreach (IHolon holon in holonResult.Result)
                     Zomes.Add(SuperStar.Mapper.Map<Zome>(holon));
                     //Zomes.Add(holon.Adapt<Zome>());
 
@@ -194,26 +201,36 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
         public OASISResult<List<IZome>> LoadZomes()
         {
             OASISResult<List<IZome>> result = new OASISResult<List<IZome>>();
-            IEnumerable<IHolon> holons = null;
+            OASISResult<IEnumerable<IHolon>> holonResult = null;
 
             if (Zomes == null)
                 Zomes = new List<IZome>();
 
             if (Id != Guid.Empty)
-                holons = base.LoadHolons(Id);
+                holonResult = base.LoadHolonsForParent(Id); //TODO: handle OASISResult properly.
 
             else if (ProviderKey != null)
-                holons = base.LoadHolons(ProviderKey);
+                holonResult = base.LoadHolonsForParent(ProviderKey); //TODO: handle OASISResult properly.
             else
             {
                 result.IsError = true;
                 result.Message = "Both Id and ProviderKey are null, one of these need to be set before calling this method.";
             }
 
-            if (holons != null && !result.IsError)
+            if (holonResult.IsError)
             {
-                foreach (IHolon holon in holons)
-                    Zomes.Add((IZome)holon);
+                result.IsError = true;
+                result.Message = holonResult.Message;
+            }
+
+            //TODO: Move this into seperate function so can be shared with async version.
+            if (holonResult.Result != null && !result.IsError)
+            {
+                // Zomes = SuperStar.Mapper.Map<List<Zome>(holons); //TODO: Use AutoMapper for Collection instead so is faster.
+                //TODO: Want to use MapGenerator if possible so it auto-generates the code since this would be faster still.. :)
+                foreach (IHolon holon in holonResult.Result)
+                    Zomes.Add(SuperStar.Mapper.Map<Zome>(holon));
+                    //Zomes.Add(holon.Adapt<Zome>());
 
                 OnZomesLoaded?.Invoke(this, new ZomesLoadedEventArgs { Zomes = Zomes });
                 result.Result = Zomes;

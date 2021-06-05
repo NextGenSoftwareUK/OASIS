@@ -197,8 +197,6 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
                 result.Result = ConvertMongoEntitysToOASISHolons(repoResult.Result);
 
             return result;
-
-            //return ConvertMongoEntitysToOASISHolons(await _holonRepository.GetAllHolonsForParentAsync(providerKey, type));
         }
 
         public override IEnumerable<IHolon> LoadHolonsForParent(string providerKey, HolonType type = HolonType.All)
@@ -218,13 +216,9 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
 
         public override async Task<IHolon> SaveHolonAsync(IHolon holon)
         {
-            return ConvertMongoEntityToOASISHolon(holon.IsNewHolon ?
-               _holonRepository.AddAsync(ConvertOASISHolonToMongoEntity(holon)).Result :
-               _holonRepository.UpdateAsync(ConvertOASISHolonToMongoEntity(holon)).Result);
-
-            //return ConvertMongoEntityToOASISHolon(holon.Id == Guid.Empty ?
-            //  await _holonRepository.AddAsync(ConvertOASISHolonToMongoEntity(holon)) :
-            //  await _holonRepository.UpdateAsync(ConvertOASISHolonToMongoEntity(holon)));
+            return holon.IsNewHolon
+                ? ConvertMongoEntityToOASISHolon(await _holonRepository.AddAsync(ConvertOASISHolonToMongoEntity(holon)))
+                : ConvertMongoEntityToOASISHolon(await _holonRepository.UpdateAsync(ConvertOASISHolonToMongoEntity(holon)));
         }
 
         public override IHolon SaveHolon(IHolon holon)
@@ -232,10 +226,6 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             return ConvertMongoEntityToOASISHolon(holon.IsNewHolon ?
                _holonRepository.Add(ConvertOASISHolonToMongoEntity(holon)) :
                _holonRepository.Update(ConvertOASISHolonToMongoEntity(holon)));
-
-            //return ConvertMongoEntityToOASISHolon(holon.Id == Guid.Empty ?
-            //   _holonRepository.AddAsync(ConvertOASISHolonToMongoEntity(holon)).Result :
-            //   _holonRepository.UpdateAsync(ConvertOASISHolonToMongoEntity(holon)).Result);
         }
 
         public override ObservableCollection<IHolon> SaveHolons(ObservableCollection<IHolon> holons)
@@ -254,9 +244,9 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             return savedHolons;
         }
 
-        public override async Task<ObservableCollection<IHolon>> SaveHolonsAsync(ObservableCollection<IHolon> holons)
+        public override async Task<IEnumerable<IHolon>> SaveHolonsAsync(IEnumerable<IHolon> holons)
         {
-            ObservableCollection<IHolon> savedHolons = new ObservableCollection<IHolon>();
+            List<IHolon> savedHolons = new List<IHolon>();
             IHolon savedHolon;
 
             // Recursively save all child holons.
