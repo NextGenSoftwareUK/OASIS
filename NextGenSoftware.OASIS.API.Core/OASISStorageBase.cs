@@ -107,8 +107,8 @@ namespace NextGenSoftware.OASIS.API.Core
         public abstract IHolon SaveHolon(IHolon holon);
         public abstract Task<IHolon> SaveHolonAsync(IHolon holon);
 
-        public abstract ObservableCollection<IHolon> SaveHolons(ObservableCollection<IHolon> holons);
-        public abstract Task<ObservableCollection<IHolon>> SaveHolonsAsync(ObservableCollection<IHolon> holons);
+        public abstract IEnumerable<IHolon> SaveHolons(IEnumerable<IHolon> holons);
+        public abstract Task<IEnumerable<IHolon>> SaveHolonsAsync(IEnumerable<IHolon> holons);
 
         public abstract bool DeleteHolon(Guid id, bool softDelete = true);
         public abstract Task<bool> DeleteHolonAsync(Guid id, bool softDelete = true);

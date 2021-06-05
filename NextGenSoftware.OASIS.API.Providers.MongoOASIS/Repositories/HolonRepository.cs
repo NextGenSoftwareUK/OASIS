@@ -23,7 +23,9 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
         {
             try
             {
-               // holon.HolonId = Guid.NewGuid();
+                if (holon.HolonId == Guid.Empty)
+                    holon.HolonId = Guid.NewGuid();
+
                 holon.CreatedProviderType = ProviderType.MongoDBOASIS;
 
                 await _dbContext.Holon.InsertOneAsync(holon);
@@ -42,7 +44,9 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
         {
             try
             {
-               // holon.HolonId = Guid.NewGuid();
+                if (holon.HolonId == Guid.Empty)
+                    holon.HolonId = Guid.NewGuid();
+
                 holon.CreatedProviderType = ProviderType.MongoDBOASIS;
 
                 _dbContext.Holon.InsertOne(holon);

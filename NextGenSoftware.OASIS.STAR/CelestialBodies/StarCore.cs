@@ -5,48 +5,12 @@ using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using System;
+using NextGenSoftware.OASIS.API.Core.Interfaces;
 
 namespace NextGenSoftware.OASIS.STAR.CelestialBodies
 {
     public class StarCore : CelestialBodyCore, IStarCore
     {
-        /*
-      //  private string _providerKey = "";
-        private const string STAR_CORE_ZOME = "star_core_zome"; //Name of the core zome in rust hc.
-        //private const string STAR_HOLON_TYPE = "star_holon";
-        private const string STAR_HOLON_TYPE = "star";
-        //private const string STAR_HOLONS_TYPE = "star_holons";
-
-        private const string STAR_ADD_STAR = "star_add_star";
-        private const string STAR_ADD_PLANET = "star_add_planet";
-        private const string STAR_GET_STARS = "star_get_stars";
-        private const string STAR_GET_PLANETS = "star_get_planets";
-        // private const string STAR_ADD_MOON = "star_add_moon";
-        // private const string STAR_GET_MOONS = "star_get_moons";
-
-        public string ProviderKey { get; set; }
-
-        public StarCore(HoloNETClientBase holoNETClient, string providerKey) : base(holoNETClient, STAR_CORE_ZOME, STAR_HOLON_TYPE, providerKey)
-        {
-            ProviderKey = providerKey;
-        }
-
-        public StarCore(string holochainConductorURI, HoloNETClientType type, string providerKey) : base(holochainConductorURI, type, STAR_CORE_ZOME, STAR_HOLON_TYPE, providerKey)
-        {
-            ProviderKey = providerKey;
-        }
-
-        public StarCore(HoloNETClientBase holoNETClient) : base(holoNETClient, STAR_CORE_ZOME, STAR_HOLON_TYPE)
-        {
-
-        }
-
-        public StarCore(string holochainConductorURI, HoloNETClientType type) : base(holochainConductorURI, type, STAR_CORE_ZOME, STAR_HOLON_TYPE)
-        {
-
-        }
-        */
-
         public IStar Star { get; set; }
 
         public StarCore(IStar star) : base()
@@ -82,17 +46,24 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
 
         public async Task<OASISResult<IPlanet>> AddPlanetAsync(IPlanet planet)
         {
-            OASISResult<ICelestialBody> result = new OASISResult<ICelestialBody>();
+            OASISResult<IPlanet> result = new OASISResult<IPlanet>();
 
             if (this.Star.Planets == null)
                 this.Star.Planets = new List<IPlanet>();
 
             this.Star.Planets.Add(planet);
-            result = await this.Star.SaveAsync();
+
+            // result = await this.Star.SaveAsync();
+
+            // TODO: This is more efficient than calling SaveAsync above, which will save all nested children, but we may need to do that?
+            OASISResult<IEnumerable<IHolon>> holonsResult = await base.SaveHolonsAsync(this.Star.Planets);
+            OASISResultHelper<IEnumerable<IHolon>, IPlanet>.CopyResult(holonsResult, ref result);
 
             // TODO: This will only work if the planet names are unique (which we want to enforce anyway!) - need to add this soon!
             IPlanet savedPlanet = this.Star.Planets.FirstOrDefault(x => x.Name == planet.Name);
-            return new OASISResult<IPlanet>() { Result = savedPlanet, Message = result.Message, IsError = result.IsError };
+            //return new OASISResult<IPlanet>() { Result = savedPlanet, Message = result.Message, IsError = result.IsError };
+            result.Result = savedPlanet;
+            return result;
 
             // Alternative way is to save the planet first and then then the star (as code below does):
 

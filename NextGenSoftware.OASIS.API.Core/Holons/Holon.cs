@@ -84,8 +84,8 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
         public IZome ParentZome { get; set; } // The zome this holon belongs to. Zomes are like re-usable modules that other OAPP's can be composed of. Zomes contain collections of nested holons (data objects). Holons can be infinite depth.
         public Guid ParentHolonId { get; set; }
         public IHolon ParentHolon { get; set; }
-        //public IEnumerable<IHolon> Children { get; set; }
-        public ObservableCollection<IHolon> Children { get; set; }
+        public IEnumerable<IHolon> Children { get; set; }
+        public ObservableCollection<IHolon> ChildrenTest { get; set; }
         public Guid CreatedByAvatarId { get; set; }
         public Avatar CreatedByAvatar { get; set; }
         public DateTime CreatedDate { get; set; }
@@ -109,7 +109,7 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
         public Holon()
         {
             //TODO: Need to check if these are fired when an item in the collection is changed (not just added/removed).
-            Children.CollectionChanged += Children_CollectionChanged;
+            ChildrenTest.CollectionChanged += Children_CollectionChanged;
             Nodes.CollectionChanged += Nodes_CollectionChanged;
         }
 
