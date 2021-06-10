@@ -9,6 +9,8 @@ namespace NextGenSoftware.OASIS.STAR.Interfaces
     {
         IPlanet Planet { get; set; }
         Task<OASISResult<IMoon>> AddMoonAsync(IMoon moon);
-        Task<List<IMoon>> GetMoons();
+        OASISResult<IMoon> AddMoon(IMoon moon);
+        Task<OASISResult<IEnumerable<IMoon>>> GetMoonsAsync(bool refresh = true);
+        OASISResult<IEnumerable<IMoon>> GetMoons(bool refresh = true);
     }
 }

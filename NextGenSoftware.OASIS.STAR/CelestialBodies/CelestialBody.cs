@@ -21,9 +21,9 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
 {
     public abstract class CelestialBody : Holon, ICelestialBody
     {
-        protected int _currentId = 0;
-        protected string _hcinstance;
-        protected TaskCompletionSource<string> _taskCompletionSourceGetInstance = new TaskCompletionSource<string>();
+        //protected int _currentId = 0;
+       // protected string _hcinstance;
+      //  protected TaskCompletionSource<string> _taskCompletionSourceGetInstance = new TaskCompletionSource<string>();
 
         //public CelestialBodyCore CelestialBodyCore { get; set; } // This is the core zome of the planet (OAPP), which links to all the other planet zomes/holons...
         public ICelestialBodyCore CelestialBodyCore { get; set; } // This is the core zome of the planet (OAPP), which links to all the other planet zomes/holons...
@@ -183,9 +183,9 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
             //TODO: We need to indivudally save each planet/zome/holon first so we get their unique id's. We can then set the parentId's etc.
             if (this.HolonType == HolonType.Star)
             {
-                if (((IStar)this).Planets != null)
+                if (((IStar)this).ParentSolarSystem.Planets != null)
                 {
-                    foreach (Planet planet in ((IStar)this).Planets)
+                    foreach (Planet planet in ((IStar)this).ParentSolarSystem.Planets)
                     {
                         if (planet.HasHolonChanged())
                             result = await planet.SaveAsync(); 
@@ -247,7 +247,13 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
             return result;
         }
 
-        
+        public OASISResult<ICelestialBody> Save()
+        {
+            return SaveAsync().Result; //TODO: Best way of doing this?
+        }
+
+
+
         private void SetProperties(IHolon holon)
         {
             this.Id = holon.Id;
@@ -300,9 +306,9 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
 
         private void SetParentIdsForStar(IStar star)
         {
-            if (star.Planets != null)
+            if (star.ParentSolarSystem.Planets != null)
             {
-                foreach (IPlanet planet in star.Planets)
+                foreach (IPlanet planet in star.ParentSolarSystem.Planets)
                     SetParentIdsForPlanet(star, planet);
             }
 
@@ -445,28 +451,38 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
 
         }
 
-        public async Task<OASISResult<List<IZome>>> LoadZomesAsync()
+        public async Task<OASISResult<IEnumerable<IZome>>> LoadZomesAsync()
         {
             return await CelestialBodyCore.LoadZomesAsync(); 
         }
 
-        public OASISResult<List<IZome>> LoadZomes()
+        public OASISResult<IEnumerable<IZome>> LoadZomes()
         {
             return CelestialBodyCore.LoadZomes();
         } 
 
-        public async Task LoadCelestialBodyAsync()
+        public async Task<OASISResult<ICelestialBody>> LoadCelestialBodyAsync()
         {
-            SetProperties(await CelestialBodyCore.LoadCelestialBodyAsync());
-            //(await CelestialBodyCore.LoadCelestialBodyAsync()).Adapt(this);
+            OASISResult<ICelestialBody> result = await CelestialBodyCore.LoadCelestialBodyAsync();
 
+            if (!result.IsError)
+                SetProperties(result.Result);
+
+            return result;
+
+            //(await CelestialBodyCore.LoadCelestialBodyAsync()).Adapt(this);
             //IHolon holon = await CelestialBodyCore.LoadCelestialBodyAsync();
            // holon.Adapt(this);
         }
 
-        public void LoadCelestialBody()
+        public OASISResult<ICelestialBody> LoadCelestialBody()
         {
-            SetProperties(CelestialBodyCore.LoadCelestialBody());
+            OASISResult<ICelestialBody> result = CelestialBodyCore.LoadCelestialBody();
+
+            if (!result.IsError)
+                SetProperties(result.Result);
+
+            return result;
             //CelestialBodyCore.LoadCelestialBody().Adapt(this);
         }
 

@@ -48,12 +48,49 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
             return result;
         }
 
-        public async Task<OASISResult<List<IMoon>>> GetMoons()
+        public OASISResult<IMoon> AddMoon(IMoon moon)
         {
-            if (this.Planet.Moons == null)
-                this.Planet.Moons = (List<IMoon>)base.LoadHolonsAsync(ProviderKey, HolonType.Moon).Result;
+            return AddMoonAsync(moon).Result; //TODO: Is this the best way of doing this?
+        }
 
-            return this.Planet.Moons;
+        public async Task<OASISResult<IEnumerable<IMoon>>> GetMoonsAsync(bool refresh = true)
+        {
+            OASISResult<IEnumerable<IMoon>> result = new OASISResult<IEnumerable<IMoon>>();
+
+            if (this.Planet.Moons == null || refresh)
+            {
+                OASISResult<IEnumerable<IHolon>> holonsResult = null;
+
+                if (this.Id != Guid.Empty)
+                     holonsResult = await base.LoadHolonsForParentAsync(Id, HolonType.Moon);
+                
+                else if (this.ProviderKey != null)
+                    holonsResult = await base.LoadHolonsForParentAsync(ProviderKey, HolonType.Moon);
+                else
+                {
+                    result.IsError = true;
+                    result.Message = "Both Id and ProviderKey are null, one of these need to be set before calling this method.";
+                }
+
+                if (!result.IsError)
+                {
+                    OASISResultHelper<IEnumerable<IHolon>, IEnumerable<IMoon>>.CopyResult(holonsResult, ref result);
+                    result.Result = (IEnumerable<IMoon>)holonsResult.Result; //TODO: Not sure if this cast will work? Probably not... Need to map...
+                    this.Planet.Moons = result.Result.ToList();
+                }
+            }
+            else
+            {
+                result.Message = "Refresh not required";
+                result.Result = this.Planet.Moons;
+            }
+
+            return result;
+        }
+
+        public OASISResult<IEnumerable<IMoon>> GetMoons(bool refresh = true)
+        {
+            return GetMoonsAsync(refresh).Result; //TODO: Is this the best way of doing this?
         }
     }
 }

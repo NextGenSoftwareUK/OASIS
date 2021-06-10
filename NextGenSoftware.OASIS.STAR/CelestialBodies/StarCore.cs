@@ -1,11 +1,11 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
-using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
-using System;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 
 namespace NextGenSoftware.OASIS.STAR.CelestialBodies
 {
@@ -48,19 +48,23 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
         {
             OASISResult<IPlanet> result = new OASISResult<IPlanet>();
 
-            if (this.Star.Planets == null)
-                this.Star.Planets = new List<IPlanet>();
+            if (this.Star.ParentSolarSystem.Planets == null)
+                this.Star.ParentSolarSystem.Planets = new List<IPlanet>();
 
-            this.Star.Planets.Add(planet);
+            //if (this.Star.Planets == null)
+            //   this.Star.Planets = new List<IPlanet>();
+
+            //this.Star.Planets.Add(planet);
+            this.Star.ParentSolarSystem.Planets.Add(planet);
 
             // result = await this.Star.SaveAsync();
 
             // TODO: This is more efficient than calling SaveAsync above, which will save all nested children, but we may need to do that?
-            OASISResult<IEnumerable<IHolon>> holonsResult = await base.SaveHolonsAsync(this.Star.Planets);
+            OASISResult<IEnumerable<IHolon>> holonsResult = await base.SaveHolonsAsync(this.Star.ParentSolarSystem.Planets);
             OASISResultHelper<IEnumerable<IHolon>, IPlanet>.CopyResult(holonsResult, ref result);
 
             // TODO: This will only work if the planet names are unique (which we want to enforce anyway!) - need to add this soon!
-            IPlanet savedPlanet = this.Star.Planets.FirstOrDefault(x => x.Name == planet.Name);
+            IPlanet savedPlanet = this.Star.ParentSolarSystem.Planets.FirstOrDefault(x => x.Name == planet.Name);
             //return new OASISResult<IPlanet>() { Result = savedPlanet, Message = result.Message, IsError = result.IsError };
             result.Result = savedPlanet;
             return result;
@@ -87,6 +91,10 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
             }*/
         }
 
+        public OASISResult<IPlanet> AddPlanet(IPlanet planet)
+        {
+            return AddPlanetAsync(planet).Result;
+        }
 
         //ONLY SUPERSTAR CAN HAVE A COLLECTION OF OTHER STARS.
 
@@ -99,9 +107,44 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
         //    //return (List<IMoon>)await base.CallZomeFunctionAsync(STAR_GET_STARS, ProviderKey);
         //}
 
-        public async Task<List<IPlanet>> GetPlanets()
+        public async Task<OASISResult<IEnumerable<IPlanet>>> GetPlanetsAsync(bool refresh = true)
         {
-            return (List<IPlanet>)await base.LoadHolonsAsync(ProviderKey, HolonType.Planet);
+            OASISResult<IEnumerable<IPlanet>> result = new OASISResult<IEnumerable<IPlanet>>();
+
+            if (this.Star.ParentSolarSystem.Planets == null || refresh)
+            {
+                OASISResult<IEnumerable<IHolon>> holonsResult = null;
+
+                if (this.Id != Guid.Empty)
+                    holonsResult = await base.LoadHolonsForParentAsync(Id, HolonType.Planet);
+
+                else if (this.ProviderKey != null)
+                    holonsResult = await base.LoadHolonsForParentAsync(ProviderKey, HolonType.Planet);
+                else
+                {
+                    result.IsError = true;
+                    result.Message = "Both Id and ProviderKey are null, one of these need to be set before calling this method.";
+                }
+
+                if (!result.IsError)
+                {
+                    OASISResultHelper<IEnumerable<IHolon>, IEnumerable<IPlanet>>.CopyResult(holonsResult, ref result);
+                    result.Result = (IEnumerable<IPlanet>)holonsResult.Result; //TODO: Not sure if this cast will work? Probably not... Need to map...
+                    this.Star.ParentSolarSystem.Planets = result.Result.ToList();
+                }
+            }
+            else
+            {
+                result.Message = "Refresh not required";
+                result.Result = this.Star.ParentSolarSystem.Planets;
+            }
+
+            return result;
+        }
+
+        public OASISResult<IEnumerable<IPlanet>> GetPlanets(bool refresh = true)
+        {
+            return GetPlanetsAsync(refresh).Result;
         }
 
         //TODO: I think we need to also add back in these Moon functions because Star can also create Moons...

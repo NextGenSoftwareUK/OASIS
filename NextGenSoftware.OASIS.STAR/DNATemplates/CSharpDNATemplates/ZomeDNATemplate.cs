@@ -27,7 +27,7 @@ namespace NextGenSoftware.OASIS.STAR.DNATemplates.CSharpTemplates
         //    return await base.LoadHolonAsync(hcEntryAddressHash);
         //}
 
-        public async Task<IHolon> LoadHOLONAsync(Dictionary<ProviderType, string> providerKey)
+        public async Task<OASISResult<IHolon>> LoadHOLONAsync(Dictionary<ProviderType, string> providerKey)
         {
             return await base.LoadHolonAsync(providerKey);
         }

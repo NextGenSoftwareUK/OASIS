@@ -228,9 +228,9 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
                _holonRepository.Update(ConvertOASISHolonToMongoEntity(holon)));
         }
 
-        public override ObservableCollection<IHolon> SaveHolons(ObservableCollection<IHolon> holons)
+        public override IEnumerable<IHolon> SaveHolons(IEnumerable<IHolon> holons)
         {
-            ObservableCollection<IHolon> savedHolons = new ObservableCollection<IHolon>();
+            List<IHolon> savedHolons = new List<IHolon>();
             IHolon savedHolon;
 
             // Recursively save all child holons.

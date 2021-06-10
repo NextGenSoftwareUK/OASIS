@@ -22,10 +22,11 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces.STAR
         GenesisType GenesisType { get; set; }
         bool IsInitialized { get; }
         Task<OASISResult<ICelestialBody>> SaveAsync();
+        OASISResult<ICelestialBody> Save();
         Task<OASISResult<List<IZome>>> LoadZomesAsync();
         OASISResult<List<IZome>> LoadZomes();
-        Task LoadCelestialBodyAsync();
-        void LoadCelestialBody();
+        Task<OASISResult<ICelestialBody>> LoadCelestialBodyAsync();
+        OASISResult<ICelestialBody> LoadCelestialBody();
         Task InitializeAsync();
         void Initialize();
         void Dim();
