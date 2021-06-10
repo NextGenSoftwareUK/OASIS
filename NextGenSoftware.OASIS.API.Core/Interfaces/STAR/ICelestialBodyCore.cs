@@ -7,7 +7,7 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces.STAR
 {
     public interface ICelestialBodyCore : IZome
     {
-        List<IHolon> Holons { get; }
+        IEnumerable<IHolon> Holons { get; }
         List<IZome> Zomes { get; set; }
 
         //event CelestialBodyCore.HolonsLoaded OnHolonsLoaded;
@@ -15,12 +15,15 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces.STAR
         event HolonsLoaded OnHolonsLoaded;
         event ZomesLoaded OnZomesLoaded;
 
-        Task<IHolon> LoadCelestialBodyAsync();
-        IHolon LoadCelestialBody();
-        Task<OASISResult<List<IZome>>> LoadZomesAsync();
-        OASISResult<List<IZome>> LoadZomes();
+        Task<OASISResult<ICelestialBody>> LoadCelestialBodyAsync();
+        OASISResult<ICelestialBody> LoadCelestialBody();
+        Task<OASISResult<IEnumerable<IZome>>> LoadZomesAsync();
+        OASISResult<IEnumerable<IZome>> LoadZomes();
         Task<OASISResult<IHolon>> SaveCelestialBodyAsync(IHolon savingHolon);
+        OASISResult<IHolon> SaveCelestialBody(IHolon savingHolon);
         Task<OASISResult<IZome>> AddZomeAsync(IZome zome);
+        OASISResult<IZome> AddZome(IZome zome);
         Task<OASISResult<IEnumerable<IHolon>>> RemoveZomeAsync(IZome zome);
+        OASISResult<IEnumerable<IHolon>> RemoveZome(IZome zome);
     }
 }

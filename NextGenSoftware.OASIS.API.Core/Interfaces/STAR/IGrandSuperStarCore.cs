@@ -1,15 +1,19 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
+using NextGenSoftware.OASIS.API.Core.Helpers;
 
 namespace NextGenSoftware.OASIS.API.Core.Interfaces.STAR
 {
     // At the centre of each Universe (creates Galaxies (with a SuperStar at the centre of each).
-    public interface IGrandSuperStarCore : ISuperStarCore
+    public interface IGrandSuperStarCore : ICelestialBodyCore
     {
         IGrandSuperStar GrandSuperStar { get; set; }
-        Task<ISuperStar> AddSuperStarAsync(ISuperStar star);
-        Task<IGalaxy> AddGalaxyAsync(IGalaxy star);
-        Task<List<ISuperStar>> GetSuperStars();
-        Task<List<IGalaxy>> GetGalaxies();
+       // Task<OASISResult<ISuperStar>> AddSuperStarAsync(ISuperStar superStar);
+        Task<OASISResult<IGalaxy>> AddGalaxyAsync(IGalaxy galaxy);
+        OASISResult<IGalaxy> AddGalaxy(IGalaxy galaxy);
+        Task<OASISResult<IEnumerable<ISuperStar>>> GetSuperStarsAsync(bool refresh = true); //Helper method which gets the SuperStars at the centre of each Galaxy.
+        OASISResult<IEnumerable<ISuperStar>> GetSuperStars(bool refresh = true); //Helper method which gets the SuperStars at the centre of each Galaxy.
+        Task<OASISResult<IEnumerable<IGalaxy>>> GetGalaxiesAsync(bool refresh = true);
+        OASISResult<IEnumerable<IGalaxy>> GetGalaxies(bool refresh = true);
     }
 }

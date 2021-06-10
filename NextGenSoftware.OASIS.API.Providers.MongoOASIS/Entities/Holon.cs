@@ -44,7 +44,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities
         public IZome ParentZome { get; set; } // The zome this holon belongs to. Zomes are like re-usable modules that other OAPP's can be composed of. Zomes contain collections of nested holons (data objects). Holons can be infinite depth.
         public Guid ParentHolonId { get; set; }
         public IHolon ParentHolon { get; set; }
-        public ObservableCollection<IHolon> Children { get; set; }
+        public IEnumerable<IHolon> Children { get; set; }
         public ProviderType CreatedProviderType { get; set; }
         public ObservableCollection<INode> Nodes { get; set; }
 
