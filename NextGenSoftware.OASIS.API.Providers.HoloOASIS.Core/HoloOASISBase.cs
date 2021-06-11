@@ -1,14 +1,14 @@
-﻿using Newtonsoft.Json;
-using NextGenSoftware.Holochain.HoloNET.Client.Core;
+﻿using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using Newtonsoft.Json;
 using NextGenSoftware.OASIS.API.Core;
 using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Threading.Tasks;
+using NextGenSoftware.Holochain.HoloNET.Client.Core;
 
 namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Core
 {
@@ -583,7 +583,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Core
             throw new NotImplementedException();
         }
 
-        public override Task<IEnumerable<IHolon>> LoadHolonsForParentAsync(string providerKey, HolonType type = HolonType.Holon)
+        public override Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(string providerKey, HolonType type = HolonType.Holon)
         {
             throw new NotImplementedException();
         }
