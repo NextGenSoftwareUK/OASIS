@@ -2,63 +2,15 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.Core.Helpers;
+using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using NextGenSoftware.OASIS.STAR.CelestialBodies;
 
 namespace NextGenSoftware.OASIS.STAR
 {
     public class SuperStarCore : CelestialBodyCore, ISuperStarCore // TODO: Currently cannot inherit from StarCore because SuperStar is static (may change soon?)
-    // public class SuperStarCore : StarCore, ISuperStarCore //TODO: Come back to this...
     {
-        /*
-      //  private string _providerKey = "";
-        private const string STAR_CORE_ZOME = "star_core_zome"; //Name of the core zome in rust hc.
-        //private const string STAR_HOLON_TYPE = "star_holon";
-        private const string STAR_HOLON_TYPE = "star";
-        //private const string STAR_HOLONS_TYPE = "star_holons";
-
-        private const string STAR_ADD_STAR = "star_add_star";
-        private const string STAR_ADD_PLANET = "star_add_planet";
-        private const string STAR_GET_STARS = "star_get_stars";
-        private const string STAR_GET_PLANETS = "star_get_planets";
-        // private const string STAR_ADD_MOON = "star_add_moon";
-        // private const string STAR_GET_MOONS = "star_get_moons";
-
-        public string ProviderKey { get; set; }
-
-        public StarCore(HoloNETClientBase holoNETClient, string providerKey) : base(holoNETClient, STAR_CORE_ZOME, STAR_HOLON_TYPE, providerKey)
-        {
-            ProviderKey = providerKey;
-        }
-
-        public StarCore(string holochainConductorURI, HoloNETClientType type, string providerKey) : base(holochainConductorURI, type, STAR_CORE_ZOME, STAR_HOLON_TYPE, providerKey)
-        {
-            ProviderKey = providerKey;
-        }
-
-        public StarCore(HoloNETClientBase holoNETClient) : base(holoNETClient, STAR_CORE_ZOME, STAR_HOLON_TYPE)
-        {
-
-        }
-
-        public StarCore(string holochainConductorURI, HoloNETClientType type) : base(holochainConductorURI, type, STAR_CORE_ZOME, STAR_HOLON_TYPE)
-        {
-
-        }
-        */
-
-        // public SuperStar SuperStar { get; set; }
-
-        //public SuperStarCore(SuperStar star) : base()
-        //{
-        //    this.Star = star;
-        //}
-
-        //public SuperStarCore(string providerKey, IStar star) : base(providerKey)
-        //{
-        //    this.Star = star;
-        //}
-
         public SuperStarCore(Dictionary<ProviderType, string> providerKey) : base(providerKey)
         {
 
@@ -69,7 +21,7 @@ namespace NextGenSoftware.OASIS.STAR
 
         }
 
-        public async Task<IStar> AddStarAsync(IStar star)
+        public async Task<OASISResult<IStar>> AddStarAsync(IStar star)
         {
             //TODO: Do we want to add the new star to the main star? Can a Star have a collection of Stars?
             // Yes, I think we do, but that means if we can create Stars, then the first main star needs to be either SuperStar, BlueStar or GreatCentralSun! ;-)
@@ -92,9 +44,18 @@ namespace NextGenSoftware.OASIS.STAR
 
 
 
-        public async Task<List<IStar>> GetStars()
+        public async Task<OASISResult<IEnumerable<IStar>>> GetStars()
         {
-            return (List<IStar>)await base.LoadHolonsAsync(ProviderKey, HolonType.Star);
+            OASISResult<IEnumerable<IStar>> result = new OASISResult<IEnumerable<IStar>>();
+            OASISResult<IEnumerable<IHolon>> holonsResult = await base.LoadHolonsForParentAsync(ProviderKey, HolonType.Star);
+            
+            //TODO: Want to merge CopyResult/MapBaseHolonProperties tomorrow... :)
+            OASISResultHelper<IEnumerable<IHolon>, IEnumerable<IStar>>.CopyResult(holonsResult, ref result);
+
+            if (!result.IsError)
+                result.Result = Mapper<IHolon, Star>.MapBaseHolonProperties(holonsResult.Result);
+
+            return result;
         }
 
         // DONT NEED BECAUSE INNERSTAR CONTAINS THIS.

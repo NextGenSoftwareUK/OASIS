@@ -257,27 +257,54 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
         private void SetProperties(IHolon holon)
         {
             this.Id = holon.Id;
+            this.CelestialBodyCore.Id = holon.Id;
+            this.ProviderKey = holon.ProviderKey;
+            this.CelestialBodyCore.ProviderKey = holon.ProviderKey;
             this.Name = holon.Name;
             this.Description = holon.Description;
             this.HolonType = holon.HolonType;
-            this.ParentHolon = holon.ParentHolon;
-            this.ParentHolonId = holon.ParentHolonId;
-            this.ParentMoon = holon.ParentMoon;
-            this.ParentMoonId = holon.ParentMoonId;
-            this.ParentPlanet = holon.ParentPlanet;
-            this.ParentPlanetId = holon.ParentPlanetId;
+            this.ParentGreatGrandSuperStar = holon.ParentGreatGrandSuperStar;
+            this.ParentGreatGrandSuperStarId = holon.ParentGreatGrandSuperStarId;
+            this.ParentGrandSuperStar = holon.ParentGrandSuperStar;
+            this.ParentGrandSuperStarId = holon.ParentGrandSuperStarId;
+            this.ParentSuperStar = holon.ParentSuperStar;
+            this.ParentSuperStarId = holon.ParentSuperStarId;
             this.ParentStar = holon.ParentStar;
             this.ParentStarId = holon.ParentStarId;
-            this.ProviderKey = holon.ProviderKey;
-            this.CelestialBodyCore.Id = holon.Id;
-            this.CelestialBodyCore.ProviderKey = holon.ProviderKey;
+            this.ParentPlanet = holon.ParentPlanet;
+            this.ParentPlanetId = holon.ParentPlanetId;
+            this.ParentMoon = holon.ParentMoon;
+            this.ParentMoonId = holon.ParentMoonId;
+            this.ParentZome = holon.ParentZome;
+            this.ParentZomeId = holon.ParentZomeId;
+            this.ParentHolon = holon.ParentHolon;
+            this.ParentHolonId = holon.ParentHolonId;
+            this.ParentOmiverse = holon.ParentOmiverse;
+            this.ParentOmiverseId = holon.ParentOmiverseId;
+            this.ParentUniverse = holon.ParentUniverse;
+            this.ParentUniverseId = holon.ParentUniverseId;
+            this.ParentGalaxy = holon.ParentGalaxy;
+            this.ParentGalaxyId = holon.ParentGalaxyId;
+            this.ParentSolarSystem = holon.ParentSolarSystem;
+            this.ParentSolarSystemId = holon.ParentSolarSystemId;
+            this.Children = holon.Children;
+            this.Nodes = holon.Nodes;
             this.CreatedByAvatar = holon.CreatedByAvatar;
             this.CreatedByAvatarId = holon.CreatedByAvatarId;
             this.CreatedDate = holon.CreatedDate;
             this.ModifiedByAvatar = holon.ModifiedByAvatar;
             this.ModifiedByAvatarId = holon.ModifiedByAvatarId;
             this.ModifiedDate = holon.ModifiedDate;
-            this.Children = holon.Children;
+            this.DeletedByAvatar = holon.DeletedByAvatar;
+            this.DeletedByAvatarId = holon.DeletedByAvatarId;
+            this.DeletedDate = holon.DeletedDate;
+            this.Version = holon.Version;
+            this.IsActive = holon.IsActive;
+            this.IsChanged = holon.IsChanged;
+            this.IsNewHolon = holon.IsNewHolon;
+            this.MetaData = holon.MetaData;
+            this.ProviderMetaData = holon.ProviderMetaData;
+            this.Original = holon.Original;
         }
 
         private void SetParentIdsForMoon(IStar star, IPlanet planet, IMoon moon)

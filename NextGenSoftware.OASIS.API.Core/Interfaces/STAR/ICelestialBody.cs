@@ -23,8 +23,8 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces.STAR
         bool IsInitialized { get; }
         Task<OASISResult<ICelestialBody>> SaveAsync();
         OASISResult<ICelestialBody> Save();
-        Task<OASISResult<List<IZome>>> LoadZomesAsync();
-        OASISResult<List<IZome>> LoadZomes();
+        Task<OASISResult<IEnumerable<IZome>>> LoadZomesAsync();
+        OASISResult<IEnumerable<IZome>> LoadZomes();
         Task<OASISResult<ICelestialBody>> LoadCelestialBodyAsync();
         OASISResult<ICelestialBody> LoadCelestialBody();
         Task InitializeAsync();
