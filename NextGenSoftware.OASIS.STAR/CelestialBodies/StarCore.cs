@@ -51,23 +51,35 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
             if (this.Star.ParentSolarSystem.Planets == null)
                 this.Star.ParentSolarSystem.Planets = new List<IPlanet>();
 
-            //if (this.Star.Planets == null)
-            //   this.Star.Planets = new List<IPlanet>();
+            planet.ParentStarId = this.Star.Id;
+            planet.ParentSolarSystemId = this.Star.ParentSolarSystemId;
 
-            //this.Star.Planets.Add(planet);
             this.Star.ParentSolarSystem.Planets.Add(planet);
 
-            // result = await this.Star.SaveAsync();
+            /*
+            OASISResult<ICelestialBody> starResult =  await this.Star.SaveAsync();
+
+            if (starResult.IsError)
+            {
+                OASISResultHelper<ICelestialBody, IPlanet>.CopyResult(starResult, ref result);
+                return result;
+            }*/
+
 
             // TODO: This is more efficient than calling SaveAsync above, which will save all nested children, but we may need to do that?
             OASISResult<IEnumerable<IHolon>> holonsResult = await base.SaveHolonsAsync(this.Star.ParentSolarSystem.Planets);
-            OASISResultHelper<IEnumerable<IHolon>, IPlanet>.CopyResult(holonsResult, ref result);
+            OASISResultCollectionToHolonHelper<IEnumerable<IHolon>, IPlanet>.CopyResult(holonsResult, ref result);
 
             // TODO: This will only work if the planet names are unique (which we want to enforce anyway!) - need to add this soon!
-            IPlanet savedPlanet = this.Star.ParentSolarSystem.Planets.FirstOrDefault(x => x.Name == planet.Name);
-            //return new OASISResult<IPlanet>() { Result = savedPlanet, Message = result.Message, IsError = result.IsError };
-            result.Result = savedPlanet;
+            if (!holonsResult.IsError)
+            {
+                IPlanet savedPlanet = this.Star.ParentSolarSystem.Planets.FirstOrDefault(x => x.Name == planet.Name);
+                result.Result = savedPlanet;
+            }
+
             return result;
+
+
 
             // Alternative way is to save the planet first and then then the star (as code below does):
 
@@ -128,7 +140,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
 
                 if (!result.IsError)
                 {
-                    OASISResultHelper<IEnumerable<IHolon>, IEnumerable<IPlanet>>.CopyResult(holonsResult, ref result);
+                    OASISResultCollectionToCollectionHelper<IEnumerable<IHolon>, IEnumerable<IPlanet>>.CopyResult(holonsResult, ref result);
                     result.Result = (IEnumerable<IPlanet>)holonsResult.Result; //TODO: Not sure if this cast will work? Probably not... Need to map...
                     this.Star.ParentSolarSystem.Planets = result.Result.ToList();
                 }

@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using NextGenSoftware.OASIS.API.Core.Interfaces;
 
 namespace NextGenSoftware.OASIS.API.Core.Helpers
 {
     public class OASISResult<T>
+       // where T : IHolon
     {
         private bool _isError = false;
         private bool _isWarning = false;
