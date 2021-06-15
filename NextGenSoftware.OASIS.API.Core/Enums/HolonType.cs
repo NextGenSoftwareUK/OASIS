@@ -13,11 +13,17 @@ namespace NextGenSoftware.OASIS.API.Core.Enums
         TrainStation,
         UndergroundStation,
         BusStation,
+        GreatGrandSuperStar,
+        GrandSuperStar,
         SuperStar,
         Star,
         Planet,
         Moon,
         Zome,
         Holon,
+        Omiverse,
+        Universe,
+        Galaxy,
+        SoloarSystem
     }
 }
