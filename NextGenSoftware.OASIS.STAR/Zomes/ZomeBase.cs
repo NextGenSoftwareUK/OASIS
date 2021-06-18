@@ -152,6 +152,42 @@ namespace NextGenSoftware.OASIS.STAR.Zomes
             return result;
         }
 
+        public virtual async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(HolonType holonType)
+        {
+            OASISResult<IEnumerable<IHolon>> result = new OASISResult<IEnumerable<IHolon>>();
+
+            if (this.Id != Guid.Empty)
+                result = await LoadHolonsForParentAsync(Id, holonType);
+
+            else if (this.ProviderKey != null)
+                result = await LoadHolonsForParentAsync(ProviderKey, holonType);
+            else
+            {
+                result.IsError = true;
+                result.Message = "Both Id and ProviderKey are null, one of these need to be set before calling this method.";
+            }
+
+            return result;
+        }
+
+        public virtual OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(HolonType holonType)
+        {
+            OASISResult<IEnumerable<IHolon>> result = new OASISResult<IEnumerable<IHolon>>();
+
+            if (this.Id != Guid.Empty)
+                result = LoadHolonsForParent(Id, holonType);
+
+            else if (this.ProviderKey != null)
+                result = LoadHolonsForParent(ProviderKey, holonType);
+            else
+            {
+                result.IsError = true;
+                result.Message = "Both Id and ProviderKey are null, one of these need to be set before calling this method.";
+            }
+
+            return result;
+        }
+
         public virtual async Task<OASISResult<IHolon>> SaveHolonAsync(IHolon savingHolon)
         {
             OASISResult<IHolon> result = await _holonManager.SaveHolonAsync(savingHolon);

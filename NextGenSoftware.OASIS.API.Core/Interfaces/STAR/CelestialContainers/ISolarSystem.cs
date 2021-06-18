@@ -2,7 +2,7 @@
 
 namespace NextGenSoftware.OASIS.API.Core.Interfaces.STAR
 {
-    public interface ISolarSystem
+    public interface ISolarSystem : IHolon
     {
         IStar Star { get; set; }
         List<IPlanet> Planets { get; set; }

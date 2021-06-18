@@ -1,12 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using System.Linq;
 using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using NextGenSoftware.OASIS.STAR.CelestialBodies;
+using NextGenSoftware.OASIS.STAR.CelestialContainers;
 
 namespace NextGenSoftware.OASIS.STAR
 {
@@ -24,21 +25,23 @@ namespace NextGenSoftware.OASIS.STAR
 
         }
 
+        public async Task<OASISResult<ISolarSystem>> AddSolarSystemAsync(ISolarSystem solarSystem)
+        {
+            return OASISResultHolonToHolonHelper<IHolon, ISolarSystem>.CopyResult(
+                await AddHolonToCollectionAsync(SuperStar, solarSystem, (List<IHolon>)Mapper<ISolarSystem, Holon>.MapBaseHolonProperties(
+                    SuperStar.ParentGalaxy.SolarSystems)), new OASISResult<ISolarSystem>());
+        }
+
         public OASISResult<ISolarSystem> AddSolarSystem(ISolarSystem solarSystem)
         {
-            
+            return AddSolarSystemAsync(solarSystem).Result;
         }
 
-        public Task<OASISResult<ISolarSystem>> AddSolarSystemAsync(ISolarSystem solarSystem)
-        {
-            
-        }
-
-        
         public async Task<OASISResult<IStar>> AddStarAsync(IStar star)
         {
-            SuperStar.ParentGalaxy.Stars.Add((Star)star);
-            return (IStar)await base.SaveHolonAsync((Star)star);
+            return OASISResultHolonToHolonHelper<IHolon, IStar>.CopyResult(
+                await AddHolonToCollectionAsync(SuperStar, star, (List<IHolon>)Mapper<IStar, Holon>.MapBaseHolonProperties(
+                    SuperStar.ParentGalaxy.Stars)), new OASISResult<IStar>());
         }
 
         public OASISResult<IStar> AddStar(IStar star)
@@ -46,109 +49,36 @@ namespace NextGenSoftware.OASIS.STAR
             return AddStarAsync(star).Result;
         }
 
+        public async Task<OASISResult<IEnumerable<ISolarSystem>>> GetSolarSystemsAsync(bool refresh = true)
+        {
+            OASISResult<IEnumerable<ISolarSystem>> result = new OASISResult<IEnumerable<ISolarSystem>>();
+            OASISResult<IEnumerable<IHolon>> holonResult = await GetHolonsAsync(SuperStar.ParentGalaxy.SolarSystems, HolonType.SoloarSystem, refresh);
+            OASISResultCollectionToCollectionHelper<IEnumerable<IHolon>, IEnumerable<ISolarSystem>>.CopyResult(holonResult, ref result);
+            result.Result = Mapper<IHolon, SolarSystem>.MapBaseHolonProperties(holonResult.Result);
+            return result;
+        }
+
         public OASISResult<IEnumerable<ISolarSystem>> GetSolarSystems(bool refresh = true)
         {
             return GetSolarSystemsAsync(refresh).Result;
         }
 
-        public async Task<OASISResult<IEnumerable<ISolarSystem>>> GetSolarSystemsAsync(bool refresh = true)
+        public async Task<OASISResult<IEnumerable<IStar>>> GetStarsAsync(bool refresh = true)
         {
-            OASISResult<IEnumerable<ISolarSystem>> result = new OASISResult<IEnumerable<ISolarSystem>>();
-
-            if (this.SuperStar.ParentGalaxy.SolarSystems == null || refresh)
-            {
-                OASISResult<IEnumerable<IHolon>> holonsResult = null;
-
-                if (this.Id != Guid.Empty)
-                    holonsResult = await base.LoadHolonsForParentAsync(Id, HolonType.SoloarSystem);
-
-                else if (this.ProviderKey != null)
-                    holonsResult = await base.LoadHolonsForParentAsync(ProviderKey, HolonType.SoloarSystem);
-                else
-                {
-                    result.IsError = true;
-                    result.Message = "Both Id and ProviderKey are null, one of these need to be set before calling this method.";
-                }
-
-                if (!result.IsError)
-                {
-                    OASISResultCollectionToCollectionHelper<IEnumerable<IHolon>, IEnumerable<ISolarSystem>>.CopyResult(holonsResult, ref result);
-                    result.Result = (IEnumerable<ISolarSystem>)holonsResult.Result; //TODO: Not sure if this cast will work? Probably not... Need to map...
-                    //result.Result = Mapper<IHolon, SolarSystem>.MapBaseHolonProperties(holonsResult.Result); //TODO: Use this if cast does not work... ;-)
-                    this.SuperStar.ParentGalaxy.SolarSystems = result.Result.ToList();
-                }
-            }
-            else
-            {
-                result.Message = "Refresh not required";
-                result.Result = this.SuperStar.ParentGalaxy.SolarSystems;
-            }
-
+            //TODO: See if can make this even more efficient! ;-)
+            OASISResult<IEnumerable<IStar>> result = new OASISResult<IEnumerable<IStar>>();
+            OASISResult<IEnumerable<IHolon>> holonResult = await GetHolonsAsync(SuperStar.ParentGalaxy.Stars, HolonType.Star, refresh);
+            OASISResultCollectionToCollectionHelper<IEnumerable<IHolon>, IEnumerable<IStar>>.CopyResult(holonResult, ref result);
+            result.Result = Mapper<IHolon, Star>.MapBaseHolonProperties(holonResult.Result);
             return result;
         }
 
-        // DONT NEED BECAUSE INNERSTAR CONTAINS THIS.
-        //public async Task<IPlanet> AddPlanetAsync(IPlanet planet)
-        //{
-        //    SuperStar.Planets.Add((Planet)planet);
-        //    return (IPlanet)await base.SaveHolonAsync(planet);
-        //}
-
-        
         public OASISResult<IEnumerable<IStar>> GetStars(bool refresh = true)
         {
             return GetStarsAsync(refresh).Result;
         }
 
 
-        public async Task<OASISResult<IEnumerable<IStar>>> GetStarsAsync(bool refresh = true)
-        {
-            OASISResult<IEnumerable<IStar>> result = new OASISResult<IEnumerable<IStar>>();
-
-            if (this.SuperStar.ParentGalaxy.Stars == null || refresh)
-            {
-                OASISResult<IEnumerable<IHolon>> holonsResult = null;
-
-                if (this.Id != Guid.Empty)
-                    holonsResult = await base.LoadHolonsForParentAsync(Id, HolonType.Star);
-
-                else if (this.ProviderKey != null)
-                    holonsResult = await base.LoadHolonsForParentAsync(ProviderKey, HolonType.Star);
-                else
-                {
-                    result.IsError = true;
-                    result.Message = "Both Id and ProviderKey are null, one of these need to be set before calling this method.";
-                }
-
-                if (!result.IsError)
-                {
-                    OASISResultCollectionToCollectionHelper<IEnumerable<IHolon>, IEnumerable<IStar>>.CopyResult(holonsResult, ref result);
-                    result.Result = (IEnumerable<IStar>)holonsResult.Result; //TODO: Not sure if this cast will work? Probably not... Need to map...
-                    //result.Result = Mapper<IHolon, Star>.MapBaseHolonProperties(holonsResult.Result); //TODO: Use this if cast does not work... ;-)
-                    this.SuperStar.ParentGalaxy.Stars = result.Result.ToList();
-                }
-            }
-            else
-            {
-                result.Message = "Refresh not required";
-                result.Result = this.SuperStar.ParentGalaxy.Stars;
-            }
-
-            return result;
-        }
-
-        //TODO: TEST METHOD, REMOVE AFTER...
-        /*
-        public async Task<OASISResult<IStar>> GetStar()
-        {
-            OASISResult<IStar> result = new OASISResult<IStar>();
-            OASISResult<IHolon> holonResult = await base.LoadHolonAsync(ProviderKey);
-
-            //TODO: Want to merge CopyResult/MapBaseHolonProperties tomorrow... :)
-            OASISResultHelper<IHolon, Star>.CopyResult(holonResult, ref result);
-
-            return result;
-        }*/
 
         // DONT NEED BECAUSE INNERSTAR CONTAINS THIS.
         //public async Task<List<IPlanet>> GetPlanets()

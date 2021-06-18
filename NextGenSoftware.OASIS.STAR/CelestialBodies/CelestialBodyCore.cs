@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using System.Linq;
 using Mapster;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Events;
@@ -358,6 +359,89 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
             {
                 OASISResultHelper<IHolon, ICelestialBody>.CopyResult(holonResult, ref result);
                 result.Result = (ICelestialBody)holonResult.Result; //TODO: Not sure if this cast will work? Probably not... Need to map...
+            }
+
+            return result;
+        }
+
+        protected virtual async Task<OASISResult<IHolon>> AddHolonToCollectionAsync(IHolon parentCelestialBody, IHolon holon, List<IHolon> holons)
+        {
+            OASISResult<IHolon> result = new OASISResult<IHolon>();
+
+            if (holons == null)
+                holons = new List<IHolon>();
+
+            else if (holons.Any(x => x.Name == holon.Name))
+            {
+                result.IsError = true;
+                result.Message = string.Concat("The name ", holon.Name, " is already taken, please choose another.");
+                return result;
+            }
+
+            // TODO: Need to double check this logic below is right! ;-)
+            holon.ParentOmiverseId = parentCelestialBody.ParentOmiverseId;
+            holon.ParentUniverseId = parentCelestialBody.ParentUniverseId;
+            holon.ParentGalaxyId = parentCelestialBody.ParentGalaxyId;
+            holon.ParentSolarSystemId = parentCelestialBody.ParentSolarSystemId;
+            holon.ParentGreatGrandSuperStarId = parentCelestialBody.ParentGreatGrandSuperStarId;
+            holon.ParentGrandSuperStarId = parentCelestialBody.ParentGrandSuperStarId;
+            holon.ParentSuperStarId = parentCelestialBody.ParentSuperStarId;
+            holon.ParentStarId = parentCelestialBody.ParentStarId;
+            holon.ParentPlanetId = parentCelestialBody.ParentPlanetId;
+            holon.ParentMoonId = parentCelestialBody.ParentMoonId;
+
+            switch (parentCelestialBody.HolonType)
+            {
+                case HolonType.GreatGrandSuperStar:
+                    holon.ParentGreatGrandSuperStarId = parentCelestialBody.Id;
+                    break;
+
+                case HolonType.GrandSuperStar:
+                    holon.ParentGrandSuperStarId = parentCelestialBody.Id;
+                    break;
+
+                case HolonType.SuperStar:
+                    holon.ParentSuperStarId = parentCelestialBody.Id;
+                    break;
+
+                case HolonType.Star:
+                    holon.ParentStarId = parentCelestialBody.Id;
+                    break;
+
+                case HolonType.Planet:
+                    holon.ParentPlanetId = parentCelestialBody.Id;
+                    break;
+
+                case HolonType.Moon:
+                    holon.ParentMoonId = parentCelestialBody.Id;
+                    break;
+            }
+            
+            holons.Add(holon);
+
+            OASISResult<IEnumerable<IHolon>> holonsResult = await base.SaveHolonsAsync(holons);
+            OASISResultCollectionToHolonHelper<IEnumerable<IHolon>, IHolon>.CopyResult(holonsResult, ref result);
+
+            // TODO: This will only work if the star names are unique (which we want to enforce anyway!) - need to add this soon!
+            if (!holonsResult.IsError)
+            {
+                IHolon savedHolon = holons.FirstOrDefault(x => x.Name == holon.Name);
+                result.Result = savedHolon;
+            }
+
+            return result;
+        }
+
+        protected virtual async Task<OASISResult<IEnumerable<IHolon>>> GetHolonsAsync(IEnumerable<IHolon> holons, HolonType holonType, bool refresh = true)
+        {
+            OASISResult<IEnumerable<IHolon>> result = new OASISResult<IEnumerable<IHolon>>();
+
+            if (holons == null || refresh)
+                result = await base.LoadHolonsForParentAsync(holonType);
+            else
+            {
+                result.Message = "Refresh not required";
+                result.Result = holons;
             }
 
             return result;
