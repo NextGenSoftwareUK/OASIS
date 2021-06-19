@@ -37,7 +37,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI
 
         static void Build(string classFolder)
         {
-            SuperStar.LightAsync(GenesisType.Planet, "Our World", classFolder);
+            Star.LightAsync(GenesisType.Planet, "Our World", classFolder);
         }
     }
 }

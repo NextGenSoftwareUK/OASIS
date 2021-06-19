@@ -27,12 +27,12 @@ using AutoMapper;
 
 namespace NextGenSoftware.OASIS.STAR
 {
-    public static class SuperStar
+    public static class Star
     {
         const string STAR_DNA_DEFAULT_PATH = "DNA\\STAR_DNA.json";
         const string OASIS_DNA_DEFAULT_PATH = "DNA\\OASIS_DNA.json";
 
-        private static SuperStarStatus _status;
+        private static StarStatus _status;
         private static Guid _starId = Guid.Empty;
         private static OASISAPI _OASISAPI = null;
 
@@ -48,7 +48,7 @@ namespace NextGenSoftware.OASIS.STAR
             }
         }
 
-        public static SuperStarStatus Status
+        public static StarStatus Status
         {
             get
             {
@@ -62,9 +62,9 @@ namespace NextGenSoftware.OASIS.STAR
         }
 
         public static bool IsSuperStarIgnited { get; private set; }
-        public static Star InnerStar { get; set; }
+        public static CelestialBodies.Star InnerStar { get; set; }
         public static SuperStarCore SuperStarCore { get; set; }
-        public static List<Star> Stars { get; set; } = new List<Star>();
+        public static List<CelestialBodies.Star> Stars { get; set; } = new List<CelestialBodies.Star>();
         public static List<IPlanet> Planets
         {
             get
@@ -477,7 +477,7 @@ namespace NextGenSoftware.OASIS.STAR
 
                 case GenesisType.Star:
                     {
-                        newBody = new Star();
+                        newBody = new CelestialBodies.Star();
                         newBody.ParentHolon = InnerStar;
                         newBody.ParentHolonId = InnerStar.Id;
                         newBody.ParentStar = InnerStar;
@@ -1051,10 +1051,10 @@ namespace NextGenSoftware.OASIS.STAR
        
         private static OASISResult<bool> BootOASIS(string OASISDNAPath = OASIS_DNA_DEFAULT_PATH)
         {
-            SuperStar.OASISDNAPath = OASISDNAPath;
+            Star.OASISDNAPath = OASISDNAPath;
 
             if (!OASISAPI.IsOASISBooted)
-                return OASISAPI.BootOASIS(SuperStar.OASISDNAPath);
+                return OASISAPI.BootOASIS(Star.OASISDNAPath);
             else
                 return new OASISResult<bool>() { Message = "OASIS Already Booted" };
         }
@@ -1096,7 +1096,7 @@ namespace NextGenSoftware.OASIS.STAR
         private static OASISResult<ICelestialBody> IgniteInnerStar()
         {
             OASISResult<ICelestialBody> result = new OASISResult<ICelestialBody>();
-            InnerStar = new Star(_starId);
+            InnerStar = new CelestialBodies.Star(_starId);
             InnerStar.Initialize();
 
             CreateNewInnerStar(ref result);
@@ -1115,7 +1115,7 @@ namespace NextGenSoftware.OASIS.STAR
         private static async Task<OASISResult<ICelestialBody>> IgniteInnerStarAsync()
         {
             OASISResult<ICelestialBody> result = new OASISResult<ICelestialBody>();
-            InnerStar = new Star(_starId);
+            InnerStar = new CelestialBodies.Star(_starId);
             await InnerStar.InitializeAsync();
 
             CreateNewInnerStar(ref result);

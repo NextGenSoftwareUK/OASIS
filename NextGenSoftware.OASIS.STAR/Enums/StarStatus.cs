@@ -1,7 +1,7 @@
 ﻿
 namespace NextGenSoftware.OASIS.STAR.Enums
 {
-    public enum SuperStarStatus
+    public enum StarStatus
     {
         Igniting,
         BootingOASIS,

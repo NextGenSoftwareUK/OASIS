@@ -10,7 +10,7 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces.STAR
         IStar Star { get; set; }
         Task<OASISResult<IPlanet>> AddPlanetAsync(IPlanet planet);
         OASISResult<IPlanet> AddPlanet(IPlanet planet);
-        Task<OASISResult<IEnumerable<IPlanet>>> GetPlanetsAsync(bool refresh = true);
-        OASISResult<IEnumerable<IPlanet>> GetPlanets(bool refresh = true);
+        Task<OASISResult<IEnumerable<IPlanet>>> GetAllPlanetsForSolarSystemAsync(bool refresh = true);
+        OASISResult<IEnumerable<IPlanet>> GetAllPlanetsForSolarSystem(bool refresh = true);
     }
 }

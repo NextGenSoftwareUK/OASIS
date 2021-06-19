@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Linq;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core.Enums;
@@ -10,6 +9,7 @@ using NextGenSoftware.OASIS.API.Core.Holons;
 
 namespace NextGenSoftware.OASIS.STAR.CelestialBodies
 {
+    // At the centre of each Solar System
     public class StarCore : CelestialBodyCore, IStarCore
     {
         public IStar Star { get; set; }
@@ -28,22 +28,6 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
         {
             this.Star = star;
         }
-
-        //ONLY SUPERSTAR CAN HAVE A COLLECTION OF OTHER STARS.
-
-        //public async Task<IStar> AddStarAsync(IStar star)
-        //{
-        //    //TODO: Do we want to add the new star to the main star? Can a Star have a collection of Stars?
-        //    // Yes, I think we do, but that means if we can create Stars, then the first main star needs to be either SuperStar, BlueStar or GreatCentralSun! ;-)
-        //    // Then SuperStar/BlueStar/GreatCentralSun is the only object that can contain a collection of other stars. Normal Stars only contain collections of planets.
-        //    // I feel GreatCentralSun would be best because it then accurately models the Galaxy/Universe! ;-)
-
-        //    //TODO: SO.... tomorrow need to rename the existing Star to GreatCentralSun and then create a normal Star...
-        //    // Think StarBody can be renamed to Star and Star renamed to GreatCentralSun...
-
-        //    return (IStar)await base.SaveHolonAsync((IHolon)star);
-        //    //return (IPlanet)await base.CallZomeFunctionAsync(STAR_ADD_STAR, planet);
-        //}
 
         public async Task<OASISResult<IPlanet>> AddPlanetAsync(IPlanet planet)
         {
@@ -116,7 +100,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
             return AddPlanetAsync(planet).Result;
         }
 
-        public async Task<OASISResult<IEnumerable<IPlanet>>> GetPlanetsAsync(bool refresh = true)
+        public async Task<OASISResult<IEnumerable<IPlanet>>> GetAllPlanetsForSolarSystemAsync(bool refresh = true)
         {
             OASISResult<IEnumerable<IPlanet>> result = new OASISResult<IEnumerable<IPlanet>>();
             OASISResult<IEnumerable<IHolon>> holonResult = await GetHolonsAsync(Star.ParentSolarSystem.Planets, HolonType.Planet, refresh);
@@ -125,26 +109,9 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
             return result;
         }
 
-        public OASISResult<IEnumerable<IPlanet>> GetPlanets(bool refresh = true)
+        public OASISResult<IEnumerable<IPlanet>> GetAllPlanetsForSolarSystem(bool refresh = true)
         {
-            return GetPlanetsAsync(refresh).Result;
-        }
-
-        //TODO: I think we need to also add back in these Moon functions because Star can also create Moons...
-        // BUT I THINK ONLY A SUPERSTAR CAN CREATE MOONS?
-        // THINK A NORMAL STAR CAN GET COLLECTION OF MOONS AND PLANETS THAT BELONG TO ITS SOLAR SYSTEM?
-
-        //public async Task<IMoon> AddMoonAsync(IMoon moon)
-        //{
-        //    return (IMoon)await base.CallZomeFunctionAsync(STAR_ADD_MOON, moon);
-        //}
-
-        //public async Task<List<IMoon>> GetMoons()
-        //{
-        //    if (string.IsNullOrEmpty(ProviderKey))
-        //        throw new System.ArgumentException("ERROR: ProviderKey is null, please set this before calling this method.", "ProviderKey");
-
-        //    return (List<IMoon>)await base.CallZomeFunctionAsync(STAR_GET_MOONS, ProviderKey);
-        //}     
+            return GetAllPlanetsForSolarSystemAsync(refresh).Result;
+        }  
     }
 }

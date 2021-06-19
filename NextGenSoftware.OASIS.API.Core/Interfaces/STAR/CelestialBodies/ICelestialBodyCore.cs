@@ -23,7 +23,7 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces.STAR
         OASISResult<IHolon> SaveCelestialBody(IHolon savingHolon);
         Task<OASISResult<IZome>> AddZomeAsync(IZome zome);
         OASISResult<IZome> AddZome(IZome zome);
-        Task<OASISResult<IEnumerable<IHolon>>> RemoveZomeAsync(IZome zome);
-        OASISResult<IEnumerable<IHolon>> RemoveZome(IZome zome);
+        Task<OASISResult<IEnumerable<IZome>>> RemoveZomeAsync(IZome zome);
+        OASISResult<IEnumerable<IZome>> RemoveZome(IZome zome);
     }
 }
