@@ -152,7 +152,7 @@ namespace NextGenSoftware.OASIS.STAR.Zomes
             return result;
         }
 
-        public virtual async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(HolonType holonType)
+        public virtual async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(HolonType holonType = HolonType.All)
         {
             OASISResult<IEnumerable<IHolon>> result = new OASISResult<IEnumerable<IHolon>>();
 
@@ -170,7 +170,7 @@ namespace NextGenSoftware.OASIS.STAR.Zomes
             return result;
         }
 
-        public virtual OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(HolonType holonType)
+        public virtual OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(HolonType holonType = HolonType.All)
         {
             OASISResult<IEnumerable<IHolon>> result = new OASISResult<IEnumerable<IHolon>>();
 

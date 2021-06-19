@@ -8,7 +8,7 @@ using NextGenSoftware.OASIS.STAR.CelestialBodies;
 
 namespace NextGenSoftware.OASIS.STAR.DNATemplates.CSharpTemplates
 {
-    public class StarDNATemplate : Star, IStar
+    public class StarDNATemplate : CelestialBodies.Star, IStar
     {
         public StarDNATemplate(Dictionary<ProviderType, string> providerKey) : base(providerKey)
         {

@@ -11,7 +11,8 @@ using NextGenSoftware.OASIS.STAR.CelestialContainers;
 
 namespace NextGenSoftware.OASIS.STAR
 {
-    public class SuperStarCore : CelestialBodyCore, ISuperStarCore // TODO: Currently cannot inherit from StarCore because SuperStar is static (may change soon?)
+    // At the centre of each Galaxy
+    public class SuperStarCore : CelestialBodyCore, ISuperStarCore
     {
         public ISuperStar SuperStar { get; set; }
 
@@ -49,7 +50,7 @@ namespace NextGenSoftware.OASIS.STAR
             return AddStarAsync(star).Result;
         }
 
-        public async Task<OASISResult<IEnumerable<ISolarSystem>>> GetSolarSystemsAsync(bool refresh = true)
+        public async Task<OASISResult<IEnumerable<ISolarSystem>>> GetAllSolarSystemsForGalaxyAsync(bool refresh = true)
         {
             OASISResult<IEnumerable<ISolarSystem>> result = new OASISResult<IEnumerable<ISolarSystem>>();
             OASISResult<IEnumerable<IHolon>> holonResult = await GetHolonsAsync(SuperStar.ParentGalaxy.SolarSystems, HolonType.SoloarSystem, refresh);
@@ -58,51 +59,82 @@ namespace NextGenSoftware.OASIS.STAR
             return result;
         }
 
-        public OASISResult<IEnumerable<ISolarSystem>> GetSolarSystems(bool refresh = true)
+        public OASISResult<IEnumerable<ISolarSystem>> GetAllSolarSystemsForGalaxy(bool refresh = true)
         {
-            return GetSolarSystemsAsync(refresh).Result;
+            return GetAllSolarSystemsForGalaxyAsync(refresh).Result;
         }
 
-        public async Task<OASISResult<IEnumerable<IStar>>> GetStarsAsync(bool refresh = true)
+        public async Task<OASISResult<IEnumerable<IStar>>> GetAllStarsForGalaxyAsync(bool refresh = true)
         {
             //TODO: See if can make this even more efficient! ;-)
             OASISResult<IEnumerable<IStar>> result = new OASISResult<IEnumerable<IStar>>();
             OASISResult<IEnumerable<IHolon>> holonResult = await GetHolonsAsync(SuperStar.ParentGalaxy.Stars, HolonType.Star, refresh);
             OASISResultCollectionToCollectionHelper<IEnumerable<IHolon>, IEnumerable<IStar>>.CopyResult(holonResult, ref result);
-            result.Result = Mapper<IHolon, Star>.MapBaseHolonProperties(holonResult.Result);
+            result.Result = Mapper<IHolon, CelestialBodies.Star>.MapBaseHolonProperties(holonResult.Result);
             return result;
         }
 
-        public OASISResult<IEnumerable<IStar>> GetStars(bool refresh = true)
+        public OASISResult<IEnumerable<IStar>> GetAllStarsForGalaxy(bool refresh = true)
         {
-            return GetStarsAsync(refresh).Result;
+            return GetAllStarsForGalaxyAsync(refresh).Result;
         }
 
+        public async Task<OASISResult<IEnumerable<IPlanet>>> GetAllPlanetsForGalaxyAsync(bool refresh = true)
+        {
+            OASISResult<IEnumerable<IPlanet>> result = new OASISResult<IEnumerable<IPlanet>>();
+            OASISResult<IEnumerable<IStar>> starsResult = await GetAllStarsForGalaxyAsync(refresh);
+            OASISResultCollectionToCollectionHelper<IEnumerable<IStar>, IEnumerable<IPlanet>>.CopyResult(starsResult, ref result);
 
+            if (!starsResult.IsError)
+            {
+                List<IPlanet> planets = new List<IPlanet>();
 
-        // DONT NEED BECAUSE INNERSTAR CONTAINS THIS.
-        //public async Task<List<IPlanet>> GetPlanets()
-        //{
-        //    if (string.IsNullOrEmpty(ProviderKey))
-        //        throw new System.ArgumentException("ERROR: ProviderKey is null, please set this before calling this method.", "ProviderKey");
+                foreach (IStar star in starsResult.Result)
+                {
+                    OASISResult<IEnumerable<IPlanet>> planetsResult = await ((IStarCore)star.CelestialBodyCore).GetAllPlanetsForSolarSystemAsync(refresh);
 
-        //    return (List<IPlanet>)await base.LoadHolonsAsync(ProviderKey, API.Core.HolonType.Planet);
-        //    //return (List<IPlanet>)await base.CallZomeFunctionAsync(STAR_GET_PLANETS, ProviderKey);
-        //}
+                    if (!planetsResult.IsError)
+                        planets.AddRange(planetsResult.Result);
+                }
 
-        //TODO: I think we need to also add back in these Moon functions because Star can also create Moons...
+                result.Result = planets;
+            }
 
-        //public async Task<IMoon> AddMoonAsync(IMoon moon)
-        //{
-        //    return (IMoon)await base.CallZomeFunctionAsync(STAR_ADD_MOON, moon);
-        //}
+            return result;
+        }
 
-        //public async Task<List<IMoon>> GetMoons()
-        //{
-        //    if (string.IsNullOrEmpty(ProviderKey))
-        //        throw new System.ArgumentException("ERROR: ProviderKey is null, please set this before calling this method.", "ProviderKey");
+        public OASISResult<IEnumerable<IPlanet>> GetAllPlanetsForGalaxy(bool refresh = true)
+        {
+            return GetAllPlanetsForGalaxyAsync(refresh).Result;
+        }
 
-        //    return (List<IMoon>)await base.CallZomeFunctionAsync(STAR_GET_MOONS, ProviderKey);
-        //}     
+        public async Task<OASISResult<IEnumerable<IMoon>>> GetAllMoonsForGalaxyAsync(bool refresh = true)
+        {
+            OASISResult<IEnumerable<IMoon>> result = new OASISResult<IEnumerable<IMoon>>();
+            OASISResult<IEnumerable<IPlanet>> planetsResult = await GetAllPlanetsForGalaxyAsync(refresh);
+            OASISResultCollectionToCollectionHelper<IEnumerable<IPlanet>, IEnumerable<IMoon>>.CopyResult(planetsResult, ref result);
+
+            if (!planetsResult.IsError)
+            {
+                List<IMoon> moons = new List<IMoon>();
+
+                foreach (IPlanet planet in planetsResult.Result)
+                {
+                    OASISResult<IEnumerable<IMoon>> moonsResult = await ((IPlanetCore)planet.CelestialBodyCore).GetMoonsAsync(refresh);
+
+                    if (!moonsResult.IsError)
+                        moons.AddRange(moonsResult.Result);
+                }
+
+                result.Result = moons;
+            }
+
+            return result;
+        }
+
+        public OASISResult<IEnumerable<IMoon>> GetAllMoonsForGalaxy(bool refresh = true)
+        {
+            return GetAllMoonsForGalaxyAsync(refresh).Result;
+        }
     }
 }
