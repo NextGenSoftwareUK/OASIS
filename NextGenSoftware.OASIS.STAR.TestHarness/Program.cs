@@ -118,7 +118,7 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
             //ShowSuccessMessage(string.Concat("OASIS BOOTED.", e.Message));
         }
 
-        private static void SuperStar_OnSuperStarError(object sender, EventArgs.SuperStarErrorEventArgs e)
+        private static void SuperStar_OnSuperStarError(object sender, EventArgs.StarErrorEventArgs e)
         {
            // ShowErrorMessage(string.Concat("Error Igniting SuperStar. Reason: ", e.Reason));
         }

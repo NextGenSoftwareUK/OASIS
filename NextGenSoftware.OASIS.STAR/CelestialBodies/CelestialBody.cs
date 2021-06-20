@@ -110,35 +110,35 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
             {
                 case HolonType.GreatGrandSuperStar:
                     {
-                        SetParentIdsForGreatGrandSuperStar();
+                        SetParentIdsForGreatGrandSuperStar((IGreatGrandSuperStar)this);
                         celestialBodyChildrenResult = await SaveCelestialBodyChildrenAsync((IEnumerable<IZome>)((IGreatGrandSuperStar)this).ParentOmiverse.Universes);
                     }
                     break;
 
                 case HolonType.GrandSuperStar:
                     {
-                        SetParentIdsForGrandSuperStar();
+                        SetParentIdsForGrandSuperStar(this.ParentGreatGrandSuperStar, (IGrandSuperStar)this);
                         celestialBodyChildrenResult = await SaveCelestialBodyChildrenAsync((IEnumerable<IZome>)((IGrandSuperStar)this).ParentUniverse.Galaxies);
                     }
                     break;
 
                 case HolonType.SuperStar:
                     {
-                        SetParentIdsForSuperStar();
+                        SetParentIdsForSuperStar(this.ParentGreatGrandSuperStar, this.ParentGrandSuperStar, (ISuperStar)this);
                         celestialBodyChildrenResult = await SaveCelestialBodyChildrenAsync((IEnumerable<IZome>)((ISuperStar)this).ParentGalaxy.Stars);
                     }
                     break;
 
                 case HolonType.Star:
                     {
-                        SetParentIdsForStar((IStar)this);
+                        SetParentIdsForStar(this.ParentGreatGrandSuperStar, this.ParentGrandSuperStar, this.ParentSuperStar, (IStar)this);
                         celestialBodyChildrenResult = await SaveCelestialBodyChildrenAsync((IEnumerable<IZome>)((IStar)this).ParentSolarSystem.Planets);
                     }
                     break;
 
                 case HolonType.Planet:
                     {
-                        SetParentIdsForPlanet(this.ParentStar, (IPlanet)this);
+                        SetParentIdsForPlanet(this.ParentGreatGrandSuperStar, this.ParentGrandSuperStar, this.ParentSuperStar, this.ParentStar, (IPlanet)this);
                         celestialBodyChildrenResult = await SaveCelestialBodyChildrenAsync((IEnumerable<IZome>)((IPlanet)this).Moons);
                     }
                     break;
@@ -146,7 +146,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
 
             celestialBodyChildrenResult = await SaveCelestialBodyChildrenAsync(CelestialBodyCore.Zomes);
 
-
+            /*
             if (this.HolonType == HolonType.SuperStar)
             {
                 if (((ISuperStar)this).ParentGalaxy.Stars != null)
@@ -163,7 +163,6 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
             }
 
             //TODO: We need to indivudally save each planet/zome/holon first so we get their unique id's. We can then set the parentId's etc.
-            /*
             if (this.HolonType == HolonType.Star)
             {
                 if (((IStar)this).ParentSolarSystem.Planets != null)
@@ -312,76 +311,166 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
             this.Original = holon.Original;
         }
 
-        private void SetParentIdsForMoon(IStar star, IPlanet planet, IMoon moon)
+
+        // TODO: COME BACK TO SETTING THESE PARENTID'S, NEED TO NOT BE TIRED TO WORK IT ALL OUT! ;-) LOL
+        // PLUS NOT EVEN SURE WE NEED TO DO THIS BECAUSE ALL THE ADD METHODS ALREADY SET THE PARENTID'S?!
+        // MAYBE THEY CAN ADD ITEMS MANUALLY TO THE COLLECTIONS WITHOUT USING THE CORRECT ADDMETHODS? THIS IS WHERE THIS COULD BE NEEDED?
+        private void SetParentIdsForMoon(IGreatGrandSuperStar greatGrandSuperStar, IGrandSuperStar grandSuperStar, ISuperStar superStar, IStar star, IPlanet planet, IMoon moon)
         {
             if (moon.CelestialBodyCore.Zomes != null)
             {
                 foreach (Zome zome in moon.CelestialBodyCore.Zomes)
-                    ZomeHelper.SetParentIdsForZome(star, planet, moon, zome);
+                    ZomeHelper.SetParentIdsForZome(greatGrandSuperStar, grandSuperStar, superStar, star, planet, moon, zome);
             }
         }
 
-        private void SetParentIdsForPlanet(IStar star, IPlanet planet)
+        private void SetParentIdsForPlanet(IGreatGrandSuperStar greatGrandSuperStar, IGrandSuperStar grandSuperStar, ISuperStar superStar, IStar star, IPlanet planet)
         {
+            planet.ParentOmiverse = greatGrandSuperStar.ParentOmiverse;
+            planet.ParentOmiverseId = greatGrandSuperStar.ParentOmiverseId;
+            planet.ParentGreatGrandSuperStar = greatGrandSuperStar;
+            planet.ParentGreatGrandSuperStarId = greatGrandSuperStar.Id;
+
+            planet.ParentUniverse = grandSuperStar.ParentUniverse;
+            planet.ParentUniverseId = grandSuperStar.ParentUniverseId;
+            planet.ParentGrandSuperStar = grandSuperStar;
+            planet.ParentGrandSuperStarId = grandSuperStar.Id;
+
+            planet.ParentGalaxy = grandSuperStar.ParentGalaxy;
+            planet.ParentGalaxyId = grandSuperStar.ParentGalaxy.Id;
+            planet.ParentSuperStar = superStar;
+            planet.ParentSuperStarId = superStar.Id;
+
+            planet.ParentSolarSystem = star.ParentSolarSystem;
+            planet.ParentSolarSystemId = star.ParentSolarSystem.Id;
+            planet.ParentStar = star;
+            planet.ParentStarId = star.Id;
+
             if (planet.CelestialBodyCore.Zomes != null)
             {
                 foreach (IZome zome in planet.CelestialBodyCore.Zomes)
-                    ZomeHelper.SetParentIdsForZome(star, planet, null, zome);
+                    ZomeHelper.SetParentIdsForZome(greatGrandSuperStar, grandSuperStar, superStar, star, planet, null, zome);
             }
 
             if (planet.Moons != null)
             {
                 foreach (IMoon moon in planet.Moons)
-                    SetParentIdsForMoon(star, planet, moon);
+                    SetParentIdsForMoon(greatGrandSuperStar, grandSuperStar, superStar, star, planet, moon);
             }
         }
 
-        private void SetParentIdsForStar(IStar star)
+        private void SetParentIdsForStar(IGreatGrandSuperStar greatGrandSuperStar, IGrandSuperStar grandSuperStar, ISuperStar superStar, IStar star)
         {
+            star.ParentOmiverse = greatGrandSuperStar.ParentOmiverse;
+            star.ParentOmiverseId = greatGrandSuperStar.ParentOmiverseId;
+            star.ParentGreatGrandSuperStar = greatGrandSuperStar;
+            star.ParentGreatGrandSuperStarId = greatGrandSuperStar.Id;
+
+            star.ParentUniverse = grandSuperStar.ParentUniverse;
+            star.ParentUniverseId = grandSuperStar.ParentUniverseId;
+            star.ParentGrandSuperStar = grandSuperStar;
+            star.ParentGrandSuperStarId = grandSuperStar.Id;
+
+            star.ParentGalaxy = grandSuperStar.ParentGalaxy;
+            star.ParentGalaxyId = grandSuperStar.ParentGalaxy.Id;
+            star.ParentSuperStar = superStar;
+            star.ParentSuperStarId = superStar.Id;
+
             if (star.ParentSolarSystem.Planets != null)
             {
                 foreach (IPlanet planet in star.ParentSolarSystem.Planets)
-                    SetParentIdsForPlanet(star, planet);
+                {
+                    SetParentIdsForPlanet(greatGrandSuperStar, grandSuperStar, superStar, star, planet);
+                }
             }
 
             //TODO: Do we want to add Zomes to a Star? Maybe?
         }
 
-        //TODO: We may one day pass in a SuperStar here? Currently its static when we thought there would be only one SuperStar but now think we will have more than one so will likely make SuperStar inherit from Star, etc. And need to change existing static SuperStar class to GrandSuperStar or something! ;-)
-        private void SetParentIdsForSuperStar()
+        private void SetParentIdsForSuperStar(IGreatGrandSuperStar greatGrandSuperStar, IGrandSuperStar grandSuperStar, ISuperStar superStar)
         {
-            if (SuperStar.Stars != null)
+            foreach (IStar star in superStar.ParentGalaxy.Stars)
             {
-                foreach (IStar star in SuperStar.Stars)
-                    SetParentIdsForStar(star);
+                // Stars outside of a Solar System (does not have any planets)
+                SetParentIdsForStar(greatGrandSuperStar, grandSuperStar, superStar, star);
             }
 
-            // foreach (IPlanet planet in SuperStar.Planets)
-            //     SetParentIdsForPlanet(SuperStar.InnerStar, planet);
+            foreach (ISolarSystem solarSystem in superStar.ParentGalaxy.SolarSystems)
+            {
+                solarSystem.ParentOmiverse = greatGrandSuperStar.ParentOmiverse;
+                solarSystem.ParentOmiverseId = greatGrandSuperStar.ParentOmiverseId;
+                solarSystem.ParentGreatGrandSuperStar = greatGrandSuperStar;
+                solarSystem.ParentGreatGrandSuperStarId = greatGrandSuperStar.Id;
+
+                solarSystem.ParentUniverse = grandSuperStar.ParentUniverse;
+                solarSystem.ParentUniverseId = grandSuperStar.ParentUniverseId;
+                solarSystem.ParentGrandSuperStar = grandSuperStar;
+                solarSystem.ParentGrandSuperStarId = grandSuperStar.Id;
+
+                solarSystem.ParentGalaxy = grandSuperStar.ParentGalaxy;
+                solarSystem.ParentGalaxyId = grandSuperStar.ParentGalaxy.Id;
+                solarSystem.ParentSuperStar = superStar;
+                solarSystem.ParentSuperStarId = superStar.Id;
+
+                SetParentIdsForStar(greatGrandSuperStar, grandSuperStar, superStar, solarSystem.Star);
+            }
         }
 
-        private void SetParentIdsForGrandSuperStar()
+        private void SetParentIdsForGrandSuperStar(IGreatGrandSuperStar greatGrandSuperStar, IGrandSuperStar grandSuperStar)
         {
-            if (SuperStar.Stars != null)
+            grandSuperStar.ParentOmiverse = greatGrandSuperStar.ParentOmiverse;
+            grandSuperStar.ParentOmiverseId = greatGrandSuperStar.ParentOmiverseId;
+            grandSuperStar.ParentGreatGrandSuperStar = greatGrandSuperStar;
+            grandSuperStar.ParentGreatGrandSuperStarId = greatGrandSuperStar.Id;
+
+            grandSuperStar.ParentUniverse = greatGrandSuperStar.ParentUniverse;
+            grandSuperStar.ParentUniverseId = grandSuperStar.ParentUniverseId;
+            grandSuperStar.ParentGrandSuperStar = grandSuperStar;
+            grandSuperStar.ParentGrandSuperStarId = grandSuperStar.Id;
+
+            foreach (IStar star in grandSuperStar.ParentUniverse.Stars)
             {
-                foreach (IStar star in SuperStar.Stars)
-                    SetParentIdsForStar(star);
+                // Stars that are outside of a Galaxy (do not have a superstar).
+                star.ParentOmiverse = greatGrandSuperStar.ParentOmiverse;
+                star.ParentOmiverseId = greatGrandSuperStar.ParentOmiverseId;
+                star.ParentGreatGrandSuperStar = greatGrandSuperStar;
+                star.ParentGreatGrandSuperStarId = greatGrandSuperStar.Id;
+
+                star.ParentUniverse = grandSuperStar.ParentUniverse;
+                star.ParentUniverseId = grandSuperStar.ParentUniverseId;
+                star.ParentGrandSuperStar = grandSuperStar;
+                star.ParentGrandSuperStarId = grandSuperStar.Id;
+
+                SetParentIdsForStar(greatGrandSuperStar, grandSuperStar, null, star); //Stars outside of a Galaxy do not have a parent SuperStar (at the centre of each Galaxy).
             }
 
-            // foreach (IPlanet planet in SuperStar.Planets)
-            //     SetParentIdsForPlanet(SuperStar.InnerStar, planet);
+            foreach (IGalaxy galaxy in grandSuperStar.ParentUniverse.Galaxies)
+            {
+                galaxy.ParentOmiverse = greatGrandSuperStar.ParentOmiverse;
+                galaxy.ParentOmiverseId = greatGrandSuperStar.ParentOmiverseId;
+                galaxy.ParentGreatGrandSuperStar = greatGrandSuperStar;
+                galaxy.ParentGreatGrandSuperStarId = greatGrandSuperStar.Id;
+
+                galaxy.ParentUniverse = grandSuperStar.ParentUniverse;
+                galaxy.ParentUniverseId = grandSuperStar.ParentUniverseId;
+                galaxy.ParentGrandSuperStar = grandSuperStar;
+                galaxy.ParentGrandSuperStarId = grandSuperStar.Id;
+
+                SetParentIdsForSuperStar(greatGrandSuperStar, grandSuperStar, galaxy.SuperStar);
+            }
         }
 
-        private void SetParentIdsForGreatGrandSuperStar()
+        private void SetParentIdsForGreatGrandSuperStar(IGreatGrandSuperStar greatGrandSuperStar)
         {
-            if (SuperStar.Stars != null)
+            foreach (IUniverse universe in greatGrandSuperStar.ParentOmiverse.Universes)
             {
-                foreach (IStar star in SuperStar.Stars)
-                    SetParentIdsForStar(star);
-            }
+                universe.ParentOmiverse = greatGrandSuperStar.ParentOmiverse;
+                universe.ParentOmiverseId = greatGrandSuperStar.ParentOmiverseId;
+                universe.ParentGreatGrandSuperStar = greatGrandSuperStar;
+                universe.ParentGreatGrandSuperStarId = greatGrandSuperStar.Id;
 
-            // foreach (IPlanet planet in SuperStar.Planets)
-            //     SetParentIdsForPlanet(SuperStar.InnerStar, planet);
+                SetParentIdsForGrandSuperStar(greatGrandSuperStar, universe.GrandSuperStar);
+            }
         }
 
 
@@ -409,73 +498,74 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
         // Build
         public CoronalEjection Flare()
         {
-            return SuperStar.Flare(this);
+            return new CoronalEjection();
+           // return Star.Flare(this);
         }
 
         // Activate & Launch - Launch & activate the planet (OAPP) by shining the star's light upon it...
         public void Shine()
         {
-            SuperStar.Shine(this);
+           // Star.Shine(this);
         }
 
         // Deactivate the planet (OAPP)
         public void Dim()
         {
-            SuperStar.Dim(this);
+            //Star.Dim(this);
         }
 
         // Deploy the planet (OAPP)
         public void Seed()
         {
-            SuperStar.Seed(this);
+            //Star.Seed(this);
         }
 
         // Run Tests
         public void Twinkle()
         {
-            SuperStar.Twinkle(this);
+            //Star.Twinkle(this);
         }
 
         // Highlight the Planet (OAPP) in the OAPP Store (StarNET). *Admin Only*
         public void Radiate()
         {
-            SuperStar.Radiate(this);
+            //Star.Radiate(this);
         }
 
         // Show how much light the planet (OAPP) is emitting into the solar system (StarNET/HoloNET)
         public void Emit()
         {
-            SuperStar.Emit(this);
+           // Star.Emit(this);
         }
 
         // Show stats of the Planet (OAPP).
         public void Reflect()
         {
-            SuperStar.Reflect(this);
+           // Star.Reflect(this);
         }
 
         // Upgrade/update a Planet (OAPP).
         public void Evolve()
         {
-            SuperStar.Evolve(this);
+            //Star.Evolve(this);
         }
 
         // Import/Export hApp, dApp & others.
         public void Mutate()
         {
-            SuperStar.Mutate(this);
+           // Star.Mutate(this);
         }
 
         // Send/Receive Love
         public void Love()
         {
-            SuperStar.Love(this);
+           // Star.Love(this);
         }
 
         // Reserved For Future Use...
         public void Super()
         {
-            SuperStar.Super(this);
+            //Star.Super(this);
         }
 
         private void PlanetCore_OnZomeError(object sender, ZomeErrorEventArgs e)
@@ -805,9 +895,9 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
             }
         }
 
-        private Zome GetZomeThatHolonBelongsTo(Holon holon)
+        private IZome GetZomeThatHolonBelongsTo(IHolon holon)
         {
-            return (Zome)CelestialBodyCore.Holons.FirstOrDefault(x => x.Id == holon.Id).ParentHolon;
+            return (IZome)CelestialBodyCore.Holons.FirstOrDefault(x => x.Id == holon.Id).ParentHolon;
         }
 
         private List<IHolon> GetHolonsThatBelongToZome(IZome zome)
@@ -835,6 +925,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
 
         //}
 
+        /*
         private void HoloNETClient_OnZomeFunctionCallBack(object sender, ZomeFunctionCallBackEventArgs e)
         {
             //if (!e.IsCallSuccessful)
@@ -859,7 +950,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
             //        }
             //    }
             //}
-        }
+        }*/
 
         /*
         public virtual async Task<IHolon> LoadHolonAsync(string hcEntryAddressHash)
