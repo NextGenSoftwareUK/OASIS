@@ -2,7 +2,7 @@
 
 namespace NextGenSoftware.OASIS.API.Core.Interfaces.STAR
 {
-    public interface IGalaxy : IHolon
+    public interface IGalaxy : ICelestialSpace
     {
         ISuperStar SuperStar { get; set; }
         List<ISolarSystem> SolarSystems { get; set; }

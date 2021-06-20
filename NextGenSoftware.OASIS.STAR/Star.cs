@@ -20,9 +20,9 @@ using NextGenSoftware.OASIS.STAR.DNA;
 using NextGenSoftware.OASIS.STAR.OASISAPIManager;
 using NextGenSoftware.OASIS.STAR.Zomes;
 using NextGenSoftware.OASIS.STAR.EventArgs;
-using NextGenSoftware.Holochain.HoloNET.Client.Core;
 using NextGenSoftware.OASIS.STAR.ErrorEventArgs;
 using NextGenSoftware.OASIS.STAR.Enums;
+//using NextGenSoftware.Holochain.HoloNET.Client.Core;
 using AutoMapper;
 
 namespace NextGenSoftware.OASIS.STAR
@@ -57,21 +57,21 @@ namespace NextGenSoftware.OASIS.STAR
             set
             {
                 _status = value;
-                OnSuperStarStatusChanged?.Invoke(null, new SuperStarStatusChangedEventArgs() { Status = value });
+                OnStarStatusChanged?.Invoke(null, new StarStatusChangedEventArgs() { Status = value });
             }
         }
 
         public static bool IsSuperStarIgnited { get; private set; }
-        public static CelestialBodies.Star InnerStar { get; set; }
-        public static SuperStarCore SuperStarCore { get; set; }
-        public static List<CelestialBodies.Star> Stars { get; set; } = new List<CelestialBodies.Star>();
-        public static List<IPlanet> Planets
-        {
-            get
-            {
-                return InnerStar.Planets;
-            }
-        }
+       // public static CelestialBodies.Star InnerStar { get; set; }
+        //public static SuperStarCore SuperStarCore { get; set; }
+        //public static List<CelestialBodies.Star> Stars { get; set; } = new List<CelestialBodies.Star>();
+        //public static List<IPlanet> Planets
+        //{
+        //    get
+        //    {
+        //        return InnerStar.Planets;
+        //    }
+        //}
 
         public static Avatar LoggedInUser { get; set; }
 
@@ -100,17 +100,17 @@ namespace NextGenSoftware.OASIS.STAR
         public delegate void HolonLoaded(object sender, HolonLoadedEventArgs e);
         public static event HolonLoaded OnHolonLoaded;
 
-        public delegate void SuperStarIgnited(object sender, SuperStarIgnitedEventArgs e);
+        public delegate void SuperStarIgnited(object sender, StarIgnitedEventArgs e);
         public static event SuperStarIgnited OnSuperStarIgnited;
 
         public delegate void SuperStarCoreIgnited(object sender, System.EventArgs e);
         public static event SuperStarCoreIgnited OnSuperStarCoreIgnited;
 
-        public delegate void SuperStarStatusChanged(object sender, SuperStarStatusChangedEventArgs e);
-        public static event SuperStarStatusChanged OnSuperStarStatusChanged;
+        public delegate void StarStatusChanged(object sender, StarStatusChangedEventArgs e);
+        public static event StarStatusChanged OnStarStatusChanged;
 
-        public delegate void SuperStarError(object sender, SuperStarErrorEventArgs e);
-        public static event SuperStarError OnSuperStarError;
+        public delegate void StarError(object sender, StarErrorEventArgs e);
+        public static event StarError OnStarError;
 
         public delegate void OASISBooted(object sender, OASISBootedEventArgs e);
         public static event OASISBooted OnOASISBooted;
@@ -122,16 +122,16 @@ namespace NextGenSoftware.OASIS.STAR
         public static event ZomeError OnZomeError;
 
         //TODO: Not sure if we want to expose the HoloNETClient events at this level? They can subscribe to them through the HoloNETClient property below...
-        public delegate void Disconnected(object sender, DisconnectedEventArgs e);
-        public static event Disconnected OnDisconnected;
+        //public delegate void Disconnected(object sender, DisconnectedEventArgs e);
+        //public static event Disconnected OnDisconnected;
 
-        public delegate void DataReceived(object sender, DataReceivedEventArgs e);
-        public static event DataReceived OnDataReceived;
+        //public delegate void DataReceived(object sender, DataReceivedEventArgs e);
+        //public static event DataReceived OnDataReceived;
        
         public static OASISResult<ICelestialBody> IgniteSuperStar(string STARDNAPath = STAR_DNA_DEFAULT_PATH, string OASISDNAPath = OASIS_DNA_DEFAULT_PATH, string starId = null)
         {
             OASISResult<ICelestialBody> result = new OASISResult<ICelestialBody>();
-            Status = SuperStarStatus.Igniting;
+            Status = StarStatus.Igniting;
 
             // If you wish to change the logging framework from the default (NLog) then set it below (or just change in OASIS_DNA - prefered way)
             //LoggingManager.CurrentLoggingFramework = LoggingFramework.NLog;
@@ -153,14 +153,14 @@ namespace NextGenSoftware.OASIS.STAR
             }
 
             ValidateSTARDNA(STARDNA);
-            Status = SuperStarStatus.BootingOASIS;
+            Status = StarStatus.BootingOASIS;
             OASISResult<bool> oasisResult = BootOASIS(OASISDNAPath);
 
             if (oasisResult.IsError)
             {
                 string errorMessage = string.Concat("Error whilst booting OASIS. Reason: ", oasisResult.Message);
                 OnOASISBootError?.Invoke(null, new OASISBootErrorEventArgs() { ErrorReason = errorMessage });
-                OnSuperStarError?.Invoke(null, new SuperStarErrorEventArgs() { Reason = errorMessage });
+                OnStarError?.Invoke(null, new StarErrorEventArgs() { Reason = errorMessage });
                 result.IsError = true;
                 result.Message = errorMessage;
                 return result;
@@ -168,7 +168,7 @@ namespace NextGenSoftware.OASIS.STAR
             else
                 OnOASISBooted?.Invoke(null, new OASISBootedEventArgs() { Message = result.Message });
 
-            Status = SuperStarStatus.OASISBooted;
+            Status = StarStatus.OASISBooted;
 
             // If the starId is passed in and is valid then convert to Guid, otherwise get it from the STARDNA file.
             if (!string.IsNullOrEmpty(starId) && !string.IsNullOrWhiteSpace(starId))
@@ -197,8 +197,8 @@ namespace NextGenSoftware.OASIS.STAR
             //    WireUpEvents();
             //}
 
-            Status = SuperStarStatus.Ingited;
-            OnSuperStarIgnited.Invoke(null, new SuperStarIgnitedEventArgs() { Message = result.Message });
+            Status = StarStatus.Ingited;
+            OnSuperStarIgnited.Invoke(null, new StarIgnitedEventArgs() { Message = result.Message });
             IsSuperStarIgnited = true;
             return result;
 
@@ -1139,14 +1139,14 @@ namespace NextGenSoftware.OASIS.STAR
                 InnerStar.HolonType = HolonType.SuperStar;
             }
             else
-                result.Message = "SuperSTAR Ignited";
+                result.Message = "STAR Ignited";
         }
 
         private static OASISResult<ICelestialBody> PostIgniteInnerStar(OASISResult<ICelestialBody> result)
         {
             if (!result.IsError && result.IsSaved)
             {
-                result.Message = "SuperSTAR Ignited";
+                result.Message = "STAR Ignited";
                 STARDNA.StarId = InnerStar.Id.ToString();
                 SaveDNA();
 
@@ -1159,7 +1159,7 @@ namespace NextGenSoftware.OASIS.STAR
 
         private static void HandleErrorMessage<T>(ref OASISResult<T> result, string errorMessage)
         {
-            OnSuperStarError?.Invoke(null, new SuperStarErrorEventArgs() { Reason = errorMessage });
+            OnSuperStarError?.Invoke(null, new StarErrorEventArgs() { Reason = errorMessage });
             ErrorHandling.HandleError(ref result, errorMessage);
         }
 

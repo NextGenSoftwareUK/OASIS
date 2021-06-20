@@ -34,7 +34,7 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces
         public Guid ParentGrandSuperStarId { get; set; } //The GrandSuperStar this Holon belongs to.
         public IGrandSuperStar ParentGrandSuperStar { get; set; } //The GrandSuperStar this Holon belongs to.
         public Guid ParentSuperStarId { get; set; } //The SuperStar this Holon belongs to.
-        public IGrandSuperStar ParentSuperStar { get; set; } //The SuperStar this Holon belongs to.
+        public ISuperStar ParentSuperStar { get; set; } //The SuperStar this Holon belongs to.
         public Guid ParentStarId { get; set; } //The Star this Holon belongs to.
         public IStar ParentStar { get; set; } //The Star this Holon belongs to.
         public Guid ParentPlanetId { get; set; } //The Planet this Holon belongs to.
