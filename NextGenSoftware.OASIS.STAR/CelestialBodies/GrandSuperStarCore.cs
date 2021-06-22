@@ -16,14 +16,19 @@ namespace NextGenSoftware.OASIS.STAR
     {
         public IGrandSuperStar GrandSuperStar { get; set; }
 
-        public GrandSuperStarCore(Dictionary<ProviderType, string> providerKey) : base(providerKey)
+        public GrandSuperStarCore(IGrandSuperStar grandSuperStar) : base()
         {
-
+            GrandSuperStar = grandSuperStar;
         }
 
-        public GrandSuperStarCore(Guid id) : base(id)
+        public GrandSuperStarCore(IGrandSuperStar grandSuperStar, Dictionary<ProviderType, string> providerKey) : base(providerKey)
         {
+            GrandSuperStar = grandSuperStar;
+        }
 
+        public GrandSuperStarCore(IGrandSuperStar grandSuperStar, Guid id) : base(id)
+        {
+            GrandSuperStar = grandSuperStar;
         }
 
         public async Task<OASISResult<IGalaxy>> AddGalaxyAsync(IGalaxy galaxy)

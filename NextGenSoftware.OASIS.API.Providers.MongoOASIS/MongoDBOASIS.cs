@@ -8,7 +8,6 @@ using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories;
 using NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities;
-using System.Collections.ObjectModel;
 
 namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
 {
@@ -29,8 +28,8 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
 
             this.ProviderName = "MongoDBOASIS";
             this.ProviderDescription = "MongoDB Atlas Provider";
-            this.ProviderType = new Core.Helpers.EnumValue<ProviderType>(Core.Enums.ProviderType.MongoDBOASIS);
-            this.ProviderCategory = new Core.Helpers.EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
+            this.ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.MongoDBOASIS);
+            this.ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
 
             /*
             ConventionRegistry.Register(

@@ -15,12 +15,12 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
             this.Moon = moon;
         }
 
-        public MoonCore(Dictionary<ProviderType, string> providerKey, IMoon moon) : base(providerKey)
+        public MoonCore(IMoon moon, Dictionary<ProviderType, string> providerKey) : base(providerKey)
         {
             this.Moon = moon;
         }
 
-        public MoonCore(Guid id, IMoon moon) : base(id)
+        public MoonCore(IMoon moon, Guid id) : base(id)
         {
             this.Moon = moon;
         }

@@ -8,19 +8,19 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
     // At the centre of each Solar System
     public class Star : CelestialBody, IStar
     {
-        public Star(Guid id) : base(id, GenesisType.Star)
+        public Star() : base(HolonType.Star)
         {
             this.HolonType = HolonType.Star;
         }
 
-        public Star(Dictionary<ProviderType, string> providerKey) : base(providerKey, GenesisType.Star)
+        public Star(Guid id) : base(id, HolonType.Star)
         {
             this.HolonType = HolonType.Star;
         }
 
-        public Star() : base(GenesisType.Star)
+        public Star(Dictionary<ProviderType, string> providerKey) : base(providerKey, HolonType.Star)
         {
             this.HolonType = HolonType.Star;
-        }
+        }  
     }
 }

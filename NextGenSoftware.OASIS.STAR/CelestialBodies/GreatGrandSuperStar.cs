@@ -8,17 +8,17 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
     // At the centre of the Omiverse... (there can only be ONE) ;-)
     public class GreatGrandSuperStar : CelestialBody, IGreatGrandSuperStar
     {
-        public GreatGrandSuperStar(Guid id) : base(id, GenesisType.GreatGrandSuperStar)
+        public GreatGrandSuperStar(Guid id) : base(id, HolonType.GreatGrandSuperStar)
         {
             this.HolonType = HolonType.GreatGrandSuperStar;
         }
 
-        public GreatGrandSuperStar(Dictionary<ProviderType, string> providerKey) : base(providerKey, GenesisType.GrandSuperStar)
+        public GreatGrandSuperStar(Dictionary<ProviderType, string> providerKey) : base(providerKey, HolonType.GrandSuperStar)
         {
             this.HolonType = HolonType.GreatGrandSuperStar;
         }
 
-        public GreatGrandSuperStar() : base(GenesisType.GreatGrandSuperStar)
+        public GreatGrandSuperStar() : base(HolonType.GreatGrandSuperStar)
         {
             this.HolonType = HolonType.GreatGrandSuperStar;
         }

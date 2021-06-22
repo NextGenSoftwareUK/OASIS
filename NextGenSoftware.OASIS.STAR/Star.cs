@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.IO;
 using System.Net;
 using System.Text.RegularExpressions;
@@ -15,6 +15,7 @@ using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.STAR.CelestialBodies;
+using NextGenSoftware.OASIS.STAR.CelestialSpace;
 using NextGenSoftware.OASIS.STAR.ExtensionMethods;
 using NextGenSoftware.OASIS.STAR.DNA;
 using NextGenSoftware.OASIS.STAR.OASISAPIManager;
@@ -22,8 +23,6 @@ using NextGenSoftware.OASIS.STAR.Zomes;
 using NextGenSoftware.OASIS.STAR.EventArgs;
 using NextGenSoftware.OASIS.STAR.ErrorEventArgs;
 using NextGenSoftware.OASIS.STAR.Enums;
-//using NextGenSoftware.Holochain.HoloNET.Client.Core;
-using AutoMapper;
 
 namespace NextGenSoftware.OASIS.STAR
 {
@@ -62,7 +61,9 @@ namespace NextGenSoftware.OASIS.STAR
         }
 
         public static bool IsSuperStarIgnited { get; private set; }
-       // public static CelestialBodies.Star InnerStar { get; set; }
+        public static GreatGrandSuperStar InnerStar { get; set; } //Only ONE of these can ever exist and is at the centre of the Omiverse (also only ONE).
+
+        // public static CelestialBodies.Star InnerStar { get; set; }
         //public static SuperStarCore SuperStarCore { get; set; }
         //public static List<CelestialBodies.Star> Stars { get; set; } = new List<CelestialBodies.Star>();
         //public static List<IPlanet> Planets
@@ -136,6 +137,7 @@ namespace NextGenSoftware.OASIS.STAR
             // If you wish to change the logging framework from the default (NLog) then set it below (or just change in OASIS_DNA - prefered way)
             //LoggingManager.CurrentLoggingFramework = LoggingFramework.NLog;
 
+            /*
             var config = new MapperConfiguration(cfg => {
                 //cfg.AddProfile<AppProfile>();
                 cfg.CreateMap<IHolon, CelestialBody>();
@@ -143,6 +145,7 @@ namespace NextGenSoftware.OASIS.STAR
             });
 
             Mapper = config.CreateMapper();
+            */
 
             if (File.Exists(STARDNAPath))
                 LoadDNA();
@@ -249,35 +252,34 @@ namespace NextGenSoftware.OASIS.STAR
 
         private static void WireUpEvents()
         {
-            SuperStarCore.OnHolonLoaded += SuperStarCore_OnHolonLoaded;
-            SuperStarCore.OnHolonSaved += SuperStarCore_OnHolonSaved;
-            SuperStarCore.OnHolonsLoaded += SuperStarCore_OnHolonsLoaded;
-            SuperStarCore.OnZomeError += SuperStarCore_OnZomeError;
-           // SuperStarCore.OnInitialized += SuperStarCore_OnInitialized1;
-            SuperStarCore.OnInitialized += SuperStarCore_OnInitialized;
+            InnerStar.OnHolonLoaded += InnerStar_OnHolonLoaded;
+            InnerStar.OnHolonSaved += InnerStar_OnHolonSaved;
+            InnerStar.OnHolonsLoaded += InnerStar_OnHolonsLoaded;
+            InnerStar.OnZomeError += InnerStar_OnZomeError;
+            InnerStar.OnInitialized += InnerStar_OnInitialized;
         }
 
-        private static void SuperStarCore_OnInitialized(object sender, System.EventArgs e)
+        private static void InnerStar_OnInitialized(object sender, System.EventArgs e)
         {
             OnSuperStarCoreIgnited?.Invoke(sender, e);
         }
 
-        private static void SuperStarCore_OnZomeError(object sender, ZomeErrorEventArgs e)
+        private static void InnerStar_OnZomeError(object sender, ZomeErrorEventArgs e)
         {
             OnZomeError?.Invoke(sender, e);
         }
 
-        private static void SuperStarCore_OnHolonLoaded(object sender, HolonLoadedEventArgs e)
+        private static void InnerStar_OnHolonLoaded(object sender, HolonLoadedEventArgs e)
         {
             OnHolonLoaded?.Invoke(sender, e);
         }
 
-        private static void SuperStarCore_OnHolonSaved(object sender, HolonSavedEventArgs e)
+        private static void InnerStar_OnHolonSaved(object sender, HolonSavedEventArgs e)
         {
             OnHolonSaved?.Invoke(sender, e);
         }
 
-        private static void SuperStarCore_OnHolonsLoaded(object sender, HolonsLoadedEventArgs e)
+        private static void InnerStar_OnHolonsLoaded(object sender, HolonsLoadedEventArgs e)
         {
             OnHolonsLoaded?.Invoke(sender, e);
         }
@@ -464,7 +466,7 @@ namespace NextGenSoftware.OASIS.STAR
                     {
                         newBody = new Planet();
 
-                        //If new parent Star is passed in then set the parent star to SuperStar.
+                        //If no parent Star is passed in then set the parent star to SuperStar.
                         if (celestialBodyParent == null)
                             celestialBodyParent = InnerStar;
 
@@ -729,13 +731,39 @@ namespace NextGenSoftware.OASIS.STAR
 
                 case GenesisType.Star:
                     {
-                        await SuperStarCore.AddStarAsync((IStar)newBody);
+                        await ((ISuperStarCore)celestialBodyParent.CelestialBodyCore).AddStarAsync((IStar)newBody);
                         return new CoronalEjection() { ErrorOccured = false, Message = "Star Successfully Created.", CelestialBody = newBody };
                     }
+
+                case GenesisType.SoloarSystem:
+                    {
+                        await ((ISuperStarCore)celestialBodyParent.CelestialBodyCore).AddSolarSystemAsync(new SolarSystem() { Star = (IStar)newBody });
+                        return new CoronalEjection() { ErrorOccured = false, Message = "Star/SolarSystem Successfully Created.", CelestialBody = newBody };
+                    }
+
+                case GenesisType.Galaxy:
+                    {
+                        await ((IGrandSuperStarCore)celestialBodyParent.CelestialBodyCore).AddGalaxyAsync(new Galaxy() { SuperStar = (ISuperStar)newBody });
+                        return new CoronalEjection() { ErrorOccured = false, Message = "SuperStar/Galaxy Successfully Created.", CelestialBody = newBody };
+                    }
+
+                case GenesisType.Universe:
+                    {
+                        await ((IGreatGrandSuperStarCore)celestialBodyParent.CelestialBodyCore).AddUniverseAsync(new Universe() { GrandSuperStar = (IGrandSuperStar)newBody });
+                        return new CoronalEjection() { ErrorOccured = false, Message = "GrandSuperStar/Universe Successfully Created.", CelestialBody = newBody };
+                    }
+
+                // Cannot create a SuperStar on its own, you create a Galaxy which comes with a new SuperStar at the centre.
+
+                //case GenesisType.SuperStar:
+                //    {
+                //        await ((IGrandSuperStarCore)celestialBodyParent.CelestialBodyCore).AddGalaxyAsync(new Galaxy() { SuperStar = (ISuperStar)newBody });
+                //        return new CoronalEjection() { ErrorOccured = false, Message = "SuperStar/Galaxy Successfully Created.", CelestialBody = newBody };
+                //    }
+
                 default:
                     return new CoronalEjection() { ErrorOccured = true, Message = "Unknown Error Occured.", CelestialBody = newBody };
             }
-
 
             //Generate any native code for the current provider.
             //TODO: Add option to pass into STAR which providers to generate native code for (can be more than one provider).
@@ -1042,12 +1070,10 @@ namespace NextGenSoftware.OASIS.STAR
             holonBufferRust = string.Concat(holonBufferRust, fieldTemplate.Replace("variableName", fieldName), ",", Environment.NewLine);
 
             if (currentHolon.Nodes == null)
-                currentHolon.Nodes = new List<INode>();
+                currentHolon.Nodes = new ObservableCollection<INode>(); //new List<INode>();
 
-            //currentHolon.Nodes.Add(new Node { NodeName = fieldName.ToPascalCase(), NodeType = nodeType, Parent = currentHolon, ParentId = currentHolon.Id });
             currentHolon.Nodes.Add(new Node { NodeName = fieldName.ToPascalCase(), NodeType = nodeType, ParentId = currentHolon.Id });
         }
-
        
         private static OASISResult<bool> BootOASIS(string OASISDNAPath = OASIS_DNA_DEFAULT_PATH)
         {
@@ -1060,43 +1086,31 @@ namespace NextGenSoftware.OASIS.STAR
         }
 
         /*
-        private static void IgniteInnerStar(ref OASISResult<ICelestialBody> result, string starId = null)
+        private static OASISResult<ICelestialBody> IgniteCOSMIC()
         {
-            Guid starIdGuid = Guid.Empty;
+            OASISResult<ICelestialBody> result = new OASISResult<ICelestialBody>();
+            InnerStar = new GreatGrandSuperStar(_starId);
+            InnerStar.Initialize();
 
-            // If the starId is passed in and is valid then convert to Guid, otherwise get it from the STARDNA file.
-            if (!string.IsNullOrEmpty(starId) && !string.IsNullOrWhiteSpace(starId))
+            CreateNewInnerStar(ref result);
+
+            if (!result.IsError && InnerStar.Id == Guid.Empty)
             {
-                if (!Guid.TryParse(starId, out starIdGuid))
-                {
-                    //TODO: Need to apply this error handling across the entire OASIS eventually...
-                    ErrorHandling.HandleError(ref result, "StarID passed in is invalid. It needs to be a valid Guid.");
-                    return;
-                }
-            }
-            else if (!string.IsNullOrEmpty(STARDNA.StarId) && !string.IsNullOrWhiteSpace(STARDNA.StarId) && !Guid.TryParse(STARDNA.StarId, out starIdGuid))
-            {
-                ErrorHandling.HandleError(ref result, "StarID defined in the STARDNA file in is invalid. It needs to be a valid Guid.");
-                return;
+                //result = InnerStar.Save(); //TODO: Implement non-async version...
+                result = InnerStar.SaveAsync().Result;
+                PostIgniteInnerStar(result);
+                // result = PostIgniteInnerStar(Task.Run(IgniteInnerStarAsync).GetAwaiter().GetResult());
             }
 
-            InnerStar = new Star(starIdGuid);
-
-            if (InnerStar.Id == Guid.Empty)
-            {
-                // TODO: May possibly have one SuperStar per Provider Type? Or list of ProviderTypes? People can host whichever provider(s) they wish as a ONODE. Each ONODE will be a SuperStar, which can choose which Glaxies/Provider Types to host. Therefore the entire ONET (OASIS Network) is the distributed de-centralised network of SuperStars/Galaxies forming the OASIS Universe or OASIS meta-verse/magicverse. :)
-                InnerStar.Name = "SuperStar";
-                InnerStar.Description = "SuperStar at the centre of a Galaxy. Can create other stars, planets (Super OAPPS) and moons (OAPPS)";
-                InnerStar.HolonType = HolonType.SuperStar;
-            }
-            else
-                result.Message = "SuperSTAR Ignited";
+            return result;
         }*/
 
+        
         private static OASISResult<ICelestialBody> IgniteInnerStar()
         {
             OASISResult<ICelestialBody> result = new OASISResult<ICelestialBody>();
-            InnerStar = new CelestialBodies.Star(_starId);
+            //InnerStar = new GreatGrandSuperStar(_starId); //Only one of these exists (at the centre of the Omiverse).
+            InnerStar = new GreatGrandSuperStar(); //Only one of these exists (at the centre of the Omiverse).
             InnerStar.Initialize();
 
             CreateNewInnerStar(ref result);
@@ -1112,11 +1126,14 @@ namespace NextGenSoftware.OASIS.STAR
             return result;
         }
 
+
         private static async Task<OASISResult<ICelestialBody>> IgniteInnerStarAsync()
         {
             OASISResult<ICelestialBody> result = new OASISResult<ICelestialBody>();
-            InnerStar = new CelestialBodies.Star(_starId);
+            //InnerStar = new GreatGrandSuperStar(_starId); //Only one of these exists (at the centre of the Omiverse).
+            InnerStar = new GreatGrandSuperStar(); //Only one of these exists (at the centre of the Omiverse).
             await InnerStar.InitializeAsync();
+            WireUpEvents();
 
             CreateNewInnerStar(ref result);
 
@@ -1133,10 +1150,10 @@ namespace NextGenSoftware.OASIS.STAR
         {
             if (InnerStar.Id == Guid.Empty)
             {
-                // TODO: May possibly have one SuperStar per Provider Type? Or list of ProviderTypes? People can host whichever provider(s) they wish as a ONODE. Each ONODE will be a SuperStar, which can choose which Glaxies/Provider Types to host. Therefore the entire ONET (OASIS Network) is the distributed de-centralised network of SuperStars/Galaxies forming the OASIS Universe or OASIS meta-verse/magicverse. :)
-                InnerStar.Name = "SuperStar";
-                InnerStar.Description = "SuperStar at the centre of a Galaxy. Can create other stars, planets (Super OAPPS) and moons (OAPPS)";
-                InnerStar.HolonType = HolonType.SuperStar;
+                // TODO: May possibly have one SuperStar per Provider Type? Or list of ProviderTypes? People can host whichever provider(s) they wish as a ONODE. Each ONODE will be a GrandSuperStar (Universe), which can choose which Glaxies/Provider Types to host. Therefore the entire ONET (OASIS Network) is the distributed de-centralised network of GrandSuperStars/Universes forming the OASIS meta-verse/magicverse/Omiverse. :)
+                InnerStar.Name = "GreatGrandSuperStar";
+                InnerStar.Description = "GreatGrandSuperStar at the centre of the Omiverse/Magicverse (The OASIS). Can create Universes, Galaxies, SolarSystems, Stars, Planets (Super OAPPS) and moons (OAPPS)";
+                InnerStar.HolonType = HolonType.GreatGrandSuperStar;
             }
             else
                 result.Message = "STAR Ignited";
@@ -1150,8 +1167,10 @@ namespace NextGenSoftware.OASIS.STAR
                 STARDNA.StarId = InnerStar.Id.ToString();
                 SaveDNA();
 
-                SuperStarCore = new SuperStarCore(InnerStar.Id);
-                WireUpEvents();
+                Omiverse omiVerse = new Omiverse() { GreatGrandSuperStar = InnerStar };
+                omiVerse.Save();
+
+                //Then need to create a default Universe, Galaxy, SolarSystem, Star & Planet (Our World).
             }
 
             return result;
@@ -1159,47 +1178,8 @@ namespace NextGenSoftware.OASIS.STAR
 
         private static void HandleErrorMessage<T>(ref OASISResult<T> result, string errorMessage)
         {
-            OnSuperStarError?.Invoke(null, new StarErrorEventArgs() { Reason = errorMessage });
+            OnStarError?.Invoke(null, new StarErrorEventArgs() { Reason = errorMessage });
             ErrorHandling.HandleError(ref result, errorMessage);
         }
-
-        /*
-        private static OASISResult<ICelestialBody> IgniteSuperStarInternal(string STARDNAPath = STAR_DNA_DEFAULT_PATH, string OASISDNAPath = OASIS_DNA_DEFAULT_PATH, string starId = null)
-        {
-            OASISResult<ICelestialBody> result = new OASISResult<ICelestialBody>();
-
-            // If you wish to change the logging framework from the default (NLog) then set it below (or just change in OASIS_DNA - prefered way)
-            //LoggingManager.CurrentLoggingFramework = LoggingFramework.NLog;
-
-            if (File.Exists(STARDNAPath))
-                LoadDNA();
-            else
-            {
-                STARDNA = new STARDNA();
-                SaveDNA();
-            }
-
-            ValidateSTARDNA(STARDNA);
-            OASISResult<bool> oasisResult = IgniteOASISAPI(OASISDNAPath);
-
-            if (oasisResult.IsError)
-            {
-                result.IsError = true;
-                result.Message = oasisResult.Message;
-                return result;
-            }
-
-            WireUpEvents();
-
-            //IgniteInnerStar(ref result, starId);
-
-            //if (!result.IsError)
-            //{
-            //    SuperStarCore = new SuperStarCore(InnerStar.Id);
-            //    WireUpEvents();
-            //}
-
-            return result;
-        }*/
     }
 }
