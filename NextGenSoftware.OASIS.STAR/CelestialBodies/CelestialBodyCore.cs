@@ -275,7 +275,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
         public async Task<OASISResult<ICelestialBody>> LoadCelestialBodyAsync()
         {
             OASISResult<ICelestialBody> result = new OASISResult<ICelestialBody>();
-            OASISResult<IHolon> holonResult = await base.LoadHolonAsync(Id);
+            OASISResult<IHolon> holonResult = await base.LoadHolonAsync();
             OASISResultHolonToHolonHelper<IHolon, ICelestialBody>.CopyResult(holonResult, ref result);
 
             if (!holonResult.IsError && holonResult.Result != null)
@@ -290,7 +290,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
         public OASISResult<ICelestialBody> LoadCelestialBody()
         {
             OASISResult<ICelestialBody> result = new OASISResult<ICelestialBody>();
-            OASISResult<IHolon> holonResult = base.LoadHolon(Id);
+            OASISResult<IHolon> holonResult = base.LoadHolon();
             OASISResultHolonToHolonHelper<IHolon, ICelestialBody>.CopyResult(holonResult, ref result);
 
             if (!holonResult.IsError && holonResult.Result != null)

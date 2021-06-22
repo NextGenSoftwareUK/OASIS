@@ -42,22 +42,22 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
             //Initialize(); //TODO: It never called this from the constructor before, was there a good reason? Will soon find out! ;-)
         }
 
-        public CelestialBody(GenesisType genesisType)
+        public CelestialBody(HolonType holonType)
         {
-            this.GenesisType = genesisType;
+            this.HolonType = holonType;
             //Initialize();  //TODO: It never called this from the constructor before, was there a good reason? Will soon find out! ;-)
         }
 
-        public CelestialBody(Guid id, GenesisType genesisType)
+        public CelestialBody(Guid id, HolonType holonType)
         {
-            this.GenesisType = genesisType;
+            this.HolonType = holonType;
             this.Id = id;
             //Initialize();
         }
 
-        public CelestialBody(Dictionary<ProviderType, string> providerKey, GenesisType genesisType)
+        public CelestialBody(Dictionary<ProviderType, string> providerKey, HolonType holonType)
         {
-            this.GenesisType = genesisType;
+            this.HolonType = holonType;
             this.ProviderKey = providerKey;
             //Initialize();  //TODO: It never called this from the constructor before, was there a good reason? Will soon find out! ;-)
         }
@@ -261,8 +261,8 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
         private void SetProperties(IHolon holon)
         {
             this.Id = holon.Id;
-            this.CelestialBodyCore.Id = holon.Id;
             this.ProviderKey = holon.ProviderKey;
+            this.CelestialBodyCore.Id = holon.Id;
             this.CelestialBodyCore.ProviderKey = holon.ProviderKey;
             this.Name = holon.Name;
             this.Description = holon.Description;
@@ -568,13 +568,15 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
             //Star.Super(this);
         }
 
-        private void PlanetCore_OnZomeError(object sender, ZomeErrorEventArgs e)
+        private void CelestialBodyCore_OnZomeError(object sender, ZomeErrorEventArgs e)
         {
             OnZomeError?.Invoke(sender, e);
         }
 
-        private async void PlanetCore_OnZomesLoaded(object sender, ZomesLoadedEventArgs e)
+        private async void CelestialBodyCore_OnZomesLoaded(object sender, ZomesLoadedEventArgs e)
         {
+            OnZomesLoaded?.Invoke(sender, e);
+
             // TODO: Dont think this is needed now?
             // This was going to load each of the zomes holons once the zomes were loaded for this Planet. 
             // But maybe it is better to allow them be lazy loaded as and when they are needed rather than pulling them all back in one go?
@@ -592,9 +594,9 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
             //Nice for Zomes to manage their own collections of holons (good practice) so will see... :)
         }
 
-        private void PlanetCore_OnHolonsLoaded(object sender, HolonsLoadedEventArgs e)
+        private void CelestialBodyCore_OnHolonsLoaded(object sender, HolonsLoadedEventArgs e)
         {
-
+            OnHolonsLoaded?.Invoke(sender, e);
         }
 
         public async Task<OASISResult<IEnumerable<IZome>>> LoadZomesAsync()
@@ -634,74 +636,63 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
 
         public async Task InitializeAsync()
         {
-            InitCelestialBodyCore();
-
-            //TODO: Not even sure if we need to bother with providerKey at all when we have the id guid?
-            if (ProviderKey != null && ProviderKey.ContainsKey(ProviderManager.CurrentStorageProviderType.Value) && !string.IsNullOrEmpty(ProviderKey[ProviderManager.CurrentStorageProviderType.Value]))
-            {
-                await LoadCelestialBodyAsync();
-                await LoadZomesAsync();
-                // LoadHolons();
-            }
-            else if (Id != Guid.Empty)
-            {
-                await LoadCelestialBodyAsync();
-                await LoadZomesAsync();
-                // LoadHolons();
-            }
-
             WireUpEvents();
+            InitCelestialBodyCore();
+            await LoadCelestialBodyAsync();
+            await LoadZomesAsync();
         }
 
         public void Initialize()
         {
-            InitCelestialBodyCore();
-
-            //TODO: Not even sure if we need to bother with providerKey at all when we have the id guid?
-            if (ProviderKey != null && ProviderKey.ContainsKey(ProviderManager.CurrentStorageProviderType.Value) && !string.IsNullOrEmpty(ProviderKey[ProviderManager.CurrentStorageProviderType.Value]))
-            {
-                LoadCelestialBody();
-                LoadZomes();
-                // LoadHolons();
-            }
-            else if (Id != Guid.Empty)
-            {
-                LoadCelestialBody();
-                LoadZomes();
-                // LoadHolons();
-            }
-
             WireUpEvents();
+            InitCelestialBodyCore();
+            LoadCelestialBody();
+            LoadZomes();
         }
 
         private void InitCelestialBodyCore()
         {
-            switch (this.GenesisType)
+            // The Id/ProviderKey will be set from LoadCelestialBody/SetProperties.
+            switch (this.HolonType)
             {
-                case GenesisType.Planet:
-                    CelestialBodyCore = new PlanetCore(this.Id, (IPlanet)this);
+                case HolonType.Moon:
+                    CelestialBodyCore = new MoonCore((IMoon)this);
                     break;
 
-                case GenesisType.Moon:
-                    CelestialBodyCore = new MoonCore(this.Id, (IMoon)this);
+                case HolonType.Planet:
+                    CelestialBodyCore = new PlanetCore((IPlanet)this);
                     break;
 
-                case GenesisType.Star:
-                    CelestialBodyCore = new StarCore(this.Id, (IStar)this);
+                case HolonType.Star:
+                    CelestialBodyCore = new StarCore((IStar)this);
+                    break;
+
+                case HolonType.SuperStar:
+                    CelestialBodyCore = new SuperStarCore((ISuperStar)this);
+                    break;
+
+                case HolonType.GrandSuperStar:
+                    CelestialBodyCore = new GrandSuperStarCore((IGrandSuperStar)this);
+                    break;
+
+                case HolonType.GreatGrandSuperStar:
+                    CelestialBodyCore = new GreatGrandSuperStarCore((IGreatGrandSuperStar)this);
                     break;
             }
         }
 
         private void WireUpEvents()
         {
-            ((CelestialBodyCore)CelestialBodyCore).OnHolonsLoaded += PlanetCore_OnHolonsLoaded;
-            ((CelestialBodyCore)CelestialBodyCore).OnZomesLoaded += PlanetCore_OnZomesLoaded;
-            ((CelestialBodyCore)CelestialBodyCore).OnHolonSaved += PlanetCore_OnHolonSaved;
-            ((CelestialBodyCore)CelestialBodyCore).OnZomeError += PlanetCore_OnZomeError;
+            ((CelestialBodyCore)CelestialBodyCore).OnHolonsLoaded += CelestialBodyCore_OnHolonsLoaded;
+            ((CelestialBodyCore)CelestialBodyCore).OnZomesLoaded += CelestialBodyCore_OnZomesLoaded;
+            ((CelestialBodyCore)CelestialBodyCore).OnHolonSaved += CelestialBodyCore_OnHolonSaved;
+            ((CelestialBodyCore)CelestialBodyCore).OnZomeError += CelestialBodyCore_OnZomeError;
         }
 
-        private async void PlanetCore_OnHolonSaved(object sender, HolonSavedEventArgs e)
+        private async void CelestialBodyCore_OnHolonSaved(object sender, HolonSavedEventArgs e)
         {
+            OnHolonSaved?.Invoke(sender, e);
+
             //TODO: Come back to this...
             return;
 

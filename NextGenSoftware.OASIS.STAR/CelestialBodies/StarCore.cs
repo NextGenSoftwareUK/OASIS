@@ -19,12 +19,12 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
             this.Star = star;
         }
 
-        public StarCore(Dictionary<ProviderType, string> providerKey, IStar star) : base(providerKey)
+        public StarCore(IStar star, Dictionary<ProviderType, string> providerKey) : base(providerKey)
         {
             this.Star = star;
         }
 
-        public StarCore(Guid id, IStar star) : base(id)
+        public StarCore(IStar star, Guid id) : base(id)
         {
             this.Star = star;
         }

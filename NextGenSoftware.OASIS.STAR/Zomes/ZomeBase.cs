@@ -14,6 +14,8 @@ namespace NextGenSoftware.OASIS.STAR.Zomes
     public abstract class ZomeBase : Holon, IZomeBase
     {
         private HolonManager _holonManager = null;
+        private const string CONST_USERMESSAGE_ID_OR_PROVIDERKEY_NOTSET = "Both Id and ProviderKey are null, one of these need to be set before calling this method.";
+
         public List<IHolon> _holons = new List<IHolon>();
 
         public List<IHolon> Holons
@@ -108,6 +110,70 @@ namespace NextGenSoftware.OASIS.STAR.Zomes
             return result;
         }
 
+        public virtual async Task<OASISResult<IHolon>> LoadHolonAsync()
+        {
+            OASISResult<IHolon> result = new OASISResult<IHolon>();
+
+            if (this.HolonType == HolonType.GreatGrandSuperStar)
+                GetGreatGrandSuperStar(ref result, await LoadAllHolonsAsync(HolonType.GreatGrandSuperStar));
+
+            else if (this.Id != Guid.Empty)
+                result = await LoadHolonAsync(Id);
+
+            else if (this.ProviderKey != null)
+                result = await LoadHolonAsync(ProviderKey);
+            else
+            {
+                result.IsError = true;
+                result.Message = CONST_USERMESSAGE_ID_OR_PROVIDERKEY_NOTSET;
+            }
+
+            return result;
+        }
+
+        public virtual OASISResult<IHolon> LoadHolon()
+        {
+            OASISResult<IHolon> result = new OASISResult<IHolon>();
+
+            if (this.HolonType == HolonType.GreatGrandSuperStar)
+                GetGreatGrandSuperStar(ref result, LoadAllHolons(HolonType.GreatGrandSuperStar));
+
+            else if (this.Id != Guid.Empty)
+                result = LoadHolon(Id);
+
+            else if (this.ProviderKey != null)
+                result = LoadHolon(ProviderKey);
+            else
+            {
+                result.IsError = true;
+                result.Message = CONST_USERMESSAGE_ID_OR_PROVIDERKEY_NOTSET;
+            }
+
+            return result;
+        }
+
+        public virtual async Task<OASISResult<IEnumerable<IHolon>>> LoadAllHolonsAsync(HolonType holonType = HolonType.All)
+        {
+            OASISResult<IEnumerable<IHolon>> result = await _holonManager.LoadAllHolonsAsync(holonType);
+
+            if (result.IsError)
+                OnZomeError?.Invoke(this, new ZomeErrorEventArgs() { Reason = string.Concat("Error in LoadAllHolonsAsync method with holonType ", Enum.GetName(typeof(HolonType), holonType), ". Error Details: ", result.Message), ErrorDetails = result.Exception });
+
+            OnHolonsLoaded?.Invoke(this, new HolonsLoadedEventArgs() { Result = result });
+            return result;
+        }
+
+        public virtual OASISResult<IEnumerable<IHolon>> LoadAllHolons(HolonType holonType = HolonType.All)
+        {
+            OASISResult<IEnumerable<IHolon>> result = _holonManager.LoadAllHolons(holonType);
+
+            if (result.IsError)
+                OnZomeError?.Invoke(this, new ZomeErrorEventArgs() { Reason = string.Concat("Error in LoadAllHolons method with holonType ", Enum.GetName(typeof(HolonType), holonType), ". Error Details: ", result.Message), ErrorDetails = result.Exception });
+
+            OnHolonsLoaded?.Invoke(this, new HolonsLoadedEventArgs() { Result = result });
+            return result;
+        }
+
         public virtual async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(Guid id, HolonType holonType = HolonType.All)
         {
             OASISResult<IEnumerable<IHolon>> result = await _holonManager.LoadHolonsForParentAsync(id, holonType);
@@ -164,7 +230,7 @@ namespace NextGenSoftware.OASIS.STAR.Zomes
             else
             {
                 result.IsError = true;
-                result.Message = "Both Id and ProviderKey are null, one of these need to be set before calling this method.";
+                result.Message = CONST_USERMESSAGE_ID_OR_PROVIDERKEY_NOTSET;
             }
 
             return result;
@@ -182,7 +248,7 @@ namespace NextGenSoftware.OASIS.STAR.Zomes
             else
             {
                 result.IsError = true;
-                result.Message = "Both Id and ProviderKey are null, one of these need to be set before calling this method.";
+                result.Message = CONST_USERMESSAGE_ID_OR_PROVIDERKEY_NOTSET;
             }
 
             return result;
@@ -394,6 +460,22 @@ namespace NextGenSoftware.OASIS.STAR.Zomes
                 throw new Exception(string.Concat("ProviderKey not found for CurrentStorageProviderType ", ProviderManager.CurrentStorageProviderType.Name));
 
             //TODO: Return OASISResult instead of throwing exceptions for ALL OASIS methods!
+        }
+
+        private void GetGreatGrandSuperStar(ref OASISResult<IHolon> result, OASISResult<IEnumerable<IHolon>> holonsResult)
+        {
+            if (!holonsResult.IsError && holonsResult.Result != null)
+            {
+                List<IHolon> holons = (List<IHolon>)holonsResult.Result;
+
+                if (holons.Count == 1)
+                    result.Result = holons[0];
+                else
+                {
+                    result.IsError = true;
+                    result.Message = "ERROR, there should only be one GreatGrandSuperStar!";
+                }
+            }
         }
     }
 }

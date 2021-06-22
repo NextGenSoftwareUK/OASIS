@@ -7,7 +7,6 @@ using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using NextGenSoftware.OASIS.STAR.CelestialBodies;
-using NextGenSoftware.OASIS.STAR.CelestialContainers;
 
 namespace NextGenSoftware.OASIS.STAR
 {
@@ -16,14 +15,19 @@ namespace NextGenSoftware.OASIS.STAR
     {
         public IGreatGrandSuperStar GreatGrandSuperStar { get; set; }
 
-        public GreatGrandSuperStarCore(Dictionary<ProviderType, string> providerKey) : base(providerKey)
+        public GreatGrandSuperStarCore(IGreatGrandSuperStar greatGrandSuperStar)
         {
-
+            GreatGrandSuperStar = greatGrandSuperStar;
         }
 
-        public GreatGrandSuperStarCore(Guid id) : base(id)
+        public GreatGrandSuperStarCore(IGreatGrandSuperStar greatGrandSuperStar, Dictionary<ProviderType, string> providerKey) : base(providerKey)
         {
+            GreatGrandSuperStar = greatGrandSuperStar;
+        }
 
+        public GreatGrandSuperStarCore(IGreatGrandSuperStar greatGrandSuperStar, Guid id) : base(id)
+        {
+            GreatGrandSuperStar = greatGrandSuperStar;
         }
 
         public async Task<OASISResult<IUniverse>> AddUniverseAsync(IUniverse universe)

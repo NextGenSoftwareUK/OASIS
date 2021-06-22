@@ -7,7 +7,7 @@ using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using NextGenSoftware.OASIS.STAR.CelestialBodies;
-using NextGenSoftware.OASIS.STAR.CelestialContainers;
+using NextGenSoftware.OASIS.STAR.CelestialSpace;
 
 namespace NextGenSoftware.OASIS.STAR
 {
@@ -16,14 +16,19 @@ namespace NextGenSoftware.OASIS.STAR
     {
         public ISuperStar SuperStar { get; set; }
 
-        public SuperStarCore(Dictionary<ProviderType, string> providerKey) : base(providerKey)
+        public SuperStarCore(ISuperStar superStar) : base()
         {
-
+            this.SuperStar = superStar;
         }
 
-        public SuperStarCore(Guid id) : base(id)
+        public SuperStarCore(ISuperStar superStar, Dictionary<ProviderType, string> providerKey) : base(providerKey)
         {
+            this.SuperStar = superStar;
+        }
 
+        public SuperStarCore(ISuperStar superStar, Guid id) : base(id)
+        {
+            this.SuperStar = superStar;
         }
 
         public async Task<OASISResult<ISolarSystem>> AddSolarSystemAsync(ISolarSystem solarSystem)
