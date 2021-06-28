@@ -7,7 +7,7 @@ using static NextGenSoftware.OASIS.API.Core.Events.Events;
 
 namespace NextGenSoftware.OASIS.API.Core.Interfaces.STAR
 {
-    public interface ICelestialBody : IHolon
+    public interface ICelestialBody : ICelestialHolon
     {
         // event DataReceived OnDataReceived;
        // event Disconnected OnDisconnected;
@@ -17,6 +17,11 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces.STAR
         event Initialized OnInitialized;
         event ZomeError OnZomeError;
         event ZomesLoaded OnZomesLoaded;
+
+        public int Size { get; set; }
+        public int Mass { get; set; }
+        public int Weight { get; set; }
+        public int GravitaionalPull { get; set; }
 
         ICelestialBodyCore CelestialBodyCore { get; set; }
         GenesisType GenesisType { get; set; }

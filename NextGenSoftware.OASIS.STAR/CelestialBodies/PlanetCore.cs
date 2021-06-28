@@ -29,17 +29,17 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
             this.Planet = planet;
         }
 
-        public async Task<OASISResult<IMoon>> AddMoonAsync(IMoon moon)
-        {
-            return OASISResultHolonToHolonHelper<IHolon, IMoon>.CopyResult(
-                await AddHolonToCollectionAsync(Planet, moon, (List<IHolon>)Mapper<IMoon, Holon>.MapBaseHolonProperties(
-                    Planet.Moons)), new OASISResult<IMoon>());
-        }
+        //public async Task<OASISResult<IMoon>> AddMoonAsync(IMoon moon)
+        //{
+        //    return OASISResultHolonToHolonHelper<IHolon, IMoon>.CopyResult(
+        //        await AddHolonToCollectionAsync(Planet, moon, (List<IHolon>)Mapper<IMoon, Holon>.MapBaseHolonProperties(
+        //            Planet.Moons)), new OASISResult<IMoon>());
+        //}
 
-        public OASISResult<IMoon> AddMoon(IMoon moon)
-        {
-            return AddMoonAsync(moon).Result; //TODO: Is this the best way of doing this?
-        }
+        //public OASISResult<IMoon> AddMoon(IMoon moon)
+        //{
+        //    return AddMoonAsync(moon).Result; //TODO: Is this the best way of doing this?
+        //}
 
         public async Task<OASISResult<IEnumerable<IMoon>>> GetMoonsAsync(bool refresh = true)
         {

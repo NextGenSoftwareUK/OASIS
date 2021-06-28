@@ -20,11 +20,16 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces
         Dictionary<ProviderType, Dictionary<string, string>> ProviderMetaData { get; set; } 
         Dictionary<string, string> MetaData { get; set; } 
         HolonType HolonType { get; set; }
-
         public Guid ParentOmiverseId { get; set; } //The Omiverse this Holon belongs to.
         public IOmiverse ParentOmiverse { get; set; } //The Omiverse this Holon belongs to.
+        public Guid ParentMultiverseId { get; set; } //The Multiverse this Holon belongs to.
+        public IMultiverse ParentMultiverse { get; set; } //The Multiverse this Holon belongs to.
         public Guid ParentUniverseId { get; set; } //The Universe this Holon belongs to.
         public IUniverse ParentUniverse { get; set; } //The Universe this Holon belongs to.
+        public Guid ParentDimensionId { get; set; } //The Dimension this Holon belongs to.
+        public IDimension ParentDimension { get; set; } //The Dimension this Holon belongs to.
+        public Guid ParentGalaxyClusterId { get; set; } //The GalaxyCluster this Holon belongs to.
+        public IGalaxyCluster ParentGalaxyCluster { get; set; } //The GalaxyCluster this Holon belongs to.
         public Guid ParentGalaxyId { get; set; } //The Galaxy this Holon belongs to.
         public IGalaxy ParentGalaxy { get; set; } //The Galaxy this Holon belongs to.
         public Guid ParentSolarSystemId { get; set; } //The SolarSystem this Holon belongs to.

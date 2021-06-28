@@ -1,7 +1,5 @@
 ﻿
-using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
-
-namespace NextGenSoftware.OASIS.STAR.Interfaces
+namespace NextGenSoftware.OASIS.API.Core.Interfaces.STAR
 {
     public interface IMoonCore : ICelestialBodyCore
     {

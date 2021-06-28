@@ -37,6 +37,11 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
         public event Initialized OnInitialized;
         public event ZomeError OnZomeError;
 
+        public int Size { get; set; }
+        public int Mass { get; set; }
+        public int Weight { get; set; }
+        public int GravitaionalPull { get; set; }
+
         public CelestialBody()
         {
             //Initialize(); //TODO: It never called this from the constructor before, was there a good reason? Will soon find out! ;-)
