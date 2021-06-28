@@ -1167,8 +1167,16 @@ namespace NextGenSoftware.OASIS.STAR
                 STARDNA.StarId = InnerStar.Id.ToString();
                 SaveDNA();
 
-                Omiverse omiVerse = new Omiverse() { GreatGrandSuperStar = InnerStar };
-                omiVerse.Save();
+                OASISResult<IOmiverse> omiverseResult = ((GreatGrandSuperStarCore)InnerStar.CelestialBodyCore).AddOmiverse(new Omiverse() { GreatGrandSuperStar = InnerStar });
+
+                if (!omiverseResult.IsError && omiverseResult.Result != null)
+                {
+                    InnerStar.ParentOmiverse = omiverseResult.Result;
+                    InnerStar.ParentOmiverseId = omiverseResult.Result.Id;
+                    InnerStar.Save();
+                }
+
+              
 
                 //Then need to create a default Universe, Galaxy, SolarSystem, Star & Planet (Our World).
             }

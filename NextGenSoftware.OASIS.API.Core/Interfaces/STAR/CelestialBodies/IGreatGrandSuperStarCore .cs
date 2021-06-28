@@ -8,11 +8,17 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces.STAR
     public interface IGreatGrandSuperStarCore : ICelestialBodyCore
     {
         IGreatGrandSuperStar GreatGrandSuperStar { get; set; }
-       // Task<OASISResult<IGrandSuperStar>> AddGrandSuperStarAsync(IGrandSuperStar grandSuperStar);
-        Task<OASISResult<IUniverse>> AddUniverseAsync(IUniverse universe);
-        OASISResult<IUniverse> AddUniverse(IUniverse universe);
+        // Task<OASISResult<IGrandSuperStar>> AddGrandSuperStarAsync(IGrandSuperStar grandSuperStar);
+        //Task<OASISResult<IUniverse>> AddUniverseAsync(IUniverse universe);
+        // OASISResult<IUniverse> AddUniverse(IUniverse universe);
+        Task<OASISResult<IEnumerable<IMultiverse>>> GetAllMultiversesForOmiverseAsync(bool refresh = true);
+        OASISResult<IEnumerable<IMultiverse>> GetAllMultiversesForOmiverse(bool refresh = true);
         Task<OASISResult<IEnumerable<IUniverse>>> GetAllUniversesForOmiverseAsync(bool refresh = true);
         OASISResult<IEnumerable<IUniverse>> GetAllUniversesForOmiverse(bool refresh = true);
+        Task<OASISResult<IEnumerable<IDimension>>> GetAllDimensionsForOmiverseAsync(bool refresh = true);
+        OASISResult<IEnumerable<IDimension>> GetAllDimensionsForOmiverse(bool refresh = true);
+        Task<OASISResult<IEnumerable<IGalaxyCluster>>> GetAllGalaxyClustersForOmiverseAsync(bool refresh = true);
+        OASISResult<IEnumerable<IGalaxyCluster>> GetAllGalaxyClustersForOmiverse(bool refresh = true);
         OASISResult<IEnumerable<IGalaxy>> GetAllGalaxiesForOmiverse(bool refresh = true);
         Task<OASISResult<IEnumerable<IGalaxy>>> GetAllGalaxiesForOmiverseAsync(bool refresh = true);
         OASISResult<IEnumerable<ISolarSystem>> GetAllSolarSystemsForOmiverse(bool refresh = true);

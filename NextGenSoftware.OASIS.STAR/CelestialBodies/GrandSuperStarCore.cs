@@ -7,11 +7,10 @@ using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using NextGenSoftware.OASIS.STAR.CelestialBodies;
-using NextGenSoftware.OASIS.STAR.CelestialContainers;
 
 namespace NextGenSoftware.OASIS.STAR
 {
-    // At the centre of each Universe...
+    // At the centre of each Multiverse...
     public class GrandSuperStarCore : CelestialBodyCore, IGrandSuperStarCore
     {
         public IGrandSuperStar GrandSuperStar { get; set; }
@@ -31,6 +30,19 @@ namespace NextGenSoftware.OASIS.STAR
             GrandSuperStar = grandSuperStar;
         }
 
+        public async Task<OASISResult<IUniverse>> AddUniverseAsync(IUniverse universe)
+        {
+            return OASISResultHolonToHolonHelper<IHolon, IUniverse>.CopyResult(
+                await AddHolonToCollectionAsync(GrandSuperStar, universe, (List<IHolon>)Mapper<IUniverse, Holon>.MapBaseHolonProperties(
+                    GrandSuperStar.ParentMultiverse.Universes)), new OASISResult<IUniverse>());
+        }
+
+        public OASISResult<IUniverse> AddUniverse(IUniverse universe)
+        {
+            return AddUniverseAsync(universe).Result;
+        }
+
+        /*
         public async Task<OASISResult<IGalaxy>> AddGalaxyAsync(IGalaxy galaxy)
         {
             return OASISResultHolonToHolonHelper<IHolon, IGalaxy>.CopyResult(
@@ -53,7 +65,7 @@ namespace NextGenSoftware.OASIS.STAR
         public OASISResult<IStar> AddStar(IStar star)
         {
             return AddStarAsync(star).Result;
-        }
+        }*/
 
         public async Task<OASISResult<IEnumerable<IGalaxy>>> GetAllGalaxiesForUniverseAsync(bool refresh = true)
         {

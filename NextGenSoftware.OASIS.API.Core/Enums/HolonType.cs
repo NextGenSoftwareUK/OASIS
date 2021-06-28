@@ -22,8 +22,11 @@ namespace NextGenSoftware.OASIS.API.Core.Enums
         Zome,
         Holon,
         Omiverse,
+        Multiverse,
         Universe,
+        GalaxyCluster,
         Galaxy,
-        SoloarSystem
+        SoloarSystem,
+        Dimension
     }
 }
