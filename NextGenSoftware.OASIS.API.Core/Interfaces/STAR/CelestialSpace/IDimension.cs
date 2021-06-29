@@ -6,5 +6,6 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces.STAR
     {
         public int DimensionLevel { get; set; }
         List<IGalaxyCluster> GalaxyClusters { get; set; }
+        List<IStar> Stars { get; set; } //TODO: Can we have stars outside of Galaxy Clusters?
     }
 }
