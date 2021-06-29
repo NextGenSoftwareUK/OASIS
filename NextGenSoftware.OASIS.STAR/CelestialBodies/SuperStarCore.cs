@@ -68,6 +68,30 @@ namespace NextGenSoftware.OASIS.STAR
             return AddStarAsync(star).Result;
         }
 
+        public async Task<OASISResult<IPlanet>> AddPlanetAsync(IPlanet planet)
+        {
+            return OASISResultHolonToHolonHelper<IHolon, IPlanet>.CopyResult(
+                await AddHolonToCollectionAsync(Star, planet, (List<IHolon>)Mapper<IPlanet, Holon>.MapBaseHolonProperties(
+                    Star.ParentSolarSystem.Planets)), new OASISResult<IPlanet>());
+        }
+
+        public OASISResult<IPlanet> AddPlanet(IPlanet planet)
+        {
+            return AddPlanetAsync(planet).Result;
+        }
+
+        public async Task<OASISResult<IMoon>> AddMoonAsync(IMoon moon)
+        {
+            return OASISResultHolonToHolonHelper<IHolon, IMoon>.CopyResult(
+                await AddHolonToCollectionAsync(Planet, moon, (List<IHolon>)Mapper<IMoon, Holon>.MapBaseHolonProperties(
+                    Planet.Moons)), new OASISResult<IMoon>());
+        }
+
+        public OASISResult<IMoon> AddMoon(IMoon moon)
+        {
+            return AddMoonAsync(moon).Result; //TODO: Is this the best way of doing this?
+        }
+
         public async Task<OASISResult<IEnumerable<ISolarSystem>>> GetAllSolarSystemsForGalaxyAsync(bool refresh = true)
         {
             OASISResult<IEnumerable<ISolarSystem>> result = new OASISResult<IEnumerable<ISolarSystem>>();

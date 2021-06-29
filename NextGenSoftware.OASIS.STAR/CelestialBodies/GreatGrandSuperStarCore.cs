@@ -82,7 +82,7 @@ namespace NextGenSoftware.OASIS.STAR
         public async Task<OASISResult<IEnumerable<IMultiverse>>> GetAllMultiversesForOmiverseAsync(bool refresh = true)
         {
             OASISResult<IEnumerable<IMultiverse>> result = new OASISResult<IEnumerable<IMultiverse>>();
-            OASISResult<IEnumerable<IHolon>> holonResult = await GetHolonsAsync(GreatGrandSuperStar.ParentOmiverse.Multiverses, HolonType.Universe, refresh);
+            OASISResult<IEnumerable<IHolon>> holonResult = await GetHolonsAsync(GreatGrandSuperStar.ParentOmiverse.Multiverses, HolonType.Multiverse, refresh);
             OASISResultCollectionToCollectionHelper<IEnumerable<IHolon>, IEnumerable<IMultiverse>>.CopyResult(holonResult, ref result);
             result.Result = Mapper<IHolon, Multiverse>.MapBaseHolonProperties(holonResult.Result);
             return result;
