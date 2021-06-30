@@ -1,23 +1,18 @@
-﻿using System;
+﻿using NextGenSoftware.OASIS.API.Core.Enums;
+using System;
 
 namespace NextGenSoftware.OASIS.API.Core.Helpers
 {
     public static class EnumHelper
     {
-        public enum ListType
-        {
-            ItemsSeperatedByNewLine,
-            ItemsSeperatedByComma
-        }
-
-        public static string GetEnumValues(Type enumType, ListType listType = ListType.ItemsSeperatedByNewLine)
+        public static string GetEnumValues(Type enumType, EnumHelperListType listType = EnumHelperListType.ItemsSeperatedByNewLine)
         {
             string[] values = Enum.GetNames(enumType);
             string enumValues = "";
 
             switch (listType)
             {
-                case ListType.ItemsSeperatedByNewLine:
+                case EnumHelperListType.ItemsSeperatedByNewLine:
                 {
                     foreach (string value in values)
                     {
@@ -29,7 +24,7 @@ namespace NextGenSoftware.OASIS.API.Core.Helpers
                 }
                 break;
 
-                case ListType.ItemsSeperatedByComma:
+                case EnumHelperListType.ItemsSeperatedByComma:
                 {
                     for (int i = 0; i < values.Length; i++)
                     {

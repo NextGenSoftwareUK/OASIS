@@ -68,7 +68,7 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                 else
                 {
                     result.IsError = true;
-                    result.Message = string.Concat("OASISProviderBootType '", OASISDNA.OASIS.StorageProviders.OASISProviderBootType, "' defined in OASISDNA is invalid. Valid values are: ", EnumHelper.GetEnumValues(typeof(OASISProviderBootType), EnumHelper.ListType.ItemsSeperatedByComma));
+                    result.Message = string.Concat("OASISProviderBootType '", OASISDNA.OASIS.StorageProviders.OASISProviderBootType, "' defined in OASISDNA is invalid. Valid values are: ", EnumHelper.GetEnumValues(typeof(OASISProviderBootType), EnumHelperListType.ItemsSeperatedByComma));
                 }
 
                 if (result.Result && !result.IsError)
