@@ -4,7 +4,7 @@ using NextGenSoftware.OASIS.API.Core.Helpers;
 
 namespace NextGenSoftware.OASIS.API.Core.Interfaces.STAR
 {
-    // At the centre of each SolarSystem (creates Planets)
+    // At the centre of each Solar System (creates Solar Systems, Planets & Moons).
     public interface IStarCore : ICelestialBodyCore
     {
         IStar Star { get; set; }

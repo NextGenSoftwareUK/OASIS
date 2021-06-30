@@ -6,5 +6,8 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces.STAR
     {
         IStar Star { get; set; }
         List<IPlanet> Planets { get; set; }
+        List<IAsteroid> Asteroids { get; set; }
+        List<IComet> Comets { get; set; }
+        List<IMeteroid> Meteroids { get; set; }
     }
 }

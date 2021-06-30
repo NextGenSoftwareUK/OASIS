@@ -318,7 +318,10 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
 
             // TODO: Need to double check this logic below is right! ;-)
             holon.ParentOmiverseId = parentCelestialBody.ParentOmiverseId;
+            holon.ParentMultiverseId = parentCelestialBody.ParentMultiverseId;
             holon.ParentUniverseId = parentCelestialBody.ParentUniverseId;
+            holon.ParentDimensionId = parentCelestialBody.ParentDimensionId;
+            holon.ParentGalaxyClusterId = parentCelestialBody.ParentGalaxyClusterId;
             holon.ParentGalaxyId = parentCelestialBody.ParentGalaxyId;
             holon.ParentSolarSystemId = parentCelestialBody.ParentSolarSystemId;
             holon.ParentGreatGrandSuperStarId = parentCelestialBody.ParentGreatGrandSuperStarId;
@@ -327,6 +330,8 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
             holon.ParentStarId = parentCelestialBody.ParentStarId;
             holon.ParentPlanetId = parentCelestialBody.ParentPlanetId;
             holon.ParentMoonId = parentCelestialBody.ParentMoonId;
+            holon.ParentZomeId = parentCelestialBody.ParentZomeId;
+            holon.ParentHolonId = parentCelestialBody.ParentHolonId;
 
             switch (parentCelestialBody.HolonType)
             {
@@ -342,6 +347,30 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
                     holon.ParentSuperStarId = parentCelestialBody.Id;
                     break;
 
+                case HolonType.Multiverse:
+                    holon.ParentMultiverseId = parentCelestialBody.Id;
+                    break;
+
+                case HolonType.Universe:
+                    holon.ParentUniverseId = parentCelestialBody.Id;
+                    break;
+
+                case HolonType.Dimension:
+                    holon.ParentDimensionId = parentCelestialBody.Id;
+                    break;
+
+                case HolonType.GalaxyCluster:
+                    holon.ParentGalaxyClusterId = parentCelestialBody.Id;
+                    break;
+
+                case HolonType.Galaxy:
+                    holon.ParentGalaxyId = parentCelestialBody.Id;
+                    break;
+
+                case HolonType.SoloarSystem:
+                    holon.ParentSolarSystemId = parentCelestialBody.Id;
+                    break;
+
                 case HolonType.Star:
                     holon.ParentStarId = parentCelestialBody.Id;
                     break;
@@ -352,6 +381,14 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
 
                 case HolonType.Moon:
                     holon.ParentMoonId = parentCelestialBody.Id;
+                    break;
+
+                case HolonType.Zome:
+                    holon.ParentZomeId = parentCelestialBody.Id;
+                    break;
+
+                case HolonType.Holon:
+                    holon.ParentHolonId = parentCelestialBody.Id;
                     break;
             }
             

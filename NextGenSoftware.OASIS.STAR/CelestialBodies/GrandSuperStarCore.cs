@@ -11,7 +11,7 @@ using NextGenSoftware.OASIS.STAR.CelestialSpace;
 
 namespace NextGenSoftware.OASIS.STAR
 {
-    // At the centre of each Multiverse...
+    // At the centre of each Multiverse (creates dimensions, universes, GalaxyClusters, SolarSystems (outside of a Galaxy), Stars (outside of a Galaxy) & Planets (outside of a Galaxy)). Prime Creator
     public class GrandSuperStarCore : CelestialBodyCore, IGrandSuperStarCore
     {
         public IGrandSuperStar GrandSuperStar { get; set; }
@@ -43,31 +43,65 @@ namespace NextGenSoftware.OASIS.STAR
             return AddUniverseAsync(universe).Result;
         }
 
-        /*
-        public async Task<OASISResult<IGalaxy>> AddGalaxyAsync(IGalaxy galaxy)
+        public async Task<OASISResult<IDimension>> AddDimensionToUniverseAsync(IUniverse universe, IDimension dimension)
         {
-            return OASISResultHolonToHolonHelper<IHolon, IGalaxy>.CopyResult(
-                await AddHolonToCollectionAsync(GrandSuperStar, galaxy, (List<IHolon>)Mapper<IGalaxy, Holon>.MapBaseHolonProperties(
-                    GrandSuperStar.ParentUniverse.Galaxies)), new OASISResult<IGalaxy>());
+            return OASISResultHolonToHolonHelper<IHolon, IDimension>.CopyResult(
+                await AddHolonToCollectionAsync(universe, dimension, (List<IHolon>)Mapper<IDimension, Holon>.MapBaseHolonProperties(
+                    universe.Dimensions)), new OASISResult<IDimension>());
         }
 
-        public OASISResult<IGalaxy> AddGalaxy(IGalaxy solarSystem)
+        public OASISResult<IDimension> AddDimensionToUniverse(IUniverse universe, IDimension dimension)
         {
-            return AddGalaxyAsync(solarSystem).Result;
+            return AddDimensionToUniverseAsync(universe, dimension).Result;
         }
 
-        public async Task<OASISResult<IStar>> AddStarAsync(IStar star)
+        public async Task<OASISResult<IGalaxyCluster>> AddGalaxyClusterToDimensionAsync(IDimension dimension, IGalaxyCluster galaxyCluster)
+        {
+            return OASISResultHolonToHolonHelper<IHolon, IGalaxyCluster>.CopyResult(
+               await AddHolonToCollectionAsync(dimension, galaxyCluster, (List<IHolon>)Mapper<IGalaxyCluster, Holon>.MapBaseHolonProperties(
+                   dimension.GalaxyClusters)), new OASISResult<IGalaxyCluster>());
+        }
+
+        public OASISResult<IGalaxyCluster> AddGalaxyClusterToDimension(IDimension dimension, IGalaxyCluster galaxyCluster)
+        {
+            return AddGalaxyClusterToDimensionAsync(dimension, galaxyCluster).Result;
+        }
+
+        public async Task<OASISResult<ISolarSystem>> AddSolarSystemToDimensionAsync(IDimension dimension, ISolarSystem solarSystem)
+        {
+            return OASISResultHolonToHolonHelper<IHolon, ISolarSystem>.CopyResult(
+                await AddHolonToCollectionAsync(dimension, solarSystem, (List<IHolon>)Mapper<ISolarSystem, Holon>.MapBaseHolonProperties(
+                    dimension.SoloarSystems)), new OASISResult<ISolarSystem>());
+        }
+
+        public OASISResult<ISolarSystem> AddSolarSystemToDimension(IDimension dimension, ISolarSystem solarSystem)
+        {
+            return AddSolarSystemToDimensionAsync(dimension, solarSystem).Result;
+        }
+
+        public async Task<OASISResult<IStar>> AddStarToDimensionAsync(IDimension dimension, IStar star)
         {
             return OASISResultHolonToHolonHelper<IHolon, IStar>.CopyResult(
-                await AddHolonToCollectionAsync(GrandSuperStar, star, (List<IHolon>)Mapper<IStar, Holon>.MapBaseHolonProperties(
-                    GrandSuperStar.ParentUniverse.Stars)), new OASISResult<IStar>());
+                await AddHolonToCollectionAsync(dimension, star, (List<IHolon>)Mapper<IStar, Holon>.MapBaseHolonProperties(
+                    dimension.Stars)), new OASISResult<IStar>());
         }
 
-        public OASISResult<IStar> AddStar(IStar star)
+        public OASISResult<IStar> AddStarToDimension(IDimension dimension, IStar star)
         {
-            return AddStarAsync(star).Result;
-        }*/
+            return AddStarToDimensionAsync(dimension, star).Result;
+        }
 
+        public async Task<OASISResult<IPlanet>> AddPlanetToDimensionAsync(IDimension dimension, IPlanet planet)
+        {
+            return OASISResultHolonToHolonHelper<IHolon, IPlanet>.CopyResult(
+                await AddHolonToCollectionAsync(dimension, planet, (List<IHolon>)Mapper<IPlanet, Holon>.MapBaseHolonProperties(
+                    dimension.Planets)), new OASISResult<IPlanet>());
+        }
+
+        public OASISResult<IPlanet> AddPlanetToDimension(IDimension dimension, IPlanet planet)
+        {
+            return AddPlanetToDimensionAsync(dimension, planet).Result;
+        }
 
         public async Task<OASISResult<IEnumerable<IUniverse>>> GetAllUniversesForMultiverseAsync(bool refresh = true)
         {
@@ -150,48 +184,11 @@ namespace NextGenSoftware.OASIS.STAR
             return result;
         }
 
-        //public async Task<OASISResult<IEnumerable<IGalaxy>>> GetAllGalaxiesForMultiverseAsync(bool refresh = true)
-        //{
-        //    OASISResult<IEnumerable<IGalaxy>> result = new OASISResult<IEnumerable<IGalaxy>>();
-        //    OASISResult<IEnumerable<IHolon>> holonResult = await GetHolonsAsync(GrandSuperStar.ParentUniverse.Galaxies, HolonType.Galaxy, refresh);
-        //    OASISResultCollectionToCollectionHelper<IEnumerable<IHolon>, IEnumerable<IGalaxy>>.CopyResult(holonResult, ref result);
-        //    result.Result = Mapper<IHolon, Galaxy>.MapBaseHolonProperties(holonResult.Result);
-        //    return result;
-        //}
-
         public OASISResult<IEnumerable<IGalaxy>> GetAllGalaxiesForMultiverse(bool refresh = true)
         {
             return GetAllGalaxiesForMultiverseAsync(refresh).Result;
         }
 
-        public async Task<OASISResult<IEnumerable<ISolarSystem>>> GetAllSolarSystemsForMultiverseAsync(bool refresh = true)
-        {
-            OASISResult<IEnumerable<ISolarSystem>> result = new OASISResult<IEnumerable<ISolarSystem>>();
-            OASISResult<IEnumerable<IGalaxy>> galaxiesResult = await GetAllGalaxiesForMultiverseAsync(refresh);
-            OASISResultCollectionToCollectionHelper<IEnumerable<IGalaxy>, IEnumerable<ISolarSystem>>.CopyResult(galaxiesResult, ref result);
-
-            if (!galaxiesResult.IsError)
-            {
-                List<ISolarSystem> solarSystems = new List<ISolarSystem>();
-
-                foreach (IGalaxy galaxy in galaxiesResult.Result)
-                    solarSystems.AddRange(galaxy.SolarSystems);
-
-                result.Result = solarSystems;
-            }
-
-            return result;
-        }
-
-        public OASISResult<IEnumerable<ISolarSystem>> GetAllSolarSystemsForMultiverse(bool refresh = true)
-        {
-            return GetAllSolarSystemsForMultiverseAsync(refresh).Result;
-        }
-
-
-        // Helper method to get the SuperStars at the centre of each Galaxy.
-        // TODO: I don't think we should allow SuperStars to be added to a Universe outside of a Galaxy?
-        // So SuperStars MUST always be contained inside a Galaxy.
         public async Task<OASISResult<IEnumerable<ISuperStar>>> GetAllSuperStarsForMultiverseAsync(bool refresh = true)
         {
             OASISResult<IEnumerable<ISuperStar>> result = new OASISResult<IEnumerable<ISuperStar>>();
@@ -216,20 +213,135 @@ namespace NextGenSoftware.OASIS.STAR
             return GetAllSuperStarsForMultiverseAsync(refresh).Result;
         }
 
-        //TODO: Currently we are allowing Stars to be added outside of a Galaxy, not sure we should allow this or not?
-        // In real life this is allowed so I guess ok here? :)
-        public async Task<OASISResult<IEnumerable<IStar>>> GetStarsOutSideOfGalaxiesAsync(bool refresh = true)
+        public async Task<OASISResult<IEnumerable<ISolarSystem>>> GetAllSolarSystemsOutSideOfGalaxiesForMultiverseAsync(bool refresh = true)
         {
-            OASISResult<IEnumerable<IStar>> result = new OASISResult<IEnumerable<IStar>>();
-            OASISResult<IEnumerable<IHolon>> holonResult = await GetHolonsAsync(GrandSuperStar.ParentUniverse.Stars, HolonType.Star, refresh);
-            OASISResultCollectionToCollectionHelper<IEnumerable<IHolon>, IEnumerable<IStar>>.CopyResult(holonResult, ref result);
-            result.Result = Mapper<IHolon, CelestialBodies.Star>.MapBaseHolonProperties(holonResult.Result);
+            OASISResult<IEnumerable<ISolarSystem>> result = new OASISResult<IEnumerable<ISolarSystem>>();
+            OASISResult<IEnumerable<IGalaxyCluster>> galaxyClustersResult = await GetAllGalaxyClustersForMultiverseAsync(refresh);
+            OASISResultCollectionToCollectionHelper<IEnumerable<IGalaxyCluster>, IEnumerable<ISolarSystem>>.CopyResult(galaxyClustersResult, ref result);
+
+            if (!galaxyClustersResult.IsError)
+            {
+                List<ISolarSystem> solarSystems = new List<ISolarSystem>();
+
+                foreach (IGalaxyCluster cluster in galaxyClustersResult.Result)
+                    solarSystems.AddRange(cluster.SoloarSystems);
+
+                result.Result = solarSystems;
+            }
+
             return result;
         }
 
-        public OASISResult<IEnumerable<IStar>> GetStarsOutSideOfGalaxies(bool refresh = true)
+        public OASISResult<IEnumerable<ISolarSystem>> GetAllSolarSystemsOutSideOfGalaxiesForMultiverse(bool refresh = true)
         {
-            return GetStarsOutSideOfGalaxiesAsync(refresh).Result;
+            return GetAllSolarSystemsOutSideOfGalaxiesForMultiverseAsync(refresh).Result;
+        }
+
+        public async Task<OASISResult<IEnumerable<ISolarSystem>>> GetAllSolarSystemsOutSideOfGalaxyClustersForMultiverseAsync(bool refresh = true)
+        {
+            OASISResult<IEnumerable<ISolarSystem>> result = new OASISResult<IEnumerable<ISolarSystem>>();
+            OASISResult<IEnumerable<IDimension>> dimensionsResult = await GetAllDimensionsForMultiverseAsync(refresh);
+            OASISResultCollectionToCollectionHelper<IEnumerable<IDimension>, IEnumerable<ISolarSystem>>.CopyResult(dimensionsResult, ref result);
+
+            if (!dimensionsResult.IsError)
+            {
+                List<ISolarSystem> solarSystems = new List<ISolarSystem>();
+
+                foreach (IDimension dimension in dimensionsResult.Result)
+                    solarSystems.AddRange(dimension.SoloarSystems);
+
+                result.Result = solarSystems;
+            }
+
+            return result;
+        }
+
+        public OASISResult<IEnumerable<ISolarSystem>> GetAllSolarSystemsOutSideOfGalaxyClustersForMultiverse(bool refresh = true)
+        {
+            return GetAllSolarSystemsOutSideOfGalaxyClustersForMultiverseAsync(refresh).Result;
+        }
+
+
+        public async Task<OASISResult<IEnumerable<ISolarSystem>>> GetAllSolarSystemsForMultiverseAsync(bool refresh = true)
+        {
+            OASISResult<IEnumerable<ISolarSystem>> result = new OASISResult<IEnumerable<ISolarSystem>>();
+            OASISResult<IEnumerable<IGalaxy>> galaxiesResult = await GetAllGalaxiesForMultiverseAsync(refresh);
+            OASISResultCollectionToCollectionHelper<IEnumerable<IGalaxy>, IEnumerable<ISolarSystem>>.CopyResult(galaxiesResult, ref result);
+            List<ISolarSystem> solarSystems = new List<ISolarSystem>();
+
+            if (!galaxiesResult.IsError)
+            {
+                foreach (IGalaxy galaxy in galaxiesResult.Result)
+                    solarSystems.AddRange(galaxy.SolarSystems);
+
+                result.Result = solarSystems;
+            }
+
+            OASISResult<IEnumerable<ISolarSystem>> solarSystemsOutsideResult = await GetAllSolarSystemsOutSideOfGalaxyClustersForMultiverseAsync(refresh);
+
+            if (!solarSystemsOutsideResult.IsError)
+                solarSystems.AddRange(solarSystemsOutsideResult.Result);
+
+            solarSystemsOutsideResult = await GetAllSolarSystemsOutSideOfGalaxiesForMultiverseAsync(refresh);
+
+            if (!solarSystemsOutsideResult.IsError)
+                solarSystems.AddRange(solarSystemsOutsideResult.Result);
+
+            result.Result = solarSystems;
+            return result;
+        }
+
+        public OASISResult<IEnumerable<ISolarSystem>> GetAllSolarSystemsForMultiverse(bool refresh = true)
+        {
+            return GetAllSolarSystemsForMultiverseAsync(refresh).Result;
+        }
+
+        public async Task<OASISResult<IEnumerable<IStar>>> GetAllStarsOutSideOfGalaxiesForMultiverseAsync(bool refresh = true)
+        {
+            OASISResult<IEnumerable<IStar>> result = new OASISResult<IEnumerable<IStar>>();
+            OASISResult<IEnumerable<IGalaxyCluster>> galaxyClustersResult = await GetAllGalaxyClustersForMultiverseAsync(refresh);
+            OASISResultCollectionToCollectionHelper<IEnumerable<IGalaxyCluster>, IEnumerable<IStar>>.CopyResult(galaxyClustersResult, ref result);
+
+            if (!galaxyClustersResult.IsError)
+            {
+                List<IStar> stars = new List<IStar>();
+
+                foreach (IGalaxyCluster cluster in galaxyClustersResult.Result)
+                    stars.AddRange(cluster.Stars);
+
+                result.Result = stars;
+            }
+
+            return result;
+        }
+
+        public OASISResult<IEnumerable<IStar>> GetAllStarsOutSideOfGalaxiesForMultiverse(bool refresh = true)
+        {
+            return GetAllStarsOutSideOfGalaxiesForMultiverseAsync(refresh).Result;
+        }
+
+        public async Task<OASISResult<IEnumerable<IStar>>> GetAllStarsOutSideOfGalaxyClustersForMultiverseAsync(bool refresh = true)
+        {
+            OASISResult<IEnumerable<IStar>> result = new OASISResult<IEnumerable<IStar>>();
+            OASISResult<IEnumerable<IDimension>> dimensionsResult = await GetAllDimensionsForMultiverseAsync(refresh);
+            OASISResultCollectionToCollectionHelper<IEnumerable<IDimension>, IEnumerable<IStar>>.CopyResult(dimensionsResult, ref result);
+
+            if (!dimensionsResult.IsError)
+            {
+                List<IStar> stars = new List<IStar>();
+
+                foreach (IDimension dimension in dimensionsResult.Result)
+                    stars.AddRange(dimension.Stars);
+
+                result.Result = stars;
+            }
+
+            return result;
+        }
+
+        public OASISResult<IEnumerable<IStar>> GetAllStarsOutSideOfGalaxyClustersForMultiverse(bool refresh = true)
+        {
+            return GetAllStarsOutSideOfGalaxyClustersForMultiverseAsync(refresh).Result;
         }
 
 
@@ -251,7 +363,12 @@ namespace NextGenSoftware.OASIS.STAR
                 }
             }
 
-            OASISResult<IEnumerable<IStar>> starsOutsideResult = await GetStarsOutSideOfGalaxiesAsync(refresh);
+            OASISResult<IEnumerable<IStar>> starsOutsideResult = await GetAllStarsOutSideOfGalaxyClustersForMultiverseAsync(refresh);
+
+            if (!starsOutsideResult.IsError)
+                stars.AddRange(starsOutsideResult.Result);
+
+            starsOutsideResult = await GetAllStarsOutSideOfGalaxiesForMultiverseAsync(refresh);
 
             if (!starsOutsideResult.IsError)
                 stars.AddRange(starsOutsideResult.Result);
@@ -265,6 +382,93 @@ namespace NextGenSoftware.OASIS.STAR
             return GetAllStarsForMultiverseAsync(refresh).Result;
         }
 
+        public async Task<OASISResult<IEnumerable<IPlanet>>> GetAllPlanetsOutSideOfGalaxiesForMultiverseAsync(bool refresh = true)
+        {
+            OASISResult<IEnumerable<IPlanet>> result = new OASISResult<IEnumerable<IPlanet>>();
+            OASISResult<IEnumerable<IGalaxyCluster>> galaxyClustersResult = await GetAllGalaxyClustersForMultiverseAsync(refresh);
+            OASISResultCollectionToCollectionHelper<IEnumerable<IGalaxyCluster>, IEnumerable<IPlanet>>.CopyResult(galaxyClustersResult, ref result);
+
+            if (!galaxyClustersResult.IsError)
+            {
+                List<IPlanet> planets = new List<IPlanet>();
+
+                foreach (IGalaxyCluster cluster in galaxyClustersResult.Result)
+                    planets.AddRange(cluster.Planets);
+
+                result.Result = planets;
+            }
+
+            return result;
+        }
+
+        public OASISResult<IEnumerable<IPlanet>> GetAllPlanetsOutSideOfGalaxiesForMultiverse(bool refresh = true)
+        {
+            return GetAllPlanetsOutSideOfGalaxiesForMultiverseAsync(refresh).Result;
+        }
+
+        public async Task<OASISResult<IEnumerable<IPlanet>>> GetAllPlanetsOutSideOfGalaxyClustersForMultiverseAsync(bool refresh = true)
+        {
+            OASISResult<IEnumerable<IPlanet>> result = new OASISResult<IEnumerable<IPlanet>>();
+            OASISResult<IEnumerable<IDimension>> dimensionsResult = await GetAllDimensionsForMultiverseAsync(refresh);
+            OASISResultCollectionToCollectionHelper<IEnumerable<IDimension>, IEnumerable<IPlanet>>.CopyResult(dimensionsResult, ref result);
+
+            if (!dimensionsResult.IsError)
+            {
+                List<IPlanet> planets = new List<IPlanet>();
+
+                foreach (IDimension dimension in dimensionsResult.Result)
+                    planets.AddRange(dimension.Planets);
+
+                result.Result = planets;
+            }
+
+            return result;
+        }
+
+        public OASISResult<IEnumerable<IPlanet>> GetAllPlanetsOutSideOfGalaxyClustersForMultiverse(bool refresh = true)
+        {
+            return GetAllPlanetsOutSideOfGalaxyClustersForMultiverseAsync(refresh).Result;
+        }
+
+        public async Task<OASISResult<IEnumerable<IPlanet>>> GetAllPlanetsForMultiverseAsync(bool refresh = true)
+        {
+            OASISResult<IEnumerable<IPlanet>> result = new OASISResult<IEnumerable<IPlanet>>();
+            OASISResult<IEnumerable<ISuperStar>> superStarsResult = await GetAllSuperStarsForMultiverseAsync(refresh);
+            OASISResultCollectionToCollectionHelper<IEnumerable<ISuperStar>, IEnumerable<IPlanet>>.CopyResult(superStarsResult, ref result);
+            List<IPlanet> planets = new List<IPlanet>();
+
+            if (!superStarsResult.IsError)
+            {
+                foreach (ISuperStar superStar in superStarsResult.Result)
+                {
+                    OASISResult<IEnumerable<IPlanet>> planetsResult = await ((ISuperStarCore)superStar.CelestialBodyCore).GetAllPlanetsForGalaxyAsync(refresh);
+
+                    if (!planetsResult.IsError)
+                        planets.AddRange(planetsResult.Result);
+                }
+            }
+
+            OASISResult<IEnumerable<IPlanet>> planetsOutsideResult = await GetAllPlanetsOutSideOfGalaxyClustersForMultiverseAsync(refresh);
+
+            if (!planetsOutsideResult.IsError)
+                planets.AddRange(planetsOutsideResult.Result);
+
+            planetsOutsideResult = await GetAllPlanetsOutSideOfGalaxiesForMultiverseAsync(refresh);
+
+            if (!planetsOutsideResult.IsError)
+                planets.AddRange(planetsOutsideResult.Result);
+
+            result.Result = planets;
+            return result;
+        }
+
+        public OASISResult<IEnumerable<IPlanet>> GetAllPlanetsForMultiverse(bool refresh = true)
+        {
+            return GetAllPlanetsForMultiverseAsync(refresh).Result;
+        }
+
+
+        /*
         public async Task<OASISResult<IEnumerable<IPlanet>>> GetAllPlanetsForMultiverseAsync(bool refresh = true)
         {
             OASISResult<IEnumerable<IPlanet>> result = new OASISResult<IEnumerable<IPlanet>>();
@@ -292,7 +496,7 @@ namespace NextGenSoftware.OASIS.STAR
         public OASISResult<IEnumerable<IPlanet>> GetAllPlanetsForMultiverse(bool refresh = true)
         {
             return GetAllPlanetsForMultiverseAsync(refresh).Result;
-        }
+        }*/
 
         public async Task<OASISResult<IEnumerable<IMoon>>> GetAllMoonsForMultiverseAsync(bool refresh = true)
         {

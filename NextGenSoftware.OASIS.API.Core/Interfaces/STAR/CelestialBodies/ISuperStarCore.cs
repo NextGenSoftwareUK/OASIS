@@ -4,7 +4,7 @@ using NextGenSoftware.OASIS.API.Core.Helpers;
 
 namespace NextGenSoftware.OASIS.API.Core.Interfaces.STAR
 {
-    // At the centre of each Galaxy (creates SolarSysyems (with a Star at the centre of each).
+    // At the centre of each Galaxy (creates Galaxies, SolarSystems & Stars) Creator
     public interface ISuperStarCore : ICelestialBodyCore
     {
         ISuperStar SuperStar { get; set; }

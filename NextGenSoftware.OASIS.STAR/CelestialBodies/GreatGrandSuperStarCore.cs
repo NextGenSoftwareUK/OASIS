@@ -11,7 +11,7 @@ using NextGenSoftware.OASIS.STAR.CelestialSpace;
 
 namespace NextGenSoftware.OASIS.STAR
 {
-    // At the centre of the Omiverse... (there can only be ONE) ;-)
+    // At the centre of the Omiverse (there can only be ONE) ;-) (creates Multiverses (with a GrandSuperStar at the centre of each).  Spirit/God/The Divine, etc
     public class GreatGrandSuperStarCore : CelestialBodyCore, IGreatGrandSuperStarCore 
     {
         public IGreatGrandSuperStar GreatGrandSuperStar { get; set; }
@@ -40,32 +40,12 @@ namespace NextGenSoftware.OASIS.STAR
                 result.Result = Mapper<IHolon, Omiverse>.MapBaseHolonProperties(holonResult.Result);
 
             return result;
-
-            //return OASISResultHolonToHolonHelper<IHolon, IOmiverse>.CopyResult(
-            //     await SaveHolonAsync(omiverse), new OASISResult<IOmiverse>());
-
-            //await AddHolonToCollectionAsync(GreatGrandSuperStar, omiverse, (List<IHolon>)Mapper<IOmiverse, Holon>.MapBaseHolonProperties(
-            //    GreatGrandSuperStar.ParentOmiverse.Universes)), new OASISResult<IOmiverse>());
         }
 
         public OASISResult<IOmiverse> AddOmiverse(IOmiverse omiverse)
         {
             return AddOmiverseAsync(omiverse).Result;
         }
-
-        /*
-        public async Task<OASISResult<IUniverse>> AddUniverseAsync(IUniverse universe)
-        {
-            return OASISResultHolonToHolonHelper<IHolon, IUniverse>.CopyResult(
-                await AddHolonToCollectionAsync(GreatGrandSuperStar, universe, (List<IHolon>)Mapper<IUniverse, Holon>.MapBaseHolonProperties(
-                    GreatGrandSuperStar.ParentOmiverse.Universes)), new OASISResult<IUniverse>());
-        }
-
-        public OASISResult<IUniverse> AddUniverse(IUniverse universe)
-        {
-            return AddUniverseAsync(universe).Result;
-        }
-        */
 
         public async Task<OASISResult<IMultiverse>> AddMultiverseAsync(IMultiverse multiverse)
         {
@@ -189,6 +169,7 @@ namespace NextGenSoftware.OASIS.STAR
             return GetAllGalaxiesForOmiverseAsync(refresh).Result;
         }
 
+        /*
         public async Task<OASISResult<IEnumerable<ISolarSystem>>> GetAllSolarSystemsForOmiverseAsync(bool refresh = true)
         {
             OASISResult<IEnumerable<ISolarSystem>> result = new OASISResult<IEnumerable<ISolarSystem>>();
@@ -211,7 +192,7 @@ namespace NextGenSoftware.OASIS.STAR
         public OASISResult<IEnumerable<ISolarSystem>> GetAllSolarSystemsForOmiverse(bool refresh = true)
         {
             return GetAllSolarSystemsForOmiverseAsync(refresh).Result;
-        }
+        }*/
 
         // Helper method to get the GrandSuperStars at the centre of each Multiverse.
         public async Task<OASISResult<IEnumerable<IGrandSuperStar>>> GetAllGrandSuperStarsForOmiverseAsync(bool refresh = true)
@@ -251,7 +232,7 @@ namespace NextGenSoftware.OASIS.STAR
 
                 foreach (IGrandSuperStar grandSuperStar in grandSuperStarsResult.Result)
                 {
-                    OASISResult<IEnumerable<ISuperStar>> superStarsResult = await ((IGrandSuperStarCore)grandSuperStar.CelestialBodyCore).GetAllSuperStarsForUniverseAsync(refresh);
+                    OASISResult<IEnumerable<ISuperStar>> superStarsResult = await ((IGrandSuperStarCore)grandSuperStar.CelestialBodyCore).GetAllSuperStarsForMultiverseAsync(refresh);
 
                     if (!superStarsResult.IsError)
                         superstars.AddRange(superStarsResult.Result);
@@ -268,6 +249,264 @@ namespace NextGenSoftware.OASIS.STAR
             return GetAllSuperStarsForOmiverseAsync(refresh).Result;
         }
 
+
+
+        public async Task<OASISResult<IEnumerable<ISolarSystem>>> GetAllSolarSystemsOutSideOfGalaxiesForOmiverseAsync(bool refresh = true)
+        {
+            OASISResult<IEnumerable<ISolarSystem>> result = new OASISResult<IEnumerable<ISolarSystem>>();
+            OASISResult<IEnumerable<IGalaxyCluster>> galaxyClustersResult = await GetAllGalaxyClustersForOmiverseAsync(refresh);
+            OASISResultCollectionToCollectionHelper<IEnumerable<IGalaxyCluster>, IEnumerable<ISolarSystem>>.CopyResult(galaxyClustersResult, ref result);
+
+            if (!galaxyClustersResult.IsError)
+            {
+                List<ISolarSystem> solarSystems = new List<ISolarSystem>();
+
+                foreach (IGalaxyCluster cluster in galaxyClustersResult.Result)
+                    solarSystems.AddRange(cluster.SoloarSystems);
+
+                result.Result = solarSystems;
+            }
+
+            return result;
+        }
+
+        public OASISResult<IEnumerable<ISolarSystem>> GetAllSolarSystemsOutSideOfGalaxiesForOmiverse(bool refresh = true)
+        {
+            return GetAllSolarSystemsOutSideOfGalaxiesForOmiverseAsync(refresh).Result;
+        }
+
+        public async Task<OASISResult<IEnumerable<ISolarSystem>>> GetAllSolarSystemsOutSideOfGalaxyClustersForOmiverseAsync(bool refresh = true)
+        {
+            OASISResult<IEnumerable<ISolarSystem>> result = new OASISResult<IEnumerable<ISolarSystem>>();
+            OASISResult<IEnumerable<IDimension>> dimensionsResult = await GetAllDimensionsForOmiverseAsync(refresh);
+            OASISResultCollectionToCollectionHelper<IEnumerable<IDimension>, IEnumerable<ISolarSystem>>.CopyResult(dimensionsResult, ref result);
+
+            if (!dimensionsResult.IsError)
+            {
+                List<ISolarSystem> solarSystems = new List<ISolarSystem>();
+
+                foreach (IDimension dimension in dimensionsResult.Result)
+                    solarSystems.AddRange(dimension.SoloarSystems);
+
+                result.Result = solarSystems;
+            }
+
+            return result;
+        }
+
+        public OASISResult<IEnumerable<ISolarSystem>> GetAllSolarSystemsOutSideOfGalaxyClustersForOmiverse(bool refresh = true)
+        {
+            return GetAllSolarSystemsOutSideOfGalaxyClustersForOmiverseAsync(refresh).Result;
+        }
+
+
+        public async Task<OASISResult<IEnumerable<ISolarSystem>>> GetAllSolarSystemsForOmiverseAsync(bool refresh = true)
+        {
+            OASISResult<IEnumerable<ISolarSystem>> result = new OASISResult<IEnumerable<ISolarSystem>>();
+            OASISResult<IEnumerable<IGalaxy>> galaxiesResult = await GetAllGalaxiesForOmiverseAsync(refresh);
+            OASISResultCollectionToCollectionHelper<IEnumerable<IGalaxy>, IEnumerable<ISolarSystem>>.CopyResult(galaxiesResult, ref result);
+            List<ISolarSystem> solarSystems = new List<ISolarSystem>();
+
+            if (!galaxiesResult.IsError)
+            {
+                foreach (IGalaxy galaxy in galaxiesResult.Result)
+                    solarSystems.AddRange(galaxy.SolarSystems);
+
+                result.Result = solarSystems;
+            }
+
+            OASISResult<IEnumerable<ISolarSystem>> solarSystemsOutsideResult = await GetAllSolarSystemsOutSideOfGalaxyClustersForOmiverseAsync(refresh);
+
+            if (!solarSystemsOutsideResult.IsError)
+                solarSystems.AddRange(solarSystemsOutsideResult.Result);
+
+            solarSystemsOutsideResult = await GetAllSolarSystemsOutSideOfGalaxiesForOmiverseAsync(refresh);
+
+            if (!solarSystemsOutsideResult.IsError)
+                solarSystems.AddRange(solarSystemsOutsideResult.Result);
+
+            result.Result = solarSystems;
+            return result;
+        }
+
+        public OASISResult<IEnumerable<ISolarSystem>> GetAllSolarSystemsForOmiverse(bool refresh = true)
+        {
+            return GetAllSolarSystemsForOmiverseAsync(refresh).Result;
+        }
+
+        public async Task<OASISResult<IEnumerable<IStar>>> GetAllStarsOutSideOfGalaxiesForOmiverseAsync(bool refresh = true)
+        {
+            OASISResult<IEnumerable<IStar>> result = new OASISResult<IEnumerable<IStar>>();
+            OASISResult<IEnumerable<IGalaxyCluster>> galaxyClustersResult = await GetAllGalaxyClustersForOmiverseAsync(refresh);
+            OASISResultCollectionToCollectionHelper<IEnumerable<IGalaxyCluster>, IEnumerable<IStar>>.CopyResult(galaxyClustersResult, ref result);
+
+            if (!galaxyClustersResult.IsError)
+            {
+                List<IStar> stars = new List<IStar>();
+
+                foreach (IGalaxyCluster cluster in galaxyClustersResult.Result)
+                    stars.AddRange(cluster.Stars);
+
+                result.Result = stars;
+            }
+
+            return result;
+        }
+
+        public OASISResult<IEnumerable<IStar>> GetAllStarsOutSideOfGalaxiesForOmiverse(bool refresh = true)
+        {
+            return GetAllStarsOutSideOfGalaxiesForOmiverseAsync(refresh).Result;
+        }
+
+        public async Task<OASISResult<IEnumerable<IStar>>> GetAllStarsOutSideOfGalaxyClustersForOmiverseAsync(bool refresh = true)
+        {
+            OASISResult<IEnumerable<IStar>> result = new OASISResult<IEnumerable<IStar>>();
+            OASISResult<IEnumerable<IDimension>> dimensionsResult = await GetAllDimensionsForOmiverseAsync(refresh);
+            OASISResultCollectionToCollectionHelper<IEnumerable<IDimension>, IEnumerable<IStar>>.CopyResult(dimensionsResult, ref result);
+
+            if (!dimensionsResult.IsError)
+            {
+                List<IStar> stars = new List<IStar>();
+
+                foreach (IDimension dimension in dimensionsResult.Result)
+                    stars.AddRange(dimension.Stars);
+
+                result.Result = stars;
+            }
+
+            return result;
+        }
+
+        public OASISResult<IEnumerable<IStar>> GetAllStarsOutSideOfGalaxyClustersForOmiverse(bool refresh = true)
+        {
+            return GetAllStarsOutSideOfGalaxyClustersForOmiverseAsync(refresh).Result;
+        }
+
+
+        public async Task<OASISResult<IEnumerable<IStar>>> GetAllStarsForOmiverseAsync(bool refresh = true)
+        {
+            OASISResult<IEnumerable<IStar>> result = new OASISResult<IEnumerable<IStar>>();
+            OASISResult<IEnumerable<ISuperStar>> superStarsResult = await GetAllSuperStarsForOmiverseAsync(refresh);
+            OASISResultCollectionToCollectionHelper<IEnumerable<ISuperStar>, IEnumerable<IStar>>.CopyResult(superStarsResult, ref result);
+            List<IStar> stars = new List<IStar>();
+
+            if (!superStarsResult.IsError)
+            {
+                foreach (ISuperStar superStar in superStarsResult.Result)
+                {
+                    OASISResult<IEnumerable<IStar>> starsResult = await ((ISuperStarCore)superStar.CelestialBodyCore).GetAllStarsForGalaxyAsync(refresh);
+
+                    if (!starsResult.IsError)
+                        stars.AddRange(starsResult.Result);
+                }
+            }
+
+            OASISResult<IEnumerable<IStar>> starsOutsideResult = await GetAllStarsOutSideOfGalaxyClustersForOmiverseAsync(refresh);
+
+            if (!starsOutsideResult.IsError)
+                stars.AddRange(starsOutsideResult.Result);
+
+            starsOutsideResult = await GetAllStarsOutSideOfGalaxiesForOmiverseAsync(refresh);
+
+            if (!starsOutsideResult.IsError)
+                stars.AddRange(starsOutsideResult.Result);
+
+            result.Result = stars;
+            return result;
+        }
+
+        public OASISResult<IEnumerable<IStar>> GetAllStarsForOmiverse(bool refresh = true)
+        {
+            return GetAllStarsForOmiverseAsync(refresh).Result;
+        }
+
+        public async Task<OASISResult<IEnumerable<IPlanet>>> GetAllPlanetsOutSideOfGalaxiesForOmiverseAsync(bool refresh = true)
+        {
+            OASISResult<IEnumerable<IPlanet>> result = new OASISResult<IEnumerable<IPlanet>>();
+            OASISResult<IEnumerable<IGalaxyCluster>> galaxyClustersResult = await GetAllGalaxyClustersForOmiverseAsync(refresh);
+            OASISResultCollectionToCollectionHelper<IEnumerable<IGalaxyCluster>, IEnumerable<IPlanet>>.CopyResult(galaxyClustersResult, ref result);
+
+            if (!galaxyClustersResult.IsError)
+            {
+                List<IPlanet> planets = new List<IPlanet>();
+
+                foreach (IGalaxyCluster cluster in galaxyClustersResult.Result)
+                    planets.AddRange(cluster.Planets);
+
+                result.Result = planets;
+            }
+
+            return result;
+        }
+
+        public OASISResult<IEnumerable<IPlanet>> GetAllPlanetsOutSideOfGalaxiesForOmiverse(bool refresh = true)
+        {
+            return GetAllPlanetsOutSideOfGalaxiesForOmiverseAsync(refresh).Result;
+        }
+
+        public async Task<OASISResult<IEnumerable<IPlanet>>> GetAllPlanetsOutSideOfGalaxyClustersForOmiverseAsync(bool refresh = true)
+        {
+            OASISResult<IEnumerable<IPlanet>> result = new OASISResult<IEnumerable<IPlanet>>();
+            OASISResult<IEnumerable<IDimension>> dimensionsResult = await GetAllDimensionsForOmiverseAsync(refresh);
+            OASISResultCollectionToCollectionHelper<IEnumerable<IDimension>, IEnumerable<IPlanet>>.CopyResult(dimensionsResult, ref result);
+
+            if (!dimensionsResult.IsError)
+            {
+                List<IPlanet> planets = new List<IPlanet>();
+
+                foreach (IDimension dimension in dimensionsResult.Result)
+                    planets.AddRange(dimension.Planets);
+
+                result.Result = planets;
+            }
+
+            return result;
+        }
+
+        public OASISResult<IEnumerable<IPlanet>> GetAllPlanetsOutSideOfGalaxyClustersForOmiverse(bool refresh = true)
+        {
+            return GetAllPlanetsOutSideOfGalaxyClustersForOmiverseAsync(refresh).Result;
+        }
+
+        public async Task<OASISResult<IEnumerable<IPlanet>>> GetAllPlanetsForOmiverseAsync(bool refresh = true)
+        {
+            OASISResult<IEnumerable<IPlanet>> result = new OASISResult<IEnumerable<IPlanet>>();
+            OASISResult<IEnumerable<ISuperStar>> superStarsResult = await GetAllSuperStarsForOmiverseAsync(refresh);
+            OASISResultCollectionToCollectionHelper<IEnumerable<ISuperStar>, IEnumerable<IPlanet>>.CopyResult(superStarsResult, ref result);
+            List<IPlanet> planets = new List<IPlanet>();
+
+            if (!superStarsResult.IsError)
+            {
+                foreach (ISuperStar superStar in superStarsResult.Result)
+                {
+                    OASISResult<IEnumerable<IPlanet>> planetsResult = await ((ISuperStarCore)superStar.CelestialBodyCore).GetAllPlanetsForGalaxyAsync(refresh);
+
+                    if (!planetsResult.IsError)
+                        planets.AddRange(planetsResult.Result);
+                }
+            }
+
+            OASISResult<IEnumerable<IPlanet>> planetsOutsideResult = await GetAllPlanetsOutSideOfGalaxyClustersForOmiverseAsync(refresh);
+
+            if (!planetsOutsideResult.IsError)
+                planets.AddRange(planetsOutsideResult.Result);
+
+            planetsOutsideResult = await GetAllPlanetsOutSideOfGalaxiesForOmiverseAsync(refresh);
+
+            if (!planetsOutsideResult.IsError)
+                planets.AddRange(planetsOutsideResult.Result);
+
+            result.Result = planets;
+            return result;
+        }
+
+        public OASISResult<IEnumerable<IPlanet>> GetAllPlanetsForOmiverse(bool refresh = true)
+        {
+            return GetAllPlanetsForOmiverseAsync(refresh).Result;
+        }
+
+
+        /*
         public async Task<OASISResult<IEnumerable<IStar>>> GetAllStarsForOmiverseAsync(bool refresh = true)
         {
             OASISResult<IEnumerable<IStar>> result = new OASISResult<IEnumerable<IStar>>();
@@ -324,7 +563,8 @@ namespace NextGenSoftware.OASIS.STAR
         public OASISResult<IEnumerable<IPlanet>> GetAllPlanetsForOmiverse(bool refresh = true)
         {
             return GetAllPlanetsForOmiverseAsync(refresh).Result;
-        }
+        }*/
+
 
         public async Task<OASISResult<IEnumerable<IMoon>>> GetAllMoonsForOmiverseAsync(bool refresh = true)
         {

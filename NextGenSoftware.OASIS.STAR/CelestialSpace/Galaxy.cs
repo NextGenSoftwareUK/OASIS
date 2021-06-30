@@ -8,9 +8,11 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
     {
         public ISuperStar SuperStar { get; set; }
         public List<ISolarSystem> SolarSystems { get; set; }
-        
-        //TODO; Technically a Galaxy can have stars and planets that do not belong to a SolarSystem but not sure it would work within the OASIS COSMIC Object Model?
+        public List<INebula> Nebulas { get; set; }
         public List<IStar> Stars { get; set; }
-        //public List<IPlanet> Planets { get; set; }
+        public List<IPlanet> Planets { get; set; }
+        public List<IAsteroid> Asteroids { get; set; }
+        public List<IComet> Comets { get; set; }
+        public List<IMeteroid> Meteroids { get; set; }
     }
 }
