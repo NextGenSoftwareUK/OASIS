@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Bson.Serialization.Options;
@@ -15,7 +16,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities
         [BsonRepresentation(BsonType.ObjectId)]  
         public string Id { get; set; }
 
-        public bool ChangesSaved { get; set; }
+        public bool IsChanged { get; set; }
 
         [BsonDictionaryOptions(DictionaryRepresentation.ArrayOfArrays)]
         public Dictionary<ProviderType, Dictionary<string, string>> ProviderMetaData { get; set; } = new Dictionary<ProviderType, Dictionary<string, string>>(); // Key/Value pair meta data can be stored here, which is unique for that provider.
@@ -45,7 +46,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities
         public IHolon ParentHolon { get; set; }
         public IEnumerable<IHolon> Children { get; set; }
         public ProviderType CreatedProviderType { get; set; }
-        public List<INode> Nodes { get; set; }
+        public ObservableCollection<INode> Nodes { get; set; }
 
 
         //public string ProviderKey { get; set; }

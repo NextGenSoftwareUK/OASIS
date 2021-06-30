@@ -4,11 +4,10 @@ using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
-using NextGenSoftware.OASIS.STAR.CelestialBodies;
 
 namespace NextGenSoftware.OASIS.STAR.DNATemplates.CSharpTemplates
 {
-    public class StarDNATemplate : Star, IStar
+    public class StarDNATemplate : CelestialBodies.Star, IStar
     {
         public StarDNATemplate(Dictionary<ProviderType, string> providerKey) : base(providerKey)
         {

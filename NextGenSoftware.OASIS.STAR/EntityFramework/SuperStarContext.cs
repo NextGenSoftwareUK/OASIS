@@ -6,7 +6,7 @@ namespace NextGenSoftware.OASIS.STAR.EntityFramework
     public class SuperStarContext : DbContext
     {
         public DbSet<Planet> Planets { get; set; }
-        public DbSet<Star> Stars { get; set; }
+        public DbSet<CelestialBodies.Star> Stars { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder options)
             => options.UseSqlite("Data Source=SuperStar.db");
