@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Mapster;
+using System.Linq;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Events;
 using NextGenSoftware.OASIS.API.Core.Helpers;
@@ -13,19 +13,6 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
 {
     public abstract class CelestialBodyCore : ZomeBase, ICelestialBodyCore
     {
-        //private const string ZOMES_LOAD_ALL = "_zomes_loadall";
-        //private const string ZOMES_ADD = "_zomes_add";
-        //private const string ZOMES_REMOVE = "_zomes_remove";
-
-
-        //private const string ZOMES_ADD = "planet_holons_add";  //Holons Collection on CelestialBody only loads all holons in all zomes belonging to that body (like a shortcut). So a body does not store holons directly, only zomes (containing holons).
-        //private const string ZOMES_REMOVE = "planet_holons_remove";
-        //private const string HOLONS_LOAD_ALL = "_holons_loadall";
-
-
-
-       // public string ProviderKey { get; set; } //Anchor address in hc.
-
         public delegate void HolonsLoaded(object sender, HolonsLoadedEventArgs e);
         //  public event HolonsLoaded OnHolonsLoaded;
         public event Events.HolonsLoaded OnHolonsLoaded;
@@ -36,7 +23,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
 
         public List<IZome> Zomes { get; set; } = new List<IZome>();
 
-        public new List<IHolon> Holons
+        public new IEnumerable<IHolon> Holons
         {
             get
             {
@@ -49,23 +36,12 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
 
                     //Now we need to add the base holons that are linked directly to the celestialbody.
                     holons.AddRange(base.Holons);
-
                     return holons;
                 }
 
                 return null;
             }
         }
-
-        //TODO: FIX THIS TOMORROW!
-        //string ICelestialBodyCore.ProviderKey { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-        //List<IZome> ICelestialBodyCore.Zomes { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-
-      //  List<IHolon> ICelestialBodyCore.Holons => throw new NotImplementedException();
-
-        //public string CoreZomeName { get; set; }
-        //public string CoreHolonType { get; set; }
-
 
         public CelestialBodyCore(Dictionary<ProviderType, string> providerKey) : base()
         {
@@ -81,142 +57,31 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
         {
         }
 
-        //event Events.HolonsLoaded ICelestialBodyCore.OnHolonsLoaded
-        //{
-        //    add
-        //    {
-        //        throw new NotImplementedException();
-        //    }
-
-        //    remove
-        //    {
-        //        throw new NotImplementedException();
-        //    }
-        //}
-
-        //event Events.ZomesLoaded ICelestialBodyCore.OnZomesLoaded
-        //{
-        //    add
-        //    {
-        //        throw new NotImplementedException();
-        //    }
-
-        //    remove
-        //    {
-        //        throw new NotImplementedException();
-        //    }
-        //}
-
-        /*
-        public CelestialBodyCore(string coreZomeName, string coreHolonBase, string providerKey) : base(coreZomeName)
+        public async Task<OASISResult<IEnumerable<IZome>>> LoadZomesAsync()
         {
-            this.ProviderKey = providerKey;
-            this.CoreZomeName = coreZomeName;
-            this.CoreHolonType = coreHolonBase;
-        }
+            OASISResult<IEnumerable<IZome>> result = new OASISResult<IEnumerable<IZome>>();
+            OASISResult<IEnumerable<IHolon>>  holonResult = await base.LoadHolonsForParentAsync();
+            OASISResultCollectionToCollectionHelper<IEnumerable<IHolon>, IEnumerable<IZome>>.CopyResult(holonResult, ref result);
 
-        public CelestialBodyCore(string coreZomeName, string coreHolonBase) : base(coreZomeName)
-        {
-            this.CoreZomeName = coreZomeName;
-            this.CoreHolonType = coreHolonBase;
-        }*/
-
-        /*
-        public CelestialBodyCore(HoloNETClientBase holoNETClient, string coreZomeName, string coreHolonBase, string providerKey) : base(holoNETClient, coreZomeName)
-        {
-            this.ProviderKey = providerKey;
-            this.CoreZomeName = coreZomeName;
-            this.CoreHolonType = coreHolonBase;
-            //this.HolonType = holonType;
-            //this.HolonsType = holonsType;
-        }
-
-
-        public CelestialBodyCore(string holochainConductorURI, HoloNETClientType type, string coreZomeName, string coreHolonBase, string providerKey) : base(holochainConductorURI, coreZomeName, type)
-        {
-            this.ProviderKey = providerKey;
-            this.CoreZomeName = coreZomeName;
-            this.CoreHolonType = coreHolonBase;
-            //this.HolonType = holonType;
-            //this.HolonsType = holonsType;
-        }
-
-        public CelestialBodyCore(HoloNETClientBase holoNETClient, string coreZomeName, string coreHolonBase) : base(holoNETClient, coreZomeName)
-        {
-            this.CoreZomeName = coreZomeName;
-            this.CoreHolonType = coreHolonBase;
-            //this.HolonType = holonType;
-            //this.HolonsType = holonsType;
-        }
-
-        public CelestialBodyCore(string holochainConductorURI, HoloNETClientType type, string coreZomeName, string coreHolonBase) : base(holochainConductorURI, coreZomeName, type)
-        {
-            this.CoreZomeName = coreZomeName;
-            this.CoreHolonType = coreHolonBase;
-            //this.HolonType = holonType;
-            //this.HolonsType = holonsType;
-        }
-        */
-
-        public async Task<OASISResult<List<IZome>>> LoadZomesAsync()
-        {
-            OASISResult<List<IZome>> result = new OASISResult<List<IZome>>();
-            IEnumerable<IHolon> holons = null;
-            
-            if (Zomes == null)
-                Zomes = new List<IZome>();
-
-            if (Id != Guid.Empty)
-                holons = await base.LoadHolonsAsync(Id);
-
-            else if (ProviderKey != null)
-                holons = await base.LoadHolonsAsync(ProviderKey);
-            else
+            if (holonResult.Result != null && !holonResult.IsError)
             {
-                result.IsError = true;
-                result.Message = "Both Id and ProviderKey are null, one of these need to be set before calling this method.";
-            }
-
-            if (holons != null && !result.IsError)
-            {
-               // Zomes = SuperStar.Mapper.Map<List<Zome>(holons);
-                foreach (IHolon holon in holons)
-                    Zomes.Add(SuperStar.Mapper.Map<Zome>(holon));
-                    //Zomes.Add(holon.Adapt<Zome>());
-
+                result.Result = Mapper<IHolon, Zome>.MapBaseHolonProperties(holonResult.Result);
                 OnZomesLoaded?.Invoke(this, new ZomesLoadedEventArgs { Zomes = Zomes });
-                result.Result = Zomes;
             }
 
             return result;
         }
 
-        public OASISResult<List<IZome>> LoadZomes()
+        public OASISResult<IEnumerable<IZome>> LoadZomes()
         {
-            OASISResult<List<IZome>> result = new OASISResult<List<IZome>>();
-            IEnumerable<IHolon> holons = null;
+            OASISResult<IEnumerable<IZome>> result = new OASISResult<IEnumerable<IZome>>();
+            OASISResult<IEnumerable<IHolon>> holonResult = base.LoadHolonsForParent();
+            OASISResultCollectionToCollectionHelper<IEnumerable<IHolon>, IEnumerable<IZome>>.CopyResult(holonResult, ref result);
 
-            if (Zomes == null)
-                Zomes = new List<IZome>();
-
-            if (Id != Guid.Empty)
-                holons = base.LoadHolons(Id);
-
-            else if (ProviderKey != null)
-                holons = base.LoadHolons(ProviderKey);
-            else
+            if (holonResult.Result != null && !holonResult.IsError)
             {
-                result.IsError = true;
-                result.Message = "Both Id and ProviderKey are null, one of these need to be set before calling this method.";
-            }
-
-            if (holons != null && !result.IsError)
-            {
-                foreach (IHolon holon in holons)
-                    Zomes.Add((IZome)holon);
-
+                result.Result = Mapper<IHolon, Zome>.MapBaseHolonProperties(holonResult.Result);
                 OnZomesLoaded?.Invoke(this, new ZomesLoadedEventArgs { Zomes = Zomes });
-                result.Result = Zomes;
             }
 
             return result;
@@ -226,28 +91,68 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
         {
             OASISResult<IZome> result = new OASISResult<IZome>();
 
-            if (zome.Id == Guid.Empty)
-                result = await zome.SaveAsync();
+            //TODO: Dont think we need this because the SaveHolonsAsync method below automatically saves the entire collection?
+            //if (zome.Id == Guid.Empty)
+            //    result = await zome.SaveAsync();
  
             if (!result.IsError)
             {
                 this.Zomes.Add(zome);
+                
+                //TODO: This is used in quite a few places but not sure how efficient it is because it will always save the entire collection even if its not needed?
                 OASISResult<IEnumerable<IHolon>> holonsResult = await base.SaveHolonsAsync(this.Zomes);
-
-                if (holonsResult.IsError)
-                {
-                    result.IsError = true;
-                    result.Message = holonsResult.Message;
-                }
+                OASISResultCollectionToHolonHelper<IEnumerable<IHolon>, IZome>.CopyResult(holonsResult, ref result);
             }
 
             return result;
         }
 
-        public async Task<OASISResult<IEnumerable<IHolon>>> RemoveZomeAsync(IZome zome)
+        public OASISResult<IZome> AddZome(IZome zome)
         {
+            OASISResult<IZome> result = new OASISResult<IZome>();
+
+            //TODO: Dont think we need this because the SaveHolonsAsync method below automatically saves the entire collection?
+            //if (zome.Id == Guid.Empty)
+            //    result = await zome.SaveAsync();
+
+            if (!result.IsError)
+            {
+                this.Zomes.Add(zome);
+
+                //TODO: This is used in quite a few places but not sure how efficient it is because it will always save the entire collection even if its not needed?
+                OASISResult<IEnumerable<IHolon>> holonsResult = base.SaveHolons(this.Zomes);
+                OASISResultCollectionToHolonHelper<IEnumerable<IHolon>, IZome>.CopyResult(holonsResult, ref result);
+            }
+
+            return result;
+        }
+
+        public async Task<OASISResult<IEnumerable<IZome>>> RemoveZomeAsync(IZome zome)
+        {
+            OASISResult<IEnumerable<IZome>> result = new OASISResult<IEnumerable<IZome>>();
+
             this.Zomes.Remove(zome);
-            return await base.SaveHolonsAsync(this.Zomes);
+            OASISResult<IEnumerable<IHolon>> holonsResult = await base.SaveHolonsAsync(this.Zomes);
+            OASISResultCollectionToCollectionHelper<IEnumerable<IHolon>, IEnumerable<IZome>>.CopyResult(holonsResult, ref result);
+
+            if (!holonsResult.IsError && holonsResult.Result != null)
+                result.Result = Mapper<IHolon, Zome>.MapBaseHolonProperties(holonsResult.Result);
+
+            return result;
+        }
+
+        public OASISResult<IEnumerable<IZome>> RemoveZome(IZome zome)
+        {
+            OASISResult<IEnumerable<IZome>> result = new OASISResult<IEnumerable<IZome>>();
+
+            this.Zomes.Remove(zome);
+            OASISResult<IEnumerable<IHolon>> holonsResult = base.SaveHolons(this.Zomes);
+            OASISResultCollectionToCollectionHelper<IEnumerable<IHolon>, IEnumerable<IZome>>.CopyResult(holonsResult, ref result);
+
+            if (!holonsResult.IsError && holonsResult.Result != null)
+                result.Result = Mapper<IHolon, Zome>.MapBaseHolonProperties(holonsResult.Result);
+
+            return result;
         }
 
         public async Task<OASISResult<IHolon>> SaveCelestialBodyAsync(IHolon savingHolon)
@@ -361,6 +266,163 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
             return result;
         }
 
+        public OASISResult<IHolon> SaveCelestialBody(IHolon savingHolon)
+        {
+            //TODO: Not sure if this is a good way of doing this?
+            return SaveCelestialBodyAsync(savingHolon).Result;
+        }
+
+        public async Task<OASISResult<ICelestialBody>> LoadCelestialBodyAsync()
+        {
+            OASISResult<ICelestialBody> result = new OASISResult<ICelestialBody>();
+            OASISResult<IHolon> holonResult = await base.LoadHolonAsync();
+            OASISResultHolonToHolonHelper<IHolon, ICelestialBody>.CopyResult(holonResult, ref result);
+
+            if (!holonResult.IsError && holonResult.Result != null)
+            {
+                //result.Result = Mapper<IHolon, CelestialBody>.MapBaseHolonProperties(holonResult.Result);
+                result.Result = (ICelestialBody)holonResult.Result; //TODO: Not sure if this cast will work? Probably not... Need to map...
+            }
+
+            return result;
+        }
+
+        public OASISResult<ICelestialBody> LoadCelestialBody()
+        {
+            OASISResult<ICelestialBody> result = new OASISResult<ICelestialBody>();
+            OASISResult<IHolon> holonResult = base.LoadHolon();
+            OASISResultHolonToHolonHelper<IHolon, ICelestialBody>.CopyResult(holonResult, ref result);
+
+            if (!holonResult.IsError && holonResult.Result != null)
+            {
+                //result.Result = Mapper<IHolon, CelestialBody>.MapBaseHolonProperties(holonResult.Result);
+                result.Result = (ICelestialBody)holonResult.Result; //TODO: Not sure if this cast will work? Probably not... Need to map...
+            }
+
+            return result;
+        }
+
+        protected virtual async Task<OASISResult<IHolon>> AddHolonToCollectionAsync(IHolon parentCelestialBody, IHolon holon, List<IHolon> holons)
+        {
+            OASISResult<IHolon> result = new OASISResult<IHolon>();
+
+            if (holons == null)
+                holons = new List<IHolon>();
+
+            else if (holons.Any(x => x.Name == holon.Name))
+            {
+                result.IsError = true;
+                result.Message = string.Concat("The name ", holon.Name, " is already taken, please choose another.");
+                return result;
+            }
+
+            // TODO: Need to double check this logic below is right! ;-)
+            holon.ParentOmiverseId = parentCelestialBody.ParentOmiverseId;
+            holon.ParentMultiverseId = parentCelestialBody.ParentMultiverseId;
+            holon.ParentUniverseId = parentCelestialBody.ParentUniverseId;
+            holon.ParentDimensionId = parentCelestialBody.ParentDimensionId;
+            holon.ParentGalaxyClusterId = parentCelestialBody.ParentGalaxyClusterId;
+            holon.ParentGalaxyId = parentCelestialBody.ParentGalaxyId;
+            holon.ParentSolarSystemId = parentCelestialBody.ParentSolarSystemId;
+            holon.ParentGreatGrandSuperStarId = parentCelestialBody.ParentGreatGrandSuperStarId;
+            holon.ParentGrandSuperStarId = parentCelestialBody.ParentGrandSuperStarId;
+            holon.ParentSuperStarId = parentCelestialBody.ParentSuperStarId;
+            holon.ParentStarId = parentCelestialBody.ParentStarId;
+            holon.ParentPlanetId = parentCelestialBody.ParentPlanetId;
+            holon.ParentMoonId = parentCelestialBody.ParentMoonId;
+            holon.ParentZomeId = parentCelestialBody.ParentZomeId;
+            holon.ParentHolonId = parentCelestialBody.ParentHolonId;
+
+            switch (parentCelestialBody.HolonType)
+            {
+                case HolonType.GreatGrandSuperStar:
+                    holon.ParentGreatGrandSuperStarId = parentCelestialBody.Id;
+                    break;
+
+                case HolonType.GrandSuperStar:
+                    holon.ParentGrandSuperStarId = parentCelestialBody.Id;
+                    break;
+
+                case HolonType.SuperStar:
+                    holon.ParentSuperStarId = parentCelestialBody.Id;
+                    break;
+
+                case HolonType.Multiverse:
+                    holon.ParentMultiverseId = parentCelestialBody.Id;
+                    break;
+
+                case HolonType.Universe:
+                    holon.ParentUniverseId = parentCelestialBody.Id;
+                    break;
+
+                case HolonType.Dimension:
+                    holon.ParentDimensionId = parentCelestialBody.Id;
+                    break;
+
+                case HolonType.GalaxyCluster:
+                    holon.ParentGalaxyClusterId = parentCelestialBody.Id;
+                    break;
+
+                case HolonType.Galaxy:
+                    holon.ParentGalaxyId = parentCelestialBody.Id;
+                    break;
+
+                case HolonType.SoloarSystem:
+                    holon.ParentSolarSystemId = parentCelestialBody.Id;
+                    break;
+
+                case HolonType.Star:
+                    holon.ParentStarId = parentCelestialBody.Id;
+                    break;
+
+                case HolonType.Planet:
+                    holon.ParentPlanetId = parentCelestialBody.Id;
+                    break;
+
+                case HolonType.Moon:
+                    holon.ParentMoonId = parentCelestialBody.Id;
+                    break;
+
+                case HolonType.Zome:
+                    holon.ParentZomeId = parentCelestialBody.Id;
+                    break;
+
+                case HolonType.Holon:
+                    holon.ParentHolonId = parentCelestialBody.Id;
+                    break;
+            }
+            
+            holons.Add(holon);
+
+            OASISResult<IEnumerable<IHolon>> holonsResult = await base.SaveHolonsAsync(holons);
+            OASISResultCollectionToHolonHelper<IEnumerable<IHolon>, IHolon>.CopyResult(holonsResult, ref result);
+
+            // TODO: This will only work if the star names are unique (which we want to enforce anyway!) - need to add this soon!
+            if (!holonsResult.IsError)
+            {
+                IHolon savedHolon = holons.FirstOrDefault(x => x.Name == holon.Name);
+                result.Result = savedHolon;
+            }
+
+            return result;
+        }
+
+        protected virtual async Task<OASISResult<IEnumerable<IHolon>>> GetHolonsAsync(IEnumerable<IHolon> holons, HolonType holonType, bool refresh = true)
+        {
+            OASISResult<IEnumerable<IHolon>> result = new OASISResult<IEnumerable<IHolon>>();
+
+            if (holons == null || refresh)
+                result = await base.LoadHolonsForParentAsync(holonType);
+            else
+            {
+                result.Message = "Refresh not required";
+                result.Result = holons;
+            }
+
+            return result;
+        }
+
+        /*
         private void RemoveCores(IHolon holon)
         {
             // Temp remove the core from the celestialBody otherwise we have a infinite recursive issue in the OASIS Providers when saving/serialaizaing, etc.
@@ -439,47 +501,6 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
                 RestoreCores(celestialBody.ParentPlanet);
                 RestoreCores(celestialBody.ParentMoon);
             }
-        }
-
-        public async Task<IHolon> LoadCelestialBodyAsync()
-        {
-            if (Id != Guid.Empty)
-                //return base.LoadHolon(Id); //TODO: Need to get LoadHolonAsync working in MongoDB Provider then can switch this back.
-                return await base.LoadHolonAsync(Id);
-
-            else if (ProviderKey != null)
-                return await base.LoadHolonAsync(ProviderKey);
-
-            //TODO: Will eventually return a OASISResult here and it would be IsError = True and Mesasge = Id and ProviderKey Not Set.
-            return null;
-        }
-
-        public IHolon LoadCelestialBody()
-        {
-            if (Id != Guid.Empty)
-                //return base.LoadHolon(Id); //TODO: Need to get LoadHolonAsync working in MongoDB Provider then can switch this back.
-                return base.LoadHolon(Id);
-
-            else if (ProviderKey != null)
-                return base.LoadHolon(ProviderKey);
-
-            //TODO: Will eventually return a OASISResult here and it would be IsError = True and Mesasge = Id and ProviderKey Not Set.
-            return null;
-        }
-
-        //Task<IHolon> ICelestialBodyCore.LoadCelestialBodyAsync()
-        //{
-        //    throw new NotImplementedException();
-        //}
-
-        //List<IZome> ICelestialBodyCore.LoadZomes()
-        //{
-        //    throw new NotImplementedException();
-        //}
-
-        //Task<OASISResult<IHolon>> ICelestialBodyCore.SaveCelestialBodyAsync(IHolon savingHolon)
-        //{
-        //    throw new NotImplementedException();
-        //}
+        }*/
     }
 }

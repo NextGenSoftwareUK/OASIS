@@ -9,6 +9,7 @@ using Ipfs.Http;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using System.IO;
 using Ipfs.Engine;
+using NextGenSoftware.OASIS.API.Core.Helpers;
 
 namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
 {
@@ -173,7 +174,7 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
         }
 
        
-        public override Task<IEnumerable<IHolon>> LoadHolonsForParentAsync(string providerKey, HolonType type = HolonType.All)
+        public override Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(string providerKey, HolonType type = HolonType.All)
         {
             throw new NotImplementedException();
         }

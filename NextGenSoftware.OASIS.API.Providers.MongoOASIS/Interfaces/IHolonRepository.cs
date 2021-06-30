@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities;
 
 namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Interfaces
@@ -19,7 +20,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Interfaces
         IEnumerable<Holon> GetAllHolonsForParent(Guid id, HolonType holonType);
         IEnumerable<Holon> GetAllHolonsForParent(string providerKey, HolonType holonType);
         Task<IEnumerable<Holon>> GetAllHolonsForParentAsync(Guid id, HolonType holonType);
-        Task<IEnumerable<Holon>> GetAllHolonsForParentAsync(string providerKey, HolonType holonType);
+        Task<OASISResult<IEnumerable<Holon>>> GetAllHolonsForParentAsync(string providerKey, HolonType holonType);
         Holon GetHolon(Guid id);
         Holon GetHolon(string providerKey);
         Task<Holon> GetHolonAsync(Guid id);
