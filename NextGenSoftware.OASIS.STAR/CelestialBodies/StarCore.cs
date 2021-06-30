@@ -9,7 +9,7 @@ using NextGenSoftware.OASIS.API.Core.Holons;
 
 namespace NextGenSoftware.OASIS.STAR.CelestialBodies
 {
-    // At the centre of each Solar System
+    // At the centre of each Solar System (creates Solar Systems, Planets & Moons).
     public class StarCore : CelestialBodyCore, IStarCore
     {
         public IStar Star { get; set; }

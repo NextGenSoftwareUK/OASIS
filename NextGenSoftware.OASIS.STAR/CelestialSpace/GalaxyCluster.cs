@@ -7,7 +7,13 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
     public class GalaxyCluster : Holon, IGalaxyCluster
     {
         public List<IGalaxy> Galaxies { get; set; }
-        public List<IStar> Stars { get; set; }
+        public List<ISolarSystem> SoloarSystems { get; set; } //TODO: Can we have SoloarSystems outside of Galaxies? Think so... yes! :)
+        public List<INebula> Nebulas { get; set; }
+        public List<IStar> Stars { get; set; } //TODO: Can we have stars outside of Galaxies? Think so... yes! :)
+        public List<IPlanet> Planets { get; set; } //TODO: Can we have planets outside of Galaxies? Think so... yes! :)
+        public List<IAsteroid> Asteroids { get; set; }
+        public List<IComet> Comets { get; set; }
+        public List<IMeteroid> Meteroids { get; set; }
 
         public bool IsSuperCluster
         {
@@ -20,11 +26,5 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
                     return false;
             }
         }
-
-
-        //TODO; Technically a Universe can have SolarSystems stars & planets that do not belong to a Universe but not sure it would work within the OASIS COSMIC Object Model?
-        //public List<ISolarSystem> SolarSystems { get; set; }
-        //public List<IStar> Stars { get; set; }
-        //public List<IPlanet> Planets { get; set; }
     }
 }
