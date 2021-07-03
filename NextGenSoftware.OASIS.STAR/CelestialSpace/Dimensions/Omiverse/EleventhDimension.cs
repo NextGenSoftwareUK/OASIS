@@ -6,7 +6,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
     public class EleventhDimension : Dimension, IEleventhDimension
     {
         //TODO: Eighth Dimension and above is at the Omiverse level so spans ALL Multiverses/Universes so not sure what we would have here? Needs more thought...
-        public IUniverse Universe { get; set; }
+        public ISuperUniverse SuperUniverse { get; set; }
 
         public EleventhDimension()
         {
