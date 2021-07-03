@@ -29,6 +29,7 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces
         public Guid ParentDimensionId { get; set; } //The Dimension this Holon belongs to.
         public IDimension ParentDimension { get; set; } //The Dimension this Holon belongs to.
         public DimensionLevel DimensionLevel { get; set; } //The dimension this Holon belongs to (a holon can have a different version of itself in each dimension (asscended/evolved versions of itself).
+        public SubDimensionLevel SubDimensionLevel { get; set; } //The sub-dimension/plane this Holon belongs to.
         public Guid ParentGalaxyClusterId { get; set; } //The GalaxyCluster this Holon belongs to.
         public IGalaxyCluster ParentGalaxyCluster { get; set; } //The GalaxyCluster this Holon belongs to.
         public Guid ParentGalaxyId { get; set; } //The Galaxy this Holon belongs to.
