@@ -31,6 +31,17 @@ namespace NextGenSoftware.OASIS.API.Core.Enums
         GalaxyCluster,
         Galaxy,
         SoloarSystem,
-        Dimension
+        Dimension,
+        WormHole,
+        BlackHole,
+        Portal,
+        StarGate,
+        SpaceTimeDistortion,
+        SpaceTimeAbnormally,
+        TemporalRift,
+        StarDust,
+        CosmicWave,
+        CosmicRay,
+        GravitionalWave
     }
 }

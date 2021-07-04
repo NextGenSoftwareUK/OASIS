@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
+using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using NextGenSoftware.OASIS.API.Core.Objects;
 
 namespace NextGenSoftware.OASIS.API.Core.Interfaces
@@ -29,6 +30,7 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces
         int Karma { get; set; }
         int Level { get; }
         int XP { get; set; }
+        IOmiverse Omiverse { get; set; } //We have all of creation inside of us... ;-)
         List<AvatarGift> Gifts { get; set; }
         //public List<Chakra> Chakras { get; set; }
         AvatarChakras Chakras { get; set; }
