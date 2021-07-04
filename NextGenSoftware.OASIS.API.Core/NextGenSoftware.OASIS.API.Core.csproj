@@ -30,4 +30,8 @@
     <ProjectReference Include="..\NextGenSoftware.OASIS.API.DNA\NextGenSoftware.OASIS.API.DNA.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Interfaces\STAR\CelestialHolons\" />
+  </ItemGroup>
+
 </Project>

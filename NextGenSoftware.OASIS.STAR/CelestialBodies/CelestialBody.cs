@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Collections.ObjectModel;
+using System.Drawing;
 using NextGenSoftware.OASIS.API.Core.Events;
 using static NextGenSoftware.OASIS.API.Core.Events.Events;
 using NextGenSoftware.OASIS.API.Core.Enums;
@@ -10,7 +11,6 @@ using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Objects;
-using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.STAR.Zomes;
 
@@ -37,8 +37,27 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
         public event Initialized OnInitialized;
         public event ZomeError OnZomeError;
 
+        public SpaceQuadrantType SpaceQuadrant { get; set; }
+        public int SpaceSector { get; set; }
+        public float SuperGalacticLatitute { get; set; }
+        public float SuperGalacticLongitute { get; set; }
+        public float GalacticLatitute { get; set; }
+        public float GalacticLongitute { get; set; }
+        public float HorizontalLatitute { get; set; }
+        public float HorizontalLongitute { get; set; }
+        public float EquatorialLatitute { get; set; }
+        public float EquatorialLongitute { get; set; }
+        public float EclipticLatitute { get; set; }
+        public float EclipticLongitute { get; set; }
+        public Color Colour { get; set; }
         public int Size { get; set; }
+        public int Radius { get; set; }
+        public int Age { get; set; }
         public int Mass { get; set; }
+        public int Density { get; set; }
+        public int RotationPeriod { get; set; } //How long it takes to rotate on its axis.
+        public int OrbitPeriod { get; set; } //How long it takes to orbit its ParentStar.
+        public int Temperature { get; set; }
         public int Weight { get; set; }
         public int GravitaionalPull { get; set; }
         public int OrbitPositionFromParentStar { get; set; }
