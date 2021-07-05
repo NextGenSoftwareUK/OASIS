@@ -4,8 +4,7 @@ Primary style
 
 -------------------------------- */
 *, *::after, *::before {
-  -webkit-box-sizing: border-box;
-          box-sizing: border-box;
+  box-sizing: border-box;
 }
 
 html {
@@ -14,16 +13,19 @@ html {
 }
 
 body {
-  background: url('../img/background40.gif') no-repeat;
+  display: flex;
+  flex-direction: column;
+  background: url('../img/background40.gif') ;
   font-size: 1.6rem;
-  font-family: "PT Sans", sans-serif;
+  
+  font-family: 'PT Sans', sans-serif;
   color: #505260;
   background-color: white;
-   text-align: center;
-   margin-bottom: 0px;
+  background-size: cover;
+  overflow: hidden;
+   /* text-align: center; */
+   /* margin-bottom: 0px; */
    /* background-repeat: no-repeat; */
-   background-size: cover;
-   overflow: hidden;
    /* background-size: 100% 100%; */
    /*height: 100%;
         width: 100%;*/
@@ -93,12 +95,8 @@ Login/Signup modal window - by CodyHouse.co
   float: left;
   margin: 4px 0 0 5%;
   /* reduce logo size on mobile and make sure it is left aligned with the transform-origin property */
-  -webkit-transform-origin: 0 50%;
-      -ms-transform-origin: 0 50%;
-          transform-origin: 0 50%;
-  -webkit-transform: scale(0.8);
-      -ms-transform: scale(0.8);
-          transform: scale(0.8);
+  transform-origin: 0 50%;
+  transform: scale(0.8);
 }
 
 .cd-main-header__logo img {
@@ -111,9 +109,7 @@ Login/Signup modal window - by CodyHouse.co
   }
   .cd-main-header__logo {
     margin: 20px 0 0 5%;
-    -webkit-transform: scale(1);
-        -ms-transform: scale(1);
-            transform: scale(1);
+    transform: scale(1);
   }
 }
 
@@ -131,15 +127,18 @@ Login/Signup modal window - by CodyHouse.co
   top: 0;
   left: 0;
   width: 100%;
-  -webkit-transform: translateY(-100%);
-      -ms-transform: translateY(-100%);
-          transform: translateY(-100%);
+  color: white;
+  white-space: nowrap;
+  text-align: right;
+  margin-top: 5px;
+  margin-right:10px;
+  align-content: right;
+  float:right;
+  transform: translateY(-100%);
 }
 
 .cd-main-nav__list.cd-main-nav__list--is-visible {
-  -webkit-transform: translateY(50px);
-      -ms-transform: translateY(50px);
-          transform: translateY(50px);
+  transform: translateY(50px);
 }
 
 .cd-main-nav__item {
@@ -164,16 +163,12 @@ Login/Signup modal window - by CodyHouse.co
     /* reset style */
     position: static;
     width: auto;
-    -webkit-transform: translateY(0);
-        -ms-transform: translateY(0);
-            transform: translateY(0);
+    transform: translateY(0);
     line-height: 80px;
   }
   .cd-main-nav__list.cd-main-nav__list--is-visible {
     /* reset style */
-    -webkit-transform: translateY(0);
-        -ms-transform: translateY(0);
-            transform: translateY(0);
+    transform: translateY(0);
   }
   .cd-main-nav__list li {
     display: inline-block;
@@ -189,14 +184,19 @@ Login/Signup modal window - by CodyHouse.co
     background: transparent;
   }
   .cd-main-nav__item.cd-main-nav__item--signin, .cd-main-nav__item.cd-main-nav__item--signup {
-    padding: .6em 1em;
+    padding: .25em 1em;
     border-radius: 50em;
   }
   .cd-main-nav__item.cd-main-nav__item--signin {
     border: 1px solid rgba(255, 255, 255, 0.6);
+    color:white;
+    white-space: nowrap;
   }
   .cd-main-nav__item.cd-main-nav__item--signup {
-    background: #2f889a;
+    background: #273754;
+    color:white;
+    margin-left:10px;
+    white-space: nowrap;
   }
 }
 
@@ -217,7 +217,6 @@ x sigin/signup popup
   cursor: pointer;
   visibility: hidden;
   opacity: 0;
-  -webkit-transition: opacity 0.3s, visibility 0.3s;
   transition: opacity 0.3s, visibility 0.3s;
 }
 
@@ -234,19 +233,12 @@ x sigin/signup popup
   margin: 3em auto 4em;
   cursor: auto;
   border-radius: 0.25em;
-  -webkit-transform: translateY(-30px);
-      -ms-transform: translateY(-30px);
-          transform: translateY(-30px);
-  -webkit-transition: -webkit-transform 0.3s;
-  transition: -webkit-transform 0.3s;
-  transition: transform 0.3s;
-  transition: -webkit-transform 0.3s
+  transform: translateY(-30px);
+  transition: transform 0.3s
 }
 
 .cd-signin-modal--is-visible .cd-signin-modal__container {
-  -webkit-transform: translateY(0);
-      -ms-transform: translateY(0);
-          transform: translateY(0);
+  transform: translateY(0);
 }
 
 .cd-signin-modal__switcher:after {
@@ -311,9 +303,9 @@ x sigin/signup popup
   margin-bottom: 0;
 }
 
-.cd-signin-modal__label {
+/* .cd-signin-modal__label {
   font-size: 1.4rem;
-}
+} */
 
 .cd-signin-modal__label.cd-signin-modal__label--image-replace {
   /* replace text with an icon */
@@ -322,9 +314,7 @@ x sigin/signup popup
   left: 15px;
   top: 50%;
   bottom: auto;
-  -webkit-transform: translateY(-50%);
-      -ms-transform: translateY(-50%);
-          transform: translateY(-50%);
+  transform: translateY(-50%);
   height: 20px;
   width: 20px;
   overflow: hidden;
@@ -378,8 +368,7 @@ x sigin/signup popup
 
 .cd-signin-modal__input.cd-signin-modal__input--has-border:focus {
   border-color: #343642;
-  -webkit-box-shadow: 0 0 5px rgba(52, 54, 66, 0.1);
-          box-shadow: 0 0 5px rgba(52, 54, 66, 0.1);
+  box-shadow: 0 0 5px rgba(52, 54, 66, 0.1);
   outline: none;
 }
 
@@ -392,7 +381,7 @@ x sigin/signup popup
   cursor: pointer;
   background: #2f889a;
   color: #FFF;
-  font-weight: bold;
+  font-weight: normal;
   border: none;
   -webkit-appearance: none;
      -moz-appearance: none;
@@ -410,13 +399,11 @@ x sigin/signup popup
   display: inline-block;
   position: absolute;
   right: 0;
-  top: 0;
   padding: 6px 15px;
   border-left: 1px solid #d2d8d8;
+  top: 50%;
   bottom: auto;
-  /* -webkit-transform: translateY(-50%);
-      -ms-transform: translateY(-50%);
-          transform: translateY(-50%); */
+  transform: translateY(-50%);
   font-size: 1.4rem;
   color: #343642;
 }
@@ -436,7 +423,6 @@ x sigin/signup popup
   pointer-events: none;
   visibility: hidden;
   opacity: 0;
-  -webkit-transition: opacity 0.2s 0s, visibility 0s 0.2s;
   transition: opacity 0.2s 0s, visibility 0s 0.2s;
 }
 
@@ -456,7 +442,6 @@ x sigin/signup popup
 .cd-signin-modal__error.cd-signin-modal__error--is-visible {
   opacity: 1;
   visibility: visible;
-  -webkit-transition: opacity 0.2s 0s, visibility 0s 0s;
   transition: opacity 0.2s 0s, visibility 0s 0s;
 }
 

@@ -1730,9 +1730,9 @@ dd {
 /* ==========================================================================
          Forms
          ========================================================================== */
-label {
+/* label {
     display: block;
-}
+} */
 
 label .req {
     color: red;
@@ -1830,7 +1830,7 @@ table,
 form,
 pre {
     margin-bottom: 16px;
-    line-height: 1.66666666666667em;
+    line-height: inherit;
 }
 
 /* Headers */
@@ -1914,15 +1914,15 @@ form fieldset {
     margin: 0 0 1em;
 }
 
-form label {
+/* form label {
     font-weight: 700;
-}
+} */
 
-form input[type="text"],
+/* form input[type="text"], */
 form input[type="search"],
-form input[type="password"],
+/* form input[type="password"], */
 form input[type="tel"],
-form input[type="email"],
+/* form input[type="email"], */
 form textarea {
     margin: 0;
     padding: 0 10px;
@@ -2282,3 +2282,5 @@ iframe {
 .investmentMenuItems {
     width: 250px;
 }
+
+
