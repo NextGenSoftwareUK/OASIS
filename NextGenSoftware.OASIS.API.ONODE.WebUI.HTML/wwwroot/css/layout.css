@@ -1,0 +1,289 @@
+/* --------------------------------*\
+            primary styles
+\*-------------------------------- */
+
+html,
+body {
+    height: 100%;
+	font-size: 100%;
+	font-family: 'PT Sans', sans-serif;
+	color: #223b53;
+	-webkit-font-smoothing: antialiased;
+	background: url('../img/background40.gif');
+	background-size: cover;
+	background-position: center;
+    background-attachment: fixed;
+}
+
+a {
+	color: #2f889a;
+	text-decoration: none;
+}
+
+*,
+*:after,
+*:before {
+	-webkit-box-sizing: border-box;
+	-moz-box-sizing: border-box;
+	box-sizing: border-box;
+}
+
+*:focus {
+	outline: 0;
+}
+
+*::-moz-focus-inner {
+	border: 0;
+}
+
+scrollbar {
+	width: 0px;
+	background: transparent;
+}
+
+::-webkit-scrollbar {
+	width: 0px;
+	background: transparent;
+}
+
+.img-replace {
+	display: inline-block;
+	overflow: hidden;
+	text-indent: 100%;
+	white-space: nowrap;
+}
+
+.overflow-hidden {
+	overflow: hidden;
+}
+
+/* --------------------------------
+
+header / nav
+
+-------------------------------- */
+
+header {
+	position: relative;
+    /* background: inherit; */
+	top: 0;
+	left: 0;
+	height: 50px;
+	width: 100vw;
+    /* box-shadow: 0 0 1em 0 rgba(0. 0. 0. .2); */
+	background: #223b53;
+	z-index: 3;
+	transform: translateZ(0);
+	backface-visibility: hidden;
+	transition-duration: all 0.4s ease;
+    /* background: inherit; */
+    overflow: hidden;
+}
+/* header:before {
+    content: "";
+    position: absolute;
+    background: inherit;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    	height: 50px;
+	width: 100vw;
+    box-shadow: inset 0 0 2000px rgba(255, 255. 255. .5);
+    filter: blur(10px);
+    margin: -20px;
+} */
+
+@media only screen and (min-width: 768px) {
+	header {
+		height: 70px;
+	}
+}
+.header__logo {
+	display: block;
+	float: left;
+	margin: 4px 0 0 10px;
+}
+
+.header__logo img {
+
+}
+
+@media only screen and (min-width: 768px) {
+.header__logo {
+	margin: 14px 0 0 14px;
+	}
+}
+
+.top-nav {
+	position: absolute;
+	top: 0;
+	right: 120px;
+	height: 100%;
+	display: none;
+}
+
+.top-nav ul {
+	height: 100%;
+	padding-top: 18px;
+}
+
+.top-nav li {
+	display: inline-block;
+	margin-right: 1em;
+}
+
+.top-nav a {
+	display: inline-block;
+	padding: 0.5em;
+	color: #fff;
+	text-transform: uppercase;
+	font-weight: 600;
+}
+
+.top-nav a.current {
+	background-color: #242e30;
+}
+
+.no-touch .top-nav a:hover {
+	color: rgba(255, 255, 255, 0.7);
+}
+
+@media only screen and (min-width: 768px) {
+	.top-nav {
+		display: block;
+	}
+}
+
+.menu-trigger {
+	position: absolute;
+	right: 0;
+	top: 0;
+	height: 100%;
+	width: 50px;
+	background-color: #64807d;
+}
+
+@media only screen and (min-width: 768px) {
+.menu-trigger {
+		width: 70px;
+	}
+}
+
+.menu-trigger .menu-text {
+	height: 100%;
+	text-transform: uppercase;
+	color: #fff;
+	font-weight: 600;
+	display: none;
+}
+
+.menu-trigger .menu-icon {
+	display: inline-block;
+	position: absolute;
+	left: 50%;
+	top: 50%;
+	bottom: auto;
+	right: auto;
+	transform: translateX(-50%) translateY(-50%);
+	width: 18px;
+	height: 2px;
+	background-color: #fff;
+}
+
+.menu-trigger .menu-icon::before,
+.menu-trigger .menu-icon:after {
+	content: '';
+	width: 100%;
+	height: 100%;
+	position: absolute;
+	background-color: inherit;
+	left: 0;
+}
+
+.menu-trigger .menu-icon::before {
+	bottom: 5px;
+}
+
+.menu-trigger .menu-icon::after {
+	top: 5px;
+}
+
+.menu-trigger.is-clicked .menu-icon {
+	background-color: rgba(255, 255, 255, 0);
+}
+
+.menu-trigger.is-clicked .menu-icon::before,
+.menu-trigger.is-clicked .menu-icon::after {
+	background-color: #fff;
+}
+
+.menu-trigger.is-clicked .menu-icon::before {
+	bottom: 0;
+	transform: rotate(45deg);
+}
+
+.menu-trigger.is-clicked .menu-icon::after {
+	top: 0;
+	transform: rotate(-45deg);
+}
+
+@media only screen and (min-width: 768px) {
+	.menu-trigger {
+		width: 110px;
+		padding-left: 1.25em;
+	}
+
+	.menu-trigger .menu-text {
+		display: inline-block;
+		line-height: 70px;
+	}
+
+	.menu-trigger .menu-icon {
+		left: auto;
+		right: 1.25em;
+		transform: translateX(0);
+	}
+}
+
+/* --------------------------------
+
+main content
+
+-------------------------------- */
+
+.main-content {
+	position: relative;
+	min-height: 100%;
+	width: 100%;
+	min-width: 100%;
+	/* background: inherit; */
+	background-size: cover;
+	background-position-x: center;
+	padding: 0;
+	display: block;
+	z-index: 2;
+	transform: translateZ(0);
+	backface-visibility: hidden;
+	overflow-y: hidden;
+	transition: all 0.4s ease;
+}
+
+.main-content h1 {
+	text-align: center;
+	font-size: 20px;
+	margin-top: 3em;
+}
+
+/* @media only screen and (min-width: 768px) {
+	.main-content {
+		padding-top: 70px;
+	}
+} */
+
+/* @media only screen and (min-width: 1170px) {
+	.main-content h1 {
+		font-size: 32px;
+		margin: 4em 0 1em;
+	}
+} */

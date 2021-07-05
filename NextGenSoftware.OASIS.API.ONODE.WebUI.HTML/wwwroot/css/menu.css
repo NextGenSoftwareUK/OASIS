@@ -1,0 +1,109 @@
+/* -------------------------------- *\
+  #LATERAL-NAV
+\*-------------------------------- */
+
+.lateral-nav {
+	position: fixed;
+	height: 100%;
+	right: 0;
+	top: 70px;
+	visibility: hidden;
+	z-index: 3;
+	width: 260px;
+	/* background-color: rgba(17, 24, 39, 0.5); */
+	background: rgba(28, 27, 53, 0.8);
+	overflow-y: auto;
+
+	/* Force Hardware Acceleration in WebKit */
+	backface-visibility: hidden;
+	transition: all 0.4s ease;
+
+	/* this creates the subtle slide in animation of the navigation */
+	transform: translateZ(0) translateX(260px);
+}
+.lateral-nav .navigation {
+	margin: 10px 0 16px;
+}
+.lateral-nav .sub-menu {
+	padding: 0 10px 20px 15px;
+	display: none;
+}
+.lateral-nav a {
+	display: block;
+	line-height: 2em;
+	padding: 4px 16px 4px 32px;
+	color: #aab5b7;
+	border-left: 4px solid #00000000;
+	transition: all 0.3s ease;
+}
+.lateral-nav a.submenu-open {
+	/* padding: 4px 16px 4px 28px; */
+	border-left: 4px solid #1b90ca;
+	background: rgba(255, 255, 255, 0.5);
+  backdrop-filter: blur(50px);
+  box-shadow: 5px 5px 30px rgba(0,0,0,0.5);
+	/* color: #57b6e6; */
+	transition: all 0.4s ease;
+	/* background-color: #3a4a4d; */
+	/* color: #FFF; */
+}
+.no-touch .lateral-nav a:hover {
+	color: #fff;
+}
+.lateral-nav a.submenu-open::after {
+	color: #1b90ca;
+	transition: all 0.4s ease;
+}
+@media only screen and (min-width: 768px) {
+	.lateral-nav .navigation {
+		margin: 20px 0;
+	}
+}
+.lateral-nav.lateral-menu-is-open {
+	transform: translateX(0);
+	visibility: visible;
+	transition: transform 0.4s 0s ease, visibility 0.4s 0s ease;
+	/* smooth the scrolling on touch devices - webkit browsers */
+	-webkit-overflow-scrolling: touch;
+}
+
+/* style menu items which have a submenu  */
+.lateral-nav .item-has-children > a {
+	position: relative;
+	text-transform: uppercase;
+	font-weight: 600;
+	/* this is the right arrow to show that the item has a submenu  */
+}
+.lateral-nav .item-has-children > a::after {
+	content: '';
+	background-color: #fff;
+	-webkit-mask-image: url(../img/arrow.svg);
+	mask-image: url(../img/arrow.svg);
+	display: inline-block;
+	height: 12px;
+	width: 9px;
+	position: absolute;
+	/* padding-top: 10px; */
+	bottom: auto;
+	top: 45%;
+	/* right: 5px; */
+	/* -webkit-transform: translateY(-50%);
+  -moz-transform: translateY(-50%);
+  -ms-transform: translateY(-50%);
+  -o-transform: translateY(-50%);
+  transform: translateY(-50%); */
+	right: 1.5em;
+	/* background-color: #fff; */
+	/* background-image: url(../img/arrow.svg); */
+	/* background-size: 9px 12px; */
+
+	transition: all 0.4s ease;
+}
+.lateral-nav .item-has-children > a.submenu-open::after {
+	background-color: #1b90ca;
+	transform: rotate(90deg);
+	transition: all 0.4s ease;
+}
+.lateral-nav .item-has-children > a.submenu-open {
+	color: #1b90ca;
+}
