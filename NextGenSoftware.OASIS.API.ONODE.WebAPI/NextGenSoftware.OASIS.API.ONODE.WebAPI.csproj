@@ -1,0 +1,64 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);1591</NoWarn>
+  </PropertyGroup>
+    
+  <PropertyGroup>
+    <TargetFramework>net5.0</TargetFramework>
+    <AspNetCoreHostingModel>InProcess</AspNetCoreHostingModel>
+    <RootNamespace>NextGenSoftware.OASIS.API.ONODE.WebAPI</RootNamespace>
+    <AssemblyName>NextGenSoftware.OASIS.API.ONODE.WebAPI</AssemblyName>
+    <StartupObject>NextGenSoftware.OASIS.API.ONODE.WebAPI.Program</StartupObject>
+    <UserSecretsId>b95fccdc-3bbf-4f80-b705-624af891ef15</UserSecretsId>
+  </PropertyGroup>
+
+  <PropertyGroup Condition=" '$(RunConfiguration)' == 'OASIS_API' " />
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <Optimize>true</Optimize>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="Helpers\OASISProviderManager.cs" />
+    <Compile Remove="Helpers\OASISSettings.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="AutoMapper" Version="10.0.0" />
+    <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="8.0.1" />
+    <!--<PackageReference Include="BCrypt.Net-Next" Version="4.0.0" />-->
+    <!--<PackageReference Include="MailKit" Version="2.9.0" />-->
+	  <PackageReference Include="MailKit" Version="2.11.1" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="3.1.8" />
+    <PackageReference Include="Microsoft.AspNetCore.Cors" Version="2.2.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Razor.Design" Version="2.2.0" PrivateAssets="All" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="3.1.8">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="3.1.8" />
+    <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="5.6.2" />
+    <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="6.7.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj" />
+    <ProjectReference Include="..\NextGenSoftware.OASIS.API.DNA\NextGenSoftware.OASIS.API.DNA.csproj" />
+    <ProjectReference Include="..\NextGenSoftware.OASIS.API.Providers.BlockStackOASIS\NextGenSoftware.OASIS.API.Providers.BlockStackOASIS.csproj" />
+    <ProjectReference Include="..\NextGenSoftware.OASIS.API.Providers.EOSIOOASIS\NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.csproj" />
+    <ProjectReference Include="..\NextGenSoftware.OASIS.API.Providers.EthereumOASIS\NextGenSoftware.OASIS.API.Providers.EthereumOASIS.csproj" />
+    <ProjectReference Include="..\NextGenSoftware.OASIS.API.Providers.HoloOASIS.Desktop\NextGenSoftware.OASIS.API.Providers.HoloOASIS.Desktop.csproj" />
+    <ProjectReference Include="..\NextGenSoftware.OASIS.API.Providers.IPFSOASIS\NextGenSoftware.OASIS.API.Providers.IPFSOASIS.csproj" />
+    <ProjectReference Include="..\NextGenSoftware.OASIS.API.Providers.MongoOASIS\NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.csproj" />
+    <ProjectReference Include="..\NextGenSoftware.OASIS.API.Providers.SOLIDOASIS\NextGenSoftware.OASIS.API.Providers.SOLIDOASIS.csproj" />
+    <ProjectReference Include="..\NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS\NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.csproj" />
+    <ProjectReference Include="..\NextGenSoftware.OASIS.OASISBootLoader\NextGenSoftware.OASIS.OASISBootLoader.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Pages\" />
+  </ItemGroup>
+
+</Project>

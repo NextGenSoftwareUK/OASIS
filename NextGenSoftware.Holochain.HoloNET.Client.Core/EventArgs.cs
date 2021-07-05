@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json.Linq;
+using System;
 using System.Collections.Generic;
 using System.Net.WebSockets;
 
@@ -6,60 +7,29 @@ namespace NextGenSoftware.Holochain.HoloNET.Client.Core
 {
     public class ConnectedEventArgs : EventArgs
     {
-        public ConnectedEventArgs(string endPoint)
-        {
-            EndPoint = endPoint;
-        }
-
-        public string EndPoint { get; private set; }
+        public string EndPoint { get; set; }
     }
 
     public class DisconnectedEventArgs : EventArgs
     {
-        public DisconnectedEventArgs(string endPoint, string reason)
-        {
-            EndPoint = endPoint;
-            Reason = reason;
-        }
-
-        public string EndPoint { get; private set; }
-        public string Reason { get; private set; }
+        public string EndPoint { get; set; }
+        public string Reason { get; set; }
     }
 
-    public class ErrorEventArgs : EventArgs
+    public class HoloNETErrorEventArgs : EventArgs
     {
-        public ErrorEventArgs(string endPoint, string reason, Exception errorDetails)
-        {
-            EndPoint = endPoint;
-            Reason = reason;
-            ErrorDetails = errorDetails;
-        }
-
-        public ErrorEventArgs(string endPoint, string reason)
-        {
-            EndPoint = endPoint;
-            Reason = reason;
-        }
-
-        public string EndPoint { get; private set; }
-        public string Reason { get; private set; }
-        public Exception ErrorDetails { get; private set; }
+        public string EndPoint { get; set; }
+        public string Reason { get; set; }
+        public Exception ErrorDetails { get; set; }
     }
-
     public class DataReceivedEventArgs : EventArgs
     {
-        public DataReceivedEventArgs(string endPoint, string rawJSONData, WebSocketReceiveResult webSocketResult)
-        {
-            EndPoint = endPoint;
-            RawJSONData = rawJSONData;
-            WebSocketResult = webSocketResult;
-        }
+        public string EndPoint { get; set; }
+        public string RawJSONData { get; set; }
+        public WebSocketReceiveResult WebSocketResult { get; set; }
 
-        public string EndPoint { get; private set; }
-        public string RawJSONData { get; private set; }
-        public WebSocketReceiveResult WebSocketResult { get; private set; }
+        public bool IsConductorDebugInfo { get; set; }
     }
-
     public class ZomeFunctionCallBackEventArgs : CallBackBaseEventArgs
     {
         public ZomeFunctionCallBackEventArgs(string id, string endPoint, string instance, string zome, string zomeFunction, bool isCallSuccessful, string rawZomeReturnData, string zomeReturnData, string rawJSONData, WebSocketReceiveResult webSocketResult)
@@ -71,7 +41,7 @@ namespace NextGenSoftware.Holochain.HoloNET.Client.Core
             RawZomeReturnData = rawZomeReturnData;
             ZomeReturnData = zomeReturnData;
         }
-       
+
         public string Instance { get; private set; }
         public string Zome { get; private set; }
         public string ZomeFunction { get; private set; }
@@ -97,14 +67,37 @@ namespace NextGenSoftware.Holochain.HoloNET.Client.Core
 
     public class SignalsCallBackEventArgs : CallBackBaseEventArgs
     {
-        public SignalsCallBackEventArgs(string id, string endPoint, bool isCallSuccessful, string rawJSONData, WebSocketReceiveResult webSocketResult)
+        public SignalsCallBackEventArgs(string id, string endPoint, bool isCallSuccessful, string rawJSONData, SignalTypes signalType, string name, JToken args, WebSocketReceiveResult webSocketResult)
             : base(id, endPoint, isCallSuccessful, rawJSONData, webSocketResult)
         {
-            
+            this.SignalType = signalType;
+            this.Name = name;
+            this.Arguments = args;
+        }
+
+        public enum SignalTypes
+        {
+            User
         }
 
         //TODO: Check Signals Return Data And Add Properties Here
-        //public SignalType SignalType { get; set; }
+       public SignalTypes SignalType { get; set; }
+       public string Name { get; set; }
+       public JToken Arguments { get; set; }
+    }
+
+    public class ConductorDebugCallBackEventArgs 
+    {
+        public string Type { get; set; }
+        public int NumberHeldEntries { get; set; }
+        public int NumberHeldAspects { get; set; }
+        public int NumberPendingValidations { get; set; }
+        public int NumberDelayedValidations { get; set; }
+        public int NumberRunningZomeCalls { get; set; }
+        public bool Offline { get; set; }
+        public string EndPoint { get; set; }
+        public string RawJSONData { get; set; }
+        public WebSocketReceiveResult WebSocketResult { get; set; }
     }
 
     public abstract class CallBackBaseEventArgs : EventArgs

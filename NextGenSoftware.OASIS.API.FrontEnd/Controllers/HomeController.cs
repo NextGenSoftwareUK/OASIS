@@ -1,12 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using System.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
-using OASIS_API_FrontEnd.Models;
+using NextGenSoftware.OASIS.API.FrontEnd.Web.Models;
 
-namespace OASIS_API_FrontEnd.Controllers
+namespace NextGenSoftware.OASIS.API.FrontEnd.Web.Controllers
 {
     public class HomeController : Controller
     {

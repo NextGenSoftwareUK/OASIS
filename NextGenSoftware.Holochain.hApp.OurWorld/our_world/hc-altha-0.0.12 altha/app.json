@@ -1,0 +1,14 @@
+{
+  "name": "Our World Holochain App",
+  "description": "Our World Holochain App",
+  "authors": [
+    {
+      "identifier": "David Ellams <david@nextgensoftware.co.uk>",
+      "public_key_source": "",
+      "signature": ""
+    }
+  ],
+  "version": "0.1.0",
+  "dht": {},
+  "properties": null
+}

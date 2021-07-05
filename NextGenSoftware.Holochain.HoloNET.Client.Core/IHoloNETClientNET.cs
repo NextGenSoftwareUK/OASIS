@@ -11,6 +11,5 @@ namespace NextGenSoftware.Holochain.HoloNET.Client.Core
         string ReceiveData();
 
         NetSocketState NetSocketState { get; set; }
-
     }
 }
