@@ -5,11 +5,9 @@ namespace NextGenSoftware.Holochain.HoloNET.Client.Desktop
 {
     public class HoloNETClient : HoloNETClientBase
     {
-        public HoloNETClient(string holochainURI) : base(holochainURI)
+        public HoloNETClient(string holochainConductorURI, HolochainVersion version) : base(holochainConductorURI, version)
         {
             this.Logger = new NLogger();
         }
-
-
     }
 }

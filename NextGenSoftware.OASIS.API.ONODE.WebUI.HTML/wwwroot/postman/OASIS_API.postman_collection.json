@@ -1,0 +1,3444 @@
+{
+	"info": {
+		"_postman_id": "a1065653-d330-4549-b03c-3ada31c70def",
+		"name": "OASIS API",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Avatar",
+			"item": [
+				{
+					"name": "Register",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"title\": \"Mr\",\r\n    \"firstName\": \"David\",\r\n    \"lastName\": \"Ellams\",\r\n    \"email\": \"davidellams@hotmail.com\",\r\n    \"password\": \"my-super-secret-password\",\r\n    \"confirmPassword\": \"my-super-secret-password\",\r\n    \"acceptTerms\": true,\r\n    \"AvatarType\": \"Wizard\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/api/avatar/register",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"avatar",
+								"register"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Authenticate",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"email\": \"davidellams@hotmail.com\",\r\n    \"password\": \"my-super-secret-password\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/api/avatar/authenticate/",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"avatar",
+								"authenticate",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Verify Email",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"token\": \"19988B42F6BB845710AEE923B49E3A8C450222DC755E297F772E67891E535739B5B577FB7BB0D679\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/api/avatar/verify-email/MongoDBOASIS/false",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"avatar",
+								"verify-email",
+								"MongoDBOASIS",
+								"false"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Verify Email",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"token\": \"1BD797E431BF2A1AAB84B0661E7467ED605E390DDE3BCD091B4DD1777A6CBDEEF156C5EE13BF22B6\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/api/avatar/verify-email",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"avatar",
+								"verify-email"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Forgot Password",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjM1ODUwMzIxLWZhZjAtNGM5NC1hMmY4LTkxMTBlMzYyMGJiNiIsIm5iZiI6MTYxNDYyNzkzOSwiZXhwIjoxNjE0NjI4ODM5LCJpYXQiOjE2MTQ2Mjc5Mzl9.7nruuV8ofYwbVKk0mD4TZFlvaROMIri_pklGByhVUtg",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"email\": \"davidellams@hotmail.com\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/api/avatar/forgot-password",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"avatar",
+								"forgot-password"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Password Reset",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjM1ODUwMzIxLWZhZjAtNGM5NC1hMmY4LTkxMTBlMzYyMGJiNiIsIm5iZiI6MTYxNDYyNzkzOSwiZXhwIjoxNjE0NjI4ODM5LCJpYXQiOjE2MTQ2Mjc5Mzl9.7nruuV8ofYwbVKk0mD4TZFlvaROMIri_pklGByhVUtg",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"token\": \"1DB4BB494F50AAC54979DFAA192E50F76D2A2237B3DD2EE379F76E84386FD531A57B656227CA8266\",\r\n    \"password\": \"new-super-secret-password\",\r\n    \"confirmPassword\": \"new-super-secret-password\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/api/avatar/reset-password",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"avatar",
+								"reset-password"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Refresh Token",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjFkY2NmNTY1LTlmNjQtNDllNi1iZjIwLTBhYWYxNDcwYjQ1MyIsIm5iZiI6MTYwMTU1Nzg5NCwiZXhwIjoxNjAxNTU4Nzk0LCJpYXQiOjE2MDE1NTc4OTR9.2AB1U_l0j0JhhXOn4Ymr4btdvKCEDTYTr0drljFJaOM",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/avatar/refresh-token",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"avatar",
+								"refresh-token"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Revoke Token (Log out)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjFkY2NmNTY1LTlmNjQtNDllNi1iZjIwLTBhYWYxNDcwYjQ1MyIsIm5iZiI6MTYwMTU1Nzg5NCwiZXhwIjoxNjAxNTU4Nzk0LCJpYXQiOjE2MDE1NTc4OTR9.2AB1U_l0j0JhhXOn4Ymr4btdvKCEDTYTr0drljFJaOM",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"token\": \"3D0C4C94ACBBA1A75C12E2EB7F2523FA5C70D4027AD46A1708D451AFC59770EF76ECC3785236E018\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/api/avatar/revoke-token",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"avatar",
+								"revoke-token"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Avatar",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImVlMTVhZGFlLTlmODQtNDk0ZC1hM2UzLTU4MTU1N2FhZTdiYyIsIm5iZiI6MTYxNjA4Mjk3NiwiZXhwIjoxNjE2MDgzODc2LCJpYXQiOjE2MTYwODI5NzZ9.FaPvA7Ak3lQRTAsZn4LjBtvA2apkHWckMtOUAkJIsKM",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/avatar/GetById/ee15adae-9f84-494d-a3e3-581557aae7bc",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"avatar",
+								"GetById",
+								"ee15adae-9f84-494d-a3e3-581557aae7bc"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Avatars",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImVlMTVhZGFlLTlmODQtNDk0ZC1hM2UzLTU4MTU1N2FhZTdiYyIsIm5iZiI6MTYxNjA4Mjk3NiwiZXhwIjoxNjE2MDgzODc2LCJpYXQiOjE2MTYwODI5NzZ9.FaPvA7Ak3lQRTAsZn4LjBtvA2apkHWckMtOUAkJIsKM",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/avatar/GetAll",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"avatar",
+								"GetAll"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Avatar",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImVlMTVhZGFlLTlmODQtNDk0ZC1hM2UzLTU4MTU1N2FhZTdiYyIsIm5iZiI6MTYxNjY4ODQ0OSwiZXhwIjoxNjE2Njg5MzQ5LCJpYXQiOjE2MTY2ODg0NDl9.Me72FgQ5FZ1FT0nOKBBqwE8DwX9oYhuRqQ3xJJnbpg8",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"firstName\": \"Frank2\",\r\n    \"lastName\": \"Murphy2222\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/api/avatar/Update/ee15adae-9f84-494d-a3e3-581557aae7bc",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"avatar",
+								"Update",
+								"ee15adae-9f84-494d-a3e3-581557aae7bc"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Avatar",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjFkY2NmNTY1LTlmNjQtNDllNi1iZjIwLTBhYWYxNDcwYjQ1MyIsIm5iZiI6MTYwMTU2Mzg4NiwiZXhwIjoxNjAxNTY0Nzg2LCJpYXQiOjE2MDE1NjM4ODZ9.6NZovBY5sxNyyoFH_jzWMezEHnfzUJkPhxrUs5LB-Ew",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/avatar/1dccf565-9f64-49e6-bf20-0aaf1470b453",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"avatar",
+								"1dccf565-9f64-49e6-bf20-0aaf1470b453"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Add Karma To Avatar",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjM2ODVkZjg0LTc3ZmMtNDM1OS1iNjdkLTA4ZDk0MTE1MjgwZiIsIm5iZiI6MTYxNTQ4MTM4NCwiZXhwIjoxNjE1NDgyMjg0LCJpYXQiOjE2MTU0ODEzODR9.U8OvF-oRUuJ7kQFcMy6Xlc2s96LhN-462WjLnUeOSjQ",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"KarmaType\": \"BeAHero\",\r\n    \"karmaSourceType\": \"Game\",\r\n    \"KaramSourceTitle\": \"helppeoplegame222\",\r\n    \"KarmaSourceDesc\": \"greatgame222\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/api/avatar/AddKarmaToAvatar/3685df84-77fc-4359-b67d-08d94115280f",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"avatar",
+								"AddKarmaToAvatar",
+								"3685df84-77fc-4359-b67d-08d94115280f"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Remove Karma From Avatar",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjM2ODVkZjg0LTc3ZmMtNDM1OS1iNjdkLTA4ZDk0MTE1MjgwZiIsIm5iZiI6MTYxNTQ4MTM4NCwiZXhwIjoxNjE1NDgyMjg0LCJpYXQiOjE2MTU0ODEzODR9.U8OvF-oRUuJ7kQFcMy6Xlc2s96LhN-462WjLnUeOSjQ",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"KarmaType\": \"DropLitter\",\r\n    \"karmaSourceType\": \"AndroidApp\",\r\n    \"KaramSourceTitle\": \"SEEDS\",\r\n    \"KarmaSourceDesc\": \"SEEDS\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/api/avatar/RemoveKarmaFromAvatar/3685df84-77fc-4359-b67d-08d94115280f",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"avatar",
+								"RemoveKarmaFromAvatar",
+								"3685df84-77fc-4359-b67d-08d94115280f"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Link Telos Account To Avatar",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjM2ODVkZjg0LTc3ZmMtNDM1OS1iNjdkLTA4ZDk0MTE1MjgwZiIsIm5iZiI6MTYxNTQ4MTM4NCwiZXhwIjoxNjE1NDgyMjg0LCJpYXQiOjE2MTU0ODEzODR9.U8OvF-oRUuJ7kQFcMy6Xlc2s96LhN-462WjLnUeOSjQ",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"KarmaType\": \"DropLitter\",\r\n    \"karmaSourceType\": \"AndroidApp\",\r\n    \"KaramSourceTitle\": \"SEEDS\",\r\n    \"KarmaSourceDesc\": \"SEEDS\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/api/avatar/LinkTelosAccountToAvatar",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"avatar",
+								"LinkTelosAccountToAvatar"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Link EOSIO Account To Avatar",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjM2ODVkZjg0LTc3ZmMtNDM1OS1iNjdkLTA4ZDk0MTE1MjgwZiIsIm5iZiI6MTYxNTQ4MTM4NCwiZXhwIjoxNjE1NDgyMjg0LCJpYXQiOjE2MTU0ODEzODR9.U8OvF-oRUuJ7kQFcMy6Xlc2s96LhN-462WjLnUeOSjQ",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"KarmaType\": \"DropLitter\",\r\n    \"karmaSourceType\": \"AndroidApp\",\r\n    \"KaramSourceTitle\": \"SEEDS\",\r\n    \"KarmaSourceDesc\": \"SEEDS\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/api/avatar/LinkEOSIOAccountToAvatar",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"avatar",
+								"LinkEOSIOAccountToAvatar"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Karma",
+			"item": [
+				{
+					"name": "Get Karma For Avatar",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjM2ODVkZjg0LTc3ZmMtNDM1OS1iNjdkLTA4ZDk0MTE1MjgwZiIsIm5iZiI6MTYxNTQ4MDY2OCwiZXhwIjoxNjE1NDgxNTY4LCJpYXQiOjE2MTU0ODA2Njh9.XrXtuiRImaJ-xeOVsDM21vtelndgkIvRA1xGbpM2ED0",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/api/karma/GetKarmaForAvatar/13afd357-3715-4e90-927e-6aedcbd2c9c5",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"karma",
+								"GetKarmaForAvatar",
+								"13afd357-3715-4e90-927e-6aedcbd2c9c5"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Karma Akashic RecordsForAvatar",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjM2ODVkZjg0LTc3ZmMtNDM1OS1iNjdkLTA4ZDk0MTE1MjgwZiIsIm5iZiI6MTYxNTQ4MDY2OCwiZXhwIjoxNjE1NDgxNTY4LCJpYXQiOjE2MTU0ODA2Njh9.XrXtuiRImaJ-xeOVsDM21vtelndgkIvRA1xGbpM2ED0",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/api/karma/GetKarmaAkashicRecordsForAvatar/13afd357-3715-4e90-927e-6aedcbd2c9c5",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"karma",
+								"GetKarmaAkashicRecordsForAvatar",
+								"13afd357-3715-4e90-927e-6aedcbd2c9c5"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Add Karma To Avatar",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjM2ODVkZjg0LTc3ZmMtNDM1OS1iNjdkLTA4ZDk0MTE1MjgwZiIsIm5iZiI6MTYxNTQ4MDY2OCwiZXhwIjoxNjE1NDgxNTY4LCJpYXQiOjE2MTU0ODA2Njh9.XrXtuiRImaJ-xeOVsDM21vtelndgkIvRA1xGbpM2ED0",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"KarmaType\": \"BeAHero\",\r\n    \"karmaSourceType\": \"Game\",\r\n    \"KaramSourceTitle\": \"helppeoplegame222\",\r\n    \"KarmaSourceDesc\": \"greatgame222\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/api/karma/AddKarmaToAvatar/3685df84-77fc-4359-b67d-08d94115280f",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"karma",
+								"AddKarmaToAvatar",
+								"3685df84-77fc-4359-b67d-08d94115280f"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Remove Karma From Avatar",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjM2ODVkZjg0LTc3ZmMtNDM1OS1iNjdkLTA4ZDk0MTE1MjgwZiIsIm5iZiI6MTYxNTQ4MTM4NCwiZXhwIjoxNjE1NDgyMjg0LCJpYXQiOjE2MTU0ODEzODR9.U8OvF-oRUuJ7kQFcMy6Xlc2s96LhN-462WjLnUeOSjQ",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"KarmaType\": \"DropLitter\",\r\n    \"karmaSourceType\": \"AndroidApp\",\r\n    \"KaramSourceTitle\": \"SEEDS\",\r\n    \"KarmaSourceDesc\": \"SEEDS\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/api/karma/RemoveKarmaFromAvatar/3685df84-77fc-4359-b67d-08d94115280f",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"karma",
+								"RemoveKarmaFromAvatar",
+								"3685df84-77fc-4359-b67d-08d94115280f"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Data",
+			"item": [
+				{
+					"name": "Load Holon",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImVlMTVhZGFlLTlmODQtNDk0ZC1hM2UzLTU4MTU1N2FhZTdiYyIsIm5iZiI6MTYxNTU1NjIzMSwiZXhwIjoxNjE1NTU3MTMxLCJpYXQiOjE2MTU1NTYyMzF9.CX1OIFPFBFqkDw2GCqpAEnfeQzTBTtTQh6NsmpCcgZM",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/data/loadholon/0588e043-58f8-408a-af46-e0a45861b149",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"data",
+								"loadholon",
+								"0588e043-58f8-408a-af46-e0a45861b149"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Load All Holons",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImVlMTVhZGFlLTlmODQtNDk0ZC1hM2UzLTU4MTU1N2FhZTdiYyIsIm5iZiI6MTYxNTU2MjUwOCwiZXhwIjoxNjE1NTYzNDA4LCJpYXQiOjE2MTU1NjI1MDh9.Uv3RNwFMtiQJCxPp8v7saoCO2Bi9xIHDO0zsojvh0L0",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/data/LoadAllHolons",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"data",
+								"LoadAllHolons"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Load All Holons For Parent",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImVlMTVhZGFlLTlmODQtNDk0ZC1hM2UzLTU4MTU1N2FhZTdiYyIsIm5iZiI6MTYxNTU2MzQzMiwiZXhwIjoxNjE1NTY0MzMyLCJpYXQiOjE2MTU1NjM0MzJ9.WpV5iq4Ce9qnpdMbLiAPyRTbtJmhGw2bBYgTJnWdsxs",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/data/LoadAllHolonsForParent/89a935f4-d0ad-44af-b954-558041a76c18",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"data",
+								"LoadAllHolonsForParent",
+								"89a935f4-d0ad-44af-b954-558041a76c18"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Save Holon",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImVlMTVhZGFlLTlmODQtNDk0ZC1hM2UzLTU4MTU1N2FhZTdiYyIsIm5iZiI6MTYxNTU1OTkzNywiZXhwIjoxNjE1NTYwODM3LCJpYXQiOjE2MTU1NTk5Mzd9.x-R4pDKtZr0zxqQwwMb1yeSAsd5TH-lD9kLmqj0zflc",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"id\": \"56e87574-1607-4321-b314-60533a877df9\",\r\n    \"Name\": \"Test Holon2225nnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn55\",\r\n    \"Description\": \"Test Holon Desc\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}api/data/saveholon",
+							"host": [
+								"{{host}}api"
+							],
+							"path": [
+								"data",
+								"saveholon"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Provider",
+			"item": [
+				{
+					"name": "Get Current Storage Provider",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImVlMTVhZGFlLTlmODQtNDk0ZC1hM2UzLTU4MTU1N2FhZTdiYyIsIm5iZiI6MTYxNjY3ODYyNCwiZXhwIjoxNjE2Njc5NTI0LCJpYXQiOjE2MTY2Nzg2MjR9.Bq0WHIORkyjc-Vmad6XLugEb70xgAiZtq1djNZWIyOY",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/provider/GetCurrentStorageProvider",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"provider",
+								"GetCurrentStorageProvider"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Current Storage Provider Type",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImVlMTVhZGFlLTlmODQtNDk0ZC1hM2UzLTU4MTU1N2FhZTdiYyIsIm5iZiI6MTYxNjY3ODYyNCwiZXhwIjoxNjE2Njc5NTI0LCJpYXQiOjE2MTY2Nzg2MjR9.Bq0WHIORkyjc-Vmad6XLugEb70xgAiZtq1djNZWIyOY",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/provider/GetCurrentStorageProviderType",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"provider",
+								"GetCurrentStorageProviderType"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Registered Providers",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImVlMTVhZGFlLTlmODQtNDk0ZC1hM2UzLTU4MTU1N2FhZTdiYyIsIm5iZiI6MTYxNjY5MTQ0NiwiZXhwIjoxNjE2NjkyMzQ2LCJpYXQiOjE2MTY2OTE0NDZ9.JEPCz5Lo5GTk-PKcnIHJYJYMyWOWYDqwOx0mwqzRiR4",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/provider/GetAllRegisteredProviders",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"provider",
+								"GetAllRegisteredProviders"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Registered Provider Types",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImVlMTVhZGFlLTlmODQtNDk0ZC1hM2UzLTU4MTU1N2FhZTdiYyIsIm5iZiI6MTYxNjY3ODYyNCwiZXhwIjoxNjE2Njc5NTI0LCJpYXQiOjE2MTY2Nzg2MjR9.Bq0WHIORkyjc-Vmad6XLugEb70xgAiZtq1djNZWIyOY",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/provider/GetAllRegisteredProviderTypes",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"provider",
+								"GetAllRegisteredProviderTypes"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Registered Providers For Category",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImVlMTVhZGFlLTlmODQtNDk0ZC1hM2UzLTU4MTU1N2FhZTdiYyIsIm5iZiI6MTYxNjY3ODYyNCwiZXhwIjoxNjE2Njc5NTI0LCJpYXQiOjE2MTY2Nzg2MjR9.Bq0WHIORkyjc-Vmad6XLugEb70xgAiZtq1djNZWIyOY",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/provider/GetAllRegisteredProvidersForCategory/StorageAndNetwork",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"provider",
+								"GetAllRegisteredProvidersForCategory",
+								"StorageAndNetwork"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Registered Storage Providers",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImVlMTVhZGFlLTlmODQtNDk0ZC1hM2UzLTU4MTU1N2FhZTdiYyIsIm5iZiI6MTYxNjY3ODYyNCwiZXhwIjoxNjE2Njc5NTI0LCJpYXQiOjE2MTY2Nzg2MjR9.Bq0WHIORkyjc-Vmad6XLugEb70xgAiZtq1djNZWIyOY",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/provider/GetAllRegisteredStorageProviders",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"provider",
+								"GetAllRegisteredStorageProviders"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Registered Network Providers",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImVlMTVhZGFlLTlmODQtNDk0ZC1hM2UzLTU4MTU1N2FhZTdiYyIsIm5iZiI6MTYxNjY3ODYyNCwiZXhwIjoxNjE2Njc5NTI0LCJpYXQiOjE2MTY2Nzg2MjR9.Bq0WHIORkyjc-Vmad6XLugEb70xgAiZtq1djNZWIyOY",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/provider/GetAllRegisteredNetworkProviders",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"provider",
+								"GetAllRegisteredNetworkProviders"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Registered Renderer Providers",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImVlMTVhZGFlLTlmODQtNDk0ZC1hM2UzLTU4MTU1N2FhZTdiYyIsIm5iZiI6MTYxNjY3ODYyNCwiZXhwIjoxNjE2Njc5NTI0LCJpYXQiOjE2MTY2Nzg2MjR9.Bq0WHIORkyjc-Vmad6XLugEb70xgAiZtq1djNZWIyOY",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/provider/GetAllRegisteredRendererProviders",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"provider",
+								"GetAllRegisteredRendererProviders"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Registered Provider",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImVlMTVhZGFlLTlmODQtNDk0ZC1hM2UzLTU4MTU1N2FhZTdiYyIsIm5iZiI6MTYxNjY3ODYyNCwiZXhwIjoxNjE2Njc5NTI0LCJpYXQiOjE2MTY2Nzg2MjR9.Bq0WHIORkyjc-Vmad6XLugEb70xgAiZtq1djNZWIyOY",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/provider/GetRegisteredProvider",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"provider",
+								"GetRegisteredProvider"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Is Provider Registered",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImVlMTVhZGFlLTlmODQtNDk0ZC1hM2UzLTU4MTU1N2FhZTdiYyIsIm5iZiI6MTYxNjY3ODYyNCwiZXhwIjoxNjE2Njc5NTI0LCJpYXQiOjE2MTY2Nzg2MjR9.Bq0WHIORkyjc-Vmad6XLugEb70xgAiZtq1djNZWIyOY",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/provider/IsProviderRegistered",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"provider",
+								"IsProviderRegistered"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Providers That Are Auto Replicating",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImVlMTVhZGFlLTlmODQtNDk0ZC1hM2UzLTU4MTU1N2FhZTdiYyIsIm5iZiI6MTYxNjY4OTE0MSwiZXhwIjoxNjE2NjkwMDQxLCJpYXQiOjE2MTY2ODkxNDF9.Y3a3nwdkiqPTNJscKzShkVVRJ5oUnPCvmJWi-hv6iBg",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/provider/GetProvidersThatAreAutoReplicating",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"provider",
+								"GetProvidersThatAreAutoReplicating"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Providers That Have Auto FailOver Enabled",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImVlMTVhZGFlLTlmODQtNDk0ZC1hM2UzLTU4MTU1N2FhZTdiYyIsIm5iZiI6MTYxNjc4Nzg1NywiZXhwIjoxNjE2Nzg4NzU3LCJpYXQiOjE2MTY3ODc4NTd9.iwQNeMTWNECHXAOpAEih3NDvwTl05vYN8z8s0TIcZ6M",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/provider/GetProvidersThatHaveAutoFailOverEnabled",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"provider",
+								"GetProvidersThatHaveAutoFailOverEnabled"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Providers That Have Auto Load Balance Enabled",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImVlMTVhZGFlLTlmODQtNDk0ZC1hM2UzLTU4MTU1N2FhZTdiYyIsIm5iZiI6MTYxNjY4OTE0MSwiZXhwIjoxNjE2NjkwMDQxLCJpYXQiOjE2MTY2ODkxNDF9.Y3a3nwdkiqPTNJscKzShkVVRJ5oUnPCvmJWi-hv6iBg",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/provider/GetProvidersThatHaveAutoLoadBalanceEnabled",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"provider",
+								"GetProvidersThatHaveAutoLoadBalanceEnabled"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Register Provider",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImVlMTVhZGFlLTlmODQtNDk0ZC1hM2UzLTU4MTU1N2FhZTdiYyIsIm5iZiI6MTYxNjY5MTQ0NiwiZXhwIjoxNjE2NjkyMzQ2LCJpYXQiOjE2MTY2OTE0NDZ9.JEPCz5Lo5GTk-PKcnIHJYJYMyWOWYDqwOx0mwqzRiR4",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/provider/RegisterProvider/HoloOASIS",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"provider",
+								"RegisterProvider",
+								"HoloOASIS"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Register Provider Type",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImVlMTVhZGFlLTlmODQtNDk0ZC1hM2UzLTU4MTU1N2FhZTdiYyIsIm5iZiI6MTYxNjc4Nzg1NywiZXhwIjoxNjE2Nzg4NzU3LCJpYXQiOjE2MTY3ODc4NTd9.iwQNeMTWNECHXAOpAEih3NDvwTl05vYN8z8s0TIcZ6M",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/provider/RegisterProviderType/HoloOASIS",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"provider",
+								"RegisterProviderType",
+								"HoloOASIS"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Register Providers",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImVlMTVhZGFlLTlmODQtNDk0ZC1hM2UzLTU4MTU1N2FhZTdiYyIsIm5iZiI6MTYxNjY3ODYyNCwiZXhwIjoxNjE2Njc5NTI0LCJpYXQiOjE2MTY2Nzg2MjR9.Bq0WHIORkyjc-Vmad6XLugEb70xgAiZtq1djNZWIyOY",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/provider/RegisterProviderTypes",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"provider",
+								"RegisterProviderTypes"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Register Provider Types",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImVlMTVhZGFlLTlmODQtNDk0ZC1hM2UzLTU4MTU1N2FhZTdiYyIsIm5iZiI6MTYxNjY3ODYyNCwiZXhwIjoxNjE2Njc5NTI0LCJpYXQiOjE2MTY2Nzg2MjR9.Bq0WHIORkyjc-Vmad6XLugEb70xgAiZtq1djNZWIyOY",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/provider/RegisterProviders",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"provider",
+								"RegisterProviders"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "UnRegister Provider",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImVlMTVhZGFlLTlmODQtNDk0ZC1hM2UzLTU4MTU1N2FhZTdiYyIsIm5iZiI6MTYxNjY3ODYyNCwiZXhwIjoxNjE2Njc5NTI0LCJpYXQiOjE2MTY2Nzg2MjR9.Bq0WHIORkyjc-Vmad6XLugEb70xgAiZtq1djNZWIyOY",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/provider/UnRegisterProvider",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"provider",
+								"UnRegisterProvider"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "UnRegister Provider Type",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImVlMTVhZGFlLTlmODQtNDk0ZC1hM2UzLTU4MTU1N2FhZTdiYyIsIm5iZiI6MTYxNjY5MTQ0NiwiZXhwIjoxNjE2NjkyMzQ2LCJpYXQiOjE2MTY2OTE0NDZ9.JEPCz5Lo5GTk-PKcnIHJYJYMyWOWYDqwOx0mwqzRiR4",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/provider/UnRegisterProviderType/HoloOASIS",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"provider",
+								"UnRegisterProviderType",
+								"HoloOASIS"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "UnRegister Providers",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImVlMTVhZGFlLTlmODQtNDk0ZC1hM2UzLTU4MTU1N2FhZTdiYyIsIm5iZiI6MTYxNjY3ODYyNCwiZXhwIjoxNjE2Njc5NTI0LCJpYXQiOjE2MTY2Nzg2MjR9.Bq0WHIORkyjc-Vmad6XLugEb70xgAiZtq1djNZWIyOY",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/provider/UnRegisterProviders",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"provider",
+								"UnRegisterProviders"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "UnRegister Provider Types",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImVlMTVhZGFlLTlmODQtNDk0ZC1hM2UzLTU4MTU1N2FhZTdiYyIsIm5iZiI6MTYxNjY3ODYyNCwiZXhwIjoxNjE2Njc5NTI0LCJpYXQiOjE2MTY2Nzg2MjR9.Bq0WHIORkyjc-Vmad6XLugEb70xgAiZtq1djNZWIyOY",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/provider/UnRegisterProviderTypes",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"provider",
+								"UnRegisterProviderTypes"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Set And Activate Current Storage Provider",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImVlMTVhZGFlLTlmODQtNDk0ZC1hM2UzLTU4MTU1N2FhZTdiYyIsIm5iZiI6MTYxNjc4ODMzMCwiZXhwIjoxNjE2Nzg5MjMwLCJpYXQiOjE2MTY3ODgzMzB9.pcZc4ZEzPV3kO4ap3F91dmYLbGkm5gssMYEo7tkqru8",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/provider/SetAndActivateCurrentStorageProvider/HoloOASIS",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"provider",
+								"SetAndActivateCurrentStorageProvider",
+								"HoloOASIS"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Activate Provider",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImVlMTVhZGFlLTlmODQtNDk0ZC1hM2UzLTU4MTU1N2FhZTdiYyIsIm5iZiI6MTYxNjY3ODYyNCwiZXhwIjoxNjE2Njc5NTI0LCJpYXQiOjE2MTY2Nzg2MjR9.Bq0WHIORkyjc-Vmad6XLugEb70xgAiZtq1djNZWIyOY",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/provider/ActivateProvider",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"provider",
+								"ActivateProvider"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Deactivate Provider",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImVlMTVhZGFlLTlmODQtNDk0ZC1hM2UzLTU4MTU1N2FhZTdiYyIsIm5iZiI6MTYxNjY3ODYyNCwiZXhwIjoxNjE2Njc5NTI0LCJpYXQiOjE2MTY2Nzg2MjR9.Bq0WHIORkyjc-Vmad6XLugEb70xgAiZtq1djNZWIyOY",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/provider/DeActivateProvider",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"provider",
+								"DeActivateProvider"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Set Default Providers",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImVlMTVhZGFlLTlmODQtNDk0ZC1hM2UzLTU4MTU1N2FhZTdiYyIsIm5iZiI6MTYxNjY3ODYyNCwiZXhwIjoxNjE2Njc5NTI0LCJpYXQiOjE2MTY2Nzg2MjR9.Bq0WHIORkyjc-Vmad6XLugEb70xgAiZtq1djNZWIyOY",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/provider/SetDefaultProviders",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"provider",
+								"SetDefaultProviders"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Set Load Balance",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImVlMTVhZGFlLTlmODQtNDk0ZC1hM2UzLTU4MTU1N2FhZTdiYyIsIm5iZiI6MTYxNjY3ODYyNCwiZXhwIjoxNjE2Njc5NTI0LCJpYXQiOjE2MTY2Nzg2MjR9.Bq0WHIORkyjc-Vmad6XLugEb70xgAiZtq1djNZWIyOY",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/provider/SetLoadBalance",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"provider",
+								"SetLoadBalance"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Set Auto Replicate For List Of Providers",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImVlMTVhZGFlLTlmODQtNDk0ZC1hM2UzLTU4MTU1N2FhZTdiYyIsIm5iZiI6MTYxNjY4ODQ0OSwiZXhwIjoxNjE2Njg5MzQ5LCJpYXQiOjE2MTY2ODg0NDl9.Me72FgQ5FZ1FT0nOKBBqwE8DwX9oYhuRqQ3xJJnbpg8",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"providers\": \"HoloOASIS\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:5000/api/provider/SetAutoReplicateForListOfProviders/false/HoloOASIS",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5000",
+							"path": [
+								"api",
+								"provider",
+								"SetAutoReplicateForListOfProviders",
+								"false",
+								"HoloOASIS"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Set Auto Replicate For All Providers",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImVlMTVhZGFlLTlmODQtNDk0ZC1hM2UzLTU4MTU1N2FhZTdiYyIsIm5iZiI6MTYxNjY4OTE0MSwiZXhwIjoxNjE2NjkwMDQxLCJpYXQiOjE2MTY2ODkxNDF9.Y3a3nwdkiqPTNJscKzShkVVRJ5oUnPCvmJWi-hv6iBg",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/provider/SetAutoReplicateForAllProviders/true",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"provider",
+								"SetAutoReplicateForAllProviders",
+								"true"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Set Auto FailOver For List Of Providers",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImVlMTVhZGFlLTlmODQtNDk0ZC1hM2UzLTU4MTU1N2FhZTdiYyIsIm5iZiI6MTYxNjY4ODQ0OSwiZXhwIjoxNjE2Njg5MzQ5LCJpYXQiOjE2MTY2ODg0NDl9.Me72FgQ5FZ1FT0nOKBBqwE8DwX9oYhuRqQ3xJJnbpg8",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"providers\": \"HoloOASIS\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/api/provider/SetAutoFailOverForListOfProviders/false/HoloOASIS",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"provider",
+								"SetAutoFailOverForListOfProviders",
+								"false",
+								"HoloOASIS"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Set Auto FailOver For All Providers",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImVlMTVhZGFlLTlmODQtNDk0ZC1hM2UzLTU4MTU1N2FhZTdiYyIsIm5iZiI6MTYxNjc4Nzg1NywiZXhwIjoxNjE2Nzg4NzU3LCJpYXQiOjE2MTY3ODc4NTd9.iwQNeMTWNECHXAOpAEih3NDvwTl05vYN8z8s0TIcZ6M",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"providers\": \"HoloOASIS\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/api/provider/SetAutoFailOverForAllProviders/true",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"provider",
+								"SetAutoFailOverForAllProviders",
+								"true"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Set Auto Load Balance For List Of Providers",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImVlMTVhZGFlLTlmODQtNDk0ZC1hM2UzLTU4MTU1N2FhZTdiYyIsIm5iZiI6MTYxNjY4ODQ0OSwiZXhwIjoxNjE2Njg5MzQ5LCJpYXQiOjE2MTY2ODg0NDl9.Me72FgQ5FZ1FT0nOKBBqwE8DwX9oYhuRqQ3xJJnbpg8",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"providers\": \"HoloOASIS\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/api/provider/SetAutoLoadBalanceForListOfProviders/false/HoloOASIS",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"provider",
+								"SetAutoLoadBalanceForListOfProviders",
+								"false",
+								"HoloOASIS"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Set Auto Load Balance For All Providers",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImVlMTVhZGFlLTlmODQtNDk0ZC1hM2UzLTU4MTU1N2FhZTdiYyIsIm5iZiI6MTYxNjY4ODQ0OSwiZXhwIjoxNjE2Njg5MzQ5LCJpYXQiOjE2MTY2ODg0NDl9.Me72FgQ5FZ1FT0nOKBBqwE8DwX9oYhuRqQ3xJJnbpg8",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"providers\": \"HoloOASIS\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/api/provider/SetAutoLoadBalanceForAllProviders/false",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"provider",
+								"SetAutoLoadBalanceForAllProviders",
+								"false"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Set Provider Config",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImVlMTVhZGFlLTlmODQtNDk0ZC1hM2UzLTU4MTU1N2FhZTdiYyIsIm5iZiI6MTYxNjY3ODYyNCwiZXhwIjoxNjE2Njc5NTI0LCJpYXQiOjE2MTY2Nzg2MjR9.Bq0WHIORkyjc-Vmad6XLugEb70xgAiZtq1djNZWIyOY",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/provider/SetProviderConfig",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"provider",
+								"SetProviderConfig"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Search",
+			"item": [
+				{
+					"name": "Search",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImVlMTVhZGFlLTlmODQtNDk0ZC1hM2UzLTU4MTU1N2FhZTdiYyIsIm5iZiI6MTYxNjYwODM1OSwiZXhwIjoxNjE2NjA5MjU5LCJpYXQiOjE2MTY2MDgzNTl9._K5HobDAHSZZClQZd7URJbsqGWKBqJHYbWl73ZNMzQg",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"SearchQuery\": \"test\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/api/search/search",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"search",
+								"search"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Map",
+			"item": [
+				{
+					"name": "Draw 2D Sprite On Map",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/map/Draw2DSpriteOnMap/tttt/111/111",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"map",
+								"Draw2DSpriteOnMap",
+								"tttt",
+								"111",
+								"111"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Route Between Holons",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/map/CreateRouteBetweenHolons/5/5",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"map",
+								"CreateRouteBetweenHolons",
+								"5",
+								"5"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Draw 2D Sprite On HUD",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/map/Draw2DSpriteOnHUD/33/33/33",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"map",
+								"Draw2DSpriteOnHUD",
+								"33",
+								"33",
+								"33"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "SEEDS",
+			"item": [
+				{
+					"name": "Pay With Seeds Using Telos Account",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImVlMTVhZGFlLTlmODQtNDk0ZC1hM2UzLTU4MTU1N2FhZTdiYyIsIm5iZiI6MTYxNzIxMjUyMiwiZXhwIjoxNjE3MjEzNDIyLCJpYXQiOjE2MTcyMTI1MjJ9.XKGiIG8Xb8_ol_MhftcynQOgMekq1rLpD92Eaimr0sQ",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"fromTelosAccountName\": \"davidsellams\",\r\n    \"toTelosAccountName\": \"nextgenworld\",\r\n    \"qty\": \"7.0000\",\r\n    \"memo\": \"TEST\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/api/seeds/PayWithSeedsUsingTelosAccount",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"seeds",
+								"PayWithSeedsUsingTelosAccount"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Pay With Seeds Using Avatar",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImVlMTVhZGFlLTlmODQtNDk0ZC1hM2UzLTU4MTU1N2FhZTdiYyIsIm5iZiI6MTYxNzIxMjUyMiwiZXhwIjoxNjE3MjEzNDIyLCJpYXQiOjE2MTcyMTI1MjJ9.XKGiIG8Xb8_ol_MhftcynQOgMekq1rLpD92Eaimr0sQ",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"fromTelosAccountName\": \"davidsellams\",\r\n    \"toTelosAccountName\": \"nextgenworld\",\r\n    \"qty\": \"7.0000\",\r\n    \"memo\": \"TEST\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/api/seeds/PayWithSeedsUsingAvatar",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"seeds",
+								"PayWithSeedsUsingAvatar"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Reward With Seeds Using Telos Account",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImVlMTVhZGFlLTlmODQtNDk0ZC1hM2UzLTU4MTU1N2FhZTdiYyIsIm5iZiI6MTYxNzIxMjUyMiwiZXhwIjoxNjE3MjEzNDIyLCJpYXQiOjE2MTcyMTI1MjJ9.XKGiIG8Xb8_ol_MhftcynQOgMekq1rLpD92Eaimr0sQ",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"fromTelosAccountName\": \"davidsellams\",\r\n    \"toTelosAccountName\": \"nextgenworld\",\r\n    \"qty\": \"7.0000\",\r\n    \"memo\": \"TEST\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/api/seeds/RewardWithSeedsUsingTelosAccount",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"seeds",
+								"RewardWithSeedsUsingTelosAccount"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Reward With Seeds Using Avatar",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImVlMTVhZGFlLTlmODQtNDk0ZC1hM2UzLTU4MTU1N2FhZTdiYyIsIm5iZiI6MTYxNzIxMjUyMiwiZXhwIjoxNjE3MjEzNDIyLCJpYXQiOjE2MTcyMTI1MjJ9.XKGiIG8Xb8_ol_MhftcynQOgMekq1rLpD92Eaimr0sQ",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"fromTelosAccountName\": \"davidsellams\",\r\n    \"toTelosAccountName\": \"nextgenworld\",\r\n    \"qty\": \"7.0000\",\r\n    \"memo\": \"TEST\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/api/seeds/RewardWithSeedsUsingAvatar",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"seeds",
+								"RewardWithSeedsUsingAvatar"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Donate With Seeds Using Telos Account",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImVlMTVhZGFlLTlmODQtNDk0ZC1hM2UzLTU4MTU1N2FhZTdiYyIsIm5iZiI6MTYxNzIxMjUyMiwiZXhwIjoxNjE3MjEzNDIyLCJpYXQiOjE2MTcyMTI1MjJ9.XKGiIG8Xb8_ol_MhftcynQOgMekq1rLpD92Eaimr0sQ",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"fromTelosAccountName\": \"davidsellams\",\r\n    \"toTelosAccountName\": \"nextgenworld\",\r\n    \"qty\": \"7.0000\",\r\n    \"memo\": \"TEST\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/api/seeds/DonateWithSeedsUsingTelosAccount",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"seeds",
+								"DonateWithSeedsUsingTelosAccount"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Donate With Seeds Using Avatar",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImVlMTVhZGFlLTlmODQtNDk0ZC1hM2UzLTU4MTU1N2FhZTdiYyIsIm5iZiI6MTYxNzIxMjUyMiwiZXhwIjoxNjE3MjEzNDIyLCJpYXQiOjE2MTcyMTI1MjJ9.XKGiIG8Xb8_ol_MhftcynQOgMekq1rLpD92Eaimr0sQ",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"fromTelosAccountName\": \"davidsellams\",\r\n    \"toTelosAccountName\": \"nextgenworld\",\r\n    \"qty\": \"7.0000\",\r\n    \"memo\": \"TEST\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/api/seeds/DonateWithSeedssUsingAvatar",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"seeds",
+								"DonateWithSeedssUsingAvatar"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Send Invite To Join Seeds Using Telos Account",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImVlMTVhZGFlLTlmODQtNDk0ZC1hM2UzLTU4MTU1N2FhZTdiYyIsIm5iZiI6MTYxNzIxMjUyMiwiZXhwIjoxNjE3MjEzNDIyLCJpYXQiOjE2MTcyMTI1MjJ9.XKGiIG8Xb8_ol_MhftcynQOgMekq1rLpD92Eaimr0sQ",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"fromTelosAccountName\": \"davidsellams\",\r\n    \"toTelosAccountName\": \"nextgenworld\",\r\n    \"qty\": \"7.0000\",\r\n    \"memo\": \"TEST\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/api/seeds/SendInviteToJoinSeedsUsingTelosAccount",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"seeds",
+								"SendInviteToJoinSeedsUsingTelosAccount"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Send Invite To Join Seeds Using Avatar",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImVlMTVhZGFlLTlmODQtNDk0ZC1hM2UzLTU4MTU1N2FhZTdiYyIsIm5iZiI6MTYxNzIxMjUyMiwiZXhwIjoxNjE3MjEzNDIyLCJpYXQiOjE2MTcyMTI1MjJ9.XKGiIG8Xb8_ol_MhftcynQOgMekq1rLpD92Eaimr0sQ",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"fromTelosAccountName\": \"davidsellams\",\r\n    \"toTelosAccountName\": \"nextgenworld\",\r\n    \"qty\": \"7.0000\",\r\n    \"memo\": \"TEST\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/api/seeds/SendInviteToJoinSeedsUsingAvatar",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"seeds",
+								"SendInviteToJoinSeedsUsingAvatar"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Accept Invite To Join Seeds Using Telos Account",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImVlMTVhZGFlLTlmODQtNDk0ZC1hM2UzLTU4MTU1N2FhZTdiYyIsIm5iZiI6MTYxNzIxMjUyMiwiZXhwIjoxNjE3MjEzNDIyLCJpYXQiOjE2MTcyMTI1MjJ9.XKGiIG8Xb8_ol_MhftcynQOgMekq1rLpD92Eaimr0sQ",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"fromTelosAccountName\": \"davidsellams\",\r\n    \"toTelosAccountName\": \"nextgenworld\",\r\n    \"qty\": \"7.0000\",\r\n    \"memo\": \"TEST\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}api/seeds/AcceptInviteToJoinSeedsUsingTelosAccount",
+							"host": [
+								"{{host}}api"
+							],
+							"path": [
+								"seeds",
+								"AcceptInviteToJoinSeedsUsingTelosAccount"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Accept Invite To Join Seeds Using Avatar",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImVlMTVhZGFlLTlmODQtNDk0ZC1hM2UzLTU4MTU1N2FhZTdiYyIsIm5iZiI6MTYxNzIxMjUyMiwiZXhwIjoxNjE3MjEzNDIyLCJpYXQiOjE2MTcyMTI1MjJ9.XKGiIG8Xb8_ol_MhftcynQOgMekq1rLpD92Eaimr0sQ",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"fromTelosAccountName\": \"davidsellams\",\r\n    \"toTelosAccountName\": \"nextgenworld\",\r\n    \"qty\": \"7.0000\",\r\n    \"memo\": \"TEST\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/api/seeds/AcceptInviteToJoinSeedsUsingAvatar",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"seeds",
+								"AcceptInviteToJoinSeedsUsingAvatar"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Telos Account For Avatar",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImVlMTVhZGFlLTlmODQtNDk0ZC1hM2UzLTU4MTU1N2FhZTdiYyIsIm5iZiI6MTYxNzIxMjUyMiwiZXhwIjoxNjE3MjEzNDIyLCJpYXQiOjE2MTcyMTI1MjJ9.XKGiIG8Xb8_ol_MhftcynQOgMekq1rLpD92Eaimr0sQ",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"fromTelosAccountName\": \"davidsellams\",\r\n    \"toTelosAccountName\": \"nextgenworld\",\r\n    \"qty\": \"7.0000\",\r\n    \"memo\": \"TEST\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}api/seeds/GetTelosAccountForAvatar",
+							"host": [
+								"{{host}}api"
+							],
+							"path": [
+								"seeds",
+								"GetTelosAccountForAvatar"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Telos Account Name For Avatar",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImVlMTVhZGFlLTlmODQtNDk0ZC1hM2UzLTU4MTU1N2FhZTdiYyIsIm5iZiI6MTYxNzIxMjUyMiwiZXhwIjoxNjE3MjEzNDIyLCJpYXQiOjE2MTcyMTI1MjJ9.XKGiIG8Xb8_ol_MhftcynQOgMekq1rLpD92Eaimr0sQ",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"fromTelosAccountName\": \"davidsellams\",\r\n    \"toTelosAccountName\": \"nextgenworld\",\r\n    \"qty\": \"7.0000\",\r\n    \"memo\": \"TEST\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/api/seeds/GetTelosAccountNameForAvatar",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"seeds",
+								"GetTelosAccountNameForAvatar"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Telos Account",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImVlMTVhZGFlLTlmODQtNDk0ZC1hM2UzLTU4MTU1N2FhZTdiYyIsIm5iZiI6MTYxNzIxMjUyMiwiZXhwIjoxNjE3MjEzNDIyLCJpYXQiOjE2MTcyMTI1MjJ9.XKGiIG8Xb8_ol_MhftcynQOgMekq1rLpD92Eaimr0sQ",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"fromTelosAccountName\": \"davidsellams\",\r\n    \"toTelosAccountName\": \"nextgenworld\",\r\n    \"qty\": \"7.0000\",\r\n    \"memo\": \"TEST\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/api/seeds/GetTelosAccount",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"seeds",
+								"GetTelosAccount"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Avatar Id For Telos Account Name",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImVlMTVhZGFlLTlmODQtNDk0ZC1hM2UzLTU4MTU1N2FhZTdiYyIsIm5iZiI6MTYxNzIxMjUyMiwiZXhwIjoxNjE3MjEzNDIyLCJpYXQiOjE2MTcyMTI1MjJ9.XKGiIG8Xb8_ol_MhftcynQOgMekq1rLpD92Eaimr0sQ",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"fromTelosAccountName\": \"davidsellams\",\r\n    \"toTelosAccountName\": \"nextgenworld\",\r\n    \"qty\": \"7.0000\",\r\n    \"memo\": \"TEST\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/api/seeds/GetAvatarIdForTelosAccountName",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"seeds",
+								"GetAvatarIdForTelosAccountName"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Avatar For Telos Account Name",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImVlMTVhZGFlLTlmODQtNDk0ZC1hM2UzLTU4MTU1N2FhZTdiYyIsIm5iZiI6MTYxNzIxMjUyMiwiZXhwIjoxNjE3MjEzNDIyLCJpYXQiOjE2MTcyMTI1MjJ9.XKGiIG8Xb8_ol_MhftcynQOgMekq1rLpD92Eaimr0sQ",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"fromTelosAccountName\": \"davidsellams\",\r\n    \"toTelosAccountName\": \"nextgenworld\",\r\n    \"qty\": \"7.0000\",\r\n    \"memo\": \"TEST\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/api/seeds/GetAvatarForTelosAccountName",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"seeds",
+								"GetAvatarForTelosAccountName"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Balance For Telos Account Name",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImVlMTVhZGFlLTlmODQtNDk0ZC1hM2UzLTU4MTU1N2FhZTdiYyIsIm5iZiI6MTYxNzIxMjUyMiwiZXhwIjoxNjE3MjEzNDIyLCJpYXQiOjE2MTcyMTI1MjJ9.XKGiIG8Xb8_ol_MhftcynQOgMekq1rLpD92Eaimr0sQ",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"fromTelosAccountName\": \"davidsellams\",\r\n    \"toTelosAccountName\": \"nextgenworld\",\r\n    \"qty\": \"7.0000\",\r\n    \"memo\": \"TEST\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/api/seeds/GetBalanceForTelosAccount",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"seeds",
+								"GetBalanceForTelosAccount"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Balance For Avatar",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImVlMTVhZGFlLTlmODQtNDk0ZC1hM2UzLTU4MTU1N2FhZTdiYyIsIm5iZiI6MTYxNzIxMjUyMiwiZXhwIjoxNjE3MjEzNDIyLCJpYXQiOjE2MTcyMTI1MjJ9.XKGiIG8Xb8_ol_MhftcynQOgMekq1rLpD92Eaimr0sQ",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"fromTelosAccountName\": \"davidsellams\",\r\n    \"toTelosAccountName\": \"nextgenworld\",\r\n    \"qty\": \"7.0000\",\r\n    \"memo\": \"TEST\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/api/seeds/GetBalanceForAvatar",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"seeds",
+								"GetBalanceForAvatar"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Generate Seeds Passport SignIn QR Code",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImVlMTVhZGFlLTlmODQtNDk0ZC1hM2UzLTU4MTU1N2FhZTdiYyIsIm5iZiI6MTYxNzIxMjUyMiwiZXhwIjoxNjE3MjEzNDIyLCJpYXQiOjE2MTcyMTI1MjJ9.XKGiIG8Xb8_ol_MhftcynQOgMekq1rLpD92Eaimr0sQ",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"fromTelosAccountName\": \"davidsellams\",\r\n    \"toTelosAccountName\": \"nextgenworld\",\r\n    \"qty\": \"7.0000\",\r\n    \"memo\": \"TEST\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/api/seeds/GenerateSeedsPassportSignInQRCode",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"seeds",
+								"GenerateSeedsPassportSignInQRCode"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Generate Seeds Passport SignIn QR Code For Avatar",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImVlMTVhZGFlLTlmODQtNDk0ZC1hM2UzLTU4MTU1N2FhZTdiYyIsIm5iZiI6MTYxNzIxMjUyMiwiZXhwIjoxNjE3MjEzNDIyLCJpYXQiOjE2MTcyMTI1MjJ9.XKGiIG8Xb8_ol_MhftcynQOgMekq1rLpD92Eaimr0sQ",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"fromTelosAccountName\": \"davidsellams\",\r\n    \"toTelosAccountName\": \"nextgenworld\",\r\n    \"qty\": \"7.0000\",\r\n    \"memo\": \"TEST\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/api/seeds/GenerateSeedsPassportSignInQRCodeForAvatar",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"seeds",
+								"GenerateSeedsPassportSignInQRCodeForAvatar"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Organisations",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjIwNGQ2YTkzLTFkNGYtNGNkNi05ZDlmLWQ3OTAwMWIzNDU4NSIsIm5iZiI6MTYxNzYzMjA1MCwiZXhwIjoxNjE3NjMyOTUwLCJpYXQiOjE2MTc2MzIwNTB9.fjLiHh4cz_SxSqIx2PLw3_KBEOPpXvcFBfPt4v3ajFk",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"fromTelosAccountName\": \"davidsellams\",\r\n    \"toTelosAccountName\": \"nextgenworld\",\r\n    \"qty\": \"7.0000\",\r\n    \"memo\": \"TEST\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/api/seeds/GetAllOrganisations",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"seeds",
+								"GetAllOrganisations"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Telos",
+			"item": [
+				{
+					"name": "Get Telos Account For Avatar",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImVlMTVhZGFlLTlmODQtNDk0ZC1hM2UzLTU4MTU1N2FhZTdiYyIsIm5iZiI6MTYxNzIxMjUyMiwiZXhwIjoxNjE3MjEzNDIyLCJpYXQiOjE2MTcyMTI1MjJ9.XKGiIG8Xb8_ol_MhftcynQOgMekq1rLpD92Eaimr0sQ",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"fromTelosAccountName\": \"davidsellams\",\r\n    \"toTelosAccountName\": \"nextgenworld\",\r\n    \"qty\": \"7.0000\",\r\n    \"memo\": \"TEST\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}api/seeds/GetTelosAccountForAvatar",
+							"host": [
+								"{{host}}api"
+							],
+							"path": [
+								"seeds",
+								"GetTelosAccountForAvatar"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Telos Account Name For Avatar",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImVlMTVhZGFlLTlmODQtNDk0ZC1hM2UzLTU4MTU1N2FhZTdiYyIsIm5iZiI6MTYxNzIxMjUyMiwiZXhwIjoxNjE3MjEzNDIyLCJpYXQiOjE2MTcyMTI1MjJ9.XKGiIG8Xb8_ol_MhftcynQOgMekq1rLpD92Eaimr0sQ",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"fromTelosAccountName\": \"davidsellams\",\r\n    \"toTelosAccountName\": \"nextgenworld\",\r\n    \"qty\": \"7.0000\",\r\n    \"memo\": \"TEST\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/api/seeds/GetTelosAccountNameForAvatar",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"seeds",
+								"GetTelosAccountNameForAvatar"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Telos Account",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImVlMTVhZGFlLTlmODQtNDk0ZC1hM2UzLTU4MTU1N2FhZTdiYyIsIm5iZiI6MTYxNzIxMjUyMiwiZXhwIjoxNjE3MjEzNDIyLCJpYXQiOjE2MTcyMTI1MjJ9.XKGiIG8Xb8_ol_MhftcynQOgMekq1rLpD92Eaimr0sQ",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"fromTelosAccountName\": \"davidsellams\",\r\n    \"toTelosAccountName\": \"nextgenworld\",\r\n    \"qty\": \"7.0000\",\r\n    \"memo\": \"TEST\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/api/seeds/GetTelosAccount",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"seeds",
+								"GetTelosAccount"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Avatar Id For Telos Account Name",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImVlMTVhZGFlLTlmODQtNDk0ZC1hM2UzLTU4MTU1N2FhZTdiYyIsIm5iZiI6MTYxNzIxMjUyMiwiZXhwIjoxNjE3MjEzNDIyLCJpYXQiOjE2MTcyMTI1MjJ9.XKGiIG8Xb8_ol_MhftcynQOgMekq1rLpD92Eaimr0sQ",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"fromTelosAccountName\": \"davidsellams\",\r\n    \"toTelosAccountName\": \"nextgenworld\",\r\n    \"qty\": \"7.0000\",\r\n    \"memo\": \"TEST\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/api/seeds/GetAvatarIdForTelosAccountName",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"seeds",
+								"GetAvatarIdForTelosAccountName"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Avatar For Telos Account Name",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImVlMTVhZGFlLTlmODQtNDk0ZC1hM2UzLTU4MTU1N2FhZTdiYyIsIm5iZiI6MTYxNzIxMjUyMiwiZXhwIjoxNjE3MjEzNDIyLCJpYXQiOjE2MTcyMTI1MjJ9.XKGiIG8Xb8_ol_MhftcynQOgMekq1rLpD92Eaimr0sQ",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"fromTelosAccountName\": \"davidsellams\",\r\n    \"toTelosAccountName\": \"nextgenworld\",\r\n    \"qty\": \"7.0000\",\r\n    \"memo\": \"TEST\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/api/seeds/GetAvatarForTelosAccountName",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"seeds",
+								"GetAvatarForTelosAccountName"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Balance For Telos Account Name",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImVlMTVhZGFlLTlmODQtNDk0ZC1hM2UzLTU4MTU1N2FhZTdiYyIsIm5iZiI6MTYxNzIxMjUyMiwiZXhwIjoxNjE3MjEzNDIyLCJpYXQiOjE2MTcyMTI1MjJ9.XKGiIG8Xb8_ol_MhftcynQOgMekq1rLpD92Eaimr0sQ",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"fromTelosAccountName\": \"davidsellams\",\r\n    \"toTelosAccountName\": \"nextgenworld\",\r\n    \"qty\": \"7.0000\",\r\n    \"memo\": \"TEST\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/api/seeds/GetBalanceForTelosAccount",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"seeds",
+								"GetBalanceForTelosAccount"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Balance For Avatar",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImVlMTVhZGFlLTlmODQtNDk0ZC1hM2UzLTU4MTU1N2FhZTdiYyIsIm5iZiI6MTYxNzIxMjUyMiwiZXhwIjoxNjE3MjEzNDIyLCJpYXQiOjE2MTcyMTI1MjJ9.XKGiIG8Xb8_ol_MhftcynQOgMekq1rLpD92Eaimr0sQ",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"fromTelosAccountName\": \"davidsellams\",\r\n    \"toTelosAccountName\": \"nextgenworld\",\r\n    \"qty\": \"7.0000\",\r\n    \"memo\": \"TEST\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/api/seeds/GetBalanceForAvatar",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"seeds",
+								"GetBalanceForAvatar"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Link Telos Account To Avatar",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjM2ODVkZjg0LTc3ZmMtNDM1OS1iNjdkLTA4ZDk0MTE1MjgwZiIsIm5iZiI6MTYxNTQ4MTM4NCwiZXhwIjoxNjE1NDgyMjg0LCJpYXQiOjE2MTU0ODEzODR9.U8OvF-oRUuJ7kQFcMy6Xlc2s96LhN-462WjLnUeOSjQ",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"KarmaType\": \"DropLitter\",\r\n    \"karmaSourceType\": \"AndroidApp\",\r\n    \"KaramSourceTitle\": \"SEEDS\",\r\n    \"KarmaSourceDesc\": \"SEEDS\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/api/avatar/LinkTelosAccountToAvatar",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"avatar",
+								"LinkTelosAccountToAvatar"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "EOSIO",
+			"item": [
+				{
+					"name": "Get EOSIO Account For Avatar",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImVlMTVhZGFlLTlmODQtNDk0ZC1hM2UzLTU4MTU1N2FhZTdiYyIsIm5iZiI6MTYxNzIxMjUyMiwiZXhwIjoxNjE3MjEzNDIyLCJpYXQiOjE2MTcyMTI1MjJ9.XKGiIG8Xb8_ol_MhftcynQOgMekq1rLpD92Eaimr0sQ",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"fromTelosAccountName\": \"davidsellams\",\r\n    \"toTelosAccountName\": \"nextgenworld\",\r\n    \"qty\": \"7.0000\",\r\n    \"memo\": \"TEST\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}api/seeds/GetEOSIOAccountForAvatar",
+							"host": [
+								"{{host}}api"
+							],
+							"path": [
+								"seeds",
+								"GetEOSIOAccountForAvatar"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get EOSIO Account Name For Avatar",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImVlMTVhZGFlLTlmODQtNDk0ZC1hM2UzLTU4MTU1N2FhZTdiYyIsIm5iZiI6MTYxNzIxMjUyMiwiZXhwIjoxNjE3MjEzNDIyLCJpYXQiOjE2MTcyMTI1MjJ9.XKGiIG8Xb8_ol_MhftcynQOgMekq1rLpD92Eaimr0sQ",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"fromTelosAccountName\": \"davidsellams\",\r\n    \"toTelosAccountName\": \"nextgenworld\",\r\n    \"qty\": \"7.0000\",\r\n    \"memo\": \"TEST\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/api/seeds/GetEOSIOAccountNameForAvatar",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"seeds",
+								"GetEOSIOAccountNameForAvatar"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get EOSIO Account",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImVlMTVhZGFlLTlmODQtNDk0ZC1hM2UzLTU4MTU1N2FhZTdiYyIsIm5iZiI6MTYxNzIxMjUyMiwiZXhwIjoxNjE3MjEzNDIyLCJpYXQiOjE2MTcyMTI1MjJ9.XKGiIG8Xb8_ol_MhftcynQOgMekq1rLpD92Eaimr0sQ",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"fromTelosAccountName\": \"davidsellams\",\r\n    \"toTelosAccountName\": \"nextgenworld\",\r\n    \"qty\": \"7.0000\",\r\n    \"memo\": \"TEST\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/api/seeds/GetEOSIOAccount",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"seeds",
+								"GetEOSIOAccount"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Avatar Id For EOSIO Account Name",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImVlMTVhZGFlLTlmODQtNDk0ZC1hM2UzLTU4MTU1N2FhZTdiYyIsIm5iZiI6MTYxNzIxMjUyMiwiZXhwIjoxNjE3MjEzNDIyLCJpYXQiOjE2MTcyMTI1MjJ9.XKGiIG8Xb8_ol_MhftcynQOgMekq1rLpD92Eaimr0sQ",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"fromTelosAccountName\": \"davidsellams\",\r\n    \"toTelosAccountName\": \"nextgenworld\",\r\n    \"qty\": \"7.0000\",\r\n    \"memo\": \"TEST\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/api/seeds/GetAvatarIdForEOSIOAccountName",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"seeds",
+								"GetAvatarIdForEOSIOAccountName"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Avatar For EOSIO Account Name",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImVlMTVhZGFlLTlmODQtNDk0ZC1hM2UzLTU4MTU1N2FhZTdiYyIsIm5iZiI6MTYxNzIxMjUyMiwiZXhwIjoxNjE3MjEzNDIyLCJpYXQiOjE2MTcyMTI1MjJ9.XKGiIG8Xb8_ol_MhftcynQOgMekq1rLpD92Eaimr0sQ",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"fromTelosAccountName\": \"davidsellams\",\r\n    \"toTelosAccountName\": \"nextgenworld\",\r\n    \"qty\": \"7.0000\",\r\n    \"memo\": \"TEST\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/api/seeds/GetAvatarForEOSIOAccountName",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"seeds",
+								"GetAvatarForEOSIOAccountName"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Balance For EOSIO Account Name",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImVlMTVhZGFlLTlmODQtNDk0ZC1hM2UzLTU4MTU1N2FhZTdiYyIsIm5iZiI6MTYxNzIxMjUyMiwiZXhwIjoxNjE3MjEzNDIyLCJpYXQiOjE2MTcyMTI1MjJ9.XKGiIG8Xb8_ol_MhftcynQOgMekq1rLpD92Eaimr0sQ",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"fromTelosAccountName\": \"davidsellams\",\r\n    \"toTelosAccountName\": \"nextgenworld\",\r\n    \"qty\": \"7.0000\",\r\n    \"memo\": \"TEST\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/api/seeds/GetBalanceForEOSIOAccount",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"seeds",
+								"GetBalanceForEOSIOAccount"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Balance For Avatar",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImVlMTVhZGFlLTlmODQtNDk0ZC1hM2UzLTU4MTU1N2FhZTdiYyIsIm5iZiI6MTYxNzIxMjUyMiwiZXhwIjoxNjE3MjEzNDIyLCJpYXQiOjE2MTcyMTI1MjJ9.XKGiIG8Xb8_ol_MhftcynQOgMekq1rLpD92Eaimr0sQ",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"fromTelosAccountName\": \"davidsellams\",\r\n    \"toTelosAccountName\": \"nextgenworld\",\r\n    \"qty\": \"7.0000\",\r\n    \"memo\": \"TEST\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/api/seeds/GetBalanceForAvatar",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"seeds",
+								"GetBalanceForAvatar"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Link EOSIO Account To Avatar",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjM2ODVkZjg0LTc3ZmMtNDM1OS1iNjdkLTA4ZDk0MTE1MjgwZiIsIm5iZiI6MTYxNTQ4MTM4NCwiZXhwIjoxNjE1NDgyMjg0LCJpYXQiOjE2MTU0ODEzODR9.U8OvF-oRUuJ7kQFcMy6Xlc2s96LhN-462WjLnUeOSjQ",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"KarmaType\": \"DropLitter\",\r\n    \"karmaSourceType\": \"AndroidApp\",\r\n    \"KaramSourceTitle\": \"SEEDS\",\r\n    \"KarmaSourceDesc\": \"SEEDS\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/api/avatar/LinkEOSIOAccountToAvatar",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"avatar",
+								"LinkEOSIOAccountToAvatar"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}

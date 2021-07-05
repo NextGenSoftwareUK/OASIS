@@ -1,0 +1,40 @@
+{
+  "ZomeDNA": {
+    "Name": "SuperZome",
+    "Holons": {
+      "SuperHolon": {
+        "Properties": {
+          "SuperTestString": {
+            "Type": "string",
+            "DefaultValue": ""
+          },
+          "SuperTestInt": {
+            "Type": "int",
+            "DefaultValue": ""
+          },
+          "SuperTestBool": {
+            "Type": "bool",
+            "DefaultValue": ""
+          }
+        }
+      },
+      "SuperTest": {
+        "Properties": {
+          "SuperTestString": {
+            "Type": "string",
+            "DefaultValue": ""
+          },
+          "SuperTestInt": {
+            "Type": "int",
+            "DefaultValue": ""
+          },
+          "SuperTestBool": {
+            "Type": "bool",
+            "DefaultValue": ""
+          }
+        }
+      }
+    }
+  }
+}
+   

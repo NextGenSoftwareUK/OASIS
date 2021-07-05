@@ -1,6 +1,5 @@
-using System;
 
-namespace OASIS_API_FrontEnd.Models
+namespace NextGenSoftware.OASIS.API.FrontEnd.Web.Models
 {
     public class ErrorViewModel
     {
