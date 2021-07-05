@@ -1,3 +1,6 @@
+
+
+
 # OASIS API / Our World / HoloNET / HoloUnity / .NET HDK ALPHA v0.1.7
 
 ## Contents
@@ -2528,7 +2531,3 @@ https://www.thejusticeleagueaccademy.icu <br/>
 <a href="https://www.youtube.com/watch?v=UICajpltv1Y">Our World Interviews With David Atkinson, Commercial Director of Holochain – Part 1</a><br>
 <a href="https://www.youtube.com/watch?v=SsNsEDPglos">Our World Interviews With David Atkinson, Commercial Director of Holochain – Part 2</a><br>
 <a href="https://www.youtube.com/watch?v=H5JJyLxGFe0">ThreeFold, Our World, Protocol Love, Soulfie API Meeting</a><br>
-=======
-# OASIS-API
-The core OASIS (Open Advanced Sensory Immersion System) API that powers Our World and manages the central profile/avatar/karma system that other satellite apps/games plug into it and share. This also includes HoloNET that allows .NET to talk to Holochain, which is where the profile/avatar is stored on a private decentralised, distributed network. This will be gifted forward to the Holochain community along with the HoloUnity3D SDK/Lib coming soon... ;-)
-
