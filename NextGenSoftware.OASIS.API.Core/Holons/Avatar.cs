@@ -68,6 +68,8 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
         public IOmiverse Omiverse { get; set; } //We have all of creation inside of us... ;-)
         public List<AvatarGift> Gifts { get; set; } = new List<AvatarGift>();
         //public List<Chakra> Chakras { get; set; }
+        public Dictionary<DimensionLevel, Guid> DimensionLevelIds { get; set; }
+        public Dictionary<DimensionLevel, IHolon> DimensionLevels { get; set; }
         public AvatarChakras Chakras { get; set; } = new AvatarChakras();
         public AvatarAura Aura { get; set; } = new AvatarAura();
         public AvatarStats Stats { get; set; } = new AvatarStats();

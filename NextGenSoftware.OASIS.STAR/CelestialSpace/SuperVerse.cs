@@ -4,7 +4,7 @@ using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 
 namespace NextGenSoftware.OASIS.STAR.CelestialSpace
 {
-    public class SuperUniverse : Holon, ISuperUniverse
+    public class SuperVerse : Holon, ISuperVerse
     {
        public List<IUniverse> Universes { get; set; }
     }
