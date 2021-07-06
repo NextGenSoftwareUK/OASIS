@@ -2,7 +2,7 @@
 
 namespace NextGenSoftware.OASIS.API.Core.Interfaces.STAR
 {
-    public interface ISuperUniverse : ICelestialSpace
+    public interface ISuperVerse : ICelestialSpace
     {
         List<IUniverse> Universes { get; set; }
     }
