@@ -2,9 +2,10 @@
 *, *::after, *::before {
   box-sizing: inherit; }
 
-html, body, div, span,
+html, body, div, span, object,
 h1, p,
-a, address, img, s, var, i, ul, li, form, label, header,
+a, address, img, s, var,
+b, i, ul, li, form, label, header,
 menu, nav {
   margin: 0;
   padding: 0;
@@ -505,10 +506,6 @@ a, .link {
     font-size: var(--text-sm);
     color: var(--color-contrast-medium); }
 
-.form-control:focus:focus {
-  box-shadow: 0 0 0 3px rgba(42, 109, 244, 0.2);
-  box-shadow: 0 0 0 3px var(--color-shadow); }
-
 .form-label {
   color: var(--color-contrast-medium);
   padding-left: var(--space-xs);
@@ -531,7 +528,7 @@ a, .link {
   @media (min-width: 48rem) {
     :root {
       --header-height: 55px;
-      --sidebar-width: 200px; } } }
+      --sidebar-width: 260px; } } }
 
 /* --------------------------------
 
@@ -593,13 +590,17 @@ header
 
 .logo {
   display: block;
-  padding-left: var(--space-xxs);
-  padding-right: var(--space-xxs); }
+  padding-left: var(--space-xs);
+  padding-right: var(--space-xs); }
   .logo img {
     display: block; }
   @media (min-width: 48rem) {
     .logo {
       margin: 0; } }
+
+.top-nav {
+  display: flex;
+  align-items: center; }
 
 .nav__item,
 .side__item {
@@ -624,7 +625,6 @@ header
   .nav__list {
     height: 45px;
     height: var(--header-height);
-    margin-left: auto;
     margin-right: var(--space-xxxs);
     display: flex;
     align-items: center; }
@@ -642,16 +642,13 @@ header
   .nav__item a:hover {
     color: var(--color-2); } }
 
-.nav__item--account img {
-  display: none; }
-
 @media (min-width: 48rem) {
   .nav__item--account > a {
     height: 100%;
     display: flex;
     align-items: center;
     margin-right: var(--space-md); }
-  .nav__item--account img {
+  .nav__item--account > img {
     height: 20px;
     width: 20px;
     border-radius: 50%;
@@ -667,22 +664,21 @@ header
     top: var(--header-height);
     right: 0;
     width: 200px;
-    display: block;
     box-shadow: 0 1px 8px rgba(0, 0, 0, 0.1), 0 8px 24px rgba(0, 0, 0, 0.15);
     box-shadow: var(--shadow-md);
     display: none; } }
 
 @media (min-width: 48rem) {
-  .top-nav__sub-item a {
+  .top-nav__sub-item {
     padding: .5em .75em;
-    padding: var(--space-xs) var(--space-sm); } }
+    padding: var(--space-xs) var(--space-sm);
+    text-align: center; } }
 
 .nav-trigger {
   position: relative;
-  display: block;
+  display: inline-block;
   width: 32px;
-  height: var(--header-height);
-  margin-right: var(--space-md); }
+  height: var(--header-height); }
   .nav-trigger span,
   .nav-trigger span::before,
   .nav-trigger span::after {
@@ -707,9 +703,6 @@ header
     top: -6px; }
   .nav-trigger span::after {
     top: 6px; }
-  @media (min-width: 48rem) {
-    .nav-trigger {
-      display: none; } }
 
 .nav-trigger.is-clicked span {
   background: hsla(var(--color-3-h), var(--color-3-s), var(--color-3-l), 0); }
@@ -944,14 +937,15 @@ Usage: codyhouse.co/license
 -------------------------------- */
 :root {
   --search-size-compact: 2.2em;
-  --search-size-expanded: 10em;
+  --search-size-expanded: 15em;
   --search-radius: 50em;
-  --search-icon-size: 1.2em; }
+  --search-icon-size: 1.5em; }
 
 .search {
   position: -webkit-sticky !important;
   position: sticky !important;
   display: inline-block;
+  align-items: right;
   -webkit-user-select: none;
      -moz-user-select: none;
       -ms-user-select: none;
@@ -963,8 +957,11 @@ Usage: codyhouse.co/license
   padding: 0;
   color: transparent;
   overflow: hidden;
+  border-color: transparent;
+  border-style: solid;
+  border-width: 1px;
   border-radius: var(--search-radius);
-  transition: width 0.3s var(--ease-out), box-shadow 0.3s, background-color 0.3s; }
+  transition: all .3s ease; }
   .search__input::-webkit-input-placeholder {
     opacity: 0;
     color: transparent; }
@@ -981,23 +978,25 @@ Usage: codyhouse.co/license
     opacity: 0;
     color: transparent; }
   .search__input:hover {
-    background-color: var(--color-contrast-lower);
-    cursor: pointer; }
+    border-color: var(--color-contrast-medium);
+    cursor: pointer;
+    transition: all .3s ease; }
   .search__input:focus, .search__input.search__input--has-content {
-    background-color: var(--color-bg);
     width: var(--search-size-expanded);
     padding-top: 0;
     padding-right: calc(4px + var(--search-size-compact));
     padding-bottom: 0;
     padding-left: var(--space-sm);
     outline: none;
-    box-shadow: var(--shadow-md), 0 0 0 2px var(--color-primary);
+    border: 1px solid #51cbee;
+    box-shadow: 0 0 5px #51cbee;
     color: var(--color-contrast-higher);
     cursor: auto;
     -webkit-user-select: auto;
        -moz-user-select: auto;
         -ms-user-select: auto;
-            user-select: auto; }
+            user-select: auto;
+    transition: all .3s ease; }
     .search__input:focus::-webkit-input-placeholder, .search__input.search__input--has-content::-webkit-input-placeholder {
       opacity: 1;
       color: var(--color-contrast-medium); }
@@ -1028,7 +1027,7 @@ Usage: codyhouse.co/license
   border-radius: var(--search-radius);
   z-index: 1;
   pointer-events: none;
-  transition: background-color .3s; }
+  transition: all .3s; }
   .search__btn .icon {
     display: block;
     margin: auto;
@@ -1052,7 +1051,7 @@ Usage: codyhouse.co/license
   @media (min-width: 48rem) {
     :root {
       --header-height: 55px;
-      --sidebar-width: 200px; } } }
+      --sidebar-width: 260px; } } }
 
 .side-nav {
   position: absolute;
@@ -1062,8 +1061,11 @@ Usage: codyhouse.co/license
   padding-top: var(--header-height);
   width: var(--sidebar-width);
   overflow: auto;
-  padding-bottom: var(--space-md);
-  background-color: hsla(var(--color-1-h), var(--color-1-s), var(--color-1-l), var(--color-o, 0.7));
+  background-color: rgba(0, 0, 0, 0.666);
+  border-left: 2.5em solid rgba(0, 0, 0, 0.333);
+  -webkit-backdrop-filter: blur(10px);
+          backdrop-filter: blur(10px);
+  background-clip: padding-box;
   box-shadow: var(--shadow-md);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -1089,13 +1091,13 @@ Usage: codyhouse.co/license
     transition: transform .3s;
     transition: transform .3s, -webkit-transform .3s; }
 
-.side__list li {
+.side__list .side__item {
   display: block;
   line-height: 2em;
   text-transform: uppercase;
   letter-spacing: 0.1em;
   font-weight: 500;
-  padding: 4px 16px 4px 32px;
+  padding: 4px 16px 4px 0;
   color: var(--color-2);
   transition: all 0.3s ease; }
 
