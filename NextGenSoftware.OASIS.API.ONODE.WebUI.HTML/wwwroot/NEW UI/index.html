@@ -35,7 +35,8 @@
       <div class="logo-wrapper">
         <a href="#0" class="logo"><img src="assets/img/dummy-logo.svg" alt="Logo"> </a>
       </div>
-      <form class="search  js-search">
+      <div class="top-nav js-top-nav">
+      <form class="search  js-search" autocomplete="off">
         <label class="sr-only" for="search">Search</label>
         <input class="reset search__input js-search__input" type="search" name="expandable-search" id="search"
           placeholder="Search...">
@@ -53,10 +54,12 @@
       <ul class="nav__list js-nav__list js-modal-trigger">
         <li class="nav__item"><a href="#0" data-signin="login">Sign in</a> </li>
         <li class="nav__item"><a href="#0" data-signin="signup">Sign up</a> </li>
+      </ul>
+      <ul>
         <li class="nav__item nav__item--has-children nav__item--account js-item--has-children">
           <a href="#0">
             <img src="assets/img/avatar.svg" alt="avatar">
-            <span>Account</span>
+            <!-- <span>Account</span> -->
           </a>
           <ul class="top-nav__sub-list">
             <li class="top-nav__sub-item "><a href="#0">My Account</a></li>
@@ -66,197 +69,198 @@
         </li>
       </ul>
       <button class="reset nav-trigger js-nav-trigger" aria-label="Toggle menu"><span></span></button>
+      </div>
     </header>
     <main class="main-content">
       <nav class="side-nav js-side-nav">
         <ul class="side__list js-side__list ">
           <li class="side__item item--has-children  js-item--has-children">
-            <a class="gradient" href="#0">The Oasis</a>
+            <a href="#0">The Oasis</a>
             <ul class="sub-menu">
-              <li> <a class="gradient" target="_blank"
+              <li> <a target="_blank"
                   href="https://drive.google.com/file/d/1nnhGpXcprr6kota1Y85HDDKsBfJHN6sn/view?usp=sharing">About</a>
               </li>
-              <li> <a class="gradient" target="_blank"
+              <li> <a target="_blank"
                   href="https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK">Documentation</a>
               </li>
-              <li> <a class="gradient" target="_blank" href="http://www.ourworldthegame.com">Our World</a>
+              <li> <a target="_blank" href="http://www.ourworldthegame.com">Our World</a>
               </li>
             </ul>
           </li>
           <li class="side__item item--has-children js-item--has-children">
-            <a class="gradient" href="#0">Avatar</a>
+            <a href="#0">Avatar</a>
             <ul class="sub-menu">
-              <li> <a class="gradient" onclick="showCheckAPIMessage();" href="#">View Avatar</a> </li>
-              <li> <a class="gradient" onclick="showCheckAPIMessage();" href="#">Edit Avatar</a> </li>
-              <li> <a class="gradient" onclick="showCheckAPIMessage();" href="#">Search Avatars</a> </li>
+              <li> <a onclick="showCheckAPIMessage();" href="#">View Avatar</a> </li>
+              <li> <a onclick="showCheckAPIMessage();" href="#">Edit Avatar</a> </li>
+              <li> <a onclick="showCheckAPIMessage();" href="#">Search Avatars</a> </li>
             </ul>
           </li>
           <li class="side__item item--has-children js-item--has-children">
-            <a class="gradient" href="#0">Karma</a>
+            <a href="#0">Karma</a>
             <ul class="sub-menu">
-              <li> <a class="gradient" onclick="showComingSoonMessage();" href="#"> View Curent Karma Weightings</a>
+              <li> <a onclick="showComingSoonMessage();" href="#"> View Curent Karma Weightings</a>
               </li>
-              <li> <a class="gradient" onclick="showComingSoonMessage();" href="#"> Vote For Karma Weightings</a></li>
-              <li> <a class="gradient" onclick="showCheckAPIMessage();" href="#"> View Avatar Karma</a></li>
-              <li> <a class="gradient" onclick="showCheckAPIMessage();" href="#"> View/Search Karma Akashic Records</a>
-              </li>
-            </ul>
-          </li>
-          <li class="side__item item--has-children js-item--has-children">
-            <a class="gradient" href="#0">Data</a>
-            <ul class="sub-menu">
-              <li> <a class="gradient" onclick="showCheckAPIMessage();" href="#">Load Data</a> </li>
-              <li> <a class="gradient" onclick="showCheckAPIMessage();" href="#">Send Data</a> </li>
-              <li> <a class="gradient" onclick="showCheckAPIMessage();" href="#">Manage Data</a> </li>
-              <li> <a class="gradient" onclick="showCheckAPIMessage();" href="#">Cross-Chain Management</a>
-              </li>
-              <li> <a class="gradient" onclick="showCheckAPIMessage();" href="#">Off-Chain Management</a></li>
-              <li> <a class="gradient" onclick="showComingSoonMessage();" href="#">Search Data</a> </li>
-            </ul>
-          </li>
-          <li class="side__item item--has-children js-item--has-children">
-            <a class="gradient" href="#0">SEEDS</a>
-            <ul class="sub-menu">
-              <li> <a class="gradient" onclick="showCheckAPIMessage();" href="#">Pay With SEEDS</a> </li>
-              <li> <a class="gradient" onclick="showCheckAPIMessage();" href="#">Donate SEEDS</a> </li>
-              <li> <a class="gradient" onclick="showCheckAPIMessage();" href="#">Reward SEEDS</a> </li>
-              <li> <a class="gradient" onclick="showCheckAPIMessage();" href="#">Invite To Join Seeds</a></li>
-              <li> <a class="gradient" onclick="showCheckAPIMessage();" href="#">Accept Invite To Join Seeds</a></li>
-              <li> <a class="gradient" onclick="showCheckAPIMessage();" href="#">View SEEDS</a> </li>
-              <li> <a class="gradient" onclick="showCheckAPIMessage();" href="#">View Organisations</a></li>
-              <li> <a class="gradient" onclick="showCheckAPIMessage();" href="#">Manage SEEDS</a> </li>
-              <li> <a class="gradient" onclick="showCheckAPIMessage();" href="#">Search Seeds</a> </li>
-            </ul>
-          </li>
-          <li class="side__item item--has-children js-item--has-children">
-            <a class="gradient" href="#0">Provider</a>
-            <ul class="sub-menu">
-              <li> <a class="gradient" onclick="showCheckAPIMessage();" href="#">View Providers</a> </li>
-              <li> <a class="gradient" onclick="showCheckAPIMessage();" href="#">Manage Providers</a> </li>
-              <li> <a class="gradient" onclick="showCheckAPIMessage();" href="#">Manage Auto-Replication</a>
-              </li>
-              <li> <a class="gradient" onclick="showCheckAPIMessage();" href="#">Manage Auto-Fail-Over</a>
-              </li>
-              <li> <a class="gradient" onclick="showCheckAPIMessage();" href="#">Manage Load Balancing</a>
-              </li>
-              <li> <a class="gradient" onclick="showComingSoonMessage();" href="#">View Provider Stats</a>
-              </li>
-              <li> <a class="gradient" onclick="showComingSoonMessage();" href="#">Compare Provider Speeds</a>
-              </li>
-              <li> <a class="gradient" onclick="showComingSoonMessage();" href="#">Search Providers</a></li>
-              <li> <a class="gradient" onclick="showComingSoonMessage();" href="#">Holochain</a> </li>
-              <li> <a class="gradient" onclick="showCheckAPIMessage();" href="#">SEEDS</a> </li>
-              <li> <a class="gradient" onclick="showCheckAPIMessage();" href="#">EOSIO</a> </li>
-              <li> <a class="gradient" onclick="showCheckAPIMessage();" href="#">Ethereum</a> </li>
-              <li> <a class="gradient" onclick="showCheckAPIMessage();" href="#">IPFS</a> </li>
-              <li> <a class="gradient" onclick="showComingSoonMessage();" href="#">ThreeFold</a> </li>
-              <li> <a class="gradient" onclick="showComingSoonMessage();" href="#">SOLID</a> </li>
-              <li> <a class="gradient" onclick="showComingSoonMessage();" href="#">Activity Pub</a> </li>
-              <li> <a class="gradient" onclick="showCheckAPIMessage();" href="#">Mongo DB</a> </li>
-              <li> <a class="gradient" onclick="showCheckAPIMessage();" href="#">SQLLite</a> </li>
-              <li> <a class="gradient" onclick="showCheckAPIMessage();" href="#">Neo4j</a> </li>
-            </ul>
-          </li>
-          <li class="side__item item--has-children js-item--has-children">
-            <a class="gradient" href="#0">NFT</a>
-            <ul class="sub-menu">
-              <li> <a class="gradient" onclick="showComingSoonMessage();" href="#">View OASIS NFTs</a></li>
-              <li> <a class="gradient" onclick="showComingSoonMessage();" href="#">Manage OASIS NFTs</a></li>
-              <li> <a class="gradient" onclick="showComingSoonMessage();" href="#">Search OASIS NFTs</a></li>
-              <li> <a class="gradient" onclick="showComingSoonMessage();" href="#">Purchase OASIS NFT</a></li>
-              <li> <a class="gradient" onclick="showComingSoonMessage();" href="#">Purchase OASIS Virtual Land NFT </a>
+              <li> <a onclick="showComingSoonMessage();" href="#"> Vote For Karma Weightings</a></li>
+              <li> <a onclick="showCheckAPIMessage();" href="#"> View Avatar Karma</a></li>
+              <li> <a onclick="showCheckAPIMessage();" href="#"> View/Search Karma Akashic Records</a>
               </li>
             </ul>
           </li>
           <li class="side__item item--has-children js-item--has-children">
-            <a class="gradient" href="#0">Map</a>
+            <a href="#0">Data</a>
             <ul class="sub-menu">
-              <li> <a class="gradient" onclick="showOurWorldMessage();" href="#">View Global 3D Map</a></li>
-              <li> <a class="gradient" onclick="showOurWorldMessage();" href="#">Mange Map </a> </li>
-              <li> <a class="gradient" onclick="showComingSoonMessage();" href="#">Add Quest To Map</a></li>
-              <li> <a class="gradient" onclick="showComingSoonMessage();" href="#">Add 2D Object To Map</a>
+              <li> <a onclick="showCheckAPIMessage();" href="#">Load Data</a> </li>
+              <li> <a onclick="showCheckAPIMessage();" href="#">Send Data</a> </li>
+              <li> <a onclick="showCheckAPIMessage();" href="#">Manage Data</a> </li>
+              <li> <a onclick="showCheckAPIMessage();" href="#">Cross-Chain Management</a>
               </li>
-              <li> <a class="gradient" onclick="showComingSoonMessage();" href="#">Add 3D Object To Map</a>
+              <li> <a onclick="showCheckAPIMessage();" href="#">Off-Chain Management</a></li>
+              <li> <a onclick="showComingSoonMessage();" href="#">Search Data</a> </li>
+            </ul>
+          </li>
+          <li class="side__item item--has-children js-item--has-children">
+            <a href="#0">SEEDS</a>
+            <ul class="sub-menu">
+              <li> <a onclick="showCheckAPIMessage();" href="#">Pay With SEEDS</a> </li>
+              <li> <a onclick="showCheckAPIMessage();" href="#">Donate SEEDS</a> </li>
+              <li> <a onclick="showCheckAPIMessage();" href="#">Reward SEEDS</a> </li>
+              <li> <a onclick="showCheckAPIMessage();" href="#">Invite To Join Seeds</a></li>
+              <li> <a onclick="showCheckAPIMessage();" href="#">Accept Invite To Join Seeds</a></li>
+              <li> <a onclick="showCheckAPIMessage();" href="#">View SEEDS</a> </li>
+              <li> <a onclick="showCheckAPIMessage();" href="#">View Organisations</a></li>
+              <li> <a onclick="showCheckAPIMessage();" href="#">Manage SEEDS</a> </li>
+              <li> <a onclick="showCheckAPIMessage();" href="#">Search Seeds</a> </li>
+            </ul>
+          </li>
+          <li class="side__item item--has-children js-item--has-children">
+            <a href="#0">Provider</a>
+            <ul class="sub-menu">
+              <li> <a onclick="showCheckAPIMessage();" href="#">View Providers</a> </li>
+              <li> <a onclick="showCheckAPIMessage();" href="#">Manage Providers</a> </li>
+              <li> <a onclick="showCheckAPIMessage();" href="#">Manage Auto-Replication</a>
               </li>
-              <li> <a class="gradient" onclick="showComingSoonMessage();" href="#">Plot Route On Map</a></li>
-              <li> <a class="gradient" onclick="showComingSoonMessage();" href="#">View OAPP's On Map</a></li>
-              <li> <a class="gradient" onclick="showComingSoonMessage();" href="#">View Holons On Map</a></li>
-              <li> <a class="gradient" onclick="showComingSoonMessage();" href="#">View Quests On Map</a></li>
-              <li> <a class="gradient" onclick="showComingSoonMessage();" href="#">Search Map</a> </li>
-              <li> <a class="gradient" onclick="showOurWorldMessage();" href="#">Download Our World</a></li>
-            </ul>
-          </li>
-          <li class="side__item item--has-children js-item--has-children">
-            <a class="gradient" href="#0">OAPP</a>
-            <ul class="sub-menu">
-              <li> <a class="gradient" onclick="showSTARMessage();" href="#">Installed OAPPs</a> </li>
-              <li> <a class="gradient" onclick="showSTARMessage();" href="#">Manage OAPPs</a> </li>
-              <li> <a class="gradient" onclick="showSTARMessage();" href="#">Create OAPP</a> </li>
-              <li> <a class="gradient" onclick="showSTARMessage();" href="#">Deploy OAPP</a> </li>
-              <li> <a class="gradient" onclick="showSTARMessage();" href="#">Edit OAPP</a> </li>
-              <li> <a class="gradient" onclick="showSTARMessage();" href="#">Launch OAPP</a> </li>
-              <li> <a class="gradient" onclick="showSTARMessage();" href="#">Search OAPPs</a> </li>
-              <li> <a class="gradient" onclick="showOurWorldMessage();" href="#">Download Our World</a></li>
-            </ul>
-          </li>
-          <li class="side__item item--has-children js-item--has-children">
-            <a class="gradient" href="#0">Quest</a>
-            <ul class="sub-menu">
-              <li> <a class="gradient" onclick="showComingSoonMessage();" href="#">View Quests</a></li>
-              <li> <a class="gradient" onclick="showComingSoonMessage();" href="#">Manage Quests</a></li>
-              <li> <a class="gradient" onclick="showComingSoonMessage();" href="#">Search Quests </a></li>
-            </ul>
-          </li>
-          <li class="side__item item--has-children js-item--has-children">
-            <a class="gradient" href="#0">Mission</a>
-            <ul class="sub-menu">
-              <li> <a class="gradient" onclick="showComingSoonMessage();" href="#">View Missions</a></li>
-              <li> <a class="gradient" onclick="showComingSoonMessage();" href="#">Manage Missions</a></li>
-              <li> <a class="gradient" onclick="showComingSoonMessage();" href="#">Search Missions</a></li>
-            </ul>
-          </li>
-          <li class="side__item item--has-children js-item--has-children">
-            <a class="gradient" href="#0">Egg</a>
-            <ul class="sub-menu">
-              <li> <a class="gradient" onclick="showComingSoonMessage();" href="#">View Eggs</a> </li>
-              <li> <a class="gradient" onclick="showComingSoonMessage();" href="#">Manage Eggs</a></li>
-              <li> <a class="gradient" onclick="showComingSoonMessage();" href="#">Search Eggs</a></li>
-            </ul>
-          </li>
-          <li class="side__item item--has-children js-item--has-children">
-            <a class="gradient" href="#0">Game</a>
-            <ul class="sub-menu">
-              <li> <a class="gradient" onclick="showComingSoonMessage();" href="#">View StarCraft 2 Leagues</a></li>
-              <li> <a class="gradient" onclick="showComingSoonMessage();" href="#">View StarCraft 2 Tournaments</a></li>
-              <li> <a class="gradient" onclick="showComingSoonMessage();" href="#">View StarCraft 2 Achievements</a>
+              <li> <a onclick="showCheckAPIMessage();" href="#">Manage Auto-Fail-Over</a>
               </li>
-              <li> <a class="gradient" onclick="showComingSoonMessage();" href="#">Search StarCraft 2 Profiles</a></li>
+              <li> <a onclick="showCheckAPIMessage();" href="#">Manage Load Balancing</a>
+              </li>
+              <li> <a onclick="showComingSoonMessage();" href="#">View Provider Stats</a>
+              </li>
+              <li> <a onclick="showComingSoonMessage();" href="#">Compare Provider Speeds</a>
+              </li>
+              <li> <a onclick="showComingSoonMessage();" href="#">Search Providers</a></li>
+              <li> <a onclick="showComingSoonMessage();" href="#">Holochain</a> </li>
+              <li> <a onclick="showCheckAPIMessage();" href="#">SEEDS</a> </li>
+              <li> <a onclick="showCheckAPIMessage();" href="#">EOSIO</a> </li>
+              <li> <a onclick="showCheckAPIMessage();" href="#">Ethereum</a> </li>
+              <li> <a onclick="showCheckAPIMessage();" href="#">IPFS</a> </li>
+              <li> <a onclick="showComingSoonMessage();" href="#">ThreeFold</a> </li>
+              <li> <a onclick="showComingSoonMessage();" href="#">SOLID</a> </li>
+              <li> <a onclick="showComingSoonMessage();" href="#">Activity Pub</a> </li>
+              <li> <a onclick="showCheckAPIMessage();" href="#">Mongo DB</a> </li>
+              <li> <a onclick="showCheckAPIMessage();" href="#">SQLLite</a> </li>
+              <li> <a onclick="showCheckAPIMessage();" href="#">Neo4j</a> </li>
             </ul>
           </li>
           <li class="side__item item--has-children js-item--has-children">
-            <a class="gradient" href="#0">Developer</a>
+            <a href="#0">NFT</a>
             <ul class="sub-menu">
-              <li> <a class="gradient" target="_blank" href="https://api.oasisplatform.world">OASIS API LIVE</a></li>
-              <li> <a class="gradient" target="_blank" href="https://staging.api.oasisplatform.world">OASIS API
+              <li> <a onclick="showComingSoonMessage();" href="#">View OASIS NFTs</a></li>
+              <li> <a onclick="showComingSoonMessage();" href="#">Manage OASIS NFTs</a></li>
+              <li> <a onclick="showComingSoonMessage();" href="#">Search OASIS NFTs</a></li>
+              <li> <a onclick="showComingSoonMessage();" href="#">Purchase OASIS NFT</a></li>
+              <li> <a onclick="showComingSoonMessage();" href="#">Purchase OASIS Virtual Land NFT </a>
+              </li>
+            </ul>
+          </li>
+          <li class="side__item item--has-children js-item--has-children">
+            <a href="#0">Map</a>
+            <ul class="sub-menu">
+              <li> <a onclick="showOurWorldMessage();" href="#">View Global 3D Map</a></li>
+              <li> <a onclick="showOurWorldMessage();" href="#">Mange Map </a> </li>
+              <li> <a onclick="showComingSoonMessage();" href="#">Add Quest To Map</a></li>
+              <li> <a onclick="showComingSoonMessage();" href="#">Add 2D Object To Map</a>
+              </li>
+              <li> <a onclick="showComingSoonMessage();" href="#">Add 3D Object To Map</a>
+              </li>
+              <li> <a onclick="showComingSoonMessage();" href="#">Plot Route On Map</a></li>
+              <li> <a onclick="showComingSoonMessage();" href="#">View OAPP's On Map</a></li>
+              <li> <a onclick="showComingSoonMessage();" href="#">View Holons On Map</a></li>
+              <li> <a onclick="showComingSoonMessage();" href="#">View Quests On Map</a></li>
+              <li> <a onclick="showComingSoonMessage();" href="#">Search Map</a> </li>
+              <li> <a onclick="showOurWorldMessage();" href="#">Download Our World</a></li>
+            </ul>
+          </li>
+          <li class="side__item item--has-children js-item--has-children">
+            <a href="#0">OAPP</a>
+            <ul class="sub-menu">
+              <li> <a onclick="showSTARMessage();" href="#">Installed OAPPs</a> </li>
+              <li> <a onclick="showSTARMessage();" href="#">Manage OAPPs</a> </li>
+              <li> <a onclick="showSTARMessage();" href="#">Create OAPP</a> </li>
+              <li> <a onclick="showSTARMessage();" href="#">Deploy OAPP</a> </li>
+              <li> <a onclick="showSTARMessage();" href="#">Edit OAPP</a> </li>
+              <li> <a onclick="showSTARMessage();" href="#">Launch OAPP</a> </li>
+              <li> <a onclick="showSTARMessage();" href="#">Search OAPPs</a> </li>
+              <li> <a onclick="showOurWorldMessage();" href="#">Download Our World</a></li>
+            </ul>
+          </li>
+          <li class="side__item item--has-children js-item--has-children">
+            <a href="#0">Quest</a>
+            <ul class="sub-menu">
+              <li> <a onclick="showComingSoonMessage();" href="#">View Quests</a></li>
+              <li> <a onclick="showComingSoonMessage();" href="#">Manage Quests</a></li>
+              <li> <a onclick="showComingSoonMessage();" href="#">Search Quests </a></li>
+            </ul>
+          </li>
+          <li class="side__item item--has-children js-item--has-children">
+            <a href="#0">Mission</a>
+            <ul class="sub-menu">
+              <li> <a onclick="showComingSoonMessage();" href="#">View Missions</a></li>
+              <li> <a onclick="showComingSoonMessage();" href="#">Manage Missions</a></li>
+              <li> <a onclick="showComingSoonMessage();" href="#">Search Missions</a></li>
+            </ul>
+          </li>
+          <li class="side__item item--has-children js-item--has-children">
+            <a href="#0">Egg</a>
+            <ul class="sub-menu">
+              <li> <a onclick="showComingSoonMessage();" href="#">View Eggs</a> </li>
+              <li> <a onclick="showComingSoonMessage();" href="#">Manage Eggs</a></li>
+              <li> <a onclick="showComingSoonMessage();" href="#">Search Eggs</a></li>
+            </ul>
+          </li>
+          <li class="side__item item--has-children js-item--has-children">
+            <a href="#0">Game</a>
+            <ul class="sub-menu">
+              <li> <a onclick="showComingSoonMessage();" href="#">View StarCraft 2 Leagues</a></li>
+              <li> <a onclick="showComingSoonMessage();" href="#">View StarCraft 2 Tournaments</a></li>
+              <li> <a onclick="showComingSoonMessage();" href="#">View StarCraft 2 Achievements</a>
+              </li>
+              <li> <a onclick="showComingSoonMessage();" href="#">Search StarCraft 2 Profiles</a></li>
+            </ul>
+          </li>
+          <li class="side__item item--has-children js-item--has-children">
+            <a href="#0">Developer</a>
+            <ul class="sub-menu">
+              <li> <a target="_blank" href="https://api.oasisplatform.world">OASIS API LIVE</a></li>
+              <li> <a target="_blank" href="https://staging.api.oasisplatform.world">OASIS API
                   STAGING</a>
               </li>
-              <li> <a class="gradient" target="_blank" href="https://oasisplatform.world">OASIS API UI LIVE</a></li>
-              <li> <a class="gradient" target="_blank" href="https://staging.oasisplatform.world">OASIS API UI
+              <li> <a target="_blank" href="https://oasisplatform.world">OASIS API UI LIVE</a></li>
+              <li> <a target="_blank" href="https://staging.oasisplatform.world">OASIS API UI
                   STAGING</a>
               </li>
-              <li> <a class="gradient" onclick="showSTARMessage();" href="#">STAR ODK</a> </li>
-              <li> <a class="gradient" target="_blank" href="postman/OASIS_API.postman_collection.json">OASIS API
+              <li> <a onclick="showSTARMessage();" href="#">STAR ODK</a> </li>
+              <li> <a target="_blank" href="postman/OASIS_API.postman_collection.json">OASIS API
                   Postman JSON File</a></li>
-              <li> <a class="gradient" target="_blank" href="postman/OASIS_API_DEV.postman_environment.json">OASIS API
+              <li> <a target="_blank" href="postman/OASIS_API_DEV.postman_environment.json">OASIS API
                   DEV ENVIROMENT Postman JSON File</a></li>
-              <li> <a class="gradient" target="_blank" href="postman/OASIS_API_STAGING.postman_environment.json">OASIS
+              <li> <a target="_blank" href="postman/OASIS_API_STAGING.postman_environment.json">OASIS
                   API STAGING ENVIROMENT Postman JSON File</a></li>
-              <li> <a class="gradient" target="_blank" href="postman/OASIS_API_LIVE.postman_environment.json">OASIS API
+              <li> <a target="_blank" href="postman/OASIS_API_LIVE.postman_environment.json">OASIS API
                   LIVE ENVIROMENT Postman JSON File</a></li>
-              <li> <a class="gradient" target="_blank"
+              <li> <a target="_blank"
                   href="https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK">Code/Documentation</a>
               </li>
-              <li> <a class="gradient" target="_blank" href="https://www.thejusticeleagueaccademy.icu/">The Justice
+              <li> <a target="_blank" href="https://www.thejusticeleagueaccademy.icu/">The Justice
                   League Academy</a></li>
             </ul>
           </li>
