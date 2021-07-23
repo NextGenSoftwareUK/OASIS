@@ -23,13 +23,13 @@
         <div class="margin-bottom-md">
           <label class="form-label margin-bottom-xxxs" for="input-email">Email address</label>
           <input class="form-control width-100%" type="email" name="input-email" id="input-email"
-            placeholder="name@example.com">
+            placeholder="name@example.com" required>
         </div>
         <div class="margin-bottom-md">
           <label class="form-label" for="input-password">Password</label>
           <div class="password js-password x-nol">
             <input class="x-noc form-control x-pk form-control js-password__input" type="password" name="input-password"
-              id="input-password">
+              id="input-password" required>
             <button style="display: flex;" class="password__btn flex flex-center js-password__btn js-tab-focus">
               <span class="password__btn-label" aria-label="Show password" title="Show password"><svg class="icon block"
                   viewBox="0 0 32 32">
@@ -78,6 +78,36 @@
       var form = $('form');
       form.on('submit', function (event) {
         event.preventDefault();
+        let email = document.getElementById('input-email').value;
+        let password = document.getElementById('input-password').value;
+        let userObject = {
+          email,
+          password
+        }
+        const userAction = async () => {
+          const response = await fetch('https://staging.api.oasisplatform.world/api/avatar/authenticate', {
+            method: 'POST',
+            body: JSON.stringify(userObject), // string or object
+            headers: {
+              'Content-Type': 'application/json'
+            }
+          });
+          if(response.status === 200)
+          {
+              const myJson = await response.json(); //extract JSON from the http response
+              // do something with myJson
+              alert(myJson.message);
+              window.location.reload();
+          }
+          else
+          {
+              const myJson = await response.json(); //extract JSON from the http response
+              // do something with myJson
+              alert(myJson.message);
+              window.location.reload();
+          }
+        }
+        userAction();
       });
     </script>
   </body>
