@@ -16685,6 +16685,11 @@ html:not(.js) .loop-tabs__controls {
     display: none !important
 }
 
+.required:after {
+    content:" *";
+    color: red;
+  }
+
 @media print {
     .main-footer,
     .back-to-top,
