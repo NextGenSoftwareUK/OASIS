@@ -7,7 +7,7 @@ namespace NextGenSoftware.Holochain.HoloNET.Client.Core
     public class HoloNETRequest
     {
         [Key(0)]
-        public string id { get; set; }
+        public ulong id { get; set; }
 
         [Key(1)]
         public string type { get; set; }
