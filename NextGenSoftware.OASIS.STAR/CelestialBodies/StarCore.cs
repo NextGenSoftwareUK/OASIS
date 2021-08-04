@@ -32,8 +32,8 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
         public async Task<OASISResult<ISolarSystem>> AddSolarSystemAsync(ISolarSystem solarSystem)
         {
             return OASISResultHolonToHolonHelper<IHolon, ISolarSystem>.CopyResult(
-                await AddHolonToCollectionAsync(SuperStar, solarSystem, (List<IHolon>)Mapper<ISolarSystem, Holon>.MapBaseHolonProperties(
-                    SuperStar.ParentGalaxy.SolarSystems)), new OASISResult<ISolarSystem>());
+                await AddHolonToCollectionAsync(Star, solarSystem, (List<IHolon>)Mapper<ISolarSystem, Holon>.MapBaseHolonProperties(
+                    Star.ParentGalaxy.SolarSystems)), new OASISResult<ISolarSystem>());
         }
 
         public OASISResult<ISolarSystem> AddSolarSystem(ISolarSystem solarSystem)
@@ -53,16 +53,16 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
             return AddPlanetAsync(planet).Result;
         }
 
-        public async Task<OASISResult<IMoon>> AddMoonAsync(IMoon moon)
+        public async Task<OASISResult<IMoon>> AddMoonAsync(IPlanet parentPlanet, IMoon moon)
         {
             return OASISResultHolonToHolonHelper<IHolon, IMoon>.CopyResult(
-                await AddHolonToCollectionAsync(Planet, moon, (List<IHolon>)Mapper<IMoon, Holon>.MapBaseHolonProperties(
-                    Planet.Moons)), new OASISResult<IMoon>());
+                await AddHolonToCollectionAsync(parentPlanet, moon, (List<IHolon>)Mapper<IMoon, Holon>.MapBaseHolonProperties(
+                    parentPlanet.Moons)), new OASISResult<IMoon>());
         }
 
-        public OASISResult<IMoon> AddMoon(IMoon moon)
+        public OASISResult<IMoon> AddMoon(IPlanet parentPlanet, IMoon moon)
         {
-            return AddMoonAsync(moon).Result; //TODO: Is this the best way of doing this?
+            return AddMoonAsync(parentPlanet, moon).Result; //TODO: Is this the best way of doing this?
         }
 
         public async Task<OASISResult<IEnumerable<IPlanet>>> GetAllPlanetsForSolarSystemAsync(bool refresh = true)
@@ -77,6 +77,35 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
         public OASISResult<IEnumerable<IPlanet>> GetAllPlanetsForSolarSystem(bool refresh = true)
         {
             return GetAllPlanetsForSolarSystemAsync(refresh).Result;
-        }  
+        }
+
+        public async Task<OASISResult<IEnumerable<IMoon>>> GetAllMoonsForSolarSystemAsync(bool refresh = true)
+        {
+            OASISResult<IEnumerable<IMoon>> result = new OASISResult<IEnumerable<IMoon>>();
+            OASISResult<IEnumerable<IPlanet>> planetsResult = await GetAllPlanetsForSolarSystemAsync(refresh);
+            OASISResultCollectionToCollectionHelper<IEnumerable<IPlanet>, IEnumerable<IMoon>>.CopyResult(planetsResult, ref result);
+
+            if (!planetsResult.IsError)
+            {
+                List<IMoon> moons = new List<IMoon>();
+
+                foreach (IPlanet planet in planetsResult.Result)
+                {
+                    OASISResult<IEnumerable<IMoon>> moonsResult = await ((IPlanetCore)planet.CelestialBodyCore).GetMoonsAsync(refresh);
+
+                    if (!moonsResult.IsError)
+                        moons.AddRange(moonsResult.Result);
+                }
+
+                result.Result = moons;
+            }
+
+            return result;
+        }
+
+        public OASISResult<IEnumerable<IMoon>> GetAllMoonsForSolarSystem(bool refresh = true)
+        {
+            return GetAllMoonsForSolarSystemAsync(refresh).Result;
+        }
     }
 }
