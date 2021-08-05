@@ -22,46 +22,45 @@
     <script src="assets/js/jquery.js"></script>
     <script src="assets/js/modernizr.js"></script>
     <link rel="stylesheet" href="assets/css/style.css">
-    <script>
+    <!-- <script>
       if (!('CSS' in window) || !CSS.supports('color', 'var(--color-var)')) { var cfStyle = document.getElementById('codyframe'); if (cfStyle) { var href = cfStyle.getAttribute('href'); href = href.replace('style.css', 'style-fallback.css'); cfStyle.setAttribute('href', href); } }
-    </script>
+    </script> -->
     <link href="https://fonts.googleapis.com/css2?family=Titillium+Web:wght@200;400;500;700&display=swap"
       rel="stylesheet" type="text/css">
     <title>OASIS</title>
   </head>
 
   <body data-theme="default">
-
     <header class="main-header js-main-header">
-      <!-- <div class="logo-wrapper"> -->
+      <div class="logo-wrapper js-logo-wrapper">
         <a id="logo" href="#0"> <img src="assets/img/dummy-logo.svg" alt="Logo"> </a>
-      <!-- </div> -->
+      </div>
       <div class="top-nav js-top-nav">
         <ul class="nav__list js-nav__list">
-          <li class="nav__item js-nav__login "><a class="js-modal-trigger" href="#0" data-signin="login">Log in</a> </li>
-          <li class="nav__item js-nav__login "><a class="js-modal-trigger" href="#0" data-signin="signup">Sign up</a> </li>
-          <li class="nav__item nav__item--account" data-display="loggedIn">
-            <a href="#0">
-              <svg class="avatar" viewBox="0 0 26.5 26.5">
-                <path
-                  d="M24.75 13.25a11.5 11.5 0 01-11.5 11.5 11.5 11.5 0 01-11.5-11.5 11.5 11.5 0 0111.5-11.5 11.5 11.5 0 0111.5 11.5zm-3.501 8.243c-.5-3.246-4-6.246-7.995-6.238C9.25 15.247 5.75 18.247 5.25 21.5m13-11.248a5 5 0 01-5 5 5 5 0 01-5-5 5 5 0 015-5 5 5 0 015 5z"
-                  fill="none" stroke="currentColor" stroke-width="1.5" />
-              </svg>
-            </a>
-            <!-- <ul class="nav__sub-list">
-              <li class="nav__sub-item"><a href="#0">My Account</a></li>
-              <li class="nav__sub-item"><a href="#0">Edit Account</a></li>
-              <li class="nav__sub-item"><a href="#0">Logout</a></li>
-            </ul> -->
+          <li class="nav__item js-nav__login "><a class="js-modal-trigger" href="#0" data-signin="login">Log in</a>
           </li>
-          <li class="nav__item"><button class="reset nav-trigger js-nav-trigger"
-              aria-label="Toggle menu"><span></span></button></li>
+          <li class="nav__item js-nav__login "><a class="js-modal-trigger" href="#0" data-signin="signup">Sign up</a>
+          </li>
         </ul>
-        <!-- </div> -->
+        <div class="nav__item nav__item--account" data-display="loggedIn">
+          <a href="#0">
+            <svg class="avatar" viewBox="0 0 26.5 26.5">
+              <path
+                d="M24.75 13.25a11.5 11.5 0 01-11.5 11.5 11.5 11.5 0 01-11.5-11.5 11.5 11.5 0 0111.5-11.5 11.5 11.5 0 0111.5 11.5zm-3.501 8.243c-.5-3.246-4-6.246-7.995-6.238C9.25 15.247 5.75 18.247 5.25 21.5m13-11.248a5 5 0 01-5 5 5 5 0 01-5-5 5 5 0 015-5 5 5 0 015 5z"
+                fill="none" stroke="currentColor" stroke-width="1.5" />
+            </svg>
+          </a>
+          <ul class="nav__sub-list">
+            <li class="nav__sub-item"><a href="#0">My Account</a></li>
+            <li class="nav__sub-item"><a href="#0">Edit Account</a></li>
+            <li class="nav__sub-item"><a href="#0">Logout</a></li>
+          </ul>
+        </div>
+        <div class="nav__item"><button class="reset nav-trigger js-nav-trigger"
+            aria-label="Toggle menu"><span></span></button></div>
+      </div>
     </header>
-
     <main class="main-content">
-
       <nav class="side-nav js-side-nav">
         <ul class="side__list js-side__list ">
           <!-- <li class="side__item">
@@ -269,185 +268,151 @@
               </li>
             </ul>
           </li>
+          <li class="side__item js-nav__login "><a class="js-modal-trigger" href="#0" data-signin="login">Log in</a>
+          </li>
+          <li class="side__item js-nav__login "><a class="js-modal-trigger" href="#0" data-signin="signup">Sign up</a>
+          </li>
         </ul>
       </nav>
-
       <div class="content-wrapper">
       </div>
-
     </main>
-
     <div class="modal js-modal modal--animate-scale">
-      <div class="modal__container">
-
-        <div class="modal__block js-modal-block" data-type="login">
-          <form role="alertdialog">
-            <div class="text-component text-center margin-bottom-lg">
-              <h1 class="font-normal">Log In</h1>
-              <p class="color-contrast-medium">Don't have an account? <a class="js-modal-trigger" data-signin="signup"
-                  href="#0">Sign Up!</a>
-              </p>
+      <div class="modal__block js-modal-block" data-type="login">
+        <form id="login-form" class="margin-bottom-sm" role="alertdialog" method="POST" onsubmit="return false">
+          <div class="text-component text-center margin-bottom-lg">
+            <h1 class="font-normal">Log In</h1>
+            <p class="color-contrast-medium">Don't have an account? <a class="js-modal-trigger" data-signin="signup"
+                href="#0">Sign Up!</a>
+            </p>
+          </div>
+          <div class="margin-bottom-lg">
+            <label class="form-label" for="login-email">Email</label>
+            <input aria-label="Email" class="form-control width-100%" type="email" name="login-email" id="login-email"
+              placeholder="name@example.com" required>
+          </div>
+          <div class="margin-bottom-lg">
+            <label class="form-label" for="login-password">Password</label>
+            <div class="password js-password">
+              <input aria-label="Password" class="form-control width-100% js-password__input"
+                type="password" name="login-password" id="login-password" required>
+              <button class="password__btn flex flex-center js-password__btn js-tab-focus">
+                <span class="password__btn-label" aria-label="Show password" title="Show password">
+                  <svg class="icon block" viewBox="0 0 32 32">
+                    <g stroke-linecap="square" stroke-linejoin="miter" stroke-width="2" stroke="currentColor"
+                      fill="none">
+                      <path
+                        d="M1.409,17.182a1.936,1.936,0,0,1-.008-2.37C3.422,12.162,8.886,6,16,6c7.02,0,12.536,6.158,14.585,8.81a1.937,1.937,0,0,1,0,2.38C28.536,19.842,23.02,26,16,26S3.453,19.828,1.409,17.182Z"
+                        stroke-miterlimit="10"></path>
+                      <circle cx="16" cy="16" r="6" stroke-miterlimit="10"></circle>
+                    </g>
+                  </svg></span>
+                <span class="password__btn-label" aria-label="Hide password" title="Hide password">
+                  <svg class="icon block" viewBox="0 0 32 32">
+                    <g stroke-linecap="square" stroke-linejoin="miter" stroke-width="2" stroke="currentColor"
+                      fill="none">
+                      <path data-cap="butt"
+                        d="M8.373,23.627a27.659,27.659,0,0,1-6.958-6.445,1.938,1.938,0,0,1-.008-2.37C3.428,12.162,8.892,6,16.006,6a14.545,14.545,0,0,1,7.626,2.368"
+                        stroke-miterlimit="10" stroke-linecap="butt"></path>
+                      <path
+                        d="M27,10.923a30.256,30.256,0,0,1,3.591,3.887,1.937,1.937,0,0,1,0,2.38C28.542,19.842,23.026,26,16.006,26A12.843,12.843,0,0,1,12,25.341"
+                        stroke-miterlimit="10"></path>
+                      <path data-cap="butt" d="M11.764,20.243a6,6,0,0,1,8.482-8.489" stroke-miterlimit="10"
+                        stroke-linecap="butt">
+                      </path>
+                      <path d="M21.923,15a6.005,6.005,0,0,1-5.917,7A6.061,6.061,0,0,1,15,21.916" stroke-miterlimit="10">
+                      </path>
+                      <line x1="2" y1="30" x2="30" y2="2" fill="none" stroke-miterlimit="10"></line>
+                    </g>
+                  </svg></span>
+              </button>
             </div>
-            <div class="margin-bottom-lg">
-              <label class="form-label" for="login-email">Email</label>
-              <input aria-label="Email" class="form-control width-100%" type="email" name="login-email" id="login-email"
-                placeholder="name@example.com" required>
-            </div>
-            <div class="margin-bottom-lg">
-              <label class="form-label" for="login-password">Password</label>
-              <div class="password js-password">
-                <input aria-label="Password" class="form-control width-100% form-control js-password__input"
-                  type="password" name="login-password" id="login-password" required>
-                <button class="password__btn flex flex-center js-password__btn js-tab-focus">
-                  <span class="password__btn-label" aria-label="Show password" title="Show password">
-                    <svg class="icon block" viewBox="0 0 32 32">
-                      <g stroke-linecap="square" stroke-linejoin="miter" stroke-width="2" stroke="currentColor"
-                        fill="none">
-                        <path
-                          d="M1.409,17.182a1.936,1.936,0,0,1-.008-2.37C3.422,12.162,8.886,6,16,6c7.02,0,12.536,6.158,14.585,8.81a1.937,1.937,0,0,1,0,2.38C28.536,19.842,23.02,26,16,26S3.453,19.828,1.409,17.182Z"
-                          stroke-miterlimit="10"></path>
-                        <circle cx="16" cy="16" r="6" stroke-miterlimit="10"></circle>
-                      </g>
-                    </svg></span>
-                  <span class="password__btn-label" aria-label="Hide password" title="Hide password">
-                    <svg class="icon block" viewBox="0 0 32 32">
-                      <g stroke-linecap="square" stroke-linejoin="miter" stroke-width="2" stroke="currentColor"
-                        fill="none">
-                        <path data-cap="butt"
-                          d="M8.373,23.627a27.659,27.659,0,0,1-6.958-6.445,1.938,1.938,0,0,1-.008-2.37C3.428,12.162,8.892,6,16.006,6a14.545,14.545,0,0,1,7.626,2.368"
-                          stroke-miterlimit="10" stroke-linecap="butt"></path>
-                        <path
-                          d="M27,10.923a30.256,30.256,0,0,1,3.591,3.887,1.937,1.937,0,0,1,0,2.38C28.542,19.842,23.026,26,16.006,26A12.843,12.843,0,0,1,12,25.341"
-                          stroke-miterlimit="10"></path>
-                        <path data-cap="butt" d="M11.764,20.243a6,6,0,0,1,8.482-8.489" stroke-miterlimit="10"
-                          stroke-linecap="butt">
-                        </path>
-                        <path d="M21.923,15a6.005,6.005,0,0,1-5.917,7A6.061,6.061,0,0,1,15,21.916"
-                          stroke-miterlimit="10">
-                        </path>
-                        <line x1="2" y1="30" x2="30" y2="2" fill="none" stroke-miterlimit="10"></line>
-                      </g>
-                    </svg></span>
-                </button>
-              </div>
-              <p aria-label="Forgot password"><a class="js-modal-trigger" data-signin="forgot" href="#0">Forgot
-                  Password?</a></p>
-            </div>
-            <div class="margin-bottom-lg">
-              <input aria-label="Remember me" class="checkbox" type="checkbox" value="true" name="rememberMe"
-                id="rememberMe">
-              <label class="color-contrast-medium" for="rememberMe">Remember Me</label>
-            </div>
-            <div>
-              <div class="flex flex-center margin-y-md">
-                <button aria-label="Submit" class="btn btn--md btn--primary width-50%" type="submit"
-                  onclick="onLogin()">Sign In</button>
-              </div>
-            </div>
-          </form>
-        </div>
-
-        <div class="modal__block js-modal-block" data-type="signup">
-          <form class="margin-bottom-sm" role="alertdialog" method="POST" onsubmit="return false">
-            <div class="text-component text-center margin-bottom-lg">
-              <h1 class="font-normal">Sign Up</h1>
-              <p class="color-contrast-medium">Already have an account? <a class="js-modal-trigger" data-signin="login"
-                  href="#0"> Sign In!</a>
-              </p>
-            </div>
-            <div class="margin-bottom-lg">
-              <div class="grid gap-md">
-                <div class="col-2@md">
-                  <label class="form-label padding-x-xs required" for="signup-title">Title</label>
-                  <input aria-label="First Name" class="form-control width-100%" type="text" name="signup-title"
-                    id="signup-title" placeholder=" " required>
-                </div>
-                <div class="col-5@md">
-                  <label class="form-label padding-x-xs required" for="signup-first-name">First Name</label>
-                  <input aria-label="First Name" class="form-control width-100%" type="text" name="signup-first-name"
-                    id="signup-first-name" placeholder=" " required>
-                </div>
-                <div class="col-5@md">
-                  <label class="form-label padding-x-xs required" for="signup-last-name">Last Name</label>
-                  <input aria-label="Last Name" class="form-control width-100%" type="text" name="signup-last-name"
-                    id="signup-last-name" placeholder=" " required>
-                </div>
-              </div>
-            </div>
-            <div class="margin-bottom-lg">
-              <label class="form-label padding-x-xs required" for="signup-email">Email</label>
-              <input aria-label="Email" class="form-control width-100%" type="email" name="signup-email"
-                id="signup-email" placeholder="email@myemail.com" required>
-            </div>
-            <div class="margin-bottom-lg">
-              <label class="form-label padding-x-xs required" for="signup-password">Password (Minimum 6
-                characters)</label>
-              <input aria-label="Password" class="form-control width-100% form-control" type="password"
-                name="signup-password" id="signup-password" placeholder=" " minLength="6" required>
-              <!-- <p class="text-base float-right color-contrast-medium margin-top-xxs">Minimum 6 characters</p> -->
-            </div>
-            <div class="margin-bottom-lg">
-              <label class="form-label padding-x-xs required" for="signup-confirm-password">Confirm Password</label>
-              <input aria-label="Confirm password" class="form-control width-100% form-control" type="password"
-                name="signup-confirm-password" id="signup-confirm-password" placeholder=" " minLength="6" required>
-            </div>
-            <div class="justify-center gap-xxs margin-bottom-lg">
-              <input aria-label="Accept terms" class="checkbox" type="checkbox" value="true" name="acceptTerms"
-                id="acceptTerms">
-              <label class="color-contrast-medium" for="acceptTerms">I have read and accept the <a href="#0">Terms of
-                  Service</a></label>
-            </div>
-            <div class="flex flex-center">
-              <input type="hidden" value="Wizard" name="AvatarType" id="AvatarType">
-              <button aria-label="Submit" class="btn btn--md btn--primary width-50%" type="submit"
-                onclick="onSignup()">Sign Up</button>
-            </div>
-          </form>
-        </div>
-
-        <div class="modal__block js-modal-block" data-type="forgot">
-          <form class="margin-bottom-sm" role="alertdialog">
-            <div class="text-component text-center margin-bottom-lg">
-              <h1 class="font-normal">Recover Password</h1>
-              <p class="color-contrast-medium">Enter your email address and we"ll send <br> you a link to reset your
-                password</p>
-            </div>
+            <p aria-label="Forgot password"><a class="js-modal-trigger" data-signin="forgot" href="#0">Forgot
+                Password?</a></p>
+          </div>
+          <div class="margin-bottom-lg">
+            <input aria-label="Remember me" class="checkbox" type="checkbox" value="true" name="rememberMe"
+              id="rememberMe">
+            <label class="color-contrast-medium" for="rememberMe">Remember Me</label>
+          </div>
+          <div class="flex flex-center">
+            <input aria-label="Submit" id="login-submit" class="btn btn--md btn--primary width-50%" type="submit"
+              form="login-form" value="Submit" onclick="onLogin()">
+          </div>
+        </form>
+      </div>
+      <div class="modal__block js-modal-block" data-type="signup">
+        <form id="signup-form" class="margin-bottom-sm" role="alertdialog" method="POST" onsubmit="return false">
+          <div class="text-component text-center margin-bottom-lg">
+            <h1 class="font-normal">Sign Up</h1>
+            <p class="color-contrast-medium">Already have an account? <a class="js-modal-trigger" data-signin="login"
+                href="#0"> Sign In!</a>
+            </p>
+          </div>
+          <div class="margin-bottom-lg">
+            <label class="form-label padding-x-xs required" for="signup-email">Email</label>
+            <input aria-label="Email" class="form-control width-100%" type="email" name="signup-email" id="signup-email" placeholder="name@example.com" required>
+          </div>
+          <div class="margin-bottom-lg">
+            <!-- <p class="text-sm float-right color-contrast-medium padding-x-xs padding-y-xxs">minimum 6 characters</p> -->
+            <label class="form-label padding-x-xs required" for="signup-password">Password</label>
+            <input aria-label="Password" class="form-control width-100%" type="password" name="signup-password" id="signup-password" placeholder=" " minLength="6" required onchange='check_pass();'>
+          </div>
+          <div class="margin-bottom-lg">
+            <label class="form-label padding-x-xs required" for="confirm-signup-password">Confirm Password</label>
+            <input aria-label="Confirm password" class="form-control width-100%" type="password" name="confirm-signup-password" id="confirm-signup-password" placeholder=" " minLength="6" required onchange='check_pass();'>
+          </div>
+          <div class="justify-center gap-xxs margin-bottom-lg">
+            <input aria-label="Accept terms" class="checkbox" type="checkbox" value="true" name="acceptTerms" id="acceptTerms">
+            <label class="color-contrast-medium" for="acceptTerms">I have read and accept the <a href="#0">Terms of Service</a></label>
+          </div>
+          <div class="flex flex-center">
+            <input type="hidden" value="User" name="AvatarType" id="AvatarType">
+            <input aria-label="Submit" id="signup-submit" class="btn btn--md btn--primary width-50%" type="submit" value="Submit" form="signup-form" onclick="onSignup()">
+          </div>
+        </form>
+      </div>
+      <div class="modal__block js-modal-block" data-type="forgot">
+        <form class="margin-bottom-sm" role="alertdialog">
+          <div class="text-component text-center margin-bottom-lg">
+            <h1 class="font-normal">Recover Password</h1>
+            <p class="color-contrast-medium">Enter your email address and we'll send you a link to reset your password
+            </p>
+          </div>
+          <div class="margin-bottom-xl">
+            <label class="form-label padding-top-sm" for="email">Email</label>
+            <input aria-label="Email" id="forgotEmail" class="form-control width-100%" type="email" name="email"
+              placeholder=" ">
+          </div>
+          <div class="flex flex-center margin-y-md">
+            <input aria-label="Submit" id="reset-submit" class="btn btn--md btn--primary width-50%" type="submit"
+              value="Submit" onclick="something()">
+          </div>
+          <div class="text-center">
+            <a class="js-modal-trigger" data-signin="login" href="#0">← Back to login</a>
+          </div>
+        </form>
+      </div>
+      <div class="modal__block js-modal-block" data-type="reset">
+        <form class="margin-bottom-sm" role="alertdialog">
+          <div class="text-component text-center margin-bottom-lg">
+            <h1 class="font-normal">Reset Password?</h1>
+            <p class="color-contrast-medium"> </p>
+          </div>
+          <div class="margin-bottom-xl">
+            <label class="form-label padding-top-sm" for="newPassword">New Password</label>
+            <input aria-label="New Password" class="form-control width-100%" type="password" name="newPasword"
+              id="newPassword" placeholder=" ">
             <div class="margin-bottom-xl">
-              <label class="form-label padding-top-sm" for="email">Email</label>
-              <input aria-label="Email" class="form-control width-100%" type="email" name="email" id="forgotEmail"
-                placeholder=" ">
+              <label class="form-label padding-top-sm" for="confirmNewPassword">Retype Password</label>
+              <input aria-label="Confirm Password" class="form-control width-100%" type="password"
+                name="confirmNewPasword" id="confirmNewPasword" placeholder=" ">
             </div>
-            <div class="flex flex-center margin-y-md">
-              <button class="btn btn--md btn--primary width-50%">Request Reset Link</button>
-            </div>
-            <div class="text-center">
-              <a class="js-modal-trigger" data-signin="login" href="#0">← Back to login</a>
-            </div>
-          </form>
-        </div>
-
-        <div class="modal__block js-modal-block" data-type="reset">
-          <form class="margin-bottom-sm" role="alertdialog">
-            <div class="text-component text-center margin-bottom-lg">
-              <h1 class="font-normal">Reset Password?</h1>
-              <p class="color-contrast-medium"> </p>
-            </div>
-            <div class="margin-bottom-xl">
-              <label class="form-label padding-top-sm" for="newPassword">New Password</label>
-              <input aria-label="New Password" class="form-control width-100%" type="password" name="newPasword"
-                id="newPassword" placeholder=" ">
-              <div class="margin-bottom-xl">
-                <label class="form-label padding-top-sm" for="confirmNewPassword">Retype Password</label>
-                <input aria-label="Confirm Password" class="form-control width-100%" type="password"
-                  name="confirmNewPasword" id="confirmNewPasword" placeholder=" ">
-              </div>
-            </div>
-            <div class="flex flex-center margin-y-md">
-              <button class="btn btn--md btn--primary width-50%">Reset Password</button>
-            </div>
-          </form>
-        </div>
-
+          </div>
+          <div class="flex flex-center margin-y-md">
+            <button class="btn btn--md btn--primary width-50%">Reset Password</button>
+          </div>
+        </form>
       </div>
     </div>
     <!-- <script src="assets/js/util.js"></script> -->
