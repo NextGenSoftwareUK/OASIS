@@ -377,7 +377,7 @@ namespace NextGenSoftware.Holochain.HoloNET.Client.Core
 
                         HoloNETRequest request = new HoloNETRequest()
                         {
-                            id = id,
+                            id = Convert.ToUInt64(id),
                             type = "Request",
                             data = MessagePackSerializer.Serialize(holoNETData)
                         };
