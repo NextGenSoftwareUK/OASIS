@@ -11,7 +11,7 @@ using NextGenSoftware.OASIS.STAR.CelestialSpace;
 
 namespace NextGenSoftware.OASIS.STAR
 {
-    // At the centre of the Omiverse (there can only be ONE) ;-) (creates Multiverses (with a GrandSuperStar at the centre of each).  Spirit/God/The Divine, etc
+    // At the centre of the Omiverse (there can only be ONE) ;-) (creates Multiverses (with a GrandSuperStar/Prime Creator at the centre of each).  Spirit/God/The Divine, etc
     public class GreatGrandSuperStarCore : CelestialBodyCore, IGreatGrandSuperStarCore 
     {
         public IGreatGrandSuperStar GreatGrandSuperStar { get; set; }
