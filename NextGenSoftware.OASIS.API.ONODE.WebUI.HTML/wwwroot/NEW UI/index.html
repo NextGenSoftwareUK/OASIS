@@ -31,50 +31,57 @@
   </head>
 
   <body data-theme="default">
+
     <header class="main-header js-main-header">
-      <div class="logo-wrapper">
-        <a href="#0" class="logo"><img src="assets/img/dummy-logo.svg" alt="Logo"> </a>
-      </div>
+      <!-- <div class="logo-wrapper"> -->
+        <a id="logo" href="#0"> <img src="assets/img/dummy-logo.svg" alt="Logo"> </a>
+      <!-- </div> -->
       <div class="top-nav js-top-nav">
-      <form class="search  js-search" autocomplete="off">
-        <label class="sr-only" for="search">Search</label>
-        <input class="reset search__input js-search__input" type="search" name="expandable-search" id="search"
-          placeholder="Search...">
-        <button class="reset search__btn">
-          <svg class="icon" viewBox="0 0 24 24">
-            <title>Search</title>
-            <g stroke-linecap="square" stroke-linejoin="miter" stroke-width="2" stroke="currentColor" fill="none"
-              stroke-miterlimit="10">
-              <line x1="21" y1="21" x2="15.656" y2="15.656" />
-              <circle cx="10" cy="10" r="8" />
-            </g>
-          </svg>
-        </button>
-      </form>
-      <ul class="nav__list js-nav__list js-modal-trigger">
-        <li class="nav__item"><a href="#0" data-signin="login">Sign in</a> </li>
-        <li class="nav__item"><a href="#0" data-signin="signup">Sign up</a> </li>
-      </ul>
-      <ul>
-        <li class="nav__item nav__item--has-children nav__item--account js-item--has-children">
-          <a href="#0">
-            <img src="assets/img/avatar.svg" alt="avatar">
-            <!-- <span>Account</span> -->
-          </a>
-          <ul class="top-nav__sub-list">
-            <li class="top-nav__sub-item "><a href="#0">My Account</a></li>
-            <li class="top-nav__sub-item "><a href="#0">Edit Account</a></li>
-            <li class="top-nav__sub-item "><a href="#0">Logout</a></li>
-          </ul>
-        </li>
-      </ul>
-      <button class="reset nav-trigger js-nav-trigger" aria-label="Toggle menu"><span></span></button>
-      </div>
+        <ul class="nav__list js-nav__list">
+          <li class="nav__item js-nav__login "><a class="js-modal-trigger" href="#0" data-signin="login">Log in</a> </li>
+          <li class="nav__item js-nav__login "><a class="js-modal-trigger" href="#0" data-signin="signup">Sign up</a> </li>
+          <li class="nav__item nav__item--account" data-display="loggedIn">
+            <a href="#0">
+              <svg class="avatar" viewBox="0 0 26.5 26.5">
+                <path
+                  d="M24.75 13.25a11.5 11.5 0 01-11.5 11.5 11.5 11.5 0 01-11.5-11.5 11.5 11.5 0 0111.5-11.5 11.5 11.5 0 0111.5 11.5zm-3.501 8.243c-.5-3.246-4-6.246-7.995-6.238C9.25 15.247 5.75 18.247 5.25 21.5m13-11.248a5 5 0 01-5 5 5 5 0 01-5-5 5 5 0 015-5 5 5 0 015 5z"
+                  fill="none" stroke="currentColor" stroke-width="1.5" />
+              </svg>
+            </a>
+            <!-- <ul class="nav__sub-list">
+              <li class="nav__sub-item"><a href="#0">My Account</a></li>
+              <li class="nav__sub-item"><a href="#0">Edit Account</a></li>
+              <li class="nav__sub-item"><a href="#0">Logout</a></li>
+            </ul> -->
+          </li>
+          <li class="nav__item"><button class="reset nav-trigger js-nav-trigger"
+              aria-label="Toggle menu"><span></span></button></li>
+        </ul>
+        <!-- </div> -->
     </header>
+
     <main class="main-content">
+
       <nav class="side-nav js-side-nav">
         <ul class="side__list js-side__list ">
-          <li class="side__item item--has-children  js-item--has-children">
+          <!-- <li class="side__item">
+            <form class="search js-search" autocomplete="off">
+              <label class="sr-only" for="search">Search</label>
+              <input class="reset search__input js-search__input" type="text" name="search" id="search"
+                placeholder="Search...">
+              <button class="reset search__btn">
+                <svg class="icon" viewBox="0 0 24 24">
+                  <title>Search</title>
+                  <g stroke-linecap="square" stroke-linejoin="miter" stroke-width="2" stroke="currentColor" fill="none"
+                    stroke-miterlimit="10">
+                    <line x1="21" y1="21" x2="15.656" y2="15.656" />
+                    <circle cx="10" cy="10" r="8" />
+                  </g>
+                </svg>
+              </button>
+            </form>
+          </li> -->
+          <li class="side__item item--has-children js-item--has-children">
             <a href="#0">The Oasis</a>
             <ul class="sub-menu">
               <li> <a target="_blank"
@@ -241,57 +248,56 @@
             <a href="#0">Developer</a>
             <ul class="sub-menu">
               <li> <a target="_blank" href="https://api.oasisplatform.world">OASIS API LIVE</a></li>
-              <li> <a target="_blank" href="https://staging.api.oasisplatform.world">OASIS API
-                  STAGING</a>
+              <li> <a target="_blank" href="https://staging.api.oasisplatform.world">OASIS API STAGING</a>
               </li>
               <li> <a target="_blank" href="https://oasisplatform.world">OASIS API UI LIVE</a></li>
-              <li> <a target="_blank" href="https://staging.oasisplatform.world">OASIS API UI
-                  STAGING</a>
+              <li> <a target="_blank" href="https://staging.oasisplatform.world">OASIS API UI STAGING</a>
               </li>
               <li> <a onclick="showSTARMessage();" href="#">STAR ODK</a> </li>
-              <li> <a target="_blank" href="postman/OASIS_API.postman_collection.json">OASIS API
+              <li> <a target="_blank" href="postman/OASIS_API.postman_collection.json">OASIS API Postman JSON File</a>
+              </li>
+              <li> <a target="_blank" href="postman/OASIS_API_DEV.postman_environment.json">OASIS API DEV ENVIROMENT
                   Postman JSON File</a></li>
-              <li> <a target="_blank" href="postman/OASIS_API_DEV.postman_environment.json">OASIS API
-                  DEV ENVIROMENT Postman JSON File</a></li>
-              <li> <a target="_blank" href="postman/OASIS_API_STAGING.postman_environment.json">OASIS
-                  API STAGING ENVIROMENT Postman JSON File</a></li>
-              <li> <a target="_blank" href="postman/OASIS_API_LIVE.postman_environment.json">OASIS API
-                  LIVE ENVIROMENT Postman JSON File</a></li>
+              <li> <a target="_blank" href="postman/OASIS_API_STAGING.postman_environment.json">OASIS API STAGING
+                  ENVIROMENT Postman JSON File</a></li>
+              <li> <a target="_blank" href="postman/OASIS_API_LIVE.postman_environment.json">OASIS API LIVE ENVIROMENT
+                  Postman JSON File</a></li>
               <li> <a target="_blank"
                   href="https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK">Code/Documentation</a>
               </li>
-              <li> <a target="_blank" href="https://www.thejusticeleagueaccademy.icu/">The Justice
-                  League Academy</a></li>
+              <li> <a target="_blank" href="https://www.thejusticeleagueaccademy.icu/">The Justice League Academy</a>
+              </li>
             </ul>
           </li>
         </ul>
       </nav>
+
       <div class="content-wrapper">
       </div>
+
     </main>
-    <div class="modal js-modal modal--animate-scale flex flex-center bg-contrast-lower bg-opacity-20% backdrop-blur-5">
-      <div
-        class="modal__container width-100% max-width-xs max-height-100% overflow-auto bg bg-opacity-90% backdrop-blur-5 radius-lg shadow-md">
+
+    <div class="modal js-modal modal--animate-scale">
+      <div class="modal__container">
+
         <div class="modal__block js-modal-block" data-type="login">
-          <form class="margin-bottom-sm" role="alertdialog">
+          <form role="alertdialog">
             <div class="text-component text-center margin-bottom-lg">
-              <h1 class="font-normal">Welcome back</h1>
+              <h1 class="font-normal">Log In</h1>
               <p class="color-contrast-medium">Don't have an account? <a class="js-modal-trigger" data-signin="signup"
                   href="#0">Sign Up!</a>
               </p>
             </div>
             <div class="margin-bottom-lg">
-              <label class="form-label padding-top-sm" for="email" name="email">Email</label>
-              <input aria-label="Email" class="form-control width-100%" type="email" name="email" id="loginEmail"
-                placeholder=" ">
+              <label class="form-label" for="login-email">Email</label>
+              <input aria-label="Email" class="form-control width-100%" type="email" name="login-email" id="login-email"
+                placeholder="name@example.com" required>
             </div>
             <div class="margin-bottom-lg">
-              <label class="form-label padding-x-xs" for="password">Password</label>
-              <p asria-label="Forgot password" class="float-right"><a class="js-modal-trigger" data-signin="forgot"
-                  href="#0">Forgot?</a></p>
+              <label class="form-label" for="login-password">Password</label>
               <div class="password js-password">
                 <input aria-label="Password" class="form-control width-100% form-control js-password__input"
-                  type="password" name="password" id="loginPassword" placeholder=" ">
+                  type="password" name="login-password" id="login-password" required>
                 <button class="password__btn flex flex-center js-password__btn js-tab-focus">
                   <span class="password__btn-label" aria-label="Show password" title="Show password">
                     <svg class="icon block" viewBox="0 0 32 32">
@@ -324,14 +330,25 @@
                     </svg></span>
                 </button>
               </div>
+              <p aria-label="Forgot password"><a class="js-modal-trigger" data-signin="forgot" href="#0">Forgot
+                  Password?</a></p>
             </div>
-            <div class="flex flex-center margin-y-md">
-              <button aria-label="Submit" class="btn btn--md btn--primary width-50%" type="submit">Sign In</button>
+            <div class="margin-bottom-lg">
+              <input aria-label="Remember me" class="checkbox" type="checkbox" value="true" name="rememberMe"
+                id="rememberMe">
+              <label class="color-contrast-medium" for="rememberMe">Remember Me</label>
+            </div>
+            <div>
+              <div class="flex flex-center margin-y-md">
+                <button aria-label="Submit" class="btn btn--md btn--primary width-50%" type="submit"
+                  onclick="onLogin()">Sign In</button>
+              </div>
             </div>
           </form>
         </div>
+
         <div class="modal__block js-modal-block" data-type="signup">
-          <form class="margin-bottom-sm" role="alertdialog">
+          <form class="margin-bottom-sm" role="alertdialog" method="POST" onsubmit="return false">
             <div class="text-component text-center margin-bottom-lg">
               <h1 class="font-normal">Sign Up</h1>
               <p class="color-contrast-medium">Already have an account? <a class="js-modal-trigger" data-signin="login"
@@ -340,33 +357,39 @@
             </div>
             <div class="margin-bottom-lg">
               <div class="grid gap-md">
-                <div class="col-6@md">
-                  <label class="form-label padding-x-xs" for="firstName">First Name</label>
-                  <input aria-label="First Name" class="form-control width-100%" type="text" name="firstName"
-                    id="firstName" placeholder=" ">
+                <div class="col-2@md">
+                  <label class="form-label padding-x-xs required" for="signup-title">Title</label>
+                  <input aria-label="First Name" class="form-control width-100%" type="text" name="signup-title"
+                    id="signup-title" placeholder=" " required>
                 </div>
-                <div class="col-6@md">
-                  <label class="form-label padding-x-xs" for="lastName">Last Name</label>
-                  <input aria-label="Last Name" class="form-control width-100%" type="text" name="lastName"
-                    id="lastName" placeholder=" ">
+                <div class="col-5@md">
+                  <label class="form-label padding-x-xs required" for="signup-first-name">First Name</label>
+                  <input aria-label="First Name" class="form-control width-100%" type="text" name="signup-first-name"
+                    id="signup-first-name" placeholder=" " required>
+                </div>
+                <div class="col-5@md">
+                  <label class="form-label padding-x-xs required" for="signup-last-name">Last Name</label>
+                  <input aria-label="Last Name" class="form-control width-100%" type="text" name="signup-last-name"
+                    id="signup-last-name" placeholder=" " required>
                 </div>
               </div>
             </div>
             <div class="margin-bottom-lg">
-              <label class="form-label padding-x-xs" for="signupEmail">Email</label>
-              <input aria-label="Email" class="form-control width-100%" type="email" name="email" id="signupEmail"
-                placeholder=" ">
+              <label class="form-label padding-x-xs required" for="signup-email">Email</label>
+              <input aria-label="Email" class="form-control width-100%" type="email" name="signup-email"
+                id="signup-email" placeholder="email@myemail.com" required>
             </div>
             <div class="margin-bottom-lg">
-              <label class="form-label padding-x-xs" for="password">Password</label>
-              <input aria-label="Password" class="form-control width-100% form-control" type="password" name="password"
-                id="signupPassword" placeholder="Minimum 6 characters">
+              <label class="form-label padding-x-xs required" for="signup-password">Password (Minimum 6
+                characters)</label>
+              <input aria-label="Password" class="form-control width-100% form-control" type="password"
+                name="signup-password" id="signup-password" placeholder=" " minLength="6" required>
               <!-- <p class="text-base float-right color-contrast-medium margin-top-xxs">Minimum 6 characters</p> -->
             </div>
             <div class="margin-bottom-lg">
-              <label class="form-label padding-x-xs" for="password">Confirm Password</label>
+              <label class="form-label padding-x-xs required" for="signup-confirm-password">Confirm Password</label>
               <input aria-label="Confirm password" class="form-control width-100% form-control" type="password"
-                name="confirmPassword" id="signupConfirmPassword" placeholder="Re-type your password">
+                name="signup-confirm-password" id="signup-confirm-password" placeholder=" " minLength="6" required>
             </div>
             <div class="justify-center gap-xxs margin-bottom-lg">
               <input aria-label="Accept terms" class="checkbox" type="checkbox" value="true" name="acceptTerms"
@@ -376,10 +399,12 @@
             </div>
             <div class="flex flex-center">
               <input type="hidden" value="Wizard" name="AvatarType" id="AvatarType">
-              <button aria-label="Submit" class="btn btn--md btn--primary width-50%" type="submit">Sign Up</button>
+              <button aria-label="Submit" class="btn btn--md btn--primary width-50%" type="submit"
+                onclick="onSignup()">Sign Up</button>
             </div>
           </form>
         </div>
+
         <div class="modal__block js-modal-block" data-type="forgot">
           <form class="margin-bottom-sm" role="alertdialog">
             <div class="text-component text-center margin-bottom-lg">
@@ -400,6 +425,7 @@
             </div>
           </form>
         </div>
+
         <div class="modal__block js-modal-block" data-type="reset">
           <form class="margin-bottom-sm" role="alertdialog">
             <div class="text-component text-center margin-bottom-lg">
@@ -421,6 +447,7 @@
             </div>
           </form>
         </div>
+
       </div>
     </div>
     <!-- <script src="assets/js/util.js"></script> -->
