@@ -37,6 +37,9 @@ button, input {
      -moz-appearance: none;
           appearance: none; }
 
+input::-ms-clear {
+  display: none; }
+
 img, svg {
   max-width: 100%; }
 
@@ -191,7 +194,8 @@ s {
   border-radius: var(--form-control-radius, 0.25em); }
 
 .form-label {
-  display: inline-block; }
+  display: inline-block;
+  padding-left: 0.5em; }
 
 :root {
   --zindex-header: 3;
@@ -427,11 +431,6 @@ a, .link {
   .btn--primary:focus {
     box-shadow: 0px 0px 0px 2px hsla(var(--color-primary-h), var(--color-primary-s), var(--color-primary-l), 0.2); }
 
-
-.btn[disabled] {
-  opacity: 0.6;
-  cursor: not-allowed; }
-
 .btn--md {
   font-size: 1.2em; }
 
@@ -466,10 +465,6 @@ a, .link {
     border-color: var(--color-primary);
     box-shadow: 0px 0px 0px 2px hsla(var(--color-primary-h), var(--color-primary-s), var(--color-primary-l), 0.2);
     outline: none; }
-
-
-.form-control[disabled] {
-  cursor: not-allowed; }
 
 .form-label {
   color: var(--color-contrast-medium);
@@ -685,7 +680,7 @@ Title: Modal Window
   top: 0;
   z-index: var(--zindex-popover);
   overflow-x: hidden;
-  background-color: hsla(var(--color-contrast-lower-h), var(--color-contrast-lower-s), var(--color-contrast-lower-l), var(--bg-o, 0.2));
+  background-color: hsla(var(--color-contrast-lower-h), var(--color-contrast-lower-s), var(--color-contrast-lower-l), 0.2);
   -webkit-backdrop-filter: blur(5px);
           backdrop-filter: blur(5px);
   opacity: 0;
@@ -694,17 +689,19 @@ Title: Modal Window
   .modal.is-visible {
     opacity: 1;
     visibility: visible;
-    pointer-events: auto; }
+    pointer-events: inherit; }
 
 .modal__block {
-  position: absolute;
   display: none;
-  align-items: center;
-  justify-content: center;
+  opacity: 0;
+  visibility: hidden;
   padding: 1.5em;
-  margin: 0 auto;
+  position: absolute;
   width: 100vw;
   top: 50%;
+  margin: 0 auto;
+  align-items: center;
+  justify-content: center;
   -webkit-transform: translateY(-50%);
           transform: translateY(-50%);
   min-width: var(--max-width-xxxxs);
@@ -712,11 +709,8 @@ Title: Modal Window
           backdrop-filter: blur(5px);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-md);
-  background-color: hsla(var(--color-bg-h), var(--color-bg-s), var(--color-bg-l), var(--bg-o, 0.9));
-  letter-spacing: 0.1em;
-  display: none;
-  opacity: 0;
-  visibility: hidden; }
+  background-color: hsla(var(--color-bg-h), var(--color-bg-s), var(--color-bg-l), 0.9);
+  letter-spacing: 0.1em; }
   .modal__block.is-selected {
     display: block;
     opacity: 1;
@@ -731,6 +725,9 @@ Title: Modal Window
     .modal__block {
       padding: 2em;
       width: var(--max-width-xxxs); } }
+
+form {
+  margin-bottom: var(--space-sm); }
 
 :root {
   --modal-transition-duration: 0.2s; }
@@ -910,7 +907,6 @@ Usage: codyhouse.co/license
 -------------------------------- */
 :root {
   --search-size-compact: 2.2em;
-  --search-size-expanded: 90vw;
   --search-radius: 50em;
   --search-icon-size: 1.5em; }
 
@@ -958,7 +954,7 @@ Usage: codyhouse.co/license
     border-color: var(--color-contrast-medium);
     cursor: pointer;
     transition: .3s ease; }
-  .search__input:focus, .search__input.search__input--has-content {
+  .search__input:focus {
     width: var(--search-size-expanded);
     padding-top: 0;
     padding-right: calc(4px + var(--search-size-compact));
@@ -974,19 +970,19 @@ Usage: codyhouse.co/license
         -ms-user-select: auto;
             user-select: auto;
     transition: all .3s ease; }
-    .search__input:focus::-webkit-input-placeholder, .search__input.search__input--has-content::-webkit-input-placeholder {
+    .search__input:focus::-webkit-input-placeholder {
       opacity: 1;
       color: var(--color-contrast-medium); }
-    .search__input:focus::-moz-placeholder, .search__input.search__input--has-content::-moz-placeholder {
+    .search__input:focus::-moz-placeholder {
       opacity: 1;
       color: var(--color-contrast-medium); }
-    .search__input:focus:-ms-input-placeholder, .search__input.search__input--has-content:-ms-input-placeholder {
+    .search__input:focus:-ms-input-placeholder {
       opacity: 1;
       color: var(--color-contrast-medium); }
-    .search__input:focus::-ms-input-placeholder, .search__input.search__input--has-content::-ms-input-placeholder {
+    .search__input:focus::-ms-input-placeholder {
       opacity: 1;
       color: var(--color-contrast-medium); }
-    .search__input:focus::placeholder, .search__input.search__input--has-content::placeholder {
+    .search__input:focus::placeholder {
       opacity: 1;
       color: var(--color-contrast-medium); }
   .search__input:focus + .search__btn {
