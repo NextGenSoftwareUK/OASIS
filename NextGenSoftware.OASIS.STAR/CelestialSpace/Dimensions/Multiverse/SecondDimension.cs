@@ -6,7 +6,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
     // Animals/vegetation plane.
     public class SecondDimension : Dimension, ISecondDimension
     {
-        public IUniverse Universe { get; set; }
+        public IUniverse Universe { get; set; } = new Universe();
 
         public SecondDimension()
         {

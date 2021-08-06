@@ -6,7 +6,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
     // Asscended Master plane (unity conciousness/ONENESS?)
     public class SeventhDimension : Dimension, ISeventhDimension
     {
-        public IUniverse Universe { get; set; }
+        public IUniverse Universe { get; set; } = new Universe();
 
         public SeventhDimension()
         {
