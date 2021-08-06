@@ -76,7 +76,7 @@ namespace NextGenSoftware.OASIS.STAR
 
         public OASISResult<IAsteroid> AddAsteroid(IAsteroid asteroid)
         {
-            return AddAsteroidAsync(asteroid).Result; 
+            return AddAsteroidAsync(asteroid).Result;
         }
 
         public async Task<OASISResult<IComet>> AddCometAsync(IComet comet)

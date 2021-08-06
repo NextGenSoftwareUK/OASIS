@@ -7,7 +7,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
     public class FourthDimension : Dimension, IFourthDimension
     {
         //TODO: Not sure if this also has parallel universes like the third dimension does?
-        public IUniverse Universe { get; set; }
+        public IUniverse Universe { get; set; } = new Universe();
 
         public FourthDimension()
         {
