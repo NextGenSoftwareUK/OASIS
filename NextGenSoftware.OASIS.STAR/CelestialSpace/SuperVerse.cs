@@ -6,6 +6,6 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
 {
     public class SuperVerse : Holon, ISuperVerse
     {
-       public List<IUniverse> Universes { get; set; }
+        public List<IUniverse> Universes { get; set; } = new List<IUniverse>();
     }
 }

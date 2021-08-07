@@ -14,7 +14,7 @@ namespace NextGenSoftware.OASIS.API.Core.Helpers
             toResult.Exception = fromResult.Exception;
             toResult.IsError = fromResult.IsError;
             toResult.IsSaved = fromResult.IsSaved;
-            toResult.IsSaved = fromResult.IsWarning;
+            toResult.IsWarning = fromResult.IsWarning;
             toResult.Message = fromResult.Message;
             toResult.MetaData = fromResult.MetaData;
 
