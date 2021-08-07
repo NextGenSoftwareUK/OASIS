@@ -1140,7 +1140,7 @@ namespace NextGenSoftware.OASIS.STAR
             if (!result.IsError && InnerStar.Id == Guid.Empty)
             {
                 result = await InnerStar.SaveAsync();
-                PostIgniteInnerStar(result);
+                await PostIgniteInnerStarAsync(result);
             }
 
             return result;
@@ -1152,14 +1152,41 @@ namespace NextGenSoftware.OASIS.STAR
             {
                 // TODO: May possibly have one SuperStar per Provider Type? Or list of ProviderTypes? People can host whichever provider(s) they wish as a ONODE. Each ONODE will be a GrandSuperStar (Universe), which can choose which Glaxies/Provider Types to host. Therefore the entire ONET (OASIS Network) is the distributed de-centralised network of GrandSuperStars/Universes forming the OASIS meta-verse/magicverse/Omiverse. :)
                 InnerStar.Name = "GreatGrandSuperStar";
-                InnerStar.Description = "GreatGrandSuperStar at the centre of the Omiverse/Magicverse (The OASIS). Can create Universes, Galaxies, SolarSystems, Stars, Planets (Super OAPPS) and moons (OAPPS)";
+                InnerStar.Description = "GreatGrandSuperStar at the centre of the Omiverse (The OASIS). Can create Multiverses, Universes, Galaxies, SolarSystems, Stars, Planets (Super OAPPS) and moons (OAPPS)";
                 InnerStar.HolonType = HolonType.GreatGrandSuperStar;
             }
             else
                 result.Message = "STAR Ignited";
         }
 
-        private static OASISResult<ICelestialBody> PostIgniteInnerStar(OASISResult<ICelestialBody> result)
+        //private static OASISResult<ICelestialBody> PostIgniteInnerStar(OASISResult<ICelestialBody> result)
+        //{
+        //    if (!result.IsError && result.IsSaved)
+        //    {
+        //        result.Message = "STAR Ignited";
+        //        STARDNA.StarId = InnerStar.Id.ToString();
+        //        SaveDNA();
+
+        //        OASISResult<IOmiverse> omiverseResult = ((GreatGrandSuperStarCore)InnerStar.CelestialBodyCore).AddOmiverse(new Omiverse() { GreatGrandSuperStar = InnerStar });
+
+        //        if (!omiverseResult.IsError && omiverseResult.Result != null)
+        //        {
+        //            InnerStar.ParentOmiverse = omiverseResult.Result;
+        //            InnerStar.ParentOmiverseId = omiverseResult.Result.Id;
+        //            InnerStar.Save();
+
+        //            OASISResult<IOmiverse> omiverseResult = ((GreatGrandSuperStarCore)InnerStar.CelestialBodyCore).AddMultiverse(new Omiverse() { GreatGrandSuperStar = InnerStar });
+        //        }
+
+
+
+        //        //Then need to create a default Universe, Galaxy, SolarSystem, Star & Planet (Our World).
+        //    }
+
+        //    return result;
+        //}
+
+        private static async Task<OASISResult<ICelestialBody>> PostIgniteInnerStarAsync(OASISResult<ICelestialBody> result)
         {
             if (!result.IsError && result.IsSaved)
             {
@@ -1167,16 +1194,48 @@ namespace NextGenSoftware.OASIS.STAR
                 STARDNA.StarId = InnerStar.Id.ToString();
                 SaveDNA();
 
-                OASISResult<IOmiverse> omiverseResult = ((GreatGrandSuperStarCore)InnerStar.CelestialBodyCore).AddOmiverse(new Omiverse() { GreatGrandSuperStar = InnerStar });
+                OASISResult<IOmiverse> omiverseResult = await ((GreatGrandSuperStarCore)InnerStar.CelestialBodyCore).AddOmiverseAsync(new Omiverse() { GreatGrandSuperStar = InnerStar });
 
                 if (!omiverseResult.IsError && omiverseResult.Result != null)
                 {
                     InnerStar.ParentOmiverse = omiverseResult.Result;
                     InnerStar.ParentOmiverseId = omiverseResult.Result.Id;
                     InnerStar.Save();
+
+                    Multiverse multiverse = new Multiverse();
+                    multiverse.ParentOmiverse = omiverseResult.Result;
+                    multiverse.ParentOmiverseId = omiverseResult.Result.Id;
+                    multiverse.ParentGreatGrandSuperStar = InnerStar;
+                    multiverse.ParentGreatGrandSuperStarId = InnerStar.Id;
+                    //multiverse.Dimensions.ThirdDimension.MagicVerse
+
+                    OASISResult<IMultiverse> multiverseResult = await ((GreatGrandSuperStarCore)InnerStar.CelestialBodyCore).AddMultiverseAsync(multiverse);
+
+                    if (!multiverseResult.IsError && multiverseResult.Result != null)
+                    {
+                        GalaxyCluster galaxyCluster = new GalaxyCluster();
+                        galaxyCluster.ParentOmiverse = omiverseResult.Result;
+                        galaxyCluster.ParentOmiverseId = omiverseResult.Result.Id;
+                        galaxyCluster.ParentGreatGrandSuperStar = InnerStar;
+                        galaxyCluster.ParentGreatGrandSuperStarId = InnerStar.Id;
+                        galaxyCluster.ParentMultiverse = multiverse;
+                        galaxyCluster.ParentMultiverseId = multiverse.Id;
+                        galaxyCluster.ParentDimension = multiverse.Dimensions.ThirdDimension;
+                        galaxyCluster.ParentDimensionId = multiverse.Dimensions.ThirdDimension.Id; 
+                        galaxyCluster.ParentUniverseId = multiverse.Dimensions.ThirdDimension.MagicVerse.Id; 
+                        galaxyCluster.ParentUniverse = multiverse.Dimensions.ThirdDimension.MagicVerse;
+
+                        OASISResult<IGalaxyCluster> galaxyClusterResult = await ((GrandSuperStarCore)multiverse.GrandSuperStar.CelestialBodyCore).AddGalaxyClusterToUniverseAsync(multiverse.Dimensions.ThirdDimension.MagicVerse, galaxyCluster);
+
+                        if (!galaxyClusterResult.IsError && galaxyClusterResult.Result != null)
+                        {
+                            
+                            
+                        }
+                    }
                 }
 
-              
+
 
                 //Then need to create a default Universe, Galaxy, SolarSystem, Star & Planet (Our World).
             }

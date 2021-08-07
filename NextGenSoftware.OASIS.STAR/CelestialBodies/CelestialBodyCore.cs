@@ -397,7 +397,6 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
             OASISResult<IEnumerable<IHolon>> holonsResult = await base.SaveHolonsAsync(holons);
             OASISResultCollectionToHolonHelper<IEnumerable<IHolon>, IHolon>.CopyResult(holonsResult, ref result);
 
-            // TODO: This will only work if the star names are unique (which we want to enforce anyway!) - need to add this soon!
             if (!holonsResult.IsError)
             {
                 IHolon savedHolon = holons.FirstOrDefault(x => x.Name == holon.Name);
