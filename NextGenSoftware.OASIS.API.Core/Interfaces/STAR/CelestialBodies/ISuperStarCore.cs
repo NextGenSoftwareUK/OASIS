@@ -4,13 +4,13 @@ using NextGenSoftware.OASIS.API.Core.Helpers;
 
 namespace NextGenSoftware.OASIS.API.Core.Interfaces.STAR
 {
-    // At the centre of each Galaxy (creates Galaxies, SolarSystems & Stars) Creator
+    // At the centre of each Galaxy (creates SolarSystems & Stars) Creator
     public interface ISuperStarCore : ICelestialBodyCore
     {
         ISuperStar SuperStar { get; set; }
 
-        OASISResult<IGalaxy> AddGalaxy(IGalaxy solarSystem);
-        Task<OASISResult<IGalaxy>> AddGalaxyAsync(IGalaxy galaxy);
+        //OASISResult<IGalaxy> AddGalaxy(IGalaxy solarSystem);
+        //Task<OASISResult<IGalaxy>> AddGalaxyAsync(IGalaxy galaxy);
         OASISResult<IStar> AddStar(IStar star);
         Task<OASISResult<IStar>> AddStarAsync(IStar star);
         OASISResult<IPlanet> AddPlanet(IPlanet planet);

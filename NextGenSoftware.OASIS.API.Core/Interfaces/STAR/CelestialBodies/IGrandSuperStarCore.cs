@@ -11,10 +11,14 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces.STAR
 
         OASISResult<IDimension> AddDimensionToMultiverse(IDimension dimension);
         Task<OASISResult<IDimension>> AddDimensionToMultiverseAsync(IDimension dimension);
-        OASISResult<IGalaxyCluster> AddGalaxyClusterToUniverse(IUniverse universe, IGalaxyCluster galaxyCluster);
+        Task<OASISResult<IThirdDimension>> AddThirdDimensionToMultiverseAsync();
+        OASISResult<IThirdDimension> AddThirdDimensionToMultiverse();
         OASISResult<IUniverse> AddParallelUniverseToThirdDimension(IUniverse universe);
         Task<OASISResult<IUniverse>> AddParallelUniverseToThirdDimensionAsync(IUniverse universe);
+        OASISResult<IGalaxyCluster> AddGalaxyClusterToUniverse(IUniverse universe, IGalaxyCluster galaxyCluster);
         Task<OASISResult<IGalaxyCluster>> AddGalaxyClusterToUniverseAsync(IUniverse universe, IGalaxyCluster galaxyCluster);
+        Task<OASISResult<IGalaxy>> AddGalaxyToGalaxyClusterAsync(IGalaxyCluster galaxyCluster, IGalaxy galaxy);
+        OASISResult<IGalaxy> AddGalaxyToGalaxyCluster(IGalaxyCluster galaxyCluster, IGalaxy galaxy);
         OASISResult<ISolarSystem> AddSolarSystemToUniverse(IUniverse universe, ISolarSystem solarSystem);
         Task<OASISResult<ISolarSystem>> AddSolarSystemToUniverseAsync(IUniverse universe, ISolarSystem solarSystem);
         OASISResult<IStar> AddStarToUniverse(IUniverse universe, IStar star);

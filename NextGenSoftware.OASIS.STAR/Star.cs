@@ -1215,12 +1215,14 @@ namespace NextGenSoftware.OASIS.STAR
                         multiverse = (Multiverse)multiverseResult.Result;
 
                         GalaxyCluster galaxyCluster = new GalaxyCluster();
-                        galaxyCluster.ParentOmiverse = omiverseResult.Result;
-                        galaxyCluster.ParentOmiverseId = omiverseResult.Result.Id;
-                        galaxyCluster.ParentGreatGrandSuperStar = InnerStar;
-                        galaxyCluster.ParentGreatGrandSuperStarId = InnerStar.Id;
-                        galaxyCluster.ParentGrandSuperStar = multiverse.ParentGrandSuperStar;
-                        galaxyCluster.ParentGrandSuperStarId = multiverse.ParentGrandSuperStarId;
+                        Mapper<IMultiverse, GalaxyCluster>.MapParentCelestialBodyProperties(multiverse, galaxyCluster);
+
+                        //galaxyCluster.ParentOmiverse = omiverseResult.Result;
+                        //galaxyCluster.ParentOmiverseId = omiverseResult.Result.Id;
+                        //galaxyCluster.ParentGreatGrandSuperStar = InnerStar;
+                        //galaxyCluster.ParentGreatGrandSuperStarId = InnerStar.Id;
+                        //galaxyCluster.ParentGrandSuperStar = multiverse.ParentGrandSuperStar;
+                        //galaxyCluster.ParentGrandSuperStarId = multiverse.ParentGrandSuperStarId;
                         galaxyCluster.ParentMultiverse = multiverse;
                         galaxyCluster.ParentMultiverseId = multiverse.Id;
                         galaxyCluster.ParentDimension = multiverse.Dimensions.ThirdDimension;
@@ -1235,22 +1237,24 @@ namespace NextGenSoftware.OASIS.STAR
                             galaxyCluster = (GalaxyCluster)galaxyClusterResult.Result;
 
                             Galaxy galaxy = new Galaxy();
-                            galaxy.ParentOmiverse = omiverseResult.Result;
-                            galaxy.ParentOmiverseId = omiverseResult.Result.Id;
-                            galaxy.ParentGreatGrandSuperStar = InnerStar;
-                            galaxy.ParentGreatGrandSuperStarId = InnerStar.Id;
-                            galaxy.ParentGrandSuperStar = multiverse.ParentGrandSuperStar;
-                            galaxy.ParentGrandSuperStarId = multiverse.ParentGrandSuperStarId;
-                            galaxy.ParentMultiverse = multiverse;
-                            galaxy.ParentMultiverseId = multiverse.Id;
-                            galaxy.ParentDimension = multiverse.Dimensions.ThirdDimension;
-                            galaxy.ParentDimensionId = multiverse.Dimensions.ThirdDimension.Id;
-                            galaxy.ParentUniverseId = multiverse.Dimensions.ThirdDimension.MagicVerse.Id;
-                            galaxy.ParentUniverse = multiverse.Dimensions.ThirdDimension.MagicVerse;
+                            Mapper<IGalaxyCluster, Galaxy>.MapParentCelestialBodyProperties(galaxyCluster, galaxy);
+
+                            //galaxy.ParentOmiverse = omiverseResult.Result;
+                            //galaxy.ParentOmiverseId = omiverseResult.Result.Id;
+                            //galaxy.ParentGreatGrandSuperStar = InnerStar;
+                            //galaxy.ParentGreatGrandSuperStarId = InnerStar.Id;
+                            //galaxy.ParentGrandSuperStar = multiverse.ParentGrandSuperStar;
+                            //galaxy.ParentGrandSuperStarId = multiverse.ParentGrandSuperStarId;
+                            //galaxy.ParentMultiverse = multiverse;
+                            //galaxy.ParentMultiverseId = multiverse.Id;
+                            //galaxy.ParentDimension = multiverse.Dimensions.ThirdDimension;
+                            //galaxy.ParentDimensionId = multiverse.Dimensions.ThirdDimension.Id;
+                            //galaxy.ParentUniverseId = multiverse.Dimensions.ThirdDimension.MagicVerse.Id;
+                            //galaxy.ParentUniverse = multiverse.Dimensions.ThirdDimension.MagicVerse;
                             galaxy.ParentGalaxyCluster = galaxyCluster;
                             galaxy.ParentGalaxyClusterId = galaxyCluster.Id;
 
-                            OASISResult<IGalaxy> galaxyResult = await ((GrandSuperStarCore)multiverse.GrandSuperStar.CelestialBodyCore).AddGalaxyToGalaxyClusterAsync( galaxy);
+                            OASISResult<IGalaxy> galaxyResult = await ((GrandSuperStarCore)multiverse.GrandSuperStar.CelestialBodyCore).AddGalaxyToGalaxyClusterAsync(galaxyCluster, galaxy);
 
                             if (!galaxyClusterResult.IsError && galaxyClusterResult.Result != null)
                             {
