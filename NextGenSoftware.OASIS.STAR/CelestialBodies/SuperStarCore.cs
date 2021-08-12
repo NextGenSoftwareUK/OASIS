@@ -11,7 +11,7 @@ using NextGenSoftware.OASIS.STAR.CelestialSpace;
 
 namespace NextGenSoftware.OASIS.STAR
 {
-    // At the centre of each Galaxy (creates Galaxies, Stars & Planets) Creator
+    // At the centre of each Galaxy (creates Stars & Planets) Creator
     public class SuperStarCore : CelestialBodyCore, ISuperStarCore
     {
         public ISuperStar SuperStar { get; set; }
@@ -31,17 +31,17 @@ namespace NextGenSoftware.OASIS.STAR
             this.SuperStar = superStar;
         }
 
-        public async Task<OASISResult<IGalaxy>> AddGalaxyAsync(IGalaxy galaxy)
-        {
-            return OASISResultHolonToHolonHelper<IHolon, IGalaxy>.CopyResult(
-                await AddHolonToCollectionAsync(SuperStar, galaxy, (List<IHolon>)Mapper<IGalaxy, Holon>.MapBaseHolonProperties(
-                    SuperStar.ParentGalaxyCluster.Galaxies)), new OASISResult<IGalaxy>());
-        }
+        //public async Task<OASISResult<IGalaxy>> AddGalaxyAsync(IGalaxy galaxy)
+        //{
+        //    return OASISResultHolonToHolonHelper<IHolon, IGalaxy>.CopyResult(
+        //        await AddHolonToCollectionAsync(SuperStar, galaxy, (List<IHolon>)Mapper<IGalaxy, Holon>.MapBaseHolonProperties(
+        //            SuperStar.ParentGalaxyCluster.Galaxies)), new OASISResult<IGalaxy>());
+        //}
 
-        public OASISResult<IGalaxy> AddGalaxy(IGalaxy solarSystem)
-        {
-            return AddGalaxyAsync(solarSystem).Result;
-        }
+        //public OASISResult<IGalaxy> AddGalaxy(IGalaxy solarSystem)
+        //{
+        //    return AddGalaxyAsync(solarSystem).Result;
+        //}
 
         public async Task<OASISResult<IStar>> AddStarAsync(IStar star)
         {

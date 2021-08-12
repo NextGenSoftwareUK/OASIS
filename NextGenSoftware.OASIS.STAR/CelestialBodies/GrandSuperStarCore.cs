@@ -92,10 +92,13 @@ namespace NextGenSoftware.OASIS.STAR
                 return result;
             }
 
-            GrandSuperStar.ParentMultiverse.Dimensions.ThirdDimension.ParentOmiverse = GrandSuperStar.ParentMultiverse.ParentOmiverse;
-            GrandSuperStar.ParentMultiverse.Dimensions.ThirdDimension.ParentOmiverseId = GrandSuperStar.ParentMultiverse.ParentOmiverseId;
-            GrandSuperStar.ParentMultiverse.Dimensions.ThirdDimension.ParentMultiverse = GrandSuperStar.ParentMultiverse;
-            GrandSuperStar.ParentMultiverse.Dimensions.ThirdDimension.ParentMultiverseId = GrandSuperStar.ParentMultiverse.Id;
+            Mapper<IGrandSuperStar, ThirdDimension>.MapParentCelestialBodyProperties(GrandSuperStar, (ThirdDimension)GrandSuperStar.ParentMultiverse.Dimensions.ThirdDimension);
+            //GrandSuperStar.ParentMultiverse.Dimensions.ThirdDimension.ParentOmiverse = GrandSuperStar.ParentMultiverse.ParentOmiverse;
+            //GrandSuperStar.ParentMultiverse.Dimensions.ThirdDimension.ParentOmiverseId = GrandSuperStar.ParentMultiverse.ParentOmiverseId;
+            //GrandSuperStar.ParentMultiverse.Dimensions.ThirdDimension.ParentOmiverse = GrandSuperStar.ParentOmiverse;
+            //GrandSuperStar.ParentMultiverse.Dimensions.ThirdDimension.ParentOmiverseId = GrandSuperStar.ParentOmiverseId;
+            //GrandSuperStar.ParentMultiverse.Dimensions.ThirdDimension.ParentMultiverse = GrandSuperStar.ParentMultiverse;
+            //GrandSuperStar.ParentMultiverse.Dimensions.ThirdDimension.ParentMultiverseId = GrandSuperStar.ParentMultiverse.Id;
             GrandSuperStar.ParentMultiverse.Dimensions.ThirdDimension.ParentGrandSuperStar = GrandSuperStar;
             GrandSuperStar.ParentMultiverse.Dimensions.ThirdDimension.ParentGrandSuperStarId = GrandSuperStar.Id;
 
@@ -107,10 +110,11 @@ namespace NextGenSoftware.OASIS.STAR
                 Mapper<IHolon, ThirdDimension>.MapBaseHolonProperties(thirdDimensionResult.Result, (ThirdDimension)GrandSuperStar.ParentMultiverse.Dimensions.ThirdDimension);
                 result.Result = GrandSuperStar.ParentMultiverse.Dimensions.ThirdDimension;
 
-                GrandSuperStar.ParentMultiverse.Dimensions.ThirdDimension.MagicVerse.ParentOmiverse = GrandSuperStar.ParentMultiverse.ParentOmiverse;
-                GrandSuperStar.ParentMultiverse.Dimensions.ThirdDimension.MagicVerse.ParentOmiverseId = GrandSuperStar.ParentMultiverse.ParentOmiverseId;
-                GrandSuperStar.ParentMultiverse.Dimensions.ThirdDimension.MagicVerse.ParentMultiverse = GrandSuperStar.ParentMultiverse;
-                GrandSuperStar.ParentMultiverse.Dimensions.ThirdDimension.MagicVerse.ParentMultiverseId = GrandSuperStar.ParentMultiverse.Id;
+                Mapper<IGrandSuperStar, Universe>.MapParentCelestialBodyProperties(GrandSuperStar, (Universe)GrandSuperStar.ParentMultiverse.Dimensions.ThirdDimension.MagicVerse);
+                //GrandSuperStar.ParentMultiverse.Dimensions.ThirdDimension.MagicVerse.ParentOmiverse = GrandSuperStar.ParentOmiverse;
+                //GrandSuperStar.ParentMultiverse.Dimensions.ThirdDimension.MagicVerse.ParentOmiverseId = GrandSuperStar.ParentOmiverseId;
+                //GrandSuperStar.ParentMultiverse.Dimensions.ThirdDimension.MagicVerse.ParentMultiverse = GrandSuperStar.ParentMultiverse;
+                //GrandSuperStar.ParentMultiverse.Dimensions.ThirdDimension.MagicVerse.ParentMultiverseId = GrandSuperStar.ParentMultiverse.Id;
                 GrandSuperStar.ParentMultiverse.Dimensions.ThirdDimension.MagicVerse.ParentDimension = GrandSuperStar.ParentMultiverse.Dimensions.ThirdDimension;
                 GrandSuperStar.ParentMultiverse.Dimensions.ThirdDimension.MagicVerse.ParentDimensionId = GrandSuperStar.ParentMultiverse.Dimensions.ThirdDimension.Id;
                 GrandSuperStar.ParentMultiverse.Dimensions.ThirdDimension.MagicVerse.ParentGrandSuperStar = GrandSuperStar;
@@ -123,10 +127,11 @@ namespace NextGenSoftware.OASIS.STAR
                 {
                     Mapper<IHolon, Universe>.MapBaseHolonProperties(magicVerseResult.Result, (Universe)GrandSuperStar.ParentMultiverse.Dimensions.ThirdDimension.MagicVerse);
 
-                    GrandSuperStar.ParentMultiverse.Dimensions.ThirdDimension.UniversePrime.ParentOmiverse = GrandSuperStar.ParentMultiverse.ParentOmiverse;
-                    GrandSuperStar.ParentMultiverse.Dimensions.ThirdDimension.UniversePrime.ParentOmiverseId = GrandSuperStar.ParentMultiverse.ParentOmiverseId;
-                    GrandSuperStar.ParentMultiverse.Dimensions.ThirdDimension.UniversePrime.ParentMultiverse = GrandSuperStar.ParentMultiverse;
-                    GrandSuperStar.ParentMultiverse.Dimensions.ThirdDimension.UniversePrime.ParentMultiverseId = GrandSuperStar.ParentMultiverse.Id;
+                    Mapper<IGrandSuperStar, Universe>.MapParentCelestialBodyProperties(GrandSuperStar, (Universe)GrandSuperStar.ParentMultiverse.Dimensions.ThirdDimension.UniversePrime);
+                    //GrandSuperStar.ParentMultiverse.Dimensions.ThirdDimension.UniversePrime.ParentOmiverse = GrandSuperStar.ParentMultiverse.ParentOmiverse;
+                    //GrandSuperStar.ParentMultiverse.Dimensions.ThirdDimension.UniversePrime.ParentOmiverseId = GrandSuperStar.ParentMultiverse.ParentOmiverseId;
+                    //GrandSuperStar.ParentMultiverse.Dimensions.ThirdDimension.UniversePrime.ParentMultiverse = GrandSuperStar.ParentMultiverse;
+                    //GrandSuperStar.ParentMultiverse.Dimensions.ThirdDimension.UniversePrime.ParentMultiverseId = GrandSuperStar.ParentMultiverse.Id;
                     GrandSuperStar.ParentMultiverse.Dimensions.ThirdDimension.UniversePrime.ParentDimension = GrandSuperStar.ParentMultiverse.Dimensions.ThirdDimension;
                     GrandSuperStar.ParentMultiverse.Dimensions.ThirdDimension.UniversePrime.ParentDimensionId = GrandSuperStar.ParentMultiverse.Dimensions.ThirdDimension.Id;
                     GrandSuperStar.ParentMultiverse.Dimensions.ThirdDimension.UniversePrime.ParentGrandSuperStar = GrandSuperStar;
@@ -330,6 +335,88 @@ namespace NextGenSoftware.OASIS.STAR
         public OASISResult<IGalaxyCluster> AddGalaxyClusterToUniverse(IUniverse universe, IGalaxyCluster galaxyCluster)
         {
             return AddGalaxyClusterToUniverseAsync(universe, galaxyCluster).Result;
+        }
+
+        public async Task<OASISResult<IGalaxy>> AddGalaxyToGalaxyClusterAsync(IGalaxyCluster galaxyCluster, IGalaxy galaxy)
+        {
+            OASISResult<IGalaxy> result = new OASISResult<IGalaxy>();
+
+            //return OASISResultHolonToHolonHelper<IHolon, IGalaxy>.CopyResult(
+            //    await AddHolonToCollectionAsync(galaxyCluster, galaxy, (List<IHolon>)Mapper<IGalaxy, Holon>.MapBaseHolonProperties(
+            //        galaxyCluster.Galaxies)), new OASISResult<IGalaxy>());
+
+            if (galaxyCluster == null)
+            {
+                result.IsError = true;
+                result.Message = "GalaxyCluster cannot be null.";
+                return result;
+            }
+
+            if (galaxy == null)
+            {
+                result.IsError = true;
+                result.Message = "Galaxy cannot be null.";
+                return result;
+            }
+
+            galaxy.Id = Guid.NewGuid();
+            galaxy.IsNewHolon = true;
+
+            if (galaxy.SuperStar == null)
+            {
+                galaxy.SuperStar = new SuperStar();
+                galaxy.SuperStar.Id = Guid.NewGuid();
+                galaxy.SuperStar.IsNewHolon = true;
+
+                Mapper<IHolon, SuperStar>.MapParentCelestialBodyProperties(galaxyCluster, (SuperStar)galaxy.SuperStar);
+                //galaxy.SuperStar.ParentOmiverse = galaxyCluster.ParentOmiverse;
+                //galaxy.SuperStar.ParentOmiverseId = galaxyCluster.ParentOmiverseId;
+                //galaxy.SuperStar.ParentGreatGrandSuperStar = galaxyCluster.ParentGreatGrandSuperStar;
+                //galaxy.SuperStar.ParentGreatGrandSuperStarId = galaxyCluster.ParentGreatGrandSuperStarId;
+                //galaxy.SuperStar.ParentGrandSuperStar = multiverse.ParentGrandSuperStar;
+                //galaxy.SuperStar.ParentGrandSuperStarId = multiverse.ParentGrandSuperStarId;
+                //galaxy.SuperStar.ParentMultiverse.ParentMultiverse = galaxyCluster.ParentMultiverse;
+                //galaxy.SuperStar.ParentMultiverseId = galaxyCluster.ParentMultiverseId;
+                //galaxy.SuperStar.ParentDimension = galaxyCluster.ParentDimension;
+                //galaxy.SuperStar.ParentDimensionId = galaxyCluster.ParentDimensionId;
+                //galaxy.SuperStar.ParentUniverse = galaxyCluster.ParentUniverse;
+                //galaxy.SuperStar.ParentUniverseId = galaxyCluster.ParentUniverseId;
+
+                galaxy.SuperStar.ParentGalaxyCluster = galaxyCluster;
+                galaxy.SuperStar.ParentGalaxyClusterId = galaxyCluster.Id;
+                galaxy.SuperStar.ParentGalaxy = galaxy;
+                galaxy.SuperStar.ParentGalaxyId = galaxy.Id;
+            }    
+
+            result = OASISResultHolonToHolonHelper<IHolon, IGalaxy>.CopyResult(
+                await AddHolonToCollectionAsync(galaxyCluster, galaxy, (List<IHolon>)Mapper<IGalaxy, Holon>.MapBaseHolonProperties(
+                    galaxyCluster.Galaxies)), new OASISResult<IGalaxy>());
+
+            if (!result.IsError && result.Result != null)
+            {
+                Mapper<IHolon, Galaxy>.MapBaseHolonProperties(result.Result, (Galaxy)galaxy);
+
+                // Now we need to save the SuperStar as a seperate Holon.
+                OASISResult<IHolon> superStarResult = await SaveHolonAsync(galaxy.SuperStar);
+
+                if (!superStarResult.IsError && superStarResult.Result != null)
+                {
+                    Mapper<IHolon, SuperStar>.MapBaseHolonProperties(superStarResult.Result, (SuperStar)galaxy.SuperStar);
+                    result.Result = galaxy;
+                }
+                else
+                {
+                    result.IsError = true;
+                    result.Message = superStarResult.Message;
+                }
+            }
+
+            return result;
+        }
+
+        public OASISResult<IGalaxy> AddGalaxyToGalaxyCluster(IGalaxyCluster galaxyCluster, IGalaxy galaxy)
+        {
+            return AddGalaxyToGalaxyClusterAsync(galaxyCluster, galaxy).Result;
         }
 
         public async Task<OASISResult<ISolarSystem>> AddSolarSystemToUniverseAsync(IUniverse universe, ISolarSystem solarSystem)
