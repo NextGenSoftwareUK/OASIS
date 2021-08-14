@@ -664,7 +664,13 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         {
             // TODO: I think it's best to include audit stuff here so the providers do not need to worry about it?
             // Providers could always override this behaviour if they choose...
-            
+
+            if (holon.Id == Guid.Empty)
+            {
+                holon.Id = Guid.NewGuid();
+                holon.IsNewHolon = true;
+            }
+
             //if (holon.Id != Guid.Empty)
             if (!holon.IsNewHolon)
             {
