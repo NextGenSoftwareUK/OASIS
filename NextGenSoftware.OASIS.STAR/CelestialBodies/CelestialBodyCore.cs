@@ -317,6 +317,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
             }
 
             // TODO: Need to double check this logic below is right! ;-)
+            holon.IsNewHolon = true; //TODO: I am pretty sure every holon being added to a collection using this method will be a new one?
             holon.ParentOmiverseId = parentCelestialBody.ParentOmiverseId;
             holon.ParentMultiverseId = parentCelestialBody.ParentMultiverseId;
             holon.ParentUniverseId = parentCelestialBody.ParentUniverseId;

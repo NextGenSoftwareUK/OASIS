@@ -57,8 +57,12 @@ namespace NextGenSoftware.OASIS.STAR.DNA
         public string CSharpTemplateICelestialBodyDNA = @"Interfaces\ICelestialBodyDNATemplate.cs";
         public string CSharpTemplateCelestialBodyDNA = "CelestialBodyDNATemplate.cs";
         public Dictionary<ProviderType, string> StarProviderKey = new Dictionary<ProviderType, string>();
-        public string StarId;
-       // public string OASISProviders = "HoloOASIS,MongoDBOASIS";
+        public string DefaultGreatGrandSuperStarId;
+        public string DefaultGrandSuperStarId;
+        public string DefaultSuperStarId;
+        public string DefaultStarId;
+        public string DefaultPlanetId;
+        // public string OASISProviders = "HoloOASIS,MongoDBOASIS";
         //public string HolochainConductorURI = "ws://localhost:8888";
         //public string HoloNETClientType = "Desktop";
         public string HolochainVersion = "Redux"; //Valid values: Redux or RSM.
