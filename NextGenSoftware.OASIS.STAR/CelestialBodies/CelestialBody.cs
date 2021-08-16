@@ -13,6 +13,7 @@ using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.STAR.Zomes;
+using NextGenSoftware.OASIS.STAR.CelestialSpace;
 
 namespace NextGenSoftware.OASIS.STAR.CelestialBodies
 {
@@ -143,14 +144,32 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
                 case HolonType.GreatGrandSuperStar:
                     {
                         SetParentIdsForGreatGrandSuperStar((IGreatGrandSuperStar)this);
-                        celestialBodyChildrenResult = await SaveCelestialBodyChildrenAsync((IEnumerable<IZome>)((IGreatGrandSuperStar)this).ParentOmiverse.Universes);
+                        //celestialBodyChildrenResult = await SaveCelestialBodyChildrenAsync((IEnumerable<IZome>)((IGreatGrandSuperStar)this).ParentOmiverse.Universes);
+                        celestialBodyChildrenResult = await SaveCelestialBodyChildrenAsync((IEnumerable<IZome>)((IGreatGrandSuperStar)this).ParentOmiverse.Multiverses);
+                        
+                        //TODO: Finish this later...
+                        foreach (IMultiverse multiverse in ParentOmiverse.Multiverses)
+                        {
+                            celestialBodyChildrenResult = await SaveCelestialBodyChildrenAsync((IEnumerable<IZome>)multiverse.Dimensions.ThirdDimension.UniversePrime);
+                            celestialBodyChildrenResult = await SaveCelestialBodyChildrenAsync((IEnumerable<IZome>)multiverse.Dimensions.ThirdDimension.MagicVerse);
+                            celestialBodyChildrenResult = await SaveCelestialBodyChildrenAsync((IEnumerable<IZome>)multiverse.Dimensions.ThirdDimension.ParallelUniverses);
+
+                            //Need to save all other dimensions too... ;-)
+                        }
                     }
                     break;
 
                 case HolonType.GrandSuperStar:
                     {
                         SetParentIdsForGrandSuperStar(this.ParentGreatGrandSuperStar, (IGrandSuperStar)this);
-                        celestialBodyChildrenResult = await SaveCelestialBodyChildrenAsync((IEnumerable<IZome>)((IGrandSuperStar)this).ParentUniverse.Galaxies);
+                        //celestialBodyChildrenResult = await SaveCelestialBodyChildrenAsync((IEnumerable<IZome>)((IGrandSuperStar)this).ParentUniverse.Galaxies);
+                        celestialBodyChildrenResult = await SaveCelestialBodyChildrenAsync((IEnumerable<IZome>)((IGrandSuperStar)this).ParentUniverse.GalaxyClusters);
+
+                        foreach (IGalaxyCluster galaxyCluster in ((IGrandSuperStar)this).ParentUniverse.GalaxyClusters)
+                        {
+                            //TODO: Finish this later...
+                            celestialBodyChildrenResult = await SaveCelestialBodyChildrenAsync((IEnumerable<IZome>)galaxyCluster.Galaxies);
+                        }
                     }
                     break;
 
@@ -476,32 +495,59 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
                 SetParentIdsForStar(greatGrandSuperStar, grandSuperStar, null, star); //Stars outside of a Galaxy do not have a parent SuperStar (at the centre of each Galaxy).
             }
 
-            foreach (IGalaxy galaxy in grandSuperStar.ParentUniverse.Galaxies)
+            //foreach (IGalaxy galaxy in grandSuperStar.ParentUniverse.Galaxies)
+            foreach (IGalaxyCluster galaxyCluster in grandSuperStar.ParentUniverse.GalaxyClusters)
             {
-                galaxy.ParentOmiverse = greatGrandSuperStar.ParentOmiverse;
-                galaxy.ParentOmiverseId = greatGrandSuperStar.ParentOmiverseId;
-                galaxy.ParentGreatGrandSuperStar = greatGrandSuperStar;
-                galaxy.ParentGreatGrandSuperStarId = greatGrandSuperStar.Id;
+                //TODO: Come back to this... finish this bit later..
+                galaxyCluster.ParentOmiverse = greatGrandSuperStar.ParentOmiverse;
+                galaxyCluster.ParentOmiverseId = greatGrandSuperStar.ParentOmiverseId;
+                galaxyCluster.ParentGreatGrandSuperStar = greatGrandSuperStar;
+                galaxyCluster.ParentGreatGrandSuperStarId = greatGrandSuperStar.Id;
 
-                galaxy.ParentUniverse = grandSuperStar.ParentUniverse;
-                galaxy.ParentUniverseId = grandSuperStar.ParentUniverseId;
-                galaxy.ParentGrandSuperStar = grandSuperStar;
-                galaxy.ParentGrandSuperStarId = grandSuperStar.Id;
+                galaxyCluster.ParentUniverse = grandSuperStar.ParentUniverse;
+                galaxyCluster.ParentUniverseId = grandSuperStar.ParentUniverseId;
+                galaxyCluster.ParentGrandSuperStar = grandSuperStar;
+                galaxyCluster.ParentGrandSuperStarId = grandSuperStar.Id;
 
-                SetParentIdsForSuperStar(greatGrandSuperStar, grandSuperStar, galaxy.SuperStar);
+                foreach (IGalaxy galaxy in galaxyCluster.Galaxies)
+                {
+                    galaxy.ParentOmiverse = greatGrandSuperStar.ParentOmiverse;
+                    galaxy.ParentOmiverseId = greatGrandSuperStar.ParentOmiverseId;
+                    galaxy.ParentGreatGrandSuperStar = greatGrandSuperStar;
+                    galaxy.ParentGreatGrandSuperStarId = greatGrandSuperStar.Id;
+
+                    galaxy.ParentUniverse = grandSuperStar.ParentUniverse;
+                    galaxy.ParentUniverseId = grandSuperStar.ParentUniverseId;
+                    galaxy.ParentGrandSuperStar = grandSuperStar;
+                    galaxy.ParentGrandSuperStarId = grandSuperStar.Id;
+
+                    SetParentIdsForSuperStar(greatGrandSuperStar, grandSuperStar, galaxy.SuperStar);
+                }
             }
         }
 
         private void SetParentIdsForGreatGrandSuperStar(IGreatGrandSuperStar greatGrandSuperStar)
         {
-            foreach (IUniverse universe in greatGrandSuperStar.ParentOmiverse.Universes)
+            foreach (IMultiverse multiverse in greatGrandSuperStar.ParentOmiverse.Multiverses)
             {
-                universe.ParentOmiverse = greatGrandSuperStar.ParentOmiverse;
-                universe.ParentOmiverseId = greatGrandSuperStar.ParentOmiverseId;
-                universe.ParentGreatGrandSuperStar = greatGrandSuperStar;
-                universe.ParentGreatGrandSuperStarId = greatGrandSuperStar.Id;
+                multiverse.ParentOmiverse = greatGrandSuperStar.ParentOmiverse;
+                multiverse.ParentOmiverseId = greatGrandSuperStar.ParentOmiverseId;
+                multiverse.ParentGreatGrandSuperStar = greatGrandSuperStar;
+                multiverse.ParentGreatGrandSuperStarId = greatGrandSuperStar.Id;
 
-                SetParentIdsForGrandSuperStar(greatGrandSuperStar, universe.GrandSuperStar);
+                //TODO: Come back to this tomorrow...
+                //Mapper<IGreatGrandSuperStar, Multiverse>.MapParentCelestialBodyProperties(greatGrandSuperStar, (Multiverse)multiverse);
+
+                foreach (IUniverse universe in multiverse.Dimensions.ThirdDimension.ParallelUniverses)
+                {
+                    universe.ParentOmiverse = greatGrandSuperStar.ParentOmiverse;
+                    universe.ParentOmiverseId = greatGrandSuperStar.ParentOmiverseId;
+                    universe.ParentGreatGrandSuperStar = greatGrandSuperStar;
+                    universe.ParentGreatGrandSuperStarId = greatGrandSuperStar.Id;
+
+                    //SetParentIdsForGrandSuperStar(greatGrandSuperStar, universe.GrandSuperStar);
+                    SetParentIdsForGrandSuperStar(greatGrandSuperStar, universe.ParentGrandSuperStar);
+                }
             }
         }
 

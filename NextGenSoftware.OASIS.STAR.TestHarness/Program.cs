@@ -82,23 +82,23 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
             }
         }
 
-        private static void SuperStar_OnSuperStarStatusChanged(object sender, EventArgs.SuperStarStatusChangedEventArgs e)
+        private static void SuperStar_OnSuperStarStatusChanged(object sender, EventArgs.StarStatusChangedEventArgs e)
         {
             switch (e.Status)
             {
-                case Enums.SuperStarStatus.BootingOASIS:
+                case Enums.StarStatus.BootingOASIS:
                     ShowWorkingMessage("BOOTING OASIS...");
                     break;
 
-                case Enums.SuperStarStatus.OASISBooted:
+                case Enums.StarStatus.OASISBooted:
                     ShowSuccessMessage("OASIS BOOTED");
                     break;
 
-                case Enums.SuperStarStatus.Igniting:
+                case Enums.StarStatus.Igniting:
                     ShowWorkingMessage("IGNITING SUPERSTAR..."); 
                     break;
 
-                case Enums.SuperStarStatus.Ingited:
+                case Enums.StarStatus.Ingited:
                     ShowSuccessMessage("SUPERSTAR IGNITED");
                     break;
 
