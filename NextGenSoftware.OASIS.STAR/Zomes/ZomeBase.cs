@@ -317,7 +317,7 @@ namespace NextGenSoftware.OASIS.STAR.Zomes
                 this.ModifiedDate = holonResult.Result.ModifiedDate;
                 this.Children = holonResult.Result.Children;
 
-                ZomeHelper.SetParentIdsForZome(this.ParentStar, this.ParentPlanet, this.ParentMoon, (IZome)this);
+                ZomeHelper.SetParentIdsForZome(this.ParentGreatGrandSuperStar, this.ParentGrandSuperStar, this.ParentSuperStar, this.ParentStar, this.ParentPlanet, this.ParentMoon, (IZome)this);
 
                 // Now save the zome child holons (each OASIS Provider will recursively save each child holon, could do the recursion here and just save each holon indivudally with SaveHolonAsync but this way each OASIS Provider can optimise the the way it saves (batches, etc), which would be quicker than making multiple calls...)
                 OASISResult<IEnumerable<IHolon>> holonsResult = await _holonManager.SaveHolonsAsync(this.Holons);
@@ -372,7 +372,7 @@ namespace NextGenSoftware.OASIS.STAR.Zomes
                 this.ModifiedDate = holonResult.Result.ModifiedDate;
                 this.Children = holonResult.Result.Children;
 
-                ZomeHelper.SetParentIdsForZome(this.ParentStar, this.ParentPlanet, this.ParentMoon, (IZome)this);
+                ZomeHelper.SetParentIdsForZome(this.ParentGreatGrandSuperStar, this.ParentGrandSuperStar, this.ParentSuperStar, this.ParentStar, this.ParentPlanet, this.ParentMoon, (IZome)this);
 
                 // Now save the zome child holons (each OASIS Provider will recursively save each child holon, could do the recursion here and just save each holon indivudally with SaveHolonAsync but this way each OASIS Provider can optimise the the way it saves (batches, etc), which would be quicker than making multiple calls...)
                 OASISResult<IEnumerable<IHolon>> holonsResult = _holonManager.SaveHolons(this.Holons);
