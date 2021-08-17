@@ -26,7 +26,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 
                     //TODO: Eventually want to replace all exceptions with OASISResult throughout the OASIS because then it makes sure errors are handled properly and friendly messages are shown (plus less overhead of throwing an entire stack trace!)
                     if (result.IsError)
-                        ErrorHandling.HandleError(ref result, string.Concat("Error calling OASISDNAManager.GetAndActivateDefaultProvider(). Error details: ", result.Message), true, false, true);
+                        ErrorHandling.HandleError(ref result, string.Concat("Error calling OASISBootLoader.OASISBootLoader.GetAndActivateDefaultProvider(). Error details: ", result.Message), true, false, true);
 
                     _holonManager = new HolonManager(result.Result);
                 }
@@ -50,12 +50,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpGet("LoadHolon/{id}")]
         public ActionResult<Holon> LoadHolon(Guid id)
         {
-            IHolon holon = HolonManager.LoadHolon(id);
+            OASISResult<IHolon> result = HolonManager.LoadHolon(id);
 
-            if (holon == null)
-                return Ok("ERROR: Holon Not Found.");
+            if (result != null && !result.IsError && result.Result != null)
+                return Ok(result.Result);
             else
-                return Ok(holon);
+                return Ok(string.Concat("ERROR: An error occured loading the holon. Reason: ", result.Message));
         }
 
         /// <summary>
@@ -83,6 +83,14 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpGet("LoadAllHolons")]
         public ActionResult<Holon[]> LoadAllHolons()
         {
+            OASISResult<IEnumerable<IHolon>> result = HolonManager.LoadAllHolons();
+
+            if (result != null && !result.IsError && result.Result != null)
+                return Ok(result.Result);
+            else
+                return Ok(string.Concat("ERROR: An error occured loading holons. Reason: ", result.Message));
+
+            /*
             List<IHolon> data = (List<IHolon>)HolonManager.LoadAllHolons();
             List<Holon> holons = new List<Holon>();
 
@@ -92,7 +100,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             foreach (IHolon holon in data)
                 holons.Add((Holon)holon);
 
-            return Ok(holons);
+            return Ok(holons);*/
         }
 
         /// <summary>
@@ -119,6 +127,14 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpGet("LoadAllHolonsForParent/{id}/{holonType}")]
         public ActionResult<Holon[]> LoadAllHolonsForParent(Guid id, HolonType holonType = HolonType.All)
         {
+            OASISResult<IEnumerable<IHolon>> result = HolonManager.LoadHolonsForParent(id, holonType);
+
+            if (result != null && !result.IsError && result.Result != null)
+                return Ok(result.Result);
+            else
+                return Ok(string.Concat("ERROR: An error occured loading holons. Reason: ", result.Message));
+
+            /*
             List<IHolon> data = (List<IHolon>)HolonManager.LoadHolonsForParent(id, holonType);
             List<Holon> holons = new List<Holon>();
 
@@ -129,6 +145,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 holons.Add((Holon)holon);
 
             return Ok(holons);
+            */
         }
 
         /// <summary>
@@ -157,6 +174,14 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpGet("LoadAllHolonsForParent/{providerKey}/{holonType}")]
         public ActionResult<Holon[]> LoadAllHolonsForParent(string providerKey, HolonType holonType = HolonType.All)
         {
+            OASISResult<IEnumerable<IHolon>> result = HolonManager.LoadHolonsForParent(providerKey, holonType);
+
+            if (result != null && !result.IsError && result.Result != null)
+                return Ok(result.Result);
+            else
+                return Ok(string.Concat("ERROR: An error occured loading holons. Reason: ", result.Message));
+
+            /*
             List<IHolon> data = (List<IHolon>)HolonManager.LoadHolonsForParent(providerKey, holonType);
             List<Holon> holons = new List<Holon>();
 
@@ -166,7 +191,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             foreach (IHolon holon in data)
                 holons.Add((Holon)holon);
 
-            return Ok(holons);
+            return Ok(holons);*/
         }
 
         /// <summary>
@@ -194,12 +219,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpPost("SaveHolon")]
         public ActionResult<Holon> SaveHolon(Holon holon)
         {
-            holon = (Holon)HolonManager.SaveHolon(holon);
+            OASISResult<IHolon> result = HolonManager.SaveHolon(holon);
 
-            if (holon == null)
-                return Ok("ERROR: An error occured saving the holon.");
+            if (result != null && !result.IsError && result.Result != null)
+                return Ok(result.Result);
             else
-                return Ok(holon);
+                return Ok(string.Concat("ERROR: An error occured saving the holon. Reason: ", result.Message));
         }
 
         /// <summary>
@@ -242,10 +267,16 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpDelete("DeleteHolon/{id}")]
         public ActionResult<string> DeleteHolon(Guid id)
         {
-            if (HolonManager.DeleteHolon(id))
+            OASISResult<bool> result = HolonManager.DeleteHolon(id);
+
+            if (result != null && !result.IsError && result.Result)
                 return Ok("Holon Deleted Successfully");
+            
+            else if (result != null)
+                return Ok(string.Concat("ERROR: An error occured deleting the holon. Reason: ", result.Message));
+
             else
-                return Ok("ERROR: Error Occured Deleting Holon.");
+                return Ok(string.Concat("ERROR: An unknown error occured deleting the holon."));
         }
 
         /// <summary>
