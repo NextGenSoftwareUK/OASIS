@@ -80,7 +80,7 @@ namespace NextGenSoftware.OASIS.STAR
         //    }
         //}
 
-        public static Avatar LoggedInUser { get; set; }
+        public static Avatar LoggedInAvatar { get; set; }
 
         public static OASISAPI OASISAPI
         {
@@ -107,11 +107,11 @@ namespace NextGenSoftware.OASIS.STAR
         public delegate void HolonLoaded(object sender, HolonLoadedEventArgs e);
         public static event HolonLoaded OnHolonLoaded;
 
-        public delegate void SuperStarIgnited(object sender, StarIgnitedEventArgs e);
-        public static event SuperStarIgnited OnSuperStarIgnited;
+        public delegate void StarIgnited(object sender, StarIgnitedEventArgs e);
+        public static event StarIgnited OnStarIgnited;
 
-        public delegate void SuperStarCoreIgnited(object sender, System.EventArgs e);
-        public static event SuperStarCoreIgnited OnSuperStarCoreIgnited;
+        public delegate void StarCoreIgnited(object sender, System.EventArgs e);
+        public static event StarCoreIgnited OnStarCoreIgnited;
 
         public delegate void StarStatusChanged(object sender, StarStatusChangedEventArgs e);
         public static event StarStatusChanged OnStarStatusChanged;
@@ -208,7 +208,7 @@ namespace NextGenSoftware.OASIS.STAR
             //}
 
             Status = StarStatus.Ingited;
-            OnSuperStarIgnited.Invoke(null, new StarIgnitedEventArgs() { Message = result.Message });
+            OnStarIgnited.Invoke(null, new StarIgnitedEventArgs() { Message = result.Message });
             IsStarIgnited = true;
             return result;
 
@@ -268,7 +268,7 @@ namespace NextGenSoftware.OASIS.STAR
 
         private static void InnerStar_OnInitialized(object sender, System.EventArgs e)
         {
-            OnSuperStarCoreIgnited?.Invoke(sender, e);
+            OnStarCoreIgnited?.Invoke(sender, e);
         }
 
         private static void InnerStar_OnZomeError(object sender, ZomeErrorEventArgs e)
@@ -302,7 +302,7 @@ namespace NextGenSoftware.OASIS.STAR
             OASISResult<IAvatar> result = await OASISAPI.Avatar.AuthenticateAsync(username, password, IPAddress);
 
             if (!result.IsError)
-                LoggedInUser = (Avatar)result.Result;
+                LoggedInAvatar = (Avatar)result.Result;
 
             return result;
         }
@@ -337,7 +337,7 @@ namespace NextGenSoftware.OASIS.STAR
             OASISResult<IAvatar> result = OASISAPI.Avatar.Authenticate(username, password, IPAddress);
 
             if (!result.IsError)
-                LoggedInUser = (Avatar)result.Result;
+                LoggedInAvatar = (Avatar)result.Result;
 
             return result;
         }
@@ -376,13 +376,13 @@ namespace NextGenSoftware.OASIS.STAR
             bool firstHolon = true;
             string rustDNAFolder = string.Empty;
 
-            if (LoggedInUser == null)
+            if (LoggedInAvatar == null)
                 return new CoronalEjection() { ErrorOccured = true, Message = "Avatar is not logged in. Please log in before calling this command." };
 
-            if (LoggedInUser.Level < 77 && type == GenesisType.Planet)
+            if (LoggedInAvatar.Level < 77 && type == GenesisType.Star)
                 return new CoronalEjection() { ErrorOccured = true, Message = "Avatar must have reached level 77 before they can create stars. Please create a planet or moon instead..." };
 
-            if (LoggedInUser.Level < 33 && type == GenesisType.Planet)
+            if (LoggedInAvatar.Level < 33 && type == GenesisType.Planet)
                 return new CoronalEjection() { ErrorOccured = true, Message = "Avatar must have reached level 33 before they can create planets. Please create a moon instead..." };
 
             if (celestialBodyParent == null && type == GenesisType.Moon)
@@ -492,12 +492,12 @@ namespace NextGenSoftware.OASIS.STAR
 
                 case GenesisType.Star:
                     {
-                        newBody = new CelestialBodies.Star();
+                        newBody = new Star();
 
                         if (celestialBodyParent == null)
                             celestialBodyParent = DefaultSuperStar;
 
-                        Mapper<ISuperStar, CelestialBodies.Star>.MapParentCelestialBodyProperties((ISuperStar)celestialBodyParent, (CelestialBodies.Star)newBody);
+                        Mapper<ISuperStar, Star>.MapParentCelestialBodyProperties((ISuperStar)celestialBodyParent, (Star)newBody);
                         //newBody.ParentHolon = celestialBodyParent;
                         //newBody.ParentHolonId = celestialBodyParent.Id;
                         //newBody.ParentStar = (IStar)celestialBodyParent;

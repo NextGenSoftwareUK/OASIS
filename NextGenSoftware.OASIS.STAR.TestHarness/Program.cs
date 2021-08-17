@@ -42,17 +42,17 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
 
                 // TODO: Not sure what events should expose on Star, StarCore and HoloNETClient?
                 // I feel the events should at least be on the Star object, but then they need to be on the others to bubble them up (maybe could be hidden somehow?)
-                Star.OnZomeError += Star_OnZomeError;
-                Star.OnHolonLoaded += Star_OnHolonLoaded;
-                Star.OnHolonsLoaded += Star_OnHolonsLoaded;
-                Star.OnHolonSaved += Star_OnHolonSaved;
-                Star.OnSuperStarIgnited += SuperStar_OnSuperStarIgnited;
-                Star.OnSuperStarError += SuperStar_OnSuperStarError;
-                Star.OnSuperStarStatusChanged += SuperStar_OnSuperStarStatusChanged;
-                Star.OnOASISBooted += SuperStar_OnOASISBooted;
-                Star.OnOASISBootError += SuperStar_OnOASISBootError;
+                STAR.OnZomeError += STAR_OnZomeError;
+                STAR.OnHolonLoaded += STAR_OnHolonLoaded;
+                STAR.OnHolonsLoaded += STAR_OnHolonsLoaded;
+                STAR.OnHolonSaved += STAR_OnHolonSaved;
+                STAR.OnStarIgnited += STAR_OnSuperStarIgnited;
+                STAR.OnStarError += STAR_OnSuperStarError;
+                STAR.OnStarStatusChanged += STAR_OnSuperStarStatusChanged;
+                STAR.OnOASISBooted += STAR_OnOASISBooted;
+                STAR.OnOASISBootError += STAR_OnOASISBootError;
 
-                OASISResult<ICelestialBody> result = Star.IgniteSuperStar();
+                OASISResult<ICelestialBody> result = STAR.IgniteStar();
 
                 if (result.IsError)
                     ShowErrorMessage(string.Concat("Error Igniting SuperStar. Error Message: ", result.Message));
@@ -82,7 +82,7 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
             }
         }
 
-        private static void SuperStar_OnSuperStarStatusChanged(object sender, EventArgs.StarStatusChangedEventArgs e)
+        private static void STAR_OnSuperStarStatusChanged(object sender, EventArgs.StarStatusChangedEventArgs e)
         {
             switch (e.Status)
             {
@@ -99,7 +99,7 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
                     break;
 
                 case Enums.StarStatus.Ingited:
-                    ShowSuccessMessage("SUPERSTAR IGNITED");
+                    ShowSuccessMessage("STAR IGNITED");
                     break;
 
                     //case Enums.SuperStarStatus.Error:
@@ -107,23 +107,23 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
             }
         }
 
-        private static void SuperStar_OnOASISBootError(object sender, OASISBootErrorEventArgs e)
+        private static void STAR_OnOASISBootError(object sender, OASISBootErrorEventArgs e)
         {
             //ShowErrorMessage(string.Concat("OASIS Boot Error. Reason: ", e.ErrorReason));
             ShowErrorMessage(e.ErrorReason);
         }
 
-        private static void SuperStar_OnOASISBooted(object sender, EventArgs.OASISBootedEventArgs e)
+        private static void STAR_OnOASISBooted(object sender, EventArgs.OASISBootedEventArgs e)
         {
             //ShowSuccessMessage(string.Concat("OASIS BOOTED.", e.Message));
         }
 
-        private static void SuperStar_OnSuperStarError(object sender, EventArgs.StarErrorEventArgs e)
+        private static void STAR_OnSuperStarError(object sender, EventArgs.StarErrorEventArgs e)
         {
            // ShowErrorMessage(string.Concat("Error Igniting SuperStar. Reason: ", e.Reason));
         }
 
-        private static void SuperStar_OnSuperStarIgnited(object sender, System.EventArgs e)
+        private static void STAR_OnSuperStarIgnited(object sender, System.EventArgs e)
         {
             //ShowSuccessMessage("SUPERSTAR IGNITED");
         }
@@ -132,7 +132,7 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
         {
             // Create Planet (OAPP) by generating dynamic template/scaffolding code.
             ShowWorkingMessage("Generating Planet Our World...");
-            CoronalEjection result = Star.LightAsync(GenesisType.Planet, "Our World", dnaFolder, cSharpGeneisFolder, rustGenesisFolder, "NextGenSoftware.Holochain.HoloNET.HDK.Core.TestHarness.Genesis").Result;
+            CoronalEjection result = STAR.LightAsync(GenesisType.Planet, "Our World", dnaFolder, cSharpGeneisFolder, rustGenesisFolder, "NextGenSoftware.Holochain.HoloNET.HDK.Core.TestHarness.Genesis").Result;
 
             if (result.ErrorOccured)
                 ShowErrorMessage(string.Concat(" ERROR OCCURED. Error Message: ", result.Message));
@@ -206,90 +206,90 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
 
 
                 //  Give HoloOASIS Store permission for the Name field(the field will only be stored on Holochain).
-                Star.OASISAPI.Avatar.Config.FieldToProviderMappings.Name.Add(new ProviderManagerConfig.FieldToProviderMappingAccess { Access = ProviderManagerConfig.ProviderAccess.Store, Provider = ProviderType.HoloOASIS });
+                STAR.OASISAPI.Avatar.Config.FieldToProviderMappings.Name.Add(new ProviderManagerConfig.FieldToProviderMappingAccess { Access = ProviderManagerConfig.ProviderAccess.Store, Provider = ProviderType.HoloOASIS });
 
                 // Give all providers read/write access to the Karma field (will allow them to read and write to the field but it will only be stored on Holochain).
                 // You could choose to store it on more than one provider if you wanted the extra redundancy (but not normally needed since Holochain has a lot of redundancy built in).
-                Star.OASISAPI.Avatar.Config.FieldToProviderMappings.Karma.Add(new ProviderManagerConfig.FieldToProviderMappingAccess { Access = ProviderManagerConfig.ProviderAccess.ReadWrite, Provider = ProviderType.All });
+                STAR.OASISAPI.Avatar.Config.FieldToProviderMappings.Karma.Add(new ProviderManagerConfig.FieldToProviderMappingAccess { Access = ProviderManagerConfig.ProviderAccess.ReadWrite, Provider = ProviderType.All });
 
                 //Give Ethereum read-only access to the DOB field.
-                Star.OASISAPI.Avatar.Config.FieldToProviderMappings.DOB.Add(new ProviderManagerConfig.FieldToProviderMappingAccess { Access = ProviderManagerConfig.ProviderAccess.ReadOnly, Provider = ProviderType.EthereumOASIS });
+                STAR.OASISAPI.Avatar.Config.FieldToProviderMappings.DOB.Add(new ProviderManagerConfig.FieldToProviderMappingAccess { Access = ProviderManagerConfig.ProviderAccess.ReadOnly, Provider = ProviderType.EthereumOASIS });
 
 
                 // All calls are load-balanced and have multiple redudancy/fail over for all supported OASIS Providers.
-                Star.OASISAPI.Avatar.LoadAllAvatars(); // Load-balanced across all providers.
-                Star.OASISAPI.Avatar.LoadAllAvatars(ProviderType.MongoDBOASIS); // Only loads from MongoDB.
-                Star.OASISAPI.Avatar.LoadAvatar(Star.LoggedInUser.Id, ProviderType.HoloOASIS); // Only loads from Holochain.
-                Star.OASISAPI.Map.CreateAndDrawRouteOnMapBetweenHolons(newHolon, newHolon); // Load-balanced across all providers.
+                STAR.OASISAPI.Avatar.LoadAllAvatars(); // Load-balanced across all providers.
+                STAR.OASISAPI.Avatar.LoadAllAvatars(ProviderType.MongoDBOASIS); // Only loads from MongoDB.
+                STAR.OASISAPI.Avatar.LoadAvatar(STAR.LoggedInAvatar.Id, ProviderType.HoloOASIS); // Only loads from Holochain.
+                STAR.OASISAPI.Map.CreateAndDrawRouteOnMapBetweenHolons(newHolon, newHolon); // Load-balanced across all providers.
 
-                Star.OASISAPI.Data.LoadHolon(newHolon.Id); // Load-balanced across all providers.
-                Star.OASISAPI.Data.LoadHolon(newHolon.Id, ProviderType.IPFSOASIS); // Only loads from IPFS.
-                Star.OASISAPI.Data.LoadAllHolons(HolonType.Moon, ProviderType.HoloOASIS); // Loads all moon (OAPPs) from Holochain.
-                Star.OASISAPI.Data.SaveHolon(newHolon); // Load-balanced across all providers.
-                Star.OASISAPI.Data.SaveHolon(newHolon, ProviderType.EthereumOASIS); //  Only saves to Etherum.
+                STAR.OASISAPI.Data.LoadHolon(newHolon.Id); // Load-balanced across all providers.
+                STAR.OASISAPI.Data.LoadHolon(newHolon.Id, ProviderType.IPFSOASIS); // Only loads from IPFS.
+                STAR.OASISAPI.Data.LoadAllHolons(HolonType.Moon, ProviderType.HoloOASIS); // Loads all moon (OAPPs) from Holochain.
+                STAR.OASISAPI.Data.SaveHolon(newHolon); // Load-balanced across all providers.
+                STAR.OASISAPI.Data.SaveHolon(newHolon, ProviderType.EthereumOASIS); //  Only saves to Etherum.
 
-                Star.OASISAPI.Data.LoadAllHolons(HolonType.All, ProviderType.Default); // Loads all parks from current default provider.
-                Star.OASISAPI.Data.LoadAllHolons(HolonType.Park, ProviderType.All); // Loads all parks from all providers (load-balanced/fail over).
-                Star.OASISAPI.Data.LoadAllHolons(HolonType.Park); // shorthand for above.
-                Star.OASISAPI.Data.LoadAllHolons(HolonType.Quest); //  Loads all quests from all providers.
-                Star.OASISAPI.Data.LoadAllHolons(HolonType.Restaurant); //  Loads all resaurants from all providers.
+                STAR.OASISAPI.Data.LoadAllHolons(HolonType.All, ProviderType.Default); // Loads all parks from current default provider.
+                STAR.OASISAPI.Data.LoadAllHolons(HolonType.Park, ProviderType.All); // Loads all parks from all providers (load-balanced/fail over).
+                STAR.OASISAPI.Data.LoadAllHolons(HolonType.Park); // shorthand for above.
+                STAR.OASISAPI.Data.LoadAllHolons(HolonType.Quest); //  Loads all quests from all providers.
+                STAR.OASISAPI.Data.LoadAllHolons(HolonType.Restaurant); //  Loads all resaurants from all providers.
 
                 // Holochain Support
-                await Star.OASISAPI.Providers.Holochain.HoloNETClient.CallZomeFunctionAsync(Star.OASISAPI.Providers.Holochain.HoloNETClient.AgentPubKey, "our_world_core", "load_holons", null);
+                await STAR.OASISAPI.Providers.Holochain.HoloNETClient.CallZomeFunctionAsync(STAR.OASISAPI.Providers.Holochain.HoloNETClient.AgentPubKey, "our_world_core", "load_holons", null);
 
                 // IPFS Support
-                await Star.OASISAPI.Providers.IPFS.IPFSEngine.FileSystem.ReadFileAsync("");
-                await Star.OASISAPI.Providers.IPFS.IPFSEngine.FileSystem.AddFileAsync("");
-                await Star.OASISAPI.Providers.IPFS.IPFSEngine.Swarm.PeersAsync();
-                await Star.OASISAPI.Providers.IPFS.IPFSEngine.KeyChainAsync();
-                await Star.OASISAPI.Providers.IPFS.IPFSEngine.Dns.ResolveAsync("test");
-                await Star.OASISAPI.Providers.IPFS.IPFSEngine.Dag.GetAsync(new Ipfs.Cid() { Hash = "" });
-                await Star.OASISAPI.Providers.IPFS.IPFSEngine.Dag.PutAsync(new Ipfs.Cid() { Hash = "" });
+                await STAR.OASISAPI.Providers.IPFS.IPFSEngine.FileSystem.ReadFileAsync("");
+                await STAR.OASISAPI.Providers.IPFS.IPFSEngine.FileSystem.AddFileAsync("");
+                await STAR.OASISAPI.Providers.IPFS.IPFSEngine.Swarm.PeersAsync();
+                await STAR.OASISAPI.Providers.IPFS.IPFSEngine.KeyChainAsync();
+                await STAR.OASISAPI.Providers.IPFS.IPFSEngine.Dns.ResolveAsync("test");
+                await STAR.OASISAPI.Providers.IPFS.IPFSEngine.Dag.GetAsync(new Ipfs.Cid() { Hash = "" });
+                await STAR.OASISAPI.Providers.IPFS.IPFSEngine.Dag.PutAsync(new Ipfs.Cid() { Hash = "" });
 
                 // Ethereum Support
-                await Star.OASISAPI.Providers.Ethereum.Web3.Client.SendRequestAsync(new Nethereum.JsonRpc.Client.RpcRequest("id", "test"));
-                await Star.OASISAPI.Providers.Ethereum.Web3.Eth.Blocks.GetBlockNumber.SendRequestAsync("");
-                Contract contract = Star.OASISAPI.Providers.Ethereum.Web3.Eth.GetContract("abi", "contractAddress");
+                await STAR.OASISAPI.Providers.Ethereum.Web3.Client.SendRequestAsync(new Nethereum.JsonRpc.Client.RpcRequest("id", "test"));
+                await STAR.OASISAPI.Providers.Ethereum.Web3.Eth.Blocks.GetBlockNumber.SendRequestAsync("");
+                Contract contract = STAR.OASISAPI.Providers.Ethereum.Web3.Eth.GetContract("abi", "contractAddress");
 
                 // EOSIO Support
-                Star.OASISAPI.Providers.EOSIO.ChainAPI.GetTableRows("accounts", "accounts", "users", "true", 0, 0, 1, 3);
-                Star.OASISAPI.Providers.EOSIO.ChainAPI.GetBlock("block");
-                Star.OASISAPI.Providers.EOSIO.ChainAPI.GetAccount("test.account");
-                Star.OASISAPI.Providers.EOSIO.ChainAPI.GetCurrencyBalance("test.account", "", "");
+                STAR.OASISAPI.Providers.EOSIO.ChainAPI.GetTableRows("accounts", "accounts", "users", "true", 0, 0, 1, 3);
+                STAR.OASISAPI.Providers.EOSIO.ChainAPI.GetBlock("block");
+                STAR.OASISAPI.Providers.EOSIO.ChainAPI.GetAccount("test.account");
+                STAR.OASISAPI.Providers.EOSIO.ChainAPI.GetCurrencyBalance("test.account", "", "");
 
                 // Graph DB Support
-                await Star.OASISAPI.Providers.Neo4j.GraphClient.Cypher.Merge("(a:Avatar { Id: avatar.Id })").OnCreate().Set("a = avatar").ExecuteWithoutResultsAsync(); //Insert/Update Avatar.
-                Avatar newAvatar = Star.OASISAPI.Providers.Neo4j.GraphClient.Cypher.Match("(p:Avatar {Username: {nameParam}})").WithParam("nameParam", "davidellams@hotmail.com").Return(p => p.As<Avatar>()).ResultsAsync.Result.Single(); //Load Avatar.
+                await STAR.OASISAPI.Providers.Neo4j.GraphClient.Cypher.Merge("(a:Avatar { Id: avatar.Id })").OnCreate().Set("a = avatar").ExecuteWithoutResultsAsync(); //Insert/Update Avatar.
+                Avatar newAvatar = STAR.OASISAPI.Providers.Neo4j.GraphClient.Cypher.Match("(p:Avatar {Username: {nameParam}})").WithParam("nameParam", "davidellams@hotmail.com").Return(p => p.As<Avatar>()).ResultsAsync.Result.Single(); //Load Avatar.
 
                 // Document/Object DB Support
-                Star.OASISAPI.Providers.MongoDB.Database.MongoDB.ListCollectionNames();
-                Star.OASISAPI.Providers.MongoDB.Database.MongoDB.GetCollection<Avatar>("testCollection");
+                STAR.OASISAPI.Providers.MongoDB.Database.MongoDB.ListCollectionNames();
+                STAR.OASISAPI.Providers.MongoDB.Database.MongoDB.GetCollection<Avatar>("testCollection");
 
                 // SEEDS Support
                 Console.WriteLine(" Getting Balance for account davidsellams...");
-                string balance = Star.OASISAPI.Providers.SEEDS.GetBalanceForTelosAccount("davidsellams");
+                string balance = STAR.OASISAPI.Providers.SEEDS.GetBalanceForTelosAccount("davidsellams");
                 Console.WriteLine(string.Concat(" Balance: ", balance));
 
                 Console.WriteLine(" Getting Balance for account nextgenworld...");
-                balance = Star.OASISAPI.Providers.SEEDS.GetBalanceForTelosAccount("nextgenworld");
+                balance = STAR.OASISAPI.Providers.SEEDS.GetBalanceForTelosAccount("nextgenworld");
                 Console.WriteLine(string.Concat(" Balance: ", balance));
 
                 Console.WriteLine(" Getting Account for account davidsellams...");
-                Account account = Star.OASISAPI.Providers.SEEDS.TelosOASIS.GetTelosAccount("davidsellams");
+                Account account = STAR.OASISAPI.Providers.SEEDS.TelosOASIS.GetTelosAccount("davidsellams");
                 Console.WriteLine(string.Concat(" Account.account_name: ", account.account_name));
                 Console.WriteLine(string.Concat(" Account.created: ", account.created_datetime.ToString()));
 
                 Console.WriteLine(" Getting Account for account nextgenworld...");
-                account = Star.OASISAPI.Providers.SEEDS.TelosOASIS.GetTelosAccount("nextgenworld");
+                account = STAR.OASISAPI.Providers.SEEDS.TelosOASIS.GetTelosAccount("nextgenworld");
                 Console.WriteLine(string.Concat(" Account.account_name: ", account.account_name));
                 Console.WriteLine(string.Concat(" Account.created: ", account.created_datetime.ToString()));
 
                 // Check that the Telos account name is linked to the avatar and link it if it is not (PayWithSeeds will fail if it is not linked when it tries to add the karma points).
-                if (!Star.LoggedInUser.ProviderKey.ContainsKey(ProviderType.TelosOASIS))
-                    Star.OASISAPI.Avatar.LinkProviderKeyToAvatar(Star.LoggedInUser.Id, ProviderType.TelosOASIS, "davidsellams");
+                if (!STAR.LoggedInAvatar.ProviderKey.ContainsKey(ProviderType.TelosOASIS))
+                    STAR.OASISAPI.Avatar.LinkProviderKeyToAvatar(STAR.LoggedInAvatar.Id, ProviderType.TelosOASIS, "davidsellams");
 
                 Console.WriteLine(" Sending SEEDS from nextgenworld to davidsellams...");
-                OASISResult<string> payWithSeedsResult = Star.OASISAPI.Providers.SEEDS.PayWithSeedsUsingTelosAccount("davidsellams", _privateKey, "nextgenworld", 1, KarmaSourceType.API, "test", "test", "test", "test memo");
+                OASISResult<string> payWithSeedsResult = STAR.OASISAPI.Providers.SEEDS.PayWithSeedsUsingTelosAccount("davidsellams", _privateKey, "nextgenworld", 1, KarmaSourceType.API, "test", "test", "test", "test memo");
                 Console.WriteLine(string.Concat(" Success: ", payWithSeedsResult.IsError ? "false" : "true"));
 
                 if (payWithSeedsResult.IsError)
@@ -298,15 +298,15 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
                 Console.WriteLine(string.Concat(" Result: ", payWithSeedsResult.Result));
 
                 Console.WriteLine(" Getting Balance for account davidsellams...");
-                balance = Star.OASISAPI.Providers.SEEDS.GetBalanceForTelosAccount("davidsellams");
+                balance = STAR.OASISAPI.Providers.SEEDS.GetBalanceForTelosAccount("davidsellams");
                 Console.WriteLine(string.Concat(" Balance: ", balance));
 
                 Console.WriteLine(" Getting Balance for account nextgenworld...");
-                balance = Star.OASISAPI.Providers.SEEDS.GetBalanceForTelosAccount("nextgenworld");
+                balance = STAR.OASISAPI.Providers.SEEDS.GetBalanceForTelosAccount("nextgenworld");
                 Console.WriteLine(string.Concat(" Balance: ", balance));
 
                 Console.WriteLine(" Getting Organsiations...");
-                string orgs = Star.OASISAPI.Providers.SEEDS.GetAllOrganisationsAsJSON();
+                string orgs = STAR.OASISAPI.Providers.SEEDS.GetAllOrganisationsAsJSON();
                 Console.WriteLine(string.Concat(" Organisations: ", orgs));
 
                 //Console.WriteLine("Getting nextgenworld organsiation...");
@@ -314,11 +314,11 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
                 //Console.WriteLine(string.Concat("nextgenworld org: ", org));
 
                 Console.WriteLine(" Generating QR Code for davidsellams...");
-                string qrCode = Star.OASISAPI.Providers.SEEDS.GenerateSignInQRCode("davidsellams");
+                string qrCode = STAR.OASISAPI.Providers.SEEDS.GenerateSignInQRCode("davidsellams");
                 Console.WriteLine(string.Concat(" SEEDS Sign-In QRCode: ", qrCode));
 
                 Console.WriteLine(" Sending invite to davidsellams...");
-                OASISResult<SendInviteResult> sendInviteResult = Star.OASISAPI.Providers.SEEDS.SendInviteToJoinSeedsUsingTelosAccount("davidsellams", _privateKey, "davidsellams", 1, 1, KarmaSourceType.API, "test", "test", "test");
+                OASISResult<SendInviteResult> sendInviteResult = STAR.OASISAPI.Providers.SEEDS.SendInviteToJoinSeedsUsingTelosAccount("davidsellams", _privateKey, "davidsellams", 1, 1, KarmaSourceType.API, "test", "test", "test");
                 Console.WriteLine(string.Concat(" Success: ", sendInviteResult.IsError ? "false" : "true"));
 
                 if (sendInviteResult.IsError)
@@ -328,7 +328,7 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
                     Console.WriteLine(string.Concat(" Invite Sent To Join SEEDS. Invite Secret: ", sendInviteResult.Result.InviteSecret, ". Transction ID: ", sendInviteResult.Result.TransactionId));
 
                     Console.WriteLine(" Accepting invite to davidsellams...");
-                    OASISResult<string> acceptInviteResult = Star.OASISAPI.Providers.SEEDS.AcceptInviteToJoinSeedsUsingTelosAccount("davidsellams", sendInviteResult.Result.InviteSecret, KarmaSourceType.API, "test", "test", "test");
+                    OASISResult<string> acceptInviteResult = STAR.OASISAPI.Providers.SEEDS.AcceptInviteToJoinSeedsUsingTelosAccount("davidsellams", sendInviteResult.Result.InviteSecret, KarmaSourceType.API, "test", "test", "test");
                     Console.WriteLine(string.Concat("Success: ", acceptInviteResult.IsError ? "false" : "true"));
 
                     if (acceptInviteResult.IsError)
@@ -348,44 +348,44 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
                 //CoronalEjection ejection = Star.Flare(ourWorld);
 
                 // Activate & Launch - Launch & activate the planet (OAPP) by shining the star's light upon it...
-                Star.Shine(_ourWorld);
+                STAR.Shine(_ourWorld);
                 _ourWorld.Shine();
 
                 // Deactivate the planet (OAPP)
-                Star.Dim(_ourWorld);
+                STAR.Dim(_ourWorld);
 
                 // Deploy the planet (OAPP)
-                Star.Seed(_ourWorld);
+                STAR.Seed(_ourWorld);
 
                 // Run Tests
-                Star.Twinkle(_ourWorld);
+                STAR.Twinkle(_ourWorld);
 
                 // Highlight the Planet (OAPP) in the OAPP Store (StarNET). *Admin Only*
-                Star.Radiate(_ourWorld);
+                STAR.Radiate(_ourWorld);
 
                 // Show how much light the planet (OAPP) is emitting into the solar system (StarNET/HoloNET)
-                Star.Emit(_ourWorld);
+                STAR.Emit(_ourWorld);
 
                 // Show stats of the Planet (OAPP).
-                Star.Reflect(_ourWorld);
+                STAR.Reflect(_ourWorld);
 
                 // Upgrade/update a Planet (OAPP).
-                Star.Evolve(_ourWorld);
+                STAR.Evolve(_ourWorld);
 
                 // Import/Export hApp, dApp & others.
-                Star.Mutate(_ourWorld);
+                STAR.Mutate(_ourWorld);
 
                 // Send/Receive Love
-                Star.Love(_ourWorld);
+                STAR.Love(_ourWorld);
 
                 // Show network stats/management/settings
-                Star.Burst(_ourWorld);
+                STAR.Burst(_ourWorld);
 
                 // Reserved For Future Use...
-                Star.Super(_ourWorld);
+                STAR.Super(_ourWorld);
 
                 // Delete a planet (OAPP).
-                Star.Dust(_ourWorld);
+                STAR.Dust(_ourWorld);
             }
         }
 
@@ -405,33 +405,33 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
             ShowErrorMessage(string.Concat(" Star Core Error Occured. EndPoint: ", e.EndPoint, ". Reason: ", e.Reason, ". Error Details: ", e.ErrorDetails));
         }
 
-        private static void Star_OnInitialized(object sender, System.EventArgs e)
+        private static void STAR_OnInitialized(object sender, System.EventArgs e)
         {
-            ShowSuccessMessage(" Star Initialized.");
+            ShowSuccessMessage(" STAR Initialized.");
         }
 
-        private static void Star_OnHolonSaved(object sender, HolonSavedEventArgs e)
+        private static void STAR_OnHolonSaved(object sender, HolonSavedEventArgs e)
         {
             if (e.Result.IsError)
                 ShowErrorMessage(e.Result.Message);
             else
-                ShowSuccessMessage(string.Concat(" Star Holons Saved. Holon Saved: ", e.Result.Result.Name));
+                ShowSuccessMessage(string.Concat(" STAR Holons Saved. Holon Saved: ", e.Result.Result.Name));
         }
 
-        private static void Star_OnHolonsLoaded(object sender, HolonsLoadedEventArgs e)
+        private static void STAR_OnHolonsLoaded(object sender, HolonsLoadedEventArgs e)
         {
-            ShowSuccessMessage(string.Concat(" Star Holons Loaded. Holons Loaded: ", e.Result.Result.Count()));
+            ShowSuccessMessage(string.Concat(" STAR Holons Loaded. Holons Loaded: ", e.Result.Result.Count()));
         }
 
-        private static void Star_OnHolonLoaded(object sender, HolonLoadedEventArgs e)
+        private static void STAR_OnHolonLoaded(object sender, HolonLoadedEventArgs e)
         {
-            ShowSuccessMessage(string.Concat(" Star Holons Loaded. Holon Name: ", e.Result.Result.Name));
+            ShowSuccessMessage(string.Concat(" STAR Holons Loaded. Holon Name: ", e.Result.Result.Name));
         }
 
-        private static void Star_OnZomeError(object sender, ZomeErrorEventArgs e)
+        private static void STAR_OnZomeError(object sender, ZomeErrorEventArgs e)
         {
             //Console.WriteLine(string.Concat("Star Error Occured. EndPoint: ", e.EndPoint, ". Reason: ", e.Reason, ". Error Details: ", e.ErrorDetails, "HoloNETErrorDetails.Reason: ", e.HoloNETErrorDetails.Reason, "HoloNETErrorDetails.ErrorDetails: ", e.HoloNETErrorDetails.ErrorDetails));
-            ShowErrorMessage(string.Concat(" Star Error Occured. EndPoint: ", e.EndPoint, ". Reason: ", e.Reason, ". Error Details: ", e.ErrorDetails));
+            ShowErrorMessage(string.Concat(" STAR Error Occured. EndPoint: ", e.EndPoint, ". Reason: ", e.Reason, ". Error Details: ", e.ErrorDetails));
         }
 
         private static void OurWorld_OnZomeError(object sender, ZomeErrorEventArgs e)
@@ -522,8 +522,8 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
             Console.WriteLine(string.Concat(" ", message));
             Console.ForegroundColor = existingColour;
 
-            //if (SuperStar.LoggedInUser != null)
-            //    Console.ForegroundColor = SuperStar.LoggedInUser.STARCLIColour;
+            //if (SuperStar.LoggedInAvatar != null)
+            //    Console.ForegroundColor = SuperStar.LoggedInAvatar.STARCLIColour;
             //else
             //    Console.ForegroundColor = ConsoleColor.Yellow;
         }
@@ -571,8 +571,8 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
             Console.WriteLine(string.Concat(" ", message));
             Console.ForegroundColor = existingColour;
 
-            //if (SuperStar.LoggedInUser != null)
-            //    Console.ForegroundColor = SuperStar.LoggedInUser.STARCLIColour;
+            //if (SuperStar.LoggedInAvatar != null)
+            //    Console.ForegroundColor = SuperStar.LoggedInAvatar.STARCLIColour;
             //else
             //    Console.ForegroundColor = ConsoleColor.Yellow;
         }
@@ -654,7 +654,7 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
                 {
                     ShowWorkingMessage("Checking if email already in use...");
 
-                    if (Star.OASISAPI.Avatar.CheckIfEmailIsAlreadyInUse(email))
+                    if (STAR.OASISAPI.Avatar.CheckIfEmailIsAlreadyInUse(email))
                         ShowErrorMessage("Sorry, that email is already in use, please use another one.");
                     else
                     {
@@ -790,7 +790,7 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
             string password = GetValidPassword();
             ShowWorkingMessage("Creating Avatar...");
 
-            OASISResult<IAvatar> createAvatarResult = Star.CreateAvatar(title, firstName, lastName, email, password, cliColour, favColour);
+            OASISResult<IAvatar> createAvatarResult = STAR.CreateAvatar(title, firstName, lastName, email, password, cliColour, favColour);
             ShowMessage("");
 
             if (createAvatarResult.IsError)
@@ -923,7 +923,7 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
 
                 ShowWorkingMessage("Beaming In...");
                 //beamInResult = SuperStar.BeamIn("davidellams@hotmail.com", "my-super-secret-password");
-                beamInResult = Star.BeamIn("davidellams@hotmail.com", "test!");
+                beamInResult = STAR.BeamIn("davidellams@hotmail.com", "test!");
                 ShowMessage("");
 
                 if (beamInResult.IsError)
@@ -939,7 +939,7 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
                         {
                             string token = GetValidInput("Enter validation token: ");
                             ShowWorkingMessage("Verifying Token...");
-                            OASISResult<bool> verifyEmailResult = Star.OASISAPI.Avatar.VerifyEmail(token);
+                            OASISResult<bool> verifyEmailResult = STAR.OASISAPI.Avatar.VerifyEmail(token);
 
                             if (verifyEmailResult.IsError)
                                 ShowErrorMessage(verifyEmailResult.Message);
@@ -952,147 +952,147 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
                     }
                 }
 
-                else if (Star.LoggedInUser == null)
+                else if (STAR.LoggedInAvatar == null)
                     ShowErrorMessage("Error Beaming In. Username/Password may be incorrect.");
             }
 
-            ShowSuccessMessage(string.Concat("Successfully Beamed In! Welcome back ", Star.LoggedInUser.FullName, ". Have a nice day! :)"));
+            ShowSuccessMessage(string.Concat("Successfully Beamed In! Welcome back ", STAR.LoggedInAvatar.FullName, ". Have a nice day! :)"));
             ShowAvatarStats();
         }
 
         private static void ShowAvatarStats()
         {
             ShowMessage("", false);
-            Console.WriteLine(string.Concat(" Karma: ", Star.LoggedInUser.Karma));
-            Console.WriteLine(string.Concat(" Level: ", Star.LoggedInUser.Level));
-            Console.WriteLine(string.Concat(" XP: ", Star.LoggedInUser.XP));
+            Console.WriteLine(string.Concat(" Karma: ", STAR.LoggedInAvatar.Karma));
+            Console.WriteLine(string.Concat(" Level: ", STAR.LoggedInAvatar.Level));
+            Console.WriteLine(string.Concat(" XP: ", STAR.LoggedInAvatar.XP));
 
             Console.WriteLine("");
             Console.WriteLine(" Chakras:");
-            Console.WriteLine(string.Concat(" Crown XP: ", Star.LoggedInUser.Chakras.Crown.XP));
-            Console.WriteLine(string.Concat(" Crown Level: ", Star.LoggedInUser.Chakras.Crown.Level));
-            Console.WriteLine(string.Concat(" ThirdEye XP: ", Star.LoggedInUser.Chakras.ThirdEye.XP));
-            Console.WriteLine(string.Concat(" ThirdEye Level: ", Star.LoggedInUser.Chakras.ThirdEye.Level));
-            Console.WriteLine(string.Concat(" Throat XP: ", Star.LoggedInUser.Chakras.Throat.XP));
-            Console.WriteLine(string.Concat(" Throat Level: ", Star.LoggedInUser.Chakras.Throat.Level));
-            Console.WriteLine(string.Concat(" Heart XP: ", Star.LoggedInUser.Chakras.Heart.XP));
-            Console.WriteLine(string.Concat(" Heart Level: ", Star.LoggedInUser.Chakras.Heart.Level));
-            Console.WriteLine(string.Concat(" SoloarPlexus XP: ", Star.LoggedInUser.Chakras.SoloarPlexus.XP));
-            Console.WriteLine(string.Concat(" SoloarPlexus Level: ", Star.LoggedInUser.Chakras.SoloarPlexus.Level));
-            Console.WriteLine(string.Concat(" Sacral XP: ", Star.LoggedInUser.Chakras.Sacral.XP));
-            Console.WriteLine(string.Concat(" Sacral Level: ", Star.LoggedInUser.Chakras.Sacral.Level));
+            Console.WriteLine(string.Concat(" Crown XP: ", STAR.LoggedInAvatar.Chakras.Crown.XP));
+            Console.WriteLine(string.Concat(" Crown Level: ", STAR.LoggedInAvatar.Chakras.Crown.Level));
+            Console.WriteLine(string.Concat(" ThirdEye XP: ", STAR.LoggedInAvatar.Chakras.ThirdEye.XP));
+            Console.WriteLine(string.Concat(" ThirdEye Level: ", STAR.LoggedInAvatar.Chakras.ThirdEye.Level));
+            Console.WriteLine(string.Concat(" Throat XP: ", STAR.LoggedInAvatar.Chakras.Throat.XP));
+            Console.WriteLine(string.Concat(" Throat Level: ", STAR.LoggedInAvatar.Chakras.Throat.Level));
+            Console.WriteLine(string.Concat(" Heart XP: ", STAR.LoggedInAvatar.Chakras.Heart.XP));
+            Console.WriteLine(string.Concat(" Heart Level: ", STAR.LoggedInAvatar.Chakras.Heart.Level));
+            Console.WriteLine(string.Concat(" SoloarPlexus XP: ", STAR.LoggedInAvatar.Chakras.SoloarPlexus.XP));
+            Console.WriteLine(string.Concat(" SoloarPlexus Level: ", STAR.LoggedInAvatar.Chakras.SoloarPlexus.Level));
+            Console.WriteLine(string.Concat(" Sacral XP: ", STAR.LoggedInAvatar.Chakras.Sacral.XP));
+            Console.WriteLine(string.Concat(" Sacral Level: ", STAR.LoggedInAvatar.Chakras.Sacral.Level));
 
-            Console.WriteLine(string.Concat(" Root SanskritName: ", Star.LoggedInUser.Chakras.Root.SanskritName));
-            Console.WriteLine(string.Concat(" Root XP: ", Star.LoggedInUser.Chakras.Root.XP));
-            Console.WriteLine(string.Concat(" Root Level: ", Star.LoggedInUser.Chakras.Root.Level));
-            Console.WriteLine(string.Concat(" Root Progress: ", Star.LoggedInUser.Chakras.Root.Progress));
-           // Console.WriteLine(string.Concat(" Root Color: ", SuperStar.LoggedInUser.Chakras.Root.Color.Name));
-            Console.WriteLine(string.Concat(" Root Element: ", Star.LoggedInUser.Chakras.Root.Element.Name));
-            Console.WriteLine(string.Concat(" Root YogaPose: ", Star.LoggedInUser.Chakras.Root.YogaPose.Name));
-            Console.WriteLine(string.Concat(" Root WhatItControls: ", Star.LoggedInUser.Chakras.Root.WhatItControls));
-            Console.WriteLine(string.Concat(" Root WhenItDevelops: ", Star.LoggedInUser.Chakras.Root.WhenItDevelops));
-            Console.WriteLine(string.Concat(" Root Crystal Name: ", Star.LoggedInUser.Chakras.Root.Crystal.Name.Name));
-            Console.WriteLine(string.Concat(" Root Crystal AmplifyicationLevel: ", Star.LoggedInUser.Chakras.Root.Crystal.AmplifyicationLevel));
-            Console.WriteLine(string.Concat(" Root Crystal CleansingLevel: ", Star.LoggedInUser.Chakras.Root.Crystal.CleansingLevel));
-            Console.WriteLine(string.Concat(" Root Crystal EnergisingLevel: ", Star.LoggedInUser.Chakras.Root.Crystal.EnergisingLevel));
-            Console.WriteLine(string.Concat(" Root Crystal GroundingLevel: ", Star.LoggedInUser.Chakras.Root.Crystal.GroundingLevel));
-            Console.WriteLine(string.Concat(" Root Crystal ProtectionLevel: ", Star.LoggedInUser.Chakras.Root.Crystal.ProtectionLevel));
+            Console.WriteLine(string.Concat(" Root SanskritName: ", STAR.LoggedInAvatar.Chakras.Root.SanskritName));
+            Console.WriteLine(string.Concat(" Root XP: ", STAR.LoggedInAvatar.Chakras.Root.XP));
+            Console.WriteLine(string.Concat(" Root Level: ", STAR.LoggedInAvatar.Chakras.Root.Level));
+            Console.WriteLine(string.Concat(" Root Progress: ", STAR.LoggedInAvatar.Chakras.Root.Progress));
+           // Console.WriteLine(string.Concat(" Root Color: ", SuperSTAR.LoggedInAvatar.Chakras.Root.Color.Name));
+            Console.WriteLine(string.Concat(" Root Element: ", STAR.LoggedInAvatar.Chakras.Root.Element.Name));
+            Console.WriteLine(string.Concat(" Root YogaPose: ", STAR.LoggedInAvatar.Chakras.Root.YogaPose.Name));
+            Console.WriteLine(string.Concat(" Root WhatItControls: ", STAR.LoggedInAvatar.Chakras.Root.WhatItControls));
+            Console.WriteLine(string.Concat(" Root WhenItDevelops: ", STAR.LoggedInAvatar.Chakras.Root.WhenItDevelops));
+            Console.WriteLine(string.Concat(" Root Crystal Name: ", STAR.LoggedInAvatar.Chakras.Root.Crystal.Name.Name));
+            Console.WriteLine(string.Concat(" Root Crystal AmplifyicationLevel: ", STAR.LoggedInAvatar.Chakras.Root.Crystal.AmplifyicationLevel));
+            Console.WriteLine(string.Concat(" Root Crystal CleansingLevel: ", STAR.LoggedInAvatar.Chakras.Root.Crystal.CleansingLevel));
+            Console.WriteLine(string.Concat(" Root Crystal EnergisingLevel: ", STAR.LoggedInAvatar.Chakras.Root.Crystal.EnergisingLevel));
+            Console.WriteLine(string.Concat(" Root Crystal GroundingLevel: ", STAR.LoggedInAvatar.Chakras.Root.Crystal.GroundingLevel));
+            Console.WriteLine(string.Concat(" Root Crystal ProtectionLevel: ", STAR.LoggedInAvatar.Chakras.Root.Crystal.ProtectionLevel));
 
             Console.WriteLine("");
             Console.WriteLine(" Aurua:");
-            Console.WriteLine(string.Concat(" Brightness: ", Star.LoggedInUser.Aura.Brightness));
-            Console.WriteLine(string.Concat(" Size: ", Star.LoggedInUser.Aura.Size));
-            Console.WriteLine(string.Concat(" Level: ", Star.LoggedInUser.Aura.Level));
-            Console.WriteLine(string.Concat(" Value: ", Star.LoggedInUser.Aura.Value));
-            Console.WriteLine(string.Concat(" Progress: ", Star.LoggedInUser.Aura.Progress));
-            Console.WriteLine(string.Concat(" ColourRed: ", Star.LoggedInUser.Aura.ColourRed));
-            Console.WriteLine(string.Concat(" ColourGreen: ", Star.LoggedInUser.Aura.ColourGreen));
-            Console.WriteLine(string.Concat(" ColourBlue: ", Star.LoggedInUser.Aura.ColourBlue));
+            Console.WriteLine(string.Concat(" Brightness: ", STAR.LoggedInAvatar.Aura.Brightness));
+            Console.WriteLine(string.Concat(" Size: ", STAR.LoggedInAvatar.Aura.Size));
+            Console.WriteLine(string.Concat(" Level: ", STAR.LoggedInAvatar.Aura.Level));
+            Console.WriteLine(string.Concat(" Value: ", STAR.LoggedInAvatar.Aura.Value));
+            Console.WriteLine(string.Concat(" Progress: ", STAR.LoggedInAvatar.Aura.Progress));
+            Console.WriteLine(string.Concat(" ColourRed: ", STAR.LoggedInAvatar.Aura.ColourRed));
+            Console.WriteLine(string.Concat(" ColourGreen: ", STAR.LoggedInAvatar.Aura.ColourGreen));
+            Console.WriteLine(string.Concat(" ColourBlue: ", STAR.LoggedInAvatar.Aura.ColourBlue));
 
             Console.WriteLine("");
             Console.WriteLine(" Attributes:");
-            Console.WriteLine(string.Concat(" Strength: ", Star.LoggedInUser.Attributes.Strength));
-            Console.WriteLine(string.Concat(" Speed: ", Star.LoggedInUser.Attributes.Speed));
-            Console.WriteLine(string.Concat(" Dexterity: ", Star.LoggedInUser.Attributes.Dexterity));
-            Console.WriteLine(string.Concat(" Intelligence: ", Star.LoggedInUser.Attributes.Intelligence));
-            Console.WriteLine(string.Concat(" Magic: ", Star.LoggedInUser.Attributes.Magic));
-            Console.WriteLine(string.Concat(" Wisdom: ", Star.LoggedInUser.Attributes.Wisdom));
-            Console.WriteLine(string.Concat(" Toughness: ", Star.LoggedInUser.Attributes.Toughness));
-            Console.WriteLine(string.Concat(" Vitality: ", Star.LoggedInUser.Attributes.Vitality));
-            Console.WriteLine(string.Concat(" Endurance: ", Star.LoggedInUser.Attributes.Endurance));
+            Console.WriteLine(string.Concat(" Strength: ", STAR.LoggedInAvatar.Attributes.Strength));
+            Console.WriteLine(string.Concat(" Speed: ", STAR.LoggedInAvatar.Attributes.Speed));
+            Console.WriteLine(string.Concat(" Dexterity: ", STAR.LoggedInAvatar.Attributes.Dexterity));
+            Console.WriteLine(string.Concat(" Intelligence: ", STAR.LoggedInAvatar.Attributes.Intelligence));
+            Console.WriteLine(string.Concat(" Magic: ", STAR.LoggedInAvatar.Attributes.Magic));
+            Console.WriteLine(string.Concat(" Wisdom: ", STAR.LoggedInAvatar.Attributes.Wisdom));
+            Console.WriteLine(string.Concat(" Toughness: ", STAR.LoggedInAvatar.Attributes.Toughness));
+            Console.WriteLine(string.Concat(" Vitality: ", STAR.LoggedInAvatar.Attributes.Vitality));
+            Console.WriteLine(string.Concat(" Endurance: ", STAR.LoggedInAvatar.Attributes.Endurance));
 
             Console.WriteLine("");
             Console.WriteLine(" Stats:");
-            Console.WriteLine(string.Concat(" HP: ", Star.LoggedInUser.Stats.HP.Current, "/", Star.LoggedInUser.Stats.HP.Max));
-            Console.WriteLine(string.Concat(" Mana: ", Star.LoggedInUser.Stats.Mana.Current, "/", Star.LoggedInUser.Stats.Mana.Max));
-            Console.WriteLine(string.Concat(" Energy: ", Star.LoggedInUser.Stats.Energy.Current, "/", Star.LoggedInUser.Stats.Energy.Max));
-            Console.WriteLine(string.Concat(" Staminia: ", Star.LoggedInUser.Stats.Staminia.Current, "/", Star.LoggedInUser.Stats.Staminia.Max));
+            Console.WriteLine(string.Concat(" HP: ", STAR.LoggedInAvatar.Stats.HP.Current, "/", STAR.LoggedInAvatar.Stats.HP.Max));
+            Console.WriteLine(string.Concat(" Mana: ", STAR.LoggedInAvatar.Stats.Mana.Current, "/", STAR.LoggedInAvatar.Stats.Mana.Max));
+            Console.WriteLine(string.Concat(" Energy: ", STAR.LoggedInAvatar.Stats.Energy.Current, "/", STAR.LoggedInAvatar.Stats.Energy.Max));
+            Console.WriteLine(string.Concat(" Staminia: ", STAR.LoggedInAvatar.Stats.Staminia.Current, "/", STAR.LoggedInAvatar.Stats.Staminia.Max));
 
             Console.WriteLine("");
             Console.WriteLine(" Super Powers:");
-            Console.WriteLine(string.Concat(" Flight: ", Star.LoggedInUser.SuperPowers.Flight));
-            Console.WriteLine(string.Concat(" Astral Projection: ", Star.LoggedInUser.SuperPowers.AstralProjection));
-            Console.WriteLine(string.Concat(" Bio-Locatation: ", Star.LoggedInUser.SuperPowers.BioLocatation));
-            Console.WriteLine(string.Concat(" Heat Vision: ", Star.LoggedInUser.SuperPowers.HeatVision));
-            Console.WriteLine(string.Concat(" Invulerability: ", Star.LoggedInUser.SuperPowers.Invulerability));
-            Console.WriteLine(string.Concat(" Remote Viewing: ", Star.LoggedInUser.SuperPowers.RemoteViewing));
-            Console.WriteLine(string.Concat(" Super Speed: ", Star.LoggedInUser.SuperPowers.SuperSpeed));
-            Console.WriteLine(string.Concat(" Super Strength: ", Star.LoggedInUser.SuperPowers.SuperStrength));
-            Console.WriteLine(string.Concat(" Telekineseis: ", Star.LoggedInUser.SuperPowers.Telekineseis));
-            Console.WriteLine(string.Concat(" XRay Vision: ", Star.LoggedInUser.SuperPowers.XRayVision));
+            Console.WriteLine(string.Concat(" Flight: ", STAR.LoggedInAvatar.SuperPowers.Flight));
+            Console.WriteLine(string.Concat(" Astral Projection: ", STAR.LoggedInAvatar.SuperPowers.AstralProjection));
+            Console.WriteLine(string.Concat(" Bio-Locatation: ", STAR.LoggedInAvatar.SuperPowers.BioLocatation));
+            Console.WriteLine(string.Concat(" Heat Vision: ", STAR.LoggedInAvatar.SuperPowers.HeatVision));
+            Console.WriteLine(string.Concat(" Invulerability: ", STAR.LoggedInAvatar.SuperPowers.Invulerability));
+            Console.WriteLine(string.Concat(" Remote Viewing: ", STAR.LoggedInAvatar.SuperPowers.RemoteViewing));
+            Console.WriteLine(string.Concat(" Super Speed: ", STAR.LoggedInAvatar.SuperPowers.SuperSpeed));
+            Console.WriteLine(string.Concat(" Super Strength: ", STAR.LoggedInAvatar.SuperPowers.SuperStrength));
+            Console.WriteLine(string.Concat(" Telekineseis: ", STAR.LoggedInAvatar.SuperPowers.Telekineseis));
+            Console.WriteLine(string.Concat(" XRay Vision: ", STAR.LoggedInAvatar.SuperPowers.XRayVision));
 
             Console.WriteLine("");
             Console.WriteLine(" Skills:");
-            Console.WriteLine(string.Concat(" Computers: ", Star.LoggedInUser.Skills.Computers));
-            Console.WriteLine(string.Concat(" Engineering: ", Star.LoggedInUser.Skills.Engineering));
-            Console.WriteLine(string.Concat(" Farming: ", Star.LoggedInUser.Skills.Farming));
-            Console.WriteLine(string.Concat(" FireStarting: ", Star.LoggedInUser.Skills.FireStarting));
-            Console.WriteLine(string.Concat(" Fishing: ", Star.LoggedInUser.Skills.Fishing));
-            Console.WriteLine(string.Concat(" Languages: ", Star.LoggedInUser.Skills.Languages));
-            Console.WriteLine(string.Concat(" Meditation: ", Star.LoggedInUser.Skills.Meditation));
-            Console.WriteLine(string.Concat(" MelleeCombat: ", Star.LoggedInUser.Skills.MelleeCombat));
-            Console.WriteLine(string.Concat(" Mindfulness: ", Star.LoggedInUser.Skills.Mindfulness));
-            Console.WriteLine(string.Concat(" Negotiating: ", Star.LoggedInUser.Skills.Negotiating));
-            Console.WriteLine(string.Concat(" RangeCombat: ", Star.LoggedInUser.Skills.RangeCombat));
-            Console.WriteLine(string.Concat(" Research: ", Star.LoggedInUser.Skills.Research));
-            Console.WriteLine(string.Concat(" Science: ", Star.LoggedInUser.Skills.Science));
-            Console.WriteLine(string.Concat(" SpellCasting: ", Star.LoggedInUser.Skills.SpellCasting));
-            Console.WriteLine(string.Concat(" Translating: ", Star.LoggedInUser.Skills.Translating));
-            Console.WriteLine(string.Concat(" Yoga: ", Star.LoggedInUser.Skills.Yoga));
+            Console.WriteLine(string.Concat(" Computers: ", STAR.LoggedInAvatar.Skills.Computers));
+            Console.WriteLine(string.Concat(" Engineering: ", STAR.LoggedInAvatar.Skills.Engineering));
+            Console.WriteLine(string.Concat(" Farming: ", STAR.LoggedInAvatar.Skills.Farming));
+            Console.WriteLine(string.Concat(" FireStarting: ", STAR.LoggedInAvatar.Skills.FireStarting));
+            Console.WriteLine(string.Concat(" Fishing: ", STAR.LoggedInAvatar.Skills.Fishing));
+            Console.WriteLine(string.Concat(" Languages: ", STAR.LoggedInAvatar.Skills.Languages));
+            Console.WriteLine(string.Concat(" Meditation: ", STAR.LoggedInAvatar.Skills.Meditation));
+            Console.WriteLine(string.Concat(" MelleeCombat: ", STAR.LoggedInAvatar.Skills.MelleeCombat));
+            Console.WriteLine(string.Concat(" Mindfulness: ", STAR.LoggedInAvatar.Skills.Mindfulness));
+            Console.WriteLine(string.Concat(" Negotiating: ", STAR.LoggedInAvatar.Skills.Negotiating));
+            Console.WriteLine(string.Concat(" RangeCombat: ", STAR.LoggedInAvatar.Skills.RangeCombat));
+            Console.WriteLine(string.Concat(" Research: ", STAR.LoggedInAvatar.Skills.Research));
+            Console.WriteLine(string.Concat(" Science: ", STAR.LoggedInAvatar.Skills.Science));
+            Console.WriteLine(string.Concat(" SpellCasting: ", STAR.LoggedInAvatar.Skills.SpellCasting));
+            Console.WriteLine(string.Concat(" Translating: ", STAR.LoggedInAvatar.Skills.Translating));
+            Console.WriteLine(string.Concat(" Yoga: ", STAR.LoggedInAvatar.Skills.Yoga));
 
             Console.WriteLine("");
             Console.WriteLine(" Gifts:");
 
-            foreach (AvatarGift gift in Star.LoggedInUser.Gifts)
+            foreach (AvatarGift gift in STAR.LoggedInAvatar.Gifts)
                 Console.WriteLine(string.Concat(" ", Enum.GetName(gift.GiftType), " earnt on ", gift.GiftEarnt.ToString()));
 
             Console.WriteLine("");
             Console.WriteLine(" Spells:");
 
-            foreach (Spell spell in Star.LoggedInUser.Spells)
+            foreach (Spell spell in STAR.LoggedInAvatar.Spells)
                 Console.WriteLine(string.Concat(" ", spell.Name));
 
             Console.WriteLine("");
             Console.WriteLine(" Inventory:");
 
-            foreach (InventoryItem inventoryItem in Star.LoggedInUser.Inventory)
+            foreach (InventoryItem inventoryItem in STAR.LoggedInAvatar.Inventory)
                 Console.WriteLine(string.Concat(" ", inventoryItem.Name));
 
             Console.WriteLine("");
             Console.WriteLine(" Achievements:");
 
-            foreach (Achievement achievement in Star.LoggedInUser.Achievements)
+            foreach (Achievement achievement in STAR.LoggedInAvatar.Achievements)
                 Console.WriteLine(string.Concat(" ", achievement.Name));
 
             Console.WriteLine("");
             Console.WriteLine(" Gene Keys:");
 
-            foreach (GeneKey geneKey in Star.LoggedInUser.GeneKeys)
+            foreach (GeneKey geneKey in STAR.LoggedInAvatar.GeneKeys)
                 Console.WriteLine(string.Concat(" ", geneKey.Name));
 
             Console.WriteLine("");
             Console.WriteLine(" Human Design:");
-            Console.WriteLine(string.Concat(" Type: ", Star.LoggedInUser.HumanDesign.Type));
+            Console.WriteLine(string.Concat(" Type: ", STAR.LoggedInAvatar.HumanDesign.Type));
         }
     }
 }
