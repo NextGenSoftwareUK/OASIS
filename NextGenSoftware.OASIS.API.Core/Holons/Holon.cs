@@ -125,7 +125,9 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
         public Holon()
         {
             //TODO: Need to check if these are fired when an item in the collection is changed (not just added/removed).
-            ChildrenTest.CollectionChanged += Children_CollectionChanged;
+            if (ChildrenTest != null)
+                ChildrenTest.CollectionChanged += Children_CollectionChanged;
+
             Nodes.CollectionChanged += Nodes_CollectionChanged;
         }
 
