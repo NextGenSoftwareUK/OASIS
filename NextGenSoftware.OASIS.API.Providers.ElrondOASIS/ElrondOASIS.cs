@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.Core.Helpers;
 
 namespace NextGenSoftware.OASIS.API.Providers.ElrondOASIS
 {
@@ -127,22 +128,22 @@ namespace NextGenSoftware.OASIS.API.Providers.ElrondOASIS
             throw new NotImplementedException();
         }
 
-        public override IHolon LoadHolon(Guid id, HolonType type = HolonType.Holon)
+        public override IHolon LoadHolon(Guid id)
         {
             throw new NotImplementedException();
         }
 
-        public override IHolon LoadHolon(string providerKey, HolonType type = HolonType.Holon)
+        public override IHolon LoadHolon(string providerKey)
         {
             throw new NotImplementedException();
         }
 
-        public override Task<IHolon> LoadHolonAsync(Guid id, HolonType type = HolonType.Holon)
+        public override Task<IHolon> LoadHolonAsync(Guid id)
         {
             throw new NotImplementedException();
         }
 
-        public override Task<IHolon> LoadHolonAsync(string providerKey, HolonType type = HolonType.Holon)
+        public override Task<IHolon> LoadHolonAsync(string providerKey)
         {
             throw new NotImplementedException();
         }
@@ -162,7 +163,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ElrondOASIS
             throw new NotImplementedException();
         }
 
-        public override Task<IEnumerable<IHolon>> LoadHolonsForParentAsync(string providerKey, HolonType type = HolonType.Holon)
+        public override Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(string providerKey, HolonType type = HolonType.Holon)
         {
             throw new NotImplementedException();
         }
