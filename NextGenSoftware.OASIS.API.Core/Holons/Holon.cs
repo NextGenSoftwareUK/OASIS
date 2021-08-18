@@ -128,7 +128,8 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
             if (ChildrenTest != null)
                 ChildrenTest.CollectionChanged += Children_CollectionChanged;
 
-            Nodes.CollectionChanged += Nodes_CollectionChanged;
+            if (Nodes != null)
+                Nodes.CollectionChanged += Nodes_CollectionChanged;
         }
 
         private void Nodes_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)

@@ -33,7 +33,8 @@
     "Email": {
       "EmailFrom": "",
       "SmtpHost": "",
-      "SmtpPort": 25,
+      "SmtpPort": 587,
+      // "SmtpPort": 25,
       "SmtpUser": "",
       "SmtpPass": ""
     },
@@ -59,16 +60,19 @@
       },
       "MongoDBOASIS": {
         "ConnectionString": "",
-        "DBName": "OASISAPI"
+
+        "DBName": "OASISAPI_DEV"
+        //"DBName": "OASISAPI_STAGING"
+        //"DBName": "OASISAPI_LIVE"
       },
       "SQLLiteDBOASIS": {
         "ConnectionString": "Data Source=OASISSQLLiteDB.db"
       },
       "EOSIOOASIS": {
-        "ConnectionString": ""
+        "ConnectionString": "https://node.hypha.earth"
       },
       "TelosOASIS": {
-        "ConnectionString": ""
+        "ConnectionString": "https://node.hypha.earth"
       },
       "SEEDSOASIS": {
         "ConnectionString": "https://node.hypha.earth"
@@ -77,9 +81,9 @@
         "ConnectionString": ""
       },
       "EthereumOASIS": {
-        "ConnectionString": ""
+        "ConnectionString": "http://localhost:7545"
       },
-      "Neo4jOASIS": {
+      "Neo4JOASIS": {
         "ConnectionString": "http://localhost:7474",
         "Username": "",
         "Password": ""
