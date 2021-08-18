@@ -1,0 +1,383 @@
+﻿<!doctype html>
+<html lang="en" class="no-js">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- <link rel="stylesheet" type="text/css" href="css/menu.css">    -->
+    <link href='https://fonts.googleapis.com/css?family=PT+Sans:400,700' rel='stylesheet' type='text/css'>
+
+    <script src="js/main.js"></script>
+    <link rel="stylesheet" href="css/login/reset.css">
+    <link rel="stylesheet" href="css/sweetalert2.min.css">
+    <link rel="stylesheet" href="css/bootstrap.css">
+    <link rel="stylesheet" href="css/style.css"> <!-- Resource style -->
+    <!-- <link rel="stylesheet" href="css/login/demo.css"> Demo style -->
+</head>
+
+    <body>
+        <div class="container">
+            <nav class="nav nav5">
+                <ul>
+                    <li>
+                        <a href="#">The OASIS</a>
+                        <ul>
+                            <li><a target="_blank"
+                                    href="https://drive.google.com/file/d/1nnhGpXcprr6kota1Y85HDDKsBfJHN6sn/view?usp=sharing">About</a>
+                            </li>
+                            <li><a target="_blank"
+                                    href="https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK">Documentation</a>
+                            </li>
+                            <li><a target="_blank" href="http://www.ourworldthegame.com">Our World</a></li>
+                        </ul>
+                    </li>
+                    <li>
+                        <a href="#">Avatar</a>
+                        <ul>
+                            <li><a onclick="showCheckAPIMessage();" href="#">View Avatar</a></li>
+                            <li><a onclick="showCheckAPIMessage();" href="#">Edit Avatar</a></li>
+                            <li><a onclick="showCheckAPIMessage();" href="#">Search Avatars</a></li>
+                        </ul>
+                    </li>
+                    <li>
+                        <a href="#">Karma</a>
+                        <ul style="width:280px;">
+                            <li><a onclick="showComingSoonMessage();" href="#">View Curent Karma Weightings</a></li>
+                            <li><a onclick="showComingSoonMessage();" href="#">Vote For Karma Weightings</a></li>
+                            <li><a onclick="showCheckAPIMessage();" href="#">View Avatar Karma</a></li>
+                            <li><a onclick="showCheckAPIMessage();" href="#">View/Search Karma Akashic Records</a></li>
+                        </ul>
+                    </li>
+                    <li>
+                        <a href="#">Data</a>
+                        <ul style="width:220px;">
+                            <li><a onclick="showCheckAPIMessage();" href="#">Load Data</a></li>
+                            <li><a onclick="showCheckAPIMessage();" href="#">Send Data</a></li>
+                            <li><a onclick="showCheckAPIMessage();" href="#">Manage Data</a></li>
+                            <li><a onclick="showCheckAPIMessage();" href="#">Cross-Chain Management</a></li>
+                            <li><a onclick="showCheckAPIMessage();" href="#">Off-Chain Management</a></li>
+                            <li><a onclick="showComingSoonMessage();" href="#">Search Data</a></li>
+                        </ul>
+                    </li>
+                    <li>
+                        <a href="#">SEEDS</a>
+                        <ul style="width:220px;">
+                            <li><a onclick="showCheckAPIMessage();" href="#">Pay With SEEDS</a></li>
+                            <li><a onclick="showCheckAPIMessage();" href="#">Donate SEEDS</a></li>
+                            <li><a onclick="showCheckAPIMessage();" href="#">Reward SEEDS</a></li>
+                            <li><a onclick="showCheckAPIMessage();" href="#">Invite To Join Seeds</a></li>
+                            <li><a onclick="showCheckAPIMessage();" href="#">Accept Invite To Join Seeds</a></li>
+                            <li><a onclick="showCheckAPIMessage();" href="#">View SEEDS</a></li>
+                            <li><a onclick="showCheckAPIMessage();" href="#">View Organisations</a></li>
+                            <li><a onclick="showCheckAPIMessage();" href="#">Manage SEEDS</a></li>
+                            <li><a onclick="showCheckAPIMessage();" href="#">Search Seeds</a></li>
+                        </ul>
+                    </li>
+                    <li>
+                        <a href="#">Provider</a>
+                        <ul style="width:220px;">
+                            <li><a onclick="showCheckAPIMessage();" href="#">View Providers</a></li>
+                            <li><a onclick="showCheckAPIMessage();" href="#">Manage Providers</a></li>
+                            <li><a onclick="showCheckAPIMessage();" ref="#">Manage Auto-Replication</a></li>
+                            <li><a onclick="showCheckAPIMessage();" href="#">Manage Auto-Fail-Over</a></li>
+                            <li><a onclick="showCheckAPIMessage();" href="#">Manage Load Balancing</a></li>
+                            <li><a onclick="showComingSoonMessage();" href="#">View Provider Stats</a></li>
+                            <li><a onclick="showComingSoonMessage();" href="#">Compare Provider Speeds</a></li>
+                            <li><a onclick="showComingSoonMessage();" href="#">Search Providers</a></li>
+                            <li><a onclick="showComingSoonMessage();" href="#">Holochain</a></li>
+                            <li><a onclick="showCheckAPIMessage();" href="#">SEEDS</a></li>
+                            <li><a onclick="showCheckAPIMessage();" href="#">EOSIO</a></li>
+                            <li><a onclick="showCheckAPIMessage();" href="#">Ethereum</a></li>
+                            <li><a onclick="showCheckAPIMessage();" href="#">IPFS</a></li>
+                            <li><a onclick="showComingSoonMessage();" href="#">ThreeFold</a></li>
+                            <li><a onclick="showComingSoonMessage();" href="#">SOLID</a></li>
+                            <li><a onclick="showComingSoonMessage();" href="#">Activity Pub</a></li>
+                            <li><a onclick="showCheckAPIMessage();" href="#">Mongo DB</a></li>
+                            <li><a onclick="showCheckAPIMessage();" href="#">SQLLite</a></li>
+                            <li><a onclick="showCheckAPIMessage();" href="#">Neo4j</a></li>
+                        </ul>
+                    </li>
+                    <li>
+                        <a href="#">NFT</a>
+                        <ul style="width:270px;">
+                            <li><a onclick="showComingSoonMessage();" href="#">View OASIS NFT's</a></li>
+                            <li><a onclick="showComingSoonMessage();" href="#">Manage OASIS NFT's</a></li>
+                            <li><a onclick="showComingSoonMessage();" href="#">Search OASIS NFT's</a></li>
+                            <li><a onclick="showComingSoonMessage();" href="#">Purchase OASIS NFT</a></li>
+                            <li><a onclick="showComingSoonMessage();" href="#">Purchase OASIS Virtual Land NFT</a></li>
+                        </ul>
+                    </li>
+                    <li>
+                        <a href="#">Map</a>
+                        <ul>
+                            <li><a onclick="showOurWorldMessage();" href="#">View Global 3D Map</a></li>
+                            <li><a onclick="showOurWorldMessage();" href="#">Mange Map </a></li>
+                            <li><a onclick="showComingSoonMessage();" href="#">Add Quest To Map</a></li>
+                            <li><a onclick="showComingSoonMessage();" href="#">Add 2D Object To Map</a></li>
+                            <li><a onclick="showComingSoonMessage();" href="#">Add 3D Object To Map</a></li>
+                            <li><a onclick="showComingSoonMessage();" href="#">Plot Route On Map</a></li>
+                            <li><a onclick="showComingSoonMessage();" href="#">View OAPP's On Map</a></li>
+                            <li><a onclick="showComingSoonMessage();" href="#">View Holons On Map</a></li>
+                            <li><a onclick="showComingSoonMessage();" href="#">View Quests On Map</a></li>
+                            <li><a onclick="showComingSoonMessage();" href="#">Search Map</a></li>
+                            <li><a onclick="showOurWorldMessage();" href="#">Download Our World</a></li>
+                        </ul>
+                    </li>
+                    <li>
+                        <a href="#">OAPP</a>
+                        <ul>
+                            <li><a onclick="showSTARMessage();" href="#">Installed OAPP's</a></li>
+                            <li><a onclick="showSTARMessage();" href="#">Manage OAPP's</a></li>
+                            <li><a onclick="showSTARMessage();" href="#">Create OAPP</a></li>
+                            <li><a onclick="showSTARMessage();" href="#">Deploy OAPP</a></li>
+                            <li><a onclick="showSTARMessage();" href="#">Edit OAPP</a></li>
+                            <li><a onclick="showSTARMessage();" href="#">Launch OAPP</a></li>
+                            <li><a onclick="showSTARMessage();" href="#">Search OAPP's</a></li>
+                            <li><a onclick="showOurWorldMessage();" href="#">Download Our World</a></li>
+                        </ul>
+                    </li>
+                    <li>
+                        <a href="#">Quest</a>
+                        <ul>
+                            <li><a onclick="showComingSoonMessage();" href="#">View Quests</a></li>
+                            <li><a onclick="showComingSoonMessage();" href="#">Manage Quests</a></li>
+                            <li><a onclick="showComingSoonMessage();" href="#">Search Quests </a></li>
+                        </ul>
+                    </li>
+                    <li>
+                        <a href="#">Mission </a>
+                        <ul>
+                            <li><a onclick="showComingSoonMessage();" href="#">View Missions</a></li>
+                            <li><a onclick="showComingSoonMessage();" href="#">Manage Missions</a></li>
+                            <li><a onclick="showComingSoonMessage();" href="#">Search Missions</a></li>
+                        </ul>
+                    </li>
+                    <li>
+                        <a href="#">Egg</a>
+                        <ul>
+                            <li><a onclick="showComingSoonMessage();" href="#">View Eggs</a></li>
+                            <li><a onclick="showComingSoonMessage();" href="#">Manage Eggs</a></li>
+                            <li><a onclick="showComingSoonMessage();" href="#">Search Eggs</a></li>
+                        </ul>
+                    </li>
+                    <li>
+                        <a href="#">Game</a>
+                        <ul style="width:270px;">
+                            <li><a onclick="showComingSoonMessage();" href="#">View StarCraft 2 Leagues</a></li>
+                            <li><a onclick="showComingSoonMessage();" href="#">View StarCraft 2 Tournaments</a></li>
+                            <li><a onclick="showComingSoonMessage();" href="#">View StarCraft 2 Achievements</a></li>
+                            <li><a onclick="showComingSoonMessage();" href="#">Search StarCraft 2 Profiles</a></li>
+                        </ul>
+                    </li>
+                    <li>
+                        <a href="#">Developer</a>
+                        <ul style="width:397px; white-space:nowrap">
+                            <li><a target="_blank" href="https://api.oasisplatform.world">OASIS API LIVE</a></li>
+                            <li><a target="_blank" href="https://staging.api.oasisplatform.world">OASIS API STAGING</a></li>
+                            <li><a target="_blank" href="https://oasisplatform.world">OASIS API UI LIVE</a></li>
+                            <li><a target="_blank" href="https://staging.oasisplatform.world">OASIS API UI STAGING</a></li>
+                            <li><a onclick="showSTARMessage();" href="#">STAR ODK</a></li>
+                            <li><a target="_blank" href="postman/OASIS_API.postman_collection.json">OASIS API Postman JSON File</a></li>
+                            <li><a target="_blank" href="postman/OASIS_API_DEV.postman_environment.json">OASIS API DEV ENVIROMENT Postman JSON File</a></li>
+                            <li><a target="_blank" href="postman/OASIS_API_STAGING.postman_environment.json">OASIS API STAGING ENVIROMENT Postman JSON File</a></li>
+                            <li><a target="_blank" href="postman/OASIS_API_LIVE.postman_environment.json">OASIS API LIVE ENVIROMENT Postman JSON File</a></li>
+                            <li><a target="_blank" href="https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK">Code/Documentation</a></li>
+                            <li><a target="_blank" href="https://www.thejusticeleagueaccademy.icu/">The Justice League Academy</a></li>
+                        </ul>
+                    </li>
+
+                    <div id="LogInButtons"
+                        style="color: white; white-space: nowrap; text-align: right; margin-top: 5px; margin-right:10px; align-content: right; float:right;">
+                        <table class="cd-main-nav__list js-signin-modal-trigger">
+                            <tr>
+                                <td> <a style="color:white;white-space: nowrap; "
+                                        class="cd-main-nav__item cd-main-nav__item--signin" href="#0"
+                                        onclick="showLogin()" data-signin="login" data-type="login">Log In</a> </td>
+                                <td> <a style="color:white;margin-left:10px; white-space: nowrap; "
+                                        class="cd-main-nav__item cd-main-nav__item--signup" href="#0"
+                                        onclick="showNewAccount()" data-signin="signup">Sign Up</a> </td>
+                            </tr>
+                        </table>
+                    </div>
+
+                    <span id="loggedInUser"
+                        style="color: white; display: none; text-align: right; margin-top: 5px; margin-right:10px; align-content: right; float:right;">Logged
+                        In: None </span>
+                </ul>
+            </nav>
+        </div>
+
+        <div class="cd-signin-modal js-signin-modal">
+            <!-- this is the entire modal form, including the background -->
+            <div class="cd-signin-modal__container">
+                <!-- this is the container wrapper -->
+                <ul class="cd-signin-modal__switcher js-signin-modal-switcher js-signin-modal-trigger">
+                    <li><a href="#0" data-signin="login" data-type="login">Sign in</a></li>
+                    <li><a href="#0" data-signin="signup" data-type="signup">New Avatar</a>
+                    </li>
+                </ul>
+                <div id="divLogin" class="cd-signin-modal__block js-signin-modal-block" data-type="login">
+                    <!-- log in form -->
+                    <form class="cd-signin-modal__form" id="LoginForm">
+                        <div class="cd-signin-modal__fieldset">
+                            <label
+                                class="cd-signin-modal__label cd-signin-modal__label--email cd-signin-modal__label--image-replace"
+                                for="login-email">E-mail</label>
+                            <input
+                                class="cd-signin-modal__input cd-signin-modal__input--full-width cd-signin-modal__input--has-padding cd-signin-modal__input--has-border"
+                                id="login-email" type="email" placeholder="E-mail">
+                            <span class="cd-signin-modal__error">Error message here!</span>
+                        </div>
+
+                        <div class="cd-signin-modal__fieldset">
+                            <label
+                                class="cd-signin-modal__label cd-signin-modal__label--password cd-signin-modal__label--image-replace"
+                                for="login-password">Password</label>
+                            <input
+                                class="cd-signin-modal__input cd-signin-modal__input--full-width cd-signin-modal__input--has-padding cd-signin-modal__input--has-border"
+                                id="login-password" type="password" pattern=".{8,}" placeholder="Password">
+                            <a href="#0" class="cd-signin-modal__hide-password js-hide-password">Show</a>
+                            <span class="cd-signin-modal__error">Error message here!</span>
+                        </div>
+
+                        <div class="cd-signin-modal__fieldset">
+                            <input type="checkbox" id="remember-me" checked class="cd-signin-modal__input ">
+                            <label for="remember-me">Remember me</label>
+                        </div>
+
+                        <div class="cd-signin-modal__fieldset">
+                            <input class="cd-signin-modal__input cd-signin-modal__input--full-width" id="login-submit"
+                                type="submit" value="Login">
+                        </div>
+                    </form>
+
+                    <div class="cd-signin-modal__bottom-message js-signin-modal-trigger"><a href="#0"
+                            data-signin="reset">Forgot your password?</a>
+                    </div>
+                </div>
+
+                <div id="divNewAccount" class="cd-signin-modal__block js-signin-modal-block" data-type="signup">
+                    <!-- sign up form -->
+                    <form class="cd-signin-modal__form" id="SignupForm">
+
+                        <div class="cd-signin-modal__fieldset">
+                            <label
+                                class="cd-signin-modal__label cd-signin-modal__label--title cd-signin-modal__label--image-replace"
+                                for="signup-title">Title</label>
+                            <input
+                                class="cd-signin-modal__input cd-signin-modal__input--full-width cd-signin-modal__input--has-padding cd-signin-modal__input--has-border"
+                                id="signup-username" type="text" placeholder="Mr. / Mrs. / Ms.">
+                            <span class="cd-signin-modal__error">Error message here!</span>
+                        </div>
+
+                        <div class="cd-signin-modal__fieldset">
+                            <label
+                                class="cd-signin-modal__label cd-signin-modal__label--firstName cd-signin-modal__label--image-replace"
+                                for="signup-firstName">First Name</label>
+                            <input
+                                class="cd-signin-modal__input cd-signin-modal__input--full-width cd-signin-modal__input--has-padding cd-signin-modal__input--has-border"
+                                id="signup-firstName" type="text" placeholder="First Name">
+                            <span class="cd-signin-modal__error">Error message here!</span>
+                        </div>
+
+                        <div class="cd-signin-modal__fieldset">
+                            <label
+                                class="cd-signin-modal__label cd-signin-modal__label--lastName cd-signin-modal__label--image-replace"
+                                for="signup-lastName">Last Name</label>
+                            <input
+                                class="cd-signin-modal__input cd-signin-modal__input--full-width cd-signin-modal__input--has-padding cd-signin-modal__input--has-border"
+                                id="signup-lastName" type="text" placeholder="Last Name">
+                            <span class="cd-signin-modal__error">Error message here!</span>
+                        </div>
+
+                        <div class="cd-signin-modal__fieldset">
+                            <label
+                                class="cd-signin-modal__label cd-signin-modal__label--email cd-signin-modal__label--image-replace"
+                                for="signup-email">E-mail</label>
+                            <input
+                                class="cd-signin-modal__input cd-signin-modal__input--full-width cd-signin-modal__input--has-padding cd-signin-modal__input--has-border"
+                                id="signup-email" type="text" placeholder="E-mail">
+                            <span class="cd-signin-modal__error">Error message here!</span>
+                        </div>
+
+                        <div class="cd-signin-modal__fieldset">
+                            <label
+                                class="cd-signin-modal__label cd-signin-modal__label--password cd-signin-modal__label--image-replace"
+                                for="signup-new-password">Password</label>
+                            <input
+                                class="cd-signin-modal__input cd-signin-modal__input--full-width cd-signin-modal__input--has-padding cd-signin-modal__input--has-border"
+                                id="signup-new-password" type="password" pattern=".{8,}" placeholder="Password">
+                            <a href="#0" class="cd-signin-modal__hide-password js-hide-password">Show</a>
+                            <span class="cd-signin-modal__error">Error message here!</span>
+                        </div>
+
+                        <div class="cd-signin-modal__fieldset">
+                            <label
+                                class="cd-signin-modal__label cd-signin-modal__label--password cd-signin-modal__label--image-replace"
+                                for="signup-password-confirm">Confirm Password</label>
+                            <input
+                                class="cd-signin-modal__input cd-signin-modal__input--full-width cd-signin-modal__input--has-padding cd-signin-modal__input--has-border"
+                                id="signup-password-confirm" type="password" pattern=".{8,}"
+                                placeholder="Confirm Password">
+                            <a href="#0" class="cd-signin-modal__hide-password js-hide-password">Show</a>
+                            <span class="cd-signin-modal__error" id="CheckPasswordMatch">Error message here!</span>
+                        </div>
+
+                        <div class="cd-signin-modal__fieldset">
+                            <input type="checkbox" id="accept-terms" class="cd-signin-modal__input ">
+                            <label for="accept-terms">I agree to the <a href="#0">Terms</a></label>
+                        </div>
+
+                        <div class="cd-signin-modal__fieldset">
+                            <input
+                                class="cd-signin-modal__input cd-signin-modal__input--full-width cd-signin-modal__input--has-padding"
+                                id="submit_signup" type="submit" value="Create Avatar">
+                        </div>
+                    </form>
+                </div> <!-- cd-signin-modal__block -->
+
+                <div id="divForgotPassword" class="cd-signin-modal__block js-signin-modal-block" data-type="reset">
+                    <!-- reset password form -->
+                    <div class="cd-signin-modal__message">Lost your password? Please enter your
+                        email address. You will receive a link to create a new password.</div>
+
+                    <form class="cd-signin-modal__form" id="ForgotForm">
+                        <div class="cd-signin-modal__fieldset">
+                            <label
+                                class="cd-signin-modal__label cd-signin-modal__label--email cd-signin-modal__label--image-replace"
+                                for="reset-email">E-mail</label>
+                            <input
+                                class="cd-signin-modal__input cd-signin-modal__input--full-width cd-signin-modal__input--has-padding cd-signin-modal__input--has-border"
+                                id="reset-email" type="email" placeholder="E-mail">
+                            <span class="cd-signin-modal__error">Error message here!</span>
+                        </div>
+
+                        <div class="cd-signin-modal__fieldset">
+                            <input
+                                class="cd-signin-modal__input cd-signin-modal__input--full-width cd-signin-modal__input--has-padding"
+                                id="submit_reset" type="submit" value="Reset password">
+                        </div>
+                    </form>
+
+                    <div class="cd-signin-modal__bottom-message js-signin-modal-trigger"><a href="#0"
+                            onclick="showLogin();" data-signin="login">Back to log-in</a></div>
+                </div> <!-- cd-signin-modal__block -->
+                <a href="#0" class="cd-signin-modal__close js-close">Close</a>
+            </div> <!-- cd-signin-modal__container -->
+        </div> <!-- cd-signin-modal -->
+
+
+
+        <script src="js/jquery-3.5.1.min.js"></script>
+        <script src="js/login/login.js"></script>
+        <!-- <script src="js/login/submit.js"></script> -->
+        <script src="js/login/placeholders.min.js"></script>
+        <!-- <script src="js/login/search.js"></script> -->
+        <script src="js/sweetalert2.all.min.js"></script>
+
+
+        </div>
+    </body>
+
+</html>
