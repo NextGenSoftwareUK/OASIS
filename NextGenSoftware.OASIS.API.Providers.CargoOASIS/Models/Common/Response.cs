@@ -1,6 +1,6 @@
-﻿using Enum;
+﻿using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Enum;
 
-namespace Models.Common
+namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Models.Common
 {
     public class Response<T>
     {

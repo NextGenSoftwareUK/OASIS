@@ -1,6 +1,6 @@
 ﻿using System.Threading.Tasks;
 
-namespace Infrastructure.Interfaces
+namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Interfaces
 {
     public interface IHandle<T, in TK>
     {

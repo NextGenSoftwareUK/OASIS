@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace Models.Cargo
+namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Models.Cargo
 {
     public class TokenMetadata
     {
