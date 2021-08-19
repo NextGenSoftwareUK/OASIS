@@ -1,6 +1,6 @@
-﻿using Enums;
+﻿using NextGenSoftware.OASIS.API.Providers.MapboxOASIS.Enums;
 
-namespace Models
+namespace NextGenSoftware.OASIS.API.Providers.MapboxOASIS.Models
 {
     public class Response<T> where T : new()
     {

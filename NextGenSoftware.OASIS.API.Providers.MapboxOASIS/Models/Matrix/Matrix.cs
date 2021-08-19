@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using Newtonsoft.Json;
 
-namespace Models.Matrix
+namespace NextGenSoftware.OASIS.API.Providers.MapboxOASIS.Models.Matrix
 {
     public class Destination
     {

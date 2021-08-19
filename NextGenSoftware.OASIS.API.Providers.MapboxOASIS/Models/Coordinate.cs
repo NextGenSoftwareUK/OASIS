@@ -1,4 +1,4 @@
-﻿namespace Models
+﻿namespace NextGenSoftware.OASIS.API.Providers.MapboxOASIS.Models
 {
     public class Coordinate
     {

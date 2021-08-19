@@ -1,4 +1,4 @@
-﻿namespace Models.Requests
+﻿namespace NextGenSoftware.OASIS.API.Providers.MapboxOASIS.Models.Requests
 {
     public class GetStaticImageRequest
     {

@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using Newtonsoft.Json;
 
-namespace Models.Isochrone
+namespace NextGenSoftware.OASIS.API.Providers.MapboxOASIS.Models.Isochrone
 {
     public class Properties
     {

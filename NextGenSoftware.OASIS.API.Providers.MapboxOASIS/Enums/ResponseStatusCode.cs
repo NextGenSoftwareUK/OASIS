@@ -1,4 +1,4 @@
-﻿namespace Enums
+﻿namespace NextGenSoftware.OASIS.API.Providers.MapboxOASIS.Enums
 {
     public enum ResponseStatusCode
     {

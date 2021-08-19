@@ -1,4 +1,4 @@
-﻿namespace Models.Map
+﻿namespace NextGenSoftware.OASIS.API.Providers.MapboxOASIS.Models.Map
 {
     public class RasterTile
     {

@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using Newtonsoft.Json;
 
-namespace Models.Direction
+namespace NextGenSoftware.OASIS.API.Providers.MapboxOASIS.Models.Direction
 {
     public class Intersection
     {

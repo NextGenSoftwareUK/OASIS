@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
-using Enums;
+using NextGenSoftware.OASIS.API.Providers.MapboxOASIS.Enums;
 
-namespace Models.Requests
+namespace NextGenSoftware.OASIS.API.Providers.MapboxOASIS.Models.Requests
 {
     public class GetForwardBatchGeocodingRequest
     {

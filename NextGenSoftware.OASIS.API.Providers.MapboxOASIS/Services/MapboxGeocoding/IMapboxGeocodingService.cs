@@ -1,10 +1,10 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
-using Models;
-using Models.Geocoding;
-using Models.Requests;
+using NextGenSoftware.OASIS.API.Providers.MapboxOASIS.Models;
+using NextGenSoftware.OASIS.API.Providers.MapboxOASIS.Models.Geocoding;
+using NextGenSoftware.OASIS.API.Providers.MapboxOASIS.Models.Requests;
 
-namespace Services.MapboxGeocoding
+namespace NextGenSoftware.OASIS.API.Providers.MapboxOASIS.Services.MapboxGeocoding
 {
     public interface IMapboxGeocodingService
     {
