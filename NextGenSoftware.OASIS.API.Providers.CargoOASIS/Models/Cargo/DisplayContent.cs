@@ -1,5 +1,5 @@
 ﻿using System.Collections.Generic;
-using Enum;
+using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Enum;
 
 namespace Models.Cargo
 {

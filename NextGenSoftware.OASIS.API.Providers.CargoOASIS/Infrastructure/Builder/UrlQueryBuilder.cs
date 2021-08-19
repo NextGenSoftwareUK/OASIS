@@ -1,6 +1,6 @@
 ﻿using System.Text;
 
-namespace Infrastructure.Builder
+namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Builder
 {
     public class UrlQueryBuilder
     {

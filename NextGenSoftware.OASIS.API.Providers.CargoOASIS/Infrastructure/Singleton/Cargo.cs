@@ -1,6 +1,4 @@
-﻿using System.Net.NetworkInformation;
-
-namespace Infrastructure.Singleton
+﻿namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Singleton
 {
     public sealed class Cargo
     {

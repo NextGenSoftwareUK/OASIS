@@ -1,4 +1,4 @@
-﻿using Enum;
+﻿using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Enum;
 
 namespace Models.Cargo
 {
