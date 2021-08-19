@@ -1,13 +1,13 @@
 ﻿using System;
 using System.Net.Http;
 using System.Threading.Tasks;
-using Enums;
-using Models;
-using Models.Matrix;
-using Models.Requests;
 using Newtonsoft.Json;
+using NextGenSoftware.OASIS.API.Providers.MapboxOASIS.Enums;
+using NextGenSoftware.OASIS.API.Providers.MapboxOASIS.Models;
+using NextGenSoftware.OASIS.API.Providers.MapboxOASIS.Models.Matrix;
+using NextGenSoftware.OASIS.API.Providers.MapboxOASIS.Models.Requests;
 
-namespace Services.MapboxMatrix
+namespace NextGenSoftware.OASIS.API.Providers.MapboxOASIS.Services.MapboxMatrix
 {
     public class MapboxMatrixService : IMapboxMatrixService
     {

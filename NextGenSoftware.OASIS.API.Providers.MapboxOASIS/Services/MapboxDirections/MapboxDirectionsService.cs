@@ -1,14 +1,14 @@
 ﻿using System;
 using System.Net.Http;
 using System.Threading.Tasks;
-using Enums;
-using Extensions;
-using Models;
-using Models.Direction;
-using Models.Requests;
 using Newtonsoft.Json;
+using NextGenSoftware.OASIS.API.Providers.MapboxOASIS.Enums;
+using NextGenSoftware.OASIS.API.Providers.MapboxOASIS.Extensions;
+using NextGenSoftware.OASIS.API.Providers.MapboxOASIS.Models;
+using NextGenSoftware.OASIS.API.Providers.MapboxOASIS.Models.Direction;
+using NextGenSoftware.OASIS.API.Providers.MapboxOASIS.Models.Requests;
 
-namespace Services.MapboxDirections
+namespace NextGenSoftware.OASIS.API.Providers.MapboxOASIS.Services.MapboxDirections
 {
     public class MapboxDirectionsService : IMapboxDirectionsService
     {

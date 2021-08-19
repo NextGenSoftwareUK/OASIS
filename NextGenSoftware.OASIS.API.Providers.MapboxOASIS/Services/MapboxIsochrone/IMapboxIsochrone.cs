@@ -1,9 +1,9 @@
 ﻿using System.Threading.Tasks;
-using Models;
-using Models.Isochrone;
-using Models.Requests;
+using NextGenSoftware.OASIS.API.Providers.MapboxOASIS.Models;
+using NextGenSoftware.OASIS.API.Providers.MapboxOASIS.Models.Isochrone;
+using NextGenSoftware.OASIS.API.Providers.MapboxOASIS.Models.Requests;
 
-namespace Services.MapboxIsochrone
+namespace NextGenSoftware.OASIS.API.Providers.MapboxOASIS.Services.MapboxIsochrone
 {
     public interface IMapboxIsochrone
     {

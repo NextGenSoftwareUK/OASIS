@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel;
 
-namespace Enums
+namespace NextGenSoftware.OASIS.API.Providers.MapboxOASIS.Enums
 {
     public enum RasterTileFormat
     {

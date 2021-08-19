@@ -2,14 +2,14 @@
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading.Tasks;
-using Enums;
-using Extensions;
-using Models;
-using Models.Geocoding;
-using Models.Requests;
 using Newtonsoft.Json;
+using NextGenSoftware.OASIS.API.Providers.MapboxOASIS.Enums;
+using NextGenSoftware.OASIS.API.Providers.MapboxOASIS.Extensions;
+using NextGenSoftware.OASIS.API.Providers.MapboxOASIS.Models;
+using NextGenSoftware.OASIS.API.Providers.MapboxOASIS.Models.Geocoding;
+using NextGenSoftware.OASIS.API.Providers.MapboxOASIS.Models.Requests;
 
-namespace Services.MapboxGeocoding
+namespace NextGenSoftware.OASIS.API.Providers.MapboxOASIS.Services.MapboxGeocoding
 {
     public class MapboxGeocodingService : IMapboxGeocodingService
     {

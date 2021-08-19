@@ -3,7 +3,7 @@ using System.ComponentModel;
 using System.Linq;
 using System.Reflection;
 
-namespace Extensions
+namespace NextGenSoftware.OASIS.API.Providers.MapboxOASIS.Extensions
 {
     public static class EnumExtension
     {

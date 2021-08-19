@@ -1,9 +1,9 @@
 ﻿using System.Threading.Tasks;
-using Models;
-using Models.Matrix;
-using Models.Requests;
+using NextGenSoftware.OASIS.API.Providers.MapboxOASIS.Models;
+using NextGenSoftware.OASIS.API.Providers.MapboxOASIS.Models.Matrix;
+using NextGenSoftware.OASIS.API.Providers.MapboxOASIS.Models.Requests;
 
-namespace Services.MapboxMatrix
+namespace NextGenSoftware.OASIS.API.Providers.MapboxOASIS.Services.MapboxMatrix
 {
     public interface IMapboxMatrixService
     {

@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using Newtonsoft.Json;
 
-namespace Models.Geocoding
+namespace NextGenSoftware.OASIS.API.Providers.MapboxOASIS.Models.Geocoding
 {
     public class Properties
     {
