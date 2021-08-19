@@ -1,12 +1,9 @@
-﻿using System;
-
-namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS
+﻿namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS
 {
-    class Program
+    internal static class Program
     {
-        static void Main(string[] args)
+        private static void Main(string[] args)
         {
-            Console.WriteLine("Hello World!");
         }
     }
 }
