@@ -187,6 +187,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.STAR.
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Spectre.Console", "Spectre.Console\Spectre.Console\Spectre.Console.csproj", "{C784D458-E0EE-4194-98A6-87517ACA68B0}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.Providers.CargoOASIS", "NextGenSoftware.OASIS.API.Providers.CargoOASIS\NextGenSoftware.OASIS.API.Providers.CargoOASIS.csproj", "{B7D3D535-E1E9-4669-8A9B-00CF192DC87C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -1494,6 +1496,24 @@ Global
 		{C784D458-E0EE-4194-98A6-87517ACA68B0}.Release|x64.Build.0 = Release|Any CPU
 		{C784D458-E0EE-4194-98A6-87517ACA68B0}.Release|x86.ActiveCfg = Release|Any CPU
 		{C784D458-E0EE-4194-98A6-87517ACA68B0}.Release|x86.Build.0 = Release|Any CPU
+		{B7D3D535-E1E9-4669-8A9B-00CF192DC87C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B7D3D535-E1E9-4669-8A9B-00CF192DC87C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B7D3D535-E1E9-4669-8A9B-00CF192DC87C}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{B7D3D535-E1E9-4669-8A9B-00CF192DC87C}.Debug|x64.Build.0 = Debug|Any CPU
+		{B7D3D535-E1E9-4669-8A9B-00CF192DC87C}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{B7D3D535-E1E9-4669-8A9B-00CF192DC87C}.Debug|x86.Build.0 = Debug|Any CPU
+		{B7D3D535-E1E9-4669-8A9B-00CF192DC87C}.Linux|Any CPU.ActiveCfg = Debug|Any CPU
+		{B7D3D535-E1E9-4669-8A9B-00CF192DC87C}.Linux|Any CPU.Build.0 = Debug|Any CPU
+		{B7D3D535-E1E9-4669-8A9B-00CF192DC87C}.Linux|x64.ActiveCfg = Debug|Any CPU
+		{B7D3D535-E1E9-4669-8A9B-00CF192DC87C}.Linux|x64.Build.0 = Debug|Any CPU
+		{B7D3D535-E1E9-4669-8A9B-00CF192DC87C}.Linux|x86.ActiveCfg = Debug|Any CPU
+		{B7D3D535-E1E9-4669-8A9B-00CF192DC87C}.Linux|x86.Build.0 = Debug|Any CPU
+		{B7D3D535-E1E9-4669-8A9B-00CF192DC87C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B7D3D535-E1E9-4669-8A9B-00CF192DC87C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B7D3D535-E1E9-4669-8A9B-00CF192DC87C}.Release|x64.ActiveCfg = Release|Any CPU
+		{B7D3D535-E1E9-4669-8A9B-00CF192DC87C}.Release|x64.Build.0 = Release|Any CPU
+		{B7D3D535-E1E9-4669-8A9B-00CF192DC87C}.Release|x86.ActiveCfg = Release|Any CPU
+		{B7D3D535-E1E9-4669-8A9B-00CF192DC87C}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
