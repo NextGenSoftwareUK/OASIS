@@ -36,7 +36,7 @@ namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Handlers
             {
                 var queryBuilder = new UrlQueryBuilder();
                 queryBuilder.AppendParameter("limit", request.Limit);
-                queryBuilder.AppendParameter("owned", request.Owned);
+                queryBuilder.AppendParameter("owned", request.Owned.ToString());
                 queryBuilder.AppendParameter("page", request.Page);
                 queryBuilder.AppendParameter("seller", request.Seller);
                 queryBuilder.AppendParameter("slug", request.Slug);
@@ -126,7 +126,7 @@ namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Handlers
         /// </summary>
         [JsonProperty("chain")]
         [JsonConverter(typeof(Chain))]
-        public Chain Chain { get; set; }
+        public Chain? Chain { get; set; }
 
         /// <summary>
         /// Optional. String. Page in results to display.
@@ -144,7 +144,7 @@ namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Handlers
         /// Optional. Boolean. Display resale items that are owned by the current authenticated user only.
         /// </summary>
         [JsonProperty("owned")] 
-        public string Owned { get; set; }
+        public bool? Owned { get; set; }
 
         /// <summary>
         /// Optional. String. Filter resale items by showcase slug. Can be used as an alternative to showcaseId. slugId required when this is passed.
