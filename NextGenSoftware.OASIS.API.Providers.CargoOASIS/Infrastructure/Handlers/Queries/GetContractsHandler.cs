@@ -27,6 +27,12 @@ namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Handlers
             _httpClient.DefaultRequestHeaders.Add("Content-Type", "application/json");
         }
         
+        /// <summary>
+        /// Get contracts
+        /// More information: https://docs.cargo.build/cargo-js/cargo.api#get-a-list-of-collections-on-cargo
+        /// </summary>
+        /// <param name="request">Request parameters</param>
+        /// <returns>Contracts</returns>
         public async Task<Response<GetContractsResponseModel>> Handle(GetContractsRequestHandler request)
         {
             var response = new Response<GetContractsResponseModel>();

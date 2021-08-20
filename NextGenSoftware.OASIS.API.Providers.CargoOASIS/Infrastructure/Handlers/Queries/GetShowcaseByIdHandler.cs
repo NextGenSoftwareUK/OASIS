@@ -24,6 +24,12 @@ namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Handlers
             };
         }
         
+        /// <summary>
+        /// Get Showcase by Id
+        /// More information: https://docs.cargo.build/cargo-js/cargo.api#get-a-showcase-by-id
+        /// </summary>
+        /// <param name="request">Request parameters</param>
+        /// <returns>Showcase by id</returns>
         public async Task<Response<GetShowcaseByIdResponseModel>> Handle(GetShowcaseByIdRequestModel request)
         {
             var response = new Response<GetShowcaseByIdResponseModel>();

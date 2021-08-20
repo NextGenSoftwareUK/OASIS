@@ -28,6 +28,12 @@ namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Handlers
             _httpClient.DefaultRequestHeaders.Add("Content-Type", "application/json");
         }
         
+        /// <summary>
+        /// Get resale items
+        /// More information: https://docs.cargo.build/cargo-js/cargo.api#get-a-list-of-collectibles-that-are-for-sale
+        /// </summary>
+        /// <param name="request">Request parameters</param>
+        /// <returns>Resale items</returns>
         public async Task<Response<GetResaleItemsResponseModel>> Handle(GetResaleItemsRequestModel request)
         {
             var response = new Response<GetResaleItemsResponseModel>();
