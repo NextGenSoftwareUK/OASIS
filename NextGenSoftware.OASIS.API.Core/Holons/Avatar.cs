@@ -60,6 +60,9 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
         public string Postcode { get; set; }
         public string Mobile { get; set; }
         public string Landline { get; set; }
+        public string Image2D { get; set; }
+        public string Model3D { get; set; }
+        public List<HeartRateEntry> HeartRateData { get; set; }
         public EnumValue<AvatarType> AvatarType { get; set; }
         public EnumValue<OASISType> CreatedOASISType { get; set; }
         // public int Karma { get; private set; }

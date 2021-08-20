@@ -1,11 +1,12 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using System;
+﻿using System;
+using Microsoft.AspNetCore.Mvc;
 using EOSNewYork.EOSCore.Response.API;
 using NextGenSoftware.OASIS.API.Core.Enums;
-using NextGenSoftware.OASIS.API.DNA.Manager;
 using NextGenSoftware.OASIS.API.Providers.SEEDSOASIS;
 using NextGenSoftware.OASIS.API.Providers.TelosOASIS;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Models;
+using NextGenSoftware.OASIS.API.Core.Helpers;
+using NextGenSoftware.OASIS.API.Core.Interfaces;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 {
@@ -19,12 +20,23 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         {
             get
             {
-                // TODO: Currently SEEDSOASIS is injected in with a TelosOASIS provider with a SEEDS connectionstring and will unregister the TelosOASIS Provider first if it is already registered so it uses the SEEDS connection string instead.
-                // Not sure if we want SEEDSOASIS to use its own seperate private instance of the TelosOASIS provider using the SEEDS connection string allowing others to use the existing TelosOASIS Provider on the default Telos connectionstring?
-                // If that is the case then uncomment the bottom line and comment the top line.
                 if (_SEEDSOASIS == null)
-                    _SEEDSOASIS = new SEEDSOASIS((TelosOASIS)OASISDNAManager.GetAndActivateProvider(ProviderType.TelosOASIS, OASISDNAManager.OASISDNA.OASIS.StorageProviders.SEEDSOASIS.ConnectionString, true));
-                    //_SEEDSOASIS = new SEEDSOASIS(new TelosOASIS(OASISDNAManager.OASISDNA.OASIS.StorageProviders.SEEDSOASIS.ConnectionString));
+                {
+                    /*
+                    OASISResult<IOASISStorage> result = OASISBootLoader.OASISBootLoader.GetAndActivateProvider(ProviderType.TelosOASIS, OASISBootLoader.OASISBootLoader.OASISDNA.OASIS.StorageProviders.SEEDSOASIS.ConnectionString, true);
+
+                    //TODO: Eventually want to replace all exceptions with OASISResult throughout the OASIS because then it makes sure errors are handled properly and friendly messages are shown (plus less overhead of throwing an entire stack trace!)
+                    if (result.IsError)
+                        ErrorHandling.HandleError(ref result, string.Concat("Error calling OASISBootLoader.OASISBootLoader.GetAndActivateProvider(ProviderType.TelosOASIS). Error details: ", result.Message), true, false, true);
+                    */
+
+                    // TODO: Currently SEEDSOASIS is injected in with a TelosOASIS provider with a SEEDS connectionstring and will unregister the TelosOASIS Provider first if it is already registered so it uses the SEEDS connection string instead.
+                    // Not sure if we want SEEDSOASIS to use its own seperate private instance of the TelosOASIS provider using the SEEDS connection string allowing others to use the existing TelosOASIS Provider on the default Telos connectionstring?
+                    // If that is the case then uncomment the bottom line and comment the top line.
+
+                   // _SEEDSOASIS = new SEEDSOASIS((TelosOASIS)result.Result);
+                    _SEEDSOASIS = new SEEDSOASIS(new TelosOASIS(OASISBootLoader.OASISBootLoader.OASISDNA.OASIS.StorageProviders.SEEDSOASIS.ConnectionString));
+                }
 
                 return _SEEDSOASIS;
             }
