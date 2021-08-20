@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using Newtonsoft.Json;
 using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Enum;
 using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Interfaces;
+using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Models.Cargo;
 using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Models.Common;
 
 namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Handlers.Queries
@@ -19,35 +20,17 @@ namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Handlers
     {
         public class GetResaleItemData
         {
-            /*
-             *     data: {
-        limit: string;
-        page: string;
-        totalPages: string;
-        results: {
-            // Will be blank if ERC-721. If ERC-1155
-            // type will be '1155'
-            type: '1155' | void;
-            seller: string;
-            // ID of the collection
-            contract: string;
-            // Id of the collectible
-            tokenId: string;
-            // Price in Wei that the collectible is selling for
-            price: string;
-            // If owned is true this will show the user if purchase signatures
-            // have been generated. If they have cancelling the sale safely will
-            // require a transaction to be submitted.
-            signatureGenerated?: boolean;
-            // Will only be in response if owned is set to true. This can be
-            // used to safely cancel a sale. You can use the cancelSale method
-            // and Cargo JS will handle this for you.
-            groupId?: string;
-            // Showcase ID resale item belongs to
-            crate?: string;
-            createdAt: string;
-        }[]
-             */
+            [JsonProperty("limit")]
+            public string Limit { get; set; }
+
+            [JsonProperty("page")]
+            public string Page { get; set; }
+
+            [JsonProperty("totalPages")] 
+            public string TotalPages { get; set; }
+
+            [JsonProperty("results")] 
+            public IEnumerable<ResaleItemV3> Results { get; set; }
         }
         
         [JsonProperty("err")]
@@ -57,7 +40,7 @@ namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Handlers
         public int Status { get; set; }
         
         [JsonProperty("data")]
-        public IEnumerable<GetResaleItemData> Data { get; set; }
+        public GetResaleItemData Data { get; set; }
     }
 
     public class GetResaleItemsRequestModel
