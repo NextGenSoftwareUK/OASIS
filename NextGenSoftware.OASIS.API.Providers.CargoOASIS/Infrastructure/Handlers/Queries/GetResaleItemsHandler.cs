@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Enum;
@@ -15,6 +16,7 @@ namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Handlers
     public class GetResaleItemsHandler : IHandle<Response<GetResaleItemsResponseModel>, GetResaleItemsRequestModel>
     {
         private readonly HttpClient _httpClient;
+        private readonly string _accessToken = string.Empty;
 
         public GetResaleItemsHandler()
         {
@@ -23,6 +25,8 @@ namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Handlers
                 Timeout = TimeSpan.FromMinutes(1),
                 BaseAddress = new Uri("https://api2.cargo.build/")
             };
+            _httpClient.DefaultRequestHeaders.Add("Content-Type", "application/json");
+            _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _accessToken);
         }
         
         public async Task<Response<GetResaleItemsResponseModel>> Handle(GetResaleItemsRequestModel request)
@@ -48,7 +52,6 @@ namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Handlers
                 var httRequest = new HttpRequestMessage()
                 {
                     RequestUri = new Uri(_httpClient.BaseAddress + urlQuery),
-                    Headers = { }
                 };
                 var httpResponse = await _httpClient.SendAsync(httRequest);
                 var responseString = await httpResponse.Content.ReadAsStringAsync();
