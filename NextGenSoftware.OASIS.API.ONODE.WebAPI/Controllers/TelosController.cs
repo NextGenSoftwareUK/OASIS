@@ -1,9 +1,10 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using System;
+﻿using System;
+using Microsoft.AspNetCore.Mvc;
 using EOSNewYork.EOSCore.Response.API;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Providers.TelosOASIS;
-using NextGenSoftware.OASIS.API.DNA.Manager;
+using NextGenSoftware.OASIS.API.Core.Helpers;
+using NextGenSoftware.OASIS.API.Core.Interfaces;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 {
@@ -18,7 +19,15 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             get
             {
                 if (_telosOASIS == null)
-                    _telosOASIS = (TelosOASIS)OASISDNAManager.GetAndActivateProvider(ProviderType.TelosOASIS);
+                {
+                    OASISResult<IOASISStorage> result = OASISBootLoader.OASISBootLoader.GetAndActivateProvider(ProviderType.TelosOASIS);
+
+                    //TODO: Eventually want to replace all exceptions with OASISResult throughout the OASIS because then it makes sure errors are handled properly and friendly messages are shown (plus less overhead of throwing an entire stack trace!)
+                    if (result.IsError)
+                        ErrorHandling.HandleError(ref result, string.Concat("Error calling OASISBootLoader.OASISBootLoader.GetAndActivateProvider(ProviderType.TelosOASIS). Error details: ", result.Message), true, false, true);
+
+                    _telosOASIS = (TelosOASIS)result.Result;
+                }
 
                 return _telosOASIS;
             }
