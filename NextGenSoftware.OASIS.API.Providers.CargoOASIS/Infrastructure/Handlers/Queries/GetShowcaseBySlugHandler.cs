@@ -1,5 +1,8 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Net.Http;
+using System.Threading.Tasks;
 using Newtonsoft.Json;
+using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Enum;
 using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Interfaces;
 using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Models.Cargo;
 using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Models.Common;
@@ -8,9 +11,39 @@ namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Handlers
 {
     public class GetShowcaseBySlugHandler : IHandle<Response<GetShowcaseBySlugResponseModel>, GetShowcaseBySlugRequestModel>
     {
-        public Task<Response<GetShowcaseBySlugResponseModel>> Handle(GetShowcaseBySlugRequestModel request)
+        private readonly HttpClient _httpClient;
+
+        public GetShowcaseBySlugHandler()
         {
-            throw new System.NotImplementedException();
+            _httpClient = new HttpClient()
+            {
+                Timeout = TimeSpan.FromMinutes(1),
+                BaseAddress = new Uri("https://api2.cargo.build/")
+            };
+        }
+        
+        public async Task<Response<GetShowcaseBySlugResponseModel>> Handle(GetShowcaseBySlugRequestModel request)
+        {
+            var response = new Response<GetShowcaseBySlugResponseModel>();
+            try
+            {
+                var urlQuery = $"v3/get-crate-by-id/{request.Slug}?slugId={request.SlugId}";
+                var httRequest = new HttpRequestMessage()
+                {
+                    RequestUri = new Uri(_httpClient.BaseAddress + urlQuery)
+                };
+                var httpResponse = await _httpClient.SendAsync(httRequest);
+                var responseString = await httpResponse.Content.ReadAsStringAsync();
+                var data = JsonConvert.DeserializeObject<GetShowcaseBySlugResponseModel>(responseString);
+                response.Payload = data;
+                return response;
+            }
+            catch (Exception e)
+            {
+                response.ResponseStatus = ResponseStatus.Fail;
+                response.Message = e.Message;
+                return response;
+            }
         }
     }
 
