@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Newtonsoft.Json;
 using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Enum;
 using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Builder;
+using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Extensions;
 using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Interfaces;
 using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Models.Cargo;
 using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Models.Common;
@@ -42,8 +43,7 @@ namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Handlers
                 queryBuilder.AppendParameter("", request.ProjectId);
                 queryBuilder.AppendParameter("", request.ShowcaseId);
                 queryBuilder.AppendParameter("", request.Chain.GetDescription());
-                
-                
+
                 var urlQuery = $"v3/get-resale-items{queryBuilder.GetQuery()}";
                 var httRequest = new HttpRequestMessage()
                 {
