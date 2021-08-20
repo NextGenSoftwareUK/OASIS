@@ -1,7 +1,10 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Net.Http;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Enum;
+using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Builder;
 using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Interfaces;
 using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Models.Cargo;
 using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Models.Common;
@@ -10,9 +13,42 @@ namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Handlers
 {
     public class GetResaleItemsHandler : IHandle<Response<GetResaleItemsResponseModel>, GetResaleItemsRequestModel>
     {
+        private readonly HttpClient _httpClient;
+
+        public GetResaleItemsHandler()
+        {
+            _httpClient = new HttpClient()
+            {
+                Timeout = TimeSpan.FromMinutes(1),
+                BaseAddress = new Uri("https://api2.cargo.build/")
+            };
+        }
+        
         public async Task<Response<GetResaleItemsResponseModel>> Handle(GetResaleItemsRequestModel request)
         {
-            throw new System.NotImplementedException();
+            var response = new Response<GetResaleItemsResponseModel>();
+            try
+            {
+                var queryBuilder = new UrlQueryBuilder();
+                
+                
+                var urlQuery = $"v3/get-resale-items{queryBuilder.GetQuery()}";
+                var httRequest = new HttpRequestMessage()
+                {
+                    RequestUri = new Uri(_httpClient.BaseAddress + urlQuery)
+                };
+                var httpResponse = await _httpClient.SendAsync(httRequest);
+                var responseString = await httpResponse.Content.ReadAsStringAsync();
+                var data = JsonConvert.DeserializeObject<GetResaleItemsResponseModel>(responseString);
+                response.Payload = data;
+                return response;
+            }
+            catch (Exception e)
+            {
+                response.ResponseStatus = ResponseStatus.Fail;
+                response.Message = e.Message;
+                return response;
+            }
         }
     }
 
