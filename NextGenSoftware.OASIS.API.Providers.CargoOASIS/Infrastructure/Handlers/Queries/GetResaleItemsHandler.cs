@@ -26,7 +26,6 @@ namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Handlers
                 BaseAddress = new Uri("https://api2.cargo.build/")
             };
             _httpClient.DefaultRequestHeaders.Add("Content-Type", "application/json");
-            _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _accessToken);
         }
         
         public async Task<Response<GetResaleItemsResponseModel>> Handle(GetResaleItemsRequestModel request)
@@ -36,7 +35,6 @@ namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Handlers
             {
                 var queryBuilder = new UrlQueryBuilder();
                 queryBuilder.AppendParameter("limit", request.Limit);
-                queryBuilder.AppendParameter("owned", request.Owned.ToString());
                 queryBuilder.AppendParameter("page", request.Page);
                 queryBuilder.AppendParameter("seller", request.Seller);
                 queryBuilder.AppendParameter("slug", request.Slug);
@@ -53,6 +51,10 @@ namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Handlers
                 {
                     RequestUri = new Uri(_httpClient.BaseAddress + urlQuery),
                 };
+                if (request.Owned != null && request.Owned.Value)
+                {
+                    _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _accessToken);
+                }
                 var httpResponse = await _httpClient.SendAsync(httRequest);
                 var responseString = await httpResponse.Content.ReadAsStringAsync();
                 var data = JsonConvert.DeserializeObject<GetResaleItemsResponseModel>(responseString);
