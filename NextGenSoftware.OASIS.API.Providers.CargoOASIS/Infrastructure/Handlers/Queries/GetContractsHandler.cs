@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Diagnostics.Contracts;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Interfaces;
