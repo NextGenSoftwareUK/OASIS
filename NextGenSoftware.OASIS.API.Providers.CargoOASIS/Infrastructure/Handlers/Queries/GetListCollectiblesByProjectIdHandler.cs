@@ -24,6 +24,12 @@ namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Handlers
             };
         }
         
+        /// <summary>
+        /// Gets collectibles list by project id
+        /// More information: https://docs.cargo.build/cargo-js/cargo.api#get-a-list-of-collectibles-by-project-id 
+        /// </summary>
+        /// <param name="request">Request Parameters</param>
+        /// <returns>Collectibles list</returns>
         public async Task<Response<GetCollectiblesListByProjectIdResponseModel>> Handle(GetCollectiblesListByProjectIdRequestModel request)
         {
             var response = new Response<GetCollectiblesListByProjectIdResponseModel>();
