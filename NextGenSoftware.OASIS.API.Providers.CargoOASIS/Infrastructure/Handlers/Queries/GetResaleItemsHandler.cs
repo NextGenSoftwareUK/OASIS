@@ -30,12 +30,25 @@ namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Handlers
             try
             {
                 var queryBuilder = new UrlQueryBuilder();
+                queryBuilder.AppendParameter("", request.Limit);
+                queryBuilder.AppendParameter("", request.Owned);
+                queryBuilder.AppendParameter("", request.Page);
+                queryBuilder.AppendParameter("", request.Seller);
+                queryBuilder.AppendParameter("", request.Slug);
+                queryBuilder.AppendParameter("", request.SlugId);
+                queryBuilder.AppendParameter("", request.Sort);
+                queryBuilder.AppendParameter("", request.CollectionAddress);
+                queryBuilder.AppendParameter("", request.CollectionId);
+                queryBuilder.AppendParameter("", request.ProjectId);
+                queryBuilder.AppendParameter("", request.ShowcaseId);
+                queryBuilder.AppendParameter("", request.Chain.GetDescription());
                 
                 
                 var urlQuery = $"v3/get-resale-items{queryBuilder.GetQuery()}";
                 var httRequest = new HttpRequestMessage()
                 {
-                    RequestUri = new Uri(_httpClient.BaseAddress + urlQuery)
+                    RequestUri = new Uri(_httpClient.BaseAddress + urlQuery),
+                    Headers = { }
                 };
                 var httpResponse = await _httpClient.SendAsync(httRequest);
                 var responseString = await httpResponse.Content.ReadAsStringAsync();
