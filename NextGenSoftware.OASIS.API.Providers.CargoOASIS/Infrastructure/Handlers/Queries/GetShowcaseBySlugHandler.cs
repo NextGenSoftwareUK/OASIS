@@ -1,5 +1,7 @@
 ﻿using System.Threading.Tasks;
+using Newtonsoft.Json;
 using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Interfaces;
+using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Models.Cargo;
 using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Models.Common;
 
 namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Handlers.Queries
@@ -26,6 +28,13 @@ namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Handlers
 
     public class GetShowcaseBySlugResponseModel
     {
-        
+        [JsonProperty("err")]
+        public bool Error { get; set; }
+
+        [JsonProperty("status")] 
+        public int Status { get; set; }
+
+        [JsonProperty("data")] 
+        public GetShowcaseByIdResponse Data { get; set; }
     }
 }
