@@ -35,14 +35,14 @@ namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Handlers
             {
                 var queryBuilder = new UrlQueryBuilder();
                 queryBuilder.AppendParameter("limit", request.Limit);
-                queryBuilder.AppendParameter("owned", request.Owned);
+                queryBuilder.AppendParameter("owned", request.Owned.ToString());
                 queryBuilder.AppendParameter("page", request.Page);
                 queryBuilder.AppendParameter("address", request.Address);
-                queryBuilder.AppendParameter("cargoContract", request.CargoContract);
-                queryBuilder.AppendParameter("hasTokens", request.HasTokens);
+                queryBuilder.AppendParameter("cargoContract", request.CargoContract.ToString());
+                queryBuilder.AppendParameter("hasTokens", request.HasTokens.ToString());
                 queryBuilder.AppendParameter("showcaseId", request.ShowcaseId);
-                queryBuilder.AppendParameter("skipAuth", request.SkipAuth);
-                queryBuilder.AppendParameter("useAuthToken", request.UseAuthToken);
+                queryBuilder.AppendParameter("skipAuth", request.SkipAuth.ToString());
+                queryBuilder.AppendParameter("useAuthToken", request.UseAuthToken.ToString());
 
                 var urlQuery = $"v3/get-contracts{queryBuilder.GetQuery()}";
                 var httRequest = new HttpRequestMessage()
@@ -84,7 +84,7 @@ namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Handlers
         /// <summary>
         /// Optional. Boolean. Show only collections that the current authenticated user owns.
         /// </summary>
-        public string Owned { get; set; }
+        public bool? Owned { get; set; }
 
         /// <summary>
         /// Optional. String. Ethereum wallet address. If specified will only return collections for a given user.
@@ -94,17 +94,17 @@ namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Handlers
         /// <summary>
         /// Optional. Boolean. Will not use current logged in users address if true.
         /// </summary>
-        public string SkipAuth { get; set; }
+        public bool? SkipAuth { get; set; }
 
         /// <summary>
         /// Optional. Boolean. Will only return collection if the user owns at least one NFT within that collection.
         /// </summary>
-        public string HasTokens { get; set; }
+        public bool? HasTokens { get; set; }
 
         /// <summary>
         /// Optional. Boolean. Return only collections created on Cargo.
         /// </summary>
-        public string CargoContract { get; set; }
+        public bool? CargoContract { get; set; }
 
         /// <summary>
         /// Optional. Boolean. Show only collections that the current authenticated user either owns,
@@ -112,7 +112,7 @@ namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Handlers
         /// Collections within response will contain an additional contractTokens property stating how many collectibles
         /// the user owns within that collection. This takes precedence over the owned parameter.
         /// </summary>
-        public string UseAuthToken { get; set; }
+        public bool? UseAuthToken { get; set; }
     }
 
     public class GetContractsResponseModel
