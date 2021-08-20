@@ -22,6 +22,12 @@ namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Handlers
             };
         }
         
+        /// <summary>
+        /// Gets Token Details by Project Id and Token Id
+        /// More information: https://docs.cargo.build/cargo-js/cargo.api#get-collectible-details
+        /// </summary>
+        /// <param name="request">Request Parameters</param>
+        /// <returns>Token Details</returns>
         public async Task<Response<GetTokenDetailsResponseModel>> Handle(GetTokenDetailsRequestModel request)
         {
             var response = new Response<GetTokenDetailsResponseModel>();
