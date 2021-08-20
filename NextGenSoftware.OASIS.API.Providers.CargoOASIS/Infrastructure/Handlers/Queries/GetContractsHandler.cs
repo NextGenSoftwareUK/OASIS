@@ -25,7 +25,6 @@ namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Handlers
                 BaseAddress = new Uri("https://api2.cargo.build/")
             };
             _httpClient.DefaultRequestHeaders.Add("Content-Type", "application/json");
-            _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _accessToken);
         }
         
         public async Task<Response<GetContractsResponseModel>> Handle(GetContractsRequestHandler request)
@@ -41,7 +40,6 @@ namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Handlers
                 queryBuilder.AppendParameter("cargoContract", request.CargoContract.ToString());
                 queryBuilder.AppendParameter("hasTokens", request.HasTokens.ToString());
                 queryBuilder.AppendParameter("showcaseId", request.ShowcaseId);
-                queryBuilder.AppendParameter("skipAuth", request.SkipAuth.ToString());
                 queryBuilder.AppendParameter("useAuthToken", request.UseAuthToken.ToString());
 
                 var urlQuery = $"v3/get-contracts{queryBuilder.GetQuery()}";
@@ -49,6 +47,10 @@ namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Handlers
                 {
                     RequestUri = new Uri(_httpClient.BaseAddress + urlQuery),
                 };
+                if (request.SkipAuth != null && !request.SkipAuth.Value)
+                {
+                    _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _accessToken);
+                }
                 var httpResponse = await _httpClient.SendAsync(httRequest);
                 var responseString = await httpResponse.Content.ReadAsStringAsync();
                 var data = JsonConvert.DeserializeObject<GetContractsResponseModel>(responseString);
