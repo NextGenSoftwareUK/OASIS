@@ -2,6 +2,8 @@
 using System.Net.Http;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
+using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Enum;
+using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Builder;
 using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Interfaces;
 using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Models.Cargo;
 using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Models.Common;
@@ -21,9 +23,28 @@ namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Handlers
             };
         }
         
-        public Task<Response<GetTokenDetailsResponseModel>> Handle(GetTokenDetailsRequestModel request)
+        public async Task<Response<GetTokenDetailsResponseModel>> Handle(GetTokenDetailsRequestModel request)
         {
-            throw new System.NotImplementedException();
+            var response = new Response<GetTokenDetailsResponseModel>();
+            try
+            {
+                var urlQuery = $"v5/get-token-details/${request.ProjectId}/${request.CollectibleId}";
+                var httRequest = new HttpRequestMessage()
+                {
+                    RequestUri = new Uri(_httpClient.BaseAddress + urlQuery)
+                };
+                var httpResponse = await _httpClient.SendAsync(httRequest);
+                var responseString = await httpResponse.Content.ReadAsStringAsync();
+                var data = JsonConvert.DeserializeObject<GetTokenDetailsResponseModel>(responseString);
+                response.Payload = data;
+                return response;
+            }
+            catch (Exception e)
+            {
+                response.ResponseStatus = ResponseStatus.Fail;
+                response.Message = e.Message;
+                return response;
+            }
         }
     }
 
