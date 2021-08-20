@@ -31,18 +31,18 @@ namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Handlers
             try
             {
                 var queryBuilder = new UrlQueryBuilder();
-                queryBuilder.AppendParameter("", request.Limit);
-                queryBuilder.AppendParameter("", request.Owned);
-                queryBuilder.AppendParameter("", request.Page);
-                queryBuilder.AppendParameter("", request.Seller);
-                queryBuilder.AppendParameter("", request.Slug);
-                queryBuilder.AppendParameter("", request.SlugId);
-                queryBuilder.AppendParameter("", request.Sort);
-                queryBuilder.AppendParameter("", request.CollectionAddress);
-                queryBuilder.AppendParameter("", request.CollectionId);
-                queryBuilder.AppendParameter("", request.ProjectId);
-                queryBuilder.AppendParameter("", request.ShowcaseId);
-                queryBuilder.AppendParameter("", request.Chain.GetDescription());
+                queryBuilder.AppendParameter("limit", request.Limit);
+                queryBuilder.AppendParameter("owned", request.Owned);
+                queryBuilder.AppendParameter("page", request.Page);
+                queryBuilder.AppendParameter("seller", request.Seller);
+                queryBuilder.AppendParameter("slug", request.Slug);
+                queryBuilder.AppendParameter("slugId", request.SlugId);
+                queryBuilder.AppendParameter("sort", request.Sort);
+                queryBuilder.AppendParameter("collectionAddress", request.CollectionAddress);
+                queryBuilder.AppendParameter("collectionId", request.CollectionId);
+                queryBuilder.AppendParameter("projectId", request.ProjectId);
+                queryBuilder.AppendParameter("showcaseId", request.ShowcaseId);
+                queryBuilder.AppendParameter("chain", request.Chain.GetDescription());
 
                 var urlQuery = $"v3/get-resale-items{queryBuilder.GetQuery()}";
                 var httRequest = new HttpRequestMessage()
