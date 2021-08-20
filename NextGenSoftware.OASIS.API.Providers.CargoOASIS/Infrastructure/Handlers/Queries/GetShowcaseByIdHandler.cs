@@ -4,7 +4,6 @@ using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Enum;
-using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Builder;
 using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Interfaces;
 using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Models.Common;
 
@@ -22,8 +21,6 @@ namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Handlers
                 Timeout = TimeSpan.FromMinutes(1),
                 BaseAddress = new Uri("https://api2.cargo.build/")
             };
-            _httpClient.DefaultRequestHeaders.Add("Content-Type", "application/json");
-            _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _accessToken);
         }
         
         public async Task<Response<GetShowcaseByIdResponseModel>> Handle(GetShowcaseByIdRequestModel request)
@@ -31,15 +28,15 @@ namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Handlers
             var response = new Response<GetShowcaseByIdResponseModel>();
             try
             {
-                var queryBuilder = new UrlQueryBuilder();
-                queryBuilder.AppendParameter("showcaseId", request.ShowcaseId);
-                queryBuilder.AppendParameter("auth", request.Auth.ToString());
-
-                var urlQuery = $"v3/get-resale-items{queryBuilder.GetQuery()}";
+                var urlQuery = $"v3/get-crate-by-id/{request.ShowcaseId}";
                 var httRequest = new HttpRequestMessage()
                 {
                     RequestUri = new Uri(_httpClient.BaseAddress + urlQuery),
                 };
+                if (request.Auth)
+                {
+                    _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _accessToken);
+                }
                 var httpResponse = await _httpClient.SendAsync(httRequest);
                 var responseString = await httpResponse.Content.ReadAsStringAsync();
                 var data = JsonConvert.DeserializeObject<GetShowcaseByIdResponseModel>(responseString);
