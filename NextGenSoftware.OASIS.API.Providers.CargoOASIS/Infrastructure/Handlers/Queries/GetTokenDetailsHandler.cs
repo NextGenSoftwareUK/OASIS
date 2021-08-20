@@ -2,10 +2,11 @@
 using System.Net.Http;
 using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Interfaces;
+using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Models.Common;
 
 namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Handlers.Queries
 {
-    public class GetTokenDetailsHandler : IHandle<GetTokenDetailsResponseModel, GetTokenDetailsRequestModel>
+    public class GetTokenDetailsHandler : IHandle<Response<GetTokenDetailsResponseModel>, GetTokenDetailsRequestModel>
     {
         private readonly HttpClient _httpClient;
 
@@ -18,7 +19,7 @@ namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Handlers
             };
         }
         
-        public Task<GetTokenDetailsResponseModel> Handle(GetTokenDetailsRequestModel request)
+        public Task<Response<GetTokenDetailsResponseModel>> Handle(GetTokenDetailsRequestModel request)
         {
             throw new System.NotImplementedException();
         }
