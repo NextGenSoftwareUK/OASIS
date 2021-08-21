@@ -3,6 +3,9 @@ using System.Collections.Generic;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
+using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Enum;
+using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Builder;
 using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Interfaces;
 using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Models.Cargo;
 using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Models.Common;
@@ -24,9 +27,30 @@ namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Handlers
             _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _accessToken);
         }
         
-        public Task<Response<PaginationResponseWithResults<IEnumerable<Order>>>> Handle(OrderParams request)
+        public async Task<Response<PaginationResponseWithResults<IEnumerable<Order>>>> Handle(OrderParams request)
         {
-            throw new System.NotImplementedException();
+            var response = new Response<PaginationResponseWithResults<IEnumerable<Order>>>();
+            try
+            {
+                var queryBuilder = new UrlQueryBuilder();
+                var urlQuery = $"v3/get-orders{queryBuilder.GetQuery()}";
+                var httRequest = new HttpRequestMessage()
+                {
+                    Method = HttpMethod.Get,
+                    RequestUri = new Uri(_httpClient.BaseAddress + urlQuery)
+                };
+                var httpResponse = await _httpClient.SendAsync(httRequest);
+                var responseString = await httpResponse.Content.ReadAsStringAsync();
+                var data = JsonConvert.DeserializeObject<PaginationResponseWithResults<IEnumerable<Order>>>(responseString);
+                response.Payload = data;
+                return response;
+            }
+            catch (Exception e)
+            {
+                response.ResponseStatus = ResponseStatus.Fail;
+                response.Message = e.Message;
+                return response;
+            }
         }
     }
 }
