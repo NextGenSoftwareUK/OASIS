@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Net.Http;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
 using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Interfaces;
 using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Models.Common;
 
@@ -33,9 +34,34 @@ namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Handlers
 
     public class CreateAccountRequestModel
     {
+        /// <summary>
+        /// Optional. Valid email address that will be tied to the account
+        /// </summary>
+        public string Email { get; set; }
+        /// <summary>
+        /// Optional. Username to be used for new account
+        /// </summary>
+        public string UserName { get; set; }
     }
 
     public class CreateAccountResponseModel
     {
+        public class CreateAccountData
+        {
+            /// <summary>
+            /// JSON Web Token
+            /// </summary>
+            [JsonProperty("token")]
+            public string Token { get; set; }
+        }
+        
+        [JsonProperty("err")]
+        public bool Error { get; set; }
+
+        [JsonProperty("status")] 
+        public int Status { get; set; }
+
+        [JsonProperty("data")] 
+        public CreateAccountData Data { get; set; }
     }
 }
