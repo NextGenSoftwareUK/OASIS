@@ -1215,7 +1215,7 @@ namespace NextGenSoftware.OASIS.STAR
             greatGrandSuperStar.Description = "GreatGrandSuperStar at the centre of the Omniverse (The OASIS). Can create Multiverses, Universes, Galaxies, SolarSystems, Stars, Planets (Super OAPPS) and moons (OAPPS)";
             greatGrandSuperStar.ParentOmiverse = omniverse;
             greatGrandSuperStar.ParentOmiverseId = omniverse.Id;
-
+            //await greatGrandSuperStar.InitializeAsync();
             result = await greatGrandSuperStar.SaveAsync();
 
             if (!result.IsError && result.Result != null)
@@ -1292,6 +1292,7 @@ namespace NextGenSoftware.OASIS.STAR
                                 star.ParentGalaxyId = galaxy.Id;
                                 star.ParentSolarSystem = solarSystem;
                                 star.ParentSolarSystemId = solarSystem.Id;
+                               // await star.InitializeAsync();
 
                                 OASISResult<IStar> starResult = await ((SuperStarCore)galaxy.SuperStar.CelestialBodyCore).AddStarAsync(star);
 
@@ -1320,6 +1321,7 @@ namespace NextGenSoftware.OASIS.STAR
                                         Mapper<ISolarSystem, Planet>.MapParentCelestialBodyProperties(solarSystem, ourWorld);
                                         ourWorld.ParentSolarSystem = solarSystem;
                                         ourWorld.ParentSolarSystemId = solarSystem.Id;
+                                       // await ourWorld.InitializeAsync();
 
                                         OASISResult<IPlanet> ourWorldResult = await ((StarCore)star.CelestialBodyCore).AddPlanetAsync(ourWorld);
 
