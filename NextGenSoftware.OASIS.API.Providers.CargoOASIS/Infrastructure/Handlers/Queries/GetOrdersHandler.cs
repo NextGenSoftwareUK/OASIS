@@ -27,6 +27,12 @@ namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Handlers
             _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _accessToken);
         }
         
+        /// <summary>
+        /// Get orders list
+        /// More information: https://docs.cargo.build/cargo-js/cargo.api#get-orders
+        /// </summary>
+        /// <param name="request">Request parameters</param>
+        /// <returns>Order list with pagination</returns>
         public async Task<Response<PaginationResponseWithResults<IEnumerable<Order>>>> Handle(OrderParams request)
         {
             var response = new Response<PaginationResponseWithResults<IEnumerable<Order>>>();
