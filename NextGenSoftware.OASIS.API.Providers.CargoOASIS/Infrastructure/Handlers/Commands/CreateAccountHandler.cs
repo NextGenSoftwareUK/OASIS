@@ -2,6 +2,7 @@
 using System.Net.Http;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
+using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Enum;
 using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Interfaces;
 using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Models.Common;
 
@@ -26,9 +27,19 @@ namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Handlers
         /// </summary>
         /// <param name="request">Request Parameters</param>
         /// <returns>Create Account Response</returns>
-        public Task<Response<CreateAccountResponseModel>> Handle(CreateAccountRequestModel request)
+        public async Task<Response<CreateAccountResponseModel>> Handle(CreateAccountRequestModel request)
         {
-            throw new System.NotImplementedException();
+            var response = new Response<CreateAccountResponseModel>();
+            try
+            {
+                return response;
+            }
+            catch (Exception e)
+            {
+                response.ResponseStatus = ResponseStatus.Fail;
+                response.Message = e.Message;
+                return response;
+            }
         }
     }
 
