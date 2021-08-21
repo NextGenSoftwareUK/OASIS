@@ -38,6 +38,7 @@ namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Handlers
                 var urlQuery = $"v5/project-metadata/{request.ProjectId}";
                 var httRequest = new HttpRequestMessage()
                 {
+                    Method = HttpMethod.Get,
                     RequestUri = new Uri(_httpClient.BaseAddress + urlQuery)
                 };
                 if (request.UseAuth != null && request.UseAuth.Value)

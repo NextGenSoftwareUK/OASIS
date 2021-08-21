@@ -36,6 +36,7 @@ namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Handlers
                 var urlQuery = $"v3/get-crate-by-id/{request.Slug}?slugId={request.SlugId}";
                 var httRequest = new HttpRequestMessage()
                 {
+                    Method = HttpMethod.Get,
                     RequestUri = new Uri(_httpClient.BaseAddress + urlQuery)
                 };
                 var httpResponse = await _httpClient.SendAsync(httRequest);

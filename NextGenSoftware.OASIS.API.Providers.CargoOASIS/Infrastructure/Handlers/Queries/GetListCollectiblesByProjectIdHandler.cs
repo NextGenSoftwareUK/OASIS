@@ -42,6 +42,7 @@ namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Handlers
                 var urlQuery = $"v5/get-tokens-by-project/{request.ProjectId}{queryBuilder.GetQuery()}";
                 var httRequest = new HttpRequestMessage()
                 {
+                    Method = HttpMethod.Get,
                     RequestUri = new Uri(_httpClient.BaseAddress + urlQuery)
                 };
                 var httpResponse = await _httpClient.SendAsync(httRequest);

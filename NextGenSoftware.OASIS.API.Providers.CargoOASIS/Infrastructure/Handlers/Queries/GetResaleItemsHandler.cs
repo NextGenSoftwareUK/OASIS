@@ -55,6 +55,7 @@ namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Handlers
                 var urlQuery = $"v3/get-resale-items{queryBuilder.GetQuery()}";
                 var httRequest = new HttpRequestMessage()
                 {
+                    Method = HttpMethod.Get,
                     RequestUri = new Uri(_httpClient.BaseAddress + urlQuery),
                 };
                 if (request.Owned != null && request.Owned.Value)
