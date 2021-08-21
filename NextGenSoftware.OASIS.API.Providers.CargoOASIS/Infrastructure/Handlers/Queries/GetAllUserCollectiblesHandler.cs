@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Net.Http;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Interfaces;
@@ -8,6 +10,23 @@ namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Handlers
 {
     public class GetAllUserCollectiblesHandler : IHandle<PaginationResponseWithResults<IEnumerable<GetAllUserCollectiblesResponseModel>>, GetAllUserCollectiblesRequestModel>
     {
+        private readonly HttpClient _httpClient;
+
+        public GetAllUserCollectiblesHandler()
+        {
+            _httpClient = new HttpClient()
+            {
+                Timeout = TimeSpan.FromMinutes(1),
+                BaseAddress = new Uri("https://api2.cargo.build/")
+            };
+        }
+        
+        /// <summary>
+        /// Get All User Collectibles
+        /// More information: https://docs.cargo.build/cargo-js/cargo.api#get-all-collectibles-for-a-user
+        /// </summary>
+        /// <param name="request">Request parameters</param>
+        /// <returns>All User Collectibles</returns>
         public Task<PaginationResponseWithResults<IEnumerable<GetAllUserCollectiblesResponseModel>>> Handle(GetAllUserCollectiblesRequestModel request)
         {
             throw new System.NotImplementedException();
