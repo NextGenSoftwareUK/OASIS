@@ -3,12 +3,15 @@ using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
+using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Enum;
+using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Builder;
 using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Interfaces;
 using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Models.Cargo;
+using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Models.Common;
 
 namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Handlers.Queries
 {
-    public class GetAllUserCollectiblesHandler : IHandle<PaginationResponseWithResults<IEnumerable<GetAllUserCollectiblesResponseModel>>, GetAllUserCollectiblesRequestModel>
+    public class GetAllUserCollectiblesHandler : IHandle<Response<PaginationResponseWithResults<IEnumerable<GetAllUserCollectiblesResponseModel>>>, GetAllUserCollectiblesRequestModel>
     {
         private readonly HttpClient _httpClient;
 
@@ -27,9 +30,33 @@ namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Handlers
         /// </summary>
         /// <param name="request">Request parameters</param>
         /// <returns>All User Collectibles</returns>
-        public Task<PaginationResponseWithResults<IEnumerable<GetAllUserCollectiblesResponseModel>>> Handle(GetAllUserCollectiblesRequestModel request)
+        public async Task<Response<PaginationResponseWithResults<IEnumerable<GetAllUserCollectiblesResponseModel>>>> Handle(GetAllUserCollectiblesRequestModel request)
         {
-            throw new System.NotImplementedException();
+            var response = new Response<PaginationResponseWithResults<IEnumerable<GetAllUserCollectiblesResponseModel>>>();
+            try
+            {
+                var queryBuilder = new UrlQueryBuilder();
+                queryBuilder.AppendParameter("limit", request.Limit);
+                queryBuilder.AppendParameter("page", request.Page);
+                
+                var urlQuery = $"v3/all-collectibles/{request.Address}{queryBuilder.GetQuery()}";
+                var httRequest = new HttpRequestMessage()
+                {
+                    Method = HttpMethod.Get,
+                    RequestUri = new Uri(_httpClient.BaseAddress + urlQuery),
+                };
+                var httpResponse = await _httpClient.SendAsync(httRequest);
+                var responseString = await httpResponse.Content.ReadAsStringAsync();
+                var data = JsonConvert.DeserializeObject<PaginationResponseWithResults<IEnumerable<GetAllUserCollectiblesResponseModel>>>(responseString);
+                response.Payload = data;
+                return response;
+            }
+            catch (Exception e)
+            {
+                response.ResponseStatus = ResponseStatus.Fail;
+                response.Message = e.Message;
+                return response;
+            }
         }
     }
 
