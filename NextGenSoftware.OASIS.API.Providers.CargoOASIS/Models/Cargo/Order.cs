@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
-using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Models.Cargo;
 
-namespace Models.Cargo
+namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Models.Cargo
 {
     public class Order
     { 
