@@ -33,6 +33,16 @@ namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Handlers
             try
             {
                 var queryBuilder = new UrlQueryBuilder();
+                queryBuilder.AppendParameter("from", request.From);
+                queryBuilder.AppendParameter("limit", request.Limit);
+                queryBuilder.AppendParameter("page", request.Page);
+                queryBuilder.AppendParameter("to", request.To);
+                queryBuilder.AppendParameter("buyerAddress", request.BuyerAddress);
+                queryBuilder.AppendParameter("contractAddress", request.ContractAddress);
+                queryBuilder.AppendParameter("crateId", request.CrateId);
+                queryBuilder.AppendParameter("sellerAddress", request.SellerAddress);
+                queryBuilder.AppendParameter("tokenId", request.TokenId);
+                queryBuilder.AppendParameter("vendorId", request.VendorId);
                 var urlQuery = $"v3/get-orders{queryBuilder.GetQuery()}";
                 var httRequest = new HttpRequestMessage()
                 {
