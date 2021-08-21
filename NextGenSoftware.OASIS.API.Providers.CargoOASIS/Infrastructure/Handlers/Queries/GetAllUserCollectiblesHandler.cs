@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
 using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Interfaces;
 using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Models.Cargo;
 
@@ -15,35 +16,18 @@ namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Handlers
 
     public class GetAllUserCollectiblesResponseModel
     {
-        /*results: {
-        tokenId: string;
-        metadata: Record<string, any>;
-        tokenURI: string;
-        resaleItem?: {
-            sellerAddress: string;
-            tokenAddress: string;
-            tokenId: string;
-            resaleItemId: string;
-            price: string;
-            fromVendor: boolean;
-            metadata: Record<string, any>;
-        };
-        owner: string;
-        collection: {
-            _id: string;
-            address: string;
-            name: string;
-            symbol: string;
-            supportsMetadata: boolean;
-            tags?: string[];
-            owned?: boolean;
-            totalOwned?: number;
-            createdAt: string;
-        };
-   }[];
-   page: string;
-   limit: string;
-   totalPages: string;*/
+        [JsonProperty("tokenId")]
+        public string TokenId { get; set; }
+        [JsonProperty("metadata")]
+        public IDictionary<string, object> Metadata { get; set; }
+        [JsonProperty("tokenUrl")]
+        public string TokenUrl { get; set; }
+        [JsonProperty("resaleItem")]
+        public ResaleItemV3 ResaleItem { get; set; }
+        [JsonProperty("owner")]
+        public string Owner { get; set; }
+        [JsonProperty("collection")]
+        public ContractV3 Collection { get; set; }
     }
 
     public class GetAllUserCollectiblesRequestModel
