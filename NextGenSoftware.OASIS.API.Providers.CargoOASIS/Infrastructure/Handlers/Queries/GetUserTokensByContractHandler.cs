@@ -1,11 +1,20 @@
-﻿using System.Threading.Tasks;
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
+using Newtonsoft.Json;
 using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Interfaces;
+using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Models.Cargo;
 using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Models.Common;
 
 namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Handlers.Queries
 {
     public class GetUserTokensByContractHandler : IHandle<Response<GetUserTokensByContractResponseModel>, GetUserTokensByContractRequestModel>
     {
+        /// <summary>
+        /// Get user tokens by contract
+        /// More information: https://docs.cargo.build/cargo-js/cargo.api#get-collectibles-for-a-user-by-collection
+        /// </summary>
+        /// <param name="request">Request parameters</param>
+        /// <returns>User tokens</returns>
         public Task<Response<GetUserTokensByContractResponseModel>> Handle(GetUserTokensByContractRequestModel request)
         {
             throw new System.NotImplementedException();
@@ -14,6 +23,14 @@ namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Handlers
 
     public class GetUserTokensByContractResponseModel
     {
+        [JsonProperty("err")]
+        public bool Error { get; set; }
+
+        [JsonProperty("status")] 
+        public int Status { get; set; }
+
+        [JsonProperty("data")]
+        public PaginationResponseWithResults<IEnumerable<GetUserTokensByContractResponse>> Data { get; set; }
     }
 
     public class GetUserTokensByContractRequestModel
