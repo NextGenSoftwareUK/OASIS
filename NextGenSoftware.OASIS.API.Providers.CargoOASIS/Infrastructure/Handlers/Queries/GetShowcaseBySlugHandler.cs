@@ -40,6 +40,12 @@ namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Handlers
                     RequestUri = new Uri(_httpClient.BaseAddress + urlQuery)
                 };
                 var httpResponse = await _httpClient.SendAsync(httRequest);
+                if (!httpResponse.IsSuccessStatusCode)
+                {
+                    response.Message = httpResponse.ReasonPhrase;
+                    response.ResponseStatus = ResponseStatus.Fail;
+                    return response;
+                }
                 var responseString = await httpResponse.Content.ReadAsStringAsync();
                 var data = JsonConvert.DeserializeObject<GetShowcaseBySlugResponseModel>(responseString);
                 response.Payload = data;
