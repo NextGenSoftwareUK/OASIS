@@ -1,4 +1,8 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Net.Http;
+using System.Threading.Tasks;
+using Newtonsoft.Json;
+using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Enum;
 using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Interfaces;
 using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Models.Common;
 
@@ -6,19 +10,55 @@ namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Handlers
 {
     public class AuthenticateAccountHandler : ISingleHandler<Response<CreateAccountResponseModel>>
     {
+        private readonly HttpClient _httpClient;
         public AuthenticateAccountHandler()
         {
-            
+            _httpClient = new HttpClient()
+            {
+                Timeout = TimeSpan.FromMinutes(1),
+                BaseAddress = new Uri("https://api2.cargo.build/")
+            };
+            _httpClient.DefaultRequestHeaders.Add("Content-Type", "application/json");
         }
         
         /// <summary>
-        /// 
+        /// Authenticate User
         /// </summary>
-        /// <param name="request"></param>
-        /// <returns></returns>
-        public Task<Response<CreateAccountResponseModel>> Handle()
+        /// <returns>Authenticate Token</returns>
+        public async Task<Response<CreateAccountResponseModel>> Handle()
         {
-            throw new System.NotImplementedException();
+            var response = new Response<CreateAccountResponseModel>();
+            try
+            {
+                var url = "v3/authenticate";
+                var requestContent = await JsonConvert.SerializeObjectAsync(new
+                {
+                    address = "",
+                    signature = ""
+                });
+                var httpReq = new HttpRequestMessage()
+                {
+                    Method = HttpMethod.Post,
+                    RequestUri = new Uri(_httpClient.BaseAddress + url),
+                    Content = new StringContent(requestContent)
+                };
+                var httpRes = await _httpClient.SendAsync(httpReq);
+                if (!httpRes.IsSuccessStatusCode)
+                {
+                    response.Message = httpRes.ReasonPhrase;
+                    response.ResponseStatus = ResponseStatus.Fail;
+                    return response;
+                }
+                var responseContent = await httpRes.Content.ReadAsStringAsync();
+                response.Payload = JsonConvert.DeserializeObject<CreateAccountResponseModel>(responseContent);
+                return response;
+            }
+            catch (Exception e)
+            {
+                response.ResponseStatus = ResponseStatus.Fail;
+                response.Message = e.Message;
+                return response;
+            }
         }
     }
 }
