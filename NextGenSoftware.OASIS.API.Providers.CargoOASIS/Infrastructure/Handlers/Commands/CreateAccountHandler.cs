@@ -34,6 +34,13 @@ namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Handlers
             try
             {
                 var url = "v3/register";
+                var requestContent = await JsonConvert.SerializeObjectAsync(new
+                {
+                    address = "",
+                    signature = "",
+                    email = request.Email,
+                    username = request.UserName
+                });
                 var httpReq = new HttpRequestMessage()
                 {
                     Method = HttpMethod.Post,
