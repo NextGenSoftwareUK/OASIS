@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Net.Http;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
+using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Enum;
 using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Interfaces;
 using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Models.Common;
 
@@ -25,9 +27,39 @@ namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Handlers
         /// </summary>
         /// <param name="request">Request Parameters</param>
         /// <returns>Transaction Hash</returns>
-        public Task<Response<PurchaseResponseModel>> Handle(PurchaseRequestModel request)
+        public async Task<Response<PurchaseResponseModel>> Handle(PurchaseRequestModel request)
         {
-            throw new System.NotImplementedException();
+            var response = new Response<PurchaseResponseModel>();
+            try
+            {
+                var url = "v4/purchase";
+                var requestContent = await JsonConvert.SerializeObjectAsync(new
+                {
+                    saleId = request.SaleId
+                });
+                var httpReq = new HttpRequestMessage()
+                {
+                    Method = HttpMethod.Post,
+                    RequestUri = new Uri(_httpClient.BaseAddress + url),
+                    Content = new StringContent(requestContent)
+                };
+                var httpRes = await _httpClient.SendAsync(httpReq);
+                if (!httpRes.IsSuccessStatusCode)
+                {
+                    response.Message = httpRes.ReasonPhrase;
+                    response.ResponseStatus = ResponseStatus.Fail;
+                    return response;
+                }
+                var responseContent = await httpRes.Content.ReadAsStringAsync();
+                response.Payload.TransactionHash = responseContent;
+                return response;
+            }
+            catch (Exception e)
+            {
+                response.ResponseStatus = ResponseStatus.Fail;
+                response.Message = e.Message;
+                return response;
+            }
         }
     }
 
@@ -45,9 +77,5 @@ namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Handlers
         /// Required. The ID of the sale
         /// </summary>
         public string SaleId { get; set; }
-        /// <summary>
-        /// Required. Valid options arexdai or ethThe chain the NFT lives on.
-        /// </summary>
-        public string Chain { get; set; }
     }
 }
