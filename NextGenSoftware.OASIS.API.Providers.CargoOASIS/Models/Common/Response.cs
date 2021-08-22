@@ -2,7 +2,7 @@
 
 namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Models.Common
 {
-    public class Response<T>
+    public class Response<T> where T : new()
     {
         public ResponseStatus ResponseStatus { get; set; }
         public string Message { get; set; }
@@ -12,6 +12,7 @@ namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Models.Common
         {
             ResponseStatus = ResponseStatus.Success;
             Message = "Ok";
+            Payload = new T();
         }
     }
 }
