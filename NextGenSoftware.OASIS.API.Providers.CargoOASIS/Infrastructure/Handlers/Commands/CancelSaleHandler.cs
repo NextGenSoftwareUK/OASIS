@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Net.Http;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
 using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Interfaces;
 using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Models.Common;
 
@@ -33,7 +34,23 @@ namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Handlers
 
     public class CancelSaleResponseModel
     {
-        /**/
+        public class CancelSaleData
+        {
+            [JsonProperty("signatureGenerated")]
+            public bool SignatureGenerated { get; set; }
+
+            [JsonProperty("code")] 
+            public string Code { get; set; }
+        }
+        
+        [JsonProperty("err")]
+        public bool Error { get; set; }
+
+        [JsonProperty("status")] 
+        public int Status { get; set; }
+
+        [JsonProperty("data")]
+        public CancelSaleData Data { get; set; }
     }
 
     public class CancelSaleRequestModel
