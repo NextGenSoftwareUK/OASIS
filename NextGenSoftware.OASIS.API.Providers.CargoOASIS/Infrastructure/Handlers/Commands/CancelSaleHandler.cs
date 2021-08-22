@@ -47,6 +47,12 @@ namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Handlers
                     Content = new StringContent(requestContent)
                 };
                 var httpResp = await _httpClient.SendAsync(httpReq);
+                if (!httpResp.IsSuccessStatusCode)
+                {
+                    response.Message = httpResp.ReasonPhrase;
+                    response.ResponseStatus = ResponseStatus.Fail;
+                    return response;
+                }
                 var responseContent = await httpResp.Content.ReadAsStringAsync();
                 response.Payload = JsonConvert.DeserializeObject<CancelSaleResponseModel>(responseContent);
                 return response;
