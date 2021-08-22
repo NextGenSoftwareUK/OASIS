@@ -19,6 +19,7 @@ namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Handlers
                 Timeout = TimeSpan.FromMinutes(1),
                 BaseAddress = new Uri("https://api2.cargo.build/")
             };
+            _httpClient.DefaultRequestHeaders.Add("Content-Type", "application/json");
         }
         
         /// <summary>
@@ -32,6 +33,14 @@ namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Handlers
             var response = new Response<CreateAccountResponseModel>();
             try
             {
+                var url = "v3/register";
+                var httpReq = new HttpRequestMessage()
+                {
+                    Method = HttpMethod.Post,
+                    RequestUri = new Uri(_httpClient.BaseAddress + url),
+                    Content = new StringContent("")
+                };
+                var httpRes = await _httpClient.SendAsync(httpReq);
                 return response;
             }
             catch (Exception e)
