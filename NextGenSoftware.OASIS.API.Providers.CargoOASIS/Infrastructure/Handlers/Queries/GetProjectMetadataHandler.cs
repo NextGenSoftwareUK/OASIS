@@ -46,6 +46,12 @@ namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Handlers
                     _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _accessToken);
                 }
                 var httpResponse = await _httpClient.SendAsync(httRequest);
+                if (!httpResponse.IsSuccessStatusCode)
+                {
+                    response.Message = httpResponse.ReasonPhrase;
+                    response.ResponseStatus = ResponseStatus.Fail;
+                    return response;
+                }
                 var responseString = await httpResponse.Content.ReadAsStringAsync();
                 var data = JsonConvert.DeserializeObject<GetProjectMetadataResponseModel>(responseString);
                 response.Payload = data;
