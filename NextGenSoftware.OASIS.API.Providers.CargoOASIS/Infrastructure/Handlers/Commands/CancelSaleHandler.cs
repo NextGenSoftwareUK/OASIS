@@ -46,6 +46,9 @@ namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Handlers
                     RequestUri = new Uri(_httpClient.BaseAddress + url),
                     Content = new StringContent(requestContent)
                 };
+                var httpResp = await _httpClient.SendAsync(httpReq);
+                var responseContent = await httpResp.Content.ReadAsStringAsync();
+                response.Payload = JsonConvert.DeserializeObject<CancelSaleResponseModel>(responseContent);
                 return response;
             }
             catch (Exception e)
