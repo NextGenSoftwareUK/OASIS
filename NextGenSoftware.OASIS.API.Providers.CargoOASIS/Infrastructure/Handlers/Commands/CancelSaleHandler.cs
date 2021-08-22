@@ -33,9 +33,14 @@ namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Handlers
 
     public class CancelSaleResponseModel
     {
+        /**/
     }
 
     public class CancelSaleRequestModel
     {
+        /// <summary>
+        /// The ID of the resale item.
+        /// </summary>
+        public string ResaleItemId { get; set; }
     }
 }
