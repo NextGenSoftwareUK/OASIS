@@ -95,11 +95,13 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
             //Initialize();  //TODO: It never called this from the constructor before, was there a good reason? Will soon find out! ;-)
         }
 
-        public async Task<OASISResult<ICelestialBody>> SaveAsync(bool saveChildren = true)
+        public async Task<OASISResult<ICelestialBody>> SaveAsync(bool saveChildren = true, bool continueOnError = true)
         {
             OASISResult<ICelestialBody> result = new OASISResult<ICelestialBody>(this);
             OASISResult<IHolon> celestialBodyHolonResult = new OASISResult<IHolon>();
             OASISResult<IZome> celestialBodyChildrenResult = null;
+            OASISResult<IEnumerable<IHolon>> holonsResult = null;
+            OASISResult<IHolon> holonResult = null;
 
             if (this.Children == null)
                 this.Children = new ObservableCollection<IHolon>();
@@ -107,8 +109,6 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
             // Only save if the holon has any changes.
             if (!HasHolonChanged())
             {
-                result.Result = this;
-                result.IsSaved = false;
                 result.Message = "No changes need saving";
                 return result;
             }
@@ -120,51 +120,56 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
                 IsNewHolon = true;
             }
 
-            /*
-            celestialBodyHolonResult = await CelestialBodyCore.SaveCelestialBodyAsync(this);
-            result.Message = celestialBodyHolonResult.Message;
-            result.IsSaved = celestialBodyHolonResult.IsSaved;
-
-            if (celestialBodyHolonResult.IsError || !celestialBodyHolonResult.IsSaved || celestialBodyHolonResult.Result == null)
-            {
-                result.IsError = celestialBodyHolonResult.IsError;
-                return result;
-            }
-
-            SetProperties(celestialBodyHolonResult.Result);
-            */
-
-            //celestialBodyHolonResult.Result.Adapt(this);
-            // SuperStar.Mapper.Map()
-            //this = SuperStar.Mapper.Map<CelestialBody>(celestialBodyHolonResult.Result);
-
             // TODO: Not sure if ParentStar and ParentPlanet will be set?
             switch (this.HolonType)
             {
                 case HolonType.GreatGrandSuperStar:
                     {
                         SetParentIdsForGreatGrandSuperStar((IGreatGrandSuperStar)this);
-
+                        
+                        //TODO: NEED TO ADD SAVE METHODS TO EVERY CELESTIALSPACEHOLON, WHICH WILL RECURSIVELY SAVE ALL IT'S CHILDREN, SAME AS CELESTIALBODY
+                        //THIS WILL REPLACE ALL THE MANUAL CODE BELOW! ;-) DOH! LOL
                         if (saveChildren)
                         {
-                            //celestialBodyChildrenResult = await SaveCelestialBodyChildrenAsync((IEnumerable<IZome>)((IGreatGrandSuperStar)this).ParentOmiverse.Universes);
-                            //celestialBodyChildrenResult = await SaveCelestialBodyChildrenAsync((IEnumerable<IZome>)((IGreatGrandSuperStar)this).ParentOmiverse.Multiverses);
-                            //celestialBodyChildrenResult = await SaveCelestialBodyChildrenAsync(MapperForCollections<List<IMultiverse>, Zome>.MapBaseHolonProperties(((IGreatGrandSuperStar)this).ParentOmiverse.Multiverses));
-                            //celestialBodyChildrenResult = await SaveCelestialBodyChildrenAsync(MapperForCollections<List<IMultiverse>, List<Zome>>.MapBaseHolonProperties(((IGreatGrandSuperStar)this).ParentOmiverse.Multiverses));
+                            holonsResult = await CelestialBodyCore.SaveHolonsAsync(Mapper<IMultiverse, Holon>.MapBaseHolonProperties(((IGreatGrandSuperStar)this).ParentOmiverse.Multiverses));
 
-                            //TODO: Need to work out why MapperForCollections above does not work?!
-                            List<IZome> zomes = new List<IZome>();
-                            foreach (IMultiverse multiverse in ((IGreatGrandSuperStar)this).ParentOmiverse.Multiverses)
-                                zomes.Add(Mapper<IMultiverse, Zome>.MapBaseHolonProperties(multiverse));
-
-                            celestialBodyChildrenResult = await SaveCelestialBodyChildrenAsync(zomes);
-
+                            if (!continueOnError && (holonsResult.IsError || holonsResult.Result == null))
+                            {
+                                result.IsError = true;
+                                result.Message = string.Concat("Error occured saving GreatGrandSuperStar.ParentOmiverse.Multiverses. Error Details: ", holonsResult.Message);
+                                return result;
+                            }
 
                             //TODO: Finish this later...
                             foreach (IMultiverse multiverse in ParentOmiverse.Multiverses)
                             {
-                                celestialBodyChildrenResult = await SaveCelestialBodyChildrenAsync((IEnumerable<IZome>)multiverse.Dimensions.ThirdDimension.UniversePrime);
-                                celestialBodyChildrenResult = await SaveCelestialBodyChildrenAsync((IEnumerable<IZome>)multiverse.Dimensions.ThirdDimension.MagicVerse);
+                                holonResult = await CelestialBodyCore.SaveHolonAsync(Mapper<IUniverse, Holon>.MapBaseHolonProperties(multiverse.Dimensions.ThirdDimension.UniversePrime));
+
+                                if (!continueOnError && (holonResult.IsError || holonResult.Result == null))
+                                {
+                                    result.IsError = true;
+                                    result.Message = string.Concat("Error occured saving GreatGrandSuperStar.ParentOmiverse.Multiverses[].Dimensions.ThirdDimension.UniversePrime. Error Details: ", holonResult.Message);
+                                    return result;
+                                }
+
+                                holonResult = await CelestialBodyCore.SaveHolonAsync(Mapper<IUniverse, Holon>.MapBaseHolonProperties(multiverse.Dimensions.ThirdDimension.MagicVerse));
+
+                                if (!continueOnError && (holonResult.IsError || holonResult.Result == null))
+                                {
+                                    result.IsError = true;
+                                    result.Message = string.Concat("Error occured saving GreatGrandSuperStar.ParentOmiverse.Multiverses[].Dimensions.ThirdDimension.MagicVerse. Error Details: ", holonResult.Message);
+                                    return result;
+                                }
+
+                                holonsResult = await CelestialBodyCore.SaveHolonsAsync(Mapper<IMultiverse, Holon>.MapBaseHolonProperties(((IGreatGrandSuperStar)this).ParentOmiverse.Multiverses));
+
+                                if (!continueOnError && (holonsResult.IsError || holonsResult.Result == null))
+                                {
+                                    result.IsError = true;
+                                    result.Message = string.Concat("Error occured saving GreatGrandSuperStar.ParentOmiverse.Multiverses[].Dimensions.ThirdDimension.ParallelUniverses. Error Details: ", holonsResult.Message);
+                                    return result;
+                                }
+
                                 celestialBodyChildrenResult = await SaveCelestialBodyChildrenAsync((IEnumerable<IZome>)multiverse.Dimensions.ThirdDimension.ParallelUniverses);
 
                                 //Need to save all other dimensions too... ;-)
@@ -179,13 +184,27 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
 
                         if (saveChildren)
                         {
-                            //celestialBodyChildrenResult = await SaveCelestialBodyChildrenAsync((IEnumerable<IZome>)((IGrandSuperStar)this).ParentUniverse.Galaxies);
-                            celestialBodyChildrenResult = await SaveCelestialBodyChildrenAsync((IEnumerable<IZome>)((IGrandSuperStar)this).ParentUniverse.GalaxyClusters);
+                            holonsResult = await CelestialBodyCore.SaveHolonsAsync(Mapper<IGalaxyCluster, Holon>.MapBaseHolonProperties(((IGrandSuperStar)this).ParentUniverse.GalaxyClusters));
+
+                            if (!continueOnError && (holonsResult.IsError || holonsResult.Result == null))
+                            {
+                                result.IsError = true;
+                                result.Message = string.Concat("Error occured saving GrandSuperStar.ParentUniverse.GalaxyClusters. Error Details: ", holonsResult.Message);
+                                return result;
+                            }
 
                             foreach (IGalaxyCluster galaxyCluster in ((IGrandSuperStar)this).ParentUniverse.GalaxyClusters)
                             {
+                                holonsResult = await CelestialBodyCore.SaveHolonsAsync(Mapper<IGalaxy, Holon>.MapBaseHolonProperties(galaxyCluster.Galaxies));
+
+                                if (!continueOnError && (holonsResult.IsError || holonsResult.Result == null))
+                                {
+                                    result.IsError = true;
+                                    result.Message = string.Concat("Error occured saving GrandSuperStar.ParentUniverse.GalaxyClusters[].Galaxies. Error Details: ", holonsResult.Message);
+                                    return result;
+                                }
+
                                 //TODO: Finish this later...
-                                celestialBodyChildrenResult = await SaveCelestialBodyChildrenAsync((IEnumerable<IZome>)galaxyCluster.Galaxies);
                             }
                         }
                     }
@@ -195,8 +214,9 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
                     {
                         SetParentIdsForSuperStar(this.ParentGreatGrandSuperStar, this.ParentGrandSuperStar, (ISuperStar)this);
 
-                        if (saveChildren)
-                            celestialBodyChildrenResult = await SaveCelestialBodyChildrenAsync((IEnumerable<IZome>)((ISuperStar)this).ParentGalaxy.Stars);
+                        //TODO: Finish this later...
+                        // if (saveChildren)
+                        //   celestialBodyChildrenResult = await SaveCelestialBodyChildrenAsync((IEnumerable<IZome>)((ISuperStar)this).ParentGalaxy.Stars);
                     }
                     break;
 
@@ -204,8 +224,9 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
                     {
                         SetParentIdsForStar(this.ParentGreatGrandSuperStar, this.ParentGrandSuperStar, this.ParentSuperStar, (IStar)this);
 
-                        if (saveChildren)
-                            celestialBodyChildrenResult = await SaveCelestialBodyChildrenAsync((IEnumerable<IZome>)((IStar)this).ParentSolarSystem.Planets);
+                        //TODO: Finish this later...
+                        //  if (saveChildren)
+                        //     celestialBodyChildrenResult = await SaveCelestialBodyChildrenAsync((IEnumerable<IZome>)((IStar)this).ParentSolarSystem.Planets);
                     }
                     break;
 
@@ -213,8 +234,9 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
                     {
                         SetParentIdsForPlanet(this.ParentGreatGrandSuperStar, this.ParentGrandSuperStar, this.ParentSuperStar, this.ParentStar, (IPlanet)this);
 
-                        if (saveChildren)
-                            celestialBodyChildrenResult = await SaveCelestialBodyChildrenAsync((IEnumerable<IZome>)((IPlanet)this).Moons);
+                        //TODO: Finish this later...
+                        // if (saveChildren)
+                        //    celestialBodyChildrenResult = await SaveCelestialBodyChildrenAsync((IEnumerable<IZome>)((IPlanet)this).Moons);
                     }
                     break;
             }
@@ -222,72 +244,6 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
             if (saveChildren)
                 celestialBodyChildrenResult = await SaveCelestialBodyChildrenAsync(CelestialBodyCore.Zomes);
 
-            /*
-            if (this.HolonType == HolonType.SuperStar)
-            {
-                if (((ISuperStar)this).ParentGalaxy.Stars != null)
-                {
-                    foreach (IStar star in ((ISuperStar)this).ParentGalaxy.Stars)
-                    {
-                        if (star.HasHolonChanged())
-                            result = await star.SaveAsync();
-
-                        if (result.IsError)
-                            return result;
-                    }
-                }
-            }
-
-            //TODO: We need to indivudally save each planet/zome/holon first so we get their unique id's. We can then set the parentId's etc.
-            if (this.HolonType == HolonType.Star)
-            {
-                if (((IStar)this).ParentSolarSystem.Planets != null)
-                {
-                    foreach (IPlanet planet in ((IStar)this).ParentSolarSystem.Planets)
-                    {
-                        if (planet.HasHolonChanged())
-                            result = await planet.SaveAsync(); 
-
-                        if (result.IsError)
-                            return result;
-                    }
-                }
-            }
-            else
-            {
-                OASISResult<IZome> zomeResult = new OASISResult<IZome>();
-
-                if (this.HolonType == HolonType.Planet)
-                {
-                    if (((IPlanet)this).Moons != null)
-                    {
-                        foreach (IMoon moon in ((IPlanet)this).Moons)
-                        {
-                            if (moon.HasHolonChanged())
-                                result = await moon.SaveAsync();
-
-                            if (result.IsError)
-                                return result;
-                        }
-                    }
-                }
-
-                if (CelestialBodyCore.Zomes != null)
-                {
-                    foreach (IZome zome in this.CelestialBodyCore.Zomes)
-                    {
-                        if (zome.HasHolonChanged())
-                            zomeResult = await zome.SaveAsync(); 
-
-                        if (zomeResult.IsError)
-                        {
-                            result.IsError = true;
-                            result.Message = zomeResult.Message;
-                            return result;
-                        }
-                    }
-                }
-            }*/
 
             // Finally we need to save again so the child holon ids's are stored in the graph...
             // TODO: We may not need to do this save again in future since when we load the zome we could lazy load its child holons seperatley from their parentIds.
@@ -306,9 +262,9 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
             return result;
         }
 
-        public OASISResult<ICelestialBody> Save(bool saveChildren = true)
+        public OASISResult<ICelestialBody> Save(bool saveChildren = true, bool continueOnError = true)
         {
-            return SaveAsync(saveChildren).Result; //TODO: Best way of doing this?
+            return SaveAsync(saveChildren, continueOnError).Result; //TODO: Best way of doing this?
         }
 
         //TODO: Do we need to use ICelestialBody or IZome here? It will call different Saves depending which we use...
