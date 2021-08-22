@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
+using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Enum;
 using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Interfaces;
 using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Models.Common;
 
@@ -10,6 +12,7 @@ namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Handlers
     public class CancelSaleHandler : IHandle<Response<CancelSaleResponseModel>, CancelSaleRequestModel>
     {
         private readonly HttpClient _httpClient;
+        private readonly string _accessToken = string.Empty;
 
         public CancelSaleHandler()
         {
@@ -19,6 +22,7 @@ namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Handlers
                 BaseAddress = new Uri("https://api2.cargo.build/")
             };
             _httpClient.DefaultRequestHeaders.Add("Content-Type", "application/json");
+            _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _accessToken);
         }
         
         /// <summary>
@@ -26,9 +30,30 @@ namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Handlers
         /// </summary>
         /// <param name="request">Request parameters</param>
         /// <returns>Cancel sale response</returns>
-        public Task<Response<CancelSaleResponseModel>> Handle(CancelSaleRequestModel request)
+        public async Task<Response<CancelSaleResponseModel>> Handle(CancelSaleRequestModel request)
         {
-            throw new System.NotImplementedException();
+            var response = new Response<CancelSaleResponseModel>();
+            try
+            {
+                var url = "v3/cancel-sale";
+                var requestContent = await JsonConvert.SerializeObjectAsync(new
+                {
+                    resaleItemId = request.ResaleItemId
+                });
+                var httpReq = new HttpRequestMessage()
+                {
+                    Method = HttpMethod.Post,
+                    RequestUri = new Uri(_httpClient.BaseAddress + url),
+                    Content = new StringContent(requestContent)
+                };
+                return response;
+            }
+            catch (Exception e)
+            {
+                response.ResponseStatus = ResponseStatus.Fail;
+                response.Message = e.Message;
+                return response;
+            }
         }
     }
 
