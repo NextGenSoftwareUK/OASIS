@@ -45,9 +45,17 @@ namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Handlers
                 {
                     Method = HttpMethod.Post,
                     RequestUri = new Uri(_httpClient.BaseAddress + url),
-                    Content = new StringContent("")
+                    Content = new StringContent(requestContent)
                 };
                 var httpRes = await _httpClient.SendAsync(httpReq);
+                if (!httpRes.IsSuccessStatusCode)
+                {
+                    response.Message = httpRes.ReasonPhrase;
+                    response.ResponseStatus = ResponseStatus.Fail;
+                    return response;
+                }
+                var responseContent = await httpRes.Content.ReadAsStringAsync();
+                response.Payload = JsonConvert.DeserializeObject<CreateAccountResponseModel>(responseContent);
                 return response;
             }
             catch (Exception e)
