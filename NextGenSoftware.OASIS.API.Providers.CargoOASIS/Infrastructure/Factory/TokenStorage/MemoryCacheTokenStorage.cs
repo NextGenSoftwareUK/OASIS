@@ -21,9 +21,13 @@ namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Factory.
             });
         }
 
-        public Task<string> GetToken()
+        public async Task<string> GetToken()
         {
-            throw new System.NotImplementedException();
+            return await Task.Run(() =>
+            {
+                var token = _memoryCache.Get(_tokenKey);
+                return token == null ? string.Empty : token.ToString();
+            });
         }
     }
 }
