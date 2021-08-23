@@ -351,6 +351,7 @@ function onSignup() {
 					(e.preventDefault(), o(t.element, 'is-visible'));
 			}),
 				document.addEventListener('keyup', function (e) {
+					alert("jj")
 					27 == e.keyCode && o(t.element, 'is-visible');
 				});
 		}),

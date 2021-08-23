@@ -48,6 +48,7 @@
     "url": "git+https://github.com/CodyHouse/codyhouse-framework.git"
   },
   "dependencies": {
-    "eslint-config-prettier": "^8.3.0"
+    "eslint-config-prettier": "^8.3.0",
+    "gulp-livereload": "^4.0.2"
   }
 }
