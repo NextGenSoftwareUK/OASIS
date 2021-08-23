@@ -25,7 +25,7 @@ jQuery(document).ready(function ($) {
 
 	//close lateral menu clicking outside the menu itself
 	$body.on('click', function (event) {
-		event.preventDefault();
+		// event.preventDefault();
 		if ($(event.target).is($body) || ($(event.which).is('27'))) {
 			$menu_trigger.removeClass('is-clicked'),
 				$navigation.removeClass('is-visible'),
@@ -34,8 +34,8 @@ jQuery(document).ready(function ($) {
 	});
 
 	$body.on('keydown', function (event) {
-		event.preventDefault();
-		if ($(event.which).is('27')) {
+		// event.preventDefault();
+		if (event.key === "Escape") {
 			$menu_trigger.removeClass('is-clicked');
 			$navigation.removeClass('is-visible');
 			$('.item--has-children').children('a').removeClass('submenu-open').next('.sub-menu').delay(300).slideUp();
