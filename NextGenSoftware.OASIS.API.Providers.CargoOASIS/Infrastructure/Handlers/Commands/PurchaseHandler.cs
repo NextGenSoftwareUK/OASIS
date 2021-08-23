@@ -11,6 +11,7 @@ namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Handlers
     public class PurchaseHandler : IHandle<Response<PurchaseResponseModel>, PurchaseRequestModel>
     {
         private readonly HttpClient _httpClient;
+        
         public PurchaseHandler()
         {
             _httpClient = new HttpClient()
