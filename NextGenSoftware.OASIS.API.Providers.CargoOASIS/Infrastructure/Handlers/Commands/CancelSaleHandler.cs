@@ -1,9 +1,11 @@
 ﻿using System;
+using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Enum;
+using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Exceptions;
 using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Factory.TokenStorage;
 using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Interfaces;
 using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Models.Common;
@@ -14,7 +16,6 @@ namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Handlers
     {
         private readonly HttpClient _httpClient;
         private readonly ITokenStorage _tokenStorage;
-        private readonly string _accessToken = string.Empty;
 
         public CancelSaleHandler()
         {
@@ -48,18 +49,29 @@ namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Handlers
                     RequestUri = new Uri(_httpClient.BaseAddress + url),
                     Content = new StringContent(requestContent)
                 };
-                
-                _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _accessToken);
+                var accessToken = await _tokenStorage.GetToken();
+                _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
 
                 var httpResp = await _httpClient.SendAsync(httpReq);
+                if (httpResp.StatusCode == HttpStatusCode.Unauthorized)
+                {
+                }
+                
                 if (!httpResp.IsSuccessStatusCode)
                 {
                     response.Message = httpResp.ReasonPhrase;
                     response.ResponseStatus = ResponseStatus.Fail;
                     return response;
                 }
+
                 var responseContent = await httpResp.Content.ReadAsStringAsync();
                 response.Payload = JsonConvert.DeserializeObject<CancelSaleResponseModel>(responseContent);
+                return response;
+            }
+            catch (UserNotRegisteredException e)
+            {
+                response.ResponseStatus = ResponseStatus.NotRegistered;
+                response.Message = e.Message;
                 return response;
             }
             catch (Exception e)

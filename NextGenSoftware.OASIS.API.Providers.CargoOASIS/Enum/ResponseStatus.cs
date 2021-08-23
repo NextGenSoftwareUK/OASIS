@@ -3,6 +3,8 @@
     public enum ResponseStatus
     {
         Success,
-        Fail
+        Fail,
+        Unauthorized,
+        NotRegistered
     }
 }
