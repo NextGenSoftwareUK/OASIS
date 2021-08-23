@@ -16,8 +16,8 @@ namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS
 
             var details = await tokenDetailsHandler.Handle(new GetTokenDetailsRequestModel()
             {
-                CollectibleId = "",
-                ProjectId = ""
+                CollectibleId = "1",
+                ProjectId = "1"
             });
 
             if (details.ResponseStatus == ResponseStatus.Success)
