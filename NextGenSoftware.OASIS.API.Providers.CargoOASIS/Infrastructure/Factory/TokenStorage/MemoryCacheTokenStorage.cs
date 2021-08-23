@@ -1,5 +1,6 @@
 ﻿using System.Threading.Tasks;
 using Microsoft.Extensions.Caching.Memory;
+using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Exceptions;
 
 namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Factory.TokenStorage
 {
@@ -26,7 +27,9 @@ namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Factory.
             return await Task.Run(() =>
             {
                 var token = _memoryCache.Get(_tokenKey);
-                return token == null ? string.Empty : token.ToString();
+                if (token == null)
+                    throw new UserNotRegisteredException();
+                return token.ToString();
             });
         }
     }
