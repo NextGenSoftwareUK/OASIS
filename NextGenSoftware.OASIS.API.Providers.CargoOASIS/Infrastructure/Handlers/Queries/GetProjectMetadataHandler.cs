@@ -1,9 +1,12 @@
 ﻿using System;
+using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Enum;
+using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Exceptions;
+using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Factory.TokenStorage;
 using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Interfaces;
 using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Models.Cargo;
 using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Models.Common;
@@ -13,7 +16,7 @@ namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Handlers
     public class GetProjectMetadataHandler : IHandle<Response<GetProjectMetadataResponseModel>, GetProjectMetadataRequestModel>
     {
         private readonly HttpClient _httpClient;
-        private readonly string _accessToken = string.Empty;
+        private readonly ITokenStorage _tokenStorage;
 
         public GetProjectMetadataHandler()
         {
@@ -22,6 +25,7 @@ namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Handlers
                 Timeout = TimeSpan.FromMinutes(1),
                 BaseAddress = new Uri("https://api2.cargo.build/")
             };
+            _tokenStorage = TokenStorageFactory.GetMemoryCacheTokenStorage();
         }
         
         /// <summary>
@@ -43,9 +47,12 @@ namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Handlers
                 };
                 if (request.UseAuth != null && request.UseAuth.Value)
                 {
-                    _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _accessToken);
+                    var accessToken = await _tokenStorage.GetToken();
+                    _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
                 }
                 var httpResponse = await _httpClient.SendAsync(httRequest);
+                if(httpResponse.StatusCode == HttpStatusCode.Unauthorized)
+                    throw new UserNotAuthorizedException();                
                 if (!httpResponse.IsSuccessStatusCode)
                 {
                     response.Message = httpResponse.ReasonPhrase;
@@ -55,6 +62,18 @@ namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Handlers
                 var responseString = await httpResponse.Content.ReadAsStringAsync();
                 var data = JsonConvert.DeserializeObject<GetProjectMetadataResponseModel>(responseString);
                 response.Payload = data;
+                return response;
+            }
+            catch (UserNotAuthorizedException e)
+            {
+                response.ResponseStatus = ResponseStatus.Unauthorized;
+                response.Message = e.Message;
+                return response;
+            }
+            catch (UserNotRegisteredException e)
+            {
+                response.ResponseStatus = ResponseStatus.NotRegistered;
+                response.Message = e.Message;
                 return response;
             }
             catch (Exception e)
