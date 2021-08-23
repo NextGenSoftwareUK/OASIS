@@ -261,3 +261,6 @@ __pycache__/
 *.pyc
 /CallZomeFunction.ods
 /CallZomeFunction.ods
+
+#mac
+.DS_Store
