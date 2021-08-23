@@ -16,8 +16,8 @@ namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS
 
             var details = await tokenDetailsHandler.Handle(new GetTokenDetailsRequestModel()
             {
-                CollectibleId = "1",
-                ProjectId = "1"
+                CollectibleId = "0xC7C6bEF6d146acF326A3a5f1d3CC9E920711906D",
+                ProjectId = "dolli-comics"
             });
 
             if (details.ResponseStatus == ResponseStatus.Success)
