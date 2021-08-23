@@ -33,7 +33,7 @@ namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Handlers
             var response = new Response<GetTokenDetailsResponseModel>();
             try
             {
-                var urlQuery = $"v5/get-token-details/${request.ProjectId}/${request.CollectibleId}";
+                var urlQuery = $"v5/get-token-details/{request.ProjectId}/{request.CollectibleId}";
                 var httRequest = new HttpRequestMessage()
                 {
                     Method = HttpMethod.Get,
