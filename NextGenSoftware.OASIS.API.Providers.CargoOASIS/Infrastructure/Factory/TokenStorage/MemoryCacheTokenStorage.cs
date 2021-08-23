@@ -4,6 +4,12 @@ namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Factory.
 {
     public class MemoryCacheTokenStorage : ITokenStorage
     {
+        private readonly IMemoryCache _memoryCache;
+        public MemoryCacheTokenStorage()
+        {
+            
+        }
+
         public Task SetTaken(string token)
         {
             throw new System.NotImplementedException();
