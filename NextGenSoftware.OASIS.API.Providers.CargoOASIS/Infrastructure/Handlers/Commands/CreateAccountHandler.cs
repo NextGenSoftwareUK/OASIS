@@ -3,6 +3,7 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Enum;
+using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Factory.TokenStorage;
 using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Interfaces;
 using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Models.Common;
 
@@ -11,6 +12,7 @@ namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Handlers
     public class CreateAccountHandler : IHandle<Response<CreateAccountResponseModel>, CreateAccountRequestModel>
     {
         private readonly HttpClient _httpClient;
+        private readonly ITokenStorage _memoryCache;
 
         public CreateAccountHandler()
         {
@@ -20,6 +22,7 @@ namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Handlers
                 BaseAddress = new Uri("https://api2.cargo.build/")
             };
             _httpClient.DefaultRequestHeaders.Add("Content-Type", "application/json");
+            _memoryCache = TokenStorageFactory.GetMemoryCacheTokenStorage();
         }
         
         /// <summary>
@@ -56,6 +59,7 @@ namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Handlers
                 }
                 var responseContent = await httpRes.Content.ReadAsStringAsync();
                 response.Payload = JsonConvert.DeserializeObject<CreateAccountResponseModel>(responseContent);
+                await _memoryCache.SetTaken(response.Payload.Data.Token);
                 return response;
             }
             catch (Exception e)
