@@ -4,6 +4,7 @@ using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Enum;
+using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Factory.TokenStorage;
 using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Interfaces;
 using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Models.Common;
 
@@ -12,6 +13,7 @@ namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Handlers
     public class CancelSaleHandler : IHandle<Response<CancelSaleResponseModel>, CancelSaleRequestModel>
     {
         private readonly HttpClient _httpClient;
+        private readonly ITokenStorage _tokenStorage;
         private readonly string _accessToken = string.Empty;
 
         public CancelSaleHandler()
@@ -22,7 +24,7 @@ namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Handlers
                 BaseAddress = new Uri("https://api2.cargo.build/")
             };
             _httpClient.DefaultRequestHeaders.Add("Content-Type", "application/json");
-            _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _accessToken);
+            _tokenStorage = TokenStorageFactory.GetMemoryCacheTokenStorage();
         }
         
         /// <summary>
@@ -46,6 +48,9 @@ namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Handlers
                     RequestUri = new Uri(_httpClient.BaseAddress + url),
                     Content = new StringContent(requestContent)
                 };
+                
+                _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _accessToken);
+
                 var httpResp = await _httpClient.SendAsync(httpReq);
                 if (!httpResp.IsSuccessStatusCode)
                 {
