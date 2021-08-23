@@ -49,14 +49,14 @@ namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Handlers
                     RequestUri = new Uri(_httpClient.BaseAddress + url),
                     Content = new StringContent(requestContent)
                 };
+                
                 var accessToken = await _tokenStorage.GetToken();
                 _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
 
                 var httpResp = await _httpClient.SendAsync(httpReq);
                 if (httpResp.StatusCode == HttpStatusCode.Unauthorized)
-                {
-                }
-                
+                    throw new UserNotAuthorizedException();
+
                 if (!httpResp.IsSuccessStatusCode)
                 {
                     response.Message = httpResp.ReasonPhrase;
@@ -66,6 +66,12 @@ namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Handlers
 
                 var responseContent = await httpResp.Content.ReadAsStringAsync();
                 response.Payload = JsonConvert.DeserializeObject<CancelSaleResponseModel>(responseContent);
+                return response;
+            }
+            catch (UserNotAuthorizedException e)
+            {
+                response.ResponseStatus = ResponseStatus.Unauthorized;
+                response.Message = e.Message;
                 return response;
             }
             catch (UserNotRegisteredException e)
