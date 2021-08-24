@@ -170,6 +170,9 @@ function addAuthPopup(login, msg, e, type='success') {
 	}
 }
 function onLogin() {
+	const submitBtn = document.getElementById('login-submit')
+	submitBtn.innerHTML = 'loading... <i class="fas fa-spinner fa-spin"></i>'
+	submitBtn.disabled = true
 	let n = {
 		email: document.getElementById('login-email').value,
 		password: document.getElementById('login-password').value,
@@ -183,6 +186,8 @@ function onLogin() {
 				headers: { 'Content-Type': 'application/json' },
 			}
 		);
+		// const submitBtn = document.getElementById('login-submit')
+		// submitBtn.innerHTML = 'Submit'
 		var t;
 		200 === e.status
 			? ((t = await e.json()), addAuthPopup(true, t.message, e))
