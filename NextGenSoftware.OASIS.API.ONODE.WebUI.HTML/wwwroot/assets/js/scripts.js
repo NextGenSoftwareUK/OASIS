@@ -144,34 +144,24 @@ function putCursorAtEnd(e) {
 }
 
 function addAuthPopup(login, msg, e, type='success') {
-	if (login){
+	// Get and remove previous pop ups
+	var prev = document.getElementsByClassName('alert')[0]
+	if (prev)prev.remove()
+	var formId;
+	login ? formId = 'login-form' : formId = 'signup-form'
 		// Create popup element
-		let target = document.getElementById('login-form')
+		let target = document.getElementById(formId)
 		var div = document.createElement('div');
 		div.classList.add('alert')
 		div.classList.add(type)
 		div.innerHTML = msg;
-		target.parentNode.insertBefore(div, target)
-		console.log(e)
-		console.log(e.status)
+		target.parentNode.insertBefore(div, target)	
 		e.preventDefault()
-	}
-
-	else {
-		let target = document.getElementById('signup-form')
-		var div = document.createElement('div');
-		div.classList.add('alert')
-		div.classList.add(type)
-		div.innerHTML = msg;
-		target.parentNode.insertBefore(div, target)
-		console.log(e)
-		console.log(e.status)
-		e.preventDefault()
-	}
 }
 function onLogin() {
+	// Get button and change it when pressed
 	const submitBtn = document.getElementById('login-submit')
-	submitBtn.innerHTML = 'loading... <i class="fas fa-spinner fa-spin"></i>'
+	submitBtn.innerHTML = 'logging in... <i class="fas fa-spinner fa-spin"></i>'
 	submitBtn.disabled = true
 	let n = {
 		email: document.getElementById('login-email').value,
@@ -186,16 +176,21 @@ function onLogin() {
 				headers: { 'Content-Type': 'application/json' },
 			}
 		);
-		// const submitBtn = document.getElementById('login-submit')
-		// submitBtn.innerHTML = 'Submit'
+		// Re-enable button after request
+		submitBtn.innerHTML = 'Submit'
+		submitBtn.disabled = false
 		var t;
 		200 === e.status
 			? ((t = await e.json()), addAuthPopup(true, t.message, e))
-			: ((t = await e.json()), addAuthPopup(true, t.title, e, 'error')),
+			: ((submitBtn.classList.add('error')), (t = await e.json()), addAuthPopup(true, t.title, e, 'error')),
 			window.location.reload();
 	})();
 }
 function onSignup() {
+	// Get button and change it when pressed
+	const submitBtn = document.getElementById('signup-submit')
+	submitBtn.innerHTML = 'loading... <i class="fas fa-spinner fa-spin"></i>'
+	submitBtn.disabled = true
 	let n = {
 		email: document.getElementById('signup-email').value,
 		password: document.getElementById('signup-password').value,
@@ -212,6 +207,11 @@ function onSignup() {
 				headers: { 'Content-Type': 'application/json' },
 			}
 		);
+		submitBtn.innerHTML = 'Submit'
+		submitBtn.disabled = false
+
+		e.status !== 200 ? submitBtn.classList.add('error'):null
+
 		var t;
 		200 === e.status
 			? ((t = await e.json()), addAuthPopup(false, t.message, e))
