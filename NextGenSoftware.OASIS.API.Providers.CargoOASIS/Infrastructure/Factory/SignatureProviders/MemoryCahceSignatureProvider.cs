@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Caching.Memory;
+using Nethereum.Web3;
 using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Exceptions;
 using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Factory.ConfigurationProvider;
 using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Factory.TokenStorage;
@@ -27,11 +28,16 @@ namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Factory.
             try
             {
                 var singingMessage = await _configuration.GetKey("singingMessage");
+                if (string.IsNullOrEmpty(singingMessage))
+                    return (true, "Singing message not set in configuration file!");
+                
                 var token = await _tokenStorage.GetToken();
-            
+                var web3 = new Web3();
+                
                 var signature = _memoryCache.Get(_key);
                 if (signature != null) return (false, signature.ToString());
-                signature = "dfdf";
+                
+                signature = await web3.Eth.Sign.SendRequestAsync(singingMessage, token);
                 _memoryCache.Set(_key, signature);
                 return (false, signature.ToString());
             }
