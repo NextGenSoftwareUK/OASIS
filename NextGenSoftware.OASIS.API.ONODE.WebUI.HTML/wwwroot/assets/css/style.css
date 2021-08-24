@@ -1527,10 +1527,16 @@ form {
   text-align: center;
 }
 
-.alert.error {
+.alert.error, .error {
   color: var(--color-error);
 }
 
 .alert.success{
   color: var(--color-success);
+}
+
+#signup-submit.error,
+#login-submit.error {
+  background-color: var(--color-error);
+  color: var(--color-primary);
 }

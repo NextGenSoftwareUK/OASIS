@@ -22,6 +22,7 @@
     <script src="assets/js/jquery.js"></script>
     <script src="assets/js/modernizr.js"></script>
     <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.12.1/css/all.css" crossorigin="anonymous">
     <script>
       if (!('CSS' in window) || !CSS.supports('color', 'var(--color-var)')) { var cfStyle = document.getElementById('codyframe'); if (cfStyle) { var href = cfStyle.getAttribute('href'); href = href.replace('style.css', 'style-fallback.css'); cfStyle.setAttribute('href', href); } }
     </script>
@@ -337,8 +338,8 @@
             <label class="color-contrast-medium" for="rememberMe">Remember Me</label>
           </div>
           <div class="flex flex-center">
-            <input aria-label="Submit" id="login-submit" class="btn btn--md btn--primary width-50%" type="submit"
-              form="login-form" value="Submit" onclick="onLogin()">
+            <button aria-label="Submit" id="login-submit" class="btn btn--md btn--primary width-50%" type="submit"
+              form="login-form" onclick="onLogin()">Submit</button>
           </div>
         </form>
       </div>
@@ -374,8 +375,8 @@
           </div>
           <div class="flex flex-center">
             <input type="hidden" value="User" name="AvatarType" id="AvatarType">
-            <input aria-label="Submit" id="signup-submit" class="btn btn--md btn--primary width-50%" type="submit"
-              value="Submit" form="signup-form" onclick="onSignup()">
+            <button aria-label="Submit" id="signup-submit" class="btn btn--md btn--primary width-50%" type="submit"
+              form="signup-form" onclick="onSignup()">Submit</button>
           </div>
         </form>
       </div>
