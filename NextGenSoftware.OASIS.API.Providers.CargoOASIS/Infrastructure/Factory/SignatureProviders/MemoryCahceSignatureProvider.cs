@@ -32,6 +32,11 @@ namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Factory.
                 var privateKey = await _configuration.GetKey("cargoPrivateKey");
                 var hostUrl = await _configuration.GetKey("cargoHostUrl");
                 
+                if (string.IsNullOrEmpty(privateKey))
+                    return (true, "Cargo private key not set in configuration file!");
+                
+                if (string.IsNullOrEmpty(hostUrl))
+                    return (true, "Host url not set in configuration file!");
                 
                 if (string.IsNullOrEmpty(singingMessage))
                     return (true, "Singing message not set in configuration file!");
