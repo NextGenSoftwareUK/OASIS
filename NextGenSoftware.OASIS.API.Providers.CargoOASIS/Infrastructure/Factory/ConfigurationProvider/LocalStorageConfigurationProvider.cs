@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.Linq;
+using System.Threading.Tasks;
 using System.Xml;
 
 namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Factory.ConfigurationProvider
@@ -14,25 +15,38 @@ namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Factory.
         
         public async Task SetKey(string key, string value)
         {
-            var xDoc = new XmlDocument();
-            xDoc.Load(_configurationPath);
-            var xRoot = xDoc.DocumentElement;
-            var keyElement = xDoc.CreateElement(key);
-            
-            var valueText = xDoc.CreateTextNode("Facebook");
-            
-            
-            companyElem.AppendChild(companyText);
-            ageElem.AppendChild(ageText);
-            keyElement.AppendChild(companyElem);
-            keyElement.AppendChild(ageElem);
-            xRoot.AppendChild(keyElement);
-            xDoc.Save(_configurationPath);
+            await Task.Run(() =>
+            {
+                var xDoc = new XmlDocument();
+                xDoc.Load(_configurationPath);
+                var xRoot = xDoc.DocumentElement;
+
+                var keyNode = xRoot.Cast<XmlNode>().FirstOrDefault(node => node.Name == key);
+                if (keyNode != null)
+                {
+                    keyNode.InnerText = value;
+                    xDoc.Save(_configurationPath);
+                    return;
+                }
+
+                var keyElement = xDoc.CreateElement(key);
+                var valueText = xDoc.CreateTextNode(value);
+                keyElement.AppendChild(valueText);
+                xRoot.AppendChild(keyElement);
+                xDoc.Save(_configurationPath);
+            });
         }
 
         public async Task<string> GetKey(string key)
         {
-            throw new System.NotImplementedException();
+            return await Task.Run(() =>
+            {
+                var xDoc = new XmlDocument();
+                xDoc.Load(_configurationPath);
+                var xRoot = xDoc.DocumentElement;
+                var keyNode = xRoot.Cast<XmlNode>().FirstOrDefault(node => node.Name == key);
+                return keyNode != null ? keyNode.InnerText : string.Empty;
+            });
         }
     }
 }
