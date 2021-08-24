@@ -34,7 +34,7 @@ namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Handlers
             try
             {
                 var url = "v4/purchase";
-                var requestContent = await JsonConvert.SerializeObjectAsync(new
+                var requestContent = JsonConvert.SerializeObject(new
                 {
                     saleId = request.SaleId
                 });

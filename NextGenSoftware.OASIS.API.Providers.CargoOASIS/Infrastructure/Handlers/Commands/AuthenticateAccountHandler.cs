@@ -34,7 +34,7 @@ namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Handlers
             try
             {
                 var url = "v3/authenticate";
-                var requestContent = await JsonConvert.SerializeObjectAsync(new
+                var requestContent = JsonConvert.SerializeObject(new
                 {
                     address = "",
                     signature = ""
