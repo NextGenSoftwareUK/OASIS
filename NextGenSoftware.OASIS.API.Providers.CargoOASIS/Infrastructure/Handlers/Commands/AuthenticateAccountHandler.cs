@@ -54,7 +54,7 @@ namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Handlers
                 }
                 var responseContent = await httpRes.Content.ReadAsStringAsync();
                 response.Payload = JsonConvert.DeserializeObject<CreateAccountResponseModel>(responseContent);
-                await _tokenStorage.SetTaken(response.Payload.Data.Token);
+                await _tokenStorage.SetToken(response.Payload.Data.Token);
                 return response;
             }
             catch (Exception e)

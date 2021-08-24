@@ -14,7 +14,7 @@ namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Factory.
             _tokenKey = "_token";
         }
 
-        public async Task SetTaken(string token)
+        public async Task SetToken(string token)
         {
             await Task.Run(() =>
             {
