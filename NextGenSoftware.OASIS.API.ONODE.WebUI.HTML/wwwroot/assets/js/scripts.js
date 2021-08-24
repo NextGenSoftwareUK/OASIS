@@ -142,6 +142,33 @@ function putCursorAtEnd(e) {
 		? ((t = 2 * e.value.length), e.focus(), e.setSelectionRange(t, t))
 		: (e.value = e.value);
 }
+
+function addAuthPopup(login, msg, e, type='success') {
+	if (login){
+		// Create popup element
+		let target = document.getElementById('login-form')
+		var div = document.createElement('div');
+		div.classList.add('alert')
+		div.classList.add(type)
+		div.innerHTML = msg;
+		target.parentNode.insertBefore(div, target)
+		console.log(e)
+		console.log(e.status)
+		e.preventDefault()
+	}
+
+	else {
+		let target = document.getElementById('signup-form')
+		var div = document.createElement('div');
+		div.classList.add('alert')
+		div.classList.add(type)
+		div.innerHTML = msg;
+		target.parentNode.insertBefore(div, target)
+		console.log(e)
+		console.log(e.status)
+		e.preventDefault()
+	}
+}
 function onLogin() {
 	let n = {
 		email: document.getElementById('login-email').value,
@@ -158,8 +185,8 @@ function onLogin() {
 		);
 		var t;
 		200 === e.status
-			? ((t = await e.json()), alert(t.message))
-			: ((t = await e.json()), alert(t.title)),
+			? ((t = await e.json()), addAuthPopup(true, t.message, e))
+			: ((t = await e.json()), addAuthPopup(true, t.title, e, 'error')),
 			window.location.reload();
 	})();
 }
@@ -182,8 +209,8 @@ function onSignup() {
 		);
 		var t;
 		200 === e.status
-			? ((t = await e.json()), alert(t.message))
-			: ((t = await e.json()), alert(t.title)),
+			? ((t = await e.json()), addAuthPopup(false, t.message, e))
+			: ((t = await e.json()), addAuthPopup(false, t.title, e, 'error')),
 			window.location.reload();
 	})();
 }
