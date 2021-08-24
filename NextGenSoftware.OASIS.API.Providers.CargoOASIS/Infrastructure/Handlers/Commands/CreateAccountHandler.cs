@@ -3,6 +3,7 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Enum;
+using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Factory.SignatureProviders;
 using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Factory.TokenStorage;
 using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Interfaces;
 using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Models.Common;
@@ -12,7 +13,8 @@ namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Handlers
     public class CreateAccountHandler : IHandle<Response<CreateAccountResponseModel>, CreateAccountRequestModel>
     {
         private readonly HttpClient _httpClient;
-        private readonly ITokenStorage _memoryCache;
+        private readonly ITokenStorage _tokenStorage;
+        private readonly ISignatureProvider _signatureProvider;
 
         public CreateAccountHandler()
         {
@@ -22,7 +24,8 @@ namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Handlers
                 BaseAddress = new Uri("https://api2.cargo.build/")
             };
             _httpClient.DefaultRequestHeaders.Add("Content-Type", "application/json");
-            _memoryCache = TokenStorageFactory.GetMemoryCacheTokenStorage();
+            _tokenStorage = TokenStorageFactory.GetMemoryCacheTokenStorage();
+            _signatureProvider = SignatureFactory.GetMemoryCacheSignatureProvider();
         }
         
         /// <summary>
@@ -36,11 +39,20 @@ namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Handlers
             var response = new Response<CreateAccountResponseModel>();
             try
             {
+                var (error, message) = await _signatureProvider.GetSignature();
+                if (error)
+                {
+                    response.ResponseStatus = ResponseStatus.Fail;
+                    response.Message = message;
+                    return response;
+                }
+                
+                
                 var url = "v3/register";
                 var requestContent = JsonConvert.SerializeObject(new
                 {
-                    address = "",
-                    signature = "",
+                    address = _tokenStorage.GetToken(),
+                    signature = message,
                     email = request.Email,
                     username = request.UserName
                 });
@@ -59,7 +71,7 @@ namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Handlers
                 }
                 var responseContent = await httpRes.Content.ReadAsStringAsync();
                 response.Payload = JsonConvert.DeserializeObject<CreateAccountResponseModel>(responseContent);
-                if (response.Payload != null) await _memoryCache.SetToken(response.Payload.Data.Token);
+                if (response.Payload != null) await _tokenStorage.SetToken(response.Payload.Data.Token);
                 return response;
             }
             catch (Exception e)
