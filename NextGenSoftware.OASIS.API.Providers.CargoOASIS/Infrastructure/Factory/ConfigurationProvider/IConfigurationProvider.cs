@@ -4,7 +4,7 @@ namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Factory.
 {
     public interface IConfigurationProvider
     {
-        Task SetKey(string key, object value);
-        Task<object> GetKey(string key);
+        Task SetKey(string key, string value);
+        Task<string> GetKey(string key);
     }
 }
