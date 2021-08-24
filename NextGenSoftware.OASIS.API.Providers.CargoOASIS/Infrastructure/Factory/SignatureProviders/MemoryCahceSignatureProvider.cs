@@ -1,6 +1,5 @@
 ﻿using System.Threading.Tasks;
 using Microsoft.Extensions.Caching.Memory;
-using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Exceptions;
 
 namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Factory.SignatureProviders
 {
@@ -8,7 +7,8 @@ namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Factory.
     {
         private readonly IMemoryCache _memoryCache;
         private readonly string _key;
-        
+        private readonly string _singingMessage;
+
         public MemoryCacheSignatureProvider()
         {
             _memoryCache = new MemoryCache(new MemoryCacheOptions());
@@ -19,10 +19,10 @@ namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Factory.
         {
             return await Task.Run(() =>
             {
-                _memoryCache.Set(_key, token);
                 var token = _memoryCache.Get(_key);
-                if (token == null)
-                    throw new UserNotRegisteredException();
+                if (token != null) return token.ToString();
+                token = "dfdf";
+                _memoryCache.Set(_key, token);
                 return token.ToString();
             });        
         }
