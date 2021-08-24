@@ -39,7 +39,7 @@ namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Handlers
             try
             {
                 var url = "v3/cancel-sale";
-                var requestContent = await JsonConvert.SerializeObjectAsync(new
+                var requestContent = JsonConvert.SerializeObject(new
                 {
                     resaleItemId = request.ResaleItemId
                 });
