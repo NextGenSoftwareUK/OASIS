@@ -22,6 +22,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Interfaces
         //AccountResponse GetById(Guid id);
         IEnumerable<IAvatar> GetAll();
         AvatarImage GetAvatarImageById(Guid id);
+        void Upload2DAvatarImage(Guid id, byte[] image);
         IAvatar GetById(Guid id);
         //AccountResponse Create(CreateRequest model);
         IAvatar Create(CreateRequest model);
