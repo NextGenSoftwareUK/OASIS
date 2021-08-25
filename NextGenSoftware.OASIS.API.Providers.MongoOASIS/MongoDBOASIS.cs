@@ -451,7 +451,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
 
             if (avatar.ProviderKey != null && avatar.ProviderKey.ContainsKey(Core.Enums.ProviderType.MongoDBOASIS))
                 mongoAvatar.Id = avatar.ProviderKey[Core.Enums.ProviderType.MongoDBOASIS];
-            
+            mongoAvatar.Image2D = avatar.Image2D;
             mongoAvatar.HolonId = avatar.Id;
             mongoAvatar.ProviderMetaData = avatar.ProviderMetaData;
             mongoAvatar.ProviderPrivateKey = avatar.ProviderPrivateKey;

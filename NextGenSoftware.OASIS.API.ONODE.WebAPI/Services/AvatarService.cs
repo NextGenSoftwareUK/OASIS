@@ -293,6 +293,16 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
             return new AvatarImage(Encoding.ASCII.GetBytes(avatar.Image2D));
         }
 
+        public void Upload2DAvatarImage(Guid id, byte[] image)
+        {
+            if (id == null)
+                return;
+            var image2d = Encoding.ASCII.GetString(image); 
+            var avatar = getAvatar(id);
+            avatar.Image2D = image2d;
+            RemoveAuthDetails(AvatarManager.SaveAvatar(avatar).Result);
+        }
+
         //public AccountResponse GetById(Guid id)
         //{
         //    var account = getAvatar(id);
