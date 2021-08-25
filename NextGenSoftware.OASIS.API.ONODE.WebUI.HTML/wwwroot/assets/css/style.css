@@ -1518,3 +1518,25 @@ form {
     padding: 10px 10px 10px 15px
   }
 }
+
+.alert {
+  padding: 0.5rem;
+  width: 90%;
+  border: 2px solid black;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.alert.error, .error {
+  color: var(--color-error);
+}
+
+.alert.success{
+  color: var(--color-success);
+}
+
+#signup-submit.error,
+#login-submit.error {
+  background-color: var(--color-error);
+  color: var(--color-primary);
+}
