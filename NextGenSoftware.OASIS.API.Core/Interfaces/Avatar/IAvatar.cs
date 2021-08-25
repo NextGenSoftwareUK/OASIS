@@ -16,6 +16,7 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces
         Dictionary<ProviderType, string> ProviderUsername { get; set; } 
         Dictionary<ProviderType, string> ProviderWalletAddress { get; set; }
 
+        string Image2D { get; set; }
         string Username { get; set; }
         string Password { get; set; }
         string Email { get; set; }

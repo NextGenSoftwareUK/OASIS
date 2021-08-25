@@ -287,7 +287,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
 
         public AvatarImage GetAvatarImageById(Guid id)
         {
-            throw new NotImplementedException();
+            if(id == null)
+                return new AvatarImage();
+            var avatar = getAvatar(id);
+            return new AvatarImage(Encoding.ASCII.GetBytes(avatar.Image2D));
         }
 
         //public AccountResponse GetById(Guid id)

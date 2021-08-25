@@ -326,6 +326,8 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             //Core.Holons.Avatar oasisAvatar = (Core.Holons.Avatar)ConvertMongoEntityToOASISHolon(avatar);
             Core.Holons.Avatar oasisAvatar = new Core.Holons.Avatar();
 
+            oasisAvatar.Image2D = avatar.Image2D;
+            
             oasisAvatar.ProviderPrivateKey = avatar.ProviderPrivateKey;
             oasisAvatar.ProviderPublicKey = avatar.ProviderPublicKey;
             oasisAvatar.ProviderUsername = avatar.ProviderUsername;
