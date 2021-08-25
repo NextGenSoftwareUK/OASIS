@@ -1,0 +1,21 @@
+.side-nav{
+  background-color: rgba(0, 0, 0, 0.88);
+  color: #1885c9;
+  height: 100vh;
+  text-transform: uppercase;
+  position: fixed;
+  padding-top: 48px;
+  top: 0;
+  left: 0;
+  display: flex;
+  justify-content: center;
+}
+.side-nav li{
+  padding: 4px 2rem;
+}
+.side-nav li:hover{
+  color: #fff;
+  background-color: #4440bc;;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
