@@ -40,6 +40,27 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 //return _avatarManager;
             }
         }
+        
+        [Authorize]
+        [HttpGet("GetAvatarImage/{id}")]
+        public ActionResult<AvatarImage> GetAvatarImageById(Guid id)
+        {
+            // users can get their own account and admins can get any account
+            if (id != Avatar.Id && Avatar.AvatarType.Value != AvatarType.Wizard)
+                return Unauthorized(new { message = "Unauthorized" });
+            return Ok(_avatarService.GetAvatarImageById(id));
+        }
+
+        [Authorize]
+        [HttpPost("Upload2DAvatarImage")]
+        public ActionResult Upload2DAvatarImage(Guid id, byte[] avatarImage)
+        {
+            // users can get their own account and admins can get any account
+            if (id != Avatar.Id && Avatar.AvatarType.Value != AvatarType.Wizard)
+                return Unauthorized(new { message = "Unauthorized" });
+            _avatarService.Upload2DAvatarImage(id, avatarImage);
+            return Ok();
+        }
 
         /// <summary>
         /// Get's all avatars (only works for logged in &amp; authenticated Wizards (Admins)).
