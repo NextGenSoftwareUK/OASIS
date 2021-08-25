@@ -653,7 +653,7 @@ body {
 
 body {
   min-height: 100vh;
-  /*background: url("../img/bg.gif");*/
+  background: url("../img/bg.gif");
   background-position: top;
   background-attachment: fixed;
   background-size: cover;
