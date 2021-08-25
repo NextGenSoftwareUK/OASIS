@@ -219,6 +219,20 @@ function onSignup() {
 			window.location.reload();
 	})();
 }
+
+function accountDropdown() {
+	// Check if device is mobile...
+	if( /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ) {
+		// Get dropdown list
+		var dropdown = document.getElementsByClassName('nav__sub-list')[0]
+		if (dropdown.classList.contains('nav__sub-list--clicked')) {
+			dropdown.classList.remove('nav__sub-list--clicked')
+			return
+		}
+		dropdown.classList.add('nav__sub-list--clicked')
+	} 
+}
+
 (Math.easeInOutQuad = function (e, t, n, s) {
 	return (e /= s / 2) < 1
 		? (n / 2) * e * e + t
