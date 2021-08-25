@@ -653,7 +653,7 @@ body {
 
 body {
   min-height: 100vh;
-  background: url("../img/bg.gif");
+  /*background: url("../img/bg.gif");*/
   background-position: top;
   background-attachment: fixed;
   background-size: cover;
@@ -800,7 +800,7 @@ a,
 
 body {
   min-height: 100vh;
-  background: url("../img/bg.gif");
+  /*background: url("../img/bg.gif");*/
   background-position: top;
   background-attachment: fixed;
   background-size: cover;
@@ -904,12 +904,6 @@ body {
   transition: all 0.2s ease
 }
 
-.nav__item--account a {
-  display: flex;
-  align-items: center;
-  height: var(--header-height)
-}
-
 .nav__item--account svg {
   color: var(--color-white);
   display: flex;
@@ -918,7 +912,25 @@ body {
   width: 2em
 }
 
+.nav__item.nav__item--account > a{
+  position: relative;
+}
+
+.nav__item--account:hover .nav__sub-list {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.nav__sub-list--clicked {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: flex-start;
+}
+
 .nav__item--account .nav__sub-list {
+  right: 10px;
+  border: 1px solid black;
   position: absolute;
   top: var(--header-height);
   z-index: var(--zindex-header);
@@ -927,8 +939,13 @@ body {
   -webkit-backdrop-filter: blur(10px);
   backdrop-filter: blur(10px);
   background-clip: padding-box;
-  border-left: 2.5em solid hsla(var(--color-bg-h), var(--color-bg-s), var(--color-bg-l), 0.333);
+  /*border-left: 2.5em solid hsla(var(--color-bg-h), var(--color-bg-s), var(--color-bg-l), 0.333);*/
   display: none
+}
+
+.nav__sub-list > * {
+  margin-left: 20px;
+  font-size: 0.8em;
 }
 
 @media (min-width: 48rem) {
