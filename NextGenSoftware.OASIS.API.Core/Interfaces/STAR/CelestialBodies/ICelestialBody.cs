@@ -49,8 +49,8 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces.STAR
         ICelestialBodyCore CelestialBodyCore { get; set; }
         GenesisType GenesisType { get; set; }
         bool IsInitialized { get; }
-        Task<OASISResult<ICelestialBody>> SaveAsync();
-        OASISResult<ICelestialBody> Save();
+        Task<OASISResult<ICelestialBody>> SaveAsync(bool saveChildren = true, bool continueOnError = true);
+        OASISResult<ICelestialBody> Save(bool saveChildren = true, bool continueOnError = true);
         Task<OASISResult<IEnumerable<IZome>>> LoadZomesAsync();
         OASISResult<IEnumerable<IZome>> LoadZomes();
         Task<OASISResult<ICelestialBody>> LoadCelestialBodyAsync();
