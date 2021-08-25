@@ -18,6 +18,7 @@ using NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Security;
 using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.API.Core.Helpers;
+using NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Avatar;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
 {
@@ -282,6 +283,24 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
         public IEnumerable<IAvatar> GetAll()
         {
             return AvatarManager.LoadAllAvatars();
+        }
+
+        public AvatarImage GetAvatarImageById(Guid id)
+        {
+            if(id == null)
+                return new AvatarImage();
+            var avatar = getAvatar(id);
+            return new AvatarImage(Encoding.ASCII.GetBytes(avatar.Image2D));
+        }
+
+        public void Upload2DAvatarImage(Guid id, byte[] image)
+        {
+            if (id == null)
+                return;
+            var image2d = Encoding.ASCII.GetString(image); 
+            var avatar = getAvatar(id);
+            avatar.Image2D = image2d;
+            RemoveAuthDetails(AvatarManager.SaveAvatar(avatar).Result);
         }
 
         //public AccountResponse GetById(Guid id)
