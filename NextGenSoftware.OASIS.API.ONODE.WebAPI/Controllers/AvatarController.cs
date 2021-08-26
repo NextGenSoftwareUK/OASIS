@@ -41,11 +41,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             }
         }
         
-        [Authorize]
         [HttpGet("GetTerms")]
-        public ActionResult GetTerms()
+        public IActionResult GetTerms()
         {
-            return Ok(_avatarService.GetTerms());
+            return Ok(new { termsText = _avatarService.GetTerms()});
         }
 
         [Authorize]
