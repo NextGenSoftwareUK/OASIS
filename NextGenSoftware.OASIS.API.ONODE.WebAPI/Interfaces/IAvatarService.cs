@@ -10,6 +10,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Interfaces
     public interface IAvatarService
     {
         //AuthenticateResponse RefreshToken(string token, string ipAddress);
+        string GetTerms();
         AuthenticateResponse Authenticate(AuthenticateRequest model, string ipAddress);
         IAvatar RefreshToken(string token, string ipAddress);
         void RevokeToken(string token, string ipAddress);
