@@ -42,6 +42,13 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         }
         
         [Authorize]
+        [HttpGet("GetTerms")]
+        public ActionResult GetTerms()
+        {
+            return Ok(_avatarService.GetTerms());
+        }
+
+        [Authorize]
         [HttpGet("GetAvatarImage/{id}")]
         public ActionResult<AvatarImage> GetAvatarImageById(Guid id)
         {
