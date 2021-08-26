@@ -48,7 +48,7 @@ const data = [{
 export class SideNav extends Component {
   render() {
     return (
-      <div className="side-nav">
+      <div className={`side-nav${this.props.show ? " side-nav-show" : ""}`}>
         <ul>
           {data.map((link) => <li>{link.title}</li>)}
         </ul>

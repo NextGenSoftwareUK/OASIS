@@ -5,14 +5,14 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  padding: 0 1rem;
 }
-.nav-logo{
-  margin-top: 0.5rem;
-  margin-left: 1rem;
-}
-.nav-top {
-  align-items: center;
+.nav-left{
   display: flex;
+}
+.nav-right {
+  display: flex;
+  align-items: center;
   text-align: center;
 }
 .nav-avatar{
@@ -42,5 +42,49 @@ a {
 }
 a:hover {
   color: #1885c9;
-  transition: all 0.2s ease;
-  }
+}
+
+/* ================== For the side nav hamburger button ====================== */
+.nav-menu-btn {
+  position: relative;
+  display: grid;
+  place-content: center;
+  width: 48px;
+  height: 48px;
+  cursor: pointer;
+  margin-right: 1rem;
+  transition: all .3s ease-in-out;
+}
+.nav-menu-btn-burger {
+  width: 25px;
+  height: 2px;
+  background: #fff;
+  transition: all .3s ease-in-out;
+}
+.nav-menu-btn-burger::before,
+.nav-menu-btn-burger::after {
+  content: '';
+  position: absolute;
+  width: 25px;
+  height: 2px;
+  background: #fff;
+  transition: all .3s ease-in-out;
+}
+.nav-menu-btn-burger::before {
+  transform: translateY(-8px);
+}
+.nav-menu-btn-burger::after {
+  transform: translateY(8px);
+}
+/* ANIMATION */
+.nav-menu-open .nav-menu-btn-burger {
+  background: transparent;
+  box-shadow: none;
+}
+.nav-menu-open .nav-menu-btn-burger::before {
+  transform: rotate(45deg);
+}
+.nav-menu-open .nav-menu-btn-burger::after {
+  transform: rotate(-45deg);
+}
+/* ========================================================== */

@@ -1,16 +1,28 @@
 import { Component } from "react"
 import logo from '../img/dummy-logo.svg'
 import '../CSS/Navbar.css'
+import SideNav from "./SideNav"
 
 class Navbar extends Component {
+  constructor(props) {
+    super(props)
+
+    this.state = {
+      showSideNav: false
+    }
+  }
+
   render() {
     return (
       <nav className="nav">
-        <div>
-          <a><img src="" /></a>
+        <div className="nav-left">
+          <div className={`nav-menu-btn${this.state.showSideNav ? " nav-menu-open" : ""}`}
+            onClick={() => this.setState({ showSideNav: !this.state.showSideNav })}>
+            <div className="nav-menu-btn-burger"></div>
+          </div>
           <img className="nav-logo" src={logo} alt="logo" />
         </div>
-        <div className="nav-top">
+        <div className="nav-right">
           <ul className="nav-list">
             <li className="nav-login"><a href="#0" data-signin="login">Log in</a> </li>
             <li className="nav-login"><a href="#0" data-signin="signup">Sign up</a></li>
@@ -30,6 +42,7 @@ class Navbar extends Component {
             </ul> */}
           </div>
         </div>
+        <SideNav show={this.state.showSideNav} />
       </nav>
     );
   }
