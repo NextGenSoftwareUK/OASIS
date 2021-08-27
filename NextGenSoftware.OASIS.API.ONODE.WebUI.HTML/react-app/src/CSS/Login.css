@@ -1,0 +1,29 @@
+.login{
+	display: grid;
+	place-content: center;
+	background-color: rgba(136, 136, 190, 0.2);
+	position: absolute;
+	top: 0;
+	z-index: 10;
+	width: 100vw;
+	height: 100vh;
+	visibility: hidden;
+}
+.login-form{
+	width: 500px;
+	background-color: rgba(28, 28, 33, 0.9);
+	border-radius: 1rem;
+}
+.login-title{
+	text-align: center;
+}
+.login-header{
+	color: #fff;
+	font-weight: 400;
+}
+.login-title-text{
+	color: #909092;
+}
+.login-title-link{
+	color: #1885c9;
+}
