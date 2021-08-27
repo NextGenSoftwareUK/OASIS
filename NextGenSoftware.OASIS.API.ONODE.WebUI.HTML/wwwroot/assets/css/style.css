@@ -1559,20 +1559,42 @@ form {
   }
 }
 
+#login-form, #signup-form {
+  position: relative;
+}
+
+
+@keyframes fadeIn {
+  0% {
+    opacity: 0;
+  }
+  80% {
+    opacity: 0.8;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
 .alert {
-  padding: 0.5rem;
-  width: 90%;
-  border: 2px solid black;
-  margin: 0 auto;
+  position: absolute;
+  padding: 0.1rem 0.3rem;
+  font-size: 0.7rem;
+  width: 70%;
+  top: 1rem;
+  left: 50%;
+  transform: translate(-50%, 0%);
   text-align: center;
+  animation: fadeIn 500ms ease-in-out forwards;
+  color: #fff;
 }
 
 .alert.error, .error {
-  color: var(--color-error);
+  background-color: var(--color-error);
 }
 
 .alert.success{
-  color: var(--color-success);
+  background-color: var(--color-success);
 }
 
 #signup-submit.error,
