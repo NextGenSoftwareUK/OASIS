@@ -653,7 +653,7 @@ body {
 
 body {
   min-height: 100vh;
-  background: url("../img/bg.gif");
+  /*background: url("../img/bg.gif");*/
   background-position: top;
   background-attachment: fixed;
   background-size: cover;
@@ -904,16 +904,16 @@ body {
   transition: all 0.2s ease
 }
 
+.nav__item--account {
+  position: relative;
+}
+
 .nav__item--account svg {
   color: var(--color-white);
   display: flex;
   padding: auto 0;
   text-align: center;
   width: 2em
-}
-
-.nav__item.nav__item--account > a{
-  position: relative;
 }
 
 .nav__item--account:hover .nav__sub-list {
@@ -929,10 +929,10 @@ body {
 }
 
 .nav__item--account .nav__sub-list {
-  right: 10px;
+  right: -50px;
   border: 1px solid black;
   position: absolute;
-  top: var(--header-height);
+  /*top: var(--header-height);*/
   z-index: var(--zindex-header);
   width: 200px;
   background-color: hsla(var(--color-bg-h), var(--color-bg-s), var(--color-bg-l), 0.666);
@@ -941,6 +941,10 @@ body {
   background-clip: padding-box;
   /*border-left: 2.5em solid hsla(var(--color-bg-h), var(--color-bg-s), var(--color-bg-l), 0.333);*/
   display: none
+}
+
+.nav__sub-list a:hover {
+  color: #fff;
 }
 
 .nav__sub-list > * {
