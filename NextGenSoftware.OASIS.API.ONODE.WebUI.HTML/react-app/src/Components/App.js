@@ -1,5 +1,6 @@
 import '../CSS/App.css';
 import Navbar from './Navbar';
+import SideNav from './SideNav';
 
 function App() {
   return (

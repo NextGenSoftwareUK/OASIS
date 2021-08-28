@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.Extensions.Configuration;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
@@ -27,6 +28,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
         private readonly IMapper _mapper;
         private readonly OASISDNA _OASISDNA;
         private readonly IEmailService _emailService;
+        
+        private readonly IConfiguration _configuration;
         //private AvatarManager _avatarManager;+
 
         public AvatarManager AvatarManager
@@ -48,12 +51,18 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
         public AvatarService(
             IMapper mapper,
             IOptions<OASISDNA> OASISSettings,
-            IEmailService emailService)
+            IEmailService emailService, IConfiguration configuration)
         {
             _mapper = mapper;
             //_OASISSettings = OASISSettings.Value;
             _OASISDNA = OASISBootLoader.OASISBootLoader.OASISDNA;
             _emailService = emailService;
+            _configuration = configuration;
+        }
+        
+        public string GetTerms()
+        {
+            return _configuration["Terms"];
         }
 
         public AuthenticateResponse Authenticate(AuthenticateRequest model, string ipAddress)
