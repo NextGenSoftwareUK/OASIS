@@ -7,53 +7,5 @@ a {
 }
 ul {
   list-style-type: none;
+  padding: 0;
 }
-
-
-/* Navbar */
-.nav{
-  position: relative;
-  z-index: 10;
-  height: 45px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-.nav-logo{
-  margin-top: 0.5rem;
-  margin-left: 1rem;
-}
-.nav-top {
-  align-items: center;
-  display: flex;
-  text-align: center;
-}
-.nav-avatar{
-  color: var(--color-white);
-  display: flex;
-  padding: auto 0;
-  text-align: center;
-  width: 2em;
-}
-.nav-login{
-  margin-left: auto;
-  display: inline-block;
-  align-items: center;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  font-weight: 500;
-  padding: 0 1.5vw;
-  line-height: 1.2;
-}
-a {
-  display: flex;
-  align-items: center;
-  color: #fff;
-  text-align: center;
-  border: none;
-  transition: all 0.2s ease;
-}
-a:hover {
-  color: #1885c9;
-  transition: all 0.2s ease;
-  }

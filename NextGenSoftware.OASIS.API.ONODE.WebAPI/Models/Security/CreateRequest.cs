@@ -5,7 +5,6 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Security
 {
     public class CreateRequest
     {
-        [Required]
         public string Title { get; set; }
 
         [Required]
