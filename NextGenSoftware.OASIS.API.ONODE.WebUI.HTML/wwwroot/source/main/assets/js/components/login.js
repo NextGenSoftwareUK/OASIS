@@ -18,6 +18,14 @@ function onLogin() {
     if (response.status === 200) {
       const myJson = await response.json(); //extract JSON from the http response
       alert(myJson.message);
+
+      // hide the login/signup buttons
+      var elementList = document.getElementsByClassName("js-nav__login");
+      for (var i = 0; i < elementList.length; i++) {
+        elementList[i].classList.add('hide-logins');
+      }
+      //===============================//
+
       window.location.reload();
     } else {
       const myJson = await response.json(); //extract JSON from the http response

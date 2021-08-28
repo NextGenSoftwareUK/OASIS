@@ -19,20 +19,26 @@ function onSignup() {
     }
     const userAction = async () => {
         const response = await fetch('https://api.oasisplatform.world/api/avatar/register', {
-          method: 'POST',
-          body: JSON.stringify(userObject), // string or object
-          headers: {
-            'Content-Type': 'application/json'
-          }
+            method: 'POST',
+            body: JSON.stringify(userObject), // string or object
+            headers: {
+                'Content-Type': 'application/json'
+            }
         });
-        if(response.status === 200)
-        {
+        if (response.status === 200) {
             const myJson = await response.json(); //extract JSON from the http response
             alert(myJson.message);
+
+            // hide the login/signup buttons
+            var elementList = document.getElementsByClassName("js-nav__login");
+            for (var i = 0; i < elementList.length; i++) {
+                elementList[i].classList.add('hide-logins');
+            }
+            //===============================//
+
             window.location.reload();
         }
-        else
-        {
+        else {
             const myJson = await response.json(); //extract JSON from the http response
             alert(myJson.title);
             window.location.reload();

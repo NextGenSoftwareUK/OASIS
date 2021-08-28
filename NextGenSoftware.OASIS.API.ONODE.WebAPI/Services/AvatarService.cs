@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.Extensions.Configuration;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
@@ -18,6 +19,7 @@ using NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Security;
 using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.API.Core.Helpers;
+using NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Avatar;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
 {
@@ -26,6 +28,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
         private readonly IMapper _mapper;
         private readonly OASISDNA _OASISDNA;
         private readonly IEmailService _emailService;
+        
+        private readonly IConfiguration _configuration;
         //private AvatarManager _avatarManager;+
 
         public AvatarManager AvatarManager
@@ -47,12 +51,18 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
         public AvatarService(
             IMapper mapper,
             IOptions<OASISDNA> OASISSettings,
-            IEmailService emailService)
+            IEmailService emailService, IConfiguration configuration)
         {
             _mapper = mapper;
             //_OASISSettings = OASISSettings.Value;
             _OASISDNA = OASISBootLoader.OASISBootLoader.OASISDNA;
             _emailService = emailService;
+            _configuration = configuration;
+        }
+        
+        public string GetTerms()
+        {
+            return _configuration["Terms"];
         }
 
         public AuthenticateResponse Authenticate(AuthenticateRequest model, string ipAddress)
@@ -282,6 +292,24 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
         public IEnumerable<IAvatar> GetAll()
         {
             return AvatarManager.LoadAllAvatars();
+        }
+
+        public AvatarImage GetAvatarImageById(Guid id)
+        {
+            if(id == null)
+                return new AvatarImage();
+            var avatar = getAvatar(id);
+            return new AvatarImage(Encoding.ASCII.GetBytes(avatar.Image2D));
+        }
+
+        public void Upload2DAvatarImage(Guid id, byte[] image)
+        {
+            if (id == null)
+                return;
+            var image2d = Encoding.ASCII.GetString(image); 
+            var avatar = getAvatar(id);
+            avatar.Image2D = image2d;
+            RemoveAuthDetails(AvatarManager.SaveAvatar(avatar).Result);
         }
 
         //public AccountResponse GetById(Guid id)

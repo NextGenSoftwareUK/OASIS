@@ -1,0 +1,11 @@
+a {
+  text-decoration: none;
+  line-height: 2em;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-weight: 500;
+}
+ul {
+  list-style-type: none;
+  padding: 0;
+}

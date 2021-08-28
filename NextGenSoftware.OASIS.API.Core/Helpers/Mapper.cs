@@ -123,6 +123,7 @@ namespace NextGenSoftware.OASIS.API.Core.Helpers
         }
     }
 
+    /*
     public static class MapperForCollections<T1, T2>
         where T1 : List<IHolon>
         where T2 : List<IHolon>, new()
@@ -247,5 +248,5 @@ namespace NextGenSoftware.OASIS.API.Core.Helpers
 
             return targetList;
         }
-    }
+    }*/
 }
