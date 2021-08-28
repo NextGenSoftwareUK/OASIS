@@ -12,9 +12,9 @@ var uglify = require('gulp-uglify');
 var purgecss = require('gulp-purgecss');
 
 // js file paths
-// var utilJsPath = 'main/assets/js'; // util.js path - you may need to update this if including the framework as external node module
-// var componentsJsPath = 'main/assets/js/components/*.js'; // component js files
-// var scriptsJsPath = 'main/assets/js'; //folder for final scripts.js/scripts.min.js files
+var utilJsPath = 'main/assets/js'; // util.js path - you may need to update this if including the framework as external node module
+var componentsJsPath = 'main/assets/js/components/*.js'; // component js files
+var scriptsJsPath = 'main/assets/js'; //folder for final scripts.js/scripts.min.js files
 
 // css file paths
 var cssFolder = 'main/assets/css'; // folder for final style.css/style-custom-prop-fallbac.css files
@@ -57,20 +57,20 @@ gulp.task('sass-ie', function () {
     .pipe(gulp.dest(cssFolder));
 });
 
-// gulp.task('scripts', function () {
-//   return gulp.src([utilJsPath + '/util.js', componentsJsPath])
-//     .pipe(concat('scripts.js'))
-//     .pipe(gulp.dest(scriptsJsPath))
-//     .pipe(browserSync.reload({
-//       stream: true
-//     }))
-//     .pipe(rename('scripts.min.js'))
-//     .pipe(uglify())
-//     .pipe(gulp.dest(scriptsJsPath))
-//     .pipe(browserSync.reload({
-//       stream: true
-//     }));
-// });
+gulp.task('scripts', function () {
+  return gulp.src([utilJsPath + '/util.js', componentsJsPath])
+    .pipe(concat('scripts.js'))
+    .pipe(gulp.dest(scriptsJsPath))
+    .pipe(browserSync.reload({
+      stream: true
+    }))
+    .pipe(rename('scripts.min.js'))
+    .pipe(uglify())
+    .pipe(gulp.dest(scriptsJsPath))
+    .pipe(browserSync.reload({
+      stream: true
+    }));
+});
 
 gulp.task('browserSync', gulp.series(function (done) {
   browserSync.init({
@@ -82,17 +82,17 @@ gulp.task('browserSync', gulp.series(function (done) {
   done();
 }));
 
-gulp.task('watch', gulp.series(['browserSync', 'sass'], function () {
+gulp.task('watch', gulp.series(['browserSync', 'sass','scripts'], function () {
   gulp.watch('main/*.html', gulp.series(reload));
   gulp.watch('main/assets/css/**/*.scss', gulp.series(['sass']));
-  // gulp.watch(componentsJsPath, gulp.series(['scripts']));
+  gulp.watch(componentsJsPath, gulp.series(['scripts']));
 }));
 
 /* Gulp watch-ie task */
 gulp.task('watch-ie', gulp.series(['browserSync', 'sass-ie'], function () {
   gulp.watch('main/*.html', gulp.series(reload));
   gulp.watch('main/assets/css/**/*.scss', gulp.series(['sass-ie']));
-  // gulp.watch(componentsJsPath, gulp.series(['scripts']));
+  gulp.watch(componentsJsPath, gulp.series(['scripts']));
 }));
 
 
@@ -105,15 +105,16 @@ gulp.task('dist', async function () {
   // remove unused classes from the style.css file with PurgeCSS and copy it to the dist folder
   await purgeCSS();
   // minify the scripts.js file and copy it to the dist folder
-  // await minifyJs();
+  await minifyJs();
   // copy the style-fallback (IE support) to the dist folder
   await moveCSS();
   // copy any additional js files to the dist folder
-  // await moveJS();
+  await moveJS();
   // copy all the assets inside main/assets/img folder to the dist folder
   await moveAssets();
   // copy all html files inside main folder to the dist folder
   await moveContent();
+
   console.log('Distribution task completed!')
 });
 
@@ -147,18 +148,18 @@ function moveCSS() {
   });
 };
 
-// function moveJS() {
-//   return new Promise(function (resolve, reject) {
-//     var stream = gulp.src([scriptsJsPath + '/*.js', '!' + scriptsJsPath + '/scripts.js', '!' + scriptsJsPath + '/scripts.min.js'], {
-//         allowEmpty: true
-//       })
-//       .pipe(gulp.dest(assetsFolder + 'js'));
+function moveJS() {
+  return new Promise(function (resolve, reject) {
+    var stream = gulp.src([scriptsJsPath + '/*.js', '!' + scriptsJsPath + '/scripts.js', '!' + scriptsJsPath + '/scripts.min.js'], {
+        allowEmpty: true
+      })
+      .pipe(gulp.dest(assetsFolder + 'js'));
 
-//     stream.on('finish', function () {
-//       resolve();
-//     });
-//   });
-// };
+    stream.on('finish', function () {
+      resolve();
+    });
+  });
+};
 
 function moveAssets() {
   return new Promise(function (resolve, reject) {

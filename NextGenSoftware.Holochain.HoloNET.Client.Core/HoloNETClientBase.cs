@@ -90,8 +90,11 @@ namespace NextGenSoftware.Holochain.HoloNET.Client.Core
         public IHoloNETClientNET NetworkServiceProvider { get; set; }
         public NetworkServiceProviderMode NetworkServiceProviderMode { get; set; }
         public HolochainVersion HolochainVersion { get; set; }
-        public string AgentPubKey { get; set; } = "000000000000000000000000000000000000";
-        public string HoloHash { get; set; } = "000000000000000000000000000000000000";
+        //public string AgentPubKey { get; set; } = "000000000000000000000000000000000000";
+        public string AgentPubKey { get; set; } = "uhC0kTMixTG0lNZCF4SZfQMGozf2WfjQht7E06_wy3h29-zPpWxPQ";
+        //public string HoloHash { get; set; } = "000000000000000000000000000000000000";
+        public string HoloHash { get; set; } = "uhCAkt_cNGyYJZIp08b2ZzxoE6EqPndRPb_WwjVkM_mOBcFyq7zCw";
+        
 
         public HoloNETClientBase(string holochainConductorURI, HolochainVersion version)
         {
@@ -330,62 +333,41 @@ namespace NextGenSoftware.Holochain.HoloNET.Client.Core
 
                 case HolochainVersion.RSM:
                 {
-                        /*
-                        HoloNETRequest request = new HoloNETRequest() 
-                        { 
-                            id = id, 
-                            type = "Request", 
-                            data = MessagePackSerializer.Serialize(new HoloNETData() 
-                            { 
-                                fn_name = function, 
-                                zome_name = zome, 
-                                payload = MessagePackSerializer.Serialize(paramsObject), 
-                                provenance = AgentPubKey, 
-                                cap = null,
-                                //cell_id = new byte[][1, 2] 
-                                //cell_id = new byte[][1, 2]
-                                //{
-                                //    {  
-                                //        Encoding.ASCII.GetBytes(HoloHash),
-                                //        Encoding.ASCII.GetBytes(AgentPubKey)
-                                //    } 
-                                //} 
-                            }) 
-                        };*/
-
-                      //  string AgentPubKey = "000000000000000000000000000000000000";
-                       // string HoloHash = "000000000000000000000000000000000000";
-
-                        HoloNETData holoNETData = new HoloNETData()
+                    HoloNETData holoNETData = new HoloNETData()
+                    {
+                        type = "zome_call",
+                        data = new Data()
                         {
+                            cell_id = new byte[2][]{ Encoding.UTF8.GetBytes(HoloHash), Encoding.UTF8.GetBytes(AgentPubKey) },
                             fn_name = function,
                             zome_name = zome,
                             payload = MessagePackSerializer.Serialize(paramsObject),
-                            provenance = AgentPubKey,
+                            provenance = Encoding.UTF8.GetBytes(AgentPubKey),
                             cap = null
-                        };
+                        }
+                    };
 
-                        holoNETData.cell_id[0] = Encoding.UTF8.GetBytes(HoloHash);
-                        holoNETData.cell_id[1] = Encoding.UTF8.GetBytes(AgentPubKey);
+                    //holoNETData.data.cell_id[0] = Encoding.UTF8.GetBytes(HoloHash);
+                   // holoNETData.data.cell_id[1] = Encoding.UTF8.GetBytes(AgentPubKey);
 
-                        // UInt32 holoHash = 000000000000000000000000000000000000;
-                        // UInt32 agentPubKey = 000000000000000000000000000000000000;
+                    // UInt32 holoHash = 000000000000000000000000000000000000;
+                    // UInt32 agentPubKey = 000000000000000000000000000000000000;
 
-                        //holoNETData.cell_id = new UInt32[2];
-                        //holoNETData.cell_id[0] = holoHash;
-                        //holoNETData.cell_id[1] = agentPubKey;
+                    //holoNETData.cell_id = new UInt32[2];
+                    //holoNETData.cell_id[0] = holoHash;
+                    //holoNETData.cell_id[1] = agentPubKey;
 
-                        HoloNETRequest request = new HoloNETRequest()
-                        {
-                            id = Convert.ToUInt64(id),
-                            type = "Request",
-                            data = MessagePackSerializer.Serialize(holoNETData)
-                        };
+                    HoloNETRequest request = new HoloNETRequest()
+                    {
+                        id = Convert.ToUInt64(id),
+                        type = "Request",
+                        data = MessagePackSerializer.Serialize(holoNETData)
+                    };
 
-                        await SendRawDataAsync(MessagePackSerializer.Serialize(request));
-                        //await SendRawDataAsync(MessagePackSerializer.Serialize(new HoloNETRequest() { id = id, type = "Request", data = MessagePackSerializer.Serialize(new HoloNETData() { fn_name = function, zome_name = zome, payload = MessagePackSerializer.Serialize(paramsObject), provenance = AgentPubKey, cap = null, cell_id = new string[1, 2] { { HoloHash, AgentPubKey } } }) } ));
-                    }
-                    break;
+                    await SendRawDataAsync(MessagePackSerializer.Serialize(request));
+                    //await SendRawDataAsync(MessagePackSerializer.Serialize(new HoloNETRequest() { id = id, type = "Request", data = MessagePackSerializer.Serialize(new HoloNETData() { fn_name = function, zome_name = zome, payload = MessagePackSerializer.Serialize(paramsObject), provenance = AgentPubKey, cap = null, cell_id = new string[1, 2] { { HoloHash, AgentPubKey } } }) } ));
+                }
+                break;
             }
 
             Logger.Log("CallZomeFunctionAsync EXIT", LogType.Debug);

@@ -142,7 +142,27 @@ function putCursorAtEnd(e) {
 		? ((t = 2 * e.value.length), e.focus(), e.setSelectionRange(t, t))
 		: (e.value = e.value);
 }
+
+function addAuthPopup(login, msg, e, type='success') {
+	// Get and remove previous pop ups
+	var prev = document.getElementsByClassName('alert')[0]
+	if (prev)prev.remove()
+	var formId;
+	login ? formId = 'login-form' : formId = 'signup-form'
+		// Create popup element
+		let target = document.getElementById(formId)
+		var div = document.createElement('div');
+		div.classList.add('alert')
+		div.classList.add(type)
+		div.innerHTML = msg;
+		target.parentNode.insertBefore(div, target)	
+		e.preventDefault()
+}
 function onLogin() {
+	// Get button and change it when pressed
+	const submitBtn = document.getElementById('login-submit')
+	submitBtn.innerHTML = 'logging in... <i class="fas fa-spinner fa-spin"></i>'
+	submitBtn.disabled = true
 	let n = {
 		email: document.getElementById('login-email').value,
 		password: document.getElementById('login-password').value,
@@ -156,14 +176,21 @@ function onLogin() {
 				headers: { 'Content-Type': 'application/json' },
 			}
 		);
+		// Re-enable button after request
+		submitBtn.innerHTML = 'Submit'
+		submitBtn.disabled = false
 		var t;
 		200 === e.status
-			? ((t = await e.json()), alert(t.message))
-			: ((t = await e.json()), alert(t.title)),
+			? ((t = await e.json()), addAuthPopup(true, t.message, e))
+			: ((submitBtn.classList.add('error')), (t = await e.json()), addAuthPopup(true, t.title, e, 'error')),
 			window.location.reload();
 	})();
 }
 function onSignup() {
+	// Get button and change it when pressed
+	const submitBtn = document.getElementById('signup-submit')
+	submitBtn.innerHTML = 'loading... <i class="fas fa-spinner fa-spin"></i>'
+	submitBtn.disabled = true
 	let n = {
 		email: document.getElementById('signup-email').value,
 		password: document.getElementById('signup-password').value,
@@ -180,13 +207,32 @@ function onSignup() {
 				headers: { 'Content-Type': 'application/json' },
 			}
 		);
+		submitBtn.innerHTML = 'Submit'
+		submitBtn.disabled = false
+
+		e.status !== 200 ? submitBtn.classList.add('error'):null
+
 		var t;
 		200 === e.status
-			? ((t = await e.json()), alert(t.message))
-			: ((t = await e.json()), alert(t.title)),
+			? ((t = await e.json()), addAuthPopup(false, t.message, e))
+			: ((t = await e.json()), addAuthPopup(false, t.title, e, 'error')),
 			window.location.reload();
 	})();
 }
+
+function accountDropdown() {
+	// Check if device is mobile...
+	if( /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ) {
+		// Get dropdown list
+		var dropdown = document.getElementsByClassName('nav__sub-list')[0]
+		if (dropdown.classList.contains('nav__sub-list--clicked')) {
+			dropdown.classList.remove('nav__sub-list--clicked')
+			return
+		}
+		dropdown.classList.add('nav__sub-list--clicked')
+	} 
+}
+
 (Math.easeInOutQuad = function (e, t, n, s) {
 	return (e /= s / 2) < 1
 		? (n / 2) * e * e + t

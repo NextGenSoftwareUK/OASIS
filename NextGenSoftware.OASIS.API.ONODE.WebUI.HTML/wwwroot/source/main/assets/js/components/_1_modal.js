@@ -1,6 +1,6 @@
 // File#: _2_modal
 
-(function () {
+
 	var ModalSignin = function (element) {
 		this.element = element;
 		this.blocks = document.getElementsByClassName('js-modal-block');
@@ -16,7 +16,7 @@
 			(function (i) {
 				self.triggers[i].addEventListener('click', function (event) {
 					if (event.target.hasAttribute('data-signin')) {
-						event.preventDefault();
+						// event.preventDefault();
 						self.showSigninForm(event.target.getAttribute('data-signin'));
 					}
 				});
@@ -36,7 +36,7 @@
 
 		// close modal when clicking the esc keyboard button
 		document.addEventListener('keyup', function (event) {
-			if (event.keyCode == 27) {
+			if (event.key == 'Escape') {
 				removeClass(self.element, 'is-visible');
 				removeClass(self.blocks, 'is-selected');
 			}
@@ -65,7 +65,6 @@
 	if (signinModal) {
 		new ModalSignin(signinModal);
 	}
-});
 
 //class manipulations - needed if classList is not supported
 function hasClass(el, className) {
