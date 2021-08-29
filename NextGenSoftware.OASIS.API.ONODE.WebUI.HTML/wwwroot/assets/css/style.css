@@ -653,7 +653,7 @@ body {
 
 body {
   min-height: 100vh;
-  /*background: url("../img/bg.gif");*/
+  background: url("../img/bg.gif");
   background-position: top;
   background-attachment: fixed;
   background-size: cover;
@@ -966,8 +966,8 @@ body {
 }
 
 .nav__sub-list * {
-  margin-left: 20px;
-  font-size: 0.8em;
+  margin-left: 0.5rem;
+  font-size: 0.9em;
   text-align: left;
   width: 100%;
 }
