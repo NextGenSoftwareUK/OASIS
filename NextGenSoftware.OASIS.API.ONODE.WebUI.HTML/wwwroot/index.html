@@ -31,13 +31,13 @@
     <title>OASIS</title>
   </head>
 
-  <body data-theme="default">
+  <body data-theme="default" onload="setup()">
     <header class="main-header js-main-header">
       <div class="logo-wrapper js-logo-wrapper">
         <a href="#0" class="logo"> <img src="assets/img/dummy-logo.svg" alt="Logo"> </a>
       </div>
       <div class="top-nav js-top-nav">
-        <ul class="nav__list js-nav__list">
+        <ul class="nav__list js-nav__list" id="guest-links">
           <li class="nav__item js-nav__login"><a class="js-modal-trigger" href="#0" data-signin="login">Log in</a> </li>
           <li class="nav__item js-nav__login"><a class="js-modal-trigger" href="#0" data-signin="signup">Sign up</a>
           </li>
@@ -51,10 +51,10 @@
             </svg>
           </a>
           <ul class="nav__sub-list">
-            <li class="nav__sub-item"><p>dummy username</p></li>
+            <li class="nav__sub-item"><p id="username">dummy username</p></li>
             <li class="nav__sub-item"><a href="#0">View Avatar Details</a></li>
             <li class="nav__sub-item"><a href="#0">Edit Avatar Details</a></li>
-            <li class="nav__sub-item"><a href="#0">Logout</a></li>
+            <li class="nav__sub-item"><a href="#0" onclick="onLogout()">Logout</a></li>
           </ul>
         </div>
         <div class="nav__item"><button class="reset nav-trigger js-nav-trigger"

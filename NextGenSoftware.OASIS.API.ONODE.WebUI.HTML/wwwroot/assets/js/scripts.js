@@ -143,19 +143,54 @@ function putCursorAtEnd(e) {
 		: (e.value = e.value);
 }
 
-function addAuthPopup(login, msg, e, type='success') {
+
+/* Setup navbar authlinks on page load */
+function setup() {
+	var user;
+	if (localStorage.getItem('avatar'))
+		user = JSON.parse(localStorage.getItem('avatar'))
+	var loginDiv = document.querySelector('[data-display="loggedIn"]')
+
+	/*if logged in, hide guest links*/
+	if (localStorage.getItem('loggedIn') === "true"){
+		var guest_links = document.getElementById('guest-links')
+		var username = document.getElementById("username")
+		guest_links.style.display = "none"
+		username.innerHTML = user.username
+	}
+	else{
+		loginDiv.style.display = 'none'
+	}
+}
+
+function addAuthPopup(login, msg, e) {
 	// Get and remove previous pop ups
 	var prev = document.getElementsByClassName('alert')[0]
 	if (prev)prev.remove()
+	console.log(msg)
 	var formId;
+	var type;
+	var alert = msg.message || msg.title;
+	if (msg.isError || msg.status === 400){ 
+		type = 'error'
+		// alert = msg.title;
+	}
+	else {
+		type = 'success'
+		localStorage.setItem('avatar', JSON.stringify(msg.avatar));
+		localStorage.setItem('loggedIn', true)
+		//Reloads page after 5sec
+		setTimeout(()=>window.location.reload(), 5000)
+	}
 	login ? formId = 'login-form' : formId = 'signup-form'
 		// Create popup element
 		let target = document.getElementById(formId)
 		var div = document.createElement('div');
 		div.classList.add('alert')
 		div.classList.add(type)
-		div.innerHTML = msg;
+		div.innerHTML = alert;
 		target.parentNode.insertBefore(div, target)	
+		console.log(type)
 		e.preventDefault()
 }
 function onLogin() {
@@ -181,10 +216,27 @@ function onLogin() {
 		submitBtn.disabled = false
 		var t;
 		200 === e.status
-			? ((t = await e.json()), addAuthPopup(true, t.message, e))
-			: ((submitBtn.classList.add('error')), (t = await e.json()), addAuthPopup(true, t.title, e, 'error')),
+			? ((t = await e.json()), addAuthPopup(true, t, e))
+			: ((submitBtn.classList.add('error')), (t = await e.json()), addAuthPopup(true, t, e)),
 			window.location.reload();
 	})();
+}
+
+async function onLogout() {
+	const user = JSON.parse(localStorage.getItem('avatar'))
+	const body = {token: user.jwtToken}
+	console.log(body)
+	const e = await fetch('https://api.oasisplatform.world/api/avatar/revoke-token', 
+	{
+		method: 'POST',
+		body,
+		headers: {
+			'Content-Type': 'application/json'
+		}
+	})
+	localStorage.removeItem('avatar')
+	localStorage.setItem('loggedIn', false)
+	window.location.reload()
 }
 function onSignup() {
 	// Get button and change it when pressed
@@ -214,8 +266,8 @@ function onSignup() {
 
 		var t;
 		200 === e.status
-			? ((t = await e.json()), addAuthPopup(false, t.message, e))
-			: ((t = await e.json()), addAuthPopup(false, t.title, e, 'error')),
+			? ((t = await e.json()), addAuthPopup(false, t, e))
+			: ((t = await e.json()), addAuthPopup(false, t, e)),
 			window.location.reload();
 	})();
 }
