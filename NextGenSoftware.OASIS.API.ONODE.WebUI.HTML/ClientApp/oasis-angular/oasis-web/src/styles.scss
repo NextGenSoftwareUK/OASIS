@@ -1,0 +1,33 @@
+/* You can add global styles to this file, and also import other style files */
+@use "assets/globalStyles/base/mixins";
+@import "assets/globalStyles/base";
+
+:root {
+  // header
+  --header-height: 45px;
+
+  // sidebar
+  --sidebar-width: 100%;
+
+  // font
+  --font-primary: "Titillium Web", sans-serif;
+
+  --color-white: #fff;
+}
+
+@supports (--css: variables) {
+  :root {
+    @include breakpoint(sm) {
+      --header-height: 55px;
+      --sidebar-width: 400px;
+    }
+  }
+}
+body {
+  min-height: 100vh;
+  background: url("assets/img/bg.gif");
+  background-position: top;
+  background-attachment: fixed;
+  background-size: cover;
+  background-repeat: no-repeat;
+}
