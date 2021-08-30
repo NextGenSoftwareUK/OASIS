@@ -11,7 +11,7 @@ class Navbar extends Component {
 
     this.showSignup = this.showSignup.bind(this)
     this.showLogin = this.showLogin.bind(this)
-    this.hideLogins = this.hideLogins.bind(this)
+    this.closeLogins = this.closeLogins.bind(this)
     this.state = {
       showSideNav: false,
       showLogin: false,
@@ -19,7 +19,7 @@ class Navbar extends Component {
     }
   }
 
-  hideLogins() {
+  closeLogins() {
     this.setState({
       showLogin: false,
       showSignup: false
@@ -27,6 +27,7 @@ class Navbar extends Component {
   }
   showLogin() {
     this.setState({
+      showSideNav: false,
       showLogin: true,
       showSignup: false
     })
@@ -34,7 +35,8 @@ class Navbar extends Component {
   showSignup() {
     this.setState({
       showLogin: false,
-      showSignup: true
+      showSignup: true,
+      showSideNav: false
     })
   }
 
@@ -49,7 +51,7 @@ class Navbar extends Component {
           <img className="nav-logo" src={logo} alt="logo" />
         </div>
         <div className="nav-right">
-          <ul className="nav-list">
+          <ul className="nav-logins">
             <li className="nav-login"><div className="link-inverse" onClick={this.showLogin}>Log in</div> </li>
             <li className="nav-login"><div className="link-inverse" onClick={this.showSignup}>Sign up</div></li>
           </ul>
@@ -69,11 +71,13 @@ class Navbar extends Component {
           </div>
         </div>
         <div className={`login ${this.state.showLogin || this.state.showSignup ? "show" : ""}`}>
-          <button className="login-hide-btn" onClick={this.hideLogins}>X</button>
+          <button className="login-hide-btn" onClick={this.closeLogins}>X</button>
           {this.state.showLogin ? <Login change={this.showSignup} /> : null}
           {this.state.showSignup ? <Signup change={this.showLogin} /> : null}
         </div>
-        <SideNav show={this.state.showSideNav} />
+        <SideNav show={this.state.showSideNav}
+          showLogin={this.showLogin}
+          showSignup={this.showSignup} />
       </nav>
     );
   }

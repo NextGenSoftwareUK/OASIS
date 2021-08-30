@@ -25,7 +25,7 @@
 	color: #909092;
 }
 .login-form{
-	width: 300px;
+	width: 350px;
 	background-color: hsl(240, 8%, 12%);
 	border-radius: 1rem;
 	padding: 0 2rem;
@@ -58,4 +58,12 @@
 	background-color: #1885c9;
 	padding: 0.5rem 1rem;
 	border-radius: 50px;
+}
+.login-submit:hover{
+	background-color: #4440bc;
+}
+@media (max-width: 550px) {
+	.login-form{
+		width: 90vw;
+	}
 }
