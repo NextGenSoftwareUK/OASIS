@@ -1502,7 +1502,12 @@ form {
   -webkit-backdrop-filter: blur(10px);
   backdrop-filter: blur(10px);
   background-clip: padding-box;
-  overflow-y: auto
+  /* overflow-y: auto */
+}
+
+.side-nav ul.side__list {
+  overflow-y: auto;
+  height: calc(100vh - 70px);
 }
 
 .side-nav a {
@@ -1549,7 +1554,15 @@ form {
 .side__list .side__item a {
   padding-left: .25em;
   border-left: .25em solid #00000000;
-  transition: all .1s
+  transition: all .1s;
+  display: block;
+  line-height: 22px;
+}
+.side__list .side__item .sub-menu li {
+  margin: 0 0 10px;
+}
+.side__list .side__item .sub-menu li:last-child {
+  margin: 0;
 }
 
 .side__list .js-nav__login>a {

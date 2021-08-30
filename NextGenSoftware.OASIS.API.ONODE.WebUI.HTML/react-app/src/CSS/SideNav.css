@@ -13,16 +13,19 @@
   justify-content: center;
   transition: left 0.3s ease-in;
 }
-.side-nav li{
+.side-nav-menu{
   padding: 8px 4rem;
   letter-spacing: 1px;
 }
-.side-nav li:hover{
+.side-nav-menu:hover, .side-nav-subnav:hover{
   color: #fff;
-  background-color: #4440bc;;
   cursor: pointer;
   transition: all 0.2s ease-out;
 }
 .side-nav-show{
   left: 0;
+}
+.side-nav-subnav{
+  padding: 0.5rem;
+  width: 16ch;
 }
