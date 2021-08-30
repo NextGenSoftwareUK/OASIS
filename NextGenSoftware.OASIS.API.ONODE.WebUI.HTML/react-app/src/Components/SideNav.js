@@ -104,8 +104,10 @@ export class SideNav extends Component {
   render() {
     return (
       <div className={`side-nav${this.props.show ? " side-nav-show" : ""}`}>
-        <ul>
+        <ul className="side-nav-list">
           {data.map((menu, index) => <SideMenu menu={menu} key={index} />)}
+          <li className="side-nav-logins"><div className="link-inverse" onClick={this.props.showLogin}>Log in</div> </li>
+          <li className="side-nav-logins"><div className="link-inverse" onClick={this.props.showSignup}>Sign up</div></li>
         </ul>
       </div>
     )
