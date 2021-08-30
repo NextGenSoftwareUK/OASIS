@@ -4,11 +4,11 @@
     </div>
     <div class="top-nav js-top-nav">
         <ul class="nav__list js-nav__list">
-            <li class="nav__item js-nav__login"><a class="js-modal-trigger" href="#0" id="loginBtn"
-                    data-signin="login">Log
+            <li class="nav__item js-nav__login"><a class="js-modal-trigger" href="#0" (click)="loginBtnClick()"
+                    id="loginBtn" data-signin="login">Log
                     in</a> </li>
-            <li class="nav__item js-nav__login"><a class="js-modal-trigger" href="#0" id="signupBtn"
-                    data-signin="signup">Sign up</a>
+            <li class="nav__item js-nav__login"><a class="js-modal-trigger" href="#0" (click)="signupBtnClick()"
+                    id="signupBtn" data-signin="signup">Sign up</a>
             </li>
         </ul>
         <div class="nav__item nav__item--account" data-display="loggedIn">
@@ -26,9 +26,8 @@
             </ul>
         </div>
         <div class="nav__item">
-            <button (click)="toggleMenu()" class="reset nav-trigger js-nav-trigger"
+            <button (click)="toggleMenu()" [ngClass]="menuBtnClass" class="reset nav-trigger js-nav-trigger"
                 aria-label="Toggle menu"><span></span></button>
         </div>
     </div>
 </header>
-<app-side-nav [(visible)]="isMenuVisible"></app-side-nav>
