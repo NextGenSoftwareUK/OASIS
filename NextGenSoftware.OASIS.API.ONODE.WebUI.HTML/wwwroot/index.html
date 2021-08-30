@@ -22,7 +22,6 @@
     <script src="assets/js/jquery.js"></script>
     <script src="assets/js/modernizr.js"></script>
     <link rel="stylesheet" href="assets/css/style.css">
-    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.12.1/css/all.css" crossorigin="anonymous">
     <script>
       if (!('CSS' in window) || !CSS.supports('color', 'var(--color-var)')) { var cfStyle = document.getElementById('codyframe'); if (cfStyle) { var href = cfStyle.getAttribute('href'); href = href.replace('style.css', 'style-fallback.css'); cfStyle.setAttribute('href', href); } }
     </script>
@@ -61,6 +60,26 @@
             aria-label="Toggle menu"><span></span></button>
         </div>
       </div>
+      <script type="text/javascript">
+        function setup() {
+          var user;
+          if (localStorage.getItem('avatar'))
+            user = JSON.parse(localStorage.getItem('avatar'))
+          var loginDiv = document.querySelector('[data-display="loggedIn"]')
+
+          /*if logged in, hide guest links*/
+          if (localStorage.getItem('loggedIn') === "true"){
+            var guest_links = document.getElementById('guest-links')
+            var username = document.getElementById("username")
+            guest_links.style.display = "none"
+            username.innerHTML = user.username
+          }
+          else{
+            loginDiv.style.display = 'none'
+          }
+        }
+        setup()
+      </script>
     </header>
     <main class="main-content">
       <nav class="side-nav js-side-nav">
