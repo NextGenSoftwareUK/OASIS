@@ -2,7 +2,6 @@
   background-color: rgba(0, 0, 0, 0.88);
   color: #1885c9;
   height: 100vh;
-  width: 250px;
   text-transform: uppercase;
   position: fixed;
   padding-top: 48px;
@@ -12,20 +11,38 @@
   display: flex;
   justify-content: center;
   transition: left 0.3s ease-in;
+  overflow: auto;
 }
 .side-nav-menu{
   padding: 8px 4rem;
   letter-spacing: 1px;
 }
 .side-nav-menu:hover, .side-nav-subnav:hover{
-  color: #fff;
-  cursor: pointer;
-  transition: all 0.2s ease-out;
+  background-color: #4440bc;
 }
 .side-nav-show{
   left: 0;
 }
 .side-nav-subnav{
-  padding: 0.5rem;
-  width: 16ch;
+  padding: 8px 4rem 8px 5rem;
+}
+.side-nav-logins{
+  visibility: hidden;
+  padding: 8px 4rem;
+}
+
+@media (max-width: 550px) {
+  .side-nav{
+    width: 100%;
+    left: -100%;
+  }
+  .side-nav-show{
+    left: 0;
+  }
+  .side-nav-subnav{
+    width: 100%;
+  }
+  .side-nav-logins{
+    visibility: visible;
+  }
 }
