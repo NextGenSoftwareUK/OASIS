@@ -12,6 +12,7 @@
   display: flex;
   justify-content: center;
   transition: left 0.3s ease-in;
+  overflow: auto;
 }
 .side-nav-menu{
   padding: 8px 4rem;
@@ -28,4 +29,24 @@
 .side-nav-subnav{
   padding: 0.5rem;
   width: 16ch;
+}
+.side-nav-logins{
+  visibility: hidden;
+  padding: 8px 4rem;
+}
+
+@media (max-width: 550px) {
+  .side-nav{
+    width: 100%;
+    left: -100%;
+  }
+  .side-nav-show{
+    left: 0;
+  }
+  .side-nav-subnav{
+    width: 100%;
+  }
+  .side-nav-logins{
+    visibility: visible;
+  }
 }
