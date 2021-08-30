@@ -1085,8 +1085,8 @@ body {
   margin: 0 auto;
   align-items: center;
   justify-content: center;
-  -webkit-transform: translateY(-50%);
-  transform: translateY(-50%);
+  -webkit-transform: translate(0, -50%);
+  transform: translate(0, -50%);
   min-width: var(--max-width-xxxxs);
   -webkit-backdrop-filter: blur(5px);
   backdrop-filter: blur(5px);
@@ -1097,9 +1097,30 @@ body {
   letter-spacing: 0.1em
 }
 
+
+@keyframes enter {
+  10%{
+    transform: translate(0, -50%) rotateY(170deg);
+    opacity: 0.1;
+  }
+  50%{
+    transform: translate(0, -50%) rotateY(120deg);
+    opacity: 0.3;
+  }
+
+  70% {
+    transform:  translate(0, -50%)rotateY(50deg);
+    opacity: 0.5;
+  }
+  100%{
+    opacity: 1;
+    transform: translate(0, -50%) rotateY(0deg);
+  }
+}
 .modal__block.is-selected {
   display: block;
   opacity: 1;
+  animation: enter 0.4s ease-in;
   visibility: visible
 }
 
@@ -1129,7 +1150,7 @@ form {
 
 @media (prefers-reduced-motion: no-preference) {
   .modal--animate-scale {
-    --modal-transition-duration: .2s;
+    --modal-transition-duration: .4s;
     transition: opacity var(--modal-transition-duration), background-color var(--modal-transition-duration), visibility 0s var(--modal-transition-duration)
   }
 

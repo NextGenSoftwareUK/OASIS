@@ -196,7 +196,7 @@ function addAuthPopup(login, msg, e) {
 function onLogin() {
 	// Get button and change it when pressed
 	const submitBtn = document.getElementById('login-submit')
-	submitBtn.innerHTML = 'logging in... <i class="fas fa-spinner fa-spin"></i>'
+	submitBtn.innerHTML = 'logging in... <img width="20px" src="assets/img/loading.gif"/>'
 	submitBtn.disabled = true
 	let n = {
 		email: document.getElementById('login-email').value,
@@ -241,7 +241,7 @@ async function onLogout() {
 function onSignup() {
 	// Get button and change it when pressed
 	const submitBtn = document.getElementById('signup-submit')
-	submitBtn.innerHTML = 'loading... <i class="fas fa-spinner fa-spin"></i>'
+	submitBtn.innerHTML = 'loading... <img width="20px" src="assets/img/loading.gif"/>'
 	submitBtn.disabled = true
 	let n = {
 		email: document.getElementById('signup-email').value,
