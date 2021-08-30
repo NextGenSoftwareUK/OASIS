@@ -1,6 +1,8 @@
-<app-header></app-header>
+<app-header [(menuVisible)]="showMenu" [(clickedWhere)]="clickedWhere"></app-header>
 <main class="main-header js-main-header j">
-  <app-side-nav></app-side-nav>
+  <app-side-nav [(visible)]="showMenu"></app-side-nav>
   <div class="content-wrapper">
+
   </div>
 </main>
+<app-login [(visible)]="isVisibleLP" [view]="clickedWhere"></app-login>

@@ -1,7 +1,7 @@
-@import "/src/assets/globalStyles/base/mixins";
+@import "/src/assets/globalStyles/base";
 .main-header {
   position: relative;
-  z-index: var(--zindex-fixed-element);
+  z-index: 1;
   height: var(--header-height);
   display: flex;
   justify-content: space-between;

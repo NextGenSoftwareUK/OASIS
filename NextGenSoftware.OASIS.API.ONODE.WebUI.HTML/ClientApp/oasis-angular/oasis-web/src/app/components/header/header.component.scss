@@ -16,6 +16,7 @@ File#: _1_header
 
   // font
   --font-primary: "Titillium Web", sans-serif;
+  --color-white: #fff;
 }
 
 @supports (--css: variables) {
@@ -58,7 +59,7 @@ header
 
 .main-header {
   position: relative;
-  z-index: var(--zindex-fixed-element);
+  z-index: 2;
   height: var(--header-height);
   display: flex;
   justify-content: space-between;
@@ -249,7 +250,7 @@ header
   span::before,
   span::after {
     // make sure other 2 lines are visible
-    background: alpha(var(--color-white), 1);
+    background: var(--color-white);
   }
 
   span::before {

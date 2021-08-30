@@ -43,6 +43,7 @@ File#: _1_side-nav
   backdrop-filter: blur(10px);
   background-clip: padding-box;
   overflow-y: auto;
+  margin-top: -60px;
   // border-left: 2.5em solid hsla(0, 0%, 0%, 0.333);
 
   a {
@@ -121,20 +122,26 @@ File#: _1_side-nav
       padding: 10px 10px 10px 15px;
     }
   }
-}
 
-li i.material-icons {
-  float: left;
-  margin-left: 5px;
-  margin-top: 3px;
-}
-.sub-menu li i.material-icons {
-  margin-left: -23px;
-}
-.sub-menu li {
-  padding-left: 10px;
-  font-size: 0.85em;
-}
-.jsonIcon {
-  font-size: 0.7em;
+  li i.material-icons {
+    float: left;
+    margin-left: 5px;
+    margin-top: 3px;
+  }
+  .sub-menu li i.material-icons {
+    margin-left: -23px;
+  }
+  .sub-menu li {
+    padding-left: 10px;
+    font-size: 0.85em;
+  }
+  .jsonIcon {
+    font-size: 0.7em;
+  }
+  .show {
+    display: block;
+  }
+  .hide {
+    display: none;
+  }
 }

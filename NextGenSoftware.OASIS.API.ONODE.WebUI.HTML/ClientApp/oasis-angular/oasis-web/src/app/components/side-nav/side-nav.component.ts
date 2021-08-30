@@ -16,4 +16,14 @@ export class SideNavComponent implements OnInit {
   //   this.stylesObj['is-visible'] = this.visible;
   //   this.visibleChange.emit(this.visible);
   // }
+  menuItemClick(event: any) {
+    var elem = event.target as HTMLElement;
+    if (elem.classList.contains('submenu-open')) {
+      elem.classList.remove('submenu-open');
+      elem.nextElementSibling?.classList.remove('show');
+    } else {
+      elem.classList.add('submenu-open');
+      elem.nextElementSibling?.classList.add('show');
+    }
+  }
 }
