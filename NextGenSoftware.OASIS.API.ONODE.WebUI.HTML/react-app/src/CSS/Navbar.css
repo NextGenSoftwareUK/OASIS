@@ -6,6 +6,7 @@
   justify-content: space-between;
   align-items: center;
   padding: 0 1rem;
+  padding-right: 2rem;
 }
 .nav-left{
   display: flex;
@@ -16,11 +17,26 @@
   text-align: center;
 }
 .nav-avatar{
-  color: var(--color-white);
   display: flex;
-  padding: auto 0;
-  text-align: center;
   width: 2em;
+  color: #fff;
+}
+.nav-avatar-dropdown{
+  display: none;
+  position: absolute;
+  background-color: rgba(0, 0, 0, 0.88);
+  top: 23px;
+  right: 0;
+}
+.nav-avatar-dropdown-item{
+  padding: 8px 1rem;
+  letter-spacing: 1px;
+}
+.nav-avatar-dropdown-item:hover{
+  background-color: #4440bc;
+}
+.nav-avatar:hover .enabled{
+  display: block;
 }
 .nav-login{
   margin-left: auto;
