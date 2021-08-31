@@ -1,12 +1,12 @@
 .side-nav{
   background-color: rgba(0, 0, 0, 0.88);
   color: #1885c9;
-  height: 100vh;
+  height: 100%;
   text-transform: uppercase;
   position: fixed;
   padding-top: 48px;
   top: 0;
-  left: -250px;
+  left: -50%;
   z-index: -1;
   display: flex;
   justify-content: center;
@@ -38,9 +38,6 @@
   }
   .side-nav-show{
     left: 0;
-  }
-  .side-nav-subnav{
-    width: 100%;
   }
   .side-nav-logins{
     visibility: visible;
