@@ -24,9 +24,12 @@ export default class Login extends Component {
 
         // hide the login/signup buttons
         var elementList = document.getElementsByClassName("nav-logins");
+        var avatarDropdowm = document.getElementByClassName("nav-avatar-dropdowm");
+
         for (var i = 0; i < elementList.length; i++) {
-          elementList[i].classList.add('hide-logins');
+          elementList[i].classList.add('hide-logins')
         }
+        avatarDropdowm.classList.add('enabled')
         //===============================//
 
         window.location.reload();
