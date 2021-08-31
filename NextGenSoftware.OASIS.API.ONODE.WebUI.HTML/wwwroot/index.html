@@ -22,7 +22,6 @@
     <script src="assets/js/jquery.js"></script>
     <script src="assets/js/modernizr.js"></script>
     <link rel="stylesheet" href="assets/css/style.css">
-    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.12.1/css/all.css" crossorigin="anonymous">
     <script>
       if (!('CSS' in window) || !CSS.supports('color', 'var(--color-var)')) { var cfStyle = document.getElementById('codyframe'); if (cfStyle) { var href = cfStyle.getAttribute('href'); href = href.replace('style.css', 'style-fallback.css'); cfStyle.setAttribute('href', href); } }
     </script>
@@ -44,11 +43,7 @@
         </ul>
         <div class="nav__item nav__item--account" data-display="loggedIn">
           <a href="#0" onclick="accountDropdown()">
-            <svg class="avatar" viewBox="0 0 26.5 26.5">
-              <path
-                d="M24.75 13.25a11.5 11.5 0 01-11.5 11.5 11.5 11.5 0 01-11.5-11.5 11.5 11.5 0 0111.5-11.5 11.5 11.5 0 0111.5 11.5zm-3.501 8.243c-.5-3.246-4-6.246-7.995-6.238C9.25 15.247 5.75 18.247 5.25 21.5m13-11.248a5 5 0 01-5 5 5 5 0 01-5-5 5 5 0 015-5 5 5 0 015 5z"
-                fill="none" stroke="currentColor" stroke-width="1.5" />
-            </svg>
+            <img class="avatar" src="assets/img/loggedout.png">
           </a>
           <ul class="nav__sub-list">
             <li class="nav__sub-item"><p id="username">dummy username</p></li>
@@ -61,8 +56,39 @@
             aria-label="Toggle menu"><span></span></button>
         </div>
       </div>
+      <script type="text/javascript">
+        function setup() {
+          var user;
+          if (localStorage.getItem('avatar'))
+            user = JSON.parse(localStorage.getItem('avatar'))
+          var loginDiv = document.querySelector('[data-display="loggedIn"]')
+          var avatarDiv = document.querySelector('.nav__item--account')
+          var icon = document.getElementsByClassName('avatar')[0]
+
+          /*if logged in, hide guest links*/
+          if (localStorage.getItem('loggedIn') === "true"){
+            var guest_links = document.getElementById('guest-links')
+            var username = document.getElementById("username")
+            guest_links.style.display = "none"
+            avatarDiv.classList.add('loggedin')
+            username.innerHTML = user.username
+            icon.src='assets/img/loggedin.png'
+          }
+
+          /* Do not show drop down*/
+          else{
+            // loginDiv.style.display = 'none'
+            if (avatarDiv.classList.contains('loggedin')) {
+              avatarDiv.classList.remove('loggedin')
+            }
+           icon.src='assets/img/loggedout.png' 
+          }
+        }
+        setup()
+      </script>
     </header>
     <main class="main-content">
+      <div id="loading"></div>
       <nav class="side-nav js-side-nav">
         <ul class="side__list js-side__list ">
           <!-- <li class="side__item">
