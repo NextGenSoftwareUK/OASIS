@@ -144,23 +144,32 @@ function putCursorAtEnd(e) {
 }
 
 
-/* Setup navbar authlinks on page load */
 function setup() {
-	var user;
-	if (localStorage.getItem('avatar'))
-		user = JSON.parse(localStorage.getItem('avatar'))
-	var loginDiv = document.querySelector('[data-display="loggedIn"]')
+  var user;
+  if (localStorage.getItem('avatar'))
+    user = JSON.parse(localStorage.getItem('avatar'))
+  var loginDiv = document.querySelector('[data-display="loggedIn"]')
+  var avatarDiv = document.querySelector('.nav__item--account')
+  var icon = document.getElementsByClassName('avatar')[0]
 
-	/*if logged in, hide guest links*/
-	if (localStorage.getItem('loggedIn') === "true"){
-		var guest_links = document.getElementById('guest-links')
-		var username = document.getElementById("username")
-		guest_links.style.display = "none"
-		username.innerHTML = user.username
-	}
-	else{
-		loginDiv.style.display = 'none'
-	}
+  /*if logged in, hide guest links*/
+  if (localStorage.getItem('loggedIn') === "true"){
+    var guest_links = document.getElementById('guest-links')
+    var username = document.getElementById("username")
+    guest_links.style.display = "none"
+    avatarDiv.classList.add('loggedin')
+    username.innerHTML = user.username
+    icon.src='assets/img/loggedin.png'
+  }
+
+  /* Do not show drop down*/
+  else{
+    // loginDiv.style.display = 'none'
+    if (avatarDiv.classList.contains('loggedin')) {
+      avatarDiv.classList.remove('loggedin')
+    }
+   icon.src='assets/img/loggedout.png' 
+  }
 }
 
 function addAuthPopup(login, msg, e) {
@@ -196,7 +205,7 @@ function addAuthPopup(login, msg, e) {
 function onLogin() {
 	// Get button and change it when pressed
 	const submitBtn = document.getElementById('login-submit')
-	submitBtn.innerHTML = 'logging in... <i class="fas fa-spinner fa-spin"></i>'
+	submitBtn.innerHTML = 'logging in... <img width="20px" src="assets/img/loading.gif"/>'
 	submitBtn.disabled = true
 	let n = {
 		email: document.getElementById('login-email').value,
@@ -224,12 +233,19 @@ function onLogin() {
 
 async function onLogout() {
 	const user = JSON.parse(localStorage.getItem('avatar'))
+	console.log(JSON.parse(localStorage.getItem('avatar')))
 	const body = {token: user.jwtToken}
+	const loading = document.getElementById('loading')
+	
+	loading.classList.add('modal')
+	loading.classList.add('is-visible')
+	loading.innerHTML = '<img src="assets/img/loading.gif"/>'
 	console.log(body)
+
 	const e = await fetch('https://api.oasisplatform.world/api/avatar/revoke-token', 
 	{
 		method: 'POST',
-		body,
+		body: JSON.stringify(body),
 		headers: {
 			'Content-Type': 'application/json'
 		}
@@ -241,7 +257,7 @@ async function onLogout() {
 function onSignup() {
 	// Get button and change it when pressed
 	const submitBtn = document.getElementById('signup-submit')
-	submitBtn.innerHTML = 'loading... <i class="fas fa-spinner fa-spin"></i>'
+	submitBtn.innerHTML = 'loading... <img width="20px" src="assets/img/loading.gif"/>'
 	submitBtn.disabled = true
 	let n = {
 		email: document.getElementById('signup-email').value,
@@ -274,7 +290,7 @@ function onSignup() {
 
 function accountDropdown() {
 	// Check if device is mobile...
-	if( /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ) {
+	if( /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) && localStorage.getItem('loggedIn') === "true") {
 		// Get dropdown list
 		var dropdown = document.getElementsByClassName('nav__sub-list')[0]
 		if (dropdown.classList.contains('nav__sub-list--clicked')) {
