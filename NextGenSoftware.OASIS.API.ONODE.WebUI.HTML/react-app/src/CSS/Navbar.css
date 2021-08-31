@@ -32,17 +32,6 @@
   padding: 0 1.5vw;
   line-height: 1.2;
 }
-a {
-  display: flex;
-  align-items: center;
-  color: #fff;
-  text-align: center;
-  border: none;
-  transition: all 0.2s ease;
-}
-a:hover {
-  color: #1885c9;
-}
 
 /* ================== For the side nav hamburger button ====================== */
 .nav-menu-btn {
@@ -88,3 +77,15 @@ a:hover {
   transform: rotate(-45deg);
 }
 /* ========================================================== */
+
+.hide-logins{
+  visibility: hidden;
+  display: none;
+}
+
+@media (max-width: 550px) {
+  .nav-logins{
+    visibility: hidden;
+    display: none;
+  }
+}
