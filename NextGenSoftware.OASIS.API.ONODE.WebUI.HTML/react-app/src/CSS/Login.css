@@ -46,14 +46,18 @@
 	top: 48px;
 	right: 48px;
 	color: #fff;
+	width: 40px;
+	height: 40px;
+	border-radius: 5rem;
 	cursor: pointer;
 }
 .login-hide-btn:hover{
-	color: #909092;
+	color: #f70909;
 }
 .login-form{
 	width: 350px;
-	background-color: hsl(240, 8%, 12%);
+	background-color: hsla(240, 8%, 12%, 0.8);
+	opacity: 0;
 	border-radius: 1rem;
 	padding: 0 2rem;
 	animation: formAnim 400ms ease-in forwards;
@@ -70,28 +74,56 @@
 	flex-direction: column;
 	margin: 2rem 0;
 }
-.login-inputs input{
+.login-input > input{
+
+	color: #909092;
+	/* border: 1px solid #909092; */
+	font-size: 1.15rem;
+	border: none;
+	outline: none;
+	flex: auto;
+}
+
+.login-input {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
 	margin-bottom: 1rem;
 	margin-top: 0.25rem;
-	color: #909092;
 	border: 1px solid #909092;
-	font-size: 1.15rem;
 	padding: 0.5rem;
 	border-radius: 5px;
 }
+
+.login-checkbox{
+	display: flex;
+	align-items: center;
+}
+
+.login-checkbox input {
+	margin-right: 0.5rem;
+}
+
 .login-submit{
-	margin: 2rem 0;
+	margin: 2rem auto;
 	font-size: 1.25rem;
 	color: #fff;
 	background-color: #1885c9;
 	padding: 0.5rem 1rem;
-	border-radius: 50px;
+	border-radius: 5rem;
+	cursor: pointer;
+	width: 60%;
+	transition: all 200ms ease-in;
 }
 .login-submit:hover{
-	background-color: #4440bc;
+	background-color: #52b2ee;
 }
 @media (max-width: 550px) {
 	.login-form{
 		width: 90vw;
 	}
+}
+
+#togglePassword {
+	font-size: large;
 }
