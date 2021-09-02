@@ -537,76 +537,138 @@ jQuery(document).ready(function ($) {
 		$(this).toggleClass('submenu-open').next('.sub-menu').slideToggle(300).end().parent('.item--has-children').siblings('.item--has-children').children('a').removeClass('submenu-open').next('.sub-menu').slideUp(300);
 	});
 });
-// File: login.js
-
-function onLogin() {
-  let email = document.getElementById('login-email').value;
-  let password = document.getElementById('login-password').value;
-  let userObject = {
-    email,
-    password
-  }
-  const userAction = async () => {
-    const response = await fetch('https://api.oasisplatform.world/api/avatar/authenticate', {
-      method: 'POST',
-      body: JSON.stringify(userObject), // string or object
-      headers: {
-        'Content-Type': 'application/json'
-      }
-    });
-    if (response.status === 200) {
-      const myJson = await response.json(); //extract JSON from the http response
-      alert(myJson.message);
-      window.location.reload();
+function addAuthPopup(login, msg, e) {
+    // Get and remove previous pop ups
+    var prev = document.getElementsByClassName('alert')[0];
+    if (prev) prev.remove();
+    console.log(msg);
+    var formId;
+    var type;
+    var alert = msg.message || msg.title;
+    if (msg.isError || msg.status === 400) {
+        type = 'error';
+        // alert = msg.title;
     } else {
-      const myJson = await response.json(); //extract JSON from the http response
-      alert(myJson.title);
-      window.location.reload();
+        type = 'success';
+        if (login) {
+            localStorage.setItem('avatar', JSON.stringify(msg.avatar));
+            localStorage.setItem('loggedIn', true);
+        }
+        //Reloads page after 5sec
+        setTimeout(() => window.location.reload(), 5000);
     }
-
-  }
-  userAction();
+    login ? (formId = 'login-form') : (formId = 'signup-form');
+    // Create popup element
+    let target = document.getElementById(formId);
+    var div = document.createElement('div');
+    div.classList.add('alert');
+    div.classList.add(type);
+    div.innerHTML = alert;
+    target.parentNode.insertBefore(div, target);
+    console.log(type);
+    e.preventDefault();
 }
-// File: signup.js
+function onLogin() {
+    // Get button and change it when pressed
+    const submitBtn = document.getElementById('login-submit');
+    submitBtn.innerHTML =
+        'logging in... <img width="20px" src="assets/img/loading.gif"/>';
+    submitBtn.disabled = true;
+    let n = {
+        email: document.getElementById('login-email').value,
+        password: document.getElementById('login-password').value,
+    };
+    (async () => {
+        const e = await fetch(
+            'https://api.oasisplatform.world/api/avatar/authenticate',
+            {
+                method: 'POST',
+                body: JSON.stringify(n),
+                headers: { 'Content-Type': 'application/json' },
+            }
+        );
+        // Re-enable button after request
+        submitBtn.innerHTML = 'Submit';
+        submitBtn.disabled = false;
+        var t;
+        200 === e.status
+            ? ((t = await e.json()), addAuthPopup(true, t, e))
+            : (submitBtn.classList.add('error'),
+              (t = await e.json()),
+              addAuthPopup(true, t, e)),
+            window.location.reload();
+    })();
+}
+
+async function onLogout() {
+    const user = JSON.parse(localStorage.getItem('avatar'));
+    console.log(JSON.parse(localStorage.getItem('avatar')));
+    const body = { token: user.jwtToken };
+    const loading = document.getElementById('loading');
+
+    loading.classList.add('modal');
+    loading.classList.add('is-visible');
+    loading.innerHTML = '<img src="assets/img/loading.gif"/>';
+    console.log(body);
+
+    const e = await fetch(
+        'https://api.oasisplatform.world/api/avatar/revoke-token',
+        {
+            method: 'POST',
+            body: JSON.stringify(body),
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        }
+    );
+    localStorage.removeItem('avatar');
+    localStorage.setItem('loggedIn', false);
+    window.location.reload();
+}
 
 function onSignup() {
-    // let title = document.getElementById('signup-title').value;
-    // let firstName = document.getElementById('signup-first-name').value;
-    // let lastName = document.getElementById('signup-last-name').value;
-    let email = document.getElementById('signup-email').value;
-    let password = document.getElementById('signup-password').value;
-    let confirmPassword = document.getElementById('confirm-signup-password').value;
-    let userObject = {
-        // title,
-        // firstName,
-        // lastName,
-        email,
-        password,
-        confirmPassword,
-        "acceptTerms": true,
-        "avatarType": "User"
-    }
-    const userAction = async () => {
-        const response = await fetch('https://api.oasisplatform.world/api/avatar/register', {
-          method: 'POST',
-          body: JSON.stringify(userObject), // string or object
-          headers: {
-            'Content-Type': 'application/json'
-          }
-        });
-        if(response.status === 200)
-        {
-            const myJson = await response.json(); //extract JSON from the http response
-            alert(myJson.message);
-            window.location.reload();
-        }
-        else
-        {
-            const myJson = await response.json(); //extract JSON from the http response
-            alert(myJson.title);
-            window.location.reload();
-        }
+	// Get button and change it when pressed
+	const submitBtn = document.getElementById('signup-submit')
+	submitBtn.innerHTML = 'loading... <img width="20px" src="assets/img/loading.gif"/>'
+	submitBtn.disabled = true
+	let n = {
+		email: document.getElementById('signup-email').value,
+		password: document.getElementById('signup-password').value,
+		confirmPassword: document.getElementById('confirm-signup-password').value,
+		acceptTerms: !0,
+		avatarType: 'User',
+	};
+	(async () => {
+		const e = await fetch(
+			'https://api.oasisplatform.world/api/avatar/register',
+			{
+				method: 'POST',
+				body: JSON.stringify(n),
+				headers: { 'Content-Type': 'application/json' },
+			}
+		);
+		submitBtn.innerHTML = 'Submit'
+		submitBtn.disabled = false
 
-    }
-    userAction();
+		e.status !== 200 ? submitBtn.classList.add('error'):null
+
+		var t;
+		200 === e.status
+			? ((t = await e.json()), addAuthPopup(false, t, e))
+			: ((t = await e.json()), addAuthPopup(false, t, e)),
+			window.location.reload();
+	})();
+}
+
+function accountDropdown() {
+	// Check if device is mobile...
+	if( /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) && localStorage.getItem('loggedIn') === "true") {
+		// Get dropdown list
+		var dropdown = document.getElementsByClassName('nav__sub-list')[0]
+		if (dropdown.classList.contains('nav__sub-list--clicked')) {
+			dropdown.classList.remove('nav__sub-list--clicked')
+			return
+		}
+		dropdown.classList.add('nav__sub-list--clicked')
+	} 
 }
