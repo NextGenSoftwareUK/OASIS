@@ -1,3 +1,4 @@
+import axios from "axios";
 import React, { Component } from "react";
 import "../CSS/Login.css";
 
@@ -62,22 +63,22 @@ export default class Signup extends Component {
     handleSignup = (e) => {
         e.preventDefault();
 
-        if(this.state.password == this.state.confirm_password) {
+        if (this.state.password === this.state.confirm_password) {
             let data = {
                 email: this.state.email,
                 password: this.state.password
             }
-    
-            const headers = { 
+
+            const headers = {
                 'Content-Type': 'application/json'
             };
-    
-            axios.post('https://api.oasisplatform.world/api/avatar/register', data, {headers})
-            .then(response => {
-                console.log(response);
-            }).catch(error => {
-                console.error('There was an error!', error);
-            });
+
+            axios.post('https://api.oasisplatform.world/api/avatar/register', data, { headers })
+                .then(response => {
+                    console.log(response);
+                }).catch(error => {
+                    console.error('There was an error!', error);
+                });
         } else {
             console.log('Password did not match');
             alert('Password did not match');
@@ -85,15 +86,15 @@ export default class Signup extends Component {
     }
 
     handleEmailChange = (event) => {
-        this.setState({email: event.target.value});
+        this.setState({ email: event.target.value });
     }
 
     handlePasswordChange = (event) => {
-        this.setState({password: event.target.value});
+        this.setState({ password: event.target.value });
     }
 
     handleConfirmPasswordChange = (event) => {
-        this.setState({password: event.target.value});
+        this.setState({ confirm_password: event.target.value });
     }
 
     render() {
@@ -109,17 +110,17 @@ export default class Signup extends Component {
                 <div className="login-inputs">
                     <label htmlFor="login-email">EMAIL</label>
                     <input value={this.state.email} onChange={this.handleEmailChange} type="email" placeholder="name@example.com" />
-            
+
                     <label htmlFor="login-password">PASSWORD</label>
                     <input type="password" value={this.state.password} onChange={this.handlePasswordChange} />
-                
+
                     <label htmlFor="confirm-signup-password">Confirm Password</label>
                     <input type="password" value={this.state.confirm_password} onChange={this.handleConfirmPasswordChange} />
-                
+
                     <div>
                         <input type="checkbox" name="accept-terms" id="accept-terms" />
-                        <label for="accept-terms">
-                            I have read and accept the 
+                        <label htmlFor="accept-terms">
+                            I have read and accept the
                             <a href="#0" className="link">Terms of Service</a>
                         </label>
                     </div>
