@@ -12,6 +12,16 @@ using MessagePack;
 
 namespace NextGenSoftware.Holochain.HoloNET.Client.Core
 {
+    [MessagePackObject]
+    public class Temp
+    {
+        [Key(0)]
+        public string Name { get; set; }
+
+        [Key(1)]
+        public string Desc { get; set; }
+    }
+
     public abstract class HoloNETClientBase
     {
         private const int ReceiveChunkSizeDefault = 1024;
@@ -341,7 +351,8 @@ namespace NextGenSoftware.Holochain.HoloNET.Client.Core
                             cell_id = new byte[2][]{ Encoding.UTF8.GetBytes(HoloHash), Encoding.UTF8.GetBytes(AgentPubKey) },
                             fn_name = function,
                             zome_name = zome,
-                            payload = MessagePackSerializer.Serialize(paramsObject),
+                            //payload = MessagePackSerializer.Serialize(paramsObject),
+                            payload = MessagePackSerializer.Serialize(new Temp() { Name = "blah", Desc = "moooooo!" }),
                             provenance = Encoding.UTF8.GetBytes(AgentPubKey),
                             cap = null
                         }
