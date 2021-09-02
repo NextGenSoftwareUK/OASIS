@@ -74,13 +74,15 @@
 	flex-direction: column;
 	margin: 2rem 0;
 }
-.login-input > input{
+.login-inputs > input{
 
 	color: #909092;
-	/* border: 1px solid #909092; */
+	border: 1px solid #909092;
+	margin-bottom: 1rem;
+	margin-top: 0.5rem;
+	padding: 0.25rem 1rem;
 	font-size: 1.15rem;
-	border: none;
-	outline: none;
+	border-radius: 5px;
 	flex: auto;
 }
 
