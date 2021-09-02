@@ -1,49 +1,46 @@
-// File: signup.js
-
 function onSignup() {
-    // let title = document.getElementById('signup-title').value;
-    // let firstName = document.getElementById('signup-first-name').value;
-    // let lastName = document.getElementById('signup-last-name').value;
-    let email = document.getElementById('signup-email').value;
-    let password = document.getElementById('signup-password').value;
-    let confirmPassword = document.getElementById('confirm-signup-password').value;
-    let userObject = {
-        // title,
-        // firstName,
-        // lastName,
-        email,
-        password,
-        confirmPassword,
-        "acceptTerms": true,
-        "avatarType": "User"
-    }
-    const userAction = async () => {
-        const response = await fetch('https://api.oasisplatform.world/api/avatar/register', {
-            method: 'POST',
-            body: JSON.stringify(userObject), // string or object
-            headers: {
-                'Content-Type': 'application/json'
-            }
-        });
-        if (response.status === 200) {
-            const myJson = await response.json(); //extract JSON from the http response
-            alert(myJson.message);
+	// Get button and change it when pressed
+	const submitBtn = document.getElementById('signup-submit')
+	submitBtn.innerHTML = 'loading... <img width="20px" src="assets/img/loading.gif"/>'
+	submitBtn.disabled = true
+	let n = {
+		email: document.getElementById('signup-email').value,
+		password: document.getElementById('signup-password').value,
+		confirmPassword: document.getElementById('confirm-signup-password').value,
+		acceptTerms: !0,
+		avatarType: 'User',
+	};
+	(async () => {
+		const e = await fetch(
+			'https://api.oasisplatform.world/api/avatar/register',
+			{
+				method: 'POST',
+				body: JSON.stringify(n),
+				headers: { 'Content-Type': 'application/json' },
+			}
+		);
+		submitBtn.innerHTML = 'Submit'
+		submitBtn.disabled = false
 
-            // hide the login/signup buttons
-            var elementList = document.getElementsByClassName("js-nav__login");
-            for (var i = 0; i < elementList.length; i++) {
-                elementList[i].classList.add('hide-logins');
-            }
-            //===============================//
+		e.status !== 200 ? submitBtn.classList.add('error'):null
 
-            window.location.reload();
-        }
-        else {
-            const myJson = await response.json(); //extract JSON from the http response
-            alert(myJson.title);
-            window.location.reload();
-        }
+		var t;
+		200 === e.status
+			? ((t = await e.json()), addAuthPopup(false, t, e))
+			: ((t = await e.json()), addAuthPopup(false, t, e)),
+			window.location.reload();
+	})();
+}
 
-    }
-    userAction();
+function accountDropdown() {
+	// Check if device is mobile...
+	if( /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) && localStorage.getItem('loggedIn') === "true") {
+		// Get dropdown list
+		var dropdown = document.getElementsByClassName('nav__sub-list')[0]
+		if (dropdown.classList.contains('nav__sub-list--clicked')) {
+			dropdown.classList.remove('nav__sub-list--clicked')
+			return
+		}
+		dropdown.classList.add('nav__sub-list--clicked')
+	} 
 }

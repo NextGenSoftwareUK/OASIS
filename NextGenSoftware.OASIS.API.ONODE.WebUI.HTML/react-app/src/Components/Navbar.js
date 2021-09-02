@@ -69,7 +69,7 @@ class Navbar extends Component {
           </div>
         </div>
         <div className={`login ${this.state.showLogin || this.state.showSignup ? "show" : ""}`}>
-          <button className="login-hide-btn" onClick={this.closeLogins}>X</button>
+          <button className="login-hide-btn" onClick={this.closeLogins}>&#10006;</button>
           {this.state.showLogin ? <Login change={this.showSignup} /> : null}
           {this.state.showSignup ? <Signup change={this.showLogin} /> : null}
         </div>
