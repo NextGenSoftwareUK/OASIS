@@ -1,5 +1,5 @@
-import React, { Component } from 'react'
-import '../CSS/Login.css'
+import React, { Component } from "react";
+import "../CSS/Login.css";
 
 export default class Signup extends Component {
 
