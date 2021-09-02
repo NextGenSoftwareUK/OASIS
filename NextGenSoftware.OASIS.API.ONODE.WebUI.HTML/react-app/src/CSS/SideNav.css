@@ -1,10 +1,9 @@
 .side-nav{
   background-color: rgba(0, 0, 0, 0.88);
   color: #1885c9;
-  height: 100%;
+  height: 100vh;
   text-transform: uppercase;
   position: fixed;
-  padding-top: 48px;
   top: 0;
   left: -50%;
   z-index: -1;
@@ -12,6 +11,9 @@
   justify-content: center;
   transition: left 0.3s ease-in;
   overflow: auto;
+}
+.side-nav-list{
+  padding-top: 48px;
 }
 .side-nav-menu{
   padding: 8px 4rem;
