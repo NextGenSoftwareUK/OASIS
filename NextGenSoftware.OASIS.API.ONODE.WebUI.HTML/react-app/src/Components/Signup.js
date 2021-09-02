@@ -1,5 +1,7 @@
 import axios from "axios";
 import React, { Component } from "react";
+import ShowIcon from '../img/visible-icon.svg';
+import HideIcon from '../img/hidden-icon.svg';
 import "../CSS/Login.css";
 
 export default class Signup extends Component {
@@ -10,7 +12,8 @@ export default class Signup extends Component {
         this.state = {
             email: '',
             password: '',
-            confirm_password: ''
+            confirm_password: '',
+            showPassword: false
         }
     }
 
@@ -98,6 +101,7 @@ export default class Signup extends Component {
     }
 
     render() {
+        const type = `${this.state.showPassword ? "text" : "password"}`
         return (
             <form className="login-form" onSubmit={this.handleSignup}>
                 <div className="login-title">
@@ -112,10 +116,13 @@ export default class Signup extends Component {
                     <input value={this.state.email} onChange={this.handleEmailChange} type="email" placeholder="name@example.com" />
 
                     <label htmlFor="login-password">PASSWORD</label>
-                    <input type="password" value={this.state.password} onChange={this.handlePasswordChange} />
+                    <input type={type} value={this.state.password} onChange={this.handlePasswordChange} />
+                    <img className="login-toggle-password"
+                        onClick={() => this.setState({ showPassword: !this.state.showPassword })}
+                        src={this.state.showPassword ? ShowIcon : HideIcon} />
 
-                    <label htmlFor="confirm-signup-password">Confirm Password</label>
-                    <input type="password" value={this.state.confirm_password} onChange={this.handleConfirmPasswordChange} />
+                    <label htmlFor="confirm-signup-password">CONFIRM PASSWORD</label>
+                    <input type={type} value={this.state.confirm_password} onChange={this.handleConfirmPasswordChange} />
 
                     <div>
                         <input type="checkbox" name="accept-terms" id="accept-terms" />

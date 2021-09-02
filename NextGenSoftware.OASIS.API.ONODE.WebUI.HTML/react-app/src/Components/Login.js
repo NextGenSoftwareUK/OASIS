@@ -1,5 +1,7 @@
 import React from 'react';
 import '../CSS/Login.css';
+import ShowIcon from '../img/visible-icon.svg';
+import HideIcon from '../img/hidden-icon.svg';
 const axios = require('axios');
 
 export default class Login extends React.Component {
@@ -9,7 +11,8 @@ export default class Login extends React.Component {
 
         this.state = {
             email: '',
-            password: ''
+            password: '',
+            showPassword: false
         }
     }
 
@@ -102,7 +105,10 @@ export default class Login extends React.Component {
                     <input value={this.state.email} onChange={this.handleEmailChange} type="email" placeholder="name@example.com" />
 
                     <label htmlFor="login-password">PASSWORD</label>
-                    <input type="password" value={this.state.password} onChange={this.handlePasswordChange} />
+                    <input type={`${this.state.showPassword ? "text" : "password"}`} value={this.state.password} onChange={this.handlePasswordChange} />
+                    <img className="login-toggle-password"
+                        onClick={() => this.setState({ showPassword: !this.state.showPassword })}
+                        src={this.state.showPassword ? ShowIcon : HideIcon} />
 
                     <label className="link">Forgot Password?</label>
                     <div>
