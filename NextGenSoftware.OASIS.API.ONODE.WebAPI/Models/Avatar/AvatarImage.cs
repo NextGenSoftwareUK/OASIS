@@ -6,7 +6,7 @@
 
         public AvatarImage()
         {
-            Image = new Byte[] { };
+            Image = new byte[] { };
         }
 
         public AvatarImage(byte[] data)
