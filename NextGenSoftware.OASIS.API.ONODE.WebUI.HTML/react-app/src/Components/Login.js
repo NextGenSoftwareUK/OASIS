@@ -1,5 +1,7 @@
 import React from 'react';
 import '../CSS/Login.css';
+import ShowIcon from '../img/visible-icon.svg';
+import HideIcon from '../img/hidden-icon.svg';
 const axios = require('axios');
 
 export default class Login extends React.Component {
@@ -9,12 +11,13 @@ export default class Login extends React.Component {
 
         this.state = {
             email: '',
-            password: ''
+            password: '',
+            showPassword: false
         }
     }
 
     // onLogin(event) {
-    
+
     // event.preventDefault();
     // console.log(`${this.state.email}`);
     // let email = document.getElementById('login-email').value;
@@ -25,7 +28,7 @@ export default class Login extends React.Component {
     // }
     // const userAction = async () => {
     //   console.log('doing api call');
-      
+
     //   const response = await fetch('https://api.oasisplatform.world/api/avatar/authenticate', {
     //     method: 'POST',
     //     body: JSON.stringify(userObject), // string or object
@@ -57,7 +60,7 @@ export default class Login extends React.Component {
     // }
     // userAction();
     // }
-    
+
     handleLogin = (e) => {
         e.preventDefault();
 
@@ -66,24 +69,24 @@ export default class Login extends React.Component {
             password: this.state.password
         }
 
-        const headers = { 
+        const headers = {
             'Content-Type': 'application/json'
         };
 
-        axios.post('https://api.oasisplatform.world/api/avatar/authenticate', data, {headers})
-        .then(response => {
-            console.log(response);
-        }).catch(error => {
-            console.error('There was an error!', error);
-        });
+        axios.post('https://api.oasisplatform.world/api/avatar/authenticate', data, { headers })
+            .then(response => {
+                console.log(response);
+            }).catch(error => {
+                console.error('There was an error!', error);
+            });
     }
 
     handleEmailChange = (event) => {
-        this.setState({email: event.target.value});
+        this.setState({ email: event.target.value });
     }
 
     handlePasswordChange = (event) => {
-        this.setState({password: event.target.value});
+        this.setState({ password: event.target.value });
     }
 
     render() {
@@ -100,13 +103,16 @@ export default class Login extends React.Component {
                 <div className="login-inputs">
                     <label htmlFor="login-email">EMAIL</label>
                     <input value={this.state.email} onChange={this.handleEmailChange} type="email" placeholder="name@example.com" />
-            
+
                     <label htmlFor="login-password">PASSWORD</label>
-                    <input type="password" value={this.state.password} onChange={this.handlePasswordChange} />
-                
+                    <input type={`${this.state.showPassword ? "text" : "password"}`} value={this.state.password} onChange={this.handlePasswordChange} />
+                    <img className="login-toggle-password"
+                        onClick={() => this.setState({ showPassword: !this.state.showPassword })}
+                        src={this.state.showPassword ? ShowIcon : HideIcon} />
+
                     <label className="link">Forgot Password?</label>
                     <div>
-                        <input type="checkbox" name="remember-login" />
+                        <input type="checkbox" name="remember-login" id="remember-login" />
                         <label htmlFor="remember-login">Remember Me</label>
                     </div>
 
