@@ -1,0 +1,44 @@
+.alert * {
+	padding: 0;
+	margin: 0;
+}
+
+@keyframes alertAnim {
+	10% {
+		opacity: 0;
+	}
+	30% {
+		opacity: 0.3;
+	}
+
+	70% {
+		opacity: 0.7;
+	}
+
+	100% {
+		opacity: 1;
+	}
+}
+
+.alert {
+	text-align: center;
+	width: 70%;
+	position: absolute;
+	line-height: 1;
+	top: 0.5rem;
+	left: 50%;
+	transform: translateX(-50%);
+	color: #fff;
+	font-size: 0.8em;
+	border-radius: 0.5rem;
+	padding: 0.2rem 0.5rem;
+	animation: alertAnim 600ms ease-in-out forwards;
+}
+
+.alert.alert--success {
+	background-color: green;
+}
+
+.alert.alert--error {
+	background-color: red;
+}
