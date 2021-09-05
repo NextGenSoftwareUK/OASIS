@@ -15,6 +15,17 @@ code {
     monospace;
 }
 
+input[type=number]::-webkit-inner-spin-button, 
+input[type=number]::-webkit-outer-spin-button { 
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    margin: 0; 
+}
+input[type=number] {
+  -moz-appearance:textfield;
+}
+
 button{
   text-decoration: none;
   border: none;
@@ -39,4 +50,29 @@ input{
   color: #1885c9;
   cursor: pointer;
   transition: all 0.2s ease;
+}
+.button{
+  color: #fff;
+	background-color: #1885c9;
+	padding: 0.5rem 1rem;
+	border-radius: 5rem;
+	cursor: pointer;
+  font-size: 1.15rem;
+	transition: all 200ms ease-in;
+}
+.button:hover{
+  background-color: #52b2ee;
+}
+.button-inverse{
+  color: #1885c9;
+	padding: 0.5rem 1rem;
+	border-radius: 5rem;
+	cursor: pointer;
+  font-size: 1.15rem;
+  border: 1px solid #1885c9;
+	transition: all 200ms ease-in;
+}
+.button-inverse:hover{
+  background-color: #52b2ee;
+  color: #fff;
 }
