@@ -2,6 +2,8 @@ import React from 'react';
 import '../CSS/Login.css';
 import ShowIcon from '../img/visible-icon.svg';
 import HideIcon from '../img/hidden-icon.svg';
+import Loader from 'react-loader-spinner';
+import Alert from './Alert';
 const axios = require('axios');
 
 export default class Login extends React.Component {
@@ -12,7 +14,9 @@ export default class Login extends React.Component {
         this.state = {
             email: '',
             password: '',
-            showPassword: false
+            showPassword: false,
+            loading: false,
+            alert: null
         }
     }
 
@@ -61,6 +65,14 @@ export default class Login extends React.Component {
     // userAction();
     // }
 
+    // componentDidUpdate(pProps, pState) {
+    //     if (pState.loading !== this.state.loading) {
+    //         this.setState({loading: this.state.loading})
+    //     }
+    // }
+
+
+
     handleLogin = (e) => {
         e.preventDefault();
 
@@ -73,12 +85,28 @@ export default class Login extends React.Component {
             'Content-Type': 'application/json'
         };
 
+        this.setState({loading: true})
+
         axios.post('https://api.oasisplatform.world/api/avatar/authenticate', data, { headers })
             .then(response => {
-                console.log(response);
+                if (response.data.isError) {
+                    this.setState({ alert: {type: 'error', text: response.data.message}, loading: false })
+                    return
+                }
+                //Save to response localstorage
+                localStorage.setItem('user', JSON.stringify(response.data.avatar))
+                this.setState({loading: false})
+                this.setState({ alert: {type: 'success', text: response.data.message} })
+                this.props.setState(response.data.avatar)
+                //close form if successful
+                this.props.closeForm()
+                setTimeout(()=>this.setState({alert: null}), 5000)
             }).catch(error => {
                 console.error('There was an error!', error);
-            });
+                this.setState({loading: false})
+                //Remove pop up after 5 sec
+                setTimeout(()=>this.setState({alert: null}), 5000)
+            })
     }
 
     handleEmailChange = (event) => {
@@ -92,6 +120,7 @@ export default class Login extends React.Component {
     render() {
         return (
             <form className="login-form" onSubmit={this.handleLogin}>
+                {this.state.alert ? <Alert message={this.state.alert.text} type={this.state.alert.type} /> : null}
                 <div className="login-title">
                     <h1 className="login-header">Log In</h1>
 
@@ -115,8 +144,13 @@ export default class Login extends React.Component {
                         <input type="checkbox" name="remember-login" id="remember-login" />
                         <label htmlFor="remember-login">Remember Me</label>
                     </div>
-
-                    <button type="submit" className="login-submit">Submit</button>
+                    
+                    {this.state.loading ? 
+                    (<button type="submit" disabled className="login-submit">
+                        Logging in <Loader type="Oval" height={15} width={15} color="#fff"/>
+                    </button>):
+                    <button type="submit" className="login-submit">Submit</button>}
+                    
                 </div>
             </form>
         )

@@ -1,5 +1,7 @@
 import { Component } from "react"
+import axios from "axios"
 import logo from '../img/dummy-logo.svg'
+import loginIcon from "../img/loggedin.png"
 import '../CSS/Navbar.css'
 import SideNav from "./SideNav"
 import Login from './Login'
@@ -15,7 +17,17 @@ class Navbar extends Component {
     this.state = {
       showSideNav: false,
       showLogin: false,
-      showSignup: false
+      showSignup: false,
+      user: null
+    }
+    }
+
+  componentDidMount() {
+    localStorage.getItem('user')
+
+    if(localStorage.getItem('user')){
+      this.setState({user: JSON.parse(localStorage.getItem('user'))})
+      console.log(this.state.user)
     }
   }
 
@@ -26,6 +38,7 @@ class Navbar extends Component {
     })
   }
   showLogin() {
+    console.log(this.state.user)
     this.setState({
       showSideNav: false,
       showLogin: true,
@@ -40,6 +53,23 @@ class Navbar extends Component {
     })
   }
 
+  setLoginState = (user) => {
+      this.setState({user})
+
+  }
+
+  handleLogout = () => {
+    axios.post('https://api.oasisplatform.world/api/avatar/revoke-token', {
+      token: this.state.user.jwtToken
+    }).then(res=>{
+      this.setState({user: null})
+      localStorage.removeItem('user')
+    }).catch(err=>{
+      this.setState({user: null})
+      localStorage.removeItem('user')
+    })
+  }
+
   render() {
     return (
       <nav className="nav">
@@ -51,27 +81,30 @@ class Navbar extends Component {
           <img className="nav-logo" src={logo} alt="logo" />
         </div>
         <div className="nav-right">
-          <ul className="nav-logins">
-            <li className="nav-login"><div className="link-inverse" onClick={this.showLogin}>Log in</div> </li>
-            <li className="nav-login"><div className="link-inverse" onClick={this.showSignup}>Sign up</div></li>
-          </ul>
+          {this.state.user? null : 
+            <ul className="nav-logins">
+              <li className="nav-login"><div className="link-inverse" onClick={this.showLogin}>Log in</div> </li>
+              <li className="nav-login"><div className="link-inverse" onClick={this.showSignup}>Sign up</div></li>
+          </ul>}
+          
           <div className="nav-avatar">
+          { this.state.user ? <img src={loginIcon} /> :
             <svg viewBox="0 0 26.5 26.5">
               <path
                 d="M24.75 13.25a11.5 11.5 0 01-11.5 11.5 11.5 11.5 0 01-11.5-11.5 11.5 11.5 0 0111.5-11.5 11.5 11.5 0 0111.5 11.5zm-3.501 8.243c-.5-3.246-4-6.246-7.995-6.238C9.25 15.247 5.75 18.247 5.25 21.5m13-11.248a5 5 0 01-5 5 5 5 0 01-5-5 5 5 0 015-5 5 5 0 015 5z"
                 fill="none" stroke="currentColor" strokeWidth="1.5" />
-            </svg>
-            <ul className="nav-avatar-dropdown">
+            </svg>}
+            <ul className={`nav-avatar-dropdown ${this.state.user ? 'enabled' : null}`}>
               <li className="nav-avatar-dropdown-item link">My Account</li>
               <li className="nav-avatar-dropdown-item link">Edit Account</li>
-              <li className="nav-avatar-dropdown-item link">Logout</li>
+              <li className="nav-avatar-dropdown-item link" onClick={this.handleLogout}>Logout</li>
             </ul>
           </div>
         </div>
         <div className={`login ${this.state.showLogin || this.state.showSignup ? "show" : ""}`}>
           <button className="login-hide-btn" onClick={this.closeLogins}>&#10006;</button>
-          {this.state.showLogin ? <Login change={this.showSignup} /> : null}
-          {this.state.showSignup ? <Signup change={this.showLogin} /> : null}
+          {this.state.showLogin ? <Login change={this.showSignup} setState={this.setLoginState} closeForm={this.closeLogins}/> : null}
+          {this.state.showSignup ? <Signup change={this.showLogin} closeForm={this.closeLogins} /> : null}
         </div>
         <SideNav show={this.state.showSideNav}
           showLogin={this.showLogin}

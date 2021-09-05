@@ -66,6 +66,7 @@
 	text-align: center;
 }
 .login-header{
+	margin-top: 3rem;
 	color: #fff;
 	font-weight: 400;
 }
@@ -115,6 +116,9 @@
 }
 
 .login-submit{
+	display: flex;
+	align-items: center;
+	justify-content: center;
 	margin: 2rem auto;
 	font-size: 1.25rem;
 	color: #fff;
@@ -125,8 +129,19 @@
 	width: 60%;
 	transition: all 200ms ease-in;
 }
+
+.login-submit * {
+	display: inline;
+	padding: 0 0.5rem;
+}
+
 .login-submit:hover{
 	background-color: #52b2ee;
+}
+
+.login-submit:disabled {
+	background-color: gray;
+	cursor: not-allowed;
 }
 @media (max-width: 550px) {
 	.login-form{
