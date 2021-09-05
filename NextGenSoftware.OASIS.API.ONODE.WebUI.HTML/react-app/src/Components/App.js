@@ -1,6 +1,7 @@
-import '../CSS/App.css'
-import Navbar from './Navbar'
-import { BrowserRouter as Router, Switch } from 'react-router-dom'
+import { BrowserRouter as Router, Switch } from 'react-router-dom';
+
+import Navbar from './Navbar';
+import '../css/App.css';
 
 function App() {
   return (

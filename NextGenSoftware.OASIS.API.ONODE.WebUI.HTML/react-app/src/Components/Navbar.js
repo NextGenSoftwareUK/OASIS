@@ -1,13 +1,16 @@
-import { Component } from "react"
-import axios from "axios"
-import logo from '../img/dummy-logo.svg'
-import loginIcon from "../img/loggedin.png"
-import '../CSS/Navbar.css'
-import SideNav from "./SideNav"
-import Login from './Login'
-import Signup from "./Signup"
+import React from "react";
 
-class Navbar extends Component {
+import logo from "../img/dummy-logo.svg";
+import loginIcon from "../img/loggedin.png";
+
+import SideNav from "./SideNav";
+import Login from "./Login";
+import Signup from "./Signup";
+import "../css/Navbar.css";
+
+import axios from "axios";
+
+class Navbar extends React.Component {
   constructor(props) {
     super(props)
 
