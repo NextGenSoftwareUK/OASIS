@@ -1,7 +1,9 @@
 import axios from "axios";
 import React, { Component } from "react";
+import Loader from 'react-loader-spinner';
 import ShowIcon from '../img/visible-icon.svg';
 import HideIcon from '../img/hidden-icon.svg';
+import Alert from './Alert';
 import "../CSS/Login.css";
 
 export default class Signup extends Component {
@@ -76,11 +78,20 @@ export default class Signup extends Component {
                 'Content-Type': 'application/json'
             };
 
+            this.setState({loading: true})
             axios.post('https://api.oasisplatform.world/api/avatar/register', data, { headers })
                 .then(response => {
-                    console.log(response);
+                    console.log(response)
+                    this.setState({loading: false})
+                    this.setState({ alert: {type: 'success', text: response.data} });
+                    // Remove alert after 5 sec
+                    setTimeout(()=>this.setState({alert: null}), 5000)
+                    console.log(this.state.alert)
                 }).catch(error => {
-                    console.error('There was an error!', error);
+                    console.error(error.response.data);
+                    this.setState({loading: false})
+                    this.setState({ alert: {type: 'error', text: error.response.data.title} })
+                    setTimeout(()=>this.setState({alert: null}), 5000)
                 });
         } else {
             console.log('Password did not match');
@@ -104,6 +115,7 @@ export default class Signup extends Component {
         const type = `${this.state.showPassword ? "text" : "password"}`
         return (
             <form className="login-form" onSubmit={this.handleSignup}>
+            {this.state.alert ? <Alert message={this.state.alert.text} type={this.state.alert.type} /> : null}
                 <div className="login-title">
                     <h1 className="login-header">Sign Up</h1>
                     <p className="login-title-text">Already have an account?
@@ -132,7 +144,11 @@ export default class Signup extends Component {
                         </label>
                     </div>
 
-                    <button type="submit" className="login-submit">Submit</button>
+                    {this.state.loading ? 
+                    (<button type="submit" disabled className="login-submit">
+                        Logging in <Loader type="Oval" height={15} width={15} color="#fff"/>
+                    </button>):
+                    <button type="submit" className="login-submit">Submit</button>}
                 </div>
             </form>
         )
