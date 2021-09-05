@@ -1,7 +1,6 @@
 import '../CSS/App.css'
 import Navbar from './Navbar'
 import { BrowserRouter as Router, Switch } from 'react-router-dom'
-
 function App() {
   return (
     <Router>
