@@ -1,0 +1,86 @@
+.payWithSeeds{
+  width: 100vw;
+  height: 100vh;
+  display: grid;
+  color: #909092;
+  place-content: center;
+  position: absolute;
+  top: 0;
+  z-index: 10;
+	background-color: hsla(240, 8%, 12%, 0.7);
+}
+.payWithSeeds h1{
+  color: #fff;
+  font-weight: 400;
+}
+.payWithSeeds-select{
+  font-size: 1.5rem;
+  color: #fff;
+  background-color: transparent;
+  font-weight: 400;
+  border-radius: 5px;
+  margin-right: 1rem;
+  border: 1px solid #909092;
+  width: auto;
+}
+.payWithSeeds input {
+  border: 1px solid #909092;
+  font-size: 1.15rem;
+  padding: 0.25rem 1rem;
+  border-radius: 5px;
+  color: #909092;
+}
+.payWithSeeds label{
+  color: #fff;
+  padding: 0.25rem 1rem;
+}
+.payWithSeeds-popup{
+  background-color: hsla(240, 8%, 12%, 0.8);
+  padding: 2rem;
+  border-radius: 1rem;
+  display: grid;
+}
+.payWithSeeds-fields{
+  display: grid;
+  row-gap: 1rem;
+  grid-template-columns: auto 1fr;
+}
+.payWithSeeds-button-align{
+  display: grid;
+  margin-top: 2rem;
+  grid-template-columns: auto auto;
+  justify-content: right;
+  column-gap: 1rem;
+}
+.payWithSeeds-row{
+  display: grid;
+  grid-template-columns: repeat(2, auto 1fr);
+  margin-top: 1rem;
+}
+
+@media (max-width: 800px) {
+  .payWithSeeds{
+    justify-content: initial;
+  }
+  .payWithSeeds-label{
+    text-align: left;
+  }
+  .payWithSeeds-popup{
+    grid-template-columns: 80%;
+    justify-content: center;
+  }
+  .payWithSeeds-fields, .payWithSeeds-row{
+    grid-template-columns: 100%;
+    row-gap: 0.5rem;
+  }
+  .payWithSeeds-button-align{
+    grid-template-columns: 1fr 1fr;
+    justify-content: initial;
+  }
+}
+
+@media (max-width: 550px) {
+  .payWithSeeds-popup{
+    grid-template-columns: 100%;
+  }
+}
