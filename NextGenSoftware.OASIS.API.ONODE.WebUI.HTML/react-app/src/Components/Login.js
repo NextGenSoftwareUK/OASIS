@@ -185,6 +185,7 @@ export default class Login extends React.Component {
                                         className="field-icon"
                                         onClick={() => this.setState({ showPassword: !showPassword })}
                                         src={showPassword ? ShowIcon : HideIcon} 
+                                        alt="icon"
                                     />
                                 </div>
                                 <span className="text-danger">{errors.password && touched.password && errors.password}</span>
