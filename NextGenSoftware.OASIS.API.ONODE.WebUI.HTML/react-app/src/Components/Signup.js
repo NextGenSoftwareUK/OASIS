@@ -190,7 +190,8 @@ export default class Signup extends React.Component {
                                     <img 
                                         className="field-icon"
                                         onClick={() => this.setState({ showPassword: !showPassword })}
-                                        src={showPassword ? ShowIcon : HideIcon} 
+                                        src={showPassword ? ShowIcon : HideIcon}
+                                        alt="loading..." 
                                     />
                                 </div>
                                 <span className="text-danger">{errors.password && touched.password && errors.password}</span>
@@ -211,6 +212,7 @@ export default class Signup extends React.Component {
                                         className="field-icon"
                                         onClick={() => this.setState({ showConfirmPassword: !showConfirmPassword })}
                                         src={showConfirmPassword ? ShowIcon : HideIcon} 
+                                        alt="loading..."
                                     />
                                 </div>
                                 <span className="text-danger">{errors.confirmPassword && touched.confirmPassword && errors.confirmPassword}</span>
