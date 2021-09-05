@@ -11,11 +11,11 @@ Going forward, please make sure you are working in the appropriate directory!
 
 
 Directory Structure (main directory for each framework has been highlighted)
-
-├───~~.config~~
-├───~~api~~
-├───~~App_Start~~
-├───**ClientApp**   // Angular Project Root
+<pre>
+├───.config
+├───api
+├───App_Start
+├───ClientApp   // Angular Project Root
 │   ├───oasis-angular
 │   │   └───oasis-web
 │   │       ├───dist
@@ -66,16 +66,16 @@ Directory Structure (main directory for each framework has been highlighted)
 │   │               │   └───custom-style
 │   │               └───img
 │   └───oasis-web
-├───~~Controllers~~
-├───~~Pages~~
-├───~~Properties~~
-├───**react-app**     //  React Project Root
+├───Controllers
+├───Pages
+├───Properties
+├───<b>react-app</b>     //  React Project Root
 │   ├───public
 │   └───src
 │       ├───Components
 │       ├───CSS
 │       └───img
-└───**wwwroot**     //   Web/HTML Project Root
+└───<b>wwwroot</b>     //   Web/HTML Project Root
     ├───assets
     │   ├───css
     │   ├───img
@@ -98,3 +98,4 @@ Directory Structure (main directory for each framework has been highlighted)
         │       └───js
         │           └───components
         └───settings
+<code>
