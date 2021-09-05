@@ -1,6 +1,8 @@
 import '../CSS/App.css'
 import Navbar from './Navbar'
-import { BrowserRouter as Router, Switch } from 'react-router-dom'
+import { BrowserRouter as Router, Route, Switch } from 'react-router-dom'
+import Seeds from './PayWithSeeds'
+import PayWithSeeds from './PayWithSeeds'
 
 function App() {
   return (
@@ -9,7 +11,9 @@ function App() {
         <Navbar />
       </header>
       <Switch>
-        {/* Todo: Here we will write the components for the main page */}
+        <Route path="/payWithSeeds">
+          <PayWithSeeds />
+        </Route>
       </Switch>
     </Router>
   )
