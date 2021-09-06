@@ -1,10 +1,11 @@
 import React from "react";
-import "../CSS/Alert.css";
+
+import "../css/Alert.css";
 
 const Alert = ({ type, message }) => (
-  <div class={`alert alert--${type}`}>
-    <p>{message}</p>
-  </div>
+    <div className={`alert alert--${type}`}>
+        <p>{message}</p>
+    </div>
 );
 
 export default Alert;
