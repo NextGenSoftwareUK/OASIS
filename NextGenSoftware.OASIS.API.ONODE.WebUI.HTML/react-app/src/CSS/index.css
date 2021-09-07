@@ -75,7 +75,7 @@ input{
 .button-inverse:hover{
   background-color: #52b2ee;
   color: #fff;
-
+}
 /* FORM CSS */
 .single-form-field {
     display: grid;

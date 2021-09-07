@@ -4,7 +4,7 @@ import ShowIcon from '../img/visible-icon.svg';
 import HideIcon from '../img/hidden-icon.svg';
 
 import Alert from './Alert';
-import '../css/Login.css';
+import '../CSS/Login.css';
 
 import Loader from 'react-loader-spinner';
 import { Formik } from "formik";
@@ -31,11 +31,11 @@ export default class Login extends React.Component {
     }
     validationSchema = Yup.object().shape({
         email: Yup.string()
-          .email('Email is invalid')
-          .required("Email is required"),
+            .email('Email is invalid')
+            .required("Email is required"),
         password: Yup.string()
-          .required("No password provided.")
-          .min(8, "Password is too short - should be 8 characters minimum.")
+            .required("No password provided.")
+            .min(8, "Password is too short - should be 8 characters minimum.")
     })
 
     // onLogin(event) {
@@ -99,38 +99,38 @@ export default class Login extends React.Component {
             'Content-Type': 'application/json'
         };
 
-        this.setState({loading: true})
+        this.setState({ loading: true })
 
         axios.post('https://api.oasisplatform.world/api/avatar/authenticate', data, { headers })
             .then(response => {
                 if (response.data.isError) {
-                    this.setState({ alert: {type: 'error', text: response.data.message}, loading: false })
+                    this.setState({ alert: { type: 'error', text: response.data.message }, loading: false })
                     return
                 }
                 //Save to response localstorage
                 localStorage.setItem('user', JSON.stringify(response.data.avatar))
-                this.setState({loading: false})
-                this.setState({ alert: {type: 'success', text: response.data.message} })
+                this.setState({ loading: false })
+                this.setState({ alert: { type: 'success', text: response.data.message } })
                 this.props.setState(response.data.avatar)
                 //close form if successful
                 this.props.closeForm()
-                setTimeout(()=>this.setState({alert: null}), 5000)
+                setTimeout(() => this.setState({ alert: null }), 5000)
             }).catch(error => {
                 console.error('There was an error!', error);
-                this.setState({loading: false})
+                this.setState({ loading: false })
                 //Remove pop up after 5 sec
-                setTimeout(()=>this.setState({alert: null}), 5000)
+                setTimeout(() => this.setState({ alert: null }), 5000)
             })
     }
 
     render() {
-        const {alert, showPassword} = this.state;
+        const { alert, showPassword } = this.state;
 
         return (
             <Formik
                 initialValues={this.initialValues}
                 validationSchema={this.validationSchema}
-                onSubmit={(values, {setSubmitting, resetForm}) => {
+                onSubmit={(values, { setSubmitting, resetForm }) => {
                     setTimeout(() => {
                         this.setState({
                             email: values.email,
@@ -144,7 +144,7 @@ export default class Login extends React.Component {
                     }, 400)
                 }}
             >
-                {({values, errors, touched, isSubmitting, handleChange, handleBlur, handleSubmit}) => (
+                {({ values, errors, touched, isSubmitting, handleChange, handleBlur, handleSubmit }) => (
                     <form className="login-form" onSubmit={handleSubmit}>
                         {alert ? <Alert message={alert.text} type={alert.type} /> : null}
                         <div className="login-title">
@@ -161,11 +161,11 @@ export default class Login extends React.Component {
                                 <label htmlFor="login-email">EMAIL</label>
                                 <input
                                     type="email"
-                                    name="email" 
-                                    value={values.email} 
-                                    onChange={handleChange} 
+                                    name="email"
+                                    value={values.email}
+                                    onChange={handleChange}
                                     onBlur={handleBlur}
-                                    placeholder="name@example.com" 
+                                    placeholder="name@example.com"
                                 />
                                 <span className="text-danger">{errors.email && touched.email && errors.email}</span>
                             </div>
@@ -173,18 +173,18 @@ export default class Login extends React.Component {
                             <div className={this.handleFormFieldClass(errors.password, touched.password)}>
                                 <label htmlFor="login-password">PASSWORD</label>
                                 <div className="have-icon">
-                                    <input 
+                                    <input
                                         type={`${showPassword ? "text" : "password"}`}
                                         name="password"
-                                        value={values.password}  
-                                        onChange={handleChange} 
+                                        value={values.password}
+                                        onChange={handleChange}
                                         onBlur={handleBlur}
                                         placeholder="password"
                                     />
-                                    <img 
+                                    <img
                                         className="field-icon"
                                         onClick={() => this.setState({ showPassword: !showPassword })}
-                                        src={showPassword ? ShowIcon : HideIcon} 
+                                        src={showPassword ? ShowIcon : HideIcon}
                                         alt="icon"
                                     />
                                 </div>
@@ -198,16 +198,16 @@ export default class Login extends React.Component {
                             </div>
 
                             {
-                                this.state.loading 
-                                ? 
-                                
-                                <button type="submit" disabled className="login-submit">
-                                    Logging in <Loader type="Oval" height={15} width={15} color="#fff"/>
-                                </button>
-                                
-                                :
+                                this.state.loading
+                                    ?
 
-                                <button type="submit" className="login-submit" disabled={isSubmitting}>Submit</button>
+                                    <button type="submit" disabled className="login-submit">
+                                        Logging in <Loader type="Oval" height={15} width={15} color="#fff" />
+                                    </button>
+
+                                    :
+
+                                    <button type="submit" className="login-submit" disabled={isSubmitting}>Submit</button>
                             }
                         </div>
                     </form>

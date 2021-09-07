@@ -6,7 +6,7 @@ import ShowIcon from '../img/visible-icon.svg';
 import HideIcon from '../img/hidden-icon.svg';
 
 import Alert from './Alert';
-import "../css/Login.css";
+import "../CSS/Login.css";
 
 import axios from "axios";
 import { Formik } from "formik";
@@ -36,11 +36,11 @@ export default class Signup extends React.Component {
 
     validationSchema = Yup.object().shape({
         email: Yup.string()
-          .email("Email is invalid")
-          .required("Email is required"),
+            .email("Email is invalid")
+            .required("Email is required"),
         password: Yup.string()
-          .required("No password provided.")
-          .min(8, "Password is too short - should be 8 characters minimum."),
+            .required("No password provided.")
+            .min(8, "Password is too short - should be 8 characters minimum."),
         confirmPassword: Yup.string()
             .required("No password provided.")
             .min(8, "Password is too short - should be 8 characters minimum.")
@@ -106,20 +106,20 @@ export default class Signup extends React.Component {
                 'Content-Type': 'application/json'
             };
 
-            this.setState({loading: true})
+            this.setState({ loading: true })
             axios.post('https://api.oasisplatform.world/api/avatar/register', data, { headers })
                 .then(response => {
                     console.log(response)
-                    this.setState({loading: false})
-                    this.setState({ alert: {type: 'success', text: response.data} });
+                    this.setState({ loading: false })
+                    this.setState({ alert: { type: 'success', text: response.data } });
                     // Remove alert after 5 sec
-                    setTimeout(()=>this.setState({alert: null}), 5000)
+                    setTimeout(() => this.setState({ alert: null }), 5000)
                     console.log(this.state.alert)
                 }).catch(error => {
                     console.error(error.response.data);
-                    this.setState({loading: false})
-                    this.setState({ alert: {type: 'error', text: error.response.data.title} })
-                    setTimeout(()=>this.setState({alert: null}), 5000)
+                    this.setState({ loading: false })
+                    this.setState({ alert: { type: 'error', text: error.response.data.title } })
+                    setTimeout(() => this.setState({ alert: null }), 5000)
                 });
         } else {
             console.log('Password did not match');
@@ -128,14 +128,14 @@ export default class Signup extends React.Component {
     }
 
     render() {
-        const {alert, showPassword, showConfirmPassword} = this.state;
+        const { alert, showPassword, showConfirmPassword } = this.state;
 
         return (
 
             <Formik
                 initialValues={this.initialValues}
                 validationSchema={this.validationSchema}
-                onSubmit={(values, {setSubmitting, resetForm}) => {
+                onSubmit={(values, { setSubmitting, resetForm }) => {
                     setTimeout(() => {
                         this.setState({
                             email: values.email,
@@ -150,7 +150,7 @@ export default class Signup extends React.Component {
                     }, 400)
                 }}
             >
-                {({values, errors, touched, isSubmitting, handleChange, handleBlur, handleSubmit}) => (
+                {({ values, errors, touched, isSubmitting, handleChange, handleBlur, handleSubmit }) => (
                     <form className="login-form" onSubmit={handleSubmit}>
                         {alert ? <Alert message={alert.text} type={alert.type} /> : null}
                         <div className="login-title">
@@ -167,11 +167,11 @@ export default class Signup extends React.Component {
                                 <label htmlFor="login-email">EMAIL</label>
                                 <input
                                     type="email"
-                                    name="email" 
-                                    value={values.email} 
-                                    onChange={handleChange} 
+                                    name="email"
+                                    value={values.email}
+                                    onChange={handleChange}
                                     onBlur={handleBlur}
-                                    placeholder="name@example.com" 
+                                    placeholder="name@example.com"
                                 />
                                 <span className="text-danger">{errors.email && touched.email && errors.email}</span>
                             </div>
@@ -179,19 +179,19 @@ export default class Signup extends React.Component {
                             <div className={this.handleFormFieldClass(errors.password, touched.password)}>
                                 <label htmlFor="login-password">PASSWORD</label>
                                 <div className="have-icon">
-                                    <input 
+                                    <input
                                         type={`${showPassword ? "text" : "password"}`}
                                         name="password"
-                                        value={values.password}  
-                                        onChange={handleChange} 
+                                        value={values.password}
+                                        onChange={handleChange}
                                         onBlur={handleBlur}
                                         placeholder="password"
                                     />
-                                    <img 
+                                    <img
                                         className="field-icon"
                                         onClick={() => this.setState({ showPassword: !showPassword })}
                                         src={showPassword ? ShowIcon : HideIcon}
-                                        alt="loading..." 
+                                        alt="loading..."
                                     />
                                 </div>
                                 <span className="text-danger">{errors.password && touched.password && errors.password}</span>
@@ -200,18 +200,18 @@ export default class Signup extends React.Component {
                             <div className={this.handleFormFieldClass(errors.confirmPassword, touched.confirmPassword)}>
                                 <label htmlFor="login-password">CONFIRM PASSWORD</label>
                                 <div className="have-icon">
-                                    <input 
+                                    <input
                                         type={`${showConfirmPassword ? "text" : "password"}`}
                                         name="confirmPassword"
-                                        value={values.confirmPassword}  
-                                        onChange={handleChange} 
+                                        value={values.confirmPassword}
+                                        onChange={handleChange}
                                         onBlur={handleBlur}
                                         placeholder="password"
                                     />
-                                    <img 
+                                    <img
                                         className="field-icon"
                                         onClick={() => this.setState({ showConfirmPassword: !showConfirmPassword })}
-                                        src={showConfirmPassword ? ShowIcon : HideIcon} 
+                                        src={showConfirmPassword ? ShowIcon : HideIcon}
                                         alt="loading..."
                                     />
                                 </div>
@@ -219,16 +219,16 @@ export default class Signup extends React.Component {
                             </div>
 
                             {
-                                this.state.loading 
-                                ? 
-                                
-                                <button type="submit" disabled className="login-submit">
-                                    Logging in <Loader type="Oval" height={15} width={15} color="#fff"/>
-                                </button>
-                                
-                                :
+                                this.state.loading
+                                    ?
 
-                                <button type="submit" className="login-submit" disabled={isSubmitting}>Submit</button>
+                                    <button type="submit" disabled className="login-submit">
+                                        Logging in <Loader type="Oval" height={15} width={15} color="#fff" />
+                                    </button>
+
+                                    :
+
+                                    <button type="submit" className="login-submit" disabled={isSubmitting}>Submit</button>
                             }
                         </div>
 
