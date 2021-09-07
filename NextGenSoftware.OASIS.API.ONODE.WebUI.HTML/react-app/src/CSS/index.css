@@ -75,4 +75,40 @@ input{
 .button-inverse:hover{
   background-color: #52b2ee;
   color: #fff;
+
+/* FORM CSS */
+.single-form-field {
+    display: grid;
+    margin: 0 0 20px;
+}
+.single-form-field label {
+    margin: 0 0 5px;
+}
+.single-form-field input {
+    padding: 0 15px;
+    height: 34px;
+    border-radius: 4px;
+    margin: 0;
+    outline: none;
+}
+.single-form-field .have-icon {
+    position: relative;
+    display: grid;
+}
+.single-form-field .have-icon .field-icon {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translate(0, -50%);
+    width: 20px;
+    cursor: pointer;
+}
+.single-form-field .have-icon input {
+    padding-right: 40px;
+}
+.single-form-field span.text-danger {
+    color: #dc3545 !important;
+}
+.single-form-field.has-error input {
+    border-color: #dc3545 !important;
 }

@@ -1,13 +1,16 @@
-import { Component } from "react"
-import axios from "axios"
-import logo from '../img/dummy-logo.svg'
-import loginIcon from "../img/loggedin.png"
-import '../CSS/Navbar.css'
-import SideNav from "./SideNav"
-import Login from './Login'
-import Signup from "./Signup"
+import React from "react";
 
-class Navbar extends Component {
+import logo from "../img/dummy-logo.svg";
+import loginIcon from "../img/loggedin.png";
+
+import SideNav from "./SideNav";
+import Login from "./Login";
+import Signup from "./Signup";
+import "../css/Navbar.css";
+
+import axios from "axios";
+
+class Navbar extends React.Component {
   constructor(props) {
     super(props)
 
@@ -88,7 +91,7 @@ class Navbar extends Component {
           </ul>}
           
           <div className="nav-avatar">
-          { this.state.user ? <img src={loginIcon} /> :
+          { this.state.user ? <img src={loginIcon} alt="icon" /> :
             <svg viewBox="0 0 26.5 26.5">
               <path
                 d="M24.75 13.25a11.5 11.5 0 01-11.5 11.5 11.5 11.5 0 01-11.5-11.5 11.5 11.5 0 0111.5-11.5 11.5 11.5 0 0111.5 11.5zm-3.501 8.243c-.5-3.246-4-6.246-7.995-6.238C9.25 15.247 5.75 18.247 5.25 21.5m13-11.248a5 5 0 01-5 5 5 5 0 01-5-5 5 5 0 015-5 5 5 0 015 5z"
