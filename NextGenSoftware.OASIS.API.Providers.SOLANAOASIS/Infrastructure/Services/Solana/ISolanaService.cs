@@ -13,6 +13,44 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Service
         Task<Response<GetNftWalletResult>> GetNftWallet(GetNftWalletRequest getNftWalletRequest);
     }
 
+    public class SolanaService : ISolanaService
+    {
+        public SolanaService()
+        {
+            
+        }
+        
+        public async Task<Response<ExchangeTokenResult>> ExchangeTokens(ExchangeTokenRequest exchangeTokenRequest)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public async Task<Response<ExchangeNftResult>> ExchangeNft(ExchangeNftRequest exchangeNftRequest)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public async Task<Response<MintNftResult>> MintNft(MintNftRequest mintNftRequest)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public async Task<Response<SendTransactionResult>> SendTransaction(SendTransactionRequest sendTransactionRequest)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public async Task<Response<GetNftMetadataResult>> GetNftMetadata(GetNftMetadataRequest getNftMetadataRequest)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public async Task<Response<GetNftWalletResult>> GetNftWallet(GetNftWalletRequest getNftWalletRequest)
+        {
+            throw new System.NotImplementedException();
+        }
+    }
+
     public class GetNftWalletRequest
     {
     }
