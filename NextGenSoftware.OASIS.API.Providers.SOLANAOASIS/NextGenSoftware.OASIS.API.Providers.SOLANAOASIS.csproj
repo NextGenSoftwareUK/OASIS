@@ -5,8 +5,11 @@
     </PropertyGroup>
 
     <ItemGroup>
+      <PackageReference Include="Solnet.Extensions" Version="0.4.6" />
       <PackageReference Include="Solnet.KeyStore" Version="0.4.6" />
+      <PackageReference Include="Solnet.Programs" Version="0.4.6" />
       <PackageReference Include="Solnet.Rpc" Version="0.4.6" />
+      <PackageReference Include="Solnet.Serum" Version="0.0.10" />
       <PackageReference Include="Solnet.Wallet" Version="0.4.6" />
     </ItemGroup>
 
