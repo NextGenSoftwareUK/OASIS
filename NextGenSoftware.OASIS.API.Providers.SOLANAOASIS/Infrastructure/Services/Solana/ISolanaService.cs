@@ -1,8 +1,18 @@
 ﻿using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Models.Common;
+using Solnet.Programs;
+using Solnet.Rpc;
+using Solnet.Rpc.Builders;
+using Solnet.Wallet;
+using Solnet.Wallet.Bip39;
 
 namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Services.Solana
 {
+    public interface IBaseService
+    {
+        void InitializeService();
+    }
+    
     public interface ISolanaService
     {
         Task<Response<ExchangeTokenResult>> ExchangeTokens(ExchangeTokenRequest exchangeTokenRequest);
@@ -13,13 +23,14 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Service
         Task<Response<GetNftWalletResult>> GetNftWallet(GetNftWalletRequest getNftWalletRequest);
     }
 
-    public class SolanaService : ISolanaService
+    public class SolanaService : IBaseService, ISolanaService
     {
+        private Wallet _wallet;
         public SolanaService()
         {
-            
+            InitializeService();
         }
-        
+
         public async Task<Response<ExchangeTokenResult>> ExchangeTokens(ExchangeTokenRequest exchangeTokenRequest)
         {
             throw new System.NotImplementedException();
@@ -37,7 +48,27 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Service
 
         public async Task<Response<SendTransactionResult>> SendTransaction(SendTransactionRequest sendTransactionRequest)
         {
-            throw new System.NotImplementedException();
+            var response = new Response<SendTransactionResult>();
+            var rpcClient = ClientFactory.GetClient(Cluster.MainNet);
+            var fromAccount = _wallet.GetAccount(sendTransactionRequest.FromAccountIndex);
+            var toAccount = _wallet.GetAccount(sendTransactionRequest.ToAccountIndex);
+            var blockHash = await rpcClient.GetRecentBlockHashAsync();
+
+            var tx = new TransactionBuilder().
+                SetRecentBlockHash(blockHash.Result.Value.Blockhash).
+                SetFeePayer(fromAccount).
+                AddInstruction(MemoProgram.NewMemo(fromAccount, sendTransactionRequest.MemoText)).
+                AddInstruction(SystemProgram.Transfer(fromAccount, toAccount.PublicKey, sendTransactionRequest.Lampposts)).
+                Build(fromAccount);
+
+            var sendTransactionResult = await rpcClient.SendTransactionAsync(tx);
+            if (!sendTransactionResult.WasSuccessful)
+            {
+                response.Code = (int)sendTransactionResult.HttpStatusCode;
+                response.Message = sendTransactionResult.Reason;
+            }
+            response.Payload = new SendTransactionResult(sendTransactionResult.Result);
+            return response;
         }
 
         public async Task<Response<GetNftMetadataResult>> GetNftMetadata(GetNftMetadataRequest getNftMetadataRequest)
@@ -48,6 +79,11 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Service
         public async Task<Response<GetNftWalletResult>> GetNftWallet(GetNftWalletRequest getNftWalletRequest)
         {
             throw new System.NotImplementedException();
+        }
+
+        public void InitializeService()
+        {
+            _wallet = new Wallet(new Mnemonic(WordList.English, WordCount.Twelve));
         }
     }
 
@@ -69,10 +105,22 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Service
 
     public class SendTransactionRequest
     {
+        public int FromAccountIndex { get; set; }
+        public int ToAccountIndex { get; set; }
+        public ulong Lampposts { get; set; }
+        public string MemoText { get; set; }
     }
 
     public class SendTransactionResult
     {
+        public string Transaction { get; set; }
+
+        public SendTransactionResult(string transaction)
+        {
+            Transaction = transaction;
+        }
+        
+        public SendTransactionResult() {}
     }
 
     public class MintNftRequest
