@@ -95,6 +95,7 @@ export default class Login extends React.Component {
                 }
                 //Save to response localstorage
                 localStorage.setItem('user', JSON.stringify(response.data.avatar))
+                localStorage.setItem('credentials', JSON.stringify(data))
                 this.setState({loading: false})
                 this.setState({ alert: {type: 'success', text: response.data.message} })
                 this.props.setState(response.data.avatar)
