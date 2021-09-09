@@ -1,6 +1,11 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
+using NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Enums;
 using NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Models.Common;
+using Solnet.Extensions;
+using Solnet.Extensions.Models;
+using Solnet.Extensions.TokenMint;
 using Solnet.Programs;
 using Solnet.Rpc;
 using Solnet.Rpc.Builders;
@@ -27,6 +32,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Service
     public class SolanaService : IBaseService, ISolanaService
     {
         private Wallet _wallet;
+        private IRpcClient _rpcClient;
+
         public SolanaService()
         {
             InitializeService();
@@ -34,36 +41,38 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Service
 
         public async Task<Response<ExchangeTokenResult>> ExchangeTokens(ExchangeTokenRequest exchangeTokenRequest)
         {
-            var rpcClient = ClientFactory.GetClient(Cluster.MainNet);
-            var blockHash = await rpcClient.GetRecentBlockHashAsync();
-            var minBalanceForExemptionAcc =
-                (await rpcClient.GetMinimumBalanceForRentExemptionAsync()).Result;
+            var response = new Response<ExchangeTokenResult>();
+            
+            var blockHash = await _rpcClient.GetRecentBlockHashAsync();
 
-            var mintAccount = _wallet.GetAccount(21);
-            var ownerAccount = _wallet.GetAccount(10);
-            var initialAccount = _wallet.GetAccount(22);
-            var newAccount = _wallet.GetAccount(23);
+            
+            var mintAccount = _wallet.GetAccount(exchangeTokenRequest.MintAccountIndex);
+            var fromAccount = _wallet.GetAccount(exchangeTokenRequest.FromAccountIndex);
+            var toAccount = _wallet.GetAccount(exchangeTokenRequest.ToAccountIndex);
 
             var tx = new TransactionBuilder().
                 SetRecentBlockHash(blockHash.Result.Value.Blockhash).
-                SetFeePayer(ownerAccount).
-                AddInstruction(SystemProgram.CreateAccount(
-                    ownerAccount,
-                    newAccount,
-                    minBalanceForExemptionAcc,
-                    SystemProgram.AccountDataSize,
-                    TokenProgram.ProgramIdKey)).
+                SetFeePayer(fromAccount).
                 AddInstruction(TokenProgram.InitializeAccount(
-                    newAccount.PublicKey,
+                    toAccount.PublicKey,
                     mintAccount.PublicKey,
-                    ownerAccount.PublicKey)).
+                    fromAccount.PublicKey)).
                 AddInstruction(TokenProgram.Transfer(
-                    initialAccount.PublicKey,
-                    newAccount.PublicKey,
-                    25000,
-                    ownerAccount)).
-                AddInstruction(MemoProgram.NewMemo(initialAccount, "Hello from Sol.Net")).
-                Build(new List<Account>{ ownerAccount, newAccount });
+                    fromAccount.PublicKey,
+                    toAccount.PublicKey,
+                    exchangeTokenRequest.Amount,
+                    fromAccount)).
+                AddInstruction(MemoProgram.NewMemo(fromAccount, exchangeTokenRequest.MemoText)).
+                Build(new List<Account>{ fromAccount, toAccount });
+            
+            var sendTransactionResult = await _rpcClient.SendTransactionAsync(tx);
+            if (!sendTransactionResult.WasSuccessful)
+            {
+                response.Code = (int)sendTransactionResult.HttpStatusCode;
+                response.Message = sendTransactionResult.Reason;
+            }
+            response.Payload = new ExchangeTokenResult(sendTransactionResult.Result);
+            return response;
         }
 
         public async Task<Response<ExchangeNftResult>> ExchangeNft(ExchangeNftRequest exchangeNftRequest)
@@ -73,16 +82,15 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Service
 
         public async Task<Response<MintNftResult>> MintNft(MintNftRequest mintNftRequest)
         {
-            var wallet = new Wallet.Wallet(MnemonicWords);
+            var response = new Response<MintNftResult>();
+            
+            var blockHash = await _rpcClient.GetRecentBlockHashAsync();
+            var minBalanceForExemptionAcc = (await _rpcClient.GetMinimumBalanceForRentExemptionAsync(TokenProgram.TokenAccountDataSize)).Result;
+            var minBalanceForExemptionMint =(await _rpcClient.GetMinimumBalanceForRentExemptionAsync(TokenProgram.MintAccountDataSize)).Result;
 
-            var blockHash = rpcClient.GetRecentBlockHash();
-            var minBalanceForExemptionAcc = rpcClient.GetMinimumBalanceForRentExemption(SystemProgram.AccountDataSize).Result;
-
-            var minBalanceForExemptionMint =rpcClient.GetMinimumBalanceForRentExemption(TokenProgram.MintAccountDataSize).Result;
-
-            var mintAccount = wallet.GetAccount(21);
-            var ownerAccount = wallet.GetAccount(10);
-            var initialAccount = wallet.GetAccount(22);
+            var mintAccount = _wallet.GetAccount(mintNftRequest.MintAccountIndex);
+            var ownerAccount = _wallet.GetAccount(mintNftRequest.OwnerAccountIndex);
+            var initialAccount = _wallet.GetAccount(mintNftRequest.InitialAccountIndex);
 
             var tx = new TransactionBuilder().
                 SetRecentBlockHash(blockHash.Result.Value.Blockhash).
@@ -95,14 +103,14 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Service
                     TokenProgram.ProgramIdKey)).
                 AddInstruction(TokenProgram.InitializeMint(
                     mintAccount.PublicKey,
-                    2,
+                    mintNftRequest.MintDecimals,
                     ownerAccount.PublicKey,
                     ownerAccount.PublicKey)).
                 AddInstruction(SystemProgram.CreateAccount(
                     ownerAccount,
                     initialAccount,
                     minBalanceForExemptionAcc,
-                    SystemProgram.AccountDataSize,
+                    TokenProgram.TokenAccountDataSize,
                     TokenProgram.ProgramIdKey)).
                 AddInstruction(TokenProgram.InitializeAccount(
                     initialAccount.PublicKey,
@@ -111,19 +119,27 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Service
                 AddInstruction(TokenProgram.MintTo(
                     mintAccount.PublicKey,
                     initialAccount.PublicKey,
-                    25000,
+                    mintNftRequest.Amount,
                     ownerAccount)).
-                AddInstruction(MemoProgram.NewMemo(initialAccount, "Hello from Sol.Net")).
+                AddInstruction(MemoProgram.NewMemo(initialAccount, mintNftRequest.MemoText)).
                 Build(new List<Account>{ ownerAccount, mintAccount, initialAccount });
+            
+            var sendTransactionResult = await _rpcClient.SendTransactionAsync(tx);
+            if (!sendTransactionResult.WasSuccessful)
+            {
+                response.Code = (int)sendTransactionResult.HttpStatusCode;
+                response.Message = sendTransactionResult.Reason;
+            }
+            response.Payload = new MintNftResult(sendTransactionResult.Result);
+            return response;
         }
 
         public async Task<Response<SendTransactionResult>> SendTransaction(SendTransactionRequest sendTransactionRequest)
         {
             var response = new Response<SendTransactionResult>();
-            var rpcClient = ClientFactory.GetClient(Cluster.MainNet);
             var fromAccount = _wallet.GetAccount(sendTransactionRequest.FromAccountIndex);
             var toAccount = _wallet.GetAccount(sendTransactionRequest.ToAccountIndex);
-            var blockHash = await rpcClient.GetRecentBlockHashAsync();
+            var blockHash = await _rpcClient.GetRecentBlockHashAsync();
 
             var tx = new TransactionBuilder().
                 SetRecentBlockHash(blockHash.Result.Value.Blockhash).
@@ -132,7 +148,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Service
                 AddInstruction(SystemProgram.Transfer(fromAccount, toAccount.PublicKey, sendTransactionRequest.Lampposts)).
                 Build(fromAccount);
 
-            var sendTransactionResult = await rpcClient.SendTransactionAsync(tx);
+            var sendTransactionResult = await _rpcClient.SendTransactionAsync(tx);
             if (!sendTransactionResult.WasSuccessful)
             {
                 response.Code = (int)sendTransactionResult.HttpStatusCode;
@@ -149,36 +165,52 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Service
 
         public async Task<Response<GetNftWalletResult>> GetNftWallet(GetNftWalletRequest getNftWalletRequest)
         {
-            var tokens = TokenInfoResolver.Load();
-            var client = ClientFactory.GetClient(Cluster.MainNet);
-
-// load snapshot of wallet and sub-accounts
-            TokenWallet tokenWallet = TokenWallet.Load(client, tokens, ownerAccount);
-            var balances = tokenWallet.Balances();
-
-// show individual token accounts
-            var maxsym = balances.Max(x => x.Symbol.Length);
-            var maxname = balances.Max(x => x.TokenName.Length);
-            Console.WriteLine("Individual Accounts...");
-            foreach (var account in tokenWallet.TokenAccounts())
+            var response = new Response<GetNftWalletResult>();
+            try
             {
-                Console.WriteLine($"{account.Symbol.PadRight(maxsym)} {account.BalanceDecimal,14} {account.TokenName.PadRight(maxname)} {account.PublicKey} {(account.IsAssociatedTokenAccount ? "[ATA]" : "")}");
+                var ownerAccount = _wallet.GetAccount(getNftWalletRequest.OwnerAccount);
+
+                var tokens = new TokenMintResolver();
+                tokens.Add(new TokenDef(getNftWalletRequest.MintToken, getNftWalletRequest.MintName, getNftWalletRequest.MintSymbol, getNftWalletRequest.MintDecimal));
+
+                var tokenWallet = await TokenWallet.LoadAsync(_rpcClient, tokens, ownerAccount);
+                var balances = tokenWallet.Balances();
+                var sublist = tokenWallet.TokenAccounts().WithSymbol(getNftWalletRequest.MintSymbol).WithMint(getNftWalletRequest.MintToken);
+            
+                response.Payload = new GetNftWalletResult()
+                {
+                    Accounts = sublist,
+                    Balances = balances
+                };
             }
-            Console.WriteLine();
+            catch (Exception e)
+            {
+                response.Code = (int) ResponseStatus.Successfully;
+                response.Message = ResponseStatusConstants.Failed;
+            }
+            return response;
         }
 
         public void InitializeService()
         {
             _wallet = new Wallet(new Mnemonic(WordList.English, WordCount.Twelve));
+            _rpcClient = ClientFactory.GetClient(Cluster.MainNet);
         }
     }
 
     public class GetNftWalletRequest
     {
+        public int OwnerAccount { get; set; }
+        public string MintSymbol { get; set; }
+        public string MintToken { get; set; }
+        public string MintName { get; set; }
+        public int MintDecimal { get; set; }
     }
 
     public class GetNftWalletResult
     {
+        public TokenWalletFilterList Accounts { get; set; }
+        public TokenWalletBalance[] Balances { get; set; }
     }
 
     public class GetNftMetadataRequest
@@ -211,10 +243,24 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Service
 
     public class MintNftRequest
     {
+        public ulong Amount { get; set; }
+        public string MemoText { get; set; }
+        public int MintAccountIndex { get; set; }
+        public int OwnerAccountIndex { get; set; }
+        public int InitialAccountIndex { get; set; }
+        public int MintDecimals { get; set; }
     }
 
     public class MintNftResult
     {
+        public string TransactionResult { get; set; }
+
+        public MintNftResult(string result)
+        {
+            TransactionResult = result;
+        }
+        
+        public MintNftResult() {}
     }
 
     public class ExchangeNftRequest
@@ -227,9 +273,22 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Service
 
     public class ExchangeTokenRequest
     {
+        public int MintAccountIndex { get; set; }
+        public int FromAccountIndex { get; set; }
+        public int ToAccountIndex { get; set; }
+        public string MemoText { get; set; }
+        public ulong Amount { get; set; }
     }
 
     public class ExchangeTokenResult
     {
+        public string TransactionResult { get; set; }
+
+        public ExchangeTokenResult(string result)
+        {
+            TransactionResult = result;
+        }
+        
+        public ExchangeTokenResult () {}
     }
 }
