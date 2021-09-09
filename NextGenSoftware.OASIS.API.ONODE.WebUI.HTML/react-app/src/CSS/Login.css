@@ -98,11 +98,7 @@
 	border-radius: 5px;
 }
 
-.login-toggle-password{
-	height: 1.5em;
-	position: absolute;
-	right: 2.5rem;
-	top: 252px;
+.field-icon{
 	filter: invert(67%) sepia(5%) saturate(87%) hue-rotate(201deg) brightness(85%) contrast(88%);
 }
 
