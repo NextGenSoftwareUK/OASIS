@@ -1,17 +1,17 @@
 import React from 'react';
 
 import SideMenu from './SideMenu';
-import '../css/SideNav.css';
+import '../CSS/SideNav.css';
 
 const data = [
     {
         title: "the oasis",
         subNav: ["about", "documentation", "our world"]
-    }, 
+    },
     {
         title: "avatar",
         subNav: ["view avatar", "edit avatar", "search avatars"]
-    }, 
+    },
     {
         title: "karma",
         subNav: [
@@ -20,7 +20,7 @@ const data = [
             "View Avatar Karma",
             "View/Search Karma Akashic Records"
         ]
-    }, 
+    },
     {
         title: "data",
         subNav: [
@@ -32,7 +32,7 @@ const data = [
             "Search Data"
 
         ]
-    }, 
+    },
     {
         title: "seeds",
         subNav: [
@@ -46,7 +46,7 @@ const data = [
             "Manage SEEDS",
             "Search Seeds"
         ]
-    }, 
+    },
     {
         title: "provider",
         subNav: [
@@ -70,38 +70,38 @@ const data = [
             "SQLLite",
             "Neo4j"
         ]
-    }, 
+    },
     {
         title: "nft",
         subNav: []
-    }, 
+    },
     {
         title: "map",
         subNav: []
-    }, 
+    },
     {
         title: "oapp",
         subNav: []
-    }, 
+    },
     {
         title: "quest",
         subNav: []
-    }, 
+    },
     {
         title: "mission",
         subNav: []
-    }, 
+    },
     {
         title: "egg",
         subNav: []
-    }, 
+    },
     {
         title: "game",
         subNav: [
             "View StarCraft 2 Leagues",
             "View StarCraft 2 Tournaments",
             "View StarCraft 2 Achievements"]
-    }, 
+    },
     {
         title: "developer",
         subNav: []
