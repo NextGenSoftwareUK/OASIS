@@ -1,0 +1,70 @@
+.karma * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+.karma {
+    height: 90vh;
+    background-color: #0E1021;
+    color: #fff;
+    max-width: 100%;
+    margin: 0 auto;
+    /*margin-top: 2rem;*/
+    padding-top: 2rem;
+    /*opacity: 0.9;*/
+}
+
+.karma th i {
+    float: right;
+}
+
+.karma__heading {
+    text-align: center;
+}
+
+.karma__search {
+    /*width: 30%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;*/
+    margin-bottom: 1rem;
+    cursor: pointer;
+}
+
+.karma__body {
+    width: 80%;
+    margin: 0 auto;
+}
+/* 
+.karma th {
+    font-weight: bold;
+} */
+
+/*.karma table {
+  font-family: Arial, Helvetica, sans-serif;
+  border-collapse: collapse;
+  width: 100%;
+  border: 1px solid #ddd;
+}
+
+.karma table td, .karma table th {
+  
+  padding: 8px;
+}
+
+table, th, td {
+  border-top: 1px solid #ddd;;
+  border-bottom: 1px solid #ddd;;
+}
+.karma table tr:nth-child(even){background-color: #101021;}
+
+.karma table tr:hover {background-color: #18122D;}
+
+.karma table th {
+  padding-top: 12px;
+  padding-bottom: 12px;
+  text-align: left;
+  background-color: #18122D;
+  color: white;
+}*/
