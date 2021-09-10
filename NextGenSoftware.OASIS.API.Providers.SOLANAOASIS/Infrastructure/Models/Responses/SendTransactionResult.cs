@@ -2,7 +2,7 @@ using NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Models.Comm
 
 namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Models.Responses
 {
-    public class SendTransactionResult : BaseTransactionResult
+    public sealed class SendTransactionResult : BaseTransactionResult
     {
         public SendTransactionResult(string transactionResult) : base(transactionResult)
         {

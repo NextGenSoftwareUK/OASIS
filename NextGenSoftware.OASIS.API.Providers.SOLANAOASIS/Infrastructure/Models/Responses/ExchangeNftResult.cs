@@ -2,7 +2,7 @@ using NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Models.Comm
 
 namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Models.Responses
 {
-    public class ExchangeNftResult : BaseTransactionResult
+    public sealed class ExchangeNftResult : BaseTransactionResult
     {
         public ExchangeNftResult(string transactionResult) : base(transactionResult)
         {

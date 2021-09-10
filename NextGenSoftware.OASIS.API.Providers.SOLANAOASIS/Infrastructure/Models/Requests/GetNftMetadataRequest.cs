@@ -1,6 +1,6 @@
 ﻿namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Models.Requests
 {
-    public class GetNftMetadataRequest
+    public sealed class GetNftMetadataRequest
     {
     }
 }

@@ -1,6 +1,6 @@
 namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Models.Requests
 {
-    public class ExchangeTokenRequest
+    public sealed class ExchangeTokenRequest
     {
         public int MintAccountIndex { get; set; }
         public int FromAccountIndex { get; set; }

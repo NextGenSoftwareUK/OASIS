@@ -1,6 +1,6 @@
 ﻿namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Models.Requests
 {
-    public class MintNftRequest
+    public sealed class MintNftRequest
     {
         public ulong Amount { get; set; }
         public string MemoText { get; set; }

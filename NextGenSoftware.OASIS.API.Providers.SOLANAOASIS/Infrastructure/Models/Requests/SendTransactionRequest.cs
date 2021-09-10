@@ -1,6 +1,6 @@
 namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Models.Requests
 {
-    public class SendTransactionRequest
+    public sealed class SendTransactionRequest
     {
         public int FromAccountIndex { get; set; }
         public int ToAccountIndex { get; set; }
