@@ -13,17 +13,18 @@ import {
     TableFilterRow,
     Toolbar,
 } from "@devexpress/dx-react-grid-material-ui";
+import "../CSS/ReactGrid.css"
 
 const ReactGrid = ({ rows, columns }) => {
     return (
         <>
-            <Paper>
-                <Grid rows={rows} columns={columns}>
+            <Paper style={{color: "#fff", backgroundColor: "transparent", border: "1px solid #fff"}}>
+                <Grid rows={rows} columns={columns} >
                     <SortingState />
                     <IntegratedSorting />
                     <FilteringState defaultFilters={[]} />
                     <IntegratedFiltering />
-                    <Table />
+                    <Table/>
                     <TableHeaderRow showSortingControls />
                     <TableFilterRow />
                     <Toolbar />
