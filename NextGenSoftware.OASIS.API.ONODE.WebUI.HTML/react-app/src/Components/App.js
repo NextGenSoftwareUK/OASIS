@@ -1,20 +1,26 @@
-import "../CSS/App.css";
-import Navbar from "./Navbar";
-import Karma from "../pages/Karma";
-import { BrowserRouter as Router, Switch, Route } from "react-router-dom";
+import '../CSS/App.css'
+import Navbar from './Navbar'
+import { BrowserRouter as Router, Route, Switch } from 'react-router-dom'
+import PayWithSeeds from './seeds/PayWithSeeds'
+import SendInvite from './seeds/SendInvite'
+import '../CSS/Seeds.css'
 
 function App() {
-    return (
-        <Router>
-            <header className="App-header">
-                <Navbar />
-            </header>
-            <Switch>
-                {/* Todo: Here we will write the components for the main page */}
-                <Route exact path="/karma" component={Karma} />
-            </Switch>
-        </Router>
-    );
+  return (
+    <Router>
+      <header className="App-header">
+        <Navbar />
+      </header>
+      <Switch>
+        <Route path="/payWithSeeds">
+          <PayWithSeeds />
+        </Route>
+        <Route path="/sendInvite">
+          <SendInvite />
+        </Route>
+      </Switch>
+    </Router>
+  )
 }
 
 export default App;
