@@ -2,7 +2,7 @@
 
 namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Models.Common
 {
-    public sealed class Response<T> where T : new()
+    public sealed class Response<T>
     {
         public int Code { get; set; }
         public string Message { get; set; }
@@ -12,7 +12,6 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Models.
         {
             Code = (int)ResponseStatus.Successfully;
             Message = ResponseStatusConstants.Successfully;
-            Payload = new T();
         }
     }
 }
