@@ -1,8 +1,9 @@
 import '../CSS/App.css'
 import Navbar from './Navbar'
 import { BrowserRouter as Router, Route, Switch } from 'react-router-dom'
-import Seeds from './PayWithSeeds'
-import PayWithSeeds from './PayWithSeeds'
+import PayWithSeeds from './seeds/PayWithSeeds'
+import SendInvite from './seeds/SendInvite'
+import '../CSS/Seeds.css'
 
 function App() {
   return (
@@ -13,6 +14,9 @@ function App() {
       <Switch>
         <Route path="/payWithSeeds">
           <PayWithSeeds />
+        </Route>
+        <Route path="/sendInvite">
+          <SendInvite />
         </Route>
       </Switch>
     </Router>

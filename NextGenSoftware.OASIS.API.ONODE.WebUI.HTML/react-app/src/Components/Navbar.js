@@ -17,6 +17,7 @@ class Navbar extends React.Component {
     this.showSignup = this.showSignup.bind(this)
     this.showLogin = this.showLogin.bind(this)
     this.closeLogins = this.closeLogins.bind(this)
+    this.hideSideNav = this.hideSideNav.bind(this)
     this.state = {
       showSideNav: false,
       showLogin: false,
@@ -55,6 +56,9 @@ class Navbar extends React.Component {
       showSideNav: false
     })
   }
+  hideSideNav() {
+    this.setState({ showSideNav: !this.state.showSideNav })
+  }
 
   setLoginState = (user) => {
     this.setState({ user })
@@ -78,7 +82,7 @@ class Navbar extends React.Component {
       <nav className="nav">
         <div className="nav-left">
           <div className={`nav-menu-btn${this.state.showSideNav ? " nav-menu-open" : ""}`}
-            onClick={() => this.setState({ showSideNav: !this.state.showSideNav })}>
+            onClick={this.hideSideNav}>
             <div className="nav-menu-btn-burger"></div>
           </div>
           <img className="nav-logo" src={logo} alt="logo" />
@@ -111,7 +115,8 @@ class Navbar extends React.Component {
         </div>
         <SideNav show={this.state.showSideNav}
           showLogin={this.showLogin}
-          showSignup={this.showSignup} />
+          showSignup={this.showSignup}
+          hideSideNav={this.hideSideNav} />
       </nav>
     );
   }
