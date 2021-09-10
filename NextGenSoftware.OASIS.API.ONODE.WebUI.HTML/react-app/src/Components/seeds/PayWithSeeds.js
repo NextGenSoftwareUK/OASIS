@@ -1,6 +1,5 @@
 import React from 'react'
 import { Component } from 'react'
-import '../CSS/PayWithSeeds.css'
 
 export default class PayWithSeeds extends Component {
   constructor(props) {
@@ -8,7 +7,7 @@ export default class PayWithSeeds extends Component {
 
     this.handleSeedType = this.handleSeedType.bind(this)
     this.state = {
-      seedType: "Pay"
+      seedType: this.props.seedType || "Pay"
     }
   }
   handleSeedType(e) {
