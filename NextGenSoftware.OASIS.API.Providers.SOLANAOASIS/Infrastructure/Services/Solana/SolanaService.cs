@@ -76,8 +76,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Service
             var minBalanceForExemptionMint =(await _rpcClient.GetMinimumBalanceForRentExemptionAsync(TokenProgram.MintAccountDataSize)).Result;
 
             var mintAccount = _wallet.GetAccount(mintNftRequest.MintAccountIndex);
-            var ownerAccount = _wallet.GetAccount(mintNftRequest.OwnerAccountIndex);
-            var initialAccount = _wallet.GetAccount(mintNftRequest.InitialAccountIndex);
+            var ownerAccount = _wallet.GetAccount(mintNftRequest.FromAccountIndex);
+            var initialAccount = _wallet.GetAccount(mintNftRequest.ToAccountIndex);
 
             var tx = new TransactionBuilder().
                 SetRecentBlockHash(blockHash.Result.Value.Blockhash).
