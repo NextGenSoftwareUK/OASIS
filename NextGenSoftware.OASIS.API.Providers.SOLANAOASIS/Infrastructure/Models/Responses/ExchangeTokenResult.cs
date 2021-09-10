@@ -1,14 +1,11 @@
-﻿namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Models.Responses
-{
-    public class ExchangeTokenResult
-    {
-        public string TransactionResult { get; set; }
+﻿using NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Models.Common;
 
-        public ExchangeTokenResult(string result)
+namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Models.Responses
+{
+    public class ExchangeTokenResult : BaseTransactionResult
+    {
+        public ExchangeTokenResult(string transactionResult) : base(transactionResult)
         {
-            TransactionResult = result;
         }
-        
-        public ExchangeTokenResult () {}
     }
 }

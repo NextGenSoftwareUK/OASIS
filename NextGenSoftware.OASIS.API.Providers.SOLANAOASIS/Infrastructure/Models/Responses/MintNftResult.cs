@@ -1,14 +1,11 @@
-﻿namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Models.Responses
-{
-    public class MintNftResult
-    {
-        public string TransactionResult { get; set; }
+﻿using NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Models.Common;
 
-        public MintNftResult(string result)
+namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Models.Responses
+{
+    public class MintNftResult : BaseTransactionResult
+    {
+        public MintNftResult(string transactionResult) : base(transactionResult)
         {
-            TransactionResult = result;
         }
-        
-        public MintNftResult() {}
     }
 }

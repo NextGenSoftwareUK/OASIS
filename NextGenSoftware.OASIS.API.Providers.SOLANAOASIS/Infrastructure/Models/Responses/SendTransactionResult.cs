@@ -1,14 +1,11 @@
+using NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Models.Common;
+
 namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Models.Responses
 {
-    public class SendTransactionResult
+    public class SendTransactionResult : BaseTransactionResult
     {
-        public string Transaction { get; set; }
-
-        public SendTransactionResult(string transaction)
+        public SendTransactionResult(string transactionResult) : base(transactionResult)
         {
-            Transaction = transaction;
         }
-        
-        public SendTransactionResult() {}
     }
 }
