@@ -7,5 +7,10 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Models.
         public SendTransactionResult(string transactionResult) : base(transactionResult)
         {
         }
+
+        public SendTransactionResult()
+        {
+            
+        }
     }
 }

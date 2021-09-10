@@ -8,5 +8,9 @@
         {
             TransactionResult = transactionResult;
         }
+
+        public BaseTransactionResult()
+        {
+        }
     }
 }
