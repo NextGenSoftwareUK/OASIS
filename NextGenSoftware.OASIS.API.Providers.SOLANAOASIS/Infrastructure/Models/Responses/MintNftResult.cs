@@ -7,5 +7,10 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Models.
         public MintNftResult(string transactionResult) : base(transactionResult)
         {
         }
+
+        public MintNftResult()
+        {
+            
+        }
     }
 }

@@ -7,5 +7,9 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Models.
         public ExchangeNftResult(string transactionResult) : base(transactionResult)
         {
         }
+
+        public ExchangeNftResult()
+        {
+        }
     }
 }
