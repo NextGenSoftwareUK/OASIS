@@ -1,8 +1,9 @@
 import axios from "axios";
 import { Component } from "react";
 import "../CSS/Karma.css";
-import { extractKarma } from "../functions";
+import { extractKarma, login } from "../functions";
 import ReactGrid from "../Components/ReactGrid";
+import Loader from "react-loader-spinner";
 
 class Karma extends Component {
     constructor(props) {
@@ -21,25 +22,30 @@ class Karma extends Component {
             ],
             rows: [],
             loading: true,
+            loggedIn: true,
         };
     }
 
     //run this after component mounts
 
-    componentDidMount() {
-        let token, refresh;
+    async componentDidMount() {
+        let token, refresh, credentials;
 
         //If user object exists in localstorage, get the refresh token
         //and the jwtToken
         if (localStorage.getItem("user")) {
-            token = JSON.parse(localStorage.getItem("user")).jwtToken;
-            refresh = JSON.parse(localStorage.getItem("user")).refreshToken;
+            credentials = JSON.parse(localStorage.getItem("credentials"));
+            let avatar = await login(credentials);
+            if (avatar !== -1) {
+                token = avatar.jwtToken;
+                refresh = avatar.refreshToken;
+            }
         }
 
         //else (for now) show an alert and redirect to home
         else {
-            alert("not logged in");
-            this.props.history.push("/");
+            // alert("not logged in");
+            this.setState({ loggedIn: false });
         }
         let config = {
             method: "get",
@@ -59,6 +65,7 @@ class Karma extends Component {
                 this.setState({ rows: karmaRecord });
                 console.log(karmaRecord);
                 this.setState({ loading: false });
+                this.setState({ loggedIn: true });
             })
             .catch((error) => {
                 this.setState({ loading: true });
@@ -69,16 +76,20 @@ class Karma extends Component {
     render() {
         return (
             <div className="karma">
-                <div className="karma__body">
-                    {this.state.loading ? (
-                        <p>Loading</p>
-                    ) : (
-                        <ReactGrid
-                            rows={this.state.rows}
-                            columns={this.state.columns}
-                        />
-                    )}
-                </div>
+                {this.state.loggedIn ? (
+                    <div className="karma__body">
+                        {this.state.loading ? (
+                            <Loader type="Oval" height={30} width={30} color="#fff" />
+                        ) : (
+                            <ReactGrid
+                                rows={this.state.rows}
+                                columns={this.state.columns}
+                            />
+                        )}
+                    </div>
+                ) : (
+                    <h1>You are not logged in! </h1>
+                )}
             </div>
         );
     }
