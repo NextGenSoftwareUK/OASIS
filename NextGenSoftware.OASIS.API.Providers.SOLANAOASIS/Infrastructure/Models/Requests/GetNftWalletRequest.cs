@@ -1,6 +1,6 @@
 ﻿namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Models.Requests
 {
-    public class GetNftWalletRequest
+    public sealed class GetNftWalletRequest
     {
         public int OwnerAccount { get; set; }
         public string MintSymbol { get; set; }
