@@ -57,7 +57,11 @@
   grid-template-columns: repeat(2, auto 1fr);
   margin-top: 1rem;
 }
-
+.sendInvite-row{
+  display: grid;
+  grid-template-columns: auto 1fr;
+  margin-top: 1rem;
+}
 @media (max-width: 800px) {
   .payWithSeeds{
     justify-content: initial;
@@ -69,7 +73,7 @@
     grid-template-columns: 80%;
     justify-content: center;
   }
-  .payWithSeeds-fields, .payWithSeeds-row{
+  .payWithSeeds-fields, .payWithSeeds-row, .sendInvite-row{
     grid-template-columns: 100%;
     row-gap: 0.5rem;
   }
