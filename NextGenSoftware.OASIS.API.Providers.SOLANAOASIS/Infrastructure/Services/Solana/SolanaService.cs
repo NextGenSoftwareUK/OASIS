@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Enums;
 using NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Models.Common;
@@ -29,10 +30,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Service
         public async Task<Response<ExchangeTokenResult>> ExchangeTokens(ExchangeTokenRequest exchangeTokenRequest)
         {
             var response = new Response<ExchangeTokenResult>();
-            
             var blockHash = await _rpcClient.GetRecentBlockHashAsync();
-
-            
             var mintAccount = _wallet.GetAccount(exchangeTokenRequest.MintAccountIndex);
             var fromAccount = _wallet.GetAccount(exchangeTokenRequest.FromAccountIndex);
             var toAccount = _wallet.GetAccount(exchangeTokenRequest.ToAccountIndex);
@@ -61,12 +59,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Service
             response.Payload = new ExchangeTokenResult(sendTransactionResult.Result);
             return response;
         }
-
-        public async Task<Response<ExchangeNftResult>> ExchangeNft(ExchangeNftRequest exchangeNftRequest)
-        {
-            throw new System.NotImplementedException();
-        }
-
+        
         public async Task<Response<MintNftResult>> MintNft(MintNftRequest mintNftRequest)
         {
             var response = new Response<MintNftResult>();
@@ -147,7 +140,28 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Service
 
         public async Task<Response<GetNftMetadataResult>> GetNftMetadata(GetNftMetadataRequest getNftMetadataRequest)
         {
-            throw new System.NotImplementedException();
+            var response = new Response<GetNftMetadataResult>();
+            try
+            {
+                var ownerAccount = _wallet.GetAccount(getNftMetadataRequest.OwnerAccount);
+                var tokens = new TokenMintResolver();
+                
+                tokens.Add(new TokenDef(getNftMetadataRequest.MintToken, getNftMetadataRequest.MintName, getNftMetadataRequest.MintSymbol, getNftMetadataRequest.MintDecimal));
+                var tokenWallet = await TokenWallet.LoadAsync(_rpcClient, tokens, ownerAccount);
+                var sublist = tokenWallet.TokenAccounts().WithSymbol(getNftMetadataRequest.MintSymbol).WithMint(getNftMetadataRequest.MintToken);
+            
+                response.Payload = new GetNftMetadataResult()
+                {
+                    Count = sublist.Count(),
+                    Accounts = sublist
+                };
+            }
+            catch (Exception e)
+            {
+                response.Code = (int) ResponseStatus.Successfully;
+                response.Message = ResponseStatusConstants.Failed;
+            }
+            return response;
         }
 
         public async Task<Response<GetNftWalletResult>> GetNftWallet(GetNftWalletRequest getNftWalletRequest)

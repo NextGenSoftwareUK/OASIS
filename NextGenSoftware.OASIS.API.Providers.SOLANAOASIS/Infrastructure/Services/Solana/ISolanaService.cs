@@ -8,7 +8,6 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Service
     public interface ISolanaService
     {
         Task<Response<ExchangeTokenResult>> ExchangeTokens(ExchangeTokenRequest exchangeTokenRequest);
-        Task<Response<ExchangeNftResult>> ExchangeNft(ExchangeNftRequest exchangeNftRequest);
         Task<Response<MintNftResult>> MintNft(MintNftRequest mintNftRequest);
         Task<Response<SendTransactionResult>> SendTransaction(SendTransactionRequest sendTransactionRequest);
         Task<Response<GetNftMetadataResult>> GetNftMetadata(GetNftMetadataRequest getNftMetadataRequest);
