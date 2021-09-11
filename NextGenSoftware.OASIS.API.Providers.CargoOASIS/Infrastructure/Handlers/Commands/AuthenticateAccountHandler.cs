@@ -6,6 +6,8 @@ using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Enum;
 using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Factory.SignatureProviders;
 using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Factory.TokenStorage;
 using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Interfaces;
+using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Services.HttpHandler;
+using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Models.Cargo;
 using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Models.Common;
 
 namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Handlers.Commands
@@ -14,17 +16,12 @@ namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Handlers
     {
         private readonly ITokenStorage _tokenStorage;
         private readonly ISignatureProvider _signatureProvider;
-        private readonly HttpClient _httpClient;
-        public AuthenticateAccountHandler()
+        private readonly IHttpHandler _httpClient;
+        public AuthenticateAccountHandler(ITokenStorage tokenStorage, ISignatureProvider signatureProvider, IHttpHandler httpClient)
         {
-            _httpClient = new HttpClient()
-            {
-                Timeout = TimeSpan.FromMinutes(1),
-                BaseAddress = new Uri("https://api2.cargo.build/")
-            };
-            _httpClient.DefaultRequestHeaders.Add("Content-Type", "application/json");
-            _tokenStorage = TokenStorageFactory.GetMemoryCacheTokenStorage();
-            _signatureProvider = SignatureFactory.GetMemoryCacheSignatureProvider();
+            _tokenStorage = tokenStorage;
+            _signatureProvider = signatureProvider;
+            _httpClient = httpClient;
         }
         
         /// <summary>
@@ -44,7 +41,7 @@ namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Handlers
                     return response;
                 }
                 
-                var url = "v3/authenticate";
+                var url = "https://api2.cargo.build/v3/authenticate";
                 var requestContent = JsonConvert.SerializeObject(new
                 {
                     address = _tokenStorage.GetToken(),
@@ -53,8 +50,9 @@ namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Handlers
                 var httpReq = new HttpRequestMessage()
                 {
                     Method = HttpMethod.Post,
-                    RequestUri = new Uri(_httpClient.BaseAddress + url),
-                    Content = new StringContent(requestContent)
+                    RequestUri = new Uri(url),
+                    Content = new StringContent(requestContent),
+                    Headers = { { "Content-Type", "application/json" } }
                 };
                 var httpRes = await _httpClient.SendAsync(httpReq);
                 if (!httpRes.IsSuccessStatusCode)

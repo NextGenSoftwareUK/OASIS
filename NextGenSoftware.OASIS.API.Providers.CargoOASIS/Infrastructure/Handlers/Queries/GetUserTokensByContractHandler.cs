@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
@@ -10,6 +9,7 @@ using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Builder;
 using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Exceptions;
 using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Factory.TokenStorage;
 using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Interfaces;
+using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Services.HttpHandler;
 using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Models.Cargo;
 using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Models.Common;
 
@@ -17,18 +17,13 @@ namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Handlers
 {
     public class GetUserTokensByContractHandler : IHandle<Response<GetUserTokensByContractResponseModel>, GetUserTokensByContractRequestModel>
     {
-        private readonly HttpClient _httpClient;
+        private readonly IHttpHandler _httpClient;
         private readonly ITokenStorage _tokenStorage;
 
-        public GetUserTokensByContractHandler()
+        public GetUserTokensByContractHandler(IHttpHandler httpClient, ITokenStorage tokenStorage)
         {
-            _httpClient = new HttpClient()
-            {
-                Timeout = TimeSpan.FromMinutes(1),
-                BaseAddress = new Uri("https://api2.cargo.build/")
-            };
-            _httpClient.DefaultRequestHeaders.Add("Content-Type", "application/json");
-            _tokenStorage = TokenStorageFactory.GetMemoryCacheTokenStorage();
+            _httpClient = httpClient;
+            _tokenStorage = tokenStorage;
         }
         
         /// <summary>
@@ -47,16 +42,16 @@ namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Handlers
                 queryBuilder.AppendParameter("page", request.Page);
                 queryBuilder.AppendParameter("address", request.Address);
 
-                var urlQuery = $"v3/get-user-tokens/{request.ContractId}{queryBuilder.GetQuery()}";
+                var urlQuery = $"https://api2.cargo.build/v3/get-user-tokens/{request.ContractId}{queryBuilder.GetQuery()}";
                 var httRequest = new HttpRequestMessage()
                 {
                     Method = HttpMethod.Get,
-                    RequestUri = new Uri(_httpClient.BaseAddress + urlQuery),
+                    RequestUri = new Uri(urlQuery),
                 };
                 if (request.SkipAuth != null && !request.SkipAuth.Value)
                 {
                     var accessToken = await _tokenStorage.GetToken();
-                    _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+                    httRequest.Headers.Add("Authorization", $"Bearer {accessToken}");
                 }
                 var httpResponse = await _httpClient.SendAsync(httRequest);
                 if(httpResponse.StatusCode == HttpStatusCode.Unauthorized)
@@ -91,41 +86,5 @@ namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Handlers
                 return response;
             }
         }
-    }
-
-    public class GetUserTokensByContractResponseModel
-    {
-        [JsonProperty("err")]
-        public bool Error { get; set; }
-
-        [JsonProperty("status")] 
-        public int Status { get; set; }
-
-        [JsonProperty("data")]
-        public PaginationResponseWithResults<IEnumerable<GetUserTokensByContractResponse>> Data { get; set; }
-    }
-
-    public class GetUserTokensByContractRequestModel
-    {
-        /// <summary>
-        /// Optional. String. Page of results to display.
-        /// </summary>
-        public string Page { get; set; }
-        /// <summary>
-        /// Optional. String. Limit of results to display per page.
-        /// </summary>
-        public string Limit { get; set; }
-        /// <summary>
-        /// Required. String. ID of collection 
-        /// </summary>
-        public string ContractId { get; set; }
-        /// <summary>
-        /// Optional. String. Ethereum wallet address of user. Should set skipAuth option to true when using address.
-        /// </summary>
-        public string Address { get; set; }
-        /// <summary>
-        /// Optional. Boolean. Skips using the current logged in users address and will use the address value
-        /// </summary>
-        public bool? SkipAuth { get; set; }
     }
 }

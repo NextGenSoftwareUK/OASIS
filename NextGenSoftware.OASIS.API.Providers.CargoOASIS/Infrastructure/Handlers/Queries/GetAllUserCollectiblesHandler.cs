@@ -6,6 +6,7 @@ using Newtonsoft.Json;
 using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Enum;
 using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Builder;
 using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Interfaces;
+using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Services.HttpHandler;
 using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Models.Cargo;
 using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Models.Common;
 
@@ -13,15 +14,11 @@ namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Handlers
 {
     public class GetAllUserCollectiblesHandler : IHandle<Response<PaginationResponseWithResults<IEnumerable<GetAllUserCollectiblesResponseModel>>>, GetAllUserCollectiblesRequestModel>
     {
-        private readonly HttpClient _httpClient;
+        private readonly IHttpHandler _httpClient;
 
-        public GetAllUserCollectiblesHandler()
+        public GetAllUserCollectiblesHandler(IHttpHandler httpClient)
         {
-            _httpClient = new HttpClient()
-            {
-                Timeout = TimeSpan.FromMinutes(1),
-                BaseAddress = new Uri("https://api2.cargo.build/")
-            };
+            _httpClient = httpClient;
         }
         
         /// <summary>
@@ -39,11 +36,11 @@ namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Handlers
                 queryBuilder.AppendParameter("limit", request.Limit);
                 queryBuilder.AppendParameter("page", request.Page);
                 
-                var urlQuery = $"v3/all-collectibles/{request.Address}{queryBuilder.GetQuery()}";
+                var urlQuery = $"https://api2.cargo.build/v3/all-collectibles/{request.Address}{queryBuilder.GetQuery()}";
                 var httRequest = new HttpRequestMessage()
                 {
                     Method = HttpMethod.Get,
-                    RequestUri = new Uri(_httpClient.BaseAddress + urlQuery),
+                    RequestUri = new Uri(urlQuery),
                 };
                 var httpResponse = await _httpClient.SendAsync(httRequest);
                 if (!httpResponse.IsSuccessStatusCode)
@@ -64,37 +61,5 @@ namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Handlers
                 return response;
             }
         }
-    }
-
-    public class GetAllUserCollectiblesResponseModel
-    {
-        [JsonProperty("tokenId")]
-        public string TokenId { get; set; }
-        [JsonProperty("metadata")]
-        public IDictionary<string, object> Metadata { get; set; }
-        [JsonProperty("tokenUrl")]
-        public string TokenUrl { get; set; }
-        [JsonProperty("resaleItem")]
-        public ResaleItemV3 ResaleItem { get; set; }
-        [JsonProperty("owner")]
-        public string Owner { get; set; }
-        [JsonProperty("collection")]
-        public ContractV3 Collection { get; set; }
-    }
-
-    public class GetAllUserCollectiblesRequestModel
-    {
-        /// <summary>
-        /// Required. String. The Ethereum wallet to fetch NFTs for.
-        /// </summary>
-        public string Address { get; set; }
-        /// <summary>
-        /// Optional. String. The page used for pagination.
-        /// </summary>
-        public string Page { get; set; }
-        /// <summary>
-        /// Optional. String. The max number of results to return.
-        /// </summary>
-        public string Limit { get; set; }
     }
 }
