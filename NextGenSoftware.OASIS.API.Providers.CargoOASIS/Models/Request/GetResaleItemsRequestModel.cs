@@ -1,7 +1,7 @@
 ﻿using Newtonsoft.Json;
 using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Enum;
 
-namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Models.Cargo
+namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Models.Request
 {
     public class GetResaleItemsRequestModel
     {

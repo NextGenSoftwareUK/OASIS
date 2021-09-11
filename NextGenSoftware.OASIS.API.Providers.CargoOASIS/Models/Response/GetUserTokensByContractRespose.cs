@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
+using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Models.Cargo;
 
-namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Models.Cargo
+namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Models.Response
 {
     public class GetUserTokensByContractResponse
     {

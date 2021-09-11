@@ -1,4 +1,4 @@
-﻿namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Models.Cargo
+﻿namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Models.Request
 {
     public class GetShowcaseBySlugRequestModel
     {

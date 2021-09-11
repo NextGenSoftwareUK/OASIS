@@ -1,6 +1,6 @@
 ﻿using Newtonsoft.Json;
 
-namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Models.Cargo
+namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Models.Response
 {
     public class GetShowcaseBySlugResponseModel
     {
