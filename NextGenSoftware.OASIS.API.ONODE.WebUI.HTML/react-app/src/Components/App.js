@@ -17,15 +17,13 @@ function App() {
         <Route path="/payWithSeeds">
           <PayWithSeeds />
         </Route>
-        <Route path="/">
+        <Route exact path="/">
           <Home/>
         </Route>
         <Route path="/sendInvite">
           <SendInvite />
         </Route>
-        <Route path="/karma">
-          <Karma/>
-        </Route>
+        <Route exact path="/karma" component={Karma} />
       </Switch>
     </Router>
   )
