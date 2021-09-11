@@ -8,6 +8,7 @@ using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Enum;
 using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Exceptions;
 using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Factory.TokenStorage;
 using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Interfaces;
+using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Services.HttpHandler;
 using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Models.Cargo;
 using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Models.Common;
 
@@ -15,17 +16,13 @@ namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Handlers
 {
     public class GetProjectMetadataHandler : IHandle<Response<GetProjectMetadataResponseModel>, GetProjectMetadataRequestModel>
     {
-        private readonly HttpClient _httpClient;
+        private readonly IHttpHandler _httpClient;
         private readonly ITokenStorage _tokenStorage;
 
-        public GetProjectMetadataHandler()
+        public GetProjectMetadataHandler(IHttpHandler httpClient, ITokenStorage tokenStorage)
         {
-            _httpClient = new HttpClient()
-            {
-                Timeout = TimeSpan.FromMinutes(1),
-                BaseAddress = new Uri("https://api2.cargo.build/")
-            };
-            _tokenStorage = TokenStorageFactory.GetMemoryCacheTokenStorage();
+            _httpClient = httpClient;
+            _tokenStorage = tokenStorage;
         }
         
         /// <summary>
@@ -39,16 +36,16 @@ namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Handlers
             var response = new Response<GetProjectMetadataResponseModel>();
             try
             {
-                var urlQuery = $"v5/project-metadata/{request.ProjectId}";
+                var urlQuery = $"https://api2.cargo.build/v5/project-metadata/{request.ProjectId}";
                 var httRequest = new HttpRequestMessage()
                 {
                     Method = HttpMethod.Get,
-                    RequestUri = new Uri(_httpClient.BaseAddress + urlQuery)
+                    RequestUri = new Uri(urlQuery)
                 };
                 if (request.UseAuth != null && request.UseAuth.Value)
                 {
                     var accessToken = await _tokenStorage.GetToken();
-                    _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+                    httRequest.Headers.Add("Authorization", $"Bearer {accessToken}");
                 }
                 var httpResponse = await _httpClient.SendAsync(httRequest);
                 if(httpResponse.StatusCode == HttpStatusCode.Unauthorized)
@@ -83,29 +80,5 @@ namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Handlers
                 return response;
             }        
         }
-    }
-
-    public class GetProjectMetadataResponseModel
-    {
-        [JsonProperty("err")]
-        public bool Error { get; set; }
-
-        [JsonProperty("status")] 
-        public int Status { get; set; }
-
-        [JsonProperty("data")]
-        public ContractMetadata Data { get; set; }
-    }
-
-    public class GetProjectMetadataRequestModel
-    {
-        /// <summary>
-        /// Required. The ID of the project. This can be found in the URL bar when viewing the project on Cargo.
-        /// </summary>
-        public string ProjectId { get; set; }
-        /// <summary>
-        /// Optional. If true this method requires authentication. Will return isOwned boolean in response
-        /// </summary>
-        public bool? UseAuth { get; set; }
     }
 }

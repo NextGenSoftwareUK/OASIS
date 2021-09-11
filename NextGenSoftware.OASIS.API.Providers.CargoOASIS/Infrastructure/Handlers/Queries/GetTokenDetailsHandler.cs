@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Newtonsoft.Json;
 using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Enum;
 using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Interfaces;
+using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Services.HttpHandler;
 using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Models.Cargo;
 using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Models.Common;
 
@@ -11,15 +12,11 @@ namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Handlers
 {
     public class GetTokenDetailsHandler : IHandle<Response<GetTokenDetailsResponseModel>, GetTokenDetailsRequestModel>
     {
-        private readonly HttpClient _httpClient;
+        private readonly IHttpHandler _httpClient;
 
-        public GetTokenDetailsHandler()
+        public GetTokenDetailsHandler(IHttpHandler httpClient)
         {
-            _httpClient = new HttpClient()
-            {
-                Timeout = TimeSpan.FromMinutes(1),
-                BaseAddress = new Uri("https://api2.cargo.build/")
-            };
+            _httpClient = httpClient;
         }
         
         /// <summary>
@@ -33,11 +30,11 @@ namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Handlers
             var response = new Response<GetTokenDetailsResponseModel>();
             try
             {
-                var urlQuery = $"v5/get-token-details/{request.ProjectId}/{request.CollectibleId}";
+                var urlQuery = $"https://api2.cargo.build/v5/get-token-details/{request.ProjectId}/{request.CollectibleId}";
                 var httRequest = new HttpRequestMessage()
                 {
                     Method = HttpMethod.Get,
-                    RequestUri = new Uri(_httpClient.BaseAddress + urlQuery)
+                    RequestUri = new Uri(urlQuery)
                 };
                 var httpResponse = await _httpClient.SendAsync(httRequest);
                 if (!httpResponse.IsSuccessStatusCode)
@@ -58,30 +55,5 @@ namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Handlers
                 return response;
             }
         }
-    }
-
-    public class GetTokenDetailsRequestModel
-    {
-        /// <summary>
-        /// The ID of the project on Cargo.
-        /// This can be found in the URL bar when viewing the project on Cargo.
-        /// </summary>
-        public string ProjectId { get; set; }
-        /// <summary>
-        /// The ID of the collectible within the collection.
-        /// </summary>
-        public string CollectibleId { get; set; }
-    }
-
-    public class GetTokenDetailsResponseModel
-    {
-        [JsonProperty("err")]
-        public bool Error { get; set; }
-
-        [JsonProperty("status")] 
-        public int Status { get; set; }
-
-        [JsonProperty("data")]
-        public TokenDetail Data { get; set; }
     }
 }
