@@ -1,10 +1,10 @@
 import React from 'react';
 
-import ShowIcon from '../img/visible-icon.svg';
-import HideIcon from '../img/hidden-icon.svg';
+import ShowIcon from '../../img/visible-icon.svg';
+import HideIcon from '../../img/hidden-icon.svg';
 
 import Alert from './Alert';
-import '../CSS/Login.css';
+import '../../CSS/Login.css';
 
 import Loader from 'react-loader-spinner';
 import { Formik } from "formik";

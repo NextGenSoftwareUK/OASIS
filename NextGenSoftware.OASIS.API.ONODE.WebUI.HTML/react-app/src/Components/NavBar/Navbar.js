@@ -1,12 +1,11 @@
 import React from "react";
 
-import logo from "../img/dummy-logo.svg";
-import loginIcon from "../img/loggedin.png";
+import logo from "../../img/dummy-logo.svg";
+import loginIcon from "../../img/loggedin.png";
 
 import SideNav from "./SideNav";
 import Login from "./Login";
 import Signup from "./Signup";
-import "../CSS/Navbar.css";
 
 import axios from "axios";
 
