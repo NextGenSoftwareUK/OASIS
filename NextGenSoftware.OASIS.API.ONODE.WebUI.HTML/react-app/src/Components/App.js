@@ -3,6 +3,8 @@ import Navbar from './Navbar'
 import { BrowserRouter as Router, Route, Switch } from 'react-router-dom'
 import PayWithSeeds from './seeds/PayWithSeeds'
 import SendInvite from './seeds/SendInvite'
+import Karma from "../pages/Karma"
+import Home from "../pages/Home"
 import '../CSS/Seeds.css'
 
 function App() {
@@ -15,12 +17,16 @@ function App() {
         <Route path="/payWithSeeds">
           <PayWithSeeds />
         </Route>
+        <Route exact path="/">
+          <Home/>
+        </Route>
         <Route path="/sendInvite">
           <SendInvite />
         </Route>
+        <Route exact path="/karma" component={Karma} />
       </Switch>
     </Router>
   )
 }
 
-export default App
+export default App;
