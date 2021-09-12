@@ -16,12 +16,12 @@ export default class SideMenu extends Component {
               onToggle();
             }}
               className="side-nav-menu link">{menu.title}</div>
-            <div className="side-nav-submenu" ref={setCollapsibleElement}>
+            <ul className="side-nav-submenu" ref={setCollapsibleElement}>
               {menu.subNav.map((item, index) =>
                 <li key={index} onClick={this.props.hideSideNav}>
                   <Link className="side-nav-subnav link" to={item.path}>{item.title}</Link>
                 </li>)}
-            </div>
+            </ul>
           </div>
         )}
       />
