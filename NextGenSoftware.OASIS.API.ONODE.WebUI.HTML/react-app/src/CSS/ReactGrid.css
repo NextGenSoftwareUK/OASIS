@@ -1,0 +1,11 @@
+/* table tr th td tr{
+    background-color: hsla(240, 8%, 12%, 0.7);
+    color: #fff;
+} */
+.MuiTableCell-body, .MuiTableCell-root, .MuiSvgIcon-root, .MuiInputBase-input {
+    color: #fff !important;
+}
+
+.MuiTableCell-body:hover, .MuiTableCell-root:hover {
+    color: #fff;
+}
