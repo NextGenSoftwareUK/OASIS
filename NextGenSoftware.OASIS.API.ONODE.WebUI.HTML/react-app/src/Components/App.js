@@ -15,6 +15,12 @@ function App() {
         <Route path="/payWithSeeds">
           <PayWithSeeds />
         </Route>
+        <Route path="/donateWithSeeds">
+          <PayWithSeeds seedType="Donate" />
+        </Route>
+        <Route path="/rewardWithSeeds">
+          <PayWithSeeds seedType="Reward" />
+        </Route>
         <Route path="/sendInvite">
           <SendInvite />
         </Route>

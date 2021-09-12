@@ -54,7 +54,7 @@ input{
 .button{
   color: #fff;
 	background-color: #1885c9;
-	padding: 0.5rem 1rem;
+	padding: 0rem 1rem;
 	border-radius: 5rem;
 	cursor: pointer;
   font-size: 1.15rem;
@@ -65,7 +65,7 @@ input{
 }
 .button-inverse{
   color: #1885c9;
-	padding: 0.5rem 1rem;
+	padding: 0rem 1rem;
 	border-radius: 5rem;
 	cursor: pointer;
   font-size: 1.15rem;
