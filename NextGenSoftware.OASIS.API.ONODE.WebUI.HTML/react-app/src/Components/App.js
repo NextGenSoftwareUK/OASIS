@@ -12,6 +12,10 @@ import '../CSS/Alert.css'
 import '../CSS/Seeds.css'
 // ================================================
 
+import Karma from "../pages/Karma"
+import Home from "../pages/Home"
+
+
 function App() {
   return (
     <Router>
@@ -28,12 +32,16 @@ function App() {
         <Route path="/rewardWithSeeds">
           <PayWithSeeds seedType="Reward" />
         </Route>
+        <Route exact path="/">
+          <Home />
+        </Route>
         <Route path="/sendInvite">
           <SendInvite />
         </Route>
+        <Route exact path="/karma" component={Karma} />
       </Switch>
     </Router>
   )
 }
 
-export default App
+export default App;

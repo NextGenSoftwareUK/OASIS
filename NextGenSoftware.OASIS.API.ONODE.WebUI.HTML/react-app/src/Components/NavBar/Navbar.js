@@ -70,9 +70,11 @@ class Navbar extends React.Component {
     }).then(res => {
       this.setState({ user: null })
       localStorage.removeItem('user')
+      localStorage.removeItem('credentials')
     }).catch(err => {
       this.setState({ user: null })
       localStorage.removeItem('user')
+      localStorage.removeItem('credentials')
     })
   }
 
