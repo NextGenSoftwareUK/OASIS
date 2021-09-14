@@ -2,41 +2,41 @@
   width: 100vw;
   height: 100vh;
   display: grid;
-  color: #909092;
+  color: var(--color-grey);
   place-content: center;
   position: absolute;
   top: 0;
   z-index: 10;
-	background-color: hsla(240, 8%, 12%, 0.7);
+	background-color: var(--popup-background-color);
 }
 .payWithSeeds h1{
-  color: #fff;
+  color: var(--color-white);
   font-weight: 400;
 }
 .payWithSeeds-select{
   font-size: 1.5rem;
-  color: #fff;
+  color: var(--color-white);
   background-color: transparent;
   font-weight: 400;
   border-radius: 5px;
   margin-right: 1rem;
-  border: 1px solid #909092;
+  border: 1px solid var(--color-grey);
   width: auto;
 }
 .payWithSeeds input {
-  border: 1px solid #909092;
+  border: 1px solid var(--color-grey);
   font-size: 1.15rem;
   padding: 0.25rem 1rem;
   border-radius: 5px;
-  color: #909092;
+  color: var(--color-grey);
 }
 .payWithSeeds label{
-  color: #fff;
+  color: var(--color-white);
   padding: 0.25rem 1rem;
 }
 .payWithSeeds-popup{
-  background-color: hsla(240, 8%, 12%, 0.8);
-  box-shadow: 0 0 2.5rem rgba(136, 133, 133, 0.308);
+  background-color: var(--popup-color);
+  box-shadow: var(--popup-box-shadow);
   padding: 2rem;
   border-radius: 1rem;
   display: grid;

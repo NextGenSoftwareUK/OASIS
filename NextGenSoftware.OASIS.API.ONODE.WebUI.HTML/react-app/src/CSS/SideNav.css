@@ -21,7 +21,7 @@
   letter-spacing: 1px;
 }
 .side-nav-menu:hover {
-  background-color: #4440bc;
+  background-color: var(--color-purple);
 }
 .side-nav-show {
   left: 0;
