@@ -1,8 +1,8 @@
 import axios from "axios";
 import { Component } from "react";
-import "../CSS/Karma.css";
-import { extractKarma, login } from "../functions";
-import ReactGrid from "../Components/ReactGrid";
+import "../../../css/Karma.css";
+import { extractKarma, login } from "../../../functions";
+import ReactGrid from "../../ReactGrid";
 import Loader from "react-loader-spinner";
 
 class Karma extends Component {

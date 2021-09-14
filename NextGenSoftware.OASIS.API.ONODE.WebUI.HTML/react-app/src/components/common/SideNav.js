@@ -1,5 +1,5 @@
 import React from 'react';
-import data from '../SideNavData'
+import data from './SideNavData'
 import SideMenuItems from './SideMenuItems';
 
 const SideNav = (props) => {

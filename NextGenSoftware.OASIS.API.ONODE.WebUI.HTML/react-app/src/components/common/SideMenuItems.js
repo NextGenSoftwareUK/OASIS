@@ -20,7 +20,7 @@ export default class SideMenuItems extends Component {
                             {menu.title}
                         </div>
 
-                        <div 
+                        <ul 
                             className="side-nav-submenu" 
                             ref={setCollapsibleElement}
                         >
@@ -30,7 +30,7 @@ export default class SideMenuItems extends Component {
                                         <Link className="side-nav-subnav link" to={item.path}>{item.title}</Link>
                                     </li>)
                             }
-                        </div>
+                        </ul>
                     </>
                 )}
             />

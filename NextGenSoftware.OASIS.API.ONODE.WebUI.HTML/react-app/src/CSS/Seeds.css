@@ -13,7 +13,7 @@
   color: #fff;
   font-weight: 400;
 }
-.popup-container-select{
+.payWithSeeds-select{
   font-size: 1.5rem;
   color: #fff;
   background-color: transparent;
@@ -34,26 +34,26 @@
   color: #fff;
   padding: 0.25rem 1rem;
 }
-.popup-container-popup{
+.payWithSeeds-popup{
   background-color: hsla(240, 8%, 12%, 0.8);
   box-shadow: 0 0 2.5rem rgba(136, 133, 133, 0.308);
   padding: 2rem;
   border-radius: 1rem;
   display: grid;
 }
-.popup-container-fields{
+.payWithSeeds-fields{
   display: grid;
   row-gap: 1rem;
   grid-template-columns: auto 1fr;
 }
-.popup-container-button-align{
+.payWithSeeds-button-align{
   display: grid;
   margin-top: 2rem;
   grid-template-columns: auto auto;
   justify-content: right;
   column-gap: 1rem;
 }
-.popup-container-row{
+.payWithSeeds-row{
   display: grid;
   grid-template-columns: repeat(2, auto 1fr);
   margin-top: 1rem;
@@ -67,25 +67,25 @@
   .popup-container{
     justify-content: initial;
   }
-  .popup-container-label{
+  .payWithSeeds-label{
     text-align: left;
   }
-  .popup-container-popup{
+  .payWithSeeds-popup{
     grid-template-columns: 80%;
     justify-content: center;
   }
-  .popup-container-fields, .popup-container-row, .sendInvite-row{
+  .payWithSeeds-fields, .payWithSeeds-row, .sendInvite-row{
     grid-template-columns: 100%;
     row-gap: 0.5rem;
   }
-  .popup-container-button-align{
+  .payWithSeeds-button-align{
     grid-template-columns: 1fr 1fr;
     justify-content: initial;
   }
 }
 
 @media (max-width: 550px) {
-  .popup-container-popup{
+  .payWithSeeds-popup{
     grid-template-columns: 100%;
   }
 }
