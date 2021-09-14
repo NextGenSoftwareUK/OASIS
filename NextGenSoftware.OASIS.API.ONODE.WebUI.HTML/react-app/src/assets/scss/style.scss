@@ -64,7 +64,7 @@
                 justify-content: space-between;
                 grid-gap: 40px;
                 ul {
-                    height: 32px;
+                    margin: 0;
                     li {
                         display: inline-block;
                         margin-right: 40px;
@@ -150,6 +150,8 @@
             padding-top: 70px;
             max-width: 350px;
             min-width: 350px;
+            overflow-y: auto;
+            height: 100%;
             a {
                 color: #1885c9;
                 text-decoration: none;
@@ -165,11 +167,12 @@
             }
             .side-nav-submenu {
                 li {
+                    margin: 0 0 8px;
                     a {
                         font-size: 14px;
                         display: block;
-                        line-height: 30px;
-                        height: 30px;
+                        min-height: 24px;
+                        line-height: 24px;
                         padding: 0 2rem 0 5rem;
                         &:hover {
                             color: #fff;

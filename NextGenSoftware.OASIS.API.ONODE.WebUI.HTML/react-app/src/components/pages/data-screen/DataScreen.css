@@ -1,0 +1,25 @@
+.data-screen-container {
+    margin: 0 auto;
+}
+.data-screen-container h2 {
+    font-size: 22px;
+    margin: 0 0 12px;
+    font-weight: 500;
+}
+.data-screen-container form p label {
+    font-size: 18px;
+}
+
+.data-screen-container .table-container {
+
+}
+.data-screen-container .table-container .single-row {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    grid-gap: 15px;
+    margin: 0 0 12px;
+}
+.data-screen-container .table-container .single-row .form-container {
+    margin: 12px 0;
+    grid-column: 1 / 6;
+}

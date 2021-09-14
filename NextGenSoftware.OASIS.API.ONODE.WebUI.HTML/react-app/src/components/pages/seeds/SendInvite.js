@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom'
 export default class SendInvite extends Component {
   render() {
     return (
-      <div className="payWithSeeds">
+      <div className="popup-container">
         <div className="payWithSeeds-popup">
           <h1>Send Invite To Join Seeds</h1>
           <div className="payWithSeeds-fields">

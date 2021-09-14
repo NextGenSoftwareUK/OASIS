@@ -6,7 +6,7 @@ import Navbar from "./common/Navbar";
 import PayWithSeeds from "./pages/seeds/PayWithSeeds";
 import SendInvite from "./pages/seeds/SendInvite";
 import Karma from "./pages/karma/Karma";
-import Home from "../pages/Home";
+import Home from "./pages/Home";
 import Login from "./Login";
 import Signup from "./Signup";
 
