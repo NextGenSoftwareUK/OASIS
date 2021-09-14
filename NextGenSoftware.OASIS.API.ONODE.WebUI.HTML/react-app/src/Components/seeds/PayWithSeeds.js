@@ -1,5 +1,6 @@
 import React from 'react'
 import { Component } from 'react'
+import { Link } from 'react-router-dom'
 
 export default class PayWithSeeds extends Component {
   constructor(props) {
@@ -43,7 +44,7 @@ export default class PayWithSeeds extends Component {
             <input type="text" />
           </div>
           <div className="payWithSeeds-button-align">
-            <button className="button-inverse">Cancel</button>
+            <Link to="/" className="button-inverse">Cancel</Link>
             <button className="button">{this.state.seedType}</button>
           </div>
         </div>

@@ -14,21 +14,22 @@
 }
 .side-nav-list {
   padding-top: 48px;
-  width: 350px;
+  width: 400px;
 }
 .side-nav-menu {
   padding: 8px 4rem;
   letter-spacing: 1px;
 }
-.side-nav-menu:hover,
-.side-nav-subnav:hover {
+.side-nav-menu:hover {
   background-color: #4440bc;
 }
 .side-nav-show {
   left: 0;
 }
 .side-nav-subnav {
-  padding: 8px 2rem 8px 5rem;
+  padding: 8px 0;
+  margin-left: 5rem;
+  letter-spacing: 1px;
 }
 .side-nav-logins {
   visibility: hidden;

@@ -36,6 +36,7 @@
 }
 .payWithSeeds-popup{
   background-color: hsla(240, 8%, 12%, 0.8);
+  box-shadow: 0 0 2.5rem rgba(136, 133, 133, 0.308);
   padding: 2rem;
   border-radius: 1rem;
   display: grid;

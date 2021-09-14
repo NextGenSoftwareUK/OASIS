@@ -1,4 +1,5 @@
 import React, { Component } from 'react'
+import { Link } from 'react-router-dom'
 
 export default class SendInvite extends Component {
   render() {
@@ -17,7 +18,7 @@ export default class SendInvite extends Component {
             <input type="text" />
           </div>
           <div className="payWithSeeds-button-align">
-            <button className="button-inverse">Cancel</button>
+            <Link to="/" className="button-inverse">Cancel</Link>
             <button className="button">Send</button>
           </div>
         </div>
