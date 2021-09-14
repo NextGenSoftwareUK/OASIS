@@ -83,10 +83,10 @@ const SideNavData = [
         path: "/payWithSeeds"
       }, {
         title: "Donate SEEDS",
-        path: ""
+        path: "/donateWithSeeds"
       }, {
         title: "Reward SEEDS",
-        path: ""
+        path: "/rewardWithSeeds"
       }, {
         title: "Invite To Join SEEDS",
         path: "/sendInvite"

@@ -2,11 +2,10 @@
 import React from "react";
 import Loader from "react-loader-spinner";
 
-import ShowIcon from '../img/visible-icon.svg';
-import HideIcon from '../img/hidden-icon.svg';
+import ShowIcon from '../../img/visible-icon.svg';
+import HideIcon from '../../img/hidden-icon.svg';
 
 import Alert from './Alert';
-import "../CSS/Login.css";
 
 import axios from "axios";
 import { Formik } from "formik";

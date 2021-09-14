@@ -1,7 +1,6 @@
 import React from 'react';
 import data from './SideNavData'
 import SideMenu from './SideMenu';
-import '../CSS/SideNav.css';
 
 export class SideNav extends React.Component {
     constructor(props) {
