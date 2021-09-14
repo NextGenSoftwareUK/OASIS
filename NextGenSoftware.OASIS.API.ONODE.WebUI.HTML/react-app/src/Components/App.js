@@ -23,13 +23,13 @@ function App() {
         <Navbar />
       </header>
       <Switch>
-        <Route path="/payWithSeeds">
+        <Route exact path="/payWithSeeds">
           <PayWithSeeds />
         </Route>
-        <Route path="/donateWithSeeds">
+        <Route exact path="/donateWithSeeds">
           <PayWithSeeds seedType="Donate" />
         </Route>
-        <Route path="/rewardWithSeeds">
+        <Route exact path="/rewardWithSeeds">
           <PayWithSeeds seedType="Reward" />
         </Route>
         <Route exact path="/">
