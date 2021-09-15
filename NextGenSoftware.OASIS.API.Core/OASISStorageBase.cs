@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Events;
@@ -13,6 +12,8 @@ namespace NextGenSoftware.OASIS.API.Core
 {
     public abstract class OASISStorageBase : OASISProvider, IOASISStorage
     {
+        public abstract Task<IAvatarThumbnail> LoadAvatarThumbnail(Guid id);
+
         public event AvatarManager.StorageProviderError StorageProviderError;
 
         //event StorageProviderError IOASISStorage.StorageProviderError
@@ -88,7 +89,8 @@ namespace NextGenSoftware.OASIS.API.Core
         public abstract bool DeleteAvatar(string providerKey, bool softDelete = true);
         public abstract Task<bool> DeleteAvatarAsync(string providerKey, bool softDelete = true);
         public abstract Task<ISearchResults> SearchAsync(ISearchParams searchParams);
-
+        public abstract Task<IAvatarDetails> LoadAvatarDetails(Guid id);
+        public abstract Task<IEnumerable<IAvatarDetails>> LoadAllAvatarDetails();
         public abstract IHolon LoadHolon(Guid id);
         public abstract Task<IHolon> LoadHolonAsync(Guid id);
 
