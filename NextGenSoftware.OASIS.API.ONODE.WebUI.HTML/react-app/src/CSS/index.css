@@ -26,89 +26,14 @@ input[type=number] {
   -moz-appearance:textfield;
 }
 
-button{
-  text-decoration: none;
-  border: none;
-  background-color: transparent;
-}
-input{
-  background-color: transparent;
-}
-
-.link{
-	color: #1885c9;
-}
-.link:hover{
-  color: #fff;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-.link-inverse{
-	color: #fff;
-}
-.link-inverse:hover{
-  color: #1885c9;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-.button{
-  color: #fff;
-	background-color: #1885c9;
-	padding: 0rem 1rem;
-	border-radius: 5rem;
-	cursor: pointer;
-  font-size: 1.15rem;
-	transition: all 200ms ease-in;
-}
-.button:hover{
-  background-color: #52b2ee;
-}
-.button-inverse{
-  color: #1885c9;
-	padding: 0rem 1rem;
-	border-radius: 5rem;
-	cursor: pointer;
-  font-size: 1.15rem;
-  border: 1px solid #1885c9;
-	transition: all 200ms ease-in;
-}
-.button-inverse:hover{
-  background-color: #52b2ee;
-  color: #fff;
-}
-/* FORM CSS */
-.single-form-field {
-    display: grid;
-    margin: 0 0 20px;
-}
-.single-form-field label {
-    margin: 0 0 5px;
-}
-.single-form-field input {
-    padding: 0 15px;
-    height: 34px;
-    border-radius: 4px;
-    margin: 0;
-    outline: none;
-}
-.single-form-field .have-icon {
-    position: relative;
-    display: grid;
-}
-.single-form-field .have-icon .field-icon {
-    position: absolute;
-    right: 12px;
-    top: 50%;
-    transform: translate(0, -50%);
-    width: 20px;
-    cursor: pointer;
-}
-.single-form-field .have-icon input {
-    padding-right: 40px;
-}
-.single-form-field span.text-danger {
-    color: #dc3545 !important;
-}
-.single-form-field.has-error input {
-    border-color: #dc3545 !important;
+:root{
+  --color-blue: #1885c9;
+  --color-blue-light: #52b2ee;
+  --color-purple: #4440bc;
+  --color-white: #fff;
+  --color-red: #dc3545;
+  --color-grey: #909092;
+  --popup-color: hsla(240, 8%, 12%, 0.8);
+  --popup-box-shadow: 0 0 2.5rem rgba(136, 133, 133, 0.308);
+  --popup-background-color: hsla(240, 8%, 12%, 0.7);
 }
