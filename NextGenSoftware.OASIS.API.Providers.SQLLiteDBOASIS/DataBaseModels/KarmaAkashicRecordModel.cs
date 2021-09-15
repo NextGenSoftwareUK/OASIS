@@ -21,11 +21,11 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.DataBaseModels{
         public string KarmaSourceTitle { get; set; }
         public string KarmaSourceDesc { get; set; }
         public string WebLink { get; set; }
-        public string KarmaSource { get; set; }
-        public string KarmaEarntOrLost { get; set; }
-        public string KarmaTypePositive { get; set; }
-        public string KarmaTypeNegative { get; set; }
-        public string Provider { get; set; } 
+        public KarmaSourceType KarmaSource { get; set; }
+        public KarmaEarntOrLost KarmaEarntOrLost { get; set; }
+        public KarmaTypePositive KarmaTypePositive { get; set; }
+        public KarmaTypeNegative KarmaTypeNegative { get; set; }
+        public ProviderType Provider { get; set; } 
 
         public KarmaAkashicRecordModel(){}
         public KarmaAkashicRecordModel(KarmaAkashicRecord source){
@@ -39,12 +39,12 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.DataBaseModels{
             this.KarmaSourceTitle=source.KarmaSourceTitle;
             this.KarmaSourceDesc=source.KarmaSourceDesc;
             this.WebLink=source.WebLink;
-            this.KarmaSource=source.KarmaSource.Name;
+            this.KarmaSource=source.KarmaSource.Value;
 
-            this.KarmaEarntOrLost = source.KarmaEarntOrLost.Name;
-            this.KarmaTypePositive=source.KarmaTypePositive.Name;
-            this.KarmaTypeNegative=source.KarmaTypeNegative.Name;
-            this.Provider=source.Provider.Name;
+            this.KarmaEarntOrLost = source.KarmaEarntOrLost.Value;
+            this.KarmaTypePositive=source.KarmaTypePositive.Value;
+            this.KarmaTypeNegative=source.KarmaTypeNegative.Value;
+            this.Provider=source.Provider.Value;
         }
 
         public KarmaAkashicRecord GetKarmaAkashicRecord(){
@@ -61,20 +61,12 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.DataBaseModels{
             item.KarmaSourceDesc=this.KarmaSourceDesc;
             item.WebLink=this.WebLink;
 
-            KarmaSourceType karmaSource=(KarmaSourceType)Enum.Parse<KarmaSourceType>(this.KarmaSource);
-            item.KarmaSource=new EnumValue<KarmaSourceType>(karmaSource);
+            item.KarmaSource=new EnumValue<KarmaSourceType>(this.KarmaSource);
+            item.KarmaEarntOrLost = new EnumValue<KarmaEarntOrLost>(this.KarmaEarntOrLost);
+            item.KarmaTypePositive=new EnumValue<KarmaTypePositive>(this.KarmaTypePositive);
 
-            KarmaEarntOrLost karmaEarntOrLost=(KarmaEarntOrLost)Enum.Parse<KarmaEarntOrLost>(this.KarmaEarntOrLost);
-            item.KarmaEarntOrLost = new EnumValue<KarmaEarntOrLost>(karmaEarntOrLost);
-
-            KarmaTypePositive karmaTypePositive=(KarmaTypePositive)Enum.Parse<KarmaTypePositive>(this.KarmaTypePositive);
-            item.KarmaTypePositive=new EnumValue<KarmaTypePositive>(karmaTypePositive);
-
-            KarmaTypeNegative karmaTypeNegative=(KarmaTypeNegative)Enum.Parse<KarmaTypeNegative>(this.KarmaTypeNegative);
-            item.KarmaTypeNegative=new EnumValue<KarmaTypeNegative>(karmaTypeNegative);
-
-            ProviderType provideType=(ProviderType)Enum.Parse<ProviderType>(this.Provider);
-            item.Provider=new EnumValue<ProviderType>(provideType);
+            item.KarmaTypeNegative=new EnumValue<KarmaTypeNegative>(this.KarmaTypeNegative);
+            item.Provider=new EnumValue<ProviderType>(this.Provider);
 
             return(item);
         }

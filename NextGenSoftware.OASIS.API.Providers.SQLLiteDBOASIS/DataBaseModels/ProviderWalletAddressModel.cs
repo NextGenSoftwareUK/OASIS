@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
 using NextGenSoftware.OASIS.API.Core.Enums;
 
@@ -9,7 +8,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.DataBaseModels{
     public class ProviderWalletAddressModel : ProviderKeyAbstract
     {
         public ProviderWalletAddressModel():base(){}
-        public ProviderWalletAddressModel(KeyValuePair<ProviderType,string> key) : base(key){}
+        public ProviderWalletAddressModel(ProviderType Id, String value) : base(Id, value){}
 
         public override ProviderKeyAbstract GetProviderKey()
         {

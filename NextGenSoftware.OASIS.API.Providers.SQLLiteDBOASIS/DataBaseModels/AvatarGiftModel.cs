@@ -18,8 +18,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.DataBaseModels{
         public string KarmaSourceTitle { get; set; }
         public string KarmaSourceDesc { get; set; }
         public string WebLink { get; set; }
-        public string KarmaSource { get; set; }
-        public string Provider { get; set; }
+        public KarmaSourceType KarmaSource { get; set; }
+        public ProviderType Provider { get; set; }
 
         public string AvatarId { get; set; }
         public long AvatarChakraId { set; get; } = 0;
@@ -33,8 +33,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.DataBaseModels{
             this.KarmaSourceTitle=source.KarmaSourceTitle;
             this.KarmaSourceDesc=source.KarmaSourceDesc;
             this.WebLink=source.WebLink;
-            this.KarmaSource=source.KarmaSource.Name;
-            this.Provider=source.Provider.Name;
+            this.KarmaSource=source.KarmaSource.Value;
+            this.Provider=source.Provider.Value;
 
         }
 
@@ -49,11 +49,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.DataBaseModels{
             item.KarmaSourceDesc=this.KarmaSourceDesc;
             item.WebLink=this.WebLink;
             
-            KarmaSourceType karmaSource=Enum.Parse<KarmaSourceType>(this.KarmaSource);
-            item.KarmaSource=new EnumValue<KarmaSourceType>(karmaSource);
-            
-            ProviderType provideType=Enum.Parse<ProviderType>(this.Provider);
-            item.Provider=new EnumValue<ProviderType>(provideType);
+            item.KarmaSource=new EnumValue<KarmaSourceType>(this.KarmaSource);
+            item.Provider=new EnumValue<ProviderType>(this.Provider);
 
             return(item);
         }
