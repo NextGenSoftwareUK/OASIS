@@ -1,6 +1,6 @@
 import React from "react";
 
-import "../CSS/Alert.css";
+import "../assets/scss/Alert.scss";
 
 const Alert = ({ type, message }) => (
     <div className={`alert alert--${type}`}>
