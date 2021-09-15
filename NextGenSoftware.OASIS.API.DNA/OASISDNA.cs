@@ -9,6 +9,7 @@ namespace NextGenSoftware.OASIS.API.DNA
 
     public class OASIS
     {
+        public string Terms { get; set; }
         public Logging Logging { get; set; }
         public ErrorHandlingSettings ErrorHandling { get; set; }
         public SecuritySettings Security { get; set; }

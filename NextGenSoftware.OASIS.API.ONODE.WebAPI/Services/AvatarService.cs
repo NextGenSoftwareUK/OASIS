@@ -62,7 +62,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
         
         public string GetTerms()
         {
-            return _configuration["Terms"];
+            return _OASISDNA.OASIS.Terms;
+            //return _configuration["Terms"];
         }
 
         public AuthenticateResponse Authenticate(AuthenticateRequest model, string ipAddress)
