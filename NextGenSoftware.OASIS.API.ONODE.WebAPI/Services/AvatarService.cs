@@ -8,6 +8,7 @@ using Microsoft.Extensions.Configuration;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
+using System.Threading.Tasks;
 using AutoMapper;
 using BC = BCrypt.Net.BCrypt;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
@@ -19,6 +20,7 @@ using NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Security;
 using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.API.Core.Helpers;
+using NextGenSoftware.OASIS.API.Core.Models.Common;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Avatar;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
@@ -387,6 +389,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
         {
             // Default to soft delete.
             return AvatarManager.DeleteAvatar(id);
+        }
+
+        public async Task<ApiResponse<IAvatarThumbnail>> GetAvatarThumbnail(Guid id)
+        {
+            throw new NotImplementedException();
         }
 
         // helper methods

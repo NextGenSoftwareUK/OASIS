@@ -71,10 +71,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         }
         
         [Authorize(AvatarType.Wizard)]
-        [HttpGet("GetThumbnailAvatar")]
+        [HttpGet("GetThumbnailAvatar/{id:guid}")]
         public async Task<ApiResponse<IAvatarThumbnail>> GetThumbnailAvatar(Guid id)
         {
-            return Ok(_avatarService.GetAll());
+            return await _avatarService.GetAvatarThumbnail(id);
         }
 
         /// <summary>
