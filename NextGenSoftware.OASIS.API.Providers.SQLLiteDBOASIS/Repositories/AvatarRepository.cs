@@ -27,13 +27,14 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Repositories{
                 avatar.CreatedProviderType = new EnumValue<ProviderType>(ProviderType.SQLLiteDBOASIS);
 
                 AvatarModel avatarModel=new AvatarModel(avatar);
-
                 dataBase.Avatars.Add(avatarModel);
+                
                 dataBase.SaveChanges();
 
-                avatar.ProviderKey[ProviderType.SQLLiteDBOASIS] = avatarModel.Id;
+                avatarModel.ProviderKey.Add(new ProviderKeyModel(ProviderType.SQLLiteDBOASIS, avatarModel.Id));
 
                 dataBase.SaveChanges();
+                avatar.ProviderKey.Add(ProviderType.SQLLiteDBOASIS, avatarModel.Id);
             }
             catch (Exception ex)
             {
@@ -52,13 +53,15 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Repositories{
                     avatar.CreatedProviderType = new EnumValue<ProviderType>(ProviderType.SQLLiteDBOASIS);
 
                     AvatarModel avatarModel=new AvatarModel(avatar);
-
-                    dataBase.AddAsync(avatarModel);
+                    dataBase.Avatars.AddAsync(avatarModel);
+                    
                     dataBase.SaveChangesAsync();
                     
-                    avatar.ProviderKey[ProviderType.SQLLiteDBOASIS] = avatarModel.Id;
-                
+                    avatarModel.ProviderKey.Add(new ProviderKeyModel(ProviderType.SQLLiteDBOASIS, avatarModel.Id));
+
                     dataBase.SaveChangesAsync();
+                    avatar.ProviderKey.Add(ProviderType.SQLLiteDBOASIS, avatarModel.Id);
+
                     return(avatar);
 
                 });
@@ -71,22 +74,152 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Repositories{
 
         public bool Delete(Guid id, bool softDelete = true)
         {
-            throw new NotImplementedException();
+            bool delete_complete = false;
+            try
+            {
+                String convertedId = id.ToString();
+                AvatarModel deletingModel = dataBase.Avatars.FirstOrDefault(x => x.Id.Equals(convertedId));
+
+                if(deletingModel == null){
+                    return(true);
+                }
+
+                if (softDelete)
+                {
+                    LoadAvatarReferences(deletingModel);
+
+                    if (AvatarManager.LoggedInAvatar != null)
+                        deletingModel.DeletedByAvatarId = AvatarManager.LoggedInAvatar.Id.ToString();
+
+                    deletingModel.DeletedDate = DateTime.Now;                    
+                    dataBase.Avatars.Update(deletingModel);
+                }
+                else
+                {
+                    dataBase.Avatars.Remove(deletingModel);
+                }
+
+                dataBase.SaveChanges();
+                delete_complete=true;
+            }
+            catch(Exception ex)
+            {
+                throw ex;
+            }
+            return(delete_complete);
         }
 
         public bool Delete(string providerKey, bool softDelete = true)
         {
-            throw new NotImplementedException();
+            bool delete_complete = false;
+            try
+            {
+                AvatarModel deletingModel = dataBase.Avatars.FirstOrDefault(x => x.Username.Equals(providerKey));
+
+                if(deletingModel == null){
+                    return(true);
+                }
+
+                if (softDelete)
+                {
+                    LoadAvatarReferences(deletingModel);
+
+                    if (AvatarManager.LoggedInAvatar != null)
+                        deletingModel.DeletedByAvatarId = AvatarManager.LoggedInAvatar.Id.ToString();
+
+                    deletingModel.DeletedDate = DateTime.Now;                    
+                    dataBase.Avatars.Update(deletingModel);
+                }
+                else
+                {
+                    dataBase.Avatars.Remove(deletingModel);
+                }
+
+                dataBase.SaveChanges();
+                delete_complete=true;
+            }
+            catch(Exception ex)
+            {
+                throw ex;
+            }
+            return(delete_complete);
         }
 
         public Task<bool> DeleteAsync(Guid id, bool softDelete = true)
         {
-            throw new NotImplementedException();
+            try
+            {
+                return new Task<bool>(()=>{
+
+                    String convertedId = id.ToString();
+                    AvatarModel deletingModel = dataBase.Avatars.FirstOrDefault(x => x.Id.Equals(convertedId));
+
+                    if(deletingModel == null){
+                        return(true);
+                    }
+
+                    if (softDelete)
+                    {
+                        LoadAvatarReferences(deletingModel);
+
+                        if (AvatarManager.LoggedInAvatar != null)
+                            deletingModel.DeletedByAvatarId = AvatarManager.LoggedInAvatar.Id.ToString();
+
+                        deletingModel.DeletedDate = DateTime.Now;                    
+                        dataBase.Avatars.Update(deletingModel);
+                    }
+                    else
+                    {
+                        dataBase.Avatars.Remove(deletingModel);
+                    }
+
+                    dataBase.SaveChanges();
+                    return(true);
+
+                });
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
         }
 
         public Task<bool> DeleteAsync(string providerKey, bool softDelete = true)
         {
-            throw new NotImplementedException();
+            try
+            {
+                return new Task<bool>(()=>{
+
+                    AvatarModel deletingModel = dataBase.Avatars.FirstOrDefault(x => x.Username.Equals(providerKey));
+
+                    if(deletingModel == null){
+                        return(true);
+                    }
+
+                    if (softDelete)
+                    {
+                        LoadAvatarReferences(deletingModel);
+
+                        if (AvatarManager.LoggedInAvatar != null)
+                            deletingModel.DeletedByAvatarId = AvatarManager.LoggedInAvatar.Id.ToString();
+
+                        deletingModel.DeletedDate = DateTime.Now;                    
+                        dataBase.Avatars.Update(deletingModel);
+                    }
+                    else
+                    {
+                        dataBase.Avatars.Remove(deletingModel);
+                    }
+
+                    dataBase.SaveChanges();
+                    return(true);
+
+                });
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
         }
 
         public Avatar GetAvatar(Guid id)
@@ -95,7 +228,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Repositories{
             String convertedId = id.ToString();
             try
             {
-                AvatarModel avatarModel = dataBase.Avatars.FirstOrDefault(x => x.Id == convertedId);
+                AvatarModel avatarModel = dataBase.Avatars.FirstOrDefault(x => x.Id.Equals(convertedId));
 
                 if (avatarModel == null){
                     return(avatar);
@@ -117,7 +250,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Repositories{
             Avatar avatar = null;
             try
             {
-                AvatarModel avatarModel = dataBase.Avatars.FirstOrDefault(x => x.Username == username);
+                AvatarModel avatarModel = dataBase.Avatars.FirstOrDefault(x => x.Username.Equals(username));
 
                 if (avatarModel == null){
                     return(avatar);
@@ -139,7 +272,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Repositories{
             Avatar avatar = null;
             try
             {
-                AvatarModel avatarModel = dataBase.Avatars.FirstOrDefault(x => x.Username == username && x.Password == password);
+                AvatarModel avatarModel = dataBase.Avatars.FirstOrDefault(x => x.Username.Equals(username) && x.Password.Equals(password));
 
                 if (avatarModel == null){
                     return(avatar);
@@ -165,7 +298,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Repositories{
                     Avatar avatar = null;
                     String convertedId = id.ToString();
 
-                    AvatarModel avatarModel = dataBase.Avatars.FirstOrDefault(x => x.Id == convertedId);
+                    AvatarModel avatarModel = dataBase.Avatars.FirstOrDefault(x => x.Id.Equals(convertedId));
 
                     if (avatarModel == null){
                         return(avatar);
@@ -191,7 +324,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Repositories{
                 return new Task<Avatar>(()=>{
 
                     Avatar avatar = null;
-                    AvatarModel avatarModel = dataBase.Avatars.FirstOrDefault(x => x.Username == username);
+                    AvatarModel avatarModel = dataBase.Avatars.FirstOrDefault(x => x.Username.Equals(username));
 
                     if (avatarModel == null){
                         return(avatar);
@@ -217,7 +350,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Repositories{
                 return new Task<Avatar>(()=>{
 
                     Avatar avatar = null;
-                    AvatarModel avatarModel = dataBase.Avatars.FirstOrDefault(x => x.Username == username && x.Password == password);
+                    AvatarModel avatarModel = dataBase.Avatars.FirstOrDefault(x => x.Username.Equals(username) && x.Password.Equals(password));
 
                     if (avatarModel == null){
                         return(avatar);
@@ -304,7 +437,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Repositories{
 
                     AvatarModel avatarModel=new AvatarModel(avatar);
 
-                    dataBase.Update(avatarModel);
+                    dataBase.Avatars.Update(avatarModel);
                     dataBase.SaveChangesAsync();
                     
                     return(avatar);
@@ -399,7 +532,11 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Repositories{
             dataBase.Entry(avatarModel)
                     .Collection<KarmaAkashicRecordModel>(a => a.KarmaAkashicRecords)
                     .Load();
+            
 
+            dataBase.Entry(avatarModel)
+                    .Collection<ProviderKeyModel>(a => a.ProviderKey)
+                    .Load();
 
             dataBase.Entry(avatarModel)
                     .Collection<ProviderPrivateKeyModel>(a => a.ProviderPrivateKey)
