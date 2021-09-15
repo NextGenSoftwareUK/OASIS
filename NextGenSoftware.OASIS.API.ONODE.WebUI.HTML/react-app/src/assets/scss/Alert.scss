@@ -1,8 +1,3 @@
-.alert * {
-	padding: 0;
-	margin: 0;
-}
-
 @keyframes alertAnim {
 	10% {
 		opacity: 0;
@@ -19,7 +14,6 @@
 		opacity: 1;
 	}
 }
-
 .alert {
 	text-align: center;
 	width: 70%;
@@ -34,11 +28,9 @@
 	padding: 0.2rem 0.5rem;
 	animation: alertAnim 600ms ease-in-out forwards;
 }
-
 .alert.alert--success {
 	background-color: green;
 }
-
 .alert.alert--error {
 	background-color: red;
 }
