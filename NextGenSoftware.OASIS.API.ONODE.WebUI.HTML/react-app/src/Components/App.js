@@ -15,7 +15,7 @@ import ShowAllData from "./pages/data-screen/ShowAllData";
 
 import "../assets/scss/general.scss";
 import "../assets/scss/style.scss";
-import "../css/Seeds.css";
+import "../assets/scss/Seeds.scss";
 
 import axios from "axios";
 

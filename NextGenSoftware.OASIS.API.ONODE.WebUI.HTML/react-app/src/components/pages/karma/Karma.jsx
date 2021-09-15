@@ -1,6 +1,6 @@
 import axios from "axios";
 import { Component } from "react";
-import "../../../css/Karma.css";
+import "../../../assets/scss/Karma.scss";
 import { extractKarma, login } from "../../../functions";
 import ReactGrid from "../../ReactGrid";
 import Loader from "react-loader-spinner";
