@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using NextGenSoftware.OASIS.API.Core.Enums;
@@ -66,6 +67,13 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 return Unauthorized(new { message = "Unauthorized" });
             _avatarService.Upload2DAvatarImage(id, avatarImage);
             return Ok();
+        }
+        
+        [Authorize(AvatarType.Wizard)]
+        [HttpGet("GetThumbnailAvatar")]
+        public async Task<ApiResponse<IAvatarThumbnail>> GetThumbnailAvatar(Guid id)
+        {
+            return Ok(_avatarService.GetAll());
         }
 
         /// <summary>
