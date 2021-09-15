@@ -393,7 +393,18 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
 
         public async Task<ApiResponse<IAvatarThumbnail>> GetAvatarThumbnail(Guid id)
         {
-            throw new NotImplementedException();
+            var response = new ApiResponse<IAvatarThumbnail>();
+            try
+            {
+                var thumbnail = AvatarManager.LoadAvatarThumbnail(id);
+                response.Payload = thumbnail;
+            }
+            catch (Exception ex)
+            {
+                response.Code = ApiConstantsCodes.Failed;
+                response.Message = $"{ApiConstantsContents.Failed} - {ex.Message}";
+            }
+            return response;
         }
 
         // helper methods
