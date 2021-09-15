@@ -1,10 +1,18 @@
-import axios from "axios";
-import React, { Component } from "react";
-import ShowIcon from '../img/visible-icon.svg';
-import HideIcon from '../img/hidden-icon.svg';
-import "../CSS/Login.css";
 
-export default class Signup extends Component {
+import React from "react";
+import Loader from "react-loader-spinner";
+
+import ShowIcon from '../assets/images/visible-icon.svg';
+import HideIcon from '../assets/images/hidden-icon.svg';
+
+import Alert from './Alert';
+
+import { Modal } from 'react-bootstrap';
+import axios from "axios";
+import { Formik } from "formik";
+import * as Yup from "yup";
+
+export default class Signup extends React.Component {
 
     constructor(props) {
         super(props);
@@ -12,61 +20,37 @@ export default class Signup extends Component {
         this.state = {
             email: '',
             password: '',
-            confirm_password: '',
-            showPassword: false
+            confirmPassword: '',
+            showPassword: false,
+            showConfirmPassword: false,
+            loading: false,
+            alert: null
         }
     }
 
-    // onSignup(event) {
-    //     event.preventDefault();
-    //     let email = document.getElementById('signup-email').value;
-    //     let password = document.getElementById('signup-password').value;
-    //     let confirmPassword = document.getElementById('confirm-signup-password').value;
-    //     let userObject = {
-    //     email,
-    //     password,
-    //     confirmPassword,
-    //     "acceptTerms": true,
-    //     "avatarType": "User"
-    //     }
-    //     const userAction = async () => {
-    //     const response = await fetch('https://api.oasisplatform.world/api/avatar/register', {
-    //         method: 'POST',
-    //         body: JSON.stringify(userObject), // string or object
-    //         headers: {
-    //         'Content-Type': 'application/json'
-    //         }
-    //     });
-    //     if (response.status === 200) {
-    //         const myJson = await response.json(); //extract JSON from the http response
-    //         alert(myJson.message);
+    initialValues = {
+        email: '',
+        password: '',
+        confirmPassword: ''
+    }
 
-    //         // hide the login/signup buttons
-    //         var elementList = document.getElementsByClassName("nav-logins");
-    //         var avatarDropdowm = document.getElementByClassName("nav-avatar-dropdowm");
+    validationSchema = Yup.object().shape({
+        email: Yup.string()
+            .email("Email is invalid")
+            .required("Email is required"),
+        password: Yup.string()
+            .required("No password provided.")
+            .min(8, "Password is too short - should be 8 characters minimum."),
+        confirmPassword: Yup.string()
+            .required("No password provided.")
+            .min(8, "Password is too short - should be 8 characters minimum.")
+            .oneOf([Yup.ref('password'), null], "Password did not match")
+    })
 
-    //         for (var i = 0; i < elementList.length; i++) {
-    //         elementList[i].classList.add('hide-logins')
-    //         }
-    //         avatarDropdowm.classList.add('enabled')
-    //         //===============================//
+    handleSignup = () => {
+        // e.preventDefault();
 
-    //         window.location.reload();
-    //     }
-    //     else {
-    //         const myJson = await response.json(); //extract JSON from the http response
-    //         alert(myJson.title);
-    //         window.location.reload();
-    //     }
-
-    //     }
-    //     userAction();
-    // }
-
-    handleSignup = (e) => {
-        e.preventDefault();
-
-        if (this.state.password === this.state.confirm_password) {
+        if (this.state.password === this.state.confirmPassword) {
             let data = {
                 email: this.state.email,
                 password: this.state.password
@@ -76,11 +60,20 @@ export default class Signup extends Component {
                 'Content-Type': 'application/json'
             };
 
+            this.setState({ loading: true })
             axios.post('https://api.oasisplatform.world/api/avatar/register', data, { headers })
                 .then(response => {
-                    console.log(response);
+                    console.log(response)
+                    this.setState({ loading: false })
+                    this.setState({ alert: { type: 'success', text: response.data } });
+                    // Remove alert after 5 sec
+                    setTimeout(() => this.setState({ alert: null }), 5000)
+                    console.log(this.state.alert)
                 }).catch(error => {
-                    console.error('There was an error!', error);
+                    console.error(error.response.data);
+                    this.setState({ loading: false })
+                    this.setState({ alert: { type: 'error', text: error.response.data.title } })
+                    setTimeout(() => this.setState({ alert: null }), 5000)
                 });
         } else {
             console.log('Password did not match');
@@ -88,53 +81,122 @@ export default class Signup extends Component {
         }
     }
 
-    handleEmailChange = (event) => {
-        this.setState({ email: event.target.value });
-    }
-
-    handlePasswordChange = (event) => {
-        this.setState({ password: event.target.value });
-    }
-
-    handleConfirmPasswordChange = (event) => {
-        this.setState({ confirm_password: event.target.value });
-    }
-
     render() {
-        const type = `${this.state.showPassword ? "text" : "password"}`
+        const { alert, showPassword, showConfirmPassword, loading } = this.state;
+        const { show, hide, change } = this.props;
+
         return (
-            <form className="login-form" onSubmit={this.handleSignup}>
-                <div className="login-title">
-                    <h1 className="login-header">Sign Up</h1>
-                    <p className="login-title-text">Already have an account?
-                        <span onClick={this.props.change} className="link">Log In!</span>
-                    </p>
-                </div>
 
-                <div className="login-inputs">
-                    <label htmlFor="login-email">EMAIL</label>
-                    <input value={this.state.email} onChange={this.handleEmailChange} type="email" placeholder="name@example.com" />
+            <Formik
+                initialValues={this.initialValues}
+                validationSchema={this.validationSchema}
+                onSubmit={(values, { setSubmitting, resetForm }) => {
+                    setTimeout(() => {
+                        this.setState({
+                            email: values.email,
+                            password: values.password,
+                            confirmPassword: values.confirmPassword
+                        })
+                        this.handleSignup();
 
-                    <label htmlFor="login-password">PASSWORD</label>
-                    <input type={type} value={this.state.password} onChange={this.handlePasswordChange} />
-                    <img className="login-toggle-password"
-                        onClick={() => this.setState({ showPassword: !this.state.showPassword })}
-                        src={this.state.showPassword ? ShowIcon : HideIcon} />
+                        setSubmitting(true);
+                        // resetForm();
+                        setSubmitting(false);
+                    }, 400)
+                }}
+            >
+                {({ values, errors, touched, isSubmitting, handleChange, handleBlur, handleSubmit }) => (
+                    <Modal centered className="custom-modal" show={show} onHide={hide}>
+                        <Modal.Body>
+                            <span className="form-cross-icon" onClick={hide}>
+                                <i className="fa fa-times"></i>
+                            </span>
 
-                    <label htmlFor="confirm-signup-password">CONFIRM PASSWORD</label>
-                    <input type={type} value={this.state.confirm_password} onChange={this.handleConfirmPasswordChange} />
+                            <form className="custom-form" onSubmit={handleSubmit}>
+                                {alert ? <Alert message={alert.text} type={alert.type} /> : null}
+                                <div className="form-header">
+                                    <h2>Sign Up</h2>
 
-                    <div>
-                        <input type="checkbox" name="accept-terms" id="accept-terms" />
-                        <label htmlFor="accept-terms">
-                            I have read and accept the
-                            <a href="#0" className="link">Terms of Service</a>
-                        </label>
-                    </div>
+                                    <p>
+                                        Already have an account? 
+                                        <span className="text-link" onClick={change}> Log In!</span>
+                                    </p>
+                                </div>
 
-                    <button type="submit" className="login-submit">Submit</button>
-                </div>
-            </form>
+                                <div className="form-inputs">
+                                    <div className={this.handleFormFieldClass(errors.email, touched.email)}>
+                                        <label>EMAIL</label>
+                                        <input
+                                            type="email"
+                                            name="email"
+                                            value={values.email}
+                                            onChange={handleChange}
+                                            onBlur={handleBlur}
+                                            placeholder="name@example.com"
+                                        />
+                                        <span className="text-danger">{errors.email && touched.email && errors.email}</span>
+                                    </div>
+
+                                    <div className={this.handleFormFieldClass(errors.password, touched.password)}>
+                                        <label>PASSWORD</label>
+                                        <div className="have-icon">
+                                            <input
+                                                type={`${showPassword ? "text" : "password"}`}
+                                                name="password"
+                                                value={values.password}
+                                                onChange={handleChange}
+                                                onBlur={handleBlur}
+                                                placeholder="password"
+                                            />
+                                            <img
+                                                className="field-icon"
+                                                onClick={() => this.setState({ showPassword: !showPassword })}
+                                                src={showPassword ? ShowIcon : HideIcon}
+                                                alt="icon"
+                                            />
+                                        </div>
+                                        <span className="text-danger">{errors.password && touched.password && errors.password}</span>
+                                    </div>
+                                    
+                                    <div className={this.handleFormFieldClass(errors.confirmPassword, touched.confirmPassword)}>
+                                        <label>CONFIRM PASSWORD</label>
+                                        <div className="have-icon">
+                                            <input
+                                                type={`${showConfirmPassword ? "text" : "password"}`}
+                                                name="confirmPassword"
+                                                value={values.confirmPassword}
+                                                onChange={handleChange}
+                                                onBlur={handleBlur}
+                                                placeholder="confirm password"
+                                            />
+                                            <img
+                                                className="field-icon"
+                                                onClick={() => this.setState({ showConfirmPassword: !showConfirmPassword })}
+                                                src={showConfirmPassword ? ShowIcon : HideIcon}
+                                                alt="loading..."
+                                            />
+                                        </div>
+                                        <span className="text-danger">{errors.confirmPassword && touched.confirmPassword && errors.confirmPassword}</span>
+                                    </div>
+
+                                    
+
+                                    <button type="submit" className="submit-button" disabled={isSubmitting}>
+                                        {loading ? 'Creating Account ' : 'Submit '} {loading ? <Loader type="Oval" height={15} width={15} color="#fff" /> : null}
+                                    </button>
+                                </div>
+                            </form>
+                        </Modal.Body>
+                    </Modal>
+                )}
+            </Formik>
         )
+    }
+
+    handleFormFieldClass(error, touched) {
+        let classes = "single-form-field ";
+        classes += (error && touched) ? "has-error" : "";
+
+        return classes;
     }
 }

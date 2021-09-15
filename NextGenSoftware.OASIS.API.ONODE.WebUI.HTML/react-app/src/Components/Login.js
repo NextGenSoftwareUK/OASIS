@@ -1,7 +1,14 @@
 import React from 'react';
-import '../CSS/Login.css';
-import ShowIcon from '../img/visible-icon.svg';
-import HideIcon from '../img/hidden-icon.svg';
+
+import ShowIcon from '../assets/images/visible-icon.svg';
+import HideIcon from '../assets/images/hidden-icon.svg';
+
+import Alert from './Alert';
+
+import { Modal } from 'react-bootstrap';
+import Loader from 'react-loader-spinner';
+import { Formik } from "formik";
+import * as Yup from "yup";
 const axios = require('axios');
 
 export default class Login extends React.Component {
@@ -12,58 +19,27 @@ export default class Login extends React.Component {
         this.state = {
             email: '',
             password: '',
-            showPassword: false
+            showPassword: false,
+            loading: false,
+            alert: null,
+            user: null
         }
     }
 
-    // onLogin(event) {
+    initialValues = {
+        email: '',
+        password: ''
+    }
+    validationSchema = Yup.object().shape({
+        email: Yup.string()
+            .email('Email is invalid')
+            .required("Email is required"),
+        password: Yup.string()
+            .required("No password provided.")
+            .min(8, "Password is too short - should be 8 characters minimum.")
+    })
 
-    // event.preventDefault();
-    // console.log(`${this.state.email}`);
-    // let email = document.getElementById('login-email').value;
-    // let password = document.getElementById('login-password').value;
-    // let userObject = {
-    //   email,
-    //   password
-    // }
-    // const userAction = async () => {
-    //   console.log('doing api call');
-
-    //   const response = await fetch('https://api.oasisplatform.world/api/avatar/authenticate', {
-    //     method: 'POST',
-    //     body: JSON.stringify(userObject), // string or object
-    //     headers: {
-    //       'Content-Type': 'application/json'
-    //     }
-    //   });
-    //   if (response.status === 200) {
-    //     const myJson = await response.json(); //extract JSON from the http response
-    //     alert(myJson.message);
-
-    //     // hide the login/signup buttons
-    //     var elementList = document.getElementsByClassName("nav-logins");
-    //     var avatarDropdowm = document.getElementByClassName("nav-avatar-dropdowm");
-
-    //     for (var i = 0; i < elementList.length; i++) {
-    //       elementList[i].classList.add('hide-logins')
-    //     }
-    //     avatarDropdowm.classList.add('enabled')
-    //     //===============================//
-
-    //     window.location.reload();
-    //   } else {
-    //     const myJson = await response.json(); //extract JSON from the http response
-    //     alert(myJson.title);
-    //     window.location.reload();
-    //   }
-
-    // }
-    // userAction();
-    // }
-
-    handleLogin = (e) => {
-        e.preventDefault();
-
+    handleLogin = () => {
         let data = {
             email: this.state.email,
             password: this.state.password
@@ -73,52 +49,135 @@ export default class Login extends React.Component {
             'Content-Type': 'application/json'
         };
 
+        this.setState({ loading: true })
+
         axios.post('https://api.oasisplatform.world/api/avatar/authenticate', data, { headers })
             .then(response => {
-                console.log(response);
+                if (response.data.isError) {
+                    this.setState({ alert: { type: 'error', text: response.data.message }, loading: false })
+                    return
+                }
+                localStorage.setItem('user', JSON.stringify(response.data.avatar))
+                localStorage.setItem('credentials', JSON.stringify(data))
+                
+                this.setState({loading: false})
+                this.setState({ alert: {type: 'success', text: response.data.message} })
+                this.setState({user: response.data.avatar})
+
+                this.props.setUserStateData(response.data.avatar);
+
+                this.props.hide();
+                setTimeout(() => this.setState({ alert: null }), 5000)
             }).catch(error => {
                 console.error('There was an error!', error);
-            });
-    }
-
-    handleEmailChange = (event) => {
-        this.setState({ email: event.target.value });
-    }
-
-    handlePasswordChange = (event) => {
-        this.setState({ password: event.target.value });
+                this.setState({ loading: false })
+                setTimeout(() => this.setState({ alert: null }), 5000)
+            })
     }
 
     render() {
+        const { alert, showPassword, loading } = this.state;
+        const { show, hide, change } = this.props;
+
         return (
-            <form className="login-form" onSubmit={this.handleLogin}>
-                <div className="login-title">
-                    <h1 className="login-header">Log In</h1>
+            <Formik
+                initialValues={this.initialValues}
+                validationSchema={this.validationSchema}
+                onSubmit={(values, { setSubmitting, resetForm }) => {
+                    setTimeout(() => {
+                        this.setState({
+                            email: values.email,
+                            password: values.password
+                        })
+                        this.handleLogin();
 
-                    <p className="login-title-text">
-                        Don't have an account? <span onClick={this.props.change} className="link">Sign Up!</span>
-                    </p>
-                </div>
+                        setSubmitting(true);
+                        // resetForm();
+                        setSubmitting(false);
+                    }, 400)
+                }}
+            >
+                {({ values, errors, touched, isSubmitting, handleChange, handleBlur, handleSubmit }) => (
+                    
+                    <Modal centered className="custom-modal" show={show} onHide={hide}>
+                        <Modal.Body>
+                            <span className="form-cross-icon" onClick={hide}>
+                                <i className="fa fa-times"></i>
+                            </span>
+                            
+                            <form className="custom-form" onSubmit={handleSubmit}>
+                                {alert ? <Alert message={alert.text} type={alert.type} /> : null}
+                                <div className="form-header">
+                                    <h2>Log In</h2>
 
-                <div className="login-inputs">
-                    <label htmlFor="login-email">EMAIL</label>
-                    <input value={this.state.email} onChange={this.handleEmailChange} type="email" placeholder="name@example.com" />
+                                    <p>
+                                        Don't have an account? 
+                                        <span className="text-link" onClick={change}> Sign Up!</span>
+                                    </p>
+                                </div>
 
-                    <label htmlFor="login-password">PASSWORD</label>
-                    <input type={`${this.state.showPassword ? "text" : "password"}`} value={this.state.password} onChange={this.handlePasswordChange} />
-                    <img className="login-toggle-password"
-                        onClick={() => this.setState({ showPassword: !this.state.showPassword })}
-                        src={this.state.showPassword ? ShowIcon : HideIcon} />
+                                <div className="form-inputs">
+                                    <div className={this.handleFormFieldClass(errors.email, touched.email)}>
+                                        <label>EMAIL</label>
+                                        <input
+                                            type="email"
+                                            name="email"
+                                            value={values.email}
+                                            onChange={handleChange}
+                                            onBlur={handleBlur}
+                                            placeholder="name@example.com"
+                                        />
+                                        <span className="text-danger">{errors.email && touched.email && errors.email}</span>
+                                    </div>
 
-                    <label className="link">Forgot Password?</label>
-                    <div>
-                        <input type="checkbox" name="remember-login" id="remember-login" />
-                        <label htmlFor="remember-login">Remember Me</label>
-                    </div>
+                                    <div className={this.handleFormFieldClass(errors.password, touched.password)}>
+                                        <label>PASSWORD</label>
+                                        <div className="have-icon">
+                                            <input
+                                                type={`${showPassword ? "text" : "password"}`}
+                                                name="password"
+                                                value={values.password}
+                                                onChange={handleChange}
+                                                onBlur={handleBlur}
+                                                placeholder="password"
+                                            />
+                                            <img
+                                                className="field-icon"
+                                                onClick={() => this.setState({ showPassword: !showPassword })}
+                                                src={showPassword ? ShowIcon : HideIcon}
+                                                alt="icon"
+                                            />
+                                        </div>
+                                        <span className="text-danger">{errors.password && touched.password && errors.password}</span>
+                                    </div>
 
-                    <button type="submit" className="login-submit">Submit</button>
-                </div>
-            </form>
+                                    <div className="forgot-password">
+                                        <label className="text-link">Forgot Password?</label>
+                                    </div>
+
+                                    <div className="remember-me">
+                                        <label>
+                                            <input type="checkbox" name="remember-login" id="remember-login" />
+                                            Remember me
+                                        </label>
+                                    </div>
+
+                                    <button type="submit" className="submit-button" disabled={isSubmitting}>
+                                        {loading ? 'Logging in ' : 'Submit '} {loading ? <Loader type="Oval" height={15} width={15} color="#fff" /> : null}
+                                    </button>
+                                </div>
+                            </form>
+                        </Modal.Body>
+                    </Modal>
+                )}
+            </Formik>
         )
+    }
+
+    handleFormFieldClass(error, touched) {
+        let classes = "single-form-field ";
+        classes += (error && touched) ? "has-error" : "";
+
+        return classes;
     }
 }
