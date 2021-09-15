@@ -3,9 +3,9 @@
     color: #fff;
 } */
 .MuiTableCell-body, .MuiTableCell-root, .MuiSvgIcon-root, .MuiInputBase-input {
-    color: #fff !important;
+    color: var(--color-white) !important;
 }
 
 .MuiTableCell-body:hover, .MuiTableCell-root:hover {
-    color: #fff;
+    color: var(--color-white);
 }
