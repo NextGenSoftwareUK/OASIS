@@ -75,7 +75,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"token\": \"19988B42F6BB845710AEE923B49E3A8C450222DC755E297F772E67891E535739B5B577FB7BB0D679\"\r\n}",
+							"raw": "{\r\n    \"token\": \"384372534105BE5D4C19A6AB442A7DD8B39F0DDD654734AB67DEF703B7974F9C014180F1501F4581\"\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -83,16 +83,14 @@
 							}
 						},
 						"url": {
-							"raw": "{{host}}/api/avatar/verify-email/MongoDBOASIS/false",
+							"raw": "{{host}}/api/avatar/verify-email",
 							"host": [
 								"{{host}}"
 							],
 							"path": [
 								"api",
 								"avatar",
-								"verify-email",
-								"MongoDBOASIS",
-								"false"
+								"verify-email"
 							]
 						}
 					},
@@ -485,7 +483,7 @@
 							"bearer": [
 								{
 									"key": "token",
-									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjM2ODVkZjg0LTc3ZmMtNDM1OS1iNjdkLTA4ZDk0MTE1MjgwZiIsIm5iZiI6MTYxNTQ4MTM4NCwiZXhwIjoxNjE1NDgyMjg0LCJpYXQiOjE2MTU0ODEzODR9.U8OvF-oRUuJ7kQFcMy6Xlc2s96LhN-462WjLnUeOSjQ",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImQ5YTBjNWQ2LTc5ZDctNDgxYi05MzIyLTlmYTY1ZTVjYmRiZSIsIm5iZiI6MTYyMDA1NTYzOCwiZXhwIjoxNjIwMDU2NTM4LCJpYXQiOjE2MjAwNTU2Mzh9.90xINUYWAOnRsCWEE7ParGnXI7OqvYp4EZIiVifbd-Q",
 									"type": "string"
 								}
 							]
@@ -494,7 +492,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"KarmaType\": \"DropLitter\",\r\n    \"karmaSourceType\": \"AndroidApp\",\r\n    \"KaramSourceTitle\": \"SEEDS\",\r\n    \"KarmaSourceDesc\": \"SEEDS\"\r\n}",
+							"raw": "",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -502,14 +500,16 @@
 							}
 						},
 						"url": {
-							"raw": "{{host}}/api/avatar/LinkTelosAccountToAvatar",
+							"raw": "{{host}}/api/avatar/LinkTelosAccountToAvatar/d9a0c5d6-79d7-481b-9322-9fa65e5cbdbe/davidsellams",
 							"host": [
 								"{{host}}"
 							],
 							"path": [
 								"api",
 								"avatar",
-								"LinkTelosAccountToAvatar"
+								"LinkTelosAccountToAvatar",
+								"d9a0c5d6-79d7-481b-9322-9fa65e5cbdbe",
+								"davidsellams"
 							]
 						}
 					},
@@ -540,6 +540,44 @@
 							}
 						},
 						"url": {
+							"raw": "{{host}}/api/avatar/LinkHolochainAgentIDToAvatar",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"avatar",
+								"LinkHolochainAgentIDToAvatar"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Link Holochain Agent ID To Avatar",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImQ5YTBjNWQ2LTc5ZDctNDgxYi05MzIyLTlmYTY1ZTVjYmRiZSIsIm5iZiI6MTYyMDA1NDk4NiwiZXhwIjoxNjIwMDU1ODg2LCJpYXQiOjE2MjAwNTQ5ODZ9.g2W_QIGRjN3-s6RFqjJsrg8o69pqJ4vVEYuilNbVvBk",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"KarmaType\": \"DropLitter\",\r\n    \"karmaSourceType\": \"AndroidApp\",\r\n    \"KaramSourceTitle\": \"SEEDS\",\r\n    \"KarmaSourceDesc\": \"SEEDS\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
 							"raw": "{{host}}/api/avatar/LinkEOSIOAccountToAvatar",
 							"host": [
 								"{{host}}"
@@ -548,6 +586,67 @@
 								"api",
 								"avatar",
 								"LinkEOSIOAccountToAvatar"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "GetTerms",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/avatar/getterms/",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"avatar",
+								"getterms",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "GetAvatarImage",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/avatar/GetAvatarImage/{id}",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"avatar",
+								"GetAvatarImage",
+								"{id}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Upload2DAvatarImage",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/avatar/Upload2DAvatarImage/{id}/{data}",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"avatar",
+								"Upload2DAvatarImage",
+								"{id}",
+								"{data}"
 							]
 						}
 					},
