@@ -12,7 +12,10 @@ namespace NextGenSoftware.OASIS.API.Core
 {
     public abstract class OASISStorageBase : OASISProvider, IOASISStorage
     {
-        public abstract Task<IAvatarThumbnail> LoadAvatarThumbnail(Guid id);
+        public abstract Task<IAvatarThumbnail> LoadAvatarThumbnailAsync(Guid id);
+        public abstract IAvatarDetails LoadAvatarDetails(Guid id);
+        public abstract IEnumerable<IAvatarDetails> LoadAllAvatarDetails();
+        public abstract IAvatarThumbnail LoadAvatarThumbnail(Guid id);
 
         public event AvatarManager.StorageProviderError StorageProviderError;
 
@@ -89,8 +92,8 @@ namespace NextGenSoftware.OASIS.API.Core
         public abstract bool DeleteAvatar(string providerKey, bool softDelete = true);
         public abstract Task<bool> DeleteAvatarAsync(string providerKey, bool softDelete = true);
         public abstract Task<ISearchResults> SearchAsync(ISearchParams searchParams);
-        public abstract Task<IAvatarDetails> LoadAvatarDetails(Guid id);
-        public abstract Task<IEnumerable<IAvatarDetails>> LoadAllAvatarDetails();
+        public abstract Task<IAvatarDetails> LoadAvatarDetailsAsync(Guid id);
+        public abstract Task<IEnumerable<IAvatarDetails>> LoadAllAvatarDetailsAsync();
         public abstract IHolon LoadHolon(Guid id);
         public abstract Task<IHolon> LoadHolonAsync(Guid id);
 
