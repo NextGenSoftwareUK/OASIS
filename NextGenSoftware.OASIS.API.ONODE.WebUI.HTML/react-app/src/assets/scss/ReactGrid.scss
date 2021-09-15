@@ -1,0 +1,13 @@
+.MuiTableCell-body, 
+.MuiTableCell-root, 
+.MuiSvgIcon-root, 
+.MuiInputBase-input {
+    color: #fff !important;
+}
+
+.MuiTableCell-body, 
+.MuiTableCell-root {
+    &:hover {
+        color: #fff;
+    }
+}

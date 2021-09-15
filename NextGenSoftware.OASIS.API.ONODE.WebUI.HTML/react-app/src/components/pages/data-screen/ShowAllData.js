@@ -1,5 +1,7 @@
 import React from 'react';
 
+import "./DataScreen.css";
+
 class ShowAllData extends React.Component {
     render() { 
         return (

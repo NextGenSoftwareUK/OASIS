@@ -9,6 +9,8 @@ import Karma from "./pages/karma/Karma";
 import Home from "./pages/Home";
 import Login from "./Login";
 import Signup from "./Signup";
+import AddData from "./pages/data-screen/AddData";
+import ShowAllData from "./pages/data-screen/ShowAllData";
 
 
 import "../assets/scss/general.scss";
@@ -112,6 +114,10 @@ class App extends React.Component {
                     <div className="content-container">
                         <Switch>
                             <Route exact path="/home" component={Home} />
+
+                            <Route exact path="/add-data" component={AddData} />
+                            <Route exact path="/show-data" component={ShowAllData} />
+                            
                             <Route path="/pay-with-seeds" component={PayWithSeeds} />
                             <Route path="/donateWithSeeds">
                                 <PayWithSeeds seedType="Donate" />
@@ -119,6 +125,7 @@ class App extends React.Component {
                             <Route path="/rewardWithSeeds">
                                 <PayWithSeeds seedType="Reward" />
                             </Route>
+
                             <Route path="/send-invite" component={SendInvite} />
                             <Route exact path="/karma" component={Karma} />
                         </Switch>
