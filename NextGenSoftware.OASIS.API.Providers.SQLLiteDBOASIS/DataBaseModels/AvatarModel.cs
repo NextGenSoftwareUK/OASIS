@@ -1,5 +1,4 @@
 using System;
-using System.Linq;
 using System.Collections.Generic;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Objects;
@@ -43,8 +42,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.DataBaseModels{
         public ConsoleColor STARCLIColour { get; set; }
         
         
-        public string AvatarType { get; set; }
-        public string CreatedOASISType { get; set; }
+        public AvatarType AvatarType { get; set; }
+        public OASISType CreatedOASISType { get; set; }
 
 
         public int Karma { get; set; }
@@ -60,9 +59,6 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.DataBaseModels{
         public DateTime? ResetTokenExpires { get; set; }
         public DateTime? PasswordReset { get; set; }
         public bool IsVerified => Verified.HasValue || PasswordReset.HasValue;
-        
-        //public DateTime Created { get; set; }
-        //public DateTime? Updated { get; set; }
 
         public AvatarAttributesModel Attributes { get; set; }
         public AvatarAuraModel Aura { get; set; }
@@ -81,9 +77,20 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.DataBaseModels{
         public List<AchievementModel> Achievements { get; set; } = new List<AchievementModel>();
         public List<KarmaAkashicRecordModel> KarmaAkashicRecords { get; set; } = new List<KarmaAkashicRecordModel>();
 
+        public List<ProviderKeyModel> ProviderKey { get; set; } = new List<ProviderKeyModel>();
+
         public List<ProviderPrivateKeyModel> ProviderPrivateKey { get; set; } = new List<ProviderPrivateKeyModel>();
         public List<ProviderPublicKeyModel> ProviderPublicKey { get; set; } = new List<ProviderPublicKeyModel>();
         public List<ProviderWalletAddressModel> ProviderWalletAddress { get; set; } = new List<ProviderWalletAddressModel>();
+
+        public int Version { get; set; }
+        public bool IsActive { get; set; }
+
+        public DateTime CreatedDate { get; set; }
+        public DateTime ModifiedDate { get; set; }
+        
+        public DateTime DeletedDate { get; set; }
+        public string DeletedByAvatarId { get; set; }
 
         public AvatarModel(){}
         public AvatarModel(Avatar source){
@@ -111,8 +118,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.DataBaseModels{
             this.FavouriteColour=source.FavouriteColour;
             this.STARCLIColour=source.STARCLIColour;
             
-            this.AvatarType=source.AvatarType.Name;
-            this.CreatedOASISType=source.CreatedOASISType.Name;
+            this.AvatarType=source.AvatarType.Value;
+            this.CreatedOASISType=source.CreatedOASISType.Value;
 
             this.Karma=source.Karma;
             this.XP=source.XP;
@@ -124,7 +131,16 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.DataBaseModels{
             this.JwtToken=source.JwtToken;
             this.RefreshToken=source.RefreshToken;
             this.ResetTokenExpires=source.ResetTokenExpires;
-            this.PasswordReset=this.PasswordReset;
+            this.PasswordReset=source.PasswordReset;
+
+            this.Version=source.Version;
+            this.IsActive=source.IsActive;
+
+            this.CreatedDate=source.CreatedDate;
+            this.ModifiedDate=source.ModifiedDate;
+
+            this.DeletedDate=source.DeletedDate;
+            this.DeletedByAvatarId=source.DeletedByAvatarId.ToString();
 
             this.Stats=new AvatarStatsModel(source.Stats);
             this.Stats.AvatarId=this.Id;
@@ -192,24 +208,31 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.DataBaseModels{
                 this.KarmaAkashicRecords.Add(new KarmaAkashicRecordModel(record));
             }
 
+            foreach(KeyValuePair<ProviderType, string> key in source.ProviderKey){
+
+                ProviderKeyModel providerKey=new ProviderKeyModel(key.Key,key.Value);
+                providerKey.ParentId=this.Id;
+                this.ProviderKey.Add(providerKey);
+            }
+
             foreach(KeyValuePair<ProviderType, string> key in source.ProviderPrivateKey){
 
-                ProviderPrivateKeyModel privateKey=new ProviderPrivateKeyModel(key);
-                privateKey.AvatarId=this.Id;
+                ProviderPrivateKeyModel privateKey=new ProviderPrivateKeyModel(key.Key,key.Value);
+                privateKey.ParentId=this.Id;
                 this.ProviderPrivateKey.Add(privateKey);
             }
 
             foreach(KeyValuePair<ProviderType, string> key in source.ProviderPublicKey){
 
-                ProviderPublicKeyModel publicKey=new ProviderPublicKeyModel(key);
-                publicKey.AvatarId=this.Id;
+                ProviderPublicKeyModel publicKey=new ProviderPublicKeyModel(key.Key,key.Value);
+                publicKey.ParentId=this.Id;
                 this.ProviderPublicKey.Add(publicKey);
             }
 
             foreach(KeyValuePair<ProviderType, string> key in source.ProviderWalletAddress){
 
-                ProviderWalletAddressModel walletAddressModel=new ProviderWalletAddressModel(key);
-                walletAddressModel.AvatarId=this.Id;
+                ProviderWalletAddressModel walletAddressModel=new ProviderWalletAddressModel(key.Key,key.Value);
+                walletAddressModel.ParentId=this.Id;
                 this.ProviderWalletAddress.Add(walletAddressModel);
             }
 
@@ -249,11 +272,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.DataBaseModels{
             item.FavouriteColour=this.FavouriteColour;
             item.STARCLIColour=this.STARCLIColour;
 
-            AvatarType avatarType=Enum.Parse<AvatarType>(this.AvatarType);
-            item.AvatarType= new EnumValue<AvatarType>(avatarType);
-
-            OASISType oasisType=Enum.Parse<OASISType>(this.CreatedOASISType);
-            item.CreatedOASISType= new EnumValue<OASISType>(oasisType);
+            item.AvatarType = new EnumValue<AvatarType>(this.AvatarType);
+            item.CreatedOASISType= new EnumValue<OASISType>(this.CreatedOASISType);
 
             item.Karma=this.Karma;
             item.XP=this.XP;
@@ -266,23 +286,21 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.DataBaseModels{
             item.ResetTokenExpires=this.ResetTokenExpires;
             item.PasswordReset=this.PasswordReset;
 
-            AvatarAttributesModel attributesModel=this.Attributes;
-            item.Attributes=attributesModel.GetAvatarAttributes();
+            item.Version=this.Version;
+            item.IsActive=this.IsActive;
 
-            AvatarAuraModel auraModel = this.Aura;
-            item.Aura = auraModel.GetAvatarAura();
+            item.CreatedDate=this.CreatedDate;
+            item.ModifiedDate=this.ModifiedDate;
 
-            AvatarHumanDesignModel humanDesignModel = this.HumanDesign;
-            item.HumanDesign=humanDesignModel.GetHumanDesign();
+            item.DeletedDate=this.DeletedDate;
+            item.DeletedByAvatarId=Guid.Parse(this.DeletedByAvatarId);
 
-            AvatarSkillsModel skillsModel=this.Skills;
-            item.Skills=skillsModel.GetAvatarSkills();
-
-            AvatarStatsModel statsModel = this.Stats;
-            item.Stats=statsModel.GetAvatarStats();
-
-            AvatarSuperPowersModel powersModel=this.SuperPowers;
-            item.SuperPowers=powersModel.GetAvatarSuperPowers();
+            item.Attributes=this.Attributes.GetAvatarAttributes();
+            item.Aura = this.Aura.GetAvatarAura();
+            item.HumanDesign=this.HumanDesign.GetHumanDesign();
+            item.Skills=this.Skills.GetAvatarSkills();
+            item.Stats=this.Stats.GetAvatarStats();
+            item.SuperPowers=this.SuperPowers.GetAvatarSuperPowers();
 
 
             List<HeartRateEntryModel> rateEntryModels=this.HeartRates;
@@ -327,25 +345,32 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.DataBaseModels{
                 item.KarmaAkashicRecords.Add(model.GetKarmaAkashicRecord());
             }
 
+            List<ProviderKeyModel> providerKeyModels=this.ProviderKey;
+            foreach(ProviderKeyModel model in providerKeyModels){
+
+                ProviderKeyAbstract providerKey=model.GetProviderKey();
+                item.ProviderKey.Add(providerKey.KeyId, providerKey.Value);
+            }
+
             List<ProviderPrivateKeyModel> privateKeyModels=this.ProviderPrivateKey;
             foreach(ProviderPrivateKeyModel model in privateKeyModels){
 
                 ProviderKeyAbstract providerKey=model.GetProviderKey();
-                item.ProviderPrivateKey.Add((ProviderType)providerKey.KeyId, providerKey.Value);
+                item.ProviderPrivateKey.Add(providerKey.KeyId, providerKey.Value);
             }
 
             List<ProviderPublicKeyModel> publicKeyModels=this.ProviderPublicKey;
             foreach(ProviderPublicKeyModel model in publicKeyModels){
 
                 ProviderKeyAbstract providerKey=model.GetProviderKey();
-                item.ProviderPublicKey.Add((ProviderType)providerKey.KeyId, providerKey.Value);
+                item.ProviderPublicKey.Add(providerKey.KeyId, providerKey.Value);
             }
 
             List<ProviderWalletAddressModel> walletAddressModels=this.ProviderWalletAddress;
             foreach(ProviderWalletAddressModel model in walletAddressModels){
 
                 ProviderKeyAbstract providerKey=model.GetProviderKey();
-                item.ProviderWalletAddress.Add((ProviderType)providerKey.KeyId, providerKey.Value);
+                item.ProviderWalletAddress.Add(providerKey.KeyId, providerKey.Value);
             }
 
             return(item);

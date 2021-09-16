@@ -4,11 +4,11 @@ using NextGenSoftware.OASIS.API.Core.Enums;
 
 namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.DataBaseModels{
 
-    [Table("ProviderPublicKey")]
-    public class ProviderPublicKeyModel : ProviderKeyAbstract
+    [Table("ProviderKey")]
+    public class ProviderKeyModel : ProviderKeyAbstract
     {
-        public ProviderPublicKeyModel():base(){}
-        public ProviderPublicKeyModel(ProviderType Id, String value) : base(Id,value){}
+        public ProviderKeyModel():base(){}
+        public ProviderKeyModel(ProviderType Id, String value) : base(Id,value){}
 
         public override ProviderKeyAbstract GetProviderKey()
         {

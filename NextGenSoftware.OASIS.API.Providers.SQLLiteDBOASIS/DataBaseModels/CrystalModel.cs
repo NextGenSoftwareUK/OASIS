@@ -15,8 +15,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.DataBaseModels{
 
         public long AvatarChakraId { set; get; }
 
-        public String Name { get; set; }
-        public String Type { get; set; }
+        public CrystalName Name { get; set; }
+        public CrystalType Type { get; set; }
         public string Description { get; set; }
         public int ProtectionLevel { get; set; }
         public int EnergisingLevel { get; set; }
@@ -27,8 +27,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.DataBaseModels{
         public CrystalModel(){}
         public CrystalModel(Crystal source){
 
-            this.Type=source.Type.Name;
-            this.Name=source.Name.Name;
+            this.Type=source.Type.Value;
+            this.Name=source.Name.Value;
 
             this.Description=source.Description;
             this.ProtectionLevel=source.ProtectionLevel;
@@ -40,11 +40,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.DataBaseModels{
         public Crystal GetCrystal(){
             Crystal item=new Crystal();
 
-            CrystalType crystalType=Enum.Parse<CrystalType>(this.Type);
-            item.Type=new EnumValue<CrystalType>(crystalType);
-
-            CrystalName crystalName=Enum.Parse<CrystalName>(this.Name);
-            item.Name=new EnumValue<CrystalName>(crystalName);
+            item.Type=new EnumValue<CrystalType>(this.Type);
+            item.Name=new EnumValue<CrystalName>(this.Name);
 
             item.Description=this.Description;
             item.ProtectionLevel=this.ProtectionLevel;

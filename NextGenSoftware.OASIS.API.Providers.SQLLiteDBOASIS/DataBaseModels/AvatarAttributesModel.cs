@@ -6,20 +6,10 @@ using NextGenSoftware.OASIS.API.Core.Objects;
 namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.DataBaseModels{
 
     [Table("AvatarAttributes")]
-    public class AvatarAttributesModel
+    public class AvatarAttributesModel : AvatarAttributes
     {
         [Required, Key]
         public string AvatarId{ set; get; }
-
-        public int Strength { get; set; }
-        public int Speed { get; set; }
-        public int Dexterity { get; set; }
-        public int Toughness { get; set; }
-        public int Wisdom { get; set; }
-        public int Intelligence { get; set; }
-        public int Magic { get; set; }
-        public int Vitality { get; set; }
-        public int Endurance { get; set; }
 
         public AvatarAttributesModel(){}
         public AvatarAttributesModel(AvatarAttributes source){

@@ -22,8 +22,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.DataBaseModels{
         public string KarmaSourceTitle { get; set; } //Name of the app/website/game etc.
         public string KarmaSourceDesc { get; set; }
         public string WebLink { get; set; }
-        public string KarmaSource { get; set; } //App, dApp, hApp, Website or Game.
-        public String Provider { get; set; }
+        public KarmaSourceType KarmaSource { get; set; } //App, dApp, hApp, Website or Game.
+        public ProviderType Provider { get; set; }
 
         public AchievementModel(){}
         public AchievementModel(Achievement source){
@@ -38,8 +38,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.DataBaseModels{
             this.KarmaSourceTitle=source.KarmaSourceTitle;
             this.KarmaSourceDesc=source.KarmaSourceDesc;
             this.WebLink=source.WebLink;
-            this.KarmaSource=source.KarmaSource.Name;
-            this.Provider=source.Provider.Name;
+            this.KarmaSource=source.KarmaSource.Value;
+            this.Provider=source.Provider.Value;
         }
 
         public Achievement GetAchievement(){
@@ -56,11 +56,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.DataBaseModels{
             item.KarmaSourceDesc=this.KarmaSourceDesc;
             item.WebLink=this.WebLink;
 
-            KarmaSourceType karmaSource=(KarmaSourceType)Enum.Parse<KarmaSourceType>(this.KarmaSource);
-            item.KarmaSource=new EnumValue<KarmaSourceType>(karmaSource);
-
-            ProviderType provideType=(ProviderType)Enum.Parse<ProviderType>(this.Provider);
-            item.Provider=new EnumValue<ProviderType>(provideType);
+            item.KarmaSource=new EnumValue<KarmaSourceType>(this.KarmaSource);
+            item.Provider=new EnumValue<ProviderType>(this.Provider);
 
             return(item);
         }
