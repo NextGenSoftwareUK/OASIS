@@ -77,6 +77,20 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             return await _avatarService.GetAvatarThumbnail(id);
         }
 
+        [Authorize(AvatarType.Wizard)]
+        [HttpGet("GetAvatarDetail/{id:guid}")]
+        public async Task<ApiResponse<IAvatarDetails>> GetAvatarDetail(Guid id)
+        {
+            return await _avatarService.GetAvatarDetail(id);
+        }
+
+        [Authorize(AvatarType.Wizard)]
+        [HttpGet("GetAllAvatarDetail")]
+        public async Task<ApiResponse<IEnumerable<IAvatarDetails>>> GetAllAvatarDetails()
+        {
+            return await _avatarService.GetAllAvatarDetails();
+        }
+
         /// <summary>
         /// Get's all avatars (only works for logged in &amp; authenticated Wizards (Admins)).
         /// </summary>

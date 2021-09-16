@@ -407,6 +407,38 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
             return response; 
         }
 
+        public async Task<ApiResponse<IAvatarDetails>> GetAvatarDetail(Guid id)
+        {
+            var response = new ApiResponse<IAvatarDetails>();
+            try
+            {
+                var thumbnail = await AvatarManager.LoadAvatarDetailsAsync(id);
+                response.Payload = thumbnail;
+            }
+            catch (Exception ex)
+            {
+                response.Code = ApiConstantsCodes.Failed;
+                response.Message = $"{ApiConstantsContents.Failed} - {ex.Message}";
+            }
+            return response;
+        }
+
+        public async Task<ApiResponse<IEnumerable<IAvatarDetails>>> GetAllAvatarDetails()
+        {
+            var response = new ApiResponse<IEnumerable<IAvatarDetails>>();
+            try
+            {
+                var thumbnail = await AvatarManager.LoadAllAvatarDetailsAsync();
+                response.Payload = thumbnail;
+            }
+            catch (Exception ex)
+            {
+                response.Code = ApiConstantsCodes.Failed;
+                response.Message = $"{ApiConstantsContents.Failed} - {ex.Message}";
+            }
+            return response;
+        }
+
         // helper methods
 
         //private Avatar getAvatar(int id)
