@@ -6,19 +6,10 @@ using NextGenSoftware.OASIS.API.Core.Objects;
 namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.DataBaseModels{
 
     [Table("AvatarAura")]
-    public class AvatarAuraModel
+    public class AvatarAuraModel : AvatarAura
     {
         [Required, Key]
         public string AvatarId{ set; get; }
-
-        public int Level { get; set; }
-        public int Value { get; set; }
-        public int Progress { get; set; }
-        public int Brightness { get; set; }
-        public int Size { get; set; }
-        public int ColourRed { get; set; }
-        public int ColourGreen { get; set; }
-        public int ColourBlue { get; set; }
 
         public AvatarAuraModel(){}
         public AvatarAuraModel(AvatarAura source){

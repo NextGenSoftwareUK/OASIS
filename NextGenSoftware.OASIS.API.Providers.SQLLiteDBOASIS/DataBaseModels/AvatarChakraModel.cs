@@ -14,20 +14,20 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.DataBaseModels{
         [Required, Key, DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public long Id{ set; get;}
 
-        public String Type { get; set; }
+        public ChakraType Type { get; set; }
         public string Name { get; set; }
 
         public string SanskritName { get; set; }
         public string Description { get; set; }
         public string WhatItControls { get; set; }
-        public String YogaPose { get; set; } 
+        public YogaPoseType YogaPose { get; set; } 
         public string WhenItDevelops { get; set; }
-        public String Element { get; set; } 
+        public ElementType Element { get; set; } 
         public CrystalModel Crystal { get; set; }
-        //public Color Color { get; set; } //TODO: Put back in later when have time to fix deserialization issue with MongoDB...
         public int Level { get; set; }
         public int Progress { get; set; }
         public int XP { get; set; }
+
         public string AvatarId { get; set; }
 
         public List<AvatarGiftModel> GiftsUnlocked { get; set; } = new List<AvatarGiftModel>();
@@ -35,15 +35,15 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.DataBaseModels{
         public AvatarChakraModel(){}
         public AvatarChakraModel(Chakra source){
 
-            this.Type=source.Type.Name;
+            this.Type=source.Type.Value;
             this.Name=source.Name;
 
             this.SanskritName=source.SanskritName;
             this.Description=source.Description;
             this.WhatItControls=source.WhatItControls;
-            this.YogaPose=source.YogaPose.Name;
+            this.YogaPose=source.YogaPose.Value;
             this.WhenItDevelops=source.WhenItDevelops;
-            this.Element=source.Element.Name;
+            this.Element=source.Element.Value;
 
             this.Crystal=new CrystalModel(source.Crystal);
             this.Crystal.AvatarChakraId=this.Id;
@@ -62,8 +62,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.DataBaseModels{
 
             Chakra item = null;
 
-            ChakraType chakraType=(ChakraType)Enum.Parse<ChakraType>(this.Type);
-            switch(chakraType){
+            switch(this.Type){
 
                 case ChakraType.Sacral:
                     item=new SacralChakra();
@@ -88,20 +87,17 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.DataBaseModels{
                     break;
             }
 
-            item.Type=new EnumValue<ChakraType>(chakraType);
+            item.Type=new EnumValue<ChakraType>(this.Type);
             item.Name=this.Name;
 
             item.SanskritName=this.SanskritName;
             item.Description=this.Description;
             item.WhatItControls=this.WhatItControls;
 
-            YogaPoseType poseType=Enum.Parse<YogaPoseType>(this.YogaPose);
-            item.YogaPose=new EnumValue<YogaPoseType>(poseType);
+            item.YogaPose=new EnumValue<YogaPoseType>(this.YogaPose);
+            item.Element=new EnumValue<ElementType>(this.Element);
 
             item.WhenItDevelops=this.WhenItDevelops;
-
-            ElementType elementType=Enum.Parse<ElementType>(this.Element);
-            item.Element=new EnumValue<ElementType>(elementType);
 
             item.Level=this.Level;
             item.Progress=this.Progress;

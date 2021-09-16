@@ -7,18 +7,21 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
     public class DataContext : DbContext
     {
         public DbSet<AvatarModel> Avatars { get; set; }
+        public DbSet<HolonModel> Holons { get; set; }
 
-        private string _connectionString = "";
+        private string DbPath = "";
 
-        public DataContext(string connectionString)
+        public DataContext()
         {
-            _connectionString = connectionString;
+            var folder = Environment.SpecialFolder.LocalApplicationData;
+            var path = Environment.GetFolderPath(folder);
+            DbPath = $"{path}{System.IO.Path.DirectorySeparatorChar}SQLLiteDBOASIS.sqlite";
         }
 
         protected override void OnConfiguring(DbContextOptionsBuilder options)
         {
             // connect to sqlite database
-            options.UseSqlite(_connectionString);
+            options.UseSqlite($"Data Source={DbPath}");
         }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder){
@@ -27,6 +30,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
             modelBuilder.Entity<AvatarAttributesModel>().HasAlternateKey(aa => aa.AvatarId);
             modelBuilder.Entity<AvatarAuraModel>().HasAlternateKey(aa => aa.AvatarId);
             modelBuilder.Entity<AvatarHumanDesignModel>().HasAlternateKey(hd => hd.AvatarId);
+            modelBuilder.Entity<ProviderKeyModel>().HasAlternateKey(p => p.KeyId);
             modelBuilder.Entity<ProviderPrivateKeyModel>().HasAlternateKey(p => p.KeyId);
             modelBuilder.Entity<ProviderPublicKeyModel>().HasAlternateKey(p => p.KeyId);
             modelBuilder.Entity<ProviderWalletAddressModel>().HasAlternateKey(p => p.KeyId);
@@ -71,6 +75,158 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                 .HasForeignKey<CrystalModel>(ob => ob.AvatarChakraId);
             
 
+
+            modelBuilder.Entity<PlanetModel>()
+                .HasMany(planet => planet.Moons)
+                .WithOne()
+                .HasForeignKey(ob => ob.ParentPlanetId);
+            
+            modelBuilder.Entity<SolarSystemModel>()
+                .HasMany(ss => ss.Planets)
+                .WithOne()
+                .HasForeignKey(ob => ob.SolarSystemId);
+            
+            modelBuilder.Entity<SolarSystemModel>()
+                .HasMany(ss => ss.Asteroids)
+                .WithOne()
+                .HasForeignKey(ob => ob.SolarSystemId);
+            
+            modelBuilder.Entity<SolarSystemModel>()
+                .HasMany(ss => ss.Comets)
+                .WithOne()
+                .HasForeignKey(ob => ob.SolarSystemId);
+            
+            modelBuilder.Entity<SolarSystemModel>()
+                .HasMany(ss => ss.Meteroids)
+                .WithOne()
+                .HasForeignKey(ob => ob.SolarSystemId);
+
+            
+            modelBuilder.Entity<GalaxyModel>()
+                .HasMany(galaxy => galaxy.SolarSystems)
+                .WithOne()
+                .HasForeignKey(ob => ob.GalaxyId);
+            
+            modelBuilder.Entity<GalaxyModel>()
+                .HasMany(galaxy => galaxy.Nebulas)
+                .WithOne()
+                .HasForeignKey(ob => ob.GalaxyId);
+            
+            modelBuilder.Entity<GalaxyModel>()
+                .HasMany(galaxy => galaxy.Stars)
+                .WithOne()
+                .HasForeignKey(ob => ob.GalaxyId);
+            
+            modelBuilder.Entity<GalaxyModel>()
+                .HasMany(galaxy => galaxy.Planets)
+                .WithOne()
+                .HasForeignKey(ob => ob.GalaxyId);
+            
+            modelBuilder.Entity<GalaxyModel>()
+                .HasMany(galaxy => galaxy.Asteroids)
+                .WithOne()
+                .HasForeignKey(ob => ob.GalaxyId);
+            
+            modelBuilder.Entity<GalaxyModel>()
+                .HasMany(galaxy => galaxy.Comets)
+                .WithOne()
+                .HasForeignKey(ob => ob.GalaxyId);
+            
+            modelBuilder.Entity<GalaxyModel>()
+                .HasMany(galaxy => galaxy.Meteroids)
+                .WithOne()
+                .HasForeignKey(ob => ob.GalaxyId);
+
+            
+            modelBuilder.Entity<GalaxyClusterModel>()
+                .HasMany(galaxy => galaxy.Galaxies)
+                .WithOne()
+                .HasForeignKey(ob => ob.GalaxyClusterId);
+            
+            modelBuilder.Entity<GalaxyClusterModel>()
+                .HasMany(galaxy => galaxy.SolarSystems)
+                .WithOne()
+                .HasForeignKey(ob => ob.GalaxyClusterId);
+            
+            modelBuilder.Entity<GalaxyClusterModel>()
+                .HasMany(galaxy => galaxy.Stars)
+                .WithOne()
+                .HasForeignKey(ob => ob.GalaxyClusterId);
+            
+            modelBuilder.Entity<GalaxyClusterModel>()
+                .HasMany(galaxy => galaxy.Planets)
+                .WithOne()
+                .HasForeignKey(ob => ob.GalaxyClusterId);
+            
+            modelBuilder.Entity<GalaxyClusterModel>()
+                .HasMany(galaxy => galaxy.Asteroids)
+                .WithOne()
+                .HasForeignKey(ob => ob.GalaxyClusterId);
+            
+            modelBuilder.Entity<GalaxyClusterModel>()
+                .HasMany(galaxy => galaxy.Comets)
+                .WithOne()
+                .HasForeignKey(ob => ob.GalaxyClusterId);
+            
+            modelBuilder.Entity<GalaxyClusterModel>()
+                .HasMany(galaxy => galaxy.Meteroids)
+                .WithOne()
+                .HasForeignKey(ob => ob.GalaxyClusterId);
+            
+
+            modelBuilder.Entity<UniverseModel>()
+                .HasMany(universe => universe.GalaxyClusters)
+                .WithOne()
+                .HasForeignKey(ob => ob.UniverseId);
+            
+            modelBuilder.Entity<UniverseModel>()
+                .HasMany(universe => universe.SolarSystems)
+                .WithOne()
+                .HasForeignKey(ob => ob.UniverseId);
+            
+            modelBuilder.Entity<UniverseModel>()
+                .HasMany(universe => universe.Nebulas)
+                .WithOne()
+                .HasForeignKey(ob => ob.UniverseId);
+            
+            modelBuilder.Entity<UniverseModel>()
+                .HasMany(universe => universe.Stars)
+                .WithOne()
+                .HasForeignKey(ob => ob.UniverseId);
+            
+            modelBuilder.Entity<UniverseModel>()
+                .HasMany(universe => universe.Planets)
+                .WithOne()
+                .HasForeignKey(ob => ob.UniverseId);
+            
+            modelBuilder.Entity<UniverseModel>()
+                .HasMany(universe => universe.Asteroids)
+                .WithOne()
+                .HasForeignKey(ob => ob.UniverseId);
+            
+            modelBuilder.Entity<UniverseModel>()
+                .HasMany(universe => universe.Comets)
+                .WithOne()
+                .HasForeignKey(ob => ob.UniverseId);
+            
+            modelBuilder.Entity<UniverseModel>()
+                .HasMany(universe => universe.Meteroids)
+                .WithOne()
+                .HasForeignKey(ob => ob.UniverseId);
+            
+
+            modelBuilder.Entity<HolonModel>()
+                .HasMany(universe => universe.Childrens)
+                .WithOne()
+                .HasForeignKey(ob => ob.ParentHolonId);
+            
+            modelBuilder.Entity<HolonModel>()
+                .HasMany(avatar => avatar.ProviderKey)
+                .WithOne()
+                .HasForeignKey(ob => ob.ParentId);
+
+
+
             modelBuilder.Entity<AvatarModel>()
                 .HasMany(avatar => avatar.HeartRates)
                 .WithOne()
@@ -110,21 +266,27 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                 .HasMany(avatar => avatar.KarmaAkashicRecords)
                 .WithOne()
                 .HasForeignKey(ob => ob.AvatarId);
+            
+            modelBuilder.Entity<AvatarModel>()
+                .HasMany(avatar => avatar.ProviderKey)
+                .WithOne()
+                .HasForeignKey(ob => ob.ParentId);
+
 
             modelBuilder.Entity<AvatarModel>()
                 .HasMany(avatar => avatar.ProviderPrivateKey)
                 .WithOne()
-                .HasForeignKey(ob => ob.AvatarId);
+                .HasForeignKey(ob => ob.ParentId);
             
             modelBuilder.Entity<AvatarModel>()
                 .HasMany(avatar => avatar.ProviderPublicKey)
                 .WithOne()
-                .HasForeignKey(ob => ob.AvatarId);
+                .HasForeignKey(ob => ob.ParentId);
             
             modelBuilder.Entity<AvatarModel>()
                 .HasMany(avatar => avatar.ProviderWalletAddress)
                 .WithOne()
-                .HasForeignKey(ob => ob.AvatarId);
+                .HasForeignKey(ob => ob.ParentId);
             
             modelBuilder.Entity<AvatarModel>()
                 .HasMany(avatar => avatar.AvatarChakras)
