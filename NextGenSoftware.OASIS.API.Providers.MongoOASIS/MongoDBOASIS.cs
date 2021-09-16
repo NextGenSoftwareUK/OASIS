@@ -154,32 +154,32 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
 
         public override async Task<IAvatarDetails> LoadAvatarDetailsAsync(Guid id)
         {
-            throw new NotImplementedException();
+            return await _avatarRepository.GetAvatarDetailByIdAsync(id);
         }
 
         public override async Task<IEnumerable<IAvatarDetails>> LoadAllAvatarDetailsAsync()
         {
-            throw new NotImplementedException();
+            return await _avatarRepository.GetAllAvatarDetailAsync();
         }
 
         public override async Task<IAvatarThumbnail> LoadAvatarThumbnailAsync(Guid id)
         {
-            throw new NotImplementedException();
+            return await _avatarRepository.GetAvatarThumbnailByIdAsync(id);
         }
 
         public override IAvatarDetails LoadAvatarDetails(Guid id)
         {
-            throw new NotImplementedException();
+            return _avatarRepository.GetAvatarDetailById(id);
         }
 
         public override IEnumerable<IAvatarDetails> LoadAllAvatarDetails()
         {
-            throw new NotImplementedException();
+            return _avatarRepository.GetAllAvatarDetail();
         }
 
         public override IAvatarThumbnail LoadAvatarThumbnail(Guid id)
         {
-            throw new NotImplementedException();
+            return _avatarRepository.GetAvatarThumbnailById(id);
         }
 
         public override async Task<IHolon> LoadHolonAsync(Guid id)
