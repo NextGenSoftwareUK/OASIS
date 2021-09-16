@@ -9,6 +9,7 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces
 {
     public interface IAvatarDetails : IHolon 
     {
+        string UmaJson { get; set; }
         string Image2D { get; set; }
         string Username { get; set; }
         string Password { get; set; }
@@ -17,14 +18,14 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces
         string FirstName { get; set; }
         string LastName { get; set; }
         ConsoleColor FavouriteColour { get; set; }
-        ConsoleColor StarcliColour { get; set; }
+        ConsoleColor STARCLIColour { get; set; }
         string FullName { get; }
-        DateTime Dob { get; set; }
+        DateTime DOB { get; set; }
         string Address { get; set; }
         int Karma { get; set; }
         int Level { get; }
-        int Xp { get; set; }
-        IOmiverse Omiverse { get; set; }
+        int XP { get; set; }
+        IOmiverse Omiverse { get; set; } 
         List<AvatarGift> Gifts { get; set; }
         AvatarChakras Chakras { get; set; }
         AvatarAura Aura { get; set; }
@@ -44,7 +45,7 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces
         string Mobile { get; set; }
         string Landline { get; set; }
         EnumValue<AvatarType> AvatarType { get; set; }
-        EnumValue<OASISType> CreatedOasisType { get; set; }
+        EnumValue<OASISType> CreatedOASISType { get; set; }
         bool AcceptTerms { get; set; }
         public string VerificationToken { get; set; }
         DateTime? Verified { get; set; }
