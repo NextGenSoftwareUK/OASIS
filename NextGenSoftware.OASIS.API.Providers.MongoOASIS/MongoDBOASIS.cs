@@ -152,6 +152,36 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             return await _searchRepository.SearchAsync(searchTerm);
         }
 
+        public override async Task<IAvatarDetails> LoadAvatarDetailsAsync(Guid id)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override async Task<IEnumerable<IAvatarDetails>> LoadAllAvatarDetailsAsync()
+        {
+            throw new NotImplementedException();
+        }
+
+        public override async Task<IAvatarThumbnail> LoadAvatarThumbnailAsync(Guid id)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override IAvatarDetails LoadAvatarDetails(Guid id)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override IEnumerable<IAvatarDetails> LoadAllAvatarDetails()
+        {
+            throw new NotImplementedException();
+        }
+
+        public override IAvatarThumbnail LoadAvatarThumbnail(Guid id)
+        {
+            throw new NotImplementedException();
+        }
+
         public override async Task<IHolon> LoadHolonAsync(Guid id)
         {
             return ConvertMongoEntityToOASISHolon(await _holonRepository.GetHolonAsync(id));

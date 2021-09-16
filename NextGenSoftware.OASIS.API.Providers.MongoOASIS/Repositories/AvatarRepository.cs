@@ -2,9 +2,10 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using MongoDB.Driver;
+using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Managers;
-using NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities;
 using NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Interfaces;
+using Avatar = NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities.Avatar;
 
 namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
 {
@@ -178,6 +179,36 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
             {
                 throw;
             }
+        }
+
+        public async Task<AvatarDetail> GetAvatarDetailByIdAsync(Guid id)
+        {
+            throw new NotImplementedException();
+        }
+
+        public AvatarDetail GetAvatarDetailById(Guid id)
+        {
+            throw new NotImplementedException();
+        }
+
+        public async Task<IEnumerable<AvatarDetail>> GetAllAvatarDetailAsync()
+        {
+            throw new NotImplementedException();
+        }
+
+        public IEnumerable<AvatarDetail> GetAllAvatarDetail()
+        {
+            throw new NotImplementedException();
+        }
+
+        public async Task<AvatarThumbnail> GetAvatarThumbnailByIdAsync(Guid id)
+        {
+            throw new NotImplementedException();
+        }
+
+        public AvatarThumbnail GetAvatarThumbnailById(Guid id)
+        {
+            throw new NotImplementedException();
         }
 
         public Avatar Update(Avatar avatar)
