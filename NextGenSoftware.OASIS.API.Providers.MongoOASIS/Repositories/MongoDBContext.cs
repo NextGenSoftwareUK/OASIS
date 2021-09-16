@@ -17,6 +17,8 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
             MongoDB = MongoClient.GetDatabase(dbName);
         }
 
+        public IMongoCollection<AvatarDetail> AvatarDetail => MongoDB.GetCollection<AvatarDetail>("Avatar");
+        public IMongoCollection<AvatarThumbnail> AvatarThumbnail => MongoDB.GetCollection<AvatarThumbnail>("Avatar");
         public IMongoCollection<Avatar> Avatar => MongoDB.GetCollection<Avatar>("Avatar");
         public IMongoCollection<Holon> Holon => MongoDB.GetCollection<Holon>("Holon");
         public IMongoCollection<SearchData> SearchData => MongoDB.GetCollection<SearchData>("SearchData");
