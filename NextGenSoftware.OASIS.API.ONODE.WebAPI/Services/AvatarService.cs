@@ -412,8 +412,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
             var response = new ApiResponse<IAvatarDetails>();
             try
             {
-                var thumbnail = await AvatarManager.LoadAvatarDetailsAsync(id);
-                response.Payload = thumbnail;
+                var detail = await AvatarManager.LoadAvatarDetailsAsync(id);
+                response.Payload = detail;
             }
             catch (Exception ex)
             {
@@ -428,8 +428,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
             var response = new ApiResponse<IEnumerable<IAvatarDetails>>();
             try
             {
-                var thumbnail = await AvatarManager.LoadAllAvatarDetailsAsync();
-                response.Payload = thumbnail;
+                var details = await AvatarManager.LoadAllAvatarDetailsAsync();
+                response.Payload = details;
             }
             catch (Exception ex)
             {
