@@ -183,32 +183,41 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
 
         public async Task<AvatarDetail> GetAvatarDetailByIdAsync(Guid id)
         {
-            throw new NotImplementedException();
+            var filter = Builders<AvatarDetail>.Filter.Where(x => x.Id == id);
+            var findResult = await _dbContext.AvatarDetail.FindAsync(filter);
+            var detailEntity = await findResult.FirstOrDefaultAsync();
+            return detailEntity;
         }
 
         public AvatarDetail GetAvatarDetailById(Guid id)
         {
-            throw new NotImplementedException();
+            var filter = Builders<AvatarDetail>.Filter.Where(x => x.Id == id);
+            return _dbContext.AvatarDetail.Find(filter).FirstOrDefault();
         }
 
         public async Task<IEnumerable<AvatarDetail>> GetAllAvatarDetailAsync()
         {
-            throw new NotImplementedException();
+            var cursor = await _dbContext.AvatarDetail.FindAsync(_ => true);
+            return cursor.ToEnumerable();
         }
 
         public IEnumerable<AvatarDetail> GetAllAvatarDetail()
         {
-            throw new NotImplementedException();
+            return _dbContext.AvatarDetail.Find(_ => true).ToEnumerable();
         }
 
         public async Task<AvatarThumbnail> GetAvatarThumbnailByIdAsync(Guid id)
         {
-            throw new NotImplementedException();
+            var filter = Builders<AvatarThumbnail>.Filter.Where(x => x.Id == id);
+            var findResult = await _dbContext.AvatarThumbnail.FindAsync(filter);
+            var detailEntity = await findResult.FirstOrDefaultAsync();
+            return detailEntity;
         }
 
         public AvatarThumbnail GetAvatarThumbnailById(Guid id)
-        {
-            throw new NotImplementedException();
+        {            
+            var filter = Builders<AvatarThumbnail>.Filter.Where(x => x.Id == id);
+            return _dbContext.AvatarThumbnail.Find(filter).FirstOrDefault();
         }
 
         public Avatar Update(Avatar avatar)
