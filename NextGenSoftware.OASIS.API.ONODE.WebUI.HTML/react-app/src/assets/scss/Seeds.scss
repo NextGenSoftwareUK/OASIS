@@ -1,29 +1,20 @@
 .popup-container {
-    width: 100vw;
+    width: 100%;
     height: 100vh;
     display: grid;
-    color: #909092;
+    color: #fff;
     place-content: center;
     position: absolute;
-    top: 0;
+    top: -60px;
     z-index: 10;
     background-color: hsla(240, 8%, 12%, 0.7);
-    @media (max-width: 800px) {
-        justify-content: initial;
-    }
     h1 {
-        color: #fff;
         font-weight: 400;
-    }
-    .payWithSeeds-select {
-        font-size: 1.5rem;
-        color: #fff;
-        background-color: transparent;
-        font-weight: 400;
-        border-radius: 5px;
-        margin-right: 1rem;
-        border: 1px solid #909092;
-        width: auto;
+        font-size: 2rem;
+        margin-bottom: 2rem;
+        @media (max-width: 550px) {
+            font-size: 1.5rem;
+        }
     }
     input {
         border: 1px solid #909092;
@@ -36,55 +27,56 @@
         color: #fff;
         padding: 0.25rem 1rem;
     }
-    .payWithSeeds-popup {
-        background-color: hsla(240, 8%, 12%, 0.8);
-        box-shadow: 0 0 2.5rem rgba(136, 133, 133, 0.308);
+    .popup {
+        background-color: rgba(28, 28, 33, 0.8);
+        width: 500px;
         padding: 2rem;
         border-radius: 1rem;
-        display: grid;
-        @media (max-width: 800px) {
-            grid-template-columns: 80%;
-            justify-content: center;
-        }
         @media (max-width: 550px) {
-            grid-template-columns: 100%;
+            width: 100vw;
+            height: 100vh;
         }
     }
-    .payWithSeeds-fields {
-        display: grid;
-        row-gap: 1rem;
-        grid-template-columns: auto 1fr;
+    .popup-cancel{
+        color: #fff;
+        position: relative;
+        left: 100%;
+        top: -1.5rem;
+        font-size: 1.5rem;
+        width: max-content;
+        transition: all 0.1s ease-in;
+        &:hover{
+            color: red;
+        }
     }
-    .payWithSeeds-button-align {
-        display: grid;
+    .popup-submit-button{
         margin-top: 2rem;
-        grid-template-columns: auto auto;
-        justify-content: right;
-        column-gap: 1rem;
-        @media (max-width: 800px) {
-            grid-template-columns: 1fr 1fr;
-            justify-content: initial;
+        width: 30%;
+        @media (max-width: 550px) {
+            width: 100%;
         }
-    }
-    .payWithSeeds-row {
-        display: grid;
-        grid-template-columns: repeat(2, auto 1fr);
-        margin-top: 1rem;
-    }
-    .sendInvite-row {
-        display: grid;
-        grid-template-columns: auto 1fr;
-        margin-top: 1rem;
-    }
-    .payWithSeeds-fields, 
-    .payWithSeeds-row, 
-    .sendInvite-row {
-        grid-template-columns: 100%;
-        row-gap: 0.5rem;
     }
 }
 
-
+.payWithSeeds-select {
+    font-size: 1.75rem;
+    color: #fff;
+    background-color: transparent;
+    font-weight: 400;
+    border-radius: 5px;
+    margin-right: 1rem;
+    border: 1px solid #909092;
+    width: auto;
+    @media (max-width:550px) {
+        font-size: 1.5rem;
+    }
+}
+.payWithSeeds-field-group{
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 1rem;
+}
 
 
 @media (max-width: 800px) {
