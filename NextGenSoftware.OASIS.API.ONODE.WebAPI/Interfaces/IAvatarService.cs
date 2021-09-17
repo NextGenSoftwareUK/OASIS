@@ -35,7 +35,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Interfaces
         IAvatar Update(Guid id, UpdateRequest avatar);
         bool Delete(Guid id);
         Task<ApiResponse<IAvatarThumbnail>> GetAvatarThumbnail(Guid id);
-        Task<ApiResponse<IAvatarDetails>> GetAvatarDetail(Guid id);
-        Task<ApiResponse<IEnumerable<IAvatarDetails>>> GetAllAvatarDetails();
+        Task<ApiResponse<IAvatarDetail>> GetAvatarDetail(Guid id);
+        Task<ApiResponse<IEnumerable<IAvatarDetail>>> GetAllAvatarDetails();
     }
 }

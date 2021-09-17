@@ -21,7 +21,6 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
     {
         private readonly IAvatarService _avatarService;
 
-        //public AvatarController(IOptions<OASISSettings> OASISSettings, IAvatarService avatarService) : base(OASISSettings)
         public AvatarController(IAvatarService avatarService)
         {
             _avatarService = avatarService;
@@ -32,14 +31,6 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             get
             {
                 return Program.AvatarManager;
-
-                //if (_avatarManager == null)
-                //{
-                //    _avatarManager = new AvatarManager(GetAndActivateProvider());
-                //    _avatarManager.OnOASISManagerError += _avatarManager_OnOASISManagerError;
-                //}
-
-                //return _avatarManager;
             }
         }
         
@@ -79,14 +70,14 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 
         [Authorize(AvatarType.Wizard)]
         [HttpGet("GetAvatarDetail/{id:guid}")]
-        public async Task<ApiResponse<IAvatarDetails>> GetAvatarDetail(Guid id)
+        public async Task<ApiResponse<IAvatarDetail>> GetAvatarDetail(Guid id)
         {
             return await _avatarService.GetAvatarDetail(id);
         }
 
         [Authorize(AvatarType.Wizard)]
         [HttpGet("GetAllAvatarDetail")]
-        public async Task<ApiResponse<IEnumerable<IAvatarDetails>>> GetAllAvatarDetails()
+        public async Task<ApiResponse<IEnumerable<IAvatarDetail>>> GetAllAvatarDetails()
         {
             return await _avatarService.GetAllAvatarDetails();
         }
