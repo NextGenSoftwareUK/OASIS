@@ -55,6 +55,14 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces
 
         Task<ISearchResults> SearchAsync(ISearchParams searchParams);
 
+        Task<IAvatarDetails> LoadAvatarDetailsAsync(Guid id);
+        Task<IEnumerable<IAvatarDetails>> LoadAllAvatarDetailsAsync();
+        Task<IAvatarThumbnail> LoadAvatarThumbnailAsync(Guid id);        
+        
+        IAvatarDetails LoadAvatarDetails(Guid id);
+        IEnumerable<IAvatarDetails> LoadAllAvatarDetails();
+        IAvatarThumbnail LoadAvatarThumbnail(Guid id);
+
         event StorageProviderError StorageProviderError;
 
         //TODO: Lots more to come! ;-)
