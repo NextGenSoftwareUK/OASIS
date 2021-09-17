@@ -63,7 +63,7 @@ const SideNavData = [
             }, 
             {
                 title: "Send Data",
-                path: ""
+                path: "/add-data"
             }, 
             {
                 title: "Manage Data",

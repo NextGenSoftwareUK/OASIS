@@ -1,6 +1,6 @@
 import React from 'react';
 
-import "./DataScreen.css";
+import '../../../assets/scss/DataScreen.scss';
 
 class ShowAllData extends React.Component {
     render() { 
