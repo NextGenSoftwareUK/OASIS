@@ -17,6 +17,16 @@ body {
     background-position: top;
 }
 
+select, input, select {
+    border: none;
+    outline: none;
+}
+textarea {
+    outline: none;
+    min-height: 120px;
+    padding: 10px;
+}
+
 a {
     text-decoration: none;
 }
@@ -229,4 +239,25 @@ input {
     left: 50%;
     top: 50%;
     transform: translate(-50%, -50%);
+}
+
+.have-selectbox {
+    position: relative;
+    .custom-selectbox {
+        width: 150px;
+        height: 30px;
+        padding: 0 24px 0 10px;
+        border: none;
+        border-radius: 4px;
+        -webkit-appearance: none;
+        appearance: none;
+        outline: none;
+    }
+    i.fa {
+        position: absolute;
+        right: 10px;
+        top: 50%;
+        transform: translate(0, -50%);
+        color: #000;
+    }
 }
