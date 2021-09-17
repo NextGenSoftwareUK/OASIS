@@ -18,6 +18,7 @@ import "../assets/scss/style.scss";
 import "../assets/scss/seeds.scss";
 
 import axios from "axios";
+import AcceptInvite from "./pages/seeds/AcceptInvite";
 
 class App extends React.Component {
     state = {
@@ -125,7 +126,7 @@ class App extends React.Component {
                             <Route path="/rewardWithSeeds">
                                 <PayWithSeeds seedType="Reward" />
                             </Route>
-
+                            <Route path="/accept-invite-to-join-seeds" component={AcceptInvite} />
                             <Route path="/send-invite" component={SendInvite} />
                             <Route exact path="/karma" component={Karma} />
                         </Switch>

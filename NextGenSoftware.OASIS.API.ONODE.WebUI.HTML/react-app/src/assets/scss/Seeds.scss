@@ -21,7 +21,7 @@
         font-size: 1.15rem;
         padding: 0.25rem 1rem;
         border-radius: 5px;
-        color: #909092;
+        background-color: #fff;
     }
     label {
         color: #fff;
@@ -77,7 +77,15 @@
     flex-direction: column;
     margin-bottom: 1rem;
 }
-
+.accept-invite-button{
+    margin-top: 2rem;
+    position: relative;
+    left: 60%;
+    @media (max-width: 550px) {
+        width: 100%;
+        left: 0;
+    }
+}
 
 @media (max-width: 800px) {
   .payWithSeeds-label{
