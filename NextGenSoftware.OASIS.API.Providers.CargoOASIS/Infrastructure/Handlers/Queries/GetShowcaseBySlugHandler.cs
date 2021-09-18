@@ -4,22 +4,21 @@ using System.Threading.Tasks;
 using Newtonsoft.Json;
 using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Enum;
 using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Interfaces;
+using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Services.HttpHandler;
 using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Models.Cargo;
 using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Models.Common;
+using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Models.Request;
+using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Models.Response;
 
 namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Handlers.Queries
 {
     public class GetShowcaseBySlugHandler : IHandle<Response<GetShowcaseBySlugResponseModel>, GetShowcaseBySlugRequestModel>
     {
-        private readonly HttpClient _httpClient;
+        private readonly IHttpHandler _httpClient;
 
-        public GetShowcaseBySlugHandler()
+        public GetShowcaseBySlugHandler(IHttpHandler httpClient)
         {
-            _httpClient = new HttpClient()
-            {
-                Timeout = TimeSpan.FromMinutes(1),
-                BaseAddress = new Uri("https://api2.cargo.build/")
-            };
+            _httpClient = httpClient;
         }
         
         /// <summary>
@@ -33,11 +32,11 @@ namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Handlers
             var response = new Response<GetShowcaseBySlugResponseModel>();
             try
             {
-                var urlQuery = $"v3/get-crate-by-id/{request.Slug}?slugId={request.SlugId}";
+                var urlQuery = $"https://api2.cargo.build/v3/get-crate-by-id/{request.Slug}?slugId={request.SlugId}";
                 var httRequest = new HttpRequestMessage()
                 {
                     Method = HttpMethod.Get,
-                    RequestUri = new Uri(_httpClient.BaseAddress + urlQuery)
+                    RequestUri = new Uri(urlQuery)
                 };
                 var httpResponse = await _httpClient.SendAsync(httRequest);
                 if (!httpResponse.IsSuccessStatusCode)
@@ -58,29 +57,5 @@ namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Handlers
                 return response;
             }
         }
-    }
-
-    public class GetShowcaseBySlugRequestModel
-    {
-        /// <summary>
-        /// Required. String. The slug of the showcase
-        /// </summary>
-        public string Slug { get; set; }
-        /// <summary>
-        /// Required. String. Slug ID of the showcase
-        /// </summary>
-        public string SlugId { get; set; }
-    }
-
-    public class GetShowcaseBySlugResponseModel
-    {
-        [JsonProperty("err")]
-        public bool Error { get; set; }
-
-        [JsonProperty("status")] 
-        public int Status { get; set; }
-
-        [JsonProperty("data")] 
-        public GetShowcaseByIdResponse Data { get; set; }
     }
 }

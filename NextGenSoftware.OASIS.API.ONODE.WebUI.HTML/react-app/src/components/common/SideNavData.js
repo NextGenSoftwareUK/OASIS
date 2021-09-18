@@ -39,15 +39,15 @@ const SideNavData = [
             {
                 title: "View Curent Karma Weightings",
                 path: ""
-            }, 
+            },
             {
                 title: "Vote For Karma Weightings",
                 path: ""
-            }, 
+            },
             {
                 title: "View Avatar Karma",
                 path: ""
-            }, 
+            },
             {
                 title: "View/Search Karma Akashic Records",
                 path: ""
@@ -60,23 +60,23 @@ const SideNavData = [
             {
                 title: "Load Data",
                 path: ""
-            }, 
+            },
             {
                 title: "Send Data",
-                path: ""
-            }, 
+                path: "/add-data"
+            },
             {
                 title: "Manage Data",
                 path: ""
-            }, 
+            },
             {
                 title: "Cross-Chain Management",
                 path: ""
-            }, 
+            },
             {
                 title: "Off-Chain Management",
                 path: ""
-            }, 
+            },
             {
                 title: "Search Data",
                 path: ""
@@ -89,27 +89,27 @@ const SideNavData = [
             {
                 title: "Pay With SEEDS",
                 path: "/pay-with-seeds"
-            }, 
+            },
             {
                 title: "Donate SEEDS",
                 path: "/donateWithSeeds"
-            }, 
+            },
             {
                 title: "Reward SEEDS",
                 path: "/rewardWithSeeds"
-            }, 
+            },
             {
-                title: "Invite To Join SEEDS",
+                title: "Send Invite To Join SEEDS",
                 path: "/send-invite"
-            }, 
+            },
             {
-                title: "Accept Invit to join seeds",
-                path: ""
-            }, 
+                title: "Accept Invite to join seeds",
+                path: "/accept-invite-to-join-seeds"
+            },
             {
                 title: "View SEEDS",
                 path: ""
-            }, 
+            },
             {
                 title: "View Organisations",
                 path: ""
@@ -117,7 +117,7 @@ const SideNavData = [
             {
                 title: "Manage SEEDS",
                 path: ""
-            }, 
+            },
             {
                 title: "Search Seeds",
                 path: ""
@@ -130,75 +130,75 @@ const SideNavData = [
             {
                 title: "View Providers",
                 path: ""
-            }, 
+            },
             {
                 title: "Manage Providers",
                 path: ""
-            }, 
+            },
             {
                 title: "Manage Auto-Replication",
                 path: ""
-            }, 
+            },
             {
                 title: "Manage Auto-Fail-Over",
                 path: ""
-            }, 
+            },
             {
                 title: "Manage Load Balancing",
                 path: ""
-            }, 
+            },
             {
                 title: "View Provider Stats",
                 path: ""
-            }, 
+            },
             {
                 title: "Compare Provider Speeds",
                 path: ""
-            }, 
+            },
             {
                 title: "Search Providers",
                 path: ""
-            }, 
+            },
             {
                 title: "Holochain",
                 path: ""
-            }, 
+            },
             {
                 title: "SEEDS",
                 path: ""
-            }, 
+            },
             {
                 title: "EOSIO",
                 path: ""
-            }, 
+            },
             {
                 title: "Ethereum",
                 path: ""
-            }, 
+            },
             {
                 title: "IPFS",
                 path: ""
-            }, 
+            },
             {
                 title: "ThreeFold",
                 path: ""
-            }, 
+            },
             {
                 title: "SOLID",
                 path: ""
-            }, 
+            },
             {
                 title: "Activity Pub",
                 path: ""
-            }, 
+            },
             {
                 title: "Mongo DB",
                 path: ""
-            }, 
+            },
             {
                 title: "SQLLite",
                 path: ""
-            }, 
+            },
             {
                 title: "Neo4j",
                 path: ""
@@ -235,11 +235,11 @@ const SideNavData = [
             {
                 title: "View StarCraft 2 Leagues",
                 path: ""
-            }, 
+            },
             {
                 title: "View StarCraft 2 Tournaments",
                 path: ""
-            }, 
+            },
             {
                 title: "View StarCraft 2 Achievements",
                 path: ""

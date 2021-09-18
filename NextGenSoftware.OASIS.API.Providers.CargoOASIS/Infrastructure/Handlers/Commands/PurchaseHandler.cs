@@ -4,22 +4,19 @@ using System.Threading.Tasks;
 using Newtonsoft.Json;
 using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Enum;
 using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Interfaces;
+using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Services.HttpHandler;
+using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Models.Cargo;
 using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Models.Common;
 
 namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Handlers.Commands
 {
     public class PurchaseHandler : IHandle<Response<PurchaseResponseModel>, PurchaseRequestModel>
     {
-        private readonly HttpClient _httpClient;
+        private readonly IHttpHandler _httpClient;
         
-        public PurchaseHandler()
+        public PurchaseHandler(IHttpHandler httpClient)
         {
-            _httpClient = new HttpClient()
-            {
-                Timeout = TimeSpan.FromMinutes(1),
-                BaseAddress = new Uri("https://api2.cargo.build/")
-            };
-            _httpClient.DefaultRequestHeaders.Add("Content-Type", "application/json");
+            _httpClient = httpClient;
         }
         
         /// <summary>
@@ -33,7 +30,7 @@ namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Handlers
             var response = new Response<PurchaseResponseModel>();
             try
             {
-                var url = "v4/purchase";
+                var url = "https://api2.cargo.build/v3/register/v4/purchase";
                 var requestContent = JsonConvert.SerializeObject(new
                 {
                     saleId = request.SaleId
@@ -41,7 +38,7 @@ namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Handlers
                 var httpReq = new HttpRequestMessage()
                 {
                     Method = HttpMethod.Post,
-                    RequestUri = new Uri(_httpClient.BaseAddress + url),
+                    RequestUri = new Uri(url),
                     Content = new StringContent(requestContent)
                 };
                 var httpRes = await _httpClient.SendAsync(httpReq);
@@ -62,21 +59,5 @@ namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Handlers
                 return response;
             }
         }
-    }
-
-    public class PurchaseResponseModel
-    {
-        /// <summary>
-        /// The response will contain a transaction hash.
-        /// </summary>
-        public string TransactionHash { get; set; }
-    }
-
-    public class PurchaseRequestModel
-    {
-        /// <summary>
-        /// Required. The ID of the sale
-        /// </summary>
-        public string SaleId { get; set; }
     }
 }
