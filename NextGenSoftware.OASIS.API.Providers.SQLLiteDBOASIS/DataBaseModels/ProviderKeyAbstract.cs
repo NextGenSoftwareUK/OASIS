@@ -9,7 +9,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.DataBaseModels{
     public abstract class ProviderKeyAbstract
     {
         [Required, Key, DatabaseGenerated(DatabaseGeneratedOption.None)]
-        public ProviderType KeyId{ set; get; }
+        public ProviderType ProviderId{ set; get; }
 
         public string Value{ set; get; }
         public string ParentId{ set; get; }
@@ -17,7 +17,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.DataBaseModels{
         protected ProviderKeyAbstract(){}
         protected ProviderKeyAbstract(ProviderType Id, String value){
 
-            this.KeyId=Id;
+            this.ProviderId=Id;
             this.Value=value;
         }
 

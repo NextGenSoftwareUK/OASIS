@@ -5,6 +5,7 @@ using NextGenSoftware.OASIS.API.Core.Holons;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel;
 using NextGenSoftware.OASIS.API.Core.Helpers;
+using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 
 namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.DataBaseModels{
 
@@ -43,6 +44,9 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.DataBaseModels{
         public List<HolonModel> Childrens{ set; get;}
 
         public ProviderType CreatedProviderType { get; set; }
+
+        public List<MetaDataModel> MetaData { get; set; } = new List<MetaDataModel>();
+        public List<ProviderMetaData> ProviderMetaData { get; set; } = new List<ProviderMetaData>();
         public List<ProviderKeyModel> ProviderKey { get; set; } = new List<ProviderKeyModel>();
 
         public String CreatedByAvatarId { get; set; }
@@ -145,13 +149,30 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.DataBaseModels{
                 this.ParentUniverse = new UniverseModel(source.ParentUniverse);
             }
 
-            foreach(KeyValuePair<ProviderType, string> key in source.ProviderKey){
+            foreach(KeyValuePair<ProviderType, string> item in source.ProviderKey){
 
-                ProviderKeyModel providerKey=new ProviderKeyModel(key.Key,key.Value);
+                ProviderKeyModel providerKey=new ProviderKeyModel(item.Key,item.Value);
                 providerKey.ParentId=this.Id;
                 this.ProviderKey.Add(providerKey);
             }
 
+            foreach(KeyValuePair<string, string> item in source.MetaData){
+
+                MetaDataModel metaModel=new MetaDataModel(item.Key,item.Value);
+                metaModel.ParentId=this.Id;
+                this.MetaData.Add(metaModel);
+            }
+
+            Dictionary<string,string> providerMeta = source.ProviderMetaData.GetValueOrDefault(ProviderType.SQLLiteDBOASIS);
+            if(providerMeta != null){
+
+                foreach(KeyValuePair<string, string> item in providerMeta){
+
+                    ProviderMetaData metaModel=new ProviderMetaData(ProviderType.SQLLiteDBOASIS, item.Key,item.Value);
+                    metaModel.ParentId=this.Id;
+                    this.ProviderMetaData.Add(metaModel);
+                }
+            }
 
         }
 
@@ -198,6 +219,28 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.DataBaseModels{
             item.ParentGalaxy = this.ParentGalaxy.GetGalaxy();
             item.ParentGalaxyCluster = this.ParentGalaxyCluster.GetGalaxyCluster();
             item.ParentUniverse = this.ParentUniverse.GetUniverse();
+
+
+            foreach(ProviderKeyModel model in this.ProviderKey){
+
+                ProviderKeyAbstract providerKey=model.GetProviderKey();
+                item.ProviderKey.Add(providerKey.ProviderId, providerKey.Value);
+            }
+
+            foreach(MetaDataModel model in this.MetaData){
+
+                MetaDataModel metaData=model.GetMetaData();
+                item.MetaData.Add(metaData.PropertyId, metaData.Value);
+            }
+
+            Dictionary<string,string> providerMetaData = new Dictionary<string, string>();
+            foreach(ProviderMetaData providerMeta in this.ProviderMetaData){
+
+                ProviderMetaData metaData=providerMeta.GetMetaData();
+                providerMetaData.Add(metaData.Property, metaData.Value);
+            }
+
+            item.ProviderMetaData.Add(ProviderType.SQLLiteDBOASIS, providerMetaData);
 
             return(item);
         }
