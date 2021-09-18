@@ -18,6 +18,14 @@ export default class PayWithSeeds extends Component {
         })
     }
 
+    componentDidUpdate(prevProps) {
+        if (this.props.seedType !== prevProps.seedType) // Check if it's a new user, you can also use some unique property, like the ID  (this.props.user.id !== prevProps.user.id)
+        {
+            this.setState({
+                seedType: this.props.seedType
+            })
+        }
+    }
     render() {
         return (
             <div className="popup-container">
