@@ -1,7 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities;
+using NextGenSoftware.OASIS.API.Core.Holons;
+using Avatar = NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities.Avatar;
 
 namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Interfaces
 {
@@ -23,5 +24,14 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Interfaces
         Task<List<Avatar>> GetAvatarsAsync();
         Avatar Update(Avatar avatar);
         Task<Avatar> UpdateAsync(Avatar avatar);
+
+        Task<AvatarDetail> GetAvatarDetailByIdAsync(Guid id);
+        AvatarDetail GetAvatarDetailById(Guid id);
+
+        Task<IEnumerable<AvatarDetail>> GetAllAvatarDetailAsync();
+        IEnumerable<AvatarDetail> GetAllAvatarDetail();
+
+        Task<AvatarThumbnail> GetAvatarThumbnailByIdAsync(Guid id);
+        AvatarThumbnail GetAvatarThumbnailById(Guid id);
     }
 }

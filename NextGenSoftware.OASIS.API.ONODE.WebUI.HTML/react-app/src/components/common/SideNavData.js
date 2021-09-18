@@ -63,7 +63,7 @@ const SideNavData = [
             },
             {
                 title: "Send Data",
-                path: ""
+                path: "/add-data"
             },
             {
                 title: "Manage Data",
@@ -99,7 +99,7 @@ const SideNavData = [
                 path: "/rewardWithSeeds"
             },
             {
-                title: "Invite To Join SEEDS",
+                title: "Send Invite To Join SEEDS",
                 path: "/send-invite"
             },
             {

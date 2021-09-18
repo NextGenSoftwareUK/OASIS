@@ -24,6 +24,14 @@ export default class SendInvite extends Component {
             <label className="payWithSeeds-label">Message</label>
             <input type="text" />
           </div>
+          <div className="payWithSeeds-field-group">
+            <label className="payWithSeeds-label">SEEDS To Gift</label>
+            <input type="text" />
+          </div>
+          <div className="payWithSeeds-field-group">
+            <label className="payWithSeeds-label">Sow Quality</label>
+            <input type="text" />
+          </div>
           <button className="popup-submit-button button">Send</button>
         </div>
       </div>

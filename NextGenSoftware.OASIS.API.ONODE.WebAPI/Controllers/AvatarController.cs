@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Managers;
+using NextGenSoftware.OASIS.API.Core.Models.Common;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Interfaces;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Models;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Avatar;
@@ -19,7 +21,6 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
     {
         private readonly IAvatarService _avatarService;
 
-        //public AvatarController(IOptions<OASISSettings> OASISSettings, IAvatarService avatarService) : base(OASISSettings)
         public AvatarController(IAvatarService avatarService)
         {
             _avatarService = avatarService;
@@ -30,14 +31,6 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             get
             {
                 return Program.AvatarManager;
-
-                //if (_avatarManager == null)
-                //{
-                //    _avatarManager = new AvatarManager(GetAndActivateProvider());
-                //    _avatarManager.OnOASISManagerError += _avatarManager_OnOASISManagerError;
-                //}
-
-                //return _avatarManager;
             }
         }
         
@@ -66,6 +59,27 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 return Unauthorized(new { message = "Unauthorized" });
             _avatarService.Upload2DAvatarImage(id, avatarImage);
             return Ok();
+        }
+        
+        [Authorize(AvatarType.Wizard)]
+        [HttpGet("GetThumbnailAvatar/{id:guid}")]
+        public async Task<ApiResponse<IAvatarThumbnail>> GetThumbnailAvatar(Guid id)
+        {
+            return await _avatarService.GetAvatarThumbnail(id);
+        }
+
+        [Authorize(AvatarType.Wizard)]
+        [HttpGet("GetAvatarDetail/{id:guid}")]
+        public async Task<ApiResponse<IAvatarDetail>> GetAvatarDetail(Guid id)
+        {
+            return await _avatarService.GetAvatarDetail(id);
+        }
+
+        [Authorize(AvatarType.Wizard)]
+        [HttpGet("GetAllAvatarDetail")]
+        public async Task<ApiResponse<IEnumerable<IAvatarDetail>>> GetAllAvatarDetails()
+        {
+            return await _avatarService.GetAllAvatarDetails();
         }
 
         /// <summary>

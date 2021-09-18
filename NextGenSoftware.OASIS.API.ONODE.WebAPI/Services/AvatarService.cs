@@ -8,6 +8,7 @@ using Microsoft.Extensions.Configuration;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
+using System.Threading.Tasks;
 using AutoMapper;
 using BC = BCrypt.Net.BCrypt;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
@@ -19,6 +20,7 @@ using NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Security;
 using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.API.Core.Helpers;
+using NextGenSoftware.OASIS.API.Core.Models.Common;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Avatar;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
@@ -388,6 +390,54 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
         {
             // Default to soft delete.
             return AvatarManager.DeleteAvatar(id);
+        }
+
+        public async Task<ApiResponse<IAvatarThumbnail>> GetAvatarThumbnail(Guid id)
+        {
+            var response = new ApiResponse<IAvatarThumbnail>();
+            try
+            {
+                var thumbnail = await AvatarManager.LoadAvatarThumbnailAsync(id);
+                response.Payload = thumbnail;
+            }
+            catch (Exception ex)
+            {
+                response.Code = ApiConstantsCodes.Failed;
+                response.Message = $"{ApiConstantsContents.Failed} - {ex.Message}";
+            }
+            return response; 
+        }
+
+        public async Task<ApiResponse<IAvatarDetails>> GetAvatarDetail(Guid id)
+        {
+            var response = new ApiResponse<IAvatarDetails>();
+            try
+            {
+                var detail = await AvatarManager.LoadAvatarDetailsAsync(id);
+                response.Payload = detail;
+            }
+            catch (Exception ex)
+            {
+                response.Code = ApiConstantsCodes.Failed;
+                response.Message = $"{ApiConstantsContents.Failed} - {ex.Message}";
+            }
+            return response;
+        }
+
+        public async Task<ApiResponse<IEnumerable<IAvatarDetails>>> GetAllAvatarDetails()
+        {
+            var response = new ApiResponse<IEnumerable<IAvatarDetails>>();
+            try
+            {
+                var details = await AvatarManager.LoadAllAvatarDetailsAsync();
+                response.Payload = details;
+            }
+            catch (Exception ex)
+            {
+                response.Code = ApiConstantsCodes.Failed;
+                response.Message = $"{ApiConstantsContents.Failed} - {ex.Message}";
+            }
+            return response;
         }
 
         // helper methods
