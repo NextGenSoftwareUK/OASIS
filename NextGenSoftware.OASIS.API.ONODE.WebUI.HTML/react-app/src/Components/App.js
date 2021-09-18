@@ -15,9 +15,10 @@ import ShowAllData from "./pages/data-screen/ShowAllData";
 
 import "../assets/scss/general.scss";
 import "../assets/scss/style.scss";
-import "../assets/scss/Seeds.scss";
+import "../assets/scss/seeds.scss";
 
 import axios from "axios";
+import AcceptInvite from "./pages/seeds/AcceptInvite";
 
 class App extends React.Component {
     state = {
@@ -95,20 +96,23 @@ class App extends React.Component {
         })
     }
 
-    render() { 
+    render() {
         return (
             <div className="main-container">
                 <Router>
                     <header>
-                        <Navbar 
-                            showSidebar={this.state.showSidebar} 
+                        <Navbar
+                            showSidebar={this.state.showSidebar}
                             toggleSidebar={this.toggleSidebar}
-                            showLogin={this.showLogin} 
-                            showSignup={this.showSignup} 
+                            showLogin={this.showLogin}
+                            showSignup={this.showSignup}
                             handleLogout={this.handleLogout}
                             user={this.state.user}
                         />
-                        <SideNav showSidebar={this.state.showSidebar} toggleSidebar={this.toggleSidebar}  />
+                        <SideNav
+                            showSidebar={this.state.showSidebar}
+                            toggleSidebar={this.toggleSidebar}
+                        />
                     </header>
 
                     <div className="content-container">
@@ -117,7 +121,7 @@ class App extends React.Component {
 
                             <Route exact path="/add-data" component={AddData} />
                             <Route exact path="/show-data" component={ShowAllData} />
-                            
+
                             <Route path="/pay-with-seeds" component={PayWithSeeds} />
                             <Route path="/donateWithSeeds">
                                 <PayWithSeeds seedType="Donate" />
@@ -125,27 +129,27 @@ class App extends React.Component {
                             <Route path="/rewardWithSeeds">
                                 <PayWithSeeds seedType="Reward" />
                             </Route>
-
+                            <Route path="/accept-invite-to-join-seeds" component={AcceptInvite} />
                             <Route path="/send-invite" component={SendInvite} />
                             <Route exact path="/karma" component={Karma} />
                         </Switch>
                     </div>
                 </Router>
 
-                <Login 
+                <Login
                     className="custom-form"
-                    show={this.state.showLogin} 
+                    show={this.state.showLogin}
                     hide={this.hideLogin}
-                    change={this.showSignup} 
+                    change={this.showSignup}
                     setUserStateData={this.setUserData}
-                /> 
+                />
 
                 <Signup
-                    className="custom-form" 
-                    show={this.state.showSignup} 
+                    className="custom-form"
+                    show={this.state.showSignup}
                     hide={this.hideSignup}
-                    change={this.showLogin} 
-                /> 
+                    change={this.showLogin}
+                />
             </div>
         );
     }

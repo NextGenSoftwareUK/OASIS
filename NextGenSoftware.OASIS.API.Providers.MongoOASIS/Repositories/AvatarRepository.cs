@@ -2,9 +2,10 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using MongoDB.Driver;
+using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Managers;
-using NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities;
 using NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Interfaces;
+using Avatar = NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities.Avatar;
 
 namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
 {
@@ -178,6 +179,45 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
             {
                 throw;
             }
+        }
+
+        public async Task<AvatarDetail> GetAvatarDetailByIdAsync(Guid id)
+        {
+            var filter = Builders<AvatarDetail>.Filter.Where(x => x.Id == id);
+            var findResult = await _dbContext.AvatarDetail.FindAsync(filter);
+            var detailEntity = await findResult.FirstOrDefaultAsync();
+            return detailEntity;
+        }
+
+        public AvatarDetail GetAvatarDetailById(Guid id)
+        {
+            var filter = Builders<AvatarDetail>.Filter.Where(x => x.Id == id);
+            return _dbContext.AvatarDetail.Find(filter).FirstOrDefault();
+        }
+
+        public async Task<IEnumerable<AvatarDetail>> GetAllAvatarDetailAsync()
+        {
+            var cursor = await _dbContext.AvatarDetail.FindAsync(_ => true);
+            return cursor.ToEnumerable();
+        }
+
+        public IEnumerable<AvatarDetail> GetAllAvatarDetail()
+        {
+            return _dbContext.AvatarDetail.Find(_ => true).ToEnumerable();
+        }
+
+        public async Task<AvatarThumbnail> GetAvatarThumbnailByIdAsync(Guid id)
+        {
+            var filter = Builders<AvatarThumbnail>.Filter.Where(x => x.Id == id);
+            var findResult = await _dbContext.AvatarThumbnail.FindAsync(filter);
+            var detailEntity = await findResult.FirstOrDefaultAsync();
+            return detailEntity;
+        }
+
+        public AvatarThumbnail GetAvatarThumbnailById(Guid id)
+        {            
+            var filter = Builders<AvatarThumbnail>.Filter.Where(x => x.Id == id);
+            return _dbContext.AvatarThumbnail.Find(filter).FirstOrDefault();
         }
 
         public Avatar Update(Avatar avatar)

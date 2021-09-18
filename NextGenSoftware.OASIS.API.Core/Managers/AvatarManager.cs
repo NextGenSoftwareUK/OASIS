@@ -411,6 +411,42 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return avatar;
         }
 
+        public async Task<IAvatarDetails> LoadAvatarDetailsAsync(Guid id)
+        {
+            var detail = await ProviderManager.SetAndActivateCurrentStorageProvider(ProviderType.Default).Result.LoadAvatarDetailsAsync(id);
+            return detail;
+        }
+
+        public async Task<IEnumerable<IAvatarDetails>> LoadAllAvatarDetailsAsync()
+        {
+            var details = await ProviderManager.SetAndActivateCurrentStorageProvider(ProviderType.Default).Result.LoadAllAvatarDetailsAsync();
+            return details;
+        }
+
+        public async Task<IAvatarThumbnail> LoadAvatarThumbnailAsync(Guid id)
+        {
+            var avatarThumbnail = await ProviderManager.SetAndActivateCurrentStorageProvider(ProviderType.Default).Result.LoadAvatarThumbnailAsync(id);
+            return avatarThumbnail;
+        }
+
+        public IAvatarDetails LoadAvatarDetails(Guid id)
+        {
+            var detail =  ProviderManager.SetAndActivateCurrentStorageProvider(ProviderType.Default).Result.LoadAvatarDetailsAsync(id).Result;
+            return detail;
+        }
+
+        public IEnumerable<IAvatarDetails> LoadAllAvatarDetails()
+        {
+            var details = ProviderManager.SetAndActivateCurrentStorageProvider(ProviderType.Default).Result.LoadAllAvatarDetailsAsync().Result;
+            return details;
+        }
+
+        public IAvatarThumbnail LoadAvatarThumbnail(Guid id)
+        {
+            var avatarThumbnail = ProviderManager.SetAndActivateCurrentStorageProvider(ProviderType.Default).Result.LoadAvatarThumbnailAsync(id).Result;
+            return avatarThumbnail;
+        }
+
         public IAvatar LoadAvatar(Guid id, ProviderType providerType = ProviderType.Default)
         {
             IAvatar avatar = ProviderManager.SetAndActivateCurrentStorageProvider(providerType).Result.LoadAvatar(id);

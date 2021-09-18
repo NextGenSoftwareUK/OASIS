@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.Core.Models.Common;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Avatar;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Security;
 
@@ -32,5 +34,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Interfaces
         //IAvatar Update(Guid id, IAvatar avatar);
         IAvatar Update(Guid id, UpdateRequest avatar);
         bool Delete(Guid id);
+        Task<ApiResponse<IAvatarThumbnail>> GetAvatarThumbnail(Guid id);
+        Task<ApiResponse<IAvatarDetail>> GetAvatarDetail(Guid id);
+        Task<ApiResponse<IEnumerable<IAvatarDetail>>> GetAllAvatarDetails();
     }
 }
