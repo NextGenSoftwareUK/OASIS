@@ -6,26 +6,25 @@ using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Enum;
 using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Factory.SignatureProviders;
 using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Factory.TokenStorage;
 using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Interfaces;
+using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Services.HttpHandler;
+using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Models.Cargo;
 using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Models.Common;
+using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Models.Request;
+using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Models.Response;
 
 namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Handlers.Commands
 {
     public class CreateAccountHandler : IHandle<Response<CreateAccountResponseModel>, CreateAccountRequestModel>
     {
-        private readonly HttpClient _httpClient;
+        private readonly IHttpHandler _httpClient;
         private readonly ITokenStorage _tokenStorage;
         private readonly ISignatureProvider _signatureProvider;
 
-        public CreateAccountHandler()
+        public CreateAccountHandler(IHttpHandler httpClient, ITokenStorage tokenStorage, ISignatureProvider signatureProvider)
         {
-            _httpClient = new HttpClient()
-            {
-                Timeout = TimeSpan.FromMinutes(1),
-                BaseAddress = new Uri("https://api2.cargo.build/")
-            };
-            _httpClient.DefaultRequestHeaders.Add("Content-Type", "application/json");
-            _tokenStorage = TokenStorageFactory.GetMemoryCacheTokenStorage();
-            _signatureProvider = SignatureFactory.GetMemoryCacheSignatureProvider();
+            _httpClient = httpClient;
+            _tokenStorage = tokenStorage;
+            _signatureProvider = signatureProvider;
         }
         
         /// <summary>
@@ -47,8 +46,7 @@ namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Handlers
                     return response;
                 }
                 
-                
-                var url = "v3/register";
+                var url = "https://api2.cargo.build/v3/register";
                 var requestContent = JsonConvert.SerializeObject(new
                 {
                     address = _tokenStorage.GetToken(),
@@ -59,8 +57,12 @@ namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Handlers
                 var httpReq = new HttpRequestMessage()
                 {
                     Method = HttpMethod.Post,
-                    RequestUri = new Uri(_httpClient.BaseAddress + url),
-                    Content = new StringContent(requestContent)
+                    RequestUri = new Uri(url),
+                    Content = new StringContent(requestContent),
+                    Headers =
+                    {
+                        { "Content-Type", "application/json" }
+                    }
                 };
                 var httpRes = await _httpClient.SendAsync(httpReq);
                 if (!httpRes.IsSuccessStatusCode)
@@ -81,38 +83,5 @@ namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Handlers
                 return response;
             }
         }
-    }
-
-    public class CreateAccountRequestModel
-    {
-        /// <summary>
-        /// Optional. Valid email address that will be tied to the account
-        /// </summary>
-        public string Email { get; set; }
-        /// <summary>
-        /// Optional. Username to be used for new account
-        /// </summary>
-        public string UserName { get; set; }
-    }
-
-    public class CreateAccountResponseModel
-    {
-        public class CreateAccountData
-        {
-            /// <summary>
-            /// JSON Web Token
-            /// </summary>
-            [JsonProperty("token")]
-            public string Token { get; set; }
-        }
-        
-        [JsonProperty("err")]
-        public bool Error { get; set; }
-
-        [JsonProperty("status")] 
-        public int Status { get; set; }
-
-        [JsonProperty("data")] 
-        public CreateAccountData Data { get; set; }
     }
 }
