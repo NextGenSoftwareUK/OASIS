@@ -113,7 +113,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Repositories{
             {
                 HolonModel deletingModel = dataBase.Holons
                                             .FirstOrDefault(h => h.ProviderKey
-                                            .Any(pk => pk.KeyId == ProviderType.SQLLiteDBOASIS
+                                            .Any(pk => pk.ProviderId == ProviderType.SQLLiteDBOASIS
                                                         &&  pk.Value.Equals(providerKey)));
 
                 if(deletingModel == null){
@@ -192,7 +192,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Repositories{
 
                     HolonModel deletingModel = dataBase.Holons
                                             .FirstOrDefault(h => h.ProviderKey
-                                            .Any(pk => pk.KeyId == ProviderType.SQLLiteDBOASIS
+                                            .Any(pk => pk.ProviderId == ProviderType.SQLLiteDBOASIS
                                                         &&  pk.Value.Equals(providerKey)));
 
                     if(deletingModel == null){
@@ -298,7 +298,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Repositories{
 
                 HolonModel holonModel = dataBase.Holons
                                             .FirstOrDefault(h => h.ProviderKey
-                                                .Any(pk => pk.KeyId == ProviderType.SQLLiteDBOASIS
+                                                .Any(pk => pk.ProviderId == ProviderType.SQLLiteDBOASIS
                                                     &&  pk.Value.Equals(providerKey)));
                 
                 if(holonModel != null){
@@ -354,7 +354,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Repositories{
                 {
                     HolonModel holonModel = dataBase.Holons
                                             .FirstOrDefault(h => h.ProviderKey
-                                                .Any(pk => pk.KeyId == ProviderType.SQLLiteDBOASIS
+                                                .Any(pk => pk.ProviderId == ProviderType.SQLLiteDBOASIS
                                                     &&  pk.Value.Equals(providerKey)));
                 
                     if(holonModel != null){
@@ -412,7 +412,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Repositories{
             {
                 HolonModel holonModel = dataBase.Holons
                                             .FirstOrDefault(h => h.ProviderKey
-                                            .Any(pk => pk.KeyId == ProviderType.SQLLiteDBOASIS
+                                            .Any(pk => pk.ProviderId == ProviderType.SQLLiteDBOASIS
                                                         &&  pk.Value.Equals(providerKey)));
 
                 if (holonModel == null){
@@ -468,7 +468,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Repositories{
 
                     HolonModel holonModel = dataBase.Holons
                                             .FirstOrDefault(h => h.ProviderKey
-                                            .Any(pk => pk.KeyId == ProviderType.SQLLiteDBOASIS
+                                            .Any(pk => pk.ProviderId == ProviderType.SQLLiteDBOASIS
                                                         &&  pk.Value.Equals(providerKey)));
 
                     if (holonModel == null){
@@ -581,6 +581,14 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Repositories{
             
             dataBase.Entry(holonModel)
                     .Collection<ProviderKeyModel>(holon => holon.ProviderKey)
+                    .Load();
+            
+            dataBase.Entry(holonModel)
+                    .Collection<MetaDataModel>(holon => holon.MetaData)
+                    .Load();
+            
+            dataBase.Entry(holonModel)
+                    .Collection<ProviderMetaData>(holon => holon.ProviderMetaData)
                     .Load();
 
             

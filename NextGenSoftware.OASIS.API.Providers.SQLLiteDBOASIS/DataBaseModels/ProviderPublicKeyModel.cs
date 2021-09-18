@@ -14,8 +14,9 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.DataBaseModels{
         {
             ProviderKeyAbstract item=new ProviderPrivateKeyModel();
 
-            item.KeyId=this.KeyId;
+            item.ProviderId=this.ProviderId;
             item.Value=this.Value;
+            item.ParentId = this.ParentId;
 
             return(item);
         }
