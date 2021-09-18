@@ -303,74 +303,63 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.DataBaseModels{
             item.SuperPowers=this.SuperPowers.GetAvatarSuperPowers();
 
 
-            List<HeartRateEntryModel> rateEntryModels=this.HeartRates;
-            foreach(HeartRateEntryModel model in rateEntryModels){
+            foreach(HeartRateEntryModel model in this.HeartRates){
 
                 item.HeartRateData.Add(model.GetHeartRateEntry());
             }
-
-            List<RefreshTokenModel> tokenModels=this.RefreshTokens;
-            foreach(RefreshTokenModel model in tokenModels){
+            
+            foreach(RefreshTokenModel model in this.RefreshTokens){
 
                 item.RefreshTokens.Add(model.GetRefreshToken());
             }
 
-            List<InventoryItemModel> inventoryModels=this.InventoryItems;
-            foreach(InventoryItemModel model in inventoryModels){
+            foreach(InventoryItemModel model in this.InventoryItems){
 
                 item.Inventory.Add(model.GetInventoryItem());
             }
 
-            List<GeneKeyModel> geneKeyModels=this.GeneKeys;
-            foreach(GeneKeyModel model in geneKeyModels){
+            foreach(GeneKeyModel model in this.GeneKeys){
 
                 item.GeneKeys.Add(model.GetGeneKey());
             }
 
-            List<SpellModel> spellModels=this.Spells;
-            foreach(SpellModel model in spellModels){
+            foreach(SpellModel model in this.Spells){
 
                 item.Spells.Add(model.GetSpell());
             }
 
-            List<AchievementModel> achievementModels=this.Achievements;
-            foreach(AchievementModel model in achievementModels){
+            foreach(AchievementModel model in this.Achievements){
 
                 item.Achievements.Add(model.GetAchievement());
             }
 
-            List<KarmaAkashicRecordModel> akashicRecordModels=this.KarmaAkashicRecords;
-            foreach(KarmaAkashicRecordModel model in akashicRecordModels){
+            foreach(KarmaAkashicRecordModel model in this.KarmaAkashicRecords){
 
                 item.KarmaAkashicRecords.Add(model.GetKarmaAkashicRecord());
             }
 
-            List<ProviderKeyModel> providerKeyModels=this.ProviderKey;
-            foreach(ProviderKeyModel model in providerKeyModels){
+            foreach(ProviderKeyModel model in this.ProviderKey){
 
                 ProviderKeyAbstract providerKey=model.GetProviderKey();
-                item.ProviderKey.Add(providerKey.KeyId, providerKey.Value);
+                item.ProviderKey.Add(providerKey.ProviderId, providerKey.Value);
             }
 
-            List<ProviderPrivateKeyModel> privateKeyModels=this.ProviderPrivateKey;
-            foreach(ProviderPrivateKeyModel model in privateKeyModels){
+            foreach(ProviderPrivateKeyModel model in this.ProviderPrivateKey){
 
                 ProviderKeyAbstract providerKey=model.GetProviderKey();
-                item.ProviderPrivateKey.Add(providerKey.KeyId, providerKey.Value);
+                item.ProviderPrivateKey.Add(providerKey.ProviderId, providerKey.Value);
             }
 
-            List<ProviderPublicKeyModel> publicKeyModels=this.ProviderPublicKey;
-            foreach(ProviderPublicKeyModel model in publicKeyModels){
+            foreach(ProviderPublicKeyModel model in this.ProviderPublicKey){
 
                 ProviderKeyAbstract providerKey=model.GetProviderKey();
-                item.ProviderPublicKey.Add(providerKey.KeyId, providerKey.Value);
+                item.ProviderPublicKey.Add(providerKey.ProviderId, providerKey.Value);
             }
 
-            List<ProviderWalletAddressModel> walletAddressModels=this.ProviderWalletAddress;
-            foreach(ProviderWalletAddressModel model in walletAddressModels){
+            foreach(ProviderWalletAddressModel model in this.ProviderWalletAddress){
 
                 ProviderKeyAbstract providerKey=model.GetProviderKey();
-                item.ProviderWalletAddress.Add(providerKey.KeyId, providerKey.Value);
+                item.ProviderWalletAddress.Add(providerKey.ProviderId, providerKey.Value);
             }
 
             return(item);
