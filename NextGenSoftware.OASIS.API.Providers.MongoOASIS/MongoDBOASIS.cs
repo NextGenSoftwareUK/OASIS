@@ -152,6 +152,36 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             return await _searchRepository.SearchAsync(searchTerm);
         }
 
+        public override async Task<IAvatarDetails> LoadAvatarDetailsAsync(Guid id)
+        {
+            return await _avatarRepository.GetAvatarDetailByIdAsync(id);
+        }
+
+        public override async Task<IEnumerable<IAvatarDetails>> LoadAllAvatarDetailsAsync()
+        {
+            return await _avatarRepository.GetAllAvatarDetailAsync();
+        }
+
+        public override async Task<IAvatarThumbnail> LoadAvatarThumbnailAsync(Guid id)
+        {
+            return await _avatarRepository.GetAvatarThumbnailByIdAsync(id);
+        }
+
+        public override IAvatarDetails LoadAvatarDetails(Guid id)
+        {
+            return _avatarRepository.GetAvatarDetailById(id);
+        }
+
+        public override IEnumerable<IAvatarDetails> LoadAllAvatarDetails()
+        {
+            return _avatarRepository.GetAllAvatarDetail();
+        }
+
+        public override IAvatarThumbnail LoadAvatarThumbnail(Guid id)
+        {
+            return _avatarRepository.GetAvatarThumbnailById(id);
+        }
+
         public override async Task<IHolon> LoadHolonAsync(Guid id)
         {
             return ConvertMongoEntityToOASISHolon(await _holonRepository.GetHolonAsync(id));
@@ -327,7 +357,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             Core.Holons.Avatar oasisAvatar = new Core.Holons.Avatar();
 
             oasisAvatar.Image2D = avatar.Image2D;
-            
+            oasisAvatar.UmaJson = avatar.UmaJson;
             oasisAvatar.ProviderPrivateKey = avatar.ProviderPrivateKey;
             oasisAvatar.ProviderPublicKey = avatar.ProviderPublicKey;
             oasisAvatar.ProviderUsername = avatar.ProviderUsername;
@@ -452,6 +482,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             if (avatar.ProviderKey != null && avatar.ProviderKey.ContainsKey(Core.Enums.ProviderType.MongoDBOASIS))
                 mongoAvatar.Id = avatar.ProviderKey[Core.Enums.ProviderType.MongoDBOASIS];
             mongoAvatar.Image2D = avatar.Image2D;
+            mongoAvatar.UmaJson = avatar.UmaJson;
             mongoAvatar.HolonId = avatar.Id;
             mongoAvatar.ProviderMetaData = avatar.ProviderMetaData;
             mongoAvatar.ProviderPrivateKey = avatar.ProviderPrivateKey;

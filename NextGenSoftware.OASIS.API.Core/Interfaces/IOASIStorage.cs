@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
@@ -23,8 +22,16 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces
         Task<IAvatar> LoadAvatarAsync(string username, string password);
         IEnumerable<IAvatar> LoadAllAvatars();
         Task<IEnumerable<IAvatar>> LoadAllAvatarsAsync();
+        IAvatarDetail LoadAvatarDetail(Guid id);
+        Task<IAvatarDetail> LoadAvatarDetailAsync(Guid id);
+        IEnumerable<IAvatarDetail> LoadAllAvatarDetails();
+        Task<IEnumerable<IAvatarDetail>> LoadAllAvatarDetailsAsync();
+       // IAvatarThumbnail LoadAvatarThumbnail(Guid id);
+       // Task<IAvatarThumbnail> LoadAvatarThumbnailAsync(Guid id);
         IAvatar SaveAvatar(IAvatar Avatar);
         Task<IAvatar> SaveAvatarAsync(IAvatar Avatar);
+        IAvatarDetail SaveAvatarDetail(IAvatarDetail Avatar);
+        Task<IAvatarDetail> SaveAvatarDetailAsync(IAvatarDetail Avatar);
         bool DeleteAvatar(Guid id, bool softDelete = true);
         Task<bool> DeleteAvatarAsync(Guid id, bool softDelete = true);
         bool DeleteAvatar(string providerKey, bool softDelete = true);
