@@ -1,15 +1,7 @@
-﻿using System.Collections.Generic;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 
 namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Models.Cargo
 {
-    public class PaginationResponseWithResults
-    {
-        public string TokenId { get; set; }
-        public string TokenUrl { get; set; }
-        public IDictionary<string, object> Metadata { get; set; }
-    }
-
     public class PaginationResponseWithResults<T>
     {
         [JsonProperty("page")]

@@ -8,24 +8,23 @@ using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Enum;
 using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Exceptions;
 using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Factory.TokenStorage;
 using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Interfaces;
+using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Services.HttpHandler;
 using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Models.Cargo;
 using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Models.Common;
+using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Models.Request;
+using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Models.Response;
 
 namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Handlers.Queries
 {
     public class GetShowcaseByIdHandler : IHandle<Response<GetShowcaseByIdResponseModel>, GetShowcaseByIdRequestModel>
     {
-        private readonly HttpClient _httpClient;
+        private readonly IHttpHandler _httpClient;
         private readonly  ITokenStorage _tokenStorage;
 
-        public GetShowcaseByIdHandler()
+        public GetShowcaseByIdHandler(IHttpHandler httpClient, ITokenStorage tokenStorage)
         {
-            _httpClient = new HttpClient()
-            {
-                Timeout = TimeSpan.FromMinutes(1),
-                BaseAddress = new Uri("https://api2.cargo.build/")
-            };
-            _tokenStorage = TokenStorageFactory.GetMemoryCacheTokenStorage();
+            _httpClient = httpClient;
+            _tokenStorage = tokenStorage;
         }
         
         /// <summary>
@@ -39,16 +38,16 @@ namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Handlers
             var response = new Response<GetShowcaseByIdResponseModel>();
             try
             {
-                var urlQuery = $"v3/get-crate-by-id/{request.ShowcaseId}";
+                var urlQuery = $"https://api2.cargo.build/v3/get-crate-by-id/{request.ShowcaseId}";
                 var httRequest = new HttpRequestMessage()
                 {
                     Method = HttpMethod.Get,
-                    RequestUri = new Uri(_httpClient.BaseAddress + urlQuery),
+                    RequestUri = new Uri(urlQuery),
                 };
                 if (request.Auth)
                 {
                     var accessToken = await _tokenStorage.GetToken();
-                    _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+                    httRequest.Headers.Add("Authorization", $"Bearer {accessToken}");
                 }
                 var httpResponse = await _httpClient.SendAsync(httRequest);
                 if(httpResponse.StatusCode == HttpStatusCode.Unauthorized)
@@ -83,31 +82,5 @@ namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Handlers
                 return response;
             }
         }
-    }
-
-    public class GetShowcaseByIdRequestModel
-    {
-        /// <summary>
-        /// Required. String. The ID of the showcase
-        /// </summary>
-        public string ShowcaseId { get; set; }
-        /// <summary>
-        /// Optional. Boolean.
-        /// If true you must be authenticated and your authentication token will be sent in with the request.
-        /// This will be required to get information about a private showcase
-        /// </summary>
-        public bool Auth { get; set; }
-    }
-
-    public class GetShowcaseByIdResponseModel
-    {
-        [JsonProperty("err")]
-        public bool Error { get; set; }
-
-        [JsonProperty("status")] 
-        public int Status { get; set; }
-        
-        [JsonProperty("data")]
-        public GetShowcaseByIdResponse Data { get; set; }
     }
 }
