@@ -31,7 +31,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Interfaces
         Task<IEnumerable<AvatarDetail>> GetAllAvatarDetailAsync();
         IEnumerable<AvatarDetail> GetAllAvatarDetail();
 
-        Task<AvatarThumbnail> GetAvatarThumbnailByIdAsync(Guid id);
-        AvatarThumbnail GetAvatarThumbnailById(Guid id);
+        //Task<AvatarThumbnail> GetAvatarThumbnailByIdAsync(Guid id);
+        //AvatarThumbnail GetAvatarThumbnailById(Guid id);
     }
 }

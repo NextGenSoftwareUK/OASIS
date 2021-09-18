@@ -2,16 +2,16 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
+using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Objects;
 
 namespace NextGenSoftware.OASIS.API.Core.Holons
 {
-    public class Avatar : IAvatar
+    public class Avatar : HolonBase, IAvatar
     {
-        public Guid Id { get; set; }
-
         public new string Name
         {
             get
@@ -33,7 +33,7 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
                 return string.Concat(Title, " ", FirstName, " ", LastName);
             }
         }
-
+        public EnumValue<AvatarType> AvatarType { get; set; }
         public bool AcceptTerms { get; set; }
         public string VerificationToken { get; set; }
         public DateTime? Verified { get; set; }
@@ -48,6 +48,7 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
         public DateTime? PasswordReset { get; set; }
 
         public List<RefreshToken> RefreshTokens { get; set; } = new List<RefreshToken>();
+       
 
         public bool OwnsToken(string token)
         {

@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
-using NextGenSoftware.OASIS.API.Core.Models.Common;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Avatar;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Security;
 
@@ -11,7 +9,6 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Interfaces
 {
     public interface IAvatarService
     {
-        //AuthenticateResponse RefreshToken(string token, string ipAddress);
         string GetTerms();
         AuthenticateResponse Authenticate(AuthenticateRequest model, string ipAddress);
         IAvatar RefreshToken(string token, string ipAddress);
@@ -21,21 +18,16 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Interfaces
         void ForgotPassword(ForgotPasswordRequest model, string origin);
         void ValidateResetToken(ValidateResetTokenRequest model);
         void ResetPassword(ResetPasswordRequest model);
-        //IEnumerable<AccountResponse> GetAll();
-        //AccountResponse GetById(Guid id);
         IEnumerable<IAvatar> GetAll();
         AvatarImage GetAvatarImageById(Guid id);
         void Upload2DAvatarImage(Guid id, byte[] image);
         IAvatar GetById(Guid id);
-        //AccountResponse Create(CreateRequest model);
         IAvatar Create(CreateRequest model);
-        //AccountResponse Update(Guid id, UpdateRequest model);
-        //IAvatar Update(Guid id, UpdateRequest model);
-        //IAvatar Update(Guid id, IAvatar avatar);
         IAvatar Update(Guid id, UpdateRequest avatar);
         bool Delete(Guid id);
-        Task<ApiResponse<IAvatarThumbnail>> GetAvatarThumbnail(Guid id);
-        Task<ApiResponse<IAvatarDetail>> GetAvatarDetail(Guid id);
-        Task<ApiResponse<IEnumerable<IAvatarDetail>>> GetAllAvatarDetails();
+        IAvatarDetail GetAvatarDetail(Guid id);
+        // Task<ApiResponse<IAvatarThumbnail>> GetAvatarThumbnail(Guid id);
+        //Task<ApiResponse<IAvatarDetail>> GetAvatarDetail(Guid id);
+        //Task<ApiResponse<IEnumerable<IAvatarDetail>>> GetAllAvatarDetails();
     }
 }
