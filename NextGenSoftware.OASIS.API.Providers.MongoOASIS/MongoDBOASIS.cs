@@ -152,35 +152,35 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             return await _searchRepository.SearchAsync(searchTerm);
         }
 
-        public override async Task<IAvatarDetails> LoadAvatarDetailsAsync(Guid id)
+        public override async Task<IAvatarDetail> LoadAvatarDetailAsync(Guid id)
         {
             return await _avatarRepository.GetAvatarDetailByIdAsync(id);
         }
 
-        public override async Task<IEnumerable<IAvatarDetails>> LoadAllAvatarDetailsAsync()
+        public override async Task<IEnumerable<IAvatarDetail>> LoadAllAvatarDetailsAsync()
         {
             return await _avatarRepository.GetAllAvatarDetailAsync();
         }
 
-        public override async Task<IAvatarThumbnail> LoadAvatarThumbnailAsync(Guid id)
-        {
-            return await _avatarRepository.GetAvatarThumbnailByIdAsync(id);
-        }
+        //public override async Task<IAvatarThumbnail> LoadAvatarThumbnailAsync(Guid id)
+        //{
+        //    return await _avatarRepository.GetAvatarThumbnailByIdAsync(id);
+        //}
 
-        public override IAvatarDetails LoadAvatarDetails(Guid id)
+        public override IAvatarDetail LoadAvatarDetail(Guid id)
         {
             return _avatarRepository.GetAvatarDetailById(id);
         }
 
-        public override IEnumerable<IAvatarDetails> LoadAllAvatarDetails()
+        public override IEnumerable<IAvatarDetail> LoadAllAvatarDetails()
         {
             return _avatarRepository.GetAllAvatarDetail();
         }
 
-        public override IAvatarThumbnail LoadAvatarThumbnail(Guid id)
-        {
-            return _avatarRepository.GetAvatarThumbnailById(id);
-        }
+        //public override IAvatarThumbnail LoadAvatarThumbnail(Guid id)
+        //{
+        //    return _avatarRepository.GetAvatarThumbnailById(id);
+        //}
 
         public override async Task<IHolon> LoadHolonAsync(Guid id)
         {
@@ -353,9 +353,74 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             if (avatar == null)
                 return null;
 
-            //Core.Holons.Avatar oasisAvatar = (Core.Holons.Avatar)ConvertMongoEntityToOASISHolon(avatar);
             Core.Holons.Avatar oasisAvatar = new Core.Holons.Avatar();
+            oasisAvatar.Title = avatar.Title;
+            oasisAvatar.FirstName = avatar.FirstName;
+            oasisAvatar.LastName = avatar.LastName;
+            oasisAvatar.Email = avatar.Email;
+            oasisAvatar.Username = avatar.Username;
+            oasisAvatar.CreatedOASISType = avatar.CreatedOASISType;
+            oasisAvatar.AvatarType = avatar.AvatarType;
+            oasisAvatar.AcceptTerms = avatar.AcceptTerms;
+            oasisAvatar.JwtToken = avatar.JwtToken;
+            oasisAvatar.PasswordReset = avatar.PasswordReset;
+            oasisAvatar.RefreshToken = avatar.RefreshToken;
+            oasisAvatar.RefreshTokens = avatar.RefreshTokens;
+            oasisAvatar.ResetToken = avatar.ResetToken;
+            oasisAvatar.ResetTokenExpires = avatar.ResetTokenExpires;
+            oasisAvatar.VerificationToken = avatar.VerificationToken;
+            oasisAvatar.Verified = avatar.Verified;
+            oasisAvatar.Id = avatar.HolonId;
+            oasisAvatar.ProviderKey = avatar.ProviderKey;
+            oasisAvatar.ProviderMetaData = avatar.ProviderMetaData;
+            oasisAvatar.Description = avatar.Description;
+            oasisAvatar.HolonType = avatar.HolonType;
+            oasisAvatar.CreatedProviderType = new EnumValue<ProviderType>(avatar.CreatedProviderType);
+            oasisAvatar.IsChanged = avatar.IsChanged;
+            oasisAvatar.CreatedByAvatarId = Guid.Parse(avatar.CreatedByAvatarId);
+            oasisAvatar.CreatedDate = avatar.CreatedDate;
+            oasisAvatar.DeletedByAvatarId = Guid.Parse(avatar.DeletedByAvatarId);
+            oasisAvatar.DeletedDate = avatar.DeletedDate;
+            oasisAvatar.ModifiedByAvatarId = Guid.Parse(avatar.ModifiedByAvatarId);
+            oasisAvatar.ModifiedDate = avatar.ModifiedDate;
+            oasisAvatar.DeletedDate = avatar.DeletedDate;
+            oasisAvatar.Version = avatar.Version;
+            oasisAvatar.CreatedProviderType = new Core.Helpers.EnumValue<ProviderType>(avatar.CreatedProviderType);
+            oasisAvatar.IsActive = avatar.IsActive;
 
+            return oasisAvatar;
+        }
+
+        private IAvatarDetail ConvertMongoEntityToOASISAvatarDetail(AvatarDetail avatar)
+        {
+            if (avatar == null)
+                return null;
+
+            Core.Holons.AvatarDetail oasisAvatar = new Core.Holons.AvatarDetail();
+            oasisAvatar.Title = avatar.Title;
+            oasisAvatar.FirstName = avatar.FirstName;
+            oasisAvatar.LastName = avatar.LastName;
+            oasisAvatar.Email = avatar.Email;
+            oasisAvatar.Username = avatar.Username;
+            oasisAvatar.CreatedOASISType = avatar.CreatedOASISType;
+            oasisAvatar.AvatarType = avatar.AvatarType;
+            oasisAvatar.Id = avatar.HolonId;
+            oasisAvatar.ProviderKey = avatar.ProviderKey;
+            oasisAvatar.ProviderMetaData = avatar.ProviderMetaData;
+            oasisAvatar.Description = avatar.Description;
+            oasisAvatar.HolonType = avatar.HolonType;
+            oasisAvatar.CreatedProviderType = new EnumValue<ProviderType>(avatar.CreatedProviderType);
+            oasisAvatar.IsChanged = avatar.IsChanged;
+            oasisAvatar.CreatedByAvatarId = Guid.Parse(avatar.CreatedByAvatarId);
+            oasisAvatar.CreatedDate = avatar.CreatedDate;
+            oasisAvatar.DeletedByAvatarId = Guid.Parse(avatar.DeletedByAvatarId);
+            oasisAvatar.DeletedDate = avatar.DeletedDate;
+            oasisAvatar.ModifiedByAvatarId = Guid.Parse(avatar.ModifiedByAvatarId);
+            oasisAvatar.ModifiedDate = avatar.ModifiedDate;
+            oasisAvatar.DeletedDate = avatar.DeletedDate;
+            oasisAvatar.Version = avatar.Version;
+            oasisAvatar.CreatedProviderType = new Core.Helpers.EnumValue<ProviderType>(avatar.CreatedProviderType);
+            oasisAvatar.IsActive = avatar.IsActive;
             oasisAvatar.Image2D = avatar.Image2D;
             oasisAvatar.UmaJson = avatar.UmaJson;
             oasisAvatar.ProviderPrivateKey = avatar.ProviderPrivateKey;
@@ -376,52 +441,20 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             oasisAvatar.Aura = avatar.Aura;
             oasisAvatar.Achievements = avatar.Achievements;
             oasisAvatar.Inventory = avatar.Inventory;
-            oasisAvatar.CreatedOASISType = avatar.CreatedOASISType;
             oasisAvatar.Address = avatar.Address;
             oasisAvatar.AvatarType = avatar.AvatarType;
             oasisAvatar.Country = avatar.Country;
             oasisAvatar.County = avatar.County;
-            oasisAvatar.FirstName = avatar.FirstName;
-            oasisAvatar.LastName = avatar.LastName;
             oasisAvatar.Address = avatar.Address;
             oasisAvatar.Country = avatar.Country;
             oasisAvatar.County = avatar.County;
-            oasisAvatar.Email = avatar.Email;
             oasisAvatar.DOB = avatar.DOB;
             oasisAvatar.Landline = avatar.Landline;
             oasisAvatar.Mobile = avatar.Mobile;
-            oasisAvatar.Password = avatar.Password;
             oasisAvatar.Postcode = avatar.Postcode;
-            oasisAvatar.Title = avatar.Title;
             oasisAvatar.Town = avatar.Town;
-            oasisAvatar.Username = avatar.Username;
-            oasisAvatar.AvatarType = avatar.AvatarType;
             oasisAvatar.Karma = avatar.Karma;
             oasisAvatar.KarmaAkashicRecords = avatar.KarmaAkashicRecords;
-            oasisAvatar.AcceptTerms = avatar.AcceptTerms;
-            oasisAvatar.JwtToken = avatar.JwtToken;
-            oasisAvatar.PasswordReset = avatar.PasswordReset;
-            oasisAvatar.RefreshToken = avatar.RefreshToken;
-            oasisAvatar.RefreshTokens = avatar.RefreshTokens;
-            oasisAvatar.ResetToken = avatar.ResetToken;
-            oasisAvatar.ResetTokenExpires = avatar.ResetTokenExpires;
-            oasisAvatar.VerificationToken = avatar.VerificationToken;
-            oasisAvatar.Verified = avatar.Verified;
-
-            // If the mongo Key has not been set then set it now (unique id for mongo)
-          //  if (!oasisAvatar.ProviderKey.ContainsKey(Core.Enums.ProviderType.MongoDBOASIS))
-          //      oasisAvatar.ProviderKey[Core.Enums.ProviderType.MongoDBOASIS] = avatar.Id;
-
-            oasisAvatar.Id = avatar.HolonId;
-           // oasisAvatar.ProviderKey[Core.Enums.ProviderType.MongoDBOASIS] = avatar.Id;
-            oasisAvatar.ProviderKey = avatar.ProviderKey;
-            oasisAvatar.ProviderMetaData = avatar.ProviderMetaData;
-            oasisAvatar.Description = avatar.Description;
-            oasisAvatar.HolonType = avatar.HolonType;
-            oasisAvatar.CreatedProviderType = new EnumValue<ProviderType>(avatar.CreatedProviderType);
-            oasisAvatar.IsChanged = avatar.IsChanged;
-            //Mapper<Avatar, Core.Holons.Avatar>.MapParentCelestialBodyProperties(avatar, oasisAvatar);
-
             oasisAvatar.ParentHolonId = avatar.ParentHolonId;
             oasisAvatar.ParentHolon = avatar.ParentHolon;
             oasisAvatar.ParentZomeId = avatar.ParentZomeId;
@@ -453,21 +486,9 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             oasisAvatar.ParentPlanet = avatar.ParentPlanet;
             oasisAvatar.ParentMoonId = avatar.ParentMoonId;
             oasisAvatar.ParentMoon = avatar.ParentMoon;
-
             oasisAvatar.Children = avatar.Children;
             oasisAvatar.Nodes = avatar.Nodes;
-            oasisAvatar.CreatedByAvatarId = Guid.Parse(avatar.CreatedByAvatarId);
-            oasisAvatar.CreatedDate = avatar.CreatedDate;
-            oasisAvatar.DeletedByAvatarId = Guid.Parse(avatar.DeletedByAvatarId);
-            oasisAvatar.DeletedDate = avatar.DeletedDate;
-            oasisAvatar.ModifiedByAvatarId = Guid.Parse(avatar.ModifiedByAvatarId);
-            oasisAvatar.ModifiedDate = avatar.ModifiedDate;
-            oasisAvatar.DeletedDate = avatar.DeletedDate;
-            oasisAvatar.Version = avatar.Version;
-            oasisAvatar.CreatedProviderType = new Core.Helpers.EnumValue<ProviderType>(avatar.CreatedProviderType);
-            //oasisAvatar.CreatedProviderType = new Core.Helpers.EnumValue<ProviderType>(Core.Enums.ProviderType.MongoDBOASIS);
-            oasisAvatar.IsActive = avatar.IsActive;
-
+           
             return oasisAvatar;
         }
 

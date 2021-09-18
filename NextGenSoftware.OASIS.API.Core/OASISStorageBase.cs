@@ -12,11 +12,6 @@ namespace NextGenSoftware.OASIS.API.Core
 {
     public abstract class OASISStorageBase : OASISProvider, IOASISStorage
     {
-        public abstract Task<IAvatarThumbnail> LoadAvatarThumbnailAsync(Guid id);
-        public abstract IAvatarDetails LoadAvatarDetails(Guid id);
-        public abstract IEnumerable<IAvatarDetails> LoadAllAvatarDetails();
-        public abstract IAvatarThumbnail LoadAvatarThumbnail(Guid id);
-
         public event AvatarManager.StorageProviderError StorageProviderError;
 
         //event StorageProviderError IOASISStorage.StorageProviderError
@@ -44,22 +39,22 @@ namespace NextGenSoftware.OASIS.API.Core
         //    return user;
         //}
 
-        public Task<KarmaAkashicRecord> AddKarmaToAvatarAsync(IAvatar avatar, KarmaTypePositive karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc, string karmaSourceWebLink)
+        public Task<KarmaAkashicRecord> AddKarmaToAvatarAsync(IAvatarDetail avatar, KarmaTypePositive karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc, string karmaSourceWebLink)
         {
             return avatar.KarmaEarntAsync(karmaType, karmaSourceType, karamSourceTitle, karmaSourceDesc, karmaSourceWebLink);
         }
 
-        public Task<KarmaAkashicRecord> RemoveKarmaFromAvatarAsync(IAvatar avatar, KarmaTypeNegative karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc, string karmaSourceWebLink)
+        public Task<KarmaAkashicRecord> RemoveKarmaFromAvatarAsync(IAvatarDetail avatar, KarmaTypeNegative karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc, string karmaSourceWebLink)
         {
             return avatar.KarmaLostAsync(karmaType, karmaSourceType, karamSourceTitle, karmaSourceDesc, karmaSourceWebLink);
         }
 
-        public KarmaAkashicRecord AddKarmaToAvatar(IAvatar avatar, KarmaTypePositive karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc, string karmaSourceWebLink)
+        public KarmaAkashicRecord AddKarmaToAvatar(IAvatarDetail avatar, KarmaTypePositive karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc, string karmaSourceWebLink)
         {
             return avatar.KarmaEarnt(karmaType, karmaSourceType, karamSourceTitle, karmaSourceDesc, karmaSourceWebLink);
         }
 
-        public KarmaAkashicRecord RemoveKarmaFromAvatar(IAvatar avatar, KarmaTypeNegative karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc, string karmaSourceWebLink)
+        public KarmaAkashicRecord RemoveKarmaFromAvatar(IAvatarDetail avatar, KarmaTypeNegative karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc, string karmaSourceWebLink)
         {
             return avatar.KarmaLost(karmaType, karmaSourceType, karamSourceTitle, karmaSourceDesc, karmaSourceWebLink);
         }
@@ -84,16 +79,24 @@ namespace NextGenSoftware.OASIS.API.Core
         public abstract Task<IAvatar> LoadAvatarForProviderKeyAsync(string providerKey);
         public abstract IAvatar LoadAvatarForProviderKey(string providerKey);
 
+        // public abstract Task<IAvatarThumbnail> LoadAvatarThumbnailAsync(Guid id);
+        //  public abstract IAvatarThumbnail LoadAvatarThumbnail(Guid id);
+        public abstract IAvatarDetail LoadAvatarDetail(Guid id);
+        public abstract Task<IAvatarDetail> LoadAvatarDetailAsync(Guid id);
+        public abstract IEnumerable<IAvatarDetail> LoadAllAvatarDetails();
+        public abstract Task<IEnumerable<IAvatarDetail>> LoadAllAvatarDetailsAsync();
+
         public abstract IAvatar SaveAvatar(IAvatar Avatar);
         public abstract Task<IAvatar> SaveAvatarAsync(IAvatar Avatar);
+        public abstract IAvatarDetail SaveAvatarDetail(IAvatarDetail Avatar);
+        public abstract Task<IAvatarDetail> SaveAvatarDetailAsync(IAvatarDetail Avatar);
 
         public abstract bool DeleteAvatar(Guid id, bool softDelete = true);
         public abstract Task<bool> DeleteAvatarAsync(Guid id, bool softDelete = true);
         public abstract bool DeleteAvatar(string providerKey, bool softDelete = true);
         public abstract Task<bool> DeleteAvatarAsync(string providerKey, bool softDelete = true);
         public abstract Task<ISearchResults> SearchAsync(ISearchParams searchParams);
-        public abstract Task<IAvatarDetails> LoadAvatarDetailsAsync(Guid id);
-        public abstract Task<IEnumerable<IAvatarDetails>> LoadAllAvatarDetailsAsync();
+
         public abstract IHolon LoadHolon(Guid id);
         public abstract Task<IHolon> LoadHolonAsync(Guid id);
 

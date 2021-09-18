@@ -1,17 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.Linq;
 using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
-using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 
 namespace NextGenSoftware.OASIS.API.Core.Holons
 {
-    public class Holon : HolonBase, IHolon, INotifyPropertyChanged
+    public class HolonBase : IHolonBase, INotifyPropertyChanged
     {
-        /*
         private string _name;
         private string _description;
 
@@ -56,17 +53,18 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
         }
 
         //TODO: Finish converting all properties so are same as above...
+        public Dictionary<ProviderType, string> ProviderKey { get; set; } = new Dictionary<ProviderType, string>(); //Unique key used by each provider (e.g. hashaddress in hc, accountname for Telos, id in MongoDB etc).        
+        public Dictionary<ProviderType, Dictionary<string, string>> ProviderMetaData { get; set; } = new Dictionary<ProviderType, Dictionary<string, string>>(); // Key/Value pair meta data can be stored here, which is unique for that provider.
+        public Dictionary<string, string> MetaData { get; set; } = new Dictionary<string, string>(); // Key/Value pair meta data can be stored here that applies globally across ALL providers.
 
         public bool IsNewHolon { get; set; }
         public bool IsChanged { get; set; }
-        */
-
         //public Dictionary<ProviderType, string> ProviderKey { get; set; } = new Dictionary<ProviderType, string>(); //Unique key used by each provider (e.g. hashaddress in hc, accountname for Telos, id in MongoDB etc).        
         //public Dictionary<ProviderType, Dictionary<string, string>> ProviderMetaData { get; set; } = new Dictionary<ProviderType, Dictionary<string, string>>(); // Key/Value pair meta data can be stored here, which is unique for that provider.
         //public Dictionary<string, string> MetaData { get; set; } = new Dictionary<string, string>(); // Key/Value pair meta data can be stored here that applies globally across ALL providers.
-       // public HolonType HolonType { get; set; }
-       
-        
+        public HolonType HolonType { get; set; }
+
+        /*
         public Guid ParentOmiverseId { get; set; } //The Omiverse this Holon belongs to.
         public IOmiverse ParentOmiverse { get; set; } //The Omiverse this Holon belongs to.
         public Guid ParentMultiverseId { get; set; } //The Multiverse this Holon belongs to.
@@ -106,8 +104,7 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
         public IHolon ParentHolon { get; set; }
         public IEnumerable<IHolon> Children { get; set; }
         public ObservableCollection<IHolon> ChildrenTest { get; set; }
-
-        /*
+        */
         public Guid CreatedByAvatarId { get; set; }
         public Avatar CreatedByAvatar { get; set; }
         public DateTime CreatedDate { get; set; }
@@ -120,43 +117,44 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
         public int Version { get; set; }
         public bool IsActive { get; set; }
         public EnumValue<ProviderType> CreatedProviderType { get; set; } // The primary provider that this holon was originally saved with (it can then be auto-replicated to other providers to give maximum redundancy/speed via auto-load balancing etc).
-        */
+                                                                         //public List<INode> Nodes { get; set; } // List of nodes/fields (int, string, bool, etc) that belong to this Holon (STAR ODK auto-generates these when generating dynamic code from DNA Templates passed in).
+                                                                         //  public ObservableCollection<INode> Nodes { get; set; }
 
-        //public List<INode> Nodes { get; set; } // List of nodes/fields (int, string, bool, etc) that belong to this Holon (STAR ODK auto-generates these when generating dynamic code from DNA Templates passed in).
-        public ObservableCollection<INode> Nodes { get; set; }
+        public EnumValue<OASISType> CreatedOASISType { get; set; }
 
         /// <summary>
         /// Fired when a property in this class changes.
         /// </summary>
-      //  public event PropertyChangedEventHandler PropertyChanged;
-
-        public Holon()
-        {
-            //TODO: Need to check if these are fired when an item in the collection is changed (not just added/removed).
-            if (ChildrenTest != null)
-                ChildrenTest.CollectionChanged += Children_CollectionChanged;
-
-            if (Nodes != null)
-                Nodes.CollectionChanged += Nodes_CollectionChanged;
-        }
-
-        private void Nodes_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
-        {
-            IsChanged = true;
-
-            //TOOD: Not sure if we need this? Because ObservableCollection is supposed to raise PropertyChanged events itself.
-            NotifyPropertyChanged("Nodes");
-        }
-
-        private void Children_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
-        {
-            IsChanged = true;
-
-            //TOOD: Not sure if we need this? Because ObservableCollection is supposed to raise PropertyChanged events itself.
-            NotifyPropertyChanged("Children");
-        }
-
+        public event PropertyChangedEventHandler PropertyChanged;
         /*
+       public Holon()
+       {
+           //TODO: Need to check if these are fired when an item in the collection is changed (not just added/removed).
+           if (ChildrenTest != null)
+               ChildrenTest.CollectionChanged += Children_CollectionChanged;
+
+           if (Nodes != null)
+               Nodes.CollectionChanged += Nodes_CollectionChanged;
+       }
+
+       private void Nodes_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+       {
+           IsChanged = true;
+
+           //TOOD: Not sure if we need this? Because ObservableCollection is supposed to raise PropertyChanged events itself.
+           NotifyPropertyChanged("Nodes");
+       }
+
+       private void Children_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+       {
+           IsChanged = true;
+
+           //TOOD: Not sure if we need this? Because ObservableCollection is supposed to raise PropertyChanged events itself.
+           NotifyPropertyChanged("Children");
+       }
+          */
+
+
         /// <summary>
         /// Triggers the property changed event for a specific property.
         /// </summary>
@@ -165,9 +163,10 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
         {
             if (this.PropertyChanged != null)
                 this.PropertyChanged.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }*/
+        }
 
-        public override bool HasHolonChanged(bool checkChildren = true)
+
+        public virtual bool HasHolonChanged(bool checkChildren = true)
         {
             if (IsChanged)
                 return true;
@@ -212,13 +211,14 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
 
                 if (Original.DeletedDate != DeletedDate)
                     return true;
-   
+
                 if (Original.HolonType != HolonType)
                     return true;
 
                 if (Original.IsActive != IsActive)
                     return true;
 
+                /*
                 if (Original.Nodes.Count != Nodes.Count)
                     return true;
 
@@ -261,15 +261,12 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
                         if (children[i].HasHolonChanged())
                             return true;
                     }
-                }
-                
+                }*/
+
             }
             //TODO: Finish this ASAP!
 
-            if (Id == Guid.Empty)
-                    return true;
-
-            return base.HasHolonChanged(checkChildren);
+            return Id == Guid.Empty;
         }
 
 
