@@ -12,6 +12,7 @@ using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Interfaces;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Middleware;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Services;
+using NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Services.Solana;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
 {
@@ -87,6 +88,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
             // configure DI for application services
             services.AddScoped<IAvatarService, AvatarService>();
             services.AddScoped<IEmailService, EmailService>();
+            services.AddScoped<ISolanaService, SolanaService>();
 
             services.AddCors(options =>
             {
