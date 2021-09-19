@@ -30,10 +30,10 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
             modelBuilder.Entity<AvatarAttributesModel>().HasAlternateKey(aa => aa.AvatarId);
             modelBuilder.Entity<AvatarAuraModel>().HasAlternateKey(aa => aa.AvatarId);
             modelBuilder.Entity<AvatarHumanDesignModel>().HasAlternateKey(hd => hd.AvatarId);
-            modelBuilder.Entity<ProviderKeyModel>().HasAlternateKey(p => p.KeyId);
-            modelBuilder.Entity<ProviderPrivateKeyModel>().HasAlternateKey(p => p.KeyId);
-            modelBuilder.Entity<ProviderPublicKeyModel>().HasAlternateKey(p => p.KeyId);
-            modelBuilder.Entity<ProviderWalletAddressModel>().HasAlternateKey(p => p.KeyId);
+            modelBuilder.Entity<ProviderKeyModel>().HasAlternateKey(p => p.ProviderId);
+            modelBuilder.Entity<ProviderPrivateKeyModel>().HasAlternateKey(p => p.ProviderId);
+            modelBuilder.Entity<ProviderPublicKeyModel>().HasAlternateKey(p => p.ProviderId);
+            modelBuilder.Entity<ProviderWalletAddressModel>().HasAlternateKey(p => p.ProviderId);
             modelBuilder.Entity<AvatarSkillsModel>().HasAlternateKey(ask => ask.AvatarId);
             modelBuilder.Entity<AvatarStatsModel>().HasAlternateKey(ast => ast.AvatarId);
             modelBuilder.Entity<AvatarSuperPowersModel>().HasAlternateKey(ast => ast.AvatarId);
@@ -224,7 +224,16 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                 .HasMany(avatar => avatar.ProviderKey)
                 .WithOne()
                 .HasForeignKey(ob => ob.ParentId);
-
+            
+            modelBuilder.Entity<HolonModel>()
+                .HasMany(avatar => avatar.MetaData)
+                .WithOne()
+                .HasForeignKey(ob => ob.ParentId);
+            
+            modelBuilder.Entity<HolonModel>()
+                .HasMany(avatar => avatar.ProviderMetaData)
+                .WithOne()
+                .HasForeignKey(ob => ob.ParentId);
 
 
             modelBuilder.Entity<AvatarModel>()
