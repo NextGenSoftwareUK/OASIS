@@ -6,6 +6,6 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
     [ApiController]
     public class SolanaController : OASISControllerBase
     {
-        
+     
     }
 }
