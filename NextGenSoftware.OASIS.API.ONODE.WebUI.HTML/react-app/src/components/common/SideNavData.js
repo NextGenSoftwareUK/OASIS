@@ -92,15 +92,15 @@ const SideNavData = [
             },
             {
                 title: "Donate SEEDS",
-                path: "/donateWithSeeds"
+                path: "/donate-with-seeds"
             },
             {
                 title: "Reward SEEDS",
-                path: "/rewardWithSeeds"
+                path: "/reward-with-seeds"
             },
             {
                 title: "Send Invite To Join SEEDS",
-                path: "/send-invite"
+                path: "/send-invite-to-join-seeds"
             },
             {
                 title: "Accept Invite to join seeds",
@@ -120,7 +120,7 @@ const SideNavData = [
             },
             {
                 title: "Search Seeds",
-                path: ""
+                path: "/search-seeds"
             }
         ]
     },

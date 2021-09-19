@@ -19,6 +19,7 @@ import "../assets/scss/seeds.scss";
 
 import axios from "axios";
 import AcceptInvite from "./pages/seeds/AcceptInvite";
+import SearchSeeds from "./pages/seeds/SearchSeeds";
 
 class App extends React.Component {
     state = {
@@ -122,15 +123,19 @@ class App extends React.Component {
                             <Route exact path="/add-data" component={AddData} />
                             <Route exact path="/show-data" component={ShowAllData} />
 
+                            {/* ============ Seeds Routes ====================== */}
                             <Route path="/pay-with-seeds" component={PayWithSeeds} />
-                            <Route path="/donateWithSeeds">
+                            <Route path="/donate-with-seeds">
                                 <PayWithSeeds seedType="Donate" />
                             </Route>
-                            <Route path="/rewardWithSeeds">
+                            <Route path="/reward-with-seeds">
                                 <PayWithSeeds seedType="Reward" />
                             </Route>
                             <Route path="/accept-invite-to-join-seeds" component={AcceptInvite} />
-                            <Route path="/send-invite" component={SendInvite} />
+                            <Route path="/send-invite-to-join-seeds" component={SendInvite} />
+                            <Route exact path="/search-seeds" component={SearchSeeds} />
+                            {/* ================================================ */}
+
                             <Route exact path="/karma" component={Karma} />
                         </Switch>
                     </div>

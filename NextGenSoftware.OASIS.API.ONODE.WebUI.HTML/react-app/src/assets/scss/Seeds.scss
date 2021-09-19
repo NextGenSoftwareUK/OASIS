@@ -53,8 +53,11 @@
     .popup-submit-button{
         margin-top: 2rem;
         width: 30%;
+        position: relative;
+        right: -70%;
         @media (max-width: 550px) {
             width: 100%;
+            right: 0;
         }
     }
 }
@@ -87,9 +90,35 @@
         left: 0;
     }
 }
-
-@media (max-width: 800px) {
-  .payWithSeeds-label{
-    text-align: left;
-  }
+.search-popup{
+    width: 100% !important;
+}
+.search-seeds-row1{
+    display: grid;
+    grid-template-columns: repeat(4, auto 200px);
+    row-gap: 1rem;
+    margin-bottom: 1rem;
+    @media (max-width: 1250px) {
+        grid-template-columns: repeat(2, auto 1fr);
+    }
+    @media (max-width: 890px) {
+        grid-template-columns: auto 1fr;
+    }
+    @media (max-width: 550px) {
+        grid-template-columns: 1fr;
+        row-gap: 0;
+    }
+}
+.search-seeds-row2{
+    display: flex;
+    justify-content: space-between;
+    @media (max-width: 890px) {
+        flex-direction: column;
+    }
+    .search-checkbox-group{
+        display: inline;
+        @media (max-width: 620px) {
+            display: inline-block;
+        }
+    }
 }
