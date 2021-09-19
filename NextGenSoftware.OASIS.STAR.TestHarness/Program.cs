@@ -969,130 +969,130 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
 
             Console.WriteLine("");
             Console.WriteLine(" Chakras:");
-            Console.WriteLine(string.Concat(" Crown XP: ", STAR.LoggedInAvatar.Chakras.Crown.XP));
-            Console.WriteLine(string.Concat(" Crown Level: ", STAR.LoggedInAvatar.Chakras.Crown.Level));
-            Console.WriteLine(string.Concat(" ThirdEye XP: ", STAR.LoggedInAvatar.Chakras.ThirdEye.XP));
-            Console.WriteLine(string.Concat(" ThirdEye Level: ", STAR.LoggedInAvatar.Chakras.ThirdEye.Level));
-            Console.WriteLine(string.Concat(" Throat XP: ", STAR.LoggedInAvatar.Chakras.Throat.XP));
-            Console.WriteLine(string.Concat(" Throat Level: ", STAR.LoggedInAvatar.Chakras.Throat.Level));
-            Console.WriteLine(string.Concat(" Heart XP: ", STAR.LoggedInAvatar.Chakras.Heart.XP));
-            Console.WriteLine(string.Concat(" Heart Level: ", STAR.LoggedInAvatar.Chakras.Heart.Level));
-            Console.WriteLine(string.Concat(" SoloarPlexus XP: ", STAR.LoggedInAvatar.Chakras.SoloarPlexus.XP));
-            Console.WriteLine(string.Concat(" SoloarPlexus Level: ", STAR.LoggedInAvatar.Chakras.SoloarPlexus.Level));
-            Console.WriteLine(string.Concat(" Sacral XP: ", STAR.LoggedInAvatar.Chakras.Sacral.XP));
-            Console.WriteLine(string.Concat(" Sacral Level: ", STAR.LoggedInAvatar.Chakras.Sacral.Level));
+            Console.WriteLine(string.Concat(" Crown XP: ", STAR.LoggedInAvatarDetail.Chakras.Crown.XP));
+            Console.WriteLine(string.Concat(" Crown Level: ", STAR.LoggedInAvatarDetail.Chakras.Crown.Level));
+            Console.WriteLine(string.Concat(" ThirdEye XP: ", STAR.LoggedInAvatarDetail.Chakras.ThirdEye.XP));
+            Console.WriteLine(string.Concat(" ThirdEye Level: ", STAR.LoggedInAvatarDetail.Chakras.ThirdEye.Level));
+            Console.WriteLine(string.Concat(" Throat XP: ", STAR.LoggedInAvatarDetail.Chakras.Throat.XP));
+            Console.WriteLine(string.Concat(" Throat Level: ", STAR.LoggedInAvatarDetail.Chakras.Throat.Level));
+            Console.WriteLine(string.Concat(" Heart XP: ", STAR.LoggedInAvatarDetail.Chakras.Heart.XP));
+            Console.WriteLine(string.Concat(" Heart Level: ", STAR.LoggedInAvatarDetail.Chakras.Heart.Level));
+            Console.WriteLine(string.Concat(" SoloarPlexus XP: ", STAR.LoggedInAvatarDetail.Chakras.SoloarPlexus.XP));
+            Console.WriteLine(string.Concat(" SoloarPlexus Level: ", STAR.LoggedInAvatarDetail.Chakras.SoloarPlexus.Level));
+            Console.WriteLine(string.Concat(" Sacral XP: ", STAR.LoggedInAvatarDetail.Chakras.Sacral.XP));
+            Console.WriteLine(string.Concat(" Sacral Level: ", STAR.LoggedInAvatarDetail.Chakras.Sacral.Level));
 
-            Console.WriteLine(string.Concat(" Root SanskritName: ", STAR.LoggedInAvatar.Chakras.Root.SanskritName));
-            Console.WriteLine(string.Concat(" Root XP: ", STAR.LoggedInAvatar.Chakras.Root.XP));
-            Console.WriteLine(string.Concat(" Root Level: ", STAR.LoggedInAvatar.Chakras.Root.Level));
-            Console.WriteLine(string.Concat(" Root Progress: ", STAR.LoggedInAvatar.Chakras.Root.Progress));
+            Console.WriteLine(string.Concat(" Root SanskritName: ", STAR.LoggedInAvatarDetail.Chakras.Root.SanskritName));
+            Console.WriteLine(string.Concat(" Root XP: ", STAR.LoggedInAvatarDetail.Chakras.Root.XP));
+            Console.WriteLine(string.Concat(" Root Level: ", STAR.LoggedInAvatarDetail.Chakras.Root.Level));
+            Console.WriteLine(string.Concat(" Root Progress: ", STAR.LoggedInAvatarDetail.Chakras.Root.Progress));
            // Console.WriteLine(string.Concat(" Root Color: ", SuperSTAR.LoggedInAvatar.Chakras.Root.Color.Name));
-            Console.WriteLine(string.Concat(" Root Element: ", STAR.LoggedInAvatar.Chakras.Root.Element.Name));
-            Console.WriteLine(string.Concat(" Root YogaPose: ", STAR.LoggedInAvatar.Chakras.Root.YogaPose.Name));
-            Console.WriteLine(string.Concat(" Root WhatItControls: ", STAR.LoggedInAvatar.Chakras.Root.WhatItControls));
-            Console.WriteLine(string.Concat(" Root WhenItDevelops: ", STAR.LoggedInAvatar.Chakras.Root.WhenItDevelops));
-            Console.WriteLine(string.Concat(" Root Crystal Name: ", STAR.LoggedInAvatar.Chakras.Root.Crystal.Name.Name));
-            Console.WriteLine(string.Concat(" Root Crystal AmplifyicationLevel: ", STAR.LoggedInAvatar.Chakras.Root.Crystal.AmplifyicationLevel));
-            Console.WriteLine(string.Concat(" Root Crystal CleansingLevel: ", STAR.LoggedInAvatar.Chakras.Root.Crystal.CleansingLevel));
-            Console.WriteLine(string.Concat(" Root Crystal EnergisingLevel: ", STAR.LoggedInAvatar.Chakras.Root.Crystal.EnergisingLevel));
-            Console.WriteLine(string.Concat(" Root Crystal GroundingLevel: ", STAR.LoggedInAvatar.Chakras.Root.Crystal.GroundingLevel));
-            Console.WriteLine(string.Concat(" Root Crystal ProtectionLevel: ", STAR.LoggedInAvatar.Chakras.Root.Crystal.ProtectionLevel));
+            Console.WriteLine(string.Concat(" Root Element: ", STAR.LoggedInAvatarDetail.Chakras.Root.Element.Name));
+            Console.WriteLine(string.Concat(" Root YogaPose: ", STAR.LoggedInAvatarDetail.Chakras.Root.YogaPose.Name));
+            Console.WriteLine(string.Concat(" Root WhatItControls: ", STAR.LoggedInAvatarDetail.Chakras.Root.WhatItControls));
+            Console.WriteLine(string.Concat(" Root WhenItDevelops: ", STAR.LoggedInAvatarDetail.Chakras.Root.WhenItDevelops));
+            Console.WriteLine(string.Concat(" Root Crystal Name: ", STAR.LoggedInAvatarDetail.Chakras.Root.Crystal.Name.Name));
+            Console.WriteLine(string.Concat(" Root Crystal AmplifyicationLevel: ", STAR.LoggedInAvatarDetail.Chakras.Root.Crystal.AmplifyicationLevel));
+            Console.WriteLine(string.Concat(" Root Crystal CleansingLevel: ", STAR.LoggedInAvatarDetail.Chakras.Root.Crystal.CleansingLevel));
+            Console.WriteLine(string.Concat(" Root Crystal EnergisingLevel: ", STAR.LoggedInAvatarDetail.Chakras.Root.Crystal.EnergisingLevel));
+            Console.WriteLine(string.Concat(" Root Crystal GroundingLevel: ", STAR.LoggedInAvatarDetail.Chakras.Root.Crystal.GroundingLevel));
+            Console.WriteLine(string.Concat(" Root Crystal ProtectionLevel: ", STAR.LoggedInAvatarDetail.Chakras.Root.Crystal.ProtectionLevel));
 
             Console.WriteLine("");
             Console.WriteLine(" Aurua:");
-            Console.WriteLine(string.Concat(" Brightness: ", STAR.LoggedInAvatar.Aura.Brightness));
-            Console.WriteLine(string.Concat(" Size: ", STAR.LoggedInAvatar.Aura.Size));
-            Console.WriteLine(string.Concat(" Level: ", STAR.LoggedInAvatar.Aura.Level));
-            Console.WriteLine(string.Concat(" Value: ", STAR.LoggedInAvatar.Aura.Value));
-            Console.WriteLine(string.Concat(" Progress: ", STAR.LoggedInAvatar.Aura.Progress));
-            Console.WriteLine(string.Concat(" ColourRed: ", STAR.LoggedInAvatar.Aura.ColourRed));
-            Console.WriteLine(string.Concat(" ColourGreen: ", STAR.LoggedInAvatar.Aura.ColourGreen));
-            Console.WriteLine(string.Concat(" ColourBlue: ", STAR.LoggedInAvatar.Aura.ColourBlue));
+            Console.WriteLine(string.Concat(" Brightness: ", STAR.LoggedInAvatarDetail.Aura.Brightness));
+            Console.WriteLine(string.Concat(" Size: ", STAR.LoggedInAvatarDetail.Aura.Size));
+            Console.WriteLine(string.Concat(" Level: ", STAR.LoggedInAvatarDetail.Aura.Level));
+            Console.WriteLine(string.Concat(" Value: ", STAR.LoggedInAvatarDetail.Aura.Value));
+            Console.WriteLine(string.Concat(" Progress: ", STAR.LoggedInAvatarDetail.Aura.Progress));
+            Console.WriteLine(string.Concat(" ColourRed: ", STAR.LoggedInAvatarDetail.Aura.ColourRed));
+            Console.WriteLine(string.Concat(" ColourGreen: ", STAR.LoggedInAvatarDetail.Aura.ColourGreen));
+            Console.WriteLine(string.Concat(" ColourBlue: ", STAR.LoggedInAvatarDetail.Aura.ColourBlue));
 
             Console.WriteLine("");
             Console.WriteLine(" Attributes:");
-            Console.WriteLine(string.Concat(" Strength: ", STAR.LoggedInAvatar.Attributes.Strength));
-            Console.WriteLine(string.Concat(" Speed: ", STAR.LoggedInAvatar.Attributes.Speed));
-            Console.WriteLine(string.Concat(" Dexterity: ", STAR.LoggedInAvatar.Attributes.Dexterity));
-            Console.WriteLine(string.Concat(" Intelligence: ", STAR.LoggedInAvatar.Attributes.Intelligence));
-            Console.WriteLine(string.Concat(" Magic: ", STAR.LoggedInAvatar.Attributes.Magic));
-            Console.WriteLine(string.Concat(" Wisdom: ", STAR.LoggedInAvatar.Attributes.Wisdom));
-            Console.WriteLine(string.Concat(" Toughness: ", STAR.LoggedInAvatar.Attributes.Toughness));
-            Console.WriteLine(string.Concat(" Vitality: ", STAR.LoggedInAvatar.Attributes.Vitality));
-            Console.WriteLine(string.Concat(" Endurance: ", STAR.LoggedInAvatar.Attributes.Endurance));
+            Console.WriteLine(string.Concat(" Strength: ", STAR.LoggedInAvatarDetail.Attributes.Strength));
+            Console.WriteLine(string.Concat(" Speed: ", STAR.LoggedInAvatarDetail.Attributes.Speed));
+            Console.WriteLine(string.Concat(" Dexterity: ", STAR.LoggedInAvatarDetail.Attributes.Dexterity));
+            Console.WriteLine(string.Concat(" Intelligence: ", STAR.LoggedInAvatarDetail.Attributes.Intelligence));
+            Console.WriteLine(string.Concat(" Magic: ", STAR.LoggedInAvatarDetail.Attributes.Magic));
+            Console.WriteLine(string.Concat(" Wisdom: ", STAR.LoggedInAvatarDetail.Attributes.Wisdom));
+            Console.WriteLine(string.Concat(" Toughness: ", STAR.LoggedInAvatarDetail.Attributes.Toughness));
+            Console.WriteLine(string.Concat(" Vitality: ", STAR.LoggedInAvatarDetail.Attributes.Vitality));
+            Console.WriteLine(string.Concat(" Endurance: ", STAR.LoggedInAvatarDetail.Attributes.Endurance));
 
             Console.WriteLine("");
             Console.WriteLine(" Stats:");
-            Console.WriteLine(string.Concat(" HP: ", STAR.LoggedInAvatar.Stats.HP.Current, "/", STAR.LoggedInAvatar.Stats.HP.Max));
-            Console.WriteLine(string.Concat(" Mana: ", STAR.LoggedInAvatar.Stats.Mana.Current, "/", STAR.LoggedInAvatar.Stats.Mana.Max));
-            Console.WriteLine(string.Concat(" Energy: ", STAR.LoggedInAvatar.Stats.Energy.Current, "/", STAR.LoggedInAvatar.Stats.Energy.Max));
-            Console.WriteLine(string.Concat(" Staminia: ", STAR.LoggedInAvatar.Stats.Staminia.Current, "/", STAR.LoggedInAvatar.Stats.Staminia.Max));
+            Console.WriteLine(string.Concat(" HP: ", STAR.LoggedInAvatarDetail.Stats.HP.Current, "/", STAR.LoggedInAvatarDetail.Stats.HP.Max));
+            Console.WriteLine(string.Concat(" Mana: ", STAR.LoggedInAvatarDetail.Stats.Mana.Current, "/", STAR.LoggedInAvatarDetail.Stats.Mana.Max));
+            Console.WriteLine(string.Concat(" Energy: ", STAR.LoggedInAvatarDetail.Stats.Energy.Current, "/", STAR.LoggedInAvatarDetail.Stats.Energy.Max));
+            Console.WriteLine(string.Concat(" Staminia: ", STAR.LoggedInAvatarDetail.Stats.Staminia.Current, "/", STAR.LoggedInAvatarDetail.Stats.Staminia.Max));
 
             Console.WriteLine("");
             Console.WriteLine(" Super Powers:");
-            Console.WriteLine(string.Concat(" Flight: ", STAR.LoggedInAvatar.SuperPowers.Flight));
-            Console.WriteLine(string.Concat(" Astral Projection: ", STAR.LoggedInAvatar.SuperPowers.AstralProjection));
-            Console.WriteLine(string.Concat(" Bio-Locatation: ", STAR.LoggedInAvatar.SuperPowers.BioLocatation));
-            Console.WriteLine(string.Concat(" Heat Vision: ", STAR.LoggedInAvatar.SuperPowers.HeatVision));
-            Console.WriteLine(string.Concat(" Invulerability: ", STAR.LoggedInAvatar.SuperPowers.Invulerability));
-            Console.WriteLine(string.Concat(" Remote Viewing: ", STAR.LoggedInAvatar.SuperPowers.RemoteViewing));
-            Console.WriteLine(string.Concat(" Super Speed: ", STAR.LoggedInAvatar.SuperPowers.SuperSpeed));
-            Console.WriteLine(string.Concat(" Super Strength: ", STAR.LoggedInAvatar.SuperPowers.SuperStrength));
-            Console.WriteLine(string.Concat(" Telekineseis: ", STAR.LoggedInAvatar.SuperPowers.Telekineseis));
-            Console.WriteLine(string.Concat(" XRay Vision: ", STAR.LoggedInAvatar.SuperPowers.XRayVision));
+            Console.WriteLine(string.Concat(" Flight: ", STAR.LoggedInAvatarDetail.SuperPowers.Flight));
+            Console.WriteLine(string.Concat(" Astral Projection: ", STAR.LoggedInAvatarDetail.SuperPowers.AstralProjection));
+            Console.WriteLine(string.Concat(" Bio-Locatation: ", STAR.LoggedInAvatarDetail.SuperPowers.BioLocatation));
+            Console.WriteLine(string.Concat(" Heat Vision: ", STAR.LoggedInAvatarDetail.SuperPowers.HeatVision));
+            Console.WriteLine(string.Concat(" Invulerability: ", STAR.LoggedInAvatarDetail.SuperPowers.Invulerability));
+            Console.WriteLine(string.Concat(" Remote Viewing: ", STAR.LoggedInAvatarDetail.SuperPowers.RemoteViewing));
+            Console.WriteLine(string.Concat(" Super Speed: ", STAR.LoggedInAvatarDetail.SuperPowers.SuperSpeed));
+            Console.WriteLine(string.Concat(" Super Strength: ", STAR.LoggedInAvatarDetail.SuperPowers.SuperStrength));
+            Console.WriteLine(string.Concat(" Telekineseis: ", STAR.LoggedInAvatarDetail.SuperPowers.Telekineseis));
+            Console.WriteLine(string.Concat(" XRay Vision: ", STAR.LoggedInAvatarDetail.SuperPowers.XRayVision));
 
             Console.WriteLine("");
             Console.WriteLine(" Skills:");
-            Console.WriteLine(string.Concat(" Computers: ", STAR.LoggedInAvatar.Skills.Computers));
-            Console.WriteLine(string.Concat(" Engineering: ", STAR.LoggedInAvatar.Skills.Engineering));
-            Console.WriteLine(string.Concat(" Farming: ", STAR.LoggedInAvatar.Skills.Farming));
-            Console.WriteLine(string.Concat(" FireStarting: ", STAR.LoggedInAvatar.Skills.FireStarting));
-            Console.WriteLine(string.Concat(" Fishing: ", STAR.LoggedInAvatar.Skills.Fishing));
-            Console.WriteLine(string.Concat(" Languages: ", STAR.LoggedInAvatar.Skills.Languages));
-            Console.WriteLine(string.Concat(" Meditation: ", STAR.LoggedInAvatar.Skills.Meditation));
-            Console.WriteLine(string.Concat(" MelleeCombat: ", STAR.LoggedInAvatar.Skills.MelleeCombat));
-            Console.WriteLine(string.Concat(" Mindfulness: ", STAR.LoggedInAvatar.Skills.Mindfulness));
-            Console.WriteLine(string.Concat(" Negotiating: ", STAR.LoggedInAvatar.Skills.Negotiating));
-            Console.WriteLine(string.Concat(" RangeCombat: ", STAR.LoggedInAvatar.Skills.RangeCombat));
-            Console.WriteLine(string.Concat(" Research: ", STAR.LoggedInAvatar.Skills.Research));
-            Console.WriteLine(string.Concat(" Science: ", STAR.LoggedInAvatar.Skills.Science));
-            Console.WriteLine(string.Concat(" SpellCasting: ", STAR.LoggedInAvatar.Skills.SpellCasting));
-            Console.WriteLine(string.Concat(" Translating: ", STAR.LoggedInAvatar.Skills.Translating));
-            Console.WriteLine(string.Concat(" Yoga: ", STAR.LoggedInAvatar.Skills.Yoga));
+            Console.WriteLine(string.Concat(" Computers: ", STAR.LoggedInAvatarDetail.Skills.Computers));
+            Console.WriteLine(string.Concat(" Engineering: ", STAR.LoggedInAvatarDetail.Skills.Engineering));
+            Console.WriteLine(string.Concat(" Farming: ", STAR.LoggedInAvatarDetail.Skills.Farming));
+            Console.WriteLine(string.Concat(" FireStarting: ", STAR.LoggedInAvatarDetail.Skills.FireStarting));
+            Console.WriteLine(string.Concat(" Fishing: ", STAR.LoggedInAvatarDetail.Skills.Fishing));
+            Console.WriteLine(string.Concat(" Languages: ", STAR.LoggedInAvatarDetail.Skills.Languages));
+            Console.WriteLine(string.Concat(" Meditation: ", STAR.LoggedInAvatarDetail.Skills.Meditation));
+            Console.WriteLine(string.Concat(" MelleeCombat: ", STAR.LoggedInAvatarDetail.Skills.MelleeCombat));
+            Console.WriteLine(string.Concat(" Mindfulness: ", STAR.LoggedInAvatarDetail.Skills.Mindfulness));
+            Console.WriteLine(string.Concat(" Negotiating: ", STAR.LoggedInAvatarDetail.Skills.Negotiating));
+            Console.WriteLine(string.Concat(" RangeCombat: ", STAR.LoggedInAvatarDetail.Skills.RangeCombat));
+            Console.WriteLine(string.Concat(" Research: ", STAR.LoggedInAvatarDetail.Skills.Research));
+            Console.WriteLine(string.Concat(" Science: ", STAR.LoggedInAvatarDetail.Skills.Science));
+            Console.WriteLine(string.Concat(" SpellCasting: ", STAR.LoggedInAvatarDetail.Skills.SpellCasting));
+            Console.WriteLine(string.Concat(" Translating: ", STAR.LoggedInAvatarDetail.Skills.Translating));
+            Console.WriteLine(string.Concat(" Yoga: ", STAR.LoggedInAvatarDetail.Skills.Yoga));
 
             Console.WriteLine("");
             Console.WriteLine(" Gifts:");
 
-            foreach (AvatarGift gift in STAR.LoggedInAvatar.Gifts)
+            foreach (AvatarGift gift in STAR.LoggedInAvatarDetail.Gifts)
                 Console.WriteLine(string.Concat(" ", Enum.GetName(gift.GiftType), " earnt on ", gift.GiftEarnt.ToString()));
 
             Console.WriteLine("");
             Console.WriteLine(" Spells:");
 
-            foreach (Spell spell in STAR.LoggedInAvatar.Spells)
+            foreach (Spell spell in STAR.LoggedInAvatarDetail.Spells)
                 Console.WriteLine(string.Concat(" ", spell.Name));
 
             Console.WriteLine("");
             Console.WriteLine(" Inventory:");
 
-            foreach (InventoryItem inventoryItem in STAR.LoggedInAvatar.Inventory)
+            foreach (InventoryItem inventoryItem in STAR.LoggedInAvatarDetail.Inventory)
                 Console.WriteLine(string.Concat(" ", inventoryItem.Name));
 
             Console.WriteLine("");
             Console.WriteLine(" Achievements:");
 
-            foreach (Achievement achievement in STAR.LoggedInAvatar.Achievements)
+            foreach (Achievement achievement in STAR.LoggedInAvatarDetail.Achievements)
                 Console.WriteLine(string.Concat(" ", achievement.Name));
 
             Console.WriteLine("");
             Console.WriteLine(" Gene Keys:");
 
-            foreach (GeneKey geneKey in STAR.LoggedInAvatar.GeneKeys)
+            foreach (GeneKey geneKey in STAR.LoggedInAvatarDetail.GeneKeys)
                 Console.WriteLine(string.Concat(" ", geneKey.Name));
 
             Console.WriteLine("");
             Console.WriteLine(" Human Design:");
-            Console.WriteLine(string.Concat(" Type: ", STAR.LoggedInAvatar.HumanDesign.Type));
+            Console.WriteLine(string.Concat(" Type: ", STAR.LoggedInAvatarDetail.HumanDesign.Type));
         }
     }
 }

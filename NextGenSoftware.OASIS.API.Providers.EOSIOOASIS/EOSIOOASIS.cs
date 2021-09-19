@@ -269,8 +269,8 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
                         title = Avatar.Title,
                         firstname = Avatar.FirstName,
                         lastname = Avatar.LastName,
-                        dob = Avatar.DOB.ToString(),
-                        playeraddr = Avatar.Address,
+                        //dob = Avatar.DOB.ToString(),
+                       // playeraddr = Avatar.Address,
                         karma = Avatar.Karma
                     }
                 ));
@@ -363,6 +363,36 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
         public IAvatar GetAvatarForEOSIOAccountName(string eosioAccountName)
         {
             return AvatarManagerInstance.GetAvatarForProviderKey(eosioAccountName, Core.Enums.ProviderType.EOSIOOASIS);
+        }
+
+        public override IAvatarDetail LoadAvatarDetail(Guid id)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override Task<IAvatarDetail> LoadAvatarDetailAsync(Guid id)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override IEnumerable<IAvatarDetail> LoadAllAvatarDetails()
+        {
+            throw new NotImplementedException();
+        }
+
+        public override Task<IEnumerable<IAvatarDetail>> LoadAllAvatarDetailsAsync()
+        {
+            throw new NotImplementedException();
+        }
+
+        public override IAvatarDetail SaveAvatarDetail(IAvatarDetail Avatar)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override Task<IAvatarDetail> SaveAvatarDetailAsync(IAvatarDetail Avatar)
+        {
+            throw new NotImplementedException();
         }
     }
 }

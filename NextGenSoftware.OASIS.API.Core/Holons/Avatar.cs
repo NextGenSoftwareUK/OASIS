@@ -10,6 +10,8 @@ using NextGenSoftware.OASIS.API.Core.Objects;
 
 namespace NextGenSoftware.OASIS.API.Core.Holons
 {
+    // Lightweight version of the AvatarDetail object used for SSO. If people need the extended Avatar info they can load the AvatarDetail object.
+    // If people need to add/subreact karma from the Avatar then they need to use the AvatarDetail object, same with if they need to query their KarmaAkasicRecords (karma audit).
     public class Avatar : HolonBase, IAvatar
     {
         public new string Name
@@ -48,7 +50,30 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
         public DateTime? PasswordReset { get; set; }
 
         public List<RefreshToken> RefreshTokens { get; set; } = new List<RefreshToken>();
-       
+        public string Image2D { get; set; }
+        public int Karma { get; set; } //TODO: This really needs to have a private setter but in the HoloOASIS provider it needs to copy the object along with each property... would prefer another work around if possible?
+        public int XP { get; set; }
+        public int Level
+        {
+            get
+            {
+                if (this.Karma > 0 && this.Karma < 100)
+                    return 1;
+
+                if (this.Karma >= 100 && this.Karma < 200)
+                    return 2;
+
+                if (this.Karma >= 200 && this.Karma < 300)
+                    return 3;
+
+                if (this.Karma >= 777)
+                    return 99;
+
+                //TODO: Add all the other levels here, all the way up to 100 for now! ;=)
+
+                return 1; //Default.
+            }
+        }
 
         public bool OwnsToken(string token)
         {

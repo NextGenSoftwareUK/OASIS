@@ -81,6 +81,7 @@ namespace NextGenSoftware.OASIS.STAR
         //}
 
         public static Avatar LoggedInAvatar { get; set; }
+        public static AvatarDetail LoggedInAvatarDetail { get; set; }
 
         public static OASISAPI OASISAPI
         {
@@ -337,7 +338,10 @@ namespace NextGenSoftware.OASIS.STAR
             OASISResult<IAvatar> result = OASISAPI.Avatar.Authenticate(username, password, IPAddress);
 
             if (!result.IsError)
+            {
                 LoggedInAvatar = (Avatar)result.Result;
+                LoggedInAvatarDetail = (AvatarDetail)OASISAPI.Avatar.LoadAvatarDetail(LoggedInAvatar.Id);
+            }
 
             return result;
         }

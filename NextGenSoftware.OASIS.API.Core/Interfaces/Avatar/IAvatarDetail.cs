@@ -10,15 +10,17 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces
 {
     public interface IAvatarDetail : IHolon
     {
-        //FORCE TO DUPLICATE THESE PROPERTIES FROM AVATAR BECAUSE MULTIPLE INHERIETANCE NOT SUPPORTED IN C#! :(
-        //TODO: Be good if we can find a better work around?! ;-)
+        // FORCE TO DUPLICATE THESE PROPERTIES FROM AVATAR BECAUSE MULTIPLE INHERIETANCE NOT SUPPORTED IN C#! :(
+        // TODO: Be good if we can find a better work around?! ;-)
+        // Using the multiple interfaces workaround seems to only work for methods, but not properties?
+
         string Title { get; set; }
         string FirstName { get; set; }
         string LastName { get; set; }
         string FullName { get; }
         string Username { get; set; }
         string Email { get; set; }
-       // string Password { get; set; }
+       // string Password { get; set; } //Password only needed for SSO so is only in Avatar Object.
         //END DUPLICATION
 
         List<Achievement> Achievements { get; set; }
@@ -33,10 +35,7 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces
         Dictionary<DimensionLevel, Guid> DimensionLevelIds { get; set; }
         Dictionary<DimensionLevel, IHolon> DimensionLevels { get; set; }
         DateTime DOB { get; set; }
-       // string Email { get; set; }
         ConsoleColor FavouriteColour { get; set; }
-       // string FirstName { get; set; }
-       // string FullName { get; }
         List<GeneKey> GeneKeys { get; set; }
         List<AvatarGift> Gifts { get; set; }
         List<HeartRateEntry> HeartRateData { get; set; }
@@ -46,13 +45,10 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces
         int Karma { get; set; }
         List<KarmaAkashicRecord> KarmaAkashicRecords { get; set; }
         string Landline { get; set; }
-       // string LastName { get; set; }
         int Level { get; }
         string Mobile { get; set; }
         string Model3D { get; set; }
-        //string Name { get; }
         IOmiverse Omiverse { get; set; }
-      //  string Password { get; set; }
         string Postcode { get; set; }
         Dictionary<ProviderType, string> ProviderPrivateKey { get; set; }
         Dictionary<ProviderType, string> ProviderPublicKey { get; set; }
@@ -63,10 +59,8 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces
         ConsoleColor STARCLIColour { get; set; }
         AvatarStats Stats { get; set; }
         AvatarSuperPowers SuperPowers { get; set; }
-       // string Title { get; set; }
         string Town { get; set; }
         string UmaJson { get; set; }
-       // string Username { get; set; }
         int XP { get; set; }
 
         //bool HasHolonChanged(bool checkChildren = true);

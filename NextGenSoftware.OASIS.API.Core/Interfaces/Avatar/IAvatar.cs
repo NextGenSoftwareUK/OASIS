@@ -27,6 +27,10 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces
         DateTime? ResetTokenExpires { get; set; }
         string VerificationToken { get; set; }
         DateTime? Verified { get; set; }
+        string Image2D { get; set; }
+        int Karma { get; set; }
+        int Level { get; }
+        int XP { get; set; }
         bool OwnsToken(string token);
         IAvatar Save();
         Task<IAvatar> SaveAsync();

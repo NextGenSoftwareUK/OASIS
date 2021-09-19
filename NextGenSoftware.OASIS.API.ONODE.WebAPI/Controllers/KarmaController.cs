@@ -133,7 +133,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpGet("GetKarmaAkashicRecordsForAvatar/{avatarId}")]
         public ActionResult<KarmaAkashicRecord[]> GetKarmaAkashicRecordsForAvatar(Guid avatarId)
         {
-            IAvatar avatar = Program.AvatarManager.LoadAvatar(avatarId);
+            IAvatarDetail avatar = Program.AvatarManager.LoadAvatarDetail(avatarId);
 
             if (avatar != null)
                 return Ok(avatar.KarmaAkashicRecords);
