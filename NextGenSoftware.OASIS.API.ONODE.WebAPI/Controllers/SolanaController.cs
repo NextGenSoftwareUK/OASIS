@@ -2,7 +2,9 @@
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 {
-    public class SolanaController : Controller
+    [Route("api/[controller]")]
+    [ApiController]
+    public class SolanaController : OASISControllerBase
     {
         
     }

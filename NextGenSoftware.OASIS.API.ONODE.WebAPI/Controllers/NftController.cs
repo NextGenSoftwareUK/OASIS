@@ -2,7 +2,9 @@
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 {
-    public class NftController : Controller
+    [Route("api/[controller]")]
+    [ApiController]
+    public class NftController : OASISControllerBase
     {
         
     }
