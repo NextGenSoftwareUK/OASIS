@@ -335,19 +335,19 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
                     {
                         contact.FirstName = avatar.FirstName;
                         contact.LastName = avatar.LastName;
-                        contact.Address = avatar.Address;
-                        contact.Country = avatar.Country;
-                        contact.County = avatar.County;
+                        //contact.Address = avatar.Address;
+                        //contact.Country = avatar.Country;
+                        //contact.County = avatar.County;
                         contact.CreatedDate = avatar.CreatedDate;
                         contact.DeletedDate = avatar.DeletedDate;
                         contact.Email = avatar.Email;
-                        contact.DOB = avatar.DOB;
+                       // contact.DOB = avatar.DOB;
                         contact.Landline = avatar.LastName;
-                        contact.Mobile = avatar.Mobile;
+                        //contact.Mobile = avatar.Mobile;
                         contact.Password = avatar.Password;
-                        contact.Postcode = avatar.Postcode;
+                        //contact.Postcode = avatar.Postcode;
                         contact.Title = avatar.Title;
-                        contact.Town = avatar.Town;
+                       // contact.Town = avatar.Town;
                         contact.Username = avatar.Username;
                         contact.AvatarType = avatar.AvatarType;
                         contact.Version = avatar.Version;

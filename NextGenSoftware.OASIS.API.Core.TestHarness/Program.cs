@@ -33,10 +33,10 @@ namespace NextGenSoftware.OASIS.API.Core.TestHarness
 
 
             Console.WriteLine("\nSaving Avatar...");
-            Avatar newAvatar = new Avatar { Username = "dellams", Email = "david@nextgensoftware.co.uk", Password = "1234", FirstName = "David", LastName = "Ellams", DOB = DateTime.Parse("11/04/1980"), Id = Guid.NewGuid(), Title = "Mr", Address = "blahahahaha" };
+            Avatar newAvatar = new Avatar { Username = "dellams", Email = "david@nextgensoftware.co.uk", Password = "1234", FirstName = "David", LastName = "Ellams", Id = Guid.NewGuid(), Title = "Mr" };
             
             
-            await newAvatar.KarmaEarntAsync(KarmaTypePositive.HelpingTheEnvironment, KarmaSourceType.hApp, "Our World", "XR Educational Game To Make The World A Better Place");
+         //   await newAvatar.KarmaEarntAsync(KarmaTypePositive.HelpingTheEnvironment, KarmaSourceType.hApp, "Our World", "XR Educational Game To Make The World A Better Place");
             Avatar savedAvatar = (Avatar)await OASISAPI.Avatar.SaveAvatarAsync(newAvatar);
             //IAvatar savedAvatar = await AvatarManager.SaveAvatarAsync(newAvatar);
 
@@ -50,8 +50,8 @@ namespace NextGenSoftware.OASIS.API.Core.TestHarness
                 Console.WriteLine(string.Concat("Username: ", savedAvatar.Username));
                 Console.WriteLine(string.Concat("Password: ", savedAvatar.Password));
                 Console.WriteLine(string.Concat("Email: ", savedAvatar.Email));
-                Console.WriteLine(string.Concat("DOB: ", savedAvatar.DOB));
-                Console.WriteLine(string.Concat("Address: ", savedAvatar.Address));
+               // Console.WriteLine(string.Concat("DOB: ", savedAvatar.DOB));
+                //Console.WriteLine(string.Concat("Address: ", savedAvatar.Address));
                 Console.WriteLine(string.Concat("Karma: ", savedAvatar.Karma));
                 Console.WriteLine(string.Concat("Level: ", savedAvatar.Level));
             }
@@ -70,8 +70,8 @@ namespace NextGenSoftware.OASIS.API.Core.TestHarness
                 Console.WriteLine(string.Concat("Username: ", Avatar.Username));
                 Console.WriteLine(string.Concat("Password: ", Avatar.Password));
                 Console.WriteLine(string.Concat("Email: ", Avatar.Email));
-                Console.WriteLine(string.Concat("DOB: ", Avatar.DOB));
-                Console.WriteLine(string.Concat("Address: ", Avatar.Address));
+              //  Console.WriteLine(string.Concat("DOB: ", Avatar.DOB));
+              //  Console.WriteLine(string.Concat("Address: ", Avatar.Address));
                 Console.WriteLine(string.Concat("Karma: ", Avatar.Karma));
                 Console.WriteLine(string.Concat("Level: ", Avatar.Level));
             }

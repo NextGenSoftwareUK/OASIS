@@ -2,6 +2,9 @@
 using System;
 using NextGenSoftware.Holochain.HoloNET.Client.Desktop;
 using NextGenSoftware.OASIS.API.Providers.HoloOASIS.Core;
+using System.Collections.Generic;
+using NextGenSoftware.OASIS.API.Core.Interfaces;
+using System.Threading.Tasks;
 
 namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Desktop
 {

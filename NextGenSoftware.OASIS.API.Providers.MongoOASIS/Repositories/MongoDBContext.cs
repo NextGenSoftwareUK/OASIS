@@ -1,7 +1,7 @@
 ﻿using MongoDB.Driver;
-using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities;
 using Avatar = NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities.Avatar;
+using AvatarDetail = NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities.AvatarDetail;
 using Holon = NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities.Holon;
 
 namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
@@ -17,8 +17,8 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
             MongoDB = MongoClient.GetDatabase(dbName);
         }
 
-        public IMongoCollection<AvatarDetail> AvatarDetail => MongoDB.GetCollection<AvatarDetail>("Avatar");
-        public IMongoCollection<AvatarThumbnail> AvatarThumbnail => MongoDB.GetCollection<AvatarThumbnail>("Avatar");
+        public IMongoCollection<AvatarDetail> AvatarDetail => MongoDB.GetCollection<AvatarDetail>("AvatarDetail");
+       // public IMongoCollection<AvatarThumbnail> AvatarThumbnail => MongoDB.GetCollection<AvatarThumbnail>("Avatar");
         public IMongoCollection<Avatar> Avatar => MongoDB.GetCollection<Avatar>("Avatar");
         public IMongoCollection<Holon> Holon => MongoDB.GetCollection<Holon>("Holon");
         public IMongoCollection<SearchData> SearchData => MongoDB.GetCollection<SearchData>("SearchData");

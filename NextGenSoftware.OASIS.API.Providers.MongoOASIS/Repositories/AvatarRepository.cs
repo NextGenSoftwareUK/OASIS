@@ -2,10 +2,10 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using MongoDB.Driver;
-using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Interfaces;
 using Avatar = NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities.Avatar;
+using AvatarDetail = NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities.AvatarDetail;
 
 namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
 {
@@ -37,6 +37,25 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
             }
         }
 
+        public async Task<AvatarDetail> AddAsync(AvatarDetail avatar)
+        {
+            try
+            {
+                avatar.HolonId = Guid.NewGuid();
+                avatar.CreatedProviderType = Core.Enums.ProviderType.MongoDBOASIS;
+
+                await _dbContext.AvatarDetail.InsertOneAsync(avatar);
+                avatar.ProviderKey[Core.Enums.ProviderType.MongoDBOASIS] = avatar.Id;
+
+                await UpdateAsync(avatar);
+                return avatar;
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+        }
+
         public Avatar Add(Avatar avatar)
         {
             try
@@ -45,6 +64,25 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                 avatar.CreatedProviderType = Core.Enums.ProviderType.MongoDBOASIS;
 
                 _dbContext.Avatar.InsertOne(avatar);
+                avatar.ProviderKey[Core.Enums.ProviderType.MongoDBOASIS] = avatar.Id;
+
+                Update(avatar);
+                return avatar;
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+        }
+
+        public AvatarDetail Add(AvatarDetail avatar)
+        {
+            try
+            {
+                avatar.HolonId = Guid.NewGuid();
+                avatar.CreatedProviderType = Core.Enums.ProviderType.MongoDBOASIS;
+
+                _dbContext.AvatarDetail.InsertOne(avatar);
                 avatar.ProviderKey[Core.Enums.ProviderType.MongoDBOASIS] = avatar.Id;
 
                 Update(avatar);
@@ -181,50 +219,90 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
             }
         }
 
-        public async Task<AvatarDetail> GetAvatarDetailByIdAsync(Guid id)
+        public async Task<AvatarDetail> UpdateAsync(AvatarDetail avatar)
         {
-            var filter = Builders<AvatarDetail>.Filter.Where(x => x.Id == id);
+            try
+            {
+                await _dbContext.AvatarDetail.ReplaceOneAsync(filter: g => g.HolonId == avatar.HolonId, replacement: avatar);
+                return avatar;
+            }
+            catch
+            {
+                throw;
+            }
+        }
+
+        public async Task<AvatarDetail> GetAvatarDetailAsync(Guid id)
+        {
+            var filter = Builders<AvatarDetail>.Filter.Where(x => x.HolonId == id);
             var findResult = await _dbContext.AvatarDetail.FindAsync(filter);
             var detailEntity = await findResult.FirstOrDefaultAsync();
             return detailEntity;
         }
 
-        public AvatarDetail GetAvatarDetailById(Guid id)
+        public AvatarDetail GetAvatarDetail(Guid id)
         {
-            var filter = Builders<AvatarDetail>.Filter.Where(x => x.Id == id);
+            var filter = Builders<AvatarDetail>.Filter.Where(x => x.HolonId == id);
             return _dbContext.AvatarDetail.Find(filter).FirstOrDefault();
         }
 
-        public async Task<IEnumerable<AvatarDetail>> GetAllAvatarDetailAsync()
+        public async Task<AvatarDetail> GetAvatarDetailAsync(string username)
+        {
+            var filter = Builders<AvatarDetail>.Filter.Where(x => x.Username == username);
+            var findResult = await _dbContext.AvatarDetail.FindAsync(filter);
+            var detailEntity = await findResult.FirstOrDefaultAsync();
+            return detailEntity;
+        }
+
+        public AvatarDetail GetAvatarDetail(string username)
+        {
+            var filter = Builders<AvatarDetail>.Filter.Where(x => x.Username == username);
+            return _dbContext.AvatarDetail.Find(filter).FirstOrDefault();
+        }
+
+        public async Task<IEnumerable<AvatarDetail>> GetAvatarDetailsAsync()
         {
             var cursor = await _dbContext.AvatarDetail.FindAsync(_ => true);
             return cursor.ToEnumerable();
         }
 
-        public IEnumerable<AvatarDetail> GetAllAvatarDetail()
+        public IEnumerable<AvatarDetail> GetAvatarDetails()
         {
             return _dbContext.AvatarDetail.Find(_ => true).ToEnumerable();
         }
 
-        public async Task<AvatarThumbnail> GetAvatarThumbnailByIdAsync(Guid id)
-        {
-            var filter = Builders<AvatarThumbnail>.Filter.Where(x => x.Id == id);
-            var findResult = await _dbContext.AvatarThumbnail.FindAsync(filter);
-            var detailEntity = await findResult.FirstOrDefaultAsync();
-            return detailEntity;
-        }
+        //public async Task<AvatarThumbnail> GetAvatarThumbnailByIdAsync(Guid id)
+        //{
+        //    var filter = Builders<AvatarThumbnail>.Filter.Where(x => x.Id == id);
+        //    var findResult = await _dbContext.AvatarThumbnail.FindAsync(filter);
+        //    var detailEntity = await findResult.FirstOrDefaultAsync();
+        //    return detailEntity;
+        //}
 
-        public AvatarThumbnail GetAvatarThumbnailById(Guid id)
-        {            
-            var filter = Builders<AvatarThumbnail>.Filter.Where(x => x.Id == id);
-            return _dbContext.AvatarThumbnail.Find(filter).FirstOrDefault();
-        }
+        //public AvatarThumbnail GetAvatarThumbnailById(Guid id)
+        //{            
+        //    var filter = Builders<AvatarThumbnail>.Filter.Where(x => x.Id == id);
+        //    return _dbContext.AvatarThumbnail.Find(filter).FirstOrDefault();
+        //}
 
         public Avatar Update(Avatar avatar)
         {
             try
             {
                 _dbContext.Avatar.ReplaceOne(filter: g => g.HolonId == avatar.HolonId, replacement: avatar);
+                return avatar;
+            }
+            catch
+            {
+                throw;
+            }
+        }
+
+        public AvatarDetail Update(AvatarDetail avatar)
+        {
+            try
+            {
+                _dbContext.AvatarDetail.ReplaceOne(filter: g => g.HolonId == avatar.HolonId, replacement: avatar);
                 return avatar;
             }
             catch

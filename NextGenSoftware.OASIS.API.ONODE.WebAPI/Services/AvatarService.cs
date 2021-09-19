@@ -163,7 +163,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
             if (id == Guid.Empty)
                 return new AvatarImage();
 
-            var avatar = GetAvatarDetail(id);
+            //var avatar = GetAvatarDetail(id);
+            var avatar = GetAvatar(id);
             return new AvatarImage(Encoding.ASCII.GetBytes(avatar.Image2D));
         }
 
@@ -172,31 +173,22 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
             if (id == Guid.Empty)
                 return;
 
-            var image2d = Encoding.ASCII.GetString(image); 
-            var avatar = GetAvatarDetail(id);
+            var image2d = Encoding.ASCII.GetString(image);
+            //var avatar = GetAvatarDetail(id);
+            var avatar = GetAvatar(id);
             avatar.Image2D = image2d;
 
-            AvatarManager.SaveAvatarDetail(avatar);
+            //AvatarManager.SaveAvatarDetail(avatar);
+            AvatarManager.SaveAvatar(avatar);
         }
-
-        //public AccountResponse GetById(Guid id)
-        //{
-        //    var account = getAvatar(id);
-        //    return _mapper.Map<AccountResponse>(account);
-        //}
 
         public IAvatar GetById(Guid id)
         {
             return GetAvatar(id);
         }
 
-        //public AccountResponse Create(CreateRequest model)
         public IAvatar Create(CreateRequest model)
         {
-            // validate
-            //if (_context.Accounts.Any(x => x.Email == model.Email))
-            //   throw new AppException($"Email '{model.Email}' is already registered");
-
             //TODO: PERFORMANCE} Implement in Providers so more efficient and do not need to return whole list!
             if (AvatarManager.LoadAllAvatars().Any(x => x.Email == model.Email))
                 throw new AppException($"Email '{model.Email}' is already registered");
@@ -208,25 +200,13 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
 
             // hash password
             avatar.Password = BC.HashPassword(model.Password);
-
-            // save account
-            // _context.Accounts.Add(account);
-            // _context.SaveChanges();
             AvatarManager.SaveAvatar(avatar);
-
-            //return _mapper.Map<AccountResponse>(avatar);
             return RemoveAuthDetails(avatar);
         }
 
-        //public IAvatar Update(Guid id, IAvatar avatar)
         public IAvatar Update(Guid id, UpdateRequest avatar)
         {
              IAvatar origAvatar = GetAvatar(id);
-
-          //  if (avatar.Id == Guid.Empty)
-          //      avatar.Id = id;
-
-            //if (account.Email != model.Email && _context.Accounts.Any(x => x.Email == model.Email))
 
             //TODO: {PERFORMANCE} Implement in Providers so more efficient and do not need to return whole list!
             if (!string.IsNullOrEmpty(avatar.Email) && avatar.Email != origAvatar.Email && AvatarManager.LoadAllAvatars().Any(x => x.Email == avatar.Email))
@@ -240,14 +220,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
              _mapper.Map(avatar, origAvatar);
             origAvatar.ModifiedDate = DateTime.UtcNow;
 
-            // return RemoveAuthDetails(AvatarManager.SaveAvatar(origAvatar));
             return RemoveAuthDetails(AvatarManager.SaveAvatar(origAvatar).Result);
-
-
-            // _context.Accounts.Update(account);
-            // _context.SaveChanges();
-
-            //return _mapper.Map<AccountResponse>(avatar);
         }
 
         public bool Delete(Guid id)
@@ -327,7 +300,6 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
 
         private (RefreshToken, IAvatar) GetRefreshToken(string token)
         {
-            //var account = _context.Accounts.SingleOrDefault(u => u.RefreshTokens.Any(t => t.Token == token));
             //TODO: PERFORMANCE} Implement in Providers so more efficient and do not need to return whole list!
             IAvatar avatar = AvatarManager.LoadAllAvatarsWithPasswords().FirstOrDefault(x => x.RefreshTokens.Any(t => t.Token == token));
 

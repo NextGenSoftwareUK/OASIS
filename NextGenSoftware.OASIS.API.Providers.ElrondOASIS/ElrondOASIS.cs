@@ -68,6 +68,16 @@ namespace NextGenSoftware.OASIS.API.Providers.ElrondOASIS
             throw new NotImplementedException();
         }
 
+        public override IEnumerable<IAvatarDetail> LoadAllAvatarDetails()
+        {
+            throw new NotImplementedException();
+        }
+
+        public override Task<IEnumerable<IAvatarDetail>> LoadAllAvatarDetailsAsync()
+        {
+            throw new NotImplementedException();
+        }
+
         public override IEnumerable<IAvatar> LoadAllAvatars()
         {
             throw new NotImplementedException();
@@ -114,6 +124,16 @@ namespace NextGenSoftware.OASIS.API.Providers.ElrondOASIS
         }
 
         public override Task<IAvatar> LoadAvatarAsync(string username, string password)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override IAvatarDetail LoadAvatarDetail(Guid id)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override Task<IAvatarDetail> LoadAvatarDetailAsync(Guid id)
         {
             throw new NotImplementedException();
         }
@@ -174,6 +194,16 @@ namespace NextGenSoftware.OASIS.API.Providers.ElrondOASIS
         }
 
         public override Task<IAvatar> SaveAvatarAsync(IAvatar Avatar)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override IAvatarDetail SaveAvatarDetail(IAvatarDetail Avatar)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override Task<IAvatarDetail> SaveAvatarDetailAsync(IAvatarDetail Avatar)
         {
             throw new NotImplementedException();
         }

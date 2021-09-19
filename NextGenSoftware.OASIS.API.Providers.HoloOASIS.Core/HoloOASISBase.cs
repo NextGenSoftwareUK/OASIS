@@ -361,7 +361,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Core
         {
             return new HcAvatar
             {
-                dob = Avatar.DOB.ToString(),
+               // dob = Avatar.DOB.ToString(),
                 email = Avatar.Email,
                 first_name = Avatar.FirstName,
                 hc_address_hash = string.Empty,
@@ -370,7 +370,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Core
                 karma = Avatar.Karma,
                 last_name = Avatar.LastName,
                 password = Avatar.Password,
-                address = Avatar.Address,
+                //address = Avatar.Address,
                 provider_key = Avatar.ProviderKey == null ? string.Empty : Avatar.ProviderKey[API.Core.Enums.ProviderType.HoloOASIS],
                 title = Avatar.Title,
                 username = Avatar.Username
@@ -381,7 +381,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Core
         {
             Avatar avatar = new Avatar
             {
-                DOB = Convert.ToDateTime(hcAvatar.dob),
+               // DOB = Convert.ToDateTime(hcAvatar.dob),
                 Email = hcAvatar.email,
                 FirstName = hcAvatar.first_name,
                 HolonType = hcAvatar.holon_type,
@@ -389,7 +389,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Core
                 Karma = hcAvatar.karma,
                 LastName = hcAvatar.last_name,
                 Password = hcAvatar.password,
-                Address = hcAvatar.address,
+              //  Address = hcAvatar.address,
                 //ProviderKey = new Dictionary<ProviderType, string>(),
                 //ProviderKey[API.Core.Enums.ProviderType.HoloOASIS] = hcAvatar.provider_key,
                 Title = hcAvatar.title,
@@ -584,6 +584,36 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Core
         }
 
         public override Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(string providerKey, HolonType type = HolonType.Holon)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override IEnumerable<IAvatarDetail> LoadAllAvatarDetails()
+        {
+            throw new NotImplementedException();
+        }
+
+        public override Task<IEnumerable<IAvatarDetail>> LoadAllAvatarDetailsAsync()
+        {
+            throw new NotImplementedException();
+        }
+
+        public override IAvatarDetail LoadAvatarDetail(Guid id)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override Task<IAvatarDetail> LoadAvatarDetailAsync(Guid id)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override IAvatarDetail SaveAvatarDetail(IAvatarDetail Avatar)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override Task<IAvatarDetail> SaveAvatarDetailAsync(IAvatarDetail Avatar)
         {
             throw new NotImplementedException();
         }
