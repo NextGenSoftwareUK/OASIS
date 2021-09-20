@@ -90,6 +90,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
             services.AddScoped<IEmailService, EmailService>();
             services.AddScoped<ISolanaService, SolanaService>();
             services.AddScoped<ICargoService, CargoService>();
+            services.AddScoped<INftService, NftService>();
 
             services.AddCors(options =>
             {
