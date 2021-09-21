@@ -108,7 +108,7 @@ const SideNavData = [
             },
             {
                 title: "View SEEDS",
-                path: ""
+                path: "/view-seeds"
             },
             {
                 title: "View Organisations",
