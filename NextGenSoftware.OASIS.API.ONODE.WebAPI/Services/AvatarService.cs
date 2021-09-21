@@ -158,14 +158,28 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
             return AvatarManager.LoadAllAvatars();
         }
 
-        public AvatarImage GetAvatarImageById(Guid id)
+        //TODO: MAKE ALL METHODS WORK LIKE THIS! ;-) THANKS!
+        public OASISResult<AvatarImage> GetAvatarImageById(Guid id)
         {
-            if (id == Guid.Empty)
-                return new AvatarImage();
+            OASISResult<AvatarImage> result = new OASISResult<AvatarImage>();
 
-            //var avatar = GetAvatarDetail(id);
-            var avatar = GetAvatar(id);
-            return new AvatarImage(Encoding.ASCII.GetBytes(avatar.Image2D));
+            if (id == Guid.Empty)
+            {
+                result.Message = "Guid is empty, please speceify a valid Guid.";
+                result.IsError = true;
+            }
+
+            OASISResult<IAvatar> avatarResult = GetAvatar(id);
+
+            if (!avatarResult.IsError)
+                result.Result = new AvatarImage(Encoding.ASCII.GetBytes(avatarResult.Result.Image2D));
+            else
+            {
+                result.IsError = true;
+                result.Message = avatarResult.Message;
+            }
+
+            return result;
         }
 
         public void Upload2DAvatarImage(Guid id, byte[] image)
@@ -176,15 +190,15 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
             var image2d = Encoding.ASCII.GetString(image);
             //var avatar = GetAvatarDetail(id);
             var avatar = GetAvatar(id);
-            avatar.Image2D = image2d;
+            avatar.Result.Image2D = image2d;
 
             //AvatarManager.SaveAvatarDetail(avatar);
-            AvatarManager.SaveAvatar(avatar);
+            AvatarManager.SaveAvatar(avatar.Result);
         }
 
         public IAvatar GetById(Guid id)
         {
-            return GetAvatar(id);
+            return GetAvatar(id).Result;
         }
 
         public IAvatar Create(CreateRequest model)
@@ -206,7 +220,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
 
         public IAvatar Update(Guid id, UpdateRequest avatar)
         {
-             IAvatar origAvatar = GetAvatar(id);
+            //TODO: Handle this properly... (check if OASISResult.IsError is false, etc)
+             IAvatar origAvatar = GetAvatar(id).Result;
 
             //TODO: {PERFORMANCE} Implement in Providers so more efficient and do not need to return whole list!
             if (!string.IsNullOrEmpty(avatar.Email) && avatar.Email != origAvatar.Email && AvatarManager.LoadAllAvatars().Any(x => x.Email == avatar.Email))
@@ -278,24 +293,37 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
             return response;
         }*/
 
-        private IAvatar GetAvatar(Guid id)
+        private OASISResult<IAvatar> GetAvatar(Guid id)
         {
+            OASISResult<IAvatar> result = new OASISResult<IAvatar>();
             IAvatar avatar = AvatarManager.LoadAvatar(id);
 
-            if (avatar == null) 
-                throw new KeyNotFoundException("Avatar not found");
+            if (avatar == null)
+            {
+                result.Message = "Avatar not found";
+                result.IsError = true;
+            }
 
-            return avatar;
+            return result;
         }
 
-        public IAvatarDetail GetAvatarDetail(Guid id)
+        public OASISResult<IAvatarDetail> GetAvatarDetail(Guid id)
         {
+            OASISResult<IAvatarDetail> result = new OASISResult<IAvatarDetail>();
             IAvatarDetail avatar = AvatarManager.LoadAvatarDetail(id);
 
             if (avatar == null)
-                throw new KeyNotFoundException("AvatarDetail not found");
+            {
+                result.Message = "AvatarDetail not found";
+                result.IsError = true;
+            }
 
-            return avatar;
+            return result;
+        }
+
+        public OASISResult<IEnumerable<IAvatarDetail>> GetAllAvatarDetails()
+        {
+            return new OASISResult<IEnumerable<IAvatarDetail>>(AvatarManager.LoadAllAvatarDetails());
         }
 
         private (RefreshToken, IAvatar) GetRefreshToken(string token)
