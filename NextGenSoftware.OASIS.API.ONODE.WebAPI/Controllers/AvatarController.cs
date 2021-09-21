@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using NextGenSoftware.OASIS.API.Core.Enums;
@@ -81,19 +80,19 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         //    return await _avatarService.GetAllAvatarDetails();
         //}
 
-        //[Authorize(AvatarType.Wizard)]
-        //[HttpGet("GetAvatarDetail/{id:guid}")]
-        //public async Task<OASISResult<IAvatarDetail>> GetAvatarDetail(Guid id)
-        //{
-        //    return await _avatarService.GetAvatarDetail(id);
-        //}
+        [Authorize(AvatarType.Wizard)]
+        [HttpGet("GetAvatarDetail/{id:guid}")]
+        public ActionResult<OASISResult<IAvatarDetail>> GetAvatarDetail(Guid id)
+        {
+            return _avatarService.GetAvatarDetail(id);
+        }
 
-        //[Authorize(AvatarType.Wizard)]
-        //[HttpGet("GetAllAvatarDetail")]
-        //public async Task<OASISResult<IEnumerable<IAvatarDetail>>> GetAllAvatarDetails()
-        //{
-        //    return await _avatarService.GetAllAvatarDetails();
-        //}
+        [Authorize(AvatarType.Wizard)]
+        [HttpGet("GetAllAvatarDetails")]
+        public ActionResult<OASISResult<IEnumerable<IAvatarDetail>>> GetAllAvatarDetails()
+        {
+            return _avatarService.GetAllAvatarDetails();
+        }
 
         /// <summary>
         /// Get's all avatars (only works for logged in &amp; authenticated Wizards (Admins)).

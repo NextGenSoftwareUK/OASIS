@@ -19,13 +19,15 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Interfaces
         void ValidateResetToken(ValidateResetTokenRequest model);
         void ResetPassword(ResetPasswordRequest model);
         IEnumerable<IAvatar> GetAll();
-        AvatarImage GetAvatarImageById(Guid id);
+        OASISResult<AvatarImage> GetAvatarImageById(Guid id);
         void Upload2DAvatarImage(Guid id, byte[] image);
         IAvatar GetById(Guid id);
         IAvatar Create(CreateRequest model);
         IAvatar Update(Guid id, UpdateRequest avatar);
         bool Delete(Guid id);
-        IAvatarDetail GetAvatarDetail(Guid id);
+        OASISResult<IAvatarDetail> GetAvatarDetail(Guid id);
+        OASISResult<IEnumerable<IAvatarDetail>> GetAllAvatarDetails();
+
         // Task<ApiResponse<IAvatarThumbnail>> GetAvatarThumbnail(Guid id);
         //Task<ApiResponse<IAvatarDetail>> GetAvatarDetail(Guid id);
         //Task<ApiResponse<IEnumerable<IAvatarDetail>>> GetAllAvatarDetails();
