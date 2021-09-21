@@ -122,3 +122,17 @@
         }
     }
 }
+.view-popup{
+    width: 100% !important;
+    text-align: left;
+    .view-seeds-buttons{
+        display: flex;
+        justify-content: space-between;
+        a{
+            margin: 1rem;
+        }
+        @media (max-width: 750px) {
+            flex-direction: column;
+        }
+    }
+}

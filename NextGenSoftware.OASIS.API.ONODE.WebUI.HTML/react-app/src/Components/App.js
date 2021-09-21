@@ -20,6 +20,7 @@ import "../assets/scss/seeds.scss";
 import axios from "axios";
 import AcceptInvite from "./pages/seeds/AcceptInvite";
 import SearchSeeds from "./pages/seeds/SearchSeeds";
+import ViewSeeds from "./pages/seeds/ViewSeeds";
 
 class App extends React.Component {
     state = {
@@ -134,6 +135,7 @@ class App extends React.Component {
                             <Route path="/accept-invite-to-join-seeds" component={AcceptInvite} />
                             <Route path="/send-invite-to-join-seeds" component={SendInvite} />
                             <Route exact path="/search-seeds" component={SearchSeeds} />
+                            <Route exact path="/view-seeds" component={ViewSeeds} />
                             {/* ================================================ */}
 
                             <Route exact path="/karma" component={Karma} />
