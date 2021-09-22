@@ -11,6 +11,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Interfaces
     public interface IAvatarService
     {
         string GetTerms();
+        OASISResult<string> ValidateAccountToken(string accountToken);
         AuthenticateResponse Authenticate(AuthenticateRequest model, string ipAddress);
         IAvatar RefreshToken(string token, string ipAddress);
         void RevokeToken(string token, string ipAddress);

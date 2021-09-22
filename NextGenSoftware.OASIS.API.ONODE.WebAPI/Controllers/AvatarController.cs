@@ -1,8 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Principal;
+using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.IdentityModel.Tokens;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
@@ -262,6 +266,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 setTokenCookie(response.Avatar.RefreshToken);
 
             return Ok(response);
+        }
+        
+        [HttpPost("AuthenticateToken/{token}")]
+        public OASISResult<string> Authenticate(string token)
+        {
+            return _avatarService.ValidateAccountToken(token);
         }
 
         /// <summary>
@@ -934,7 +944,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
        {
            return Ok(AvatarManager.GetAllPrivateProviderKeysForAvatar(avatarId));
        }*/
-    
+
         private void setTokenCookie(string token)
         {
             var cookieOptions = new CookieOptions
