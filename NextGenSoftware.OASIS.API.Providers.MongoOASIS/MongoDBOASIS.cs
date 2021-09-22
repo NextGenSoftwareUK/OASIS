@@ -71,9 +71,24 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             return ConvertMongoEntitysToOASISAvatars(_avatarRepository.GetAvatars());
         }
 
+        public override IAvatar LoadAvatarByEmail(string avatarEmail)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override IAvatar LoadAvatarByUsername(string avatarUsername)
+        {
+            throw new NotImplementedException();
+        }
+
         public override async Task<IAvatar> LoadAvatarAsync(string username)
         {
             return ConvertMongoEntityToOASISAvatar(await _avatarRepository.GetAvatarAsync(username));
+        }
+
+        public override IAvatar LoadAvatarByUsernameAsync(string avatarUsername)
+        {
+            throw new NotImplementedException();
         }
 
         public override IAvatar LoadAvatar(string username)
@@ -84,6 +99,11 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
         public override async Task<IAvatar> LoadAvatarAsync(Guid Id)
         {
             return ConvertMongoEntityToOASISAvatar(await _avatarRepository.GetAvatarAsync(Id));
+        }
+
+        public override IAvatar LoadAvatarByEmailAsync(string avatarEmail)
+        {
+            throw new NotImplementedException();
         }
 
         public override IAvatar LoadAvatar(Guid Id)
@@ -129,14 +149,34 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
                 _avatarRepository.Update(ConvertOASISAvatarDetailToMongoEntity(avatar)));
         }
 
+        public override bool DeleteAvatarByUsername(string avatarUsername, bool softDelete = true)
+        {
+            throw new NotImplementedException();
+        }
+
         public override async Task<bool> DeleteAvatarAsync(Guid id, bool softDelete = true)
         {
             return await _avatarRepository.DeleteAsync(id, softDelete);
         }
 
+        public override async Task<bool> DeleteAvatarByEmailAsync(string avatarEmail, bool softDelete = true)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override async Task<bool> DeleteAvatarByUsernameAsync(string avatarUsername, bool softDelete = true)
+        {
+            throw new NotImplementedException();
+        }
+
         public override bool DeleteAvatar(Guid id, bool softDelete = true)
         {
             return _avatarRepository.Delete(id, softDelete);
+        }
+
+        public override bool DeleteAvatarByEmail(string avatarEmail, bool softDelete = true)
+        {
+            throw new NotImplementedException();
         }
 
         public override async Task<IAvatar> LoadAvatarForProviderKeyAsync(string providerKey)
@@ -166,9 +206,24 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             return await _searchRepository.SearchAsync(searchTerm);
         }
 
+        public override IAvatarDetail LoadAvatarDetailByUsername(string avatarUsername)
+        {
+            throw new NotImplementedException();
+        }
+
         public override async Task<IAvatarDetail> LoadAvatarDetailAsync(Guid id)
         {
             return ConvertMongoEntityToOASISAvatarDetail(await _avatarRepository.GetAvatarDetailAsync(id));
+        }
+
+        public override async Task<IAvatarDetail> LoadAvatarDetailByUsernameAsync(string avatarUsername)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override async Task<IAvatarDetail> LoadAvatarDetailByEmailAsync(string avatarEmail)
+        {
+            throw new NotImplementedException();
         }
 
         public override async Task<IEnumerable<IAvatarDetail>> LoadAllAvatarDetailsAsync()
@@ -184,6 +239,11 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
         public override IAvatarDetail LoadAvatarDetail(Guid id)
         {
             return ConvertMongoEntityToOASISAvatarDetail(_avatarRepository.GetAvatarDetail(id));
+        }
+
+        public override IAvatarDetail LoadAvatarDetailByEmail(string avatarEmail)
+        {
+            throw new NotImplementedException();
         }
 
         public override IEnumerable<IAvatarDetail> LoadAllAvatarDetails()
@@ -379,7 +439,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
 
             Core.Holons.Avatar oasisAvatar = new Core.Holons.Avatar();
 
-            oasisAvatar.Id = avatar.Id;
+            oasisAvatar.Id = new Guid(avatar.Id);
             oasisAvatar.ProviderKey = avatar.ProviderKey;
             oasisAvatar.ProviderMetaData = avatar.ProviderMetaData;
             oasisAvatar.Description = avatar.Description;
