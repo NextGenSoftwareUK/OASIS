@@ -339,7 +339,38 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
         {
             return await AvatarManager.DeleteAvatarByEmailAsync(email);
         }
+        
+        public OASISResult<string> ValidateAccountToken(string accountToken)
+        {
+            var response = new OASISResult<string>();
 
+            try
+            {
+                var key = Encoding.ASCII.GetBytes(OASISBootLoader.OASISBootLoader.OASISDNA.OASIS.Security.Secret);
+                var tokenHandler = new JwtSecurityTokenHandler();
+                tokenHandler.ValidateToken(accountToken, new TokenValidationParameters
+                {
+                    ValidateIssuerSigningKey = true,
+                    IssuerSigningKey = new SymmetricSecurityKey(key),
+                    ValidateIssuer = false,
+                    ValidateAudience = false,
+                    ClockSkew = TimeSpan.Zero
+                }, out _);
+                response.IsError = false;
+                response.Result = "Token is Valid!";
+            }
+            catch (Exception e)
+            {
+                response.IsError = true;
+                response.Exception = e;
+                response.Message = e.Message;
+                response.Result = "Token Validating Failed!";
+            }
+            
+            return response;
+        }
+        
+        
         //public async Task<ApiResponse<IAvatarThumbnail>> GetAvatarThumbnail(Guid id)
         //{
         //    var response = new ApiResponse<IAvatarThumbnail>();
