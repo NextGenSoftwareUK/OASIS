@@ -126,15 +126,15 @@ class App extends React.Component {
                             handleLogout={this.handleLogout}
                             user={this.state.user}
                         />
-                        <SideNav
+                        {/* <SideNav
                             showSidebar={this.state.showSidebar}
                             toggleSidebar={this.toggleSidebar}
-                        />
-                        {/* <Sidebar 
+                        /> */}
+                        <Sidebar 
                             showSidebar={this.state.showSidebar} 
                             toggleSidebar={this.toggleSidebar} 
                             toggleDataScreenPopup={this.toggleDataScreenPopup}
-                        /> */}
+                        />
                     </header>
 
                     <div className="content-container">
