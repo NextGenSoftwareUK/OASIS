@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Avatar;
@@ -20,12 +21,20 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Interfaces
         void ResetPassword(ResetPasswordRequest model);
         IEnumerable<IAvatar> GetAll();
         OASISResult<AvatarImage> GetAvatarImageById(Guid id);
+        Task<OASISResult<AvatarImage>> GetAvatarImageByUsername(string userName);
+        Task<OASISResult<AvatarImage>> GetAvatarImageByEmail(string email);
         void Upload2DAvatarImage(Guid id, byte[] image);
         IAvatar GetById(Guid id);
+        Task<IAvatar> GetByUsername(string userName);
+        Task<IAvatar> GetByEmail(string email);
         IAvatar Create(CreateRequest model);
         IAvatar Update(Guid id, UpdateRequest avatar);
         bool Delete(Guid id);
+        Task<bool> DeleteByUsername(string username);
+        Task<bool> DeleteByEmail(string email);
         OASISResult<IAvatarDetail> GetAvatarDetail(Guid id);
+        Task<OASISResult<IAvatarDetail>> GetAvatarDetailByUsername(string username);
+        Task<OASISResult<IAvatarDetail>> GetAvatarDetailByEmail(string email);
         OASISResult<IEnumerable<IAvatarDetail>> GetAllAvatarDetails();
 
         // Task<ApiResponse<IAvatarThumbnail>> GetAvatarThumbnail(Guid id);

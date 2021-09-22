@@ -7,6 +7,7 @@ using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
+using System.Threading.Tasks;
 using AutoMapper;
 using BC = BCrypt.Net.BCrypt;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
@@ -182,6 +183,44 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
             return result;
         }
 
+        public async Task<OASISResult<AvatarImage>> GetAvatarImageByUsername(string userName)
+        {
+            var response = new OASISResult<AvatarImage>();
+
+            try
+            {
+                var avatarResult = await AvatarManager.LoadAvatarByUsernameAsync(userName);
+                response.Result = new AvatarImage(Encoding.ASCII.GetBytes(avatarResult.Image2D));
+            }
+            catch (Exception e)
+            {
+                response.IsError = false;
+                response.Exception = e;
+                response.Message = e.Message;
+            }
+            
+            return response;
+        }
+        
+        public async Task<OASISResult<AvatarImage>> GetAvatarImageByEmail(string email)
+        {
+            var response = new OASISResult<AvatarImage>();
+
+            try
+            {
+                var avatarResult = await AvatarManager.LoadAvatarByEmailAsync(email);
+                response.Result = new AvatarImage(Encoding.ASCII.GetBytes(avatarResult.Image2D));
+            }
+            catch (Exception e)
+            {
+                response.IsError = false;
+                response.Exception = e;
+                response.Message = e.Message;
+            }
+            
+            return response;
+        }
+
         public void Upload2DAvatarImage(Guid id, byte[] image)
         {
             if (id == Guid.Empty)
@@ -199,6 +238,16 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
         public IAvatar GetById(Guid id)
         {
             return GetAvatar(id).Result;
+        }
+
+        public async Task<IAvatar> GetByUsername(string userName)
+        {
+            return await AvatarManager.LoadAvatarByUsernameAsync(userName);
+        }
+
+        public async Task<IAvatar> GetByEmail(string email)
+        {
+            return await AvatarManager.LoadAvatarByEmailAsync(email);
         }
 
         public IAvatar Create(CreateRequest model)
@@ -242,6 +291,16 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
         {
             // Default to soft delete.
             return AvatarManager.DeleteAvatar(id);
+        }
+
+        public async Task<bool> DeleteByUsername(string username)
+        {
+            return await AvatarManager.DeleteAvatarByUsernameAsync(username);
+        }
+
+        public async Task<bool> DeleteByEmail(string email)
+        {
+            return await AvatarManager.DeleteAvatarByEmailAsync(email);
         }
 
         //public async Task<ApiResponse<IAvatarThumbnail>> GetAvatarThumbnail(Guid id)
@@ -319,6 +378,44 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
             }
 
             return result;
+        }
+
+        public async Task<OASISResult<IAvatarDetail>> GetAvatarDetailByUsername(string username)
+        {
+            var response = new OASISResult<IAvatarDetail>();
+
+            try
+            {
+                var entity = await AvatarManager.LoadAvatarDetailByUsernameAsync(username);
+                response.Result = entity;
+            }
+            catch (Exception e)
+            {
+                response.IsError = true;
+                response.Exception = e;
+                response.Message = e.Message;
+            }
+            
+            return response;
+        }
+
+        public async Task<OASISResult<IAvatarDetail>> GetAvatarDetailByEmail(string email)
+        {
+            var response = new OASISResult<IAvatarDetail>();
+
+            try
+            {
+                var entity = await AvatarManager.LoadAvatarDetailByEmailAsync(email);
+                response.Result = entity;
+            }
+            catch (Exception e)
+            {
+                response.IsError = true;
+                response.Exception = e;
+                response.Message = e.Message;
+            }
+            
+            return response;
         }
 
         public OASISResult<IEnumerable<IAvatarDetail>> GetAllAvatarDetails()
