@@ -17,6 +17,7 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces
         Dictionary<ProviderType, Dictionary<string, string>> ProviderMetaData { get; set; }
         Dictionary<string, string> MetaData { get; set; }
         int Version { get; set; }
+        Guid PreviousVersionId { get; set; }
         bool IsActive { get; set; }
         bool IsChanged { get; set; }
         bool IsNewHolon { get; set; }
