@@ -3,29 +3,37 @@ import { BrowserRouter as Router, Route, Switch } from "react-router-dom";
 
 import SideNav from "./common/SideNav";
 import Navbar from "./common/Navbar";
+import Sidebar from "./common/sidebar/Sidebar";
 import PayWithSeeds from "./pages/seeds/PayWithSeeds";
 import SendInvite from "./pages/seeds/SendInvite";
 import Karma from "./pages/karma/Karma";
 import Home from "./pages/Home";
 import Login from "./Login";
 import Signup from "./Signup";
-import AddData from "./pages/data-screen/AddData";
+// import AddData from "./pages/data-screen/AddData";
 import ShowAllData from "./pages/data-screen/ShowAllData";
 
 
 import "../assets/scss/general.scss";
 import "../assets/scss/style.scss";
-import "../assets/scss/seeds.scss";
+import "../assets/scss/Seeds.scss";
 
 import axios from "axios";
 import AcceptInvite from "./pages/seeds/AcceptInvite";
+import AddData from "./popups/data-screen/AddData";
 
 class App extends React.Component {
     state = {
         showSidebar: false,
         showLogin: false,
         showSignup: false,
-        user: null
+        user: null,
+
+        dataScreen: {
+            loadData: false,
+            sendData: false,
+            manageData: false
+        }
     }
 
     componentDidMount() {
@@ -96,6 +104,15 @@ class App extends React.Component {
         })
     }
 
+    toggleDataScreenPopup = (name) => {
+        let dataScreen = {...this.state.dataScreen};
+        dataScreen[name] = !dataScreen[name];
+
+        this.setState({
+            dataScreen
+        })
+    }
+
     render() {
         return (
             <div className="main-container">
@@ -113,13 +130,18 @@ class App extends React.Component {
                             showSidebar={this.state.showSidebar}
                             toggleSidebar={this.toggleSidebar}
                         />
+                        {/* <Sidebar 
+                            showSidebar={this.state.showSidebar} 
+                            toggleSidebar={this.toggleSidebar} 
+                            toggleDataScreenPopup={this.toggleDataScreenPopup}
+                        /> */}
                     </header>
 
                     <div className="content-container">
                         <Switch>
                             <Route exact path="/home" component={Home} />
 
-                            <Route exact path="/add-data" component={AddData} />
+                            {/* <Route exact path="/add-data" component={AddData} /> */}
                             <Route exact path="/show-data" component={ShowAllData} />
 
                             <Route path="/pay-with-seeds" component={PayWithSeeds} />
@@ -149,6 +171,11 @@ class App extends React.Component {
                     show={this.state.showSignup}
                     hide={this.hideSignup}
                     change={this.showLogin}
+                />
+
+                <AddData 
+                    show={this.state.dataScreen.sendData}
+                    hide={this.toggleDataScreenPopup}
                 />
             </div>
         );
