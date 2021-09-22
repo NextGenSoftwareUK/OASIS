@@ -267,21 +267,58 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
             return RemoveAuthDetails(avatar);
         }
 
-        public IAvatar Update(Guid id, UpdateRequest avatar)
+        public async Task<IAvatar> Update(Guid id, UpdateRequest avatar)
         {
-            //TODO: Handle this properly... (check if OASISResult.IsError is false, etc)
-             IAvatar origAvatar = GetAvatar(id).Result;
+             var oasisResult = GetAvatar(id);
+             if (oasisResult.IsError)
+                 return null;
+             
+             var origAvatar = oasisResult.Result;
 
-            //TODO: {PERFORMANCE} Implement in Providers so more efficient and do not need to return whole list!
-            if (!string.IsNullOrEmpty(avatar.Email) && avatar.Email != origAvatar.Email && AvatarManager.LoadAllAvatars().Any(x => x.Email == avatar.Email))
+             if (!string.IsNullOrEmpty(avatar.Email) && avatar.Email != origAvatar.Email && await AvatarManager.LoadAvatarByEmailAsync(avatar.Email) != null)
+                throw new AppException($"Email '{avatar.Email}' is already taken");
+
+             // hash password if it was entered
+             if (!string.IsNullOrEmpty(avatar.Password))
+                 avatar.Password = BC.HashPassword(avatar.Password);
+
+             //TODO: Fix this.
+             _mapper.Map(avatar, origAvatar);
+             origAvatar.ModifiedDate = DateTime.UtcNow;
+
+            return RemoveAuthDetails(AvatarManager.SaveAvatar(origAvatar).Result);
+        }
+
+        public async Task<IAvatar> UpdateByEmail(string email, UpdateRequest avatar)
+        {
+            IAvatar origAvatar = await AvatarManager.LoadAvatarByEmailAsync(email);
+
+            if (!string.IsNullOrEmpty(avatar.Email) && avatar.Email != origAvatar.Email)
                 throw new AppException($"Email '{avatar.Email}' is already taken");
 
             // hash password if it was entered
             if (!string.IsNullOrEmpty(avatar.Password))
                 avatar.Password = BC.HashPassword(avatar.Password);
 
-             //TODO: Fix this.
-             _mapper.Map(avatar, origAvatar);
+            //TODO: Fix this.
+            _mapper.Map(avatar, origAvatar);
+            origAvatar.ModifiedDate = DateTime.UtcNow;
+            return RemoveAuthDetails(AvatarManager.SaveAvatar(origAvatar).Result);
+        }
+
+        public async Task<IAvatar> UpdateByUsername(string username, UpdateRequest avatar)
+        {
+            IAvatar origAvatar = await AvatarManager.LoadAvatarByUsernameAsync(username);
+
+            if (!string.IsNullOrEmpty(avatar.Email) && avatar.Email != origAvatar.Email && (await AvatarManager.LoadAvatarByEmailAsync(avatar.Email) != null))
+                throw new AppException($"Email '{avatar.Email}' is already taken");
+
+            // hash password if it was entered
+            if (!string.IsNullOrEmpty(avatar.Password))
+                avatar.Password = BC.HashPassword(avatar.Password);
+
+            //TODO: Fix this.
+            _mapper.Map(avatar, origAvatar);
             origAvatar.ModifiedDate = DateTime.UtcNow;
 
             return RemoveAuthDetails(AvatarManager.SaveAvatar(origAvatar).Result);
