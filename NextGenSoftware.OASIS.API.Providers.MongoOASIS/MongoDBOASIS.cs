@@ -379,7 +379,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
 
             Core.Holons.Avatar oasisAvatar = new Core.Holons.Avatar();
 
-            oasisAvatar.Id = avatar.HolonId;
+            oasisAvatar.Id = avatar.Id;
             oasisAvatar.ProviderKey = avatar.ProviderKey;
             oasisAvatar.ProviderMetaData = avatar.ProviderMetaData;
             oasisAvatar.Description = avatar.Description;

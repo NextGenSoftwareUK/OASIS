@@ -15,7 +15,9 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces
         IAvatar LoadAvatarForProviderKey(string providerKey);
         Task<IAvatar> LoadAvatarForProviderKeyAsync(string providerKey);
         IAvatar LoadAvatar(Guid id);
+        IAvatar LoadAvatar(string avatarEmail);
         Task<IAvatar> LoadAvatarAsync(Guid Id);
+        IAvatar LoadAvatarAsync(string avatarEmail);
         IAvatar LoadAvatar(string username);
         Task<IAvatar> LoadAvatarAsync(string username);
         IAvatar LoadAvatar(string username, string password);
@@ -23,7 +25,11 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces
         IEnumerable<IAvatar> LoadAllAvatars();
         Task<IEnumerable<IAvatar>> LoadAllAvatarsAsync();
         IAvatarDetail LoadAvatarDetail(Guid id);
+        IAvatarDetail LoadAvatarDetail(string avatarEmail);
+        IAvatarDetail LoadAvatarDetail(string avatarUsername);
         Task<IAvatarDetail> LoadAvatarDetailAsync(Guid id);
+        Task<IAvatarDetail> LoadAvatarDetailAsync(string avatarUsername);
+        Task<IAvatarDetail> LoadAvatarDetailAsync(string avatarEmail);
         IEnumerable<IAvatarDetail> LoadAllAvatarDetails();
         Task<IEnumerable<IAvatarDetail>> LoadAllAvatarDetailsAsync();
        // IAvatarThumbnail LoadAvatarThumbnail(Guid id);
