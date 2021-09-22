@@ -54,7 +54,9 @@
     <ProjectReference Include="..\NextGenSoftware.OASIS.API.Providers.MongoOASIS\NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.csproj" />
     <ProjectReference Include="..\NextGenSoftware.OASIS.API.Providers.SOLIDOASIS\NextGenSoftware.OASIS.API.Providers.SOLIDOASIS.csproj" />
     <ProjectReference Include="..\NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS\NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.csproj" />
+    <ProjectReference Include="..\NextGenSoftware.OASIS.API.Providers.SOLANAOASIS\NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.csproj" />
     <ProjectReference Include="..\NextGenSoftware.OASIS.OASISBootLoader\NextGenSoftware.OASIS.OASISBootLoader.csproj" />
+    <ProjectReference Include="..\NextGenSoftware.OASIS.API.Providers.CargoOASIS\NextGenSoftware.OASIS.API.Providers.CargoOASIS.csproj" />
   </ItemGroup>
 
   <ItemGroup>
