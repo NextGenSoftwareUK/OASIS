@@ -28,7 +28,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Interfaces
         Task<IAvatar> GetByUsername(string userName);
         Task<IAvatar> GetByEmail(string email);
         IAvatar Create(CreateRequest model);
-        IAvatar Update(Guid id, UpdateRequest avatar);
+        Task<IAvatar> Update(Guid id, UpdateRequest avatar);
+        Task<IAvatar> UpdateByEmail(string email, UpdateRequest avatar);
+        Task<IAvatar> UpdateByUsername(string username, UpdateRequest avatar);
         bool Delete(Guid id);
         Task<bool> DeleteByUsername(string username);
         Task<bool> DeleteByEmail(string email);
