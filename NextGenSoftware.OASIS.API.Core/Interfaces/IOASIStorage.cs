@@ -18,8 +18,8 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces
         IAvatar LoadAvatarByEmail(string avatarEmail);
         IAvatar LoadAvatarByUsername(string avatarUsername);
         Task<IAvatar> LoadAvatarAsync(Guid Id);
-        IAvatar LoadAvatarByEmailAsync(string avatarEmail);
-        IAvatar LoadAvatarByUsernameAsync(string avatarUsername);
+        Task<IAvatar> LoadAvatarByEmailAsync(string avatarEmail);
+        Task<IAvatar> LoadAvatarByUsernameAsync(string avatarUsername);
         IAvatar LoadAvatar(string username);
         Task<IAvatar> LoadAvatarAsync(string username);
         IAvatar LoadAvatar(string username, string password);

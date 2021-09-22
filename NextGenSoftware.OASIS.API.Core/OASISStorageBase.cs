@@ -67,8 +67,8 @@ namespace NextGenSoftware.OASIS.API.Core
         public abstract IEnumerable<IAvatar> LoadAllAvatars();
         public abstract IAvatar LoadAvatarByUsername(string avatarUsername);
         public abstract Task<IAvatar> LoadAvatarAsync(Guid Id);
-        public abstract IAvatar LoadAvatarByEmailAsync(string avatarEmail);
-        public abstract IAvatar LoadAvatarByUsernameAsync(string avatarUsername);
+        public abstract Task<IAvatar> LoadAvatarByEmailAsync(string avatarEmail);
+        public abstract Task<IAvatar> LoadAvatarByUsernameAsync(string avatarUsername);
         public abstract IAvatar LoadAvatar(Guid Id);
         public abstract IAvatar LoadAvatarByEmail(string avatarEmail);
         public abstract Task<IAvatar> LoadAvatarAsync(string username, string password);
