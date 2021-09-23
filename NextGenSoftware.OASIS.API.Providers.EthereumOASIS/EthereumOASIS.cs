@@ -149,7 +149,27 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             throw new NotImplementedException();
         }
 
+        public override IAvatar LoadAvatarByEmail(string avatarEmail)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override IAvatar LoadAvatarByUsername(string avatarUsername)
+        {
+            throw new NotImplementedException();
+        }
+
         public override Task<IAvatar> LoadAvatarAsync(Guid Id)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override async Task<IAvatar> LoadAvatarByEmailAsync(string avatarEmail)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override async Task<IAvatar> LoadAvatarByUsernameAsync(string avatarUsername)
         {
             throw new NotImplementedException();
         }
@@ -204,7 +224,27 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             throw new NotImplementedException();
         }
 
+        public override bool DeleteAvatarByEmail(string avatarEmail, bool softDelete = true)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override bool DeleteAvatarByUsername(string avatarUsername, bool softDelete = true)
+        {
+            throw new NotImplementedException();
+        }
+
         public override Task<bool> DeleteAvatarAsync(Guid id, bool softDelete = true)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override async Task<bool> DeleteAvatarByEmailAsync(string avatarEmail, bool softDelete = true)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override async Task<bool> DeleteAvatarByUsernameAsync(string avatarUsername, bool softDelete = true)
         {
             throw new NotImplementedException();
         }
@@ -326,7 +366,27 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             throw new NotImplementedException();
         }
 
+        public override IAvatarDetail LoadAvatarDetailByEmail(string avatarEmail)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override IAvatarDetail LoadAvatarDetailByUsername(string avatarUsername)
+        {
+            throw new NotImplementedException();
+        }
+
         public override Task<IAvatarDetail> LoadAvatarDetailAsync(Guid id)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override async Task<IAvatarDetail> LoadAvatarDetailByUsernameAsync(string avatarUsername)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override async Task<IAvatarDetail> LoadAvatarDetailByEmailAsync(string avatarEmail)
         {
             throw new NotImplementedException();
         }
