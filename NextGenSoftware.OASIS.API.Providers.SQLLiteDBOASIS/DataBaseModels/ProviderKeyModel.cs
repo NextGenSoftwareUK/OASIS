@@ -1,24 +1,23 @@
 using System;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using NextGenSoftware.OASIS.API.Core.Enums;
 
 namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.DataBaseModels{
 
     [Table("ProviderKey")]
-    public class ProviderKeyModel : ProviderKeyAbstract
+    public class ProviderKeyModel
     {
-        public ProviderKeyModel():base(){}
-        public ProviderKeyModel(ProviderType Id, String value) : base(Id,value){}
+        [Required, Key]
+        public ProviderType ProviderId { get; set;}
+        public string Value{ set; get; }
+        public string OwnerId{ set; get; }
 
-        public override ProviderKeyAbstract GetProviderKey()
-        {
-            ProviderKeyAbstract item=new ProviderPrivateKeyModel();
+        public ProviderKeyModel(){}
+        public ProviderKeyModel(ProviderType Id, String value){
 
-            item.ProviderId=this.ProviderId;
-            item.Value=this.Value;
-            item.ParentId = this.ParentId;
-
-            return(item);
+            this.ProviderId = Id;
+            this.Value = value;
         }
     }
 
