@@ -135,6 +135,57 @@
         }
     }
 
+    .sidebar {
+        background-color: rgba(0, 0, 0, 0.88);
+        height: 100vh;
+        text-transform: uppercase;
+        position: fixed;
+        top: 0;
+        left: -50%;
+        transition: left 0.3s ease-in;
+        z-index: 2;
+        @media (min-width: 320px) and (max-width: 767px) {
+            left: -100%;
+        }
+        .sidebar-list {
+            padding-top: 70px;
+            width: 350px;
+            overflow-y: auto;
+            height: 100%;
+            li {
+                a {
+                    padding: 0 20px;
+                    cursor: pointer;
+                    line-height: 32px;
+                    display: block;
+                    color: #1885c9;
+                    text-decoration: none;
+                    &:hover {
+                        color: #fff;
+                        background-color: #4440bc;
+                    }
+                }
+                ul.sidebar-inner-menu {
+                    transition: max-height 0.5s;  
+                    overflow: hidden;
+                    max-height: 0;
+                    li {
+                        a {
+                            padding: 0 40px;
+                            text-transform: capitalize;
+                        }
+                    }
+                }
+                ul.sidebar-inner-menu.show {
+                    max-height: 1000px;
+                }
+            }
+        }
+    }
+    .sidebar.sidebar-show {
+        left: 0;
+    }
+
     .side-nav {
         background-color: rgba(0, 0, 0, 0.88);
         height: 100vh;
@@ -187,4 +238,9 @@
     .side-nav-show {
         left: 0;
     }
+}
+
+.popup-container.default-popup {
+    display: initial;
+    position: initial;
 }
