@@ -18,6 +18,11 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
             this.ProviderCategory = new Core.Helpers.EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
         }
 
+        public override async Task<IAvatarDetail> SaveAvatarDetailAsync(IAvatarDetail Avatar)
+        {
+            throw new NotImplementedException();
+        }
+
         public override bool DeleteAvatar(Guid id, bool softDelete = true)
         {
             throw new NotImplementedException();
@@ -84,6 +89,26 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
         }
 
         public override Task<IEnumerable<IAvatar>> LoadAllAvatarsAsync()
+        {
+            throw new NotImplementedException();
+        }
+
+        public override IAvatarDetail LoadAvatarDetail(Guid id)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override async Task<IAvatarDetail> LoadAvatarDetailAsync(Guid id)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override IEnumerable<IAvatarDetail> LoadAllAvatarDetails()
+        {
+            throw new NotImplementedException();
+        }
+
+        public override async Task<IEnumerable<IAvatarDetail>> LoadAllAvatarDetailsAsync()
         {
             throw new NotImplementedException();
         }
@@ -204,11 +229,14 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
             throw new NotImplementedException();
         }
 
+<<<<<<< Updated upstream
         public override Task<IAvatarDetail> SaveAvatarDetailAsync(IAvatarDetail Avatar)
         {
             throw new NotImplementedException();
         }
 
+=======
+>>>>>>> Stashed changes
         public override IHolon SaveHolon(IHolon holon)
         {
             throw new NotImplementedException();

@@ -159,6 +159,36 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Core
         {
             
         }
+        
+        public override IAvatarDetail LoadAvatarDetail(Guid id)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override async Task<IAvatarDetail> LoadAvatarDetailAsync(Guid id)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override IEnumerable<IAvatarDetail> LoadAllAvatarDetails()
+        {
+            throw new NotImplementedException();
+        }
+
+        public override async Task<IEnumerable<IAvatarDetail>> LoadAllAvatarDetailsAsync()
+        {
+            throw new NotImplementedException();
+        }
+
+        public override IAvatarDetail SaveAvatarDetail(IAvatarDetail Avatar)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override async Task<IAvatarDetail> SaveAvatarDetailAsync(IAvatarDetail Avatar)
+        {
+            throw new NotImplementedException();
+        }
 
         private void HoloOASIS_OnConnected(object sender, ConnectedEventArgs e)
         {
@@ -361,16 +391,21 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Core
         {
             return new HcAvatar
             {
+<<<<<<< Updated upstream
                // dob = Avatar.DOB.ToString(),
+=======
+>>>>>>> Stashed changes
                 email = Avatar.Email,
                 first_name = Avatar.FirstName,
                 hc_address_hash = string.Empty,
                 holon_type = Avatar.HolonType,
                 id = Avatar.Id,
-                karma = Avatar.Karma,
                 last_name = Avatar.LastName,
                 password = Avatar.Password,
+<<<<<<< Updated upstream
                 //address = Avatar.Address,
+=======
+>>>>>>> Stashed changes
                 provider_key = Avatar.ProviderKey == null ? string.Empty : Avatar.ProviderKey[API.Core.Enums.ProviderType.HoloOASIS],
                 title = Avatar.Title,
                 username = Avatar.Username
@@ -381,15 +416,20 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Core
         {
             Avatar avatar = new Avatar
             {
+<<<<<<< Updated upstream
                // DOB = Convert.ToDateTime(hcAvatar.dob),
+=======
+>>>>>>> Stashed changes
                 Email = hcAvatar.email,
                 FirstName = hcAvatar.first_name,
                 HolonType = hcAvatar.holon_type,
                 Id = hcAvatar.id,
-                Karma = hcAvatar.karma,
                 LastName = hcAvatar.last_name,
                 Password = hcAvatar.password,
+<<<<<<< Updated upstream
               //  Address = hcAvatar.address,
+=======
+>>>>>>> Stashed changes
                 //ProviderKey = new Dictionary<ProviderType, string>(),
                 //ProviderKey[API.Core.Enums.ProviderType.HoloOASIS] = hcAvatar.provider_key,
                 Title = hcAvatar.title,

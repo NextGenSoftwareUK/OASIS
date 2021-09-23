@@ -60,6 +60,11 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             base.DeActivateProvider();
         }
 
+        public override async Task<IAvatarDetail> SaveAvatarDetailAsync(IAvatarDetail Avatar)
+        {
+            throw new NotImplementedException();
+        }
+
         public override bool DeleteAvatar(Guid id, bool softDelete = true)
         {
             throw new NotImplementedException();
@@ -116,6 +121,26 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
         }
 
         public override Task<IEnumerable<IAvatar>> LoadAllAvatarsAsync()
+        {
+            throw new NotImplementedException();
+        }
+
+        public override IAvatarDetail LoadAvatarDetail(Guid id)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override async Task<IAvatarDetail> LoadAvatarDetailAsync(Guid id)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override IEnumerable<IAvatarDetail> LoadAllAvatarDetails()
+        {
+            throw new NotImplementedException();
+        }
+
+        public override async Task<IEnumerable<IAvatarDetail>> LoadAllAvatarDetailsAsync()
         {
             throw new NotImplementedException();
         }
@@ -269,9 +294,12 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
                         title = Avatar.Title,
                         firstname = Avatar.FirstName,
                         lastname = Avatar.LastName,
+<<<<<<< Updated upstream
                         //dob = Avatar.DOB.ToString(),
                        // playeraddr = Avatar.Address,
                         karma = Avatar.Karma
+=======
+>>>>>>> Stashed changes
                     }
                 ));
 
@@ -279,6 +307,11 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             await ChainAPI.PushTransactionAsync(actions.ToArray(), privateKeysInWIF);
 
             return Avatar;
+        }
+
+        public override IAvatarDetail SaveAvatarDetail(IAvatarDetail Avatar)
+        {
+            throw new NotImplementedException();
         }
 
         public override IHolon SaveHolon(IHolon holon)
