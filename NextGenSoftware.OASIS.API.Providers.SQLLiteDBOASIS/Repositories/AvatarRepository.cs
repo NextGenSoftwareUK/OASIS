@@ -162,12 +162,12 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Repositories{
             return(delete_complete);
         }
 
-        public bool Delete(string providerKey, bool softDelete = true)
+        public bool Delete(string userName, bool softDelete = true)
         {
             bool delete_complete = false;
             try
             {
-                AvatarModel deletingModel = dataBase.Avatars.FirstOrDefault(x => x.Username.Equals(providerKey));
+                AvatarModel deletingModel = dataBase.Avatars.FirstOrDefault(x => x.Username.Equals(userName));
 
                 if(deletingModel == null){
                     return(true);
@@ -237,13 +237,87 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Repositories{
             }
         }
 
-        public Task<bool> DeleteAsync(string providerKey, bool softDelete = true)
+        public Task<bool> DeleteAsync(string userName, bool softDelete = true)
         {
             try
             {
                 return new Task<bool>(()=>{
 
-                    AvatarModel deletingModel = dataBase.Avatars.FirstOrDefault(x => x.Username.Equals(providerKey));
+                    AvatarModel deletingModel = dataBase.Avatars.FirstOrDefault(x => x.Username.Equals(userName));
+
+                    if(deletingModel == null){
+                        return(true);
+                    }
+
+                    if (softDelete)
+                    {
+                        LoadAvatarReferences(deletingModel);
+
+                        if (AvatarManager.LoggedInAvatar != null)
+                            deletingModel.DeletedByAvatarId = AvatarManager.LoggedInAvatar.Id.ToString();
+
+                        deletingModel.DeletedDate = DateTime.Now;                    
+                        dataBase.Avatars.Update(deletingModel);
+                    }
+                    else
+                    {
+                        dataBase.Avatars.Remove(deletingModel);
+                    }
+
+                    dataBase.SaveChanges();
+                    return(true);
+
+                });
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+        }
+
+        public bool DeleteByEmail(string avatarEmail, bool softDelete = true)
+        {
+            bool delete_complete = false;
+            try
+            {
+                AvatarModel deletingModel = dataBase.Avatars.FirstOrDefault(x => x.Email.Equals(avatarEmail));
+
+                if(deletingModel == null){
+                    return(true);
+                }
+
+                if (softDelete)
+                {
+                    LoadAvatarReferences(deletingModel);
+
+                    if (AvatarManager.LoggedInAvatar != null)
+                        deletingModel.DeletedByAvatarId = AvatarManager.LoggedInAvatar.Id.ToString();
+
+                    deletingModel.DeletedDate = DateTime.Now;                    
+                    dataBase.Avatars.Update(deletingModel);
+                }
+                else
+                {
+                    dataBase.Avatars.Remove(deletingModel);
+                }
+
+                dataBase.SaveChanges();
+                delete_complete=true;
+            }
+            catch(Exception ex)
+            {
+                throw ex;
+            }
+            return(delete_complete);
+        }
+
+        public Task<bool> DeleteByEmailAsync(string avatarEmail, bool softDelete = true)
+        {
+            try
+            {
+                return new Task<bool>(()=>{
+
+                    AvatarModel deletingModel = dataBase.Avatars.FirstOrDefault(x => x.Email.Equals(avatarEmail));
 
                     if(deletingModel == null){
                         return(true);
@@ -422,6 +496,32 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Repositories{
             }
         }
 
+        public Task<Avatar> GetAvatarByEmailAsync(string avatarEmail)
+        {
+            try
+            {
+                return new Task<Avatar>(()=>{
+
+                    Avatar avatar = null;
+                    AvatarModel avatarModel = dataBase.Avatars.FirstOrDefault(x => x.Email.Equals(avatarEmail));
+
+                    if (avatarModel == null){
+                        return(avatar);
+                    }
+
+                    LoadAvatarReferences(avatarModel);
+                    avatar=avatarModel.GetAvatar();
+
+                    return(avatar);
+
+                });
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+        }
+
         public AvatarDetail GetAvatarDetail(Guid id)
         {
             AvatarDetail avatar = null;
@@ -503,6 +603,54 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Repositories{
 
                     AvatarDetail avatar = null;
                     AvatarDetailModel avatarModel = dataBase.AvatarDetails.FirstOrDefault(x => x.Username.Equals(username));
+
+                    if (avatarModel == null){
+                        return(avatar);
+                    }
+
+                    LoadAvatarDetailReferences(avatarModel);
+                    avatar=avatarModel.GetAvatar();
+
+                    return(avatar);
+
+                });
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+        }
+
+        public AvatarDetail GetAvatarDetailByEmail(string avatarEmail)
+        {
+            AvatarDetail avatar = null;
+            try
+            {
+                AvatarDetailModel avatarModel = dataBase.AvatarDetails.FirstOrDefault(x => x.Email.Equals(avatarEmail));
+
+                if (avatarModel == null){
+                    return(avatar);
+                }
+
+                LoadAvatarDetailReferences(avatarModel);
+                avatar=avatarModel.GetAvatar();
+
+            }
+            catch(Exception ex)
+            {
+                throw ex;
+            }
+            return(avatar);
+        }
+
+        public Task<AvatarDetail> GetAvatarDetailByEmailAsync(string avatarEmail)
+        {
+            try
+            {
+                return new Task<AvatarDetail>(()=>{
+
+                    AvatarDetail avatar = null;
+                    AvatarDetailModel avatarModel = dataBase.AvatarDetails.FirstOrDefault(x => x.Email.Equals(avatarEmail));
 
                     if (avatarModel == null){
                         return(avatar);
