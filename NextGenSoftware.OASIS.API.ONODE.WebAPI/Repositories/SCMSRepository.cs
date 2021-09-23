@@ -335,6 +335,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
                     {
                         contact.FirstName = avatar.FirstName;
                         contact.LastName = avatar.LastName;
+<<<<<<< Updated upstream
                         //contact.Address = avatar.Address;
                         //contact.Country = avatar.Country;
                         //contact.County = avatar.County;
@@ -348,6 +349,14 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
                         //contact.Postcode = avatar.Postcode;
                         contact.Title = avatar.Title;
                        // contact.Town = avatar.Town;
+=======
+                        contact.CreatedDate = avatar.CreatedDate;
+                        contact.DeletedDate = avatar.DeletedDate;
+                        contact.Email = avatar.Email;
+                        contact.Landline = avatar.LastName;
+                        contact.Password = avatar.Password;
+                        contact.Title = avatar.Title;
+>>>>>>> Stashed changes
                         contact.Username = avatar.Username;
                         contact.AvatarType = avatar.AvatarType;
                         contact.Version = avatar.Version;

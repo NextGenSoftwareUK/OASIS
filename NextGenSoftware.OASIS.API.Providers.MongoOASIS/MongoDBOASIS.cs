@@ -5,9 +5,11 @@ using NextGenSoftware.OASIS.API.Core;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
+using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories;
-using NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities;
+using Avatar = NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities.Avatar;
+using Holon = NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities.Holon;
 
 namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
 {
@@ -106,6 +108,16 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             return ConvertMongoEntityToOASISAvatar(avatar.Id == Guid.Empty ?
                await _avatarRepository.AddAsync(ConvertOASISAvatarToMongoEntity(avatar)) :
                await _avatarRepository.UpdateAsync(ConvertOASISAvatarToMongoEntity(avatar)));
+        }
+
+        public override IAvatarDetail SaveAvatarDetail(IAvatarDetail Avatar)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override async Task<IAvatarDetail> SaveAvatarDetailAsync(IAvatarDetail Avatar)
+        {
+            throw new NotImplementedException();
         }
 
         public override IAvatar SaveAvatar(IAvatar avatar)
@@ -433,7 +445,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             oasisAvatar.Username = avatar.Username;
             oasisAvatar.CreatedOASISType = avatar.CreatedOASISType;
             oasisAvatar.AvatarType = avatar.AvatarType;
-            oasisAvatar.Id = avatar.HolonId;
+            oasisAvatar.Id = avatar.Id;
             oasisAvatar.ProviderKey = avatar.ProviderKey;
             oasisAvatar.ProviderMetaData = avatar.ProviderMetaData;
             oasisAvatar.Description = avatar.Description;

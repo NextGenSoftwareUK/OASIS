@@ -103,12 +103,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpGet("GetKarmaForAvatar/{avatarId}")]
         public ActionResult<int> GetKarmaForAvatar(Guid avatarId)
         {
-            IAvatar avatar = Program.AvatarManager.LoadAvatar(avatarId);
-
-            if (avatar != null)
-                return Ok(avatar.Karma);
-
-            return Ok("ERROR: Avatar Not Found!");
+            var avatar = Program.AvatarManager.LoadAvatarDetail(avatarId);
+            return avatar != null ? Ok(avatar.Karma) : Ok("ERROR: Avatar Not Found!");
         }
 
         /// <summary>
@@ -133,12 +129,17 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpGet("GetKarmaAkashicRecordsForAvatar/{avatarId}")]
         public ActionResult<KarmaAkashicRecord[]> GetKarmaAkashicRecordsForAvatar(Guid avatarId)
         {
+<<<<<<< Updated upstream
             IAvatarDetail avatar = Program.AvatarManager.LoadAvatarDetail(avatarId);
 
             if (avatar != null)
                 return Ok(avatar.KarmaAkashicRecords);
 
             return Ok("ERROR: Avatar Not Found!");
+=======
+            var avatar = Program.AvatarManager.LoadAvatarDetail(avatarId);
+            return avatar != null ? Ok(avatar.KarmaAkashicRecords) : Ok("ERROR: Avatar Not Found!");
+>>>>>>> Stashed changes
         }
 
         /// <summary>
