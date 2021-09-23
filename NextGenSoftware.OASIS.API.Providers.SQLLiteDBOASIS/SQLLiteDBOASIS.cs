@@ -161,8 +161,6 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
             return await avatarRepository.DeleteAsync(id, softDelete);
         }
 
-    
-
         public override async Task<IAvatar> LoadAvatarForProviderKeyAsync(string providerKey)
         {
             Avatar avatar = await avatarRepository.GetAvatarAsync(providerKey);
@@ -331,32 +329,44 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
 
         public override IAvatarDetail LoadAvatarDetail(Guid id)
         {
-            throw new NotImplementedException();
+            return avatarRepository.GetAvatarDetail(id);
         }
 
-        public override Task<IAvatarDetail> LoadAvatarDetailAsync(Guid id)
+        public override async Task<IAvatarDetail> LoadAvatarDetailAsync(Guid id)
         {
-            throw new NotImplementedException();
+            AvatarDetail avatar = await avatarRepository.GetAvatarDetailAsync(id);
+            return(avatar);
         }
 
         public override IEnumerable<IAvatarDetail> LoadAllAvatarDetails()
         {
-            throw new NotImplementedException();
+            return avatarRepository.GetAvatarDetails();
         }
 
-        public override Task<IEnumerable<IAvatarDetail>> LoadAllAvatarDetailsAsync()
+        public override async Task<IEnumerable<IAvatarDetail>> LoadAllAvatarDetailsAsync()
         {
-            throw new NotImplementedException();
+            IEnumerable<AvatarDetail> details = await avatarRepository.GetAvatarDetailsAsync();
+            return details;
         }
 
-        public override IAvatarDetail SaveAvatarDetail(IAvatarDetail Avatar)
+        public override IAvatarDetail SaveAvatarDetail(IAvatarDetail avatar)
         {
-            throw new NotImplementedException();
+            if(avatar.Id == Guid.Empty){
+                return avatarRepository.Add((AvatarDetail)avatar);
+            }
+            else{
+                return avatarRepository.Update((AvatarDetail)avatar);
+            }
         }
 
-        public override Task<IAvatarDetail> SaveAvatarDetailAsync(IAvatarDetail Avatar)
+        public override async Task<IAvatarDetail> SaveAvatarDetailAsync(IAvatarDetail avatar)
         {
-            throw new NotImplementedException();
+            if(avatar.Id == Guid.Empty){
+                return await avatarRepository.AddAsync((AvatarDetail)avatar);
+            }
+            else{
+                return await avatarRepository.UpdateAsync((AvatarDetail)avatar);
+            }
         }
     }
 }

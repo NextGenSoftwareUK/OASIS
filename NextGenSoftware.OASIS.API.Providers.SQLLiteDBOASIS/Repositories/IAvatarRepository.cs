@@ -9,6 +9,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Repositories{
     {
         Avatar Add(Avatar avatar);
         Task<Avatar> AddAsync(Avatar avatar);
+        AvatarDetail Add(AvatarDetail avatar);
+        Task<AvatarDetail> AddAsync(AvatarDetail avatar);
         bool Delete(Guid id, bool softDelete = true);
         bool Delete(string providerKey, bool softDelete = true);
         Task<bool> DeleteAsync(Guid id, bool softDelete = true);
@@ -21,7 +23,15 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Repositories{
         Task<Avatar> GetAvatarAsync(string username, string password);
         List<Avatar> GetAvatars();
         Task<List<Avatar>> GetAvatarsAsync();
+        AvatarDetail GetAvatarDetail(Guid id);
+        AvatarDetail GetAvatarDetail(string username);
+        Task<AvatarDetail> GetAvatarDetailAsync(Guid id);
+        Task<AvatarDetail> GetAvatarDetailAsync(string username);
+        Task<IEnumerable<AvatarDetail>> GetAvatarDetailsAsync();
+        IEnumerable<AvatarDetail> GetAvatarDetails();
         Avatar Update(Avatar avatar);
         Task<Avatar> UpdateAsync(Avatar avatar);
+        AvatarDetail Update(AvatarDetail avatar);
+        Task<AvatarDetail> UpdateAsync(AvatarDetail avatar);
     }
 }

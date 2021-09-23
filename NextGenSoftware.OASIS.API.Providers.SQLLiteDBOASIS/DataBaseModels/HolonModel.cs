@@ -1,30 +1,29 @@
 using System;
 using System.Collections.Generic;
 using NextGenSoftware.OASIS.API.Core.Enums;
-using NextGenSoftware.OASIS.API.Core.Holons;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel;
 using NextGenSoftware.OASIS.API.Core.Helpers;
-using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
+using NextGenSoftware.OASIS.API.Core.Holons;
 
 namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.DataBaseModels{
 
     [Table("Holon")]
-    public class HolonModel : INotifyPropertyChanged {
+    public class HolonModel {
 
-        private string _name;
-        private string _description;
-
-        public event PropertyChangedEventHandler PropertyChanged;
-
+        [Required, Key]
         public String Id{ set; get;}
         public String ParentHolonId{ set; get;}
 
+        public HolonType HolonType { get; set; }
         public string Name{set;get;}
         public string Description{set;get;}
-        public HolonType HolonType { get; set; }
+
         public bool IsNewHolon { get; set; }
         public bool IsChanged { get; set; }
+        public int Version { get; set; }
+        public bool IsActive { get; set; }
         
         public DimensionModel ParentDimension { get; set; }
         public DimensionLevel DimensionLevel { get; set; }
@@ -41,23 +40,22 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.DataBaseModels{
         public GalaxyClusterModel ParentGalaxyCluster { get; set; }
         public UniverseModel ParentUniverse { get; set; }
 
-        public List<HolonModel> Childrens{ set; get;}
-
         public ProviderType CreatedProviderType { get; set; }
-
-        public List<MetaDataModel> MetaData { get; set; } = new List<MetaDataModel>();
-        public List<ProviderMetaData> ProviderMetaData { get; set; } = new List<ProviderMetaData>();
-        public List<ProviderKeyModel> ProviderKey { get; set; } = new List<ProviderKeyModel>();
-
-        public String CreatedByAvatarId { get; set; }
+        public OASISType CreatedOASISType { get; set; }
+        
         public DateTime CreatedDate { get; set; }
-        public String ModifiedByAvatarId { get; set; }
         public DateTime ModifiedDate { get; set; }
-        public String DeletedByAvatarId { get; set; }
         public DateTime DeletedDate { get; set; }
 
-        public bool IsActive { get; set; }
-        public int Version { get; set; }
+        public string CreatedByAvatarId { get; set; }
+        public String ModifiedByAvatarId { get; set; }
+        public String DeletedByAvatarId { get; set; }
+
+        public List<HolonModel> Childrens{ set; get;} = new List<HolonModel>();
+
+        public List<MetaDataModel> MetaData { get; set; } = new List<MetaDataModel>();
+        public List<ProviderKeyModel> ProviderKey { get; set; } = new List<ProviderKeyModel>();
+        public List<ProviderMetaData> ProviderMetaData { get; set; } = new List<ProviderMetaData>();
 
         public HolonModel(){}
         public HolonModel(Holon source){
@@ -77,89 +75,78 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.DataBaseModels{
             this.IsChanged = source.IsChanged;
             this.IsNewHolon = source.IsNewHolon;
             this.IsActive = source.IsActive;
+            this.Version = source.Version;
 
             this.DimensionLevel = source.DimensionLevel;
             this.SubDimensionLevel = source.SubDimensionLevel;
 
             this.CreatedProviderType = source.CreatedProviderType.Value;
-            this.CreatedByAvatarId = source.CreatedByAvatarId.ToString();
+            this.CreatedOASISType = source.CreatedOASISType.Value;
+            
             this.CreatedDate = source.CreatedDate;
-
-            this.ModifiedByAvatarId = source.ModifiedByAvatarId.ToString();
             this.ModifiedDate = source.ModifiedDate;
-
-            this.DeletedByAvatarId = source.DeletedByAvatarId.ToString();
             this.DeletedDate = source.DeletedDate;
 
-            this.Version = source.Version;
+            this.CreatedByAvatarId = source.CreatedByAvatarId.ToString();
+            this.ModifiedByAvatarId = source.ModifiedByAvatarId.ToString();
+            this.DeletedByAvatarId = source.DeletedByAvatarId.ToString();
 
 
             if(source.ParentDimension != null){
-                source.ParentDimension.ParentHolonId = source.Id;
                 this.ParentDimension = new DimensionModel(source.ParentDimension);
             }
 
             if(source.ParentStar != null){
-                source.ParentStar.ParentHolonId = source.Id;
                 this.ParentStar = new StarModel(source.ParentStar);
             }
 
             if(source.ParentSuperStar != null){
-                source.ParentSuperStar.ParentHolonId = source.Id;
                 this.ParentSuperStar = new SuperStarModel(source.ParentSuperStar);
             }
 
             if(source.ParentGrandSuperStar != null){
-                source.ParentGrandSuperStar.ParentHolonId = source.Id;
                 this.ParentGrandSuperStar = new GrandSuperStarModel(source.ParentGrandSuperStar);
             }
 
             if(source.ParentGreatGrandSuperStar != null){
-                source.ParentGreatGrandSuperStar.ParentHolonId = source.Id;
                 this.ParentGreatGrandSuperStar = new GreatGrandSuperStarModel(source.ParentGreatGrandSuperStar);
             }
 
             if(source.ParentMoon != null){
-                source.ParentMoon.ParentHolonId = source.Id;
                 this.ParentMoon = new MoonModel(source.ParentMoon);
             }
 
             if(source.ParentPlanet != null){
-                source.ParentPlanet.ParentHolonId = source.Id;
                 this.ParentPlanet = new PlanetModel(source.ParentPlanet);
             }
 
             if(source.ParentSolarSystem != null){
-                source.ParentSolarSystem.ParentHolonId = source.Id;
                 this.ParentSolarSystem = new SolarSystemModel(source.ParentSolarSystem);
             }
 
             if(source.ParentGalaxy != null){
-                source.ParentGalaxy.ParentHolonId = source.Id;
                 this.ParentGalaxy = new GalaxyModel(source.ParentGalaxy);
             }
 
             if(source.ParentGalaxyCluster != null){
-                source.ParentGalaxyCluster.ParentHolonId = source.Id;
                 this.ParentGalaxyCluster = new GalaxyClusterModel(source.ParentGalaxyCluster);
             }
 
             if(source.ParentUniverse != null){
-                source.ParentUniverse.ParentHolonId = source.Id;
                 this.ParentUniverse = new UniverseModel(source.ParentUniverse);
             }
 
             foreach(KeyValuePair<ProviderType, string> item in source.ProviderKey){
 
                 ProviderKeyModel providerKey=new ProviderKeyModel(item.Key,item.Value);
-                providerKey.ParentId=this.Id;
+                providerKey.OwnerId=this.Id;
                 this.ProviderKey.Add(providerKey);
             }
 
             foreach(KeyValuePair<string, string> item in source.MetaData){
 
                 MetaDataModel metaModel=new MetaDataModel(item.Key,item.Value);
-                metaModel.ParentId=this.Id;
+                metaModel.OwnerId=this.Id;
                 this.MetaData.Add(metaModel);
             }
 
@@ -169,7 +156,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.DataBaseModels{
                 foreach(KeyValuePair<string, string> item in providerMeta){
 
                     ProviderMetaData metaModel=new ProviderMetaData(ProviderType.SQLLiteDBOASIS, item.Key,item.Value);
-                    metaModel.ParentId=this.Id;
+                    metaModel.OwnerId=this.Id;
                     this.ProviderMetaData.Add(metaModel);
                 }
             }
@@ -189,21 +176,21 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.DataBaseModels{
             item.IsChanged = this.IsChanged;
             item.IsNewHolon = this.IsNewHolon;
             item.IsActive = this.IsActive;
+            item.Version = this.Version;
 
             item.DimensionLevel = this.DimensionLevel;
             item.SubDimensionLevel = this.SubDimensionLevel;
 
             item.CreatedProviderType = new EnumValue<ProviderType>(this.CreatedProviderType);
+            item.CreatedOASISType = new EnumValue<OASISType>(this.CreatedOASISType);
+
             item.CreatedByAvatarId = Guid.Parse(this.CreatedByAvatarId);
-            item.CreatedDate = this.CreatedDate;
-
             item.ModifiedByAvatarId = Guid.Parse(this.ModifiedByAvatarId);
-            item.ModifiedDate = this.ModifiedDate;
-
             item.DeletedByAvatarId = Guid.Parse(this.DeletedByAvatarId);
-            item.DeletedDate = this.DeletedDate;
 
-            item.Version = this.Version;
+            item.CreatedDate = this.CreatedDate;
+            item.ModifiedDate = this.ModifiedDate;           
+            item.DeletedDate = this.DeletedDate;
 
 
             item.ParentDimension = this.ParentDimension.GetDimension();
@@ -220,23 +207,19 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.DataBaseModels{
             item.ParentGalaxyCluster = this.ParentGalaxyCluster.GetGalaxyCluster();
             item.ParentUniverse = this.ParentUniverse.GetUniverse();
 
-
             foreach(ProviderKeyModel model in this.ProviderKey){
 
-                ProviderKeyAbstract providerKey=model.GetProviderKey();
-                item.ProviderKey.Add(providerKey.ProviderId, providerKey.Value);
+                item.ProviderKey.Add(model.ProviderId, model.Value);
             }
 
             foreach(MetaDataModel model in this.MetaData){
 
-                MetaDataModel metaData=model.GetMetaData();
-                item.MetaData.Add(metaData.PropertyId, metaData.Value);
+                item.MetaData.Add(model.Property, model.Value);
             }
 
             Dictionary<string,string> providerMetaData = new Dictionary<string, string>();
-            foreach(ProviderMetaData providerMeta in this.ProviderMetaData){
+            foreach(ProviderMetaData metaData in this.ProviderMetaData){
 
-                ProviderMetaData metaData=providerMeta.GetMetaData();
                 providerMetaData.Add(metaData.Property, metaData.Value);
             }
 
