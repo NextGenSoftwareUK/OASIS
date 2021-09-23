@@ -1,7 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Principal;
+using System.Text;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.IdentityModel.Tokens;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
@@ -47,6 +52,26 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 return Unauthorized(new { message = "Unauthorized" });
             return Ok(_avatarService.GetAvatarImageById(id));
         }
+        
+        [Authorize]
+        [HttpGet("GetAvatarImageByUsername/{username}")]
+        public async Task<OASISResult<AvatarImage>> GetAvatarImageByUsername(string username)
+        {
+            // users can get their own account and admins can get any account
+            if (username != Avatar.Username && Avatar.AvatarType.Value != AvatarType.Wizard)
+                return new OASISResult<AvatarImage>() {IsError = true, Message = "Unauthorized"};
+            return await _avatarService.GetAvatarImageByUsername(username);
+        }
+        
+        [Authorize]
+        [HttpGet("GetAvatarImageByEmail/{email}")]
+        public async Task<OASISResult<AvatarImage>> GetAvatarImageByEmail(string email)
+        {
+            // users can get their own account and admins can get any account
+            if (email != Avatar.Email && Avatar.AvatarType.Value != AvatarType.Wizard)
+                return new OASISResult<AvatarImage>() {IsError = true, Message = "Unauthorized"};
+            return await _avatarService.GetAvatarImageByEmail(email);
+        }
 
         [Authorize]
         [HttpPost("Upload2DAvatarImage")]
@@ -86,7 +111,21 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         {
             return _avatarService.GetAvatarDetail(id);
         }
-
+        
+        [Authorize(AvatarType.Wizard)]
+        [HttpGet("GetAvatarDetailByEmail/{email}")]
+        public async Task<OASISResult<IAvatarDetail>> GetAvatarDetailByEmail(string email)
+        {
+            return await _avatarService.GetAvatarDetailByEmail(email);
+        }
+        
+        [Authorize(AvatarType.Wizard)]
+        [HttpGet("GetAvatarDetailByUsername/{username}")]
+        public async Task<OASISResult<IAvatarDetail>> GetAvatarDetailByUsername(string username)
+        {
+            return await _avatarService.GetAvatarDetailByUsername(username);
+        }
+        
         [Authorize(AvatarType.Wizard)]
         [HttpGet("GetAllAvatarDetails")]
         public ActionResult<OASISResult<IEnumerable<IAvatarDetail>>> GetAllAvatarDetails()
@@ -133,6 +172,28 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 
             var account = _avatarService.GetById(id);
             return Ok(account);
+        }
+        
+        [Authorize]
+        [HttpGet("GetByUsername/{username}")]
+        public async Task<OASISResult<IAvatar>> GetByUsername(string username)
+        {
+            // users can get their own account and admins can get any account
+            if (username != Avatar.Username && Avatar.AvatarType.Value != AvatarType.Wizard)
+                return new OASISResult<IAvatar>() { Message = "Unauthorized", IsError = true};
+            var account = await _avatarService.GetByUsername(username);
+            return new OASISResult<IAvatar>(account);
+        }
+        
+        [Authorize]
+        [HttpGet("GetByEmail/{email}")]
+        public async Task<OASISResult<IAvatar>> GetByEmail(string email)
+        {
+            // users can get their own account and admins can get any account
+            if (email != Avatar.Email && Avatar.AvatarType.Value != AvatarType.Wizard)
+                return new OASISResult<IAvatar>() { Message = "Unauthorized", IsError = true };
+            var account = await _avatarService.GetByEmail(email);
+            return new OASISResult<IAvatar>(account);
         }
 
         /// <summary>
@@ -205,6 +266,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 setTokenCookie(response.Avatar.RefreshToken);
 
             return Ok(response);
+        }
+        
+        [HttpPost("AuthenticateToken/{token}")]
+        public OASISResult<string> Authenticate(string token)
+        {
+            return _avatarService.ValidateAccountToken(token);
         }
 
         /// <summary>
@@ -646,7 +713,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [Authorize]
         [HttpPost("Update/{id}")]
         //public ActionResult<IAvatar> Update(Core.Avatar avatar, Guid id)
-        public ActionResult<IAvatar> Update(UpdateRequest avatar, Guid id)
+        public async Task<ActionResult<IAvatar>> Update(UpdateRequest avatar, Guid id)
         {
             // users can update their own account and admins can update any account
             if (id != Avatar.Id && Avatar.AvatarType.Value != AvatarType.Wizard)
@@ -659,7 +726,33 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             //model.AvatarType = null;
 
             //return Ok(_avatarService.Update(id, model));
-            return Ok(_avatarService.Update(id, avatar));
+            return Ok(await _avatarService.Update(id, avatar));
+        }
+        
+        [Authorize]
+        [HttpPost("UpdateByEmail/{email}")]
+        public async Task<ActionResult<IAvatar>> UpdateByEmail(UpdateRequest avatar, string email)
+        {
+            // users can update their own account and admins can update any account
+            if (email != Avatar.Email && Avatar.AvatarType.Value != AvatarType.Wizard)
+                return Unauthorized(new { message = "Unauthorized" });
+            // only admins can update role
+            if (avatar.AvatarType != "Wizard")
+                avatar.AvatarType = null;
+            return Ok(await _avatarService.UpdateByEmail(email, avatar));
+        }
+        
+        [Authorize]
+        [HttpPost("UpdateByUsername/{email}")]
+        public async Task<ActionResult<IAvatar>> UpdateByUsername(UpdateRequest avatar, string username)
+        {
+            // users can update their own account and admins can update any account
+            if (username != Avatar.Email && Avatar.AvatarType.Value != AvatarType.Wizard)
+                return Unauthorized(new { message = "Unauthorized" });
+            // only admins can update role
+            if (avatar.AvatarType != "Wizard")
+                avatar.AvatarType = null;
+            return Ok(await _avatarService.UpdateByUsername(username, avatar));
         }
 
         /// <summary>
@@ -673,10 +766,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [Authorize]
         [HttpPost("Update/{id}/{providerType}/{setGlobally}")]
         //public ActionResult<IAvatar> Update(Guid id, Core.Avatar avatar, ProviderType providerType, bool setGlobally = false)
-        public ActionResult<IAvatar> Update(Guid id, UpdateRequest avatar, ProviderType providerType, bool setGlobally = false)
+        public async Task<ActionResult<IAvatar>> Update(Guid id, UpdateRequest avatar, ProviderType providerType, bool setGlobally = false)
         {
             GetAndActivateProvider(providerType, setGlobally);
-            return Update(avatar, id);
+            return await Update(avatar, id);
         }
 
 
@@ -696,6 +789,28 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             _avatarService.Delete(id);
 
             return Ok(new { message = "Account deleted successfully" });
+        }
+        
+        [Authorize]
+        [HttpDelete("DeleteByUsername/{username}")]
+        public async Task<OASISResult<string>> DeleteByUsername(string username)
+        {
+            // users can delete their own account and admins can delete any account
+            if (username != Avatar.Username && Avatar.AvatarType.Value != AvatarType.Wizard)
+                return new OASISResult<string>() { IsError = true, Message = "Unauthorized", Result = "Not Deleted!" };
+            await _avatarService.DeleteByUsername(username);
+            return new OASISResult<string>("Account deleted successfully");
+        }
+        
+        [Authorize]
+        [HttpDelete("DeleteByEmail/{email}")]
+        public async Task<OASISResult<string>> DeleteByEmail(string email)
+        {
+            // users can delete their own account and admins can delete any account
+            if (email != Avatar.Email && Avatar.AvatarType.Value != AvatarType.Wizard)
+                return new OASISResult<string>() { IsError = true, Message = "Unauthorized", Result = "Not Deleted!" };
+            await _avatarService.DeleteByEmail(email);
+            return new OASISResult<string>("Account deleted successfully");
         }
 
         /// <summary>
@@ -829,7 +944,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
        {
            return Ok(AvatarManager.GetAllPrivateProviderKeysForAvatar(avatarId));
        }*/
-    
+
         private void setTokenCookie(string token)
         {
             var cookieOptions = new CookieOptions

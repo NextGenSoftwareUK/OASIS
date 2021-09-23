@@ -73,9 +73,24 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             return ConvertMongoEntitysToOASISAvatars(_avatarRepository.GetAvatars());
         }
 
+        public override IAvatar LoadAvatarByEmail(string avatarEmail)
+        {
+            return ConvertMongoEntityToOASISAvatar(_avatarRepository.GetAvatar(x => x.Email == avatarEmail));
+        }
+
+        public override IAvatar LoadAvatarByUsername(string avatarUsername)
+        {
+            return ConvertMongoEntityToOASISAvatar(_avatarRepository.GetAvatar(x => x.Username == avatarUsername));
+        }
+
         public override async Task<IAvatar> LoadAvatarAsync(string username)
         {
             return ConvertMongoEntityToOASISAvatar(await _avatarRepository.GetAvatarAsync(username));
+        }
+
+        public override async Task<IAvatar> LoadAvatarByUsernameAsync(string avatarUsername)
+        {
+            return ConvertMongoEntityToOASISAvatar(await _avatarRepository.GetAvatarAsync(x => x.Username == avatarUsername));
         }
 
         public override IAvatar LoadAvatar(string username)
@@ -86,6 +101,11 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
         public override async Task<IAvatar> LoadAvatarAsync(Guid Id)
         {
             return ConvertMongoEntityToOASISAvatar(await _avatarRepository.GetAvatarAsync(Id));
+        }
+
+        public override async Task<IAvatar> LoadAvatarByEmailAsync(string avatarEmail)
+        {
+            return ConvertMongoEntityToOASISAvatar(await _avatarRepository.GetAvatarAsync(x => x.Email == avatarEmail));
         }
 
         public override IAvatar LoadAvatar(Guid Id)
@@ -141,14 +161,34 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
                 _avatarRepository.Update(ConvertOASISAvatarDetailToMongoEntity(avatar)));
         }
 
+        public override bool DeleteAvatarByUsername(string avatarUsername, bool softDelete = true)
+        {
+            return _avatarRepository.Delete(x => x.Username == avatarUsername, softDelete);
+        }
+
         public override async Task<bool> DeleteAvatarAsync(Guid id, bool softDelete = true)
         {
             return await _avatarRepository.DeleteAsync(id, softDelete);
         }
 
+        public override async Task<bool> DeleteAvatarByEmailAsync(string avatarEmail, bool softDelete = true)
+        {
+            return await _avatarRepository.DeleteAsync(x => x.Email == avatarEmail, softDelete);
+        }
+
+        public override async Task<bool> DeleteAvatarByUsernameAsync(string avatarUsername, bool softDelete = true)
+        {
+            return await _avatarRepository.DeleteAsync(x => x.Username == avatarUsername, softDelete);
+        }
+
         public override bool DeleteAvatar(Guid id, bool softDelete = true)
         {
             return _avatarRepository.Delete(id, softDelete);
+        }
+
+        public override bool DeleteAvatarByEmail(string avatarEmail, bool softDelete = true)
+        {
+            return _avatarRepository.Delete(x => x.Email == avatarEmail, softDelete);
         }
 
         public override async Task<IAvatar> LoadAvatarForProviderKeyAsync(string providerKey)
@@ -178,9 +218,24 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             return await _searchRepository.SearchAsync(searchTerm);
         }
 
+        public override IAvatarDetail LoadAvatarDetailByUsername(string avatarUsername)
+        {
+            return ConvertMongoEntityToOASISAvatarDetail(_avatarRepository.GetAvatarDetail(x => x.Username == avatarUsername));
+        }
+
         public override async Task<IAvatarDetail> LoadAvatarDetailAsync(Guid id)
         {
             return ConvertMongoEntityToOASISAvatarDetail(await _avatarRepository.GetAvatarDetailAsync(id));
+        }
+
+        public override async Task<IAvatarDetail> LoadAvatarDetailByUsernameAsync(string avatarUsername)
+        {
+            return ConvertMongoEntityToOASISAvatarDetail(await _avatarRepository.GetAvatarDetailAsync(x => x.Username == avatarUsername));
+        }
+
+        public override async Task<IAvatarDetail> LoadAvatarDetailByEmailAsync(string avatarEmail)
+        {
+            return ConvertMongoEntityToOASISAvatarDetail(await _avatarRepository.GetAvatarDetailAsync(x => x.Email == avatarEmail));
         }
 
         public override async Task<IEnumerable<IAvatarDetail>> LoadAllAvatarDetailsAsync()
@@ -196,6 +251,11 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
         public override IAvatarDetail LoadAvatarDetail(Guid id)
         {
             return ConvertMongoEntityToOASISAvatarDetail(_avatarRepository.GetAvatarDetail(id));
+        }
+
+        public override IAvatarDetail LoadAvatarDetailByEmail(string avatarEmail)
+        {
+            return ConvertMongoEntityToOASISAvatarDetail(_avatarRepository.GetAvatarDetail(x => x.Email == avatarEmail));
         }
 
         public override IEnumerable<IAvatarDetail> LoadAllAvatarDetails()
@@ -391,7 +451,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
 
             Core.Holons.Avatar oasisAvatar = new Core.Holons.Avatar();
 
-            oasisAvatar.Id = avatar.HolonId;
+            oasisAvatar.Id = new Guid(avatar.Id);
             oasisAvatar.ProviderKey = avatar.ProviderKey;
             oasisAvatar.ProviderMetaData = avatar.ProviderMetaData;
             oasisAvatar.Description = avatar.Description;
