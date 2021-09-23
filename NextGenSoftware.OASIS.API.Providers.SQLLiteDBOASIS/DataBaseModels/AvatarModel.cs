@@ -95,28 +95,13 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.DataBaseModels{
         public AvatarModel(){}
         public AvatarModel(Avatar source){
 
-            this.Id=source.AvatarId.ToString();
             this.Title=source.Title;
             this.FirstName=source.FirstName;
             this.LastName=source.LastName;
-
-            this.DOB=source.DOB;
-            this.Address=source.Address;
-            this.Town=source.Town;
-            this.County=source.County;
-            this.Country=source.Country;
-            this.Postcode=source.Postcode;
-            this.Mobile=source.Mobile;
-            this.Landline=source.Landline;
-
             this.Username=source.Username;
             this.Password=source.Password;
             this.Email=source.Email;
             this.Image2D=source.Image2D;
-            this.Model3D=source.Model3D;
-
-            this.FavouriteColour=source.FavouriteColour;
-            this.STARCLIColour=source.STARCLIColour;
             
             this.AvatarType=source.AvatarType.Value;
             this.CreatedOASISType=source.CreatedOASISType.Value;
@@ -142,34 +127,17 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.DataBaseModels{
             this.DeletedDate=source.DeletedDate;
             this.DeletedByAvatarId=source.DeletedByAvatarId.ToString();
 
-            this.Stats=new AvatarStatsModel(source.Stats);
             this.Stats.AvatarId=this.Id;
 
-            this.Aura=new AvatarAuraModel(source.Aura);
             this.Aura.AvatarId=this.Id;
 
-            this.HumanDesign = new AvatarHumanDesignModel(source.HumanDesign);
             this.HumanDesign.AvatarId=this.Id;
 
-            this.Skills=new AvatarSkillsModel(source.Skills);
             this.Skills.AvatarId=this.Id;
 
-            this.Attributes=new AvatarAttributesModel(source.Attributes);
             this.Attributes.AvatarId=this.Id;
 
-            this.SuperPowers=new AvatarSuperPowersModel(source.SuperPowers);
             this.SuperPowers.AvatarId=this.Id;
-
-            foreach(AvatarGift gift in source.Gifts){
-                this.Gifts.Add(new AvatarGiftModel(gift));
-            }
-
-            foreach(HeartRateEntry heartRate in source.HeartRateData){
-
-                HeartRateEntryModel heartRateModel=new HeartRateEntryModel(heartRate);
-                heartRateModel.AvatarId=this.Id;
-                this.HeartRates.Add(heartRateModel);
-            }
 
             foreach(RefreshToken token in source.RefreshTokens){
 
@@ -178,71 +146,6 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.DataBaseModels{
                 tokenModel.AvatarId=this.Id;
                 this.RefreshTokens.Add(tokenModel);
             }
-
-            foreach(InventoryItem item in source.Inventory){
-
-                InventoryItemModel inventoryModel=new InventoryItemModel(item);
-                inventoryModel.AvatarId=this.Id;
-                this.InventoryItems.Add(inventoryModel);
-            }
-
-            foreach(GeneKey geneKey in source.GeneKeys){
-
-                GeneKeyModel geneKeyModel=new GeneKeyModel(geneKey);
-                geneKeyModel.AvatarId=this.Id;
-                this.GeneKeys.Add(geneKeyModel);
-            }
-
-            foreach(Spell spell in source.Spells){
-
-                SpellModel spellModel=new SpellModel(spell);
-                spellModel.AvatarId=this.Id;
-                this.Spells.Add(spellModel);
-            }
-
-            foreach(Achievement item in source.Achievements){
-                this.Achievements.Add(new AchievementModel(item));
-            }
-
-            foreach(KarmaAkashicRecord record in source.KarmaAkashicRecords){
-                this.KarmaAkashicRecords.Add(new KarmaAkashicRecordModel(record));
-            }
-
-            foreach(KeyValuePair<ProviderType, string> key in source.ProviderKey){
-
-                ProviderKeyModel providerKey=new ProviderKeyModel(key.Key,key.Value);
-                providerKey.ParentId=this.Id;
-                this.ProviderKey.Add(providerKey);
-            }
-
-            foreach(KeyValuePair<ProviderType, string> key in source.ProviderPrivateKey){
-
-                ProviderPrivateKeyModel privateKey=new ProviderPrivateKeyModel(key.Key,key.Value);
-                privateKey.ParentId=this.Id;
-                this.ProviderPrivateKey.Add(privateKey);
-            }
-
-            foreach(KeyValuePair<ProviderType, string> key in source.ProviderPublicKey){
-
-                ProviderPublicKeyModel publicKey=new ProviderPublicKeyModel(key.Key,key.Value);
-                publicKey.ParentId=this.Id;
-                this.ProviderPublicKey.Add(publicKey);
-            }
-
-            foreach(KeyValuePair<ProviderType, string> key in source.ProviderWalletAddress){
-
-                ProviderWalletAddressModel walletAddressModel=new ProviderWalletAddressModel(key.Key,key.Value);
-                walletAddressModel.ParentId=this.Id;
-                this.ProviderWalletAddress.Add(walletAddressModel);
-            }
-
-            this.AvatarChakras.Add(new AvatarChakraModel(source.Chakras.Root));
-            this.AvatarChakras.Add(new AvatarChakraModel(source.Chakras.Sacral));
-            this.AvatarChakras.Add(new AvatarChakraModel(source.Chakras.SoloarPlexus));
-            this.AvatarChakras.Add(new AvatarChakraModel(source.Chakras.Heart));
-            this.AvatarChakras.Add(new AvatarChakraModel(source.Chakras.Throat));
-            this.AvatarChakras.Add(new AvatarChakraModel(source.Chakras.ThirdEye));
-            this.AvatarChakras.Add(new AvatarChakraModel(source.Chakras.Crown));
         }
 
         public Avatar GetAvatar(){
@@ -253,24 +156,11 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.DataBaseModels{
             item.Title=this.Title;
             item.FirstName=this.FirstName;
             item.LastName=this.LastName;
-
-            item.DOB=this.DOB;
-            item.Address=this.Address;
-            item.Town=this.Town;
-            item.County=this.County;
-            item.Country=this.Country;
-            item.Postcode=this.Postcode;
-            item.Mobile=this.Mobile;
-            item.Landline=this.Landline;
-
+            
             item.Username=this.Username;
             item.Password=this.Password;
             item.Email=this.Email;
             item.Image2D=this.Image2D;
-            item.Model3D=this.Model3D;
-
-            item.FavouriteColour=this.FavouriteColour;
-            item.STARCLIColour=this.STARCLIColour;
 
             item.AvatarType = new EnumValue<AvatarType>(this.AvatarType);
             item.CreatedOASISType= new EnumValue<OASISType>(this.CreatedOASISType);
@@ -295,71 +185,15 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.DataBaseModels{
             item.DeletedDate=this.DeletedDate;
             item.DeletedByAvatarId=Guid.Parse(this.DeletedByAvatarId);
 
-            item.Attributes=this.Attributes.GetAvatarAttributes();
-            item.Aura = this.Aura.GetAvatarAura();
-            item.HumanDesign=this.HumanDesign.GetHumanDesign();
-            item.Skills=this.Skills.GetAvatarSkills();
-            item.Stats=this.Stats.GetAvatarStats();
-            item.SuperPowers=this.SuperPowers.GetAvatarSuperPowers();
-
-
-            foreach(HeartRateEntryModel model in this.HeartRates){
-
-                item.HeartRateData.Add(model.GetHeartRateEntry());
-            }
-            
             foreach(RefreshTokenModel model in this.RefreshTokens){
 
                 item.RefreshTokens.Add(model.GetRefreshToken());
-            }
-
-            foreach(InventoryItemModel model in this.InventoryItems){
-
-                item.Inventory.Add(model.GetInventoryItem());
-            }
-
-            foreach(GeneKeyModel model in this.GeneKeys){
-
-                item.GeneKeys.Add(model.GetGeneKey());
-            }
-
-            foreach(SpellModel model in this.Spells){
-
-                item.Spells.Add(model.GetSpell());
-            }
-
-            foreach(AchievementModel model in this.Achievements){
-
-                item.Achievements.Add(model.GetAchievement());
-            }
-
-            foreach(KarmaAkashicRecordModel model in this.KarmaAkashicRecords){
-
-                item.KarmaAkashicRecords.Add(model.GetKarmaAkashicRecord());
             }
 
             foreach(ProviderKeyModel model in this.ProviderKey){
 
                 ProviderKeyAbstract providerKey=model.GetProviderKey();
                 item.ProviderKey.Add(providerKey.ProviderId, providerKey.Value);
-            }
-
-            foreach(ProviderPrivateKeyModel model in this.ProviderPrivateKey){
-
-                ProviderKeyAbstract providerKey=model.GetProviderKey();
-                item.ProviderPrivateKey.Add(providerKey.ProviderId, providerKey.Value);
-            }
-
-            foreach(ProviderPublicKeyModel model in this.ProviderPublicKey){
-
-                ProviderKeyAbstract providerKey=model.GetProviderKey();
-                item.ProviderPublicKey.Add(providerKey.ProviderId, providerKey.Value);
-            }
-
-            foreach(ProviderWalletAddressModel model in this.ProviderWalletAddress){
-
-                ProviderKeyAbstract providerKey=model.GetProviderKey();
-                item.ProviderWalletAddress.Add(providerKey.ProviderId, providerKey.Value);
             }
 
             return(item);
