@@ -5,9 +5,9 @@ namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Services
 {
     public class HttpHandler : IHttpHandler
     {
-        public HttpHandler(HttpClient httpClient)
+        public HttpHandler()
         {
-            _httpClient = httpClient;
+            _httpClient = new HttpClient();
         }
 
         private readonly HttpClient _httpClient;

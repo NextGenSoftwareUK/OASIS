@@ -8,18 +8,24 @@ This project was bootstrapped with [Create React App](https://github.com/faceboo
 │   ├── public
 │   │   └── index.html
 │   ├── src
-│   │   ├── CSS
-│   │   ├── Components
-│   │   ├── img
+|   |   ├── assets
+|   |   |   ├── images
+|   |   |   ├── scss
+|   |   ├── components 
+|   |   |   ├── common
+|   |   |   |   ├── sidebar
+|   |   |   ├── popups
 │   │   └── index.js
 ```
 
 All of the files are stored in react-app folder.
 
 - `index.html` is the main html file
-- `CSS` folder contains css files for each component
-- `Components` folder contains different components used in the app
-- `index.js` is the main javaScript file needed for the react-app
+- `assets` folder contains all assets files for each component like images and css/scss files.
+- `components` folder contains different components used in the app.
+- `components/common` folder contains different components tha are common like sidebar, navbar etc.
+- `components/popups` folder contains different popup components.
+- `index.js` is the main javaScript file needed for the react-app.
 
 ## CSS Syntax rules
 Please follow these rules so that the other CSS classes does not gets messed up.
