@@ -69,6 +69,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.DataBaseModels{
         public AvatarModel(){}
         public AvatarModel(Avatar source){
 
+<<<<<<< HEAD
             if(source.Id == Guid.Empty){
                 this.Id = Guid.NewGuid().ToString();
             }
@@ -86,6 +87,11 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.DataBaseModels{
             this.HolonType = source.HolonType;
             this.AvatarType = source.AvatarType.Value;
 
+=======
+            this.Title=source.Title;
+            this.FirstName=source.FirstName;
+            this.LastName=source.LastName;
+>>>>>>> bf93d6d737f7b0f215fcd0016d43a34097fe193e
             this.Username=source.Username;
             this.Email=source.Email;
             this.Image2D=source.Image2D;
@@ -117,6 +123,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.DataBaseModels{
             this.CreatedDate=source.CreatedDate;
             this.ModifiedDate=source.ModifiedDate;
             this.DeletedDate=source.DeletedDate;
+<<<<<<< HEAD
 
             this.CreatedByAvatarId=source.CreatedByAvatarId.ToString();
             this.ModifiedByAvatarId=source.ModifiedByAvatarId.ToString();
@@ -143,6 +150,29 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.DataBaseModels{
                 this.MetaData.Add(metaModel);
             }
 
+=======
+            this.DeletedByAvatarId=source.DeletedByAvatarId.ToString();
+
+            this.Stats.AvatarId=this.Id;
+
+            this.Aura.AvatarId=this.Id;
+
+            this.HumanDesign.AvatarId=this.Id;
+
+            this.Skills.AvatarId=this.Id;
+
+            this.Attributes.AvatarId=this.Id;
+
+            this.SuperPowers.AvatarId=this.Id;
+
+            foreach(RefreshToken token in source.RefreshTokens){
+
+                RefreshTokenModel tokenModel=new RefreshTokenModel(token);
+                //tokenModel.Avatar=source;
+                tokenModel.AvatarId=this.Id;
+                this.RefreshTokens.Add(tokenModel);
+            }
+>>>>>>> bf93d6d737f7b0f215fcd0016d43a34097fe193e
         }
 
         public Avatar GetAvatar(){
@@ -153,14 +183,19 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.DataBaseModels{
             item.Title=this.Title;
             item.FirstName=this.FirstName;
             item.LastName=this.LastName;
+<<<<<<< HEAD
 
             item.Description = this.Description;
             item.HolonType = this.HolonType;
             item.AvatarType = new EnumValue<AvatarType>(this.AvatarType);
 
+=======
+            
+>>>>>>> bf93d6d737f7b0f215fcd0016d43a34097fe193e
             item.Username=this.Username;
             item.Email=this.Email;
             item.Image2D=this.Image2D;
+<<<<<<< HEAD
             
             item.AcceptTerms = this.AcceptTerms;
             item.JwtToken = this.JwtToken;
@@ -171,6 +206,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.DataBaseModels{
             item.ResetTokenExpires = this.ResetTokenExpires;
             item.VerificationToken = this.VerificationToken;
             item.Verified = this.Verified;
+=======
+>>>>>>> bf93d6d737f7b0f215fcd0016d43a34097fe193e
 
             
             item.CreatedOASISType= new EnumValue<OASISType>(this.CreatedOASISType);
@@ -188,10 +225,13 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.DataBaseModels{
             item.ModifiedDate=this.ModifiedDate;
             item.DeletedDate=this.DeletedDate;
 
+<<<<<<< HEAD
             item.CreatedByAvatarId=Guid.Parse(this.CreatedByAvatarId);
             item.ModifiedByAvatarId=Guid.Parse(this.ModifiedByAvatarId);
             item.DeletedByAvatarId=Guid.Parse(this.DeletedByAvatarId);
 
+=======
+>>>>>>> bf93d6d737f7b0f215fcd0016d43a34097fe193e
             foreach(RefreshTokenModel model in this.RefreshTokens){
 
                 item.RefreshTokens.Add(model.GetRefreshToken());
@@ -199,12 +239,17 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.DataBaseModels{
 
             foreach(ProviderKeyModel model in this.ProviderKey){
 
+<<<<<<< HEAD
                 item.ProviderKey.Add(model.ProviderId, model.Value);
             }
 
             foreach(MetaDataModel model in this.MetaData){
 
                 item.MetaData.Add(model.Property, model.Value);
+=======
+                ProviderKeyAbstract providerKey=model.GetProviderKey();
+                item.ProviderKey.Add(providerKey.ProviderId, providerKey.Value);
+>>>>>>> bf93d6d737f7b0f215fcd0016d43a34097fe193e
             }
 
             return(item);

@@ -15,7 +15,11 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces
         IAvatar LoadAvatarForProviderKey(string providerKey);
         Task<IAvatar> LoadAvatarForProviderKeyAsync(string providerKey);
         IAvatar LoadAvatar(Guid id);
+        IAvatar LoadAvatarByEmail(string avatarEmail);
+        IAvatar LoadAvatarByUsername(string avatarUsername);
         Task<IAvatar> LoadAvatarAsync(Guid Id);
+        Task<IAvatar> LoadAvatarByEmailAsync(string avatarEmail);
+        Task<IAvatar> LoadAvatarByUsernameAsync(string avatarUsername);
         IAvatar LoadAvatar(string username);
         Task<IAvatar> LoadAvatarAsync(string username);
         IAvatar LoadAvatar(string username, string password);
@@ -23,7 +27,11 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces
         IEnumerable<IAvatar> LoadAllAvatars();
         Task<IEnumerable<IAvatar>> LoadAllAvatarsAsync();
         IAvatarDetail LoadAvatarDetail(Guid id);
+        IAvatarDetail LoadAvatarDetailByEmail(string avatarEmail);
+        IAvatarDetail LoadAvatarDetailByUsername(string avatarUsername);
         Task<IAvatarDetail> LoadAvatarDetailAsync(Guid id);
+        Task<IAvatarDetail> LoadAvatarDetailByUsernameAsync(string avatarUsername);
+        Task<IAvatarDetail> LoadAvatarDetailByEmailAsync(string avatarEmail);
         IEnumerable<IAvatarDetail> LoadAllAvatarDetails();
         Task<IEnumerable<IAvatarDetail>> LoadAllAvatarDetailsAsync();
        // IAvatarThumbnail LoadAvatarThumbnail(Guid id);
@@ -33,7 +41,11 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces
         IAvatarDetail SaveAvatarDetail(IAvatarDetail Avatar);
         Task<IAvatarDetail> SaveAvatarDetailAsync(IAvatarDetail Avatar);
         bool DeleteAvatar(Guid id, bool softDelete = true);
+        bool DeleteAvatarByEmail(string avatarEmail, bool softDelete = true);
+        bool DeleteAvatarByUsername(string avatarUsername, bool softDelete = true);
         Task<bool> DeleteAvatarAsync(Guid id, bool softDelete = true);
+        Task<bool> DeleteAvatarByEmailAsync(string avatarEmail, bool softDelete = true);
+        Task<bool> DeleteAvatarByUsernameAsync(string avatarUsername, bool softDelete = true);
         bool DeleteAvatar(string providerKey, bool softDelete = true);
         Task<bool> DeleteAvatarAsync(string providerKey, bool softDelete = true);
         KarmaAkashicRecord AddKarmaToAvatar(IAvatarDetail Avatar, KarmaTypePositive karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc, string karmaSourceWebLink = null);

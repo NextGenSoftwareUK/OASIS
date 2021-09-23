@@ -59,6 +59,7 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
 
         public bool IsNewHolon { get; set; }
         public bool IsChanged { get; set; }
+        
         //public Dictionary<ProviderType, string> ProviderKey { get; set; } = new Dictionary<ProviderType, string>(); //Unique key used by each provider (e.g. hashaddress in hc, accountname for Telos, id in MongoDB etc).        
         //public Dictionary<ProviderType, Dictionary<string, string>> ProviderMetaData { get; set; } = new Dictionary<ProviderType, Dictionary<string, string>>(); // Key/Value pair meta data can be stored here, which is unique for that provider.
         //public Dictionary<string, string> MetaData { get; set; } = new Dictionary<string, string>(); // Key/Value pair meta data can be stored here that applies globally across ALL providers.
@@ -115,6 +116,7 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
         public Avatar DeletedByAvatar { get; set; }
         public DateTime DeletedDate { get; set; }
         public int Version { get; set; }
+        public Guid PreviousVersionId { get; set; }
         public bool IsActive { get; set; }
         public EnumValue<ProviderType> CreatedProviderType { get; set; } // The primary provider that this holon was originally saved with (it can then be auto-replicated to other providers to give maximum redundancy/speed via auto-load balancing etc).
                                                                          //public List<INode> Nodes { get; set; } // List of nodes/fields (int, string, bool, etc) that belong to this Holon (STAR ODK auto-generates these when generating dynamic code from DNA Templates passed in).
