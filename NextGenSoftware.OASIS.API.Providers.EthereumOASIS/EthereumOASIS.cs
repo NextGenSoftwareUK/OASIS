@@ -361,11 +361,6 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             throw new NotImplementedException();
         }
 
-        public override IAvatarDetail LoadAvatarDetail(Guid id)
-        {
-            throw new NotImplementedException();
-        }
-
         public override IAvatarDetail LoadAvatarDetailByEmail(string avatarEmail)
         {
             throw new NotImplementedException();
@@ -376,37 +371,12 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             throw new NotImplementedException();
         }
 
-        public override Task<IAvatarDetail> LoadAvatarDetailAsync(Guid id)
-        {
-            throw new NotImplementedException();
-        }
-
         public override async Task<IAvatarDetail> LoadAvatarDetailByUsernameAsync(string avatarUsername)
         {
             throw new NotImplementedException();
         }
 
         public override async Task<IAvatarDetail> LoadAvatarDetailByEmailAsync(string avatarEmail)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override IEnumerable<IAvatarDetail> LoadAllAvatarDetails()
-        {
-            throw new NotImplementedException();
-        }
-
-        public override Task<IEnumerable<IAvatarDetail>> LoadAllAvatarDetailsAsync()
-        {
-            throw new NotImplementedException();
-        }
-
-        public override IAvatarDetail SaveAvatarDetail(IAvatarDetail Avatar)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override Task<IAvatarDetail> SaveAvatarDetailAsync(IAvatarDetail Avatar)
         {
             throw new NotImplementedException();
         }

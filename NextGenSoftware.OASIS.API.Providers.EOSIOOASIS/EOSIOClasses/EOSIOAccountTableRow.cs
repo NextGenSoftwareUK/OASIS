@@ -41,14 +41,10 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.EOSIOClasses
                 Email = this.email,
                 Title = this.title,
                 FirstName = this.firstname,
-<<<<<<< Updated upstream
-                LastName = this.lastname,
                // DOB = Convert.ToDateTime(this.dob),
               //  Address = this.playeraddr,
-                Karma = this.karma
-=======
+                Karma = this.karma,
                 LastName = this.lastname
->>>>>>> Stashed changes
             };
 
             //avatar.SetKarmaForDataObject(this.karma);

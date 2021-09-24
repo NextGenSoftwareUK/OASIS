@@ -133,21 +133,6 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
             throw new NotImplementedException();
         }
 
-        public override async Task<IAvatarDetail> LoadAvatarDetailAsync(Guid id)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override IEnumerable<IAvatarDetail> LoadAllAvatarDetails()
-        {
-            throw new NotImplementedException();
-        }
-
-        public override async Task<IEnumerable<IAvatarDetail>> LoadAllAvatarDetailsAsync()
-        {
-            throw new NotImplementedException();
-        }
-
         public override IEnumerable<IHolon> LoadAllHolons(HolonType type = HolonType.Holon)
         {
             throw new NotImplementedException();
@@ -194,11 +179,6 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
         }
 
         public override Task<IAvatar> LoadAvatarAsync(string username, string password)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override IAvatarDetail LoadAvatarDetail(Guid id)
         {
             throw new NotImplementedException();
         }
@@ -289,14 +269,6 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
             throw new NotImplementedException();
         }
 
-<<<<<<< Updated upstream
-        public override Task<IAvatarDetail> SaveAvatarDetailAsync(IAvatarDetail Avatar)
-        {
-            throw new NotImplementedException();
-        }
-
-=======
->>>>>>> Stashed changes
         public override IHolon SaveHolon(IHolon holon)
         {
             throw new NotImplementedException();
