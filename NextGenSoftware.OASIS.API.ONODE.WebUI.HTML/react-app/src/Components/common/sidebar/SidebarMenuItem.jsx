@@ -23,7 +23,7 @@ class SidebarMenuItem extends React.Component {
                         {
                             item.subMenu.map((subItem, index) =>
                                 <li key={index} onClick={() => this.props.toggleDataScreenPopup(subItem.popupName)}>
-                                    <a href={subItem.path}>{subItem.name}</a>
+                                    <a>{subItem.name}</a>
                                 </li>
                             )
                         }
