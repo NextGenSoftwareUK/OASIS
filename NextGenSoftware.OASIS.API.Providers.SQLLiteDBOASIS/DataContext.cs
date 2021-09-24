@@ -8,6 +8,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
     {
         public DbSet<AvatarModel> Avatars { get; set; }
         public DbSet<HolonModel> Holons { get; set; }
+        public DbSet<AvatarDetailModel> AvatarDetails { get; set; }
 
         private string DbPath = "";
 
@@ -26,45 +27,119 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
 
         protected override void OnModelCreating(ModelBuilder modelBuilder){
 
-            modelBuilder.Entity<RefreshTokenModel>().HasAlternateKey(rt => rt.Id);
-            modelBuilder.Entity<AvatarAttributesModel>().HasAlternateKey(aa => aa.AvatarId);
-            modelBuilder.Entity<AvatarAuraModel>().HasAlternateKey(aa => aa.AvatarId);
-            modelBuilder.Entity<AvatarHumanDesignModel>().HasAlternateKey(hd => hd.AvatarId);
-            modelBuilder.Entity<ProviderKeyModel>().HasAlternateKey(p => p.ProviderId);
-            modelBuilder.Entity<ProviderPrivateKeyModel>().HasAlternateKey(p => p.ProviderId);
-            modelBuilder.Entity<ProviderPublicKeyModel>().HasAlternateKey(p => p.ProviderId);
-            modelBuilder.Entity<ProviderWalletAddressModel>().HasAlternateKey(p => p.ProviderId);
-            modelBuilder.Entity<AvatarSkillsModel>().HasAlternateKey(ask => ask.AvatarId);
-            modelBuilder.Entity<AvatarStatsModel>().HasAlternateKey(ast => ast.AvatarId);
-            modelBuilder.Entity<AvatarSuperPowersModel>().HasAlternateKey(ast => ast.AvatarId);
-
-
             modelBuilder.Entity<AvatarModel>()
+                .HasMany(avatar => avatar.RefreshTokens)
+                .WithOne()
+                .HasForeignKey(ob => ob.AvatarId);
+            
+            modelBuilder.Entity<AvatarModel>()
+                .HasMany(avatar => avatar.ProviderKey)
+                .WithOne()
+                .HasForeignKey(ob => ob.OwnerId);
+            
+            modelBuilder.Entity<AvatarModel>()
+                .HasMany(avatar => avatar.MetaData)
+                .WithOne()
+                .HasForeignKey(ob => ob.OwnerId);
+            
+
+            ///////////////HOLON RELATIONSHIPS/////////////////
+            
+
+            modelBuilder.Entity<AvatarDetailModel>()
+                .HasMany(avatar => avatar.HeartRates)
+                .WithOne()
+                .HasForeignKey(ob => ob.AvatarId);
+
+            modelBuilder.Entity<AvatarDetailModel>()
+                .HasMany(avatar => avatar.Gifts)
+                .WithOne()
+                .HasForeignKey(ob => ob.AvatarId);
+
+            modelBuilder.Entity<AvatarDetailModel>()
+                .HasMany(avatar => avatar.InventoryItems)
+                .WithOne()
+                .HasForeignKey(ob => ob.AvatarId);
+            
+            modelBuilder.Entity<AvatarDetailModel>()
+                .HasMany(avatar => avatar.GeneKeys)
+                .WithOne()
+                .HasForeignKey(ob => ob.AvatarId);
+            
+            modelBuilder.Entity<AvatarDetailModel>()
+                .HasMany(avatar => avatar.Spells)
+                .WithOne()
+                .HasForeignKey(ob => ob.AvatarId);
+
+            modelBuilder.Entity<AvatarDetailModel>()
+                .HasMany(avatar => avatar.Achievements)
+                .WithOne()
+                .HasForeignKey(ob => ob.AvatarId);
+            
+            modelBuilder.Entity<AvatarDetailModel>()
+                .HasMany(avatar => avatar.KarmaAkashicRecords)
+                .WithOne()
+                .HasForeignKey(ob => ob.AvatarId);
+
+
+            modelBuilder.Entity<AvatarDetailModel>()
+                .HasMany(avatar => avatar.ProviderPrivateKey)
+                .WithOne()
+                .HasForeignKey(ob => ob.OwnerId);
+            
+            modelBuilder.Entity<AvatarDetailModel>()
+                .HasMany(avatar => avatar.ProviderPublicKey)
+                .WithOne()
+                .HasForeignKey(ob => ob.OwnerId);
+            
+            modelBuilder.Entity<AvatarDetailModel>()
+                .HasMany(avatar => avatar.ProviderWalletAddress)
+                .WithOne()
+                .HasForeignKey(ob => ob.OwnerId);
+            
+             modelBuilder.Entity<AvatarDetailModel>()
+                .HasMany(avatar => avatar.MetaData)
+                .WithOne()
+                .HasForeignKey(ob => ob.OwnerId);
+
+            
+            modelBuilder.Entity<AvatarDetailModel>()
+                .HasMany(avatar => avatar.AvatarChakras)
+                .WithOne()
+                .HasForeignKey(ob => ob.AvatarId);
+            
+            modelBuilder.Entity<AvatarChakraModel>()
+                .HasMany(ac => ac.GiftsUnlocked)
+                .WithOne()
+                .HasForeignKey(ob => ob.AvatarChakraId);
+
+            
+            modelBuilder.Entity<AvatarDetailModel>()
                 .HasOne<AvatarStatsModel>(avatar => avatar.Stats)
                 .WithOne()
                 .HasForeignKey<AvatarStatsModel>(ob => ob.AvatarId);
 
-            modelBuilder.Entity<AvatarModel>()
+            modelBuilder.Entity<AvatarDetailModel>()
                 .HasOne<AvatarAuraModel>(avatar => avatar.Aura)
                 .WithOne()
                 .HasForeignKey<AvatarAuraModel>(ob => ob.AvatarId);
 
-            modelBuilder.Entity<AvatarModel>()
+            modelBuilder.Entity<AvatarDetailModel>()
                 .HasOne<AvatarHumanDesignModel>(avatar => avatar.HumanDesign)
                 .WithOne()
                 .HasForeignKey<AvatarHumanDesignModel>(ob => ob.AvatarId);
             
-            modelBuilder.Entity<AvatarModel>()
+            modelBuilder.Entity<AvatarDetailModel>()
                 .HasOne<AvatarSkillsModel>(avatar => avatar.Skills)
                 .WithOne()
                 .HasForeignKey<AvatarSkillsModel>(ob => ob.AvatarId);
             
-            modelBuilder.Entity<AvatarModel>()
+            modelBuilder.Entity<AvatarDetailModel>()
                 .HasOne<AvatarAttributesModel>(avatar => avatar.Attributes)
                 .WithOne()
                 .HasForeignKey<AvatarAttributesModel>(ob => ob.AvatarId);
 
-            modelBuilder.Entity<AvatarModel>()
+            modelBuilder.Entity<AvatarDetailModel>()
                 .HasOne<AvatarSuperPowersModel>(avatar => avatar.SuperPowers)
                 .WithOne()
                 .HasForeignKey<AvatarSuperPowersModel>(ob => ob.AvatarId);
@@ -75,6 +150,31 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                 .HasForeignKey<CrystalModel>(ob => ob.AvatarChakraId);
             
 
+            ///////////////HOLON RELATIONSHIPS/////////////////
+
+
+            modelBuilder.Entity<HolonModel>()
+                .HasMany(holon => holon.Childrens)
+                .WithOne()
+                .HasForeignKey(ob => ob.ParentHolonId);
+            
+            modelBuilder.Entity<HolonModel>()
+                .HasMany(holon => holon.MetaData)
+                .WithOne()
+                .HasForeignKey(ob => ob.OwnerId);
+            
+            modelBuilder.Entity<HolonModel>()
+                .HasMany(holon => holon.ProviderKey)
+                .WithOne()
+                .HasForeignKey(ob => ob.OwnerId);
+            
+            modelBuilder.Entity<HolonModel>()
+                .HasMany(avatar => avatar.ProviderMetaData)
+                .WithOne()
+                .HasForeignKey(ob => ob.OwnerId);
+
+
+            ///RELATIONSHIPS OF THE PROPERTIES OF THE HOLON OBJECT////
 
             modelBuilder.Entity<PlanetModel>()
                 .HasMany(planet => planet.Moons)
@@ -213,99 +313,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                 .HasMany(universe => universe.Meteroids)
                 .WithOne()
                 .HasForeignKey(ob => ob.UniverseId);
-            
 
-            modelBuilder.Entity<HolonModel>()
-                .HasMany(universe => universe.Childrens)
-                .WithOne()
-                .HasForeignKey(ob => ob.ParentHolonId);
-            
-            modelBuilder.Entity<HolonModel>()
-                .HasMany(avatar => avatar.ProviderKey)
-                .WithOne()
-                .HasForeignKey(ob => ob.ParentId);
-            
-            modelBuilder.Entity<HolonModel>()
-                .HasMany(avatar => avatar.MetaData)
-                .WithOne()
-                .HasForeignKey(ob => ob.ParentId);
-            
-            modelBuilder.Entity<HolonModel>()
-                .HasMany(avatar => avatar.ProviderMetaData)
-                .WithOne()
-                .HasForeignKey(ob => ob.ParentId);
-
-
-            modelBuilder.Entity<AvatarModel>()
-                .HasMany(avatar => avatar.HeartRates)
-                .WithOne()
-                .HasForeignKey(ob => ob.AvatarId);
-
-            modelBuilder.Entity<AvatarModel>()
-                .HasMany(avatar => avatar.Gifts)
-                .WithOne()
-                .HasForeignKey(ob => ob.AvatarId);
-            
-            modelBuilder.Entity<AvatarModel>()
-                .HasMany(avatar => avatar.RefreshTokens)
-                .WithOne()
-                .HasForeignKey(ob => ob.AvatarId);
-
-            modelBuilder.Entity<AvatarModel>()
-                .HasMany(avatar => avatar.InventoryItems)
-                .WithOne()
-                .HasForeignKey(ob => ob.AvatarId);
-            
-            modelBuilder.Entity<AvatarModel>()
-                .HasMany(avatar => avatar.GeneKeys)
-                .WithOne()
-                .HasForeignKey(ob => ob.AvatarId);
-            
-            modelBuilder.Entity<AvatarModel>()
-                .HasMany(avatar => avatar.Spells)
-                .WithOne()
-                .HasForeignKey(ob => ob.AvatarId);
-
-            modelBuilder.Entity<AvatarModel>()
-                .HasMany(avatar => avatar.Achievements)
-                .WithOne()
-                .HasForeignKey(ob => ob.AvatarId);
-            
-            modelBuilder.Entity<AvatarModel>()
-                .HasMany(avatar => avatar.KarmaAkashicRecords)
-                .WithOne()
-                .HasForeignKey(ob => ob.AvatarId);
-            
-            modelBuilder.Entity<AvatarModel>()
-                .HasMany(avatar => avatar.ProviderKey)
-                .WithOne()
-                .HasForeignKey(ob => ob.ParentId);
-
-
-            modelBuilder.Entity<AvatarModel>()
-                .HasMany(avatar => avatar.ProviderPrivateKey)
-                .WithOne()
-                .HasForeignKey(ob => ob.ParentId);
-            
-            modelBuilder.Entity<AvatarModel>()
-                .HasMany(avatar => avatar.ProviderPublicKey)
-                .WithOne()
-                .HasForeignKey(ob => ob.ParentId);
-            
-            modelBuilder.Entity<AvatarModel>()
-                .HasMany(avatar => avatar.ProviderWalletAddress)
-                .WithOne()
-                .HasForeignKey(ob => ob.ParentId);
-            
-            modelBuilder.Entity<AvatarModel>()
-                .HasMany(avatar => avatar.AvatarChakras)
-                .WithOne()
-                .HasForeignKey(ob => ob.AvatarId);
-            
-            modelBuilder.Entity<AvatarChakraModel>()
-                .HasMany(ac => ac.GiftsUnlocked)
-                .WithOne()
-                .HasForeignKey(ob => ob.AvatarChakraId);
         }
     }
 }

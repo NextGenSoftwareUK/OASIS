@@ -85,12 +85,14 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
 
         public override async Task<IAvatar> LoadAvatarByEmailAsync(string avatarEmail)
         {
-            throw new NotImplementedException();
+            Avatar avatar = await avatarRepository.GetAvatarByEmailAsync(avatarEmail);
+            return(avatar);
         }
 
         public override async Task<IAvatar> LoadAvatarByUsernameAsync(string avatarUsername)
         {
-            throw new NotImplementedException();
+            Avatar avatar = await avatarRepository.GetAvatarAsync(avatarUsername);
+            return(avatar);
         }
 
         public override IAvatar LoadAvatar(Guid id)
@@ -172,18 +174,17 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
 
         public override bool DeleteAvatar(Guid id, bool softDelete = true)
         {
-            bool delete_complete=avatarRepository.Delete(id,softDelete);
-            return(delete_complete);
+            return avatarRepository.Delete(id,softDelete);
         }
 
         public override bool DeleteAvatarByEmail(string avatarEmail, bool softDelete = true)
         {
-            throw new NotImplementedException();
+            return avatarRepository.DeleteByEmail(avatarEmail,softDelete);
         }
 
         public override bool DeleteAvatarByUsername(string avatarUsername, bool softDelete = true)
         {
-            throw new NotImplementedException();
+            return avatarRepository.Delete(avatarUsername,softDelete);
         }
 
         public override async Task<bool> DeleteAvatarAsync(Guid id, bool softDelete = true)
@@ -193,12 +194,12 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
 
         public override async Task<bool> DeleteAvatarByEmailAsync(string avatarEmail, bool softDelete = true)
         {
-            throw new NotImplementedException();
+            return await avatarRepository.DeleteAsync(avatarEmail, softDelete);
         }
 
         public override async Task<bool> DeleteAvatarByUsernameAsync(string avatarUsername, bool softDelete = true)
         {
-            throw new NotImplementedException();
+            return await avatarRepository.DeleteAsync(avatarUsername, softDelete);
         }
 
 
@@ -370,7 +371,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
 
         public override IAvatarDetail LoadAvatarDetail(Guid id)
         {
-            throw new NotImplementedException();
+            return avatarRepository.GetAvatarDetail(id);
         }
 
         public override IAvatarDetail LoadAvatarDetailByEmail(string avatarEmail)
@@ -380,42 +381,56 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
 
         public override IAvatarDetail LoadAvatarDetailByUsername(string avatarUsername)
         {
-            throw new NotImplementedException();
+            return avatarRepository.GetAvatarDetail(avatarUsername);
         }
 
-        public override Task<IAvatarDetail> LoadAvatarDetailAsync(Guid id)
+        public override async Task<IAvatarDetail> LoadAvatarDetailAsync(Guid id)
         {
-            throw new NotImplementedException();
+            AvatarDetail avatar = await avatarRepository.GetAvatarDetailAsync(id);
+            return(avatar);
         }
 
         public override async Task<IAvatarDetail> LoadAvatarDetailByUsernameAsync(string avatarUsername)
         {
-            throw new NotImplementedException();
+            AvatarDetail avatar = await avatarRepository.GetAvatarDetailAsync(avatarUsername);
+            return(avatar);
         }
 
         public override async Task<IAvatarDetail> LoadAvatarDetailByEmailAsync(string avatarEmail)
         {
-            throw new NotImplementedException();
+            AvatarDetail avatar = await avatarRepository.GetAvatarDetailByEmailAsync(avatarEmail);
+            return(avatar);
         }
 
         public override IEnumerable<IAvatarDetail> LoadAllAvatarDetails()
         {
-            throw new NotImplementedException();
+            return avatarRepository.GetAvatarDetails();
         }
 
-        public override Task<IEnumerable<IAvatarDetail>> LoadAllAvatarDetailsAsync()
+        public override async Task<IEnumerable<IAvatarDetail>> LoadAllAvatarDetailsAsync()
         {
-            throw new NotImplementedException();
+            IEnumerable<AvatarDetail> details = await avatarRepository.GetAvatarDetailsAsync();
+            return details;
         }
 
-        public override IAvatarDetail SaveAvatarDetail(IAvatarDetail Avatar)
+        public override IAvatarDetail SaveAvatarDetail(IAvatarDetail avatar)
         {
-            throw new NotImplementedException();
+            if(avatar.Id == Guid.Empty){
+                return avatarRepository.Add((AvatarDetail)avatar);
+            }
+            else{
+                return avatarRepository.Update((AvatarDetail)avatar);
+            }
         }
 
-        public override Task<IAvatarDetail> SaveAvatarDetailAsync(IAvatarDetail Avatar)
+        public override async Task<IAvatarDetail> SaveAvatarDetailAsync(IAvatarDetail avatar)
         {
-            throw new NotImplementedException();
+            if(avatar.Id == Guid.Empty){
+                return await avatarRepository.AddAsync((AvatarDetail)avatar);
+            }
+            else{
+                return await avatarRepository.UpdateAsync((AvatarDetail)avatar);
+            }
         }
     }
 }
