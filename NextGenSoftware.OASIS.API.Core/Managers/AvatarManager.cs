@@ -113,9 +113,10 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 result.Result.RefreshTokens.Add(refreshToken);
                 result.Result.JwtToken = jwtToken;
                 result.Result.RefreshToken = refreshToken.Token;
+                result.Result.LastBeamedIn = DateTime.Now;
+                result.Result.IsBeamedIn = true;
 
                 LoggedInAvatar = result.Result;
-
                 OASISResult<IAvatar> saveAvatarResult = SaveAvatar(result.Result);
 
                 if (!saveAvatarResult.IsError && saveAvatarResult.IsSaved)
@@ -183,9 +184,10 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 result.Result.RefreshTokens.Add(refreshToken);
                 result.Result.JwtToken = jwtToken;
                 result.Result.RefreshToken = refreshToken.Token;
+                result.Result.LastBeamedIn = DateTime.Now;
+                result.Result.IsBeamedIn = true;
 
                 LoggedInAvatar = result.Result;
-
                 OASISResult<IAvatar> saveAvatarResult = SaveAvatar(result.Result);
 
                 if (!saveAvatarResult.IsError && saveAvatarResult.IsSaved)
