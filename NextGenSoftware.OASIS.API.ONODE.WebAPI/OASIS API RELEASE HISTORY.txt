@@ -1,0 +1,32 @@
+﻿
+******************************
+* OASIS API RELEASE HISTORY *
+******************************
+
+This needs to be updated wheneber we do anywork that will effect the OASIS API (even changes to properties, etc on OASIS.API.CORE objects that are used in the API, etc...
+Then when we do a release, this file will be linked to the Swagger documentation. We also then need to copy it to the WIKI and GitHub Documentation.
+
+----------------------------------------------------------------------------------------------------------------------------
+0.16 ALPHA
+
+- Need to remember what we released?! lol ;-)
+
+----------------------------------------------------------------------------------------------------------------------------
+0.17 ALPHA
+
+- Changed controller methods to return OASISResult (more efficient error handling system used throughout The OASIS with minimal overhead)
+- Added ability to call avatar methods or specify avatar parameters by their username or email as well as the existing id way.
+- Avatar methods now return id.
+- Added new Solana API (and SolanaOASIS Provider)
+- Added new Cargo API (and CargoOASIS Provider)
+- Added new NFT API (generic API for both SolanaOASIS and CargoOASIS Providers, with more coming soon...)
+- Split out all but essential SSO properties (and Karma, Level & Image2D) from Avatar into new AvatarDetail object. AvatarDetail is now what the old Avatar was and Avatar is now a lightweight version of Avatar for SSO, etc.
+- Added new AvatarDetail methods to Avatar API.
+- Split out all but essential properties from Holon. HolonBase is now a lightweight version of Holon. Holon extends HolonBase.
+- Added UmaJson field to AvatarDetail.
+- Added PreviousVersionId to HolonBase object for blockchain/ipfs providers to point to the previous version of a record when updates are being made.
+
+----------------------------------------------------------------------------------------------------------------------------
+0.18 ALPHA
+
+
