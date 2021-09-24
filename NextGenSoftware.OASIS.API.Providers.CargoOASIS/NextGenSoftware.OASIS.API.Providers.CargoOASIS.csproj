@@ -1,6 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
+        <OutputType>Library</OutputType>
         <TargetFramework>net5.0</TargetFramework>
     </PropertyGroup>
 
@@ -8,7 +9,7 @@
       <PackageReference Include="Microsoft.Extensions.Caching.Abstractions" Version="5.0.0" />
       <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="5.0.0" />
       <PackageReference Include="Nethereum.Web3" Version="4.0.5" />
-      <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+      <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
     </ItemGroup>
 
 </Project>

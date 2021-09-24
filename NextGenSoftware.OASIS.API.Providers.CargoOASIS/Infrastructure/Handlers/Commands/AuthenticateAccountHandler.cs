@@ -9,6 +9,7 @@ using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Interfaces;
 using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Services.HttpHandler;
 using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Models.Cargo;
 using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Models.Common;
+using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Models.Request;
 using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Models.Response;
 
 namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Handlers.Commands
@@ -34,6 +35,7 @@ namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Handlers
             var response = new Response<CreateAccountResponseModel>();
             try
             {
+                var token = await _tokenStorage.GetToken();
                 var (error, message) = await _signatureProvider.GetSignature();
                 if (error)
                 {
@@ -41,11 +43,11 @@ namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Handlers
                     response.Message = message;
                     return response;
                 }
-                
+
                 var url = "https://api2.cargo.build/v3/authenticate";
                 var requestContent = JsonConvert.SerializeObject(new
                 {
-                    address = _tokenStorage.GetToken(),
+                    address = token,
                     signature = message
                 });
                 var httpReq = new HttpRequestMessage()

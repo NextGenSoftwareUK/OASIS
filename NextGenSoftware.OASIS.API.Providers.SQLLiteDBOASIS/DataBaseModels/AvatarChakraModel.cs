@@ -58,7 +58,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.DataBaseModels{
             }
         }
 
-        public Chakra GetAvatarChakras(){
+        public Chakra GetAvatarChakra(){
 
             Chakra item = null;
 

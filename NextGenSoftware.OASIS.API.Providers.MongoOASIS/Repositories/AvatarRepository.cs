@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq.Expressions;
 using System.Threading.Tasks;
 using MongoDB.Driver;
 using NextGenSoftware.OASIS.API.Core.Managers;
@@ -118,6 +119,33 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
             {
                 throw;
             }
+        }
+
+        public Avatar GetAvatar(Expression<Func<Avatar, bool>> expression)
+        {
+            var filter = Builders<Avatar>.Filter.Where(expression);
+            return _dbContext.Avatar.Find(filter).FirstOrDefault();
+        }
+        
+        public async Task<Avatar> GetAvatarAsync(Expression<Func<Avatar, bool>> expression)
+        {
+            var filter = Builders<Avatar>.Filter.Where(expression);
+            var findResult = await _dbContext.Avatar.FindAsync(filter);
+            return await findResult.FirstOrDefaultAsync();
+        }
+        
+        
+        public AvatarDetail GetAvatarDetail(Expression<Func<AvatarDetail, bool>> expression)
+        {
+            var filter = Builders<AvatarDetail>.Filter.Where(expression);
+            return _dbContext.AvatarDetail.Find(filter).FirstOrDefault();
+        }
+        
+        public async Task<AvatarDetail> GetAvatarDetailAsync(Expression<Func<AvatarDetail, bool>> expression)
+        {
+            var filter = Builders<AvatarDetail>.Filter.Where(expression);
+            var findResult = await _dbContext.AvatarDetail.FindAsync(filter);
+            return await findResult.FirstOrDefaultAsync();
         }
 
         public async Task<Avatar> GetAvatarAsync(string username)
@@ -336,6 +364,61 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
             catch
             {
                 throw;
+            }
+        }
+        
+        public bool Delete(Expression<Func<Avatar, bool>> expression, bool softDelete = true)
+        {
+            try
+            {
+                if (softDelete)
+                {
+                    Avatar avatar = GetAvatar(expression);
+
+                    if (AvatarManager.LoggedInAvatar != null)
+                        avatar.DeletedByAvatarId = AvatarManager.LoggedInAvatar.Id.ToString();
+
+                    avatar.DeletedDate = DateTime.Now;
+                    _dbContext.Avatar.ReplaceOne(filter: g => g.HolonId == avatar.HolonId, replacement: avatar);
+                    return true;
+                }
+                else
+                {
+                    FilterDefinition<Avatar> data = Builders<Avatar>.Filter.Where(expression);
+                    _dbContext.Avatar.DeleteOne(data);
+                    return true;
+                }
+            }
+            catch
+            {
+                return false;
+            }
+        }
+        
+        public async Task<bool> DeleteAsync(Expression<Func<Avatar, bool>> expression, bool softDelete = true)
+        {
+            try
+            {
+                if (softDelete)
+                {
+                    var avatar = await GetAvatarAsync(expression);
+
+                    if (AvatarManager.LoggedInAvatar != null)
+                        avatar.DeletedByAvatarId = AvatarManager.LoggedInAvatar.Id.ToString();
+                    avatar.DeletedDate = DateTime.Now;
+                    await _dbContext.Avatar.ReplaceOneAsync(filter: g => g.HolonId == avatar.HolonId, replacement: avatar);
+                    return true;
+                }
+                else
+                {
+                    var data = Builders<Avatar>.Filter.Where(expression);
+                    await _dbContext.Avatar.DeleteOneAsync(data);
+                    return true;
+                }
+            }
+            catch
+            {
+                return false;
             }
         }
 
