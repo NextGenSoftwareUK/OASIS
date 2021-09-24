@@ -10,8 +10,9 @@ import Karma from "./pages/karma/Karma";
 import Home from "./pages/Home";
 import Login from "./Login";
 import Signup from "./Signup";
-// import AddData from "./pages/data-screen/AddData";
-import ShowAllData from "./pages/data-screen/ShowAllData";
+import AcceptInvite from "./pages/seeds/AcceptInvite";
+import AddData from "./popups/data-screen/AddData";
+import LoadData from "./popups/data-screen/LoadData";
 
 
 import "../assets/scss/general.scss";
@@ -19,8 +20,6 @@ import "../assets/scss/style.scss";
 import "../assets/scss/Seeds.scss";
 
 import axios from "axios";
-import AcceptInvite from "./pages/seeds/AcceptInvite";
-import AddData from "./popups/data-screen/AddData";
 
 class App extends React.Component {
     state = {
@@ -141,9 +140,6 @@ class App extends React.Component {
                         <Switch>
                             <Route exact path="/home" component={Home} />
 
-                            {/* <Route exact path="/add-data" component={AddData} /> */}
-                            <Route exact path="/show-data" component={ShowAllData} />
-
                             <Route path="/pay-with-seeds" component={PayWithSeeds} />
                             <Route path="/donateWithSeeds">
                                 <PayWithSeeds seedType="Donate" />
@@ -173,10 +169,17 @@ class App extends React.Component {
                     change={this.showLogin}
                 />
 
+                {/* ========== DATA SCREEN POPUPS START ========== */}
                 <AddData 
                     show={this.state.dataScreen.sendData}
                     hide={this.toggleDataScreenPopup}
                 />
+
+                <LoadData 
+                    show={this.state.dataScreen.loadData}
+                    hide={this.toggleDataScreenPopup}
+                />
+                {/* ========== DATA SCREEN POPUPS START ========== */}
             </div>
         );
     }
