@@ -10,6 +10,7 @@ using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories;
 using Avatar = NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities.Avatar;
 using Holon = NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities.Holon;
+using AvatarDetail = NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities.AvatarDetail;
 
 namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
 {
@@ -145,20 +146,6 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             return ConvertMongoEntityToOASISAvatar(avatar.Id == Guid.Empty ?
                 _avatarRepository.Add(ConvertOASISAvatarToMongoEntity(avatar)) :
                 _avatarRepository.Update(ConvertOASISAvatarToMongoEntity(avatar)));
-        }
-
-        public override async Task<IAvatarDetail> SaveAvatarDetailAsync(IAvatarDetail avatar)
-        {
-            return ConvertMongoEntityToOASISAvatarDetail(avatar.Id == Guid.Empty ?
-               await _avatarRepository.AddAsync(ConvertOASISAvatarDetailToMongoEntity(avatar)) :
-               await _avatarRepository.UpdateAsync(ConvertOASISAvatarDetailToMongoEntity(avatar)));
-        }
-
-        public override IAvatarDetail SaveAvatarDetail(IAvatarDetail avatar)
-        {
-            return ConvertMongoEntityToOASISAvatarDetail(avatar.Id == Guid.Empty ?
-                _avatarRepository.Add(ConvertOASISAvatarDetailToMongoEntity(avatar)) :
-                _avatarRepository.Update(ConvertOASISAvatarDetailToMongoEntity(avatar)));
         }
 
         public override bool DeleteAvatarByUsername(string avatarUsername, bool softDelete = true)
@@ -451,7 +438,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
 
             Core.Holons.Avatar oasisAvatar = new Core.Holons.Avatar();
 
-            oasisAvatar.Id = new Guid(avatar.Id);
+            oasisAvatar.Id = avatar.HolonId;
             oasisAvatar.ProviderKey = avatar.ProviderKey;
             oasisAvatar.ProviderMetaData = avatar.ProviderMetaData;
             oasisAvatar.Description = avatar.Description;
@@ -505,7 +492,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             oasisAvatar.Username = avatar.Username;
             oasisAvatar.CreatedOASISType = avatar.CreatedOASISType;
             oasisAvatar.AvatarType = avatar.AvatarType;
-            oasisAvatar.Id = avatar.Id;
+            oasisAvatar.Id = avatar.HolonId;
             oasisAvatar.ProviderKey = avatar.ProviderKey;
             oasisAvatar.ProviderMetaData = avatar.ProviderMetaData;
             oasisAvatar.Description = avatar.Description;

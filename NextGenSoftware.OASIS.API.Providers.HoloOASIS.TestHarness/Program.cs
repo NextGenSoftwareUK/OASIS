@@ -75,13 +75,10 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.TestHarness
             Console.WriteLine(string.Concat("Username: ", e.Avatar.Username));
             Console.WriteLine(string.Concat("Password: ", e.Avatar.Password));
             Console.WriteLine(string.Concat("Email: ", e.Avatar.Email));
-<<<<<<< Updated upstream
             //Console.WriteLine(string.Concat("DOB: ", e.Avatar.DOB));
           //  Console.WriteLine(string.Concat("Address: ", e.Avatar.Address));
             Console.WriteLine(string.Concat("Karma: ", e.Avatar.Karma));
             Console.WriteLine(string.Concat("Level: ", e.Avatar.Level));
-=======
->>>>>>> Stashed changes
         }
 
         private static async void _holoOASIS_OnInitialized(object sender, EventArgs e)
@@ -90,10 +87,6 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.TestHarness
             Console.WriteLine("Saving Avatar...");
 
             _savedAvatar = new Avatar { Username = "dellams", Email = "david@nextgensoftware.co.uk", Password = "1234", FirstName = "David", LastName = "Ellams", Id = Guid.NewGuid(), Title = "Mr" };
-<<<<<<< Updated upstream
-            //await _savedAvatar.KarmaEarntAsync(KarmaTypePositive.HelpingTheEnvironment, KarmaSourceType.hApp, "Our World", "XR Educational Game To Make The World A Better Place", "http://www.ourowrldthegame.com", false);
-=======
->>>>>>> Stashed changes
             await _holoOASIS.SaveAvatarAsync(_savedAvatar);
         }
     }

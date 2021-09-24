@@ -129,17 +129,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpGet("GetKarmaAkashicRecordsForAvatar/{avatarId}")]
         public ActionResult<KarmaAkashicRecord[]> GetKarmaAkashicRecordsForAvatar(Guid avatarId)
         {
-<<<<<<< Updated upstream
             IAvatarDetail avatar = Program.AvatarManager.LoadAvatarDetail(avatarId);
 
             if (avatar != null)
                 return Ok(avatar.KarmaAkashicRecords);
 
             return Ok("ERROR: Avatar Not Found!");
-=======
-            var avatar = Program.AvatarManager.LoadAvatarDetail(avatarId);
-            return avatar != null ? Ok(avatar.KarmaAkashicRecords) : Ok("ERROR: Avatar Not Found!");
->>>>>>> Stashed changes
         }
 
         /// <summary>
