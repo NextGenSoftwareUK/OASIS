@@ -405,6 +405,18 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             // avatar.Password = null;
             return avatar;
         }
+        
+        public async Task<IAvatar> LoadAvatarByUsernameAsync(string username, ProviderType provider = ProviderType.Default)
+        {
+            var avatar = await ProviderManager.SetAndActivateCurrentStorageProvider(provider).Result.LoadAvatarByUsernameAsync(username);
+            return avatar;
+        }
+
+        public async Task<IAvatar> LoadAvatarByEmailAsync(string email, ProviderType provider = ProviderType.Default)
+        {
+            var avatar = await ProviderManager.SetAndActivateCurrentStorageProvider(provider).Result.LoadAvatarByEmailAsync(email);
+            return avatar;
+        }
 
         public async Task<IAvatar> LoadAvatarAsync(Guid id, ProviderType providerType = ProviderType.Default)
         {
@@ -416,6 +428,18 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         public async Task<IAvatarDetail> LoadAvatarDetailAsync(Guid id)
         {
             var detail = await ProviderManager.SetAndActivateCurrentStorageProvider(ProviderType.Default).Result.LoadAvatarDetailAsync(id);
+            return detail;
+        }
+        
+        public async Task<IAvatarDetail> LoadAvatarDetailByEmailAsync(string email)
+        {
+            var detail = await ProviderManager.SetAndActivateCurrentStorageProvider(ProviderType.Default).Result.LoadAvatarDetailByEmailAsync(email);
+            return detail;
+        }
+        
+        public async Task<IAvatarDetail> LoadAvatarDetailByUsernameAsync(string username)
+        {
+            var detail = await ProviderManager.SetAndActivateCurrentStorageProvider(ProviderType.Default).Result.LoadAvatarDetailByUsernameAsync(username);
             return detail;
         }
 
@@ -721,6 +745,16 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         public async Task<bool> DeleteAvatarAsync(Guid id, bool softDelete = true, ProviderType providerType = ProviderType.Default)
         {
             return await ProviderManager.SetAndActivateCurrentStorageProvider(providerType).Result.DeleteAvatarAsync(id, softDelete);
+        }
+        
+        public async Task<bool> DeleteAvatarByUsernameAsync(string userName, bool softDelete = true, ProviderType providerType = ProviderType.Default)
+        {
+            return await ProviderManager.SetAndActivateCurrentStorageProvider(providerType).Result.DeleteAvatarByUsernameAsync(userName, softDelete);
+        }
+        
+        public async Task<bool> DeleteAvatarByEmailAsync(string email, bool softDelete = true, ProviderType providerType = ProviderType.Default)
+        {
+            return await ProviderManager.SetAndActivateCurrentStorageProvider(providerType).Result.DeleteAvatarByEmailAsync(email, softDelete);
         }
 
         public async Task<KarmaAkashicRecord> AddKarmaToAvatarAsync(IAvatarDetail avatar, KarmaTypePositive karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc, string karmaSourceWebLink = null, ProviderType provider = ProviderType.Default)

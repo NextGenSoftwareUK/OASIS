@@ -16,25 +16,13 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.DataBaseModels{
         public string Property{ set; get; }
         public string Value{ set; get; }
         
-        public string ParentId{ set; get; }
+        public string OwnerId{ set; get; }
 
         public ProviderMetaData(){}
         public ProviderMetaData(ProviderType provider,String prop, String value){
             this.ProviderId = provider;
             this.Property=prop;
             this.Value=value;
-        }
-
-        public ProviderMetaData GetMetaData()
-        {
-            ProviderMetaData item=new ProviderMetaData();
-
-            item.ProviderId=this.ProviderId;
-            item.Property = this.Property;
-            item.Value=this.Value;
-            item.ParentId = this.ParentId;
-
-            return(item);
         }
     }
 
