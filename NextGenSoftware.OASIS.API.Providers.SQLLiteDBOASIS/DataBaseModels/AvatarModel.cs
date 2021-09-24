@@ -4,6 +4,7 @@ using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Helpers;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.DataBaseModels{
@@ -11,178 +12,184 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.DataBaseModels{
     [Table("Avatar")]
     public class AvatarModel {
 
-        public String Id{ set; get; }
+        [Required, Key]
+        public string Id { get; set;}
 
+        public AvatarType AvatarType { get; set;}
+        public HolonType HolonType { get; set;}
+
+        public string Name { get; set;}
         public string Title { get; set; }
         public string FirstName { get; set; }
-        public string LastName { get; set; }
-        public string FullName
-        {
-            get
-            {
-                return string.Concat(Title, " ", FirstName, " ", LastName);
-            }
-        }
-        public DateTime DOB { get; set; }
-        public string Address { get; set; }
-        public string Town { get; set; }
-        public string County { get; set; }
-        public string Country { get; set; }
-        public string Postcode { get; set; }
-        public string Mobile { get; set; }
-        public string Landline { get; set; }
+        public string LastName { get; set;}
+        public string FullName {set; get;}
+        public string Description { get; set;}
 
-        public string Username { get; set; } 
+        public string Username { get; set;}
+        public string Email { get; set;}
         public string Password { get; set; }
-        public string Email { get; set; }
-        public string Image2D { get; set; }
-        public string Model3D { get; set; }
 
-        public ConsoleColor FavouriteColour { get; set; }
-        public ConsoleColor STARCLIColour { get; set; }
-        
-        
-        public AvatarType AvatarType { get; set; }
-        public OASISType CreatedOASISType { get; set; }
+        public bool AcceptTerms { get; set;}
+        public bool IsVerified{ set; get;}
+        public string JwtToken { get; set;}
+        public string RefreshToken { get; set;}
 
-
-        public int Karma { get; set; }
-        public int XP { get; set; }
-        public int Level{set; get;}
-        public bool AcceptTerms { get; set; }
-        public string VerificationToken { get; set; }
-        public DateTime? Verified { get; set; }
-        public string ResetToken { get; set; }
-        public string JwtToken { get; set; }
-
-        public string RefreshToken { get; set; }
+        public DateTime? PasswordReset { get; set;}
+        public string ResetToken { get; set;}
         public DateTime? ResetTokenExpires { get; set; }
-        public DateTime? PasswordReset { get; set; }
-        public bool IsVerified => Verified.HasValue || PasswordReset.HasValue;
+        public string VerificationToken { get; set;}
+        public DateTime? Verified { get; set;}
+        public string Image2D { get; set;}
 
-        public AvatarAttributesModel Attributes { get; set; }
-        public AvatarAuraModel Aura { get; set; }
-        public AvatarHumanDesignModel HumanDesign { get; set; }
-        public AvatarSkillsModel Skills { get; set; }
-        public AvatarStatsModel Stats { get; set; }
-        public AvatarSuperPowersModel SuperPowers { get; set; }
+        public int Karma { get; set;}
+        public int Level{set; get;}
+        public int XP { get; set;}
 
-        public List<AvatarChakraModel> AvatarChakras { get; set; } = new List<AvatarChakraModel>();
-        public List<AvatarGiftModel> Gifts { get; set; } = new List<AvatarGiftModel>();
-        public List<HeartRateEntryModel> HeartRates { get; set; } = new List<HeartRateEntryModel>();
-        public List<RefreshTokenModel> RefreshTokens { get; set; } = new List<RefreshTokenModel>();
-        public List<InventoryItemModel> InventoryItems { set; get; } = new List<InventoryItemModel>();
-        public List<GeneKeyModel> GeneKeys { get; set; } = new List<GeneKeyModel>();
-        public List<SpellModel> Spells { get; set; } = new List<SpellModel>();
-        public List<AchievementModel> Achievements { get; set; } = new List<AchievementModel>();
-        public List<KarmaAkashicRecordModel> KarmaAkashicRecords { get; set; } = new List<KarmaAkashicRecordModel>();
+        public ProviderType CreatedProviderType { get; set;}
+        public OASISType CreatedOASISType { get; set;}
 
-        public List<ProviderKeyModel> ProviderKey { get; set; } = new List<ProviderKeyModel>();
+        public int Version { get; set;}
+        public bool IsActive { get; set;}
+        public bool IsChanged { get; set;}
+        public bool IsNewHolon { get; set;}
 
-        public List<ProviderPrivateKeyModel> ProviderPrivateKey { get; set; } = new List<ProviderPrivateKeyModel>();
-        public List<ProviderPublicKeyModel> ProviderPublicKey { get; set; } = new List<ProviderPublicKeyModel>();
-        public List<ProviderWalletAddressModel> ProviderWalletAddress { get; set; } = new List<ProviderWalletAddressModel>();
+        public DateTime CreatedDate { get; set;}
+        public DateTime ModifiedDate { get; set;}
+        public DateTime DeletedDate { get; set;}
 
-        public int Version { get; set; }
-        public bool IsActive { get; set; }
+        public String CreatedByAvatarId { get; set;}
+        public String ModifiedByAvatarId { get; set;}
+        public String DeletedByAvatarId { get; set;}
 
-        public DateTime CreatedDate { get; set; }
-        public DateTime ModifiedDate { get; set; }
-        
-        public DateTime DeletedDate { get; set; }
-        public string DeletedByAvatarId { get; set; }
+
+        public List<RefreshTokenModel> RefreshTokens { get; set;}
+        public List<ProviderKeyModel> ProviderKey { get; set;}
+        public List<MetaDataModel> MetaData { get; set;}
 
         public AvatarModel(){}
         public AvatarModel(Avatar source){
 
+            if(source.Id == Guid.Empty){
+                this.Id = Guid.NewGuid().ToString();
+            }
+            else{
+                this.Id = source.Id.ToString();
+            }
+            
             this.Title=source.Title;
             this.FirstName=source.FirstName;
             this.LastName=source.LastName;
+            this.FullName = source.FullName;
+
+            this.Name = source.Name;
+            this.Description = source.Description;
+            this.HolonType = source.HolonType;
+            this.AvatarType = source.AvatarType.Value;
+
             this.Username=source.Username;
-            this.Password=source.Password;
             this.Email=source.Email;
             this.Image2D=source.Image2D;
             
-            this.AvatarType=source.AvatarType.Value;
+            this.AcceptTerms = source.AcceptTerms;
+            this.IsVerified = source.IsVerified;
+            this.JwtToken = source.JwtToken;
+            this.RefreshToken = source.RefreshToken;
+
+            this.PasswordReset = source.PasswordReset;
+            this.ResetToken = source.ResetToken;
+            this.ResetTokenExpires = source.ResetTokenExpires;
+            this.VerificationToken = source.VerificationToken;
+            this.Verified = source.Verified;
+
+
             this.CreatedOASISType=source.CreatedOASISType.Value;
+            this.CreatedProviderType = source.CreatedProviderType.Value;
 
             this.Karma=source.Karma;
             this.XP=source.XP;
             this.Level=source.Level;
-            this.AcceptTerms=source.AcceptTerms;
-            this.VerificationToken=source.VerificationToken;
-            this.Verified=source.Verified;
-            this.ResetToken=source.ResetToken;
-            this.JwtToken=source.JwtToken;
-            this.RefreshToken=source.RefreshToken;
-            this.ResetTokenExpires=source.ResetTokenExpires;
-            this.PasswordReset=source.PasswordReset;
 
             this.Version=source.Version;
             this.IsActive=source.IsActive;
+            this.IsChanged = source.IsChanged;
+            this.IsNewHolon = source.IsNewHolon;
 
             this.CreatedDate=source.CreatedDate;
             this.ModifiedDate=source.ModifiedDate;
-
             this.DeletedDate=source.DeletedDate;
+
+            this.CreatedByAvatarId=source.CreatedByAvatarId.ToString();
+            this.ModifiedByAvatarId=source.ModifiedByAvatarId.ToString();
             this.DeletedByAvatarId=source.DeletedByAvatarId.ToString();
 
-            this.Stats.AvatarId=this.Id;
+            foreach(RefreshToken refreshToken in source.RefreshTokens){
 
-            this.Aura.AvatarId=this.Id;
-
-            this.HumanDesign.AvatarId=this.Id;
-
-            this.Skills.AvatarId=this.Id;
-
-            this.Attributes.AvatarId=this.Id;
-
-            this.SuperPowers.AvatarId=this.Id;
-
-            foreach(RefreshToken token in source.RefreshTokens){
-
-                RefreshTokenModel tokenModel=new RefreshTokenModel(token);
-                //tokenModel.Avatar=source;
-                tokenModel.AvatarId=this.Id;
-                this.RefreshTokens.Add(tokenModel);
+                RefreshTokenModel model=new RefreshTokenModel(refreshToken);
+                model.AvatarId=this.Id;
+                this.RefreshTokens.Add(model);
             }
+
+            foreach(KeyValuePair<ProviderType, string> key in source.ProviderKey){
+
+                ProviderKeyModel model=new ProviderKeyModel(key.Key,key.Value);
+                model.OwnerId=this.Id;
+                this.ProviderKey.Add(model);
+            }
+
+            foreach(KeyValuePair<string, string> item in source.MetaData){
+
+                MetaDataModel metaModel=new MetaDataModel(item.Key,item.Value);
+                metaModel.OwnerId=this.Id;
+                this.MetaData.Add(metaModel);
+            }
+
         }
 
         public Avatar GetAvatar(){
 
-            Avatar item=new Avatar();
-
-            item.Id= new Guid(this.Id);
+            Avatar item = new Avatar();
+            
+            item.Id=Guid.Parse(this.Id);
             item.Title=this.Title;
             item.FirstName=this.FirstName;
             item.LastName=this.LastName;
-            
+
+            item.Description = this.Description;
+            item.HolonType = this.HolonType;
+            item.AvatarType = new EnumValue<AvatarType>(this.AvatarType);
+
             item.Username=this.Username;
-            item.Password=this.Password;
             item.Email=this.Email;
             item.Image2D=this.Image2D;
+            
+            item.AcceptTerms = this.AcceptTerms;
+            item.JwtToken = this.JwtToken;
+            item.RefreshToken = this.RefreshToken;
 
-            item.AvatarType = new EnumValue<AvatarType>(this.AvatarType);
+            item.PasswordReset = this.PasswordReset;
+            item.ResetToken = this.ResetToken;
+            item.ResetTokenExpires = this.ResetTokenExpires;
+            item.VerificationToken = this.VerificationToken;
+            item.Verified = this.Verified;
+
+            
             item.CreatedOASISType= new EnumValue<OASISType>(this.CreatedOASISType);
+            item.CreatedProviderType = new EnumValue<ProviderType>(this.CreatedProviderType);
 
             item.Karma=this.Karma;
             item.XP=this.XP;
-            item.AcceptTerms=this.AcceptTerms;
-            item.VerificationToken=this.VerificationToken;
-            item.Verified=this.Verified;
-            item.ResetToken=this.ResetToken;
-            item.JwtToken=this.JwtToken;
-            item.RefreshToken=this.RefreshToken;
-            item.ResetTokenExpires=this.ResetTokenExpires;
-            item.PasswordReset=this.PasswordReset;
 
             item.Version=this.Version;
             item.IsActive=this.IsActive;
+            item.IsChanged = this.IsChanged;
+            item.IsNewHolon = this.IsNewHolon;
 
             item.CreatedDate=this.CreatedDate;
             item.ModifiedDate=this.ModifiedDate;
-
             item.DeletedDate=this.DeletedDate;
+
+            item.CreatedByAvatarId=Guid.Parse(this.CreatedByAvatarId);
+            item.ModifiedByAvatarId=Guid.Parse(this.ModifiedByAvatarId);
             item.DeletedByAvatarId=Guid.Parse(this.DeletedByAvatarId);
 
             foreach(RefreshTokenModel model in this.RefreshTokens){
@@ -192,8 +199,12 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.DataBaseModels{
 
             foreach(ProviderKeyModel model in this.ProviderKey){
 
-                ProviderKeyAbstract providerKey=model.GetProviderKey();
-                item.ProviderKey.Add(providerKey.ProviderId, providerKey.Value);
+                item.ProviderKey.Add(model.ProviderId, model.Value);
+            }
+
+            foreach(MetaDataModel model in this.MetaData){
+
+                item.MetaData.Add(model.Property, model.Value);
             }
 
             return(item);
