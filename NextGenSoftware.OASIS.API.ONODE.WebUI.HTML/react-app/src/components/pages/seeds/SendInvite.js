@@ -1,10 +1,11 @@
 import React, { Component } from 'react'
+import { Modal } from 'react-bootstrap'
 import { Link } from 'react-router-dom'
 
 export default class SendInvite extends Component {
   render() {
     return (
-      <div className="popup-container">
+      <Modal centered className="popup-container custom-modal" show={true}>
         <div className="popup">
           <Link to="/" className="popup-cancel">
             <span className="form-cross-icon">
@@ -34,7 +35,7 @@ export default class SendInvite extends Component {
           </div>
           <button className="popup-submit-button button">Send</button>
         </div>
-      </div>
+      </Modal>
     )
   }
 }

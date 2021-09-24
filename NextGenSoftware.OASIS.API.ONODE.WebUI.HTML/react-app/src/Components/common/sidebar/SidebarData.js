@@ -99,26 +99,32 @@ const SidebarData = [
             {
                 id: 1,
                 name: "Pay With SEEDS",
+                path: "/pay-with-seeds"
             },
             {
                 id: 2,
                 name: "Donate SEEDS",
+                path: "/donate-with-seeds"
             },
             {
                 id: 3,
                 name: "Reward SEEDS",
+                path: "/reward-with-seeds"
             },
             {
                 id: 4,
                 name: "Send Invite To Join SEEDS",
+                path: "/send-invite-to-join-seeds"
             },
             {
                 id: 5,
                 name: "Accept Invite to join seeds",
+                path: "/accept-invite-to-join-seeds"
             },
             {
                 id: 6,
                 name: "View SEEDS",
+                path: "/view-seeds"
             },
             {
                 id: 7,
@@ -131,6 +137,7 @@ const SidebarData = [
             {
                 id: 9,
                 name: "Search Seeds",
+                path: "/search-seeds"
             }
         ]
     },
