@@ -12,6 +12,7 @@ import Login from "./Login";
 import Signup from "./Signup";
 // import AddData from "./pages/data-screen/AddData";
 import ShowAllData from "./pages/data-screen/ShowAllData";
+import ViewAvatar from "./pages/avatar/viewAvatar"
 
 
 import "../assets/scss/general.scss";
@@ -154,6 +155,7 @@ class App extends React.Component {
                             <Route path="/accept-invite-to-join-seeds" component={AcceptInvite} />
                             <Route path="/send-invite" component={SendInvite} />
                             <Route exact path="/karma" component={Karma} />
+                            <Route exact path="/avatar/view" component={ViewAvatar} />
                         </Switch>
                     </div>
                 </Router>
