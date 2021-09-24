@@ -12,18 +12,18 @@ class SidebarMenuItem extends React.Component {
         })
     }
 
-    render() { 
+    render() {
         const { item } = this.props;
         return (
             <>
                 <li>
                     <a onClick={this.expandHandler}>{item.name}</a>
 
-                    <ul className={`sidebar-inner-menu ${this.state.show ? 'show': ''}`}  id={item.id}>
+                    <ul className={`sidebar-inner-menu ${this.state.show ? 'show' : ''}`} id={item.id}>
                         {
-                            item.subMenu.map((subItem, index) => 
+                            item.subMenu.map((subItem, index) =>
                                 <li key={index} onClick={() => this.props.toggleDataScreenPopup(subItem.popupName)}>
-                                    <a>{subItem.name}</a>
+                                    <a href={subItem.path}>{subItem.name}</a>
                                 </li>
                             )
                         }
@@ -33,5 +33,5 @@ class SidebarMenuItem extends React.Component {
         );
     }
 }
- 
+
 export default SidebarMenuItem;
