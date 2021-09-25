@@ -48,6 +48,9 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
 
         public DateTime? ResetTokenExpires { get; set; }
         public DateTime? PasswordReset { get; set; }
+        public DateTime? LastBeamedIn { get; set; }
+        public DateTime? LastBeamedOut { get; set; }
+        public bool IsBeamedIn { get; set; }
 
         public List<RefreshToken> RefreshTokens { get; set; } = new List<RefreshToken>();
         public string Image2D { get; set; }
