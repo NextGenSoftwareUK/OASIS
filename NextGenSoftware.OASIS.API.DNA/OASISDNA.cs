@@ -19,6 +19,7 @@ namespace NextGenSoftware.OASIS.API.DNA
 
     public class SecuritySettings
     {
+        public bool DoesAvatarNeedToBeVerifiedBeforeLogin { get; set; }
         public string Secret { get; set; }
         public EncryptionSettings AvatarPassword { get; set; }
         public EncryptionSettings OASISProviderPrivateKeys { get; set; }
