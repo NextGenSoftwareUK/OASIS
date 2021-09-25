@@ -6,7 +6,7 @@ using NextGenSoftware.OASIS.API.Core.Objects;
 
 namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities
 {
-    public class Avatar : Holon
+    public class Avatar : HolonBase
     {
         public string Image2D { get; set; }
         public string Title { get; set; }
@@ -23,7 +23,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities
         public string Username { get; set; }
         public string Password { get; set; }
         public EnumValue<AvatarType> AvatarType { get; set; }
-        public EnumValue<OASISType> CreatedOASISType { get; set; }
+       // public EnumValue<OASISType> CreatedOASISType { get; set; }
         public int Karma { get; set; }
         public int XP { get; set; }
         public int Level { get; set; }
@@ -37,5 +37,8 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities
         public List<RefreshToken> RefreshTokens { get; set; } = new List<RefreshToken>();
         public DateTime? ResetTokenExpires { get; set; }
         public DateTime? PasswordReset { get; set; }
+        public DateTime? LastBeamedIn { get; set; }
+        public DateTime? LastBeamedOut { get; set; }
+        public bool IsBeamedIn { get; set; }
     }
 }

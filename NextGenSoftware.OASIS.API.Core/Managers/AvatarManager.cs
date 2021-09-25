@@ -89,7 +89,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                     result.Message = "This avatar is no longer active. Please contact support or create a new avatar.";
                 }
 
-                if (!result.Result.IsVerified)
+                if (!result.Result.IsVerified && OASISDNA.OASIS.Security.DoesAvatarNeedToBeVerifiedBeforeLogin)
                 {
                     result.IsError = true;
                     result.Message = "Avatar has not been verified. Please check your email.";
@@ -561,6 +561,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             catch (Exception ex)
             {
                 savedAvatar = null;
+                LoggingManager.Log(string.Concat("Error saving avatar ", avatar.Name, " with id ", avatar.Id, " for provider ", ProviderManager.CurrentStorageProviderType.Name, ". Error Message: ", ex.ToString()), LogType.Error);
             }
 
             if (savedAvatar == null)
@@ -579,9 +580,10 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                             if (savedAvatar != null)
                                 break;
                         }
-                        catch (Exception ex2)
+                        catch (Exception ex)
                         {
                             savedAvatar = null;
+                            LoggingManager.Log(string.Concat("Error saving avatar ", avatar.Name, " with id ", avatar.Id, " for provider ", type.Name, ". Error Message: ", ex.ToString()), LogType.Error);
                             //If the next provider errors then just continue to the next provider.
                         }
                     }
@@ -589,17 +591,20 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 //   }
             }
 
-            foreach (EnumValue<ProviderType> type in ProviderManager.GetProvidersThatAreAutoReplicating())
+            if (OASISDNA.OASIS.StorageProviders.AutoReplicationEnabled)
             {
-                if (type.Value != providerType && type.Value != ProviderManager.CurrentStorageProviderType.Value)
+                foreach (EnumValue<ProviderType> type in ProviderManager.GetProvidersThatAreAutoReplicating())
                 {
-                    try
+                    if (type.Value != providerType && type.Value != ProviderManager.CurrentStorageProviderType.Value)
                     {
-                        await ProviderManager.SetAndActivateCurrentStorageProvider(type.Value).Result.SaveAvatarAsync(avatar);
-                    }
-                    catch (Exception ex)
-                    {
-                        // Add logging here.
+                        try
+                        {
+                            await ProviderManager.SetAndActivateCurrentStorageProvider(type.Value).Result.SaveAvatarAsync(avatar);
+                        }
+                        catch (Exception ex)
+                        {
+                            LoggingManager.Log(string.Concat("Error replicating avatar ", avatar.Name, " with id ", avatar.Id, " for provider ", type.Name, ". Error Message: ", ex.ToString()), LogType.Error);
+                        }
                     }
                 }
             }
@@ -623,6 +628,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             }
             catch (Exception ex)
             {
+                LoggingManager.Log(string.Concat("Error saving avatar ", avatar.Name, " with id ", avatar.Id, " for provider ", ProviderManager.CurrentStorageProviderType.Name, ". Error Message: ", ex.ToString()), LogType.Error);
                 result.Result = null;
             }
 
@@ -643,6 +649,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                         catch (Exception ex)
                         {
                             result.Result = null;
+                            LoggingManager.Log(string.Concat("Error saving avatar ", avatar.Name, " with id ", avatar.Id, " for provider ", type.Name, ". Error Message: ", ex.ToString()), LogType.Error);
                             //If the next provider errors then just continue to the next provider.
                         }
                     }
@@ -655,17 +662,20 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 result.Message = string.Concat("All Registered OASIS Providers In The AutoFailOverList Failed To Save The Avatar. Providers in list are ", ProviderManager.GetProviderAutoFailOverListAsString());
             }
 
-            foreach (EnumValue<ProviderType> type in ProviderManager.GetProvidersThatAreAutoReplicating())
+            if (OASISDNA.OASIS.StorageProviders.AutoReplicationEnabled)
             {
-                if (type.Value != providerType && type.Value != ProviderManager.CurrentStorageProviderType.Value)
+                foreach (EnumValue<ProviderType> type in ProviderManager.GetProvidersThatAreAutoReplicating())
                 {
-                    try
+                    if (type.Value != providerType && type.Value != ProviderManager.CurrentStorageProviderType.Value)
                     {
-                        ProviderManager.SetAndActivateCurrentStorageProvider(type.Value).Result.SaveAvatar(avatar);
-                    }
-                    catch (Exception ex)
-                    {
-                        // Add logging here.
+                        try
+                        {
+                            ProviderManager.SetAndActivateCurrentStorageProvider(type.Value).Result.SaveAvatar(avatar);
+                        }
+                        catch (Exception ex)
+                        {
+                            LoggingManager.Log(string.Concat("Error replicating avatar ", avatar.Name, " with id ", avatar.Id, " for provider ", type.Name, ". Error Message: ", ex.ToString()), LogType.Error);
+                        }
                     }
                 }
             }
@@ -687,6 +697,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             catch (Exception ex)
             {
                 result.Result = null;
+                LoggingManager.Log(string.Concat("Error saving AvatarDetail ", avatar.Name, " with id ", avatar.Id, " for provider ", ProviderManager.CurrentStorageProviderType.Name, ". Error Message: ", ex.ToString()), LogType.Error);
             }
 
             if (result.Result == null)
@@ -707,6 +718,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                         {
                             result.Result = null;
                             //If the next provider errors then just continue to the next provider.
+                            LoggingManager.Log(string.Concat("Error saving AvatarDetail ", avatar.Name, " with id ", avatar.Id, " for provider ", type.Name, ". Error Message: ", ex.ToString()), LogType.Error);
                         }
                     }
                 }
@@ -718,17 +730,88 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 result.Message = string.Concat("All Registered OASIS Providers In The AutoFailOverList Failed To Save The AvatarDetail. Providers in list are ", ProviderManager.GetProviderAutoFailOverListAsString());
             }
 
-            foreach (EnumValue<ProviderType> type in ProviderManager.GetProvidersThatAreAutoReplicating())
+            if (OASISDNA.OASIS.StorageProviders.AutoReplicationEnabled)
             {
-                if (type.Value != providerType && type.Value != ProviderManager.CurrentStorageProviderType.Value)
+                foreach (EnumValue<ProviderType> type in ProviderManager.GetProvidersThatAreAutoReplicating())
                 {
-                    try
+                    if (type.Value != providerType && type.Value != ProviderManager.CurrentStorageProviderType.Value)
                     {
-                        ProviderManager.SetAndActivateCurrentStorageProvider(type.Value).Result.SaveAvatarDetail(avatar);
+                        try
+                        {
+                            ProviderManager.SetAndActivateCurrentStorageProvider(type.Value).Result.SaveAvatarDetail(avatar);
+                        }
+                        catch (Exception ex)
+                        {
+                            LoggingManager.Log(string.Concat("Error replicating AvatarDetail ", avatar.Name, " with id ", avatar.Id, " for provider ", type.Name, ". Error Message: ", ex.ToString()), LogType.Error);
+                        }
                     }
-                    catch (Exception ex)
+                }
+            }
+
+            ProviderManager.SetAndActivateCurrentStorageProvider(currentProviderType);
+            return result;
+        }
+
+        public async Task<OASISResult<IAvatarDetail>> SaveAvatarDetailAsync(IAvatarDetail avatar, ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<IAvatarDetail> result = new OASISResult<IAvatarDetail>();
+            ProviderType currentProviderType = ProviderManager.CurrentStorageProviderType.Value;
+
+            try
+            {
+                result.Result = await ProviderManager.SetAndActivateCurrentStorageProvider(providerType).Result.SaveAvatarDetailAsync(PrepareAvatarDetailForSaving(avatar));
+                result.IsSaved = true;
+            }
+            catch (Exception ex)
+            {
+                result.Result = null;
+                LoggingManager.Log(string.Concat("Error saving AvatarDetail ", avatar.Name, " with id ", avatar.Id, " for provider ", ProviderManager.CurrentStorageProviderType.Name, ". Error Message: ", ex.ToString()), LogType.Error);
+            }
+
+            if (result.Result == null)
+            {
+                foreach (EnumValue<ProviderType> type in ProviderManager.GetProviderAutoFailOverList())
+                {
+                    if (type.Value != providerType && type.Value != ProviderManager.CurrentStorageProviderType.Value)
                     {
-                        // Add logging here.
+                        try
+                        {
+                            result.Result = await ProviderManager.SetAndActivateCurrentStorageProvider(type.Value).Result.SaveAvatarDetailAsync(avatar);
+                            result.IsSaved = true;
+
+                            if (result.Result != null)
+                                break;
+                        }
+                        catch (Exception ex)
+                        {
+                            result.Result = null;
+                            //If the next provider errors then just continue to the next provider.
+                            LoggingManager.Log(string.Concat("Error saving AvatarDetail ", avatar.Name, " with id ", avatar.Id, " for provider ", type.Name, ". Error Message: ", ex.ToString()), LogType.Error);
+                        }
+                    }
+                }
+            }
+
+            if (result.Result == null)
+            {
+                result.IsError = true;
+                result.Message = string.Concat("All Registered OASIS Providers In The AutoFailOverList Failed To Save The AvatarDetail. Providers in list are ", ProviderManager.GetProviderAutoFailOverListAsString());
+            }
+
+            if (OASISDNA.OASIS.StorageProviders.AutoReplicationEnabled)
+            {
+                foreach (EnumValue<ProviderType> type in ProviderManager.GetProvidersThatAreAutoReplicating())
+                {
+                    if (type.Value != providerType && type.Value != ProviderManager.CurrentStorageProviderType.Value)
+                    {
+                        try
+                        {
+                            await ProviderManager.SetAndActivateCurrentStorageProvider(type.Value).Result.SaveAvatarDetailAsync(avatar);
+                        }
+                        catch (Exception ex)
+                        {
+                            LoggingManager.Log(string.Concat("Error replicating AvatarDetail ", avatar.Name, " with id ", avatar.Id, " for provider ", type.Name, ". Error Message: ", ex.ToString()), LogType.Error);
+                        }
                     }
                 }
             }

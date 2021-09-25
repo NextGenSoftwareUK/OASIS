@@ -24,8 +24,8 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
             try
             {
                 avatar.HolonId = Guid.NewGuid();
-                avatar.CreatedProviderType = Core.Enums.ProviderType.MongoDBOASIS;
-                
+                avatar.CreatedProviderType = new Core.Helpers.EnumValue<Core.Enums.ProviderType>(Core.Enums.ProviderType.MongoDBOASIS);
+
                 await _dbContext.Avatar.InsertOneAsync(avatar);
                 avatar.ProviderKey[Core.Enums.ProviderType.MongoDBOASIS] = avatar.Id;
                 
@@ -43,7 +43,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
             try
             {
                 avatar.HolonId = Guid.NewGuid();
-                avatar.CreatedProviderType = Core.Enums.ProviderType.MongoDBOASIS;
+                avatar.CreatedProviderType = new Core.Helpers.EnumValue<Core.Enums.ProviderType>(Core.Enums.ProviderType.MongoDBOASIS);
 
                 await _dbContext.AvatarDetail.InsertOneAsync(avatar);
                 avatar.ProviderKey[Core.Enums.ProviderType.MongoDBOASIS] = avatar.Id;
@@ -62,7 +62,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
             try
             {
                 avatar.HolonId = Guid.NewGuid();
-                avatar.CreatedProviderType = Core.Enums.ProviderType.MongoDBOASIS;
+                avatar.CreatedProviderType = new Core.Helpers.EnumValue<Core.Enums.ProviderType>(Core.Enums.ProviderType.MongoDBOASIS);
 
                 _dbContext.Avatar.InsertOne(avatar);
                 avatar.ProviderKey[Core.Enums.ProviderType.MongoDBOASIS] = avatar.Id;
@@ -81,7 +81,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
             try
             {
                 avatar.HolonId = Guid.NewGuid();
-                avatar.CreatedProviderType = Core.Enums.ProviderType.MongoDBOASIS;
+                avatar.CreatedProviderType = new Core.Helpers.EnumValue<Core.Enums.ProviderType>(Core.Enums.ProviderType.MongoDBOASIS);
 
                 _dbContext.AvatarDetail.InsertOne(avatar);
                 avatar.ProviderKey[Core.Enums.ProviderType.MongoDBOASIS] = avatar.Id;
