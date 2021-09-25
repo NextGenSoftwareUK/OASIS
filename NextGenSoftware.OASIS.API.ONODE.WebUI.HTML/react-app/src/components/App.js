@@ -14,6 +14,8 @@ import AcceptInvite from "./pages/seeds/AcceptInvite";
 import AddData from "./popups/data-screen/AddData";
 import LoadData from "./popups/data-screen/LoadData";
 
+import ShowAllData from "./pages/data-screen/ShowAllData";
+import ViewAvatar from "./pages/avatar/viewAvatar"
 
 import "../assets/scss/general.scss";
 import "../assets/scss/style.scss";
@@ -150,6 +152,7 @@ class App extends React.Component {
                             <Route path="/accept-invite-to-join-seeds" component={AcceptInvite} />
                             <Route path="/send-invite" component={SendInvite} />
                             <Route exact path="/karma" component={Karma} />
+                            <Route exact path="/avatar/view" component={ViewAvatar} />
                         </Switch>
                     </div>
                 </Router>
