@@ -117,6 +117,7 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
         public DateTime DeletedDate { get; set; }
         public int Version { get; set; }
         public Guid PreviousVersionId { get; set; }
+        public Dictionary<ProviderType, string> PreviousVersionProviderKey { get; set; } = new Dictionary<ProviderType, string>(); 
         public bool IsActive { get; set; }
         public EnumValue<ProviderType> CreatedProviderType { get; set; } // The primary provider that this holon was originally saved with (it can then be auto-replicated to other providers to give maximum redundancy/speed via auto-load balancing etc).
                                                                          //public List<INode> Nodes { get; set; } // List of nodes/fields (int, string, bool, etc) that belong to this Holon (STAR ODK auto-generates these when generating dynamic code from DNA Templates passed in).
