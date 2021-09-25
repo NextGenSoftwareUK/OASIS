@@ -14,12 +14,11 @@ import AcceptInvite from "./pages/seeds/AcceptInvite";
 import AddData from "./popups/data-screen/AddData";
 import LoadData from "./popups/data-screen/LoadData";
 
-import ShowAllData from "./pages/data-screen/ShowAllData";
 import ViewAvatar from "./pages/avatar/viewAvatar"
 
 import "../assets/scss/general.scss";
 import "../assets/scss/style.scss";
-import "../assets/scss/Seeds.scss";
+import "../assets/scss/seeds.scss";
 
 import axios from "axios";
 
