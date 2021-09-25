@@ -103,12 +103,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpGet("GetKarmaForAvatar/{avatarId}")]
         public ActionResult<int> GetKarmaForAvatar(Guid avatarId)
         {
-            IAvatar avatar = Program.AvatarManager.LoadAvatar(avatarId);
-
-            if (avatar != null)
-                return Ok(avatar.Karma);
-
-            return Ok("ERROR: Avatar Not Found!");
+            var avatar = Program.AvatarManager.LoadAvatarDetail(avatarId);
+            return avatar != null ? Ok(avatar.Karma) : Ok("ERROR: Avatar Not Found!");
         }
 
         /// <summary>

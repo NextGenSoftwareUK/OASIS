@@ -19,6 +19,11 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             this.ProviderCategory = new Core.Helpers.EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
         }
 
+        public override async Task<IAvatarDetail> SaveAvatarDetailAsync(IAvatarDetail Avatar)
+        {
+            throw new NotImplementedException();
+        }
+
         public override bool DeleteAvatar(Guid id, bool softDelete = true)
         {
             throw new NotImplementedException();
@@ -94,16 +99,6 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             throw new NotImplementedException();
         }
 
-        public override IEnumerable<IAvatarDetail> LoadAllAvatarDetails()
-        {
-            throw new NotImplementedException();
-        }
-
-        public override Task<IEnumerable<IAvatarDetail>> LoadAllAvatarDetailsAsync()
-        {
-            throw new NotImplementedException();
-        }
-
         public override IEnumerable<IAvatar> LoadAllAvatars()
         {
             throw new NotImplementedException();
@@ -120,6 +115,16 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
         }
 
         public override Task<IEnumerable<IAvatar>> LoadAllAvatarsAsync()
+        {
+            throw new NotImplementedException();
+        }
+
+        public override IEnumerable<IAvatarDetail> LoadAllAvatarDetails()
+        {
+            throw new NotImplementedException();
+        }
+
+        public override async Task<IEnumerable<IAvatarDetail>> LoadAllAvatarDetailsAsync()
         {
             throw new NotImplementedException();
         }
@@ -263,12 +268,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
         {
             throw new NotImplementedException();
         }
-
-        public override Task<IAvatarDetail> SaveAvatarDetailAsync(IAvatarDetail Avatar)
-        {
-            throw new NotImplementedException();
-        }
-
+        
         public override IHolon SaveHolon(IHolon holon)
         {
             throw new NotImplementedException();

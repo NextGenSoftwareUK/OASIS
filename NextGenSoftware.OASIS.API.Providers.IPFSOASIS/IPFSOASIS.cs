@@ -41,6 +41,11 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
             base.DeActivateProvider();
         }
 
+        public override async Task<IAvatarDetail> SaveAvatarDetailAsync(IAvatarDetail Avatar)
+        {
+            throw new NotImplementedException();
+        }
+
         public override bool DeleteAvatar(Guid id, bool softDelete = true)
         {
             throw new NotImplementedException();
@@ -127,6 +132,26 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
         }
 
         public override Task<IEnumerable<IAvatar>> LoadAllAvatarsAsync()
+        {
+            throw new NotImplementedException();
+        }
+
+        public override IAvatarDetail LoadAvatarDetail(Guid id)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override async Task<IAvatarDetail> LoadAvatarDetailAsync(Guid id)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override IEnumerable<IAvatarDetail> LoadAllAvatarDetails()
+        {
+            throw new NotImplementedException();
+        }
+
+        public override async Task<IEnumerable<IAvatarDetail>> LoadAllAvatarDetailsAsync()
         {
             throw new NotImplementedException();
         }
@@ -229,6 +254,11 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
             throw new NotImplementedException();
         }
 
+        public override IAvatarDetail SaveAvatarDetail(IAvatarDetail Avatar)
+        {
+            throw new NotImplementedException();
+        }
+
         public override IHolon SaveHolon(IHolon holon)
         {
             throw new NotImplementedException();
@@ -289,11 +319,6 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
             throw new NotImplementedException();
         }
 
-        public override IAvatarDetail LoadAvatarDetail(Guid id)
-        {
-            throw new NotImplementedException();
-        }
-
         public override IAvatarDetail LoadAvatarDetailByEmail(string avatarEmail)
         {
             throw new NotImplementedException();
@@ -303,12 +328,7 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
         {
             throw new NotImplementedException();
         }
-
-        public override Task<IAvatarDetail> LoadAvatarDetailAsync(Guid id)
-        {
-            throw new NotImplementedException();
-        }
-
+        
         public override async Task<IAvatarDetail> LoadAvatarDetailByUsernameAsync(string avatarUsername)
         {
             throw new NotImplementedException();
@@ -318,25 +338,6 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
         {
             throw new NotImplementedException();
         }
-
-        public override IEnumerable<IAvatarDetail> LoadAllAvatarDetails()
-        {
-            throw new NotImplementedException();
-        }
-
-        public override Task<IEnumerable<IAvatarDetail>> LoadAllAvatarDetailsAsync()
-        {
-            throw new NotImplementedException();
-        }
-
-        public override IAvatarDetail SaveAvatarDetail(IAvatarDetail Avatar)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override Task<IAvatarDetail> SaveAvatarDetailAsync(IAvatarDetail Avatar)
-        {
-            throw new NotImplementedException();
-        }
     }
 }
+ 

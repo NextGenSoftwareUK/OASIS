@@ -91,6 +91,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
             // revoke token and save
             refreshToken.Revoked = DateTime.UtcNow;
             refreshToken.RevokedByIp = ipAddress;
+            avatar.IsBeamedIn = false;
+            avatar.LastBeamedOut = DateTime.Now;
 
             AvatarManager.SaveAvatar(avatar);
         }

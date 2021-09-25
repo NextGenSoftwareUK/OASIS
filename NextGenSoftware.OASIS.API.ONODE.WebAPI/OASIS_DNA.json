@@ -18,6 +18,7 @@
       "LogAllWarnings": "true"
     },
     "Security": {
+      "DoesAvatarNeedToBeVerifiedBeforeLogin": "true",
       "Secret": "",
       "AvatarPassword": {
         "BCryptEncryptionEnabled": "true",
