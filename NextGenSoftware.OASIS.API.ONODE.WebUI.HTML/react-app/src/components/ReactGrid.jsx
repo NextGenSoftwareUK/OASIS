@@ -13,7 +13,7 @@ import {
     TableFilterRow,
     Toolbar,
 } from "@devexpress/dx-react-grid-material-ui";
-import "../assets/scss/ReactGrid.scss"
+import "../assets/scss/react-grid.scss"
 
 const ReactGrid = ({ rows, columns }) => {
     return (
