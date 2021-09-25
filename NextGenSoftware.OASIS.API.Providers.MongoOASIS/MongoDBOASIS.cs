@@ -5,9 +5,12 @@ using NextGenSoftware.OASIS.API.Core;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
+using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories;
-using NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities;
+using Avatar = NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities.Avatar;
+using Holon = NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities.Holon;
+using AvatarDetail = NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities.AvatarDetail;
 
 namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
 {
@@ -128,25 +131,21 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
                await _avatarRepository.UpdateAsync(ConvertOASISAvatarToMongoEntity(avatar)));
         }
 
+        public override IAvatarDetail SaveAvatarDetail(IAvatarDetail Avatar)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override async Task<IAvatarDetail> SaveAvatarDetailAsync(IAvatarDetail Avatar)
+        {
+            throw new NotImplementedException();
+        }
+
         public override IAvatar SaveAvatar(IAvatar avatar)
         {
             return ConvertMongoEntityToOASISAvatar(avatar.Id == Guid.Empty ?
                 _avatarRepository.Add(ConvertOASISAvatarToMongoEntity(avatar)) :
                 _avatarRepository.Update(ConvertOASISAvatarToMongoEntity(avatar)));
-        }
-
-        public override async Task<IAvatarDetail> SaveAvatarDetailAsync(IAvatarDetail avatar)
-        {
-            return ConvertMongoEntityToOASISAvatarDetail(avatar.Id == Guid.Empty ?
-               await _avatarRepository.AddAsync(ConvertOASISAvatarDetailToMongoEntity(avatar)) :
-               await _avatarRepository.UpdateAsync(ConvertOASISAvatarDetailToMongoEntity(avatar)));
-        }
-
-        public override IAvatarDetail SaveAvatarDetail(IAvatarDetail avatar)
-        {
-            return ConvertMongoEntityToOASISAvatarDetail(avatar.Id == Guid.Empty ?
-                _avatarRepository.Add(ConvertOASISAvatarDetailToMongoEntity(avatar)) :
-                _avatarRepository.Update(ConvertOASISAvatarDetailToMongoEntity(avatar)));
         }
 
         public override bool DeleteAvatarByUsername(string avatarUsername, bool softDelete = true)
