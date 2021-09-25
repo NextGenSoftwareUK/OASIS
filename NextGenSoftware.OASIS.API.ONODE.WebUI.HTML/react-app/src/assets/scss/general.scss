@@ -114,6 +114,16 @@ input {
         }
     }
 }
+.custom-popup-component {
+    .modal-content {
+        .modal-body {
+            background-color: rgba(28, 28, 33, 0.8);
+            border-radius: 8px;
+            padding: 2rem;
+            position: relative;
+        }
+    }
+}
 
 .text-link {
     color: #1885c9;
