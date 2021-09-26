@@ -9,4 +9,10 @@
     <ProjectReference Include="..\NextGenSoftware.OASIS.API.Providers.IPFSOASIS\NextGenSoftware.OASIS.API.Providers.IPFSOASIS.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Reference Include="Ipfs.Http.Client">
+      <HintPath>C:\Users\fouad\Downloads\net-ipfs-http-client-master\net-ipfs-http-client-master\src\bin\Release\net45\Ipfs.Http.Client.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
 </Project>
