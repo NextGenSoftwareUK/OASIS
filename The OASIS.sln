@@ -187,6 +187,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.STAR.
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Spectre.Console", "Spectre.Console\Spectre.Console\Spectre.Console.csproj", "{C784D458-E0EE-4194-98A6-87517ACA68B0}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.Providers.CosmosOASIS", "NextGenSoftware.OASIS.API.Providers.CosmosOASIS\NextGenSoftware.OASIS.API.Providers.CosmosOASIS.csproj", "{4F4CB4AB-4F88-42FA-9335-56CCC4EC2706}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -1494,6 +1496,24 @@ Global
 		{C784D458-E0EE-4194-98A6-87517ACA68B0}.Release|x64.Build.0 = Release|Any CPU
 		{C784D458-E0EE-4194-98A6-87517ACA68B0}.Release|x86.ActiveCfg = Release|Any CPU
 		{C784D458-E0EE-4194-98A6-87517ACA68B0}.Release|x86.Build.0 = Release|Any CPU
+		{4F4CB4AB-4F88-42FA-9335-56CCC4EC2706}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4F4CB4AB-4F88-42FA-9335-56CCC4EC2706}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4F4CB4AB-4F88-42FA-9335-56CCC4EC2706}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{4F4CB4AB-4F88-42FA-9335-56CCC4EC2706}.Debug|x64.Build.0 = Debug|Any CPU
+		{4F4CB4AB-4F88-42FA-9335-56CCC4EC2706}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{4F4CB4AB-4F88-42FA-9335-56CCC4EC2706}.Debug|x86.Build.0 = Debug|Any CPU
+		{4F4CB4AB-4F88-42FA-9335-56CCC4EC2706}.Linux|Any CPU.ActiveCfg = Debug|Any CPU
+		{4F4CB4AB-4F88-42FA-9335-56CCC4EC2706}.Linux|Any CPU.Build.0 = Debug|Any CPU
+		{4F4CB4AB-4F88-42FA-9335-56CCC4EC2706}.Linux|x64.ActiveCfg = Debug|Any CPU
+		{4F4CB4AB-4F88-42FA-9335-56CCC4EC2706}.Linux|x64.Build.0 = Debug|Any CPU
+		{4F4CB4AB-4F88-42FA-9335-56CCC4EC2706}.Linux|x86.ActiveCfg = Debug|Any CPU
+		{4F4CB4AB-4F88-42FA-9335-56CCC4EC2706}.Linux|x86.Build.0 = Debug|Any CPU
+		{4F4CB4AB-4F88-42FA-9335-56CCC4EC2706}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4F4CB4AB-4F88-42FA-9335-56CCC4EC2706}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4F4CB4AB-4F88-42FA-9335-56CCC4EC2706}.Release|x64.ActiveCfg = Release|Any CPU
+		{4F4CB4AB-4F88-42FA-9335-56CCC4EC2706}.Release|x64.Build.0 = Release|Any CPU
+		{4F4CB4AB-4F88-42FA-9335-56CCC4EC2706}.Release|x86.ActiveCfg = Release|Any CPU
+		{4F4CB4AB-4F88-42FA-9335-56CCC4EC2706}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
