@@ -2,7 +2,7 @@ import React from 'react';
 
 import { Modal } from 'react-bootstrap';
 
-import '../../../assets/scss/DataScreen.scss';
+import '../../../assets/scss/data-screen.scss';
 
 class AddData extends React.Component {
     render() { 
@@ -10,8 +10,17 @@ class AddData extends React.Component {
 
         return (
             <>
-                <Modal centered className="custom-modal" show={show} onHide={() => hide('sendData')}>
+                <Modal 
+                    centered 
+                    className="custom-modal custom-popup-component" 
+                    show={show} 
+                    onHide={() => hide('sendData')}
+                >
                     <Modal.Body>
+                        <span className="form-cross-icon" onClick={() => hide('sendData')}>
+                            <i className="fa fa-times"></i>
+                        </span>
+
                         <div className="popup-container default-popup">
                             <div className="data-screen-container">
                                 <h2>Data</h2>

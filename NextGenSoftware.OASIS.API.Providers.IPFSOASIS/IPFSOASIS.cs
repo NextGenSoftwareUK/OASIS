@@ -10,6 +10,14 @@ using NextGenSoftware.OASIS.API.Core.Holons;
 using System.IO;
 using Ipfs.Engine;
 using NextGenSoftware.OASIS.API.Core.Helpers;
+using System.Runtime.Serialization.Json;
+using System.Text;
+using Newtonsoft.Json;
+using System.Data;
+using System.Linq;
+using MailKit.Search;
+using Ipfs;
+using Newtonsoft.Json.Linq;
 
 namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
 {
@@ -18,6 +26,12 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
         public string HostURI { get; set; }
         public IpfsClient IPFSClient;
         public IpfsEngine IPFSEngine; //= new IpfsEngine();
+        public List<IAvatar> AvatarsList;
+        public List<IAvatarDetail> AvatarsDetailsList;
+        public List<IHolon> HolonsList;
+        public string avatarFileAddress;
+        public string holonFileAddress;
+        public string avatarDetailsFileAddress;
 
         public IPFSOASIS(string hostURI)
         {
@@ -26,6 +40,10 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
             this.ProviderType = new Core.Helpers.EnumValue<ProviderType>(Core.Enums.ProviderType.IPFSOASIS);
             this.ProviderCategory = new Core.Helpers.EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
             this.HostURI = hostURI;
+
+            AvatarsList = new List<IAvatar>();
+            AvatarsDetailsList = new List<IAvatarDetail>();
+            HolonsList = new List<IHolon>();
         }
 
         public override void ActivateProvider()
@@ -41,74 +59,319 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
             base.DeActivateProvider();
         }
 
-        public override async Task<IAvatarDetail> SaveAvatarDetailAsync(IAvatarDetail Avatar)
+
+        public async Task<string> LoadFileToJson(string address)
         {
-            throw new NotImplementedException();
+            using (var stream = await IPFSClient.FileSystem.ReadFileAsync(address))
+            {
+                using (var ms = new MemoryStream())
+                {
+                    stream.CopyTo(ms);
+                    ms.ToArray();
+                    return Encoding.ASCII.GetString(ms.ToArray());
+                }
+            }
+        }
+        public async Task<string> LoadStringToJson(string address)
+        {
+
+            string text = await IPFSClient.FileSystem.ReadAllTextAsync((Cid)address);
+
+            return text;
+        }
+
+
+        public async Task<string> SaveJsonToFile<T>(List<T> list)
+        {
+            string json = JsonConvert.SerializeObject(list);
+
+            var fsn = await IPFSClient.FileSystem.AddTextAsync(json);
+            return (string)fsn.Id;
+        }
+
+        public async Task<string> SaveTextToFile(string text)
+        {
+
+            var fsn = await IPFSClient.FileSystem.AddTextAsync(text);
+            return (string)fsn.Id;
+        }
+
+
+        public override IAvatar LoadAvatar(string username, string password)
+        {
+            return LoadAvatarAsync(username, password).Result;
+        }
+
+        public override IAvatar SaveAvatar(IAvatar Avatar)
+        {
+            return SaveAvatarAsync(Avatar).Result;
+        }
+
+        public override async Task<IAvatar> SaveAvatarAsync(IAvatar Avatar)
+        {
+            if (AvatarsList == null)
+                AvatarsList = new List<IAvatar>();
+
+            AvatarsList.Add(Avatar);
+
+
+            avatarFileAddress = await SaveJsonToFile<IAvatar>(AvatarsList);
+
+            return Avatar;
+        }
+
+        public override IHolon SaveHolon(IHolon holon)
+        {
+            return SaveHolonAsync(holon).Result;
+        }
+
+        public override async Task<IHolon> SaveHolonAsync(IHolon holon)
+        {
+            if (HolonsList == null)
+                HolonsList = new List<IHolon>();
+
+            HolonsList.Add(holon);
+
+            holonFileAddress = await SaveJsonToFile<IHolon>(HolonsList);
+
+            return holon;
+        }
+
+        public override IEnumerable<IHolon> SaveHolons(IEnumerable<IHolon> holons)
+        {
+            return SaveHolonsAsync(holons).Result;
+        }
+
+        public override async Task<IEnumerable<IHolon>> SaveHolonsAsync(IEnumerable<IHolon> holons)
+        {
+            if (HolonsList == null)
+                HolonsList = new List<IHolon>();
+
+            HolonsList.AddRange(holons);
+
+            holonFileAddress = await SaveJsonToFile<IHolon>(HolonsList);
+
+            return holons;
+        }
+
+        public override async Task<ISearchResults> SearchAsync(ISearchParams searchTerm)
+        {
+            ISearchResults result = (ISearchResults)new SearchResults();
+
+            IEnumerable<IAvatar> Avatars = await LoadAllAvatarsAsync();
+
+            IEnumerable<IHolon> Holons = await LoadAllHolonsAsync();
+
+            Avatars = Avatars.Where(a => a.Name.Contains(searchTerm.SearchQuery) | a.Description.Contains(searchTerm.SearchQuery)).ToList();
+            Holons = Holons.Where(h => h.Name.Contains(searchTerm.SearchQuery) | h.Description.Contains(searchTerm.SearchQuery)).ToList();
+
+            foreach (var h in Holons)
+                result.SearchResultHolons.Add((Holon)h);
+
+            foreach (var ava in Avatars)
+                result.SearchResultHolons.Add((Holon)ava);
+
+            return result;
+        }
+
+        public override IHolon LoadHolon(Guid id)
+        {
+            return LoadHolonAsync(id).Result;
+        }
+
+        public override async Task<IHolon> LoadHolonAsync(Guid id)
+        {
+            string json = "";
+
+            json = await LoadStringToJson(holonFileAddress);
+
+            HolonsList = JArray.Parse(json).ToObject<List<Holon>>().ToList<IHolon>();
+
+            IHolon holon = HolonsList.Where(a => a.Id == id).FirstOrDefault();
+
+            return holon;
+        }
+
+        public override IHolon LoadHolon(string providerKey)
+        {
+            return LoadHolonAsync(providerKey).Result;
+        }
+
+        public override async Task<IHolon> LoadHolonAsync(string providerKey)
+        {
+            string json = "";
+
+            json = await LoadStringToJson(holonFileAddress);
+
+            HolonsList = JArray.Parse(json).ToObject<List<Holon>>().ToList<IHolon>();
+
+            IHolon holon = HolonsList.Where(a => a.ProviderKey.Where(b => b.Value == providerKey).Any()).FirstOrDefault();
+
+            return holon;
+        }
+
+        public override IEnumerable<IHolon> LoadHolonsForParent(Guid id, HolonType type = HolonType.All)
+        {
+            return LoadHolonsForParentAsync(id, type).Result;
+        }
+
+        public override async Task<IEnumerable<IHolon>> LoadHolonsForParentAsync(Guid id, HolonType type = HolonType.All)
+        {
+            string json = "";
+
+            json = await LoadStringToJson(holonFileAddress);
+
+            HolonsList = JArray.Parse(json).ToObject<List<Holon>>().ToList<IHolon>();
+
+            IEnumerable<IHolon> holons = HolonsList.Where(a => a.ParentHolonId == id && a.HolonType == type).AsEnumerable();
+
+            return holons;
+        }
+
+        public override IEnumerable<IHolon> LoadHolonsForParent(string providerKey, HolonType type = HolonType.All)
+        {
+            return LoadHolonsForParentAsync(providerKey, type).Result.Result;
         }
 
         public override bool DeleteAvatar(Guid id, bool softDelete = true)
         {
-            throw new NotImplementedException();
-        }
-
-        public override bool DeleteAvatarByEmail(string avatarEmail, bool softDelete = true)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override bool DeleteAvatarByUsername(string avatarUsername, bool softDelete = true)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override async Task<bool> DeleteAvatarByUsernameAsync(string avatarUsername, bool softDelete = true)
-        {
-            throw new NotImplementedException();
+            return DeleteAvatarAsync(id, softDelete).Result;
         }
 
         public override bool DeleteAvatar(string providerKey, bool softDelete = true)
         {
-            throw new NotImplementedException();
+            return DeleteAvatarAsync(providerKey, softDelete).Result;
         }
 
-        public override Task<bool> DeleteAvatarAsync(Guid id, bool softDelete = true)
+        public override async Task<bool> DeleteAvatarAsync(Guid id, bool softDelete = true)
         {
-            throw new NotImplementedException();
+            string json = "";
+            try
+            {
+                json = await LoadStringToJson(avatarFileAddress);
+
+                AvatarsList = JArray.Parse(json).ToObject<List<Avatar>>().ToList<IAvatar>();
+                if (softDelete)
+                {
+                    AvatarsList.Where(a => a.Id == id).FirstOrDefault().PreviousVersionProviderKey.Add(Core.Enums.ProviderType.IPFSOASIS, avatarFileAddress);
+                    AvatarsList.Where(a => a.Id == id).FirstOrDefault().IsActive = false;
+                    AvatarsList.Where(a => a.Id == id).FirstOrDefault().DeletedDate = DateTime.Now;
+                }
+                else
+                {
+                    var avatar = AvatarsList.Where(a => a.Id == id).FirstOrDefault();
+                    AvatarsList.Remove(avatar);
+                }
+                avatarFileAddress = await SaveJsonToFile<IAvatar>(AvatarsList);
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
         }
 
-        public override async Task<bool> DeleteAvatarByEmailAsync(string avatarEmail, bool softDelete = true)
+        public override async Task<bool> DeleteAvatarAsync(string providerKey, bool softDelete = true)
         {
-            throw new NotImplementedException();
-        }
+            string json = "";
+            try
+            {
+                json = await LoadStringToJson(avatarFileAddress);
 
-        public override Task<bool> DeleteAvatarAsync(string providerKey, bool softDelete = true)
-        {
-            throw new NotImplementedException();
-        }
+                AvatarsList = JArray.Parse(json).ToObject<List<Avatar>>().ToList<IAvatar>();
 
+                if (softDelete)
+                {
+                    AvatarsList.Where(a => a.ProviderKey.Where(b => b.Value == providerKey).Any()).FirstOrDefault().PreviousVersionProviderKey.Add(Core.Enums.ProviderType.IPFSOASIS, avatarFileAddress);
+                    AvatarsList.Where(a => a.ProviderKey.Where(b => b.Value == providerKey).Any()).FirstOrDefault().IsActive = false;
+                    AvatarsList.Where(a => a.ProviderKey.Where(b => b.Value == providerKey).Any()).FirstOrDefault().DeletedDate = DateTime.Now;
+                }
+                else
+                {
+                    var avatar = AvatarsList.Where(a => a.ProviderKey.Where(b => b.Value == providerKey).Any()).FirstOrDefault();
+                    AvatarsList.Remove(avatar);
+                }
+                avatarFileAddress = await SaveJsonToFile<IAvatar>(AvatarsList);
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
         public override bool DeleteHolon(Guid id, bool softDelete = true)
         {
-            throw new NotImplementedException();
+            return DeleteHolonAsync(id, softDelete).Result;
         }
 
         public override bool DeleteHolon(string providerKey, bool softDelete = true)
         {
-            throw new NotImplementedException();
+            return DeleteHolonAsync(providerKey, softDelete).Result;
         }
 
-        public override Task<bool> DeleteHolonAsync(Guid id, bool softDelete = true)
+        public override async Task<bool> DeleteHolonAsync(Guid id, bool softDelete = true)
         {
-            throw new NotImplementedException();
+            string json = "";
+            try
+            {
+                json = await LoadStringToJson(holonFileAddress);
+
+                HolonsList = JArray.Parse(json).ToObject<List<Holon>>().ToList<IHolon>();
+
+                if (softDelete)
+                {
+                    HolonsList.Where(a => a.Id == id).FirstOrDefault().PreviousVersionProviderKey.Add(Core.Enums.ProviderType.IPFSOASIS, holonFileAddress);
+                    HolonsList.Where(a => a.Id == id).FirstOrDefault().IsActive = false;
+                    HolonsList.Where(a => a.Id == id).FirstOrDefault().DeletedDate = DateTime.Now;
+
+                }
+                else
+                {
+                    var holon = HolonsList.Where(a => a.Id == id).FirstOrDefault();
+                    HolonsList.Remove(holon);
+                }
+                holonFileAddress = await SaveJsonToFile<IHolon>(HolonsList);
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
         }
 
-        public override Task<bool> DeleteHolonAsync(string providerKey, bool softDelete = true)
+        public override async Task<bool> DeleteHolonAsync(string providerKey, bool softDelete = true)
         {
-            throw new NotImplementedException();
+            string json = "";
+            try
+            {
+                json = await LoadStringToJson(holonFileAddress);
+
+                HolonsList = JArray.Parse(json).ToObject<List<Holon>>().ToList<IHolon>();
+
+
+                if (softDelete)
+                {
+                    HolonsList.Where(a => a.ProviderKey.Where(b => b.Value == providerKey).Any()).FirstOrDefault().PreviousVersionProviderKey.Add(Core.Enums.ProviderType.IPFSOASIS, holonFileAddress);
+                    HolonsList.Where(a => a.ProviderKey.Where(b => b.Value == providerKey).Any()).FirstOrDefault().IsActive = false;
+                    HolonsList.Where(a => a.ProviderKey.Where(b => b.Value == providerKey).Any()).FirstOrDefault().DeletedDate = DateTime.Now;
+                }
+                else
+                {
+                    var holon = HolonsList.Where(a => a.ProviderKey.Where(b => b.Value == providerKey).Any()).FirstOrDefault();
+                    HolonsList.Remove(holon);
+                }
+                holonFileAddress = await SaveJsonToFile<IHolon>(HolonsList);
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
         }
 
         public IEnumerable<IHolon> GetHolonsNearMe(HolonType Type)
         {
-            throw new NotImplementedException();
+            return LoadAllHolons(Type);
         }
 
         public IEnumerable<IPlayer> GetPlayersNearMe()
@@ -118,226 +381,300 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
 
         public override IEnumerable<IAvatar> LoadAllAvatars()
         {
-            throw new NotImplementedException();
+            return LoadAllAvatarsAsync().Result;
         }
 
-        public override IAvatar LoadAvatarByEmail(string avatarEmail)
+        public override async Task<IEnumerable<IAvatar>> LoadAllAvatarsAsync()
         {
-            throw new NotImplementedException();
-        }
+            string json = "";
 
-        public override IAvatar LoadAvatarByUsername(string avatarUsername)
-        {
-            throw new NotImplementedException();
-        }
+            try
+            {
+                json = await LoadStringToJson(avatarFileAddress);
+            }
+            catch (Exception ex)
+            {
 
-        public override Task<IEnumerable<IAvatar>> LoadAllAvatarsAsync()
-        {
-            throw new NotImplementedException();
-        }
+            }
+            AvatarsList = JArray.Parse(json).ToObject<List<Avatar>>().ToList<IAvatar>();
 
-        public override IAvatarDetail LoadAvatarDetail(Guid id)
-        {
-            throw new NotImplementedException();
-        }
+            return AvatarsList.AsEnumerable();
 
-        public override async Task<IAvatarDetail> LoadAvatarDetailAsync(Guid id)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override IEnumerable<IAvatarDetail> LoadAllAvatarDetails()
-        {
-            throw new NotImplementedException();
-        }
-
-        public override async Task<IEnumerable<IAvatarDetail>> LoadAllAvatarDetailsAsync()
-        {
-            throw new NotImplementedException();
         }
 
         public override IEnumerable<IHolon> LoadAllHolons(HolonType type = HolonType.Holon)
         {
-            throw new NotImplementedException();
+            return LoadAllHolonsAsync(type).Result;
         }
 
-        public override Task<IEnumerable<IHolon>> LoadAllHolonsAsync(HolonType type = HolonType.Holon)
+        public override async Task<IEnumerable<IHolon>> LoadAllHolonsAsync(HolonType type = HolonType.Holon)
         {
-            throw new NotImplementedException();
+            string json = "";
+
+            try
+            {
+                json = await LoadStringToJson(holonFileAddress);
+            }
+            catch (Exception ex)
+            {
+            }
+            HolonsList = JArray.Parse(json).ToObject<List<Holon>>().ToList<IHolon>();
+
+
+
+            return HolonsList.Where(a => a.HolonType == type).ToList();
         }
 
-        public override IAvatar LoadAvatar(string username, string password)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override async Task<IAvatar> LoadAvatarByUsernameAsync(string avatarUsername)
-        {
-            throw new NotImplementedException();
-        }
 
         public override IAvatar LoadAvatar(Guid Id)
         {
-            throw new NotImplementedException();
+            return LoadAvatarAsync(Id).Result;
         }
 
         public override IAvatar LoadAvatar(string username)
         {
-            throw new NotImplementedException();
+            return LoadAvatarAsync(username).Result;
         }
 
-        public override Task<IAvatar> LoadAvatarAsync(string providerKey)
+        public override async Task<IAvatar> LoadAvatarAsync(string providerKey)
         {
-            throw new NotImplementedException();
+            string json = "";
+
+            json = await LoadStringToJson(avatarFileAddress);
+
+            AvatarsList = JArray.Parse(json).ToObject<List<Avatar>>().ToList<IAvatar>();
+
+            IAvatar avatar = AvatarsList.Where(a => a.ProviderKey.Where(b => b.Value == providerKey).Any()).FirstOrDefault();
+
+            return avatar;
         }
 
-        public override Task<IAvatar> LoadAvatarAsync(Guid Id)
+        public override async Task<IAvatar> LoadAvatarAsync(Guid Id)
         {
-            throw new NotImplementedException();
-        }
+            string json = "";
 
-        public override async Task<IAvatar> LoadAvatarByEmailAsync(string avatarEmail)
-        {
-            throw new NotImplementedException();
+            json = await LoadStringToJson(avatarFileAddress);
+
+            AvatarsList = JArray.Parse(json).ToObject<List<Avatar>>().ToList<IAvatar>();
+
+            IAvatar avatar = AvatarsList.Where(a => a.Id == Id).FirstOrDefault();
+
+            return avatar;
         }
 
         public override async Task<IAvatar> LoadAvatarAsync(string username, string password)
         {
-           
+            string json = "";
 
-           // IPFSEngine.Start();
 
-            //https://ipfs.io/ipfs/QmWDkvhfbt5kwyd8K3W1shXuJynSkyAfpoXQ3nChj1QBC1?filename=LICENSES.chromium.html
+            json = await LoadStringToJson(avatarFileAddress);
 
-            //const string filename = "QmXarR6rgkQ2fDSHjSY5nM2kuCXKYGViky5nohtwgF65Ec/about";
-            const string filename = "QmWDkvhfbt5kwyd8K3W1shXuJynSkyAfpoXQ3nChj1QBC1/LICENSES.chromium.html";
-           // string text = await ipfs.FileSystem.ReadAllTextAsync(filename);
+            AvatarsList = JArray.Parse(json).ToObject<List<Avatar>>().ToList<IAvatar>();
 
-          //  Stream stream = await ipfs.DownloadAsync("", new System.Threading.CancellationToken());
-            //ipfs.FileSystem.AddFileAsync
-            //ipfs.FileSystem.AddTextAsync
-         //   Stream stream2 = await IPFSEngine.FileSystem.ReadFileAsync(filename);
 
-            //ipfs.Name.PublishAsync
 
-           // ipfs.Object.NewAsync
-           //ipfs.Pin.
+            //    AvatarsList = JArray.Parse(json).ToObject<List<Avatar>>().ToList<IAvatar>();
 
-           // ipfs.ApiUri.
+            IAvatar avatar = AvatarsList.Where(a => a.Username == username && a.Password == password).FirstOrDefault();
 
-            return new Avatar();
+            return avatar;
         }
 
         public override IAvatar LoadAvatarForProviderKey(string providerKey)
         {
-            throw new NotImplementedException();
+            return LoadAvatarForProviderKeyAsync(providerKey).Result;
         }
 
-        public override Task<IAvatar> LoadAvatarForProviderKeyAsync(string providerKey)
+        public override async Task<IAvatar> LoadAvatarForProviderKeyAsync(string providerKey)
         {
-            throw new NotImplementedException();
+            return await LoadAvatarAsync(providerKey);
         }
 
-       
-        public override Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(string providerKey, HolonType type = HolonType.All)
+
+        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(string providerKey, HolonType type = HolonType.All)
         {
-            throw new NotImplementedException();
+            string json = "";
+            OASISResult<IEnumerable<IHolon>> res = new OASISResult<IEnumerable<IHolon>>();
+
+            json = await LoadStringToJson(holonFileAddress);
+
+            HolonsList = JArray.Parse(json).ToObject<List<Holon>>().ToList<IHolon>();
+
+            res.Result = HolonsList.Where(a => a.ProviderKey.Where(a => a.Value == providerKey).Any() && a.HolonType == type).ToList();
+
+            return res;
         }
 
-        public override IAvatar SaveAvatar(IAvatar Avatar)
+        public override IAvatarDetail LoadAvatarDetail(Guid id)
         {
-            throw new NotImplementedException();
+            return LoadAvatarDetailAsync(id).Result;
         }
 
-        public override Task<IAvatar> SaveAvatarAsync(IAvatar Avatar)
+        public override async Task<IAvatarDetail> LoadAvatarDetailAsync(Guid id)
         {
-            throw new NotImplementedException();
+            string json = "";
+
+            json = await LoadStringToJson(avatarDetailsFileAddress);
+
+            AvatarsDetailsList = (List<IAvatarDetail>)JsonConvert.DeserializeObject(json);
+
+            IAvatarDetail avatar = AvatarsDetailsList.Where(a => a.Id == id).FirstOrDefault();
+
+            return avatar;
+        }
+
+        public override IEnumerable<IAvatarDetail> LoadAllAvatarDetails()
+        {
+            return LoadAllAvatarDetailsAsync().Result;
+        }
+
+        public override async Task<IEnumerable<IAvatarDetail>> LoadAllAvatarDetailsAsync()
+        {
+            string json = "";
+
+            json = await LoadStringToJson(avatarDetailsFileAddress);
+
+            AvatarsDetailsList = (List<IAvatarDetail>)JsonConvert.DeserializeObject(json);
+
+            return AvatarsDetailsList;
         }
 
         public override IAvatarDetail SaveAvatarDetail(IAvatarDetail Avatar)
         {
-            throw new NotImplementedException();
+            return SaveAvatarDetailAsync(Avatar).Result;
         }
 
-        public override IHolon SaveHolon(IHolon holon)
+        public override async Task<IAvatarDetail> SaveAvatarDetailAsync(IAvatarDetail Avatar)
         {
-            throw new NotImplementedException();
+            AvatarsDetailsList.Add(Avatar);
+
+            avatarDetailsFileAddress = await SaveJsonToFile<IAvatarDetail>(AvatarsDetailsList);
+
+            return Avatar;
         }
 
-        public override Task<IHolon> SaveHolonAsync(IHolon holon)
+        public override IAvatar LoadAvatarByUsername(string avatarUsername)
         {
-            throw new NotImplementedException();
+            return LoadAvatarByUsernameAsync(avatarUsername).Result;
         }
 
-        public override IEnumerable<IHolon> SaveHolons(IEnumerable<IHolon> holons)
+        public override async Task<IAvatar> LoadAvatarByEmailAsync(string avatarEmail)
         {
-            throw new NotImplementedException();
+            IEnumerable<IAvatar> Avatars = await LoadAllAvatarsAsync();
+
+            IAvatar avatar = Avatars.Where(a => a.Email == avatarEmail).FirstOrDefault();
+
+            return avatar;
         }
 
-        public override Task<IEnumerable<IHolon>> SaveHolonsAsync(IEnumerable<IHolon> holons)
+        public override async Task<IAvatar> LoadAvatarByUsernameAsync(string avatarUsername)
         {
-            throw new NotImplementedException();
+            IEnumerable<IAvatar> Avatars = await LoadAllAvatarsAsync();
+
+            IAvatar avatar = Avatars.Where(a => a.Username == avatarUsername).FirstOrDefault();
+
+            return avatar;
         }
 
-        public override Task<ISearchResults> SearchAsync(ISearchParams searchTerm)
+        public override IAvatar LoadAvatarByEmail(string avatarEmail)
         {
-            throw new NotImplementedException();
-        }
-
-        public override IHolon LoadHolon(Guid id)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override Task<IHolon> LoadHolonAsync(Guid id)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override IHolon LoadHolon(string providerKey)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override Task<IHolon> LoadHolonAsync(string providerKey)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override IEnumerable<IHolon> LoadHolonsForParent(Guid id, HolonType type = HolonType.All)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override Task<IEnumerable<IHolon>> LoadHolonsForParentAsync(Guid id, HolonType type = HolonType.All)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override IEnumerable<IHolon> LoadHolonsForParent(string providerKey, HolonType type = HolonType.All)
-        {
-            throw new NotImplementedException();
+            return LoadAvatarByEmailAsync(avatarEmail).Result;
         }
 
         public override IAvatarDetail LoadAvatarDetailByEmail(string avatarEmail)
         {
-            throw new NotImplementedException();
+            return LoadAvatarDetailByEmailAsync(avatarEmail).Result;
         }
 
         public override IAvatarDetail LoadAvatarDetailByUsername(string avatarUsername)
         {
-            throw new NotImplementedException();
+            return LoadAvatarDetailByEmailAsync(avatarUsername).Result;
         }
-        
+
         public override async Task<IAvatarDetail> LoadAvatarDetailByUsernameAsync(string avatarUsername)
         {
-            throw new NotImplementedException();
+            IEnumerable<IAvatarDetail> AvatarDetail = await LoadAllAvatarDetailsAsync();
+
+            IAvatarDetail avatarDetail = AvatarDetail.Where(a => a.Username == avatarUsername).FirstOrDefault();
+
+            return avatarDetail;
         }
 
         public override async Task<IAvatarDetail> LoadAvatarDetailByEmailAsync(string avatarEmail)
         {
-            throw new NotImplementedException();
+            IEnumerable<IAvatarDetail> AvatarDetail = await LoadAllAvatarDetailsAsync();
+
+            IAvatarDetail avatarDetail = AvatarDetail.Where(a => a.Email == avatarEmail).FirstOrDefault();
+
+            return avatarDetail;
+        }
+
+        public override bool DeleteAvatarByEmail(string avatarEmail, bool softDelete = true)
+        {
+            return DeleteAvatarByUsernameAsync(avatarEmail).Result;
+        }
+
+        public override bool DeleteAvatarByUsername(string avatarUsername, bool softDelete = true)
+        {
+            return DeleteAvatarByUsernameAsync(avatarUsername).Result;
+        }
+
+        public override async Task<bool> DeleteAvatarByEmailAsync(string avatarEmail, bool softDelete = true)
+        {
+            string json = "";
+            try
+            {
+                json = await LoadStringToJson(avatarFileAddress);
+
+                AvatarsList = JArray.Parse(json).ToObject<List<Avatar>>().ToList<IAvatar>();
+                if (softDelete)
+                {
+                    AvatarsList.Where(a => a.Email == avatarEmail).FirstOrDefault().PreviousVersionProviderKey.Add(Core.Enums.ProviderType.IPFSOASIS, avatarFileAddress);
+                    AvatarsList.Where(a => a.Email == avatarEmail).FirstOrDefault().IsActive = false;
+                    AvatarsList.Where(a => a.Email == avatarEmail).FirstOrDefault().DeletedDate = DateTime.Now;
+
+                }
+                else
+                {
+                    var avatar = AvatarsList.Where(a => a.Email == avatarEmail).FirstOrDefault();
+                    AvatarsList.Remove(avatar);
+                }
+                avatarFileAddress = await SaveJsonToFile<IAvatar>(AvatarsList);
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        public override async Task<bool> DeleteAvatarByUsernameAsync(string avatarUsername, bool softDelete = true)
+        {
+            string json = "";
+            try
+            {
+                json = await LoadStringToJson(avatarFileAddress);
+
+                AvatarsList = JArray.Parse(json).ToObject<List<Avatar>>().ToList<IAvatar>();
+
+                if (softDelete)
+                {
+                    AvatarsList.Where(a => a.Username == avatarUsername).FirstOrDefault().PreviousVersionProviderKey.Add(Core.Enums.ProviderType.IPFSOASIS, avatarFileAddress);
+                    AvatarsList.Where(a => a.Username == avatarUsername).FirstOrDefault().IsActive = false;
+                    AvatarsList.Where(a => a.Username == avatarUsername).FirstOrDefault().DeletedDate = DateTime.Now;
+                }
+                else 
+                {
+                    var avatar = AvatarsList.Where(a => a.Username == avatarUsername).FirstOrDefault();
+                    AvatarsList.Remove(avatar);
+                }
+                avatarFileAddress = await SaveJsonToFile(AvatarsList);
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
         }
     }
 }
- 
