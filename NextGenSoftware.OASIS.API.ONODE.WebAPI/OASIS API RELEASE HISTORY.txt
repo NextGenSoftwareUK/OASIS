@@ -29,5 +29,6 @@ Then when we do a release, this file will be linked to the Swagger documentation
 
 ----------------------------------------------------------------------------------------------------------------------------
 0.18 ALPHA
+ - IPFS Provider added
 
 
