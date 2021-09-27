@@ -433,6 +433,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
                 result.IsError = true;
             }
 
+            result.Result = avatar;
             return result;
         }
 
