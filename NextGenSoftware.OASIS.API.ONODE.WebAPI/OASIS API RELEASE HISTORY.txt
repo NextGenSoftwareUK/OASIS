@@ -32,9 +32,10 @@ Then when we do a release, this file will be linked to the Swagger documentation
 
 - Fixed bug preventing people logging in for avatar/authenticate API method (Password was missing in mappings in MongoDBOASIS).
 
+----------------------------------------------------------------------------------------------------------------------------
 0.17.2 ALPHA
 
 - Avatar and AvatarDetail now reutn id (workaorund for bug in Web API).
 - Fixed bug in SQLLiteOASIS Provider (null checkes for collections).
 
-
+----------------------------------------------------------------------------------------------------------------------------
