@@ -5,7 +5,6 @@ using NextGenSoftware.OASIS.API.Core;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
-using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories;
 using Avatar = NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities.Avatar;
@@ -601,6 +600,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             //    mongoAvatar.CreatedProviderType = avatar.CreatedProviderType.Value;
 
             mongoAvatar.HolonId = avatar.Id;
+           // mongoAvatar.AvatarId = avatar.Id;
             mongoAvatar.ProviderKey = avatar.ProviderKey;
             mongoAvatar.ProviderMetaData = avatar.ProviderMetaData;
             mongoAvatar.PreviousVersionId = avatar.PreviousVersionId;

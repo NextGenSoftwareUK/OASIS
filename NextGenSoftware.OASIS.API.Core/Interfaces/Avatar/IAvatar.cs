@@ -9,6 +9,7 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces
 {
     public interface IAvatar : IHolonBase
     {
+        new Guid Id { get; set; }
         string Title { get; set; }
         string FirstName { get; set; }
         string LastName { get; set; }
