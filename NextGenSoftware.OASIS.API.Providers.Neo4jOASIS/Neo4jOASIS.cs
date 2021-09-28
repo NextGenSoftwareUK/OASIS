@@ -1,22 +1,31 @@
-﻿using Neo4jClient;
-using NextGenSoftware.OASIS.API.Core;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Linq;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Enums;
-using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Helpers;
+using Neo4j.Driver;
+using System.Reflection;
+using Neo4jOgm.Repository;
+using Neo4jOgm;
+using NextGenSoftware.OASIS.API.Core.Holons;
+using NextGenSoftware.OASIS.API.Core;
+using NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.DataBaseModels;
+using Neo4jOgm.Domain;
+using NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Repositories;
 
 namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
 {
     public class Neo4jOASIS : OASISStorageBase, IOASISStorage, IOASISNET
     {
-        public GraphClient GraphClient { get; set; }
+        //public GraphClient GraphClient { get; set; }
         public string Host { get; set; }
         public string Username { get; set; }
         public string Password { get; set; }
+        public NeoRepository NeoRepository { get; set; }
+        private AvatarRepository avatarRepository;
+
 
         public Neo4jOASIS(string host, string username, string password)
         {
@@ -24,39 +33,41 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
             this.ProviderDescription = "Neo4j Provider";
             this.ProviderType = new Core.Helpers.EnumValue<ProviderType>(Core.Enums.ProviderType.Neo4jOASIS);
             this.ProviderCategory = new Core.Helpers.EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
-
             Host = host;
             Username = username;
             Password = password;
+
         }
 
-        private async Task<bool> Connect()
+        private bool Connect()
         {
-            GraphClient = new GraphClient(new Uri(Host), Username, Password);
-            GraphClient.OperationCompleted += _graphClient_OperationCompleted;
-            await GraphClient.ConnectAsync();
+            var context = new NeoContext(Assembly.GetExecutingAssembly());
+            var authToken = AuthTokens.Basic(Username, Password);
+            var driver = GraphDatabase.Driver(Host, authToken);
+            NeoRepository = new NeoRepository(driver, "neo4j", context);
+                        avatarRepository = new AvatarRepository(NeoRepository);
+
             return true;
         }
 
-        private async Task Disconnect()
+        private bool Disconnect()
         {
-            //TODO: Find if there is a disconnect/shutdown function?
-            GraphClient.Dispose();
-            GraphClient.OperationCompleted -= _graphClient_OperationCompleted;
-            GraphClient = null;
+            NeoRepository = null;
+            return true;
+
         }
 
-        private void _graphClient_OperationCompleted(object sender, OperationCompletedEventArgs e)
-        {
-            
-        }
+        //private void _graphClient_OperationCompleted(object sender, OperationCompletedEventArgs e)
+        //{
+
+        //}
 
         public override bool DeleteAvatar(Guid id, bool softDelete = true)
         {
-            GraphClient.Cypher.OptionalMatch("(avatar:Avatar)-[r]-()")
-                .Where((Avatar avatar) => avatar.Id == id)
-                .Delete("r,avatar")
-                .ExecuteWithoutResultsAsync();
+            //GraphClient.Cypher.OptionalMatch("(avatar:Avatar)-[r]-()")
+            //    .Where((Avatar avatar) => avatar.Id == id)
+            //    .Delete("r,avatar")
+            //    .ExecuteWithoutResultsAsync();
 
             return true;
 
@@ -86,6 +97,8 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
 
         public override bool DeleteAvatar(string providerKey, bool softDelete = true)
         {
+
+
             throw new NotImplementedException();
         }
 
@@ -136,7 +149,7 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
 
         public override IEnumerable<IAvatar> LoadAllAvatars()
         {
-            throw new NotImplementedException();
+            return avatarRepository.GetAvatars();
         }
 
         public override IAvatar LoadAvatarByEmail(string avatarEmail)
@@ -168,18 +181,7 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
         {
             try
             {
-                //var people = _graphClient.Cypher
-                //  .Match("(p:Person)")
-                //  .Return(p => p.As<Person>())
-                //  .Results;
-
-
-                Avatar avatar =
-                    GraphClient.Cypher.Match("(p:Avatar {Username: {nameParam}})") //TODO: Need to add password to match query...
-                   .WithParam("nameParam", username)
-                  .Return(p => p.As<Avatar>())
-                    .ResultsAsync.Result.Single();
-
+                Avatar avatar = avatarRepository.GetAvatar(username, password);
                 return avatar;
             }
             catch (InvalidOperationException) //thrown when nothing found
@@ -190,13 +192,15 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
 
         public override IAvatar LoadAvatar(string username)
         {
-            Avatar avatar =
-                   GraphClient.Cypher.Match("(p:Avatar {Username: {nameParam}})")
-                  .WithParam("nameParam", username)
-                 .Return(p => p.As<Avatar>())
-                   .ResultsAsync.Result.Single();
-
-            return avatar;
+            try
+            {
+                Avatar avatar = avatarRepository.GetAvatar(username);
+                return avatar;
+            }
+            catch (InvalidOperationException) //thrown when nothing found
+            {
+                return null;
+            }
         }
 
         public override Task<IAvatar> LoadAvatarAsync(string providerKey)
@@ -250,58 +254,21 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
             throw new NotImplementedException();
         }
 
-       
+
         public override IAvatar SaveAvatar(IAvatar avatar)
         {
+
             if (avatar.Id == Guid.Empty)
             {
-                // _graphClient.ExecutionConfiguration.EncryptionLevel = Neo4j.Driver.EncryptionLevel.Encrypted;
 
-                avatar.Id = Guid.NewGuid();
+                Avatar converted = (Avatar)avatar;
+                var cre = avatarRepository.Add(converted);
 
-                //_graphClient.Cypher
-                //    .Unwind(persons, "person")
-                //    .Merge("(p:Person { Id: person.Id })")
-                //    .OnCreate()
-                //    .Set("p = person")
-                //    .ExecuteWithoutResults();
-
-                GraphClient.Cypher
-                   .Merge("(a:Avatar { Id: avatar.Id })") //Only create if doesn't alreadye exists.
-                   .OnCreate()
-                   .Set("a = avatar") //Once created, set the properties.
-                   .ExecuteWithoutResultsAsync();
             }
             else
             {
-                GraphClient.Cypher
-                   .Match("(a:Avatar)")
-                   .Where((Avatar a) => a.Id == avatar.Id)
-                   .Set("a = avatar") //Set the properties.
-                   .ExecuteWithoutResultsAsync();
-
-
-                /*
-                ITransactionalGraphClient txClient = _graphClient;
-
-                using (var tx = txClient.BeginTransaction())
-                {
-                    txClient.Cypher
-                        .Match("(m:Movie)")
-                        .Where((Movie m) => m.title == originalMovieName)
-                        .Set("m.title = {newMovieNameParam}")
-                        .WithParam("newMovieNameParam", newMovieName)
-                        .ExecuteWithoutResults();
-
-                    txClient.Cypher
-                        .Match("(m:Movie)")
-                        .Where((Movie m) => m.title == newMovieName)
-                        .Create("(p:Person {name: {actorNameParam}})-[:ACTED_IN]->(m)")
-                        .WithParam("actorNameParam", newActorName)
-                        .ExecuteWithoutResults();
-
-                    tx.CommitAsync();
-                }*/
+                Avatar converted = (Avatar)avatar;
+                avatarRepository.Update(converted);
             }
 
             return avatar;
@@ -399,6 +366,8 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
             throw new NotImplementedException();
         }
 
+<<<<<<< HEAD
+=======
         public override IAvatarDetail LoadAvatarDetail(Guid id)
         {
             throw new NotImplementedException();
@@ -448,5 +417,6 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
         {
             throw new NotImplementedException();
         }
+>>>>>>> 0720ddb46358a688a8b39374bb85e43d541daae1
     }
 }
