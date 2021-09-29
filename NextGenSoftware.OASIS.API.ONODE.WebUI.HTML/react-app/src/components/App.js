@@ -15,13 +15,13 @@ import AddData from "./popups/data-screen/AddData";
 import LoadData from "./popups/data-screen/LoadData";
 
 import ViewAvatar from "./pages/avatar/viewAvatar";
-import UploadAvatar from "../components/pages/avatar/uploadAvatar";
-import Provider from "../components/pages/providers/Provider";
-import Keymanagement from "../components/pages/providers/KeyManagement";
+// import UploadAvatar from "../components/pages/avatar/uploadAvatar";
+// import Provider from "../components/pages/providers/Provider";
+// import Keymanagement from "../components/pages/providers/KeyManagement";
 
 import "../assets/scss/general.scss";
 import "../assets/scss/style.scss";
-import "../assets/scss/seeds.scss";
+import "../assets/scss/Seeds.scss";
 
 import axios from "axios";
 
@@ -161,9 +161,9 @@ class App extends React.Component {
               <Route path="/send-invite" component={SendInvite} />
               <Route exact path="/karma" component={Karma} />
               <Route exact path="/avatar/view" component={ViewAvatar} />
-              <Route exact path="/avatar/upload" component={UploadAvatar} />
-              <Route path="/provider/provider" component={Provider} />
-              <Route path="/provider/keymanagement" component={Keymanagement} />
+              {/* <Route exact path="/avatar/upload" component={UploadAvatar} /> */}
+              {/* <Route path="/provider/provider" component={Provider} /> */}
+              {/* <Route path="/provider/keymanagement" component={Keymanagement} /> */}
             </Switch>
           </div>
         </Router>
