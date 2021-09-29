@@ -2,7 +2,7 @@
 {
     public enum AvatarType
     {
-        Wizard,
+        Wizard, 
         User
     }
 }
