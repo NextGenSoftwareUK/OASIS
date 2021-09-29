@@ -1,23 +1,21 @@
 ﻿using System;
+using System.IO;
+using System.Data;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-
+using System.Text;
+using System.Linq;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using MailKit.Search;
+using Ipfs.Http;
+using Ipfs.Engine;
+using Ipfs;
 using NextGenSoftware.OASIS.API.Core;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Enums;
-using Ipfs.Http;
 using NextGenSoftware.OASIS.API.Core.Holons;
-using System.IO;
-using Ipfs.Engine;
 using NextGenSoftware.OASIS.API.Core.Helpers;
-using System.Runtime.Serialization.Json;
-using System.Text;
-using Newtonsoft.Json;
-using System.Data;
-using System.Linq;
-using MailKit.Search;
-using Ipfs;
-using Newtonsoft.Json.Linq;
 
 namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
 {
@@ -26,20 +24,25 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
         public string HostURI { get; set; }
         public IpfsClient IPFSClient;
         public IpfsEngine IPFSEngine; //= new IpfsEngine();
-        public List<IAvatar> AvatarsList;
-        public List<IAvatarDetail> AvatarsDetailsList;
-        public List<IHolon> HolonsList;
-        public string avatarFileAddress;
-        public string holonFileAddress;
-        public string avatarDetailsFileAddress;
+        private List<IAvatar> AvatarsList;
+        private List<IAvatarDetail> AvatarsDetailsList;
+        private List<IHolon> HolonsList;
+        private string avatarFileAddress;
+        private string holonFileAddress;
+        private string avatarDetailsFileAddress;
+        private Dictionary<Guid, string> _idLookup = new Dictionary<Guid, string>();
+        private string _idLookUpIPFSAddress = "";
 
-        public IPFSOASIS(string hostURI)
+        public IPFSOASIS(string hostURI, string idLookUpIPFSAddress)
         {
             this.ProviderName = "IPFSOASIS";
             this.ProviderDescription = "IPFS Provider";
-            this.ProviderType = new Core.Helpers.EnumValue<ProviderType>(Core.Enums.ProviderType.IPFSOASIS);
-            this.ProviderCategory = new Core.Helpers.EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
+            this.ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.IPFSOASIS);
+            this.ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
             this.HostURI = hostURI;
+
+            //TODO: Load from OASISDNA.json config file under IPFS section or another local JSON file...
+            _idLookUpIPFSAddress = idLookUpIPFSAddress;
 
             AvatarsList = new List<IAvatar>();
             AvatarsDetailsList = new List<IAvatarDetail>();
@@ -49,6 +52,13 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
         public override void ActivateProvider()
         {
             IPFSClient = new IpfsClient(HostURI);
+
+            if (!string.IsNullOrEmpty(_idLookUpIPFSAddress))
+            {
+                string json =  LoadStringToJson(_idLookUpIPFSAddress).Result;
+                _idLookup = JArray.Parse(json).ToObject<Dictionary<Guid, string>>();
+            }
+
             base.ActivateProvider();
         }
 
@@ -89,6 +99,25 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
             return (string)fsn.Id;
         }
 
+        public async Task<string> SaveAvatarToFile<T>(IAvatar avatar)
+        {
+            //If we have a previous version of this avatar saved, then add a pointer back to the previous version.
+            if (_idLookup.ContainsKey(avatar.Id))
+                avatar.PreviousVersionProviderKey[Core.Enums.ProviderType.IPFSOASIS] = _idLookup[avatar.Id];
+
+            string json = JsonConvert.SerializeObject(avatar);
+            var fsn = await IPFSClient.FileSystem.AddTextAsync(json);
+
+            _idLookup[avatar.Id] = fsn.Id;
+            json = JsonConvert.SerializeObject(_idLookup);
+            _idLookUpIPFSAddress = await IPFSClient.FileSystem.AddTextAsync(json);
+
+            //TODO: Store the _idLookUpIPFSAddress in OASISDNA.json config file under IPFS section.
+            //      Or in another local JSON file...
+
+            return (string)fsn.Id;
+        }
+
         public async Task<string> SaveTextToFile(string text)
         {
 
@@ -107,17 +136,32 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
             return SaveAvatarAsync(Avatar).Result;
         }
 
-        public override async Task<IAvatar> SaveAvatarAsync(IAvatar Avatar)
+        //public override async Task<IAvatar> SaveAvatarAsync(IAvatar Avatar)
+        //{
+        //    if (AvatarsList == null)
+        //        AvatarsList = new List<IAvatar>();
+
+        //    AvatarsList.Add(Avatar);
+
+
+        //    avatarFileAddress = await SaveJsonToFile<IAvatar>(AvatarsList);
+
+        //    return Avatar;
+        //}
+
+        public override async Task<IAvatar> SaveAvatarAsync(IAvatar avatar)
         {
             if (AvatarsList == null)
                 AvatarsList = new List<IAvatar>();
 
-            AvatarsList.Add(Avatar);
+            AvatarsList.Add(avatar);
 
 
             avatarFileAddress = await SaveJsonToFile<IAvatar>(AvatarsList);
+            avatar.ProviderKey[Core.Enums.ProviderType.IPFSOASIS] = avatarDetailsFileAddress;
+            await SaveJsonToFile<IAvatar>(AvatarsList);
 
-            return Avatar;
+            return avatar;
         }
 
         public override IHolon SaveHolon(IHolon holon)
