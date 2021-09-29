@@ -138,16 +138,6 @@ namespace NextGenSoftware.OASIS.API.Providers.ElrondOASIS
             throw new NotImplementedException();
         }
 
-        public override IEnumerable<IAvatarDetail> LoadAllAvatarDetails()
-        {
-            throw new NotImplementedException();
-        }
-
-        public override async Task<IEnumerable<IAvatarDetail>> LoadAllAvatarDetailsAsync()
-        {
-            throw new NotImplementedException();
-        }
-
         public override IEnumerable<IHolon> LoadAllHolons(HolonType type = HolonType.Holon)
         {
             throw new NotImplementedException();
@@ -198,22 +188,12 @@ namespace NextGenSoftware.OASIS.API.Providers.ElrondOASIS
             throw new NotImplementedException();
         }
 
-        public override IAvatarDetail LoadAvatarDetail(Guid id)
-        {
-            throw new NotImplementedException();
-        }
-
         public override IAvatarDetail LoadAvatarDetailByEmail(string avatarEmail)
         {
             throw new NotImplementedException();
         }
 
         public override IAvatarDetail LoadAvatarDetailByUsername(string avatarUsername)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override Task<IAvatarDetail> LoadAvatarDetailAsync(Guid id)
         {
             throw new NotImplementedException();
         }
@@ -288,14 +268,6 @@ namespace NextGenSoftware.OASIS.API.Providers.ElrondOASIS
             throw new NotImplementedException();
         }
 
-<<<<<<< Updated upstream
-        public override Task<IAvatarDetail> SaveAvatarDetailAsync(IAvatarDetail Avatar)
-        {
-            throw new NotImplementedException();
-        }
-
-=======
->>>>>>> Stashed changes
         public override IHolon SaveHolon(IHolon holon)
         {
             throw new NotImplementedException();
