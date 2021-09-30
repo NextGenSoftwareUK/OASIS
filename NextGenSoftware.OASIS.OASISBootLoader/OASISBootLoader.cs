@@ -12,7 +12,7 @@ using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS;
 using NextGenSoftware.OASIS.API.Providers.HoloOASIS.Desktop;
 using NextGenSoftware.OASIS.API.Providers.MongoDBOASIS;
 using NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS;
-//using NextGenSoftware.OASIS.API.Providers.IPFSOASIS;
+using NextGenSoftware.OASIS.API.Providers.IPFSOASIS;
 //using NextGenSoftware.OASIS.API.Providers.Neo4jOASIS;
 using NextGenSoftware.OASIS.API.Providers.TelosOASIS;
 using NextGenSoftware.OASIS.API.Providers.EthereumOASIS;
@@ -258,13 +258,13 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                     //    }
                     //    break;
 
-                    //case ProviderType.IPFSOASIS:
-                    //    {
-                    //        IPFSOASIS IPFSOASIS = new IPFSOASIS(overrideConnectionString == null ? OASISDNA.OASIS.StorageProviders.IPFSOASIS.ConnectionString : overrideConnectionString);
-                    //        IPFSOASIS.StorageProviderError += IPFSOASIS_StorageProviderError;
-                    //        registeredProvider = IPFSOASIS;
-                    //    }
-                    //    break;
+                    case ProviderType.IPFSOASIS:
+                        {
+                            IPFSOASIS IPFSOASIS = new IPFSOASIS(overrideConnectionString == null ? OASISDNA.OASIS.StorageProviders.IPFSOASIS.ConnectionString : overrideConnectionString, OASISDNA.OASIS.StorageProviders.IPFSOASIS.IdLookUpIPFSAddress);
+                            IPFSOASIS.StorageProviderError += IPFSOASIS_StorageProviderError;
+                            registeredProvider = IPFSOASIS;
+                        }
+                        break;
 
                     case ProviderType.EthereumOASIS:
                         {
