@@ -12,13 +12,13 @@ using MessagePack;
 
 namespace NextGenSoftware.Holochain.HoloNET.Client.Core
 {
-    //[MessagePackObject]
+    [MessagePackObject]
     public class Temp
     {
-      //  [Key(0)]
+        [Key(0)]
         public string Name { get; set; }
 
-        //[Key(1)]
+        [Key(1)]
         public string Desc { get; set; }
     }
 
