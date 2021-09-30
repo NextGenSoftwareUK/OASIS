@@ -13,6 +13,8 @@ import Signup from "./Signup";
 import AcceptInvite from "./pages/seeds/AcceptInvite";
 import AddData from "./popups/data-screen/AddData";
 import LoadData from "./popups/data-screen/LoadData";
+import OffChainManagement from "./popups/data-screen/OffChainManagement";
+import CrossChainManagement from "./popups/data-screen/CrossChainManagement";
 
 import ViewAvatar from "./pages/avatar/viewAvatar";
 // import UploadAvatar from "../components/pages/avatar/uploadAvatar";
@@ -36,6 +38,8 @@ class App extends React.Component {
       loadData: false,
       sendData: false,
       manageData: false,
+      offChainManagement: false,
+      crossChainManagement: false
     },
   };
 
@@ -191,6 +195,16 @@ class App extends React.Component {
 
         <LoadData
           show={this.state.dataScreen.loadData}
+          hide={this.toggleDataScreenPopup}
+        />
+
+        <OffChainManagement 
+          show={this.state.dataScreen.offChainManagement}
+          hide={this.toggleDataScreenPopup}
+        />
+
+        <CrossChainManagement 
+          show={this.state.dataScreen.crossChainManagement}
           hide={this.toggleDataScreenPopup}
         />
         {/* ========== DATA SCREEN POPUPS START ========== */}
