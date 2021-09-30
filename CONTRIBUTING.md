@@ -1,4 +1,4 @@
-#Contributing
+# Contributing
 
 If you would like to conribute please contact us here: https://discord.gg/q9gMKU6 or here: https://t.me/ourworldthegamechat. Thank you! :)
 
