@@ -177,6 +177,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "External Libs", "External L
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IpfsHttpClient", "External Libs\net-ipfs-http-client-master\src\IpfsHttpClient.csproj", "{BED5A5DF-4F4C-46F0-BCAE-08838FC6671A}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.Holochain.HoloNET.Client.MessagePack", "NextGenSoftware.Holochain.HoloNET.Client.MessagePack\NextGenSoftware.Holochain.HoloNET.Client.MessagePack.csproj", "{AAFBAA1F-EA85-4BF3-AC7F-CBBB631571DF}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -1376,6 +1378,24 @@ Global
 		{BED5A5DF-4F4C-46F0-BCAE-08838FC6671A}.Release|x64.Build.0 = Release|Any CPU
 		{BED5A5DF-4F4C-46F0-BCAE-08838FC6671A}.Release|x86.ActiveCfg = Release|Any CPU
 		{BED5A5DF-4F4C-46F0-BCAE-08838FC6671A}.Release|x86.Build.0 = Release|Any CPU
+		{AAFBAA1F-EA85-4BF3-AC7F-CBBB631571DF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AAFBAA1F-EA85-4BF3-AC7F-CBBB631571DF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AAFBAA1F-EA85-4BF3-AC7F-CBBB631571DF}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{AAFBAA1F-EA85-4BF3-AC7F-CBBB631571DF}.Debug|x64.Build.0 = Debug|Any CPU
+		{AAFBAA1F-EA85-4BF3-AC7F-CBBB631571DF}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{AAFBAA1F-EA85-4BF3-AC7F-CBBB631571DF}.Debug|x86.Build.0 = Debug|Any CPU
+		{AAFBAA1F-EA85-4BF3-AC7F-CBBB631571DF}.Linux|Any CPU.ActiveCfg = Debug|Any CPU
+		{AAFBAA1F-EA85-4BF3-AC7F-CBBB631571DF}.Linux|Any CPU.Build.0 = Debug|Any CPU
+		{AAFBAA1F-EA85-4BF3-AC7F-CBBB631571DF}.Linux|x64.ActiveCfg = Debug|Any CPU
+		{AAFBAA1F-EA85-4BF3-AC7F-CBBB631571DF}.Linux|x64.Build.0 = Debug|Any CPU
+		{AAFBAA1F-EA85-4BF3-AC7F-CBBB631571DF}.Linux|x86.ActiveCfg = Debug|Any CPU
+		{AAFBAA1F-EA85-4BF3-AC7F-CBBB631571DF}.Linux|x86.Build.0 = Debug|Any CPU
+		{AAFBAA1F-EA85-4BF3-AC7F-CBBB631571DF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AAFBAA1F-EA85-4BF3-AC7F-CBBB631571DF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AAFBAA1F-EA85-4BF3-AC7F-CBBB631571DF}.Release|x64.ActiveCfg = Release|Any CPU
+		{AAFBAA1F-EA85-4BF3-AC7F-CBBB631571DF}.Release|x64.Build.0 = Release|Any CPU
+		{AAFBAA1F-EA85-4BF3-AC7F-CBBB631571DF}.Release|x86.ActiveCfg = Release|Any CPU
+		{AAFBAA1F-EA85-4BF3-AC7F-CBBB631571DF}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
