@@ -122,6 +122,7 @@ namespace NextGenSoftware.OASIS.API.DNA
 
     public class IPFSOASISSettings : ProviderSettingsBase
     {
+        public string IdLookUpIPFSAddress { get; set; }
     }
 
     public class Neo4jOASISSettings : ProviderSettingsBase

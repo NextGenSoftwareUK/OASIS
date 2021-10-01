@@ -1,0 +1,155 @@
+@keyframes formAnim {
+  10% {
+    transform: rotateY(180deg);
+    opacity: 0.1;
+  }
+
+  40% {
+    transform: rotateY(100deg);
+    opacity: 0.3;
+  }
+
+  70% {
+    transform: rotateY(50deg);
+    opacity: 0.5;
+  }
+
+  100% {
+    transform: rotateY(0deg);
+    opacity: 1;
+  }
+}
+
+.login {
+  display: grid;
+  place-content: center;
+  background-color: hsla(240, 8%, 12%, 0.7);
+  color: #909092;
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 10;
+  width: 100vw;
+  height: 100vh;
+  visibility: hidden;
+  opacity: 0;
+  transition: opacity 300ms ease-in;
+}
+.login.show {
+  visibility: visible;
+  opacity: 1;
+}
+
+.login-hide-btn {
+  position: absolute;
+  font-size: 2rem;
+  top: 48px;
+  right: 48px;
+  color: #fff;
+  width: 40px;
+  height: 40px;
+  border-radius: 5rem;
+  cursor: pointer;
+}
+.login-hide-btn:hover {
+  color: #f70909;
+}
+.login-form {
+  width: 350px;
+  background-color: hsla(240, 8%, 12%, 0.8);
+  opacity: 0;
+  border-radius: 1rem;
+  padding: 0 2rem;
+  animation: formAnim 400ms ease-in forwards;
+}
+.login-title {
+  text-align: center;
+}
+.login-header {
+  margin-top: 3rem;
+  color: #fff;
+  font-weight: 400;
+}
+.login-inputs {
+  display: flex;
+  flex-direction: column;
+  margin: 1rem 0;
+}
+.login-inputs input {
+  color: #909092;
+  border: 1px solid #909092;
+  margin-bottom: 1rem;
+  margin-top: 0.5rem;
+  padding: 0.25rem 1rem;
+  font-size: 1.15rem;
+  border-radius: 5px;
+  flex: auto;
+}
+
+.login-input {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+  margin-top: 0.25rem;
+  border: 1px solid #909092;
+  padding: 0.5rem;
+  border-radius: 5px;
+}
+
+.login-toggle-password {
+  height: 1.5em;
+  position: absolute;
+  right: 2.5rem;
+  top: 252px;
+  filter: invert(67%) sepia(5%) saturate(87%) hue-rotate(201deg) brightness(85%)
+    contrast(88%);
+}
+
+.login-checkbox {
+  display: flex;
+  align-items: center;
+}
+
+.login-checkbox input {
+  margin-right: 0.5rem;
+}
+
+.login-submit {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 2rem auto;
+  font-size: 1.25rem;
+  color: #fff;
+  background-color: #1885c9;
+  padding: 0.5rem 1rem;
+  border-radius: 5rem;
+  cursor: pointer;
+  width: 60%;
+  transition: all 200ms ease-in;
+}
+
+.login-submit * {
+  display: inline;
+  padding: 0 0.5rem;
+}
+
+.login-submit:hover {
+  background-color: #52b2ee;
+}
+
+.login-submit:disabled {
+  background-color: gray;
+  cursor: not-allowed;
+}
+
+@media (max-width: 550px) {
+  .login-form {
+    width: 90vw;
+  }
+}
+
+#togglePassword {
+  font-size: large;
+}
