@@ -21,6 +21,7 @@
     "Security": {
       "DoesAvatarNeedToBeVerifiedBeforeLogin": "true",
       "Secret": "",
+      "RemoveOldRefreshTokensAfterXDays":7,
       "AvatarPassword": {
         "BCryptEncryptionEnabled": "true",
         "Rijndael256EncryptionEnabled": "true",
