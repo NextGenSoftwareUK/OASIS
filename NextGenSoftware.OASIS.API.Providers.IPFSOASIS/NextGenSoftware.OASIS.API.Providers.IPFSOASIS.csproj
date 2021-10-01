@@ -11,13 +11,13 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\External Libs\net-ipfs-http-client-master\src\IpfsHttpClient.csproj" />
     <ProjectReference Include="..\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj" />
+    <ProjectReference Include="..\NextGenSoftware.OASIS.API.DNA\NextGenSoftware.OASIS.API.DNA.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <Reference Include="Ipfs.Http.Client">
-      <HintPath>C:\Users\fouad\Downloads\net-ipfs-http-client-master\net-ipfs-http-client-master\src\bin\Release\net45\Ipfs.Http.Client.dll</HintPath>
-    </Reference>
+    <Folder Include="External Libs\" />
   </ItemGroup>
 
 </Project>

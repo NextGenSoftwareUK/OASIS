@@ -1,0 +1,69 @@
+.main-avatar {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  /* height: 100vh; */
+}
+.profile-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  height: auto;
+  width: 70%;
+  background-color: #1c1c21cc;
+  color: white;
+  height: 40%;
+  padding: 3rem 0;
+}
+
+.profile-container img {
+  border-radius: 100%;
+  width: 100px;
+  height: 100px;
+  margin-bottom: 1rem;
+}
+
+.custom-file-input {
+  color: transparent;
+  width: 40%;
+}
+.custom-file-input::-webkit-file-upload-button {
+  visibility: hidden;
+}
+.custom-file-input::before {
+  content: "Upload";
+  color: white;
+  display: inline-block;
+  background: #1885c9;
+
+  border-radius: 30px;
+  padding: 5px 0px;
+  outline: none;
+  white-space: nowrap;
+  -webkit-user-select: none;
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 10pt;
+  width: 100%;
+  text-align: center;
+}
+.custom-file-input:hover::before {
+  background-color: #52b2ee !important;
+}
+.custom-file-input:active {
+  outline: 0;
+}
+.custom-file-input:active::before {
+  background: #1c97e4;
+}
+.saveAvatar {
+  padding: 10px 20px;
+  border: 1px solid white;
+  color: white;
+  border-radius: 20px;
+}
+.saveAvatar:hover {
+  cursor: pointer;
+  background-color: #1c97e4;
+}

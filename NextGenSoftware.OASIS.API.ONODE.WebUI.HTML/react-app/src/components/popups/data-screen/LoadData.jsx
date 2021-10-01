@@ -7,11 +7,67 @@ import '../../../assets/scss/data-screen.scss';
 
 class LoadData extends React.Component {
 
-    rowData = [
-        {make: "Toyota", model: "Celica", price: 35000},
-        {make: "Ford", model: "Mondeo", price: 32000},
-        {make: "Porsche", model: "Boxter", price: 72000}
-    ];
+    state = {
+        columnDefs: [
+            { 
+                field: 'athlete'
+            },
+            {
+                field: 'age',
+                filter: 'agNumberColumnFilter',
+                maxWidth: 100,
+            },
+            { field: 'country' },
+            {
+                field: 'year',
+                maxWidth: 100,
+            },
+            {
+                field: 'date',
+                filter: 'agDateColumnFilter',
+                filterParams: filterParams,
+            },
+            { field: 'sport' },
+            {
+                field: 'gold',
+                filter: 'agNumberColumnFilter',
+            },
+            {
+                field: 'silver',
+                filter: 'agNumberColumnFilter',
+            },
+            {
+                field: 'bronze',
+                filter: 'agNumberColumnFilter',
+            },
+            {
+                field: 'total',
+                filter: false,
+            },
+        ],
+        defaultColDef: {
+            flex: 1,
+            minWidth: 150,
+            filter: true,
+            sortable: true,
+            floatingFilter: true,
+            resizable: true,
+        },
+        rowData: null,
+    };
+
+    onGridReady = (params) => {
+        this.gridApi = params.api;
+        this.gridColumnApi = params.columnApi;
+    
+        const updateData = (data) => {
+          this.setState({ rowData: data });
+        };
+    
+        fetch('https://www.ag-grid.com/example-assets/olympic-winners.json')
+          .then((resp) => resp.json())
+          .then((data) => updateData(data));
+    };
 
     render() { 
         const { show, hide } = this.props;
@@ -30,16 +86,15 @@ class LoadData extends React.Component {
                             <i className="fa fa-times"></i>
                         </span>
 
+                        <h2 className="grid-heading">Data</h2>
+
                         <div className="ag-theme-alpine custom-ag-parent">
                             <AgGridReact
-                                rowData={this.rowData}>
-                                <AgGridColumn field="date"></AgGridColumn>
-                                <AgGridColumn field="size"></AgGridColumn>
-                                <AgGridColumn field="file"></AgGridColumn>
-                                <AgGridColumn field="edit"></AgGridColumn>
-                                <AgGridColumn field="view"></AgGridColumn>
-                                <AgGridColumn field="delete"></AgGridColumn>
-                            </AgGridReact>
+                                columnDefs={this.state.columnDefs}
+                                defaultColDef={this.state.defaultColDef}
+                                onGridReady={this.onGridReady}
+                                rowData={this.state.rowData}
+                            />
                         </div>
                     </Modal.Body>
                 </Modal>
@@ -49,3 +104,26 @@ class LoadData extends React.Component {
 }
  
 export default LoadData;
+
+var filterParams = {
+    comparator: function (filterLocalDateAtMidnight, cellValue) {
+        var dateAsString = cellValue;
+        if (dateAsString == null) return -1;
+        var dateParts = dateAsString.split('/');
+        var cellDate = new Date(
+            Number(dateParts[2]),
+            Number(dateParts[1]) - 1,
+            Number(dateParts[0])
+        );
+        if (filterLocalDateAtMidnight.getTime() === cellDate.getTime()) {
+            return 0;
+        }
+        if (cellDate < filterLocalDateAtMidnight) {
+            return -1;
+        }
+        if (cellDate > filterLocalDateAtMidnight) {
+            return 1;
+        }
+    },
+    browserDatePicker: true,
+};

@@ -27,7 +27,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
     {
         private readonly IMapper _mapper;
         private readonly OASISDNA _OASISDNA;
-        private readonly IEmailService _emailService;
+    //    private readonly IEmailService _emailService;
         
        // private readonly IConfiguration _configuration;
 
@@ -41,12 +41,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
 
         public AvatarService(
             IMapper mapper,
-            IOptions<OASISDNA> OASISSettings,
-            IEmailService emailService)
+            IOptions<OASISDNA> OASISSettings)
+           // IEmailService emailService)
         {
             _mapper = mapper;
             _OASISDNA = OASISBootLoader.OASISBootLoader.OASISDNA;
-            _emailService = emailService;
+          //  _emailService = emailService;
            // _configuration = configuration;
         }
         
@@ -573,12 +573,19 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
                              <p><code>{avatar.ResetToken}</code></p>";
             }
 
-            _emailService.Send(
+            EmailManager.Send(
                 to: avatar.Email,
                 subject: "OASIS - Reset Password",
                 html: $@"<h4>Reset Password</h4>
                          {message}"
             );
+
+            //_emailService.Send(
+            //    to: avatar.Email,
+            //    subject: "OASIS - Reset Password",
+            //    html: $@"<h4>Reset Password</h4>
+            //             {message}"
+            //);
         }
     }
 }
