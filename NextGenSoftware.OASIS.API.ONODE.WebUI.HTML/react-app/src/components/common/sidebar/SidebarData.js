@@ -81,10 +81,12 @@ const SidebarData = [
             {
                 id: 4,
                 name: "Cross-Chain Management",
+                popupName: 'crossChainManagement'
             },
             {
                 id: 5,
                 name: "Off-Chain Management",
+                popupName: 'offChainManagement'
             },
             {
                 id: 6,
