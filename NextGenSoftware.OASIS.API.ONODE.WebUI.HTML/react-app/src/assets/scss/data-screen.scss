@@ -15,6 +15,10 @@
         color: #fff;
     }
     form {
+        h3 {
+        font-size: 20px;
+        margin-bottom: 20px;
+        }
         p.single-form-row {
             margin: 0 0 35px;
             display: grid;
@@ -29,6 +33,10 @@
                 padding: 0 15px 0 0;
             }
         }
+        
+        .btn-center {
+            text-align: right;
+        }
     }
     button.submit-button {
         background: #fff;
@@ -36,7 +44,7 @@
         height: 30px;
         width: 100px;
         justify-self: end;
-        grid-column: 2;
+        grid-column: 2;    
     }
     .table-container {
         .single-row {
@@ -58,9 +66,66 @@ h2.grid-heading {
     margin: 0 0 25px;
 }
 
-.grid-container{
+.grid-container {
     display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
+    grid-template-columns: 1fr auto 1fr;
     grid-gap: 10px;
-    
+    text-align: center;
+    button {
+        background: #fff;
+        border-radius: 4px;
+        height: 25px;
+        width: 130px;
+        justify-self: end;
+        grid-column: 2;
+        margin-bottom: 10px;
+        &:last-child {
+            margin-bottom: 0;
+        }
+    }  
+    .single-form-col {
+        margin-bottom: 20px;
+        ul.list-item {
+            width: 130px;
+            height: 130px;
+            overflow-y: auto;
+            margin: 0;
+            li {
+                line-height: 32px;
+                display: block;
+                background-color: #fff;
+                color: #000;
+                text-decoration: none;
+                list-style: none;
+                text-align: left;
+                padding: 0px 12px;
+                label {
+                    color: #000;
+                    padding: 0;
+                    margin: 0;
+                }                
+            }
+        }
+    }
+}
+.off-chain-management {
+    .list-box {
+        padding: 10px 0;
+        li {
+            display: block;
+            label {
+                display: block;
+                span {
+                    display: block;
+                    padding: 0 12px;
+                }
+            }
+            input[type="checkbox"] {
+                opacity: 0;
+            }
+            input[type="checkbox"]:checked + span {
+                background-color: red;
+            }
+        }
+    }
 }
