@@ -1,5 +1,7 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using System.Threading.Tasks;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
+using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.DNA;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
@@ -22,10 +24,13 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpGet("GetAllEggs")]
-        public ActionResult<bool> GetAllEggs()
+        public async Task<OASISResult<bool>> GetAllEggs()
         {
             // TODO: Finish implementing.
-            return Ok();
+            return new()
+            {
+                IsError = false
+            };
         }
 
         /// <summary>
@@ -34,10 +39,13 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpGet("GetCurrentEggQuests")]
-        public ActionResult<bool> GetCurrentEggQuests()
+        public async Task<OASISResult<bool>> GetCurrentEggQuests()
         {
             // TODO: Finish implementing.
-            return Ok();
+            return new()
+            {
+                IsError = false
+            };
         }
 
         /// <summary>
@@ -46,10 +54,13 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpGet("GetCurrentEggQuestLeaderBoard")]
-        public ActionResult<bool> GetCurrentEggQuestLeaderBoard()
+        public async Task<OASISResult<bool>> GetCurrentEggQuestLeaderBoard()
         {
             // TODO: Finish implementing.
-            return Ok();
+            return new()
+            {
+                IsError = false
+            };        
         }
     }
 }
