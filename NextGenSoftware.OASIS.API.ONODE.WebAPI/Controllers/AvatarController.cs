@@ -920,6 +920,27 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
            return Ok(AvatarManager.GetPrivateProviderKeyForAvatar(avatarId, providerType));
        }
 
+        [Authorize]
+        [HttpGet("GetUMAJsonById/{id}")]
+        public async Task<OASISResult<string>> GetUmaJsonById(Guid id)
+        {
+            return await _avatarService.GetAvatarUmaJsonById(id);
+        }
+        
+        [Authorize]
+        [HttpGet("GetUMAJsonByUsername/{username}")]
+        public async Task<OASISResult<string>> GetUmaJsonByUsername(string username)
+        {
+            return await _avatarService.GetAvatarUmaJsonByUsername(username);
+        }
+        
+        [Authorize]
+        [HttpGet("GetUMAJsonByMail/{mail}")]
+        public async Task<OASISResult<string>> GetUmaJsonMail(string mail)
+        {
+            return await _avatarService.GetAvatarUmaJsonByMail(mail);
+        }
+
         /*
        /// <summary>
        /// Get's all the provider keys for the given avatar.
