@@ -25,6 +25,7 @@
     "react-router-dom": "^5.2.1",
     "react-scripts": "4.0.3",
     "react-slide-toggle": "^0.3.5",
+    "react-toastify": "^8.0.3",
     "sass": "^1.41.0",
     "web-vitals": "^1.1.2",
     "yup": "^0.32.9"
