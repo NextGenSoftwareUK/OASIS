@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using NextGenSoftware.OASIS.API.Core.Helpers;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 {
@@ -20,10 +21,14 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpPost("GenerateMoon")]
-        public ActionResult<bool> GenerateMoon()
+        public OASISResult<bool> GenerateMoon()
         {
             // TODO: Finish implementing.
-            return Ok();
+            return new ()
+            {
+                IsError = false,
+                Result = true
+            };
         }
     }
 }
