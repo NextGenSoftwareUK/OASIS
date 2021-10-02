@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
+using System.Linq;
 using System.Security.Principal;
 using System.Text;
 using System.Threading.Tasks;
@@ -939,6 +940,14 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         public async Task<OASISResult<string>> GetUmaJsonMail(string mail)
         {
             return await _avatarService.GetAvatarUmaJsonByMail(mail);
+        }
+
+        [Authorize]
+        [HttpGet("GetAvatarByJwt")]
+        public async Task<OASISResult<IAvatar>> GetAvatarByJwt()
+        {
+            var id  = User.Claims.FirstOrDefault(i => i.Type == "id")?.Value;
+            return await _avatarService.GetAvatarByJwt(new Guid(id ?? string.Empty));
         }
 
         /*

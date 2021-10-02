@@ -46,5 +46,6 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Interfaces
         Task<OASISResult<string>> GetAvatarUmaJsonById(Guid id);
         Task<OASISResult<string>> GetAvatarUmaJsonByUsername(string username);
         Task<OASISResult<string>> GetAvatarUmaJsonByMail(string mail);
+        Task<OASISResult<IAvatar>> GetAvatarByJwt(Guid id);
     }
 }
