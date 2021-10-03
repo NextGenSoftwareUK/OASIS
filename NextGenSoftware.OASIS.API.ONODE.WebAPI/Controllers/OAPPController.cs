@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using NextGenSoftware.OASIS.API.Core.Helpers;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 {
@@ -25,10 +26,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpGet("GetAllOAPPsInstalledForCurrentLoggedInAvatar")]
-        public ActionResult<bool> GetAllOAPPsInstalledForCurrentLoggedInAvatar()
+        public OASISResult<bool> GetAllOAPPsInstalledForCurrentLoggedInAvatar()
         {
             // TODO: Finish implementing.
-            return Ok();
+            return new();
         }
 
     }

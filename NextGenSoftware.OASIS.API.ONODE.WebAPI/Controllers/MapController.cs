@@ -1,5 +1,7 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using System.Threading.Tasks;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
+using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
@@ -41,9 +43,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <param name="searchParams"></param>
         /// <returns></returns>
         [HttpGet("Search/{searchParams}")]
-        public ActionResult<ISearchResults> Search(ISearchParams searchParams)
+        public async Task<OASISResult<ISearchResults>> Search(ISearchParams searchParams)
         {
-            return Ok(MapManager.SearchAsync(searchParams).Result);
+            return new(await MapManager.SearchAsync(searchParams));
         }
 
         ///// <summary>
@@ -65,9 +67,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <param name="holonDNA"></param>
         /// <returns></returns>
         [HttpPost("CreateAndDrawRouteOnMapBetweenHolons/{holonDNA}")]
-        public ActionResult<bool> CreateAndDrawRouteOnMapBetweenHolons(HolonDNA holonDNA)
+        public OASISResult<bool> CreateAndDrawRouteOnMapBetweenHolons(HolonDNA holonDNA)
         {
-            return MapManager.CreateAndDrawRouteOnMapBetweenHolons(holonDNA.FromHolon, holonDNA.ToHolon);
+            return new(MapManager.CreateAndDrawRouteOnMapBetweenHolons(holonDNA.FromHolon, holonDNA.ToHolon));
         }
 
         ///// <summary>
@@ -87,9 +89,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <param name="points"></param>
         /// <returns></returns>
         [HttpPost("CreateAndDrawRouteOnMapBeweenPoints/{points}")]
-        public ActionResult<bool> CreateAndDrawRouteOnMapBeweenPoints(MapPoints points)
+        public OASISResult<bool> CreateAndDrawRouteOnMapBeweenPoints(MapPoints points)
         {
-            return MapManager.CreateAndDrawRouteOnMapBeweenPoints(points);
+            return new(MapManager.CreateAndDrawRouteOnMapBeweenPoints(points));
         }
 
         ///// <summary>
@@ -112,9 +114,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [HttpPost("Draw2DSpriteOnHUD/{sprite}/{x}/{y}")]
         //public ActionResult<bool> Draw2DSpriteOnHUD(object sprite, float x, float y)
-        public ActionResult<bool> Draw2DSpriteOnHUD(string sprite, float x, float y)
+        public OASISResult<bool> Draw2DSpriteOnHUD(string sprite, float x, float y)
         {
-            return MapManager.Draw2DSpriteOnHUD(sprite, x, y);
+            return new(MapManager.Draw2DSpriteOnHUD(sprite, x, y));
         }
 
         ///// <summary>
@@ -139,9 +141,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <param name="y"></param>
         /// <returns></returns>
         [HttpPost("Draw2DSpriteOnMap/{sprite}/{x}/{y}")]
-        public ActionResult<bool> Draw2DSpriteOnMap(string sprite, float x, float y)
+        public OASISResult<bool> Draw2DSpriteOnMap(string sprite, float x, float y)
         {
-            return MapManager.Draw2DSpriteOnMap(sprite, x, y);
+            return new(MapManager.Draw2DSpriteOnMap(sprite, x, y));
         }
 
         ///// <summary>
@@ -165,9 +167,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <param name="y"></param>
         /// <returns></returns>
         [HttpPost("Draw3DObjectOnMap/{obj}/{x}/{y}")]
-        public ActionResult<bool> Draw3DObjectOnMap(string obj, float x, float y)
+        public OASISResult<bool> Draw3DObjectOnMap(string obj, float x, float y)
         {
-            return MapManager.Draw3DObjectOnMap(obj, x, y);
+            return new(MapManager.Draw3DObjectOnMap(obj, x, y));
         }
 
         /// <summary>
@@ -176,9 +178,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <param name="building"></param>
         /// <returns></returns>
         [HttpPost("HighlightBuildingOnMap/{building}")]
-        public ActionResult<bool> HighlightBuildingOnMap(Building building)
+        public OASISResult<bool> HighlightBuildingOnMap(Building building)
         {
-            return MapManager.HighlightBuildingOnMap(building);
+            return new (MapManager.HighlightBuildingOnMap(building));
         }
 
         /// <summary>
@@ -187,9 +189,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <param name="value"></param>
         /// <returns></returns>
         [HttpPost("PamMapDown/{value}")]
-        public ActionResult<bool> PamMapDown(float value)
+        public OASISResult<bool> PamMapDown(float value)
         {
-            return Ok(MapManager.PamMapDown(value));
+            return new(MapManager.PamMapDown(value));
         }
 
         /// <summary>
@@ -198,9 +200,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <param name="value"></param>
         /// <returns></returns>
         [HttpPost("PamMapLeft/{value}")]
-        public ActionResult<bool> PamMapLeft(float value)
+        public OASISResult<bool> PamMapLeft(float value)
         {
-            return Ok(MapManager.PamMapLeft(value));
+            return new(MapManager.PamMapLeft(value));
         }
 
         /// <summary>
@@ -209,9 +211,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <param name="value"></param>
         /// <returns></returns>
         [HttpPost("PamMapRight/{value}")]
-        public ActionResult<bool> PamMapRight(float value)
+        public OASISResult<bool> PamMapRight(float value)
         {
-            return Ok(MapManager.PamMapRight(value));
+            return new(MapManager.PamMapRight(value));
         }
 
         /// <summary>
@@ -220,9 +222,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <param name="value"></param>
         /// <returns></returns>
         [HttpPost("PamMapUp/{value}")]
-        public ActionResult<bool> PamMapUp(float value)
+        public OASISResult<bool> PamMapUp(float value)
         {
-            return Ok(MapManager.PamMapUp(value));
+            return new(MapManager.PamMapUp(value));
         }
 
         /// <summary>
@@ -231,9 +233,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <param name="building"></param>
         /// <returns></returns>
         [HttpPost("SelectBuildingOnMap/{building}")]
-        public ActionResult<bool> SelectBuildingOnMap(Building building)
+        public OASISResult<bool> SelectBuildingOnMap(Building building)
         {
-            return Ok(MapManager.SelectBuildingOnMap(building));
+            return new(MapManager.SelectBuildingOnMap(building));
         }
 
         /// <summary>
@@ -242,9 +244,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <param name="holon"></param>
         /// <returns></returns>
         [HttpPost("SelectHolonOnMap/{holon}")]
-        public ActionResult<bool> SelectHolonOnMap(Holon holon)
+        public OASISResult<bool> SelectHolonOnMap(Holon holon)
         {
-            return Ok(MapManager.SelectHolonOnMap(holon));
+            return new(MapManager.SelectHolonOnMap(holon));
         }
 
         /// <summary>
@@ -253,9 +255,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <param name="quest"></param>
         /// <returns></returns>
         [HttpPost("SelectQuestOnMap/{quest}")]
-        public ActionResult<bool> SelectQuestOnMap(Quest quest)
+        public OASISResult<bool> SelectQuestOnMap(Quest quest)
         {
-            return Ok(MapManager.SelectQuestOnMap(quest));
+            return new(MapManager.SelectQuestOnMap(quest));
         }
 
         /// <summary>
@@ -264,9 +266,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <param name="value"></param>
         /// <returns></returns>
         [HttpPost("ZoomMapIn/{value}")]
-        public ActionResult<bool> ZoomMapIn(float value)
+        public OASISResult<bool> ZoomMapIn(float value)
         {
-            return Ok(MapManager.ZoomMapIn(value));
+            return new(MapManager.ZoomMapIn(value));
         }
 
         /// <summary>
@@ -275,9 +277,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <param name="value"></param>
         /// <returns></returns>
         [HttpPost("ZoomMapOut/{value}")]
-        public ActionResult<bool> ZoomMapOut(float value)
+        public OASISResult<bool> ZoomMapOut(float value)
         {
-            return Ok(MapManager.ZoomMapOut(value));
+            return new(MapManager.ZoomMapOut(value));
         }
 
         /// <summary>
@@ -286,9 +288,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <param name="holon"></param>
         /// <returns></returns>
         [HttpPost("ZoomToHolonOnMap/{holon}")]
-        public ActionResult<bool> ZoomToHolonOnMap(Holon holon)
+        public OASISResult<bool> ZoomToHolonOnMap(Holon holon)
         {
-            return Ok(MapManager.ZoomToHolonOnMap(holon));
+            return new(MapManager.ZoomToHolonOnMap(holon));
         }
 
         /// <summary>
@@ -297,9 +299,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <param name="quest"></param>
         /// <returns></returns>
         [HttpPost("ZoomToQuestOnMap/{quest}")]
-        public ActionResult<bool> ZoomToQuestOnMap(Quest quest)
+        public OASISResult<bool> ZoomToQuestOnMap(Quest quest)
         {
-            return Ok(MapManager.ZoomToQuestOnMap(quest));
+            return new(MapManager.ZoomToQuestOnMap(quest));
         }
     }
 }
