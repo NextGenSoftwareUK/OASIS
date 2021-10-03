@@ -494,6 +494,85 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
             return new OASISResult<IEnumerable<IAvatarDetail>>(AvatarManager.LoadAllAvatarDetails());
         }
 
+        public async Task<OASISResult<string>> GetAvatarUmaJsonById(Guid id)
+        {
+            var response = new OASISResult<string>();
+            try
+            {
+                var avatarDetail = await AvatarManager.LoadAvatarDetailAsync(id);
+                response.Result = avatarDetail.UmaJson;
+            }
+            catch (Exception e)
+            {
+                response.Exception = e;
+                response.Message = e.Message;
+                response.Result = null;
+                response.IsError = true;
+            }
+            return response;
+        }
+
+        public async Task<OASISResult<string>> GetAvatarUmaJsonByUsername(string username)
+        {
+            var response = new OASISResult<string>();
+            try
+            {
+                var avatarDetail = await AvatarManager.LoadAvatarDetailByUsernameAsync(username);
+                response.Result = avatarDetail.UmaJson;
+            }
+            catch (Exception e)
+            {
+                response.Exception = e;
+                response.Message = e.Message;
+                response.Result = null;
+                response.IsError = true;
+            }
+            return response;
+        }
+
+        public async Task<OASISResult<string>> GetAvatarUmaJsonByMail(string mail)
+        {
+            var response = new OASISResult<string>();
+            try
+            {
+                var avatarDetail = await AvatarManager.LoadAvatarDetailByEmailAsync(mail);
+                response.Result = avatarDetail.UmaJson;
+            }
+            catch (Exception e)
+            {
+                response.Exception = e;
+                response.Message = e.Message;
+                response.Result = null;
+                response.IsError = true;
+            }
+            return response;
+        }
+
+        public async Task<OASISResult<IAvatar>> GetAvatarByJwt(Guid id)
+        {
+            var response = new OASISResult<IAvatar>();
+            try
+            {
+                var avatar = await AvatarManager.LoadAvatarAsync(id);
+                if (avatar == null)
+                {
+                    response.Message = "Do not found avatar";
+                    response.Result = null;
+                    return response;
+                }
+
+                response.Result = avatar;
+            }
+            catch (Exception e)
+            {
+                response.Exception = e;
+                response.Message = e.Message;
+                response.Result = null;
+                response.IsError = true;
+            }
+            return response;
+        }
+
         private (RefreshToken, IAvatar) GetRefreshToken(string token)
         {
             //TODO: PERFORMANCE} Implement in Providers so more efficient and do not need to return whole list!
