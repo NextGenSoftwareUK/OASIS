@@ -165,30 +165,35 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
             return avatar;
         }
 
-        public override IHolon SaveHolon(IHolon holon)
+        public override OASISResult<IHolon> SaveHolon(IHolon holon, bool saveChildrenRecursive = true)
         {
             return SaveHolonAsync(holon).Result;
         }
 
-        public override async Task<IHolon> SaveHolonAsync(IHolon holon)
+        public override async Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon, bool saveChildrenRecursive = true)
         {
+            OASISResult<IHolon> result = new OASISResult<IHolon>();
+
             if (HolonsList == null)
                 HolonsList = new List<IHolon>();
 
             HolonsList.Add(holon);
 
             holonFileAddress = await SaveJsonToFile<IHolon>(HolonsList);
+            result.Result = holon;
 
-            return holon;
+            return result;
         }
 
-        public override IEnumerable<IHolon> SaveHolons(IEnumerable<IHolon> holons)
+        public override OASISResult<IEnumerable<IHolon>> SaveHolons(IEnumerable<IHolon> holons, bool saveChildrenRecursive = true)
         {
             return SaveHolonsAsync(holons).Result;
         }
 
-        public override async Task<IEnumerable<IHolon>> SaveHolonsAsync(IEnumerable<IHolon> holons)
+        public override async Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons, bool saveChildrenRecursive = true)
         {
+            OASISResult<IEnumerable<IHolon>> result = new OASISResult<IEnumerable<IHolon>>();
+
             if (HolonsList == null)
                 HolonsList = new List<IHolon>();
 
@@ -196,7 +201,8 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
 
             holonFileAddress = await SaveJsonToFile<IHolon>(HolonsList);
 
-            return holons;
+            result.Result = holons;
+            return result;
         }
 
         public override async Task<ISearchResults> SearchAsync(ISearchParams searchTerm)

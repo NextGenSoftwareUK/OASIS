@@ -270,27 +270,6 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
         }
 
 
-
-        public override IHolon SaveHolon(IHolon holon)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override IEnumerable<IHolon> SaveHolons(IEnumerable<IHolon> holons)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override Task<IHolon> SaveHolonAsync(IHolon holon)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override Task<IEnumerable<IHolon>> SaveHolonsAsync(IEnumerable<IHolon> holons)
-        {
-            throw new NotImplementedException();
-        }
-
         public override Task<IAvatar> LoadAvatarForProviderKeyAsync(string providerKey)
         {
             throw new NotImplementedException();
@@ -377,6 +356,26 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
         }
 
         public override async Task<IAvatarDetail> LoadAvatarDetailByEmailAsync(string avatarEmail)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override OASISResult<IHolon> SaveHolon(IHolon holon, bool saveChildrenRecursive = true)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon, bool saveChildrenRecursive = true)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override OASISResult<IEnumerable<IHolon>> SaveHolons(IEnumerable<IHolon> holons, bool saveChildrenRecursive = true)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons, bool saveChildrenRecursive = true)
         {
             throw new NotImplementedException();
         }

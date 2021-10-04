@@ -31,14 +31,13 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Repositories{
                 
                 dataBase.SaveChanges();
 
-                avatarModel.ProviderKey.Add(new ProviderKeyModel(ProviderType.SQLLiteDBOASIS, avatarModel.Id));
-
+                // avatarModel.ProviderKey.Add(new ProviderKeyModel(ProviderType.SQLLiteDBOASIS, avatarModel.Id));
+                avatar.ProviderKey[ProviderType.SQLLiteDBOASIS] = avatarModel.Id;
                 dataBase.SaveChanges();
-                avatar.ProviderKey.Add(ProviderType.SQLLiteDBOASIS, avatarModel.Id);
             }
             catch (Exception ex)
             {
-                throw ex;
+                throw;
             }
             return avatar;
         }
@@ -52,17 +51,15 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Repositories{
 
                 AvatarDetailModel avatarModel=new AvatarDetailModel(avatar);
                 dataBase.AvatarDetails.Add(avatarModel);
-                
                 dataBase.SaveChanges();
 
-                avatarModel.ProviderKey.Add(new ProviderKeyModel(ProviderType.SQLLiteDBOASIS, avatarModel.Id));
-
+                // avatarModel.ProviderKey.Add(new ProviderKeyModel(ProviderType.SQLLiteDBOASIS, avatarModel.Id));
+                avatar.ProviderKey[ProviderType.SQLLiteDBOASIS] = avatarModel.Id;
                 dataBase.SaveChanges();
-                avatar.ProviderKey.Add(ProviderType.SQLLiteDBOASIS, avatarModel.Id);
             }
             catch (Exception ex)
             {
-                throw ex;
+                throw;
             }
             return avatar;
         }
@@ -78,21 +75,18 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Repositories{
 
                     AvatarModel avatarModel=new AvatarModel(avatar);
                     dataBase.Avatars.AddAsync(avatarModel);
-                    
                     dataBase.SaveChangesAsync();
-                    
-                    avatarModel.ProviderKey.Add(new ProviderKeyModel(ProviderType.SQLLiteDBOASIS, avatarModel.Id));
 
+                    //avatarModel.ProviderKey.Add(new ProviderKeyModel(ProviderType.SQLLiteDBOASIS, avatarModel.Id));
+                    avatar.ProviderKey[ProviderType.SQLLiteDBOASIS] = avatarModel.Id;
                     dataBase.SaveChangesAsync();
-                    avatar.ProviderKey.Add(ProviderType.SQLLiteDBOASIS, avatarModel.Id);
-
                     return(avatar);
 
                 });
             }
             catch (Exception ex)
             {
-                throw ex;
+                throw;
             }
         }
 
@@ -107,21 +101,18 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Repositories{
 
                     AvatarDetailModel avatarModel=new AvatarDetailModel(avatar);
                     dataBase.AvatarDetails.AddAsync(avatarModel);
-                    
                     dataBase.SaveChangesAsync();
                     
-                    avatarModel.ProviderKey.Add(new ProviderKeyModel(ProviderType.SQLLiteDBOASIS, avatarModel.Id));
-
+                    //avatarModel.ProviderKey.Add(new ProviderKeyModel(ProviderType.SQLLiteDBOASIS, avatarModel.Id));
+                    avatar.ProviderKey[ProviderType.SQLLiteDBOASIS] = avatarModel.Id;
                     dataBase.SaveChangesAsync();
-                    avatar.ProviderKey.Add(ProviderType.SQLLiteDBOASIS, avatarModel.Id);
-
                     return(avatar);
 
                 });
             }
             catch (Exception ex)
             {
-                throw ex;
+                throw;
             }
         }
 
@@ -157,7 +148,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Repositories{
             }
             catch(Exception ex)
             {
-                throw ex;
+                throw;
             }
             return(delete_complete);
         }
@@ -940,9 +931,10 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Repositories{
                     .Collection<RefreshTokenModel>(a => a.RefreshTokens)
                     .Load();
             
-            dataBase.Entry(avatarModel)
-                    .Collection<ProviderKeyModel>(a => a.ProviderKey)
-                    .Load();
+            //TODO: Check is this needed?
+            //dataBase.Entry(avatarModel)
+            //        .Collection<ProviderKeyModel>(a => a.ProviderKey)
+            //        .Load();
             
             dataBase.Entry(avatarModel)
                     .Collection<MetaDataModel>(a => a.MetaData)
