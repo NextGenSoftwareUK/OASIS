@@ -4,6 +4,7 @@ using Microsoft.Extensions.Options;
 using NextGenSoftware.OASIS.API.DNA;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using NextGenSoftware.OASIS.API.Core.Helpers;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 {
@@ -21,18 +22,18 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         }
 
         [HttpGet]
-        public async Task<IEnumerable<Delivery>> GetAllDeliveries()
+        public async Task<OASISResult<IEnumerable<Delivery>>> GetAllDeliveries()
         {
             GetAndActivateDefaultProvider();
-            return await Task.Run(() => _scmsRepository.GetAllDeliveries());
+            return new(await _scmsRepository.GetAllDeliveries());
         }
 
         [HttpGet("GetAllDeliveriesForSequenceAndPhase/{sequenceNo}/{phaseNo}/{loadDeliveryItems}/{loadSignedByUser}/{loadSentToPhase}/{loadFile}")]
-        public async Task<IEnumerable<Delivery>> GetAllDeliveriesForSequenceAndPhase(int SequenceNo, int PhaseNo, bool loadDeliveryItems = true, bool loadSignedByUser = true, bool loadSentToPhase = true, bool loadFile = true)
+        public async Task<OASISResult<IEnumerable<Delivery>>> GetAllDeliveriesForSequenceAndPhase(int SequenceNo, int PhaseNo, bool loadDeliveryItems = true, bool loadSignedByUser = true, bool loadSentToPhase = true, bool loadFile = true)
         {
             GetAndActivateDefaultProvider();
             //return await Task.Run(() => _scmsRepository.GetAllDeliveries(SequenceNo, PhaseNo, loadDeliveryItems, loadSignedByUser, loadSentToPhase, loadMaterial, loadFile));
-            return await Task.Run(() => _scmsRepository.GetAllDeliveries(SequenceNo, PhaseNo, loadDeliveryItems, loadSignedByUser, loadSentToPhase, loadFile));
+            return new(await _scmsRepository.GetAllDeliveries(SequenceNo, PhaseNo, loadDeliveryItems, loadSignedByUser, loadSentToPhase, loadFile));
         }
 
         /*
@@ -44,10 +45,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         */
 
         [HttpGet("GetAllDeliveriesForSequenceAndPhase/{sequenceNo}/{phaseNo}")]
-        public async Task<IEnumerable<Delivery>> GetAllDeliveriesForSequenceAndPhase(int SequenceNo, int PhaseNo)
+        public async Task<OASISResult<IEnumerable<Delivery>>> GetAllDeliveriesForSequenceAndPhase(int SequenceNo, int PhaseNo)
         {
             GetAndActivateDefaultProvider();
-            return await Task.Run(() => _scmsRepository.GetAllDeliveries(SequenceNo, PhaseNo));
+            return new(await _scmsRepository.GetAllDeliveries(SequenceNo, PhaseNo));
         }
 
         //[HttpGet]

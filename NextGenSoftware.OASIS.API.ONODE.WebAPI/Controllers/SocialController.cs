@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
+using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.DNA;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
@@ -26,10 +27,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpGet("ShareHolon")]
-        public ActionResult<bool> GetSocialFeed()
+        public OASISResult<bool> GetSocialFeed()
         {
             // TODO: Finish implementing.
-            return Ok();
+            return new();
         }
 
         /// <summary>
@@ -38,10 +39,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpPost("RegisterSocialProvider")]
-        public ActionResult<bool> RegisterSocialProvider()
+        public OASISResult<bool> RegisterSocialProvider()
         {
             // TODO: Finish implementing.
-            return Ok();
+            return new();
         }
     }
 }
