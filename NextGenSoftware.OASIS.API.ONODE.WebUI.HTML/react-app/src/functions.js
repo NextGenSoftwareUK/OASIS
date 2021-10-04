@@ -12,7 +12,7 @@ export const getUserById = (id, token) => {
 
     return axios(config)
         .then((response) => {
-            return response.data.username;
+            return response.data;
         })
         .catch((error) => {
             console.log("error");
