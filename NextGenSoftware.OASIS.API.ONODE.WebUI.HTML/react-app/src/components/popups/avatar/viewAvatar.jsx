@@ -5,6 +5,8 @@ import Loader from "react-loader-spinner"
 import {login, getUserById} from "../../../functions"
 import ReactGrid from "../../ReactGrid"
 
+import "../../../assets/scss/view-avatar.scss"
+
 class ViewAvatar extends React.Component {
 	constructor(props){
 		super(props)
@@ -87,7 +89,7 @@ class ViewAvatar extends React.Component {
 	render(){
 		return (
 			<div className="popup-container">
-                <div className="popup">
+                <div className="avatar">
                     <Link to="/" className="popup-cancel">
                         <span className="form-cross-icon">
                             <i className="fa fa-times"></i>
