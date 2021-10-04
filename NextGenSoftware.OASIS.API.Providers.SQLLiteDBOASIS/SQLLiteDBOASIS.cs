@@ -1,5 +1,4 @@
-﻿
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
@@ -313,60 +312,126 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
             return(holonsList);
         }
 
-        public override IHolon SaveHolon(IHolon holon)
+        public override OASISResult<IHolon> SaveHolon(IHolon holon, bool saveChildrenRecursive = true)
         {
-            Holon savedHolon = null;
-            if(holon.IsNewHolon){
-                savedHolon = holonRepository.Add((Holon)holon);
+            OASISResult<IHolon> result = holon.IsNewHolon ? holonRepository.Add(holon)
+                : holonRepository.Update(holon);
+
+            if (!result.IsError && result.Result != null && saveChildrenRecursive)
+            {
+                OASISResult<IEnumerable<IHolon>> saveChildrenResult = SaveHolons(result.Result.Children);
+
+                if (!saveChildrenResult.IsError && saveChildrenResult.Result != null)
+                    result.Result.Children = saveChildrenResult.Result;
+                else
+                {
+                    result.IsError = true;
+                    result.Message = $"Holon with id {holon.Id} and name {holon.Name} saved but it's children failed to save. Reason: {saveChildrenResult.Message}";
+                }
             }
-            else{
-                savedHolon = holonRepository.Update((Holon)holon);
-            }
-            return(savedHolon);
+
+            return result;
         }
 
-        public override async Task<IHolon> SaveHolonAsync(IHolon holon)
+        public override async Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon, bool saveChildrenRecursive = true)
         {
-            Holon savedHolon = null;
-            if(holon.IsNewHolon){
-                savedHolon = await holonRepository.AddAsync((Holon)holon);
+            OASISResult<IHolon> result = holon.IsNewHolon ? holonRepository.Add(holon)
+                : holonRepository.Update(holon);
+
+            if (!result.IsError && result.Result != null && saveChildrenRecursive)
+            {
+                OASISResult<IEnumerable<IHolon>> saveChildrenResult = await SaveHolonsAsync(result.Result.Children);
+
+                if (!saveChildrenResult.IsError && saveChildrenResult.Result != null)
+                    result.Result.Children = saveChildrenResult.Result;
+                else
+                {
+                    result.IsError = true;
+                    result.Message = $"Holon with id {holon.Id} and name {holon.Name} saved but it's children failed to save. Reason: {saveChildrenResult.Message}";
+                }
             }
-            else{
-                savedHolon = await holonRepository.UpdateAsync((Holon)holon);
-            }
-            return(savedHolon);
+
+            return result;
         }
 
-        public override IEnumerable<IHolon> SaveHolons(IEnumerable<IHolon> holons)
+        public override OASISResult<IEnumerable<IHolon>> SaveHolons(IEnumerable<IHolon> holons, bool saveChildrenRecursive = true)
         {
+            OASISResult<IEnumerable<IHolon>> result = new OASISResult<IEnumerable<IHolon>>();
             List<IHolon> savedHolons = new List<IHolon>();
-            IHolon savedHolon;
 
             // Recursively save all child holons.
             foreach (IHolon holon in holons)
             {
-                savedHolon = SaveHolon(holon);
-                savedHolon.Children = SaveHolons(holon.Children);
-                savedHolons.Add(savedHolon);
+                OASISResult<IHolon> holonResult = SaveHolon(holon);
+
+                if (!holonResult.IsError && holonResult.Result != null)
+                {
+                    if (saveChildrenRecursive)
+                    {
+                        OASISResult<IEnumerable<IHolon>> saveChildrenResult = SaveHolons(holonResult.Result.Children);
+
+                        if (!saveChildrenResult.IsError && saveChildrenResult.Result != null)
+                            holonResult.Result.Children = saveChildrenResult.Result;
+                        else
+                        {
+                            result.IsError = true;
+                            result.InnerMessages.Add($"Holon with id {holon.Id} and name {holon.Name} saved but it's children failed to save. Reason: {saveChildrenResult.Message}");
+                        }
+                    }
+
+                    savedHolons.Add(holonResult.Result);
+                }
+                else
+                {
+                    result.IsError = true;
+                    result.InnerMessages.Add($"Holon with id {holon.Id} and name {holon.Name} faild to save. Reason: {holonResult.Message}");
+                }
             }
 
-            return savedHolons;
+            if (result.IsError)
+                result.Message = "One or more errors occured saving the holons in the SQLLiteOASIS Provider. Please check the InnerMessages property for more infomration.";
+
+            return result;
         }
 
-        public override async Task<IEnumerable<IHolon>> SaveHolonsAsync(IEnumerable<IHolon> holons)
+        public override async Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons, bool saveChildrenRecursive = true)
         {
+            OASISResult<IEnumerable<IHolon>> result = new OASISResult<IEnumerable<IHolon>>();
             List<IHolon> savedHolons = new List<IHolon>();
-            IHolon savedHolon;
 
             // Recursively save all child holons.
             foreach (IHolon holon in holons)
             {
-                savedHolon = await SaveHolonAsync(holon);
-                savedHolon.Children = await SaveHolonsAsync(holon.Children);
-                savedHolons.Add(savedHolon);
+                OASISResult<IHolon> holonResult = await SaveHolonAsync(holon);
+
+                if (!holonResult.IsError && holonResult.Result != null)
+                {
+                    if (saveChildrenRecursive)
+                    {
+                        OASISResult<IEnumerable<IHolon>> saveChildrenResult = await SaveHolonsAsync(holonResult.Result.Children);
+
+                        if (!saveChildrenResult.IsError && saveChildrenResult.Result != null)
+                            holonResult.Result.Children = saveChildrenResult.Result;
+                        else
+                        {
+                            result.IsError = true;
+                            result.InnerMessages.Add($"Holon with id {holon.Id} and name {holon.Name} saved but it's children failed to save. Reason: {saveChildrenResult.Message}");
+                        }
+                    }
+
+                    savedHolons.Add(holonResult.Result);
+                }
+                else
+                {
+                    result.IsError = true;
+                    result.InnerMessages.Add($"Holon with id {holon.Id} and name {holon.Name} faild to save. Reason: {holonResult.Message}");
+                }
             }
 
-            return savedHolons;
+            if (result.IsError)
+                result.Message = "One or more errors occured saving the holons in the SQLLiteOASIS Provider. Please check the InnerMessages property for more infomration.";
+
+            return result;
         }
 
         public override IAvatarDetail LoadAvatarDetail(Guid id)
