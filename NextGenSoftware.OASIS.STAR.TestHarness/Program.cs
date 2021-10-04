@@ -238,13 +238,13 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
                 await STAR.OASISAPI.Providers.Holochain.HoloNETClient.CallZomeFunctionAsync(STAR.OASISAPI.Providers.Holochain.HoloNETClient.AgentPubKey, "our_world_core", "load_holons", null);
 
                 // IPFS Support
-                await STAR.OASISAPI.Providers.IPFS.IPFSEngine.FileSystem.ReadFileAsync("");
-                await STAR.OASISAPI.Providers.IPFS.IPFSEngine.FileSystem.AddFileAsync("");
-                await STAR.OASISAPI.Providers.IPFS.IPFSEngine.Swarm.PeersAsync();
-                await STAR.OASISAPI.Providers.IPFS.IPFSEngine.KeyChainAsync();
-                await STAR.OASISAPI.Providers.IPFS.IPFSEngine.Dns.ResolveAsync("test");
-                await STAR.OASISAPI.Providers.IPFS.IPFSEngine.Dag.GetAsync(new Ipfs.Cid() { Hash = "" });
-                await STAR.OASISAPI.Providers.IPFS.IPFSEngine.Dag.PutAsync(new Ipfs.Cid() { Hash = "" });
+                //await STAR.OASISAPI.Providers.IPFS.IPFSEngine.FileSystem.ReadFileAsync("");
+                //await STAR.OASISAPI.Providers.IPFS.IPFSEngine.FileSystem.AddFileAsync("");
+                //await STAR.OASISAPI.Providers.IPFS.IPFSEngine.Swarm.PeersAsync();
+                //await STAR.OASISAPI.Providers.IPFS.IPFSEngine.KeyChainAsync();
+                //await STAR.OASISAPI.Providers.IPFS.IPFSEngine.Dns.ResolveAsync("test");
+                //await STAR.OASISAPI.Providers.IPFS.IPFSEngine.Dag.GetAsync(new Ipfs.Cid() { Hash = "" });
+                //await STAR.OASISAPI.Providers.IPFS.IPFSEngine.Dag.PutAsync(new Ipfs.Cid() { Hash = "" });
 
                 // Ethereum Support
                 await STAR.OASISAPI.Providers.Ethereum.Web3.Client.SendRequestAsync(new Nethereum.JsonRpc.Client.RpcRequest("id", "test"));
@@ -258,8 +258,8 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
                 STAR.OASISAPI.Providers.EOSIO.ChainAPI.GetCurrencyBalance("test.account", "", "");
 
                 // Graph DB Support
-                await STAR.OASISAPI.Providers.Neo4j.GraphClient.Cypher.Merge("(a:Avatar { Id: avatar.Id })").OnCreate().Set("a = avatar").ExecuteWithoutResultsAsync(); //Insert/Update Avatar.
-                Avatar newAvatar = STAR.OASISAPI.Providers.Neo4j.GraphClient.Cypher.Match("(p:Avatar {Username: {nameParam}})").WithParam("nameParam", "davidellams@hotmail.com").Return(p => p.As<Avatar>()).ResultsAsync.Result.Single(); //Load Avatar.
+              //  await STAR.OASISAPI.Providers.Neo4j.GraphClient.Cypher.Merge("(a:Avatar { Id: avatar.Id })").OnCreate().Set("a = avatar").ExecuteWithoutResultsAsync(); //Insert/Update Avatar.
+               // Avatar newAvatar = STAR.OASISAPI.Providers.Neo4j.GraphClient.Cypher.Match("(p:Avatar {Username: {nameParam}})").WithParam("nameParam", "davidellams@hotmail.com").Return(p => p.As<Avatar>()).ResultsAsync.Result.Single(); //Load Avatar.
 
                 // Document/Object DB Support
                 STAR.OASISAPI.Providers.MongoDB.Database.MongoDB.ListCollectionNames();
