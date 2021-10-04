@@ -5,12 +5,19 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Ipfs.Core" Version="0.55.0" />
     <PackageReference Include="Ipfs.Engine" Version="0.13.0" />
     <PackageReference Include="Ipfs.Http.Client" Version="0.33.0" />
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\External Libs\net-ipfs-http-client-master\src\IpfsHttpClient.csproj" />
     <ProjectReference Include="..\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj" />
+    <ProjectReference Include="..\NextGenSoftware.OASIS.API.DNA\NextGenSoftware.OASIS.API.DNA.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="External Libs\" />
   </ItemGroup>
 
 </Project>

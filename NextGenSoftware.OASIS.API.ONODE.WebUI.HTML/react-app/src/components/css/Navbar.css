@@ -1,0 +1,118 @@
+.nav {
+  position: relative;
+  z-index: 10;
+  height: 45px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 1rem;
+  padding-right: 2rem;
+}
+.nav-left {
+  display: flex;
+  width: 50%;
+  backdrop-filter: blur(2px);
+}
+.nav-right {
+  display: flex;
+  align-items: center;
+  text-align: center;
+}
+.nav-avatar {
+  display: flex;
+  width: 2em;
+  color: #fff;
+}
+.nav-avatar-dropdown {
+  text-align: left;
+  display: none;
+  position: absolute;
+  background-color: rgba(0, 0, 0, 0.88);
+  top: 23px;
+  right: 0;
+}
+.nav-avatar-dropdown-item {
+  padding: 8px 1rem;
+  letter-spacing: 1px;
+}
+.nav-avatar-dropdown-item:hover {
+  background-color: #4440bc;
+}
+
+.nav-avatar img {
+  filter: brightness(0) invert(1);
+  width: 2em;
+  height: 2em;
+  border: 1px solid #fff;
+  border-radius: 5rem;
+}
+.nav-avatar:hover .enabled {
+  display: block;
+}
+.nav-login {
+  margin-left: auto;
+  display: inline-block;
+  align-items: center;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-weight: 500;
+  padding: 0 1.5vw;
+  line-height: 1.2;
+}
+
+/* ================== For the side nav hamburger button ====================== */
+.nav-menu-btn {
+  position: relative;
+  display: grid;
+  place-content: center;
+  width: 48px;
+  height: 48px;
+  cursor: pointer;
+  margin-right: 1rem;
+  transition: all 0.3s ease-in-out;
+}
+.nav-menu-btn-burger {
+  width: 25px;
+  height: 2px;
+  background: #fff;
+  transition: all 0.3s ease-in-out;
+}
+.nav-menu-btn-burger::before,
+.nav-menu-btn-burger::after {
+  content: "";
+  position: absolute;
+  width: 25px;
+  height: 2px;
+  background: #fff;
+  transition: all 0.3s ease-in-out;
+}
+.nav-menu-btn-burger::before {
+  transform: translateY(-8px);
+}
+.nav-menu-btn-burger::after {
+  transform: translateY(8px);
+}
+/* ANIMATION */
+.nav-menu-open .nav-menu-btn-burger {
+  background: transparent;
+  box-shadow: none;
+}
+.nav-menu-open .nav-menu-btn-burger::before {
+  transform: rotate(45deg);
+}
+.nav-menu-open .nav-menu-btn-burger::after {
+  transform: rotate(-45deg);
+}
+/* ========================================================== */
+
+.hide-logins {
+  visibility: hidden;
+  display: none;
+}
+
+@media (max-width: 550px) {
+  .nav-logins {
+    visibility: hidden;
+    display: none;
+  }
+}

@@ -9,6 +9,7 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces
 {
     public interface IAvatar : IHolonBase
     {
+        new Guid Id { get; set; }
         string Title { get; set; }
         string FirstName { get; set; }
         string LastName { get; set; }
@@ -27,6 +28,9 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces
         DateTime? ResetTokenExpires { get; set; }
         string VerificationToken { get; set; }
         DateTime? Verified { get; set; }
+        DateTime? LastBeamedIn { get; set; }
+        DateTime? LastBeamedOut { get; set; }
+        bool IsBeamedIn { get; set; }
         string Image2D { get; set; }
         int Karma { get; set; }
         int Level { get; }

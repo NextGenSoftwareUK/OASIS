@@ -18,7 +18,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
 {
     public class Startup
     {
-        private const string VERSION = "OASIS API v0.16 ALPHA";
+        private const string VERSION = "OASIS API v0.17.2 ALPHA";
         readonly string MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
 
         public Startup(IConfiguration configuration)
@@ -87,7 +87,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
 
             // configure DI for application services
             services.AddScoped<IAvatarService, AvatarService>();
-            services.AddScoped<IEmailService, EmailService>();
+            //services.AddScoped<IEmailService, EmailService>();
             services.AddScoped<ISolanaService, SolanaService>();
             services.AddScoped<ICargoService, CargoService>();
             services.AddScoped<INftService, NftService>();

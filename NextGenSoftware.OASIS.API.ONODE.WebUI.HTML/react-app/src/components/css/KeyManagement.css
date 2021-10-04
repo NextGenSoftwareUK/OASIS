@@ -1,0 +1,71 @@
+.KeyManagement-section {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+}
+.KeyManagement-contant {
+  background-color: hsl(240deg 8% 12% / 80%);
+  width: 80%;
+  padding: 40px 40px;
+}
+.rdl-list-box {
+  width: 25rem;
+}
+.KeyManagement-contant h2 {
+  font-size: 20px;
+  color: #ffffff;
+}
+
+.key-from input {
+  height: 30px;
+  border: 2px #ffffff solid;
+  border-radius: 5px;
+}
+.provider-drop {
+  display: flex;
+  color: #ffffff;
+  justify-content: center;
+  align-items: center;
+}
+
+.key-from {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.key-from button {
+  border: 2px solid gray;
+  border-radius: 5px;
+  padding: 10px 30px;
+  color: #ffffff;
+}
+.key-from button:hover {
+  cursor: pointer;
+  color: black;
+  background-color: #ffffff;
+}
+
+/* ******************************Scroll Styles*********************************** */
+/* width */
+::-webkit-scrollbar {
+  width: 5px;
+}
+
+/* Track */
+::-webkit-scrollbar-track {
+  background: unset;
+}
+
+/* Handle */
+::-webkit-scrollbar-thumb {
+  background: #555;
+  border-radius: 1rem;
+}
+
+/* Handle on hover */
+::-webkit-scrollbar-thumb:hover {
+  background: rgb(139, 139, 139);
+  cursor: pointer !important;
+}

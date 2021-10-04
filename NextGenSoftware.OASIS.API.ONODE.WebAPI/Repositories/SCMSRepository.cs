@@ -348,6 +348,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
                         //contact.Postcode = avatar.Postcode;
                         contact.Title = avatar.Title;
                        // contact.Town = avatar.Town;
+                        contact.CreatedDate = avatar.CreatedDate;
+                        contact.DeletedDate = avatar.DeletedDate;
+                        contact.Email = avatar.Email;
+                        contact.Landline = avatar.LastName;
+                        contact.Password = avatar.Password;
+                        contact.Title = avatar.Title;
                         contact.Username = avatar.Username;
                         contact.AvatarType = avatar.AvatarType;
                         contact.Version = avatar.Version;

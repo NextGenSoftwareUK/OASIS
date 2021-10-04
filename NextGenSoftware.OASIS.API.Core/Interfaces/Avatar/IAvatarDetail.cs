@@ -14,6 +14,7 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces
         // TODO: Be good if we can find a better work around?! ;-)
         // Using the multiple interfaces workaround seems to only work for methods, but not properties?
 
+        new Guid Id { get; set; }
         string Title { get; set; }
         string FirstName { get; set; }
         string LastName { get; set; }

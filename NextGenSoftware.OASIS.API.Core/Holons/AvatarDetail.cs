@@ -15,6 +15,18 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
         //FORCE TO DUPLICATE THESE PROPERTIES FROM AVATAR BECAUSE MULTIPLE INHERIETANCE NOT SUPPORTED IN C#! :(
         //TODO: Be good if we can find a better work around?! ;-)
 
+        public new Guid Id
+        {
+            get
+            {
+                return base.Id;
+            }
+            set
+            {
+                base.Id = value;
+            }
+        }
+
         public new string Name
         {
             get

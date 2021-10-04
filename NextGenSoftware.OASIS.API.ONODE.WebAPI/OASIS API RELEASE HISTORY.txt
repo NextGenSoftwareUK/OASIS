@@ -24,9 +24,18 @@ Then when we do a release, this file will be linked to the Swagger documentation
 - Added new AvatarDetail methods to Avatar API.
 - Split out all but essential properties from Holon. HolonBase is now a lightweight version of Holon. Holon extends HolonBase.
 - Added UmaJson field to AvatarDetail.
-- Added PreviousVersionId to HolonBase object for blockchain/ipfs providers to point to the previous version of a record when updates are being made.
+- Added PreviousVersionId & PreviousVersionProviderKey to HolonBase object for blockchain/ipfs providers to point to the previous version of a record when updates are being made.
+- Added LastBeamedIn, LastBeamedOut and IsBeamedIn properties to Avatar and IAvatar.
 
 ----------------------------------------------------------------------------------------------------------------------------
-0.18 ALPHA
+0.17.1 ALPHA
 
+- Fixed bug preventing people logging in for avatar/authenticate API method (Password was missing in mappings in MongoDBOASIS).
 
+----------------------------------------------------------------------------------------------------------------------------
+0.17.2 ALPHA
+
+- Avatar and AvatarDetail now reutn id (workaorund for bug in Web API).
+- Fixed bug in SQLLiteOASIS Provider (null checkes for collections).
+
+----------------------------------------------------------------------------------------------------------------------------

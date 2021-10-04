@@ -97,6 +97,10 @@ input {
 }
 
 .custom-modal {
+    .modal-dialog.modal-90w {
+        width: 90%;
+        max-width: none!important;
+    }
     span.form-cross-icon {
         color: #fff;
         position: absolute;
@@ -111,6 +115,36 @@ input {
         background-color: initial;
         .modal-body {
             padding: 0;
+        }
+    }
+    .custom-ag-parent {
+        height: 400px;
+        width: 100%;
+        margin: 25px 0 0;
+    }
+    .custom-ag-parent.ag-theme-alpine {
+        .ag-root-wrapper {
+            border-radius: 8px;
+        }
+    }
+}
+.custom-popup-component {
+    .modal-content {
+        .modal-body {
+            background-color: rgba(28, 28, 33, 0.8);
+            border-radius: 8px;
+            padding: 2rem;
+            position: relative;
+        }
+    }
+}
+.custom-popup-component.light-custom-popup {
+    span.form-cross-icon {
+        color: #000 !important;
+    }
+    .modal-content {
+        .modal-body {
+            background-color: white;
         }
     }
 }
