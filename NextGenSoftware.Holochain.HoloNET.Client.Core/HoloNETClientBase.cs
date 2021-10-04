@@ -9,13 +9,15 @@ using System.Threading.Tasks;
 using System.IO;
 using System.Diagnostics;
 using MessagePack;
+using NextGenSoftware.Holochain.HoloNET.Client.MessagePack;
 
 namespace NextGenSoftware.Holochain.HoloNET.Client.Core
 {
     //[MessagePackObject]
+    [Serializable]
     public class Temp
     {
-      //  [Key(0)]
+       // [Key(0)]
         public string Name { get; set; }
 
         //[Key(1)]
@@ -104,7 +106,9 @@ namespace NextGenSoftware.Holochain.HoloNET.Client.Core
         public string AgentPubKey { get; set; } = "uhC0kTMixTG0lNZCF4SZfQMGozf2WfjQht7E06_wy3h29-zPpWxPQ";
         //public string HoloHash { get; set; } = "000000000000000000000000000000000000";
         public string HoloHash { get; set; } = "uhCAkt_cNGyYJZIp08b2ZzxoE6EqPndRPb_WwjVkM_mOBcFyq7zCw";
-        
+
+        public WebSocket2 webSocket2;
+
 
         public HoloNETClientBase(string holochainConductorURI, HolochainVersion version)
         {
@@ -116,126 +120,128 @@ namespace NextGenSoftware.Holochain.HoloNET.Client.Core
             this.HolochainVersion = version;
 
             _cancellationToken = _cancellationTokenSource.Token; //TODO: do something with this!
+
+            webSocket2 = new WebSocket2(holochainConductorURI);
+            webSocket2.OnOpen += WebSocket2_OnOpen;
+            webSocket2.OnClose += WebSocket2_OnClose;
+            webSocket2.OnError += WebSocket2_OnError;
+            webSocket2.OnMessage += WebSocket2_OnMessage;
+        }
+
+        private void WebSocket2_OnMessage(byte[] data)
+        {
+           
+        }
+
+        private void WebSocket2_OnError(string errorMsg)
+        {
+           
+        }
+
+        private void WebSocket2_OnClose(WebSocketCloseCode closeCode)
+        {
+            
+        }
+
+        private void WebSocket2_OnOpen()
+        {
+          
         }
 
         public async Task Connect()
         {
-            try
-            {
-                if (Logger == null)
-                    throw new HoloNETException("ERROR: No Logger Has Been Specified! Please set a Logger with the Logger Property.");
+            await webSocket2.Connect();
 
+           // await webSocket2.Receive();
 
-                //MessagePack Test:
-
-                /*
-                switch (HolochainVersion)
-                {
-                    case HolochainVersion.Redux:
-                    {
-
-                    }
-                    break;
-
-                    case HolochainVersion.RSM:
-                    {
-                            try
-                            {
-                                byte[] bytes = MessagePackSerializer.Serialize(new HoloNETStream() { Age = 40, FirstName = "David", LastName = "Ellams" });
-
-                                HoloNETStream stream = MessagePackSerializer.Deserialize<HoloNETStream>(bytes);
-
-                                Console.WriteLine("HolosStream.FirstName: " + stream.FirstName);
-                                Console.WriteLine("JSON = " + MessagePackSerializer.ConvertToJson(bytes));
-
-                            }
-                            catch (Exception ex)
-                            {
-                                string msg = ex.ToString();
-                                Console.WriteLine("Error " + msg);
-                            }
-                    }
-                    break;
-                }
-                */
-
-                if (WebSocket.State != WebSocketState.Connecting && WebSocket.State != WebSocketState.Open && WebSocket.State != WebSocketState.Aborted)
-                {
-                    if (Config.AutoStartConductor)
-                    {
-                        DirectoryInfo info = new DirectoryInfo(Config.FullPathToHolochainAppDNA);
-                        Logger.Log("Starting Holochain Conductor...", LogType.Info);
-
-                        Process pProcess = new Process();
-                        pProcess.StartInfo.WorkingDirectory = @"C:\holochain-holonix-v0.0.80-9-g6a1542d";
-                        pProcess.StartInfo.FileName = "wsl";
-                        // pProcess.StartInfo.Arguments = "run";
-                        pProcess.StartInfo.UseShellExecute = false;
-                        pProcess.StartInfo.RedirectStandardOutput = false;
-                        pProcess.StartInfo.RedirectStandardInput = true;
-                        pProcess.StartInfo.WindowStyle = ProcessWindowStyle.Normal;
-                        pProcess.StartInfo.CreateNoWindow = false;
-                        pProcess.Start();
-
-                        await Task.Delay(Config.SecondsToWaitForHolochainConductorToStart); // Give the conductor 5 seconds to start up...
-
-                        // pProcess.StandardInput.WriteLine("nix-shell https://holochain.love");
-                        //pProcess.StandardInput.WriteLine("nix-shell holochain-holonix-6a1542d");
-                        pProcess.StandardInput.WriteLine("nix-shell C:\\holochain-holonix-v0.0.80-9-g6a1542d\\holochain-holonix-6a1542d");
-
-                        await Task.Delay(Config.SecondsToWaitForHolochainConductorToStart); // Give the conductor 5 seconds to start up...
-
-                        /*
-                        //If no path to the conductor has been given then default to the current working directory.
-                        if (string.IsNullOrEmpty(Config.FullPathToExternalHolochainConductor))
-                            Config.FullPathToExternalHolochainConductor = string.Concat(Directory.GetCurrentDirectory(), "\\hc.exe"); //default to the current path
-
-                        if (Config.SecondsToWaitForHolochainConductorToStart == 0)
-                            Config.SecondsToWaitForHolochainConductorToStart = SecondsToWaitForConductorToStartDefault;
-
-                        FileInfo conductorInfo = new FileInfo(Config.FullPathToExternalHolochainConductor);
-
-
-                        //Make sure the condctor is not already running
-                        if (!Process.GetProcesses().Any(x => x.ProcessName == conductorInfo.Name))
-                        {
-                            DirectoryInfo info = new DirectoryInfo(Config.FullPathToHolochainAppDNA);
-                            Logger.Log("Starting Holochain Conductor...", LogType.Info);
-
-                            Process pProcess = new Process();
-                            pProcess.StartInfo.WorkingDirectory = info.Parent.Parent.FullName;
-                            pProcess.StartInfo.FileName = Config.FullPathToExternalHolochainConductor;
-                            pProcess.StartInfo.Arguments = "run";
-                            pProcess.StartInfo.UseShellExecute = true;
-                            pProcess.StartInfo.RedirectStandardOutput = false;
-                            pProcess.StartInfo.WindowStyle = ProcessWindowStyle.Normal;
-                            pProcess.StartInfo.CreateNoWindow = false;
-                            pProcess.Start();
-
-                            await Task.Delay(Config.SecondsToWaitForHolochainConductorToStart); // Give the conductor 5 seconds to start up...
-                        }*/
-                    }
-
-                    Logger.Log(string.Concat("Connecting to ", EndPoint, "..."), LogType.Info);
-
-                    await WebSocket.ConnectAsync(new Uri(EndPoint), CancellationToken.None);
-                    //NetworkServiceProvider.Connect(new Uri(EndPoint));
-                    //TODO: need to be able to await this.
-
-                    //if (NetworkServiceProvider.NetSocketState == NetSocketState.Open)
-                    if (WebSocket.State == WebSocketState.Open)
-                    {
-                        Logger.Log(string.Concat("Connected to ", EndPoint), LogType.Info);
-                        OnConnected?.Invoke(this, new ConnectedEventArgs { EndPoint = EndPoint });
-                        StartListen();
-                    }
-                }
-            }
-            catch (Exception e)
-            {
-                HandleError(string.Concat("Error occured connecting to ", EndPoint), e);
-            }
+            webSocket2.DispatchMessageQueue();
         }
+
+        //public async Task Connect()
+        //{
+        //    try
+        //    {
+        //        if (Logger == null)
+        //            throw new HoloNETException("ERROR: No Logger Has Been Specified! Please set a Logger with the Logger Property.");
+
+
+        //        if (WebSocket.State != WebSocketState.Connecting && WebSocket.State != WebSocketState.Open && WebSocket.State != WebSocketState.Aborted)
+        //        {
+        //            if (Config.AutoStartConductor)
+        //            {
+        //                DirectoryInfo info = new DirectoryInfo(Config.FullPathToHolochainAppDNA);
+        //                Logger.Log("Starting Holochain Conductor...", LogType.Info);
+
+        //                Process pProcess = new Process();
+        //                pProcess.StartInfo.WorkingDirectory = @"C:\holochain-holonix-v0.0.80-9-g6a1542d";
+        //                pProcess.StartInfo.FileName = "wsl";
+        //                // pProcess.StartInfo.Arguments = "run";
+        //                pProcess.StartInfo.UseShellExecute = false;
+        //                pProcess.StartInfo.RedirectStandardOutput = false;
+        //                pProcess.StartInfo.RedirectStandardInput = true;
+        //                pProcess.StartInfo.WindowStyle = ProcessWindowStyle.Normal;
+        //                pProcess.StartInfo.CreateNoWindow = false;
+        //                pProcess.Start();
+
+        //                await Task.Delay(Config.SecondsToWaitForHolochainConductorToStart); // Give the conductor 5 seconds to start up...
+
+        //                // pProcess.StandardInput.WriteLine("nix-shell https://holochain.love");
+        //                //pProcess.StandardInput.WriteLine("nix-shell holochain-holonix-6a1542d");
+        //                pProcess.StandardInput.WriteLine("nix-shell C:\\holochain-holonix-v0.0.80-9-g6a1542d\\holochain-holonix-6a1542d");
+
+        //                await Task.Delay(Config.SecondsToWaitForHolochainConductorToStart); // Give the conductor 5 seconds to start up...
+
+        //                /*
+        //                //If no path to the conductor has been given then default to the current working directory.
+        //                if (string.IsNullOrEmpty(Config.FullPathToExternalHolochainConductor))
+        //                    Config.FullPathToExternalHolochainConductor = string.Concat(Directory.GetCurrentDirectory(), "\\hc.exe"); //default to the current path
+
+        //                if (Config.SecondsToWaitForHolochainConductorToStart == 0)
+        //                    Config.SecondsToWaitForHolochainConductorToStart = SecondsToWaitForConductorToStartDefault;
+
+        //                FileInfo conductorInfo = new FileInfo(Config.FullPathToExternalHolochainConductor);
+
+
+        //                //Make sure the condctor is not already running
+        //                if (!Process.GetProcesses().Any(x => x.ProcessName == conductorInfo.Name))
+        //                {
+        //                    DirectoryInfo info = new DirectoryInfo(Config.FullPathToHolochainAppDNA);
+        //                    Logger.Log("Starting Holochain Conductor...", LogType.Info);
+
+        //                    Process pProcess = new Process();
+        //                    pProcess.StartInfo.WorkingDirectory = info.Parent.Parent.FullName;
+        //                    pProcess.StartInfo.FileName = Config.FullPathToExternalHolochainConductor;
+        //                    pProcess.StartInfo.Arguments = "run";
+        //                    pProcess.StartInfo.UseShellExecute = true;
+        //                    pProcess.StartInfo.RedirectStandardOutput = false;
+        //                    pProcess.StartInfo.WindowStyle = ProcessWindowStyle.Normal;
+        //                    pProcess.StartInfo.CreateNoWindow = false;
+        //                    pProcess.Start();
+
+        //                    await Task.Delay(Config.SecondsToWaitForHolochainConductorToStart); // Give the conductor 5 seconds to start up...
+        //                }*/
+        //            }
+
+        //            Logger.Log(string.Concat("Connecting to ", EndPoint, "..."), LogType.Info);
+
+        //            await WebSocket.ConnectAsync(new Uri(EndPoint), CancellationToken.None);
+        //            //NetworkServiceProvider.Connect(new Uri(EndPoint));
+        //            //TODO: need to be able to await this.
+
+        //            //if (NetworkServiceProvider.NetSocketState == NetSocketState.Open)
+        //            if (WebSocket.State == WebSocketState.Open)
+        //            {
+        //                Logger.Log(string.Concat("Connected to ", EndPoint), LogType.Info);
+        //                OnConnected?.Invoke(this, new ConnectedEventArgs { EndPoint = EndPoint });
+        //                StartListen();
+        //            }
+        //        }
+        //    }
+        //    catch (Exception e)
+        //    {
+        //        HandleError(string.Concat("Error occured connecting to ", EndPoint), e);
+        //    }
+        //}
 
         public async Task Disconnect()
         {
@@ -328,7 +334,7 @@ namespace NextGenSoftware.Holochain.HoloNET.Client.Core
             switch (HolochainVersion)
             {
                 case HolochainVersion.Redux:
-                {
+                    {
                         await SendRawDataAsync(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(
                             new
                             {
@@ -336,49 +342,43 @@ namespace NextGenSoftware.Holochain.HoloNET.Client.Core
                                 id,
                                 method = "call",
                                 @params = new { instance_id = instanceId, zome, function, args = paramsObject }
-                        }
+                            }
                         )));
                     }
-                break;
+                    break;
 
                 case HolochainVersion.RSM:
-                {
-                    HoloNETData holoNETData = new HoloNETData()
                     {
-                        type = "zome_call",
-                        data = new Data()
+                        MessagePackFormatter formatter = new MessagePackFormatter();
+                        HoloNETData holoNETData = new HoloNETData()
                         {
-                            cell_id = new byte[2][]{ Encoding.UTF8.GetBytes(HoloHash), Encoding.UTF8.GetBytes(AgentPubKey) },
-                            fn_name = function,
-                            zome_name = zome,
-                            //payload = MessagePackSerializer.Serialize(paramsObject),
-                            payload = MessagePackSerializer.Serialize(new Temp() { Name = "blah", Desc = "moooooo!" }),
-                            provenance = Encoding.UTF8.GetBytes(AgentPubKey),
-                            cap = null
-                        }
-                    };
+                            type = "zome_call",
+                            data = new HoloNETDataZomeCall()
+                            {
+                                cell_id = new byte[2][] { Encoding.UTF8.GetBytes(HoloHash), Encoding.UTF8.GetBytes(AgentPubKey) },
+                                fn_name = function,
+                                zome_name = zome,
+                                //payload = MessagePackSerializer.Serialize(paramsObject),
+                                //payload = MessagePackSerializer.Serialize(new Temp() { Name = "blah", Desc = "moooooo!" }),
+                                payload = formatter.Serialize(new Temp() { Name = "blah", Desc = "moooooo!" }),
+                                provenance = Encoding.UTF8.GetBytes(AgentPubKey),
+                                cap = null
+                            }
+                        };
 
-                    //holoNETData.data.cell_id[0] = Encoding.UTF8.GetBytes(HoloHash);
-                   // holoNETData.data.cell_id[1] = Encoding.UTF8.GetBytes(AgentPubKey);
+                        HoloNETRequest request = new HoloNETRequest()
+                        {
+                            id = Convert.ToUInt64(id),
+                            type = "Request",
+                            //data = MessagePackSerializer.Serialize(holoNETData)
+                            data = formatter.Serialize(holoNETData)
+                        };
 
-                    // UInt32 holoHash = 000000000000000000000000000000000000;
-                    // UInt32 agentPubKey = 000000000000000000000000000000000000;
-
-                    //holoNETData.cell_id = new UInt32[2];
-                    //holoNETData.cell_id[0] = holoHash;
-                    //holoNETData.cell_id[1] = agentPubKey;
-
-                    HoloNETRequest request = new HoloNETRequest()
-                    {
-                        id = Convert.ToUInt64(id),
-                        type = "Request",
-                        data = MessagePackSerializer.Serialize(holoNETData)
-                    };
-
-                    await SendRawDataAsync(MessagePackSerializer.Serialize(request));
-                    //await SendRawDataAsync(MessagePackSerializer.Serialize(new HoloNETRequest() { id = id, type = "Request", data = MessagePackSerializer.Serialize(new HoloNETData() { fn_name = function, zome_name = zome, payload = MessagePackSerializer.Serialize(paramsObject), provenance = AgentPubKey, cap = null, cell_id = new string[1, 2] { { HoloHash, AgentPubKey } } }) } ));
-                }
-                break;
+                        await webSocket2.Send(formatter.Serialize(request));
+                        //await SendRawDataAsync(formatter.Serialize(request));
+                        // await SendRawDataAsync(MessagePackSerializer.Serialize(request));
+                    }
+                    break;
             }
 
             Logger.Log("CallZomeFunctionAsync EXIT", LogType.Debug);

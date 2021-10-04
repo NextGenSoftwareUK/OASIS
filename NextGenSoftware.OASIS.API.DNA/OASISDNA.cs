@@ -19,7 +19,9 @@ namespace NextGenSoftware.OASIS.API.DNA
 
     public class SecuritySettings
     {
+        public bool DoesAvatarNeedToBeVerifiedBeforeLogin { get; set; }
         public string Secret { get; set; }
+        public int RemoveOldRefreshTokensAfterXDays{ set; get;}
         public EncryptionSettings AvatarPassword { get; set; }
         public EncryptionSettings OASISProviderPrivateKeys { get; set; }
     }
@@ -121,6 +123,7 @@ namespace NextGenSoftware.OASIS.API.DNA
 
     public class IPFSOASISSettings : ProviderSettingsBase
     {
+        public string IdLookUpIPFSAddress { get; set; }
     }
 
     public class Neo4jOASISSettings : ProviderSettingsBase

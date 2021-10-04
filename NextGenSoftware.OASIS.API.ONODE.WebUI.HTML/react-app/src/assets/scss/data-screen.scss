@@ -1,0 +1,142 @@
+.data-screen-container {
+    margin: 0 auto;
+    h2 {
+        font-size: 22px;
+        margin: 0 0 25px;
+        font-weight: 500;
+        color: #fff;
+    }
+    .have-selectbox {
+        width: 150px;
+    }
+    input[type="file"] {
+        border: none;
+        padding: 0;
+        color: #fff;
+    }
+    form {
+        h3 {
+        font-size: 20px;
+        margin-bottom: 20px;
+        }
+        p.single-form-row {
+            margin: 0 0 35px;
+            display: grid;
+            grid-template-columns: 100px 1fr;
+            &:last-child {
+                margin: 0;
+            }
+            label {
+                min-width: 100px;
+                margin: 0;
+                font-size: 18px;
+                padding: 0 15px 0 0;
+            }
+        }
+        
+        .btn-center {
+            text-align: right;
+        }
+    }
+    button.submit-button {
+        background: #fff;
+        border-radius: 4px;
+        height: 30px;
+        width: 100px;
+        justify-self: end;
+        grid-column: 2;    
+    }
+    .table-container {
+        .single-row {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            grid-gap: 15px;
+            margin: 0 0 12px;
+            .form-container {
+                margin: 12px 0;
+                grid-column: 1 / 6;
+            }
+        }
+    }
+}
+
+h2.grid-heading {
+    font-size: 22px;
+    line-height: 22px;
+    margin: 0 0 25px;
+}
+
+.off-chain-management {
+    h3 {
+        font-size: 18px;
+    }
+    .off-chain-container {
+        display: grid;
+        grid-template-columns: 2fr 1fr 2fr;
+        grid-gap: 20px;
+        ul {
+            background-color: #fff;
+            height: 200px;
+            overflow-y: auto;
+            border: 1px solid #999;
+            border-radius: 4px;
+            padding: 8px 0;
+            li {
+                margin: 0 0 5px;
+                &:last-child {
+                    margin: 0;
+                }
+                label {
+                    position: relative;
+                    color: #000;
+                    display: block;
+                    height: 35px;
+                    line-height: 35px;
+                    padding: 0;
+                    margin: 0;
+                    input[type="checkbox"] {
+                        opacity: 0;
+                        position: absolute;
+                    }
+                    input[type="checkbox"]:checked + span {
+                        background-color: #d5d5d5;
+                    }
+                    span {
+                        display: block;
+                        padding: 0 12px;
+                        cursor: pointer;
+                        &:hover {
+                            background-color: #d5d5d5;
+                        }
+                    }
+                }
+            }    
+        }
+    }
+    .buttons-list {
+        padding: 12px 0 0;
+        button {
+            margin: 0 0 8px;
+            width: 110px;
+            background-color: #fff;
+            border-radius: 4px;
+            text-align: center;
+            font-size: 14px;
+            height: 35px;
+            &:last-child {
+                margin: 0;
+            }
+        }
+    }
+    .save-button-container {
+        text-align: right;
+        margin: 12px 0 0;   
+    }
+    button {
+        width: 100px;
+        background-color: #fff;
+        border-radius: 4px;
+        text-align: center;
+        height: 35px;
+    }
+}

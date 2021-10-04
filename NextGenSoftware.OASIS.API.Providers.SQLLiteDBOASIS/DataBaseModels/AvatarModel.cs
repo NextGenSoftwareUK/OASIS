@@ -122,6 +122,9 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.DataBaseModels{
             this.ModifiedByAvatarId=source.ModifiedByAvatarId.ToString();
             this.DeletedByAvatarId=source.DeletedByAvatarId.ToString();
 
+            if (this.RefreshTokens == null)
+                this.RefreshTokens = new List<RefreshTokenModel>();
+
             foreach(RefreshToken refreshToken in source.RefreshTokens){
 
                 RefreshTokenModel model=new RefreshTokenModel(refreshToken);
@@ -129,14 +132,20 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.DataBaseModels{
                 this.RefreshTokens.Add(model);
             }
 
-            foreach(KeyValuePair<ProviderType, string> key in source.ProviderKey){
+            if (this.ProviderKey == null)
+                this.ProviderKey = new List<ProviderKeyModel>();
+
+            foreach (KeyValuePair<ProviderType, string> key in source.ProviderKey){
 
                 ProviderKeyModel model=new ProviderKeyModel(key.Key,key.Value);
                 model.OwnerId=this.Id;
                 this.ProviderKey.Add(model);
             }
 
-            foreach(KeyValuePair<string, string> item in source.MetaData){
+            if (this.MetaData == null)
+                this.MetaData = new List<MetaDataModel>();
+
+            foreach (KeyValuePair<string, string> item in source.MetaData){
 
                 MetaDataModel metaModel=new MetaDataModel(item.Key,item.Value);
                 metaModel.OwnerId=this.Id;

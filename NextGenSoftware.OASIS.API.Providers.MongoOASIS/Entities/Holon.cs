@@ -10,11 +10,13 @@ using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 
 namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities
 {
-    public class Holon // Equvilant to the base Holon object in OASIS.API.Core.
+    public class Holon : HolonBase // Equvilant to the Holon object in OASIS.API.Core.
     {
+        /*
         [BsonId]  
         [BsonRepresentation(BsonType.ObjectId)]  
         public string Id { get; set; }
+
 
         public bool IsChanged { get; set; }
 
@@ -29,7 +31,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities
         public string Description { get; set; }
         //  public string ProviderKey { get; set; } //Unique key used by each provider (e.g. hashaddress in hc, etc).
         public HolonType HolonType { get; set; }
-
+        */
 
 
         public Guid ParentOmiverseId { get; set; } //The Omiverse this Holon belongs to.
@@ -70,11 +72,11 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities
         public Guid ParentHolonId { get; set; }
         public IHolon ParentHolon { get; set; }
         public IEnumerable<IHolon> Children { get; set; }
-        public ProviderType CreatedProviderType { get; set; }
+       //public ProviderType CreatedProviderType { get; set; }
         public ObservableCollection<INode> Nodes { get; set; }
 
 
-        //public string ProviderKey { get; set; }
+        /*
         [BsonDictionaryOptions(DictionaryRepresentation.ArrayOfArrays)]
         public Dictionary<ProviderType, string> ProviderKey { get; set; } = new Dictionary<ProviderType, string>();
 
@@ -99,15 +101,6 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities
        // [BsonRepresentation(BsonType.ObjectId)]
         public string DeletedByAvatarId { get; set; }
 
-        /*
-        [BsonRepresentation(BsonType.ObjectId)]
-        public string CreatedByUserId { get; set; }
-
-        [BsonRepresentation(BsonType.ObjectId)]
-        public string ModifledByUserId { get; set; }
-
-        [BsonRepresentation(BsonType.ObjectId)]
-        public string DeletedByUserId { get; set; }
-        */
+       */
     }
 }
