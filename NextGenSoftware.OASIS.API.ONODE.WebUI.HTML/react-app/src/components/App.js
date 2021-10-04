@@ -13,17 +13,20 @@ import Signup from "./Signup";
 import AcceptInvite from "./pages/seeds/AcceptInvite";
 import AddData from "./popups/data-screen/AddData";
 import LoadData from "./popups/data-screen/LoadData";
+import OffChainManagement from "./popups/data-screen/OffChainManagement";
+import CrossChainManagement from "./popups/data-screen/CrossChainManagement";
 
 import ViewAvatar from "./pages/avatar/viewAvatar";
 // import UploadAvatar from "../components/pages/avatar/uploadAvatar";
 // import Provider from "../components/pages/providers/Provider";
 // import Keymanagement from "../components/pages/providers/KeyManagement";
-
+  
 import "../assets/scss/general.scss";
 import "../assets/scss/style.scss";
-import "../assets/scss/Seeds.scss";
+import "../assets/scss/seeds.scss";
 
 import axios from "axios";
+import 'react-toastify/dist/ReactToastify.css';
 
 class App extends React.Component {
   state = {
@@ -36,6 +39,8 @@ class App extends React.Component {
       loadData: false,
       sendData: false,
       manageData: false,
+      offChainManagement: false,
+      crossChainManagement: false
     },
   };
 
@@ -162,8 +167,8 @@ class App extends React.Component {
               <Route exact path="/karma" component={Karma} />
               <Route exact path="/avatar/view" component={ViewAvatar} />
               {/* <Route exact path="/avatar/upload" component={UploadAvatar} /> */}
-              {/* <Route path="/provider/provider" component={Provider} /> */}
-              {/* <Route path="/provider/keymanagement" component={Keymanagement} /> */}
+              {/* <Route path="/provider/provider" component={Provider} />
+              <Route path="/provider/keymanagement" component={Keymanagement} /> */}
             </Switch>
           </div>
         </Router>
@@ -191,6 +196,16 @@ class App extends React.Component {
 
         <LoadData
           show={this.state.dataScreen.loadData}
+          hide={this.toggleDataScreenPopup}
+        />
+
+        <OffChainManagement 
+          show={this.state.dataScreen.offChainManagement}
+          hide={this.toggleDataScreenPopup}
+        />
+
+        <CrossChainManagement 
+          show={this.state.dataScreen.crossChainManagement}
           hide={this.toggleDataScreenPopup}
         />
         {/* ========== DATA SCREEN POPUPS START ========== */}
