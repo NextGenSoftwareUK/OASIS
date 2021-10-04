@@ -2,7 +2,7 @@ import React from "react"
 import {Link} from "react-router-dom"
 import axios from "axios"
 import Loader from "react-loader-spinner"
-import {login} from "../../../functions"
+import {login, getUserById} from "../../../functions"
 import ReactGrid from "../../ReactGrid"
 
 class ViewAvatar extends React.Component {
@@ -25,7 +25,7 @@ class ViewAvatar extends React.Component {
 	}
 
 	async componentDidMount() {
-        let token, refresh, credentials;
+        var token, refresh, credentials;
 
         //If user object exists in localstorage, get the refresh token
         //and the jwtToken
@@ -57,17 +57,20 @@ class ViewAvatar extends React.Component {
                 let avatars = []
                 for (let i = 0; i <= response.data.length - 1; i++){
                 	const data = response.data[i]
+                    const id = data.id;
+                    let tkn = {jwt: token}
+                    const user = await getUserById(id, tkn)
+                    console.log(user)
                 	const avatar = {
                 		avatar: data.username,
                 		level: data.level,
                 		karma: data.karma,
                 		sex: 'Male',
-                		created: '18/09/2021',
-                		modified: '18/09/2021',
-                		online: 'No'
+                		created: user.createdDate,
+                		modified: user.modifiedDate,
+                		online: data.isBeamedIn ? 'Yes' : 'No'
                 	}
                 	avatars.push(avatar)
-                	console.log(data.username)
                 }
 
                 this.setState({ rows: avatars });
