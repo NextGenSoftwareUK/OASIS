@@ -20,12 +20,13 @@ import ViewAvatar from "./pages/avatar/viewAvatar";
 // import UploadAvatar from "../components/pages/avatar/uploadAvatar";
 // import Provider from "../components/pages/providers/Provider";
 // import Keymanagement from "../components/pages/providers/KeyManagement";
-
+  
 import "../assets/scss/general.scss";
 import "../assets/scss/style.scss";
 import "../assets/scss/seeds.scss";
 
 import axios from "axios";
+import 'react-toastify/dist/ReactToastify.css';
 
 class App extends React.Component {
   state = {
