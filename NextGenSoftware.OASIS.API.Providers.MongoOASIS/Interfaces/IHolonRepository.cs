@@ -9,8 +9,11 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Interfaces
 {
     public interface IHolonRepository
     {
-        Holon Add(Holon holon);
-        Task<Holon> AddAsync(Holon holon);
+        //TODO: Apply OASISResult pattern to rest of OASIS ASAP! Thanks! :)
+        OASISResult<Holon> Add(Holon holon);
+        Task<OASISResult<Holon>> AddAsync(Holon holon);
+        OASISResult<Holon> Update(Holon holon);
+        Task<OASISResult<Holon>> UpdateAsync(Holon holon);
         bool Delete(Guid id, bool softDelete = true);
         bool Delete(string providerKey, bool softDelete = true);
         Task<bool> DeleteAsync(Guid id, bool softDelete = true);
@@ -25,7 +28,5 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Interfaces
         Holon GetHolon(string providerKey);
         Task<Holon> GetHolonAsync(Guid id);
         Task<Holon> GetHolonAsync(string providerKey);
-        Holon Update(Holon holon);
-        Task<Holon> UpdateAsync(Holon holon);
     }
 }

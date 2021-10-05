@@ -6,6 +6,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Holons;
+using NextGenSoftware.OASIS.API.Core.Interfaces;
 
 namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.DataBaseModels{
 
@@ -58,7 +59,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.DataBaseModels{
         public List<ProviderMetaData> ProviderMetaData { get; set; } = new List<ProviderMetaData>();
 
         public HolonModel(){}
-        public HolonModel(Holon source){
+        public HolonModel(IHolon source){
             
             if(source.Id == Guid.Empty){
                 this.Id = Guid.NewGuid().ToString();
@@ -163,7 +164,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.DataBaseModels{
 
         }
 
-        public Holon GetHolon(){
+        public Holon GetHolon()
+        {
             Holon item=new Holon();
 
             item.Id = Guid.Parse(this.Id);

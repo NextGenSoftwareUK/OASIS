@@ -571,24 +571,24 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Core
             throw new NotImplementedException();
         }
 
-        public override IHolon SaveHolon(IHolon holon)
+        public override OASISResult<IHolon> SaveHolon(IHolon holon, bool saveChildrenRecursive = true)
         {
-            throw new NotImplementedException();
+            throw new System.NotImplementedException();
         }
 
-        public override Task<IHolon> SaveHolonAsync(IHolon holon)
+        public override Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon, bool saveChildrenRecursive = true)
         {
-            throw new NotImplementedException();
+            throw new System.NotImplementedException();
         }
 
-        public override IEnumerable<IHolon> SaveHolons(IEnumerable<IHolon> holons)
+        public override OASISResult<IEnumerable<IHolon>> SaveHolons(IEnumerable<IHolon> holons, bool saveChildrenRecursive = true)
         {
-            throw new NotImplementedException();
+            throw new System.NotImplementedException();
         }
 
-        public override Task<IEnumerable<IHolon>> SaveHolonsAsync(IEnumerable<IHolon> holons)
+        public override Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons, bool saveChildrenRecursive = true)
         {
-            throw new NotImplementedException();
+            throw new System.NotImplementedException();
         }
 
         public override bool DeleteAvatar(string providerKey, bool softDelete = true)
