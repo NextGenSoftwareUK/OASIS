@@ -112,9 +112,46 @@ const SidebarData = [
       },
       {
         id: 4,
+
         name: "Send Invite To Join SEEDS",
       },
       {
+
+        name: "data",
+        subMenu: [
+            {
+                id: 1,
+                name: "Load Data",
+                popupName: 'loadData'
+            },
+            {
+                id: 2,
+                name: "Send Data",
+                popupName: 'sendData'
+            },
+            {
+                id: 3,
+                name: "Manage Data",
+                popupName: 'manageData'
+            },
+            {
+                id: 4,
+                name: "Cross-Chain Management",
+                popupName: 'crossChainManagement'
+            },
+            {
+                id: 5,
+                name: "Off-Chain Management",
+                popupName: 'offChainManagement'
+            },
+            {
+                id: 6,
+                name: "Search Data",
+            },
+        ]
+    },
+    {
+
         id: 5,
         name: "Accept Invite to join seeds",
       },

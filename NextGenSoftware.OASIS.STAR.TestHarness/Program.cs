@@ -226,7 +226,7 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
                 STAR.OASISAPI.Data.LoadHolon(newHolon.Id, ProviderType.IPFSOASIS); // Only loads from IPFS.
                 STAR.OASISAPI.Data.LoadAllHolons(HolonType.Moon, ProviderType.HoloOASIS); // Loads all moon (OAPPs) from Holochain.
                 STAR.OASISAPI.Data.SaveHolon(newHolon); // Load-balanced across all providers.
-                STAR.OASISAPI.Data.SaveHolon(newHolon, ProviderType.EthereumOASIS); //  Only saves to Etherum.
+                STAR.OASISAPI.Data.SaveHolon(newHolon, true, ProviderType.EthereumOASIS); //  Only saves to Etherum.
 
                 STAR.OASISAPI.Data.LoadAllHolons(HolonType.All, ProviderType.Default); // Loads all parks from current default provider.
                 STAR.OASISAPI.Data.LoadAllHolons(HolonType.Park, ProviderType.All); // Loads all parks from all providers (load-balanced/fail over).

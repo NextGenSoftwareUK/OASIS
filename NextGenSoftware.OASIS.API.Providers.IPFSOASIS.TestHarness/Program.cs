@@ -15,8 +15,8 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS.TestHarness
             Console.WriteLine("NEXTGEN SOFTWARE IPFSOASIS TEST HARNESS V1.O");
             Console.WriteLine("");
 
-           // var ip = new IpfsClient();
-            IPFSOASIS ipfs = new IPFSOASIS("http://localhost:5001"); //TODO: Pass in valid host.
+            // var ip = new IpfsClient();
+            IPFSOASIS ipfs = new IPFSOASIS("http://localhost:5001", ""); //TODO: Pass in valid host.
             ipfs.ActivateProvider();
 
             //   var ci = await ip.FileSystem.AddTextAsync("hello world 2023");

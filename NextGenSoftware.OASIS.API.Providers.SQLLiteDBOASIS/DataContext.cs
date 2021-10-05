@@ -32,10 +32,10 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                 .WithOne()
                 .HasForeignKey(ob => ob.AvatarId);
             
-            modelBuilder.Entity<AvatarModel>()
-                .HasMany(avatar => avatar.ProviderKey)
-                .WithOne()
-                .HasForeignKey(ob => ob.OwnerId);
+            //modelBuilder.Entity<AvatarModel>()
+            //    .HasMany(avatar => avatar.ProviderKey)
+            //    .WithOne()
+            //    .HasForeignKey(ob => ob.OwnerId);
             
             modelBuilder.Entity<AvatarModel>()
                 .HasMany(avatar => avatar.MetaData)

@@ -53,10 +53,11 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces
         KarmaAkashicRecord RemoveKarmaFromAvatar(IAvatarDetail Avatar, KarmaTypeNegative karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc, string karmaSourceWebLink = null);
         Task<KarmaAkashicRecord> RemoveKarmaFromAvatarAsync(IAvatarDetail Avatar, KarmaTypeNegative karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc, string karmaSourceWebLink = null);
 
-        IHolon SaveHolon(IHolon holon);
-        Task<IHolon> SaveHolonAsync(IHolon holon);
-        IEnumerable<IHolon> SaveHolons(IEnumerable<IHolon> holons);
-        Task<IEnumerable<IHolon>> SaveHolonsAsync(IEnumerable<IHolon> holons);
+        //TODO: We need to migrate ALL OASIS methods to use the OASISResult Pattern ASAP! Thankyou! :)
+        OASISResult<IHolon> SaveHolon(IHolon holon, bool saveChildrenRecursive = true);
+        Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon, bool saveChildrenRecursive = true);
+        OASISResult<IEnumerable<IHolon>> SaveHolons(IEnumerable<IHolon> holons, bool saveChildrenRecursive = true);
+        Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons, bool saveChildrenRecursive = true);
         IHolon LoadHolon(Guid id);
         Task<IHolon> LoadHolonAsync(Guid id);
         IHolon LoadHolon(string providerKey);
