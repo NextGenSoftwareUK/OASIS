@@ -39,3 +39,6 @@ Then when we do a release, this file will be linked to the Swagger documentation
 - Fixed bug in SQLLiteOASIS Provider (null checkes for collections).
 
 ----------------------------------------------------------------------------------------------------------------------------
+0.18 ALPHA
+
+- Added Release History link to this doc on main Swagger text at the top of the OASIS API.
