@@ -15,7 +15,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"title\": \"Mr\",\r\n    \"firstName\": \"David\",\r\n    \"lastName\": \"Ellams\",\r\n    \"email\": \"davidellams@hotmail.com\",\r\n    \"password\": \"my-super-secret-password\",\r\n    \"confirmPassword\": \"my-super-secret-password\",\r\n    \"acceptTerms\": true,\r\n    \"AvatarType\": \"Wizard\"\r\n}",
+							"raw": "{\r\n    \"title\": \"Mr\",\r\n    \"firstName\": \"David\",\r\n    \"lastName\": \"Ellams\",\r\n    \"email\": \"davidellams@gmail.com\",\r\n    \"password\": \"my-super-secret-password\",\r\n    \"confirmPassword\": \"my-super-secret-password\",\r\n    \"acceptTerms\": true,\r\n    \"AvatarType\": \"Wizard\"\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -649,6 +649,15 @@
 								"{data}"
 							]
 						}
+					},
+					"response": []
+				},
+				{
+					"name": "New Request",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": null
 					},
 					"response": []
 				}
@@ -3532,6 +3541,207 @@
 								"api",
 								"avatar",
 								"LinkEOSIOAccountToAvatar"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Solana",
+			"item": [
+				{
+					"name": "Mint",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImY1ZGRmY2Y1LTVlOTMtNDlkNC1iOWQyLWM2NmJhNjA4NGJmMiIsIm5iZiI6MTYzMzQ1MDk1NiwiZXhwIjoxNjMzNDUxODU2LCJpYXQiOjE2MzM0NTA5NTZ9.m3y9SutT6kcJj1aT1AAMrnGpIkHBl45wvBlTtkZ6f3w",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"fromAccountIndex\": 0,\r\n  \"toAccountIndex\": 0,\r\n  \"memoText\": \"string\",\r\n  \"amount\": 0,\r\n  \"mintAccountIndex\": 0\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/api/solana/mint",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"solana",
+								"mint"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Exchange",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImY1ZGRmY2Y1LTVlOTMtNDlkNC1iOWQyLWM2NmJhNjA4NGJmMiIsIm5iZiI6MTYzMzQ1MDk1NiwiZXhwIjoxNjMzNDUxODU2LCJpYXQiOjE2MzM0NTA5NTZ9.m3y9SutT6kcJj1aT1AAMrnGpIkHBl45wvBlTtkZ6f3w",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"fromAccountIndex\": 0,\r\n  \"toAccountIndex\": 0,\r\n  \"memoText\": \"string\",\r\n  \"amount\": 0,\r\n  \"mintAccountIndex\": 0,\r\n  \"mintDecimals\": 0\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/api/solana/exchange",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"solana",
+								"exchange"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Send",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImY1ZGRmY2Y1LTVlOTMtNDlkNC1iOWQyLWM2NmJhNjA4NGJmMiIsIm5iZiI6MTYzMzQ1MDk1NiwiZXhwIjoxNjMzNDUxODU2LCJpYXQiOjE2MzM0NTA5NTZ9.m3y9SutT6kcJj1aT1AAMrnGpIkHBl45wvBlTtkZ6f3w",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"fromAccountIndex\": 0,\r\n  \"toAccountIndex\": 0,\r\n  \"memoText\": \"string\",\r\n  \"amount\": 0,\r\n  \"lampposts\": 0\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/api/solana/send",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"solana",
+								"send"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "GetNftMetaData",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImY1ZGRmY2Y1LTVlOTMtNDlkNC1iOWQyLWM2NmJhNjA4NGJmMiIsIm5iZiI6MTYzMzQ1MDk1NiwiZXhwIjoxNjMzNDUxODU2LCJpYXQiOjE2MzM0NTA5NTZ9.m3y9SutT6kcJj1aT1AAMrnGpIkHBl45wvBlTtkZ6f3w",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"ownerAccount\": 0,\r\n  \"mintSymbol\": \"string\",\r\n  \"mintToken\": \"string\",\r\n  \"mintName\": \"string\",\r\n  \"mintDecimal\": 0\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/api/solana/getnftmetadata",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"solana",
+								"getnftmetadata"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "GetNftWallet",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImY1ZGRmY2Y1LTVlOTMtNDlkNC1iOWQyLWM2NmJhNjA4NGJmMiIsIm5iZiI6MTYzMzQ1MDk1NiwiZXhwIjoxNjMzNDUxODU2LCJpYXQiOjE2MzM0NTA5NTZ9.m3y9SutT6kcJj1aT1AAMrnGpIkHBl45wvBlTtkZ6f3w",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"ownerAccount\": 0,\r\n  \"mintSymbol\": \"string\",\r\n  \"mintToken\": \"string\",\r\n  \"mintName\": \"string\",\r\n  \"mintDecimal\": 0\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/api/solana/getnftwallet",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"solana",
+								"getnftwallet"
 							]
 						}
 					},
