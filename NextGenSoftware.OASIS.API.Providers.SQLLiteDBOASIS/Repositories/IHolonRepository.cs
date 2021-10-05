@@ -4,13 +4,16 @@ using NextGenSoftware.OASIS.API.Core.Holons;
 using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
+using NextGenSoftware.OASIS.API.Core.Interfaces;
 
 namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Repositories{
 
     public interface IHolonRepository
     {
-        Holon Add(Holon holon);
-        Task<Holon> AddAsync(Holon holon);
+        OASISResult<IHolon> Add(IHolon holon);
+        Task<OASISResult<IHolon>> AddAsync(IHolon holon);
+        OASISResult<IHolon> Update(IHolon holon);
+        Task<OASISResult<IHolon>> UpdateAsync(IHolon holon);
         bool Delete(Guid id, bool softDelete = true);
         bool Delete(string providerKey, bool softDelete = true);
         Task<bool> DeleteAsync(Guid id, bool softDelete = true);
@@ -25,7 +28,5 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Repositories{
         Holon GetHolon(string providerKey);
         Task<Holon> GetHolonAsync(Guid id);
         Task<Holon> GetHolonAsync(string providerKey);
-        Holon Update(Holon holon);
-        Task<Holon> UpdateAsync(Holon holon);
     }
 }
