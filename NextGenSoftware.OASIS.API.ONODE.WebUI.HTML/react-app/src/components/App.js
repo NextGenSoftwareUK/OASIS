@@ -21,7 +21,7 @@ import Keymanagement from "../components/pages/providers/KeyManagement";
 
 import "../assets/scss/general.scss";
 import "../assets/scss/style.scss";
-import "../assets/scss/seeds.scss";
+import "../assets/scss/Seeds.scss";
 
 import axios from "axios";
 
@@ -163,7 +163,10 @@ class App extends React.Component {
               <Route exact path="/avatar/view" component={ViewAvatar} />
               <Route exact path="/avatar/upload" component={UploadAvatar} />
               <Route path="/provider/provider" component={Provider} />
-              <Route path="/provider/keymanagement" component={Keymanagement} />
+              <Route
+                path="/provider/key-management"
+                component={Keymanagement}
+              />
             </Switch>
           </div>
         </Router>
