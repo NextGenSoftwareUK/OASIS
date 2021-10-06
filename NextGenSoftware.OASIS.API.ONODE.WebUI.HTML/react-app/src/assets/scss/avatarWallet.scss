@@ -5,6 +5,10 @@
 		box-sizing: border-box;
 	}
 
+	h2 {
+		text-align: center;
+	}
+
 	&-heading {
 		text-align: center;
 	}
@@ -29,11 +33,12 @@
 
 		select {
 			width: 15rem;
+			margin-left: 1rem;
 		}
 	}
 
 	&-submit {
-		background-color: #1885c9;
+		background-color: #4440BC;
 		float: right;
 	}
 }

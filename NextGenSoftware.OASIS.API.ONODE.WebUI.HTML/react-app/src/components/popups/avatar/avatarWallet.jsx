@@ -8,6 +8,7 @@ import {login} from "../../../functions"
 
 
 import "../../../assets/scss/avatarWallet.scss"
+import "../../../assets/scss/popup.scss"
 
 class AvatarWallet extends React.Component {
 	constructor(props){
@@ -59,7 +60,7 @@ class AvatarWallet extends React.Component {
 
 	render() {
 		return (
-			<div className="popup-container">
+			<div className="popup">
 				<div className="avatarWallet">
 					<Link to="/" className="popup-cancel">
                         <span className="form-cross-icon">
@@ -81,11 +82,12 @@ class AvatarWallet extends React.Component {
 			                    		/>
 		                    		</div>
 		                    		<div className="avatarWallet-send">
+		                    			<h2>Send token to wallet</h2>
 		                    			<form className="avatarWallet-form">
 				                    		<div className="avatarWallet-formgroup">
 				                    			<label htmlFor="send">Send</label>
 				                    			<input type="text" id="send"/>
-				                    			<select className="payWithSeeds-select" style={{marginLeft: 0}}>
+				                    			<select className="payWithSeeds-select">
 				                    				<option value="ETH">ETH</option>
 				                    				<option value="EOS">EOS</option>
 				                    				<option value="SOL">SOL</option>
@@ -100,7 +102,7 @@ class AvatarWallet extends React.Component {
 				                    			</select>
 		                    				</div>
 
-		                    				<button className="avatarWallet-submit">Send</button>
+		                    				<button className="popup-submit-button">Send</button>
 		                    			</form>
 		                    		</div>
 		                    	</>
