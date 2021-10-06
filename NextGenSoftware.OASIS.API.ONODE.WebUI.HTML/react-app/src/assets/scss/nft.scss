@@ -1,0 +1,39 @@
+.nft-container.solana {  
+        font-size: 20px;
+        h2 {
+            margin-bottom: 20px;
+        }
+        p.single-form-row {
+            margin: 0 0 35px;
+            display: grid;
+            grid-template-columns: 100px 1fr;
+            &:last-child {
+                margin: 0;
+                float: right;
+            }
+            input{
+                height: 30px;
+            }
+            label {
+                min-width: 100px;
+                margin: 0;
+                font-size: 18px;
+                padding: 0 15px 0 0;
+            }
+            .custom-selectbox {
+                width: 100%;
+                font-size: 18px;
+            }
+            .send-button-container {
+                width: 100px;
+                background-color: #fff;
+                border-radius: 4px;
+                text-align: center;
+                height: 35px;
+            } 
+        }
+
+            
+        
+    
+}
