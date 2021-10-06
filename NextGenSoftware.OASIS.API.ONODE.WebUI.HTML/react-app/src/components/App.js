@@ -17,6 +17,7 @@ import OffChainManagement from "./popups/data-screen/OffChainManagement";
 import CrossChainManagement from "./popups/data-screen/CrossChainManagement";
 
 import ViewAvatar from "./popups/avatar/viewAvatar";
+import AvatarWallet from "./popups/avatar/avatarWallet";
 // import UploadAvatar from "../components/pages/avatar/uploadAvatar";
 // import Provider from "../components/pages/providers/Provider";
 // import Keymanagement from "../components/pages/providers/KeyManagement";
@@ -166,13 +167,14 @@ class App extends React.Component {
               <Route path="/send-invite" component={SendInvite} />
               <Route exact path="/karma" component={Karma} />
               <Route exact path="/avatar/view" component={ViewAvatar} />
+              <Route exact path="/avatar/wallet" component={AvatarWallet} />
 
-              <Route exact path="/avatar/upload" component={UploadAvatar} />
-              <Route path="/provider/provider" component={Provider} />
-              <Route
-                path="/provider/key-management"
-                component={Keymanagement}
-              />
+              {/* <Route exact path="/avatar/upload" component={UploadAvatar} /> */}
+              {/* <Route path="/provider/provider" component={Provider} /> */}
+              {/* <Route */}
+              {/*   path="/provider/key-management" */}
+              {/*   component={Keymanagement} */}
+              {/* /> */}
 
               {/* <Route exact path="/avatar/upload" component={UploadAvatar} /> */}
               {/* <Route path="/provider/provider" component={Provider} />
