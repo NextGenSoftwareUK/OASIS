@@ -20,6 +20,15 @@ class ViewAvatar extends React.Component {
 				{name: 'modified', title: 'Last Beamed In'},
 				{name: 'online', title: 'Online'},
 			],
+            columnWidth: [
+                {columnName: 'avatar', width: 220},
+                {columnName: 'level', width: 90},
+                {columnName: 'karma', width: 90},
+                {columnName: 'sex', width: 90},
+                {columnName: 'created', width: 150},
+                {columnName: 'modified', width: 150},
+                {columnName: 'online', width: 90}
+            ],
 			rows: [],
 			loading: true,
 			loggedIn: true
@@ -103,6 +112,7 @@ class ViewAvatar extends React.Component {
                             <ReactGrid
                                 rows={this.state.rows}
                                 columns={this.state.columns}
+                                columnWidths={this.state.columnWidth}
                             />
                         }
                      </>
