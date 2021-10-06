@@ -175,7 +175,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
             OASISResult<IAvatar> avatarResult = GetAvatar(id);
 
             if (!avatarResult.IsError)
-                result.Result = new AvatarImage(Encoding.ASCII.GetBytes(avatarResult.Result.Image2D));
+                result.Result = new AvatarImage()
+                {
+                    AvatarId = avatarResult.Result.Id,
+                    ImageBase64 = avatarResult.Result.Image2D
+                };
             else
             {
                 result.IsError = true;
@@ -191,8 +195,19 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
 
             try
             {
+                if (string.IsNullOrEmpty(userName))
+                {
+                    response.Message = "Username is empty, please speceify a valid username.";
+                    response.IsError = true;
+                    return response;
+                }
+                
                 var avatarResult = await AvatarManager.LoadAvatarByUsernameAsync(userName);
-                response.Result = new AvatarImage(Encoding.ASCII.GetBytes(avatarResult.Image2D));
+                response.Result = new AvatarImage()
+                {
+                    AvatarId = avatarResult.Id,
+                    ImageBase64 = avatarResult.Image2D
+                };
             }
             catch (Exception e)
             {
@@ -210,8 +225,19 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
 
             try
             {
+                if (string.IsNullOrEmpty(email))
+                {
+                    response.Message = "Email is empty, please speceify a valid email.";
+                    response.IsError = true;
+                    return response;
+                }
+                
                 var avatarResult = await AvatarManager.LoadAvatarByEmailAsync(email);
-                response.Result = new AvatarImage(Encoding.ASCII.GetBytes(avatarResult.Image2D));
+                response.Result = new AvatarImage()
+                {
+                    AvatarId = avatarResult.Id,
+                    ImageBase64 = avatarResult.Image2D
+                };
             }
             catch (Exception e)
             {
@@ -223,17 +249,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
             return response;
         }
 
-        public void Upload2DAvatarImage(Guid id, byte[] image)
+        public void Upload2DAvatarImage(AvatarImage image)
         {
-            if (id == Guid.Empty)
+            if (image.AvatarId == Guid.Empty)
                 return;
-
-            var image2d = Encoding.ASCII.GetString(image);
-            //var avatar = GetAvatarDetail(id);
-            var avatar = GetAvatar(id);
-            avatar.Result.Image2D = image2d;
-
-            //AvatarManager.SaveAvatarDetail(avatar);
+            var avatar = GetAvatar(image.AvatarId);
+            avatar.Result.Image2D = image.ImageBase64;
             AvatarManager.SaveAvatar(avatar.Result);
         }
 

@@ -76,12 +76,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 
         [Authorize]
         [HttpPost("Upload2DAvatarImage")]
-        public OASISResult<string> Upload2DAvatarImage(Guid id, byte[] avatarImage)
+        public OASISResult<string> Upload2DAvatarImage(AvatarImage avatarImage)
         {
             // users can get their own account and admins can get any account
-            if (id != Avatar.Id && Avatar.AvatarType.Value != AvatarType.Wizard)
+            if (avatarImage.AvatarId != Avatar.Id && Avatar.AvatarType.Value != AvatarType.Wizard)
                 return new() { Result = "Image not uploaded", Message = "Unauthorized", IsError = true };
-            _avatarService.Upload2DAvatarImage(id, avatarImage);
+            _avatarService.Upload2DAvatarImage(avatarImage);
             return new() { Result = "Image Uploaded", Message = "Success", IsError = false };
         }
 
