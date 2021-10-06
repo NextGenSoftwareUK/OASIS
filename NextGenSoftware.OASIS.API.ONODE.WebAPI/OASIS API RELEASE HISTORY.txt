@@ -39,3 +39,13 @@ Then when we do a release, this file will be linked to the Swagger documentation
 - Fixed bug in SQLLiteOASIS Provider (null checkes for collections).
 
 ----------------------------------------------------------------------------------------------------------------------------
+0.18 ALPHA
+
+- All routes in all controllers returns OASISResul
+- Added exception filter
+- GetOLANDPrice method to cargo and nft controllers
+- Added MoralisOASIS Provider
+- Added routes for getting UmaJSON data
+- Added route for getting avatar data with JWT token
+
+----------------------------------------------------------------------------------------------------------------------------

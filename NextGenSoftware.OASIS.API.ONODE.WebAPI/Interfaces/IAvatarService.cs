@@ -24,7 +24,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Interfaces
         OASISResult<AvatarImage> GetAvatarImageById(Guid id);
         Task<OASISResult<AvatarImage>> GetAvatarImageByUsername(string userName);
         Task<OASISResult<AvatarImage>> GetAvatarImageByEmail(string email);
-        void Upload2DAvatarImage(Guid id, byte[] image);
+        void Upload2DAvatarImage(AvatarImage avatarImage);
         IAvatar GetById(Guid id);
         Task<IAvatar> GetByUsername(string userName);
         Task<IAvatar> GetByEmail(string email);
