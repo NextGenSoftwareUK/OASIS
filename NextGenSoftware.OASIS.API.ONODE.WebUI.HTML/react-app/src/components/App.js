@@ -19,6 +19,7 @@ import Solana from "./popups/data-screen/Solana";
 // import Solana from "./popups/nft/Solana";
 
 import ViewAvatar from "./popups/avatar/viewAvatar";
+import AvatarWallet from "./popups/avatar/avatarWallet";
 // import UploadAvatar from "../components/pages/avatar/uploadAvatar";
 // import Provider from "../components/pages/providers/Provider";
 // import Keymanagement from "../components/pages/providers/KeyManagement";
@@ -156,6 +157,7 @@ class App extends React.Component {
                             showSidebar={this.state.showSidebar}
                             toggleSidebar={this.toggleSidebar}
                         /> */}
+<<<<<<< HEAD
                         <Sidebar
                             showSidebar={this.state.showSidebar}
                             toggleSidebar={this.toggleSidebar}
@@ -189,6 +191,41 @@ class App extends React.Component {
                 path="/provider/key-management"
                 component={Keymanagement}
               /> */}
+=======
+            <Sidebar
+              showSidebar={this.state.showSidebar}
+              toggleSidebar={this.toggleSidebar}
+              toggleDataScreenPopup={this.toggleDataScreenPopup}
+            />
+          </header>
+
+          <div className="content-container">
+            <Switch>
+              <Route exact path="/home" component={Home} />
+
+              <Route path="/pay-with-seeds" component={PayWithSeeds} />
+              <Route path="/donateWithSeeds">
+                <PayWithSeeds seedType="Donate" />
+              </Route>
+              <Route path="/rewardWithSeeds">
+                <PayWithSeeds seedType="Reward" />
+              </Route>
+              <Route
+                path="/accept-invite-to-join-seeds"
+                component={AcceptInvite}
+              />
+              <Route path="/send-invite" component={SendInvite} />
+              <Route exact path="/karma" component={Karma} />
+              <Route exact path="/avatar/view" component={ViewAvatar} />
+              <Route exact path="/avatar/wallet" component={AvatarWallet} />
+
+              {/* <Route exact path="/avatar/upload" component={UploadAvatar} /> */}
+              {/* <Route path="/provider/provider" component={Provider} /> */}
+              {/* <Route */}
+              {/*   path="/provider/key-management" */}
+              {/*   component={Keymanagement} */}
+              {/* /> */}
+>>>>>>> a2c4fe6dcf8c16707cd99e600c038c2cbb15db8c
 
                             {/* <Route exact path="/avatar/upload" component={UploadAvatar} />
               <Route path="/provider/provider" component={Provider} />
