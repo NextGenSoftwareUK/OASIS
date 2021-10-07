@@ -36,14 +36,15 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
                         nftTransaction.TransactionResult = cargoPurchaseResponse.Result.TransactionHash;
                         break;
                     case NftProvider.Solana:
-                        var exchangeTokensResponse = await _solanaService.ExchangeTokens(request.SolanaExchange);
-                        if (exchangeTokensResponse.Code != 200)
+                        var exchangeResult = await _solanaService.ExchangeTokens(request.SolanaExchange);
+                        if (exchangeResult.IsError)
                         {
                             response.IsError = true;
-                            response.Message = exchangeTokensResponse.Message;
+                            response.Message = exchangeResult.Message;
                             return response;
                         }
-                        nftTransaction.TransactionResult = exchangeTokensResponse.Payload.TransactionResult;
+
+                        nftTransaction.TransactionResult = exchangeResult.Result.TransactionHash;
                         break;
                 }
                 response.IsError = false;
