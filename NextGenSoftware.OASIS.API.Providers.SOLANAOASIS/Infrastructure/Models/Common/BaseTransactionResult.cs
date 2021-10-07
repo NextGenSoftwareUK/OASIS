@@ -2,11 +2,11 @@
 {
     public abstract class BaseTransactionResult
     {
-        public string TransactionResult { get; set; }
+        public string TransactionHash { get; set; }
 
-        public BaseTransactionResult(string transactionResult)
+        public BaseTransactionResult(string transactionHash)
         {
-            TransactionResult = transactionResult;
+            TransactionHash = transactionHash;
         }
 
         public BaseTransactionResult()
