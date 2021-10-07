@@ -2,8 +2,8 @@
 {
     public abstract class BaseExchangeRequest
     {
-        public int FromAccountIndex { get; set; }
-        public int ToAccountIndex { get; set; }
+        public BaseAccountRequest FromAccount { get; set; }
+        public BaseAccountRequest ToAccount { get; set; }
         public string MemoText { get; set; }
         public ulong Amount { get; set; }
     }
