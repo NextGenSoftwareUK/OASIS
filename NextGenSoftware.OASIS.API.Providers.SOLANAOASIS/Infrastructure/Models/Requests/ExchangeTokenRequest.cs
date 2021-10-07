@@ -4,6 +4,6 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Models.
 {
     public sealed class ExchangeTokenRequest : BaseExchangeRequest
     {
-        public string MintAccountAddress { get; set; }
+        public BaseAccountRequest MintAccount { get; set; }
     }
 }

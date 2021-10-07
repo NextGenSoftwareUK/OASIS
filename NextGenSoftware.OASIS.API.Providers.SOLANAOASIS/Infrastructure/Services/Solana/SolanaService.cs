@@ -13,6 +13,7 @@ using Solnet.Programs;
 using Solnet.Rpc;
 using Solnet.Rpc.Builders;
 using Solnet.Wallet;
+using Solnet.Wallet.Bip39;
 
 namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Services.Solana
 {
@@ -30,9 +31,9 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Service
         {
             var response = new OASISResult<ExchangeTokenResult>();
             var blockHash = await _rpcClient.GetRecentBlockHashAsync();
-            var mintAccount = new PublicKey(exchangeTokenRequest.MintAccountAddress);
-            var fromAccount = new PublicKey(exchangeTokenRequest.FromAccount);
-            var toAccount = new PublicKey(exchangeTokenRequest.ToAccount);
+            var mintAccount = exchangeTokenRequest.MintAccount.GetAccountWallet();
+            var fromAccount = exchangeTokenRequest.FromAccount.GetAccountWallet();
+            var toAccount = exchangeTokenRequest.ToAccount.GetAccountWallet();
 
             var tx = new TransactionBuilder().
                 SetRecentBlockHash(blockHash.Result.Value.Blockhash).
@@ -54,6 +55,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Service
             {
                 response.IsError = true;
                 response.Message = sendTransactionResult.Reason;
+                return response;
             }
             response.Result = new ExchangeTokenResult(sendTransactionResult.Result);
             return response;
@@ -67,23 +69,9 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Service
             var minBalanceForExemptionAcc = (await _rpcClient.GetMinimumBalanceForRentExemptionAsync(TokenProgram.TokenAccountDataSize)).Result;
             var minBalanceForExemptionMint =(await _rpcClient.GetMinimumBalanceForRentExemptionAsync(TokenProgram.MintAccountDataSize)).Result;
 
-            var mintAccount = new PublicKey("GsguXojeGATpZGW8VNfW8qQCBVodbW2qGS8bUEbdGZfv");
-            var ownerAccount = new PublicKey("GsguXojeGATpZGW8VNfW8qQCBVodbW2qGS8bUEbdGZfv");
-            var initialAccount = new PublicKey("GsguXojeGATpZGW8VNfW8qQCBVodbW2qGS8bUEbdGZfv");
-
-            var account = new Account("4uhp5e78YwJwVAQnH3tsxZZYMrsdEX9fMKb5iCEC9mhw6mVusuzsCoMm93KEmJpurHVqARXV119yjX1gH2nh9w1r", ownerAccount.Key);
-            
-            
-            
-            var recentHash = await _rpcClient.GetRecentBlockHashAsync();
-
-            var txs = new TransactionBuilder().AddInstruction(MemoProgram.NewMemoV2("Hello, From Here")).SetFeePayer(_wallet.Account)
-                .SetRecentBlockHash(recentHash.Result.Value.Blockhash).Build(_wallet.Account);
-
-            var txHash = await _rpcClient.SendTransactionAsync(txs);
-            
-            
-            
+            var mintAccount = mintNftRequest.MintAccount.GetAccountWallet();
+            var ownerAccount = mintNftRequest.FromAccount.GetAccountWallet();
+            var initialAccount = mintNftRequest.ToAccount.GetAccountWallet();
             
             var tx = new TransactionBuilder().
                 SetRecentBlockHash(blockHash.Result.Value.Blockhash).
@@ -115,13 +103,14 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Service
                     mintNftRequest.Amount,
                     ownerAccount)).
                 AddInstruction(MemoProgram.NewMemo(initialAccount, mintNftRequest.MemoText)).
-                Build(account);
+                Build(ownerAccount);
             
             var sendTransactionResult = await _rpcClient.SimulateTransactionAsync(tx);
             if (!sendTransactionResult.WasSuccessful)
             {
                 response.IsError = true;
                 response.Message = sendTransactionResult.Reason;
+                return response;
             }
             response.Result = new MintNftResult(sendTransactionResult.Result.Value.Error.InstructionError.BorshIoError);
             return response;
@@ -130,8 +119,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Service
         public async Task<OASISResult<SendTransactionResult>> SendTransaction(SendTransactionRequest sendTransactionRequest)
         {
             var response = new OASISResult<SendTransactionResult>();
-            var fromAccount = new PublicKey(sendTransactionRequest.FromAccount);
-            var toAccount = new PublicKey(sendTransactionRequest.ToAccount);
+            var fromAccount = sendTransactionRequest.FromAccount.GetAccountWallet();
+            var toAccount = sendTransactionRequest.ToAccount.GetAccountWallet();
             var blockHash = await _rpcClient.GetRecentBlockHashAsync();
 
             var tx = new TransactionBuilder().
@@ -146,6 +135,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Service
             {
                 response.IsError = true;
                 response.Message = sendTransactionResult.Reason;
+                return response;
             }
             response.Result = new SendTransactionResult(sendTransactionResult.Result);
             return response;
@@ -156,8 +146,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Service
             var response = new OASISResult<GetNftMetadataResult>();
             try
             {
-                var ownerAccount = new Account(getNftMetadataRequest.OwnerAccount.PrivateKey, 
-                    getNftMetadataRequest.OwnerAccount.PublicKey);
+                var ownerAccount = getNftMetadataRequest.OwnerAccount.GetAccountWallet();
 
                 var tokens = new TokenMintResolver();
                 tokens.Add(new TokenDef(getNftMetadataRequest.MintToken, getNftMetadataRequest.MintName, getNftMetadataRequest.MintSymbol, getNftMetadataRequest.MintDecimal));
@@ -186,8 +175,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Service
             var response = new OASISResult<GetNftWalletResult>();
             try
             {
-                var ownerAccount = new PublicKey(getNftWalletRequest.OwnerAccount);
-
+                var ownerAccount = getNftWalletRequest.OwnerAccount.GetAccountWallet();
+                
                 var tokens = new TokenMintResolver();
                 tokens.Add(new TokenDef(getNftWalletRequest.MintToken, getNftWalletRequest.MintName, getNftWalletRequest.MintSymbol, getNftWalletRequest.MintDecimal));
 
@@ -211,7 +200,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Service
 
         public void InitializeService()
         {
-            _wallet = new Wallet("pattern vessel trade prosper cube okay dust pet primary during captain endless");
+            _wallet = new Wallet(new Mnemonic(WordList.English, WordCount.Twelve));
             _rpcClient = ClientFactory.GetClient(Cluster.MainNet);
         }
     }
