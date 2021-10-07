@@ -22,5 +22,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         {
             return await _nftService.CreateNftTransaction(request);
         }
+
+        [HttpGet]
+        [Route("GetOLANDPrice")]
+        public async Task<OASISResult<int>> GetOLANDPrice(int count, string couponCode)
+        {
+            return await _nftService.GetOlandPrice(count, couponCode);
+        }
     }
 }

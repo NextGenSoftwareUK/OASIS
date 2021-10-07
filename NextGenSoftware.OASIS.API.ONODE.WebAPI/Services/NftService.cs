@@ -57,5 +57,21 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
             }
             return response;
         }
+
+        public async Task<OASISResult<int>> GetOlandPrice(int count, string couponCode)
+        {
+            var response = new OASISResult<int>();
+            try
+            {
+                response.Result = 10;
+            }
+            catch (Exception e)
+            {
+                response.IsError = true;
+                response.Message = e.Message;
+                response.Exception = e;
+            }
+            return response;
+        }
     }
 }
