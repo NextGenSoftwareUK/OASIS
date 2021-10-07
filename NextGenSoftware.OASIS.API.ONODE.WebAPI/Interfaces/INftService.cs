@@ -8,6 +8,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Interfaces
     public interface INftService
     {
         Task<OASISResult<NftTransactionRespone>> CreateNftTransaction(CreateNftTransactionRequest request);
+        Task<OASISResult<int>> GetOlandPrice(int count, string couponCode);
     }
 
     public enum NftProvider
