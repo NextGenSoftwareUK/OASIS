@@ -1,7 +1,7 @@
 import axios from "axios";
 import { Component } from "react";
 import {Link} from "react-router-dom"
-import "../../../assets/scss/karma.scss";
+import "../../../assets/scss/Karma.scss";
 import { extractKarma, login } from "../../../functions";
 import ReactGrid from "../../ReactGrid";
 import "../../../assets/scss/popup.scss"
