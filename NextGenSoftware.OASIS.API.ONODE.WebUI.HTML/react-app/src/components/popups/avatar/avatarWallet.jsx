@@ -81,30 +81,7 @@ class AvatarWallet extends React.Component {
 			                    			columnWidths={this.state.columnWidth}
 			                    		/>
 		                    		</div>
-		                    		<div className="avatarWallet-send">
-		                    			<h2>Send token to wallet</h2>
-		                    			<form className="avatarWallet-form">
-				                    		<div className="avatarWallet-formgroup">
-				                    			<label htmlFor="send">Send</label>
-				                    			<input type="text" id="send"/>
-				                    			<select className="payWithSeeds-select">
-				                    				<option value="ETH">ETH</option>
-				                    				<option value="EOS">EOS</option>
-				                    				<option value="SOL">SOL</option>
-				                    			</select>
-		                    				</div>
-		                    				<div className="avatarWallet-formgroup">
-				                    			<label htmlFor="wallet">To</label>
-				                    			<input type="text" id="wallet"/>
-				                    			<select className="payWithSeeds-select">
-				                    				<option value="avatar">Avatar</option>
-				                    				<option value="address">Wallet Address</option>
-				                    			</select>
-		                    				</div>
-
-		                    				<button className="popup-submit-button">Send</button>
-		                    			</form>
-		                    		</div>
+		                    		
 		                    	</>
 		                    }
 		                    
