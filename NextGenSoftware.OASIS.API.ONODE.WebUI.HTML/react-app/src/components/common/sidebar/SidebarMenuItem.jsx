@@ -22,7 +22,7 @@ class SidebarMenuItem extends React.Component {
                     <ul className={`sidebar-inner-menu ${this.state.show ? 'show' : ''}`} id={item.id}>
                         {
                             item.subMenu.map((subItem, index) =>
-                                <li key={index} onClick={() => this.props.toggleDataScreenPopup(subItem.popupName)}>
+                                <li key={index} onClick={() => this.props.toggleScreenPopup(item.name, subItem.popupName)}>
                                     <a>{subItem.name}</a>
                                 </li>
                             )

@@ -262,10 +262,6 @@ const SidebarData = [
                 id: 19,
                 name: "Neo4j",
             },
-            {
-                id: 20,
-                name: "Solana",
-            },
         ],
     },
     {
@@ -275,7 +271,8 @@ const SidebarData = [
             {
                 id: 1,
                 name: "Solana",
-                popupName:"solana"
+                popupName: 'solana'
+                
             }
         ],
     },

@@ -38,17 +38,22 @@ class App extends React.Component {
         showSignup: false,
         user: null,
 
-        dataScreen: {
-            loadData: false,
-            sendData: false,
-            manageData: false,
-            offChainManagement: false,
-            crossChainManagement: false,
-            solana: false
-        },
-        nft: {
-            solana: false    
-        },
+        sidebarMenuOption: [
+            {
+                data: {
+                    loadData: false,
+                    sendData: false,
+                    manageData: false,
+                    offChainManagement: false,
+                    crossChainManagement: false
+                }
+            },
+            {
+                nft: {
+                    solana: false
+                }
+            }
+        ],
     };
 
     componentDidMount() {
@@ -122,22 +127,18 @@ class App extends React.Component {
             });
     };
 
-    toggleDataScreenPopup = (name) => {
-        let dataScreen = { ...this.state.dataScreen };
-        dataScreen[name] = !dataScreen[name];
+    toggleScreenPopup = (menuOption, menuName) => {
+        let sidebarMenuOption = [...this.state.sidebarMenuOption];
+
+        sidebarMenuOption.map((item) => {
+            if(item[menuOption]) {
+                item[menuOption][menuName] = !item[menuOption][menuName];
+            }
+        })
 
         this.setState({
-            dataScreen,
-        });
-    };
-
-    toggleNftPopup = (name) => {
-        let nft = { ...this.state.nft };
-        nft[name] = !nft[name];
-
-        this.setState({
-            nft,
-        });
+            sidebarMenuOption
+        })
     };
 
     render() {
@@ -160,8 +161,7 @@ class App extends React.Component {
                         <Sidebar
                             showSidebar={this.state.showSidebar}
                             toggleSidebar={this.toggleSidebar}
-                            toggleDataScreenPopup={this.toggleDataScreenPopup}
-                            toggleNftPopup={this.toggleNftPopup} 
+                            toggleScreenPopup={this.toggleScreenPopup}
                         />
                     </header>
 
@@ -213,35 +213,30 @@ class App extends React.Component {
 
                 {/* ========== DATA SCREEN POPUPS START ========== */}
                 <AddData
-                    show={this.state.dataScreen.sendData}
-                    hide={this.toggleDataScreenPopup}
+                    show={this.state.sidebarMenuOption[0].data.sendData}
+                    hide={this.toggleScreenPopup}
                 />
 
                 <LoadData
-                    show={this.state.dataScreen.loadData}
-                    hide={this.toggleDataScreenPopup}
+                    show={this.state.sidebarMenuOption[0].data.loadData}
+                    hide={this.toggleScreenPopup}
                 />
 
                 <OffChainManagement
-                    show={this.state.dataScreen.offChainManagement}
-                    hide={this.toggleDataScreenPopup}
+                    show={this.state.sidebarMenuOption[0].data.offChainManagement}
+                    hide={this.toggleScreenPopup}
                 />
 
                 <CrossChainManagement
-                    show={this.state.dataScreen.crossChainManagement}
-                    hide={this.toggleDataScreenPopup}
-                />
-
-                 <Solana
-                    show={this.state.dataScreen.solana}
-                    hide={this.toggleDataScreenPopup}
+                    show={this.state.sidebarMenuOption[0].data.crossChainManagement}
+                    hide={this.toggleScreenPopup}
                 />
                 {/* ========== DATA SCREEN POPUPS END ========== */}
 
                 {/* ========== NFT POPUPS START  =========== */}
                 <Solana
-                    show={this.state.nft.solana}
-                    hide={this.toggleNftPopup}
+                    show={this.state.sidebarMenuOption[1].nft.solana}
+                    hide={this.toggleScreenPopup}
                 />
                 {/* ========== NFT POPUPS END  =========== */}
 

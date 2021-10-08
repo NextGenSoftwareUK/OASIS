@@ -2,6 +2,7 @@
         font-size: 20px;
         h2 {
             margin-bottom: 20px;
+            font-size: 22px;
         }
         p.single-form-row {
             margin: 0 0 35px;
@@ -20,7 +21,7 @@
                 font-size: 17px;
                 padding: 0 15px 0 0;
             }
-            textarea {
+            textarea, .custom-selectbox  {
                 border-radius: 5px;
                 border: 1px solid #909092;
                 background-color: transparent;
@@ -28,13 +29,9 @@
             }
             .have-selectbox {
                 .custom-selectbox {
-                    border: 1px solid #909092;
                     padding: 0.25rem 1rem;
-                    border-radius: 5px;
-                    color: #fff;
                     width: 100%;
                     font-size: 18px;
-                    background-color: transparent;
                     height: 40px;
                     option{
                         color: #000;

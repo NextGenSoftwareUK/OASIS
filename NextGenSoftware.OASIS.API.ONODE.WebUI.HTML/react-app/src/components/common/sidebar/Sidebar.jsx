@@ -19,8 +19,7 @@ class Sidebar extends React.Component {
                                 key={index}
                                 item={item}
                                 hideSideNav={this.props.toggleSidebar}
-                                toggleDataScreenPopup={this.props.toggleDataScreenPopup}
-                                toggleNftPopup={this.props.toggleNftPopup} 
+                                toggleScreenPopup={this.props.toggleScreenPopup}
                             />
                         )
                     }

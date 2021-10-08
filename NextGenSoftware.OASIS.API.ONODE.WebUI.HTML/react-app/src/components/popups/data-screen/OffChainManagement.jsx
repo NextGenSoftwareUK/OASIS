@@ -73,12 +73,12 @@ class OffChainManagement extends React.Component {
           centered
           className="custom-modal custom-popup-component"
           show={show}
-          onHide={() => hide("offChainManagement")}
+          onHide={() => hide("data", "offChainManagement")}
         >
           <Modal.Body>
             <span
               className="form-cross-icon"
-              onClick={() => hide("offChainManagement")}
+              onClick={() => hide("data", "offChainManagement")}
             >
               <i className="fa fa-times"></i>
             </span>
