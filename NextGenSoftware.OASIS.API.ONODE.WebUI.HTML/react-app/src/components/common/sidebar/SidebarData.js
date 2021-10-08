@@ -95,11 +95,6 @@ const SidebarData = [
                 id: 6,
                 name: "Search Data",
             },
-            {
-                id: 7,
-                name: "Solana",
-                popupName: 'solana'
-            }
         ],
     },
     {
@@ -156,11 +151,7 @@ const SidebarData = [
                         id: 6,
                         name: "Search Data",
                     },
-                    {
-                        id: 7,
-                        name: "Solana",
-                        popupName: "solana"
-                    }
+                  
                 ]
             },
             {
@@ -284,6 +275,7 @@ const SidebarData = [
             {
                 id: 1,
                 name: "Solana",
+                popupName:"solana"
             }
         ],
     },
