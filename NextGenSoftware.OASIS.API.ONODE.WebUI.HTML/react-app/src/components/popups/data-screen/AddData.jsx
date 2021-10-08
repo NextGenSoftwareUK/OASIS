@@ -14,10 +14,10 @@ class AddData extends React.Component {
                     centered 
                     className="custom-modal custom-popup-component" 
                     show={show} 
-                    onHide={() => hide('sendData')}
+                    onHide={() => hide('data','sendData')}
                 >
                     <Modal.Body>
-                        <span className="form-cross-icon" onClick={() => hide('sendData')}>
+                        <span className="form-cross-icon" onClick={() => hide('data', 'sendData')}>
                             <i className="fa fa-times"></i>
                         </span>
 
