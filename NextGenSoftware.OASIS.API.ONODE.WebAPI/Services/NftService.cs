@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Interfaces;
@@ -10,6 +11,36 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
     {
         private readonly ISolanaService _solanaService;
         private readonly ICargoService _cargoService;
+
+        private const int OlandUnitPrice = 17;
+
+        /// <summary>
+        /// Key: OLAND Count
+        /// Value: Discount Amount
+        /// </summary>
+        private readonly Dictionary<int, int> OlandByCountDiscount = new Dictionary<int, int>()
+        {
+            { 5, 5 },
+            { 10, 10 },
+            { 20, 15 },
+            { 25, 20 },
+            { 50, 30 },
+            { 100, 35 },
+            { 200, 50 },
+            { 400, 60 },
+            { 500, 65 },
+            { 800, 70 },
+            { 1600, 100 },
+            { 3200, 400 },
+            { 6400, 500 },
+            { 12800, 600 },
+            { 25600, 700 },
+            { 51200, 800 },
+            { 102400, 800 },
+            { 204800, 900 },
+            { 409600, 1000 },
+            { 819200, 1100 },
+        };
         
         public NftService(ISolanaService solanaService, ICargoService cargoService)
         {
@@ -63,7 +94,23 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
             var response = new OASISResult<int>();
             try
             {
-                response.Result = 10;
+                if (count <= 0)
+                {
+                    response.IsError = true;
+                    response.Message = "Count property need to be greater then zero!";
+                    return response;
+                }
+                
+                var priceResult = OlandUnitPrice * count;
+
+                if (OlandByCountDiscount.TryGetValue(count, out int olandByCountDiscount))
+                {
+                    response.Result = priceResult - olandByCountDiscount;
+                }
+                else
+                {
+                    response.Result = priceResult;
+                }
             }
             catch (Exception e)
             {
