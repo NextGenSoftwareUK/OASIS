@@ -9,6 +9,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Interfaces
     {
         Task<OASISResult<NftTransactionRespone>> CreateNftTransaction(CreateNftTransactionRequest request);
         Task<OASISResult<int>> GetOlandPrice(int count, string couponCode);
+        Task<OASISResult<PurchaseOlandResponse>> PurchaseOland(PurchaseOlandRequest request);
     }
 
     public enum NftProvider
@@ -27,5 +28,18 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Interfaces
     public class NftTransactionRespone
     {
         public string TransactionResult { get; set; }
+    }
+
+    public class PurchaseOlandResponse
+    {
+        public string PurchaseResult { get; set; }
+    }
+
+    public class PurchaseOlandRequest
+    {
+        public string WalletAddress { get; set; }
+        public string AvatarUsername { get; set; }
+        public string AvatarId { get; set; }
+        public string Tiles { get; set; }
     }
 }
