@@ -14,10 +14,10 @@ class CrossChainManagement extends React.Component {
                     centered 
                     className="custom-modal custom-popup-component" 
                     show={show} 
-                    onHide={() => hide('crossChainManagement')}
+                    onHide={() => hide('data', 'crossChainManagement')}
                 >
                     <Modal.Body>
-                        <span className="form-cross-icon" onClick={() => hide('crossChainManagement')}>
+                        <span className="form-cross-icon" onClick={() => hide('data', 'crossChainManagement')}>
                             <i className="fa fa-times"></i>
                         </span>
 
