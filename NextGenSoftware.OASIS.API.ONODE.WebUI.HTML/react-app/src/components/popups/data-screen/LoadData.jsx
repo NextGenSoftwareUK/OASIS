@@ -79,10 +79,10 @@ class LoadData extends React.Component {
                     className="custom-modal custom-popup-component light-custom-popup" 
                     show={show}
                     dialogClassName="modal-90w"
-                    onHide={() => hide('loadData')}
+                    onHide={() => hide('data', 'loadData')}
                 >
                     <Modal.Body>
-                        <span className="form-cross-icon" onClick={() => hide('loadData')}>
+                        <span className="form-cross-icon" onClick={() => hide('data', 'loadData')}>
                             <i className="fa fa-times"></i>
                         </span>
 

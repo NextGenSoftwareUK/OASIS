@@ -14,10 +14,10 @@ class Solana extends React.Component {
                     centered 
                     className="custom-modal custom-popup-component" 
                     show={show} 
-                    onHide={() => hide('solana')}
+                    onHide={() => hide('nft', 'solana')}
                 >
                     <Modal.Body>
-                        <span className="form-cross-icon" onClick={() => hide('solana')}>
+                        <span className="form-cross-icon" onClick={() => hide('nft', 'solana')}>
                             <i className="fa fa-times"></i>
                         </span>
 
