@@ -19,6 +19,7 @@ import Solana from "./popups/nft/Solana";
 
 import ViewAvatar from "./popups/avatar/viewAvatar";
 import AvatarWallet from "./popups/avatar/avatarWallet";
+import Message from "./popups/messages/Message";
 // import UploadAvatar from "../components/pages/avatar/uploadAvatar";
 // import Provider from "../components/pages/providers/Provider";
 // import Keymanagement from "../components/pages/providers/KeyManagement";
