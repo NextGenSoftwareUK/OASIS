@@ -15,7 +15,6 @@ import AddData from "./popups/data-screen/AddData";
 import LoadData from "./popups/data-screen/LoadData";
 import OffChainManagement from "./popups/data-screen/OffChainManagement";
 import CrossChainManagement from "./popups/data-screen/CrossChainManagement";
-// import Solana from "./popups/data-screen/Solana";
 import Solana from "./popups/nft/Solana";
 
 import ViewAvatar from "./popups/avatar/viewAvatar";
