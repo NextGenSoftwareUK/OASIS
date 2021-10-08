@@ -15,8 +15,8 @@ import AddData from "./popups/data-screen/AddData";
 import LoadData from "./popups/data-screen/LoadData";
 import OffChainManagement from "./popups/data-screen/OffChainManagement";
 import CrossChainManagement from "./popups/data-screen/CrossChainManagement";
-import Solana from "./popups/data-screen/Solana";
-// import Solana from "./popups/nft/Solana";
+// import Solana from "./popups/data-screen/Solana";
+import Solana from "./popups/nft/Solana";
 
 import ViewAvatar from "./popups/avatar/viewAvatar";
 import AvatarWallet from "./popups/avatar/avatarWallet";
@@ -46,9 +46,9 @@ class App extends React.Component {
             crossChainManagement: false,
             solana: false
         },
-        // nft: {
-            
-        // },
+        nft: {
+            solana: false    
+        },
     };
 
     componentDidMount() {
@@ -131,14 +131,14 @@ class App extends React.Component {
         });
     };
 
-    // toggleNftPopup = (name) => {
-    //     let nft = { ...this.state.nft };
-    //     nft[name] = !nft[name];
+    toggleNftPopup = (name) => {
+        let nft = { ...this.state.nft };
+        nft[name] = !nft[name];
 
-    //     this.setState({
-    //         nft,
-    //     });
-    // };
+        this.setState({
+            nft,
+        });
+    };
 
     render() {
         return (
@@ -161,7 +161,7 @@ class App extends React.Component {
                             showSidebar={this.state.showSidebar}
                             toggleSidebar={this.toggleSidebar}
                             toggleDataScreenPopup={this.toggleDataScreenPopup}
-                            // toggleNftPopup={this.toggleNftPopup} 
+                            toggleNftPopup={this.toggleNftPopup} 
                         />
                     </header>
 
@@ -239,10 +239,10 @@ class App extends React.Component {
                 {/* ========== DATA SCREEN POPUPS END ========== */}
 
                 {/* ========== NFT POPUPS START  =========== */}
-                {/* <Solana
+                <Solana
                     show={this.state.nft.solana}
                     hide={this.toggleNftPopup}
-                /> */}
+                />
                 {/* ========== NFT POPUPS END  =========== */}
 
             </div>
