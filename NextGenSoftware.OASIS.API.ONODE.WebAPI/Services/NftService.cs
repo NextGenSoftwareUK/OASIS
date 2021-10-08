@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core.Helpers;
+using NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Interfaces;
 using NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Services.Solana;
 
@@ -111,6 +112,22 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
                 {
                     response.Result = priceResult;
                 }
+            }
+            catch (Exception e)
+            {
+                response.IsError = true;
+                response.Message = e.Message;
+                response.Exception = e;
+            }
+            return response;
+        }
+
+        public async Task<OASISResult<PurchaseOlandResponse>> PurchaseOland(PurchaseOlandRequest request)
+        {
+            var response = new OASISResult<PurchaseOlandResponse>();
+            try
+            {
+                
             }
             catch (Exception e)
             {

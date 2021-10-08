@@ -44,8 +44,10 @@ Then when we do a release, this file will be linked to the Swagger documentation
 - All routes in all controllers returns OASISResul
 - Added exception filter
 - GetOLANDPrice method to cargo and nft controllers
+- PurchaseOLAND route added to nft controller
 - Added MoralisOASIS Provider
 - Added routes for getting UmaJSON data
 - Added route for getting avatar data with JWT token
+
 
 ----------------------------------------------------------------------------------------------------------------------------
