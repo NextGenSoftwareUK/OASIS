@@ -48,6 +48,6 @@ Then when we do a release, this file will be linked to the Swagger documentation
 - Added MoralisOASIS Provider
 - Added routes for getting UmaJSON data
 - Added route for getting avatar data with JWT token
-
+- Added Release History link to this doc on main Swagger text at the top of the OASIS API.
 
 ----------------------------------------------------------------------------------------------------------------------------

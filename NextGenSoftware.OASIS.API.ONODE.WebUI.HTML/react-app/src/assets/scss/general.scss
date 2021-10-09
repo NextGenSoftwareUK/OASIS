@@ -154,6 +154,9 @@ input {
     cursor: pointer;
 }
 
+option{
+    color: #000;
+}
 .custom-form {
 	background-color: hsla(240, 8%, 12%, 0.8);
 	border-radius: 8px;
@@ -285,6 +288,6 @@ input {
         right: 10px;
         top: 50%;
         transform: translate(0, -50%);
-        color: #000;
+        color: #fff;
     }
 }

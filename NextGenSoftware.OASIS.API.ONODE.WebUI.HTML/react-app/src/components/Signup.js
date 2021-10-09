@@ -6,6 +6,7 @@ import ShowIcon from '../assets/images/visible-icon.svg';
 import HideIcon from '../assets/images/hidden-icon.svg';
 
 import Alert from './Alert';
+import { ToastContainer, toast } from "react-toastify";
 
 import { Modal } from 'react-bootstrap';
 import axios from "axios";
@@ -65,19 +66,22 @@ export default class Signup extends React.Component {
                 .then(response => {
                     console.log(response)
                     this.setState({ loading: false })
-                    this.setState({ alert: { type: 'success', text: response.data } });
+                    // this.setState({ alert: { type: 'success', text: response.data } });
                     // Remove alert after 5 sec
-                    setTimeout(() => this.setState({ alert: null }), 5000)
-                    console.log(this.state.alert)
+                    // setTimeout(() => this.setState({ alert: null }), 5000)
+                    // console.log(this.state.alert)
+                    toast.success("Success")
                 }).catch(error => {
                     console.error(error.response.data);
                     this.setState({ loading: false })
-                    this.setState({ alert: { type: 'error', text: error.response.data.title } })
-                    setTimeout(() => this.setState({ alert: null }), 5000)
+                    // this.setState({ alert: { type: 'error', text: error.response.data.title } })
+                    // setTimeout(() => this.setState({ alert: null }), 5000)
+                    toast.error("one or more validation is occur");
                 });
         } else {
             console.log('Password did not match');
-            alert('Password did not match');
+            // alert('Password did not match');
+               toast.error("password did not match")
         }
     }
 
@@ -86,7 +90,18 @@ export default class Signup extends React.Component {
         const { show, hide, change } = this.props;
 
         return (
-
+            <>
+            <ToastContainer
+            position="top-center"
+            autoClose={5000}
+            hideProgressBar={false}
+            newestOnTop={false}
+            closeOnClick
+            rtl={false}
+            pauseOnFocusLoss
+            draggable
+            pauseOnHover
+          />
             <Formik
                 initialValues={this.initialValues}
                 validationSchema={this.validationSchema}
@@ -190,6 +205,7 @@ export default class Signup extends React.Component {
                     </Modal>
                 )}
             </Formik>
+            </>
         )
     }
 

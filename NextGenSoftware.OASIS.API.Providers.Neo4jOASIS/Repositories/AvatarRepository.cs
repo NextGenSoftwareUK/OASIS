@@ -61,7 +61,7 @@
 //            throw new NotImplementedException();
 //        }
 
-       
+
 
 
 //        public Avatar GetAvatar(string username)
@@ -111,7 +111,7 @@
 //        }
 
 
-    
+
 
 //        public Task<Avatar> GetAvatarAsync(string username)
 //        {
@@ -156,7 +156,7 @@
 //            {
 //                AvatarModel avatarModel = new AvatarModel(avatar);
 //                dataBase.Update(avatarModel);
- 
+
 //            }
 //            catch (Exception ex)
 //            {

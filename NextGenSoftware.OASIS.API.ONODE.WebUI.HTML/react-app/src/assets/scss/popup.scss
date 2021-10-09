@@ -1,0 +1,62 @@
+.popup {
+    max-width: 70%;
+    min-height: 70vh;
+    color: #fff;
+    margin: 0 auto;
+    background: rgba(28, 28, 33, 0.8);
+    padding: 2rem;
+    h1 {
+        font-weight: 400;
+        font-size: 2rem;
+        text-align: center;
+        margin-bottom: 3rem;
+        @media (max-width: 550px) {
+            font-size: 1.5rem;
+        }
+    }
+    input {
+        border: 1px solid #909092;
+        font-size: 1.15rem;
+        padding: 0.25rem 1rem;
+        border-radius: 5px;
+        color: #fff;
+        // background-color: #fff;
+    }
+    label {
+        color: #fff;
+        padding: 0.25rem 1rem;
+    }
+    .popup {
+        background-color: rgba(28, 28, 33, 0.8);
+        width: 500px;
+        padding: 2rem;
+        border-radius: 1rem;
+        @media (max-width: 550px) {
+            width: 100vw;
+            height: 100vh;
+        }
+    }
+    .popup-cancel{
+        color: #fff;
+        font-size: 1.5rem;
+        width: max-content;
+        transition: all 0.1s ease-in;
+        float: right;
+        &:hover{
+            color: red;
+        }
+    }
+    .popup-submit-button{
+        margin-top: 2rem;
+        padding: 0.2rem;
+        width: 30%;
+        position: relative;
+        right: -70%;
+        background-color: #4440BC;
+
+        @media (max-width: 550px) {
+            width: 100%;
+            right: 0;
+        }
+    }
+}
