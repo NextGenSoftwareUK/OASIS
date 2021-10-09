@@ -10,7 +10,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize]
+    //[Authorize]
     public class SolanaController : OASISControllerBase
     {
         private readonly ISolanaService _solanaService;
@@ -44,7 +44,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 
         [HttpGet]
         [Route("GetNftMetadata")]
-        public async Task<OASISResult<MetadataAccount>> GetNftMetadata(GetNftMetadataRequest request)
+        public async Task<OASISResult<GetNftMetadataResult>> GetNftMetadata(GetNftMetadataRequest request)
         {
             return await _solanaService.GetNftMetadata(request);
         }
