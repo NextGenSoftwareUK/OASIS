@@ -4,6 +4,7 @@ using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Models.Requests;
 using NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Models.Responses;
 using NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Services.Solana;
+using Solnet.Metaplex;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 {
@@ -43,7 +44,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 
         [HttpGet]
         [Route("GetNftMetadata")]
-        public async Task<OASISResult<GetNftMetadataResult>> GetNftMetadata(GetNftMetadataRequest request)
+        public async Task<OASISResult<MetadataAccount>> GetNftMetadata(GetNftMetadataRequest request)
         {
             return await _solanaService.GetNftMetadata(request);
         }
