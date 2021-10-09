@@ -1,10 +1,8 @@
-﻿using Ipfs;
-using Ipfs.Http;
-using NextGenSoftware.OASIS.API.Core.Holons;
-using NextGenSoftware.OASIS.API.Core.Interfaces;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using NextGenSoftware.OASIS.API.Core.Holons;
+using NextGenSoftware.OASIS.API.Core.Interfaces;
 
 namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS.TestHarness
 {
@@ -12,18 +10,12 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS.TestHarness
     {
         static async Task Main(string[] args)
         {
-            Console.WriteLine("NEXTGEN SOFTWARE IPFSOASIS TEST HARNESS V1.O");
+            Console.WriteLine("NEXTGEN SOFTWARE IPFSOASIS TEST HARNESS V1.1");
             Console.WriteLine("");
 
-            // var ip = new IpfsClient();
-            IPFSOASIS ipfs = new IPFSOASIS("http://localhost:5001", ""); //TODO: Pass in valid host.
+            IPFSOASIS ipfs = new IPFSOASIS(); 
             ipfs.ActivateProvider();
-
-            //   var ci = await ip.FileSystem.AddTextAsync("hello world 2023");
-
-            // string text = await ip.FileSystem.ReadAllTextAsync(ci.Id);
-
-            //  ipfs.avatarFileAddress = "QmYs2NQg9XvzgEu3nmUx33ieP9DmsvEZW4uMMrhU4vcoNF";           
+     
 
             Avatar a = new Avatar();
             a.Username = "farid";

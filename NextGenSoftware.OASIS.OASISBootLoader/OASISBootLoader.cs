@@ -260,7 +260,21 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
 
                     case ProviderType.IPFSOASIS:
                         {
-                            IPFSOASIS IPFSOASIS = new IPFSOASIS(overrideConnectionString == null ? OASISDNA.OASIS.StorageProviders.IPFSOASIS.ConnectionString : overrideConnectionString, OASISDNA.OASIS.StorageProviders.IPFSOASIS.IdLookUpIPFSAddress);
+                            //IPFSOASIS IPFSOASIS = new IPFSOASIS(overrideConnectionString == null ? OASISDNA.OASIS.StorageProviders.IPFSOASIS.ConnectionString : overrideConnectionString, OASISDNA.OASIS.StorageProviders.IPFSOASIS.LookUpIPFSAddress);
+                            //IPFSOASIS IPFSOASIS = new IPFSOASIS(overrideConnectionString == null ? OASISDNA.OASIS.StorageProviders.IPFSOASIS.ConnectionString : overrideConnectionString, OASISDNAFileName);
+                            IPFSOASIS IPFSOASIS = null;
+
+                            //Example of how to pass in OASISDNA if the Provider needs to update the DNA.
+                            if (overrideConnectionString != null)
+                            {
+                                OASISDNA overrideDNA = OASISDNA;
+                                overrideDNA.OASIS.StorageProviders.IPFSOASIS.ConnectionString = overrideConnectionString;
+                                IPFSOASIS = new IPFSOASIS(overrideDNA, OASISDNAFileName);
+                            }   
+                            else
+                                IPFSOASIS = new IPFSOASIS(OASISDNA, OASISDNAFileName);
+
+                            //IPFSOASIS IPFSOASIS = new IPFSOASIS(overrideConnectionString == null ? OASISDNA.OASIS.StorageProviders.IPFSOASIS.ConnectionString : overrideConnectionString, OASISDNAFileName);
                             IPFSOASIS.StorageProviderError += IPFSOASIS_StorageProviderError;
                             registeredProvider = IPFSOASIS;
                         }
