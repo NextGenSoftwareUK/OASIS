@@ -56,7 +56,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         //TODO: In future more than one storage provider can be active at a time where each call can specify which provider to use.
         public AvatarManager(IOASISStorage OASISStorageProvider) : base(OASISStorageProvider)
         {
-
+            
         }
 
         // TODO: Not sure if we want to move methods from the AvatarService in WebAPI here?
@@ -559,6 +559,9 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
             try
             {
+                int removingDays = OASISDNA.OASIS.Security.RemoveOldRefreshTokensAfterXDays;
+                int removeQty = avatar.RefreshTokens.RemoveAll(token => (DateTime.Today - token.Created).TotalDays > removingDays);
+                
                 savedAvatar = await ProviderManager.SetAndActivateCurrentStorageProvider(providerType).Result.SaveAvatarAsync(PrepareAvatarForSaving(avatar));
             }
             catch (Exception ex)
@@ -626,6 +629,9 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
             try
             {
+                int removingDays = OASISDNA.OASIS.Security.RemoveOldRefreshTokensAfterXDays;
+                int removeQty = avatar.RefreshTokens.RemoveAll(token => (DateTime.Today - token.Created).TotalDays > removingDays);
+                
                 result.Result = ProviderManager.SetAndActivateCurrentStorageProvider(providerType).Result.SaveAvatar(PrepareAvatarForSaving(avatar));
                 result.IsSaved = true;
             }

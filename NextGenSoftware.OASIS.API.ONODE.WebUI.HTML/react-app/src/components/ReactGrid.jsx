@@ -11,11 +11,12 @@ import {
     Table,
     TableHeaderRow,
     TableFilterRow,
+    TableColumnResizing,
     Toolbar,
 } from "@devexpress/dx-react-grid-material-ui";
 import "../assets/scss/react-grid.scss"
 
-const ReactGrid = ({ rows, columns }) => {
+const ReactGrid = ({ rows, columns, columnWidths }) => {
     return (
         <>
             <Paper style={{color: "#fff", backgroundColor: "transparent", border: "1px solid #fff"}}>
@@ -25,6 +26,7 @@ const ReactGrid = ({ rows, columns }) => {
                     <FilteringState defaultFilters={[]} />
                     <IntegratedFiltering />
                     <Table/>
+                    <TableColumnResizing defaultColumnWidths={columnWidths} />
                     <TableHeaderRow showSortingControls />
                     <TableFilterRow />
                     <Toolbar />

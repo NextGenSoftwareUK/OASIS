@@ -1,8 +1,10 @@
 import axios from "axios";
 import { Component } from "react";
-import "../../../assets/scss/karma.scss";
+import {Link} from "react-router-dom"
+import "../../../assets/scss/Karma.scss";
 import { extractKarma, login } from "../../../functions";
 import ReactGrid from "../../ReactGrid";
+import "../../../assets/scss/popup.scss"
 import Loader from "react-loader-spinner";
 
 class Karma extends Component {
@@ -19,6 +21,17 @@ class Karma extends Component {
                 { name: "title", title: "Title" },
                 { name: "description", title: "Description" },
                 { name: "link", title: "Weblink" },
+            ],
+            columnWidth: [
+                { columnName: "date", width: 100 },
+                { columnName: "avatar", width: 100 },
+                { columnName: "posNeg", width: 100 },
+                { columnName: "type", width: 100 },
+                { columnName: "karma", width: 100 },
+                { columnName: "source", width: 100 },
+                { columnName: "width", width: 100 },
+                { columnName: "description", width: 100 },
+                { columnName: "link", width: 100 },
             ],
             rows: [],
             loading: true,
@@ -75,7 +88,12 @@ class Karma extends Component {
 
     render() {
         return (
-            <div className="karma">
+            <div className="popup karma">
+                <Link to="/" className="popup-cancel">
+                        <span className="form-cross-icon">
+                            <i className="fa fa-times"></i>
+                        </span>
+                    </Link>
                 {this.state.loggedIn ? (
                     <div className="karma__body">
                         {this.state.loading ? (
@@ -84,6 +102,7 @@ class Karma extends Component {
                             <ReactGrid
                                 rows={this.state.rows}
                                 columns={this.state.columns}
+                                // columnWidths={this.state.columnWidth}
                             />
                         )}
                     </div>

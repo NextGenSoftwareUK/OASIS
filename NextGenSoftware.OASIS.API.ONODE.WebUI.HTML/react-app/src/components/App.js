@@ -15,202 +15,234 @@ import AddData from "./popups/data-screen/AddData";
 import LoadData from "./popups/data-screen/LoadData";
 import OffChainManagement from "./popups/data-screen/OffChainManagement";
 import CrossChainManagement from "./popups/data-screen/CrossChainManagement";
+import Solana from "./popups/nft/Solana";
 
-import ViewAvatar from "./pages/avatar/viewAvatar";
+import ViewAvatar from "./popups/avatar/viewAvatar";
+import AvatarWallet from "./popups/avatar/avatarWallet";
+import Message from "./popups/messages/Message";
 // import UploadAvatar from "../components/pages/avatar/uploadAvatar";
 // import Provider from "../components/pages/providers/Provider";
 // import Keymanagement from "../components/pages/providers/KeyManagement";
 
 import "../assets/scss/general.scss";
 import "../assets/scss/style.scss";
-import "../assets/scss/seeds.scss";
+import "../assets/scss/Seeds.scss";
 
 import axios from "axios";
+import 'react-toastify/dist/ReactToastify.css';
 
 class App extends React.Component {
-  state = {
-    showSidebar: false,
-    showLogin: false,
-    showSignup: false,
-    user: null,
+    state = {
+        showSidebar: false,
+        showLogin: false,
+        showSignup: false,
+        user: null,
 
-    dataScreen: {
-      loadData: false,
-      sendData: false,
-      manageData: false,
-      offChainManagement: false,
-      crossChainManagement: false
-    },
-  };
+        sidebarMenuOption: [
+            {
+                data: {
+                    loadData: false,
+                    sendData: false,
+                    manageData: false,
+                    offChainManagement: false,
+                    crossChainManagement: false
+                }
+            },
+            {
+                nft: {
+                    solana: false
+                }
+            }
+        ],
+    };
 
-  componentDidMount() {
-    localStorage.getItem("user");
+    componentDidMount() {
+        localStorage.getItem("user");
 
-    if (localStorage.getItem("user")) {
-      this.setState({ user: JSON.parse(localStorage.getItem("user")) });
+        if (localStorage.getItem("user")) {
+            this.setState({ user: JSON.parse(localStorage.getItem("user")) });
+        }
     }
-  }
 
-  setUserData = (data) => {
-    console.log(data);
-    this.setState({
-      user: data,
-    });
-  };
+    setUserData = (data) => {
+        console.log(data);
+        this.setState({
+            user: data,
+        });
+    };
 
-  toggleSidebar = () => {
-    this.setState({
-      showSidebar: !this.state.showSidebar,
-    });
-  };
+    toggleSidebar = () => {
+        this.setState({
+            showSidebar: !this.state.showSidebar,
+        });
+    };
 
-  hidePopups = () => {
-    this.setState({
-      showLogin: false,
-      showSignup: false,
-    });
-  };
+    hidePopups = () => {
+        this.setState({
+            showLogin: false,
+            showSignup: false,
+        });
+    };
 
-  hideLogin = () => {
-    this.setState({
-      showLogin: false,
-    });
-  };
+    hideLogin = () => {
+        this.setState({
+            showLogin: false,
+        });
+    };
 
-  hideSignup = () => {
-    this.setState({
-      showSignup: false,
-    });
-  };
+    hideSignup = () => {
+        this.setState({
+            showSignup: false,
+        });
+    };
 
-  showLogin = () => {
-    this.setState({
-      showLogin: true,
-      showSignup: false,
-    });
-  };
+    showLogin = () => {
+        this.setState({
+            showLogin: true,
+            showSignup: false,
+        });
+    };
 
-  showSignup = () => {
-    this.setState({
-      showSignup: true,
-      showLogin: false,
-    });
-  };
+    showSignup = () => {
+        this.setState({
+            showSignup: true,
+            showLogin: false,
+        });
+    };
 
-  handleLogout = () => {
-    axios
-      .post("https://api.oasisplatform.world/api/avatar/revoke-token", {
-        token: this.state.user.jwtToken,
-      })
-      .then((res) => {
-        this.setState({ user: null });
-        localStorage.removeItem("user");
-        localStorage.removeItem("credentials");
-      })
-      .catch((err) => {
-        this.setState({ user: null });
-        localStorage.removeItem("user");
-        localStorage.removeItem("credentials");
-      });
-  };
+    handleLogout = () => {
+        axios
+            .post("https://api.oasisplatform.world/api/avatar/revoke-token", {
+                token: this.state.user.jwtToken,
+            })
+            .then((res) => {
+                this.setState({ user: null });
+                localStorage.removeItem("user");
+                localStorage.removeItem("credentials");
+            })
+            .catch((err) => {
+                this.setState({ user: null });
+                localStorage.removeItem("user");
+                localStorage.removeItem("credentials");
+            });
+    };
 
-  toggleDataScreenPopup = (name) => {
-    let dataScreen = { ...this.state.dataScreen };
-    dataScreen[name] = !dataScreen[name];
+    toggleScreenPopup = (menuOption, menuName) => {
+        let sidebarMenuOption = [...this.state.sidebarMenuOption];
 
-    this.setState({
-      dataScreen,
-    });
-  };
+        sidebarMenuOption.map((item) => {
+            if(item[menuOption]) {
+                item[menuOption][menuName] = !item[menuOption][menuName];
+            }
+        })
 
-  render() {
-    return (
-      <div className="main-container">
-        <Router>
-          <header>
-            <Navbar
-              showSidebar={this.state.showSidebar}
-              toggleSidebar={this.toggleSidebar}
-              showLogin={this.showLogin}
-              showSignup={this.showSignup}
-              handleLogout={this.handleLogout}
-              user={this.state.user}
-            />
-            {/* <SideNav
+        this.setState({
+            sidebarMenuOption
+        })
+    };
+
+    render() {
+        return (
+            <div className="main-container">
+                <Router>
+                    <header>
+                        <Navbar
+                            showSidebar={this.state.showSidebar}
+                            toggleSidebar={this.toggleSidebar}
+                            showLogin={this.showLogin}
+                            showSignup={this.showSignup}
+                            handleLogout={this.handleLogout}
+                            user={this.state.user}
+                        />
+                        {/* <SideNav
                             showSidebar={this.state.showSidebar}
                             toggleSidebar={this.toggleSidebar}
                         /> */}
-            <Sidebar
-              showSidebar={this.state.showSidebar}
-              toggleSidebar={this.toggleSidebar}
-              toggleDataScreenPopup={this.toggleDataScreenPopup}
-            />
-          </header>
+                        <Sidebar
+                            showSidebar={this.state.showSidebar}
+                            toggleSidebar={this.toggleSidebar}
+                            toggleScreenPopup={this.toggleScreenPopup}
+                        />
+                    </header>
 
-          <div className="content-container">
-            <Switch>
-              <Route exact path="/home" component={Home} />
+                    <div className="content-container">
+                        <Switch>
+                            <Route exact path="/home" component={Home} />
 
-              <Route path="/pay-with-seeds" component={PayWithSeeds} />
-              <Route path="/donateWithSeeds">
-                <PayWithSeeds seedType="Donate" />
-              </Route>
-              <Route path="/rewardWithSeeds">
-                <PayWithSeeds seedType="Reward" />
-              </Route>
-              <Route
-                path="/accept-invite-to-join-seeds"
-                component={AcceptInvite}
-              />
-              <Route path="/send-invite" component={SendInvite} />
-              <Route exact path="/karma" component={Karma} />
-              <Route exact path="/avatar/view" component={ViewAvatar} />
-              {/* <Route exact path="/avatar/upload" component={UploadAvatar} /> */}
-              {/* <Route path="/provider/provider" component={Provider} />
-              <Route path="/provider/keymanagement" component={Keymanagement} /> */}
-            </Switch>
-          </div>
-        </Router>
+                            <Route path="/pay-with-seeds" component={PayWithSeeds} />
+                            <Route path="/donateWithSeeds">
+                                <PayWithSeeds seedType="Donate" />
+                            </Route>
+                            <Route path="/rewardWithSeeds">
+                                <PayWithSeeds seedType="Reward" />
+                            </Route>
+                            <Route
+                                path="/accept-invite-to-join-seeds"
+                                component={AcceptInvite}
+                            />
 
-        <Login
-          className="custom-form"
-          show={this.state.showLogin}
-          hide={this.hideLogin}
-          change={this.showSignup}
-          setUserStateData={this.setUserData}
-        />
+                            <Route path="/send-invite" component={SendInvite} />
+                            <Route exact path="/karma" component={Karma} />
+                            <Route exact path="/avatar/view" component={ViewAvatar} />
+                            <Route exact path="/avatar/wallet" component={AvatarWallet} />
 
-        <Signup
-          className="custom-form"
-          show={this.state.showSignup}
-          hide={this.hideSignup}
-          change={this.showLogin}
-        />
+                            {/* <Route exact path="/avatar/upload" component={UploadAvatar} />
+                            <Route path="/provider/provider" component={Provider} />
+                            <Route
+                                path="/provider/key-management"
+                                component={Keymanagement}
+                            /> */}
+                        </Switch>
+                    </div>
+                </Router>
 
-        {/* ========== DATA SCREEN POPUPS START ========== */}
-        <AddData
-          show={this.state.dataScreen.sendData}
-          hide={this.toggleDataScreenPopup}
-        />
+                <Login
+                    className="custom-form"
+                    show={this.state.showLogin}
+                    hide={this.hideLogin}
+                    change={this.showSignup}
+                    setUserStateData={this.setUserData}
+                />
 
-        <LoadData
-          show={this.state.dataScreen.loadData}
-          hide={this.toggleDataScreenPopup}
-        />
+                <Signup
+                    className="custom-form"
+                    show={this.state.showSignup}
+                    hide={this.hideSignup}
+                    change={this.showLogin}
+                />
 
-        <OffChainManagement 
-          show={this.state.dataScreen.offChainManagement}
-          hide={this.toggleDataScreenPopup}
-        />
+                {/* ========== DATA SCREEN POPUPS START ========== */}
+                <AddData
+                    show={this.state.sidebarMenuOption[0].data.sendData}
+                    hide={this.toggleScreenPopup}
+                />
 
-        <CrossChainManagement 
-          show={this.state.dataScreen.crossChainManagement}
-          hide={this.toggleDataScreenPopup}
-        />
-        {/* ========== DATA SCREEN POPUPS START ========== */}
-      </div>
-    );
-  }
+                <LoadData
+                    show={this.state.sidebarMenuOption[0].data.loadData}
+                    hide={this.toggleScreenPopup}
+                />
+
+                <OffChainManagement
+                    show={this.state.sidebarMenuOption[0].data.offChainManagement}
+                    hide={this.toggleScreenPopup}
+                />
+
+                <CrossChainManagement
+                    show={this.state.sidebarMenuOption[0].data.crossChainManagement}
+                    hide={this.toggleScreenPopup}
+                />
+                {/* ========== DATA SCREEN POPUPS END ========== */}
+
+                {/* ========== NFT POPUPS START  =========== */}
+                <Solana
+                    show={this.state.sidebarMenuOption[1].nft.solana}
+                    hide={this.toggleScreenPopup}
+                />
+                {/* ========== NFT POPUPS END  =========== */}
+
+            </div>
+        );
+    }
 }
 
 export default App;

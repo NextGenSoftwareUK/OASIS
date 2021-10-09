@@ -16,12 +16,13 @@ using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Helpers;
+using Microsoft.Extensions.Configuration;
+using NextGenSoftware.OASIS.API.DNA;
 
 namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
 {
     public class IPFSOASIS : OASISStorageBase, IOASISStorage, IOASISNET
     {
-        public string HostURI { get; set; }
         public IpfsClient IPFSClient;
         public IpfsEngine IPFSEngine; //= new IpfsEngine();
         private List<IAvatar> AvatarsList;
@@ -30,35 +31,52 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
         private string avatarFileAddress;
         private string holonFileAddress;
         private string avatarDetailsFileAddress;
-        private Dictionary<Guid, string> _idLookup = new Dictionary<Guid, string>();
-        private string _idLookUpIPFSAddress = "";
+        private Dictionary<HolonResume, string> _idLookup = new Dictionary<HolonResume, string>();
+        private OASISDNA _OASISDNA;
+        private string _OASISDNAPath;
 
-        public IPFSOASIS(string hostURI, string idLookUpIPFSAddress)
+        public IPFSOASIS()
+        {
+            OASISDNAManager.LoadDNA();
+            _OASISDNA = OASISDNAManager.OASISDNA;
+            _OASISDNAPath = OASISDNAManager.OASISDNAPath;
+
+            Init();
+        }
+
+        public IPFSOASIS(string OASISDNAPath)
+        {
+            _OASISDNAPath = OASISDNAPath;
+            OASISDNAManager.LoadDNA(_OASISDNAPath);
+            _OASISDNA = OASISDNAManager.OASISDNA;
+            Init();
+        }
+
+        public IPFSOASIS(OASISDNA OASISDNA)
+        {
+            _OASISDNA = OASISDNA;
+            _OASISDNAPath = OASISDNAManager.OASISDNAPath;
+            Init();
+        }
+
+        public IPFSOASIS(OASISDNA OASISDNA, string OASISDNAPath)
+        {
+            _OASISDNA = OASISDNA;
+            _OASISDNAPath = OASISDNAPath;
+            Init();
+        }
+
+        private void Init()
         {
             this.ProviderName = "IPFSOASIS";
             this.ProviderDescription = "IPFS Provider";
             this.ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.IPFSOASIS);
             this.ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
-            this.HostURI = hostURI;
-
-            //TODO: Load from OASISDNA.json config file under IPFS section or another local JSON file...
-            _idLookUpIPFSAddress = idLookUpIPFSAddress;
-
-            AvatarsList = new List<IAvatar>();
-            AvatarsDetailsList = new List<IAvatarDetail>();
-            HolonsList = new List<IHolon>();
         }
 
         public override void ActivateProvider()
         {
-            IPFSClient = new IpfsClient(HostURI);
-
-            if (!string.IsNullOrEmpty(_idLookUpIPFSAddress))
-            {
-                string json = LoadStringToJson(_idLookUpIPFSAddress).Result;
-                _idLookup = JArray.Parse(json).ToObject<Dictionary<Guid, string>>();
-            }
-
+            IPFSClient = new IpfsClient(_OASISDNA.OASIS.StorageProviders.IPFSOASIS.ConnectionString);
             base.ActivateProvider();
         }
 
@@ -84,12 +102,26 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
         }
         public async Task<string> LoadStringToJson(string address)
         {
-
             string text = await IPFSClient.FileSystem.ReadAllTextAsync((Cid)address);
 
             return text;
         }
 
+
+        /******************************/
+        public async Task<Dictionary<HolonResume, string>> LoadLookupToJson()
+        {
+            //_idLookUpIPFSAddress = new ConfigurationBuilder().AddJsonFile(IPFS).Build().GetSection("Params:IdLookUpIPFSAddress").ToString();
+            //_lookUpIPFSAddress = new ConfigurationBuilder().AddJsonFile(_OASISDNAPath).Build().GetSection("OASIS:StorageProviders:IPFSOASIS:LookUpIPFSAddress").Value;
+
+            //  IConfigurationRoot root = new ConfigurationBuilder().AddJsonFile(_OASISDNAPath).Build();
+            //  root.
+
+            string json = await LoadStringToJson(_OASISDNA.OASIS.StorageProviders.IPFSOASIS.LookUpIPFSAddress);
+            _idLookup = JArray.Parse(json).ToObject<Dictionary<HolonResume, string>>();
+
+            return _idLookup;
+        }
 
         public async Task<string> SaveJsonToFile<T>(List<T> list)
         {
@@ -99,29 +131,59 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
             return (string)fsn.Id;
         }
 
-        public async Task<string> SaveAvatarToFile<T>(IAvatar avatar)
+        public async Task<string> SaveLookupToFile(Dictionary<HolonResume, string> idLookup)
+        {
+            string json = JsonConvert.SerializeObject(idLookup);
+            var fsn = await IPFSClient.FileSystem.AddTextAsync(json);
+            
+            _OASISDNA.OASIS.StorageProviders.IPFSOASIS.LookUpIPFSAddress = fsn.Id;
+            OASISDNAManager.SaveDNA(_OASISDNAPath, _OASISDNA);
+
+            //new ConfigurationBuilder().AddJsonFile(IPFS).Build()["Params:IdLookUpIPFSAddress"] = _idLookUpIPFSAddress;
+           // new ConfigurationBuilder().AddJsonFile(_OASISDNAPath).Build()["OASIS:StorageProviders:IPFSOASIS:LookUpIPFSAddress"] = _lookUpIPFSAddress;
+            return fsn.Id;
+        }
+
+        public async Task<string> SaveAvatarToFile(IAvatar avatar)
         {
             //If we have a previous version of this avatar saved, then add a pointer back to the previous version.
-            if (_idLookup.ContainsKey(avatar.Id))
-                avatar.PreviousVersionProviderKey[Core.Enums.ProviderType.IPFSOASIS] = _idLookup[avatar.Id];
+            _idLookup = await LoadLookupToJson();
+            HolonResume avatarDico = _idLookup.Keys.FirstOrDefault(a => a.Id == avatar.Id);
+
+            if (_idLookup.Count(a => a.Key.Id == avatar.Id) > 0)
+                avatar.PreviousVersionProviderKey[Core.Enums.ProviderType.IPFSOASIS] = _idLookup[avatarDico];
 
             string json = JsonConvert.SerializeObject(avatar);
             var fsn = await IPFSClient.FileSystem.AddTextAsync(json);
 
-            _idLookup[avatar.Id] = fsn.Id;
-            json = JsonConvert.SerializeObject(_idLookup);
-            fsn = await IPFSClient.FileSystem.AddTextAsync(json);
-            _idLookUpIPFSAddress = fsn.Id;
+            // we store just values that we will use as a filter of search in other methods.
+            avatarDico.Id = avatar.Id;
+            avatarDico.login = avatar.Username;
+            avatarDico.password = avatar.Password;
 
-            //TODO: Store the _idLookUpIPFSAddress in OASISDNA.json config file under IPFS section.
-            //      Or in another local JSON file...
+            _idLookup[avatarDico] = fsn.Id;
 
-            return fsn.Id;
+            string id = await SaveLookupToFile(_idLookup);
+
+            return id;
         }
+
+        public override async Task<IAvatar> LoadAvatarAsync(string username, string password)
+        {
+            string json = "";
+            _idLookup = await LoadLookupToJson();
+
+            HolonResume avatarDico = _idLookup.Keys.FirstOrDefault(a => a.login == username && a.password == password);
+            string avatarAddress = _idLookup[avatarDico];
+
+            json = await LoadStringToJson(avatarAddress);
+            IAvatar avatar = JArray.Parse(json).ToObject<IAvatar>();
+            return avatar;
+        }
+        /************************************************************/
 
         public async Task<string> SaveTextToFile(string text)
         {
-
             var fsn = await IPFSClient.FileSystem.AddTextAsync(text);
             return (string)fsn.Id;
         }
@@ -152,19 +214,11 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
 
         public override async Task<IAvatar> SaveAvatarAsync(IAvatar avatar)
         {
-            if (AvatarsList == null)
-                AvatarsList = new List<IAvatar>();
-
-            AvatarsList.Add(avatar);
-
-
-            avatarFileAddress = await SaveJsonToFile<IAvatar>(AvatarsList);
-            avatar.ProviderKey[Core.Enums.ProviderType.IPFSOASIS] = avatarDetailsFileAddress;
-            await SaveJsonToFile<IAvatar>(AvatarsList);
+            avatarFileAddress = await SaveAvatarToFile(avatar);
 
             return avatar;
         }
-
+        /*
         public override IHolon SaveHolon(IHolon holon)
         {
             return SaveHolonAsync(holon).Result;
@@ -198,7 +252,7 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
 
             return holons;
         }
-
+       */
         public override async Task<ISearchResults> SearchAsync(ISearchParams searchTerm)
         {
             ISearchResults result = (ISearchResults)new SearchResults();
@@ -507,23 +561,6 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
             return avatar;
         }
 
-        public override async Task<IAvatar> LoadAvatarAsync(string username, string password)
-        {
-            string json = "";
-
-
-            json = await LoadStringToJson(avatarFileAddress);
-
-            AvatarsList = JArray.Parse(json).ToObject<List<Avatar>>().ToList<IAvatar>();
-
-
-
-            //    AvatarsList = JArray.Parse(json).ToObject<List<Avatar>>().ToList<IAvatar>();
-
-            IAvatar avatar = AvatarsList.Where(a => a.Username == username && a.Password == password).FirstOrDefault();
-
-            return avatar;
-        }
 
         public override IAvatar LoadAvatarForProviderKey(string providerKey)
         {
@@ -720,6 +757,26 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
             {
                 return false;
             }
+        }
+
+        public override OASISResult<IHolon> SaveHolon(IHolon holon, bool saveChildrenRecursive = true)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon, bool saveChildrenRecursive = true)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override OASISResult<IEnumerable<IHolon>> SaveHolons(IEnumerable<IHolon> holons, bool saveChildrenRecursive = true)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons, bool saveChildrenRecursive = true)
+        {
+            throw new NotImplementedException();
         }
     }
 }

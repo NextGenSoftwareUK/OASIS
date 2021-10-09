@@ -1,5 +1,6 @@
 import React from 'react'
 import { Component } from 'react'
+import { Modal } from 'react-bootstrap'
 import { Link } from 'react-router-dom'
 
 export default class PayWithSeeds extends Component {
@@ -28,7 +29,7 @@ export default class PayWithSeeds extends Component {
     }
     render() {
         return (
-            <div className="popup-container">
+            <Modal centered className="popup-container custom-modal" show={true}>
                 <div className="popup">
                     <Link to="/" className="popup-cancel">
                         <span className="form-cross-icon">
@@ -67,6 +68,7 @@ export default class PayWithSeeds extends Component {
                     </div>
                     <button className="popup-submit-button button">{this.state.seedType}</button>
                 </div>
-            </div>);
+            </Modal>
+        );
     }
 }

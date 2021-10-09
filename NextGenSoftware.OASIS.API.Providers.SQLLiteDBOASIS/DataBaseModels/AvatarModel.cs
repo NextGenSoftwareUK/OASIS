@@ -63,7 +63,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.DataBaseModels{
 
 
         public List<RefreshTokenModel> RefreshTokens { get; set;}
-        public List<ProviderKeyModel> ProviderKey { get; set;}
+        //public List<ProviderKeyModel> ProviderKey { get; set;}
+        public Dictionary<ProviderType, string> ProviderKey { get; set; }
         public List<MetaDataModel> MetaData { get; set;}
 
         public AvatarModel(){}
@@ -132,15 +133,16 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.DataBaseModels{
                 this.RefreshTokens.Add(model);
             }
 
-            if (this.ProviderKey == null)
-                this.ProviderKey = new List<ProviderKeyModel>();
+          //  if (this.ProviderKey == null)
+            //    this.ProviderKey = new List<ProviderKeyModel>();
 
+            /*
             foreach (KeyValuePair<ProviderType, string> key in source.ProviderKey){
 
                 ProviderKeyModel model=new ProviderKeyModel(key.Key,key.Value);
                 model.OwnerId=this.Id;
                 this.ProviderKey.Add(model);
-            }
+            }*/
 
             if (this.MetaData == null)
                 this.MetaData = new List<MetaDataModel>();
@@ -206,10 +208,10 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.DataBaseModels{
                 item.RefreshTokens.Add(model.GetRefreshToken());
             }
 
-            foreach(ProviderKeyModel model in this.ProviderKey){
+            //foreach(ProviderKeyModel model in this.ProviderKey){
 
-                item.ProviderKey.Add(model.ProviderId, model.Value);
-            }
+            //    item.ProviderKey.Add(model.ProviderId, model.Value);
+            //}
 
             foreach(MetaDataModel model in this.MetaData){
 

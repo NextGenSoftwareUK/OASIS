@@ -1,0 +1,44 @@
+.avatarWallet {
+	* {
+		padding: 0;
+		margin: 0;
+		box-sizing: border-box;
+	}
+
+	h2 {
+		text-align: center;
+	}
+
+	&-heading {
+		text-align: center;
+	}
+
+	&-send {
+		width: 70%;
+		padding: 2rem;
+		margin: 0 auto;
+		margin-top: 3em;
+		border: 1px solid #fff;
+	}
+
+	&-formgroup {
+		display: flex;
+		justify-content: space-between;
+		width: 100%;
+		margin-bottom: 1rem;
+
+		label {
+			width: 4rem;
+		}
+
+		select {
+			width: 15rem;
+			margin-left: 1rem;
+		}
+	}
+
+	&-submit {
+		background-color: #4440BC;
+		float: right;
+	}
+}

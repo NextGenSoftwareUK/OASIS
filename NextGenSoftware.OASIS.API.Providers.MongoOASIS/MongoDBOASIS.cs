@@ -256,22 +256,26 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
 
         public override async Task<IHolon> LoadHolonAsync(Guid id)
         {
-            return ConvertMongoEntityToOASISHolon(await _holonRepository.GetHolonAsync(id));
+            //TODO: Finish implementing OASISResult properly...
+            return ConvertMongoEntityToOASISHolon(new OASISResult<Holon>(await _holonRepository.GetHolonAsync(id))).Result;
         }
 
         public override IHolon LoadHolon(Guid id)
         {
-            return ConvertMongoEntityToOASISHolon(_holonRepository.GetHolon(id));
+            //TODO: Finish implementing OASISResult properly...
+            return ConvertMongoEntityToOASISHolon(new OASISResult<Holon>(_holonRepository.GetHolon(id))).Result;
         }
 
         public override async Task<IHolon> LoadHolonAsync(string providerKey)
         {
-            return ConvertMongoEntityToOASISHolon(await _holonRepository.GetHolonAsync(providerKey)); 
+            //TODO: Finish implementing OASISResult properly...
+            return ConvertMongoEntityToOASISHolon(new OASISResult<Holon>(await _holonRepository.GetHolonAsync(providerKey))).Result;
         }
 
         public override IHolon LoadHolon(string providerKey)
         {
-            return ConvertMongoEntityToOASISHolon(_holonRepository.GetHolon(providerKey));
+            //TODO: Finish implementing OASISResult properly...
+            return ConvertMongoEntityToOASISHolon(new OASISResult<Holon>(_holonRepository.GetHolon(providerKey))).Result;
         }
 
         public override async Task<IEnumerable<IHolon>> LoadHolonsForParentAsync(Guid id, HolonType type = HolonType.All)
@@ -315,50 +319,128 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             return ConvertMongoEntitysToOASISHolons(_holonRepository.GetAllHolons(type));
         }
 
-        public override async Task<IHolon> SaveHolonAsync(IHolon holon)
+        public override async Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon, bool saveChildrenRecursive = true)
         {
-            return holon.IsNewHolon
+            OASISResult<IHolon> result =  holon.IsNewHolon
                 ? ConvertMongoEntityToOASISHolon(await _holonRepository.AddAsync(ConvertOASISHolonToMongoEntity(holon)))
                 : ConvertMongoEntityToOASISHolon(await _holonRepository.UpdateAsync(ConvertOASISHolonToMongoEntity(holon)));
+
+            if (!result.IsError && result.Result != null && saveChildrenRecursive)
+            {
+                OASISResult<IEnumerable<IHolon>> saveChildrenResult = SaveHolons(result.Result.Children);
+
+                if (!saveChildrenResult.IsError && saveChildrenResult.Result != null)
+                    result.Result.Children = saveChildrenResult.Result;
+                else
+                {
+                    result.IsError = true;
+                    result.Message = $"Holon with id {holon.Id} and name {holon.Name} saved but it's children failed to save. Reason: {saveChildrenResult.Message}";
+                }
+            }
+
+            return result;
         }
 
-        public override IHolon SaveHolon(IHolon holon)
+        public override OASISResult<IHolon> SaveHolon(IHolon holon, bool saveChildrenRecursive = true)
         {
-            return ConvertMongoEntityToOASISHolon(holon.IsNewHolon ?
-               _holonRepository.Add(ConvertOASISHolonToMongoEntity(holon)) :
-               _holonRepository.Update(ConvertOASISHolonToMongoEntity(holon)));
+            OASISResult<IHolon> result = holon.IsNewHolon
+                ? ConvertMongoEntityToOASISHolon(_holonRepository.Add(ConvertOASISHolonToMongoEntity(holon)))
+                : ConvertMongoEntityToOASISHolon(_holonRepository.Update(ConvertOASISHolonToMongoEntity(holon)));
+
+            if (!result.IsError && result.Result != null && saveChildrenRecursive)
+            {
+                OASISResult<IEnumerable<IHolon>> saveChildrenResult = SaveHolons(result.Result.Children);
+
+                if (!saveChildrenResult.IsError && saveChildrenResult.Result != null)
+                    result.Result.Children = saveChildrenResult.Result;
+                else
+                {
+                    result.IsError = true;
+                    result.Message = $"Holon with id {holon.Id} and name {holon.Name} saved but it's children failed to save. Reason: {saveChildrenResult.Message}";
+                }
+            }
+
+            return result;
         }
 
-        public override IEnumerable<IHolon> SaveHolons(IEnumerable<IHolon> holons)
+        public override OASISResult<IEnumerable<IHolon>> SaveHolons(IEnumerable<IHolon> holons, bool saveChildrenRecursive = true)
         {
+            OASISResult<IEnumerable<IHolon>> result = new OASISResult<IEnumerable<IHolon>>();
             List<IHolon> savedHolons = new List<IHolon>();
-            IHolon savedHolon;
 
             // Recursively save all child holons.
             foreach (IHolon holon in holons)
             {
-                savedHolon = SaveHolon(holon);
-                savedHolon.Children = SaveHolons(holon.Children);
-                savedHolons.Add(savedHolon);
+                OASISResult<IHolon> holonResult = SaveHolon(holon);
+
+                if (!holonResult.IsError && holonResult.Result != null)
+                {
+                    if (saveChildrenRecursive)
+                    {
+                        OASISResult<IEnumerable<IHolon>> saveChildrenResult = SaveHolons(holonResult.Result.Children);
+
+                        if (!saveChildrenResult.IsError && saveChildrenResult.Result != null)
+                            holonResult.Result.Children = saveChildrenResult.Result;
+                        else
+                        {
+                            result.IsError = true;
+                            result.InnerMessages.Add($"Holon with id {holon.Id} and name {holon.Name} saved but it's children failed to save. Reason: {saveChildrenResult.Message}");
+                        }
+                    }
+
+                    savedHolons.Add(holonResult.Result);
+                }
+                else
+                {
+                    result.IsError = true;
+                    result.InnerMessages.Add($"Holon with id {holon.Id} and name {holon.Name} faild to save. Reason: {holonResult.Message}");
+                }
             }
 
-            return savedHolons;
+            if (result.IsError)
+                result.Message = "One or more errors occured saving the holons in the SQLLiteOASIS Provider. Please check the InnerMessages property for more infomration.";
+
+            return result;
         }
 
-        public override async Task<IEnumerable<IHolon>> SaveHolonsAsync(IEnumerable<IHolon> holons)
+        public override async Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons, bool saveChildrenRecursive = true)
         {
+            OASISResult<IEnumerable<IHolon>> result = new OASISResult<IEnumerable<IHolon>>();
             List<IHolon> savedHolons = new List<IHolon>();
-            IHolon savedHolon;
 
             // Recursively save all child holons.
             foreach (IHolon holon in holons)
             {
-                savedHolon = await SaveHolonAsync(holon);
-                savedHolon.Children = await SaveHolonsAsync(holon.Children);
-                savedHolons.Add(savedHolon);
+                OASISResult<IHolon> holonResult = await SaveHolonAsync(holon);
+
+                if (!holonResult.IsError && holonResult.Result != null)
+                {
+                    if (saveChildrenRecursive)
+                    {
+                        OASISResult<IEnumerable<IHolon>> saveChildrenResult = await SaveHolonsAsync(holonResult.Result.Children);
+
+                        if (!saveChildrenResult.IsError && saveChildrenResult.Result != null)
+                            holonResult.Result.Children = saveChildrenResult.Result;
+                        else
+                        {
+                            result.IsError = true;
+                            result.InnerMessages.Add($"Holon with id {holon.Id} and name {holon.Name} saved but it's children failed to save. Reason: {saveChildrenResult.Message}");
+                        }
+                    }
+
+                    savedHolons.Add(holonResult.Result);
+                }
+                else
+                {
+                    result.IsError = true;
+                    result.InnerMessages.Add($"Holon with id {holon.Id} and name {holon.Name} faild to save. Reason: {holonResult.Message}");
+                }
             }
 
-            return savedHolons;
+            if (result.IsError)
+                result.Message = "One or more errors occured saving the holons in the SQLLiteOASIS Provider. Please check the InnerMessages property for more infomration.";
+
+            return result;
         }
 
         public override bool DeleteHolon(Guid id, bool softDelete = true)
@@ -425,7 +507,12 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             List<IHolon> oasisHolons = new List<IHolon>();
 
             foreach (Holon holon in holons)
-                oasisHolons.Add(ConvertMongoEntityToOASISHolon(holon));
+            {
+                OASISResult<IHolon> convertedResult = ConvertMongoEntityToOASISHolon(new OASISResult<Holon>(holon));
+                
+                if (!convertedResult.IsError && convertedResult.Result != null)
+                    oasisHolons.Add(convertedResult.Result);
+            }
 
             return oasisHolons;
         }
@@ -495,7 +582,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             oasisAvatar.ProviderMetaData = avatar.ProviderMetaData;
             oasisAvatar.PreviousVersionId = avatar.PreviousVersionId;
             oasisAvatar.PreviousVersionProviderKey = avatar.PreviousVersionProviderKey;
-            oasisAvatar.Title = avatar.Title; 
+            oasisAvatar.Title = avatar.Title;
             oasisAvatar.Description = avatar.Description;
             oasisAvatar.FirstName = avatar.FirstName;
             oasisAvatar.LastName = avatar.LastName;
@@ -582,7 +669,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             oasisAvatar.ParentMoon = avatar.ParentMoon;
             oasisAvatar.Children = avatar.Children;
             oasisAvatar.Nodes = avatar.Nodes;
-           
+
             return oasisAvatar;
         }
 
@@ -600,7 +687,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             //    mongoAvatar.CreatedProviderType = avatar.CreatedProviderType.Value;
 
             mongoAvatar.HolonId = avatar.Id;
-           // mongoAvatar.AvatarId = avatar.Id;
+            // mongoAvatar.AvatarId = avatar.Id;
             mongoAvatar.ProviderKey = avatar.ProviderKey;
             mongoAvatar.ProviderMetaData = avatar.ProviderMetaData;
             mongoAvatar.PreviousVersionId = avatar.PreviousVersionId;
@@ -763,71 +850,75 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             return mongoAvatar;
         }
 
-        private IHolon ConvertMongoEntityToOASISHolon(Holon holon)
+        private OASISResult<IHolon> ConvertMongoEntityToOASISHolon(OASISResult<Holon> holon)
         {
-            if (holon == null)
-                return null;
+            OASISResult<IHolon> result = new OASISResult<IHolon>(new Core.Holons.Holon());
 
-            IHolon oasisHolon = new Core.Holons.Holon();
+            if (holon.Result == null || holon.IsError)
+            {
+                result.IsError = true;
+                result.Message = holon.Message;
+                return result;
+            }
 
-            oasisHolon.Id = holon.HolonId;
-            oasisHolon.ProviderKey = holon.ProviderKey;
-            oasisHolon.PreviousVersionId = holon.PreviousVersionId;
-            oasisHolon.PreviousVersionProviderKey = holon.PreviousVersionProviderKey;
-            oasisHolon.MetaData = holon.MetaData;
-            oasisHolon.ProviderMetaData = holon.ProviderMetaData;
-            oasisHolon.Name = holon.Name;
-            oasisHolon.Description = holon.Description;
-            oasisHolon.HolonType = holon.HolonType;
+            result.Result.Id = holon.Result.HolonId;
+            result.Result.ProviderKey = holon.Result.ProviderKey;
+            result.Result.PreviousVersionId = holon.Result.PreviousVersionId;
+            result.Result.PreviousVersionProviderKey = holon.Result.PreviousVersionProviderKey;
+            result.Result.MetaData = holon.MetaData;
+            result.Result.ProviderMetaData = holon.Result.ProviderMetaData;
+            result.Result.Name = holon.Result.Name;
+            result.Result.Description = holon.Result.Description;
+            result.Result.HolonType = holon.Result.HolonType;
             // oasisHolon.CreatedProviderType = new EnumValue<ProviderType>(holon.CreatedProviderType);
-            oasisHolon.CreatedProviderType = holon.CreatedProviderType;
+            result.Result.CreatedProviderType = holon.Result.CreatedProviderType;
             //oasisHolon.CreatedProviderType.Value = Core.Enums.ProviderType.MongoDBOASIS;
-            oasisHolon.CreatedProviderType = holon.CreatedProviderType;
-            oasisHolon.IsChanged = holon.IsChanged;
-            oasisHolon.ParentHolonId = holon.ParentHolonId;
-            oasisHolon.ParentHolon = holon.ParentHolon;
-            oasisHolon.ParentZomeId = holon.ParentZomeId;
-            oasisHolon.ParentZome = holon.ParentZome;
-            oasisHolon.ParentOmiverse = holon.ParentOmiverse;
-            oasisHolon.ParentOmiverseId = holon.ParentOmiverseId;
-            oasisHolon.ParentDimension = holon.ParentDimension;
-            oasisHolon.ParentDimensionId = holon.ParentDimensionId;
-            oasisHolon.ParentMultiverse = holon.ParentMultiverse;
-            oasisHolon.ParentMultiverseId = holon.ParentMultiverseId;
-            oasisHolon.ParentUniverse = holon.ParentUniverse;
-            oasisHolon.ParentUniverseId = holon.ParentUniverseId;
-            oasisHolon.ParentGalaxyCluster = holon.ParentGalaxyCluster;
-            oasisHolon.ParentGalaxyClusterId = holon.ParentGalaxyClusterId;
-            oasisHolon.ParentGalaxy = holon.ParentGalaxy;
-            oasisHolon.ParentGalaxyId = holon.ParentGalaxyId;
-            oasisHolon.ParentSolarSystem = holon.ParentSolarSystem;
-            oasisHolon.ParentSolarSystemId = holon.ParentSolarSystemId;
-            oasisHolon.ParentGreatGrandSuperStar = holon.ParentGreatGrandSuperStar;
-            oasisHolon.ParentGreatGrandSuperStarId = holon.ParentGreatGrandSuperStarId;
-            oasisHolon.ParentGreatGrandSuperStar = holon.ParentGreatGrandSuperStar;
-            oasisHolon.ParentGrandSuperStarId = holon.ParentGrandSuperStarId;
-            oasisHolon.ParentGrandSuperStar = holon.ParentGrandSuperStar;
-            oasisHolon.ParentSuperStarId = holon.ParentSuperStarId;
-            oasisHolon.ParentSuperStar = holon.ParentSuperStar;
-            oasisHolon.ParentStarId = holon.ParentStarId;
-            oasisHolon.ParentStar = holon.ParentStar;
-            oasisHolon.ParentPlanetId = holon.ParentPlanetId;
-            oasisHolon.ParentPlanet = holon.ParentPlanet;
-            oasisHolon.ParentMoonId = holon.ParentMoonId;
-            oasisHolon.ParentMoon = holon.ParentMoon;
-            oasisHolon.Children = holon.Children;
-            oasisHolon.Nodes = holon.Nodes;
-            oasisHolon.CreatedByAvatarId = Guid.Parse(holon.CreatedByAvatarId);
-            oasisHolon.CreatedDate = holon.CreatedDate;
-            oasisHolon.DeletedByAvatarId = Guid.Parse(holon.DeletedByAvatarId);
-            oasisHolon.DeletedDate = holon.DeletedDate;
-            oasisHolon.ModifiedByAvatarId = Guid.Parse(holon.ModifiedByAvatarId);
-            oasisHolon.ModifiedDate = holon.ModifiedDate;
-            oasisHolon.DeletedDate = holon.DeletedDate;
-            oasisHolon.Version = holon.Version;
-            oasisHolon.IsActive = holon.IsActive;
+            result.Result.CreatedProviderType = holon.Result.CreatedProviderType;
+            result.Result.IsChanged = holon.Result.IsChanged;
+            result.Result.ParentHolonId = holon.Result.ParentHolonId;
+            result.Result.ParentHolon = holon.Result.ParentHolon;
+            result.Result.ParentZomeId = holon.Result.ParentZomeId;
+            result.Result.ParentZome = holon.Result.ParentZome;
+            result.Result.ParentOmiverse = holon.Result.ParentOmiverse;
+            result.Result.ParentOmiverseId = holon.Result.ParentOmiverseId;
+            result.Result.ParentDimension = holon.Result.ParentDimension;
+            result.Result.ParentDimensionId = holon.Result.ParentDimensionId;
+            result.Result.ParentMultiverse = holon.Result.ParentMultiverse;
+            result.Result.ParentMultiverseId = holon.Result.ParentMultiverseId;
+            result.Result.ParentUniverse = holon.Result.ParentUniverse;
+            result.Result.ParentUniverseId = holon.Result.ParentUniverseId;
+            result.Result.ParentGalaxyCluster = holon.Result.ParentGalaxyCluster;
+            result.Result.ParentGalaxyClusterId = holon.Result.ParentGalaxyClusterId;
+            result.Result.ParentGalaxy = holon.Result.ParentGalaxy;
+            result.Result.ParentGalaxyId = holon.Result.ParentGalaxyId;
+            result.Result.ParentSolarSystem = holon.Result.ParentSolarSystem;
+            result.Result.ParentSolarSystemId = holon.Result.ParentSolarSystemId;
+            result.Result.ParentGreatGrandSuperStar = holon.Result.ParentGreatGrandSuperStar;
+            result.Result.ParentGreatGrandSuperStarId = holon.Result.ParentGreatGrandSuperStarId;
+            result.Result.ParentGreatGrandSuperStar = holon.Result.ParentGreatGrandSuperStar;
+            result.Result.ParentGrandSuperStarId = holon.Result.ParentGrandSuperStarId;
+            result.Result.ParentGrandSuperStar = holon.Result.ParentGrandSuperStar;
+            result.Result.ParentSuperStarId = holon.Result.ParentSuperStarId;
+            result.Result.ParentSuperStar = holon.Result.ParentSuperStar;
+            result.Result.ParentStarId = holon.Result.ParentStarId;
+            result.Result.ParentStar = holon.Result.ParentStar;
+            result.Result.ParentPlanetId = holon.Result.ParentPlanetId;
+            result.Result.ParentPlanet = holon.Result.ParentPlanet;
+            result.Result.ParentMoonId = holon.Result.ParentMoonId;
+            result.Result.ParentMoon = holon.Result.ParentMoon;
+            result.Result.Children = holon.Result.Children;
+            result.Result.Nodes = holon.Result.Nodes;
+            result.Result.CreatedByAvatarId = Guid.Parse(holon.Result.CreatedByAvatarId);
+            result.Result.CreatedDate = holon.Result.CreatedDate;
+            result.Result.DeletedByAvatarId = Guid.Parse(holon.Result.DeletedByAvatarId);
+            result.Result.DeletedDate = holon.Result.DeletedDate;
+            result.Result.ModifiedByAvatarId = Guid.Parse(holon.Result.ModifiedByAvatarId);
+            result.Result.ModifiedDate = holon.Result.ModifiedDate;
+            result.Result.DeletedDate = holon.Result.DeletedDate;
+            result.Result.Version = holon.Result.Version;
+            result.Result.IsActive = holon.Result.IsActive;
 
-            return oasisHolon;
+            return result;
         }
 
         private Holon ConvertOASISHolonToMongoEntity(IHolon holon)

@@ -110,10 +110,12 @@ namespace NextGenSoftware.OASIS.API.Core
         public abstract Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(string providerKey, HolonType type = HolonType.All);
         public abstract IEnumerable<IHolon> LoadAllHolons(HolonType type = HolonType.All);
         public abstract Task<IEnumerable<IHolon>> LoadAllHolonsAsync(HolonType type = HolonType.All);
-        public abstract IHolon SaveHolon(IHolon holon);
-        public abstract Task<IHolon> SaveHolonAsync(IHolon holon);
-        public abstract IEnumerable<IHolon> SaveHolons(IEnumerable<IHolon> holons);
-        public abstract Task<IEnumerable<IHolon>> SaveHolonsAsync(IEnumerable<IHolon> holons);
+
+        //TODO: We need to migrate ALL OASIS methods to use the OASISResult Pattern ASAP! Thankyou! :)
+        public abstract OASISResult<IHolon> SaveHolon(IHolon holon, bool saveChildrenRecursive = true);
+        public abstract Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon, bool saveChildrenRecursive = true);
+        public abstract OASISResult<IEnumerable<IHolon>> SaveHolons(IEnumerable<IHolon> holons, bool saveChildrenRecursive = true);
+        public abstract Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons, bool saveChildrenRecursive = true);
         public abstract bool DeleteHolon(Guid id, bool softDelete = true);
         public abstract Task<bool> DeleteHolonAsync(Guid id, bool softDelete = true);
         public abstract bool DeleteHolon(string providerKey, bool softDelete = true);

@@ -13,7 +13,7 @@ using NextGenSoftware.OASIS.API.Providers.HoloOASIS.Desktop;
 using NextGenSoftware.OASIS.API.Providers.MongoDBOASIS;
 using NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS;
 using NextGenSoftware.OASIS.API.Providers.IPFSOASIS;
-//using NextGenSoftware.OASIS.API.Providers.Neo4jOASIS;
+using NextGenSoftware.OASIS.API.Providers.Neo4jOASIS;
 using NextGenSoftware.OASIS.API.Providers.TelosOASIS;
 using NextGenSoftware.OASIS.API.Providers.EthereumOASIS;
 using NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS;
@@ -250,17 +250,31 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                     //    }
                     //    break;
 
-                    //case ProviderType.Neo4jOASIS:
-                    //    {
-                    //        Neo4jOASIS Neo4jOASIS = new Neo4jOASIS(overrideConnectionString == null ? OASISDNA.OASIS.StorageProviders.Neo4jOASIS.ConnectionString : overrideConnectionString, OASISDNA.OASIS.StorageProviders.Neo4jOASIS.Username, OASISDNA.OASIS.StorageProviders.Neo4jOASIS.Password);
-                    //        Neo4jOASIS.StorageProviderError += Neo4jOASIS_StorageProviderError;
-                    //        registeredProvider = Neo4jOASIS;
-                    //    }
-                    //    break;
+                    case ProviderType.Neo4jOASIS:
+                        {
+                            Neo4jOASIS Neo4jOASIS = new Neo4jOASIS(overrideConnectionString == null ? OASISDNA.OASIS.StorageProviders.Neo4jOASIS.ConnectionString : overrideConnectionString, OASISDNA.OASIS.StorageProviders.Neo4jOASIS.Username, OASISDNA.OASIS.StorageProviders.Neo4jOASIS.Password);
+                            Neo4jOASIS.StorageProviderError += Neo4jOASIS_StorageProviderError;
+                            registeredProvider = Neo4jOASIS;
+                        }
+                        break;
 
                     case ProviderType.IPFSOASIS:
                         {
-                            IPFSOASIS IPFSOASIS = new IPFSOASIS(overrideConnectionString == null ? OASISDNA.OASIS.StorageProviders.IPFSOASIS.ConnectionString : overrideConnectionString, OASISDNA.OASIS.StorageProviders.IPFSOASIS.IdLookUpIPFSAddress);
+                            //IPFSOASIS IPFSOASIS = new IPFSOASIS(overrideConnectionString == null ? OASISDNA.OASIS.StorageProviders.IPFSOASIS.ConnectionString : overrideConnectionString, OASISDNA.OASIS.StorageProviders.IPFSOASIS.LookUpIPFSAddress);
+                            //IPFSOASIS IPFSOASIS = new IPFSOASIS(overrideConnectionString == null ? OASISDNA.OASIS.StorageProviders.IPFSOASIS.ConnectionString : overrideConnectionString, OASISDNAFileName);
+                            IPFSOASIS IPFSOASIS = null;
+
+                            //Example of how to pass in OASISDNA if the Provider needs to update the DNA.
+                            if (overrideConnectionString != null)
+                            {
+                                OASISDNA overrideDNA = OASISDNA;
+                                overrideDNA.OASIS.StorageProviders.IPFSOASIS.ConnectionString = overrideConnectionString;
+                                IPFSOASIS = new IPFSOASIS(overrideDNA, OASISDNAFileName);
+                            }   
+                            else
+                                IPFSOASIS = new IPFSOASIS(OASISDNA, OASISDNAFileName);
+
+                            //IPFSOASIS IPFSOASIS = new IPFSOASIS(overrideConnectionString == null ? OASISDNA.OASIS.StorageProviders.IPFSOASIS.ConnectionString : overrideConnectionString, OASISDNAFileName);
                             IPFSOASIS.StorageProviderError += IPFSOASIS_StorageProviderError;
                             registeredProvider = IPFSOASIS;
                         }

@@ -1,3 +1,5 @@
+import { Link } from "react-router-dom";
+
 const SidebarData = [
     {
         id: 1,
@@ -6,7 +8,7 @@ const SidebarData = [
         subMenu: [
             {
                 id: 1,
-                name: "about"
+                name: "about",
             },
             {
                 id: 2,
@@ -15,8 +17,8 @@ const SidebarData = [
             {
                 id: 3,
                 name: "our world",
-            }
-        ]
+            },
+        ],
     },
     {
         id: 2,
@@ -25,17 +27,17 @@ const SidebarData = [
         subMenu: [
             {
                 id: 1,
-                name: "view avatar"
+                name: "view avatar",
             },
             {
                 id: 2,
-                name: "edit avatar"
+                name: <Link to="/avatar/upload">edit avatar</Link>,
             },
             {
                 id: 3,
-                name: "search avatars"
-            }
-        ]
+                name: "search avatars",
+            },
+        ],
     },
     {
         id: 3,
@@ -56,8 +58,8 @@ const SidebarData = [
             {
                 id: 4,
                 name: "View/Search Karma Akashic Records",
-            }
-        ]
+            },
+        ],
     },
     {
         id: 4,
@@ -65,18 +67,19 @@ const SidebarData = [
         subMenu: [
             {
                 id: 1,
+
                 name: "Load Data",
-                popupName: 'loadData'
+                popupName: "loadData",
             },
             {
                 id: 2,
                 name: "Send Data",
-                popupName: 'sendData'
+                popupName: "sendData",
             },
             {
                 id: 3,
                 name: "Manage Data",
-                popupName: 'manageData'
+                popupName: "manageData",
             },
             {
                 id: 4,
@@ -92,7 +95,7 @@ const SidebarData = [
                 id: 6,
                 name: "Search Data",
             },
-        ]
+        ],
     },
     {
         id: 5,
@@ -112,9 +115,47 @@ const SidebarData = [
             },
             {
                 id: 4,
+
                 name: "Send Invite To Join SEEDS",
             },
             {
+
+                name: "data",
+                subMenu: [
+                    {
+                        id: 1,
+                        name: "Load Data",
+                        popupName: 'loadData'
+                    },
+                    {
+                        id: 2,
+                        name: "Send Data",
+                        popupName: 'sendData'
+                    },
+                    {
+                        id: 3,
+                        name: "Manage Data",
+                        popupName: 'manageData'
+                    },
+                    {
+                        id: 4,
+                        name: "Cross-Chain Management",
+                        popupName: 'crossChainManagement'
+                    },
+                    {
+                        id: 5,
+                        name: "Off-Chain Management",
+                        popupName: 'offChainManagement'
+                    },
+                    {
+                        id: 6,
+                        name: "Search Data",
+                    },
+                  
+                ]
+            },
+            {
+
                 id: 5,
                 name: "Accept Invite to join seeds",
             },
@@ -133,21 +174,26 @@ const SidebarData = [
             {
                 id: 9,
                 name: "Search Seeds",
-            }
-        ]
+            },
+        ],
     },
     {
         id: 6,
         name: "provider",
         subMenu: [
             {
+                id: 0,
+                name: <Link to="/provider/key-management"> key Managment</Link>,
+            },
+            {
                 id: 1,
-                name: "View Providers",
+                name: <Link to="/provider/provider"> View Providers</Link>,
             },
             {
                 id: 2,
                 name: "Manage Providers",
             },
+
             {
                 id: 3,
                 name: "Manage Auto-Replication",
@@ -215,38 +261,45 @@ const SidebarData = [
             {
                 id: 19,
                 name: "Neo4j",
-            }
-        ]
+            },
+        ],
     },
     {
         id: 7,
         name: "nft",
-        subMenu: []
+        subMenu: [
+            {
+                id: 1,
+                name: "Solana",
+                popupName: 'solana'
+                
+            }
+        ],
     },
     {
         id: 8,
         name: "map",
-        subMenu: []
+        subMenu: [],
     },
     {
         id: 9,
         name: "oapp",
-        subMenu: []
+        subMenu: [],
     },
     {
         id: 10,
         name: "quest",
-        subMenu: []
+        subMenu: [],
     },
     {
         id: 11,
         name: "mission",
-        subMenu: []
+        subMenu: [],
     },
     {
         id: 12,
         name: "egg",
-        subMenu: []
+        subMenu: [],
     },
     {
         id: 13,
@@ -263,14 +316,14 @@ const SidebarData = [
             {
                 id: 3,
                 name: "View StarCraft 2 Achievements",
-            }
-        ]
+            },
+        ],
     },
     {
         id: 14,
         name: "developer",
-        subMenu: []
-    }
-]
+        subMenu: [],
+    },
+];
 
 export default SidebarData;
