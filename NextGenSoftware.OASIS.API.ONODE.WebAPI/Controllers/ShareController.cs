@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using System;
+using NextGenSoftware.OASIS.API.Core.Helpers;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 {
@@ -27,10 +28,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpGet("ShareHolon/{holonId}/{avatarId}")]
-        public ActionResult<bool> ShareHolon(Guid holonId, Guid avatarId)
+        public OASISResult<bool> ShareHolon(Guid holonId, Guid avatarId)
         {
             // TODO: Finish implementing.
-            return Ok();
+            return new();
         }
 
         /// <summary>
@@ -41,10 +42,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpGet("ShareHolon/{holonId}/{avatarIds}")]
-        public ActionResult<bool> ShareHolon(Guid holonId, Guid[] avatarIds)
+        public OASISResult<bool> ShareHolon(Guid holonId, Guid[] avatarIds)
         {
             // TODO: Finish implementing.
-            return Ok();
+            return new();
         }
     }
 }

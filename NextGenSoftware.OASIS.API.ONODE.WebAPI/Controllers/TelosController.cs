@@ -45,9 +45,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpGet("GetTelosAccountNameForAvatar")]
-        public ActionResult<string> GetTelosAccountNameForAvatar(Guid avatarId)
+        public OASISResult<string> GetTelosAccountNameForAvatar(Guid avatarId)
         {
-            return Ok(TelosOASIS.GetTelosAccountNameForAvatar(avatarId));
+            return new(TelosOASIS.GetTelosAccountNameForAvatar(avatarId));
         }
 
         /// <summary>
@@ -57,9 +57,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpGet("GetTelosAccounPrivateKeyForAvatar")]
-        public ActionResult<string> GetTelosAccounPrivateKeyForAvatar(Guid avatarId)
+        public OASISResult<string> GetTelosAccounPrivateKeyForAvatar(Guid avatarId)
         {
-            return Ok(TelosOASIS.GetTelosAccountPrivateKeyForAvatar(avatarId));
+            return new(TelosOASIS.GetTelosAccountPrivateKeyForAvatar(avatarId));
         }
 
         /// <summary>
@@ -69,9 +69,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpGet("GetTelosAccount")]
-        public ActionResult<Account> GetTelosAccount(string telosAccountName)
+        public OASISResult<Account> GetTelosAccount(string telosAccountName)
         {
-            return Ok(TelosOASIS.GetTelosAccount(telosAccountName));
+            return new(TelosOASIS.GetTelosAccount(telosAccountName));
         }
 
         /// <summary>
@@ -81,9 +81,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpGet("GetTelosAccountForAvatar")]
-        public ActionResult<Account> GetTelosAccountForAvatar(Guid avatarId)
+        public OASISResult<Account> GetTelosAccountForAvatar(Guid avatarId)
         {
-            return Ok(TelosOASIS.GetTelosAccountForAvatar(avatarId));
+            return new(TelosOASIS.GetTelosAccountForAvatar(avatarId));
         }
 
         /// <summary>
@@ -93,9 +93,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpGet("GetAvatarIdForTelosAccountName")]
-        public ActionResult<string> GetAvatarIdForTelosAccountName(string telosAccountName)
+        public OASISResult<string> GetAvatarIdForTelosAccountName(string telosAccountName)
         {
-            return Ok(TelosOASIS.GetAvatarIdForTelosAccountName(telosAccountName));
+            return new(TelosOASIS.GetAvatarIdForTelosAccountName(telosAccountName).ToString());
         }
 
         /// <summary>
@@ -105,9 +105,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpGet("GetAvatarForTelosAccountName")]
-        public ActionResult<string> GetAvatarForTelosAccountName(string telosAccountName)
+        public OASISResult<IAvatar> GetAvatarForTelosAccountName(string telosAccountName)
         {
-            return Ok(TelosOASIS.GetAvatarForTelosAccountName(telosAccountName));
+            return new(TelosOASIS.GetAvatarForTelosAccountName(telosAccountName));
         }
 
         /// <summary>
@@ -119,9 +119,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpGet("GetBalanceForTelosAccount")]
-        public ActionResult<string> GetBalanceForTelosAccount(string telosAccountName, string code, string symbol)
+        public OASISResult<string> GetBalanceForTelosAccount(string telosAccountName, string code, string symbol)
         {
-            return Ok(TelosOASIS.GetBalanceForTelosAccount(telosAccountName, code, symbol));
+            return new(TelosOASIS.GetBalanceForTelosAccount(telosAccountName, code, symbol));
         }
 
         /// <summary>
@@ -133,9 +133,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpGet("GetBalanceForAvatar")]
-        public ActionResult<string> GetBalanceForAvatar(Guid avatarId, string code, string symbol)
+        public OASISResult<string> GetBalanceForAvatar(Guid avatarId, string code, string symbol)
         {
-            return Ok(TelosOASIS.GetBalanceForAvatar(avatarId, code, symbol));
+            return new(TelosOASIS.GetBalanceForAvatar(avatarId, code, symbol));
         }
 
         /// <summary>
@@ -146,9 +146,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpPost("{avatarId}/{telosAccountName}")]
-        public IActionResult LinkTelosAccountToAvatar(Guid avatarId, string telosAccountName)
+        public OASISResult<IAvatarDetail> LinkTelosAccountToAvatar(Guid avatarId, string telosAccountName)
         {
-            return Ok(Program.AvatarManager.LinkProviderKeyToAvatar(avatarId, ProviderType.TelosOASIS, telosAccountName));
+            return new(Program.AvatarManager.LinkProviderKeyToAvatar(avatarId, ProviderType.TelosOASIS, telosAccountName));
         }
     }
 }

@@ -2,10 +2,6 @@
 {
     public sealed class GetNftMetadataRequest
     {
-        public int OwnerAccount { get; set; }
-        public string MintSymbol { get; set; }
-        public string MintToken { get; set; }
-        public string MintName { get; set; }
-        public int MintDecimal { get; set; }
+        public string AccountAddress { get; set; }
     }
 }

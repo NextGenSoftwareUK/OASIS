@@ -30,9 +30,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize(AvatarType.Wizard)]
         [HttpGet("GetCurrentStorageProvider")]
-        public ActionResult<IOASISStorage> GetCurrentStorageProvider()
+        public OASISResult<IOASISStorage> GetCurrentStorageProvider()
         {
-            return Ok(ProviderManager.CurrentStorageProvider);
+            return new(ProviderManager.CurrentStorageProvider);
         }
 
         /// <summary>
@@ -41,9 +41,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpGet("GetCurrentStorageProviderType")]
-        public ActionResult<EnumValue<ProviderType>> GetCurrentStorageProviderType()
+        public OASISResult<EnumValue<ProviderType>> GetCurrentStorageProviderType()
         {
-            return Ok(ProviderManager.CurrentStorageProviderType);
+            return new(ProviderManager.CurrentStorageProviderType);
         }
 
         /// <summary>
@@ -52,9 +52,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpGet("GetAllRegisteredProviders")]
-        public ActionResult<IEnumerable<IOASISProvider>> GetAllRegisteredProviders()
+        public OASISResult<IEnumerable<IOASISProvider>> GetAllRegisteredProviders()
         {
-            return Ok(ProviderManager.GetAllRegisteredProviders());
+            return new(ProviderManager.GetAllRegisteredProviders());
         }
 
         /// <summary>
@@ -63,9 +63,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpGet("GetAllRegisteredProviderTypes")]
-        public ActionResult<IEnumerable<EnumValue<ProviderType>>> GetAllRegisteredProviderTypes()
+        public OASISResult<IEnumerable<EnumValue<ProviderType>>> GetAllRegisteredProviderTypes()
         {
-            return Ok(ProviderManager.GetAllRegisteredProviderTypes());
+            return new(ProviderManager.GetAllRegisteredProviderTypes());
         }
 
         /// <summary>
@@ -75,9 +75,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpGet("GetAllRegisteredProvidersForCategory/{category}")]
-        public ActionResult<IEnumerable<IOASISProvider>> GetAllRegisteredProvidersForCategory(ProviderCategory category)
+        public OASISResult<IEnumerable<IOASISProvider>> GetAllRegisteredProvidersForCategory(ProviderCategory category)
         {
-            return Ok(ProviderManager.GetProvidersOfCategory(category));
+            return new(ProviderManager.GetProvidersOfCategory(category));
         }
 
         /// <summary>
@@ -86,9 +86,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpGet("GetAllRegisteredStorageProviders")]
-        public ActionResult<IEnumerable<IOASISProvider>> GetAllRegisteredStorageProviders()
+        public OASISResult<IEnumerable<IOASISProvider>> GetAllRegisteredStorageProviders()
         {
-            return Ok(ProviderManager.GetStorageProviders());
+            return new(ProviderManager.GetStorageProviders());
         }
 
         /// <summary>
@@ -97,9 +97,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpGet("GetAllRegisteredNetworkProviders")]
-        public ActionResult<IEnumerable<IOASISProvider>> GetAllRegisteredNetworkProviders()
+        public OASISResult<IEnumerable<IOASISProvider>> GetAllRegisteredNetworkProviders()
         {
-            return Ok(ProviderManager.GetNetworkProviders());
+            return new(ProviderManager.GetNetworkProviders());
         }
 
         /// <summary>
@@ -108,9 +108,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpGet("GetAllRegisteredRendererProviders")]
-        public ActionResult<IEnumerable<IOASISProvider>> GetAllRegisteredRendererProviders()
+        public OASISResult<IEnumerable<IOASISProvider>> GetAllRegisteredRendererProviders()
         {
-            return Ok(ProviderManager.GetRendererProviders());
+            return new(ProviderManager.GetRendererProviders());
         }
 
         /// <summary>
@@ -120,9 +120,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpGet("GetRegisteredProvider/{providerType}")]
-        public ActionResult<IOASISProvider> GetRegisteredProvider(ProviderType providerType)
+        public OASISResult<IOASISProvider> GetRegisteredProvider(ProviderType providerType)
         {
-            return Ok(ProviderManager.GetProvider(providerType));
+            return new(ProviderManager.GetProvider(providerType));
         }
 
         /// <summary>
@@ -132,9 +132,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpGet("IsProviderRegistered/{providerType}")]
-        public ActionResult<bool> IsProviderRegistered(ProviderType providerType)
+        public OASISResult<bool> IsProviderRegistered(ProviderType providerType)
         {
-            return Ok(ProviderManager.IsProviderRegistered(providerType));
+            return new (ProviderManager.IsProviderRegistered(providerType));
         }
 
         /// <summary>
@@ -143,9 +143,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpGet("GetProvidersThatAreAutoReplicating")]
-        public ActionResult<EnumValue<ProviderType>[]> GetProvidersThatAreAutoReplicating()
+        public OASISResult<IEnumerable<EnumValue<ProviderType>>> GetProvidersThatAreAutoReplicating()
         {
-            return Ok(ProviderManager.GetProvidersThatAreAutoReplicating());
+            return new(ProviderManager.GetProvidersThatAreAutoReplicating());
         }
 
         /// <summary>
@@ -154,9 +154,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpGet("GetProvidersThatHaveAutoFailOverEnabled")]
-        public ActionResult<EnumValue<ProviderType>[]> GetProvidersThatHaveAutoFailOverEnabled()
+        public OASISResult<IEnumerable<EnumValue<ProviderType>>> GetProvidersThatHaveAutoFailOverEnabled()
         {
-            return Ok(ProviderManager.GetProviderAutoFailOverList());
+            return new(ProviderManager.GetProviderAutoFailOverList());
         }
 
         /// <summary>
@@ -165,9 +165,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpGet("GetProvidersThatHaveAutoLoadBalanceEnabled")]
-        public ActionResult<EnumValue<ProviderType>[]> GetProvidersThatHaveAutoLoadBalanceEnabled()
+        public OASISResult<IEnumerable<EnumValue<ProviderType>>> GetProvidersThatHaveAutoLoadBalanceEnabled()
         {
-            return Ok(ProviderManager.GetProviderAutoLoadBalanceList());
+            return new(ProviderManager.GetProviderAutoLoadBalanceList());
         }
 
         /// <summary>
@@ -177,9 +177,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpPost("RegisterProvider/{provider}")]
-        public ActionResult<bool> RegisterProvider(IOASISProvider provider)
+        public OASISResult<bool> RegisterProvider(IOASISProvider provider)
         {
-            return Ok(ProviderManager.RegisterProvider(provider));
+            return new(ProviderManager.RegisterProvider(provider));
         }
 
         /// <summary>
@@ -189,9 +189,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpPost("RegisterProviderType/{providerType}")]
-        public ActionResult<bool> RegisterProviderType(ProviderType providerType)
+        public OASISResult<bool> RegisterProviderType(ProviderType providerType)
         {
-            return Ok(OASISBootLoader.OASISBootLoader.RegisterProvider(providerType) != null);
+            return new(OASISBootLoader.OASISBootLoader.RegisterProvider(providerType) != null);
         }
 
         /// <summary>
@@ -201,9 +201,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpPost("RegisterProviders/{providers}")]
-        public ActionResult<bool> RegisterProviders(List<IOASISProvider> providers)
+        public OASISResult<bool> RegisterProviders(List<IOASISProvider> providers)
         {
-            return Ok(ProviderManager.RegisterProviders(providers));
+            return new(ProviderManager.RegisterProviders(providers));
         }
 
         /// <summary>
@@ -213,7 +213,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpPost("RegisterProviderTypes/{providerTypes}")]
-        public ActionResult<IOASISStorage[]> RegisterProviderTypes(string providerTypes)
+        public OASISResult<IEnumerable<IOASISStorage>> RegisterProviderTypes(string providerTypes)
         {
             string[] types = providerTypes.Split(',');
             List<IOASISStorage> providers = new List<IOASISStorage>();
@@ -221,7 +221,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             foreach (string type in types)
                 OASISBootLoader.OASISBootLoader.RegisterProvider((ProviderType)Enum.Parse(typeof(ProviderType), type));
 
-            return Ok(providers);
+            return new(providers);
         }
 
         /// <summary>
@@ -231,9 +231,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpPost("UnRegisterProvider/{provider}")]
-        public ActionResult<bool> UnRegisterProvider(IOASISProvider provider)
+        public OASISResult<bool> UnRegisterProvider(IOASISProvider provider)
         {
-            return Ok(ProviderManager.UnRegisterProvider(provider));
+            return new(ProviderManager.UnRegisterProvider(provider));
         }
 
         /// <summary>
@@ -243,9 +243,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpPost("UnRegisterProviderType/{providerType}")]
-        public ActionResult<bool> UnRegisterProviderType(ProviderType providerType)
+        public OASISResult<bool> UnRegisterProviderType(ProviderType providerType)
         {
-            return Ok(ProviderManager.UnRegisterProvider(providerType));
+            return new(ProviderManager.UnRegisterProvider(providerType));
         }
 
         /// <summary>
@@ -255,7 +255,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpPost("UnRegisterProviderTypes/{providerTypes}")]
-        public ActionResult<bool> UnRegisterProviderTypes(string providerTypes)
+        public OASISResult<bool> UnRegisterProviderTypes(string providerTypes)
         {
             string[] types = providerTypes.Split(',');
             List<ProviderType> providerTypesList = new List<ProviderType>();
@@ -263,7 +263,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             foreach (string type in types)
                 providerTypesList.Add((ProviderType)Enum.Parse(typeof(ProviderType), type));
 
-            return Ok(ProviderManager.UnRegisterProviders(providerTypesList));
+            return new(ProviderManager.UnRegisterProviders(providerTypesList));
         }
 
         /// <summary>
@@ -273,9 +273,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpPost("UnRegisterProviders/{providers}")]
-        public ActionResult<bool> UnRegisterProviders(List<IOASISProvider> providers)
+        public OASISResult<bool> UnRegisterProviders(List<IOASISProvider> providers)
         {
-            return Ok(ProviderManager.UnRegisterProviders(providers));
+            return new(ProviderManager.UnRegisterProviders(providers));
         }
 
         /// <summary>
@@ -286,9 +286,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpPost("SetAndActivateCurrentStorageProvider/{providerType}/{setGlobally}")]
-        public ActionResult<bool> SetAndActivateCurrentStorageProvider(ProviderType providerType, bool setGlobally)
+        public OASISResult<bool> SetAndActivateCurrentStorageProvider(ProviderType providerType, bool setGlobally)
         {
-            return Ok(GetAndActivateProvider(providerType, setGlobally) != null);
+            return new(GetAndActivateProvider(providerType, setGlobally) != null);
         }
 
         /// <summary>
@@ -298,9 +298,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpPost("ActivateProvider/{providerType}")]
-        public ActionResult<bool> ActivateProvider(ProviderType providerType)
+        public OASISResult<bool> ActivateProvider(ProviderType providerType)
         {
-            return Ok(ProviderManager.ActivateProvider(providerType));
+            return ProviderManager.ActivateProvider(providerType);
         }
 
         /// <summary>
@@ -310,9 +310,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpPost("DeActivateProvider/{providerType}")]
-        public ActionResult<bool> DeActivateProvider(ProviderType providerType)
+        public OASISResult<bool> DeActivateProvider(ProviderType providerType)
         {
-            return Ok(ProviderManager.DeActivateProvider(providerType));
+            return ProviderManager.DeActivateProvider(providerType);
         }
 
         ///// <summary>
@@ -335,12 +335,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpPost("SetAutoReplicateForAllProviders/{autoReplicate}")]
-        public ActionResult<bool> SetAutoReplicateForAllProviders(bool autoReplicate)
+        public OASISResult<bool> SetAutoReplicateForAllProviders(bool autoReplicate)
         {
-            if (ProviderManager.SetAutoReplicateForAllProviders(autoReplicate))
-                return Ok(OASISBootLoader.OASISBootLoader.RegisterProvidersInAutoReplicatingList());
-            else
-                return (Ok(false));
+            return ProviderManager.SetAutoReplicateForAllProviders(autoReplicate) ? OASISBootLoader.OASISBootLoader.RegisterProvidersInAutoReplicatingList() : new(false);
         }
 
         /// <summary>
@@ -351,18 +348,14 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpPost("SetAutoReplicateForListOfProviders/{autoReplicate}/{providerTypes}")]
-        public ActionResult<bool> SetAutoReplicateForListOfProviders(bool autoReplicate, string providerTypes)
+        public OASISResult<bool> SetAutoReplicateForListOfProviders(bool autoReplicate, string providerTypes)
         {
             string[] types = providerTypes.Split(',');
             List<ProviderType> providerTypesList = new List<ProviderType>();
 
             foreach (string type in types)
                 providerTypesList.Add((ProviderType)Enum.Parse(typeof(ProviderType), type));
-
-            if (ProviderManager.SetAutoReplicationForProviders(autoReplicate, new List<ProviderType>(providerTypesList)))
-                return Ok(OASISBootLoader.OASISBootLoader.RegisterProvidersInAutoReplicatingList());
-            else
-                return (Ok(false));
+            return ProviderManager.SetAutoReplicationForProviders(autoReplicate, new List<ProviderType>(providerTypesList)) ? OASISBootLoader.OASISBootLoader.RegisterProvidersInAutoReplicatingList() : new(false);
         }
 
         ///// <summary>
@@ -386,12 +379,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpPost("SetAutoFailOverForAllProviders/{addToFailOverList}")]
-        public ActionResult<bool> SetAutoFailOverForAllProviders(bool addToFailOverList)
+        public OASISResult<bool> SetAutoFailOverForAllProviders(bool addToFailOverList)
         {
-            if (ProviderManager.SetAutoFailOverForAllProviders(addToFailOverList))
-                return Ok(OASISBootLoader.OASISBootLoader.RegisterProvidersInAutoFailOverList());
-            else
-                return (Ok(false));
+            return ProviderManager.SetAutoFailOverForAllProviders(addToFailOverList) ? OASISBootLoader.OASISBootLoader.RegisterProvidersInAutoFailOverList() : new (false);
         }
 
         /// <summary>
@@ -402,18 +392,14 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpPost("SetAutoFailOverForListOfProviders/{addToFailOverList}/{providerTypes}")]
-        public ActionResult<bool> SetAutoFailOverForListOfProviders(bool addToFailOverList, string providerTypes)
+        public OASISResult<bool> SetAutoFailOverForListOfProviders(bool addToFailOverList, string providerTypes)
         {
             string[] types = providerTypes.Split(',');
             List<ProviderType> providerTypesList = new List<ProviderType>();
 
             foreach (string type in types)
                 providerTypesList.Add((ProviderType)Enum.Parse(typeof(ProviderType), type));
-
-            if (ProviderManager.SetAutoFailOverForProviders(addToFailOverList, new List<ProviderType>(providerTypesList)))
-                return Ok(OASISBootLoader.OASISBootLoader.RegisterProvidersInAutoFailOverList());
-            else
-                return (Ok(false));
+            return ProviderManager.SetAutoFailOverForProviders(addToFailOverList, new List<ProviderType>(providerTypesList)) ? OASISBootLoader.OASISBootLoader.RegisterProvidersInAutoFailOverList() : new(false);
         }
 
         /// <summary>
@@ -423,12 +409,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpPost("SetAutoLoadBalanceForAllProviders/{addToLoadBalanceList}")]
-        public ActionResult<bool> SetAutoLoadBalanceForAllProviders(bool addToLoadBalanceList)
+        public OASISResult<bool> SetAutoLoadBalanceForAllProviders(bool addToLoadBalanceList)
         {
-            if (ProviderManager.SetAutoLoadBalanceForAllProviders(addToLoadBalanceList))
-                return Ok(OASISBootLoader.OASISBootLoader.RegisterProvidersInAutoLoadBalanceList());
-            else
-                return (Ok(false));
+            return ProviderManager.SetAutoLoadBalanceForAllProviders(addToLoadBalanceList) ? OASISBootLoader.OASISBootLoader.RegisterProvidersInAutoLoadBalanceList() : new(false);
         }
 
         /// <summary>
@@ -439,7 +422,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpPost("SetAutoLoadBalanceForListOfProviders/{addToLoadBalanceList}/{providerTypes}")]
-        public ActionResult<bool> SetAutoLoadBalanceForListOfProviders(bool addToLoadBalanceList, string providerTypes)
+        public OASISResult<bool> SetAutoLoadBalanceForListOfProviders(bool addToLoadBalanceList, string providerTypes)
         {
             string[] types = providerTypes.Split(',');
             List<ProviderType> providerTypesList = new List<ProviderType>();
@@ -447,10 +430,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             foreach (string type in types)
                 providerTypesList.Add((ProviderType)Enum.Parse(typeof(ProviderType), type));
             
-            if (ProviderManager.SetAutoLoadBalanceForProviders(addToLoadBalanceList, new List<ProviderType>(providerTypesList)))
-                return Ok(OASISBootLoader.OASISBootLoader.RegisterProvidersInAutoLoadBalanceList());
-            else
-                return (Ok(false));
+            return ProviderManager.SetAutoLoadBalanceForProviders(addToLoadBalanceList, new List<ProviderType>(providerTypesList)) ? OASISBootLoader.OASISBootLoader.RegisterProvidersInAutoLoadBalanceList() : new(false);
         }
 
         ///// <summary>
@@ -475,7 +455,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize(AvatarType.Wizard)]
         [HttpPost("SetProviderConfig/{providerType}/{connectionString}")]
-        public ActionResult<bool> SetProviderConfig(ProviderType providerType, string connectionString)
+        public OASISResult<bool> SetProviderConfig(ProviderType providerType, string connectionString)
         {
             //TODO: Test this works and then implement for rest of providers...
             switch (providerType)
@@ -490,7 +470,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                     break;
             }
 
-            return Ok(true);
+            return new(true);
         }
     }
 }
