@@ -14,19 +14,19 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Repositories{
         Task<OASISResult<IHolon>> AddAsync(IHolon holon);
         OASISResult<IHolon> Update(IHolon holon);
         Task<OASISResult<IHolon>> UpdateAsync(IHolon holon);
-        bool Delete(Guid id, bool softDelete = true);
-        bool Delete(string providerKey, bool softDelete = true);
-        Task<bool> DeleteAsync(Guid id, bool softDelete = true);
-        Task<bool> DeleteAsync(string providerKey, bool softDelete = true);
-        IEnumerable<Holon> GetAllHolons(HolonType holonType = HolonType.All);
-        Task<IEnumerable<Holon>> GetAllHolonsAsync(HolonType holonType = HolonType.All);
-        IEnumerable<Holon> GetAllHolonsForParent(Guid id, HolonType holonType);
-        IEnumerable<Holon> GetAllHolonsForParent(string providerKey, HolonType holonType);
-        Task<IEnumerable<Holon>> GetAllHolonsForParentAsync(Guid id, HolonType holonType);
+        OASISResult<bool> Delete(Guid id, bool softDelete = true);
+        OASISResult<bool> Delete(string providerKey, bool softDelete = true);
+        Task<OASISResult<bool>> DeleteAsync(Guid id, bool softDelete = true);
+        Task<OASISResult<bool>> DeleteAsync(string providerKey, bool softDelete = true);
+        OASISResult<IEnumerable<Holon>> GetAllHolons(HolonType holonType = HolonType.All);
+        Task<OASISResult<IEnumerable<Holon>>> GetAllHolonsAsync(HolonType holonType = HolonType.All);
+        OASISResult<IEnumerable<Holon>> GetAllHolonsForParent(Guid id, HolonType holonType);
+        OASISResult<IEnumerable<Holon>> GetAllHolonsForParent(string providerKey, HolonType holonType);
+        Task<OASISResult<IEnumerable<Holon>>> GetAllHolonsForParentAsync(Guid id, HolonType holonType);
         Task<OASISResult<IEnumerable<Holon>>> GetAllHolonsForParentAsync(string providerKey, HolonType holonType);
-        Holon GetHolon(Guid id);
-        Holon GetHolon(string providerKey);
-        Task<Holon> GetHolonAsync(Guid id);
-        Task<Holon> GetHolonAsync(string providerKey);
+        OASISResult<Holon> GetHolon(Guid id);
+        OASISResult<Holon> GetHolon(string providerKey);
+        Task<OASISResult<Holon>> GetHolonAsync(Guid id);
+        Task<OASISResult<Holon>> GetHolonAsync(string providerKey);
     }
 }
