@@ -41,7 +41,7 @@ Then when we do a release, this file will be linked to the Swagger documentation
 ----------------------------------------------------------------------------------------------------------------------------
 0.18 ALPHA
 
-- All routes in all controllers returns OASISResul
+- All routes in all controllers returns OASISResult
 - Added exception filter
 - GetOLANDPrice method to cargo and nft controllers
 - PurchaseOLAND route added to nft controller
