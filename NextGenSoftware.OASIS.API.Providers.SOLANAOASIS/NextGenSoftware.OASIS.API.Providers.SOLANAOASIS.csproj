@@ -14,4 +14,8 @@
       <PackageReference Include="Solnet.Wallet" Version="0.4.6" />
     </ItemGroup>
 
+    <ItemGroup>
+      <ProjectReference Include="..\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj" />
+    </ItemGroup>
+
 </Project>

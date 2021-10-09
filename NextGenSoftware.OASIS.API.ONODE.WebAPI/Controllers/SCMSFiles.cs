@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using NextGenSoftware.OASIS.API.Core.Helpers;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 {
@@ -15,9 +16,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         SCMSRepository _scmsRepository = new SCMSRepository();
 
         [HttpGet]
-        public async Task<IEnumerable<File>> GetAllFiles()
+        public async Task<OASISResult<IEnumerable<File>>> GetAllFiles()
         {
-            return await Task.Run(() => _scmsRepository.GetAllFiles());
+            return new(await _scmsRepository.GetAllFiles());
         }
 
         //[HttpGet]

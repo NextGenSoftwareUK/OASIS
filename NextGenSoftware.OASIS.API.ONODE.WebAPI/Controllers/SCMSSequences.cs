@@ -4,6 +4,7 @@ using NextGenSoftware.OASIS.API.Core;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using NextGenSoftware.OASIS.API.Core.Helpers;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 {
@@ -31,10 +32,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
     //[HttpGet("GetAllSequences")]
     //public async Task<IActionResult> GetAllSequences()
     //public async Task<IActionResult> Get()
-    public async Task<IEnumerable<Sequence>> GetAllSequences()
+    public async Task<OASISResult<IEnumerable<Sequence>>> GetAllSequences()
    {
-       var sequences = await _scmsRepository.GetAllSequences();
-       return await Task.Run(() => sequences.ToList());
+       return new(await _scmsRepository.GetAllSequences());
    }
 
         /*
