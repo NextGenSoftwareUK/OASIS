@@ -12,7 +12,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Service
         Task<OASISResult<ExchangeTokenResult>> ExchangeTokens(ExchangeTokenRequest exchangeTokenRequest);
         Task<OASISResult<MintNftResult>> MintNft(MintNftRequest mintNftRequest);
         Task<OASISResult<SendTransactionResult>> SendTransaction(SendTransactionRequest sendTransactionRequest);
-        Task<OASISResult<MetadataAccount>> GetNftMetadata(GetNftMetadataRequest getNftMetadataRequest);
+        Task<OASISResult<GetNftMetadataResult>> GetNftMetadata(GetNftMetadataRequest getNftMetadataRequest);
         Task<OASISResult<GetNftWalletResult>> GetNftWallet(GetNftWalletRequest getNftWalletRequest);
     }
 }

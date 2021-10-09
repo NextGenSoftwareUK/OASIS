@@ -142,13 +142,19 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Service
             return response;
         }
 
-        public async Task<OASISResult<MetadataAccount>> GetNftMetadata(GetNftMetadataRequest getNftMetadataRequest)
+        public async Task<OASISResult<GetNftMetadataResult>> GetNftMetadata(GetNftMetadataRequest getNftMetadataRequest)
         {
-            var response = new OASISResult<MetadataAccount>();
+            var response = new OASISResult<GetNftMetadataResult>();
             try
             {
-                response.Result = await MetadataAccount
+                var account = await MetadataAccount
                     .GetAccount(_rpcClient, new PublicKey(getNftMetadataRequest.AccountAddress));
+                response.Result = new GetNftMetadataResult(account);
+            }
+            catch (ArgumentNullException)
+            {
+                response.IsError = true;
+                response.Message = "Account address is not correct or metadata not exists";
             }
             catch (NullReferenceException)
             {
