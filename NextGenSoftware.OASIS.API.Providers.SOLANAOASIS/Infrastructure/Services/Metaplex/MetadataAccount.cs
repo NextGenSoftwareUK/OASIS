@@ -113,7 +113,7 @@ namespace Solnet.Metaplex
             }
         }
 
-        async public static Task<MetadataAccount> GetAccount ( IRpcClient client , PublicKey pk )
+        public static async Task<MetadataAccount> GetAccount ( IRpcClient client , PublicKey pk )
         {
             var accInfoResponse = await client.GetAccountInfoAsync( pk.Key );
 

@@ -5,13 +5,10 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Models.
     public class BaseAccountRequest
     {
         public string PublicKey { get; set; }
-        public string PrivateKey { get; set; }
 
-        public Account GetAccountWallet()
+        public int GetAccountIndex()
         {
-            if (string.IsNullOrEmpty(PublicKey) || string.IsNullOrEmpty(PrivateKey))
-                return new Account();
-            return new Account(PrivateKey, PublicKey);
+            return 0;
         }
     }
 }
