@@ -8,16 +8,16 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers.Admin
     [Route("api/admin/[controller]")]
     [ApiController]
     [Authorize]
-    public class PriceController : OASISControllerBase
+    public class OlandUnitController : OASISControllerBase
     {
         [HttpPost]
-        public async Task<OASISResult<bool>> Create(CreatePriceRequest request)
+        public async Task<OASISResult<bool>> Create(CreateOlandUnitRequest request)
         {
             
         }
 
         [HttpPut("{id:int}")]
-        public async Task<OASISResult<bool>> Update(UpdatePriceRequest request, int id)
+        public async Task<OASISResult<bool>> Update(UpdateOlandUnitRequest request, int id)
         {
             
         }
@@ -29,26 +29,26 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers.Admin
         }
 
         [HttpGet("{id:int}")]
-        public async Task<OASISResult<OlandPriceDto>> Get(int id)
+        public async Task<OASISResult<OlandUnitDto>> Get(int id)
         {
         }
 
         [HttpGet("GetAll")]
-        public async Task<OASISResult<IEnumerable<OlandPriceDto>>> GetAll()
+        public async Task<OASISResult<IEnumerable<OlandUnitDto>>> GetAll()
         {
             
         }
     }
 
-    public sealed class UpdatePriceRequest
+    public sealed class UpdateOlandUnitRequest
     {
     }
 
-    public class CreatePriceRequest
+    public class CreateOlandUnitRequest
     {
     }
 
-    public sealed class OlandPriceDto
+    public sealed class OlandUnitDto
     {
     }
 }
