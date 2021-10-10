@@ -41,4 +41,13 @@ Then when we do a release, this file will be linked to the Swagger documentation
 ----------------------------------------------------------------------------------------------------------------------------
 0.18 ALPHA
 
+- All routes in all controllers returns OASISResult
+- Added exception filter
+- GetOLANDPrice method to cargo and nft controllers
+- PurchaseOLAND route added to nft controller
+- Added MoralisOASIS Provider
+- Added routes for getting UmaJSON data
+- Added route for getting avatar data with JWT token
 - Added Release History link to this doc on main Swagger text at the top of the OASIS API.
+
+----------------------------------------------------------------------------------------------------------------------------

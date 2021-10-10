@@ -7,6 +7,7 @@ using NextGenSoftware.OASIS.API.Providers.TelosOASIS;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Models;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.Providers.SEEDSOASIS.Membranes;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 {
@@ -53,9 +54,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpGet("GetAllOrganisations")]
-        public ActionResult<string> GetAllOrganisations()
+        public OASISResult<string> GetAllOrganisations()
         {
-            return Ok(SEEDSOASIS.GetAllOrganisationsAsJSON());
+            return new(SEEDSOASIS.GetAllOrganisationsAsJSON());
         }
 
         /// <summary>
@@ -65,9 +66,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpPost("PayWithSeedsUsingTelosAccount")]
-        public ActionResult<string> PayWithSeedsUsingTelosAccount(PayWithSeedsUsingTelosAccountRequest request)
+        public OASISResult<string> PayWithSeedsUsingTelosAccount(PayWithSeedsUsingTelosAccountRequest request)
         {
-            return Ok(SEEDSOASIS.PayWithSeedsUsingTelosAccount(request.FromTelosAccountName, request.FromTelosAccountPrivateKey, request.ToTelosAccountName, request.Quanitity, request.ReceivingKarmaFor, request.AppWebsiteServiceName, request.AppWebsiteServiceDesc, request.AppWebsiteServiceWebLink, request.Memo));
+            return SEEDSOASIS.PayWithSeedsUsingTelosAccount(request.FromTelosAccountName, request.FromTelosAccountPrivateKey, request.ToTelosAccountName, request.Quanitity, request.ReceivingKarmaFor, request.AppWebsiteServiceName, request.AppWebsiteServiceDesc, request.AppWebsiteServiceWebLink, request.Memo);
         }
 
         /// <summary>
@@ -77,9 +78,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpPost("PayWithSeedsUsingAvatar")]
-        public ActionResult<string> PayWithSeedsUsingAvatar(PayWithSeedsUsingAvatarRequest request)
+        public OASISResult<string> PayWithSeedsUsingAvatar(PayWithSeedsUsingAvatarRequest request)
         {
-            return Ok(SEEDSOASIS.PayWithSeedsUsingAvatar(request.FromAvatarId, request.ToAvatarId, request.Quanitity, request.ReceivingKarmaFor, request.AppWebsiteServiceName, request.AppWebsiteServiceDesc, request.AppWebsiteServiceWebLink, request.Memo));
+            return SEEDSOASIS.PayWithSeedsUsingAvatar(request.FromAvatarId, request.ToAvatarId, request.Quanitity, request.ReceivingKarmaFor, request.AppWebsiteServiceName, request.AppWebsiteServiceDesc, request.AppWebsiteServiceWebLink, request.Memo);
         }
 
         /// <summary>
@@ -89,9 +90,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpPost("RewardWithSeedsUsingTelosAccount")]
-        public ActionResult<string> RewardWithSeedsUsingTelosAccount(PayWithSeedsUsingTelosAccountRequest request)
+        public OASISResult<string> RewardWithSeedsUsingTelosAccount(PayWithSeedsUsingTelosAccountRequest request)
         {
-            return Ok(SEEDSOASIS.RewardWithSeedsUsingTelosAccount(request.FromTelosAccountName, request.FromTelosAccountPrivateKey, request.ToTelosAccountName, request.Quanitity, request.ReceivingKarmaFor, request.AppWebsiteServiceName, request.AppWebsiteServiceDesc, request.AppWebsiteServiceWebLink, request.Memo));
+            return SEEDSOASIS.RewardWithSeedsUsingTelosAccount(request.FromTelosAccountName, request.FromTelosAccountPrivateKey, request.ToTelosAccountName, request.Quanitity, request.ReceivingKarmaFor, request.AppWebsiteServiceName, request.AppWebsiteServiceDesc, request.AppWebsiteServiceWebLink, request.Memo);
         }
 
         /// <summary>
@@ -101,9 +102,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpPost("RewardWithSeedsUsingAvatar")]
-        public ActionResult<string> RewardWithSeedsUsingAvatar(PayWithSeedsUsingAvatarRequest request)
+        public OASISResult<string> RewardWithSeedsUsingAvatar(PayWithSeedsUsingAvatarRequest request)
         {
-            return Ok(SEEDSOASIS.PayWithSeedsUsingAvatar(request.FromAvatarId, request.ToAvatarId, request.Quanitity, request.ReceivingKarmaFor, request.AppWebsiteServiceName, request.AppWebsiteServiceDesc, request.AppWebsiteServiceWebLink, request.Memo));
+            return SEEDSOASIS.PayWithSeedsUsingAvatar(request.FromAvatarId, request.ToAvatarId, request.Quanitity, request.ReceivingKarmaFor, request.AppWebsiteServiceName, request.AppWebsiteServiceDesc, request.AppWebsiteServiceWebLink, request.Memo);
         }
 
         /// <summary>
@@ -113,9 +114,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpPost("DonateWithSeedsUsingTelosAccount")]
-        public ActionResult<string> DonateWithSeedsUsingTelosAccount(PayWithSeedsUsingTelosAccountRequest request)
+        public OASISResult<string> DonateWithSeedsUsingTelosAccount(PayWithSeedsUsingTelosAccountRequest request)
         {
-            return Ok(SEEDSOASIS.RewardWithSeedsUsingTelosAccount(request.FromTelosAccountName, request.FromTelosAccountPrivateKey, request.ToTelosAccountName, request.Quanitity, request.ReceivingKarmaFor, request.AppWebsiteServiceName, request.AppWebsiteServiceDesc, request.AppWebsiteServiceWebLink, request.Memo));
+            return SEEDSOASIS.RewardWithSeedsUsingTelosAccount(request.FromTelosAccountName, request.FromTelosAccountPrivateKey, request.ToTelosAccountName, request.Quanitity, request.ReceivingKarmaFor, request.AppWebsiteServiceName, request.AppWebsiteServiceDesc, request.AppWebsiteServiceWebLink, request.Memo);
         }
 
         /// <summary>
@@ -125,9 +126,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpPost("DonateWithSeedssUsingAvatar")]
-        public ActionResult<string> DonateWithSeedssUsingAvatar(PayWithSeedsUsingAvatarRequest request)
+        public OASISResult<string> DonateWithSeedssUsingAvatar(PayWithSeedsUsingAvatarRequest request)
         {
-            return Ok(SEEDSOASIS.PayWithSeedsUsingAvatar(request.FromAvatarId, request.ToAvatarId, request.Quanitity, request.ReceivingKarmaFor, request.AppWebsiteServiceName, request.AppWebsiteServiceDesc, request.AppWebsiteServiceWebLink, request.Memo));
+            return SEEDSOASIS.PayWithSeedsUsingAvatar(request.FromAvatarId, request.ToAvatarId, request.Quanitity, request.ReceivingKarmaFor, request.AppWebsiteServiceName, request.AppWebsiteServiceDesc, request.AppWebsiteServiceWebLink, request.Memo);
         }
 
         /// <summary>
@@ -137,9 +138,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpPost("SendInviteToJoinSeedsUsingTelosAccount")]
-        public ActionResult<string> SendInviteToJoinSeedsUsingTelosAccount(SendInviteToJoinSeedsUsingTelosAccountRequest request)
+        public OASISResult<SendInviteResult> SendInviteToJoinSeedsUsingTelosAccount(SendInviteToJoinSeedsUsingTelosAccountRequest request)
         {
-            return Ok(SEEDSOASIS.SendInviteToJoinSeedsUsingTelosAccount(request.SponsorTelosAccountName, request.SponsorTelosAccountPrivateKey, request.RefererTelosAccountName, request.TransferQuanitity, request.SowQuanitity, request.ReceivingKarmaFor, request.AppWebsiteServiceName, request.AppWebsiteServiceDesc, request.AppWebsiteServiceWebLink));
+            return SEEDSOASIS.SendInviteToJoinSeedsUsingTelosAccount(request.SponsorTelosAccountName, request.SponsorTelosAccountPrivateKey, request.RefererTelosAccountName, request.TransferQuanitity, request.SowQuanitity, request.ReceivingKarmaFor, request.AppWebsiteServiceName, request.AppWebsiteServiceDesc, request.AppWebsiteServiceWebLink);
         }
 
         /// <summary>
@@ -149,9 +150,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpPost("SendInviteToJoinSeedsUsingAvatar")]
-        public ActionResult<string> SendInviteToJoinSeedsUsingAvatar(SendInviteToJoinSeedsUsingAvatarRequest request)
+        public OASISResult<SendInviteResult> SendInviteToJoinSeedsUsingAvatar(SendInviteToJoinSeedsUsingAvatarRequest request)
         {
-            return Ok(SEEDSOASIS.SendInviteToJoinSeedsUsingAvatar(request.SponsorAvatarId, request.RefererAvatarId, request.TransferQuanitity, request.SowQuanitity, request.ReceivingKarmaFor, request.AppWebsiteServiceName, request.AppWebsiteServiceDesc, request.AppWebsiteServiceWebLink));
+            return SEEDSOASIS.SendInviteToJoinSeedsUsingAvatar(request.SponsorAvatarId, request.RefererAvatarId, request.TransferQuanitity, request.SowQuanitity, request.ReceivingKarmaFor, request.AppWebsiteServiceName, request.AppWebsiteServiceDesc, request.AppWebsiteServiceWebLink);
         }
 
         /// <summary>
@@ -161,9 +162,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpPost("AcceptInviteToJoinSeedsUsingTelosAccount")]
-        public ActionResult<string> AcceptInviteToJoinSeedsUsingTelosAccount(AcceptInviteToJoinSeedsUsingTelosAccountRequest request)
+        public OASISResult<string> AcceptInviteToJoinSeedsUsingTelosAccount(AcceptInviteToJoinSeedsUsingTelosAccountRequest request)
         {
-            return Ok(SEEDSOASIS.AcceptInviteToJoinSeedsUsingTelosAccount(request.TelosAccountName, request.InviteSecret, request.ReceivingKarmaFor, request.AppWebsiteServiceName, request.AppWebsiteServiceDesc, request.AppWebsiteServiceWebLink));
+            return SEEDSOASIS.AcceptInviteToJoinSeedsUsingTelosAccount(request.TelosAccountName, request.InviteSecret, request.ReceivingKarmaFor, request.AppWebsiteServiceName, request.AppWebsiteServiceDesc, request.AppWebsiteServiceWebLink);
         }
 
         /// <summary>
@@ -173,9 +174,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpPost("AcceptInviteToJoinSeedsUsingAvatar")]
-        public ActionResult<string> AcceptInviteToJoinSeedsUsingAvatar(AcceptInviteToJoinSeedsUsingAvatarRequest request)
+        public OASISResult<string> AcceptInviteToJoinSeedsUsingAvatar(AcceptInviteToJoinSeedsUsingAvatarRequest request)
         {
-            return Ok(SEEDSOASIS.AcceptInviteToJoinSeedsUsingAvatar(request.AvatarId, request.InviteSecret, request.ReceivingKarmaFor, request.AppWebsiteServiceName, request.AppWebsiteServiceDesc, request.AppWebsiteServiceWebLink));
+            return SEEDSOASIS.AcceptInviteToJoinSeedsUsingAvatar(request.AvatarId, request.InviteSecret, request.ReceivingKarmaFor, request.AppWebsiteServiceName, request.AppWebsiteServiceDesc, request.AppWebsiteServiceWebLink);
         }
 
         /// <summary>
@@ -185,9 +186,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpGet("GetTelosAccountNameForAvatar")]
-        public ActionResult<string> GetTelosAccountNameForAvatar(Guid avatarId)
+        public OASISResult<string> GetTelosAccountNameForAvatar(Guid avatarId)
         {
-            return Ok(SEEDSOASIS.TelosOASIS.GetTelosAccountNameForAvatar(avatarId));
+            return new(SEEDSOASIS.TelosOASIS.GetTelosAccountNameForAvatar(avatarId));
         }
 
         /// <summary>
@@ -197,9 +198,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpGet("GetTelosAccountPrivateKeyForAvatar")]
-        public ActionResult<string> GetTelosAccountPrivateKeyForAvatar(Guid avatarId)
+        public OASISResult<string> GetTelosAccountPrivateKeyForAvatar(Guid avatarId)
         {
-            return Ok(SEEDSOASIS.TelosOASIS.GetTelosAccountPrivateKeyForAvatar(avatarId));
+            return new(SEEDSOASIS.TelosOASIS.GetTelosAccountPrivateKeyForAvatar(avatarId));
         }
 
         /// <summary>
@@ -209,9 +210,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpGet("GetTelosAccount")]
-        public ActionResult<Account> GetTelosAccount(string telosAccountName)
+        public OASISResult<Account> GetTelosAccount(string telosAccountName)
         {
-            return Ok(SEEDSOASIS.TelosOASIS.GetTelosAccount(telosAccountName));
+            return new(SEEDSOASIS.TelosOASIS.GetTelosAccount(telosAccountName));
         }
 
         /// <summary>
@@ -221,9 +222,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpGet("GetTelosAccountForAvatar")]
-        public ActionResult<Account> GetTelosAccountForAvatar(Guid avatarId)
+        public OASISResult<Account> GetTelosAccountForAvatar(Guid avatarId)
         {
-            return Ok(SEEDSOASIS.TelosOASIS.GetTelosAccountForAvatar(avatarId));
+            return new(SEEDSOASIS.TelosOASIS.GetTelosAccountForAvatar(avatarId));
         }
 
         /// <summary>
@@ -233,9 +234,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpGet("GetAvatarIdForTelosAccountName")]
-        public ActionResult<string> GetAvatarIdForTelosAccountName(string telosAccountName)
+        public OASISResult<string> GetAvatarIdForTelosAccountName(string telosAccountName)
         {
-            return Ok(SEEDSOASIS.TelosOASIS.GetAvatarIdForTelosAccountName(telosAccountName));
+            return new(SEEDSOASIS.TelosOASIS.GetAvatarIdForTelosAccountName(telosAccountName).ToString());
         }
 
         /// <summary>
@@ -245,9 +246,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpGet("GetAvatarForTelosAccountName")]
-        public ActionResult<string> GetAvatarForTelosAccountName(string telosAccountName)
+        public OASISResult<IAvatar> GetAvatarForTelosAccountName(string telosAccountName)
         {
-            return Ok(SEEDSOASIS.TelosOASIS.GetAvatarForTelosAccountName(telosAccountName));
+            return new(SEEDSOASIS.TelosOASIS.GetAvatarForTelosAccountName(telosAccountName));
         }
 
         /// <summary>
@@ -257,9 +258,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpGet("GetBalanceForTelosAccount")]
-        public ActionResult<string> GetBalanceForTelosAccount(string telosAccountName)
+        public OASISResult<string> GetBalanceForTelosAccount(string telosAccountName)
         {
-            return Ok(SEEDSOASIS.GetBalanceForTelosAccount(telosAccountName));
+            return new(SEEDSOASIS.GetBalanceForTelosAccount(telosAccountName));
         }
 
         /// <summary>
@@ -269,9 +270,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpGet("GetBalanceForAvatar")]
-        public ActionResult<string> GetBalanceForAvatar(Guid avatarId)
+        public OASISResult<string> GetBalanceForAvatar(Guid avatarId)
         {
-            return Ok(SEEDSOASIS.GetBalanceForAvatar(avatarId));
+            return new(SEEDSOASIS.GetBalanceForAvatar(avatarId));
         }
 
         /// <summary>
@@ -281,9 +282,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpGet("GenerateSeedsPassportSignInQRCode")]
-        public ActionResult<string> GenerateSeedsPassportSignInQRCode(string telosAccountName)
+        public OASISResult<string> GenerateSeedsPassportSignInQRCode(string telosAccountName)
         {
-            return Ok(SEEDSOASIS.GenerateSignInQRCode(telosAccountName));
+            return new(SEEDSOASIS.GenerateSignInQRCode(telosAccountName));
         }
 
         /// <summary>
@@ -293,9 +294,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpGet("GenerateSeedsPassportSignInQRCodeForAvatar")]
-        public ActionResult<string> GenerateSeedsPassportSignInQRCodeForAvatar(Guid avatarId)
+        public OASISResult<string> GenerateSeedsPassportSignInQRCodeForAvatar(Guid avatarId)
         {
-            return Ok(SEEDSOASIS.GenerateSignInQRCodeForAvatar(avatarId));
+            return new(SEEDSOASIS.GenerateSignInQRCodeForAvatar(avatarId));
         }
 
         ///// <summary>

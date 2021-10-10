@@ -4,7 +4,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Models.
 {
     public sealed class MintNftResult : BaseTransactionResult
     {
-        public MintNftResult(string transactionResult) : base(transactionResult)
+        public MintNftResult(string transactionHash) : base(transactionHash)
         {
         }
 
