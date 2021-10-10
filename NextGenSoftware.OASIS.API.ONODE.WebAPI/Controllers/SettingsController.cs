@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
+using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.DNA;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
@@ -27,10 +28,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpGet("GetAllSettingsForCurrentLoggedInAvatar")]
-        public ActionResult<bool> GetAllSettingsForCurrentLoggedInAvatar()
+        public OASISResult<bool> GetAllSettingsForCurrentLoggedInAvatar()
         {
             // TODO: Finish implementing.
-            return Ok();
+            return new();
         }
     }
 }

@@ -32,7 +32,6 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities
         public string Mobile { get; set; }
         public DateTime DOB { get; set; }
         public EnumValue<AvatarType> AvatarType { get; set; }
-        public EnumValue<OASISType> CreatedOASISType { get; set; }
         public int Karma { get; set; }
         public Dictionary<ProviderType, string> ProviderPrivateKey { get; set; } = new Dictionary<ProviderType, string>();  //Unique private key used by each provider (part of private/public key pair).
         public Dictionary<ProviderType, string> ProviderPublicKey { get; set; } = new Dictionary<ProviderType, string>();

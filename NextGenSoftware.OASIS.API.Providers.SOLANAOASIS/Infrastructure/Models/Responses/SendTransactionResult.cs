@@ -4,7 +4,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Models.
 {
     public sealed class SendTransactionResult : BaseTransactionResult
     {
-        public SendTransactionResult(string transactionResult) : base(transactionResult)
+        public SendTransactionResult(string transactionHash) : base(transactionHash)
         {
         }
 

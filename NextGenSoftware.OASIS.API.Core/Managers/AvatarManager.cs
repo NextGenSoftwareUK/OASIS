@@ -368,7 +368,10 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             }
 
             if (!result.IsError && result.IsSaved)
+            {
+                result.Message = "Verification successful, you can now login";
                 result.Result = true;
+            }
             else
                 result.Result = false;
 

@@ -4,7 +4,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Models.
 {
     public sealed class MintNftRequest : BaseExchangeRequest
     {
-        public int MintAccountIndex { get; set; }
+        public BaseAccountRequest MintAccount { get; set; }
         public int MintDecimals { get; set; }
     }
 }

@@ -1,5 +1,7 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using System.Threading.Tasks;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
+using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.DNA;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
@@ -27,10 +29,13 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpGet("GetAllFilesStoredForCurrentLoggedInAvatar")]
-        public ActionResult<bool> GetAllFilesStoredForCurrentLoggedInAvatar()
+        public async Task<OASISResult<bool>> GetAllFilesStoredForCurrentLoggedInAvatar()
         {
             // TODO: Finish implementing.
-            return Ok();
+            return new()
+            {
+                IsError = false
+            };
         }
     }
 }

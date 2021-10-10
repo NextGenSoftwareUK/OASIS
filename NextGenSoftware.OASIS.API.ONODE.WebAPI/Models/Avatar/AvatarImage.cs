@@ -1,17 +1,10 @@
-﻿namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Avatar
+﻿using System;
+
+namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Avatar
 {
     public class AvatarImage
     {
-        public byte[] Image { get; set; }
-
-        public AvatarImage()
-        {
-            Image = new byte[] { };
-        }
-
-        public AvatarImage(byte[] data)
-        {
-            Image = data;
-        }
+        public Guid AvatarId { get; set; }
+        public string ImageBase64 { get; set; }
     }
 }

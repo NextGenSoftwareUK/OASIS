@@ -4,7 +4,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Models.
 {
     public sealed class ExchangeTokenResult : BaseTransactionResult
     {
-        public ExchangeTokenResult(string transactionResult) : base(transactionResult)
+        public ExchangeTokenResult(string transactionHash) : base(transactionHash)
         {
         }
 
