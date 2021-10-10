@@ -20,6 +20,10 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         public static EnumValue<ProviderType> CurrentStorageProviderType { get; private set; } = new EnumValue<ProviderType>(ProviderType.Default);
         public static OASISProviderBootType OASISProviderBootType { get; set; } = OASISProviderBootType.Hot;
 
+        public static bool IsAutoReplicationEnabled { get; set; } = true;
+        public static bool IsAutoFailOverEnabled { get; set; } = true;
+        public static bool IsAutoLoadBalanceEnabled { get; set; } = true;
+
         //public static string CurrentStorageProviderName
         //{
         //    get
