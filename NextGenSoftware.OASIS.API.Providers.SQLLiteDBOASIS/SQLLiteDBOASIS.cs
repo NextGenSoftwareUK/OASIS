@@ -317,7 +317,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
             OASISResult<IHolon> result = holon.IsNewHolon ? holonRepository.Add(holon)
                 : holonRepository.Update(holon);
 
-            if (!result.IsError && result.Result != null && saveChildrenRecursive)
+            if (!result.IsError && result.Result != null && saveChildrenRecursive && result.Result.Children != null)
             {
                 OASISResult<IEnumerable<IHolon>> saveChildrenResult = SaveHolons(result.Result.Children);
 
@@ -338,7 +338,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
             OASISResult<IHolon> result = holon.IsNewHolon ? holonRepository.Add(holon)
                 : holonRepository.Update(holon);
 
-            if (!result.IsError && result.Result != null && saveChildrenRecursive)
+            if (!result.IsError && result.Result != null && saveChildrenRecursive && result.Result.Children != null)
             {
                 OASISResult<IEnumerable<IHolon>> saveChildrenResult = await SaveHolonsAsync(result.Result.Children);
 
