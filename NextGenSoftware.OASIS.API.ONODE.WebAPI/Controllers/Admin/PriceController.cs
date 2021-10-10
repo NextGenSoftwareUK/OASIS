@@ -11,13 +11,13 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers.Admin
     public class PriceController : OASISControllerBase
     {
         [HttpPost]
-        public async Task<OASISResult<bool>> Create()
+        public async Task<OASISResult<bool>> Create(CreatePriceRequest request)
         {
             
         }
 
         [HttpPut("{id:int}")]
-        public async Task<OASISResult<bool>> Update(int id)
+        public async Task<OASISResult<bool>> Update(UpdatePriceRequest request, int id)
         {
             
         }
@@ -38,6 +38,14 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers.Admin
         {
             
         }
+    }
+
+    public sealed class UpdatePriceRequest
+    {
+    }
+
+    public class CreatePriceRequest
+    {
     }
 
     public sealed class OlandPriceDto
