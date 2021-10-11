@@ -1,6 +1,6 @@
 ﻿using System;
+using System.Security.Cryptography;
 using System.Text;
-using Solnet.Programs.Utilities;
 
 namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.TestHarness
 {
@@ -8,15 +8,23 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.TestHarness
     {
         private static void Main(string[] args)
         {
-            var publicKey = "GsguXojeGATpZGW8VNfW8qQCBVodbW2qGS8bUEbdGZfv";
-            
-            byte[] bytes = Encoding.ASCII.GetBytes(publicKey);
-            ReadOnlySpan<byte> binData = new(bytes);
-            Console.WriteLine(binData.Length);
-            Console.WriteLine(binData.IsEmpty);
+            string strText = "GsguXojeGATpZGW8VNfW8qQCBVodbW2qGS8bUEbdGZfv";
+            var testData = Encoding.UTF8.GetBytes(strText);
 
-            Console.WriteLine(binData.GetU32(1));
-            Console.WriteLine(binData.GetS32(3));
+            using var rsa = new RSACryptoServiceProvider(1024);
+            try
+            {                    
+                var base64Encrypted = strText;
+
+                var resultBytes = Convert.FromBase64String(base64Encrypted);
+                var decryptedBytes = rsa.Decrypt(resultBytes, true);
+                var decryptedData = Encoding.UTF8.GetString(decryptedBytes);
+                Console.WriteLine(decryptedData.ToString());
+            }
+            finally
+            {
+                rsa.PersistKeyInCsp = false;
+            }
         }
     }
 }

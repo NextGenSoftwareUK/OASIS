@@ -9,4 +9,8 @@
       <PackageReference Include="Solnet.Programs" Version="0.4.6" />
     </ItemGroup>
 
+    <ItemGroup>
+      <ProjectReference Include="..\NextGenSoftware.OASIS.API.DNA\NextGenSoftware.OASIS.API.DNA.csproj" />
+    </ItemGroup>
+
 </Project>
