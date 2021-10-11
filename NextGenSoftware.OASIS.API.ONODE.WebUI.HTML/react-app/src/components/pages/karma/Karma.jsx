@@ -1,6 +1,7 @@
 import axios from "axios";
 import { Component } from "react";
 import {Link} from "react-router-dom"
+import {Modal} from "react-bootstrap"
 import "../../../assets/scss/karma.scss";
 import { extractKarma, login } from "../../../functions";
 import ReactGrid from "../../ReactGrid";
@@ -88,12 +89,16 @@ class Karma extends Component {
 
     render() {
         return (
-            <div className="popup karma">
-                <Link to="/" className="popup-cancel">
-                        <span className="form-cross-icon">
-                            <i className="fa fa-times"></i>
-                        </span>
-                    </Link>
+            <Modal
+                size="xl"
+                show={true}
+                dialogClassName="modal-90w"
+                onHide={() => this.props.history.push("/")}
+            >
+                <Modal.Header closeButton>
+                    <Modal.Title>Karma</Modal.Title>
+                </Modal.Header>
+                <Modal.Body>
                 {this.state.loggedIn ? (
                     <div className="karma__body">
                         {this.state.loading ? (
@@ -109,7 +114,8 @@ class Karma extends Component {
                 ) : (
                     <h1>You are not logged in! </h1>
                 )}
-            </div>
+            </Modal.Body>
+            </Modal>
         );
     }
 }

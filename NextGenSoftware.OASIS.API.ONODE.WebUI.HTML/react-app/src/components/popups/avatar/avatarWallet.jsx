@@ -53,16 +53,16 @@ class AvatarWallet extends React.Component {
         //else (for now) show an alert and redirect to home
         else {
             // alert("not logged in");
-            this.setState({ loggedIn: false });
+            this.setState({ loggedIn: true });
             this.setState({loading: false})
         }
 	}
 
 	render() {
 		return (
-			<Modal dialogClassName="modal-90w" show={true}>
+			<Modal dialogClassName="modal-90w" size="xl" onHide={()=>this.props.history.push('/')} show={true}>
 				<Modal.Header closeButton>
-  					<Modal.Title>Messages</Modal.Title>
+  					<Modal.Title>Wallet</Modal.Title>
   				</Modal.Header>
                     {this.state.loggedIn ? (
                     	<>		                	

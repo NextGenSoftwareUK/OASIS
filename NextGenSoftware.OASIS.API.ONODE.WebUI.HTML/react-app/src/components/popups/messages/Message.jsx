@@ -14,7 +14,7 @@ class Message extends React.Component {
     render() {
         return (
             <Modal
-                size="lg"
+                size="xl"
                 show={true}
                 dialogClassName="modal-90w"
                 onHide={() => this.props.history.push("/")}
@@ -24,7 +24,6 @@ class Message extends React.Component {
                 </Modal.Header>
                 <Modal.Body>
                     <div class="container">
-                        <h3 class=" text-center">Messaging</h3>
                         <div class="messaging">
                             <div class="inbox_msg">
                                 <div class="inbox_people">
