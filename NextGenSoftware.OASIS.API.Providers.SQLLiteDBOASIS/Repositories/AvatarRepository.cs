@@ -3,6 +3,7 @@ using System.Linq;
 using System.Collections.Generic;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.DataBaseModels;
@@ -19,12 +20,18 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Repositories{
             this.dataBase=dataBase;
         }
         
-        public Avatar Add(Avatar avatar)
+        public OASISResult<Avatar> Add(Avatar avatar)
         {
+            OASISResult<Avatar> result = new OASISResult<Avatar>();
             try
             {
                 avatar.Id = Guid.NewGuid();
                 avatar.CreatedProviderType = new EnumValue<ProviderType>(ProviderType.SQLLiteDBOASIS);
+
+                if (AvatarManager.LoggedInAvatar != null)
+                    avatar.CreatedByAvatarId = AvatarManager.LoggedInAvatar.Id;
+
+                avatar.CreatedDate = DateTime.Now;
 
                 AvatarModel avatarModel=new AvatarModel(avatar);
                 dataBase.Avatars.Add(avatarModel);
@@ -34,177 +41,166 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Repositories{
                 // avatarModel.ProviderKey.Add(new ProviderKeyModel(ProviderType.SQLLiteDBOASIS, avatarModel.Id));
                 avatar.ProviderKey[ProviderType.SQLLiteDBOASIS] = avatarModel.Id;
                 dataBase.SaveChanges();
+
+                result.Result = avatar;
             }
             catch (Exception ex)
             {
-                throw;
+                result.IsError = true;
+                result.Message = $"Error occurred adding avatar in SQLLiteOASIS Provider.";
+                result.Exception = ex;
             }
-            return avatar;
+            return result;
         }
 
-        public AvatarDetail Add(AvatarDetail avatar)
+        public OASISResult<AvatarDetail> Add(AvatarDetail avatar)
         {
+            OASISResult<AvatarDetail> result = new OASISResult<AvatarDetail>();
             try
             {
                 avatar.Id = Guid.NewGuid();
                 avatar.CreatedProviderType = new EnumValue<ProviderType>(ProviderType.SQLLiteDBOASIS);
 
+                if (AvatarManager.LoggedInAvatar != null)
+                    avatar.CreatedByAvatarId = AvatarManager.LoggedInAvatar.Id;
+
+                avatar.CreatedDate = DateTime.Now;
+
                 AvatarDetailModel avatarModel=new AvatarDetailModel(avatar);
                 dataBase.AvatarDetails.Add(avatarModel);
+
                 dataBase.SaveChanges();
 
                 // avatarModel.ProviderKey.Add(new ProviderKeyModel(ProviderType.SQLLiteDBOASIS, avatarModel.Id));
                 avatar.ProviderKey[ProviderType.SQLLiteDBOASIS] = avatarModel.Id;
                 dataBase.SaveChanges();
+
+                result.Result = avatar;
             }
             catch (Exception ex)
             {
-                throw;
+                result.IsError = true;
+                result.Message = $"Error occurred adding avatarDetail in SQLLiteOASIS Provider.";
+                result.Exception = ex;
             }
-            return avatar;
+            return result;
         }
 
-        public Task<Avatar> AddAsync(Avatar avatar)
+        public async Task<OASISResult<Avatar>> AddAsync(Avatar avatar)
         {
+            OASISResult<Avatar> result = new OASISResult<Avatar>();
             try
             {
-                return new Task<Avatar>(()=>{
+                avatar.Id = Guid.NewGuid();
+                avatar.CreatedProviderType = new EnumValue<ProviderType>(ProviderType.SQLLiteDBOASIS);
 
-                    avatar.Id = Guid.NewGuid();
-                    avatar.CreatedProviderType = new EnumValue<ProviderType>(ProviderType.SQLLiteDBOASIS);
+                if (AvatarManager.LoggedInAvatar != null)
+                    avatar.CreatedByAvatarId = AvatarManager.LoggedInAvatar.Id;
 
-                    AvatarModel avatarModel=new AvatarModel(avatar);
-                    dataBase.Avatars.AddAsync(avatarModel);
-                    dataBase.SaveChangesAsync();
+                avatar.CreatedDate = DateTime.Now;
 
-                    //avatarModel.ProviderKey.Add(new ProviderKeyModel(ProviderType.SQLLiteDBOASIS, avatarModel.Id));
-                    avatar.ProviderKey[ProviderType.SQLLiteDBOASIS] = avatarModel.Id;
-                    dataBase.SaveChangesAsync();
-                    return(avatar);
+                AvatarModel avatarModel=new AvatarModel(avatar);
+                await dataBase.Avatars.AddAsync(avatarModel);
+                
+                await dataBase.SaveChangesAsync();
 
-                });
+                // avatarModel.ProviderKey.Add(new ProviderKeyModel(ProviderType.SQLLiteDBOASIS, avatarModel.Id));
+                avatar.ProviderKey[ProviderType.SQLLiteDBOASIS] = avatarModel.Id;
+                await dataBase.SaveChangesAsync();
+
+                result.Result = avatar;
             }
             catch (Exception ex)
             {
-                throw;
+                result.IsError = true;
+                result.Message = $"Error occurred adding avatar in SQLLiteOASIS Provider.";
+                result.Exception = ex;
             }
+            return result;
         }
 
-        public Task<AvatarDetail> AddAsync(AvatarDetail avatar)
+        public async Task<OASISResult<AvatarDetail>> AddAsync(AvatarDetail avatar)
         {
+            OASISResult<AvatarDetail> result = new OASISResult<AvatarDetail>();
             try
             {
-                return new Task<AvatarDetail>(()=>{
+                avatar.Id = Guid.NewGuid();
+                avatar.CreatedProviderType = new EnumValue<ProviderType>(ProviderType.SQLLiteDBOASIS);
 
-                    avatar.Id = Guid.NewGuid();
-                    avatar.CreatedProviderType = new EnumValue<ProviderType>(ProviderType.SQLLiteDBOASIS);
+                if (AvatarManager.LoggedInAvatar != null)
+                    avatar.CreatedByAvatarId = AvatarManager.LoggedInAvatar.Id;
 
-                    AvatarDetailModel avatarModel=new AvatarDetailModel(avatar);
-                    dataBase.AvatarDetails.AddAsync(avatarModel);
-                    dataBase.SaveChangesAsync();
-                    
-                    //avatarModel.ProviderKey.Add(new ProviderKeyModel(ProviderType.SQLLiteDBOASIS, avatarModel.Id));
-                    avatar.ProviderKey[ProviderType.SQLLiteDBOASIS] = avatarModel.Id;
-                    dataBase.SaveChangesAsync();
-                    return(avatar);
+                avatar.CreatedDate = DateTime.Now;
 
-                });
+                AvatarDetailModel avatarModel=new AvatarDetailModel(avatar);
+                await dataBase.AvatarDetails.AddAsync(avatarModel);
+                await dataBase.SaveChangesAsync();
+
+                // avatarModel.ProviderKey.Add(new ProviderKeyModel(ProviderType.SQLLiteDBOASIS, avatarModel.Id));
+                avatar.ProviderKey[ProviderType.SQLLiteDBOASIS] = avatarModel.Id;
+                await dataBase.SaveChangesAsync();
+
+                result.Result = avatar;
             }
             catch (Exception ex)
             {
-                throw;
+                result.IsError = true;
+                result.Message = $"Error occurred adding avatarDetail in SQLLiteOASIS Provider.";
+                result.Exception = ex;
             }
+            return result;
         }
 
-        public bool Delete(Guid id, bool softDelete = true)
+        public OASISResult<bool> Delete(Guid id, bool softDelete = true)
         {
-            bool delete_complete = false;
+            OASISResult<bool> result = new OASISResult<bool>();
             try
             {
                 String convertedId = id.ToString();
                 AvatarModel deletingModel = dataBase.Avatars.FirstOrDefault(x => x.Id.Equals(convertedId));
 
-                if(deletingModel == null){
-                    return(true);
+                if(deletingModel != null){
+
+                    if (softDelete)
+                    {
+                        //LoadAvatarReferences(deletingModel);
+
+                        if (AvatarManager.LoggedInAvatar != null)
+                            deletingModel.DeletedByAvatarId = AvatarManager.LoggedInAvatar.Id.ToString();
+
+                        deletingModel.DeletedDate = DateTime.Now;                    
+                        dataBase.Avatars.Update(deletingModel);
+                    }
+                    else
+                    {
+                        dataBase.Avatars.Remove(deletingModel);
+                    }
+
+                    dataBase.SaveChanges();
                 }
-
-                if (softDelete)
-                {
-                    LoadAvatarReferences(deletingModel);
-
-                    if (AvatarManager.LoggedInAvatar != null)
-                        deletingModel.DeletedByAvatarId = AvatarManager.LoggedInAvatar.Id.ToString();
-
-                    deletingModel.DeletedDate = DateTime.Now;                    
-                    dataBase.Avatars.Update(deletingModel);
-                }
-                else
-                {
-                    dataBase.Avatars.Remove(deletingModel);
-                }
-
-                dataBase.SaveChanges();
-                delete_complete=true;
+                result.Result = true;
             }
             catch(Exception ex)
             {
-                throw;
+                result.IsError = true;
+                result.Message = $"Error occurred deleting avatar in SQLLiteOASIS Provider.";
+                result.Exception = ex;
             }
-            return(delete_complete);
+            return(result);
         }
 
-        public bool Delete(string userName, bool softDelete = true)
+        public OASISResult<bool> Delete(string userName, bool softDelete = true)
         {
-            bool delete_complete = false;
+            OASISResult<bool> result = new OASISResult<bool>();
             try
             {
                 AvatarModel deletingModel = dataBase.Avatars.FirstOrDefault(x => x.Username.Equals(userName));
 
-                if(deletingModel == null){
-                    return(true);
-                }
-
-                if (softDelete)
-                {
-                    LoadAvatarReferences(deletingModel);
-
-                    if (AvatarManager.LoggedInAvatar != null)
-                        deletingModel.DeletedByAvatarId = AvatarManager.LoggedInAvatar.Id.ToString();
-
-                    deletingModel.DeletedDate = DateTime.Now;                    
-                    dataBase.Avatars.Update(deletingModel);
-                }
-                else
-                {
-                    dataBase.Avatars.Remove(deletingModel);
-                }
-
-                dataBase.SaveChanges();
-                delete_complete=true;
-            }
-            catch(Exception ex)
-            {
-                throw ex;
-            }
-            return(delete_complete);
-        }
-
-        public Task<bool> DeleteAsync(Guid id, bool softDelete = true)
-        {
-            try
-            {
-                return new Task<bool>(()=>{
-
-                    String convertedId = id.ToString();
-                    AvatarModel deletingModel = dataBase.Avatars.FirstOrDefault(x => x.Id.Equals(convertedId));
-
-                    if(deletingModel == null){
-                        return(true);
-                    }
+                if(deletingModel != null){
 
                     if (softDelete)
                     {
-                        LoadAvatarReferences(deletingModel);
+                        //LoadAvatarReferences(deletingModel);
 
                         if (AvatarManager.LoggedInAvatar != null)
                             deletingModel.DeletedByAvatarId = AvatarManager.LoggedInAvatar.Id.ToString();
@@ -218,496 +214,576 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Repositories{
                     }
 
                     dataBase.SaveChanges();
-                    return(true);
-
-                });
-            }
-            catch (Exception ex)
-            {
-                throw ex;
-            }
-        }
-
-        public Task<bool> DeleteAsync(string userName, bool softDelete = true)
-        {
-            try
-            {
-                return new Task<bool>(()=>{
-
-                    AvatarModel deletingModel = dataBase.Avatars.FirstOrDefault(x => x.Username.Equals(userName));
-
-                    if(deletingModel == null){
-                        return(true);
-                    }
-
-                    if (softDelete)
-                    {
-                        LoadAvatarReferences(deletingModel);
-
-                        if (AvatarManager.LoggedInAvatar != null)
-                            deletingModel.DeletedByAvatarId = AvatarManager.LoggedInAvatar.Id.ToString();
-
-                        deletingModel.DeletedDate = DateTime.Now;                    
-                        dataBase.Avatars.Update(deletingModel);
-                    }
-                    else
-                    {
-                        dataBase.Avatars.Remove(deletingModel);
-                    }
-
-                    dataBase.SaveChanges();
-                    return(true);
-
-                });
-            }
-            catch (Exception ex)
-            {
-                throw ex;
-            }
-        }
-
-        public bool DeleteByEmail(string avatarEmail, bool softDelete = true)
-        {
-            bool delete_complete = false;
-            try
-            {
-                AvatarModel deletingModel = dataBase.Avatars.FirstOrDefault(x => x.Email.Equals(avatarEmail));
-
-                if(deletingModel == null){
-                    return(true);
                 }
-
-                if (softDelete)
-                {
-                    LoadAvatarReferences(deletingModel);
-
-                    if (AvatarManager.LoggedInAvatar != null)
-                        deletingModel.DeletedByAvatarId = AvatarManager.LoggedInAvatar.Id.ToString();
-
-                    deletingModel.DeletedDate = DateTime.Now;                    
-                    dataBase.Avatars.Update(deletingModel);
-                }
-                else
-                {
-                    dataBase.Avatars.Remove(deletingModel);
-                }
-
-                dataBase.SaveChanges();
-                delete_complete=true;
+                result.Result = true;
             }
             catch(Exception ex)
             {
-                throw ex;
+                result.IsError = true;
+                result.Message = $"Error occurred deleting avatar in SQLLiteOASIS Provider.";
+                result.Exception = ex;
             }
-            return(delete_complete);
+            return(result);
         }
 
-        public Task<bool> DeleteByEmailAsync(string avatarEmail, bool softDelete = true)
+        public async Task<OASISResult<bool>> DeleteAsync(Guid id, bool softDelete = true)
         {
-            try
-            {
-                return new Task<bool>(()=>{
-
-                    AvatarModel deletingModel = dataBase.Avatars.FirstOrDefault(x => x.Email.Equals(avatarEmail));
-
-                    if(deletingModel == null){
-                        return(true);
-                    }
-
-                    if (softDelete)
-                    {
-                        LoadAvatarReferences(deletingModel);
-
-                        if (AvatarManager.LoggedInAvatar != null)
-                            deletingModel.DeletedByAvatarId = AvatarManager.LoggedInAvatar.Id.ToString();
-
-                        deletingModel.DeletedDate = DateTime.Now;                    
-                        dataBase.Avatars.Update(deletingModel);
-                    }
-                    else
-                    {
-                        dataBase.Avatars.Remove(deletingModel);
-                    }
-
-                    dataBase.SaveChanges();
-                    return(true);
-
-                });
-            }
-            catch (Exception ex)
-            {
-                throw ex;
-            }
-        }
-
-        public Avatar GetAvatar(Guid id)
-        {
-            Avatar avatar = null;
-            String convertedId = id.ToString();
-            try
-            {
-                AvatarModel avatarModel = dataBase.Avatars.FirstOrDefault(x => x.Id.Equals(convertedId));
-
-                if (avatarModel == null){
-                    return(avatar);
-                }
-
-                LoadAvatarReferences(avatarModel);
-                avatar=avatarModel.GetAvatar();
-
-            }
-            catch(Exception ex)
-            {
-                throw ex;
-            }
-            return(avatar);
-        }
-
-        public Avatar GetAvatar(string username)
-        {
-            Avatar avatar = null;
-            try
-            {
-                AvatarModel avatarModel = dataBase.Avatars.FirstOrDefault(x => x.Username.Equals(username));
-
-                if (avatarModel == null){
-                    return(avatar);
-                }
-
-                LoadAvatarReferences(avatarModel);
-                avatar=avatarModel.GetAvatar();
-
-            }
-            catch(Exception ex)
-            {
-                throw ex;
-            }
-            return(avatar);
-        }
-
-        public Avatar GetAvatar(string username, string password)
-        {
-            Avatar avatar = null;
-            try
-            {
-                AvatarModel avatarModel = dataBase.Avatars.FirstOrDefault(x => x.Username.Equals(username) && x.Password.Equals(password));
-
-                if (avatarModel == null){
-                    return(avatar);
-                }
-
-                LoadAvatarReferences(avatarModel);
-                avatar=avatarModel.GetAvatar();
-
-            }
-            catch(Exception ex)
-            {
-                throw ex;
-            }
-            return(avatar);
-        }
-
-        public Task<Avatar> GetAvatarAsync(Guid id)
-        {
-            try
-            {
-                return new Task<Avatar>(()=>{
-
-                    Avatar avatar = null;
-                    String convertedId = id.ToString();
-
-                    AvatarModel avatarModel = dataBase.Avatars.FirstOrDefault(x => x.Id.Equals(convertedId));
-
-                    if (avatarModel == null){
-                        return(avatar);
-                    }
-
-                    LoadAvatarReferences(avatarModel);
-                    avatar=avatarModel.GetAvatar();
-
-                    return(avatar);
-
-                });
-            }
-            catch (Exception ex)
-            {
-                throw ex;
-            }
-        }
-
-        public Task<Avatar> GetAvatarAsync(string username)
-        {
-            try
-            {
-                return new Task<Avatar>(()=>{
-
-                    Avatar avatar = null;
-                    AvatarModel avatarModel = dataBase.Avatars.FirstOrDefault(x => x.Username.Equals(username));
-
-                    if (avatarModel == null){
-                        return(avatar);
-                    }
-
-                    LoadAvatarReferences(avatarModel);
-                    avatar=avatarModel.GetAvatar();
-
-                    return(avatar);
-
-                });
-            }
-            catch (Exception ex)
-            {
-                throw ex;
-            }
-        }
-
-        public Task<Avatar> GetAvatarAsync(string username, string password)
-        {
-            try
-            {
-                return new Task<Avatar>(()=>{
-
-                    Avatar avatar = null;
-                    AvatarModel avatarModel = dataBase.Avatars.FirstOrDefault(x => x.Username.Equals(username) && x.Password.Equals(password));
-
-                    if (avatarModel == null){
-                        return(avatar);
-                    }
-
-                    LoadAvatarReferences(avatarModel);
-                    avatar=avatarModel.GetAvatar();
-
-                    return(avatar);
-
-                });
-            }
-            catch (Exception ex)
-            {
-                throw ex;
-            }
-        }
-
-        public Task<Avatar> GetAvatarByEmailAsync(string avatarEmail)
-        {
-            try
-            {
-                return new Task<Avatar>(()=>{
-
-                    Avatar avatar = null;
-                    AvatarModel avatarModel = dataBase.Avatars.FirstOrDefault(x => x.Email.Equals(avatarEmail));
-
-                    if (avatarModel == null){
-                        return(avatar);
-                    }
-
-                    LoadAvatarReferences(avatarModel);
-                    avatar=avatarModel.GetAvatar();
-
-                    return(avatar);
-
-                });
-            }
-            catch (Exception ex)
-            {
-                throw ex;
-            }
-        }
-
-        public AvatarDetail GetAvatarDetail(Guid id)
-        {
-            AvatarDetail avatar = null;
-            String convertedId = id.ToString();
-            try
-            {
-                AvatarDetailModel avatarModel = dataBase.AvatarDetails.FirstOrDefault(x => x.Id.Equals(convertedId));
-
-                if (avatarModel == null){
-                    return(avatar);
-                }
-
-                LoadAvatarDetailReferences(avatarModel);
-                avatar=avatarModel.GetAvatar();
-
-            }
-            catch(Exception ex)
-            {
-                throw ex;
-            }
-            return(avatar);
-        }
-
-        public AvatarDetail GetAvatarDetail(string username)
-        {
-            AvatarDetail avatar = null;
-            try
-            {
-                AvatarDetailModel avatarModel = dataBase.AvatarDetails.FirstOrDefault(x => x.Username.Equals(username));
-
-                if (avatarModel == null){
-                    return(avatar);
-                }
-
-                LoadAvatarDetailReferences(avatarModel);
-                avatar=avatarModel.GetAvatar();
-
-            }
-            catch(Exception ex)
-            {
-                throw ex;
-            }
-            return(avatar);
-        }
-
-        public Task<AvatarDetail> GetAvatarDetailAsync(Guid id)
-        {
-            try
-            {
-                return new Task<AvatarDetail>(()=>{
-
-                    AvatarDetail avatar = null;
-                    String convertedId = id.ToString();
-
-                    AvatarDetailModel avatarModel = dataBase.AvatarDetails.FirstOrDefault(x => x.Id.Equals(convertedId));
-
-                    if (avatarModel == null){
-                        return(avatar);
-                    }
-
-                    LoadAvatarDetailReferences(avatarModel);
-                    avatar=avatarModel.GetAvatar();
-
-                    return(avatar);
-
-                });
-            }
-            catch (Exception ex)
-            {
-                throw ex;
-            }
-        }
-
-        public Task<AvatarDetail> GetAvatarDetailAsync(string username)
-        {
-            try
-            {
-                return new Task<AvatarDetail>(()=>{
-
-                    AvatarDetail avatar = null;
-                    AvatarDetailModel avatarModel = dataBase.AvatarDetails.FirstOrDefault(x => x.Username.Equals(username));
-
-                    if (avatarModel == null){
-                        return(avatar);
-                    }
-
-                    LoadAvatarDetailReferences(avatarModel);
-                    avatar=avatarModel.GetAvatar();
-
-                    return(avatar);
-
-                });
-            }
-            catch (Exception ex)
-            {
-                throw ex;
-            }
-        }
-
-        public AvatarDetail GetAvatarDetailByEmail(string avatarEmail)
-        {
-            AvatarDetail avatar = null;
-            try
-            {
-                AvatarDetailModel avatarModel = dataBase.AvatarDetails.FirstOrDefault(x => x.Email.Equals(avatarEmail));
-
-                if (avatarModel == null){
-                    return(avatar);
-                }
-
-                LoadAvatarDetailReferences(avatarModel);
-                avatar=avatarModel.GetAvatar();
-
-            }
-            catch(Exception ex)
-            {
-                throw ex;
-            }
-            return(avatar);
-        }
-
-        public Task<AvatarDetail> GetAvatarDetailByEmailAsync(string avatarEmail)
-        {
-            try
-            {
-                return new Task<AvatarDetail>(()=>{
-
-                    AvatarDetail avatar = null;
-                    AvatarDetailModel avatarModel = dataBase.AvatarDetails.FirstOrDefault(x => x.Email.Equals(avatarEmail));
-
-                    if (avatarModel == null){
-                        return(avatar);
-                    }
-
-                    LoadAvatarDetailReferences(avatarModel);
-                    avatar=avatarModel.GetAvatar();
-
-                    return(avatar);
-
-                });
-            }
-            catch (Exception ex)
-            {
-                throw ex;
-            }
-        }
-
-        public IEnumerable<AvatarDetail> GetAvatarDetails()
-        {
-            List<AvatarDetail> detailsList=new List<AvatarDetail>();
+            OASISResult<bool> result = new OASISResult<bool>();
             try{
 
-                List<AvatarDetailModel> detailModels=dataBase.AvatarDetails.ToList<AvatarDetailModel>();
-                foreach (AvatarDetailModel model in detailModels)
-                {
-                    LoadAvatarDetailReferences(model);
-                    detailsList.Add(model.GetAvatar());
+                String convertedId = id.ToString();
+                AvatarModel deletingModel = dataBase.Avatars.FirstOrDefault(x => x.Id.Equals(convertedId));
+
+                if(deletingModel != null){
+
+                    if (softDelete)
+                    {
+                        //LoadAvatarReferences(deletingModel);
+
+                        if (AvatarManager.LoggedInAvatar != null)
+                            deletingModel.DeletedByAvatarId = AvatarManager.LoggedInAvatar.Id.ToString();
+
+                        deletingModel.DeletedDate = DateTime.Now;                    
+                        dataBase.Avatars.Update(deletingModel);
+                    }
+                    else
+                    {
+                        dataBase.Avatars.Remove(deletingModel);
+                    }
+
+                    await dataBase.SaveChangesAsync();
+                    
                 }
 
             }
             catch(Exception ex){
-                throw ex;
+
+                result.IsError = true;
+                result.Message = $"Error occurred deleting avatar in SQLLiteOASIS Provider.";
+                result.Exception = ex;
             }
-            return(detailsList);
+            return(result);
         }
 
-        public Task<IEnumerable<AvatarDetail>> GetAvatarDetailsAsync()
+        public async Task<OASISResult<bool>> DeleteAsync(string userName, bool softDelete = true)
         {
-            try
-            {
-                return new Task<IEnumerable<AvatarDetail>>(()=>{
+            OASISResult<bool> result = new OASISResult<bool>();
+            try{
 
-                    List<AvatarDetail> avatarsList=new List<AvatarDetail>();
+                AvatarModel deletingModel = dataBase.Avatars.FirstOrDefault(x => x.Username.Equals(userName));
 
-                    List<AvatarDetailModel> detailModels=dataBase.AvatarDetails.ToList<AvatarDetailModel>();
-                    foreach (AvatarDetailModel model in detailModels)
+                if(deletingModel != null){
+
+                    if (softDelete)
                     {
-                        LoadAvatarDetailReferences(model);
-                        avatarsList.Add(model.GetAvatar());
+                        //LoadAvatarReferences(deletingModel);
+
+                        if (AvatarManager.LoggedInAvatar != null)
+                            deletingModel.DeletedByAvatarId = AvatarManager.LoggedInAvatar.Id.ToString();
+
+                        deletingModel.DeletedDate = DateTime.Now;                    
+                        dataBase.Avatars.Update(deletingModel);
+                    }
+                    else
+                    {
+                        dataBase.Avatars.Remove(deletingModel);
                     }
 
-                    return(avatarsList);
+                    await dataBase.SaveChangesAsync();
+                    
+                }
+                result.Result = true;
 
-                });
             }
-            catch (Exception ex)
-            {
-                throw ex;
+            catch(Exception ex){
+
+                result.IsError = true;
+                result.Message = $"Error occurred deleting avatar in SQLLiteOASIS Provider.";
+                result.Exception = ex;
             }
+            return(result);
         }
 
-        public List<Avatar> GetAvatars()
+        public OASISResult<bool> DeleteByEmail(string avatarEmail, bool softDelete = true)
         {
-            List<Avatar> avatarsList=new List<Avatar>();
+            OASISResult<bool> result = new OASISResult<bool>();
+            try
+            {
+                AvatarModel deletingModel = dataBase.Avatars.FirstOrDefault(x => x.Email.Equals(avatarEmail));
+
+                if(deletingModel != null){
+
+                    if (softDelete)
+                    {
+                        //LoadAvatarReferences(deletingModel);
+
+                        if (AvatarManager.LoggedInAvatar != null)
+                            deletingModel.DeletedByAvatarId = AvatarManager.LoggedInAvatar.Id.ToString();
+
+                        deletingModel.DeletedDate = DateTime.Now;                    
+                        dataBase.Avatars.Update(deletingModel);
+                    }
+                    else
+                    {
+                        dataBase.Avatars.Remove(deletingModel);
+                    }
+
+                    dataBase.SaveChanges();
+                    
+                }
+                result.Result = true;
+
+            }
+            catch(Exception ex)
+            {
+                result.IsError = true;
+                result.Message = $"Error occurred deleting avatar in SQLLiteOASIS Provider.";
+                result.Exception = ex;
+            }
+            return(result);
+        }
+
+        public async Task<OASISResult<bool>> DeleteByEmailAsync(string avatarEmail, bool softDelete = true)
+        {
+            OASISResult<bool> result = new OASISResult<bool>();
+            try
+            {
+                AvatarModel deletingModel = dataBase.Avatars.FirstOrDefault(x => x.Email.Equals(avatarEmail));
+
+                if(deletingModel != null){
+
+                    if (softDelete)
+                    {
+                        //LoadAvatarReferences(deletingModel);
+
+                        if (AvatarManager.LoggedInAvatar != null)
+                            deletingModel.DeletedByAvatarId = AvatarManager.LoggedInAvatar.Id.ToString();
+
+                        deletingModel.DeletedDate = DateTime.Now;                    
+                        dataBase.Avatars.Update(deletingModel);
+                    }
+                    else
+                    {
+                        dataBase.Avatars.Remove(deletingModel);
+                    }
+
+                    await dataBase.SaveChangesAsync();
+                    
+                }
+            }
+            catch(Exception ex)
+            {
+                result.IsError = true;
+                result.Message = $"Error occurred deleting avatar in SQLLiteOASIS Provider.";
+                result.Exception = ex;
+            }
+            return(result);
+        }
+
+        public OASISResult<Avatar> GetAvatar(Guid id)
+        {
+            OASISResult<Avatar> result=new OASISResult<Avatar>();
+            String convertedId = id.ToString();
+            try
+            {
+                AvatarModel avatarModel = dataBase.Avatars.AsNoTracking().FirstOrDefault(x => x.Id.Equals(convertedId));
+
+                if (avatarModel != null){
+                    
+                    LoadAvatarReferences(avatarModel);
+                    result.Result=avatarModel.GetAvatar();
+                }
+
+            }
+            catch(Exception ex)
+            {
+                result.IsError = true;
+                result.Message = $"Error occurred getting avatar in SQLLiteOASIS Provider.";
+                result.Exception = ex;
+            }
+            return(result);
+        }
+
+        public OASISResult<Avatar> GetAvatar(string username)
+        {
+            OASISResult<Avatar> result=new OASISResult<Avatar>();
+            try
+            {
+                AvatarModel avatarModel = dataBase.Avatars.AsNoTracking().FirstOrDefault(x => x.Username.Equals(username));
+
+                if (avatarModel != null){
+
+                    LoadAvatarReferences(avatarModel);
+                    result.Result=avatarModel.GetAvatar();
+                }
+
+            }
+            catch(Exception ex)
+            {
+                result.IsError = true;
+                result.Message = $"Error occurred getting avatar in SQLLiteOASIS Provider.";
+                result.Exception = ex;
+            }
+            return(result);
+        }
+
+        public OASISResult<Avatar> GetAvatar(string username, string password)
+        {
+            OASISResult<Avatar> result=new OASISResult<Avatar>();
+            try
+            {
+                AvatarModel avatarModel = dataBase.Avatars.AsNoTracking().FirstOrDefault(x => x.Username.Equals(username) && x.Password.Equals(password));
+
+                if (avatarModel != null){
+
+                    LoadAvatarReferences(avatarModel);
+                    result.Result=avatarModel.GetAvatar();
+                }
+
+            }
+            catch(Exception ex)
+            {
+                result.IsError = true;
+                result.Message = $"Error occurred getting avatar in SQLLiteOASIS Provider.";
+                result.Exception = ex;
+            }
+            return(result);
+        }
+
+        public async Task<OASISResult<Avatar>> GetAvatarAsync(Guid id)
+        {
+            OASISResult<Avatar> result=new OASISResult<Avatar>();
+            try
+            {
+                String convertedId = id.ToString();
+                AvatarModel avatarModel = dataBase.Avatars.AsNoTracking().FirstOrDefault(x => x.Id.Equals(convertedId));
+
+                if (avatarModel != null){
+
+                    Action loadAction = delegate(){LoadAvatarReferences(avatarModel);};
+                    Task loadReferencesTask = new Task(loadAction);
+
+                    await loadReferencesTask;
+
+                    result.Result=avatarModel.GetAvatar();
+                }
+            }
+            catch(Exception ex)
+            {
+                result.IsError = true;
+                result.Message = $"Error occurred getting avatar in SQLLiteOASIS Provider.";
+                result.Exception = ex;
+            }
+            return(result);
+        }
+
+        public async Task<OASISResult<Avatar>> GetAvatarAsync(string username)
+        {
+            OASISResult<Avatar> result=new OASISResult<Avatar>();
+            try
+            {
+                AvatarModel avatarModel = dataBase.Avatars.AsNoTracking().FirstOrDefault(x => x.Username.Equals(username));
+
+                if (avatarModel != null){
+                    
+                    Action loadAction = delegate(){LoadAvatarReferences(avatarModel);};
+                    Task loadReferencesTask = new Task(loadAction);
+
+                    await loadReferencesTask;
+
+                    result.Result=avatarModel.GetAvatar();
+                }
+            }
+            catch(Exception ex)
+            {
+                result.IsError = true;
+                result.Message = $"Error occurred getting avatar in SQLLiteOASIS Provider.";
+                result.Exception = ex;
+            }
+            return(result);
+        }
+
+        public async Task<OASISResult<Avatar>> GetAvatarAsync(string username, string password)
+        {
+            OASISResult<Avatar> result=new OASISResult<Avatar>();
+            try
+            {
+                AvatarModel avatarModel = dataBase.Avatars.AsNoTracking().FirstOrDefault(x => x.Username.Equals(username) && x.Password.Equals(password));
+
+                if (avatarModel != null){
+                    
+                    Action loadAction = delegate(){LoadAvatarReferences(avatarModel);};
+                    Task loadReferencesTask = new Task(loadAction);
+
+                    await loadReferencesTask;
+
+                    result.Result=avatarModel.GetAvatar();
+                }
+            }
+            catch(Exception ex)
+            {
+                result.IsError = true;
+                result.Message = $"Error occurred getting avatar in SQLLiteOASIS Provider.";
+                result.Exception = ex;
+            }
+            return(result);
+        }
+
+        public async Task<OASISResult<Avatar>> GetAvatarByEmailAsync(string avatarEmail)
+        {
+            OASISResult<Avatar> result=new OASISResult<Avatar>();
+            try
+            {
+                AvatarModel avatarModel = dataBase.Avatars.AsNoTracking().FirstOrDefault(x => x.Email.Equals(avatarEmail));
+                if (avatarModel != null){
+
+                    Action loadAction = delegate(){LoadAvatarReferences(avatarModel);};
+                    Task loadReferencesTask = new Task(loadAction);
+
+                    await loadReferencesTask;
+
+                    result.Result=avatarModel.GetAvatar();
+                }
+            }
+            catch(Exception ex)
+            {
+                result.IsError = true;
+                result.Message = $"Error occurred getting avatar in SQLLiteOASIS Provider.";
+                result.Exception = ex;
+            }
+            return(result);
+        }
+
+        public OASISResult<Avatar> GetAvatarByEmail(string avatarEmail)
+        {
+            OASISResult<Avatar> result=new OASISResult<Avatar>();
+            try
+            {
+                AvatarModel avatarModel = dataBase.Avatars.AsNoTracking().FirstOrDefault(x => x.Email.Equals(avatarEmail));
+
+                if (avatarModel != null){
+                    
+                    LoadAvatarReferences(avatarModel);
+                    result.Result=avatarModel.GetAvatar();
+                }
+            }
+            catch(Exception ex)
+            {
+                result.IsError = true;
+                result.Message = $"Error occurred getting avatar in SQLLiteOASIS Provider.";
+                result.Exception = ex;
+            }
+            return(result);
+        }
+
+        public OASISResult<AvatarDetail> GetAvatarDetail(Guid id)
+        {
+            OASISResult<AvatarDetail> result=new OASISResult<AvatarDetail>();
+            try
+            {
+                String convertedId = id.ToString();
+                AvatarDetailModel avatarModel = dataBase.AvatarDetails.AsNoTracking().FirstOrDefault(x => x.Id.Equals(convertedId));
+
+                if (avatarModel != null){
+
+                    LoadAvatarDetailReferences(avatarModel);
+                    result.Result=avatarModel.GetAvatar();
+                }
+
+            }
+            catch(Exception ex)
+            {
+                result.IsError = true;
+                result.Message = $"Error occurred getting AvatarDetail in SQLLiteOASIS Provider.";
+                result.Exception = ex;
+            }
+            return(result);
+        }
+
+        public OASISResult<AvatarDetail> GetAvatarDetail(string username)
+        {
+            OASISResult<AvatarDetail> result=new OASISResult<AvatarDetail>();
+            try
+            {
+                AvatarDetailModel avatarModel = dataBase.AvatarDetails.AsNoTracking().FirstOrDefault(x => x.Username.Equals(username));
+
+                if (avatarModel != null){
+                    
+                    LoadAvatarDetailReferences(avatarModel);
+                    result.Result=avatarModel.GetAvatar();
+                }
+
+            }
+            catch(Exception ex)
+            {
+                result.IsError = true;
+                result.Message = $"Error occurred getting AvatarDetail in SQLLiteOASIS Provider.";
+                result.Exception = ex;
+            }
+            return(result);
+        }
+
+        public async Task<OASISResult<AvatarDetail>> GetAvatarDetailAsync(Guid id)
+        {
+            OASISResult<AvatarDetail> result=new OASISResult<AvatarDetail>();
+            try
+            {
+                String convertedId = id.ToString();
+                AvatarDetailModel avatarModel = dataBase.AvatarDetails.AsNoTracking().FirstOrDefault(x => x.Id.Equals(convertedId));
+
+                if (avatarModel != null){
+
+                    Action loadAction = delegate(){LoadAvatarDetailReferences(avatarModel);};
+                    Task loadReferencesTask = new Task(loadAction);
+
+                    await loadReferencesTask;
+
+                    result.Result=avatarModel.GetAvatar();
+                }
+            }
+            catch(Exception ex)
+            {
+                result.IsError = true;
+                result.Message = $"Error occurred getting AvatarDetail in SQLLiteOASIS Provider.";
+                result.Exception = ex;
+            }
+            return(result);
+        }
+
+        public async Task<OASISResult<AvatarDetail>> GetAvatarDetailAsync(string username)
+        {
+            OASISResult<AvatarDetail> result=new OASISResult<AvatarDetail>();
+            try
+            {
+                AvatarDetailModel avatarModel = dataBase.AvatarDetails.AsNoTracking().FirstOrDefault(x => x.Username.Equals(username));
+                if (avatarModel != null){
+                    
+                    Action loadAction = delegate(){LoadAvatarDetailReferences(avatarModel);};
+                    Task loadReferencesTask = new Task(loadAction);
+
+                    await loadReferencesTask;
+
+                    result.Result=avatarModel.GetAvatar();
+                }
+            }
+            catch(Exception ex)
+            {
+                result.IsError = true;
+                result.Message = $"Error occurred getting AvatarDetail in SQLLiteOASIS Provider.";
+                result.Exception = ex;
+            }
+            return(result);
+        }
+
+        public OASISResult<AvatarDetail> GetAvatarDetailByEmail(string avatarEmail)
+        {
+            OASISResult<AvatarDetail> result=new OASISResult<AvatarDetail>();
+            try
+            {
+                AvatarDetailModel avatarModel = dataBase.AvatarDetails.AsNoTracking().FirstOrDefault(x => x.Email.Equals(avatarEmail));
+
+                if (avatarModel != null){
+                    
+                    LoadAvatarDetailReferences(avatarModel);
+                    result.Result=avatarModel.GetAvatar();
+                }
+
+            }
+            catch(Exception ex)
+            {
+                result.IsError = true;
+                result.Message = $"Error occurred getting AvatarDetail in SQLLiteOASIS Provider.";
+                result.Exception = ex;
+            }
+            return(result);
+        }
+
+        public async Task<OASISResult<AvatarDetail>> GetAvatarDetailByEmailAsync(string avatarEmail)
+        {
+            OASISResult<AvatarDetail> result=new OASISResult<AvatarDetail>();
+            try
+            {
+                AvatarDetailModel avatarModel = dataBase.AvatarDetails.AsNoTracking().FirstOrDefault(x => x.Email.Equals(avatarEmail));
+                if (avatarModel != null){
+                    
+                    Action loadAction = delegate(){LoadAvatarDetailReferences(avatarModel);};
+                    Task loadReferencesTask = new Task(loadAction);
+
+                    await loadReferencesTask;
+
+                    result.Result=avatarModel.GetAvatar();
+                }
+
+            }
+            catch(Exception ex)
+            {
+                result.IsError = true;
+                result.Message = $"Error occurred getting AvatarDetail in SQLLiteOASIS Provider.";
+                result.Exception = ex;
+            }
+            return(result);
+        }
+
+        public OASISResult<IEnumerable<AvatarDetail>> GetAvatarDetails()
+        {
+            OASISResult<IEnumerable<AvatarDetail>> result=new OASISResult<IEnumerable<AvatarDetail>>();
             try{
+                List<AvatarDetail> details = new List<AvatarDetail>();
+
+                List<AvatarDetailModel> detailModels=dataBase.AvatarDetails.AsNoTracking().ToList<AvatarDetailModel>();
+                foreach (AvatarDetailModel model in detailModels)
+                {
+                    LoadAvatarDetailReferences(model);
+                    details.Add(model.GetAvatar());
+                }
+                result.Result = details;
+
+            }
+            catch(Exception ex)
+            {
+                result.IsError = true;
+                result.Message = $"Error occurred getting AvatarDetail in SQLLiteOASIS Provider.";
+                result.Exception = ex;
+            }
+            return(result);
+        }
+
+        public async Task<OASISResult<IEnumerable<AvatarDetail>>> GetAvatarDetailsAsync()
+        {
+            OASISResult<IEnumerable<AvatarDetail>> result=new OASISResult<IEnumerable<AvatarDetail>>();
+            try
+            {
+                List<AvatarDetail> details=new List<AvatarDetail>();
+
+                List<AvatarDetailModel> detailModels=dataBase.AvatarDetails.AsNoTracking().ToList<AvatarDetailModel>();
+                foreach (AvatarDetailModel model in detailModels)
+                {
+                    Action loadAction = delegate(){LoadAvatarDetailReferences(model);};
+                    Task loadReferencesTask = new Task(loadAction);
+
+                    await loadReferencesTask;
+                    
+                    details.Add(model.GetAvatar());
+                }
+
+                result.Result = details;
+            }
+            catch(Exception ex)
+            {
+                result.IsError = true;
+                result.Message = $"Error occurred getting AvatarDetail in SQLLiteOASIS Provider.";
+                result.Exception = ex;
+            }
+            return(result);
+        }
+
+        public OASISResult<List<Avatar>> GetAvatars()
+        {
+            OASISResult<List<Avatar>> result=new OASISResult<List<Avatar>>();
+
+            try{
+
+                List<Avatar> avatarsList=new List<Avatar>();
 
                 List<AvatarModel> avatarModels=dataBase.Avatars.ToList<AvatarModel>();
                 foreach (AvatarModel model in avatarModels)
@@ -715,111 +791,148 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Repositories{
                     LoadAvatarReferences(model);
                     avatarsList.Add(model.GetAvatar());
                 }
+                result.Result = avatarsList;
 
             }
-            catch(Exception ex){
-                throw ex;
+            catch(Exception ex)
+            {
+                result.IsError = true;
+                result.Message = $"Error occurred getting AvatarDetail in SQLLiteOASIS Provider.";
+                result.Exception = ex;
             }
-            return(avatarsList);
+            return(result);
         }
 
-        public Task<List<Avatar>> GetAvatarsAsync()
+        public async Task<OASISResult<List<Avatar>>> GetAvatarsAsync()
         {
+            OASISResult<List<Avatar>> result=new OASISResult<List<Avatar>>();
             try
             {
-                return new Task<List<Avatar>>(()=>{
+                List<Avatar> avatarsList=new List<Avatar>();
 
-                    List<Avatar> avatarsList=new List<Avatar>();
+                List<AvatarModel> avatarModels=dataBase.Avatars.ToList<AvatarModel>();
+                foreach (AvatarModel model in avatarModels)
+                {
+                    Action loadAction = delegate(){LoadAvatarReferences(model);};
+                    Task loadReferencesTask = new Task(loadAction);
 
-                    List<AvatarModel> avatarModels=dataBase.Avatars.ToList<AvatarModel>();
-                    foreach (AvatarModel model in avatarModels)
-                    {
-                        LoadAvatarReferences(model);
-                        avatarsList.Add(model.GetAvatar());
-                    }
-
-                    return(avatarsList);
-
-                });
+                    await loadReferencesTask;
+                    
+                    avatarsList.Add(model.GetAvatar());
+                }
+                result.Result = avatarsList;
             }
-            catch (Exception ex)
+            catch(Exception ex)
             {
-                throw ex;
+                result.IsError = true;
+                result.Message = $"Error occurred getting AvatarDetail in SQLLiteOASIS Provider.";
+                result.Exception = ex;
             }
+            return(result);
         }
 
-        public Avatar Update(Avatar avatar)
+        public OASISResult<Avatar> Update(Avatar avatar)
         {
+            OASISResult<Avatar> result=new OASISResult<Avatar>();
             try
             {
+                if (AvatarManager.LoggedInAvatar != null)
+                    avatar.ModifiedByAvatarId = AvatarManager.LoggedInAvatar.Id;
+
+                avatar.ModifiedDate = DateTime.Now;  
+                
                 AvatarModel avatarModel=new AvatarModel(avatar);
 
                 dataBase.Avatars.Update(avatarModel);
                 dataBase.SaveChanges();
+
+                result.Result = avatar;
             }
-            catch (Exception ex)
+            catch(Exception ex)
             {
-                throw ex;
+                result.IsError = true;
+                result.Message = $"Error occurred updating AvatarDetail in SQLLiteOASIS Provider.";
+                result.Exception = ex;
             }
-            return avatar;
+            return(result);
         }
 
-        public AvatarDetail Update(AvatarDetail avatar)
+        public OASISResult<AvatarDetail> Update(AvatarDetail avatar)
         {
+            OASISResult<AvatarDetail> result=new OASISResult<AvatarDetail>();
             try
             {
+                if (AvatarManager.LoggedInAvatar != null)
+                    avatar.ModifiedByAvatarId = AvatarManager.LoggedInAvatar.Id;
+
+                avatar.ModifiedDate = DateTime.Now;  
+
                 AvatarDetailModel avatarModel=new AvatarDetailModel(avatar);
 
                 dataBase.AvatarDetails.Update(avatarModel);
                 dataBase.SaveChanges();
+
+                result.Result = avatar;
             }
-            catch (Exception ex)
+            catch(Exception ex)
             {
-                throw ex;
+                result.IsError = true;
+                result.Message = $"Error occurred updating AvatarDetail in SQLLiteOASIS Provider.";
+                result.Exception = ex;
             }
-            return avatar;
+            return(result);
         }
 
-        public Task<Avatar> UpdateAsync(Avatar avatar)
+        public async Task<OASISResult<Avatar>> UpdateAsync(Avatar avatar)
         {
+            OASISResult<Avatar> result=new OASISResult<Avatar>();
             try
             {
-                return new Task<Avatar>(()=>{
+                if (AvatarManager.LoggedInAvatar != null)
+                    avatar.ModifiedByAvatarId = AvatarManager.LoggedInAvatar.Id;
 
-                    AvatarModel avatarModel=new AvatarModel(avatar);
+                avatar.ModifiedDate = DateTime.Now;  
 
-                    dataBase.Avatars.Update(avatarModel);
-                    dataBase.SaveChangesAsync();
-                    
-                    return(avatar);
+                AvatarModel avatarModel=new AvatarModel(avatar);
 
-                });
+                dataBase.Avatars.Update(avatarModel);
+                await dataBase.SaveChangesAsync();
+
+                result.Result = avatar;
             }
-            catch (Exception ex)
+            catch(Exception ex)
             {
-                throw ex;
+                result.IsError = true;
+                result.Message = $"Error occurred updating AvatarDetail in SQLLiteOASIS Provider.";
+                result.Exception = ex;
             }
+            return(result);
         }
 
-        public Task<AvatarDetail> UpdateAsync(AvatarDetail avatar)
+        public async Task<OASISResult<AvatarDetail>> UpdateAsync(AvatarDetail avatar)
         {
+            OASISResult<AvatarDetail> result=new OASISResult<AvatarDetail>();
             try
             {
-                return new Task<AvatarDetail>(()=>{
+                if (AvatarManager.LoggedInAvatar != null)
+                    avatar.ModifiedByAvatarId = AvatarManager.LoggedInAvatar.Id;
 
-                    AvatarDetailModel avatarModel=new AvatarDetailModel(avatar);
+                avatar.ModifiedDate = DateTime.Now;  
 
-                    dataBase.AvatarDetails.Update(avatarModel);
-                    dataBase.SaveChangesAsync();
-                    
-                    return(avatar);
+                AvatarDetailModel avatarModel=new AvatarDetailModel(avatar);
 
-                });
+                dataBase.AvatarDetails.Update(avatarModel);
+                await dataBase.SaveChangesAsync();
+
+                result.Result = avatar;
             }
-            catch (Exception ex)
+            catch(Exception ex)
             {
-                throw ex;
+                result.IsError = true;
+                result.Message = $"Error occurred updating AvatarDetail in SQLLiteOASIS Provider.";
+                result.Exception = ex;
             }
+            return(result);
         }
 
         private void LoadAvatarDetailReferences(AvatarDetailModel avatarModel){
