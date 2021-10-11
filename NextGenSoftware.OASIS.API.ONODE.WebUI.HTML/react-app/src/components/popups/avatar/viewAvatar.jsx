@@ -2,6 +2,7 @@ import React from "react"
 import {Link} from "react-router-dom"
 import axios from "axios"
 import Loader from "react-loader-spinner"
+import {Modal} from "react-bootstrap"
 import {login, getUserById} from "../../../functions"
 import ReactGrid from "../../ReactGrid"
 
@@ -98,7 +99,11 @@ class ViewAvatar extends React.Component {
 
 	render(){
 		return (
-			<div className="popup">
+			<Modal 
+                centered 
+                className="custom-modal custom-popup-component" 
+                show={true} 
+            >
                 <div className="avatar">
                     <Link to="/" className="popup-cancel">
                         <span className="form-cross-icon">
@@ -121,7 +126,7 @@ class ViewAvatar extends React.Component {
                     <h1>You are not logged in! </h1>
                 )}
                 </div>
-            </div>
+            </Modal>
 		)
 	}
 }
