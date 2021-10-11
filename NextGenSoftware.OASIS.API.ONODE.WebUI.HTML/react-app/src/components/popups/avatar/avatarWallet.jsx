@@ -1,7 +1,7 @@
 import React from "react"
 import Loader from "react-loader-spinner";
 import {Link} from "react-router-dom"
-
+import {Modal} from "react-bootstrap"
 
 import ReactGrid from "../../ReactGrid";
 import {login} from "../../../functions"
@@ -60,14 +60,10 @@ class AvatarWallet extends React.Component {
 
 	render() {
 		return (
-			<div className="popup">
-				<div className="avatarWallet">
-					<Link to="/" className="popup-cancel">
-                        <span className="form-cross-icon">
-                            <i className="fa fa-times"></i>
-                        </span>
-                    </Link>
-                    <h2 className="avatarWallet-heading">Avatar Wallet</h2>
+			<Modal dialogClassName="modal-90w" show={true}>
+				<Modal.Header closeButton>
+  					<Modal.Title>Messages</Modal.Title>
+  				</Modal.Header>
                     {this.state.loggedIn ? (
                     	<>		                	
 		                    {this.state.loading ? (
@@ -88,8 +84,7 @@ class AvatarWallet extends React.Component {
 		                 </>
 	                    ) : <h3>You are not logged in!</h3>
                 	}
-                </div>
-			</div>
+			</Modal>
 		)
 	}
 }

@@ -1,98 +1,367 @@
-import React from "react"
-import {Link} from "react-router-dom"
+import React from "react";
+import { Link } from "react-router-dom";
+import { Modal } from "react-bootstrap";
 
-
-import Messages from "../../common/message/Messages"
-import "../../../assets/scss/popup.scss"
-import "../../../assets/scss/Message.scss"
+import Messages from "../../common/message/Messages";
+import "../../../assets/scss/popup.scss";
+import "../../../assets/scss/Message.scss";
 
 class Message extends React.Component {
-	constructor(props) {
-		super(props)
-	}
+    constructor(props) {
+        super(props);
+    }
 
-	render() {
-		return (
-			<div className="popup">
-				<Link to="/" className="popup-cancel">
-                    <span className="form-cross-icon">
-                        <i className="fa fa-times"></i>
-                    </span>
-                </Link>
-				<div className="message">
-					<div className="message-left">
-						<div class="card-body contacts_body">
-						<ui class="contacts">
-						<li class="active">
-							<div class="d-flex bd-highlight">
-								<div class="img_cont">
-									<img src="https://static.turbosquid.com/Preview/001292/481/WV/_D.jpg" class="rounded-circle user_img"/>
-									<span class="online_icon"></span>
-								</div>
-								<div class="user_info">
-									<span>Khalid</span>
-									<p>Kalid is online</p>
-								</div>
-							</div>
-						</li>
-						<li>
-							<div class="d-flex bd-highlight">
-								<div class="img_cont">
-									<img src="https://2.bp.blogspot.com/-8ytYF7cfPkQ/WkPe1-rtrcI/AAAAAAAAGqU/FGfTDVgkcIwmOTtjLka51vineFBExJuSACLcBGAs/s320/31.jpg" class="rounded-circle user_img"/>
-									<span class="online_icon offline"></span>
-								</div>
-								<div class="user_info">
-									<span>Taherah Big</span>
-									<p>Taherah left 7 mins ago</p>
-								</div>
-							</div>
-						</li>
-						<li>
-							<div class="d-flex bd-highlight">
-								<div class="img_cont">
-									<img src="https://i.pinimg.com/originals/ac/b9/90/acb990190ca1ddbb9b20db303375bb58.jpg" class="rounded-circle user_img"/>
-									<span class="online_icon"></span>
-								</div>
-								<div class="user_info">
-									<span>Sami Rafi</span>
-									<p>Sami is online</p>
-								</div>
-							</div>
-						</li>
-						<li>
-							<div class="d-flex bd-highlight">
-								<div class="img_cont">
-									<img src="http://profilepicturesdp.com/wp-content/uploads/2018/07/sweet-girl-profile-pictures-9.jpg" class="rounded-circle user_img"/>
-									<span class="online_icon offline"></span>
-								</div>
-								<div class="user_info">
-									<span>Nargis Hawa</span>
-									<p>Nargis left 30 mins ago</p>
-								</div>
-							</div>
-						</li>
-						<li>
-							<div class="d-flex bd-highlight">
-								<div class="img_cont">
-									<img src="https://static.turbosquid.com/Preview/001214/650/2V/boy-cartoon-3D-model_D.jpg" class="rounded-circle user_img"/>
-									<span class="online_icon offline"></span>
-								</div>
-								<div class="user_info">
-									<span>Rashid Samim</span>
-									<p>Rashid left 50 mins ago</p>
-								</div>
-							</div>
-						</li>
-						</ui>
-					</div>
-					</div>
-					<div className="message-right">
-						<Messages />
-					</div>
-				</div>
-			</div>
-		)
-	}
+    render() {
+        return (
+            <Modal
+                size="lg"
+                show={true}
+                dialogClassName="modal-90w"
+                onHide={() => this.props.history.push("/")}
+            >
+                <Modal.Header closeButton>
+                    <Modal.Title>Messages</Modal.Title>
+                </Modal.Header>
+                <Modal.Body>
+                    <div class="container">
+                        <h3 class=" text-center">Messaging</h3>
+                        <div class="messaging">
+                            <div class="inbox_msg">
+                                <div class="inbox_people">
+                                    <div class="headind_srch">
+                                        <div class="recent_heading">
+                                            <h4>Recent</h4>
+                                        </div>
+                                        <div class="srch_bar">
+                                            <div class="stylish-input-group">
+                                                <input
+                                                    type="text"
+                                                    class="search-bar"
+                                                    placeholder="Search"
+                                                />
+                                                <span class="input-group-addon">
+                                                    <button type="button">
+                                                        {" "}
+                                                        <i
+                                                            class="fa fa-search"
+                                                            aria-hidden="true"
+                                                        ></i>{" "}
+                                                    </button>
+                                                </span>{" "}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="inbox_chat">
+                                        <div class="chat_list active_chat">
+                                            <div class="chat_people">
+                                                <div class="chat_img">
+                                                    {" "}
+                                                    <img
+                                                        src="https://ptetutorials.com/images/user-profile.png"
+                                                        alt="sunil"
+                                                    />
+                                                </div>
+                                                <div class="chat_ib">
+                                                    <h5>
+                                                        Sunil Rajput{" "}
+                                                        <span class="chat_date">
+                                                            Dec 25
+                                                        </span>
+                                                    </h5>
+                                                    <p>
+                                                        Test, which is a new
+                                                        approach to have all
+                                                        solutions astrology
+                                                        under one roof.
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="chat_list">
+                                            <div class="chat_people">
+                                                <div class="chat_img">
+                                                    {" "}
+                                                    <img
+                                                        src="https://ptetutorials.com/images/user-profile.png"
+                                                        alt="sunil"
+                                                    />{" "}
+                                                </div>
+                                                <div class="chat_ib">
+                                                    <h5>
+                                                        Sunil Rajput{" "}
+                                                        <span class="chat_date">
+                                                            Dec 25
+                                                        </span>
+                                                    </h5>
+                                                    <p>
+                                                        Test, which is a new
+                                                        approach to have all
+                                                        solutions astrology
+                                                        under one roof.
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="chat_list">
+                                            <div class="chat_people">
+                                                <div class="chat_img">
+                                                    {" "}
+                                                    <img
+                                                        src="https://ptetutorials.com/images/user-profile.png"
+                                                        alt="sunil"
+                                                    />{" "}
+                                                </div>
+                                                <div class="chat_ib">
+                                                    <h5>
+                                                        Sunil Rajput{" "}
+                                                        <span class="chat_date">
+                                                            Dec 25
+                                                        </span>
+                                                    </h5>
+                                                    <p>
+                                                        Test, which is a new
+                                                        approach to have all
+                                                        solutions astrology
+                                                        under one roof.
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="chat_list">
+                                            <div class="chat_people">
+                                                <div class="chat_img">
+                                                    {" "}
+                                                    <img
+                                                        src="https://ptetutorials.com/images/user-profile.png"
+                                                        alt="sunil"
+                                                    />{" "}
+                                                </div>
+                                                <div class="chat_ib">
+                                                    <h5>
+                                                        Sunil Rajput{" "}
+                                                        <span class="chat_date">
+                                                            Dec 25
+                                                        </span>
+                                                    </h5>
+                                                    <p>
+                                                        Test, which is a new
+                                                        approach to have all
+                                                        solutions astrology
+                                                        under one roof.
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="chat_list">
+                                            <div class="chat_people">
+                                                <div class="chat_img">
+                                                    {" "}
+                                                    <img
+                                                        src="https://ptetutorials.com/images/user-profile.png"
+                                                        alt="sunil"
+                                                    />{" "}
+                                                </div>
+                                                <div class="chat_ib">
+                                                    <h5>
+                                                        Sunil Rajput{" "}
+                                                        <span class="chat_date">
+                                                            Dec 25
+                                                        </span>
+                                                    </h5>
+                                                    <p>
+                                                        Test, which is a new
+                                                        approach to have all
+                                                        solutions astrology
+                                                        under one roof.
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="chat_list">
+                                            <div class="chat_people">
+                                                <div class="chat_img">
+                                                    {" "}
+                                                    <img
+                                                        src="https://ptetutorials.com/images/user-profile.png"
+                                                        alt="sunil"
+                                                    />{" "}
+                                                </div>
+                                                <div class="chat_ib">
+                                                    <h5>
+                                                        Sunil Rajput{" "}
+                                                        <span class="chat_date">
+                                                            Dec 25
+                                                        </span>
+                                                    </h5>
+                                                    <p>
+                                                        Test, which is a new
+                                                        approach to have all
+                                                        solutions astrology
+                                                        under one roof.
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="chat_list">
+                                            <div class="chat_people">
+                                                <div class="chat_img">
+                                                    {" "}
+                                                    <img
+                                                        src="https://ptetutorials.com/images/user-profile.png"
+                                                        alt="sunil"
+                                                    />
+                                                </div>
+                                                <div class="chat_ib">
+                                                    <h5>
+                                                        Sunil Rajput{" "}
+                                                        <span class="chat_date">
+                                                            Dec 25
+                                                        </span>
+                                                    </h5>
+                                                    <p>
+                                                        Test, which is a new
+                                                        approach to have all
+                                                        solutions astrology
+                                                        under one roof.
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="mesgs">
+                                    <div class="msg_history">
+                                        <div class="incoming_msg">
+                                            <div class="incoming_msg_img">
+                                                {" "}
+                                                <img
+                                                    src="https://ptetutorials.com/images/user-profile.png"
+                                                    alt="sunil"
+                                                />{" "}
+                                            </div>
+                                            <div class="received_msg">
+                                                <div class="received_withd_msg">
+                                                    <p>
+                                                        Test which is a new
+                                                        approach to have all
+                                                        solutions
+                                                    </p>
+                                                    <span class="time_date">
+                                                        {" "}
+                                                        11:01 AM | June 9
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="outgoing_msg">
+                                            <div class="sent_msg">
+                                                <p>
+                                                    Test which is a new approach
+                                                    to have all solutions
+                                                </p>
+                                                <span class="time_date">
+                                                    {" "}
+                                                    11:01 AM | June 9
+                                                </span>{" "}
+                                            </div>
+                                        </div>
+                                        <div class="incoming_msg">
+                                            <div class="incoming_msg_img">
+                                                {" "}
+                                                <img
+                                                    src="https://ptetutorials.com/images/user-profile.png"
+                                                    alt="sunil"
+                                                />{" "}
+                                            </div>
+                                            <div class="received_msg">
+                                                <div class="received_withd_msg">
+                                                    <p>
+                                                        Test, which is a new
+                                                        approach to have
+                                                    </p>
+                                                    <span class="time_date">
+                                                        {" "}
+                                                        11:01 AM | Yesterday
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="outgoing_msg">
+                                            <div class="sent_msg">
+                                                <p>
+                                                    Apollo University, Delhi,
+                                                    India Test
+                                                </p>
+                                                <span class="time_date">
+                                                    {" "}
+                                                    11:01 AM | Today
+                                                </span>{" "}
+                                            </div>
+                                        </div>
+                                        <div class="incoming_msg">
+                                            <div class="incoming_msg_img">
+                                                {" "}
+                                                <img
+                                                    src="https://ptetutorials.com/images/user-profile.png"
+                                                    alt="sunil"
+                                                />{" "}
+                                            </div>
+                                            <div class="received_msg">
+                                                <div class="received_withd_msg">
+                                                    <p>
+                                                        We work directly with
+                                                        our designers and
+                                                        suppliers, and sell
+                                                        direct to you, which
+                                                        means quality, exclusive
+                                                        products, at a price
+                                                        anyone can afford.
+                                                    </p>
+                                                    <span class="time_date">
+                                                        {" "}
+                                                        11:01 AM | Today
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="type_msg">
+                                        <div class="input_msg_write">
+                                            <input
+                                                type="text"
+                                                class="write_msg"
+                                                placeholder="Type a message"
+                                            />
+                                            <button
+                                                class="msg_send_btn"
+                                                type="button"
+                                            >
+                                                <i
+                                                    class="fa fa-paper-plane-o"
+                                                    aria-hidden="true"
+                                                ></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <p class="text-center top_spac">
+                                {" "}
+                                Design by{" "}
+                                <a
+                                    target="_blank"
+                                    href="https://www.linkedin.com/in/sunil-rajput-nattho-singh/"
+                                >
+                                    Sunil Rajput
+                                </a>
+                            </p>
+                        </div>
+                    </div>
+                </Modal.Body>
+            </Modal>
+        );
+    }
 }
 
-export default Message
+export default Message;
