@@ -99,17 +99,10 @@ class ViewAvatar extends React.Component {
 
 	render(){
 		return (
-			<Modal 
-                centered 
-                className="custom-modal custom-popup-component" 
-                show={true} 
-            >
-                <div className="avatar">
-                    <Link to="/" className="popup-cancel">
-                        <span className="form-cross-icon">
-                            <i className="fa fa-times"></i>
-                        </span>
-                    </Link>
+			<Modal dialogClassName="modal-90w" size="xl" onHide={()=>this.props.history.push('/')} show={true}>
+                <Modal.Header closeButton>
+                    <Modal.Title>View Avatars</Modal.Title>
+                </Modal.Header>
                 {this.state.loggedIn ? (
                 	<>
                         {this.state.loading ? (
@@ -125,7 +118,6 @@ class ViewAvatar extends React.Component {
                 ) : (
                     <h1>You are not logged in! </h1>
                 )}
-                </div>
             </Modal>
 		)
 	}
