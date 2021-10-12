@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using NextGenSoftware.OASIS.API.Core.Helpers;
+using NextGenSoftware.OASIS.API.ONODE.WebAPI.Interfaces;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers.Admin
 {
@@ -45,15 +46,6 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers.Admin
         {
             return await _olandService.GetAllOlands();
         }
-    }
-
-    public interface IOlandService
-    {
-        Task<OASISResult<IEnumerable<OlandUnitDto>>> GetAllOlands();
-        Task<OASISResult<OlandUnitDto>> GetOland(int id);
-        Task<OASISResult<bool>> DeleteOland(int id);
-        Task<OASISResult<int>> CreateOland(CreateOlandUnitRequest request);
-        Task<OASISResult<bool>> UpdateOland(UpdateOlandUnitRequest request, int id);
     }
 
     public sealed class UpdateOlandUnitRequest
