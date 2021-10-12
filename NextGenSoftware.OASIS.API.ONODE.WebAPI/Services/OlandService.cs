@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers.Admin;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Interfaces;
+using NextGenSoftware.OASIS.API.ONODE.WebAPI.Models;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
 {
@@ -23,12 +24,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
             throw new System.NotImplementedException();
         }
 
-        public async Task<OASISResult<int>> CreateOland(CreateOlandUnitRequest request)
+        public async Task<OASISResult<int>> CreateOland(ManageOlandUnitRequestDto request)
         {
             throw new System.NotImplementedException();
         }
 
-        public async Task<OASISResult<bool>> UpdateOland(UpdateOlandUnitRequest request, int id)
+        public async Task<OASISResult<bool>> UpdateOland(ManageOlandUnitRequestDto request, int id)
         {
             throw new System.NotImplementedException();
         }

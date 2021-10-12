@@ -2,10 +2,8 @@
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using NextGenSoftware.OASIS.API.Core.Helpers;
-using NextGenSoftware.OASIS.API.Core.Interfaces;
-using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Interfaces;
-using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Models.Common;
+using NextGenSoftware.OASIS.API.ONODE.WebAPI.Models;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers.Admin
 {
@@ -21,13 +19,13 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers.Admin
         }
         
         [HttpPost]
-        public async Task<OASISResult<int>> Create(CreateOlandUnitRequest request)
+        public async Task<OASISResult<int>> Create(ManageOlandUnitRequestDto request)
         {
             return await _olandService.CreateOland(request);
         }
 
         [HttpPut("{id:int}")]
-        public async Task<OASISResult<bool>> Update(UpdateOlandUnitRequest request, int id)
+        public async Task<OASISResult<bool>> Update(ManageOlandUnitRequestDto request, int id)
         {
             return await _olandService.UpdateOland(request, id);
         }
@@ -49,18 +47,5 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers.Admin
         {
             return await _olandService.GetAllOlands();
         }
-    }
-
-    public sealed class UpdateOlandUnitRequest
-    {
-    }
-
-    public sealed class CreateOlandUnitRequest
-    {
-    }
-
-    public sealed class OlandUnitDto : Oland
-    {
-        public string UnitSize => $"{TopSize}x{RightSize} {UnitOfMeasure}";
     }
 }
