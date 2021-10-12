@@ -22,5 +22,6 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
         public IMongoCollection<Avatar> Avatar => MongoDB.GetCollection<Avatar>("Avatar");
         public IMongoCollection<Holon> Holon => MongoDB.GetCollection<Holon>("Holon");
         public IMongoCollection<SearchData> SearchData => MongoDB.GetCollection<SearchData>("SearchData");
+        public IMongoCollection<Oland> Oland => MongoDB.GetCollection<Oland>("Oland");
     }
 }
