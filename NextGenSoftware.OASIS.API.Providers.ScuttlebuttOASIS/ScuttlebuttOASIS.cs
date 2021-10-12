@@ -119,6 +119,16 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             throw new NotImplementedException();
         }
 
+        public override int CreateOland(IOland oland)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override bool UpdateOland(IOland oland)
+        {
+            throw new NotImplementedException();
+        }
+
         public override Task<IEnumerable<IAvatar>> LoadAllAvatarsAsync()
         {
             throw new NotImplementedException();
@@ -270,6 +280,56 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
         }
 
         public override Task<ISearchResults> SearchAsync(ISearchParams searchParams)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override async Task<IEnumerable<IOland>> LoadAllOlandsAsync()
+        {
+            throw new NotImplementedException();
+        }
+
+        public override async Task<IOland> LoadOlandAsync(int id)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override async Task<bool> DeleteOlandAsync(int id)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override async Task<bool> DeleteOlandAsync(int id, bool safeDelete)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override async Task<int> CreateOlandAsync(IOland oland)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override async Task<bool> UpdateOlandAsync(IOland oland)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override IEnumerable<IOland> LoadAllOlands()
+        {
+            throw new NotImplementedException();
+        }
+
+        public override IOland LoadOland(int id)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override bool DeleteOland(int id)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override bool DeleteOland(int id, bool safeDelete)
         {
             throw new NotImplementedException();
         }
