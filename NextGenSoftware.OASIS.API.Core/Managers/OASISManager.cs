@@ -30,7 +30,15 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 OASISStorageProvider.StorageProviderError += OASISStorageProvider_StorageProviderError;
             }
 
-            this.OASISDNA = OASISDNA;
+            if (OASISDNA == null)
+            {
+                if (OASISDNAManager.OASISDNA == null)
+                    OASISDNAManager.LoadDNA();
+
+                this.OASISDNA = OASISDNAManager.OASISDNA;
+            }
+            else
+                this.OASISDNA = OASISDNA;
 
             //TODO: Need to unsubscribe events to stop memory leaks...
         }
