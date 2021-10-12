@@ -32,37 +32,24 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
         private string holonFileAddress;
         private string avatarDetailsFileAddress;
         private Dictionary<HolonResume, string> _idLookup = new Dictionary<HolonResume, string>();
-        private OASISDNA _OASISDNA;
-        private string _OASISDNAPath;
 
-        public IPFSOASIS()
+        public IPFSOASIS() : base()
         {
-            OASISDNAManager.LoadDNA();
-            _OASISDNA = OASISDNAManager.OASISDNA;
-            _OASISDNAPath = OASISDNAManager.OASISDNAPath;
-
             Init();
         }
 
-        public IPFSOASIS(string OASISDNAPath)
+        public IPFSOASIS(string OASISDNAPath) : base(OASISDNAPath)
         {
-            _OASISDNAPath = OASISDNAPath;
-            OASISDNAManager.LoadDNA(_OASISDNAPath);
-            _OASISDNA = OASISDNAManager.OASISDNA;
             Init();
         }
 
-        public IPFSOASIS(OASISDNA OASISDNA)
+        public IPFSOASIS(OASISDNA OASISDNA) : base(OASISDNA)
         {
-            _OASISDNA = OASISDNA;
-            _OASISDNAPath = OASISDNAManager.OASISDNAPath;
             Init();
         }
 
-        public IPFSOASIS(OASISDNA OASISDNA, string OASISDNAPath)
+        public IPFSOASIS(OASISDNA OASISDNA, string OASISDNAPath) : base(OASISDNA, OASISDNAPath)
         {
-            _OASISDNA = OASISDNA;
-            _OASISDNAPath = OASISDNAPath;
             Init();
         }
 
@@ -72,11 +59,15 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
             this.ProviderDescription = "IPFS Provider";
             this.ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.IPFSOASIS);
             this.ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
+
+           // string address = OASISDNA.OASIS.StorageProviders.IPFSOASIS.LookUpIPFSAddress;
+           // OASISDNA.OASIS.StorageProviders.IPFSOASIS.LookUpIPFSAddress = "test";
+           // OASISDNAManager.SaveDNA(OASISDNAPath, OASISDNA);
         }
 
         public override void ActivateProvider()
         {
-            IPFSClient = new IpfsClient(_OASISDNA.OASIS.StorageProviders.IPFSOASIS.ConnectionString);
+            IPFSClient = new IpfsClient(OASISDNA.OASIS.StorageProviders.IPFSOASIS.ConnectionString);
             base.ActivateProvider();
         }
 
@@ -117,7 +108,7 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
             //  IConfigurationRoot root = new ConfigurationBuilder().AddJsonFile(_OASISDNAPath).Build();
             //  root.
 
-            string json = await LoadStringToJson(_OASISDNA.OASIS.StorageProviders.IPFSOASIS.LookUpIPFSAddress);
+            string json = await LoadStringToJson(OASISDNA.OASIS.StorageProviders.IPFSOASIS.LookUpIPFSAddress);
             _idLookup = JArray.Parse(json).ToObject<Dictionary<HolonResume, string>>();
 
             return _idLookup;
@@ -136,8 +127,8 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
             string json = JsonConvert.SerializeObject(idLookup);
             var fsn = await IPFSClient.FileSystem.AddTextAsync(json);
             
-            _OASISDNA.OASIS.StorageProviders.IPFSOASIS.LookUpIPFSAddress = fsn.Id;
-            OASISDNAManager.SaveDNA(_OASISDNAPath, _OASISDNA);
+            OASISDNA.OASIS.StorageProviders.IPFSOASIS.LookUpIPFSAddress = fsn.Id;
+            OASISDNAManager.SaveDNA(OASISDNAPath, OASISDNA);
 
             //new ConfigurationBuilder().AddJsonFile(IPFS).Build()["Params:IdLookUpIPFSAddress"] = _idLookUpIPFSAddress;
            // new ConfigurationBuilder().AddJsonFile(_OASISDNAPath).Build()["OASIS:StorageProviders:IPFSOASIS:LookUpIPFSAddress"] = _lookUpIPFSAddress;
