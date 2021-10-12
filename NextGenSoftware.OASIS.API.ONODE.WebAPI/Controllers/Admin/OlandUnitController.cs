@@ -10,34 +10,50 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers.Admin
     [Authorize]
     public class OlandUnitController : OASISControllerBase
     {
-        [HttpPost]
-        public async Task<OASISResult<bool>> Create(CreateOlandUnitRequest request)
+        private readonly IOlandService _olandService;
+        public OlandUnitController(IOlandService olandService)
         {
-            
+            _olandService = olandService;
+        }
+        
+        [HttpPost]
+        public async Task<OASISResult<int>> Create(CreateOlandUnitRequest request)
+        {
+            return await _olandService.CreateOland(request);
         }
 
         [HttpPut("{id:int}")]
         public async Task<OASISResult<bool>> Update(UpdateOlandUnitRequest request, int id)
         {
-            
+            return await _olandService.UpdateOland(request, id);
         }
 
         [HttpDelete("{id:int}")]
         public async Task<OASISResult<bool>> Delete(int id)
         {
-            
+            return await _olandService.DeleteOland(id);
         }
 
         [HttpGet("{id:int}")]
         public async Task<OASISResult<OlandUnitDto>> Get(int id)
         {
+            return await _olandService.GetOland(id);
         }
 
         [HttpGet("GetAll")]
         public async Task<OASISResult<IEnumerable<OlandUnitDto>>> GetAll()
         {
-            
+            return await _olandService.GetAllOlands();
         }
+    }
+
+    public interface IOlandService
+    {
+        Task<OASISResult<IEnumerable<OlandUnitDto>>> GetAllOlands();
+        Task<OASISResult<OlandUnitDto>> GetOland(int id);
+        Task<OASISResult<bool>> DeleteOland(int id);
+        Task<OASISResult<int>> CreateOland(CreateOlandUnitRequest request);
+        Task<OASISResult<bool>> UpdateOland(UpdateOlandUnitRequest request, int id);
     }
 
     public sealed class UpdateOlandUnitRequest
