@@ -52,7 +52,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers.Admin
     {
     }
 
-    public class CreateOlandUnitRequest
+    public sealed class CreateOlandUnitRequest
     {
     }
 
