@@ -15,5 +15,65 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Unity
         {
             
         }
+
+        public override async Task<IEnumerable<IOland>> LoadAllOlandsAsync()
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public override async Task<IOland> LoadOlandAsync(int id)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public override async Task<bool> DeleteOlandAsync(int id)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public override async Task<bool> DeleteOlandAsync(int id, bool safeDelete)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public override async Task<int> CreateOlandAsync(IOland oland)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public override async Task<bool> UpdateOlandAsync(IOland oland)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public override IEnumerable<IOland> LoadAllOlands()
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public override IOland LoadOland(int id)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public override bool DeleteOland(int id)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public override bool DeleteOland(int id, bool safeDelete)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public override int CreateOland(IOland oland)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public override bool UpdateOland(IOland oland)
+        {
+            throw new System.NotImplementedException();
+        }
     }
 }
