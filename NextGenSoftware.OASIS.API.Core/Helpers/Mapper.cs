@@ -65,7 +65,7 @@ namespace NextGenSoftware.OASIS.API.Core.Helpers
             targetHolon.MetaData = sourceHolon.MetaData;
             targetHolon.ProviderMetaData = sourceHolon.ProviderMetaData;
             targetHolon.Original = sourceHolon.Original;
-
+            
             return targetHolon;
         }
         public static IEnumerable<T2> MapBaseHolonProperties(IEnumerable<T1> sourceHolons)

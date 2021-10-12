@@ -21,7 +21,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
         }
 
-        public OASISResult<T> LoadHolon<T>(Guid id, ProviderType providerType = ProviderType.Default) where T : IHolon
+        public OASISResult<T> LoadHolon<T>(Guid id, ProviderType providerType = ProviderType.Default) where T : IHolon, new()
         {
             ProviderType currentProviderType = ProviderManager.CurrentStorageProviderType.Value;
             OASISResult<T> result = new OASISResult<T>();
@@ -50,22 +50,34 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 LoggingManager.Log(errorMessage, LogType.Error);
             }
 
-            else if (result.MetaData != null && result.MetaData.ContainsKey("CustomHolonTypeAssembly") && result.MetaData.ContainsKey("CustomHolonType"))
+            //else if (result.Result.MetaData != null && result.Result.MetaData.ContainsKey("CustomHolonTypeAssembly") && result.Result.MetaData.ContainsKey("CustomHolonType"))
+            else if (result.Result.MetaData != null)
             {
-                //result.Result = (T)Activator.CreateInstance(result.MetaData["CustomHolonTypeAssembly"], result.MetaData["CustomHolonType"]);
-                T customHolon = Activator.CreateInstance<T>();
-
-                foreach (string key in result.MetaData.Keys)
+                foreach (string key in result.Result.MetaData.Keys)
                 {
-                    if (key != "CustomHolonTypeAssembly" && key != "CustomHolonType")
-                    {
-                        // TODO: Set the custom properties from the MetaData...
-                        // Will probably need relection here...
+                    //if (key != "CustomHolonTypeAssembly" && key != "CustomHolonType")
+                    //{
+                        PropertyInfo propInfo = typeof(T).GetProperty(key);
 
-                        // But needs to be dynamic so no hard coding! ;-)
-                        //customHolon.WalletAddress = result.MetaData["WalletAddress"];
-                        //customHolon.AvatarUsername = result.MetaData["AvatarUsername"];
-                    }
+                        if (propInfo.PropertyType == typeof(Guid))
+                            propInfo.SetValue(result.Result, new Guid(result.Result.MetaData[key]));
+
+                        else if (propInfo.PropertyType == typeof(bool))
+                            propInfo.SetValue(result.Result, Convert.ToBoolean(result.Result.MetaData[key]));
+
+                        else if (propInfo.PropertyType == typeof(int))
+                            propInfo.SetValue(result.Result, Convert.ToInt32(result.Result.MetaData[key]));
+
+                        else if (propInfo.PropertyType == typeof(long))
+                            propInfo.SetValue(result.Result, Convert.ToInt64(result.Result.MetaData[key]));
+
+                        else if (propInfo.PropertyType == typeof(DateTime))
+                            propInfo.SetValue(result.Result, Convert.ToDateTime(result.Result.MetaData[key]));
+                        else
+                            propInfo.SetValue(result.Result, result.Result.MetaData[key]);
+
+                        //TODO: Add any other missing types...
+                    //}
                 }
             }
 
@@ -491,6 +503,54 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 result.Message = errorMessage;
                 LoggingManager.Log(errorMessage, LogType.Error);
             }
+
+            if (ProviderManager.IsAutoReplicationEnabled)
+            {
+                foreach (EnumValue<ProviderType> type in ProviderManager.GetProvidersThatAreAutoReplicating())
+                {
+                    if (type.Value != providerType && type.Value != ProviderManager.CurrentStorageProviderType.Value)
+                        SaveHolonForProviderType(holon, type.Value, saveChildrenRecursive);
+                }
+            }
+
+            SwitchBackToCurrentProvider(currentProviderType, ref result);
+            result.IsSaved = result.Result != null && result.Result.Id != Guid.Empty;
+            result.Result.IsChanged = !result.IsSaved;
+
+            return result;
+        }
+
+        public OASISResult<T> SaveHolon<T>(IHolon holon, bool saveChildrenRecursive = true, ProviderType providerType = ProviderType.Default) where T : IHolon, new()
+        {
+            ProviderType currentProviderType = ProviderManager.CurrentStorageProviderType.Value;
+            OASISResult<T> result = new OASISResult<T>((T)holon);
+            OASISResult<IHolon> holonSaveResult = new OASISResult<IHolon>();
+
+            holonSaveResult = SaveHolonForProviderType(PrepareHolonForSaving(holon), providerType, saveChildrenRecursive, holonSaveResult);
+
+            if (holonSaveResult.Result == null && ProviderManager.IsAutoFailOverEnabled)
+            {
+                foreach (EnumValue<ProviderType> type in ProviderManager.GetProviderAutoFailOverList())
+                {
+                    if (type.Value != providerType && type.Value != ProviderManager.CurrentStorageProviderType.Value)
+                    {
+                        result = SaveHolonForProviderType(holon, type.Value, saveChildrenRecursive, result);
+
+                        if (result.Result != null)
+                            break;
+                    }
+                }
+            }
+
+            if (holonSaveResult.Result == null)
+            {
+                result.IsError = true;
+                string errorMessage = string.Concat("All registered OASIS Providers in the AutoFailOverList failed to save ", LoggingHelper.GetHolonInfoForLogging(holon), ". Please view the logs for more information. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString());
+                result.Message = errorMessage;
+                LoggingManager.Log(errorMessage, LogType.Error);
+            }
+            else
+                result.Result = Mapper<IHolon, T>.MapBaseHolonProperties(holonSaveResult.Result, result.Result);
 
             if (ProviderManager.IsAutoReplicationEnabled)
             {
@@ -948,7 +1008,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             // TODO: Would ideally like to find a better way to do this so we can avoid reflection if possible because of the potential overhead!
             // Need to do some perfomrnace tests with reflection turned on/off (so with this code enabled/disabled) to see what the overhead is exactly...
             PropertyInfo[] props = holon.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance);
-            bool customPropsFound = false;
+            //bool customPropsFound = false;
 
             foreach (PropertyInfo propertyInfo in props)
             {
@@ -957,17 +1017,17 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                     if (data.AttributeType == (typeof(CustomOASISProperty)))
                     {
                         holon.MetaData[propertyInfo.Name] = propertyInfo.GetValue(holon).ToString();
-                        customPropsFound = true;
+                       // customPropsFound = true;
                         break;
                     }
                 }
             }
 
-            if (customPropsFound)
-            {
-                holon.MetaData["CustomHolonTypeAssembly"] = holon.GetType().AssemblyQualifiedName;
-                holon.MetaData["CustomHolonType"] = holon.GetType().Name;
-            }
+            //if (customPropsFound)
+            //{
+            //    holon.MetaData["CustomHolonTypeAssembly"] = holon.GetType().AssemblyQualifiedName;
+            //    holon.MetaData["CustomHolonType"] = holon.GetType().Name;
+            //}
 
             return holon;
         }
@@ -1020,7 +1080,8 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return result;
         }
 
-        private OASISResult<T> LoadHolonForProviderType<T>(Guid id, ProviderType providerType, OASISResult<T> result = null) where T : IHolon
+        
+        private OASISResult<T> LoadHolonForProviderType<T>(Guid id, ProviderType providerType, OASISResult<T> result = null) where T : IHolon, new()
         {
             try
             {
@@ -1038,7 +1099,18 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 }
                 else if (result != null)
                 {
-                    result.Result = (T)providerResult.Result.LoadHolon(id);
+                    T convertedHolon = (T)Activator.CreateInstance(typeof(T));
+                    result.Result = Mapper<IHolon, T>.MapBaseHolonProperties(providerResult.Result.LoadHolon(id));
+
+
+
+                    //result.Result = Mapper<IHolon, (T)Activator.CreateInstance(typeof(T))>.MapBaseHolonProperties(providerResult.Result.LoadHolon(id));
+
+                    // result.Result = Mapper<IHolon, T>.MapBaseHolonProperties(providerResult.Result.LoadHolon(id));
+                    //result.Result = Mapper<IHolon, (T)Activator.CreateInstance(typeof(T))>.MapBaseHolonProperties(providerResult.Result.LoadHolon(id));
+                    // result.Result = Mapper<IHolon, new T())>.MapBaseHolonProperties(providerResult.Result.LoadHolon(id));
+                    //result.Result = (T)providerResult.Result.LoadHolon(id);
+                    //result.Result = providerResult.Result.LoadHolon<T>(id);
                     result.IsSaved = true;
                 }
             }
@@ -1350,6 +1422,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return result;
         }
 
+        //TODO: Why do we pass in result?! Need to look into this tomorrow! ;-) lol
         private OASISResult<IHolon> SaveHolonForProviderType(IHolon holon, ProviderType providerType, bool saveChildrenRecursive, OASISResult<IHolon> result = null)
         {
             try
@@ -1390,6 +1463,55 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                     result.Result = null;
 
                 LogError(holon, providerType, ex.ToString());
+            }
+
+            return result;
+        }
+
+        private OASISResult<T> SaveHolonForProviderType<T>(IHolon holon, ProviderType providerType, bool saveChildrenRecursive, OASISResult<T> result = null) where T : IHolon, new()
+        {
+            try
+            {
+                OASISResult<IOASISStorage> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
+
+                if (providerResult.IsError)
+                {
+                    LoggingManager.Log(providerResult.Message, LogType.Error);
+
+                    if (result != null)
+                    {
+                        result.IsError = true;
+                        result.Message = providerResult.Message;
+                    }
+
+                    //TODO: In future will return these extra error messages in the OASISResult.
+                }
+                else if (result != null)
+                {
+                    OASISResult<IHolon> saveHolonResult = providerResult.Result.SaveHolon(holon, saveChildrenRecursive);
+
+                    if (!saveHolonResult.IsError && saveHolonResult != null)
+                    {
+                        // result.Result = saveHolonResult.Result;
+                        //TODO: We may want to use JSON or something in future so is faster than using reflection, we need to test the difference in speed and overheads, etc...
+                        T convertedHolon = (T)Activator.CreateInstance(typeof(T));
+                        result.Result = Mapper<IHolon, T>.MapBaseHolonProperties(saveHolonResult.Result);
+                        result.IsSaved = true;
+                    }
+                    else
+                    {
+                        result.IsError = true;
+                        result.Message = saveHolonResult.Message;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+               // if (result != null)
+               //     result.Result = null;
+
+                ErrorHandling.HandleError(ref result, string.Concat("An error occured attempting to save the ", LoggingHelper.GetHolonInfoForLogging(holon), " using the ", Enum.GetName(providerType), " provider. Error Details: ", ex.ToString()));
+               // LogError(holon, providerType, ex.ToString());
             }
 
             return result;
