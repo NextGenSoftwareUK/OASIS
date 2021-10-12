@@ -2,7 +2,10 @@
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using NextGenSoftware.OASIS.API.Core.Helpers;
+using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Interfaces;
+using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Models.Common;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers.Admin
 {
@@ -56,7 +59,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers.Admin
     {
     }
 
-    public sealed class OlandUnitDto
+    public sealed class OlandUnitDto : Oland
     {
+        public string UnitSize => $"{TopSize}x{RightSize} {UnitOfMeasure}";
     }
 }

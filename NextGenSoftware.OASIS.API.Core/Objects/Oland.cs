@@ -1,6 +1,8 @@
-﻿namespace NextGenSoftware.OASIS.API.Core.Interfaces
+﻿using NextGenSoftware.OASIS.API.Core.Interfaces;
+
+namespace NextGenSoftware.OASIS.API.Core.Objects
 {
-    public interface IOland
+    public class Oland : IOland
     {
         public int Id { get; set; }
         public decimal Price { get; set; }
@@ -8,6 +10,6 @@
         public int OlandsCount { get; set; }
         public decimal TopSize { get; set; }
         public decimal RightSize { get; set; }
-        public string UnitOfMeasure  { get; set; }
+        public string UnitOfMeasure { get; set; }
     }
 }
