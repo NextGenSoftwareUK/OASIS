@@ -9,7 +9,5 @@
         public decimal TopSize { get; set; }
         public decimal RightSize { get; set; }
         public string UnitOfMeasure  { get; set; }
-
-        string UnitSize => $"{TopSize}x{RightSize} {UnitOfMeasure}";
     }
 }
