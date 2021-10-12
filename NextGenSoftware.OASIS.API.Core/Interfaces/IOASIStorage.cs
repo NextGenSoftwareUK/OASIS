@@ -74,6 +74,20 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces
         Task<bool> DeleteHolonAsync(string providerKey, bool softDelete = true);
 
         Task<ISearchResults> SearchAsync(ISearchParams searchParams);
+        
+        Task<IEnumerable<IOland>> LoadAllOlandsAsync();
+        Task<IOland> LoadOlandAsync(int id);
+        Task<bool> DeleteOlandAsync(int id);
+        Task<bool> DeleteOlandAsync(int id, bool safeDelete);
+        Task<int> CreateOlandAsync(IOland oland);
+        Task<bool> UpdateOlandAsync(IOland oland);
+        
+        IEnumerable<IOland> LoadAllOlands();
+        IOland LoadOland(int id);
+        bool DeleteOland(int id);
+        bool DeleteOland(int id, bool safeDelete);
+        int CreateOland(IOland oland);
+        bool UpdateOland(IOland oland);
 
         event StorageProviderError StorageProviderError;
 
