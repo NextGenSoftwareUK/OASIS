@@ -42,6 +42,8 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
             if (!IsOASISBooting)
             {
                 IsOASISBooting = true;
+
+                OASISDNAManager.OASISDNA = OASISDNA;
                 LoggingManager.CurrentLoggingFramework = (LoggingFramework)Enum.Parse(typeof(LoggingFramework), OASISDNA.OASIS.Logging.LoggingFramework);
                 ErrorHandling.LogAllErrors = OASISDNA.OASIS.ErrorHandling.LogAllErrors;
                 ErrorHandling.LogAllWarnings = OASISDNA.OASIS.ErrorHandling.LogAllWarnings;
