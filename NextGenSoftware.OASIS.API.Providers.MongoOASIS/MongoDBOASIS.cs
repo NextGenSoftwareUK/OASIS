@@ -326,6 +326,12 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             return ConvertMongoEntityToOASISHolon(new OASISResult<Holon>(_holonRepository.GetHolon(id))).Result;
         }
 
+
+        //public override T LoadHolon<T>(Guid id)
+        //{
+        //    return ConvertMongoEntityToOASISHolon(new OASISResult<Holon>(_holonRepository.GetHolon(id))).Result;
+        //}
+
         public override async Task<IHolon> LoadHolonAsync(string providerKey)
         {
             //TODO: Finish implementing OASISResult properly...
@@ -385,7 +391,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
                 ? ConvertMongoEntityToOASISHolon(await _holonRepository.AddAsync(ConvertOASISHolonToMongoEntity(holon)))
                 : ConvertMongoEntityToOASISHolon(await _holonRepository.UpdateAsync(ConvertOASISHolonToMongoEntity(holon)));
 
-            if (!result.IsError && result.Result != null && saveChildrenRecursive)
+            if (!result.IsError && result.Result != null && saveChildrenRecursive && result.Result.Children != null)
             {
                 OASISResult<IEnumerable<IHolon>> saveChildrenResult = SaveHolons(result.Result.Children);
 
@@ -407,7 +413,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
                 ? ConvertMongoEntityToOASISHolon(_holonRepository.Add(ConvertOASISHolonToMongoEntity(holon)))
                 : ConvertMongoEntityToOASISHolon(_holonRepository.Update(ConvertOASISHolonToMongoEntity(holon)));
 
-            if (!result.IsError && result.Result != null && saveChildrenRecursive)
+            if (!result.IsError && result.Result != null && saveChildrenRecursive && result.Result.Children != null)
             {
                 OASISResult<IEnumerable<IHolon>> saveChildrenResult = SaveHolons(result.Result.Children);
 
@@ -925,7 +931,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             result.Result.ProviderKey = holon.Result.ProviderKey;
             result.Result.PreviousVersionId = holon.Result.PreviousVersionId;
             result.Result.PreviousVersionProviderKey = holon.Result.PreviousVersionProviderKey;
-            result.Result.MetaData = holon.MetaData;
+            result.Result.MetaData = holon.Result.MetaData;
             result.Result.ProviderMetaData = holon.Result.ProviderMetaData;
             result.Result.Name = holon.Result.Name;
             result.Result.Description = holon.Result.Description;

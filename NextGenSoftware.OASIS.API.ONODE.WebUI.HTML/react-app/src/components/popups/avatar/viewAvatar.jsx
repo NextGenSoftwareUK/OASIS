@@ -2,6 +2,7 @@ import React from "react"
 import {Link} from "react-router-dom"
 import axios from "axios"
 import Loader from "react-loader-spinner"
+import {Modal} from "react-bootstrap"
 import {login, getUserById} from "../../../functions"
 import ReactGrid from "../../ReactGrid"
 
@@ -98,13 +99,10 @@ class ViewAvatar extends React.Component {
 
 	render(){
 		return (
-			<div className="popup">
-                <div className="avatar">
-                    <Link to="/" className="popup-cancel">
-                        <span className="form-cross-icon">
-                            <i className="fa fa-times"></i>
-                        </span>
-                    </Link>
+			<Modal dialogClassName="modal-90w" size="xl" onHide={()=>this.props.history.push('/')} show={true}>
+                <Modal.Header closeButton>
+                    <Modal.Title>View Avatars</Modal.Title>
+                </Modal.Header>
                 {this.state.loggedIn ? (
                 	<>
                         {this.state.loading ? (
@@ -120,8 +118,7 @@ class ViewAvatar extends React.Component {
                 ) : (
                     <h1>You are not logged in! </h1>
                 )}
-                </div>
-            </div>
+            </Modal>
 		)
 	}
 }

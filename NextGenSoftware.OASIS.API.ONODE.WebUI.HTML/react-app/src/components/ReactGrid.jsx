@@ -14,12 +14,12 @@ import {
     TableColumnResizing,
     Toolbar,
 } from "@devexpress/dx-react-grid-material-ui";
-import "../assets/scss/react-grid.scss"
+// import "../assets/scss/react-grid.scss"
 
 const ReactGrid = ({ rows, columns, columnWidths }) => {
     return (
         <>
-            <Paper style={{color: "#fff", backgroundColor: "transparent", border: "1px solid #fff"}}>
+            <Paper>
                 <Grid rows={rows} columns={columns} >
                     <SortingState />
                     <IntegratedSorting />

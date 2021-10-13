@@ -16,6 +16,7 @@ import LoadData from "./popups/data-screen/LoadData";
 import OffChainManagement from "./popups/data-screen/OffChainManagement";
 import CrossChainManagement from "./popups/data-screen/CrossChainManagement";
 import Solana from "./popups/nft/Solana";
+import ContactPopup from "./popups/nft/ContactPopup";
 
 import ViewAvatar from "./popups/avatar/viewAvatar";
 import AvatarWallet from "./popups/avatar/avatarWallet";
@@ -30,6 +31,7 @@ import "../assets/scss/Seeds.scss";
 
 import axios from "axios";
 import 'react-toastify/dist/ReactToastify.css';
+// import { Contacts } from "@material-ui/icons";
 
 class App extends React.Component {
     state = {
@@ -50,7 +52,8 @@ class App extends React.Component {
             },
             {
                 nft: {
-                    solana: false
+                    solana: false,
+                    contactPopup: false
                 }
             }
         ],
@@ -185,6 +188,7 @@ class App extends React.Component {
                             <Route exact path="/karma" component={Karma} />
                             <Route exact path="/avatar/view" component={ViewAvatar} />
                             <Route exact path="/avatar/wallet" component={AvatarWallet} />
+                            <Route exact path="/message" component={Message}/>
 
                             {/* <Route exact path="/avatar/upload" component={UploadAvatar} />
                             <Route path="/provider/provider" component={Provider} />
@@ -236,6 +240,11 @@ class App extends React.Component {
                 {/* ========== NFT POPUPS START  =========== */}
                 <Solana
                     show={this.state.sidebarMenuOption[1].nft.solana}
+                    hide={this.toggleScreenPopup}
+                />
+
+                <ContactPopup
+                    show={this.state.sidebarMenuOption[1].nft.contactPopup}
                     hide={this.toggleScreenPopup}
                 />
                 {/* ========== NFT POPUPS END  =========== */}
