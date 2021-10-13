@@ -1,8 +1,10 @@
-﻿namespace NextGenSoftware.OASIS.API.Core.Interfaces
+﻿using System;
+
+namespace NextGenSoftware.OASIS.API.Core.Interfaces
 {
     public interface IOland
     {
-        public int Id { get; set; }
+        public Guid Id { get; set; }
         public decimal Price { get; set; }
         public decimal Discount { get; set; }
         public int OlandsCount { get; set; }
