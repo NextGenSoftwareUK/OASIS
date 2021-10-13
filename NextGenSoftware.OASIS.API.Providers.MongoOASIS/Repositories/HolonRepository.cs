@@ -28,7 +28,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                 if (holon.HolonId == Guid.Empty)
                     holon.HolonId = Guid.NewGuid();
 
-                holon.CreatedProviderType.Value = ProviderType.MongoDBOASIS;
+                holon.CreatedProviderType = new EnumValue<ProviderType>(ProviderType.MongoDBOASIS);
 
                 await _dbContext.Holon.InsertOneAsync(holon);
                 holon.ProviderKey[ProviderType.MongoDBOASIS] = holon.Id;
@@ -54,7 +54,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                 if (holon.HolonId == Guid.Empty)
                     holon.HolonId = Guid.NewGuid();
 
-                holon.CreatedProviderType.Value = ProviderType.MongoDBOASIS;
+                holon.CreatedProviderType = new EnumValue<ProviderType>(ProviderType.MongoDBOASIS);
 
                 _dbContext.Holon.InsertOne(holon);
                 holon.ProviderKey[ProviderType.MongoDBOASIS] = holon.Id;
@@ -96,6 +96,19 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                 throw;
             }
         }
+
+        //public T GetHolon<T>(Guid id) where T : IHolon
+        //{
+        //    try
+        //    {
+        //        FilterDefinition<IHolon> filter = Builders<IHolon>.Filter.Where(x => x.Id == id);
+        //        return _dbContext.Holon.Find(filter).FirstOrDefault();
+        //    }
+        //    catch
+        //    {
+        //        throw;
+        //    }
+        //}
 
         public async Task<Holon> GetHolonAsync(string providerKey)
         {
