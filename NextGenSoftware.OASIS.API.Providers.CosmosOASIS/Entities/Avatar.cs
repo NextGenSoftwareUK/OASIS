@@ -12,6 +12,8 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosOASIS.Entites
 {
     public class Avatar : Entity, IAvatar
     {
+        public new Guid Id { get { return Guid.Parse(base.Id); } set { base.Id = $"{value}"; } }
+
         public Dictionary<ProviderType, string> ProviderPrivateKey { get; set; } = new Dictionary<ProviderType, string>();
         public Dictionary<ProviderType, string> ProviderPublicKey { get; set; } = new Dictionary<ProviderType, string>();
         public Dictionary<ProviderType, string> ProviderUsername { get; set; } = new Dictionary<ProviderType, string>();
@@ -124,6 +126,7 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosOASIS.Entites
         public int Version { get; set; }
         public EnumValue<ProviderType> CreatedProviderType { get; set; }
         public ObservableCollection<INode> Nodes { get; set; }
+
 
         public bool HasHolonChanged(bool checkChildren = true)
         {
