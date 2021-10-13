@@ -16,7 +16,6 @@ namespace NextGenSoftware.OASIS.API.Core
         public OASISDNA OASISDNA { get; set; }
         public string OASISDNAPath { get; set; }
 
-        public abstract bool UpdateOland(IOland oland);
         public event AvatarManager.StorageProviderError StorageProviderError;
 
         public OASISStorageBase()
@@ -131,17 +130,6 @@ namespace NextGenSoftware.OASIS.API.Core
         public abstract bool DeleteAvatar(string providerKey, bool softDelete = true);
         public abstract Task<bool> DeleteAvatarAsync(string providerKey, bool softDelete = true);
         public abstract Task<ISearchResults> SearchAsync(ISearchParams searchParams);
-        public abstract Task<IEnumerable<IOland>> LoadAllOlandsAsync();
-        public abstract Task<IOland> LoadOlandAsync(int id);
-        public abstract Task<bool> DeleteOlandAsync(int id);
-        public abstract Task<bool> DeleteOlandAsync(int id, bool safeDelete);
-        public abstract Task<int> CreateOlandAsync(IOland oland);
-        public abstract Task<bool> UpdateOlandAsync(IOland oland);
-        public abstract IEnumerable<IOland> LoadAllOlands();
-        public abstract IOland LoadOland(int id);
-        public abstract bool DeleteOland(int id);
-        public abstract bool DeleteOland(int id, bool safeDelete);
-        public abstract int CreateOland(IOland oland);
         public abstract IHolon LoadHolon(Guid id);
         public abstract Task<IHolon> LoadHolonAsync(Guid id);
         public abstract IHolon LoadHolon(string providerKey);

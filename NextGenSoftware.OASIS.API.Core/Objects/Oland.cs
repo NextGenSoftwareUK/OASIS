@@ -1,10 +1,11 @@
-﻿using NextGenSoftware.OASIS.API.Core.Interfaces;
+﻿using System;
+using NextGenSoftware.OASIS.API.Core.Interfaces;
 
 namespace NextGenSoftware.OASIS.API.Core.Objects
 {
     public class Oland : IOland
     {
-        public int Id { get; set; }
+        public Guid Id { get; set; }
         public decimal Price { get; set; }
         public decimal Discount { get; set; }
         public int OlandsCount { get; set; }
