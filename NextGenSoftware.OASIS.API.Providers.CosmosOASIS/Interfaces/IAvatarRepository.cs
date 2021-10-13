@@ -2,5 +2,5 @@
 
 namespace NextGenSoftware.OASIS.API.Providers.CosmosOASIS.Interfaces
 {
-    public interface IAvatarItemRepository : IRepository<Avatar> { }
+    public interface IAvatarRepository : IRepository<Avatar> { }
 }

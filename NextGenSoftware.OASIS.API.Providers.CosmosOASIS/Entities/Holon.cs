@@ -14,6 +14,7 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosOASIS.Entities
 {
     public class Holon : Entity, IHolon
     {
+        public new Guid Id { get { return Guid.Parse(base.Id); } set { base.Id = $"{value}"; } }
         public string Name { get; set; }
         public string Description { get; set; }
         public IHolon Original { get; set; }
@@ -68,8 +69,6 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosOASIS.Entities
         public int Version { get; set; }
         public EnumValue<ProviderType> CreatedProviderType { get; set; }
         public ObservableCollection<INode> Nodes { get; set; }
-        //public Guid Id { get; set; }
-
         public bool HasHolonChanged(bool checkChildren = true)
         {
             throw new NotImplementedException();

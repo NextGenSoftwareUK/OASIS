@@ -1,7 +1,12 @@
-﻿using NextGenSoftware.OASIS.API.Core;
+﻿using Microsoft.Azure.Documents.Client;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization;
+using NextGenSoftware.OASIS.API.Core;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.Providers.CosmosOASIS.Infrastructure;
+using NextGenSoftware.OASIS.API.Providers.CosmosOASIS.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -10,6 +15,52 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosOASIS
 {
     public class CosmosOASIS : OASISStorageBase, IOASISStorage, IOASISNET
     {
+        private readonly Uri serviceEndpoint;
+        private readonly string authKey;
+        private readonly string databaseName;
+        private readonly List<string> collectionNames;
+        private CosmosDbClientFactory dbClientFactory;
+        private IAvatarRepository avatarRepository;
+
+        public CosmosOASIS(Uri serviceEndpoint, string authKey, string databaseName, List<string> collectionNames)
+        {
+            this.ProviderName = "CosmosOASIS";
+            this.ProviderDescription = "Microsoft Cosmos DB Provider";
+            this.ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.AzureCosmosDBOASIS);
+            this.ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
+            this.serviceEndpoint = serviceEndpoint;
+            this.authKey = authKey;
+            this.databaseName = databaseName;
+            this.collectionNames = collectionNames;
+        }
+
+        public override void ActivateProvider()
+        {
+            if (dbClientFactory == null)
+            {
+                var documentClient = new DocumentClient(serviceEndpoint, authKey, new JsonSerializerSettings
+                {
+                    NullValueHandling = NullValueHandling.Ignore,
+                    DefaultValueHandling = DefaultValueHandling.Ignore,
+                    ContractResolver = new CamelCasePropertyNamesContractResolver()
+                });
+                documentClient.OpenAsync().Wait();
+
+                dbClientFactory = new CosmosDbClientFactory(databaseName, collectionNames, documentClient);
+                dbClientFactory.EnsureDbSetupAsync().Wait();
+
+                avatarRepository = new AvatarRepository(dbClientFactory);
+            }
+            base.ActivateProvider();
+        }
+
+        public override void DeActivateProvider()
+        {
+            dbClientFactory = null;
+            avatarRepository = null;
+            base.DeActivateProvider();
+        }
+
         public override bool DeleteAvatar(Guid id, bool softDelete = true)
         {
             throw new NotImplementedException();
