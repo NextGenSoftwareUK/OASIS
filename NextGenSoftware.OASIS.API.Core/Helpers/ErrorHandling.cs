@@ -24,7 +24,7 @@ namespace NextGenSoftware.OASIS.API.Core.Helpers
             result.Message = errorMessage;
             
             if (log || LogAllErrors)
-                LoggingManager.Log(errorMessage, Enums.LogType.Warn);
+                LoggingManager.Log(errorMessage, Enums.LogType.Error);
 
             if (throwException || ThrowExceptionsOnErrors)
                 throw new Exception(errorMessage);
