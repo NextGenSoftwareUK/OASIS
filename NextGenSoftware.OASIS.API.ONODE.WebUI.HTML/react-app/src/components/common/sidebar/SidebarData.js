@@ -118,8 +118,8 @@ const SidebarData = [
             },
             {
                 id: 4,
-
                 name: "Send Invite To Join SEEDS",
+                popupName:"sendinvite"
             },
             {
                 id: 5,
