@@ -11,5 +11,7 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces
         public decimal TopSize { get; set; }
         public decimal RightSize { get; set; }
         public string UnitOfMeasure  { get; set; }
+        public bool IsRemoved { get; set; }
+        public Guid PreviousId { get; set; }
     }
 }
