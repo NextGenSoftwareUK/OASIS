@@ -4,7 +4,7 @@
     {
         public static ISignatureProvider GetMemoryCacheSignatureProvider()
         {
-            return new MemoryCacheSignatureProvider();
+            return new Web3SignatureProvider();
         }
     }
 }

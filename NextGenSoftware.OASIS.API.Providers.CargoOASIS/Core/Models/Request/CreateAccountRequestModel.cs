@@ -1,4 +1,4 @@
-﻿namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Models.Request
+﻿namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Core.Models.Request
 {
     public class CreateAccountRequestModel
     {
@@ -10,5 +10,7 @@
         /// Optional. Username to be used for new account
         /// </summary>
         public string UserName { get; set; }
+
+        public string AccountAddress { get; set; }
     }
 }
