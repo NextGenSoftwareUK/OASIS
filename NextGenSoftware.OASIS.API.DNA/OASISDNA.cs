@@ -8,6 +8,8 @@ namespace NextGenSoftware.OASIS.API.DNA
 
     public class OASIS
     {
+        public string CurrentLiveVersion { get; set; }
+        public string CurrentStagingVersion { get; set; }
         public string Terms { get; set; }
         public Logging Logging { get; set; }
         public ErrorHandlingSettings ErrorHandling { get; set; }
