@@ -21,8 +21,8 @@ import AcceptInvite from "./popups/seeds/AcceptInvite"
 import PayWithSeeds from "./popups/seeds/PayWithSeeds";
 import DonateSeeds from  "./popups/seeds/DonateSeeds";
 import SendInvite from "./popups/seeds/SendInvite";
-import RewardSeeds from "./popups/seeds/RewardSeeds"
-import ViewSeeds from  "./popups/seeds/ViewSeeds"
+import RewardSeeds from "./popups/seeds/RewardSeeds";
+
 import ViewAvatar from "./popups/avatar/viewAvatar";
 import AvatarWallet from "./popups/avatar/avatarWallet";
 import Message from "./popups/messages/Message";
@@ -67,7 +67,6 @@ class App extends React.Component {
                      paywithseeds: false,
                      donateseeds: false,
                      sendinvite: false,
-                     viewseeds: false,
                      rewardseeds: false
                 }
             }
@@ -271,23 +270,13 @@ class App extends React.Component {
                     hide={this.toggleScreenPopup}
                  /> 
 
-                <PayWithSeeds 
-                    show={this.state.sidebarMenuOption[2].seeds.paywithseeds}
-                    hide={this.toggleScreenPopup}
-                 />
-
-                 <DonateSeeds 
+                <DonateSeeds 
                     show={this.state.sidebarMenuOption[2].seeds.donateseeds}
                     hide={this.toggleScreenPopup}
                  />
 
-                <SendInvite 
-                    show={this.state.sidebarMenuOption[2].seeds.sendinvite}
-                    hide={this.toggleScreenPopup}
-                 />
-
-                <ViewSeeds 
-                    show={this.state.sidebarMenuOption[2].seeds.viewseeds}
+                <PayWithSeeds 
+                    show={this.state.sidebarMenuOption[2].seeds.paywithseeds}
                     hide={this.toggleScreenPopup}
                  />
 
@@ -295,6 +284,11 @@ class App extends React.Component {
                     show={this.state.sidebarMenuOption[2].seeds.rewardseeds}
                     hide={this.toggleScreenPopup}
                  /> 
+
+                <SendInvite 
+                    show={this.state.sidebarMenuOption[2].seeds.sendinvite}
+                    hide={this.toggleScreenPopup}
+                 />
                 {/* ========== SEEDS POPUPS END  =========== */}
             </div>
         );
