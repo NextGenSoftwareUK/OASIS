@@ -2,7 +2,7 @@ import React from 'react';
 
 import { Modal } from 'react-bootstrap';
 
-import '../../../assets/scss/contactPopup.scss';
+import '../../../assets/scss/contact-popup.scss';
 
 import { AgGridColumn, AgGridReact } from 'ag-grid-react';
 
@@ -11,19 +11,39 @@ class ContactPopup extends React.Component {
     state = {
         columnDefs: [
             { 
-                field: 'Avatar'
+                field: 'athlete'
             },
             {
-                field: 'Level / Karma'
+                field: 'age',
+                filter: 'agNumberColumnFilter',
+                maxWidth: 100,
+            },
+            { field: 'country' },
+            {
+                field: 'year',
+                maxWidth: 100,
             },
             {
-                field: 'Beamed In'
+                field: 'date',
+                filter: 'agDateColumnFilter',
+                filterParams: filterParams,
+            },
+            { field: 'sport' },
+            {
+                field: 'gold',
+                filter: 'agNumberColumnFilter',
             },
             {
-                field: 'Last Beamed In'
+                field: 'silver',
+                filter: 'agNumberColumnFilter',
             },
             {
-                field: 'Add to Contacts'
+                field: 'bronze',
+                filter: 'agNumberColumnFilter',
+            },
+            {
+                field: 'total',
+                filter: false,
             },
         ],
         defaultColDef: {
@@ -33,15 +53,22 @@ class ContactPopup extends React.Component {
             sortable: true,
             floatingFilter: true,
             resizable: true,
-            
         },
-        rowData: [
-            {
-                name:'zunair',
-                age :12
-            }
-        ],
+        rowData: null,
     };
+    onGridReady = (params) => {
+        this.gridApi = params.api;
+        this.gridColumnApi = params.columnApi;
+    
+        const updateData = (data) => {
+          this.setState({ rowData: data });
+        };
+    
+        fetch('https://www.ag-grid.com/example-assets/olympic-winners.json')
+          .then((resp) => resp.json())
+          .then((data) => updateData(data));
+    };
+
     
     render() { 
         const { show, hide } = this.props;
@@ -75,7 +102,7 @@ class ContactPopup extends React.Component {
                                 <AgGridReact
                                     columnDefs={this.state.columnDefs}
                                     defaultColDef={this.state.defaultColDef}
-                                    // onGridReady={this.onGridReady}
+                                    onGridReady={this.onGridReady}
                                     rowData={this.state.rowData}
                                 />
                             </div>
@@ -93,3 +120,25 @@ class ContactPopup extends React.Component {
 }
  
 export default ContactPopup;
+var filterParams = {
+    comparator: function (filterLocalDateAtMidnight, cellValue) {
+        var dateAsString = cellValue;
+        if (dateAsString == null) return -1;
+        var dateParts = dateAsString.split('/');
+        var cellDate = new Date(
+            Number(dateParts[2]),
+            Number(dateParts[1]) - 1,
+            Number(dateParts[0])
+        );
+        if (filterLocalDateAtMidnight.getTime() === cellDate.getTime()) {
+            return 0;
+        }
+        if (cellDate < filterLocalDateAtMidnight) {
+            return -1;
+        }
+        if (cellDate > filterLocalDateAtMidnight) {
+            return 1;
+        }
+    },
+    browserDatePicker: true,
+};
