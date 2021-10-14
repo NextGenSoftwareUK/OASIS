@@ -59,7 +59,7 @@ class Solana extends React.Component {
                                             <textarea ></textarea>
                                         </p>
                                         
-                                        <p className="single-form-row .btn-right">
+                                        <p className="single-form-row btn-right">
                                             <button 
                                                 className="send-button-container" 
                                                 type="submit"
