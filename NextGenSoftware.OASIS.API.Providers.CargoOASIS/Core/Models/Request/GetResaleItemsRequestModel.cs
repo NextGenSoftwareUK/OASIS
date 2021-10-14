@@ -77,5 +77,7 @@ namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Models.Request
         /// </summary>
         [JsonProperty("sort")] 
         public string Sort { get; set; }
+
+        public string AccessJwtToken { get; set; }
     }
 }

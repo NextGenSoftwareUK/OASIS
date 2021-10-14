@@ -1,65 +1,51 @@
 ﻿using System;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Caching.Memory;
 using Nethereum.Web3;
 using Nethereum.Web3.Accounts;
-using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Exceptions;
-using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Factory.ConfigurationProvider;
-using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Factory.TokenStorage;
+using NextGenSoftware.OASIS.API.Core.Helpers;
 
 namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Factory.SignatureProviders
 {
-    public class MemoryCacheSignatureProvider : ISignatureProvider
+    public class Web3SignatureProvider : ISignatureProvider
     {
-        private readonly IMemoryCache _memoryCache;
-        private readonly IConfigurationProvider _configuration;
-        private readonly ITokenStorage _tokenStorage;
-        private readonly string _key;
-
-        public MemoryCacheSignatureProvider()
+        public async Task<OASISResult<string>> GetSignature(string accountAddress, string singingMessage, string privateKey, string hostUrl)
         {
-            _memoryCache = new MemoryCache(new MemoryCacheOptions());
-            _configuration = ConfigurationFactory.GetLocalStorageConfigurationProvider();
-            _tokenStorage = TokenStorageFactory.GetMemoryCacheTokenStorage();
-            _key = "_signature";
-        }
-
-        public async Task<(bool, string)> GetSignature()
-        {
+            var result = new OASISResult<string>();
             try
             {
-                var singingMessage = await _configuration.GetKey("cargoSingingMessage");
-                var privateKey = await _configuration.GetKey("cargoPrivateKey");
-                var hostUrl = await _configuration.GetKey("cargoHostUrl");
-                
                 if (string.IsNullOrEmpty(privateKey))
-                    return (true, "Cargo private key not set in configuration file!");
-                
+                {
+                    result.Message = "Cargo private key not set in configuration file!";
+                    result.IsError = true;
+                    return result;
+                }
+
                 if (string.IsNullOrEmpty(hostUrl))
-                    return (true, "Host url not set in configuration file!");
-                
+                {
+                    result.Message = "Host url not set in configuration file!";
+                    result.IsError = true;
+                    return result;
+                }
+
                 if (string.IsNullOrEmpty(singingMessage))
-                    return (true, "Singing message not set in configuration file!");
+                {
+                    result.Message = "Singing message not set in configuration file!";
+                    result.IsError = true;
+                    return result;
+                }
                 
-                var token = await _tokenStorage.GetToken();
                 var account = new Account(privateKey);
                 var web3 = new Web3(account, hostUrl);
-                
-                var signature = _memoryCache.Get(_key);
-                if (signature != null) return (false, signature.ToString());
-                
-                signature = await web3.Eth.Sign.SendRequestAsync(singingMessage, token);
-                _memoryCache.Set(_key, signature);
-                return (false, signature.ToString());
-            }
-            catch (UserNotRegisteredException e)
-            {
-                return (true, e.Message);
+                var signature = await web3.Eth.Sign.SendRequestAsync(singingMessage, accountAddress);
+                result.Result = signature;
             }
             catch (Exception e)
             {
-                return (true, e.Message);
+                result.Message = e.Message;
+                result.IsError = true;
             }
+
+            return result;
         }
     }
 }

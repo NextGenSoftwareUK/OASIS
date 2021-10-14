@@ -12,4 +12,12 @@
       <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Folder Include="Core" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj" />
+    </ItemGroup>
+
 </Project>

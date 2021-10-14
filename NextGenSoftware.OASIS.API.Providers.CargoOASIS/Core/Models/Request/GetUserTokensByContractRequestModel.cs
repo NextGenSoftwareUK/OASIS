@@ -22,5 +22,7 @@
         /// Optional. Boolean. Skips using the current logged in users address and will use the address value
         /// </summary>
         public bool? SkipAuth { get; set; }
+
+        public string AccessJwtToken { get; set; }
     }
 }

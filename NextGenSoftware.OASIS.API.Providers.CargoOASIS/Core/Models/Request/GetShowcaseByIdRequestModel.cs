@@ -12,5 +12,7 @@
         /// This will be required to get information about a private showcase
         /// </summary>
         public bool Auth { get; set; }
+
+        public string AccessJwtToken { get; set; }
     }
 }

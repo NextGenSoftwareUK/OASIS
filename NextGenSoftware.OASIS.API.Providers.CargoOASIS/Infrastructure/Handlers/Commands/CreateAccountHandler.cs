@@ -2,28 +2,23 @@
 using System.Net.Http;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
-using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Enum;
+using NextGenSoftware.OASIS.API.Core.Helpers;
+using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Core.Models.Request;
+using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Core.Models.Response;
 using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Factory.SignatureProviders;
-using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Factory.TokenStorage;
 using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Interfaces;
 using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Services.HttpHandler;
-using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Models.Cargo;
-using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Models.Common;
-using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Models.Request;
-using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Models.Response;
 
 namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Handlers.Commands
 {
-    public class CreateAccountHandler : IHandle<Response<CreateAccountResponseModel>, CreateAccountRequestModel>
+    public class CreateAccountHandler : IHandle<OASISResult<CreateAccountResponseModel>, CreateAccountRequestModel>
     {
         private readonly IHttpHandler _httpClient;
-        private readonly ITokenStorage _tokenStorage;
         private readonly ISignatureProvider _signatureProvider;
 
-        public CreateAccountHandler(IHttpHandler httpClient, ITokenStorage tokenStorage, ISignatureProvider signatureProvider)
+        public CreateAccountHandler(IHttpHandler httpClient, ISignatureProvider signatureProvider)
         {
             _httpClient = httpClient;
-            _tokenStorage = tokenStorage;
             _signatureProvider = signatureProvider;
         }
         
@@ -33,24 +28,26 @@ namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Handlers
         /// </summary>
         /// <param name="request">Request Parameters</param>
         /// <returns>Create Account Response</returns>
-        public async Task<Response<CreateAccountResponseModel>> Handle(CreateAccountRequestModel request)
+        public async Task<OASISResult<CreateAccountResponseModel>> Handle(CreateAccountRequestModel request)
         {
-            var response = new Response<CreateAccountResponseModel>();
+            var response = new OASISResult<CreateAccountResponseModel>();
             try
             {
-                var (error, message) = await _signatureProvider.GetSignature();
-                if (error)
+                var signatureResult = await _signatureProvider.GetSignature(request.AccountAddress,
+                    "sig", "pk", "hu");
+                if (signatureResult.IsError)
                 {
-                    response.ResponseStatus = ResponseStatus.Fail;
-                    response.Message = message;
+                    response.Message = signatureResult.Message;
+                    response.IsError = true;
+                    response.IsSaved = false;
                     return response;
                 }
                 
                 var url = "https://api2.cargo.build/v3/register";
                 var requestContent = JsonConvert.SerializeObject(new
                 {
-                    address = _tokenStorage.GetToken(),
-                    signature = message,
+                    address = request.AccountAddress,
+                    signature = signatureResult.Result,
                     email = request.Email,
                     username = request.UserName
                 });
@@ -68,18 +65,20 @@ namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Handlers
                 if (!httpRes.IsSuccessStatusCode)
                 {
                     response.Message = httpRes.ReasonPhrase;
-                    response.ResponseStatus = ResponseStatus.Fail;
+                    response.IsError = true;
+                    response.IsSaved = false;
                     return response;
                 }
                 var responseContent = await httpRes.Content.ReadAsStringAsync();
-                response.Payload = JsonConvert.DeserializeObject<CreateAccountResponseModel>(responseContent);
-                if (response.Payload != null) await _tokenStorage.SetToken(response.Payload.Data.Token);
+                response.Result = JsonConvert.DeserializeObject<CreateAccountResponseModel>(responseContent);
                 return response;
             }
             catch (Exception e)
             {
-                response.ResponseStatus = ResponseStatus.Fail;
+                response.IsError = true;
+                response.IsSaved = false;
                 response.Message = e.Message;
+                response.Exception = e;
                 return response;
             }
         }
