@@ -35,9 +35,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 
         [HttpPost]
         [Route("AuthenticateAccount")]
-        public async Task<OASISResult<CreateAccountResponseModel>> AuthenticateAccount()
+        public async Task<OASISResult<CreateAccountResponseModel>> AuthenticateAccount([FromBody] AuthenticateAccountRequestModel requestModel)
         {
-            return await _cargoService.AuthenticateCargoAccount();
+            return await _cargoService.AuthenticateCargoAccount(requestModel);
         }
 
         [HttpPost]
