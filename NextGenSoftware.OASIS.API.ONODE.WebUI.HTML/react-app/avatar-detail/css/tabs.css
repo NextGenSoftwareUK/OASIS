@@ -1,0 +1,111 @@
+@import url('https://fonts.googleapis.com/css2?family=Titillium+Web&display=swap');
+
+
+html {
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  min-height: 100vh;
+  background: #fff;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Titillium Web', sans-serif;
+}
+
+* ::after,
+* ::before {
+  border: 0px solid transparent;
+}
+
+.navigation {
+  position: fixed;
+  top: 15px;
+  left: -75px;
+  bottom: 20px;
+  width: 60px;
+  height: 400px;
+  border-radius: .5rem;
+  box-sizing: initial;
+  background-color: rgba(28, 28, 33, 0.9);
+  backdrop-filter: blur(10px);
+  background-clip: padding-box;
+  transition: all .5s ease;
+  overflow-x: hidden;
+}
+
+.navigation:hover {
+  width: 200px;
+}
+
+.navigation ul {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  padding-top: 20px;
+  padding-bottom: 20px;
+}
+
+.navigation ul li {
+  position: relative;
+  list-style: none;
+  width: 100%;
+  border-left: .25em solid transparent;
+  transition: all .5s ease;
+  align-items: center;
+}
+
+.navigation ul li.active {
+  transition: all .5s ease;
+  border-color: #1885c9;
+}
+
+.navigation ul li.active > a .title,
+.navigation ul li.active > a .icon {
+  transition: all .25s ease;
+  /* background: transparent; */
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.navigation ul li a {
+  position: relative;
+  pointer-events: none;
+  display: block;
+  width: 100%;
+  display: flex;
+}
+
+.navigation ul li a .icon {
+  position: relative;
+  display: block;
+  color: #1885c9;
+  min-width: 50px;
+  height: 60px;
+  line-height: 60px;
+  pointer-events: none;
+  text-align: center;
+}
+
+.navigation ul li a .title {
+  position: relative;
+  display: block;
+  color: #1885c9;
+  padding-left: 10px;
+  height: 60px;
+  line-height: 60px;
+  white-space: nowrap;
+  pointer-events: none;
+  transition: all .5s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+/* .navigation:hover ul li:hover * {
+  pointer-events: auto;
+  color: #fff;
+} */
