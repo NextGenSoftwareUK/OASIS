@@ -5,10 +5,6 @@ import loginIcon from "../../assets/images/loggedin.png";
 
 class Navbar extends React.Component {
 
-    constructor(props) {
-        super(props);
-    }
-
     render() {
         const { user, showLogin, showSignup, handleLogout, showSidebar, toggleSidebar } = this.props;
 
