@@ -97,6 +97,19 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
             }
         }
 
+        //public T GetHolon<T>(Guid id) where T : IHolon
+        //{
+        //    try
+        //    {
+        //        FilterDefinition<IHolon> filter = Builders<IHolon>.Filter.Where(x => x.Id == id);
+        //        return _dbContext.Holon.Find(filter).FirstOrDefault();
+        //    }
+        //    catch
+        //    {
+        //        throw;
+        //    }
+        //}
+
         public async Task<Holon> GetHolonAsync(string providerKey)
         {
             try

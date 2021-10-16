@@ -7,12 +7,42 @@ using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Objects;
+using NextGenSoftware.OASIS.API.DNA;
 
 namespace NextGenSoftware.OASIS.API.Core
 {
     public abstract class OASISStorageBase : OASISProvider, IOASISStorage
     {
+        public OASISDNA OASISDNA { get; set; }
+        public string OASISDNAPath { get; set; }
+
         public event AvatarManager.StorageProviderError StorageProviderError;
+
+        public OASISStorageBase()
+        {
+            OASISDNAManager.LoadDNA();
+            this.OASISDNA = OASISDNAManager.OASISDNA;
+            this.OASISDNAPath = OASISDNAManager.OASISDNAPath;
+        }
+
+        public OASISStorageBase(string OASISDNAPath)
+        {
+            this.OASISDNAPath = OASISDNAPath;
+            OASISDNAManager.LoadDNA(OASISDNAPath);
+            this.OASISDNA = OASISDNAManager.OASISDNA;
+        }
+
+        public OASISStorageBase(OASISDNA OASISDNA)
+        {
+            this.OASISDNA = OASISDNA;
+            this.OASISDNAPath = OASISDNAManager.OASISDNAPath;
+        }
+
+        public OASISStorageBase(OASISDNA OASISDNA, string OASISDNAPath)
+        {
+            this.OASISDNA = OASISDNA;
+            this.OASISDNAPath = OASISDNAPath;
+        }
 
         //event StorageProviderError IOASISStorage.StorageProviderError
         //{
@@ -101,6 +131,7 @@ namespace NextGenSoftware.OASIS.API.Core
         public abstract Task<bool> DeleteAvatarAsync(string providerKey, bool softDelete = true);
         public abstract Task<ISearchResults> SearchAsync(ISearchParams searchParams);
         public abstract IHolon LoadHolon(Guid id);
+        //public abstract T LoadHolon<T>(Guid id) where T : IHolon;
         public abstract Task<IHolon> LoadHolonAsync(Guid id);
         public abstract IHolon LoadHolon(string providerKey);
         public abstract Task<IHolon> LoadHolonAsync(string providerKey);

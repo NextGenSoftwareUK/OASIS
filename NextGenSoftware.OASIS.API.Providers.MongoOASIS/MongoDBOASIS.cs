@@ -266,6 +266,12 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             return ConvertMongoEntityToOASISHolon(new OASISResult<Holon>(_holonRepository.GetHolon(id))).Result;
         }
 
+
+        //public override T LoadHolon<T>(Guid id)
+        //{
+        //    return ConvertMongoEntityToOASISHolon(new OASISResult<Holon>(_holonRepository.GetHolon(id))).Result;
+        //}
+
         public override async Task<IHolon> LoadHolonAsync(string providerKey)
         {
             //TODO: Finish implementing OASISResult properly...

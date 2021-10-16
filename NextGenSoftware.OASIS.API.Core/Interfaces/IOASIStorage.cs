@@ -59,6 +59,8 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces
         OASISResult<IEnumerable<IHolon>> SaveHolons(IEnumerable<IHolon> holons, bool saveChildrenRecursive = true);
         Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons, bool saveChildrenRecursive = true);
         IHolon LoadHolon(Guid id);
+
+      //  T LoadHolon<T>(Guid id) where T : IHolon;
         Task<IHolon> LoadHolonAsync(Guid id);
         IHolon LoadHolon(string providerKey);
         Task<IHolon> LoadHolonAsync(string providerKey);

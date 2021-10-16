@@ -53,7 +53,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.BLL
             //TODO: SaveHolon also needs to be made into a Generic method like the new LoadHolon<T> method below... :)
             OASISResult<IHolon> holonResult = _holonManager.SaveHolon(purchaseHolon);
 
-            if (!result.IsError && result.Result != null)
+            if (!holonResult.IsError && holonResult.Result != null)
             {
                 result.Result = Mapper<IHolon, PurchaseNFTHolon>.MapBaseHolonProperties(holonResult.Result);
                 result.Result.WalletAddress = result.Result.MetaData["WalletAddress"];
@@ -72,7 +72,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.BLL
             OASISResult<PurchaseNFTHolon> result = new OASISResult<PurchaseNFTHolon>();
             OASISResult<IHolon> holonResult = _holonManager.LoadHolon(holonId);
 
-            if (!result.IsError && result.Result != null)
+            if (!holonResult.IsError && holonResult.Result != null)
             {
                 result.Result = Mapper<IHolon, PurchaseNFTHolon>.MapBaseHolonProperties(holonResult.Result);
                 result.Result.WalletAddress = result.Result.MetaData["WalletAddress"];
@@ -87,7 +87,6 @@ namespace NextGenSoftware.OASIS.API.ONODE.BLL
         }
 
         // TODO: This is the way we want to ideally load custom Holons! ;-)
-        // But need to finish the new LoadHolon<T> method below to set the custom properties in it from the MetaData...
         // There may be better ways of doing this that does not involve reflection or the MetaData Dictionary? Maybe JSON? etc...
         // Please investigate and use best and fastest performing way... thanks! ;-)
         public OASISResult<PurchaseNFTHolon> LoadNFTPurchaseData3(Guid holonId)
