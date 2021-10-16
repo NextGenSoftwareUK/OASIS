@@ -3,18 +3,24 @@ import { BrowserRouter as Router, Route, Switch } from "react-router-dom";
 
 import Navbar from "./common/Navbar";
 import Sidebar from "./common/sidebar/Sidebar";
-import PayWithSeeds from "./pages/seeds/PayWithSeeds";
-import SendInvite from "./pages/seeds/SendInvite";
+//  import PayWithSeeds from "./pages/seeds/PayWithSeeds";
+// import SendInvite from "./pages/seeds/SendInvite";
+// import AcceptInvite from "./pages/seeds/AcceptInvite";
 import Karma from "./pages/karma/Karma";
 import Home from "./pages/Home";
 import Login from "./Login";
 import Signup from "./Signup";
-import AcceptInvite from "./pages/seeds/AcceptInvite";
 import AddData from "./popups/data-screen/AddData";
 import LoadData from "./popups/data-screen/LoadData";
 import OffChainManagement from "./popups/data-screen/OffChainManagement";
 import CrossChainManagement from "./popups/data-screen/CrossChainManagement";
 import Solana from "./popups/nft/Solana";
+import ContactPopup from "./popups/nft/ContactPopup";
+import AcceptInvite from "./popups/seeds/AcceptInvite"
+import PayWithSeeds from "./popups/seeds/PayWithSeeds";
+import DonateSeeds from  "./popups/seeds/DonateSeeds";
+import SendInvite from "./popups/seeds/SendInvite";
+import RewardSeeds from "./popups/seeds/RewardSeeds";
 
 import ViewAvatar from "./popups/avatar/viewAvatar";
 import AvatarWallet from "./popups/avatar/avatarWallet";
@@ -29,6 +35,7 @@ import "../assets/scss/Seeds.scss";
 
 import axios from "axios";
 import 'react-toastify/dist/ReactToastify.css';
+// import { Contacts } from "@material-ui/icons";
 
 class App extends React.Component {
     state = {
@@ -49,7 +56,17 @@ class App extends React.Component {
             },
             {
                 nft: {
-                    solana: false
+                    solana: false,
+                    contactPopup: false
+                }
+            },
+            {
+                seeds: {
+                     acceptinvite: false,
+                     paywithseeds: false,
+                     donateseeds: false,
+                     sendinvite: false,
+                     rewardseeds: false
                 }
             },
             {
@@ -251,7 +268,19 @@ class App extends React.Component {
                     show={this.state.sidebarMenuOption[1].nft.solana}
                     hide={this.toggleScreenPopup}
                 />
+
+                <ContactPopup
+                    show={this.state.sidebarMenuOption[1].nft.contactPopup}
+                    hide={this.toggleScreenPopup}
+                />
                 {/* ========== NFT POPUPS END  =========== */}
+                 
+                {/* ========== SEEDS POPUPS START  =========== */}
+
+                 <AcceptInvite 
+                    show={this.state.sidebarMenuOption[2].seeds.acceptinvite}
+                    hide={this.toggleScreenPopup}
+                 /> 
 
                 {/* ========== AVATAR POPUP START ==========*/}
 
@@ -282,6 +311,26 @@ class App extends React.Component {
                 />
                 {/* ========== MESSAGE POPUP END =============*/}
 
+                <DonateSeeds 
+                    show={this.state.sidebarMenuOption[2].seeds.donateseeds}
+                    hide={this.toggleScreenPopup}
+                 />
+
+                <PayWithSeeds 
+                    show={this.state.sidebarMenuOption[2].seeds.paywithseeds}
+                    hide={this.toggleScreenPopup}
+                 />
+
+                 <RewardSeeds 
+                    show={this.state.sidebarMenuOption[2].seeds.rewardseeds}
+                    hide={this.toggleScreenPopup}
+                 /> 
+
+                <SendInvite 
+                    show={this.state.sidebarMenuOption[2].seeds.sendinvite}
+                    hide={this.toggleScreenPopup}
+                 />
+                {/* ========== SEEDS POPUPS END  =========== */}
             </div>
         );
     }

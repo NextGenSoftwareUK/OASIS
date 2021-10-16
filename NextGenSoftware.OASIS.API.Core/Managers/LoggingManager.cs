@@ -8,19 +8,21 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
     public static class LoggingManager
     {
         public static LoggingFramework CurrentLoggingFramework = LoggingFramework.NLog;
+        private static IOASISLogger _logger = null;
 
         public static void Log(string message, LogType type)
         {
-            IOASISLogger logger = null;
-
-            switch (CurrentLoggingFramework)
+            if (_logger == null)
             {
-                case LoggingFramework.NLog:
-                    logger = new NLogger();
-                    break;
+                switch (CurrentLoggingFramework)
+                {
+                    case LoggingFramework.NLog:
+                        _logger = new NLogger();
+                        break;
+                }
             }
 
-            logger.Log(message, type);
+            _logger.Log(message, type);
         }
     }
 }

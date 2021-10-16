@@ -108,19 +108,27 @@ const SidebarData = [
             {
                 id: 1,
                 name: "Pay With SEEDS",
+                popupName: "paywithseeds" 
             },
             {
                 id: 2,
                 name: "Donate SEEDS",
+                popupName: "donateseeds"
             },
             {
                 id: 3,
                 name: "Reward SEEDS",
+                popupName: "rewardseeds"
             },
             {
                 id: 4,
-
                 name: "Send Invite To Join SEEDS",
+                popupName:"sendinvite"
+            },
+            {
+                id: 5,
+                name: "Accept Invite",
+                popupName: "acceptinvite" 
             },
             {
 
@@ -166,6 +174,7 @@ const SidebarData = [
             {
                 id: 6,
                 name: "View SEEDS",
+                popupName: "viewseeds"
             },
             {
                 id: 7,
@@ -178,6 +187,7 @@ const SidebarData = [
             {
                 id: 9,
                 name: "Search Seeds",
+                // popupName: "searchseeds"
             },
         ],
     },
@@ -276,7 +286,11 @@ const SidebarData = [
                 id: 1,
                 name: "Solana",
                 popupName: 'solana'
-                
+            },
+            {
+                id: 2,
+                name: "ContactPopup",
+                popupName: 'contactPopup'
             }
         ],
     },

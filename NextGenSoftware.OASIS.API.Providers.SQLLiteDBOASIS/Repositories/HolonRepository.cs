@@ -1,12 +1,13 @@
 using NextGenSoftware.OASIS.API.Core.Holons;
-using System.Threading.Tasks;
+using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.DataBaseModels;
 using NextGenSoftware.OASIS.API.Core.Managers;
-using System;
-using System.Collections.Generic;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 
 namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Repositories{
@@ -26,8 +27,12 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Repositories{
 
             try
             {
-                if (holon.Id == Guid.Empty)
-                    holon.Id = Guid.NewGuid();
+                holon.Id = Guid.NewGuid();
+                
+                if (AvatarManager.LoggedInAvatar != null)
+                    holon.CreatedByAvatarId = AvatarManager.LoggedInAvatar.Id;
+
+                holon.CreatedDate = DateTime.Now;
 
                 HolonModel holonModel = new HolonModel(holon);
                 holonModel.CreatedProviderType = ProviderType.SQLLiteDBOASIS;
@@ -44,7 +49,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Repositories{
             catch (Exception ex)
             {
                 result.IsError = true;
-                result.Message = $"Error occured adding holon in SQLLiteOASIS Provider. Error Details: {ex.ToString()}";
+                result.Message = $"Error occurred adding holon in SQLLiteOASIS Provider.";
+                result.Exception = ex;
             }
 
             return (result);
@@ -56,8 +62,12 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Repositories{
 
             try
             {
-                if (holon.Id == Guid.Empty)
-                    holon.Id = Guid.NewGuid();
+                holon.Id = Guid.NewGuid();
+                
+                if (AvatarManager.LoggedInAvatar != null)
+                    holon.CreatedByAvatarId = AvatarManager.LoggedInAvatar.Id;
+
+                holon.CreatedDate = DateTime.Now;
 
                 HolonModel holonModel = new HolonModel(holon);
                 holonModel.CreatedProviderType = ProviderType.SQLLiteDBOASIS;
@@ -74,50 +84,53 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Repositories{
             catch (Exception ex)
             {
                 result.IsError = true;
-                result.Message = $"Error occured adding holon in SQLLiteOASIS Provider. Error Details: {ex.ToString()}";
+                result.Message = $"Error occurred adding holon in SQLLiteOASIS Provider.";
+                result.Exception = ex;
             }
 
             return (result);
         }
 
-        public bool Delete(Guid id, bool softDelete = true)
+        public OASISResult<bool> Delete(Guid id, bool softDelete = true)
         {
-            bool returnValue = false;
+            OASISResult<bool> result=new OASISResult<bool>();
 
             try
             {
                 HolonModel deletingModel = dataBase.Holons.FirstOrDefault(x => x.Id.Equals(id.ToString()));
 
-                if (deletingModel == null)
-                    return true;
+                if (deletingModel != null){
 
-                if (softDelete)
-                {
-                    LoadHolonReferences(deletingModel);
+                    if (softDelete)
+                    {
+                        //LoadHolonReferences(deletingModel);
 
-                    if (AvatarManager.LoggedInAvatar != null)
-                        deletingModel.DeletedByAvatarId = AvatarManager.LoggedInAvatar.Id.ToString();
+                        if (AvatarManager.LoggedInAvatar != null)
+                            deletingModel.DeletedByAvatarId = AvatarManager.LoggedInAvatar.Id.ToString();
 
-                    deletingModel.DeletedDate = DateTime.Now;                    
-                    dataBase.Holons.Update(deletingModel);
+                        deletingModel.DeletedDate = DateTime.Now;                    
+                        dataBase.Holons.Update(deletingModel);
+                    }
+                    else
+                        dataBase.Holons.Remove(deletingModel);
+
+                    dataBase.SaveChanges();
                 }
-                else
-                    dataBase.Holons.Remove(deletingModel);
-
-                dataBase.SaveChanges();
-                returnValue = true;
+                result.Result = true;
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
-                throw;
+                result.IsError = true;
+                result.Message = $"Error occurred deleting holon in SQLLiteOASIS Provider.";
+                result.Exception = ex;
             }
 
-            return returnValue;
+            return (result);
         }
 
-        public bool Delete(string providerKey, bool softDelete = true)
+        public OASISResult<bool> Delete(string providerKey, bool softDelete = true)
         {
-            bool delete_complete = false;
+            OASISResult<bool> result=new OASISResult<bool>();
             try
             {
                 HolonModel deletingModel = dataBase.Holons
@@ -125,52 +138,12 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Repositories{
                                             .Any(pk => pk.ProviderId == ProviderType.SQLLiteDBOASIS
                                                         &&  pk.Value.Equals(providerKey)));
 
-                if(deletingModel == null){
-                    return(true);
-                }
-
-                if (softDelete)
-                {
-                    LoadHolonReferences(deletingModel);
+                if(deletingModel != null){
                     
-                    if (AvatarManager.LoggedInAvatar != null)
-                        deletingModel.DeletedByAvatarId = AvatarManager.LoggedInAvatar.Id.ToString();
-
-                    deletingModel.DeletedDate = DateTime.Now;                    
-                    dataBase.Holons.Update(deletingModel);
-                }
-                else
-                {
-                    dataBase.Holons.Remove(deletingModel);
-                }
-
-                dataBase.SaveChanges();
-                delete_complete=true;
-            }
-            catch(Exception ex)
-            {
-                throw ex;
-            }
-            return(delete_complete);
-        }
-
-        public Task<bool> DeleteAsync(Guid id, bool softDelete = true)
-        {
-            try
-            {
-                return new Task<bool>(()=>{
-
-                    String convertedId = id.ToString();
-                    HolonModel deletingModel = dataBase.Holons.FirstOrDefault(x => x.Id.Equals(convertedId));
-
-                    if(deletingModel == null){
-                        return(true);
-                    }
-
                     if (softDelete)
                     {
-                        LoadHolonReferences(deletingModel);
-
+                        //LoadHolonReferences(deletingModel);
+                        
                         if (AvatarManager.LoggedInAvatar != null)
                             deletingModel.DeletedByAvatarId = AvatarManager.LoggedInAvatar.Id.ToString();
 
@@ -183,34 +156,71 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Repositories{
                     }
 
                     dataBase.SaveChanges();
-                    return(true);
-
-                });
+                }
+                result.Result = true;
             }
             catch (Exception ex)
             {
-                throw ex;
+                result.IsError = true;
+                result.Message = $"Error occurred deleting holon in SQLLiteOASIS Provider.";
+                result.Exception = ex;
             }
+            return (result);
         }
 
-        public Task<bool> DeleteAsync(string providerKey, bool softDelete = true)
+        public async Task<OASISResult<bool>> DeleteAsync(Guid id, bool softDelete = true)
         {
+            OASISResult<bool> result=new OASISResult<bool>();
             try
             {
-                return new Task<bool>(()=>{
+                String convertedId = id.ToString();
+                HolonModel deletingModel = dataBase.Holons.FirstOrDefault(x => x.Id.Equals(convertedId));
 
-                    HolonModel deletingModel = dataBase.Holons
+                if(deletingModel == null){
+                    
+                    if (softDelete)
+                    {
+                        //LoadHolonReferences(deletingModel);
+
+                        if (AvatarManager.LoggedInAvatar != null)
+                            deletingModel.DeletedByAvatarId = AvatarManager.LoggedInAvatar.Id.ToString();
+
+                        deletingModel.DeletedDate = DateTime.Now;                    
+                        dataBase.Holons.Update(deletingModel);
+                    }
+                    else
+                    {
+                        dataBase.Holons.Remove(deletingModel);
+                    }
+
+                    await dataBase.SaveChangesAsync();
+                }
+                result.Result = true;
+            }
+            catch (Exception ex)
+            {
+                result.IsError = true;
+                result.Message = $"Error occurred deleting holon in SQLLiteOASIS Provider.";
+                result.Exception = ex;
+            }
+            return (result);
+        }
+
+        public async Task<OASISResult<bool>> DeleteAsync(string providerKey, bool softDelete = true)
+        {
+            OASISResult<bool> result=new OASISResult<bool>();
+            try
+            {
+                HolonModel deletingModel = dataBase.Holons
                                             .FirstOrDefault(h => h.ProviderKey
                                             .Any(pk => pk.ProviderId == ProviderType.SQLLiteDBOASIS
                                                         &&  pk.Value.Equals(providerKey)));
 
-                    if(deletingModel == null){
-                        return(true);
-                    }
-
+                if(deletingModel != null){
+                    
                     if (softDelete)
                     {
-                        LoadHolonReferences(deletingModel);
+                        //LoadHolonReferences(deletingModel);
 
                         if (AvatarManager.LoggedInAvatar != null)
                             deletingModel.DeletedByAvatarId = AvatarManager.LoggedInAvatar.Id.ToString();
@@ -223,278 +233,302 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Repositories{
                         dataBase.Holons.Remove(deletingModel);
                     }
 
-                    dataBase.SaveChanges();
-                    return(true);
-
-                });
+                    await dataBase.SaveChangesAsync();
+                }
+                result.Result=true;
             }
             catch (Exception ex)
             {
-                throw ex;
+                result.IsError = true;
+                result.Message = $"Error occurred deleting holon in SQLLiteOASIS Provider.";
+                result.Exception = ex;
             }
+            return (result);
         }
 
-        public IEnumerable<Holon> GetAllHolons(HolonType holonType = HolonType.All)
+        public OASISResult<IEnumerable<Holon>> GetAllHolons(HolonType holonType = HolonType.All)
         {
-            List<Holon> holonsList=new List<Holon>();
+            OASISResult<IEnumerable<Holon>> result=new OASISResult<IEnumerable<Holon>>();
             try{
 
-                List<HolonModel> holonsModels=dataBase.Holons.Where<HolonModel>(h => h.HolonType == holonType).ToList();
+                List<Holon> holonsList=new List<Holon>();
+
+                List<HolonModel> holonsModels=dataBase.Holons.AsNoTracking().Where<HolonModel>(h => h.HolonType == holonType).ToList();
                 foreach (HolonModel model in holonsModels)
                 {
                     LoadHolonReferences(model);
                     holonsList.Add(model.GetHolon());
                 }
+                result.Result = holonsList;
 
-            }
-            catch(Exception ex){
-                throw ex;
-            }
-            return(holonsList);
-        }
-
-        public Task<IEnumerable<Holon>> GetAllHolonsAsync(HolonType holonType = HolonType.All)
-        {
-            try
-            {
-                return new Task<IEnumerable<Holon>>(()=>{
-
-                    List<Holon> holonsList=new List<Holon>();
-
-                    List<HolonModel> holonsModels=dataBase.Holons.Where<HolonModel>(h => h.HolonType == holonType).ToList();
-                    foreach (HolonModel model in holonsModels)
-                    {
-                        LoadHolonReferences(model);
-                        holonsList.Add(model.GetHolon());
-                    }
-                    
-                    return(holonsList);
-                });
             }
             catch (Exception ex)
             {
-                throw ex;
+                result.IsError = true;
+                result.Message = $"Error occurred reading holon in SQLLiteOASIS Provider.";
+                result.Exception = ex;
             }
+            return (result);
         }
 
-        public IEnumerable<Holon> GetAllHolonsForParent(Guid id, HolonType holonType)
+        public async Task<OASISResult<IEnumerable<Holon>>> GetAllHolonsAsync(HolonType holonType = HolonType.All)
         {
-            List<Holon> holonsList=new List<Holon>();
+            OASISResult<IEnumerable<Holon>> result=new OASISResult<IEnumerable<Holon>>();
+            try
+            {
+                List<Holon> holonsList=new List<Holon>();
+
+                List<HolonModel> holonsModels=dataBase.Holons.AsNoTracking().Where<HolonModel>(h => h.HolonType == holonType).ToList();
+                foreach (HolonModel model in holonsModels)
+                {
+                    Action loadAction = delegate(){LoadHolonReferences(model);};
+                    Task loadReferencesTask = new Task(loadAction);
+
+                    await loadReferencesTask;
+
+                    holonsList.Add(model.GetHolon());
+                }
+                result.Result = holonsList;
+            }
+            catch (Exception ex)
+            {
+                result.IsError = true;
+                result.Message = $"Error occurred reading holon in SQLLiteOASIS Provider.";
+                result.Exception = ex;
+            }
+            return (result);
+        }
+
+        public OASISResult<IEnumerable<Holon>> GetAllHolonsForParent(Guid id, HolonType holonType)
+        {
+            OASISResult<IEnumerable<Holon>> result=new OASISResult<IEnumerable<Holon>>();
             try{
+
+                List<Holon> holonsList=new List<Holon>();
 
                 string convertedId = id.ToString();
+                List<HolonModel> holonsModels=dataBase.Holons.AsNoTracking().Where<HolonModel>(h => h.HolonType == holonType && h.ParentHolonId.Equals(convertedId)).ToList();
 
-                List<HolonModel> holonsModels=dataBase.Holons.Where<HolonModel>(h => h.HolonType == holonType && h.ParentHolonId.Equals(convertedId)).ToList();
                 foreach (HolonModel model in holonsModels)
                 {
                     LoadHolonReferences(model);
                     holonsList.Add(model.GetHolon());
                 }
-
+                result.Result = holonsList;
             }
-            catch(Exception ex){
-                throw ex;
+            catch (Exception ex)
+            {
+                result.IsError = true;
+                result.Message = $"Error occurred reading holon in SQLLiteOASIS Provider.";
+                result.Exception = ex;
             }
-            return(holonsList);
+            return (result);
         }
 
-        public IEnumerable<Holon> GetAllHolonsForParent(string providerKey, HolonType holonType)
+        public OASISResult<IEnumerable<Holon>> GetAllHolonsForParent(string providerKey, HolonType holonType)
         {
-            List<Holon> holonsList=new List<Holon>();
+            OASISResult<IEnumerable<Holon>> result=new OASISResult<IEnumerable<Holon>>();
             try{
 
-
-
                 HolonModel holonModel = dataBase.Holons
                                             .FirstOrDefault(h => h.ProviderKey
                                                 .Any(pk => pk.ProviderId == ProviderType.SQLLiteDBOASIS
                                                     &&  pk.Value.Equals(providerKey)));
                 
+                List<Holon> holonsList=new List<Holon>();
                 if(holonModel != null){
 
-                    List<HolonModel> holonsModels=dataBase.Holons.Where<HolonModel>(h => h.HolonType == holonType && h.ParentHolonId.Equals(holonModel.Id)).ToList();
+                    List<HolonModel> holonsModels=dataBase.Holons.AsNoTracking().Where<HolonModel>(h => h.HolonType == holonType && h.ParentHolonId.Equals(holonModel.Id)).ToList();
                     foreach (HolonModel model in holonsModels)
                     {
                         LoadHolonReferences(model);
                         holonsList.Add(model.GetHolon());
                     }
-
                 }
+                result.Result = holonsList;
 
-            }
-            catch(Exception ex){
-                throw ex;
-            }
-            return(holonsList);
-        }
-
-        public Task<IEnumerable<Holon>> GetAllHolonsForParentAsync(Guid id, HolonType holonType)
-        {
-            try
-            {
-                return new Task<IEnumerable<Holon>>(()=>{
-
-                    string convertedId = id.ToString();
-                    List<Holon> holonsList=new List<Holon>();
-
-                    List<HolonModel> holonsModels=dataBase.Holons.Where<HolonModel>(h => h.HolonType == holonType && h.ParentHolonId.Equals(convertedId)).ToList();
-                    foreach (HolonModel model in holonsModels)
-                    {
-                        LoadHolonReferences(model);
-                        holonsList.Add(model.GetHolon());
-                    }
-                    
-                    return(holonsList);
-                });
             }
             catch (Exception ex)
             {
-                throw ex;
+                result.IsError = true;
+                result.Message = $"Error occurred reading holon in SQLLiteOASIS Provider.";
+                result.Exception = ex;
             }
+            return (result);
         }
 
-        public Task<OASISResult<IEnumerable<Holon>>> GetAllHolonsForParentAsync(string providerKey, HolonType holonType)
+        public async Task<OASISResult<IEnumerable<Holon>>> GetAllHolonsForParentAsync(Guid id, HolonType holonType)
         {
-            return new Task<OASISResult<IEnumerable<Holon>>>(()=>{
-
-                OASISResult<IEnumerable<Holon>> result = new OASISResult<IEnumerable<Holon>>();
-                List<Holon> holons = new List<Holon>();
-                try
-                {
-                    HolonModel holonModel = dataBase.Holons
-                                            .FirstOrDefault(h => h.ProviderKey
-                                                .Any(pk => pk.ProviderId == ProviderType.SQLLiteDBOASIS
-                                                    &&  pk.Value.Equals(providerKey)));
-                
-                    if(holonModel != null){
-
-                        List<HolonModel> holonsModels=dataBase.Holons.Where<HolonModel>(h => h.HolonType == holonType && h.ParentHolonId.Equals(holonModel.Id)).ToList();
-                        foreach (HolonModel model in holonsModels)
-                        {
-                            LoadHolonReferences(model);
-                            holons.Add(model.GetHolon());
-                        }
-
-                    }
-
-                    result.Result = holons;
-                }
-                catch (Exception ex)
-                {
-                    result.IsError = true;
-                    result.Message = string.Concat("Unknown error occured in GetAllHolonsForParentAsync method. providerKey: ", providerKey, ", holonType: ", Enum.GetName(typeof(HolonType), holonType), ". Error details: ", ex.ToString());;
-                    LoggingManager.Log(result.Message, LogType.Error);
-                    result.Exception = ex;
-                }
-
-                return result;
-            });
-        }
-
-        public Holon GetHolon(Guid id)
-        {
-            Holon holon = null;
-            String convertedId = id.ToString();
+            OASISResult<IEnumerable<Holon>> result=new OASISResult<IEnumerable<Holon>>();
             try
             {
-                HolonModel holonModel = dataBase.Holons.FirstOrDefault(x => x.Id.Equals(convertedId));
+                string convertedId = id.ToString();
+                List<Holon> holonsList=new List<Holon>();
 
-                if (holonModel == null){
-                    return(holon);
+                List<HolonModel> holonsModels=dataBase.Holons.AsNoTracking().Where<HolonModel>(h => h.HolonType == holonType && h.ParentHolonId.Equals(convertedId)).ToList();
+                foreach (HolonModel model in holonsModels)
+                {
+                    Action loadAction = delegate(){LoadHolonReferences(model);};
+                    Task loadReferencesTask = new Task(loadAction);
+
+                    await loadReferencesTask;
+
+                    holonsList.Add(model.GetHolon());
                 }
-
-                LoadHolonReferences(holonModel);
-                holon=holonModel.GetHolon();
-
+                result.Result = holonsList;
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
-                throw ex;
+                result.IsError = true;
+                result.Message = $"Error occurred reading holon in SQLLiteOASIS Provider.";
+                result.Exception = ex;
             }
-            return(holon);
+            return (result);
         }
 
-        public Holon GetHolon(string providerKey)
+        public async Task<OASISResult<IEnumerable<Holon>>> GetAllHolonsForParentAsync(string providerKey, HolonType holonType)
         {
-            Holon holon = null;
+            OASISResult<IEnumerable<Holon>> result = new OASISResult<IEnumerable<Holon>>();
+            try
+            {
+
+                HolonModel holonModel = dataBase.Holons
+                                        .FirstOrDefault(h => h.ProviderKey
+                                            .Any(pk => pk.ProviderId == ProviderType.SQLLiteDBOASIS
+                                                &&  pk.Value.Equals(providerKey)));
+                
+                List<Holon> holonsList = new List<Holon>();
+                if(holonModel != null){
+
+                    List<HolonModel> holonsModels=dataBase.Holons.AsNoTracking().Where<HolonModel>(h => h.HolonType == holonType && h.ParentHolonId.Equals(holonModel.Id)).ToList();
+                    foreach (HolonModel model in holonsModels)
+                    {
+                        Action loadAction = delegate(){LoadHolonReferences(model);};
+                        Task loadReferencesTask = new Task(loadAction);
+
+                        await loadReferencesTask;
+
+                        holonsList.Add(model.GetHolon());
+                    }
+
+                }
+                result.Result = holonsList;
+            }
+            catch (Exception ex)
+            {
+                result.IsError = true;
+                result.Message = $"Error occurred reading holon in SQLLiteOASIS Provider.";
+                result.Exception = ex;
+            }
+            return result;
+        }
+
+        public OASISResult<Holon> GetHolon(Guid id)
+        {
+            OASISResult<Holon> result = new OASISResult<Holon>();
+            try
+            {
+                String convertedId = id.ToString();
+                HolonModel holonModel = dataBase.Holons.AsNoTracking().FirstOrDefault(x => x.Id.Equals(convertedId));
+
+                if (holonModel != null){
+                    
+                    LoadHolonReferences(holonModel);
+                    result.Result=holonModel.GetHolon();
+                }
+
+            }
+            catch (Exception ex)
+            {
+                result.IsError = true;
+                result.Message = $"Error occurred getting holon in SQLLiteOASIS Provider.";
+                result.Exception = ex;
+            }
+            return result;
+        }
+
+        public OASISResult<Holon> GetHolon(string providerKey)
+        {
+            OASISResult<Holon> result = new OASISResult<Holon>();
             try
             {
                 HolonModel holonModel = dataBase.Holons
+                                        .AsNoTracking()
                                             .FirstOrDefault(h => h.ProviderKey
-                                            .Any(pk => pk.ProviderId == ProviderType.SQLLiteDBOASIS
+                                                .Any(pk => pk.ProviderId == ProviderType.SQLLiteDBOASIS
                                                         &&  pk.Value.Equals(providerKey)));
 
-                if (holonModel == null){
-                    return(holon);
+                if (holonModel != null){
+                    
+                    LoadHolonReferences(holonModel);
+                    result.Result=holonModel.GetHolon();
                 }
 
-                LoadHolonReferences(holonModel);
-                holon=holonModel.GetHolon();
-
-            }
-            catch(Exception ex)
-            {
-                throw ex;
-            }
-            return(holon);
-        }
-
-        public Task<Holon> GetHolonAsync(Guid id)
-        {
-            try
-            {
-                return new Task<Holon>(()=>{
-
-                    Holon holon = null;
-                    String convertedId = id.ToString();
-
-                    HolonModel holonModel = dataBase.Holons.FirstOrDefault(x => x.Id.Equals(convertedId));
-
-                    if (holonModel == null){
-                        return(holon);
-                    }
-
-                    LoadHolonReferences(holonModel);
-                    holon=holonModel.GetHolon();
-
-                    return(holon);
-
-                });
             }
             catch (Exception ex)
             {
-                throw ex;
+                result.IsError = true;
+                result.Message = $"Error occurred getting holon in SQLLiteOASIS Provider.";
+                result.Exception = ex;
             }
+            return result;
         }
 
-        public Task<Holon> GetHolonAsync(string providerKey)
+        public async Task<OASISResult<Holon>> GetHolonAsync(Guid id)
         {
+            OASISResult<Holon> result = new OASISResult<Holon>();
             try
             {
-                return new Task<Holon>(()=>{
+                String convertedId = id.ToString();
 
-                    Holon holon = null;
+                HolonModel holonModel = dataBase.Holons.AsNoTracking().FirstOrDefault(x => x.Id.Equals(convertedId));
 
-                    HolonModel holonModel = dataBase.Holons
+                if (holonModel == null){
+                    
+                    Action loadAction = delegate(){LoadHolonReferences(holonModel);};
+                    Task loadReferencesTask = new Task(loadAction);
+
+                    await loadReferencesTask;
+                    result.Result=holonModel.GetHolon();
+                }
+            }
+            catch (Exception ex)
+            {
+                result.IsError = true;
+                result.Message = $"Error occurred getting holon in SQLLiteOASIS Provider.";
+                result.Exception = ex;
+            }
+            return result;
+        }
+
+        public async Task<OASISResult<Holon>> GetHolonAsync(string providerKey)
+        {
+            OASISResult<Holon> result = new OASISResult<Holon>();
+            try
+            {
+                HolonModel holonModel = dataBase.Holons
+                                        .AsNoTracking()
                                             .FirstOrDefault(h => h.ProviderKey
-                                            .Any(pk => pk.ProviderId == ProviderType.SQLLiteDBOASIS
-                                                        &&  pk.Value.Equals(providerKey)));
+                                                .Any(pk => pk.ProviderId == ProviderType.SQLLiteDBOASIS
+                                                    &&  pk.Value.Equals(providerKey)));
 
-                    if (holonModel == null){
-                        return(holon);
-                    }
+                if (holonModel != null){
+                    
+                    Action loadAction = delegate(){LoadHolonReferences(holonModel);};
+                    Task loadReferencesTask = new Task(loadAction);
 
-                    LoadHolonReferences(holonModel);
-                    holon=holonModel.GetHolon();
+                    await loadReferencesTask;
 
-                    return(holon);
-
-                });
+                    result.Result=holonModel.GetHolon();
+                }
             }
             catch (Exception ex)
             {
-                throw ex;
+                result.IsError = true;
+                result.Message = $"Error occurred getting holon in SQLLiteOASIS Provider.";
+                result.Exception = ex;
             }
+            return result;
         }
 
         public OASISResult<IHolon> Update(IHolon holon)
@@ -503,39 +537,98 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Repositories{
 
             try
             {
-                HolonModel holonModel = new HolonModel(holon);
+                if (AvatarManager.LoggedInAvatar != null)
+                    holon.ModifiedByAvatarId = AvatarManager.LoggedInAvatar.Id;
 
+                holon.ModifiedDate = DateTime.Now;  
+
+                HolonModel holonModel = new HolonModel(holon);
                 dataBase.Holons.Update(holonModel);
+
                 dataBase.SaveChanges();
                 result.Result = holon;
             }
             catch (Exception ex)
             {
                 result.IsError = true;
-                result.Message = $"Error occured updating a holon in the SQLLiteOASIS Provider. Error Details: {ex.ToString()}";
+                result.Message = $"Error occurred updating holon in SQLLiteOASIS Provider.";
+                result.Exception = ex;
             }
+            return result;
+        }
 
+        public OASISResult<IHolon> Update(Holon holon)
+        {
+            OASISResult<IHolon> result = new OASISResult<IHolon>();
+            try
+            {
+                if (AvatarManager.LoggedInAvatar != null)
+                    holon.ModifiedByAvatarId = AvatarManager.LoggedInAvatar.Id;
+
+                holon.ModifiedDate = DateTime.Now; 
+
+                HolonModel holonModel = new HolonModel(holon);
+                dataBase.Holons.Update(holonModel);
+
+                dataBase.SaveChanges();
+                result.Result = holon;
+            }
+            catch (Exception ex)
+            {
+                result.IsError = true;
+                result.Message = $"Error occurred updating holon in SQLLiteOASIS Provider.";
+                result.Exception = ex;
+            }
             return result;
         }
 
         public async Task<OASISResult<IHolon>> UpdateAsync(IHolon holon)
         {
             OASISResult<IHolon> result = new OASISResult<IHolon>();
-
             try
             {
-                HolonModel holonModel=new HolonModel(holon);
+                if (AvatarManager.LoggedInAvatar != null)
+                    holon.ModifiedByAvatarId = AvatarManager.LoggedInAvatar.Id;
 
+                holon.ModifiedDate = DateTime.Now; 
+
+                HolonModel holonModel=new HolonModel(holon);
                 dataBase.Holons.Update(holonModel);
+
                 await dataBase.SaveChangesAsync();
                 result.Result = holon;
             }
             catch (Exception ex)
             {
                 result.IsError = true;
-                result.Message = $"Error occured updating a holon in the SQLLiteOASIS Provider. Error Details: {ex.ToString()}";
+                result.Message = $"Error occurred updating holon in SQLLiteOASIS Provider.";
+                result.Exception = ex;
             }
+            return result;
+        }
 
+        public async Task<OASISResult<IHolon>> UpdateAsync(Holon holon)
+        {
+            OASISResult<IHolon> result = new OASISResult<IHolon>();
+            try
+            {
+                if (AvatarManager.LoggedInAvatar != null)
+                    holon.ModifiedByAvatarId = AvatarManager.LoggedInAvatar.Id;
+
+                holon.ModifiedDate = DateTime.Now; 
+
+                HolonModel holonModel = new HolonModel(holon);
+                dataBase.Holons.Update(holonModel);
+
+                await dataBase.SaveChangesAsync();
+                result.Result = holon;
+            }
+            catch (Exception ex)
+            {
+                result.IsError = true;
+                result.Message = $"Error occurred updating holon in SQLLiteOASIS Provider.";
+                result.Exception = ex;
+            }
             return result;
         }
 
