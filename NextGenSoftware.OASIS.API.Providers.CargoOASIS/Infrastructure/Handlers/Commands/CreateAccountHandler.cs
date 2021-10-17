@@ -34,7 +34,7 @@ namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Handlers
             try
             {
                 var signatureResult = await _signatureProvider.GetSignature(request.AccountAddress,
-                    "sig", "pk", "hu");
+                    request.SingingMessage, request.PrivateKey, request.HostUrl);
                 if (signatureResult.IsError)
                 {
                     response.Message = signatureResult.Message;
