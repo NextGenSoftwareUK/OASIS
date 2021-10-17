@@ -6,19 +6,19 @@ using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 namespace NextGenSoftware.OASIS.STAR.CelestialBodies
 {
     // At the centre of each Galaxy...
-    public class SuperStar : CelestialBody, ISuperStar
+    public class SuperStar : Star, ISuperStar
     {
-        public SuperStar(Guid id) : base(id, HolonType.SuperStar)
+        public SuperStar(Guid id) : base(id)
         {
             this.HolonType = HolonType.SuperStar;
         }
 
-        public SuperStar(Dictionary<ProviderType, string> providerKey) : base(providerKey, HolonType.SuperStar)
+        public SuperStar(Dictionary<ProviderType, string> providerKey) : base(providerKey)
         {
             this.HolonType = HolonType.SuperStar;
         }
 
-        public SuperStar() : base(HolonType.SuperStar)
+        public SuperStar() : base()
         {
             this.HolonType = HolonType.SuperStar;
         }

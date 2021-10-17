@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Managers;
@@ -39,9 +41,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <param name="searchParams"></param>
         /// <returns></returns>
         [HttpGet("Search/{searchParams}")]
-        public ActionResult<ISearchResults> Search(ISearchParams searchParams)
+        public async Task<OASISResult<ISearchResults>> Search(ISearchParams searchParams)
         {
-            return Ok(MissionManager.SearchAsync(searchParams).Result);
+            return new(await MissionManager.SearchAsync(searchParams));
         }
 
         /// <summary>
@@ -52,10 +54,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <param name="setGlobally"> Set this to false for this provider to be used only for this request or true for it to be used for all future requests too.</param>
         /// <returns></returns>
         [HttpGet("Search/{searchParams}/{providerType}/{setGlobally}")]
-        public ActionResult<ISearchResults> Search(ISearchParams searchParams, ProviderType providerType, bool setGlobally = false)
+        public async Task<OASISResult<ISearchResults>> Search(ISearchParams searchParams, ProviderType providerType, bool setGlobally = false)
         {
             GetAndActivateProvider(providerType, setGlobally);
-            return Ok(MissionManager.SearchAsync(searchParams).Result);
+            return new(await MissionManager.SearchAsync(searchParams));
         }
 
         /// <summary>
@@ -64,9 +66,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <param name="missionId"></param>
         /// <returns></returns>
         [HttpPost("CompleteMission/{missionId}")]
-        public ActionResult<bool> CompleteMission(Guid missionId)
+        public OASISResult<bool> CompleteMission(Guid missionId)
         {
-            return MissionManager.CompleteMission(missionId);
+            return new(MissionManager.CompleteMission(missionId));
         }
 
         /// <summary>
@@ -77,10 +79,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <param name="setGlobally"> Set this to false for this provider to be used only for this request or true for it to be used for all future requests too.</param>
         /// <returns></returns>
         [HttpPost("CompleteMission/{missionId}/{providerType}/{setGlobally}")]
-        public ActionResult<bool> CompleteMission(Guid missionId, ProviderType providerType, bool setGlobally = false)
+        public OASISResult<bool> CompleteMission(Guid missionId, ProviderType providerType, bool setGlobally = false)
         {
             GetAndActivateProvider(providerType, setGlobally);
-            return MissionManager.CompleteMission(missionId);
+            return new(MissionManager.CompleteMission(missionId));
         }
 
         /// <summary>
@@ -89,9 +91,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <param name="mission"></param>
         /// <returns></returns>
         [HttpPost("CreateMission/{mission}")]
-        public ActionResult<bool> CreateMission(Mission mission)
+        public OASISResult<bool> CreateMission(Mission mission)
         {
-            return MissionManager.CreateMission(mission);
+            return new(MissionManager.CreateMission(mission));
         }
 
         /// <summary>
@@ -102,10 +104,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <param name="setGlobally"> Set this to false for this provider to be used only for this request or true for it to be used for all future requests too.</param>
         /// <returns></returns>
         [HttpPost("CreateMission/{mission}/{providerType}/{setGlobally}")]
-        public ActionResult<bool> CreateMission(Mission mission, ProviderType providerType, bool setGlobally = false)
+        public OASISResult<bool> CreateMission(Mission mission, ProviderType providerType, bool setGlobally = false)
         {
             GetAndActivateProvider(providerType, setGlobally);
-            return MissionManager.CreateMission(mission);
+            return new(MissionManager.CreateMission(mission));
         }
 
         //TODO: GET WORKING LATER!
@@ -127,9 +129,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <param name="mission"></param>
         /// <returns></returns>
         [HttpPost("UpdateMission/{mission}")]
-        public ActionResult<bool> UpdateMission(Mission mission)
+        public OASISResult<bool> UpdateMission(Mission mission)
         {
-            return Ok(MissionManager.UpdateMission(mission));
+            return new(MissionManager.UpdateMission(mission));
         }
 
         /// <summary>
@@ -140,10 +142,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <param name="setGlobally"> Set this to false for this provider to be used only for this request or true for it to be used for all future requests too.</param>
         /// <returns></returns>
         [HttpPost("UpdateMission/{mission}/{providerType}/{setGlobally}")]
-        public ActionResult<bool> UpdateMission(Mission mission, ProviderType providerType, bool setGlobally = false)
+        public OASISResult<bool> UpdateMission(Mission mission, ProviderType providerType, bool setGlobally = false)
         {
             GetAndActivateProvider(providerType, setGlobally);
-            return Ok(MissionManager.UpdateMission(mission));
+            return new(MissionManager.UpdateMission(mission));
         }
 
         /// <summary>
@@ -152,9 +154,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <param name="missionId"></param>
         /// <returns></returns>
         [HttpDelete("DeleteMission/{missionId}")]
-        public ActionResult<bool> DeleteMission(Guid missionId)
+        public OASISResult<bool> DeleteMission(Guid missionId)
         {
-            return MissionManager.DeleteMission(missionId);
+            return new(MissionManager.DeleteMission(missionId));
         }
 
         /// <summary>
@@ -165,10 +167,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <param name="setGlobally"> Set this to false for this provider to be used only for this request or true for it to be used for all future requests too.</param>
         /// <returns></returns>
         [HttpDelete("DeleteMission/{missionId}/{providerType}/{setGlobally}")]
-        public ActionResult<bool> DeleteMission(Guid missionId, ProviderType providerType, bool setGlobally = false)
+        public OASISResult<bool> DeleteMission(Guid missionId, ProviderType providerType, bool setGlobally = false)
         {
             GetAndActivateProvider(providerType, setGlobally);
-            return MissionManager.DeleteMission(missionId);
+            return new(MissionManager.DeleteMission(missionId));
         }
     }
 }

@@ -42,12 +42,18 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
             if (!IsOASISBooting)
             {
                 IsOASISBooting = true;
+
+                OASISDNAManager.OASISDNA = OASISDNA;
                 LoggingManager.CurrentLoggingFramework = (LoggingFramework)Enum.Parse(typeof(LoggingFramework), OASISDNA.OASIS.Logging.LoggingFramework);
                 ErrorHandling.LogAllErrors = OASISDNA.OASIS.ErrorHandling.LogAllErrors;
                 ErrorHandling.LogAllWarnings = OASISDNA.OASIS.ErrorHandling.LogAllWarnings;
                 ErrorHandling.ShowStackTrace = OASISDNA.OASIS.ErrorHandling.ShowStackTrace;
                 ErrorHandling.ThrowExceptionsOnErrors = OASISDNA.OASIS.ErrorHandling.ThrowExceptionsOnErrors;
                 ErrorHandling.ThrowExceptionsOnWarnings = OASISDNA.OASIS.ErrorHandling.ThrowExceptionsOnWarnings;
+
+                ProviderManager.IsAutoFailOverEnabled = OASISDNA.OASIS.StorageProviders.AutoFailOverEnabled;
+                ProviderManager.IsAutoLoadBalanceEnabled = OASISDNA.OASIS.StorageProviders.AutoLoadBalanceEnabled;
+                ProviderManager.IsAutoReplicationEnabled = OASISDNA.OASIS.StorageProviders.AutoReplicationEnabled;
 
                 LoadProviderLists();
 
@@ -260,7 +266,21 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
 
                     case ProviderType.IPFSOASIS:
                         {
-                            IPFSOASIS IPFSOASIS = new IPFSOASIS(overrideConnectionString == null ? OASISDNA.OASIS.StorageProviders.IPFSOASIS.ConnectionString : overrideConnectionString);
+                            //IPFSOASIS IPFSOASIS = new IPFSOASIS(overrideConnectionString == null ? OASISDNA.OASIS.StorageProviders.IPFSOASIS.ConnectionString : overrideConnectionString, OASISDNA.OASIS.StorageProviders.IPFSOASIS.LookUpIPFSAddress);
+                            //IPFSOASIS IPFSOASIS = new IPFSOASIS(overrideConnectionString == null ? OASISDNA.OASIS.StorageProviders.IPFSOASIS.ConnectionString : overrideConnectionString, OASISDNAFileName);
+                            IPFSOASIS IPFSOASIS = null;
+
+                            //Example of how to pass in OASISDNA if the Provider needs to update the DNA.
+                            if (overrideConnectionString != null)
+                            {
+                                OASISDNA overrideDNA = OASISDNA;
+                                overrideDNA.OASIS.StorageProviders.IPFSOASIS.ConnectionString = overrideConnectionString;
+                                IPFSOASIS = new IPFSOASIS(overrideDNA, OASISDNAFileName);
+                            }   
+                            else
+                                IPFSOASIS = new IPFSOASIS(OASISDNA, OASISDNAFileName);
+
+                            //IPFSOASIS IPFSOASIS = new IPFSOASIS(overrideConnectionString == null ? OASISDNA.OASIS.StorageProviders.IPFSOASIS.ConnectionString : overrideConnectionString, OASISDNAFileName);
                             IPFSOASIS.StorageProviderError += IPFSOASIS_StorageProviderError;
                             registeredProvider = IPFSOASIS;
                         }

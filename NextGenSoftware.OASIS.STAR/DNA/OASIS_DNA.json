@@ -7,6 +7,7 @@
   "AllowedHosts": "*",
 
   "OASIS": {
+    "Terms": "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.\n\n",
     "Logging": {
       "LoggingFramework": "NLog"
     },
@@ -18,6 +19,7 @@
       "LogAllWarnings": "true"
     },
     "Security": {
+      "DoesAvatarNeedToBeVerifiedBeforeLogin": "true",
       "Secret": "",
       "AvatarPassword": {
         "BCryptEncryptionEnabled": "true",
@@ -33,7 +35,8 @@
     "Email": {
       "EmailFrom": "",
       "SmtpHost": "",
-      "SmtpPort": 25,
+      "SmtpPort": 587,
+      // "SmtpPort": 25,
       "SmtpUser": "",
       "SmtpPass": ""
     },
@@ -59,16 +62,19 @@
       },
       "MongoDBOASIS": {
         "ConnectionString": "",
-        "DBName": "OASISAPI"
+
+        "DBName": "OASISAPI_DEV"
+        //"DBName": "OASISAPI_STAGING"
+        //"DBName": "OASISAPI_LIVE"
       },
       "SQLLiteDBOASIS": {
         "ConnectionString": "Data Source=OASISSQLLiteDB.db"
       },
       "EOSIOOASIS": {
-        "ConnectionString": ""
+        "ConnectionString": "https://node.hypha.earth"
       },
       "TelosOASIS": {
-        "ConnectionString": ""
+        "ConnectionString": "https://node.hypha.earth"
       },
       "SEEDSOASIS": {
         "ConnectionString": "https://node.hypha.earth"
@@ -77,15 +83,16 @@
         "ConnectionString": ""
       },
       "EthereumOASIS": {
-        "ConnectionString": ""
+        "ConnectionString": "http://localhost:7545"
       },
-      "Neo4jOASIS": {
+      "Neo4JOASIS": {
         "ConnectionString": "http://localhost:7474",
         "Username": "",
         "Password": ""
       },
       "IPFSOASIS": {
-        "ConnectionString": "http://localhost:5001"
+        "ConnectionString": "http://localhost:5001",
+        "LookUpIPFSAddress": ""
       }
     }
   }

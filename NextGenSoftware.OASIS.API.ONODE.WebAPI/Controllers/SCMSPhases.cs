@@ -4,6 +4,7 @@ using NextGenSoftware.OASIS.API.Core;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using NextGenSoftware.OASIS.API.Core.Helpers;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 {
@@ -17,10 +18,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         SCMSRepository _scmsRepository = new SCMSRepository();
 
         [HttpGet]
-        public async Task<IEnumerable<Phase>> GetAllPhases()
+        public async Task<OASISResult<IEnumerable<Phase>>> GetAllPhases()
         {
-            var phases = await _scmsRepository.GetAllPhases();
-            return await Task.Run(() => phases.ToList());
+            return new(await _scmsRepository.GetAllPhases());
         }
     }
 }

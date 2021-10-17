@@ -1,4 +1,7 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using NextGenSoftware.OASIS.API.Core.Helpers;
+using NextGenSoftware.OASIS.API.DNA;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 {
@@ -6,6 +9,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
     [Route("api/stats")]
     public class StatsController : OASISControllerBase
     {
+        private readonly OASISDNA _OASISDNA;
         //OASISSettings _settings;
 
         //public StatsController(IOptions<OASISSettings> OASISSettings) : base(OASISSettings)
@@ -15,6 +19,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 
         public StatsController()
         {
+            _OASISDNA = OASISBootLoader.OASISBootLoader.OASISDNA;
             //_settings = OASISSettings.Value;
         }
 
@@ -24,11 +29,24 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpGet("GetStatsForCurrentLoggedInAvatar")]
-        public ActionResult<bool> GetStatsForCurrentLoggedInAvatar()
+        public OASISResult<bool> GetStatsForCurrentLoggedInAvatar()
         {
             // TODO: Finish implementing.
-            return Ok();
+            return new();
         }
 
+        [AllowAnonymous]
+        [HttpGet("GetCurrentLiveVersion")]
+        public OASISResult<string> GetCurrentLiveVersion()
+        {
+            return new(_OASISDNA.OASIS.CurrentLiveVersion) { IsError = false, Message = "OK" };
+        }
+        
+        [AllowAnonymous]
+        [HttpGet("GetCurrentStagingVersion")]
+        public OASISResult<string> GetCurrentStagingVersion()
+        {
+            return new(_OASISDNA.OASIS.CurrentStagingVersion) { IsError = false, Message = "OK" };
+        }
     }
 }

@@ -1,0 +1,72 @@
+.side-nav {
+  background-color: rgba(0, 0, 0, 0.88);
+  color: #1885c9;
+  height: 100vh;
+  text-transform: uppercase;
+  position: fixed;
+  top: 0;
+  left: -50%;
+  z-index: -1;
+  display: flex;
+  justify-content: center;
+  transition: left 0.3s ease-in;
+  overflow: auto;
+}
+.side-nav-list {
+  padding-top: 48px;
+  width: 350px;
+}
+.side-nav-menu {
+  padding: 8px 4rem;
+  letter-spacing: 1px;
+}
+.side-nav-menu:hover,
+.side-nav-subnav:hover {
+  background-color: #4440bc !important;
+}
+.side-nav-show {
+  left: 0;
+}
+.side-nav-subnav {
+  padding: 8px 2rem 8px 5rem;
+}
+.side-nav-logins {
+  visibility: hidden;
+  padding: 8px 4rem;
+}
+
+@media (max-width: 550px) {
+  .side-nav {
+    width: 100%;
+    left: -100%;
+  }
+  .side-nav-show {
+    left: 0;
+  }
+  .side-nav-logins {
+    visibility: visible;
+  }
+}
+
+.side-nav-subnav #material-icons {
+  float: left;
+  margin-left: 5px;
+  margin-top: 3px;
+}
+.side-nav-submenu .side-nav-subnav #material-icons {
+  margin-left: -25px;
+  margin-top: 0px;
+  position: absolute;
+  font-size: 1.5em !important;
+}
+.side-nav-submenu .side-nav-subnav {
+  font-size: 0.85em !important;
+}
+.jsonIcon {
+  font-size: 0.7em !important;
+}
+
+.link a {
+  text-decoration: none !important;
+  color: #1885c9;
+}

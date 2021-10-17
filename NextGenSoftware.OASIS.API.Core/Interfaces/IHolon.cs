@@ -2,24 +2,22 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using NextGenSoftware.OASIS.API.Core.Enums;
-using NextGenSoftware.OASIS.API.Core.Helpers;
-using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 
 namespace NextGenSoftware.OASIS.API.Core.Interfaces
 {
-    public interface IHolon
+    public interface IHolon : IHolonBase
     {
-        Guid Id { get; set; }
-        string Name { get; set; }
-        string Description { get; set; }
-        public IHolon Original { get; set; }
-        public bool IsNewHolon { get; set; }
-        public bool IsChanged { get; set; }
-        Dictionary<ProviderType, string> ProviderKey { get; set; }
-        Dictionary<ProviderType, Dictionary<string, string>> ProviderMetaData { get; set; } 
-        Dictionary<string, string> MetaData { get; set; } 
-        HolonType HolonType { get; set; }
+        //Guid Id { get; set; }
+        //string Name { get; set; }
+        //string Description { get; set; }
+        //public IHolon Original { get; set; }
+        //public bool IsNewHolon { get; set; }
+        //public bool IsChanged { get; set; }
+        //Dictionary<ProviderType, string> ProviderKey { get; set; }
+        //Dictionary<ProviderType, Dictionary<string, string>> ProviderMetaData { get; set; } 
+        //Dictionary<string, string> MetaData { get; set; } 
+        //HolonType HolonType { get; set; }
         public Guid ParentOmiverseId { get; set; } //The Omiverse this Holon belongs to.
         public IOmiverse ParentOmiverse { get; set; } //The Omiverse this Holon belongs to.
         public Guid ParentMultiverseId { get; set; } //The Multiverse this Holon belongs to.
@@ -28,6 +26,8 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces
         public IUniverse ParentUniverse { get; set; } //The Universe this Holon belongs to.
         public Guid ParentDimensionId { get; set; } //The Dimension this Holon belongs to.
         public IDimension ParentDimension { get; set; } //The Dimension this Holon belongs to.
+        public DimensionLevel DimensionLevel { get; set; } //The dimension this Holon belongs to (a holon can have a different version of itself in each dimension (asscended/evolved versions of itself).
+        public SubDimensionLevel SubDimensionLevel { get; set; } //The sub-dimension/plane this Holon belongs to.
         public Guid ParentGalaxyClusterId { get; set; } //The GalaxyCluster this Holon belongs to.
         public IGalaxyCluster ParentGalaxyCluster { get; set; } //The GalaxyCluster this Holon belongs to.
         public Guid ParentGalaxyId { get; set; } //The Galaxy this Holon belongs to.
@@ -52,20 +52,20 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces
         public IHolon ParentHolon { get; set; }
         IEnumerable<IHolon> Children { get; set; }
         ObservableCollection<IHolon> ChildrenTest { get; set; }
-        Guid CreatedByAvatarId { get; set; }
-        Avatar CreatedByAvatar { get; set; }
-        DateTime CreatedDate { get; set; }
-        Guid ModifiedByAvatarId { get; set; }
-        Avatar ModifiedByAvatar { get; set; }
-        DateTime ModifiedDate { get; set; }
-        Guid DeletedByAvatarId { get; set; }
-        Avatar DeletedByAvatar { get; set; }
-        DateTime DeletedDate { get; set; }
-        bool IsActive { get; set; }
-        int Version { get; set; }
-        EnumValue<ProviderType> CreatedProviderType { get; set; }
+        //Guid CreatedByAvatarId { get; set; }
+        //Avatar CreatedByAvatar { get; set; }
+        //DateTime CreatedDate { get; set; }
+        //Guid ModifiedByAvatarId { get; set; }
+        //Avatar ModifiedByAvatar { get; set; }
+        //DateTime ModifiedDate { get; set; }
+        //Guid DeletedByAvatarId { get; set; }
+        //Avatar DeletedByAvatar { get; set; }
+        //DateTime DeletedDate { get; set; }
+        //bool IsActive { get; set; }
+        //int Version { get; set; }
+        //EnumValue<ProviderType> CreatedProviderType { get; set; }
         ObservableCollection<INode> Nodes { get; set; }
 
-        bool HasHolonChanged(bool checkChildren = true);
+      //  bool HasHolonChanged(bool checkChildren = true);
     }
 }

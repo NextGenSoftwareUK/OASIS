@@ -19,46 +19,56 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
             _dbContext = dbContext;
         }
 
-        public async Task<Holon> AddAsync(Holon holon)
+        public async Task<OASISResult<Holon>> AddAsync(Holon holon)
         {
+            OASISResult<Holon> result = new OASISResult<Holon>();
+
             try
             {
                 if (holon.HolonId == Guid.Empty)
                     holon.HolonId = Guid.NewGuid();
 
-                holon.CreatedProviderType = ProviderType.MongoDBOASIS;
+                holon.CreatedProviderType = new EnumValue<ProviderType>(ProviderType.MongoDBOASIS);
 
                 await _dbContext.Holon.InsertOneAsync(holon);
                 holon.ProviderKey[ProviderType.MongoDBOASIS] = holon.Id;
 
                 await UpdateAsync(holon);
-                return holon;
+                result.Result = holon;
             }
             catch (Exception ex)
             {
-                throw;
+                result.IsError = true;
+                result.Message = $"Error saving holon with id {holon.Id} and name {holon.Name} in AddAsync method in MongoDBOASIS Provider. Reason: {ex.ToString()}";
             }
+
+            return result;
         }
 
-        public Holon Add(Holon holon)
+        public OASISResult<Holon> Add(Holon holon)
         {
+            OASISResult<Holon> result = new OASISResult<Holon>();
+
             try
             {
                 if (holon.HolonId == Guid.Empty)
                     holon.HolonId = Guid.NewGuid();
 
-                holon.CreatedProviderType = ProviderType.MongoDBOASIS;
+                holon.CreatedProviderType = new EnumValue<ProviderType>(ProviderType.MongoDBOASIS);
 
                 _dbContext.Holon.InsertOne(holon);
                 holon.ProviderKey[ProviderType.MongoDBOASIS] = holon.Id;
 
                 Update(holon);
-                return holon;
+                result.Result = holon;
             }
             catch (Exception ex)
             {
-                throw;
+                result.IsError = true;
+                result.Message = $"Error saving holon with id {holon.Id} and name {holon.Name} in Add method in MongoDBOASIS Provider. Reason: {ex.ToString()}";
             }
+
+            return result;
         }
 
         public async Task<Holon> GetHolonAsync(Guid id)
@@ -86,6 +96,19 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                 throw;
             }
         }
+
+        //public T GetHolon<T>(Guid id) where T : IHolon
+        //{
+        //    try
+        //    {
+        //        FilterDefinition<IHolon> filter = Builders<IHolon>.Filter.Where(x => x.Id == id);
+        //        return _dbContext.Holon.Find(filter).FirstOrDefault();
+        //    }
+        //    catch
+        //    {
+        //        throw;
+        //    }
+        //}
 
         public async Task<Holon> GetHolonAsync(string providerKey)
         {
@@ -229,10 +252,13 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
             }
         }
 
-        public async Task<Holon> UpdateAsync(Holon holon)
+        public async Task<OASISResult<Holon>> UpdateAsync(Holon holon)
         {
+            OASISResult<Holon> result = new OASISResult<Holon>();
+
             try
             {
+                //TODO: Cant remember why I was doing this?! lol
                 if (holon.Id == null)
                 {
                     Holon originalHolon = await GetHolonAsync(holon.HolonId);
@@ -258,18 +284,24 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                 }
 
                 await _dbContext.Holon.ReplaceOneAsync(filter: g => g.HolonId == holon.HolonId, replacement: holon);
-                return holon;
+                result.Result = holon;
             }
-            catch
+            catch (Exception ex)
             {
-                throw;
+                result.IsError = true;
+                result.Message = $"Error saving holon with id {holon.Id} and name {holon.Name} in Update method in MongoDBOASIS Provider. Reason: {ex.ToString()}";
             }
+
+            return result;
         }
 
-        public Holon Update(Holon holon)
+        public OASISResult<Holon> Update(Holon holon)
         {
+            OASISResult<Holon> result = new OASISResult<Holon>();
+
             try
             {
+                //TODO: Cant remember why I was doing this?! lol
                 if (holon.Id == null)
                 {
                     Holon originalHolon = GetHolon(holon.HolonId);
@@ -290,17 +322,21 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                         holon.DeletedByAvatarId = originalHolon.DeletedByAvatarId;
                         holon.DeletedDate = originalHolon.DeletedDate;
 
-                        //TODO: Needs more thought!
+                        //TODO: SOMEONE PLEASE FINISH THIS ASAP!!!
                     }
                 }
 
                 _dbContext.Holon.ReplaceOne(filter: g => g.HolonId == holon.HolonId, replacement: holon);
-                return holon;
+                result.Result = holon;
             }
-            catch
+
+            catch (Exception ex)
             {
-                throw;
+                result.IsError = true;
+                result.Message = $"Error saving holon with id {holon.Id} and name {holon.Name} in Update method in MongoDBOASIS Provider. Reason: {ex.ToString()}";
             }
+
+            return result;
         }
 
         public async Task<bool> DeleteAsync(Guid id, bool softDelete = true)

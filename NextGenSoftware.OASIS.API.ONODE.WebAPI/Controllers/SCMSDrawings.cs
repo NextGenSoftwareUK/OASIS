@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using NextGenSoftware.OASIS.API.Core.Helpers;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 {
@@ -15,21 +16,21 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         SCMSRepository _scmsRepository = new SCMSRepository();
 
         [HttpGet]
-        public async Task<IEnumerable<Drawing>> GetAllDrawings()
+        public async Task<OASISResult<IEnumerable<Drawing>>> GetAllDrawings()
         {
-            return await Task.Run(() => _scmsRepository.GetAllDrawings());
+            return new(await _scmsRepository.GetAllDrawings());
         }
 
         [HttpGet("GetAllDrawingsForSequenceAndPhase/{sequenceNo}/{phaseNo}/{loadPhase}/{loadFile}")]
-        public async Task<IEnumerable<Drawing>> GetAllDrawingsForSequenceAndPhase(int SequenceNo, int PhaseNo, bool loadPhase = false, bool loadFile = true)
+        public async Task<OASISResult<IEnumerable<Drawing>>> GetAllDrawingsForSequenceAndPhase(int SequenceNo, int PhaseNo, bool loadPhase = false, bool loadFile = true)
         {
-            return await Task.Run(() => _scmsRepository.GetAllDrawings(SequenceNo, PhaseNo, loadPhase, loadFile));
+            return new(await _scmsRepository.GetAllDrawings(SequenceNo, PhaseNo, loadPhase, loadFile));
         }
 
         [HttpGet("GetAllDrawingsForSequenceAndPhase/{sequenceNo}/{phaseNo}")]
-        public async Task<IEnumerable<Drawing>> GetAllDrawingsForSequenceAndPhase(int SequenceNo, int PhaseNo)
+        public async Task<OASISResult<IEnumerable<Drawing>>> GetAllDrawingsForSequenceAndPhase(int SequenceNo, int PhaseNo)
         {
-            return await Task.Run(() => _scmsRepository.GetAllDrawings(SequenceNo, PhaseNo));
+            return new(await _scmsRepository.GetAllDrawings(SequenceNo, PhaseNo));
         }
 
         //[HttpGet]

@@ -317,6 +317,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
             }
 
             // TODO: Need to double check this logic below is right! ;-)
+            holon.IsNewHolon = true; //TODO: I am pretty sure every holon being added to a collection using this method will be a new one?
             holon.ParentOmiverseId = parentCelestialBody.ParentOmiverseId;
             holon.ParentMultiverseId = parentCelestialBody.ParentMultiverseId;
             holon.ParentUniverseId = parentCelestialBody.ParentUniverseId;
@@ -397,7 +398,6 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
             OASISResult<IEnumerable<IHolon>> holonsResult = await base.SaveHolonsAsync(holons);
             OASISResultCollectionToHolonHelper<IEnumerable<IHolon>, IHolon>.CopyResult(holonsResult, ref result);
 
-            // TODO: This will only work if the star names are unique (which we want to enforce anyway!) - need to add this soon!
             if (!holonsResult.IsError)
             {
                 IHolon savedHolon = holons.FirstOrDefault(x => x.Name == holon.Name);

@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
@@ -39,9 +40,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <param name="searchParams"></param>
         /// <returns></returns>
         [HttpGet("Search/{searchParams}")]
-        public ActionResult<ISearchResults> Search(ISearchParams searchParams)
+        public OASISResult<ISearchResults> Search(ISearchParams searchParams)
         {
-            return Ok(QuestManager.SearchAsync(searchParams).Result);
+            return new(QuestManager.SearchAsync(searchParams).Result);
         }
 
         /// <summary>
@@ -52,10 +53,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <param name="setGlobally"> Set this to false for this provider to be used only for this request or true for it to be used for all future requests too.</param>
         /// <returns></returns>
         [HttpGet("Search/{searchParams}/{providerType}/{setGlobally}")]
-        public ActionResult<ISearchResults> Search(ISearchParams searchParams, ProviderType providerType, bool setGlobally = false)
+        public OASISResult<ISearchResults> Search(ISearchParams searchParams, ProviderType providerType, bool setGlobally = false)
         {
             GetAndActivateProvider(providerType, setGlobally);
-            return Ok(QuestManager.SearchAsync(searchParams).Result);
+            return new(QuestManager.SearchAsync(searchParams).Result);
         }
 
         /// <summary>
@@ -63,9 +64,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// </summary>
         /// <returns></returns>
         [HttpGet("FindNearestQuestOnMap")]
-        public ActionResult<Quest> FindNearestQuestOnMap()
+        public OASISResult<Quest> FindNearestQuestOnMap()
         {
-            return QuestManager.FindNearestQuestOnMap();
+            return new(QuestManager.FindNearestQuestOnMap());
         }
 
         /// <summary>
@@ -75,10 +76,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <param name="setGlobally"> Set this to false for this provider to be used only for this request or true for it to be used for all future requests too.</param>
         /// <returns></returns>
         [HttpGet("FindNearestQuestOnMap/{providerType}/{setGlobally}")]
-        public ActionResult<Quest> FindNearestQuestOnMap(ProviderType providerType, bool setGlobally = false)
+        public OASISResult<Quest> FindNearestQuestOnMap(ProviderType providerType, bool setGlobally = false)
         {
             GetAndActivateProvider(providerType, setGlobally);
-            return QuestManager.FindNearestQuestOnMap();
+            return new(QuestManager.FindNearestQuestOnMap());
         }
 
         /// <summary>
@@ -87,9 +88,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <param name="quest"></param>
         /// <returns></returns>
         [HttpPost("CompleteQuest/{quest}")]
-        public ActionResult<bool> CompleteQuest(Guid questId)
+        public OASISResult<bool> CompleteQuest(Guid questId)
         {
-            return QuestManager.CompleteQuest(questId);
+            return new(QuestManager.CompleteQuest(questId));
         }
 
         /// <summary>
@@ -100,10 +101,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <param name="setGlobally"> Set this to false for this provider to be used only for this request or true for it to be used for all future requests too.</param>
         /// <returns></returns>
         [HttpPost("CompleteQuest/{quest}/{providerType}/{setGlobally}")]
-        public ActionResult<bool> CompleteQuest(Guid questId, ProviderType providerType, bool setGlobally = false)
+        public OASISResult<bool> CompleteQuest(Guid questId, ProviderType providerType, bool setGlobally = false)
         {
             GetAndActivateProvider(providerType, setGlobally);
-            return QuestManager.CompleteQuest(questId);
+            return new(QuestManager.CompleteQuest(questId));
         }
 
         /// <summary>
@@ -112,9 +113,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <param name="quest"></param>
         /// <returns></returns>
         [HttpPost("CreateQuest/{quest}")]
-        public ActionResult<bool> CreateQuest(Quest quest)
+        public OASISResult<bool> CreateQuest(Quest quest)
         {
-            return QuestManager.CreateQuest(quest);
+            return new(QuestManager.CreateQuest(quest));
         }
 
         /// <summary>
@@ -125,10 +126,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <param name="setGlobally"> Set this to false for this provider to be used only for this request or true for it to be used for all future requests too.</param>
         /// <returns></returns>
         [HttpPost("CreateQuest/{quest}/{providerType}/{setGlobally}")]
-        public ActionResult<bool> CreateQuest(Quest quest, ProviderType providerType, bool setGlobally = false)
+        public OASISResult<bool> CreateQuest(Quest quest, ProviderType providerType, bool setGlobally = false)
         {
             GetAndActivateProvider(providerType, setGlobally);
-            return QuestManager.CreateQuest(quest);
+            return new(QuestManager.CreateQuest(quest));
         }
 
         /// <summary>
@@ -137,9 +138,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <param name="quest"></param>
         /// <returns></returns>
         [HttpPost("HighlightQuestOnMap/{quest}")]
-        public ActionResult<bool> HighlightQuestOnMap(Guid questId)
+        public OASISResult<bool> HighlightQuestOnMap(Guid questId)
         {
-            return QuestManager.HighlightQuestOnMap(questId);
+            return new(QuestManager.HighlightQuestOnMap(questId));
         }
 
         /// <summary>
@@ -150,10 +151,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <param name="setGlobally"> Set this to false for this provider to be used only for this request or true for it to be used for all future requests too.</param>
         /// <returns></returns>
         [HttpPost("HighlightQuestOnMap/{quest}/{providerType}/{setGlobally}")]
-        public ActionResult<bool> HighlightQuestOnMap(Guid questId, ProviderType providerType, bool setGlobally = false)
+        public OASISResult<bool> HighlightQuestOnMap(Guid questId, ProviderType providerType, bool setGlobally = false)
         {
             GetAndActivateProvider(providerType, setGlobally);
-            return QuestManager.HighlightQuestOnMap(questId);
+            return new(QuestManager.HighlightQuestOnMap(questId));
         }
 
 
@@ -176,9 +177,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <param name="quest"></param>
         /// <returns></returns>
         [HttpPost("UpdateQuest/{quest}")]
-        public ActionResult<bool> UpdateQuest(Quest quest)
+        public OASISResult<bool> UpdateQuest(Quest quest)
         {
-            return Ok(QuestManager.UpdateQuest(quest));
+            return new(QuestManager.UpdateQuest(quest));
         }
 
         /// <summary>
@@ -189,10 +190,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <param name="setGlobally"> Set this to false for this provider to be used only for this request or true for it to be used for all future requests too.</param>
         /// <returns></returns>
         [HttpPost("UpdateQuest/{quest}/{providerType}/{setGlobally}")]
-        public ActionResult<bool> UpdateQuest(Quest quest, ProviderType providerType, bool setGlobally = false)
+        public OASISResult<bool> UpdateQuest(Quest quest, ProviderType providerType, bool setGlobally = false)
         {
             GetAndActivateProvider(providerType, setGlobally);
-            return Ok(QuestManager.UpdateQuest(quest));
+            return new(QuestManager.UpdateQuest(quest));
         }
 
         /// <summary>
@@ -201,9 +202,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <param name="questId"></param>
         /// <returns></returns>
         [HttpDelete("DeleteQuest/{quest}")]
-        public ActionResult<bool> DeleteQuest(Guid questId)
+        public OASISResult<bool> DeleteQuest(Guid questId)
         {
-            return QuestManager.DeleteQuest(questId);
+            return new(QuestManager.DeleteQuest(questId));
         }
 
         /// <summary>
@@ -214,10 +215,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <param name="setGlobally"> Set this to false for this provider to be used only for this request or true for it to be used for all future requests too.</param>
         /// <returns></returns>
         [HttpDelete("DeleteQuest/{quest}/{providerType}/{setGlobally}")]
-        public ActionResult<bool> DeleteQuest(Guid questId, ProviderType providerType, bool setGlobally = false)
+        public OASISResult<bool> DeleteQuest(Guid questId, ProviderType providerType, bool setGlobally = false)
         {
             GetAndActivateProvider(providerType, setGlobally);
-            return QuestManager.DeleteQuest(questId);
+            return new(QuestManager.DeleteQuest(questId));
         }
     }
 }

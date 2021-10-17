@@ -2,7 +2,6 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
@@ -24,12 +23,32 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
             throw new NotImplementedException();
         }
 
+        public override bool DeleteAvatarByEmail(string avatarEmail, bool softDelete = true)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override bool DeleteAvatarByUsername(string avatarUsername, bool softDelete = true)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override async Task<bool> DeleteAvatarByUsernameAsync(string avatarUsername, bool softDelete = true)
+        {
+            throw new NotImplementedException();
+        }
+
         public override bool DeleteAvatar(string providerKey, bool softDelete = true)
         {
             throw new NotImplementedException();
         }
 
         public override Task<bool> DeleteAvatarAsync(Guid id, bool softDelete = true)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override async Task<bool> DeleteAvatarByEmailAsync(string avatarEmail, bool softDelete = true)
         {
             throw new NotImplementedException();
         }
@@ -69,7 +88,32 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
             throw new NotImplementedException();
         }
 
+        public override async Task<IAvatarDetail> LoadAvatarDetailByEmailAsync(string avatarEmail)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override IEnumerable<IAvatarDetail> LoadAllAvatarDetails()
+        {
+            throw new NotImplementedException();
+        }
+
+        public override Task<IEnumerable<IAvatarDetail>> LoadAllAvatarDetailsAsync()
+        {
+            throw new NotImplementedException();
+        }
+
         public override IEnumerable<IAvatar> LoadAllAvatars()
+        {
+            throw new NotImplementedException();
+        }
+
+        public override IAvatar LoadAvatarByEmail(string avatarEmail)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override IAvatar LoadAvatarByUsername(string avatarUsername)
         {
             throw new NotImplementedException();
         }
@@ -85,6 +129,11 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
         }
 
         public override Task<IEnumerable<IHolon>> LoadAllHolonsAsync(HolonType type = HolonType.Holon)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override async Task<IAvatar> LoadAvatarByUsernameAsync(string avatarUsername)
         {
             throw new NotImplementedException();
         }
@@ -114,7 +163,37 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
             throw new NotImplementedException();
         }
 
+        public override async Task<IAvatar> LoadAvatarByEmailAsync(string avatarEmail)
+        {
+            throw new NotImplementedException();
+        }
+
         public override Task<IAvatar> LoadAvatarAsync(string username, string password)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override IAvatarDetail LoadAvatarDetail(Guid id)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override IAvatarDetail LoadAvatarDetailByEmail(string avatarEmail)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override IAvatarDetail LoadAvatarDetailByUsername(string avatarUsername)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override Task<IAvatarDetail> LoadAvatarDetailAsync(Guid id)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override async Task<IAvatarDetail> LoadAvatarDetailByUsernameAsync(string avatarUsername)
         {
             throw new NotImplementedException();
         }
@@ -179,27 +258,37 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
             throw new NotImplementedException();
         }
 
-        public override IHolon SaveHolon(IHolon holon)
+        public override IAvatarDetail SaveAvatarDetail(IAvatarDetail Avatar)
         {
             throw new NotImplementedException();
         }
 
-        public override Task<IHolon> SaveHolonAsync(IHolon holon)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override IEnumerable<IHolon> SaveHolons(IEnumerable<IHolon> holons)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override Task<IEnumerable<IHolon>> SaveHolonsAsync(IEnumerable<IHolon> holons)
+        public override Task<IAvatarDetail> SaveAvatarDetailAsync(IAvatarDetail Avatar)
         {
             throw new NotImplementedException();
         }
 
         public override Task<ISearchResults> SearchAsync(ISearchParams searchParams)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override OASISResult<IHolon> SaveHolon(IHolon holon, bool saveChildrenRecursive = true)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon, bool saveChildrenRecursive = true)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override OASISResult<IEnumerable<IHolon>> SaveHolons(IEnumerable<IHolon> holons, bool saveChildrenRecursive = true)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons, bool saveChildrenRecursive = true)
         {
             throw new NotImplementedException();
         }

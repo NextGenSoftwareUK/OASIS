@@ -1,5 +1,4 @@
 ﻿
-
 namespace NextGenSoftware.OASIS.API.DNA
 {
     public class OASISDNA
@@ -9,6 +8,9 @@ namespace NextGenSoftware.OASIS.API.DNA
 
     public class OASIS
     {
+        public string CurrentLiveVersion { get; set; }
+        public string CurrentStagingVersion { get; set; }
+        public string Terms { get; set; }
         public Logging Logging { get; set; }
         public ErrorHandlingSettings ErrorHandling { get; set; }
         public SecuritySettings Security { get; set; }
@@ -18,7 +20,9 @@ namespace NextGenSoftware.OASIS.API.DNA
 
     public class SecuritySettings
     {
+        public bool DoesAvatarNeedToBeVerifiedBeforeLogin { get; set; }
         public string Secret { get; set; }
+        public int RemoveOldRefreshTokensAfterXDays{ set; get;}
         public EncryptionSettings AvatarPassword { get; set; }
         public EncryptionSettings OASISProviderPrivateKeys { get; set; }
     }
@@ -120,6 +124,7 @@ namespace NextGenSoftware.OASIS.API.DNA
 
     public class IPFSOASISSettings : ProviderSettingsBase
     {
+        public string LookUpIPFSAddress { get; set; }
     }
 
     public class Neo4jOASISSettings : ProviderSettingsBase

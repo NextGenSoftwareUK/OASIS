@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
@@ -26,10 +27,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpPost("SendMessageToAvatar/{avatar}")]
-        public ActionResult<bool> SendMessageToAvatar(IAvatar avatar)
+        public OASISResult<bool> SendMessageToAvatar(IAvatar avatar)
         {
             // TODO: Finish implementing.
-            return Ok();
+            return new();
         }
     }
 }

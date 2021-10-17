@@ -1,0 +1,79 @@
+body {
+  margin: 0;
+  font-family: 'Titillium Web', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background: url("../img/bg.gif");
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-attachment: fixed;
+  background-position: top;
+}
+
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+    monospace;
+}
+
+button{
+  text-decoration: none;
+  border: none;
+  background-color: transparent;
+}
+input{
+  background-color: transparent;
+}
+
+.link{
+	color: #1885c9;
+}
+.link:hover{
+  color: #fff;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.link-inverse{
+	color: #fff;
+}
+.link-inverse:hover{
+  color: #1885c9;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+/* FORM CSS */
+.single-form-field {
+    display: grid;
+    margin: 0 0 20px;
+}
+.single-form-field label {
+    margin: 0 0 5px;
+}
+.single-form-field input {
+    padding: 0 15px;
+    height: 34px;
+    border-radius: 4px;
+    margin: 0;
+    outline: none;
+}
+.single-form-field .have-icon {
+    position: relative;
+    display: grid;
+}
+.single-form-field .have-icon .field-icon {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translate(0, -50%);
+    width: 20px;
+    cursor: pointer;
+}
+.single-form-field .have-icon input {
+    padding-right: 40px;
+}
+.single-form-field span.text-danger {
+    color: #dc3545 !important;
+}
+.single-form-field.has-error input {
+    border-color: #dc3545 !important;
+}

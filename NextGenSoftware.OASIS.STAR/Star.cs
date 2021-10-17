@@ -26,7 +26,7 @@ using NextGenSoftware.OASIS.STAR.Enums;
 
 namespace NextGenSoftware.OASIS.STAR
 {
-    public static class Star
+    public static class STAR
     {
         const string STAR_DNA_DEFAULT_PATH = "DNA\\STAR_DNA.json";
         const string OASIS_DNA_DEFAULT_PATH = "DNA\\OASIS_DNA.json";
@@ -60,8 +60,14 @@ namespace NextGenSoftware.OASIS.STAR
             }
         }
 
-        public static bool IsSuperStarIgnited { get; private set; }
-        public static GreatGrandSuperStar InnerStar { get; set; } //Only ONE of these can ever exist and is at the centre of the Omiverse (also only ONE).
+        public static bool IsStarIgnited { get; private set; }
+        //public static GreatGrandSuperStar InnerStar { get; set; } //Only ONE of these can ever exist and is at the centre of the Omiverse (also only ONE).
+
+        public static IGreatGrandSuperStar DefaultGreatGrandSuperStar { get; set; } //Will default to the GreatGrandSuperStar at the centre of our Omniverse.
+        public static IGrandSuperStar DefaultGrandSuperStar { get; set; } //Will default to the GrandSuperStar at the centre of our Universe.
+        public static ISuperStar DefaultSuperStar { get; set; } //Will default to the SuperStar at the centre of our Galaxy.
+        public static IStar DefaultStar { get; set; } //Will default to our Sun.
+        public static IPlanet DefaultPlanet { get; set; } //Will default to Our World.
 
         // public static CelestialBodies.Star InnerStar { get; set; }
         //public static SuperStarCore SuperStarCore { get; set; }
@@ -74,7 +80,8 @@ namespace NextGenSoftware.OASIS.STAR
         //    }
         //}
 
-        public static Avatar LoggedInUser { get; set; }
+        public static Avatar LoggedInAvatar { get; set; }
+        public static AvatarDetail LoggedInAvatarDetail { get; set; }
 
         public static OASISAPI OASISAPI
         {
@@ -87,7 +94,7 @@ namespace NextGenSoftware.OASIS.STAR
             }
         }
 
-        public static IMapper Mapper { get; set; }
+        //public static IMapper Mapper { get; set; }
 
         public delegate void HolonsLoaded(object sender, HolonsLoadedEventArgs e);
         public static event HolonsLoaded OnHolonsLoaded;
@@ -101,11 +108,11 @@ namespace NextGenSoftware.OASIS.STAR
         public delegate void HolonLoaded(object sender, HolonLoadedEventArgs e);
         public static event HolonLoaded OnHolonLoaded;
 
-        public delegate void SuperStarIgnited(object sender, StarIgnitedEventArgs e);
-        public static event SuperStarIgnited OnSuperStarIgnited;
+        public delegate void StarIgnited(object sender, StarIgnitedEventArgs e);
+        public static event StarIgnited OnStarIgnited;
 
-        public delegate void SuperStarCoreIgnited(object sender, System.EventArgs e);
-        public static event SuperStarCoreIgnited OnSuperStarCoreIgnited;
+        public delegate void StarCoreIgnited(object sender, System.EventArgs e);
+        public static event StarCoreIgnited OnStarCoreIgnited;
 
         public delegate void StarStatusChanged(object sender, StarStatusChangedEventArgs e);
         public static event StarStatusChanged OnStarStatusChanged;
@@ -129,7 +136,7 @@ namespace NextGenSoftware.OASIS.STAR
         //public delegate void DataReceived(object sender, DataReceivedEventArgs e);
         //public static event DataReceived OnDataReceived;
        
-        public static OASISResult<ICelestialBody> IgniteSuperStar(string STARDNAPath = STAR_DNA_DEFAULT_PATH, string OASISDNAPath = OASIS_DNA_DEFAULT_PATH, string starId = null)
+        public static OASISResult<ICelestialBody> IgniteStar(string STARDNAPath = STAR_DNA_DEFAULT_PATH, string OASISDNAPath = OASIS_DNA_DEFAULT_PATH, string starId = null)
         {
             OASISResult<ICelestialBody> result = new OASISResult<ICelestialBody>();
             Status = StarStatus.Igniting;
@@ -183,7 +190,7 @@ namespace NextGenSoftware.OASIS.STAR
                     return result;
                 }
             }
-            else if (!string.IsNullOrEmpty(STARDNA.StarId) && !string.IsNullOrWhiteSpace(STARDNA.StarId) && !Guid.TryParse(STARDNA.StarId, out _starId))
+            else if (!string.IsNullOrEmpty(STARDNA.DefaultStarId) && !string.IsNullOrWhiteSpace(STARDNA.DefaultStarId) && !Guid.TryParse(STARDNA.DefaultStarId, out _starId))
             {
                 HandleErrorMessage(ref result, "StarID defined in the STARDNA file in is invalid. It needs to be a valid Guid.");
                 return result;
@@ -193,6 +200,7 @@ namespace NextGenSoftware.OASIS.STAR
             // WireUpEvents();
 
             //IgniteInnerStar(ref result, starId);
+            IgniteInnerStar(ref result);
 
             //if (!result.IsError)
             //{
@@ -201,8 +209,8 @@ namespace NextGenSoftware.OASIS.STAR
             //}
 
             Status = StarStatus.Ingited;
-            OnSuperStarIgnited.Invoke(null, new StarIgnitedEventArgs() { Message = result.Message });
-            IsSuperStarIgnited = true;
+            OnStarIgnited.Invoke(null, new StarIgnitedEventArgs() { Message = result.Message });
+            IsStarIgnited = true;
             return result;
 
 
@@ -252,16 +260,16 @@ namespace NextGenSoftware.OASIS.STAR
 
         private static void WireUpEvents()
         {
-            InnerStar.OnHolonLoaded += InnerStar_OnHolonLoaded;
-            InnerStar.OnHolonSaved += InnerStar_OnHolonSaved;
-            InnerStar.OnHolonsLoaded += InnerStar_OnHolonsLoaded;
-            InnerStar.OnZomeError += InnerStar_OnZomeError;
-            InnerStar.OnInitialized += InnerStar_OnInitialized;
+            DefaultStar.OnHolonLoaded += InnerStar_OnHolonLoaded;
+            DefaultStar.OnHolonSaved += InnerStar_OnHolonSaved;
+            DefaultStar.OnHolonsLoaded += InnerStar_OnHolonsLoaded;
+            DefaultStar.OnZomeError += InnerStar_OnZomeError;
+            DefaultStar.OnInitialized += InnerStar_OnInitialized;
         }
 
         private static void InnerStar_OnInitialized(object sender, System.EventArgs e)
         {
-            OnSuperStarCoreIgnited?.Invoke(sender, e);
+            OnStarCoreIgnited?.Invoke(sender, e);
         }
 
         private static void InnerStar_OnZomeError(object sender, ZomeErrorEventArgs e)
@@ -289,29 +297,29 @@ namespace NextGenSoftware.OASIS.STAR
             string hostName = Dns.GetHostName();
             string IPAddress = Dns.GetHostEntry(hostName).AddressList[0].ToString();
 
-            if (!IsSuperStarIgnited)
-                IgniteSuperStar();
+            if (!IsStarIgnited)
+                IgniteStar();
 
             OASISResult<IAvatar> result = await OASISAPI.Avatar.AuthenticateAsync(username, password, IPAddress);
 
             if (!result.IsError)
-                LoggedInUser = (Avatar)result.Result;
+                LoggedInAvatar = (Avatar)result.Result;
 
             return result;
         }
 
         public static OASISResult<IAvatar> CreateAvatar(string title, string firstName, string lastName, string username, string password, ConsoleColor cliColour = ConsoleColor.Green, ConsoleColor favColour = ConsoleColor.Green)
         {
-            if (!IsSuperStarIgnited)
-                IgniteSuperStar();
+            if (!IsStarIgnited)
+                IgniteStar();
 
             return OASISAPI.Avatar.Register(title, firstName, lastName, username, password, AvatarType.User, "https://api.oasisplatform.world/api", OASISType.STARCLI, cliColour, favColour);
         }
 
         public static async Task<OASISResult<IAvatar>> CreateAvatarAsync(string title, string firstName, string lastName, string username, string password, ConsoleColor cliColour = ConsoleColor.Green, ConsoleColor favColour = ConsoleColor.Green)
         {
-            if (!IsSuperStarIgnited)
-                IgniteSuperStar();
+            if (!IsStarIgnited)
+                IgniteStar();
 
             //TODO: Implement Async version of Register and call instead of below:
             return OASISAPI.Avatar.Register(title, firstName, lastName, username, password, AvatarType.User, "https://api.oasisplatform.world/api", OASISType.STARCLI, cliColour, favColour);
@@ -324,13 +332,16 @@ namespace NextGenSoftware.OASIS.STAR
             //string IPAddress = Dns.GetHostByName(hostName).AddressList[3].ToString();
             //+string IPAddress = Dns.GetHostByName(hostName).AddressList[4].ToString();
 
-            if (!IsSuperStarIgnited)
-                IgniteSuperStar();
+            if (!IsStarIgnited)
+                IgniteStar();
 
             OASISResult<IAvatar> result = OASISAPI.Avatar.Authenticate(username, password, IPAddress);
 
             if (!result.IsError)
-                LoggedInUser = (Avatar)result.Result;
+            {
+                LoggedInAvatar = (Avatar)result.Result;
+                LoggedInAvatarDetail = (AvatarDetail)OASISAPI.Avatar.LoadAvatarDetail(LoggedInAvatar.Id);
+            }
 
             return result;
         }
@@ -369,22 +380,22 @@ namespace NextGenSoftware.OASIS.STAR
             bool firstHolon = true;
             string rustDNAFolder = string.Empty;
 
-            if (LoggedInUser == null)
+            if (LoggedInAvatar == null)
                 return new CoronalEjection() { ErrorOccured = true, Message = "Avatar is not logged in. Please log in before calling this command." };
 
-            if (LoggedInUser.Level < 77 && type == GenesisType.Planet)
+            if (LoggedInAvatar.Level < 77 && type == GenesisType.Star)
                 return new CoronalEjection() { ErrorOccured = true, Message = "Avatar must have reached level 77 before they can create stars. Please create a planet or moon instead..." };
 
-            if (LoggedInUser.Level < 33 && type == GenesisType.Planet)
+            if (LoggedInAvatar.Level < 33 && type == GenesisType.Planet)
                 return new CoronalEjection() { ErrorOccured = true, Message = "Avatar must have reached level 33 before they can create planets. Please create a moon instead..." };
 
             if (celestialBodyParent == null && type == GenesisType.Moon)
                 return new CoronalEjection() { ErrorOccured = true, Message = "You must specify the planet to add the moon to." };
 
-            if (!IsSuperStarIgnited)
-                IgniteSuperStar();
+            if (!IsStarIgnited)
+                IgniteStar();
 
-            if (InnerStar == null)
+            if (DefaultStar == null)
             {
                 OASISResult<ICelestialBody> result = await IgniteInnerStarAsync();
 
@@ -453,12 +464,17 @@ namespace NextGenSoftware.OASIS.STAR
                 case GenesisType.Moon:
                     {
                         newBody = new Moon();
-                        newBody.ParentHolon = celestialBodyParent;
-                        newBody.ParentHolonId = celestialBodyParent.Id;
-                        newBody.ParentPlanet = (IPlanet)celestialBodyParent;
-                        newBody.ParentPlanetId = celestialBodyParent.ParentPlanetId;
-                        newBody.ParentStar = celestialBodyParent.ParentStar;
-                        newBody.ParentStarId = celestialBodyParent.ParentStarId;
+
+                        if (celestialBodyParent == null)
+                            celestialBodyParent = DefaultPlanet;
+
+                        Mapper<IPlanet, Moon>.MapParentCelestialBodyProperties((IPlanet)celestialBodyParent, (Moon)newBody);
+                        //newBody.ParentHolon = celestialBodyParent;
+                        //newBody.ParentHolonId = celestialBodyParent.Id;
+                        //newBody.ParentPlanet = (IPlanet)celestialBodyParent;
+                        //newBody.ParentPlanetId = celestialBodyParent.ParentPlanetId;
+                        //newBody.ParentStar = celestialBodyParent.ParentStar;
+                        //newBody.ParentStarId = celestialBodyParent.ParentStarId;
                     }
                     break;
 
@@ -466,26 +482,54 @@ namespace NextGenSoftware.OASIS.STAR
                     {
                         newBody = new Planet();
 
-                        //If no parent Star is passed in then set the parent star to SuperStar.
+                        //If no parent Star is passed in then set the parent star to our Sun.
                         if (celestialBodyParent == null)
-                            celestialBodyParent = InnerStar;
+                            celestialBodyParent = DefaultStar;
 
-                        newBody.ParentHolon = celestialBodyParent;
-                        newBody.ParentHolonId = celestialBodyParent.Id;
-                        newBody.ParentStar = (IStar)celestialBodyParent;
-                        newBody.ParentStarId = celestialBodyParent.Id;
+                        Mapper<IStar, Planet>.MapParentCelestialBodyProperties((IStar)celestialBodyParent, (Planet)newBody);
+                        //newBody.ParentHolon = celestialBodyParent;
+                        //newBody.ParentHolonId = celestialBodyParent.Id;
+                        //newBody.ParentStar = (IStar)celestialBodyParent;
+                        //newBody.ParentStarId = celestialBodyParent.Id;
                     }
                 break;
 
                 case GenesisType.Star:
                     {
-                        newBody = new CelestialBodies.Star();
-                        newBody.ParentHolon = InnerStar;
-                        newBody.ParentHolonId = InnerStar.Id;
-                        newBody.ParentStar = InnerStar;
-                        newBody.ParentStarId = InnerStar.Id;
+                        newBody = new Star();
+
+                        if (celestialBodyParent == null)
+                            celestialBodyParent = DefaultSuperStar;
+
+                        Mapper<ISuperStar, Star>.MapParentCelestialBodyProperties((ISuperStar)celestialBodyParent, (Star)newBody);
+                        //newBody.ParentHolon = celestialBodyParent;
+                        //newBody.ParentHolonId = celestialBodyParent.Id;
+                        //newBody.ParentStar = (IStar)celestialBodyParent;
+                        //newBody.ParentStarId = celestialBodyParent.Id;
                     }
                 break;
+
+                case GenesisType.Galaxy:
+                    {
+                        newBody = new SuperStar();
+
+                        if (celestialBodyParent == null)
+                            celestialBodyParent = DefaultGrandSuperStar;
+
+                        Mapper<IGrandSuperStar, SuperStar>.MapParentCelestialBodyProperties((IGrandSuperStar)celestialBodyParent, (SuperStar)newBody);
+                    }
+                    break;
+
+                case GenesisType.Universe:
+                    {
+                        newBody = new GrandSuperStar();
+
+                        if (celestialBodyParent == null)
+                            celestialBodyParent = DefaultGreatGrandSuperStar;
+
+                        Mapper<IGreatGrandSuperStar, GrandSuperStar>.MapParentCelestialBodyProperties((IGreatGrandSuperStar)celestialBodyParent, (GrandSuperStar)newBody);
+                    }
+                    break;
             }
 
            // newBody.CelestialBody = newBody; //TODO: Causes an infinite recursion because CelestialBody is a Holon itself so its linking to itself.
@@ -706,16 +750,21 @@ namespace NextGenSoftware.OASIS.STAR
             {
                 case GenesisType.Moon:
                     {
-                        await ((PlanetCore)celestialBodyParent.CelestialBodyCore).AddMoonAsync((IMoon)newBody);
-                        return new CoronalEjection() { ErrorOccured = false, Message = "Moon Successfully Created.", CelestialBody = newBody };
+                        OASISResult<IMoon> result =  await ((StarCore)celestialBodyParent.CelestialBodyCore).AddMoonAsync(newBody.ParentPlanet, (IMoon)newBody);
+
+                        if (result != null)
+                        {
+                            if (result.IsError)
+                                return new CoronalEjection() { ErrorOccured = true, Message = result.Message, CelestialBody = result.Result };
+                            else
+                                return new CoronalEjection() { ErrorOccured = false, Message = "Moon Successfully Created.", CelestialBody = result.Result };
+                        }
+                        else
+                            return new CoronalEjection() { ErrorOccured = true, Message = "Unknown Error Occured Creating Moon." };
                     }
 
                 case GenesisType.Planet:
                     {
-                        // If a star is not passed in, then add the planet to the main star.
-                        if (celestialBodyParent == null)
-                            celestialBodyParent = InnerStar;
-
                         OASISResult<IPlanet> result = await ((StarCore)celestialBodyParent.CelestialBodyCore).AddPlanetAsync((IPlanet)newBody);
 
                         if (result != null)
@@ -731,27 +780,60 @@ namespace NextGenSoftware.OASIS.STAR
 
                 case GenesisType.Star:
                     {
-                        await ((ISuperStarCore)celestialBodyParent.CelestialBodyCore).AddStarAsync((IStar)newBody);
-                        return new CoronalEjection() { ErrorOccured = false, Message = "Star Successfully Created.", CelestialBody = newBody };
+                        OASISResult<IStar> result = await ((ISuperStarCore)celestialBodyParent.CelestialBodyCore).AddStarAsync((IStar)newBody);
+
+                        if (result != null)
+                        {
+                            if (result.IsError)
+                                return new CoronalEjection() { ErrorOccured = true, Message = result.Message, CelestialBody = result.Result };
+                            else
+                                return new CoronalEjection() { ErrorOccured = false, Message = "Star Successfully Created.", CelestialBody = result.Result };
+                        }
+                        else
+                            return new CoronalEjection() { ErrorOccured = true, Message = "Unknown Error Occured Creating Star." };
                     }
 
                 case GenesisType.SoloarSystem:
                     {
-                        await ((ISuperStarCore)celestialBodyParent.CelestialBodyCore).AddSolarSystemAsync(new SolarSystem() { Star = (IStar)newBody });
-                        return new CoronalEjection() { ErrorOccured = false, Message = "Star/SolarSystem Successfully Created.", CelestialBody = newBody };
+                        OASISResult<ISolarSystem> result = await ((StarCore)celestialBodyParent.CelestialBodyCore).AddSolarSystemAsync(new SolarSystem() { Star = (IStar)newBody });
+
+                        if (result != null)
+                        {
+                            if (result.IsError)
+                                return new CoronalEjection() { ErrorOccured = true, Message = result.Message, CelestialSpace = result.Result, CelestialBody = result.Result.Star };
+                            else
+                                return new CoronalEjection() { ErrorOccured = false, Message = "Star/SoloarSystem Successfully Created.", CelestialSpace = result.Result, CelestialBody = result.Result.Star };
+                        }
+                        else
+                            return new CoronalEjection() { ErrorOccured = true, Message = "Unknown Error Occured Creating Star/SoloarSystem." };
                     }
 
+                //TODO: Come back to this! ;-)
+
+                /*
                 case GenesisType.Galaxy:
                     {
-                        await ((IGrandSuperStarCore)celestialBodyParent.CelestialBodyCore).AddGalaxyAsync(new Galaxy() { SuperStar = (ISuperStar)newBody });
-                        return new CoronalEjection() { ErrorOccured = false, Message = "SuperStar/Galaxy Successfully Created.", CelestialBody = newBody };
+                        OASISResult<IGalaxy> result = await ((IGrandSuperStarCore)celestialBodyParent.CelestialBodyCore).AddGalaxyClusterToUniverse(new GalaxyCluster() );
+
+
+                        OASISResult<IGalaxy> result = await ((IGrandSuperStarCore)celestialBodyParent.CelestialBodyCore).AddGalaxyAsync(new Galaxy() { SuperStar = (ISuperStar)newBody });
+
+                        if (result != null)
+                        {
+                            if (result.IsError)
+                                return new CoronalEjection() { ErrorOccured = true, Message = result.Message, CelestialSpace = result.Result, CelestialBody = result.Result.Star };
+                            else
+                                return new CoronalEjection() { ErrorOccured = false, Message = "SuperStar/Galaxy Successfully Successfully Created.", CelestialSpace = result.Result, CelestialBody = result.Result.Star };
+                        }
+                        else
+                            return new CoronalEjection() { ErrorOccured = true, Message = "Unknown Error Occured Creating SuperStar/Galaxy." };
                     }
 
                 case GenesisType.Universe:
                     {
                         await ((IGreatGrandSuperStarCore)celestialBodyParent.CelestialBodyCore).AddUniverseAsync(new Universe() { GrandSuperStar = (IGrandSuperStar)newBody });
                         return new CoronalEjection() { ErrorOccured = false, Message = "GrandSuperStar/Universe Successfully Created.", CelestialBody = newBody };
-                    }
+                    }*/
 
                 // Cannot create a SuperStar on its own, you create a Galaxy which comes with a new SuperStar at the centre.
 
@@ -1077,52 +1159,27 @@ namespace NextGenSoftware.OASIS.STAR
        
         private static OASISResult<bool> BootOASIS(string OASISDNAPath = OASIS_DNA_DEFAULT_PATH)
         {
-            Star.OASISDNAPath = OASISDNAPath;
+            STAR.OASISDNAPath = OASISDNAPath;
 
             if (!OASISAPI.IsOASISBooted)
-                return OASISAPI.BootOASIS(Star.OASISDNAPath);
+                return OASISAPI.BootOASIS(STAR.OASISDNAPath);
             else
                 return new OASISResult<bool>() { Message = "OASIS Already Booted" };
         }
-
-        /*
-        private static OASISResult<ICelestialBody> IgniteCOSMIC()
-        {
-            OASISResult<ICelestialBody> result = new OASISResult<ICelestialBody>();
-            InnerStar = new GreatGrandSuperStar(_starId);
-            InnerStar.Initialize();
-
-            CreateNewInnerStar(ref result);
-
-            if (!result.IsError && InnerStar.Id == Guid.Empty)
-            {
-                //result = InnerStar.Save(); //TODO: Implement non-async version...
-                result = InnerStar.SaveAsync().Result;
-                PostIgniteInnerStar(result);
-                // result = PostIgniteInnerStar(Task.Run(IgniteInnerStarAsync).GetAwaiter().GetResult());
-            }
-
-            return result;
-        }*/
-
         
-        private static OASISResult<ICelestialBody> IgniteInnerStar()
+        private static OASISResult<ICelestialBody> IgniteInnerStar(ref OASISResult<ICelestialBody> result)
         {
-            OASISResult<ICelestialBody> result = new OASISResult<ICelestialBody>();
-            //InnerStar = new GreatGrandSuperStar(_starId); //Only one of these exists (at the centre of the Omiverse).
-            InnerStar = new GreatGrandSuperStar(); //Only one of these exists (at the centre of the Omiverse).
-            InnerStar.Initialize();
+            //OASISResult<ICelestialBody> result = new OASISResult<ICelestialBody>();
 
-            CreateNewInnerStar(ref result);
-
-            if (!result.IsError && InnerStar.Id == Guid.Empty)
+            if (_starId == Guid.Empty)
+                result = CreateOASISOmniverseAsync().Result;
+            else
             {
-                //result = InnerStar.Save(); //TODO: Implement non-async version...
-                result = InnerStar.SaveAsync().Result;
-                PostIgniteInnerStar(result);
-               // result = PostIgniteInnerStar(Task.Run(IgniteInnerStarAsync).GetAwaiter().GetResult());
+                DefaultStar = new CelestialBodies.Star(_starId); //TODO: Temp set InnerStar as The Sun at the centre of our Solar System.
+                DefaultStar.Initialize();
             }
 
+            WireUpEvents();
             return result;
         }
 
@@ -1130,57 +1187,198 @@ namespace NextGenSoftware.OASIS.STAR
         private static async Task<OASISResult<ICelestialBody>> IgniteInnerStarAsync()
         {
             OASISResult<ICelestialBody> result = new OASISResult<ICelestialBody>();
-            //InnerStar = new GreatGrandSuperStar(_starId); //Only one of these exists (at the centre of the Omiverse).
-            InnerStar = new GreatGrandSuperStar(); //Only one of these exists (at the centre of the Omiverse).
-            await InnerStar.InitializeAsync();
-            WireUpEvents();
 
-            CreateNewInnerStar(ref result);
-
-            if (!result.IsError && InnerStar.Id == Guid.Empty)
+            if (_starId == Guid.Empty)
+                result = await CreateOASISOmniverseAsync();
+            else
             {
-                result = await InnerStar.SaveAsync();
-                PostIgniteInnerStar(result);
+                DefaultStar = new CelestialBodies.Star(_starId); //TODO: Temp set InnerStar as The Sun at the centre of our Solar System.
+                await DefaultStar.InitializeAsync();
             }
 
+            WireUpEvents();
             return result;
         }
 
-        private static void CreateNewInnerStar(ref OASISResult<ICelestialBody> result)
+        /// <summary>
+        /// Create's the OASIS Omniverse along with a new default Multiverse (with it's GrandSuperStar) containing the ThirdDimension containing UniversePrime (simulation) and the MagicVerse (contains OAPP's), which itself contains a default GalaxyCluster containing a default Galaxy (along with it's SuperStar) containing a default SolarSystem (along wth it's Star) containing a default planet (Our World).
+        /// </summary>
+        /// <param name="result"></param>
+        /// <returns></returns>
+        private static async Task<OASISResult<ICelestialBody>> CreateOASISOmniverseAsync()
         {
-            if (InnerStar.Id == Guid.Empty)
-            {
-                // TODO: May possibly have one SuperStar per Provider Type? Or list of ProviderTypes? People can host whichever provider(s) they wish as a ONODE. Each ONODE will be a GrandSuperStar (Universe), which can choose which Glaxies/Provider Types to host. Therefore the entire ONET (OASIS Network) is the distributed de-centralised network of GrandSuperStars/Universes forming the OASIS meta-verse/magicverse/Omiverse. :)
-                InnerStar.Name = "GreatGrandSuperStar";
-                InnerStar.Description = "GreatGrandSuperStar at the centre of the Omiverse/Magicverse (The OASIS). Can create Universes, Galaxies, SolarSystems, Stars, Planets (Super OAPPS) and moons (OAPPS)";
-                InnerStar.HolonType = HolonType.GreatGrandSuperStar;
-            }
-            else
-                result.Message = "STAR Ignited";
-        }
+            OASISResult<ICelestialBody> result = new OASISResult<ICelestialBody>();
 
-        private static OASISResult<ICelestialBody> PostIgniteInnerStar(OASISResult<ICelestialBody> result)
-        {
-            if (!result.IsError && result.IsSaved)
-            {
-                result.Message = "STAR Ignited";
-                STARDNA.StarId = InnerStar.Id.ToString();
-                SaveDNA();
+            Omiverse omniverse = new Omiverse();
+            omniverse.IsNewHolon = true;
+            omniverse.Id = Guid.NewGuid();
 
-                OASISResult<IOmiverse> omiverseResult = ((GreatGrandSuperStarCore)InnerStar.CelestialBodyCore).AddOmiverse(new Omiverse() { GreatGrandSuperStar = InnerStar });
+            GreatGrandSuperStar greatGrandSuperStar = new GreatGrandSuperStar(); //GODHEAD ;-)
+            greatGrandSuperStar.IsNewHolon = true;
+            greatGrandSuperStar.Name = "GreatGrandSuperStar";
+            greatGrandSuperStar.Description = "GreatGrandSuperStar at the centre of the Omniverse (The OASIS). Can create Multiverses, Universes, Galaxies, SolarSystems, Stars, Planets (Super OAPPS) and moons (OAPPS)";
+            greatGrandSuperStar.ParentOmiverse = omniverse;
+            greatGrandSuperStar.ParentOmiverseId = omniverse.Id;
+            //await greatGrandSuperStar.InitializeAsync();
+            result = await greatGrandSuperStar.SaveAsync();
+
+            if (!result.IsError && result.Result != null)
+            {
+                STARDNA.DefaultGreatGrandSuperStarId = greatGrandSuperStar.Id.ToString();
+
+                omniverse.Name = "The OASIS Omniverse";
+                omniverse.Description = "The OASIS Omniverse that contains everything else.";
+                omniverse.GreatGrandSuperStar = greatGrandSuperStar;
+                omniverse.ParentGreatGrandSuperStar = greatGrandSuperStar;
+                omniverse.ParentGreatGrandSuperStarId = greatGrandSuperStar.Id;
+
+                OASISResult<IOmiverse> omiverseResult = await ((GreatGrandSuperStarCore)greatGrandSuperStar.CelestialBodyCore).AddOmiverseAsync(omniverse);
 
                 if (!omiverseResult.IsError && omiverseResult.Result != null)
                 {
-                    InnerStar.ParentOmiverse = omiverseResult.Result;
-                    InnerStar.ParentOmiverseId = omiverseResult.Result.Id;
-                    InnerStar.Save();
+                    Multiverse multiverse = new Multiverse();
+                    multiverse.Name = "Our Multiverse.";
+                    multiverse.Description = "The Multiverse that our Milky Way Galaxy belongs to, the default Multiverse.";
+                    multiverse.ParentOmiverse = omiverseResult.Result;
+                    multiverse.ParentOmiverseId = omiverseResult.Result.Id;
+                    multiverse.ParentGreatGrandSuperStar = greatGrandSuperStar;
+                    multiverse.ParentGreatGrandSuperStarId = greatGrandSuperStar.Id;
+
+                    OASISResult<IMultiverse> multiverseResult = await ((GreatGrandSuperStarCore)greatGrandSuperStar.CelestialBodyCore).AddMultiverseAsync(multiverse);
+
+                    if (!multiverseResult.IsError && multiverseResult.Result != null)
+                    {
+                        multiverse = (Multiverse)multiverseResult.Result;
+                        STARDNA.DefaultGrandSuperStarId = multiverse.GrandSuperStar.Id.ToString();
+
+                        GalaxyCluster galaxyCluster = new GalaxyCluster();
+                        galaxyCluster.Name = "Milky Way Galaxy Cluster.";
+                        galaxyCluster.Description = "The Galaxy Cluster that our Milky Way Galaxy belongs to, the default Galaxy Cluster.";
+                        Mapper<IMultiverse, GalaxyCluster>.MapParentCelestialBodyProperties(multiverse, galaxyCluster);
+                        galaxyCluster.ParentMultiverse = multiverse;
+                        galaxyCluster.ParentMultiverseId = multiverse.Id;
+                        galaxyCluster.ParentDimension = multiverse.Dimensions.ThirdDimension;
+                        galaxyCluster.ParentDimensionId = multiverse.Dimensions.ThirdDimension.Id;
+                        galaxyCluster.ParentUniverseId = multiverse.Dimensions.ThirdDimension.MagicVerse.Id;
+                        galaxyCluster.ParentUniverse = multiverse.Dimensions.ThirdDimension.MagicVerse;
+
+                        OASISResult<IGalaxyCluster> galaxyClusterResult = await ((GrandSuperStarCore)multiverse.GrandSuperStar.CelestialBodyCore).AddGalaxyClusterToUniverseAsync(multiverse.Dimensions.ThirdDimension.MagicVerse, galaxyCluster);
+
+                        if (!galaxyClusterResult.IsError && galaxyClusterResult.Result != null)
+                        {
+                            galaxyCluster = (GalaxyCluster)galaxyClusterResult.Result;
+
+                            Galaxy galaxy = new Galaxy();
+                            galaxy.Name = "The Milky Way Galaxy";
+                            galaxy.Description = "Our Milky Way Galaxy, which is the default Galaxy.";
+                            Mapper<IGalaxyCluster, Galaxy>.MapParentCelestialBodyProperties(galaxyCluster, galaxy);
+                            galaxy.ParentGalaxyCluster = galaxyCluster;
+                            galaxy.ParentGalaxyClusterId = galaxyCluster.Id;
+
+                            OASISResult<IGalaxy> galaxyResult = await ((GrandSuperStarCore)multiverse.GrandSuperStar.CelestialBodyCore).AddGalaxyToGalaxyClusterAsync(galaxyCluster, galaxy);
+
+                            if (!galaxyResult.IsError && galaxyResult.Result != null)
+                            {
+                                galaxy = (Galaxy)galaxyResult.Result;
+                                STARDNA.DefaultSuperStarId = galaxy.SuperStar.Id.ToString();
+
+                                SolarSystem solarSystem = new SolarSystem();
+                                solarSystem.Name = "The Solar System";
+                                solarSystem.Description = "Our Solar System, which is the default Solar System.";
+                                solarSystem.Id = Guid.NewGuid();
+                                solarSystem.IsNewHolon = true;
+
+                                Star star = new Star();
+                                Mapper<IGalaxy, Star>.MapParentCelestialBodyProperties(galaxy, star);
+                                star.Name = "The Sun (Sol)";
+                                star.Description = "The Sun at the centre of our Solar System";
+                                star.ParentGalaxy = galaxy;
+                                star.ParentGalaxyId = galaxy.Id;
+                                star.ParentSolarSystem = solarSystem;
+                                star.ParentSolarSystemId = solarSystem.Id;
+                               // await star.InitializeAsync();
+
+                                OASISResult<IStar> starResult = await ((SuperStarCore)galaxy.SuperStar.CelestialBodyCore).AddStarAsync(star);
+
+                                if (!starResult.IsError && starResult.Result != null)
+                                {
+                                    star = (Star)starResult.Result;
+                                    DefaultStar = star; //TODO: TEMP: For now the default Star in STAR ODK will be our Sun (this will be more dynamic later on).
+                                    STARDNA.DefaultStarId = DefaultStar.Id.ToString();
+                                    
+                                    Mapper<IStar, SolarSystem>.MapParentCelestialBodyProperties(star, solarSystem);
+                                    solarSystem.ParentStar = star;
+                                    solarSystem.ParentStarId = star.Id;
+
+                                    //TODO: Not sure if this method should also automatically create a Star inside it like the methods above do for Galaxy, Universe etc?
+                                    // I like how a Star creates its own Solar System from its StarDust, which is how it works in real life I am pretty sure? So I think this is best... :)
+                                    //TODO: For some reason I could not get Galaxy and Universe to work the same way? Need to come back to this so they all work in the same consistent manner...
+                                    OASISResult<ISolarSystem> solarSystemResult = await ((StarCore)star.CelestialBodyCore).AddSolarSystemAsync(solarSystem);
+
+                                    if (!solarSystemResult.IsError && solarSystemResult.Result != null)
+                                    {
+                                        solarSystem = (SolarSystem)solarSystemResult.Result;
+
+                                        Planet ourWorld = new Planet();
+                                        ourWorld.Name = "Our World";
+                                        ourWorld.Description = "The digital twin of our planet and the default planet.";
+                                        Mapper<ISolarSystem, Planet>.MapParentCelestialBodyProperties(solarSystem, ourWorld);
+                                        ourWorld.ParentSolarSystem = solarSystem;
+                                        ourWorld.ParentSolarSystemId = solarSystem.Id;
+                                       // await ourWorld.InitializeAsync();
+
+                                        OASISResult<IPlanet> ourWorldResult = await ((StarCore)star.CelestialBodyCore).AddPlanetAsync(ourWorld);
+
+                                        if (!ourWorldResult.IsError && ourWorldResult.Result != null)
+                                        {
+                                            ourWorld = (Planet)ourWorldResult.Result;
+                                            STARDNA.DefaultPlanetId = ourWorld.Id.ToString();
+                                        }
+                                        else
+                                        {
+                                            result.IsError = true;
+                                            result.Message = ourWorldResult.Message;
+                                        }
+                                    }
+                                    else
+                                    {
+                                        result.IsError = true;
+                                        result.Message = solarSystemResult.Message;
+                                    }
+                                }
+                                else
+                                {
+                                    result.IsError = true;
+                                    result.Message = starResult.Message;
+                                }
+                            }
+                            else
+                            {
+                                result.IsError = true;
+                                result.Message = galaxyResult.Message;
+                            }
+                        }
+                        else
+                        {
+                            result.IsError = true;
+                            result.Message = galaxyClusterResult.Message;
+                        }
+                    }
+                    else
+                    {
+                        result.IsError = true;
+                        result.Message = multiverseResult.Message;
+                    }
                 }
-
-              
-
-                //Then need to create a default Universe, Galaxy, SolarSystem, Star & Planet (Our World).
+                else
+                {
+                    result.IsError = true;
+                    result.Message = omiverseResult.Message;
+                }
             }
 
+            SaveDNA();
+            result.Message = "STAR Ignited and The OASIS Omniverse Created.";
             return result;
         }
 
