@@ -11,7 +11,7 @@ namespace NextGenSoftware.OASIS.STAR.OASISAPIManager
         public bool IsOASISBooted { get; set; }
         public AvatarManager Avatar { get; set; }
         public HolonManager Data { get; set; }
-        public MapManager Map { get; set; }
+       // public MapManager Map { get; set; }
         public OASISProviders Providers { get; private set; }
 
         public OASISResult<bool> BootOASIS(OASISDNA OASISDNA, bool startApolloServer = true)
@@ -59,7 +59,7 @@ namespace NextGenSoftware.OASIS.STAR.OASISAPIManager
 
         private void BootOASIS(bool startApolloServer = true)
         {
-            Map = new MapManager(ProviderManager.CurrentStorageProvider);
+           // Map = new MapManager(ProviderManager.CurrentStorageProvider);
             Avatar = new AvatarManager(ProviderManager.CurrentStorageProvider, OASISBootLoader.OASISBootLoader.OASISDNA);
             Data = new HolonManager(ProviderManager.CurrentStorageProvider);
             Providers = new OASISProviders(OASISBootLoader.OASISBootLoader.OASISDNA);
