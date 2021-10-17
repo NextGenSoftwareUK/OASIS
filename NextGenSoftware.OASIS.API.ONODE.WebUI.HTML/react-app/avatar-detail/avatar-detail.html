@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <!-- Basic -->
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Avatar Detail Screen</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.9.0/css/all.min.css">
+    <link rel="stylesheet" href="css/layout.css" />
+    <link rel="stylesheet" href="css/ionicons.css" />
+    <link rel="stylesheet" href="css/animate.css" />
+    <link rel="stylesheet" href="css/tabs.css" />
+    <link rel="stylesheet" href="css/new-skin/new-skin.css" />
+    <link rel="stylesheet" href="css/template-dark/dark.css" />
+    <script src="./js/jquery.min.js"></script>
+  </head>
+
+  <body>
+    <div class="page new-skin">
+      <!-- Container -->
+      <div class="container opened" data-animation-in="fadeInLeft" data-animation-out="fadeOutLeft">
+        <!-- Header -->
+        <header class="header">
+          <!-- header profile -->
+          <div class="profile">
+            <div class="title">Username</div>
+            <div class="subtitle"> User Level </div>
+          </div>
+          <div class="navigation">
+            <ul>
+              <li class="list active">
+                <a href="#card-1">
+                  <span class="icon far fa-user-circle fa-lg"></span>
+                  <span class="title">About</span>
+                </a>
+              </li>
+              <li class="list">
+                <a href="#card-2">
+                  <span class="icon fas fa-th-list fa-lg"></span>
+                  <span class="title">Resume</span>
+                </a>
+              </li>
+              <li class="list">
+                <a href="#card-3">
+                  <span class="icon fas fa-paint-brush fa-lg"></span>
+                  <span class="title">Works</span>
+                </a>
+              </li>
+              <li class="list">
+                <a href="#card-4">
+                  <span class="icon far fa-comment-alt fa-lg"></span>
+                  <span class="title">Blog</span>
+                </a>
+              </li>
+              <li class="list">
+                <a href="#card-5">
+                  <span class="icon fas fa-at fa-lg"></span>
+                  <span class="title">Contact</span>
+                </a>
+              </li>
+              <li class="list">
+                <a href="#">
+                  <span class="icon fas fa-sign-out-alt fa-lg"></span>
+                  <span class="title">Logout</span>
+                </a>
+              </li>
+            </ul>
+          </div>
+        </header>
+        <!-- Card - Started -->
+        <div class="card-started" id="home-card">
+          <!-- Profile -->
+          <div class="profile no-photo">
+            <div class="slide"></div>
+            <div class="title">Username</div>
+            <div class="subtitle"> User Level </div>
+            <div class="lnks">
+              <a href="#" class="lnk">
+                <span class="text">2D Avatar</span>
+              </a>
+              <a href="#" class="lnk discover">
+                <span class="text">3d Avatar</span>
+              </a>
+            </div>
+          </div>
+        </div>
+        <!-- Card - 1 -->
+        <div class="card-inner animated" id="card-1">
+          <div class="card-wrap">
+            <!-- Content -->
+            <div class="content">
+            <div class="title">Card 1</div>
+
+            </div>
+          </div>
+        </div>
+        <!-- Card - 2 -->
+        <div class="card-inner" id="card-2">
+          <div class="card-wrap">
+            <!-- Content -->
+            <div class="content">
+            <div class="title">Card 2</div>
+
+            </div>
+          </div>
+        </div>
+        <!-- Card - 3 -->
+        <div class="card-inner" id="card-3">
+          <div class="card-wrap">
+            <!-- Content -->
+            <div class="content">
+            <div class="title">Card 3</div>
+
+            </div>
+          </div>
+        </div>
+        <!-- Card - 4 -->
+        <div class="card-inner" id="card-4">
+          <div class="card-wrap">
+            <!-- Content -->
+            <div class="content">
+            <div class="title">Card 4</div>
+
+            </div>
+          </div>
+        </div>
+        <!-- Card - 5 -->
+        <div class="card-inner" id="card-5">
+          <div class="card-wrap">
+            <!-- Content -->
+            <div class="content">
+            <div class="title">Card 5</div>
+
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- jQuery Scripts -->
+    <script src="js/jquery.min.js"></script>
+    <script src="js/jquery.validate.js"></script>
+    <script src="js/jquery.slimscroll.js"></script>
+    <!-- Main Scripts -->
+    <script src="js/scripts.js"></script>
+    <script>
+      let list = document.querySelectorAll('.list');
+      for (let i = 0; i < list.length; i++) {
+        list[i].onclick = function () {
+          let j = 0;
+          while (j < list.length) {
+            list[j++].className = 'list';
+          }
+          list[i].className = 'list active';
+        }
+      }
+    </script>
+  </body>
+
+</html>
