@@ -2,7 +2,7 @@
 using NextGenSoftware.OASIS.API.Core.CustomAttrbiutes;
 using NextGenSoftware.OASIS.API.Core.Holons;
 
-namespace NextGenSoftware.OASIS.API.ONODE.BLL
+namespace NextGenSoftware.OASIS.API.ONODE.BLL.Holons
 {
     public class SampleHolon : Holon
     {

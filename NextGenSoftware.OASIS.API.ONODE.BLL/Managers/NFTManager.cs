@@ -3,8 +3,9 @@ using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Managers;
+using NextGenSoftware.OASIS.API.ONODE.BLL.Holons;
 
-namespace NextGenSoftware.OASIS.API.ONODE.BLL
+namespace NextGenSoftware.OASIS.API.ONODE.BLL.Managers
 {
     public class NFTManager
     {
