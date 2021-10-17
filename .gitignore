@@ -261,3 +261,9 @@ __pycache__/
 *.pyc
 /CallZomeFunction.ods
 /CallZomeFunction.ods
+
+#mac
+.DS_Store
+NextGenSoftware.OASIS.API.ONODE.WebUI.HTML/react-app/yarn.lock
+*.js
+*.map

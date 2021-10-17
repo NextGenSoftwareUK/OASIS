@@ -19,7 +19,7 @@ namespace NextGenSoftware.Holochain.HoloNET.Client.TestHarness
         private static async Task TestHoloNETClient()
         {
 
-            HoloNETClient holoNETClient = new HoloNETClient("ws://localhost:8889", HolochainVersion.RSM);
+            HoloNETClient holoNETClient = new HoloNETClient("ws://localhost:8888", HolochainVersion.RSM);
             //HoloNETClient holoNETClient = new HoloNETClient("ws://127.0.0.1:8889", HolochainVersion.RSM);
             //HoloNETClient holoNETClient = new HoloNETClient("ws://172.24.159.255:8889", HolochainVersion.RSM);
             //HoloNETClient holoNETClient = new HoloNETClient("ws://::1:8889", HolochainVersion.RSM);
@@ -55,10 +55,10 @@ namespace NextGenSoftware.Holochain.HoloNET.Client.TestHarness
                // await holoNETClient.GetHolochainInstancesAsync();
                 await holoNETClient.CallZomeFunctionAsync("1", "test-instance", "our_world_core", "test", ZomeCallback, null);
 
-                await holoNETClient.CallZomeFunctionAsync("1", "test-instance", "our_world_core", "test", ZomeCallback, new { message = new { content = "blah!" } });
+               // await holoNETClient.CallZomeFunctionAsync("1", "test-instance", "our_world_core", "test", ZomeCallback, new { message = new { content = "blah!" } });
                 //await holoNETClient.CallZomeFunctionAsync("2", "test-instance", "our_world_core", "test2", ZomeCallback, new { _message = "blah!" });
 
-                await holoNETClient.CallZomeFunctionAsync("2", "test-instance", "our_world_core", "save_Avatar", ZomeCallback, new { address = "" });
+               // await holoNETClient.CallZomeFunctionAsync("2", "test-instance", "our_world_core", "save_Avatar", ZomeCallback, new { address = "" });
                 //await holoNETClient.CallZomeFunctionAsync("2", "test-instance", "our_world_core", "load_Avatar", ZomeCallback, new { address = "" });
 
                 // Load testing

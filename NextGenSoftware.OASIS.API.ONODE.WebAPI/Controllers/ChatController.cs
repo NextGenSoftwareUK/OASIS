@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
+using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.DNA;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
@@ -22,10 +23,14 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpGet("StartNewChatSession")]
-        public ActionResult<bool> StartNewChatSession()
+        public OASISResult<bool> StartNewChatSession()
         {
             // TODO: Finish implementing.
-            return Ok();
+            return new ()
+            {
+                 IsError = false,
+                 Result = true
+            };
         }
     }
 }

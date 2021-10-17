@@ -1,5 +1,9 @@
-﻿using NextGenSoftware.Holochain.HoloNET.Client.Core;
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
+using NextGenSoftware.Holochain.HoloNET.Client.Core;
 using NextGenSoftware.Holochain.HoloNET.Client.Unity;
+using NextGenSoftware.OASIS.API.Core.Helpers;
+using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Providers.HoloOASIS.Core;
 
 

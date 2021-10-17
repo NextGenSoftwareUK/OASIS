@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using NextGenSoftware.OASIS.API.Core.Helpers;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 {
@@ -19,26 +20,26 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         }
 
         [HttpGet]
-        public async Task<IEnumerable<Contact>> GetAllContacts()
+        public async Task<OASISResult<IEnumerable<Contact>>> GetAllContacts()
         {
             GetAndActivateDefaultProvider();
-            return await Task.Run(() => _scmsRepository.GetAllContacts());
+            return new(await _scmsRepository.GetAllContacts());
         }
 
         [HttpGet("GetAllContactsForSequenceAndPhase/{sequenceNo}/{phaseNo}")]
         //[HttpGet("/{sequenceNo}/{phaseNo}")]
-        public async Task<IEnumerable<Contact>> GetAllContactsForSequenceAndPhase(int sequenceNo, int phaseNo)
+        public async Task<OASISResult<IEnumerable<Contact>>> GetAllContactsForSequenceAndPhase(int sequenceNo, int phaseNo)
         {
             GetAndActivateDefaultProvider();
-            return await Task.Run(() => _scmsRepository.GetAllContacts(sequenceNo, phaseNo, false));
+            return new(await _scmsRepository.GetAllContacts(sequenceNo, phaseNo, false));
         }
 
         [HttpGet("GetAllContactsForSequenceAndPhase/{sequenceNo}/{phaseNo}/{loadPhase}")]
         //[HttpGet("/{sequenceNo}/{phaseNo}")]
-        public async Task<IEnumerable<Contact>> GetAllContactsForSequenceAndPhase(int sequenceNo, int phaseNo, bool loadPhase = false)
+        public async Task<OASISResult<IEnumerable<Contact>>> GetAllContactsForSequenceAndPhase(int sequenceNo, int phaseNo, bool loadPhase = false)
         {
             GetAndActivateDefaultProvider();
-            return await Task.Run(() => _scmsRepository.GetAllContacts(sequenceNo, phaseNo, loadPhase));
+            return new(await _scmsRepository.GetAllContacts(sequenceNo, phaseNo, loadPhase));
         }
     }
 }

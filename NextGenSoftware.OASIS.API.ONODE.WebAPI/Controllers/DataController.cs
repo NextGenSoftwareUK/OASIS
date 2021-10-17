@@ -1,6 +1,7 @@
 ﻿using System;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Managers;
@@ -26,7 +27,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 
                     //TODO: Eventually want to replace all exceptions with OASISResult throughout the OASIS because then it makes sure errors are handled properly and friendly messages are shown (plus less overhead of throwing an entire stack trace!)
                     if (result.IsError)
-                        ErrorHandling.HandleError(ref result, string.Concat("Error calling OASISDNAManager.GetAndActivateDefaultProvider(). Error details: ", result.Message), true, false, true);
+                        ErrorHandling.HandleError(ref result, string.Concat("Error calling OASISBootLoader.OASISBootLoader.GetAndActivateDefaultProvider(). Error details: ", result.Message), true, false, true);
 
                     _holonManager = new HolonManager(result.Result);
                 }
@@ -48,14 +49,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpGet("LoadHolon/{id}")]
-        public ActionResult<Holon> LoadHolon(Guid id)
-        {
-            IHolon holon = HolonManager.LoadHolon(id);
-
-            if (holon == null)
-                return Ok("ERROR: Holon Not Found.");
-            else
-                return Ok(holon);
+        public async Task<OASISResult<IHolon>> LoadHolon(Guid id)
+        { 
+            return await HolonManager.LoadHolonAsync(id);
         }
 
         /// <summary>
@@ -67,11 +63,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpGet("LoadHolon/{id}/{providerType}/{setGlobally}")]
-        public ActionResult<Holon> LoadHolon(Guid id, ProviderType providerType, bool setGlobally = false)
+        public async Task<OASISResult<IHolon>> LoadHolon(Guid id, ProviderType providerType, bool setGlobally = false)
         {
             // TODO: Finish implementing (will tie into the HDK/ODK/Star project)
             GetAndActivateProvider(providerType, setGlobally);
-            return LoadHolon(id);
+            return await LoadHolon(id);
         }
 
         /// <summary>
@@ -81,18 +77,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpGet("LoadAllHolons")]
-        public ActionResult<Holon[]> LoadAllHolons()
+        public async Task<OASISResult<IEnumerable<IHolon>>> LoadAllHolons()
         {
-            List<IHolon> data = (List<IHolon>)HolonManager.LoadAllHolons();
-            List<Holon> holons = new List<Holon>();
-
-            if (data == null)
-                return Ok("ERROR: No Holons Found.");
-
-            foreach (IHolon holon in data)
-                holons.Add((Holon)holon);
-
-            return Ok(holons);
+            return await HolonManager.LoadAllHolonsAsync();
         }
 
         /// <summary>
@@ -103,10 +90,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpGet("LoadAllHolons/{providerType}/{setGlobally}")]
-        public ActionResult<Holon[]> LoadAllHolons(ProviderType providerType, bool setGlobally = false)
+        public async Task<OASISResult<IEnumerable<IHolon>>> LoadAllHolons(ProviderType providerType, bool setGlobally = false)
         {
-            GetAndActivateProvider(providerType, setGlobally);
-            return LoadAllHolons();
+            return await LoadAllHolons();
         }
 
         /// <summary>
@@ -117,18 +103,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpGet("LoadAllHolonsForParent/{id}/{holonType}")]
-        public ActionResult<Holon[]> LoadAllHolonsForParent(Guid id, HolonType holonType = HolonType.All)
+        public async Task<OASISResult<IEnumerable<IHolon>>> LoadAllHolonsForParent(Guid id, HolonType holonType = HolonType.All)
         {
-            List<IHolon> data = (List<IHolon>)HolonManager.LoadHolonsForParent(id, holonType);
-            List<Holon> holons = new List<Holon>();
-
-            if (data == null)
-                return Ok("ERROR: No Holons Found.");
-
-            foreach (IHolon holon in data)
-                holons.Add((Holon)holon);
-
-            return Ok(holons);
+            return await HolonManager.LoadHolonsForParentAsync(id, holonType);
         }
 
         /// <summary>
@@ -141,10 +118,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpGet("LoadAllHolonsForParent/{id}/{holonType}/{providerType}/{setGlobally}")]
-        public ActionResult<Holon[]> LoadAllHolonsForParent(Guid id, HolonType holonType = HolonType.All, ProviderType providerType = ProviderType.Default, bool setGlobally = false)
+        public async Task<OASISResult<IEnumerable<IHolon>>> LoadAllHolonsForParent(Guid id, HolonType holonType = HolonType.All, ProviderType providerType = ProviderType.Default, bool setGlobally = false)
         {
             GetAndActivateProvider(providerType, setGlobally);
-            return LoadAllHolonsForParent(id, holonType);
+            return await LoadAllHolonsForParent(id, holonType);
         }
 
         /// <summary>
@@ -155,18 +132,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpGet("LoadAllHolonsForParent/{providerKey}/{holonType}")]
-        public ActionResult<Holon[]> LoadAllHolonsForParent(string providerKey, HolonType holonType = HolonType.All)
+        public async Task<OASISResult<IEnumerable<IHolon>>> LoadAllHolonsForParent(string providerKey, HolonType holonType = HolonType.All)
         {
-            List<IHolon> data = (List<IHolon>)HolonManager.LoadHolonsForParent(providerKey, holonType);
-            List<Holon> holons = new List<Holon>();
-
-            if (data == null)
-                return Ok("ERROR: No Holons Found.");
-
-            foreach (IHolon holon in data)
-                holons.Add((Holon)holon);
-
-            return Ok(holons);
+            return await HolonManager.LoadHolonsForParentAsync(providerKey, holonType);
         }
 
         /// <summary>
@@ -179,10 +147,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpGet("LoadAllHolonsForParent/{providerKey}/{holonType}/{providerType}/{setGlobally}")]
-        public ActionResult<Holon[]> LoadAllHolonsForParent(string providerKey, HolonType holonType = HolonType.All, ProviderType providerType = ProviderType.Default, bool setGlobally = false)
+        public async Task<OASISResult<IEnumerable<IHolon>>> LoadAllHolonsForParent(string providerKey, HolonType holonType = HolonType.All, ProviderType providerType = ProviderType.Default, bool setGlobally = false)
         {
             GetAndActivateProvider(providerType, setGlobally);
-            return LoadAllHolonsForParent(providerKey, holonType);
+            return await LoadAllHolonsForParent(providerKey, holonType);
         }
 
         /// <summary>
@@ -192,14 +160,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpPost("SaveHolon")]
-        public ActionResult<Holon> SaveHolon(Holon holon)
+        public async Task<OASISResult<IHolon>> SaveHolon(Holon holon)
         {
-            holon = (Holon)HolonManager.SaveHolon(holon);
-
-            if (holon == null)
-                return Ok("ERROR: An error occured saving the holon.");
-            else
-                return Ok(holon);
+            return await HolonManager.SaveHolonAsync(holon); 
         }
 
         /// <summary>
@@ -211,10 +174,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpPost("SaveHolon/{providerType}/{setGlobally}")]
-        public ActionResult<Holon> SaveHolon(Holon holon, ProviderType providerType, bool setGlobally = false)
+        public async Task<OASISResult<IHolon>> SaveHolon(Holon holon, ProviderType providerType, bool setGlobally = false)
         {
             GetAndActivateProvider(providerType, setGlobally);
-            return SaveHolon(holon);
+            return await SaveHolon(holon);
         }
 
         /// <summary>
@@ -226,11 +189,15 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpPost("SaveHolonOffChain/{holon}/{offChainProviderType}/{onChainProviderType}")]
-        public ActionResult<Holon> SaveHolon(Holon holon, ProviderType offChainProviderType, ProviderType onChainProviderType)
+        public async Task<OASISResult<IHolon>> SaveHolon(Holon holon, ProviderType offChainProviderType, ProviderType onChainProviderType)
         {
             // TODO: Finish implementing (will tie into the HDK/ODK/Star project)
             //GetAndActivateProvider(providerType, setGlobally);
-            return Ok("COMING SOON...");
+            return new()
+            {
+                IsError = false,
+                Message = "COMING SOON..."
+            };
         }
 
         /// <summary>
@@ -240,12 +207,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpDelete("DeleteHolon/{id}")]
-        public ActionResult<string> DeleteHolon(Guid id)
+        public async Task<OASISResult<bool>> DeleteHolon(Guid id)
         {
-            if (HolonManager.DeleteHolon(id))
-                return Ok("Holon Deleted Successfully");
-            else
-                return Ok("ERROR: Error Occured Deleting Holon.");
+            return await HolonManager.DeleteHolonAsync(id);
         }
 
         /// <summary>
@@ -257,11 +221,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpDelete("DeleteHolon/{id}/{providerType}/{setGlobally}")]
-        public ActionResult<string> DeleteHolon(Guid id, ProviderType providerType, bool setGlobally = false)
+        public async Task<OASISResult<bool>> DeleteHolon(Guid id, ProviderType providerType, bool setGlobally = false)
         {
             // TODO: Finish implementing (will tie into the HDK/ODK/Star project)
             GetAndActivateProvider(providerType, setGlobally);
-            return DeleteHolon(id);
+            return await DeleteHolon(id);
         }
     }
 }

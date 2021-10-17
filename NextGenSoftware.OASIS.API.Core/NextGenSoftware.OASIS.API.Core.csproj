@@ -18,7 +18,7 @@
   <ItemGroup>
     <PackageReference Include="BCrypt.Net-Next" Version="4.0.2" />
     <PackageReference Include="MailKit" Version="2.11.1" />
-    <PackageReference Include="Newtonsoft.Json" Version="12.0.2" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
     <PackageReference Include="NLog" Version="4.7.9" />
     <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="6.7.1" />
     <PackageReference Include="System.Runtime" Version="4.3.1" />
@@ -28,6 +28,10 @@
   <ItemGroup>
     <ProjectReference Include="..\NextGenSoftware.OASIS.API.Core.Apollo.Server\NextGenSoftware.OASIS.API.Core.Apollo.Server.csproj" />
     <ProjectReference Include="..\NextGenSoftware.OASIS.API.DNA\NextGenSoftware.OASIS.API.DNA.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Interfaces\STAR\CelestialHolons\" />
   </ItemGroup>
 
 </Project>

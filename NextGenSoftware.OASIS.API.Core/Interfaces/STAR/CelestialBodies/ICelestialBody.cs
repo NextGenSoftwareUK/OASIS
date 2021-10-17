@@ -18,16 +18,39 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces.STAR
         event ZomeError OnZomeError;
         event ZomesLoaded OnZomesLoaded;
 
+        public SpaceQuadrantType SpaceQuadrant { get; set; }
+        public int SpaceSector { get; set; }
+        public float SuperGalacticLatitute { get; set; }
+        public float SuperGalacticLongitute { get; set; }
+        public float GalacticLatitute { get; set; }
+        public float GalacticLongitute { get; set; }
+        public float HorizontalLatitute { get; set; }
+        public float HorizontalLongitute { get; set; }
+        public float EquatorialLatitute { get; set; }
+        public float EquatorialLongitute { get; set; }
+        public float EclipticLatitute { get; set; }
+        public float EclipticLongitute { get; set; }
         public int Size { get; set; }
+        public int Radius { get; set; }
+        public int Age { get; set; }
         public int Mass { get; set; }
+        public int Temperature { get; set; }
         public int Weight { get; set; }
         public int GravitaionalPull { get; set; }
+        public int OrbitPositionFromParentStar { get; set; }
+        //public int OrbitPositionFromParentSuperStar { get; set; } //Only applies to SolarSystems. //TODO: Maybe better to make SolarSystem.ParentStar point to the SuperStar it orbits rather than the Star at the centre of it?
+        public int CurrentOrbitAngleOfParentStar { get; set; } //Angle between 0 and 360 degrees of how far around the orbit it it of its parent star.
+        public int DistanceFromParentStarInMetres { get; set; }
+        public int RotationSpeed { get; set; }
+        public int TiltAngle { get; set; }
+        public int NumberRegisteredAvatars { get; set; }
+        public int NunmerActiveAvatars { get; set; }
 
         ICelestialBodyCore CelestialBodyCore { get; set; }
         GenesisType GenesisType { get; set; }
         bool IsInitialized { get; }
-        Task<OASISResult<ICelestialBody>> SaveAsync();
-        OASISResult<ICelestialBody> Save();
+        Task<OASISResult<ICelestialBody>> SaveAsync(bool saveChildren = true, bool continueOnError = true);
+        OASISResult<ICelestialBody> Save(bool saveChildren = true, bool continueOnError = true);
         Task<OASISResult<IEnumerable<IZome>>> LoadZomesAsync();
         OASISResult<IEnumerable<IZome>> LoadZomes();
         Task<OASISResult<ICelestialBody>> LoadCelestialBodyAsync();

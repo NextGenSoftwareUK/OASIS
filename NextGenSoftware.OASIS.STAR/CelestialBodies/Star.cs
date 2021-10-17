@@ -8,6 +8,12 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
     // At the centre of each Solar System
     public class Star : CelestialBody, IStar
     {
+        public int Luminosity { get; set; }
+        public StarType StarType { get; set; }
+        public StarClassification StarClassification { get; set; }
+        public StarBinaryType StarBinaryType { get; set; }
+
+
         public Star() : base(HolonType.Star)
         {
             this.HolonType = HolonType.Star;

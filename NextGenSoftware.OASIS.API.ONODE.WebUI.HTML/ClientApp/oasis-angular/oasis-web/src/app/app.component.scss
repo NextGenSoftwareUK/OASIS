@@ -1,0 +1,18 @@
+@import "/src/assets/globalStyles/base";
+.main-header {
+  position: relative;
+  z-index: 1;
+  height: var(--header-height);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  @include fontSmooth;
+
+  a {
+    text-decoration: none;
+    line-height: 2em;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    font-weight: 500;
+  }
+}

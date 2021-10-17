@@ -6,6 +6,7 @@ using NextGenSoftware.OASIS.API.Core;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Managers;
+using NextGenSoftware.OASIS.API.Core.Helpers;
 
 namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS
 {
@@ -14,16 +15,47 @@ namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS
         private static Dictionary<Guid, Account> _avatarIdToTelosAccountLookup = new Dictionary<Guid, Account>();
         private AvatarManager _avatarManager = null;
 
+        public string Host { get; set; }
         public EOSIOOASIS.EOSIOOASIS EOSIOOASIS { get; set; }
 
-        public TelosOASIS(string host)
+        //TODO: We may just want to pass in the host and not the full OASISDNA is it is not needed?
+        public TelosOASIS(string host) : base()
+        {
+            this.Host = host;
+            Init();
+        }
+
+        // I think we should only pass in the OASISDNA if we need more than just the Host? Or if we need to update the OASISDNA like IPFSOASIS does...
+        /*
+        public TelosOASIS() : base()
+        {
+
+        }
+
+        public TelosOASIS(string OASISDNAPath) : base(OASISDNAPath)
+        {
+            Init();
+        }
+
+        public TelosOASIS(OASISDNA OASISDNA) : base(OASISDNA)
+        {
+            Init();
+        }
+
+        public TelosOASIS(OASISDNA OASISDNA, string OASISDNAPath) : base(OASISDNA, OASISDNAPath)
+        {
+            Init();
+        }*/
+
+        private void Init()
         {
             this.ProviderName = "TelosOASIS";
             this.ProviderDescription = "Telos Provider";
-            this.ProviderType = new API.Core.Helpers.EnumValue<ProviderType>(API.Core.Enums.ProviderType.TelosOASIS);
-            this.ProviderCategory = new Core.Helpers.EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
+            this.ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.TelosOASIS);
+            this.ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
 
-            EOSIOOASIS = new EOSIOOASIS.EOSIOOASIS(host);
+            //EOSIOOASIS = new EOSIOOASIS.EOSIOOASIS(OASISDNA.OASIS.StorageProviders.TelosOASIS.ConnectionString);
+            EOSIOOASIS = new EOSIOOASIS.EOSIOOASIS(this.Host);
         }
 
         private AvatarManager AvatarManagerInstance
@@ -31,7 +63,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS
             get
             {
                 if (_avatarManager == null)
-                    _avatarManager = new AvatarManager(ProviderManager.GetStorageProvider(Core.Enums.ProviderType.MongoDBOASIS));
+                    _avatarManager = new AvatarManager(ProviderManager.GetStorageProvider(Core.Enums.ProviderType.MongoDBOASIS), OASISDNA);
                     //_avatarManager = new AvatarManager(this); // TODO: URGENT: PUT THIS BACK IN ASAP! TEMP USING MONGO UNTIL EOSIO/Telos METHODS IMPLEMENTED...
 
                 return _avatarManager;
@@ -43,12 +75,32 @@ namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS
             throw new NotImplementedException();
         }
 
+        public override bool DeleteAvatarByEmail(string avatarEmail, bool softDelete = true)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override bool DeleteAvatarByUsername(string avatarUsername, bool softDelete = true)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override async Task<bool> DeleteAvatarByUsernameAsync(string avatarUsername, bool softDelete = true)
+        {
+            throw new NotImplementedException();
+        }
+
         public override bool DeleteAvatar(string providerKey, bool softDelete = true)
         {
             throw new NotImplementedException();
         }
 
         public override Task<bool> DeleteAvatarAsync(Guid id, bool softDelete = true)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override async Task<bool> DeleteAvatarByEmailAsync(string avatarEmail, bool softDelete = true)
         {
             throw new NotImplementedException();
         }
@@ -93,6 +145,16 @@ namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS
             throw new NotImplementedException();
         }
 
+        public override IAvatar LoadAvatarByEmail(string avatarEmail)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override IAvatar LoadAvatarByUsername(string avatarUsername)
+        {
+            throw new NotImplementedException();
+        }
+
         public override Task<IEnumerable<IAvatar>> LoadAllAvatarsAsync()
         {
             throw new NotImplementedException();
@@ -104,6 +166,11 @@ namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS
         }
 
         public override Task<IEnumerable<IHolon>> LoadAllHolonsAsync(HolonType type = HolonType.Holon)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override async Task<IAvatar> LoadAvatarByUsernameAsync(string avatarUsername)
         {
             throw new NotImplementedException();
         }
@@ -133,6 +200,11 @@ namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS
             throw new NotImplementedException();
         }
 
+        public override async Task<IAvatar> LoadAvatarByEmailAsync(string avatarEmail)
+        {
+            throw new NotImplementedException();
+        }
+
         public override Task<IAvatar> LoadAvatarAsync(string username, string password)
         {
             throw new NotImplementedException();
@@ -156,26 +228,6 @@ namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS
         }
 
         public override Task<IAvatar> SaveAvatarAsync(IAvatar Avatar)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override IHolon SaveHolon(IHolon holon)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override Task<IHolon> SaveHolonAsync(IHolon holon)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override IEnumerable<IHolon> SaveHolons(IEnumerable<IHolon> holons)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override Task<IEnumerable<IHolon>> SaveHolonsAsync(IEnumerable<IHolon> holons)
         {
             throw new NotImplementedException();
         }
@@ -276,7 +328,77 @@ namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS
             throw new NotImplementedException();
         }
 
-        public override Task<IEnumerable<IHolon>> LoadHolonsForParentAsync(string providerKey, HolonType type = HolonType.All)
+        public override Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(string providerKey, HolonType type = HolonType.All)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override IAvatarDetail LoadAvatarDetail(Guid id)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override IAvatarDetail LoadAvatarDetailByEmail(string avatarEmail)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override IAvatarDetail LoadAvatarDetailByUsername(string avatarUsername)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override Task<IAvatarDetail> LoadAvatarDetailAsync(Guid id)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override async Task<IAvatarDetail> LoadAvatarDetailByUsernameAsync(string avatarUsername)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override async Task<IAvatarDetail> LoadAvatarDetailByEmailAsync(string avatarEmail)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override IEnumerable<IAvatarDetail> LoadAllAvatarDetails()
+        {
+            throw new NotImplementedException();
+        }
+
+        public override Task<IEnumerable<IAvatarDetail>> LoadAllAvatarDetailsAsync()
+        {
+            throw new NotImplementedException();
+        }
+
+        public override IAvatarDetail SaveAvatarDetail(IAvatarDetail Avatar)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override Task<IAvatarDetail> SaveAvatarDetailAsync(IAvatarDetail Avatar)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override OASISResult<IHolon> SaveHolon(IHolon holon, bool saveChildrenRecursive = true)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon, bool saveChildrenRecursive = true)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override OASISResult<IEnumerable<IHolon>> SaveHolons(IEnumerable<IHolon> holons, bool saveChildrenRecursive = true)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons, bool saveChildrenRecursive = true)
         {
             throw new NotImplementedException();
         }
