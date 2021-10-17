@@ -32,7 +32,7 @@ namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Handlers
             try
             {
                 var signatureResult = await _signatureProvider.GetSignature(requestModel.AccountAddress, 
-                    "sing", "pk", "hu");
+                    requestModel.SingingMessage, requestModel.PrivateKey, requestModel.HostUrl);
                 if (signatureResult.IsError)
                 {
                     response.IsError = true;
