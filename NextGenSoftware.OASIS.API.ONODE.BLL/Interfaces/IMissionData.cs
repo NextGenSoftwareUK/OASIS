@@ -1,7 +1,7 @@
-﻿using NextGenSoftware.OASIS.API.Core.Holons;
+﻿using NextGenSoftware.OASIS.API.ONODE.BLL.Holons;
 using System.Collections.Generic;
 
-namespace NextGenSoftware.OASIS.API.Core.Interfaces
+namespace NextGenSoftware.OASIS.API.ONODE.BLL.Interfaces
 {
     public interface IMissionData 
     {

@@ -1008,15 +1008,16 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return result;
         }
 
-        /*
+        
         public OASISResult<IEnumerable<T>> SaveHolons<T>(IEnumerable<IHolon> holons, bool saveChildrenRecursive = true, ProviderType providerType = ProviderType.Default) where T : IHolon, new()
         {
             ProviderType currentProviderType = ProviderManager.CurrentStorageProviderType.Value;
-            OASISResult<List<T>> result = new OASISResult<List<T>>();
+            OASISResult<IEnumerable<T>> result = new OASISResult<IEnumerable<T>>();
             OASISResult<IEnumerable<IHolon>> holonSaveResult = new OASISResult<IEnumerable<IHolon>>();
+            List<T> originalHolons = new List<T>();
 
             foreach (IHolon holon in holons)
-                result.Result.Add((T)holon);
+                originalHolons.Add((T)holon);
 
             holonSaveResult = SaveHolonsForProviderType(PrepareHolonsForSaving(holons), providerType, saveChildrenRecursive, holonSaveResult);
 
@@ -1036,13 +1037,15 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             }
             else
             {
-                //Should already be false but just in case...
-                foreach (IHolon holon in holonSaveResult.Result)
-                {
-                    holon.IsChanged = false;
+                List<IHolon> savedHolons = holonSaveResult.Result.ToList();
 
-                    //TODO: Come back to this tomorrow! ;-)
-                    result.Result = Mapper<IHolon, T>.MapBaseHolonProperties(holonSaveResult.Result, result.Result);
+                for (int i=0; i < savedHolons.Count; i++)
+                {
+                    savedHolons[i].IsChanged = false;  //Should already be false but just in case...
+                    savedHolons[i].IsNewHolon = false;
+
+                    //Update the base holon properties that have now been updated (id, createddate, modifieddata, etc)
+                    originalHolons[i] = Mapper<IHolon, T>.MapBaseHolonProperties(savedHolons[i], originalHolons[i]);
                 }
             }
 
@@ -1055,9 +1058,11 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 }
             }
 
+            result.Result = originalHolons;
             SwitchBackToCurrentProvider(currentProviderType, ref result);
+
             return result;
-        }*/
+        }
 
         //TODO: Need to implement this format to ALL other Holon/Avatar Manager methods with OASISResult, etc.
         public async Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons, bool saveChildrenRecursive = true, ProviderType providerType = ProviderType.Default)
@@ -1086,6 +1091,60 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 //Should already be false but just in case...
                 foreach (IHolon holon in result.Result)
                     holon.IsChanged = false;
+            }
+
+            if (ProviderManager.IsAutoReplicationEnabled)
+            {
+                foreach (EnumValue<ProviderType> type in ProviderManager.GetProvidersThatAreAutoReplicating())
+                {
+                    if (type.Value != providerType && type.Value != ProviderManager.CurrentStorageProviderType.Value)
+                        await SaveHolonsForProviderTypeAsync(holons, type.Value);
+                }
+            }
+
+            SwitchBackToCurrentProvider(currentProviderType, ref result);
+            return result;
+        }
+
+        //TODO: Need to implement this format to ALL other Holon/Avatar Manager methods with OASISResult, etc.
+        public async Task<OASISResult<IEnumerable<T>>> SaveHolonsAsync<T>(IEnumerable<IHolon> holons, bool saveChildrenRecursive = true, ProviderType providerType = ProviderType.Default) where T : IHolon, new()
+        {
+            ProviderType currentProviderType = ProviderManager.CurrentStorageProviderType.Value;
+            OASISResult<IEnumerable<T>> result = new OASISResult<IEnumerable<T>>();
+            OASISResult<IEnumerable<IHolon>> holonSaveResult = new OASISResult<IEnumerable<IHolon>>();
+            List<T> originalHolons = new List<T>();
+
+            foreach (IHolon holon in holons)
+                originalHolons.Add((T)holon);
+
+            holonSaveResult = await SaveHolonsForProviderTypeAsync(PrepareHolonsForSaving(holons), providerType, saveChildrenRecursive, holonSaveResult);
+
+            if (holonSaveResult.Result == null && ProviderManager.IsAutoFailOverEnabled)
+            {
+                foreach (EnumValue<ProviderType> type in ProviderManager.GetProviderAutoFailOverList())
+                {
+                    if (type.Value != providerType && type.Value != ProviderManager.CurrentStorageProviderType.Value)
+                        holonSaveResult = await SaveHolonsForProviderTypeAsync(holons, type.Value, saveChildrenRecursive, holonSaveResult);
+                }
+            }
+
+            if (holonSaveResult.Result == null)
+            {
+                result.IsError = true;
+                result.Message = string.Concat("All Registered OASIS Providers In The AutoFailOverList Failed To Save The Holons. Providers in list are ", ProviderManager.GetProviderAutoFailOverListAsString());
+            }
+            else
+            {
+                List<IHolon> savedHolons = holonSaveResult.Result.ToList();
+
+                for (int i = 0; i < savedHolons.Count; i++)
+                {
+                    savedHolons[i].IsChanged = false;  //Should already be false but just in case...
+                    savedHolons[i].IsNewHolon = false;
+
+                    //Update the base holon properties that have now been updated (id, createddate, modifieddata, etc)
+                    originalHolons[i] = Mapper<IHolon, T>.MapBaseHolonProperties(savedHolons[i], originalHolons[i]);
+                }
             }
 
             if (ProviderManager.IsAutoReplicationEnabled)
