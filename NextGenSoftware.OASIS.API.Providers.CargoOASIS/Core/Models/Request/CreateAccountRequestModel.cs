@@ -1,6 +1,6 @@
-﻿namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Models.Request
+﻿namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Core.Models.Request
 {
-    public class CreateAccountRequestModel
+    public class CreateAccountRequestModel : BaseConfigRequestModel
     {
         /// <summary>
         /// Optional. Valid email address that will be tied to the account
@@ -10,5 +10,7 @@
         /// Optional. Username to be used for new account
         /// </summary>
         public string UserName { get; set; }
+
+        public string AccountAddress { get; set; }
     }
 }

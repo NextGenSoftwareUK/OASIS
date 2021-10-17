@@ -10,5 +10,7 @@
         /// Optional. If true this method requires authentication. Will return isOwned boolean in response
         /// </summary>
         public bool? UseAuth { get; set; }
+
+        public string AccessJwtToken { get; set; }
     }
 }

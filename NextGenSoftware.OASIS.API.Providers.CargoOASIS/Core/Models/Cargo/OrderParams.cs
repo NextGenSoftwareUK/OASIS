@@ -1,4 +1,4 @@
-﻿namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Models.Cargo
+﻿namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Core.Models.Cargo
 {
     public class OrderParams
     {
@@ -12,5 +12,7 @@
         public string To { get; set; }
         public string Limit { get; set; }
         public string Page { get; set; }
+        
+        public string AccessJwtToken { get; set; }
     }
 }

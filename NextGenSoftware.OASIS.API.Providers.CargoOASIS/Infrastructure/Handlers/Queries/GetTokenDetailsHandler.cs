@@ -2,17 +2,15 @@
 using System.Net.Http;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
-using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Enum;
+using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Interfaces;
 using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Services.HttpHandler;
-using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Models.Cargo;
-using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Models.Common;
 using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Models.Request;
 using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Models.Response;
 
 namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Handlers.Queries
 {
-    public class GetTokenDetailsHandler : IHandle<Response<GetTokenDetailsResponseModel>, GetTokenDetailsRequestModel>
+    public class GetTokenDetailsHandler : IHandle<OASISResult<GetTokenDetailsResponseModel>, GetTokenDetailsRequestModel>
     {
         private readonly IHttpHandler _httpClient;
 
@@ -27,9 +25,9 @@ namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Handlers
         /// </summary>
         /// <param name="request">Request Parameters</param>
         /// <returns>Token Details</returns>
-        public async Task<Response<GetTokenDetailsResponseModel>> Handle(GetTokenDetailsRequestModel request)
+        public async Task<OASISResult<GetTokenDetailsResponseModel>> Handle(GetTokenDetailsRequestModel request)
         {
-            var response = new Response<GetTokenDetailsResponseModel>();
+            var response = new OASISResult<GetTokenDetailsResponseModel>();
             try
             {
                 var urlQuery = $"https://api2.cargo.build/v5/get-token-details/{request.ProjectId}/{request.CollectibleId}";
@@ -41,18 +39,16 @@ namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Handlers
                 var httpResponse = await _httpClient.SendAsync(httRequest);
                 if (!httpResponse.IsSuccessStatusCode)
                 {
-                    response.Message = httpResponse.ReasonPhrase;
-                    response.ResponseStatus = ResponseStatus.Fail;
+                    response.Message = httpResponse.ReasonPhrase; 
                     return response;
                 }
                 var responseString = await httpResponse.Content.ReadAsStringAsync();
                 var data = JsonConvert.DeserializeObject<GetTokenDetailsResponseModel>(responseString);
-                response.Payload = data;
+                response.Result = data;
                 return response;
             }
             catch (Exception e)
             {
-                response.ResponseStatus = ResponseStatus.Fail;
                 response.Message = e.Message;
                 return response;
             }
