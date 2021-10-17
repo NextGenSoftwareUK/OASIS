@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net5.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj" />
+    <ProjectReference Include="..\NextGenSoftware.OASIS.API.DNA\NextGenSoftware.OASIS.API.DNA.csproj" />
+    <ProjectReference Include="..\NextGenSoftware.OASIS.API.Providers.MongoOASIS\NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.csproj" />
+    <ProjectReference Include="..\NextGenSoftware.OASIS.API.Providers.OnionProtocol.DbModel\NextGenSoftware.OASIS.API.Providers.OnionProtocol.DbModel.csproj" />
+    <ProjectReference Include="..\NextGenSoftware.OASIS.API.Providers.OnionProtocol.MongoDb\NextGenSoftware.OASIS.API.Providers.OnionProtocol.MongoDb.csproj" />
+  </ItemGroup>
+
+</Project>
