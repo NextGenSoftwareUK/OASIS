@@ -49,5 +49,7 @@
         /// the user owns within that collection. This takes precedence over the owned parameter.
         /// </summary>
         public bool? UseAuthToken { get; set; }
+
+        public string AccessJwtToken { get; set; }
     }
 }

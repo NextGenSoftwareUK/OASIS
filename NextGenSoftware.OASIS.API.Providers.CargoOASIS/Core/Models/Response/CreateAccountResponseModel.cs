@@ -1,6 +1,6 @@
 ﻿using Newtonsoft.Json;
 
-namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Models.Response
+namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Core.Models.Response
 {
     public class CreateAccountResponseModel
     {
