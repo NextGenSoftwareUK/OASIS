@@ -6,6 +6,7 @@ using NextGenSoftware.OASIS.API.Providers.CosmosOASIS.Entites;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -69,7 +70,20 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosOASIS.Entities
         public int Version { get; set; }
         public EnumValue<ProviderType> CreatedProviderType { get; set; }
         public ObservableCollection<INode> Nodes { get; set; }
+        public DimensionLevel DimensionLevel { get; set; }
+        public SubDimensionLevel SubDimensionLevel { get; set; }
+        public Guid PreviousVersionId { get; set; }
+        public Dictionary<ProviderType, string> PreviousVersionProviderKey { get; set; }
+        public EnumValue<OASISType> CreatedOASISType { get; set; }
+
+        public event PropertyChangedEventHandler PropertyChanged;
+
         public bool HasHolonChanged(bool checkChildren = true)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void NotifyPropertyChanged(string propertyName)
         {
             throw new NotImplementedException();
         }

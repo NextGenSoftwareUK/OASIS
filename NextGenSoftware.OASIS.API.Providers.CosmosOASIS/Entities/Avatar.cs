@@ -6,6 +6,7 @@ using NextGenSoftware.OASIS.API.Core.Objects;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Threading.Tasks;
 
 namespace NextGenSoftware.OASIS.API.Providers.CosmosOASIS.Entites
@@ -127,6 +128,16 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosOASIS.Entites
         public EnumValue<ProviderType> CreatedProviderType { get; set; }
         public ObservableCollection<INode> Nodes { get; set; }
 
+        public bool IsVerified { get; }
+
+        public DateTime? LastBeamedIn { get; set; }
+        public DateTime? LastBeamedOut { get; set; }
+        public bool IsBeamedIn { get; set; }
+        public string Image2D { get; set; }
+        public Guid PreviousVersionId { get; set; }
+        public Dictionary<ProviderType, string> PreviousVersionProviderKey { get; set; }
+
+        public event PropertyChangedEventHandler PropertyChanged;
 
         public bool HasHolonChanged(bool checkChildren = true)
         {
@@ -149,6 +160,16 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosOASIS.Entites
         }
 
         public Task<KarmaAkashicRecord> KarmaLostAsync(KarmaTypeNegative karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc, string webLink = null, bool autoSave = true, int karmaOverride = 0)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void NotifyPropertyChanged(string propertyName)
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool OwnsToken(string token)
         {
             throw new NotImplementedException();
         }
