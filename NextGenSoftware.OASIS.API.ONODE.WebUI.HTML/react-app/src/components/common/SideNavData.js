@@ -21,7 +21,7 @@ const SideNavData = [
     subNav: [
       {
         title: "view avatar",
-        path: "",
+        path: "/avatar/view",
       },
       {
         title: "edit avatar",
