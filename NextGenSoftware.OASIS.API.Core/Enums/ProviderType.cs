@@ -2,6 +2,7 @@
 {
     public enum ProviderType
     {
+        SolanaOASIS,
         HoloOASIS,
         EthereumOASIS,
         EOSIOOASIS,
