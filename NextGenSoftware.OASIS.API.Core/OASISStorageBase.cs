@@ -131,7 +131,6 @@ namespace NextGenSoftware.OASIS.API.Core
         public abstract Task<bool> DeleteAvatarAsync(string providerKey, bool softDelete = true);
         public abstract Task<ISearchResults> SearchAsync(ISearchParams searchParams);
         public abstract IHolon LoadHolon(Guid id);
-        //public abstract T LoadHolon<T>(Guid id) where T : IHolon;
         public abstract Task<IHolon> LoadHolonAsync(Guid id);
         public abstract IHolon LoadHolon(string providerKey);
         public abstract Task<IHolon> LoadHolonAsync(string providerKey);

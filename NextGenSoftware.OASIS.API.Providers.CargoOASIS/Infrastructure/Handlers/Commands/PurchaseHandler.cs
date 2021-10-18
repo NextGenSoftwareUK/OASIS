@@ -2,15 +2,15 @@
 using System.Net.Http;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
-using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Enum;
+using NextGenSoftware.OASIS.API.Core.Helpers;
+using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Core.Models.Cargo;
 using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Interfaces;
 using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Services.HttpHandler;
 using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Models.Cargo;
-using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Models.Common;
 
 namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Handlers.Commands
 {
-    public class PurchaseHandler : IHandle<Response<PurchaseResponseModel>, PurchaseRequestModel>
+    public class PurchaseHandler : IHandle<OASISResult<PurchaseResponseModel>, PurchaseRequestModel>
     {
         private readonly IHttpHandler _httpClient;
         
@@ -25,9 +25,9 @@ namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Handlers
         /// </summary>
         /// <param name="request">Request Parameters</param>
         /// <returns>Transaction Hash</returns>
-        public async Task<Response<PurchaseResponseModel>> Handle(PurchaseRequestModel request)
+        public async Task<OASISResult<PurchaseResponseModel>> Handle(PurchaseRequestModel request)
         {
-            var response = new Response<PurchaseResponseModel>();
+            var response = new OASISResult<PurchaseResponseModel>();
             try
             {
                 var url = "https://api2.cargo.build/v3/register/v4/purchase";
@@ -44,17 +44,17 @@ namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Handlers
                 var httpRes = await _httpClient.SendAsync(httpReq);
                 if (!httpRes.IsSuccessStatusCode)
                 {
+                    response.IsError = true;
                     response.Message = httpRes.ReasonPhrase;
-                    response.ResponseStatus = ResponseStatus.Fail;
                     return response;
                 }
                 var responseContent = await httpRes.Content.ReadAsStringAsync();
-                response.Payload.TransactionHash = responseContent;
+                response.Result.TransactionHash = responseContent;
                 return response;
             }
             catch (Exception e)
             {
-                response.ResponseStatus = ResponseStatus.Fail;
+                response.IsError = true;
                 response.Message = e.Message;
                 return response;
             }

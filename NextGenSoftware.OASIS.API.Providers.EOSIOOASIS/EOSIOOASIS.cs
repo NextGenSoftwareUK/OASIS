@@ -357,7 +357,6 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             throw new NotImplementedException();
         }
 
-
         public async Task<Account> GetEOSIOAccountAsync(string eosioAccountName)
         {
             var account = await ChainAPI.GetAccountAsync(eosioAccountName);
