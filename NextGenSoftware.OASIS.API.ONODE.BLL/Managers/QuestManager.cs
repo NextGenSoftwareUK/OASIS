@@ -1,50 +1,50 @@
-﻿//using System;
-//using System.Collections.Generic;
-//using NextGenSoftware.OASIS.API.Core.Interfaces;
+﻿using System;
+using System.Collections.Generic;
+using NextGenSoftware.OASIS.API.ONODE.BLL.Holons;
+using NextGenSoftware.OASIS.API.ONODE.BLL.Interfaces;
 
-//namespace NextGenSoftware.OASIS.API.ONODE.BLL.Managers
-//{
-//    public class QuestManager : OASISManager
-//    {
-//        //TODO: In future more than one storage provider can be active at a time where each call can specify which provider to use.
-//        public QuestManager(IOASISStorage OASISStorageProvider) : base(OASISStorageProvider)
-//        {
+namespace NextGenSoftware.OASIS.API.ONODE.BLL.Managers
+{
+    public class QuestManager : OASISManager, IQuestManager
+    {
+        public QuestManager() : base()
+        {
 
-//        }
+        }
 
-//        public bool CreateQuest(Quest quest)
-//        {
-//            return true;
-//        }
+        public bool CreateQuest(Quest quest)
+        {
+            return true;
+        }
 
-//        public bool UpdateQuest(Quest quest)
-//        {
-//            return true;
-//        }
+        public bool UpdateQuest(Quest quest)
+        {
+            return true;
+        }
 
-//        public bool CompleteQuest(Guid questId)
-//        {
-//            return true;
-//        }
+        public bool CompleteQuest(Guid questId)
+        {
+            return true;
+        }
 
-//        public bool DeleteQuest(Guid questId)
-//        {
-//            return true;
-//        }
+        public bool DeleteQuest(Guid questId)
+        {
+            return true;
+        }
 
-//        public bool HighlightQuestOnMap(Guid questId)
-//        {
-//            return true;
-//        }
+        public bool HighlightQuestOnMap(Guid questId)
+        {
+            return true;
+        }
 
-//        public Quest FindNearestQuestOnMap()
-//        {
-//            return new Quest();
-//        }
+        public Quest FindNearestQuestOnMap()
+        {
+            return new Quest();
+        }
 
-//        public List<Quest> GetAllCurrentQuestsForAvatar(Guid avatarId)
-//        {
-//            return new List<Quest>();
-//        }
-//    }
-//}
+        public List<Quest> GetAllCurrentQuestsForAvatar(Guid avatarId)
+        {
+            return new List<Quest>();
+        }
+    }
+}
