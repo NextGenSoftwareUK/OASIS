@@ -28,10 +28,10 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.TestHarness
     {
         private static async Task Main(string[] args)
         {
-            var wallet = new Wallet("pattern vessel trade prosper cube okay dust pet primary during captain endless");
+            var wallet = new Wallet("");
             var rpcClient = ClientFactory.GetClient(Cluster.MainNet);
             
-            var publicKey = "GsguXojeGATpZGW8VNfW8qQCBVodbW2qGS8bUEbdGZfv";
+            var publicKey = "";
             
             var fromAccount = new PublicKey(publicKey);
             var toAccount = new PublicKey(publicKey);
