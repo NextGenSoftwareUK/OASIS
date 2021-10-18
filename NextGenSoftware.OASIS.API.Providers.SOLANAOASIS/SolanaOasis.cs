@@ -70,7 +70,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS
 
         public override IAvatar SaveAvatar(IAvatar Avatar)
         {
-            var transactionResult = _solanaRepository.Create((Core.Holons.Avatar)Avatar);
+            var transactionResult = Avatar.Id == Guid.Empty ?
+                _solanaRepository.Create((Core.Holons.Avatar)Avatar) : _solanaRepository.Update((Avatar)Avatar);
             Avatar.ProviderKey = new Dictionary<ProviderType, string>()
                 {{Core.Enums.ProviderType.SolanaOASIS, transactionResult}};
             return Avatar;
@@ -78,14 +79,16 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS
 
         public override async Task<IAvatar> SaveAvatarAsync(IAvatar Avatar)
         {
-            var transactionSignature = await _solanaRepository.CreateAsync((Core.Holons.Avatar)Avatar);
+            var transactionSignature = Avatar.Id == Guid.Empty ? 
+                await _solanaRepository.CreateAsync((Core.Holons.Avatar)Avatar) : await _solanaRepository.UpdateAsync((Core.Holons.Avatar)Avatar);
             Avatar.ProviderKey = new Dictionary<ProviderType, string>() {{Core.Enums.ProviderType.SolanaOASIS, transactionSignature}};
             return Avatar;
         }
 
         public override IAvatarDetail SaveAvatarDetail(IAvatarDetail Avatar)
         {
-            var transactionSignature = _solanaRepository.Create((AvatarDetail) Avatar);
+            var transactionSignature = Avatar.Id == Guid.Empty ? 
+                _solanaRepository.Create((AvatarDetail) Avatar) : _solanaRepository.Update((AvatarDetail)Avatar);
             Avatar.ProviderKey = new Dictionary<ProviderType, string>()
                 {{Core.Enums.ProviderType.SolanaOASIS, transactionSignature}};
             return Avatar;
@@ -93,7 +96,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS
 
         public override async Task<IAvatarDetail> SaveAvatarDetailAsync(IAvatarDetail Avatar)
         {
-            var transactionResult = await _solanaRepository.CreateAsync((AvatarDetail) Avatar);
+            var transactionResult = Avatar.Id == Guid.Empty ? 
+                await _solanaRepository.CreateAsync((AvatarDetail) Avatar) : await _solanaRepository.UpdateAsync((AvatarDetail)Avatar);
             Avatar.ProviderKey = new Dictionary<ProviderType, string>()
                 {{Core.Enums.ProviderType.SolanaOASIS, transactionResult}};
             return Avatar;
@@ -156,7 +160,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS
             {
                 foreach (var holon in holons)
                 {
-                    var transactionSignature = await _solanaRepository.CreateAsync((Holon)holon);
+                    var transactionSignature =  holon.Id == Guid.Empty ? 
+                        await _solanaRepository.CreateAsync((Holon)holon) : await _solanaRepository.UpdateAsync((Holon)holon);
                     holon.ProviderKey = new Dictionary<ProviderType, string>() { { Core.Enums.ProviderType.SolanaOASIS, transactionSignature } };
                 }
                 response.Result = holons;
@@ -242,7 +247,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS
             var response = new OASISResult<IHolon>();
             try
             {
-                var transactionSignature = _solanaRepository.Create((Holon)holon);
+                var transactionSignature = holon.Id == Guid.Empty ?
+                    _solanaRepository.Create((Holon)holon) : _solanaRepository.Update((Holon)holon);
                 holon.ProviderKey = new Dictionary<ProviderType, string>()
                     {{Core.Enums.ProviderType.SolanaOASIS, transactionSignature}};
                 response.Result = holon;
@@ -262,7 +268,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS
             var response = new OASISResult<IHolon>();
             try
             {
-                var transactionSignature = await _solanaRepository.CreateAsync((Holon)holon);
+                var transactionSignature = holon.Id == Guid.Empty ? 
+                    await _solanaRepository.CreateAsync((Holon)holon) : await _solanaRepository.UpdateAsync((Holon)holon);
                 holon.ProviderKey = new Dictionary<ProviderType, string>() {{Core.Enums.ProviderType.SolanaOASIS, transactionSignature}};
                 response.Result = holon;
             }
@@ -284,7 +291,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS
             {
                 foreach (var holon in holons)
                 {
-                    var transactionSignature = _solanaRepository.Create((Holon)holon);
+                    var transactionSignature = holon.Id == Guid.Empty ? 
+                        _solanaRepository.Create((Holon)holon) : _solanaRepository.Update((Holon)holon);
                     holon.ProviderKey = new Dictionary<ProviderType, string>() { { Core.Enums.ProviderType.SolanaOASIS, transactionSignature } };
                 }
                 response.Result = holons;
