@@ -695,18 +695,22 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
 
         public async Task InitializeAsync()
         {
-            WireUpEvents();
             InitCelestialBodyCore();
+            WireUpEvents();
             await LoadCelestialBodyAsync();
             await LoadZomesAsync();
         }
 
         public void Initialize()
         {
-            WireUpEvents();
             InitCelestialBodyCore();
-            LoadCelestialBody();
-            LoadZomes();
+            WireUpEvents();
+
+            if (Id != Guid.Empty || ProviderKey.Keys.Count > 0)
+            {
+                LoadCelestialBody();
+                LoadZomes();
+            }
         }
 
         private void InitCelestialBodyCore()
@@ -742,10 +746,13 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
 
         private void WireUpEvents()
         {
-            ((CelestialBodyCore)CelestialBodyCore).OnHolonsLoaded += CelestialBodyCore_OnHolonsLoaded;
-            ((CelestialBodyCore)CelestialBodyCore).OnZomesLoaded += CelestialBodyCore_OnZomesLoaded;
-            ((CelestialBodyCore)CelestialBodyCore).OnHolonSaved += CelestialBodyCore_OnHolonSaved;
-            ((CelestialBodyCore)CelestialBodyCore).OnZomeError += CelestialBodyCore_OnZomeError;
+            if (CelestialBodyCore != null)
+            {
+                ((CelestialBodyCore)CelestialBodyCore).OnHolonsLoaded += CelestialBodyCore_OnHolonsLoaded;
+                ((CelestialBodyCore)CelestialBodyCore).OnZomesLoaded += CelestialBodyCore_OnZomesLoaded;
+                ((CelestialBodyCore)CelestialBodyCore).OnHolonSaved += CelestialBodyCore_OnHolonSaved;
+                ((CelestialBodyCore)CelestialBodyCore).OnZomeError += CelestialBodyCore_OnZomeError;
+            }
         }
 
         private async void CelestialBodyCore_OnHolonSaved(object sender, HolonSavedEventArgs e)
