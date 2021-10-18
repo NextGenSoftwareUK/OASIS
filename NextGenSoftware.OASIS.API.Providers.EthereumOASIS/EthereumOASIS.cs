@@ -113,7 +113,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
         {
             throw new NotImplementedException();
         }
-
+        
         public override Task<IEnumerable<IAvatar>> LoadAllAvatarsAsync()
         {
             throw new NotImplementedException();
