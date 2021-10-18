@@ -19,12 +19,13 @@ import Solana from "./popups/nft/Solana";
 import ContactPopup from "./popups/nft/ContactPopup";
 import AcceptInvite from "./popups/seeds/AcceptInvite"
 import PayWithSeeds from "./popups/seeds/PayWithSeeds";
-import DonateSeeds from  "./popups/seeds/DonateSeeds";
+import DonateSeeds from "./popups/seeds/DonateSeeds";
 import SendInvite from "./popups/seeds/SendInvite";
 import RewardSeeds from "./popups/seeds/RewardSeeds";
 
-import ViewAvatar from "./popups/avatar/viewAvatar";
-import AvatarWallet from "./popups/avatar/avatarWallet";
+import AvatarDetail from "./popups/avatar/AvatarDetail";
+import AvatarWallet from "./popups/avatar/AvatarWallet";
+import ViewAvatar from "./popups/avatar/ViewAvatar";
 import Message from "./popups/messages/Message";
 // import UploadAvatar from "../components/pages/avatar/uploadAvatar";
 // import Provider from "../components/pages/providers/Provider";
@@ -63,12 +64,19 @@ class App extends React.Component {
             },
             {
                 seeds: {
-                     acceptinvite: false,
-                     paywithseeds: false,
-                     donateseeds: false,
-                     sendinvite: false,
-                     rewardseeds: false
+                    acceptinvite: false,
+                    paywithseeds: false,
+                    donateseeds: false,
+                    sendinvite: false,
+                    rewardseeds: false
                 }
+            },
+            {
+                avatar: {
+                    avatardetail: false,
+                    avatarwallet: false,
+                    viewavatar: false
+                },
             }
         ],
     };
@@ -148,7 +156,7 @@ class App extends React.Component {
         let sidebarMenuOption = [...this.state.sidebarMenuOption];
 
         sidebarMenuOption.map((item) => {
-            if(item[menuOption]) {
+            if (item[menuOption]) {
                 item[menuOption][menuName] = !item[menuOption][menuName];
             }
         })
@@ -202,7 +210,7 @@ class App extends React.Component {
                             <Route exact path="/karma" component={Karma} />
                             <Route exact path="/avatar/view" component={ViewAvatar} />
                             <Route exact path="/avatar/wallet" component={AvatarWallet} />
-                            <Route exact path="/message" component={Message}/>
+                            <Route exact path="/message" component={Message} />
 
                             {/* <Route exact path="/avatar/upload" component={UploadAvatar} />
                             <Route path="/provider/provider" component={Provider} />
@@ -262,34 +270,53 @@ class App extends React.Component {
                     hide={this.toggleScreenPopup}
                 />
                 {/* ========== NFT POPUPS END  =========== */}
-                 
+
                 {/* ========== SEEDS POPUPS START  =========== */}
 
-                 <AcceptInvite 
+                <AcceptInvite
                     show={this.state.sidebarMenuOption[2].seeds.acceptinvite}
                     hide={this.toggleScreenPopup}
-                 /> 
+                />
 
-                <DonateSeeds 
+                <DonateSeeds
                     show={this.state.sidebarMenuOption[2].seeds.donateseeds}
                     hide={this.toggleScreenPopup}
-                 />
+                />
 
-                <PayWithSeeds 
+                <PayWithSeeds
                     show={this.state.sidebarMenuOption[2].seeds.paywithseeds}
                     hide={this.toggleScreenPopup}
-                 />
+                />
 
-                 <RewardSeeds 
+                <RewardSeeds
                     show={this.state.sidebarMenuOption[2].seeds.rewardseeds}
                     hide={this.toggleScreenPopup}
-                 /> 
+                />
 
-                <SendInvite 
+                <SendInvite
                     show={this.state.sidebarMenuOption[2].seeds.sendinvite}
                     hide={this.toggleScreenPopup}
-                 />
+                />
                 {/* ========== SEEDS POPUPS END  =========== */}
+
+                {/* ========== AVATAR  POPUPS START  =========== */}
+
+                <AvatarDetail
+                    show={this.state.sidebarMenuOption[3].avatar.avatardetail}
+                    hide={this.toggleScreenPopup}
+                />
+
+                <AvatarWallet
+                    show={this.state.sidebarMenuOption[3].avatar.avatarwallet}
+                    hide={this.toggleScreenPopup}
+                />
+
+                <ViewAvatar
+                    show={this.state.sidebarMenuOption[3].avatar.viewavatar}
+                    hide={this.toggleScreenPopup}
+                />
+                {/* ========== AVATAR  POPUPS END  =========== */}
+
             </div>
         );
     }
