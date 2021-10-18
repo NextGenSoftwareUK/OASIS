@@ -13,14 +13,14 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS
     public class SolanaOasis : OASISStorageBase, IOASISStorage, IOASISNET
     {
         private readonly ISolanaRepository _solanaRepository;
-        public SolanaOasis()
+        public SolanaOasis(string mnemonicWords)
         {
             this.ProviderName = nameof(SolanaOasis);
             this.ProviderDescription = "Solana Blockchain Provider";
             this.ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.SolanaOASIS);
             this.ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
 
-            _solanaRepository = new SolanaRepository();
+            _solanaRepository = new SolanaRepository(mnemonicWords);
         }
         
         public override async Task<IEnumerable<IAvatar>> LoadAllAvatarsAsync()
