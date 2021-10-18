@@ -4,18 +4,23 @@ using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
+using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Repositories;
 
 namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS
 {
     public class SolanaOasis : OASISStorageBase, IOASISStorage, IOASISNET
     {
+        private readonly ISolanaRepository _solanaRepository;
         public SolanaOasis()
         {
             this.ProviderName = nameof(SolanaOasis);
             this.ProviderDescription = "Solana Blockchain Provider";
             this.ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.SolanaOASIS);
             this.ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
+
+            _solanaRepository = new SolanaRepository();
         }
         
         public override async Task<IEnumerable<IAvatar>> LoadAllAvatarsAsync()
@@ -65,22 +70,33 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS
 
         public override IAvatar SaveAvatar(IAvatar Avatar)
         {
-            throw new NotImplementedException();
+            var transactionResult = _solanaRepository.Create((Core.Holons.Avatar)Avatar);
+            Avatar.ProviderKey = new Dictionary<ProviderType, string>()
+                {{Core.Enums.ProviderType.SolanaOASIS, transactionResult}};
+            return Avatar;
         }
 
         public override async Task<IAvatar> SaveAvatarAsync(IAvatar Avatar)
         {
-            throw new NotImplementedException();
+            var transactionSignature = await _solanaRepository.CreateAsync((Core.Holons.Avatar)Avatar);
+            Avatar.ProviderKey = new Dictionary<ProviderType, string>() {{Core.Enums.ProviderType.SolanaOASIS, transactionSignature}};
+            return Avatar;
         }
 
         public override IAvatarDetail SaveAvatarDetail(IAvatarDetail Avatar)
         {
-            throw new NotImplementedException();
+            var transactionSignature = _solanaRepository.Create((AvatarDetail) Avatar);
+            Avatar.ProviderKey = new Dictionary<ProviderType, string>()
+                {{Core.Enums.ProviderType.SolanaOASIS, transactionSignature}};
+            return Avatar;
         }
 
         public override async Task<IAvatarDetail> SaveAvatarDetailAsync(IAvatarDetail Avatar)
         {
-            throw new NotImplementedException();
+            var transactionResult = await _solanaRepository.CreateAsync((AvatarDetail) Avatar);
+            Avatar.ProviderKey = new Dictionary<ProviderType, string>()
+                {{Core.Enums.ProviderType.SolanaOASIS, transactionResult}};
+            return Avatar;
         }
 
         public override bool DeleteAvatar(Guid id, bool softDelete = true)
@@ -115,17 +131,17 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS
 
         public override bool DeleteAvatar(string providerKey, bool softDelete = true)
         {
-            throw new NotImplementedException();
+            return _solanaRepository.Delete<Avatar>(providerKey) != string.Empty;
         }
 
         public override async Task<bool> DeleteAvatarAsync(string providerKey, bool softDelete = true)
         {
-            throw new NotImplementedException();
+            return await _solanaRepository.DeleteAsync<Avatar>(providerKey) != string.Empty;
         }
 
         public override async Task<bool> DeleteHolonAsync(string providerKey, bool softDelete = true)
         {
-            throw new NotImplementedException();
+            return await _solanaRepository.DeleteAsync<Holon>(providerKey) != string.Empty;
         }
 
         public override async Task<ISearchResults> SearchAsync(ISearchParams searchParams)
@@ -135,7 +151,25 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS
 
         public override async Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons, bool saveChildrenRecursive = true)
         {
-            throw new NotImplementedException();
+            var response = new OASISResult<IEnumerable<IHolon>>();
+            try
+            {
+                foreach (var holon in holons)
+                {
+                    var transactionSignature = await _solanaRepository.CreateAsync((Holon)holon);
+                    holon.ProviderKey = new Dictionary<ProviderType, string>() { { Core.Enums.ProviderType.SolanaOASIS, transactionSignature } };
+                }
+                response.Result = holons;
+            }
+            catch (Exception e)
+            {
+                response.Exception = e;
+                response.IsError = true;
+                response.Message = e.Message;
+                response.IsSaved = false;
+            }
+
+            return response;
         }
 
         public override bool DeleteHolon(Guid id, bool softDelete = true)
@@ -150,7 +184,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS
 
         public override bool DeleteHolon(string providerKey, bool softDelete = true)
         {
-            throw new NotImplementedException();
+            return _solanaRepository.Delete<Holon>(providerKey) != string.Empty;
         }
 
         public override IHolon LoadHolon(Guid id)
@@ -165,12 +199,12 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS
 
         public override IHolon LoadHolon(string providerKey)
         {
-            throw new NotImplementedException();
+            return _solanaRepository.Get<Holon>(providerKey);
         }
 
         public override async Task<IHolon> LoadHolonAsync(string providerKey)
         {
-            throw new NotImplementedException();
+            return await _solanaRepository.GetAsync<Holon>(providerKey);
         }
 
         public override IEnumerable<IHolon> LoadHolonsForParent(Guid id, HolonType type = HolonType.All)
@@ -205,17 +239,65 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS
 
         public override OASISResult<IHolon> SaveHolon(IHolon holon, bool saveChildrenRecursive = true)
         {
-            throw new NotImplementedException();
+            var response = new OASISResult<IHolon>();
+            try
+            {
+                var transactionSignature = _solanaRepository.Create((Holon)holon);
+                holon.ProviderKey = new Dictionary<ProviderType, string>()
+                    {{Core.Enums.ProviderType.SolanaOASIS, transactionSignature}};
+                response.Result = holon;
+            }
+            catch (Exception e)
+            {
+                response.Exception = e;
+                response.Message = e.Message;
+                response.IsError = true;
+                response.IsSaved = false;
+            }
+            return response;
         }
 
         public override async Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon, bool saveChildrenRecursive = true)
         {
-            throw new NotImplementedException();
+            var response = new OASISResult<IHolon>();
+            try
+            {
+                var transactionSignature = await _solanaRepository.CreateAsync((Holon)holon);
+                holon.ProviderKey = new Dictionary<ProviderType, string>() {{Core.Enums.ProviderType.SolanaOASIS, transactionSignature}};
+                response.Result = holon;
+            }
+            catch (Exception e)
+            {
+                response.Exception = e;
+                response.Message = e.Message;
+                response.IsError = true;
+                response.IsSaved = false;
+            }
+
+            return response;
         }
 
         public override OASISResult<IEnumerable<IHolon>> SaveHolons(IEnumerable<IHolon> holons, bool saveChildrenRecursive = true)
         {
-            throw new NotImplementedException();
+            var response = new OASISResult<IEnumerable<IHolon>>();
+            try
+            {
+                foreach (var holon in holons)
+                {
+                    var transactionSignature = _solanaRepository.Create((Holon)holon);
+                    holon.ProviderKey = new Dictionary<ProviderType, string>() { { Core.Enums.ProviderType.SolanaOASIS, transactionSignature } };
+                }
+                response.Result = holons;
+            }
+            catch (Exception e)
+            {
+                response.Exception = e;
+                response.IsError = true;
+                response.Message = e.Message;
+                response.IsSaved = false;
+            }
+
+            return response;
         }
 
         public override async Task<IAvatar> LoadAvatarAsync(string username, string password)
@@ -230,12 +312,12 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS
 
         public override async Task<IAvatar> LoadAvatarForProviderKeyAsync(string providerKey)
         {
-            throw new NotImplementedException();
+            return await _solanaRepository.GetAsync<Avatar>(providerKey);
         }
 
         public override IAvatar LoadAvatarForProviderKey(string providerKey)
         {
-            throw new NotImplementedException();
+            return _solanaRepository.Get<Avatar>(providerKey);
         }
 
         public override IAvatar LoadAvatar(string username, string password)
