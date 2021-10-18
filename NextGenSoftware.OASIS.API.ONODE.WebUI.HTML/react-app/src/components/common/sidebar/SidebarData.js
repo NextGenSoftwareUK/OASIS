@@ -28,14 +28,25 @@ const SidebarData = [
             {
                 id: 1,
                 name: "view avatar",
+                popupName:"viewavatar"
             },
-            {
-                id: 2,
-                name: <Link to="/avatar/upload">edit avatar</Link>,
-            },
+            // {
+            //     id: 2,
+            //     name: <Link to="/avatar/upload">edit avatar</Link>,
+            // },
             {
                 id: 3,
                 name: "search avatars",
+            },
+            {
+                id: 4,
+                name: "avatar detail",
+                popupName:"avatardetail"
+            },
+            {
+                id: 5,
+                name: "avatar wallet",
+                popupName:"avatarwallet"
             },
         ],
     },
