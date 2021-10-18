@@ -68,39 +68,39 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS
             throw new NotImplementedException();
         }
 
-        public override IAvatar SaveAvatar(IAvatar Avatar)
+        public override IAvatar SaveAvatar(IAvatar avatar)
         {
-            var transactionResult = Avatar.Id == Guid.Empty ?
-                _solanaRepository.Create((Core.Holons.Avatar)Avatar) : _solanaRepository.Update((Avatar)Avatar);
-            Avatar.ProviderKey = new Dictionary<ProviderType, string>()
+            var transactionResult = avatar.Id == Guid.Empty ?
+                _solanaRepository.Create((Core.Holons.Avatar)avatar) : _solanaRepository.Update((Avatar)avatar);
+            avatar.ProviderKey = new Dictionary<ProviderType, string>()
                 {{Core.Enums.ProviderType.SolanaOASIS, transactionResult}};
-            return Avatar;
+            return avatar;
         }
 
-        public override async Task<IAvatar> SaveAvatarAsync(IAvatar Avatar)
+        public override async Task<IAvatar> SaveAvatarAsync(IAvatar avatar)
         {
-            var transactionSignature = Avatar.Id == Guid.Empty ? 
-                await _solanaRepository.CreateAsync((Core.Holons.Avatar)Avatar) : await _solanaRepository.UpdateAsync((Core.Holons.Avatar)Avatar);
-            Avatar.ProviderKey = new Dictionary<ProviderType, string>() {{Core.Enums.ProviderType.SolanaOASIS, transactionSignature}};
-            return Avatar;
+            var transactionSignature = avatar.Id == Guid.Empty ? 
+                await _solanaRepository.CreateAsync((Core.Holons.Avatar)avatar) : await _solanaRepository.UpdateAsync((Core.Holons.Avatar)avatar);
+            avatar.ProviderKey = new Dictionary<ProviderType, string>() {{Core.Enums.ProviderType.SolanaOASIS, transactionSignature}};
+            return avatar;
         }
 
-        public override IAvatarDetail SaveAvatarDetail(IAvatarDetail Avatar)
+        public override IAvatarDetail SaveAvatarDetail(IAvatarDetail avatar)
         {
-            var transactionSignature = Avatar.Id == Guid.Empty ? 
-                _solanaRepository.Create((AvatarDetail) Avatar) : _solanaRepository.Update((AvatarDetail)Avatar);
-            Avatar.ProviderKey = new Dictionary<ProviderType, string>()
+            var transactionSignature = avatar.Id == Guid.Empty ? 
+                _solanaRepository.Create((AvatarDetail) avatar) : _solanaRepository.Update((AvatarDetail)avatar);
+            avatar.ProviderKey = new Dictionary<ProviderType, string>()
                 {{Core.Enums.ProviderType.SolanaOASIS, transactionSignature}};
-            return Avatar;
+            return avatar;
         }
 
-        public override async Task<IAvatarDetail> SaveAvatarDetailAsync(IAvatarDetail Avatar)
+        public override async Task<IAvatarDetail> SaveAvatarDetailAsync(IAvatarDetail avatar)
         {
-            var transactionResult = Avatar.Id == Guid.Empty ? 
-                await _solanaRepository.CreateAsync((AvatarDetail) Avatar) : await _solanaRepository.UpdateAsync((AvatarDetail)Avatar);
-            Avatar.ProviderKey = new Dictionary<ProviderType, string>()
+            var transactionResult = avatar.Id == Guid.Empty ? 
+                await _solanaRepository.CreateAsync((AvatarDetail) avatar) : await _solanaRepository.UpdateAsync((AvatarDetail)avatar);
+            avatar.ProviderKey = new Dictionary<ProviderType, string>()
                 {{Core.Enums.ProviderType.SolanaOASIS, transactionResult}};
-            return Avatar;
+            return avatar;
         }
 
         public override bool DeleteAvatar(Guid id, bool softDelete = true)

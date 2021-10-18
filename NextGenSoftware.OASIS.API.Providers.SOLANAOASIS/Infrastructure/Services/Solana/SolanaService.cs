@@ -1,12 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Models.Requests;
 using NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Models.Responses;
-using NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Services.Base;
-using Org.BouncyCastle.Ocsp;
 using Solnet.Extensions;
 using Solnet.Extensions.TokenMint;
 using Solnet.Metaplex;
@@ -18,7 +14,7 @@ using Solnet.Wallet.Bip39;
 
 namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Services.Solana
 {
-    public class SolanaService : IBaseService, ISolanaService
+    public class SolanaService : ISolanaService
     {
         private Wallet _wallet;
         private IRpcClient _rpcClient;
@@ -50,7 +46,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Service
                     exchangeTokenRequest.Amount,
                     fromAccount)).
                 AddInstruction(MemoProgram.NewMemo(fromAccount, exchangeTokenRequest.MemoText)).
-                Build(new Account());
+                Build(_wallet.Account);
             
             var sendTransactionResult = await _rpcClient.SendTransactionAsync(tx);
             if (!sendTransactionResult.WasSuccessful)
@@ -105,7 +101,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Service
                     mintNftRequest.Amount,
                     ownerAccount)).
                 AddInstruction(MemoProgram.NewMemo(initialAccount, mintNftRequest.MemoText)).
-                Build(new Account());
+                Build(_wallet.Account);
             
             var sendTransactionResult = await _rpcClient.SimulateTransactionAsync(tx);
             if (!sendTransactionResult.WasSuccessful)
@@ -130,7 +126,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Service
                 SetFeePayer(fromAccount).
                 AddInstruction(MemoProgram.NewMemo(fromAccount, sendTransactionRequest.MemoText)).
                 AddInstruction(SystemProgram.Transfer(fromAccount, toAccount, sendTransactionRequest.Lampposts)).
-                Build(new Account());
+                Build(_wallet.Account);
 
             var sendTransactionResult = await _rpcClient.SendTransactionAsync(tx);
             if (!sendTransactionResult.WasSuccessful)
@@ -202,7 +198,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Service
             return response;
         }
 
-        public void InitializeService()
+        private void InitializeService()
         {
             _wallet = new Wallet(new Mnemonic(WordList.English, WordCount.Twelve));
             _rpcClient = ClientFactory.GetClient(Cluster.MainNet);
