@@ -1,0 +1,42 @@
+.seed-container {
+    h1 {
+        margin-bottom: 20px;
+        .custom-selectbox {
+            padding: 0.25rem 5px;
+            font-size: 18px;
+            height: 40px;
+            border-radius: 5px;
+            border: 1px solid #909092;
+            background-color: transparent;
+            color: #fff;
+            margin-right: 15px;
+        }
+    }
+    .fs-34 {
+        font-size: 34px;
+    }
+    .form-container {
+        .single-form-row {
+            label {
+                display: block;
+                padding: 0px;
+                font-size: 17px;
+            }
+            input {
+                width: 100%;
+                height: 40px;
+                padding: 0px 1rem;
+                line-height: 40px;
+            }
+        }
+        .mb-30 {
+            margin-bottom: 30px;
+        }
+        .btn-right {
+            text-align: right;
+            .btn-width {
+                width: 150px;
+            }
+        }
+    }
+}
