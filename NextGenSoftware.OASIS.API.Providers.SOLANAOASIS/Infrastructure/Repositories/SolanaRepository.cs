@@ -18,9 +18,9 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Reposit
         private readonly IRpcClient _rpcClient;
         private readonly Wallet _wallet;
 
-        public SolanaRepository()
+        public SolanaRepository(string mnemonicWords)
         {
-            _wallet = new Wallet(new Mnemonic(WordList.English, WordCount.Twelve));
+            _wallet = new Wallet(mnemonicWords);
             _rpcClient = ClientFactory.GetClient(Cluster.MainNet);
         }
 
