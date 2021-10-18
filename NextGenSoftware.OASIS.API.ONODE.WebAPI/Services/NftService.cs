@@ -3,8 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core.Helpers;
+using NextGenSoftware.OASIS.API.Core.Objects;
+using NextGenSoftware.OASIS.API.ONODE.BLL.Managers;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Interfaces;
+using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Core.Models.Cargo;
 using NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Services.Solana;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
@@ -13,6 +16,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
     {
         private readonly ISolanaService _solanaService;
         private readonly ICargoService _cargoService;
+
+        private readonly OlandManager _olandManager;
 
         private const int OlandUnitPrice = 17;
 
@@ -48,6 +53,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
         {
             _solanaService = solanaService;
             _cargoService = cargoService;
+            _olandManager = new OlandManager();
         }
 
         public async Task<OASISResult<NftTransactionRespone>> CreateNftTransaction(CreateNftTransactionRequest request)
@@ -121,11 +127,43 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
             var response = new OASISResult<PurchaseOlandResponse>();
             try
             {
+                if (request == null)
+                {
+                    response.IsError = true;
+                    response.IsSaved = false;
+                    response.Message = "Request is NULL! Bad Request!";
+                    return response;
+                }
                 
+                var cargoPurchaseResponse = await _cargoService.PurchaseCargoSale(new PurchaseRequestModel(request.CargoSaleId));
+                if (cargoPurchaseResponse.IsError)
+                {
+                    response.IsError = true;
+                    response.IsSaved = false;
+                    response.Message = cargoPurchaseResponse.Message;
+                    return response;
+                }
+
+                var purchaseOlandResult = await _olandManager.PurchaseOland(new OlandPurchase()
+                {
+                    PurchaseDate = DateTime.Now,
+                    Id = Guid.NewGuid(),
+                    Tiles = request.Tiles,
+                    AvatarId = request.AvatarId,
+                    AvatarUsername = request.AvatarUsername,
+                    WalletAddress = request.WalletAddress,
+                    OlandId = request.OlandId,
+                    TransactionHash = cargoPurchaseResponse.Result.TransactionHash,
+                    ErrorMessage = cargoPurchaseResponse.Message,
+                    CargoSaleId = request.CargoSaleId,
+                    IsSucceedPurchase = !cargoPurchaseResponse.IsError
+                });
+                response.Result = new PurchaseOlandResponse(purchaseOlandResult.Result);
             }
             catch (Exception e)
             {
                 response.IsError = true;
+                response.IsError = false;
                 response.Message = e.Message;
                 response.Exception = e;
             }

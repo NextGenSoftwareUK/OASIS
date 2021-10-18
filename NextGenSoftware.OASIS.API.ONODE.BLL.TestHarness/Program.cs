@@ -1,6 +1,7 @@
 ﻿using System;
 using NextGenSoftware.OASIS.API.Core.Helpers;
-using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.ONODE.BLL.Holons;
+using NextGenSoftware.OASIS.API.ONODE.BLL.Managers;
 
 namespace NextGenSoftware.OASIS.API.ONODE.BLL.TestHarness
 {
@@ -8,11 +9,43 @@ namespace NextGenSoftware.OASIS.API.ONODE.BLL.TestHarness
     {
         static void Main(string[] args)
         {
-            Console.WriteLine("NEXTGEN SOFTWARE ONODE BLL TEST HARNESS V1.1");
+            Console.WriteLine("NEXTGEN SOFTWARE ONODE BLL TEST HARNESS V1.2");
             Console.WriteLine("");
 
+            SampleManager sampleManager = new SampleManager();
+
+            Console.WriteLine("Saving Sample Holon...");
+            OASISResult<SampleHolon> saveSampleHolonResult = sampleManager.SaveSampleHolon("test wallet", "test avatar", Guid.NewGuid(), DateTime.Now, 77, 77777777777);
+
+            if (!saveSampleHolonResult.IsError && saveSampleHolonResult.Result != null)
+            {
+                Console.WriteLine($"Sample Holon Saved. Id: {saveSampleHolonResult.Result.Id.ToString()}");
+
+                Console.WriteLine("Loading Sample Holon...");
+                OASISResult<SampleHolon> loadSampleHolonResult = sampleManager.LoadSampleHolon(saveSampleHolonResult.Result.Id);
+
+                if (!loadSampleHolonResult.IsError && loadSampleHolonResult.Result != null)
+                {
+                    Console.WriteLine("SampleHolon Loaded.");
+                    Console.WriteLine($"Id: {loadSampleHolonResult.Result.Id.ToString()}");
+                    Console.WriteLine($"CustomProperty: {loadSampleHolonResult.Result.CustomProperty}");
+                    Console.WriteLine($"CustomProperty2: {loadSampleHolonResult.Result.CustomProperty2}");
+                    Console.WriteLine($"AvatarId: {loadSampleHolonResult.Result.AvatarId}");
+                    Console.WriteLine($"CustomDate: {loadSampleHolonResult.Result.CustomDate.ToString()}");
+                    Console.WriteLine($"CustomNumber: {loadSampleHolonResult.Result.CustomNumber.ToString()}");
+                    Console.WriteLine($"CustomLongNumber: {loadSampleHolonResult.Result.CustomLongNumber.ToString()}");
+                }
+                else
+                    Console.WriteLine($"Error Occured Loading Sample Holon. Reason: {loadSampleHolonResult.Message}");
+            }
+            else
+                Console.WriteLine($"Error Occured Saving Sample Holon. Reason: {saveSampleHolonResult.Message}");
+
+
+            /*
             NFTManager nftManager = new NFTManager();
 
+            
             Console.WriteLine("Saving NFT Purchase Data...");
             OASISResult<IHolon> result = nftManager.PurchaseNFT("test wallet", "test avatar", Guid.NewGuid(), "tile data");
 
@@ -37,8 +70,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.BLL.TestHarness
             }
             else
                 Console.WriteLine($"Error Occured Saving NFT Purchase Data. Reason: {result.Message}");
-
             
+
 
             Console.WriteLine("Saving NFT Purchase Data2...");
             OASISResult<PurchaseNFTHolon> purchaseHolonResult = nftManager.PurchaseNFT2("test wallet", "test avatar", Guid.NewGuid(), "tile data");
@@ -79,8 +112,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.BLL.TestHarness
 
             }
             else
-                Console.WriteLine($"Error Occured Saving NFT Purchase Data. Reason: {result.Message}");
-
+                Console.WriteLine($"Error Occured Saving NFT Purchase Data. Reason: {purchaseHolonResult.Message}");
+            */
         }
     }
 }

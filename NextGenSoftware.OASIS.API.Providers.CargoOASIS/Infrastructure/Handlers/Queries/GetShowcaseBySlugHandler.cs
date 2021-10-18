@@ -2,17 +2,15 @@
 using System.Net.Http;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
-using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Enum;
+using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Interfaces;
 using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Services.HttpHandler;
-using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Models.Cargo;
-using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Models.Common;
 using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Models.Request;
 using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Models.Response;
 
 namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Handlers.Queries
 {
-    public class GetShowcaseBySlugHandler : IHandle<Response<GetShowcaseBySlugResponseModel>, GetShowcaseBySlugRequestModel>
+    public class GetShowcaseBySlugHandler : IHandle<OASISResult<GetShowcaseBySlugResponseModel>, GetShowcaseBySlugRequestModel>
     {
         private readonly IHttpHandler _httpClient;
 
@@ -27,9 +25,9 @@ namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Handlers
         /// </summary>
         /// <param name="request">Request parameters</param>
         /// <returns>Showcase by slug</returns>
-        public async Task<Response<GetShowcaseBySlugResponseModel>> Handle(GetShowcaseBySlugRequestModel request)
+        public async Task<OASISResult<GetShowcaseBySlugResponseModel>> Handle(GetShowcaseBySlugRequestModel request)
         {
-            var response = new Response<GetShowcaseBySlugResponseModel>();
+            var response = new OASISResult<GetShowcaseBySlugResponseModel>();
             try
             {
                 var urlQuery = $"https://api2.cargo.build/v3/get-crate-by-id/{request.Slug}?slugId={request.SlugId}";
@@ -42,17 +40,17 @@ namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Handlers
                 if (!httpResponse.IsSuccessStatusCode)
                 {
                     response.Message = httpResponse.ReasonPhrase;
-                    response.ResponseStatus = ResponseStatus.Fail;
+                    response.IsError = true;
                     return response;
                 }
                 var responseString = await httpResponse.Content.ReadAsStringAsync();
                 var data = JsonConvert.DeserializeObject<GetShowcaseBySlugResponseModel>(responseString);
-                response.Payload = data;
+                response.Result = data;
                 return response;
             }
             catch (Exception e)
             {
-                response.ResponseStatus = ResponseStatus.Fail;
+                response.IsError = true;
                 response.Message = e.Message;
                 return response;
             }
