@@ -48,9 +48,9 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         public delegate void StorageProviderError(object sender, AvatarManagerErrorEventArgs e);
 
        //TODO: Not sure we want to pass the OASISDNA here?
-        public AvatarManager(IOASISStorage OASISStorageProvider, OASISDNA OASISDNA) : base(OASISStorageProvider, OASISDNA)
+        public AvatarManager(IOASISStorage OASISStorageProvider, OASISDNA OASISDNA = null) : base(OASISStorageProvider, OASISDNA)
         {
-
+            
         }
 
         //TODO: In future more than one storage provider can be active at a time where each call can specify which provider to use.

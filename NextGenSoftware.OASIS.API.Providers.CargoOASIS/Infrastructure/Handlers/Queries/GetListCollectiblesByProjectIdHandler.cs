@@ -2,18 +2,16 @@
 using System.Net.Http;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
-using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Enum;
+using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Builder;
 using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Interfaces;
 using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Services.HttpHandler;
-using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Models.Cargo;
-using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Models.Common;
 using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Models.Request;
 using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Models.Response;
 
 namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Handlers.Queries
 {
-    public class GetListCollectiblesByProjectIdHandler : IHandle<Response<GetCollectiblesListByProjectIdResponseModel>, GetCollectiblesListByProjectIdRequestModel>
+    public class GetListCollectiblesByProjectIdHandler : IHandle<OASISResult<GetCollectiblesListByProjectIdResponseModel>, GetCollectiblesListByProjectIdRequestModel>
     {
         private readonly IHttpHandler _httpClient;
 
@@ -28,9 +26,9 @@ namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Handlers
         /// </summary>
         /// <param name="request">Request Parameters</param>
         /// <returns>Collectibles list</returns>
-        public async Task<Response<GetCollectiblesListByProjectIdResponseModel>> Handle(GetCollectiblesListByProjectIdRequestModel request)
+        public async Task<OASISResult<GetCollectiblesListByProjectIdResponseModel>> Handle(GetCollectiblesListByProjectIdRequestModel request)
         {
-            var response = new Response<GetCollectiblesListByProjectIdResponseModel>();
+            var response = new OASISResult<GetCollectiblesListByProjectIdResponseModel>();
             try
             {
                 var queryBuilder = new UrlQueryBuilder();
@@ -46,18 +44,18 @@ namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Handlers
                 var httpResponse = await _httpClient.SendAsync(httRequest);
                 if (!httpResponse.IsSuccessStatusCode)
                 {
+                    response.IsError = true;
                     response.Message = httpResponse.ReasonPhrase;
-                    response.ResponseStatus = ResponseStatus.Fail;
                     return response;
                 }
                 var responseString = await httpResponse.Content.ReadAsStringAsync();
                 var data = JsonConvert.DeserializeObject<GetCollectiblesListByProjectIdResponseModel>(responseString);
-                response.Payload = data;
+                response.Result = data;
                 return response;
             }
             catch (Exception e)
             {
-                response.ResponseStatus = ResponseStatus.Fail;
+                response.IsError = true;
                 response.Message = e.Message;
                 return response;
             }
