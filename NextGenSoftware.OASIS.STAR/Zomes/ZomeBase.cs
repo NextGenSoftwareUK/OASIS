@@ -141,7 +141,7 @@ namespace NextGenSoftware.OASIS.STAR.Zomes
             else if (this.Id != Guid.Empty)
                 result = LoadHolon(Id);
 
-            else if (this.ProviderKey != null)
+            else if (this.ProviderKey != null && this.ProviderKey.Count > 0)
                 result = LoadHolon(ProviderKey);
             else
             {

@@ -60,7 +60,11 @@ class AvatarWallet extends React.Component {
 
 	render() {
 		return (
-			<Modal dialogClassName="modal-90w" size="xl" onHide={()=>this.props.history.push('/')} show={true}>
+			<Modal 
+				dialogClassName="modal-90w" size="xl"
+			 	onHide={() => this.props.hide('avatar', 'wallet')} 
+			 	show={this.props.show}
+			 >
 				<Modal.Header closeButton>
   					<Modal.Title>Wallet</Modal.Title>
   				</Modal.Header>
