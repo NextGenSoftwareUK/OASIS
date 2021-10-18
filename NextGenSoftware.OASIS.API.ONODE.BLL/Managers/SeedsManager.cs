@@ -6,7 +6,7 @@ using NextGenSoftware.OASIS.API.ONODE.BLL.Holons;
 
 namespace NextGenSoftware.OASIS.API.ONODE.BLL.Managers
 {
-    public class SeedsManager : OASISManager
+    public class SeedsManager : OASISManager, ISeedsManager
     {
         public OASISResult<SeedTransaction> SaveSeedTransaction(Guid avatarId, string avatarUserName, int amount, string memo)
         {

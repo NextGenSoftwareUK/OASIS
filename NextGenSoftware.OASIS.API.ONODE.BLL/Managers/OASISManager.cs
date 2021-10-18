@@ -4,7 +4,7 @@ using NextGenSoftware.OASIS.API.Core.Managers;
 
 namespace NextGenSoftware.OASIS.API.ONODE.BLL.Managers
 {
-    public abstract class OASISManager
+    public abstract class OASISManager : IOASISManager
     {
         public HolonManager Data { get; set; }
 

@@ -1,10 +1,11 @@
 ﻿using System;
 using NextGenSoftware.OASIS.API.Core.CustomAttrbiutes;
 using NextGenSoftware.OASIS.API.Core.Holons;
+using NextGenSoftware.OASIS.API.ONODE.BLL.Interfaces;
 
 namespace NextGenSoftware.OASIS.API.ONODE.BLL.Holons
 {
-    public class SampleHolon : Holon
+    public class SampleHolon : Holon, ISampleHolon
     {
         [CustomOASISProperty]
         public string CustomProperty { get; set; }
