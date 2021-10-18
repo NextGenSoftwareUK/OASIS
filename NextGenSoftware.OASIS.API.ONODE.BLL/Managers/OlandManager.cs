@@ -157,7 +157,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.BLL.Managers
             return response;
         }
 
-        public async Task<OASISResult<string>> UpdateOland(IOland request, int id)
+        public async Task<OASISResult<string>> UpdateOland(IOland request)
         {
             var response = new OASISResult<string>();
             try
