@@ -28,10 +28,10 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.TestHarness
     {
         private static async Task Main(string[] args)
         {
-            var wallet = new Wallet("");
+            var wallet = new Wallet("pattern vessel trade prosper cube okay dust pet primary during captain endless");
             var rpcClient = ClientFactory.GetClient(Cluster.MainNet);
             
-            var publicKey = "";
+            var publicKey = "GsguXojeGATpZGW8VNfW8qQCBVodbW2qGS8bUEbdGZfv";
             
             var fromAccount = new PublicKey(publicKey);
             var toAccount = new PublicKey(publicKey);
@@ -51,7 +51,6 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.TestHarness
                     Name = "HELLOOOO",
                     Mail = "@mail.ru"
                 }))).
-                AddInstruction(SystemProgram.Transfer(fromAccount, toAccount, 100)).
                 Build(wallet.Account);
             var sendTransactionResult = await rpcClient.SendTransactionAsync(tx);
             
