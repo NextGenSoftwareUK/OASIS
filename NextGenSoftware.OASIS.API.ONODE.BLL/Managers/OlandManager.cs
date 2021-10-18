@@ -123,6 +123,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.BLL.Managers
                 request.Id = new Guid();
                 var olandHolon = new Holon
                 {
+                    IsNewHolon = true,
                     MetaData =
                     {
                         [nameof(IOland.UnitOfMeasure)] = request.UnitOfMeasure,
@@ -166,6 +167,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.BLL.Managers
                 request.Id = new Guid();
                 var olandHolon = new Holon
                 {
+                    IsNewHolon = false,
                     MetaData =
                     {
                         [nameof(IOland.UnitOfMeasure)] = request.UnitOfMeasure,
@@ -210,6 +212,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.BLL.Managers
                 olandPurchase.Id = new Guid();
                 var olandHolon = new Holon
                 {
+                    IsNewHolon = true,
                     MetaData =
                     {
                         [nameof(IOlandPurchase.Id)] = olandPurchase.Id.ToString(),
