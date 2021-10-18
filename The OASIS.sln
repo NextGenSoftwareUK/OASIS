@@ -195,6 +195,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.P
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.Providers.OnionProtocol.DbModel", "NextGenSoftware.OASIS.API.Providers.OnionProtocol.DbModel\NextGenSoftware.OASIS.API.Providers.OnionProtocol.DbModel.csproj", "{1580439E-EAAF-4B5D-9583-A844E7131146}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.TestHarness", "NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.TestHarness\NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.TestHarness.csproj", "{767B899D-A41B-4260-A2D5-55C8BA776115}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -1556,6 +1558,24 @@ Global
 		{1580439E-EAAF-4B5D-9583-A844E7131146}.Release|x64.Build.0 = Release|Any CPU
 		{1580439E-EAAF-4B5D-9583-A844E7131146}.Release|x86.ActiveCfg = Release|Any CPU
 		{1580439E-EAAF-4B5D-9583-A844E7131146}.Release|x86.Build.0 = Release|Any CPU
+		{767B899D-A41B-4260-A2D5-55C8BA776115}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{767B899D-A41B-4260-A2D5-55C8BA776115}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{767B899D-A41B-4260-A2D5-55C8BA776115}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{767B899D-A41B-4260-A2D5-55C8BA776115}.Debug|x64.Build.0 = Debug|Any CPU
+		{767B899D-A41B-4260-A2D5-55C8BA776115}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{767B899D-A41B-4260-A2D5-55C8BA776115}.Debug|x86.Build.0 = Debug|Any CPU
+		{767B899D-A41B-4260-A2D5-55C8BA776115}.Linux|Any CPU.ActiveCfg = Debug|Any CPU
+		{767B899D-A41B-4260-A2D5-55C8BA776115}.Linux|Any CPU.Build.0 = Debug|Any CPU
+		{767B899D-A41B-4260-A2D5-55C8BA776115}.Linux|x64.ActiveCfg = Debug|Any CPU
+		{767B899D-A41B-4260-A2D5-55C8BA776115}.Linux|x64.Build.0 = Debug|Any CPU
+		{767B899D-A41B-4260-A2D5-55C8BA776115}.Linux|x86.ActiveCfg = Debug|Any CPU
+		{767B899D-A41B-4260-A2D5-55C8BA776115}.Linux|x86.Build.0 = Debug|Any CPU
+		{767B899D-A41B-4260-A2D5-55C8BA776115}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{767B899D-A41B-4260-A2D5-55C8BA776115}.Release|Any CPU.Build.0 = Release|Any CPU
+		{767B899D-A41B-4260-A2D5-55C8BA776115}.Release|x64.ActiveCfg = Release|Any CPU
+		{767B899D-A41B-4260-A2D5-55C8BA776115}.Release|x64.Build.0 = Release|Any CPU
+		{767B899D-A41B-4260-A2D5-55C8BA776115}.Release|x86.ActiveCfg = Release|Any CPU
+		{767B899D-A41B-4260-A2D5-55C8BA776115}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
