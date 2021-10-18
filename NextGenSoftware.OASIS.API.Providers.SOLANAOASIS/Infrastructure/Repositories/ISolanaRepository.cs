@@ -3,16 +3,16 @@ using NextGenSoftware.OASIS.API.Core.Interfaces;
 
 namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Repositories
 {
-    public interface ISolanaRepository<T> where T : IHolonBase
+    public interface ISolanaRepository
     {
-        Task<string> CreateAsync(T entity);
-        Task<string> UpdateAsync(T entity);
-        Task<string> DeleteAsync(string hash);
-        Task<T> GetAsync(string hash);
+        Task<string> CreateAsync<T>(T entity) where T : IHolonBase, new();
+        Task<string> UpdateAsync<T>(T entity) where T : IHolonBase, new();
+        Task<string> DeleteAsync<T>(string hash) where T : IHolonBase, new();
+        Task<T> GetAsync<T>(string hash) where T : IHolonBase, new();
         
-        string Create(T entity);
-        string Update(T entity);
-        string Delete(string hash);
-        T Get(string hash);
+        string Create<T>(T entity) where T : IHolonBase, new();
+        string Update<T>(T entity) where T : IHolonBase, new();
+        string Delete<T>(string hash) where T : IHolonBase, new();
+        T Get<T>(string hash) where T : IHolonBase, new();
     }
 }

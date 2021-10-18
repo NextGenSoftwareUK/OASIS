@@ -13,7 +13,7 @@ using Solnet.Wallet.Utilities;
 
 namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Repositories
 {
-    public class SolanaRepository<T> : ISolanaRepository<T> where T : IHolonBase, new()
+    public class SolanaRepository : ISolanaRepository
     {
         private readonly IRpcClient _rpcClient;
         private readonly Wallet _wallet;
@@ -24,7 +24,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Reposit
             _rpcClient = ClientFactory.GetClient(Cluster.MainNet);
         }
 
-        public async Task<string> CreateAsync(T entity)
+        public async Task<string> CreateAsync<T>(T entity) where T : IHolonBase, new()
         {
             try
             {
@@ -48,7 +48,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Reposit
             }
         }
 
-        public async Task<string> UpdateAsync(T entity)
+        public async Task<string> UpdateAsync<T>(T entity)  where T : IHolonBase, new()
         {
             try
             {
@@ -73,7 +73,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Reposit
             }
         }
 
-        public async Task<string> DeleteAsync(string hash)
+        public async Task<string> DeleteAsync<T>(string hash)  where T : IHolonBase, new()
         {
             try
             {
@@ -112,7 +112,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Reposit
             }
         }
 
-        public async Task<T> GetAsync(string hash)
+        public async Task<T> GetAsync<T>(string hash) where T : IHolonBase, new()
         {
             try
             {
@@ -134,7 +134,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Reposit
             }
         }
 
-        public string Create(T entity)
+        public string Create<T>(T entity) where T : IHolonBase, new()
         {
             try
             {
@@ -158,7 +158,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Reposit
             }
         }
 
-        public string Update(T entity)
+        public string Update<T>(T entity) where T : IHolonBase, new()
         {
             try
             {
@@ -184,7 +184,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Reposit
             }
         }
 
-        public string Delete(string hash)
+        public string Delete<T>(string hash) where T : IHolonBase, new()
         {
             try
             {
@@ -222,7 +222,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Reposit
             }
         }
 
-        public T Get(string hash)
+        public T Get<T>(string hash) where T : IHolonBase, new()
         {
             try
             {
