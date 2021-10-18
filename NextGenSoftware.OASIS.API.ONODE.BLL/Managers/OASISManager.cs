@@ -1,6 +1,7 @@
 ﻿using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Managers;
+using NextGenSoftware.OASIS.API.ONODE.BLL.Interfaces;
 
 namespace NextGenSoftware.OASIS.API.ONODE.BLL.Managers
 {
