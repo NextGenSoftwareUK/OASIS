@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.ONODE.BLL.Holons;
+using NextGenSoftware.OASIS.API.ONODE.BLL.Interfaces;
 
 namespace NextGenSoftware.OASIS.API.ONODE.BLL.Managers
 {
