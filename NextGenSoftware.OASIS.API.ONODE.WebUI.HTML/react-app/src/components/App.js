@@ -1,7 +1,6 @@
 import React from "react";
 import { BrowserRouter as Router, Route, Switch } from "react-router-dom";
 
-import SideNav from "./common/SideNav";
 import Navbar from "./common/Navbar";
 import Sidebar from "./common/sidebar/Sidebar";
 //  import PayWithSeeds from "./pages/seeds/PayWithSeeds";
@@ -68,6 +67,17 @@ class App extends React.Component {
                      donateseeds: false,
                      sendinvite: false,
                      rewardseeds: false
+                }
+            },
+            {
+                avatar: {
+                    view: false,
+                    wallet: false
+                }
+            },
+            {
+                karma: {
+                    karmaRecord: false
                 }
             }
         ],
@@ -149,6 +159,7 @@ class App extends React.Component {
 
         sidebarMenuOption.map((item) => {
             if(item[menuOption]) {
+                console.log(item)
                 item[menuOption][menuName] = !item[menuOption][menuName];
             }
         })
@@ -156,6 +167,7 @@ class App extends React.Component {
         this.setState({
             sidebarMenuOption
         })
+        return
     };
 
     render() {
@@ -269,6 +281,35 @@ class App extends React.Component {
                     show={this.state.sidebarMenuOption[2].seeds.acceptinvite}
                     hide={this.toggleScreenPopup}
                  /> 
+
+                {/* ========== AVATAR POPUP START ==========*/}
+
+                <ViewAvatar
+                    show={this.state.sidebarMenuOption[2].avatar.view}
+                    hide={this.toggleScreenPopup}
+                />
+
+                <AvatarWallet 
+                    show={this.state.sidebarMenuOption[2].avatar.wallet}
+                    hide={this.toggleScreenPopup}
+                />
+                {/* ========== AVATAR POPUP END ==========*/}
+
+                {/* ========== KARMA POPUP START ==========*/}
+
+                <Karma
+                    show={this.state.sidebarMenuOption[3].karma.karmaRecord}
+                    hide={this.toggleScreenPopup}
+                />
+
+                {/* ========== KARMA POPUP END ==============*/}
+
+                {/* ========== MESSAGE POPUP START ==========*/}
+                <Message
+                    show={this.state.sidebarMenuOption[3].message.message}
+                    hide={this.toggleScreenPopup}
+                />
+                {/* ========== MESSAGE POPUP END =============*/}
 
                 <DonateSeeds 
                     show={this.state.sidebarMenuOption[2].seeds.donateseeds}

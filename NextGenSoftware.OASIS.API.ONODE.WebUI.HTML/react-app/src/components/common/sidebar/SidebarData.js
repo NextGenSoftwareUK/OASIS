@@ -37,6 +37,10 @@ const SidebarData = [
                 id: 3,
                 name: "search avatars",
             },
+            {
+                id: 4,
+                name: 'wallet'
+            }
         ],
     },
     {
