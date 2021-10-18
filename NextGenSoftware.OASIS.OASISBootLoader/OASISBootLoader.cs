@@ -18,6 +18,7 @@ using NextGenSoftware.OASIS.API.Providers.TelosOASIS;
 using NextGenSoftware.OASIS.API.Providers.EthereumOASIS;
 using NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS;
 using NextGenSoftware.Holochain.HoloNET.Client.Core;
+using NextGenSoftware.OASIS.API.Providers.SOLANAOASIS;
 
 namespace NextGenSoftware.OASIS.OASISBootLoader
 {
@@ -44,7 +45,8 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                 IsOASISBooting = true;
 
                 OASISDNAManager.OASISDNA = OASISDNA;
-                LoggingManager.CurrentLoggingFramework = (LoggingFramework)Enum.Parse(typeof(LoggingFramework), OASISDNA.OASIS.Logging.LoggingFramework);
+                LoggingManager.CurrentLoggingFramework = (LoggingFramework) Enum.Parse(typeof(LoggingFramework),
+                    OASISDNA.OASIS.Logging.LoggingFramework);
                 ErrorHandling.LogAllErrors = OASISDNA.OASIS.ErrorHandling.LogAllErrors;
                 ErrorHandling.LogAllWarnings = OASISDNA.OASIS.ErrorHandling.LogAllWarnings;
                 ErrorHandling.ShowStackTrace = OASISDNA.OASIS.ErrorHandling.ShowStackTrace;
@@ -58,23 +60,30 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                 LoadProviderLists();
 
                 //TODO: Need to apply this logic to rest of methods in this DNAManager such as RegisterProvider(s) etc... (Actually dont think we need to because this is our the OASIS is booted so it only applies here (the other methods override it).
-                if (Enum.TryParse(typeof(OASISProviderBootType), OASISDNA.OASIS.StorageProviders.OASISProviderBootType, out OASISProviderBootTypeObject))
+                if (Enum.TryParse(typeof(OASISProviderBootType), OASISDNA.OASIS.StorageProviders.OASISProviderBootType,
+                    out OASISProviderBootTypeObject))
                 {
-                    ProviderManager.OASISProviderBootType = (OASISProviderBootType)OASISProviderBootTypeObject;
+                    ProviderManager.OASISProviderBootType = (OASISProviderBootType) OASISProviderBootTypeObject;
 
-                    if (ProviderManager.OASISProviderBootType == OASISProviderBootType.Warm || ProviderManager.OASISProviderBootType == OASISProviderBootType.Hot)
+                    if (ProviderManager.OASISProviderBootType == OASISProviderBootType.Warm ||
+                        ProviderManager.OASISProviderBootType == OASISProviderBootType.Hot)
                         result = RegisterProvidersInAllLists();
                     else
                     {
                         IsOASISBooted = true;
                         result.Result = true;
-                        result.Message = "OASIS Booted but OASISProviderBootType is set to Cold so no providers have been registered or activated.";
+                        result.Message =
+                            "OASIS Booted but OASISProviderBootType is set to Cold so no providers have been registered or activated.";
                     }
                 }
                 else
                 {
                     result.IsError = true;
-                    result.Message = string.Concat("OASISProviderBootType '", OASISDNA.OASIS.StorageProviders.OASISProviderBootType, "' defined in OASISDNA is invalid. Valid values are: ", EnumHelper.GetEnumValues(typeof(OASISProviderBootType), EnumHelperListType.ItemsSeperatedByComma));
+                    result.Message = string.Concat("OASISProviderBootType '",
+                        OASISDNA.OASIS.StorageProviders.OASISProviderBootType,
+                        "' defined in OASISDNA is invalid. Valid values are: ",
+                        EnumHelper.GetEnumValues(typeof(OASISProviderBootType),
+                            EnumHelperListType.ItemsSeperatedByComma));
                 }
 
                 if (result.Result && !result.IsError)
@@ -107,7 +116,7 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
             return result;
         }
 
-        public static OASISResult<IOASISStorage>GetAndActivateDefaultProvider()
+        public static OASISResult<IOASISStorage> GetAndActivateDefaultProvider()
         {
             OASISResult<IOASISStorage> result = new OASISResult<IOASISStorage>();
 
@@ -125,7 +134,8 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                     }
                 }
 
-                OASISResult<IOASISStorage> providerManagerResult = GetAndActivateProvider(ProviderManager.GetProviderAutoFailOverList()[0].Value);
+                OASISResult<IOASISStorage> providerManagerResult =
+                    GetAndActivateProvider(ProviderManager.GetProviderAutoFailOverList()[0].Value);
 
                 if (providerManagerResult.IsError)
                 {
@@ -141,7 +151,8 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
             return result;
         }
 
-        public static OASISResult<IOASISStorage> GetAndActivateProvider(ProviderType providerType, string customConnectionString = null, bool forceRegister = false, bool setGlobally = false)
+        public static OASISResult<IOASISStorage> GetAndActivateProvider(ProviderType providerType,
+            string customConnectionString = null, bool forceRegister = false, bool setGlobally = false)
         {
             OASISResult<IOASISStorage> result = new OASISResult<IOASISStorage>();
 
@@ -161,7 +172,8 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
             if (providerType != ProviderManager.CurrentStorageProviderType.Value)
             {
                 RegisterProvider(providerType, customConnectionString, forceRegister);
-                OASISResult<IOASISStorage> providerManagerResult = ProviderManager.SetAndActivateCurrentStorageProvider(providerType, setGlobally);
+                OASISResult<IOASISStorage> providerManagerResult =
+                    ProviderManager.SetAndActivateCurrentStorageProvider(providerType, setGlobally);
 
                 if (providerManagerResult.IsError)
                 {
@@ -175,7 +187,8 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
 
             if (result.IsError != true)
             {
-                if (setGlobally && ProviderManager.CurrentStorageProvider != ProviderManager.DefaultGlobalStorageProvider)
+                if (setGlobally && ProviderManager.CurrentStorageProvider !=
+                    ProviderManager.DefaultGlobalStorageProvider)
                     ProviderManager.DefaultGlobalStorageProvider = ProviderManager.CurrentStorageProvider;
 
                 ProviderManager.OverrideProviderType = true;
@@ -185,7 +198,8 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
             return result;
         }
 
-        public static IOASISStorage RegisterProvider(ProviderType providerType, string overrideConnectionString = null, bool forceRegister = false)
+        public static IOASISStorage RegisterProvider(ProviderType providerType, string overrideConnectionString = null,
+            bool forceRegister = false)
         {
             IOASISStorage registeredProvider = null;
 
@@ -201,51 +215,75 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                 switch (providerType)
                 {
                     case ProviderType.HoloOASIS:
-                        {
-                            object hcVersion = null;
+                    {
+                        object hcVersion = null;
 
-                            if (Enum.TryParse(typeof(HolochainVersion), OASISDNA.OASIS.StorageProviders.HoloOASIS.HolochainVersion, out hcVersion))
-                            {
-                                HoloOASIS holoOASIS = new HoloOASIS(overrideConnectionString == null ? OASISDNA.OASIS.StorageProviders.HoloOASIS.ConnectionString : overrideConnectionString, (HolochainVersion)hcVersion);
-                                holoOASIS.OnHoloOASISError += HoloOASIS_OnHoloOASISError;
-                                holoOASIS.StorageProviderError += HoloOASIS_StorageProviderError;
-                                registeredProvider = holoOASIS;
-                            }
-                            else
-                                throw new ArgumentOutOfRangeException("OASISDNA.OASIS.StorageProviders.HoloOASIS.HolochainVersion", OASISDNA.OASIS.StorageProviders.HoloOASIS.HolochainVersion, "The HolochainVersion needs to be either RSM or Redux.");
+                        if (Enum.TryParse(typeof(HolochainVersion),
+                            OASISDNA.OASIS.StorageProviders.HoloOASIS.HolochainVersion, out hcVersion))
+                        {
+                            HoloOASIS holoOASIS =
+                                new HoloOASIS(
+                                    overrideConnectionString == null
+                                        ? OASISDNA.OASIS.StorageProviders.HoloOASIS.ConnectionString
+                                        : overrideConnectionString, (HolochainVersion) hcVersion);
+                            holoOASIS.OnHoloOASISError += HoloOASIS_OnHoloOASISError;
+                            holoOASIS.StorageProviderError += HoloOASIS_StorageProviderError;
+                            registeredProvider = holoOASIS;
                         }
+                        else
+                            throw new ArgumentOutOfRangeException(
+                                "OASISDNA.OASIS.StorageProviders.HoloOASIS.HolochainVersion",
+                                OASISDNA.OASIS.StorageProviders.HoloOASIS.HolochainVersion,
+                                "The HolochainVersion needs to be either RSM or Redux.");
+                    }
                         break;
 
                     case ProviderType.SQLLiteDBOASIS:
-                        {
-                            SQLLiteDBOASIS SQLLiteDBOASIS = new SQLLiteDBOASIS(overrideConnectionString == null ? OASISDNA.OASIS.StorageProviders.SQLLiteDBOASIS.ConnectionString : overrideConnectionString);
-                            SQLLiteDBOASIS.StorageProviderError += SQLLiteDBOASIS_StorageProviderError;
-                            registeredProvider = SQLLiteDBOASIS;
-                        }
+                    {
+                        SQLLiteDBOASIS SQLLiteDBOASIS = new SQLLiteDBOASIS(overrideConnectionString == null
+                            ? OASISDNA.OASIS.StorageProviders.SQLLiteDBOASIS.ConnectionString
+                            : overrideConnectionString);
+                        SQLLiteDBOASIS.StorageProviderError += SQLLiteDBOASIS_StorageProviderError;
+                        registeredProvider = SQLLiteDBOASIS;
+                    }
                         break;
 
                     case ProviderType.MongoDBOASIS:
-                        {
-                            MongoDBOASIS mongoOASIS = new MongoDBOASIS(overrideConnectionString == null ? OASISDNA.OASIS.StorageProviders.MongoDBOASIS.ConnectionString : overrideConnectionString, OASISDNA.OASIS.StorageProviders.MongoDBOASIS.DBName);
-                            mongoOASIS.StorageProviderError += MongoOASIS_StorageProviderError;
-                            registeredProvider = mongoOASIS;
-                        }
+                    {
+                        MongoDBOASIS mongoOASIS =
+                            new MongoDBOASIS(
+                                overrideConnectionString == null
+                                    ? OASISDNA.OASIS.StorageProviders.MongoDBOASIS.ConnectionString
+                                    : overrideConnectionString, OASISDNA.OASIS.StorageProviders.MongoDBOASIS.DBName);
+                        mongoOASIS.StorageProviderError += MongoOASIS_StorageProviderError;
+                        registeredProvider = mongoOASIS;
+                    }
                         break;
-
+                    case ProviderType.SolanaOASIS:
+                    {
+                        SolanaOasis solanaOasis = new SolanaOasis();
+                        solanaOasis.StorageProviderError += SolanaOASIS_StorageProviderError;
+                        registeredProvider = solanaOasis;
+                    }
+                        break;
                     case ProviderType.EOSIOOASIS:
-                        {
-                            EOSIOOASIS EOSIOOASIS = new EOSIOOASIS(overrideConnectionString == null ? OASISDNA.OASIS.StorageProviders.EOSIOOASIS.ConnectionString : overrideConnectionString);
-                            EOSIOOASIS.StorageProviderError += EOSIOOASIS_StorageProviderError;
-                            registeredProvider = EOSIOOASIS;
-                        }
+                    {
+                        EOSIOOASIS EOSIOOASIS = new EOSIOOASIS(overrideConnectionString == null
+                            ? OASISDNA.OASIS.StorageProviders.EOSIOOASIS.ConnectionString
+                            : overrideConnectionString);
+                        EOSIOOASIS.StorageProviderError += EOSIOOASIS_StorageProviderError;
+                        registeredProvider = EOSIOOASIS;
+                    }
                         break;
 
                     case ProviderType.TelosOASIS:
-                        {
-                            TelosOASIS TelosOASIS = new TelosOASIS(overrideConnectionString == null ? OASISDNA.OASIS.StorageProviders.TelosOASIS.ConnectionString: overrideConnectionString);
-                            TelosOASIS.StorageProviderError += TelosOASIS_StorageProviderError;
-                            registeredProvider = TelosOASIS;
-                        }
+                    {
+                        TelosOASIS TelosOASIS = new TelosOASIS(overrideConnectionString == null
+                            ? OASISDNA.OASIS.StorageProviders.TelosOASIS.ConnectionString
+                            : overrideConnectionString);
+                        TelosOASIS.StorageProviderError += TelosOASIS_StorageProviderError;
+                        registeredProvider = TelosOASIS;
+                    }
                         break;
 
                     //case ProviderType.SEEDSOASIS:
@@ -257,57 +295,66 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                     //    break;
 
                     case ProviderType.Neo4jOASIS:
-                        {
-                            Neo4jOASIS Neo4jOASIS = new Neo4jOASIS(overrideConnectionString == null ? OASISDNA.OASIS.StorageProviders.Neo4jOASIS.ConnectionString : overrideConnectionString, OASISDNA.OASIS.StorageProviders.Neo4jOASIS.Username, OASISDNA.OASIS.StorageProviders.Neo4jOASIS.Password);
-                            Neo4jOASIS.StorageProviderError += Neo4jOASIS_StorageProviderError;
-                            registeredProvider = Neo4jOASIS;
-                        }
+                    {
+                        Neo4jOASIS Neo4jOASIS = new Neo4jOASIS(
+                            overrideConnectionString == null
+                                ? OASISDNA.OASIS.StorageProviders.Neo4jOASIS.ConnectionString
+                                : overrideConnectionString, OASISDNA.OASIS.StorageProviders.Neo4jOASIS.Username,
+                            OASISDNA.OASIS.StorageProviders.Neo4jOASIS.Password);
+                        Neo4jOASIS.StorageProviderError += Neo4jOASIS_StorageProviderError;
+                        registeredProvider = Neo4jOASIS;
+                    }
                         break;
 
                     case ProviderType.IPFSOASIS:
+                    {
+                        //IPFSOASIS IPFSOASIS = new IPFSOASIS(overrideConnectionString == null ? OASISDNA.OASIS.StorageProviders.IPFSOASIS.ConnectionString : overrideConnectionString, OASISDNA.OASIS.StorageProviders.IPFSOASIS.LookUpIPFSAddress);
+                        //IPFSOASIS IPFSOASIS = new IPFSOASIS(overrideConnectionString == null ? OASISDNA.OASIS.StorageProviders.IPFSOASIS.ConnectionString : overrideConnectionString, OASISDNAFileName);
+                        IPFSOASIS IPFSOASIS = null;
+
+                        //Example of how to pass in OASISDNA if the Provider needs to update the DNA.
+                        if (overrideConnectionString != null)
                         {
-                            //IPFSOASIS IPFSOASIS = new IPFSOASIS(overrideConnectionString == null ? OASISDNA.OASIS.StorageProviders.IPFSOASIS.ConnectionString : overrideConnectionString, OASISDNA.OASIS.StorageProviders.IPFSOASIS.LookUpIPFSAddress);
-                            //IPFSOASIS IPFSOASIS = new IPFSOASIS(overrideConnectionString == null ? OASISDNA.OASIS.StorageProviders.IPFSOASIS.ConnectionString : overrideConnectionString, OASISDNAFileName);
-                            IPFSOASIS IPFSOASIS = null;
-
-                            //Example of how to pass in OASISDNA if the Provider needs to update the DNA.
-                            if (overrideConnectionString != null)
-                            {
-                                OASISDNA overrideDNA = OASISDNA;
-                                overrideDNA.OASIS.StorageProviders.IPFSOASIS.ConnectionString = overrideConnectionString;
-                                IPFSOASIS = new IPFSOASIS(overrideDNA, OASISDNAFileName);
-                            }   
-                            else
-                                IPFSOASIS = new IPFSOASIS(OASISDNA, OASISDNAFileName);
-
-                            //IPFSOASIS IPFSOASIS = new IPFSOASIS(overrideConnectionString == null ? OASISDNA.OASIS.StorageProviders.IPFSOASIS.ConnectionString : overrideConnectionString, OASISDNAFileName);
-                            IPFSOASIS.StorageProviderError += IPFSOASIS_StorageProviderError;
-                            registeredProvider = IPFSOASIS;
+                            OASISDNA overrideDNA = OASISDNA;
+                            overrideDNA.OASIS.StorageProviders.IPFSOASIS.ConnectionString = overrideConnectionString;
+                            IPFSOASIS = new IPFSOASIS(overrideDNA, OASISDNAFileName);
                         }
+                        else
+                            IPFSOASIS = new IPFSOASIS(OASISDNA, OASISDNAFileName);
+
+                        //IPFSOASIS IPFSOASIS = new IPFSOASIS(overrideConnectionString == null ? OASISDNA.OASIS.StorageProviders.IPFSOASIS.ConnectionString : overrideConnectionString, OASISDNAFileName);
+                        IPFSOASIS.StorageProviderError += IPFSOASIS_StorageProviderError;
+                        registeredProvider = IPFSOASIS;
+                    }
                         break;
 
                     case ProviderType.EthereumOASIS:
-                        {
-                            EthereumOASIS EthereumOASIS = new EthereumOASIS(overrideConnectionString == null ? OASISDNA.OASIS.StorageProviders.EthereumOASIS.ConnectionString : overrideConnectionString);
-                            EthereumOASIS.StorageProviderError += EthereumOASIS_StorageProviderError;
-                            registeredProvider = EthereumOASIS;
-                        }
+                    {
+                        EthereumOASIS EthereumOASIS = new EthereumOASIS(overrideConnectionString == null
+                            ? OASISDNA.OASIS.StorageProviders.EthereumOASIS.ConnectionString
+                            : overrideConnectionString);
+                        EthereumOASIS.StorageProviderError += EthereumOASIS_StorageProviderError;
+                        registeredProvider = EthereumOASIS;
+                    }
                         break;
 
                     case ProviderType.ThreeFoldOASIS:
-                        {
-                            ThreeFoldOASIS ThreeFoldOASIS = new ThreeFoldOASIS(overrideConnectionString == null ? OASISDNA.OASIS.StorageProviders.ThreeFoldOASIS.ConnectionString : overrideConnectionString);
-                            ThreeFoldOASIS.StorageProviderError += ThreeFoldOASIS_StorageProviderError;
-                            registeredProvider = ThreeFoldOASIS;
-                        }
+                    {
+                        ThreeFoldOASIS ThreeFoldOASIS = new ThreeFoldOASIS(overrideConnectionString == null
+                            ? OASISDNA.OASIS.StorageProviders.ThreeFoldOASIS.ConnectionString
+                            : overrideConnectionString);
+                        ThreeFoldOASIS.StorageProviderError += ThreeFoldOASIS_StorageProviderError;
+                        registeredProvider = ThreeFoldOASIS;
+                    }
                         break;
                 }
 
                 if (registeredProvider != null)
-                    ProviderManager.RegisterProvider(registeredProvider);;
+                    ProviderManager.RegisterProvider(registeredProvider);
+                ;
             }
             else
-                registeredProvider = (IOASISStorage)ProviderManager.GetProvider(providerType);
+                registeredProvider = (IOASISStorage) ProviderManager.GetProvider(providerType);
 
             if (ProviderManager.OASISProviderBootType == OASISProviderBootType.Hot)
                 ProviderManager.ActivateProvider(registeredProvider);
@@ -330,40 +377,49 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
             throw new NotImplementedException();
         }
 
-        public static OASISResult<bool> RegisterProvidersInAutoFailOverList(bool abortIfOneProviderFailsToRegister = false)
+        public static OASISResult<bool> RegisterProvidersInAutoFailOverList(
+            bool abortIfOneProviderFailsToRegister = false)
         {
             return RegisterProviders(ProviderManager.GetProviderAutoFailOverList(), abortIfOneProviderFailsToRegister);
         }
 
-        public static OASISResult<bool> RegisterProvidersInAutoLoadBalanceList(bool abortIfOneProviderFailsToRegister = false)
+        public static OASISResult<bool> RegisterProvidersInAutoLoadBalanceList(
+            bool abortIfOneProviderFailsToRegister = false)
         {
-            return RegisterProviders(ProviderManager.GetProviderAutoLoadBalanceList(), abortIfOneProviderFailsToRegister);
+            return RegisterProviders(ProviderManager.GetProviderAutoLoadBalanceList(),
+                abortIfOneProviderFailsToRegister);
         }
 
-        public static OASISResult<bool> RegisterProvidersInAutoReplicatingList(bool abortIfOneProviderFailsToRegister = false)
+        public static OASISResult<bool> RegisterProvidersInAutoReplicatingList(
+            bool abortIfOneProviderFailsToRegister = false)
         {
-            return RegisterProviders(ProviderManager.GetProvidersThatAreAutoReplicating(), abortIfOneProviderFailsToRegister);
+            return RegisterProviders(ProviderManager.GetProvidersThatAreAutoReplicating(),
+                abortIfOneProviderFailsToRegister);
         }
 
         public static OASISResult<bool> RegisterProvidersInAllLists(bool abortIfOneProviderFailsToRegister = false)
         {
             OASISResult<bool> result = new OASISResult<bool>(true);
-            result = ProcessResult("AutoFailOverList", RegisterProvidersInAutoFailOverList(abortIfOneProviderFailsToRegister), result);
+            result = ProcessResult("AutoFailOverList",
+                RegisterProvidersInAutoFailOverList(abortIfOneProviderFailsToRegister), result);
 
             if (result.IsError && abortIfOneProviderFailsToRegister)
                 return result;
 
-            result = ProcessResult("AutoLoadBalanceList", RegisterProvidersInAutoLoadBalanceList(abortIfOneProviderFailsToRegister), result);
+            result = ProcessResult("AutoLoadBalanceList",
+                RegisterProvidersInAutoLoadBalanceList(abortIfOneProviderFailsToRegister), result);
 
             if (result.IsError && abortIfOneProviderFailsToRegister)
                 return result;
 
-            result = ProcessResult("AutoReplicatingList", RegisterProvidersInAutoReplicatingList(abortIfOneProviderFailsToRegister), result);
+            result = ProcessResult("AutoReplicatingList",
+                RegisterProvidersInAutoReplicatingList(abortIfOneProviderFailsToRegister), result);
 
             return result;
         }
 
-        public static OASISResult<bool> RegisterProviders(List<EnumValue<ProviderType>> providerTypes, bool abortIfOneProviderFailsToRegister = false)
+        public static OASISResult<bool> RegisterProviders(List<EnumValue<ProviderType>> providerTypes,
+            bool abortIfOneProviderFailsToRegister = false)
         {
             List<ProviderType> providerTypesList = new List<ProviderType>();
 
@@ -373,7 +429,8 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
             return RegisterProviders(providerTypesList, abortIfOneProviderFailsToRegister);
         }
 
-        public static OASISResult<bool> RegisterProviders(List<ProviderType> providerTypes, bool abortIfOneProviderFailsToRegister = false)
+        public static OASISResult<bool> RegisterProviders(List<ProviderType> providerTypes,
+            bool abortIfOneProviderFailsToRegister = false)
         {
             OASISResult<bool> result = new OASISResult<bool>(true);
 
@@ -384,8 +441,9 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                 {
                     result.Result = false;
                     result.IsError = true;
-                    
-                    string errorMessage = string.Concat("OASIS Provider ", Enum.GetName(typeof(ProviderType), providerType), " failed to register.\n");
+
+                    string errorMessage = string.Concat("OASIS Provider ",
+                        Enum.GetName(typeof(ProviderType), providerType), " failed to register.\n");
                     result.Message = string.Concat(result.Message, errorMessage);
                     LoggingManager.Log(errorMessage, API.Core.Enums.LogType.Error);
 
@@ -397,11 +455,13 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
             return result;
         }
 
-        private static OASISResult<bool> ProcessResult(string listName, OASISResult<bool> listResult, OASISResult<bool> allListResult)
+        private static OASISResult<bool> ProcessResult(string listName, OASISResult<bool> listResult,
+            OASISResult<bool> allListResult)
         {
             if (listResult.IsError)
             {
-                string errorMessage = string.Concat("Error registering providers in ", listName, ". Error Details: \n", listResult.Message);
+                string errorMessage = string.Concat("Error registering providers in ", listName, ". Error Details: \n",
+                    listResult.Message);
                 allListResult.IsError = true;
                 allListResult.Message = string.Concat(allListResult.Message, errorMessage);
                 LoggingManager.Log(errorMessage, API.Core.Enums.LogType.Error);
@@ -419,9 +479,13 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
             foreach (string provider in providers)
             {
                 if (Enum.TryParse(typeof(ProviderType), provider.Trim(), out providerTypeObject))
-                    providerTypes.Add((ProviderType)providerTypeObject);
+                    providerTypes.Add((ProviderType) providerTypeObject);
                 else
-                    throw new ArgumentOutOfRangeException(providerListName, string.Concat("ERROR: The OASIS DNA file ", OASISDNAFileName, " contains an invalid entry in the ", providerListName, " comma delimited list. Entry found was ", provider.Trim(), ". Valid entries are:\n\n", EnumHelper.GetEnumValues(typeof(ProviderType))));
+                    throw new ArgumentOutOfRangeException(providerListName,
+                        string.Concat("ERROR: The OASIS DNA file ", OASISDNAFileName,
+                            " contains an invalid entry in the ", providerListName,
+                            " comma delimited list. Entry found was ", provider.Trim(), ". Valid entries are:\n\n",
+                            EnumHelper.GetEnumValues(typeof(ProviderType))));
             }
 
             return providerTypes;
@@ -440,15 +504,22 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                 }
             }
             else
-                throw new ArgumentNullException("OASISDNAFileName", string.Concat("ERROR: OASIS DNA file not found. Path: ", OASISDNAFileName));
+                throw new ArgumentNullException("OASISDNAFileName",
+                    string.Concat("ERROR: OASIS DNA file not found. Path: ", OASISDNAFileName));
         }
 
         private static void LoadProviderLists()
         {
             // ProviderManager.DefaultProviderTypes = OASISDNA.OASIS.StorageProviders.DefaultProviders.Split(",");
-            ProviderManager.SetAutoFailOverForProviders(true, GetProviderTypesFromDNA("AutoFailOverProviders", OASISDNA.OASIS.StorageProviders.AutoFailOverProviders));
-            ProviderManager.SetAutoLoadBalanceForProviders(true, GetProviderTypesFromDNA("AutoLoadBalanceProviders", OASISDNA.OASIS.StorageProviders.AutoLoadBalanceProviders));
-            ProviderManager.SetAutoReplicationForProviders(true, GetProviderTypesFromDNA("AutoReplicationProviders", OASISDNA.OASIS.StorageProviders.AutoReplicationProviders));
+            ProviderManager.SetAutoFailOverForProviders(true,
+                GetProviderTypesFromDNA("AutoFailOverProviders",
+                    OASISDNA.OASIS.StorageProviders.AutoFailOverProviders));
+            ProviderManager.SetAutoLoadBalanceForProviders(true,
+                GetProviderTypesFromDNA("AutoLoadBalanceProviders",
+                    OASISDNA.OASIS.StorageProviders.AutoLoadBalanceProviders));
+            ProviderManager.SetAutoReplicationForProviders(true,
+                GetProviderTypesFromDNA("AutoReplicationProviders",
+                    OASISDNA.OASIS.StorageProviders.AutoReplicationProviders));
         }
 
         private static void IPFSOASIS_StorageProviderError(object sender, AvatarManagerErrorEventArgs e)
@@ -479,13 +550,20 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
             //  throw new Exception(string.Concat("ERROR: MongoOASIS_StorageProviderError. EndPoint: ", e.EndPoint, "Reason: ", e.Reason, ". Error Details: ", e.ErrorDetails));
         }
 
+        private static void SolanaOASIS_StorageProviderError(object sender, AvatarManagerErrorEventArgs e)
+        {
+            //TODO: {URGENT} Handle Errors properly here (log, etc)
+            //  throw new Exception(string.Concat("ERROR: MongoOASIS_StorageProviderError. EndPoint: ", e.EndPoint, "Reason: ", e.Reason, ". Error Details: ", e.ErrorDetails));
+        }
+
         private static void HoloOASIS_StorageProviderError(object sender, AvatarManagerErrorEventArgs e)
         {
             //TODO: {URGENT} Handle Errors properly here (log, etc)
             //  throw new Exception(string.Concat("ERROR: HoloOASIS_StorageProviderError. EndPoint: ", e.EndPoint, "Reason: ", e.Reason, ". Error Details: ", e.ErrorDetails));
         }
 
-        private static void HoloOASIS_OnHoloOASISError(object sender, API.Providers.HoloOASIS.Core.HoloOASISErrorEventArgs e)
+        private static void HoloOASIS_OnHoloOASISError(object sender,
+            API.Providers.HoloOASIS.Core.HoloOASISErrorEventArgs e)
         {
             //TODO: {URGENT} Handle Errors properly here (log, etc)
             //  throw new Exception(string.Concat("ERROR: HoloOASIS_OnHoloOASISError. EndPoint: ", e.EndPoint, "Reason: ", e.Reason, ". Error Details: ", e.ErrorDetails, "HoloNET.Reason: ", e.HoloNETErrorDetails.Reason, "HoloNET.ErrorDetails: ", e.HoloNETErrorDetails.ErrorDetails));
