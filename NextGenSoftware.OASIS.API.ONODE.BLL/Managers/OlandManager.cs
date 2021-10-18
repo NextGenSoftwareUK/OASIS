@@ -200,5 +200,51 @@ namespace NextGenSoftware.OASIS.API.ONODE.BLL.Managers
             }
             return response;
         }
+
+        public async Task<OASISResult<string>> PurchaseOland(IOlandPurchase olandPurchase)
+        {
+            var response = new OASISResult<string>();
+            
+            try
+            {
+                olandPurchase.Id = new Guid();
+                var olandHolon = new Holon
+                {
+                    MetaData =
+                    {
+                        [nameof(IOlandPurchase.Id)] = olandPurchase.Id.ToString(),
+                        [nameof(IOlandPurchase.OlandId)] = olandPurchase.OlandId.ToString(),
+                        [nameof(IOlandPurchase.AvatarId)] = olandPurchase.AvatarId.ToString(),
+                        [nameof(IOlandPurchase.AvatarUsername)] = olandPurchase.AvatarUsername,
+                        [nameof(IOlandPurchase.Tiles)] = olandPurchase.Tiles,
+                        [nameof(IOlandPurchase.WalletAddress)] = olandPurchase.WalletAddress,
+                        [nameof(IOlandPurchase.PurchaseDate)] = olandPurchase.PurchaseDate.ToString(CultureInfo.InvariantCulture),
+                        [nameof(IOlandPurchase.TransactionHash)] = olandPurchase.TransactionHash,
+                        [nameof(IOlandPurchase.CargoSaleId)] = olandPurchase.CargoSaleId,
+                        [nameof(IOlandPurchase.IsSucceedPurchase)] = olandPurchase.IsSucceedPurchase.ToString(),
+                        [nameof(IOlandPurchase.ErrorMessage)] = olandPurchase.ErrorMessage
+                    }
+                };
+                
+                var saveResult = await _holonManager.SaveHolonAsync(olandHolon);
+                if (saveResult.IsError)
+                {
+                    response.IsError = true;
+                    response.IsSaved = false;
+                    response.Result = null;
+                    response.Message = saveResult.Message;
+                    return response;
+                }
+            }
+            catch (Exception e)
+            {
+                response.Exception = e;
+                response.Message = e.Message;
+                response.IsError = true;
+                response.IsSaved = false;
+                response.Result = null;
+            }
+            return response;
+        }
     }
 }
