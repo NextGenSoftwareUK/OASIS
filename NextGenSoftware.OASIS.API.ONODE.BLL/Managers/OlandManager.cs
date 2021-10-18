@@ -1,0 +1,204 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Globalization;
+using System.Linq;
+using System.Threading.Tasks;
+using NextGenSoftware.OASIS.API.Core.Helpers;
+using NextGenSoftware.OASIS.API.Core.Holons;
+using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.Core.Managers;
+using NextGenSoftware.OASIS.API.Core.Objects;
+
+namespace NextGenSoftware.OASIS.API.ONODE.BLL.Managers
+{
+    public class OlandManager
+    {
+        private readonly HolonManager _holonManager = null;
+
+        public OlandManager()
+        {
+            var result = OASISBootLoader.OASISBootLoader.GetAndActivateDefaultProvider();
+
+            //TODO: Eventually want to replace all exceptions with OASISResult throughout the OASIS because then it makes sure errors are handled properly and friendly messages are shown (plus less overhead of throwing an entire stack trace!)
+            if (result.IsError)
+            {
+                string errorMessage = string.Concat("Error calling OASISDNAManager.GetAndActivateDefaultProvider(). Error details: ", result.Message);
+                ErrorHandling.HandleError(ref result, errorMessage, true, false, true);
+            }
+            else
+                _holonManager = new HolonManager(result.Result);
+        }
+        
+        public async Task<OASISResult<IEnumerable<IOland>>> LoadAllOlands()
+        {
+            var response = new OASISResult<IEnumerable<IOland>>();
+            try
+            {
+                var loadResult = await _holonManager.LoadAllHolonsAsync();
+                if (loadResult.IsError)
+                {
+                    response.IsError = true;
+                    response.IsSaved = false;
+                    response.Result = null;
+                    response.Message = loadResult.Message;
+                    return response;
+                }
+                
+                var olandsEntity = loadResult.Result.Select(holon => new Oland 
+                {
+                    Discount = Convert.ToDecimal(holon.MetaData[nameof(IOland.Discount)].Replace(",", ".")),
+                    Id = Guid.Parse(holon.MetaData[nameof(IOland.Id)]),
+                    Price = Convert.ToDecimal(holon.MetaData[nameof(IOland.Price)].Replace(",", ".")),
+                    IsRemoved = bool.Parse(holon.MetaData[nameof(IOland.IsRemoved)]),
+                    OlandsCount = int.Parse(holon.MetaData[nameof(IOland.OlandsCount)]),
+                    PreviousId = Guid.Parse(holon.MetaData[nameof(IOland.PreviousId)]),
+                    RightSize = Convert.ToDecimal(holon.MetaData[nameof(IOland.RightSize)].Replace(",", ".")),
+                    TopSize = Convert.ToDecimal(holon.MetaData[nameof(IOland.TopSize)].Replace(",", ".")),
+                    UnitOfMeasure = holon.MetaData[nameof(IOland.UnitOfMeasure)]
+                });
+                response.Result = olandsEntity;
+            }
+            catch (Exception e)
+            {
+                response.Exception = e;
+                response.Message = e.Message;
+                response.IsError = true;
+                response.IsSaved = false;
+                response.Result = null;
+            }
+            return response;
+        }
+
+        public async Task<OASISResult<IOland>> LoadOland(Guid olandId)
+        {
+            var response = new OASISResult<IOland>();
+            try
+            {
+                var loadResult = await _holonManager.LoadHolonAsync(olandId);
+                if (loadResult.IsError)
+                {
+                    response.IsError = true;
+                    response.IsSaved = false;
+                    response.Result = null;
+                    response.Message = loadResult.Message;
+                    return response;
+                }
+
+                var olandEntity = new Oland()
+                {
+                    Discount = Convert.ToDecimal(loadResult.Result.MetaData[nameof(IOland.Discount)].Replace(",", ".")),
+                    Id = Guid.Parse(loadResult.Result.MetaData[nameof(IOland.Id)]),
+                    Price = Convert.ToDecimal(loadResult.Result.MetaData[nameof(IOland.Price)].Replace(",", ".")),
+                    IsRemoved = bool.Parse(loadResult.Result.MetaData[nameof(IOland.IsRemoved)]),
+                    OlandsCount = int.Parse(loadResult.Result.MetaData[nameof(IOland.OlandsCount)]),
+                    PreviousId = Guid.Parse(loadResult.Result.MetaData[nameof(IOland.PreviousId)]),
+                    RightSize = Convert.ToDecimal(loadResult.Result.MetaData[nameof(IOland.RightSize)].Replace(",", ".")),
+                    TopSize = Convert.ToDecimal(loadResult.Result.MetaData[nameof(IOland.TopSize)].Replace(",", ".")),
+                    UnitOfMeasure = loadResult.Result.MetaData[nameof(IOland.UnitOfMeasure)]
+                };
+
+                response.Result = olandEntity;
+            }
+            catch (Exception e)
+            {
+                response.Exception = e;
+                response.Message = e.Message;
+                response.IsError = true;
+                response.IsSaved = false;
+                response.Result = null;
+            }
+            return response;
+        }
+
+        public async Task<OASISResult<bool>> DeleteOland(Guid olandId)
+        {
+            return await _holonManager.DeleteHolonAsync(olandId);
+        }
+
+        public async Task<OASISResult<string>> SaveOland(IOland request)
+        {
+            var response = new OASISResult<string>();
+            try
+            {
+                request.Id = new Guid();
+                var olandHolon = new Holon
+                {
+                    MetaData =
+                    {
+                        [nameof(IOland.UnitOfMeasure)] = request.UnitOfMeasure,
+                        [nameof(IOland.Discount)] = request.Discount.ToString(CultureInfo.InvariantCulture).Replace(".", ","),
+                        [nameof(IOland.Id)] = request.Id.ToString(),
+                        [nameof(IOland.Price)] = request.Price.ToString(CultureInfo.CurrentCulture).Replace(".", ","),
+                        [nameof(IOland.IsRemoved)] = request.IsRemoved.ToString(CultureInfo.CurrentCulture),
+                        [nameof(IOland.OlandsCount)] = request.OlandsCount.ToString(CultureInfo.CurrentCulture),
+                        [nameof(IOland.PreviousId)] = request.PreviousId.ToString(),
+                        [nameof(IOland.RightSize)] = request.RightSize.ToString(CultureInfo.InvariantCulture).Replace(".", ","),
+                        [nameof(IOland.TopSize)] = request.TopSize.ToString(CultureInfo.InvariantCulture).Replace(".", ","),
+                    }
+                };
+                var saveResult = await _holonManager.SaveHolonAsync(olandHolon);
+                if (saveResult.IsError)
+                {
+                    response.IsError = true;
+                    response.IsSaved = false;
+                    response.Result = null;
+                    response.Message = saveResult.Message;
+                    return response;
+                }
+            }
+            catch (Exception e)
+            {
+                response.Exception = e;
+                response.Message = e.Message;
+                response.IsError = true;
+                response.IsSaved = false;
+                response.Result = null;
+            }
+            return response;
+        }
+
+        public async Task<OASISResult<string>> UpdateOland(IOland request)
+        {
+            var response = new OASISResult<string>();
+            try
+            {
+                request.PreviousId = request.Id;
+                request.Id = new Guid();
+                var olandHolon = new Holon
+                {
+                    MetaData =
+                    {
+                        [nameof(IOland.UnitOfMeasure)] = request.UnitOfMeasure,
+                        [nameof(IOland.Discount)] = request.Discount.ToString(CultureInfo.InvariantCulture).Replace(".", ","),
+                        [nameof(IOland.Id)] = request.Id.ToString(),
+                        [nameof(IOland.Price)] = request.Price.ToString(CultureInfo.CurrentCulture).Replace(".", ","),
+                        [nameof(IOland.IsRemoved)] = request.IsRemoved.ToString(CultureInfo.CurrentCulture),
+                        [nameof(IOland.OlandsCount)] = request.OlandsCount.ToString(CultureInfo.CurrentCulture),
+                        [nameof(IOland.PreviousId)] = request.PreviousId.ToString(),
+                        [nameof(IOland.RightSize)] = request.RightSize.ToString(CultureInfo.InvariantCulture).Replace(".", ","),
+                        [nameof(IOland.TopSize)] = request.TopSize.ToString(CultureInfo.InvariantCulture).Replace(".", ","),
+                    }
+                };
+                
+                var saveResult = await _holonManager.SaveHolonAsync(olandHolon);
+                if (saveResult.IsError)
+                {
+                    response.IsError = true;
+                    response.IsSaved = false;
+                    response.Result = null;
+                    response.Message = saveResult.Message;
+                    return response;
+                }
+            }
+            catch (Exception e)
+            {
+                response.Exception = e;
+                response.Message = e.Message;
+                response.IsError = true;
+                response.IsSaved = false;
+                response.Result = null;
+            }
+            return response;
+        }
+    }
+}
