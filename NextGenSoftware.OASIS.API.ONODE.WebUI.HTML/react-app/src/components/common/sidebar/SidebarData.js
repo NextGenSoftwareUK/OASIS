@@ -296,7 +296,7 @@ const SidebarData = [
             },
             {
                 id: 2,
-                name: "ContactPopup",
+                name: "Contact Popup",
                 popupName: 'contactPopup'
             }
         ],
