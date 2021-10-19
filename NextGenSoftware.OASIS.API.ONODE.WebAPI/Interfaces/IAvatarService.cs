@@ -10,7 +10,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Interfaces
 {
     public interface IAvatarService
     {
-        string GetTerms();
+        OASISResult<string> GetTerms();
         OASISResult<string> ValidateAccountToken(string accountToken);
         AuthenticateResponse Authenticate(AuthenticateRequest model, string ipAddress);
         IAvatar RefreshToken(string token, string ipAddress);
@@ -20,14 +20,14 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Interfaces
         void ForgotPassword(ForgotPasswordRequest model, string origin);
         void ValidateResetToken(ValidateResetTokenRequest model);
         void ResetPassword(ResetPasswordRequest model);
-        IEnumerable<IAvatar> GetAll();
+        OASISResult<IEnumerable<IAvatar>> GetAll();
         OASISResult<AvatarImage> GetAvatarImageById(Guid id);
         Task<OASISResult<AvatarImage>> GetAvatarImageByUsername(string userName);
         Task<OASISResult<AvatarImage>> GetAvatarImageByEmail(string email);
-        void Upload2DAvatarImage(AvatarImage avatarImage);
-        IAvatar GetById(Guid id);
-        Task<IAvatar> GetByUsername(string userName);
-        Task<IAvatar> GetByEmail(string email);
+        OASISResult<string> Upload2DAvatarImage(AvatarImage avatarImage);
+        OASISResult<IAvatar> GetById(Guid id);
+        Task<OASISResult<IAvatar>> GetByUsername(string userName);
+        Task<OASISResult<IAvatar>> GetByEmail(string email);
         IAvatar Create(CreateRequest model);
         Task<IAvatar> Update(Guid id, UpdateRequest avatar);
         Task<IAvatar> UpdateByEmail(string email, UpdateRequest avatar);
@@ -47,5 +47,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Interfaces
         Task<OASISResult<string>> GetAvatarUmaJsonByUsername(string username);
         Task<OASISResult<string>> GetAvatarUmaJsonByMail(string mail);
         Task<OASISResult<IAvatar>> GetAvatarByJwt();
+
+        Task<OASISResult<ISearchResults>> Search(ISearchParams searchParams);
     }
 }

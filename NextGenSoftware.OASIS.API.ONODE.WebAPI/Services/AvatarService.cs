@@ -9,6 +9,7 @@ using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
 using AutoMapper;
+using EOSNewYork.EOSCore.Serialization;
 using Microsoft.AspNetCore.Http;
 using BC = BCrypt.Net.BCrypt;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
@@ -55,9 +56,22 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
            // _configuration = configuration;
         }
         
-        public string GetTerms()
+        public OASISResult<string> GetTerms()
         {
-            return _OASISDNA.OASIS.Terms;
+            var response = new OASISResult<string>();
+            try
+            {
+                response.Result = _OASISDNA.OASIS.Terms;
+            }
+            catch (Exception e)
+            {
+                response.Exception = e;
+                response.Message = e.Message;
+                response.IsError = true;
+                ErrorHandling.HandleError(ref response, e.Message);
+            }
+
+            return response;
         }
 
         public AuthenticateResponse Authenticate(AuthenticateRequest model, string ipAddress)
@@ -161,9 +175,21 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
             AvatarManager.SaveAvatar(avatar);
         }
 
-        public IEnumerable<IAvatar> GetAll()
+        public OASISResult<IEnumerable<IAvatar>> GetAll()
         {
-            return AvatarManager.LoadAllAvatars();
+            var response = new OASISResult<IEnumerable<IAvatar>>();
+            try
+            {
+                response.Result = AvatarManager.LoadAllAvatars();
+            }
+            catch (Exception e)
+            {
+                response.Exception = e;
+                response.Message = e.Message;
+                response.IsError = true;
+                ErrorHandling.HandleError(ref response, e.Message);
+            }
+            return response;
         }
 
         //TODO: MAKE ALL METHODS WORK LIKE THIS! ;-) THANKS!
@@ -175,6 +201,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
             {
                 result.Message = "Guid is empty, please speceify a valid Guid.";
                 result.IsError = true;
+                ErrorHandling.HandleError(ref result, result.Message);
             }
 
             OASISResult<IAvatar> avatarResult = GetAvatar(id);
@@ -189,6 +216,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
             {
                 result.IsError = true;
                 result.Message = avatarResult.Message;
+                ErrorHandling.HandleError(ref result, avatarResult.Message);
             }
 
             return result;
@@ -204,6 +232,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
                 {
                     response.Message = "Username is empty, please speceify a valid username.";
                     response.IsError = true;
+                    ErrorHandling.HandleError(ref response, response.Message);
                     return response;
                 }
                 
@@ -219,6 +248,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
                 response.IsError = false;
                 response.Exception = e;
                 response.Message = e.Message;
+                ErrorHandling.HandleError(ref response, response.Message);
             }
             
             return response;
@@ -234,6 +264,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
                 {
                     response.Message = "Email is empty, please speceify a valid email.";
                     response.IsError = true;
+                    ErrorHandling.HandleError(ref response, response.Message);
                     return response;
                 }
                 
@@ -249,33 +280,95 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
                 response.IsError = false;
                 response.Exception = e;
                 response.Message = e.Message;
+                ErrorHandling.HandleError(ref response, e.Message);
             }
             
             return response;
         }
 
-        public void Upload2DAvatarImage(AvatarImage image)
+        public OASISResult<string> Upload2DAvatarImage(AvatarImage image)
         {
-            if (image.AvatarId == Guid.Empty)
-                return;
-            var avatar = GetAvatar(image.AvatarId);
-            avatar.Result.Image2D = image.ImageBase64;
-            AvatarManager.SaveAvatar(avatar.Result);
+            var response = new OASISResult<string>();
+            try
+            {
+                if (image.AvatarId == Guid.Empty)
+                {
+                    response.Message = "AvatarId property not specified";
+                    response.IsError = true;
+                    response.IsSaved = false;
+                    ErrorHandling.HandleError(ref response, response.Message);
+                    return response;
+                }
+            
+                var avatar = GetAvatar(image.AvatarId);
+                avatar.Result.Image2D = image.ImageBase64;
+                AvatarManager.SaveAvatar(avatar.Result);
+                response.Result = "Image Uploaded";
+            }
+            catch (Exception e)
+            {
+                response.Exception = e;
+                response.Message = e.Message;
+                response.IsError = true;
+                response.IsSaved = false;
+                ErrorHandling.HandleError(ref response, e.Message);
+            }
+            return response;
         }
 
-        public IAvatar GetById(Guid id)
+        public OASISResult<IAvatar> GetById(Guid id)
         {
-            return GetAvatar(id).Result;
+            return GetAvatar(id);
         }
 
-        public async Task<IAvatar> GetByUsername(string userName)
+        public async Task<OASISResult<IAvatar>> GetByUsername(string userName)
         {
-            return await AvatarManager.LoadAvatarByUsernameAsync(userName);
+            var response = new OASISResult<IAvatar>();
+            try
+            {
+                if (string.IsNullOrEmpty(userName))
+                {
+                    response.Message = "UserName property is empty";
+                    response.IsError = true;
+                    ErrorHandling.HandleError(ref response, response.Message);
+                    return response;
+                }
+                
+                response.Result = await AvatarManager.LoadAvatarByUsernameAsync(userName);
+            }
+            catch (Exception e)
+            {
+                response.Exception = e;
+                response.Message = e.Message;
+                response.IsError = true;
+                ErrorHandling.HandleError(ref response, e.Message);
+            }
+            return response;
         }
 
-        public async Task<IAvatar> GetByEmail(string email)
+        public async Task<OASISResult<IAvatar>> GetByEmail(string email)
         {
-            return await AvatarManager.LoadAvatarByEmailAsync(email);
+            var response = new OASISResult<IAvatar>();
+            try
+            {
+                if (string.IsNullOrEmpty(email))
+                {
+                    response.Message = "Email property is empty";
+                    response.IsError = true;
+                    ErrorHandling.HandleError(ref response, response.Message);
+                    return response;
+                }
+                
+                response.Result = await AvatarManager.LoadAvatarByEmailAsync(email);
+            }
+            catch (Exception e)
+            {
+                response.Exception = e;
+                response.Message = e.Message;
+                response.IsError = true;
+                ErrorHandling.HandleError(ref response, response.Message);
+            }
+            return response;
         }
 
         public IAvatar Create(CreateRequest model)
@@ -450,13 +543,15 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
 
         private OASISResult<IAvatar> GetAvatar(Guid id)
         {
-            OASISResult<IAvatar> result = new OASISResult<IAvatar>();
-            IAvatar avatar = AvatarManager.LoadAvatar(id);
+            var result = new OASISResult<IAvatar>();
+            var avatar = AvatarManager.LoadAvatar(id);
 
             if (avatar == null)
             {
                 result.Message = "Avatar not found";
                 result.IsError = true;
+                ErrorHandling.HandleError(ref result, result.Message);
+                return result;
             }
 
             result.Result = avatar;
@@ -465,22 +560,19 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
 
         public OASISResult<IAvatarDetail> GetAvatarDetail(Guid id)
         {
-            OASISResult<IAvatarDetail> result = new OASISResult<IAvatarDetail>();
-            IAvatarDetail avatar = AvatarManager.LoadAvatarDetail(id);
+            var result = new OASISResult<IAvatarDetail>();
+            var avatar = AvatarManager.LoadAvatarDetail(id);
 
-            if (avatar == null)
-            {
-                result.Message = "AvatarDetail not found";
-                result.IsError = true;
-            }
-
+            if (avatar != null) return result;
+            result.Message = "AvatarDetail not found";
+            result.IsError = true;
+            ErrorHandling.HandleError(ref result, result.Message);
             return result;
         }
 
         public async Task<OASISResult<IAvatarDetail>> GetAvatarDetailByUsername(string username)
         {
             var response = new OASISResult<IAvatarDetail>();
-
             try
             {
                 var entity = await AvatarManager.LoadAvatarDetailByUsernameAsync(username);
@@ -491,15 +583,14 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
                 response.IsError = true;
                 response.Exception = e;
                 response.Message = e.Message;
+                ErrorHandling.HandleError(ref response, response.Message);
             }
-            
             return response;
         }
 
         public async Task<OASISResult<IAvatarDetail>> GetAvatarDetailByEmail(string email)
         {
             var response = new OASISResult<IAvatarDetail>();
-
             try
             {
                 var entity = await AvatarManager.LoadAvatarDetailByEmailAsync(email);
@@ -510,14 +601,26 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
                 response.IsError = true;
                 response.Exception = e;
                 response.Message = e.Message;
+                ErrorHandling.HandleError(ref response, e.Message);
             }
-            
             return response;
         }
 
         public OASISResult<IEnumerable<IAvatarDetail>> GetAllAvatarDetails()
         {
-            return new OASISResult<IEnumerable<IAvatarDetail>>(AvatarManager.LoadAllAvatarDetails());
+            var response = new OASISResult<IEnumerable<IAvatarDetail>>();
+            try
+            {
+                response.Result = AvatarManager.LoadAllAvatarDetails();
+            }
+            catch (Exception e)
+            {
+                response.Message = e.Message;
+                response.Exception = e;
+                response.IsError = true;
+                ErrorHandling.HandleError(ref response, e.Message);
+            }
+            return response;
         }
 
         public async Task<OASISResult<string>> GetAvatarUmaJsonById(Guid id)
@@ -602,6 +705,30 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
                 response.Message = e.Message;
                 response.Result = null;
                 response.IsError = true;
+            }
+            return response;
+        }
+
+        public async Task<OASISResult<ISearchResults>> Search(ISearchParams searchParams)
+        {
+            var response = new OASISResult<ISearchResults>();
+            try
+            {
+                if (string.IsNullOrEmpty(searchParams.SearchQuery))
+                {
+                    response.Message = "SearchQuery field is empty";
+                    response.IsError = true;
+                    ErrorHandling.HandleError(ref response, response.Message);
+                }
+                
+                response.Result = await AvatarManager.SearchAsync(searchParams);
+            }
+            catch (Exception e)
+            {
+                response.Exception = e;
+                response.Message = e.Message;
+                response.IsError = true;
+                ErrorHandling.HandleError(ref response, e.Message);
             }
             return response;
         }
