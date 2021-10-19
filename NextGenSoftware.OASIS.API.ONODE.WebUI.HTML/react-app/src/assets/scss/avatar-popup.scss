@@ -8,9 +8,15 @@
 }
 h2 {
     color: white;
-    margin-bottom: 30px !important;
+    margin-bottom: 25px !important;
+    font-size: 22px !important;
 }
-
+a {
+    color: rgba(255, 255, 255, 0.55);
+    &:hover {
+        text-decoration: none !important;
+    }
+}
 .container {
     margin: 8vh 6vw;
     position: relative;
@@ -18,18 +24,13 @@ h2 {
     left: 0;
     width: 100%;
     height: 84vh;
-    max-width: 1268px;
-    max-height: 674px;
     &.opened {
         transform: translateX(0);
         -webkit-transform: translateX(0);
         -moz-transform: translateX(0);
         -o-transform: translateX(0);
     }
-
 }
-
-
 
 .lnks {
     position: absolute;
@@ -93,113 +94,7 @@ h2 {
 .button:last-child:before {
     display: none;
 }
-a {
-    color: #626262;
-    text-decoration: none;
-    opacity: 1;
-    outline: none;
-}
 
-.card-started {
-    position: relative;
-    width: 100%;
-    height: 600px;
-    z-index: 11;
-    border-radius: 4px;
-    -moz-border-radius: 4px;
-    -webkit-border-radius: 4px;
-    -khtml-border-radius: 4px;
-    &:before {
-        content: "";
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        box-shadow: 10px 10px 15px rgba(0, 0, 0, 0.05);
-        border-radius: 0 0 4px 0;
-        -moz-border-radius: 0 0 4px 0;
-        -webkit-border-radius: 0 0 4px 0;
-        -khtml-border-radius: 0 0 4px 0;
-    }
-    .profile {
-        padding: 210px 50px 50px 50px;
-        position: relative;
-        height: 100%;
-        background: #ffffff;
-        text-align: center;
-        z-index: 10;
-        border-radius: 4px;
-        -moz-border-radius: 4px;
-        -webkit-border-radius: 4px;
-        -khtml-border-radius: 4px;
-        &.no-photo {
-            padding-top: 340px;
-        }
-        .slide {
-            position: absolute;
-            overflow: hidden;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 300px;
-            background-color: #626262;
-            background-repeat: no-repeat;
-            background-position: center center;
-            background-size: cover;
-            border-radius: 4px 4px 0 0;
-            -moz-border-radius: 4px 4px 0 0;
-            -webkit-border-radius: 4px 4px 0 0;
-            -khtml-border-radius: 4px 4px 0 0;
-            &:before {
-                content: "";
-                position: absolute;
-                left: -25%;
-                bottom: -198px;
-                width: 700px;
-                height: 200px;
-                background: #ffffff;
-                transform: rotate(12deg);
-                -webkit-transform: rotate(12deg);
-                -moz-transform: rotate(12deg);
-                -o-transform: rotate(12deg);
-            }
-            &:after {
-                content: "";
-                position: absolute;
-                left: -25%;
-                bottom: -198px;
-                width: 700px;
-                height: 200px;
-                background: #ffffff;
-                transform: rotate(12deg);
-                -webkit-transform: rotate(12deg);
-                -moz-transform: rotate(12deg);
-                -o-transform: rotate(12deg);
-                left: auto;
-                right: -25%;
-                transform: rotate(-6deg);
-                -webkit-transform: rotate(-6deg);
-                -moz-transform: rotate(-6deg);
-                -o-transform: rotate(-6deg);
-            }
-        }
-        .title {
-            margin: 0 0 10px 0;
-            font-size: 32px;
-            color: #171717;
-            line-height: 32px;
-            font-weight: 400;
-        }
-        .subtitle {
-            margin: 0 0 15px 0;
-            font-size: 14px;
-            color: #78cc6d;
-            line-height: 14px;
-            font-weight: 400;
-        }
-    }
-}
 .card-inner {
     padding: 0;
     position: absolute;
@@ -350,6 +245,24 @@ input[type="submit"] {
     float: left;
     width: 480px;
     height: 100%;
+    z-index: 11;
+    border-radius: 4px;
+    -moz-border-radius: 4px;
+    -webkit-border-radius: 4px;
+    -khtml-border-radius: 4px;
+    &:before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        box-shadow: 10px 10px 15px rgba(0, 0, 0, 0.05);
+        border-radius: 0 0 4px 0;
+        -moz-border-radius: 0 0 4px 0;
+        -webkit-border-radius: 0 0 4px 0;
+        -khtml-border-radius: 0 0 4px 0;
+    }
     .profile {
         padding: 50px;
         position: relative;
@@ -360,41 +273,66 @@ input[type="submit"] {
         flex-direction: column;
         align-items: center;
         justify-content: center;
+        background: #ffffff;
+        text-align: center;
+        z-index: 10;
+        border-radius: 4px;
+        -moz-border-radius: 4px;
+        -webkit-border-radius: 4px;
+        -khtml-border-radius: 4px;
         &.no-photo {
             padding-top: 50px;
             .title {
                 margin-top: 240px;
+                font-size: 34px;
             }
         }
         .slide {
-            height: 52%;
-        }
-        &.no-photo .slide {
-            height: 57%;
-        }
-        .slide {
+            position: absolute;
+            overflow: hidden;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 300px;
+            background-color: #626262;
+            background-repeat: no-repeat;
+            background-position: center center;
+            background-size: cover;
+            border-radius: 4px 4px 0 0;
+            -moz-border-radius: 4px 4px 0 0;
+            -webkit-border-radius: 4px 4px 0 0;
+            -khtml-border-radius: 4px 4px 0 0;
             &:before {
-                left: -25%;
+                content: "";
+                position: absolute;
+                left: -15%;
                 bottom: -63%;
                 width: 100%;
                 height: 70%;
-            }
+                background: #ffffff;
+                transform: rotate(12deg);
+                -webkit-transform: rotate(12deg);
+                -moz-transform: rotate(12deg);
+                -o-transform: rotate(12deg);
+            } 
             &:after {
-                left: -25%;
+                content: "";
+                position: absolute;
                 bottom: -63%;
                 width: 100%;
                 height: 70%;
+                background: #ffffff;
+                transform: rotate(12deg);
+                -webkit-transform: rotate(12deg);
+                -moz-transform: rotate(12deg);
+                -o-transform: rotate(12deg);
                 left: auto;
                 right: -25%;
-                transform: rotate(-8deg);
-                -webkit-transform: rotate(-8deg);
-                -moz-transform: rotate(-8deg);
-                -o-transform: rotate(-8deg);
+                transform: rotate(-6deg);
+                -webkit-transform: rotate(-6deg);
+                -moz-transform: rotate(-6deg);
+                -o-transform: rotate(-6deg);
             }
-        }
-        .title {
-            font-size: 34px;
-            color: #323232;
         }
     }
 }
@@ -487,9 +425,6 @@ input[type="submit"] {
     background: -moz-radial-gradient(top, ellipse cover, rgba(197, 202, 213, 0.15) 0%, rgba(255, 255, 255, 0) 70%);
     background: -webkit-radial-gradient(top, ellipse cover, rgba(197, 202, 213, 0.15) 0%, rgba(255, 255, 255, 0) 70%);
     background: radial-gradient(ellipse at top, rgba(197, 202, 213, 0.15) 0%, rgba(255, 255, 255, 0) 70%);
-}
-a {
-    color: rgba(255, 255, 255, 0.55);
 }
 .card-started .profile {
     background: #31313a;

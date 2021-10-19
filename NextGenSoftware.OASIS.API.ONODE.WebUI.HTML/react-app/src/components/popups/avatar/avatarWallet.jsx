@@ -72,8 +72,8 @@ class AvatarWallet extends React.Component {
 				{/* <Modal.Header closeButton>
   					<Modal.Title>Wallet</Modal.Title>
   				</Modal.Header> */}
-				<Modal.Body 
-				className="p-50"
+				<Modal.Body
+					className="p-50"
 				>
 					<span className="form-cross-icon" onClick={() => hide('avatar', 'avatarwallet')}>
 						<i className="fa fa-times"></i>
