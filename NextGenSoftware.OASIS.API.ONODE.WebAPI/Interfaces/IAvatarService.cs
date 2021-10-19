@@ -12,8 +12,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Interfaces
     {
         OASISResult<string> GetTerms();
         OASISResult<string> ValidateAccountToken(string accountToken);
-        AuthenticateResponse Authenticate(AuthenticateRequest model, string ipAddress);
-        IAvatar RefreshToken(string token, string ipAddress);
+        OASISResult<AuthenticateResponse> Authenticate(AuthenticateRequest model, string ipAddress);
+        OASISResult<IAvatar> RefreshToken(string token, string ipAddress);
         void RevokeToken(string token, string ipAddress);
         IAvatar Register(RegisterRequest model, string origin);
         OASISResult<bool> VerifyEmail(string token);
