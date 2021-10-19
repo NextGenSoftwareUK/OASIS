@@ -937,8 +937,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpGet("GetAvatarByJwt")]
         public async Task<OASISResult<IAvatar>> GetAvatarByJwt()
         {
-            var id  = User.Claims.FirstOrDefault(i => i.Type == "id")?.Value;
-            return await _avatarService.GetAvatarByJwt(new Guid(id ?? string.Empty));
+            return await _avatarService.GetAvatarByJwt();
         }
 
         /*

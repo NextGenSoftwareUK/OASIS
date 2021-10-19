@@ -89,12 +89,11 @@ class Karma extends Component {
 
     render() {
         return (
-            <Modal
-                size="xl"
-                show={true}
-                dialogClassName="modal-90w"
-                onHide={() => this.props.history.push("/")}
-            >
+            <Modal 
+                dialogClassName="modal-90w" size="xl"
+                onHide={() => this.props.hide('karma', 'karmaRecord')} 
+                show={this.props.show}
+             >
                 <Modal.Header closeButton>
                     <Modal.Title>Karma</Modal.Title>
                 </Modal.Header>

@@ -9,6 +9,7 @@ using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
 using AutoMapper;
+using Microsoft.AspNetCore.Http;
 using BC = BCrypt.Net.BCrypt;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Managers;
@@ -26,6 +27,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
     public class AvatarService : IAvatarService
     {
         private readonly IMapper _mapper;
+        private readonly IHttpContextAccessor _httpContextAccessor;
+
         private readonly OASISDNA _OASISDNA;
     //    private readonly IEmailService _emailService;
         
@@ -41,10 +44,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
 
         public AvatarService(
             IMapper mapper,
-            IOptions<OASISDNA> OASISSettings)
+            IOptions<OASISDNA> OASISSettings,
+            IHttpContextAccessor httpContextAccessor)
            // IEmailService emailService)
         {
             _mapper = mapper;
+            _httpContextAccessor = httpContextAccessor;
             _OASISDNA = OASISBootLoader.OASISBootLoader.OASISDNA;
           //  _emailService = emailService;
            // _configuration = configuration;
@@ -569,12 +574,19 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
             return response;
         }
 
-        public async Task<OASISResult<IAvatar>> GetAvatarByJwt(Guid id)
+        public async Task<OASISResult<IAvatar>> GetAvatarByJwt()
         {
             var response = new OASISResult<IAvatar>();
             try
             {
-                var avatar = await AvatarManager.LoadAvatarAsync(id);
+                if (_httpContextAccessor.HttpContext == null)
+                {
+                    response.Message = "Do not found avatar";
+                    response.Result = null;
+                    return response;
+                }
+                
+                var avatar = (IAvatar)_httpContextAccessor.HttpContext.Items["Avatar"];
                 if (avatar == null)
                 {
                     response.Message = "Do not found avatar";

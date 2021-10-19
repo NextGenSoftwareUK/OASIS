@@ -4,28 +4,24 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
+using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Enum;
 using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Builder;
-using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Exceptions;
-using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Factory.TokenStorage;
 using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Interfaces;
 using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Services.HttpHandler;
 using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Models.Cargo;
-using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Models.Common;
 using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Models.Request;
 using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Models.Response;
 
 namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Handlers.Queries
 {
-    public class GetUserTokensByContractHandler : IHandle<Response<GetUserTokensByContractResponseModel>, GetUserTokensByContractRequestModel>
+    public class GetUserTokensByContractHandler : IHandle<OASISResult<GetUserTokensByContractResponseModel>, GetUserTokensByContractRequestModel>
     {
         private readonly IHttpHandler _httpClient;
-        private readonly ITokenStorage _tokenStorage;
 
-        public GetUserTokensByContractHandler(IHttpHandler httpClient, ITokenStorage tokenStorage)
+        public GetUserTokensByContractHandler(IHttpHandler httpClient)
         {
             _httpClient = httpClient;
-            _tokenStorage = tokenStorage;
         }
         
         /// <summary>
@@ -34,9 +30,9 @@ namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Handlers
         /// </summary>
         /// <param name="request">Request parameters</param>
         /// <returns>User tokens</returns>
-        public async Task<Response<GetUserTokensByContractResponseModel>> Handle(GetUserTokensByContractRequestModel request)
+        public async Task<OASISResult<GetUserTokensByContractResponseModel>> Handle(GetUserTokensByContractRequestModel request)
         {
-            var response = new Response<GetUserTokensByContractResponseModel>();
+            var response = new OASISResult<GetUserTokensByContractResponseModel>();
             try
             {
                 var queryBuilder = new UrlQueryBuilder();
@@ -52,38 +48,27 @@ namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Handlers
                 };
                 if (request.SkipAuth != null && !request.SkipAuth.Value)
                 {
-                    var accessToken = await _tokenStorage.GetToken();
-                    httRequest.Headers.Add("Authorization", $"Bearer {accessToken}");
+                    if (string.IsNullOrEmpty(request.AccessJwtToken))
+                    {
+                        response.IsError = true;
+                        response.Message = "Access JWT Token is empty, but Skip Auth is False";
+                        return response;
+                    }
+                    httRequest.Headers.Add("Authorization", $"Bearer {request.AccessJwtToken}");
                 }
                 var httpResponse = await _httpClient.SendAsync(httRequest);
-                if(httpResponse.StatusCode == HttpStatusCode.Unauthorized)
-                    throw new UserNotAuthorizedException(); 
                 if (!httpResponse.IsSuccessStatusCode)
                 {
                     response.Message = httpResponse.ReasonPhrase;
-                    response.ResponseStatus = ResponseStatus.Fail;
                     return response;
                 }
                 var responseString = await httpResponse.Content.ReadAsStringAsync();
                 var data = JsonConvert.DeserializeObject<GetUserTokensByContractResponseModel>(responseString);
-                response.Payload = data;
-                return response;
-            }
-            catch (UserNotAuthorizedException e)
-            {
-                response.ResponseStatus = ResponseStatus.Unauthorized;
-                response.Message = e.Message;
-                return response;
-            }
-            catch (UserNotRegisteredException e)
-            {
-                response.ResponseStatus = ResponseStatus.NotRegistered;
-                response.Message = e.Message;
+                response.Result = data;
                 return response;
             }
             catch (Exception e)
             {
-                response.ResponseStatus = ResponseStatus.Fail;
                 response.Message = e.Message;
                 return response;
             }

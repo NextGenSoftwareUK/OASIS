@@ -3,6 +3,7 @@ using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Apollo.Server;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.ONODE.BLL.Managers;
 
 namespace NextGenSoftware.OASIS.STAR.OASISAPIManager
 {
@@ -59,7 +60,7 @@ namespace NextGenSoftware.OASIS.STAR.OASISAPIManager
 
         private void BootOASIS(bool startApolloServer = true)
         {
-            Map = new MapManager(ProviderManager.CurrentStorageProvider);
+           // Map = new MapManager(ProviderManager.CurrentStorageProvider);
             Avatar = new AvatarManager(ProviderManager.CurrentStorageProvider, OASISBootLoader.OASISBootLoader.OASISDNA);
             Data = new HolonManager(ProviderManager.CurrentStorageProvider);
             Providers = new OASISProviders(OASISBootLoader.OASISBootLoader.OASISDNA);

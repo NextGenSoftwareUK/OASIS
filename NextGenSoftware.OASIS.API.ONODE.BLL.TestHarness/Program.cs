@@ -1,5 +1,7 @@
 ﻿using System;
 using NextGenSoftware.OASIS.API.Core.Helpers;
+using NextGenSoftware.OASIS.API.ONODE.BLL.Holons;
+using NextGenSoftware.OASIS.API.ONODE.BLL.Managers;
 
 namespace NextGenSoftware.OASIS.API.ONODE.BLL.TestHarness
 {
@@ -7,7 +9,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.BLL.TestHarness
     {
         static void Main(string[] args)
         {
-            Console.WriteLine("NEXTGEN SOFTWARE ONODE BLL TEST HARNESS V1.1");
+            Console.WriteLine("NEXTGEN SOFTWARE ONODE BLL TEST HARNESS V1.2");
             Console.WriteLine("");
 
             SampleManager sampleManager = new SampleManager();
