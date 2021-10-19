@@ -55,7 +55,7 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
                 OASISResult<ICelestialBody> result = STAR.IgniteStar();
 
                 if (result.IsError)
-                    ShowErrorMessage(string.Concat("Error Igniting SuperStar. Error Message: ", result.Message));
+                    ShowErrorMessage(string.Concat("Error Igniting STAR. Error Message: ", result.Message));
                 else
                 {
                     //Console.ForegroundColor = ConsoleColor.Yellow;
@@ -95,7 +95,7 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
                     break;
 
                 case Enums.StarStatus.Igniting:
-                    ShowWorkingMessage("IGNITING SUPERSTAR..."); 
+                    ShowWorkingMessage("IGNITING STAR..."); 
                     break;
 
                 case Enums.StarStatus.Ingited:

@@ -1,5 +1,7 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core.Helpers;
+using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Core.Models.Cargo;
 using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Models.Cargo;
 using NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Models.Requests;
 
@@ -33,13 +35,20 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Interfaces
     public class PurchaseOlandResponse
     {
         public string PurchaseResult { get; set; }
+
+        public PurchaseOlandResponse(string purchaseResult)
+        {
+            PurchaseResult = purchaseResult;
+        }
     }
 
     public class PurchaseOlandRequest
     {
-        public string WalletAddress { get; set; }
+        public Guid OlandId { get; set; }
+        public Guid AvatarId { get; set; }
         public string AvatarUsername { get; set; }
-        public string AvatarId { get; set; }
         public string Tiles { get; set; }
+        public string WalletAddress { get; set; }
+        public string CargoSaleId { get; set; }
     }
 }

@@ -219,9 +219,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS
         {
             throw new NotImplementedException();
         }
-
-      
-
+        
         public override IAvatar SaveAvatar(IAvatar Avatar)
         {
             throw new NotImplementedException();
