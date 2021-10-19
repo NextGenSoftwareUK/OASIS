@@ -29,31 +29,17 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
     {
         private readonly IMapper _mapper;
         private readonly IHttpContextAccessor _httpContextAccessor;
-
         private readonly OASISDNA _OASISDNA;
-    //    private readonly IEmailService _emailService;
-        
-       // private readonly IConfiguration _configuration;
 
-        public AvatarManager AvatarManager
-        {
-            get
-            {
-                 return Program.AvatarManager;
-            }
-        }
+        private AvatarManager AvatarManager => Program.AvatarManager;
 
         public AvatarService(
             IMapper mapper,
-            IOptions<OASISDNA> OASISSettings,
             IHttpContextAccessor httpContextAccessor)
-           // IEmailService emailService)
         {
             _mapper = mapper;
             _httpContextAccessor = httpContextAccessor;
             _OASISDNA = OASISBootLoader.OASISBootLoader.OASISDNA;
-          //  _emailService = emailService;
-           // _configuration = configuration;
         }
         
         public OASISResult<string> GetTerms()
@@ -100,7 +86,6 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
             return response;
         }
 
-        //public AuthenticateResponse RefreshToken(string token, string ipAddress)
         public OASISResult<IAvatar> RefreshToken(string token, string ipAddress)
         {
             var response = new OASISResult<IAvatar>();
@@ -148,7 +133,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
              if (string.IsNullOrEmpty(origin))
                  origin = Program.CURRENT_OASISAPI; 
 
-            return AvatarManager.Register(model.Title, model.FirstName, model.LastName, model.Email, model.Password, (AvatarType)Enum.Parse(typeof(AvatarType), model.AvatarType), origin, model.CreatedOASISType).Result;
+             return AvatarManager.Register(model.Title, model.FirstName, model.LastName, model.Email, model.Password, (AvatarType)Enum.Parse(typeof(AvatarType), model.AvatarType), origin, model.CreatedOASISType).Result;
         }
 
         public OASISResult<bool> VerifyEmail(string token)
@@ -519,56 +504,6 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
             return response;
         }
         
-        
-        //public async Task<ApiResponse<IAvatarThumbnail>> GetAvatarThumbnail(Guid id)
-        //{
-        //    var response = new ApiResponse<IAvatarThumbnail>();
-        //    try
-        //    {
-        //        var thumbnail = await AvatarManager.LoadAvatarThumbnailAsync(id);
-        //        response.Payload = thumbnail;
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        response.Code = ApiConstantsCodes.Failed;
-        //        response.Message = $"{ApiConstantsContents.Failed} - {ex.Message}";
-        //    }
-        //    return response; 
-        //}
-
-        /*
-        public async Task<ApiResponse<IAvatarDetail>> GetAvatarDetail(Guid id)
-        {
-            var response = new ApiResponse<IAvatarDetail>();
-            try
-            {
-                var detail = await AvatarManager.LoadAvatarDetailsAsync(id);
-                response.Payload = detail;
-            }
-            catch (Exception ex)
-            {
-                response.Code = ApiConstantsCodes.Failed;
-                response.Message = $"{ApiConstantsContents.Failed} - {ex.Message}";
-            }
-            return response;
-        }
-
-        public async Task<ApiResponse<IEnumerable<IAvatarDetail>>> GetAllAvatarDetails()
-        {
-            var response = new ApiResponse<IEnumerable<IAvatarDetail>>();
-            try
-            {
-                var details = await AvatarManager.LoadAllAvatarDetailsAsync();
-                response.Payload = details;
-            }
-            catch (Exception ex)
-            {
-                response.Code = ApiConstantsCodes.Failed;
-                response.Message = $"{ApiConstantsContents.Failed} - {ex.Message}";
-            }
-            return response;
-        }*/
-
         private OASISResult<IAvatar> GetAvatar(Guid id)
         {
             var result = new OASISResult<IAvatar>();
@@ -827,9 +762,6 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
         {
             avatar.VerificationToken = null; //TODO: Put back in when LIVE!
             avatar.Password = null;
-            // avatar.RefreshToken = null;
-            //avatar.RefreshTokens = null;
-
             return avatar;
         }
 
@@ -866,13 +798,6 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
                 html: $@"<h4>Reset Password</h4>
                          {message}"
             );
-
-            //_emailService.Send(
-            //    to: avatar.Email,
-            //    subject: "OASIS - Reset Password",
-            //    html: $@"<h4>Reset Password</h4>
-            //             {message}"
-            //);
         }
     }
 }
