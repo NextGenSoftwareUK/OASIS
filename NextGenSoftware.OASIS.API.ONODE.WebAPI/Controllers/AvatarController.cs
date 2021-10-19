@@ -801,7 +801,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <param name="telosAccountName"></param>
         /// <returns></returns>
         [Authorize]
-        [HttpPost()]
+        [HttpPost]
         public OASISResult<IAvatarDetail> LinkTelosAccountToAvatar2(LinkProviderKeyToAvatar linkProviderKeyToAvatar)
         {
             return new() { Result = AvatarManager.LinkProviderKeyToAvatar(linkProviderKeyToAvatar.AvatarID, ProviderType.TelosOASIS, linkProviderKeyToAvatar.ProviderKey), IsError = false };
