@@ -27,6 +27,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Filters
                     MetaData = null
                 };
                 context.Result = new JsonResult(exceptionResponse);
+                ErrorHandling.HandleError(ref exceptionResponse, context.Exception.Message);
             }
 
             context.HttpContext.Response.StatusCode = 500;
