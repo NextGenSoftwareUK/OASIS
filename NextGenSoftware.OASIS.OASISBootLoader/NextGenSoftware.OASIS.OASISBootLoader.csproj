@@ -23,6 +23,7 @@
     <ProjectReference Include="..\NextGenSoftware.OASIS.API.Providers.PLANOASIS\NextGenSoftware.OASIS.API.Providers.PLANOASIS.csproj" />
     <ProjectReference Include="..\NextGenSoftware.OASIS.API.Providers.ScuttlebuttOASIS\NextGenSoftware.OASIS.API.Providers.ScuttlebuttOASIS.csproj" />
     <ProjectReference Include="..\NextGenSoftware.OASIS.API.Providers.SEEDSOASIS\NextGenSoftware.OASIS.API.Providers.SEEDSOASIS.csproj" />
+    <ProjectReference Include="..\NextGenSoftware.OASIS.API.Providers.SOLANAOASIS\NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.csproj" />
     <ProjectReference Include="..\NextGenSoftware.OASIS.API.Providers.SOLIDOASIS\NextGenSoftware.OASIS.API.Providers.SOLIDOASIS.csproj" />
     <ProjectReference Include="..\NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS\NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.csproj" />
     <ProjectReference Include="..\NextGenSoftware.OASIS.API.Providers.TelosOASIS\NextGenSoftware.OASIS.API.Providers.TelosOASIS.csproj" />
