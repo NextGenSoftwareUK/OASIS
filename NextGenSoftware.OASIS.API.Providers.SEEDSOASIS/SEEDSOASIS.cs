@@ -46,7 +46,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS
                 if (_avatarManager == null)
                 {
                     if (TelosOASIS != null)
-                        _avatarManager = new AvatarManager(ProviderManager.GetStorageProvider(Core.Enums.ProviderType.MongoDBOASIS));
+                        _avatarManager = new AvatarManager(ProviderManager.GetStorageProvider(Core.Enums.ProviderType.MongoDBOASIS), AvatarManagerInstance.OASISDNA);
                         //_avatarManager = new AvatarManager(TelosOASIS); // TODO: URGENT: PUT THIS BACK IN ASAP! TEMP USING MONGO UNTIL EOSIO METHODS IMPLEMENTED...
 
                     else
