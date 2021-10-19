@@ -226,9 +226,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         public OASISResult<AuthenticateResponse> Authenticate(AuthenticateRequest model)
         {
             var response = _avatarService.Authenticate(model, ipAddress());
-            if (!response.IsError && response.Avatar != null)
-                setTokenCookie(response.Avatar.RefreshToken);
-            return new OASISResult<AuthenticateResponse>() { Result = response };
+            if (!response.IsError && response.Result.Avatar != null)
+                setTokenCookie(response.Result.Avatar.RefreshToken);
+            return response;
         }
         
         [HttpPost("AuthenticateToken/{token}")]
@@ -246,8 +246,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         {
             var refreshToken = Request.Cookies["refreshToken"];
             var response = _avatarService.RefreshToken(refreshToken, ipAddress());
-            setTokenCookie(response.RefreshToken);
-            return new OASISResult<IAvatar>() {Result = response, IsError = false};
+            setTokenCookie(response.Result.RefreshToken);
+            return response;
         }
 
         /// <summary>

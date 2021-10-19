@@ -74,33 +74,60 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
             return response;
         }
 
-        public AuthenticateResponse Authenticate(AuthenticateRequest model, string ipAddress)
+        public OASISResult<AuthenticateResponse> Authenticate(AuthenticateRequest model, string ipAddress)
         {
-            //OASISResult<IAvatar> result = AvatarManager.Authenticate(model.Email, model.Password, ipAddress, _OASISDNA.OASIS.Security.Secret);
-            OASISResult<IAvatar> result = AvatarManager.Authenticate(model.Email, model.Password, ipAddress);
-
-            if (!result.IsError)
-                return new AuthenticateResponse() { Message = "Avatar Successfully Authenticated.", Avatar = result.Result };
-            else
-                return new AuthenticateResponse() { Message = result.Message, IsError = true };
+            var response = new OASISResult<AuthenticateResponse>();
+            try
+            {
+                var result = AvatarManager.Authenticate(model.Email, model.Password, ipAddress);
+                if (result.IsError)
+                {
+                    response.IsError = true;
+                    response.Message = response.Message;
+                    ErrorHandling.HandleError(ref response, response.Message);
+                    return response;
+                }
+                response.Result = new AuthenticateResponse()
+                    {Message = "Avatar Successfully Authenticated.", Avatar = result.Result};
+            }
+            catch (Exception e)
+            {
+                response.Exception = e;
+                response.Message = e.Message;
+                response.IsError = false;
+                ErrorHandling.HandleError(ref response, e.Message);
+            }
+            return response;
         }
 
         //public AuthenticateResponse RefreshToken(string token, string ipAddress)
-        public IAvatar RefreshToken(string token, string ipAddress)
+        public OASISResult<IAvatar> RefreshToken(string token, string ipAddress)
         {
-            (RefreshToken refreshToken, IAvatar avatar) = GetRefreshToken(token);
+            var response = new OASISResult<IAvatar>();
 
-            // replace old refresh token with a new one and save
-            var newRefreshToken = GenerateRefreshToken(ipAddress);
-            refreshToken.Revoked = DateTime.UtcNow;
-            refreshToken.RevokedByIp = ipAddress;
-            refreshToken.ReplacedByToken = newRefreshToken.Token;
-            avatar.RefreshTokens.Add(newRefreshToken);
+            try
+            {
+                var (refreshToken, avatar) = GetRefreshToken(token);
 
-            avatar.RefreshToken = newRefreshToken.Token;
-            avatar.JwtToken = GenerateJwtToken(avatar);
-            avatar = RemoveAuthDetails(AvatarManager.SaveAvatar(avatar).Result);
-            return avatar;
+                var newRefreshToken = GenerateRefreshToken(ipAddress);
+                refreshToken.Revoked = DateTime.UtcNow;
+                refreshToken.RevokedByIp = ipAddress;
+                refreshToken.ReplacedByToken = newRefreshToken.Token;
+                avatar.RefreshTokens.Add(newRefreshToken);
+
+                avatar.RefreshToken = newRefreshToken.Token;
+                avatar.JwtToken = GenerateJwtToken(avatar);
+                avatar = RemoveAuthDetails(AvatarManager.SaveAvatar(avatar).Result);
+                response.Result = avatar;
+            }
+            catch (Exception e)
+            {
+                response.Exception = e;
+                response.Message = e.Message;
+                response.IsError = true;
+                ErrorHandling.HandleError(ref response, e.Message);
+            }
+            return response;
         }
 
         public void RevokeToken(string token, string ipAddress)
@@ -486,6 +513,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
                 response.Exception = e;
                 response.Message = e.Message;
                 response.Result = "Token Validating Failed!";
+                ErrorHandling.HandleError(ref response, e.Message);
             }
             
             return response;
