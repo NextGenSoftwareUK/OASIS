@@ -1,13 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IdentityModel.Tokens.Jwt;
-using System.Linq;
-using System.Security.Principal;
-using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.IdentityModel.Tokens;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
@@ -31,18 +26,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             _avatarService = avatarService;
         }
 
-        public AvatarManager AvatarManager
-        {
-            get
-            {
-                return Program.AvatarManager;
-            }
-        }
-        
+        private AvatarManager AvatarManager => Program.AvatarManager;
+
         [HttpGet("GetTerms")]
         public OASISResult<string> GetTerms()
         {
-            return new() { Result = _avatarService.GetTerms(), IsError = false};
+            return _avatarService.GetTerms();
         }
 
         [Authorize]
@@ -82,31 +71,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             // users can get their own account and admins can get any account
             if (avatarImage.AvatarId != Avatar.Id && Avatar.AvatarType.Value != AvatarType.Wizard)
                 return new() { Result = "Image not uploaded", Message = "Unauthorized", IsError = true };
-            _avatarService.Upload2DAvatarImage(avatarImage);
-            return new() { Result = "Image Uploaded", Message = "Success", IsError = false };
+            return _avatarService.Upload2DAvatarImage(avatarImage);
         }
-
-        //[Authorize(AvatarType.Wizard)]
-        //[HttpGet("GetThumbnailAvatar/{id:guid}")]
-        //public async Task<ApiResponse<IAvatarThumbnail>> GetThumbnailAvatar(Guid id)
-        //{
-        //    return await _avatarService.GetAvatarThumbnail(id);
-        //}
-
-        //[Authorize(AvatarType.Wizard)]
-        //[HttpGet("GetAvatarDetail/{id:guid}")]
-        //public async Task<ApiResponse<IAvatarDetail>> GetAvatarDetail(Guid id)
-        //{
-        //    return await _avatarService.GetAvatarDetail(id);
-        //}
-
-        //[Authorize(AvatarType.Wizard)]
-        //[HttpGet("GetAllAvatarDetail")]
-        //public async Task<ApiResponse<IEnumerable<IAvatarDetail>>> GetAllAvatarDetails()
-        //{
-        //    return await _avatarService.GetAllAvatarDetails();
-        //}
-
+        
         [Authorize(AvatarType.Wizard)]
         [HttpGet("GetAvatarDetail/{id:guid}")]
         public OASISResult<IAvatarDetail> GetAvatarDetail(Guid id)
@@ -143,7 +110,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpGet("GetAll")]
         public OASISResult<IEnumerable<IAvatar>> GetAll()
         {
-            return new() { Result = _avatarService.GetAll(), IsError = false };
+            return _avatarService.GetAll();
         }
 
         /// <summary>
@@ -171,8 +138,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             // users can get their own account and admins can get any account
             if (id != Avatar.Id && Avatar.AvatarType.Value != AvatarType.Wizard)
                 return new OASISResult<IAvatar>() { Result = null, Message = "Unauthorized", IsError = true };
-            var account = _avatarService.GetById(id);
-            return new() { Result = account, Message = "Unauthorized", IsError = false };
+            return _avatarService.GetById(id);
         }
         
         [Authorize]
@@ -182,8 +148,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             // users can get their own account and admins can get any account
             if (username != Avatar.Username && Avatar.AvatarType.Value != AvatarType.Wizard)
                 return new OASISResult<IAvatar>() { Message = "Unauthorized", IsError = true};
-            var account = await _avatarService.GetByUsername(username);
-            return new OASISResult<IAvatar>(account);
+            return await _avatarService.GetByUsername(username);
         }
         
         [Authorize]
@@ -193,8 +158,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             // users can get their own account and admins can get any account
             if (email != Avatar.Email && Avatar.AvatarType.Value != AvatarType.Wizard)
                 return new OASISResult<IAvatar>() { Message = "Unauthorized", IsError = true };
-            var account = await _avatarService.GetByEmail(email);
-            return new OASISResult<IAvatar>(account);
+            return await _avatarService.GetByEmail(email);
         }
 
         /// <summary>
@@ -220,7 +184,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpGet("Search/{searchParams}")]
         public async Task<OASISResult<ISearchResults>> Search(ISearchParams searchParams)
         {
-            return new() { Result = await AvatarManager.SearchAsync(searchParams), IsError = false };
+            return await _avatarService.Search(searchParams);
         }
 
         /// <summary>
@@ -234,7 +198,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         public async Task<OASISResult<ISearchResults>> Search(ISearchParams searchParams, ProviderType providerType, bool setGlobally = false)
         {
             GetAndActivateProvider(providerType, setGlobally);
-            return new() { Result = await AvatarManager.SearchAsync(searchParams), IsError = false};
+            return await _avatarService.Search(searchParams);
         }
 
 
@@ -979,8 +943,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         {
             if (Request.Headers.ContainsKey("X-Forwarded-For"))
                 return Request.Headers["X-Forwarded-For"];
-            else
-                return HttpContext.Connection.RemoteIpAddress.MapToIPv4().ToString();
+            return HttpContext.Connection.RemoteIpAddress != null ? HttpContext.Connection.RemoteIpAddress.MapToIPv4().ToString() : string.Empty;
         }
     }
 }
