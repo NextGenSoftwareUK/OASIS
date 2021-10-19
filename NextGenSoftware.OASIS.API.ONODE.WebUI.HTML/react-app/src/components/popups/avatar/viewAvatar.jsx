@@ -129,6 +129,7 @@ class ViewAvatar extends React.Component {
                     )}
 
                 </ModalBody>
+
             </Modal>
         )
     }
