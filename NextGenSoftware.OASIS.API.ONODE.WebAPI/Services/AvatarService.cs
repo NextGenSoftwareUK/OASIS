@@ -656,6 +656,13 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
             var response = new OASISResult<string>();
             try
             {
+                if (id == Guid.Empty)
+                {
+                    response.Message = "AvatarId is empty";
+                    response.IsError = true;
+                    ErrorHandling.HandleError(ref response, response.Message);
+                }
+                
                 var avatarDetail = await AvatarManager.LoadAvatarDetailAsync(id);
                 response.Result = avatarDetail.UmaJson;
             }
@@ -665,6 +672,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
                 response.Message = e.Message;
                 response.Result = null;
                 response.IsError = true;
+                ErrorHandling.HandleError(ref response, e.Message);
             }
             return response;
         }
@@ -692,6 +700,14 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
             var response = new OASISResult<string>();
             try
             {
+                if (string.IsNullOrEmpty(mail))
+                {
+                    response.Message = "Mail property is empty";
+                    response.IsError = true;
+                    ErrorHandling.HandleError(ref response, response.Message);
+                    return response;
+                }
+                
                 var avatarDetail = await AvatarManager.LoadAvatarDetailByEmailAsync(mail);
                 response.Result = avatarDetail.UmaJson;
             }
@@ -701,6 +717,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
                 response.Message = e.Message;
                 response.Result = null;
                 response.IsError = true;
+                ErrorHandling.HandleError(ref response, e.Message);
             }
             return response;
         }
@@ -714,6 +731,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
                 {
                     response.Message = "Do not found avatar";
                     response.Result = null;
+                    ErrorHandling.HandleError(ref response, response.Message);
                     return response;
                 }
                 
@@ -722,6 +740,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
                 {
                     response.Message = "Do not found avatar";
                     response.Result = null;
+                    ErrorHandling.HandleError(ref response, response.Message);
                     return response;
                 }
 
@@ -733,6 +752,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
                 response.Message = e.Message;
                 response.Result = null;
                 response.IsError = true;
+                ErrorHandling.HandleError(ref response, e.Message);
             }
             return response;
         }
