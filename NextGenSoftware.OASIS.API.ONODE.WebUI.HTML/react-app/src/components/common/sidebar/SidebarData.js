@@ -115,27 +115,27 @@ const SidebarData = [
             {
                 id: 1,
                 name: "Pay With SEEDS",
-                popupName: "paywithseeds" 
+                popupName: "payWithSeeds" 
             },
             {
                 id: 2,
                 name: "Donate SEEDS",
-                popupName: "donateseeds"
+                popupName: "donateSeeds"
             },
             {
                 id: 3,
                 name: "Reward SEEDS",
-                popupName: "rewardseeds"
+                popupName: "rewardSeeds"
             },
             {
                 id: 4,
                 name: "Send Invite To Join SEEDS",
-                popupName:"sendinvite"
+                popupName:"sendInvite"
             },
             {
                 id: 5,
                 name: "Accept Invite",
-                popupName: "acceptinvite" 
+                popupName: "acceptInvite" 
             },
             {
 
@@ -202,14 +202,14 @@ const SidebarData = [
         id: 6,
         name: "provider",
         subMenu: [
-            {
-                id: 0,
-                name: <Link to="/provider/key-management"> key Managment</Link>,
-            },
-            {
-                id: 1,
-                name: <Link to="/provider/provider"> View Providers</Link>,
-            },
+            // {
+            //     id: 0,
+            //     name: <Link to="/provider/key-management"> key Managment</Link>,
+            // },
+            // {
+            //     id: 1,
+            //     name: <Link to="/provider/provider"> View Providers</Link>,
+            // },
             {
                 id: 2,
                 name: "Manage Providers",
