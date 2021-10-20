@@ -33,9 +33,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Repositories{
                     holon.CreatedByAvatarId = AvatarManager.LoggedInAvatar.Id;
 
                 holon.CreatedDate = DateTime.Now;
-
                 HolonModel holonModel = new HolonModel(holon);
-                holonModel.CreatedProviderType = ProviderType.SQLLiteDBOASIS;
 
                 dataBase.Holons.Add(holonModel);
                 dataBase.SaveChanges();

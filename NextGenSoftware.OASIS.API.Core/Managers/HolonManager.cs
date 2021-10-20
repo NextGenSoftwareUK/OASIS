@@ -809,14 +809,9 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 }
             }
 
-            if (result.Result == null)
-            {
-                result.IsError = true;
-                string errorMessage = string.Concat("All registered OASIS Providers in the AutoFailOverList failed to save ", LoggingHelper.GetHolonInfoForLogging(holon), ". Please view the logs for more information. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString());
-                result.Message = errorMessage;
-                LoggingManager.Log(errorMessage, LogType.Error);
-            }
-
+            if (result.Result == null || result.IsError)
+                HandleSaveHolonError(ref result, holon);
+  
             if (ProviderManager.IsAutoReplicationEnabled)
             {
                 foreach (EnumValue<ProviderType> type in ProviderManager.GetProvidersThatAreAutoReplicating())
@@ -841,27 +836,34 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
             holonSaveResult = SaveHolonForProviderType(PrepareHolonForSaving(holon), providerType, saveChildrenRecursive, holonSaveResult);
 
-            if (holonSaveResult.Result == null && ProviderManager.IsAutoFailOverEnabled)
+            if ((holonSaveResult.IsError || holonSaveResult.Result == null) && ProviderManager.IsAutoFailOverEnabled)
             {
+                ErrorHandling.HandleError(ref holonSaveResult, holonSaveResult.Message);
+                result.InnerMessages.Add(result.Message);
+                result.IsWarning = true;
+                result.IsError = false;
+
                 foreach (EnumValue<ProviderType> type in ProviderManager.GetProviderAutoFailOverList())
                 {
                     if (type.Value != providerType && type.Value != ProviderManager.CurrentStorageProviderType.Value)
                     {
                         holonSaveResult = SaveHolonForProviderType(holon, type.Value, saveChildrenRecursive, holonSaveResult);
 
-                        if (holonSaveResult.Result != null)
+                        if (holonSaveResult.IsError || holonSaveResult.Result == null)
+                        {
+                            ErrorHandling.HandleError(ref holonSaveResult, holonSaveResult.Message);
+                            result.InnerMessages.Add(result.Message);
+                            result.IsWarning = true;
+                            result.IsError = false;
+                        }
+                        else
                             break;
                     }
                 }
             }
 
-            if (holonSaveResult.Result == null)
-            {
-                result.IsError = true;
-                string errorMessage = string.Concat("All registered OASIS Providers in the AutoFailOverList failed to save ", LoggingHelper.GetHolonInfoForLogging(holon), ". Please view the logs for more information. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString());
-                result.Message = errorMessage;
-                LoggingManager.Log(errorMessage, LogType.Error);
-            }
+            if (holonSaveResult.Result == null || holonSaveResult.IsError)
+                HandleSaveHolonError(ref result, holon);
             else
                 result.Result = Mapper<IHolon, T>.MapBaseHolonProperties(holonSaveResult.Result, result.Result);
 
@@ -889,23 +891,35 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
             result = await SaveHolonForProviderTypeAsync(PrepareHolonForSaving(holon), providerType, saveChildrenRecursive, result);
 
-            if (result.Result == null && ProviderManager.IsAutoFailOverEnabled)
+            if ((result.IsError || result.Result == null) && ProviderManager.IsAutoFailOverEnabled)
             {
+                ErrorHandling.HandleError(ref result, result.Message);
+                result.InnerMessages.Add(result.Message);
+                result.IsWarning = true;
+                result.IsError = false;
+
                 foreach (EnumValue<ProviderType> type in ProviderManager.GetProviderAutoFailOverList())
                 {
                     if (type.Value != providerType && type.Value != ProviderManager.CurrentStorageProviderType.Value)
+                    {
                         result = await SaveHolonForProviderTypeAsync(holon, type.Value, saveChildrenRecursive, result);
+
+                        if (result.IsError || result.Result == null)
+                        {
+                            ErrorHandling.HandleError(ref result, result.Message);
+                            result.InnerMessages.Add(result.Message);
+                            result.IsWarning = true;
+                            result.IsError = false;
+                        }
+                        else
+                            break;
+                    }
                 }
             }
 
-            if (result.Result == null)
-            {
-                result.IsError = true;
-                string errorMessage = string.Concat("All registered OASIS Providers in the AutoFailOverList failed to save ", LoggingHelper.GetHolonInfoForLogging(holon), ". Please view the logs for more information. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString());
-                result.Message = errorMessage;
-                LoggingManager.Log(errorMessage, LogType.Error);
-            }
-           
+            if (result.Result == null || result.IsError)
+                HandleSaveHolonError(ref result, holon);
+
             if (ProviderManager.IsAutoReplicationEnabled)
             {
                 foreach (EnumValue<ProviderType> type in ProviderManager.GetProvidersThatAreAutoReplicating())
@@ -932,22 +946,34 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
             holonSaveResult = await SaveHolonForProviderTypeAsync(PrepareHolonForSaving(holon), providerType, saveChildrenRecursive, holonSaveResult);
 
-            if (holonSaveResult.Result == null && ProviderManager.IsAutoFailOverEnabled)
+            if ((holonSaveResult.IsError || holonSaveResult.Result == null) && ProviderManager.IsAutoFailOverEnabled)
             {
+                ErrorHandling.HandleError(ref holonSaveResult, holonSaveResult.Message);
+                result.InnerMessages.Add(holonSaveResult.Message);
+                result.IsWarning = true;
+                result.IsError = false;
+
                 foreach (EnumValue<ProviderType> type in ProviderManager.GetProviderAutoFailOverList())
                 {
                     if (type.Value != providerType && type.Value != ProviderManager.CurrentStorageProviderType.Value)
+                    {
                         holonSaveResult = await SaveHolonForProviderTypeAsync(holon, type.Value, saveChildrenRecursive, holonSaveResult);
+
+                        if (holonSaveResult.IsError || holonSaveResult.Result == null)
+                        {
+                            ErrorHandling.HandleError(ref holonSaveResult, holonSaveResult.Message);
+                            result.InnerMessages.Add(holonSaveResult.Message);
+                            result.IsWarning = true;
+                            result.IsError = false;
+                        }
+                        else
+                            break;
+                    }
                 }
             }
 
-            if (holonSaveResult.Result == null)
-            {
-                result.IsError = true;
-                string errorMessage = string.Concat("All registered OASIS Providers in the AutoFailOverList failed to save ", LoggingHelper.GetHolonInfoForLogging(holon), ". Please view the logs for more information. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString());
-                result.Message = errorMessage;
-                LoggingManager.Log(errorMessage, LogType.Error);
-            }
+            if (result.Result == null || result.IsError)
+                HandleSaveHolonError(ref result, holon);
             else
                 result.Result = Mapper<IHolon, T>.MapBaseHolonProperties(holonSaveResult.Result, result.Result);
 
@@ -2467,6 +2493,25 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             }
 
             return holon;
+        }
+
+        private string BuildInnerMessageError(List<string> innerMessages)
+        {
+            string result = "";
+            foreach (string innerMessage in innerMessages)
+                result = string.Concat(result, innerMessage, "/n");
+
+            return result;
+        }
+
+        //private void HandleSaveHolonError(ref OASISResult<IHolon> result, IHolon holon)
+        //{
+        //    ErrorHandling.HandleError(ref result, string.Concat("All registered OASIS Providers in the AutoFailOverList failed to save ", LoggingHelper.GetHolonInfoForLogging(holon), ". Reason: ", BuildInnerMessageError(result.InnerMessages), ". Please view the logs and InnerMessages property for more information. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString()));
+        //}
+
+        private void HandleSaveHolonError<T>(ref OASISResult<T> result, IHolon holon) where T : IHolon
+        {
+            ErrorHandling.HandleError(ref result, string.Concat("All registered OASIS Providers in the AutoFailOverList failed to save ", LoggingHelper.GetHolonInfoForLogging(holon), ". Reason: ", BuildInnerMessageError(result.InnerMessages), ". Please view the logs and InnerMessages property for more information. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString()));
         }
     }
 }
