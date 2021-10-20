@@ -977,6 +977,67 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
             return response;
         }
 
+        public async Task<OASISResult<IAvatarDetail>> LinkProviderKeyToAvatar(Guid avatarId, ProviderType telosOasis, string telosAccountName)
+        {
+            return await Task.Run(() =>
+            {
+                var response = new OASISResult<IAvatarDetail>();
+                try
+                {
+                    response.Result =
+                        AvatarManager.LinkProviderKeyToAvatar(avatarId, ProviderType.TelosOASIS, telosAccountName);
+                }
+                catch (Exception e)
+                {
+                    response.Message = e.Message;
+                    response.IsError = true;
+                    response.IsSaved = false;
+                    ErrorHandling.HandleError(ref response, e.Message);
+                }
+                return response;
+            });
+        }
+
+        public async Task<OASISResult<string>> GetProviderKeyForAvatar(string avatarUsername, ProviderType providerType)
+        {
+            return await Task.Run(() =>
+            {
+                var response = new OASISResult<string>();
+                try
+                {
+                    response.Result = AvatarManager.GetProviderKeyForAvatar(avatarUsername, providerType);
+                }
+                catch (Exception e)
+                {
+                    response.Message = e.Message;
+                    response.IsError = true;
+                    response.IsSaved = false;
+                    ErrorHandling.HandleError(ref response, e.Message);
+                }
+                return response;
+            });
+        }
+
+        public async Task<OASISResult<string>> GetPrivateProviderKeyForAvatar(Guid avatarId, ProviderType providerType)
+        {
+            return await Task.Run(() =>
+            {
+                var response = new OASISResult<string>();
+                try
+                {
+                    response.Result = AvatarManager.GetPrivateProviderKeyForAvatar(avatarId, providerType);
+                }
+                catch (Exception e)
+                {
+                    response.Message = e.Message;
+                    response.IsError = true;
+                    response.IsSaved = false;
+                    ErrorHandling.HandleError(ref response, e.Message);
+                }
+                return response;
+            });
+        }
+
         private async Task<OASISResult<IAvatar>> GetAvatar(Guid id)
         {
             var result = new OASISResult<IAvatar>();

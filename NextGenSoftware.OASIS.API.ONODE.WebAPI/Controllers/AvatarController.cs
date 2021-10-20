@@ -750,36 +750,32 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpDelete("{id:Guid}")]
-        public async Task<OASISResult<string>> Delete(Guid id)
+        public async Task<OASISResult<bool>> Delete(Guid id)
         {
             // users can delete their own account and admins can delete any account
             if (id != Avatar.Id && Avatar.AvatarType.Value != AvatarType.Wizard)
-                return new OASISResult<string> {Result = "Unauthorized", IsError = true};
-            await _avatarService.Delete(id);
-            return new OASISResult<string>()
-                {Result = "Account deleted successfully", Message = "Success", IsError = false};
+                return new OASISResult<bool> {Result = false, IsError = true};
+            return await _avatarService.Delete(id);
         }
 
         [Authorize]
         [HttpDelete("DeleteByUsername/{username}")]
-        public async Task<OASISResult<string>> DeleteByUsername(string username)
+        public async Task<OASISResult<bool>> DeleteByUsername(string username)
         {
             // users can delete their own account and admins can delete any account
             if (username != Avatar.Username && Avatar.AvatarType.Value != AvatarType.Wizard)
-                return new OASISResult<string> {IsError = true, Message = "Unauthorized", Result = "Not Deleted!"};
-            await _avatarService.DeleteByUsername(username);
-            return new OASISResult<string>("Account deleted successfully");
+                return new OASISResult<bool> {IsError = true, Message = "Unauthorized", Result = false};
+            return await _avatarService.DeleteByUsername(username);
         }
 
         [Authorize]
         [HttpDelete("DeleteByEmail/{email}")]
-        public async Task<OASISResult<string>> DeleteByEmail(string email)
+        public async Task<OASISResult<bool>> DeleteByEmail(string email)
         {
             // users can delete their own account and admins can delete any account
             if (email != Avatar.Email && Avatar.AvatarType.Value != AvatarType.Wizard)
-                return new OASISResult<string> {IsError = true, Message = "Unauthorized", Result = "Not Deleted!"};
-            await _avatarService.DeleteByEmail(email);
-            return new OASISResult<string>("Account deleted successfully");
+                return new OASISResult<bool> {IsError = true, Message = "Unauthorized", Result = false};
+            return await _avatarService.DeleteByEmail(email);
         }
 
         /// <summary>
@@ -793,7 +789,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpDelete("{id:Guid}/{providerType}/{setGlobally}")]
-        public async Task<OASISResult<string>> Delete(Guid id, ProviderType providerType, bool setGlobally = false)
+        public async Task<OASISResult<bool>> Delete(Guid id, ProviderType providerType, bool setGlobally = false)
         {
             GetAndActivateProvider(providerType, setGlobally);
             return await Delete(id);
@@ -809,7 +805,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpPost("{avatarId:Guid}/{telosAccountName}")]
         public async Task<OASISResult<IAvatarDetail>> LinkTelosAccountToAvatar(Guid avatarId, string telosAccountName)
         {
-            return await AvatarManager.LinkProviderKeyToAvatar(avatarId, ProviderType.TelosOASIS, telosAccountName);
+            return await _avatarService.LinkProviderKeyToAvatar(avatarId, ProviderType.TelosOASIS, telosAccountName);
         }
 
         /// <summary>
@@ -823,12 +819,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         public async Task<OASISResult<IAvatarDetail>> LinkTelosAccountToAvatar2(
             LinkProviderKeyToAvatar linkProviderKeyToAvatar)
         {
-            return new()
-            {
-                Result = AvatarManager.LinkProviderKeyToAvatar(linkProviderKeyToAvatar.AvatarID,
-                    ProviderType.TelosOASIS, linkProviderKeyToAvatar.ProviderKey),
-                IsError = false
-            };
+            return await _avatarService.LinkProviderKeyToAvatar(linkProviderKeyToAvatar.AvatarID,
+                ProviderType.TelosOASIS, linkProviderKeyToAvatar.ProviderKey);
         }
 
 
@@ -842,7 +834,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpPost("{avatarId}/{eosioAccountName}")]
         public async Task<OASISResult<IAvatarDetail>> LinkEOSIOAccountToAvatar(Guid avatarId, string eosioAccountName)
         {
-            return await AvatarManager.LinkProviderKeyToAvatar(avatarId, ProviderType.EOSIOOASIS, eosioAccountName);
+            return await _avatarService.LinkProviderKeyToAvatar(avatarId, ProviderType.EOSIOOASIS, eosioAccountName);
         }
 
         /// <summary>
@@ -856,7 +848,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         public async Task<OASISResult<IAvatarDetail>> LinkHolochainAgentIDToAvatar(Guid avatarId,
             string holochainAgentID)
         {
-            return await AvatarManager.LinkProviderKeyToAvatar(avatarId, ProviderType.HoloOASIS, holochainAgentID);
+            return await _avatarService.LinkProviderKeyToAvatar(avatarId, ProviderType.HoloOASIS, holochainAgentID);
         }
 
         /// <summary>
@@ -869,7 +861,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpPost("{avatarUsername}/{providerType}")]
         public async Task<OASISResult<string>> GetProviderKeyForAvatar(string avatarUsername, ProviderType providerType)
         {
-            return await AvatarManager.GetProviderKeyForAvatar(avatarUsername, providerType);
+            return await _avatarService.GetProviderKeyForAvatar(avatarUsername, providerType);
         }
 
         /// <summary>
@@ -882,7 +874,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpPost("{avatarId}/{providerType}")]
         public async Task<OASISResult<string>> GetPrivateProviderKeyForAvatar(Guid avatarId, ProviderType providerType)
         {
-            return await AvatarManager.GetPrivateProviderKeyForAvatar(avatarId, providerType);
+            return await _avatarService.GetPrivateProviderKeyForAvatar(avatarId, providerType);
         }
 
         [Authorize]

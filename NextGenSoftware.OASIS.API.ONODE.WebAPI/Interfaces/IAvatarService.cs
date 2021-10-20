@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Avatar;
@@ -44,5 +45,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Interfaces
         Task<OASISResult<string>> GetAvatarUmaJsonByMail(string mail);
         Task<OASISResult<IAvatar>> GetAvatarByJwt();
         Task<OASISResult<ISearchResults>> Search(ISearchParams searchParams);
+        Task<OASISResult<IAvatarDetail>> LinkProviderKeyToAvatar(Guid avatarId, ProviderType telosOasis, string telosAccountName);
+        Task<OASISResult<string>> GetProviderKeyForAvatar(string avatarUsername, ProviderType providerType);
+        Task<OASISResult<string>> GetPrivateProviderKeyForAvatar(Guid avatarId, ProviderType providerType);
     }
 }
