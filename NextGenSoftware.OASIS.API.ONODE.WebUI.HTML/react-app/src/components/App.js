@@ -18,9 +18,8 @@ import OffChainManagement from "./popups/data-screen/OffChainManagement";
 import CrossChainManagement from "./popups/data-screen/CrossChainManagement";
 import Solana from "./popups/nft/Solana";
 import ContactPopup from "./popups/nft/ContactPopup";
-import AcceptInvite from "./popups/seeds/AcceptInvite"
 import PayWithSeeds from "./popups/seeds/PayWithSeeds";
-import DonateSeeds from "./popups/seeds/DonateSeeds";
+import DonateSeeds from "./popups/seeds/DonateSeeds.jsx";
 import SendInvite from "./popups/seeds/SendInvite";
 import RewardSeeds from "./popups/seeds/RewardSeeds";
 
