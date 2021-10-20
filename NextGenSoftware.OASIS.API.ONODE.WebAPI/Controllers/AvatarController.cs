@@ -328,33 +328,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpPost("register")]
         public async Task<OASISResult<IAvatar>> Register(RegisterRequest model)
         {
-            object avatarTypeObject = null;
-
-            if (!Enum.TryParse(typeof(AvatarType), model.AvatarType, out avatarTypeObject))
-                return new OASISResult<IAvatar>()
-                {
-                    Result = null,
-                    Message = string.Concat(
-                        "ERROR: AvatarType needs to be one of the values found in AvatarType enumeration. Possible value can be:\n\n",
-                        EnumHelper.GetEnumValues(typeof(AvatarType))),
-                    IsError = true
-                };
-
-            IAvatar avatar = await _avatarService.Register(model, Request.Headers["origin"]);
-
-            if (avatar != null)
-            {
-                avatar.Password = null;
-                return new OASISResult<IAvatar>()
-                {
-                    Result = avatar,
-                    Message = "Avatar registration successful, please check your email for verification instructions.",
-                    IsError = false
-                };
-            }
-
-            return new OASISResult<IAvatar>()
-                {Result = null, IsError = true, Message = "ERROR: Avatar already registered."};
+            return await _avatarService.Register(model, Request.Headers["origin"]);
         }
 
         /// <summary>
