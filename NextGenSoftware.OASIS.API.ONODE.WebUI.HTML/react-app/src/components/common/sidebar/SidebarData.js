@@ -27,26 +27,27 @@ const SidebarData = [
         subMenu: [
             {
                 id: 1,
-                name: "view avatar",
-                popupName:"viewavatar"
+                name: "View Avatar",
+                popupName:"viewAvatar"
             },
-            // {
-            //     id: 2,
-            //     name: <Link to="/avatar/upload">edit avatar</Link>,
-            // },
+            {
+                id: 2,
+                name: "Edit Avatar",
+            },
             {
                 id: 3,
-                name: "search avatars",
+                name: "Search Avatars",
+                popupName:"viewAvatar"
             },
             {
                 id: 4,
-                name: "avatar detail",
-                popupName:"avatardetail"
+                name: "Avatar Detail",
+                popupName:"avatarDetail"
             },
             {
                 id: 5,
-                name: "avatar wallet",
-                popupName:"avatarwallet"
+                name: "Avatar Wallet",
+                popupName:"avatarWallet"
             },
         ],
     },
