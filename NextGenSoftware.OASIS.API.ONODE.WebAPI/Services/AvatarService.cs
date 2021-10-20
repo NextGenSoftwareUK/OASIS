@@ -1,35 +1,33 @@
 using System;
-using System.Text;
 using System.Collections.Generic;
-using System.Linq;
-using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
+using System.Linq;
 using System.Security.Claims;
 using System.Security.Cryptography;
+using System.Text;
 using System.Threading.Tasks;
 using AutoMapper;
 using Microsoft.AspNetCore.Http;
-using BC = BCrypt.Net.BCrypt;
+using Microsoft.IdentityModel.Tokens;
+using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Managers;
-using NextGenSoftware.OASIS.API.Core.Enums;
-using NextGenSoftware.OASIS.API.ONODE.WebAPI.Helpers;
-using NextGenSoftware.OASIS.API.ONODE.WebAPI.Interfaces;
-using NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Security;
 using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.DNA;
-using NextGenSoftware.OASIS.API.Core.Helpers;
+using NextGenSoftware.OASIS.API.ONODE.WebAPI.Helpers;
+using NextGenSoftware.OASIS.API.ONODE.WebAPI.Interfaces;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Avatar;
+using NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Security;
+using BC = BCrypt.Net.BCrypt;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
 {
     public class AvatarService : IAvatarService
     {
-        private readonly IMapper _mapper;
         private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly IMapper _mapper;
         private readonly OASISDNA _OASISDNA;
-
-        private AvatarManager AvatarManager => Program.AvatarManager;
 
         public AvatarService(
             IMapper mapper,
@@ -39,7 +37,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
             _httpContextAccessor = httpContextAccessor;
             _OASISDNA = OASISBootLoader.OASISBootLoader.OASISDNA;
         }
-        
+
+        private AvatarManager AvatarManager => Program.AvatarManager;
+
         public async Task<OASISResult<string>> GetTerms()
         {
             return await Task.Run(() =>
@@ -56,6 +56,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
                     response.IsError = true;
                     ErrorHandling.HandleError(ref response, e.Message);
                 }
+
                 return response;
             });
         }
@@ -73,7 +74,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
                     ErrorHandling.HandleError(ref response, response.Message);
                     return response;
                 }
-                response.Result = new AuthenticateResponse()
+
+                response.Result = new AuthenticateResponse
                     {Message = "Avatar Successfully Authenticated.", Avatar = result.Result};
             }
             catch (Exception e)
@@ -83,6 +85,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
                 response.IsError = false;
                 ErrorHandling.HandleError(ref response, e.Message);
             }
+
             return response;
         }
 
@@ -101,7 +104,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
                         ErrorHandling.HandleError(ref response, response.Message);
                         return response;
                     }
-                    
+
                     var newRefreshToken = GenerateRefreshToken(ipAddress);
                     refreshToken.Revoked = DateTime.UtcNow;
                     refreshToken.RevokedByIp = ipAddress;
@@ -120,7 +123,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
                     response.IsError = true;
                     ErrorHandling.HandleError(ref response, e.Message);
                 }
-                return response; 
+
+                return response;
             });
         }
 
@@ -128,7 +132,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
         {
             return await Task.Run(() =>
             {
-                var response = new OASISResult<string>() { Result = "Token Revoked" };
+                var response = new OASISResult<string> {Result = "Token Revoked"};
                 var (refreshToken, avatar) = GetRefreshToken(token);
 
                 if (avatar == null)
@@ -158,9 +162,23 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
 
         public async Task<OASISResult<IAvatar>> Register(RegisterRequest model, string origin)
         {
-            if (string.IsNullOrEmpty(origin))
-                origin = Program.CURRENT_OASISAPI;
-            return await Task.Run(() => AvatarManager.Register(model.Title, model.FirstName, model.LastName, model.Email, model.Password, (AvatarType)Enum.Parse(typeof(AvatarType), model.AvatarType), origin, model.CreatedOASISType));
+            return await Task.Run(() =>
+            {
+                if (string.IsNullOrEmpty(origin))
+                    origin = Program.CURRENT_OASISAPI;
+                if (!Enum.TryParse(typeof(AvatarType), model.AvatarType, out _))
+                    return new OASISResult<IAvatar>
+                    {
+                        Result = null,
+                        Message = string.Concat(
+                            "ERROR: AvatarType needs to be one of the values found in AvatarType enumeration. Possible value can be:\n\n",
+                            EnumHelper.GetEnumValues(typeof(AvatarType))),
+                        IsError = true
+                    };
+
+                return AvatarManager.Register(model.Title, model.FirstName, model.LastName, model.Email, model.Password,
+                    (AvatarType) Enum.Parse(typeof(AvatarType), model.AvatarType), origin, model.CreatedOASISType);
+            });
         }
 
         public async Task<OASISResult<bool>> VerifyEmail(string token)
@@ -174,7 +192,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
             try
             {
                 //TODO: {PERFORMANCE} Implement in Providers so more efficient and do not need to return whole list!
-                IAvatar avatar = (await AvatarManager.LoadAllAvatarsAsync()).FirstOrDefault(x => x.Email == model.Email);
+                var avatar =
+                    (await AvatarManager.LoadAllAvatarsAsync()).FirstOrDefault(x => x.Email == model.Email);
 
                 // always return ok response to prevent email enumeration
                 if (avatar == null)
@@ -198,6 +217,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
                     ErrorHandling.HandleError(ref response, response.Message);
                     return response;
                 }
+
                 // send email
                 SendPasswordResetEmail(avatar, origin);
             }
@@ -208,6 +228,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
                 response.IsError = true;
                 ErrorHandling.HandleError(ref response, e.Message);
             }
+
             return response;
         }
 
@@ -217,7 +238,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
             try
             {
                 //TODO: PERFORMANCE} Implement in Providers so more efficient and do not need to return whole list!
-                IAvatar avatar = (await AvatarManager.LoadAllAvatarsAsync()).FirstOrDefault(x => x.ResetToken == model.Token &&
+                var avatar = (await AvatarManager.LoadAllAvatarsAsync()).FirstOrDefault(x =>
+                    x.ResetToken == model.Token &&
                     x.ResetTokenExpires > DateTime.UtcNow);
 
                 if (avatar == null)
@@ -235,6 +257,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
                 result.IsError = true;
                 ErrorHandling.HandleError(ref result, result.Message);
             }
+
             return result;
         }
 
@@ -244,7 +267,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
             try
             {
                 //TODO: PERFORMANCE} Implement in Providers so more efficient and do not need to return whole list!
-                IAvatar avatar = (await AvatarManager.LoadAllAvatarsAsync()).FirstOrDefault(x => x.ResetToken == model.Token &&
+                var avatar = (await AvatarManager.LoadAllAvatarsAsync()).FirstOrDefault(x =>
+                    x.ResetToken == model.Token &&
                     x.ResetTokenExpires > DateTime.UtcNow);
 
                 if (avatar == null)
@@ -278,7 +302,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
                 response.Message = e.Message;
                 response.IsError = true;
                 response.IsSaved = false;
+                ErrorHandling.HandleError(ref response, e.Message);
             }
+
             return response;
         }
 
@@ -296,32 +322,37 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
                 response.IsError = true;
                 ErrorHandling.HandleError(ref response, e.Message);
             }
+
             return response;
         }
 
         public async Task<OASISResult<AvatarImage>> GetAvatarImageById(Guid id)
         {
-            OASISResult<AvatarImage> result = new OASISResult<AvatarImage>();
+            var result = new OASISResult<AvatarImage>();
             if (id == Guid.Empty)
             {
                 result.Message = "Guid is empty, please speceify a valid Guid.";
                 result.IsError = true;
                 ErrorHandling.HandleError(ref result, result.Message);
             }
-            OASISResult<IAvatar> avatarResult = await GetAvatar(id);
+
+            var avatarResult = await GetAvatar(id);
 
             if (!avatarResult.IsError)
-                result.Result = new AvatarImage()
+            {
+                result.Result = new AvatarImage
                 {
                     AvatarId = avatarResult.Result.Id,
                     ImageBase64 = avatarResult.Result.Image2D
                 };
+            }
             else
             {
                 result.IsError = true;
                 result.Message = avatarResult.Message;
                 ErrorHandling.HandleError(ref result, avatarResult.Message);
             }
+
             return result;
         }
 
@@ -337,9 +368,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
                     ErrorHandling.HandleError(ref response, response.Message);
                     return response;
                 }
-                
+
                 var avatarResult = await AvatarManager.LoadAvatarByUsernameAsync(userName);
-                response.Result = new AvatarImage()
+                response.Result = new AvatarImage
                 {
                     AvatarId = avatarResult.Id,
                     ImageBase64 = avatarResult.Image2D
@@ -352,9 +383,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
                 response.Message = e.Message;
                 ErrorHandling.HandleError(ref response, response.Message);
             }
+
             return response;
         }
-        
+
         public async Task<OASISResult<AvatarImage>> GetAvatarImageByEmail(string email)
         {
             var response = new OASISResult<AvatarImage>();
@@ -367,9 +399,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
                     ErrorHandling.HandleError(ref response, response.Message);
                     return response;
                 }
-                
+
                 var avatarResult = await AvatarManager.LoadAvatarByEmailAsync(email);
-                response.Result = new AvatarImage()
+                response.Result = new AvatarImage
                 {
                     AvatarId = avatarResult.Id,
                     ImageBase64 = avatarResult.Image2D
@@ -382,6 +414,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
                 response.Message = e.Message;
                 ErrorHandling.HandleError(ref response, e.Message);
             }
+
             return response;
         }
 
@@ -398,7 +431,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
                     ErrorHandling.HandleError(ref response, response.Message);
                     return response;
                 }
-        
+
                 var avatar = await GetAvatar(image.AvatarId);
                 avatar.Result.Image2D = image.ImageBase64;
                 var saveAvatar = AvatarManager.SaveAvatar(avatar.Result);
@@ -409,6 +442,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
                     response.Message = saveAvatar.Message;
                     ErrorHandling.HandleError(ref response, response.Message);
                 }
+
                 response.Result = "Image Uploaded";
             }
             catch (Exception e)
@@ -419,6 +453,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
                 response.IsSaved = false;
                 ErrorHandling.HandleError(ref response, e.Message);
             }
+
             return response;
         }
 
@@ -439,7 +474,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
                     ErrorHandling.HandleError(ref response, response.Message);
                     return response;
                 }
-                
+
                 response.Result = await AvatarManager.LoadAvatarByUsernameAsync(userName);
             }
             catch (Exception e)
@@ -449,6 +484,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
                 response.IsError = true;
                 ErrorHandling.HandleError(ref response, e.Message);
             }
+
             return response;
         }
 
@@ -464,7 +500,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
                     ErrorHandling.HandleError(ref response, response.Message);
                     return response;
                 }
-                
+
                 response.Result = await AvatarManager.LoadAvatarByEmailAsync(email);
             }
             catch (Exception e)
@@ -474,6 +510,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
                 response.IsError = true;
                 ErrorHandling.HandleError(ref response, response.Message);
             }
+
             return response;
         }
 
@@ -489,8 +526,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
                 ErrorHandling.HandleError(ref result, result.Message);
                 return result;
             }
+
             // map model to new account object
-            IAvatar avatar = _mapper.Map<IAvatar>(model);
+            var avatar = _mapper.Map<IAvatar>(model);
             avatar.CreatedDate = DateTime.UtcNow;
             avatar.Verified = DateTime.UtcNow;
 
@@ -505,6 +543,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
                 ErrorHandling.HandleError(ref result, result.Message);
                 return saveResult;
             }
+
             result.Result = RemoveAuthDetails(avatar);
             return result;
         }
@@ -523,11 +562,18 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
                     ErrorHandling.HandleError(ref response, response.Message);
                     return response;
                 }
-             
+
                 var origAvatar = oasisResult.Result;
 
-                if (!string.IsNullOrEmpty(avatar.Email) && avatar.Email != origAvatar.Email && await AvatarManager.LoadAvatarByEmailAsync(avatar.Email) != null)
-                    throw new AppException($"Email '{avatar.Email}' is already taken");
+                if (!string.IsNullOrEmpty(avatar.Email) && avatar.Email != origAvatar.Email &&
+                    await AvatarManager.LoadAvatarByEmailAsync(avatar.Email) != null)
+                {
+                    response.IsError = true;
+                    response.IsSaved = false;
+                    response.Message = $"Email '{avatar.Email}' is already taken";
+                    ErrorHandling.HandleError(ref response, response.Message);
+                    return response;
+                }
 
                 // hash password if it was entered
                 if (!string.IsNullOrEmpty(avatar.Password))
@@ -557,13 +603,14 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
                 response.IsSaved = false;
                 ErrorHandling.HandleError(ref response, e.Message);
             }
+
             return response;
         }
 
         public async Task<OASISResult<IAvatar>> UpdateByEmail(string email, UpdateRequest avatar)
         {
             var response = new OASISResult<IAvatar>();
-            IAvatar origAvatar = await AvatarManager.LoadAvatarByEmailAsync(email);
+            var origAvatar = await AvatarManager.LoadAvatarByEmailAsync(email);
 
             if (!string.IsNullOrEmpty(avatar.Email) && avatar.Email != origAvatar.Email)
             {
@@ -590,6 +637,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
                 ErrorHandling.HandleError(ref response, response.Message);
                 return response;
             }
+
             response.Result = RemoveAuthDetails(saveResult.Result);
             return response;
         }
@@ -597,11 +645,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
         public async Task<OASISResult<IAvatar>> UpdateByUsername(string username, UpdateRequest avatar)
         {
             var response = new OASISResult<IAvatar>();
-            
-            IAvatar origAvatar = await AvatarManager.LoadAvatarByUsernameAsync(username);
+
+            var origAvatar = await AvatarManager.LoadAvatarByUsernameAsync(username);
 
             if (!string.IsNullOrEmpty(avatar.Email) && avatar.Email != origAvatar.Email &&
-                (await AvatarManager.LoadAvatarByEmailAsync(avatar.Email) != null))
+                await AvatarManager.LoadAvatarByEmailAsync(avatar.Email) != null)
             {
                 response.Message = $"Email '{avatar.Email}' is already taken";
                 response.IsError = true;
@@ -627,6 +675,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
                 ErrorHandling.HandleError(ref response, response.Message);
                 return response;
             }
+
             response.Result = RemoveAuthDetails(saveAvatar.Result);
             return response;
         }
@@ -646,6 +695,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
                 response.Message = e.Message;
                 ErrorHandling.HandleError(ref response, e.Message);
             }
+
             return response;
         }
 
@@ -664,6 +714,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
                 response.Message = e.Message;
                 ErrorHandling.HandleError(ref response, e.Message);
             }
+
             return response;
         }
 
@@ -682,9 +733,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
                 response.Message = e.Message;
                 ErrorHandling.HandleError(ref response, e.Message);
             }
+
             return response;
         }
-        
+
         public async Task<OASISResult<string>> ValidateAccountToken(string accountToken)
         {
             return await Task.Run(() =>
@@ -713,25 +765,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
                     response.Result = "Token Validating Failed!";
                     ErrorHandling.HandleError(ref response, e.Message);
                 }
+
                 return response;
             });
-        }
-        
-        private async Task<OASISResult<IAvatar>> GetAvatar(Guid id)
-        {
-            var result = new OASISResult<IAvatar>();
-            var avatar = await AvatarManager.LoadAvatarAsync(id);
-
-            if (avatar == null)
-            {
-                result.Message = "Avatar not found";
-                result.IsError = true;
-                ErrorHandling.HandleError(ref result, result.Message);
-                return result;
-            }
-
-            result.Result = avatar;
-            return result;
         }
 
         public async Task<OASISResult<IAvatarDetail>> GetAvatarDetail(Guid id)
@@ -761,6 +797,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
                 response.Message = e.Message;
                 ErrorHandling.HandleError(ref response, response.Message);
             }
+
             return response;
         }
 
@@ -779,6 +816,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
                 response.Message = e.Message;
                 ErrorHandling.HandleError(ref response, e.Message);
             }
+
             return response;
         }
 
@@ -796,7 +834,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
                 response.IsError = true;
                 ErrorHandling.HandleError(ref response, e.Message);
             }
-            return response; 
+
+            return response;
         }
 
         public async Task<OASISResult<string>> GetAvatarUmaJsonById(Guid id)
@@ -810,7 +849,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
                     response.IsError = true;
                     ErrorHandling.HandleError(ref response, response.Message);
                 }
-                
+
                 var avatarDetail = await AvatarManager.LoadAvatarDetailAsync(id);
                 response.Result = avatarDetail.UmaJson;
             }
@@ -822,6 +861,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
                 response.IsError = true;
                 ErrorHandling.HandleError(ref response, e.Message);
             }
+
             return response;
         }
 
@@ -839,7 +879,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
                 response.Message = e.Message;
                 response.Result = null;
                 response.IsError = true;
+                ErrorHandling.HandleError(ref response, e.Message);
             }
+
             return response;
         }
 
@@ -855,7 +897,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
                     ErrorHandling.HandleError(ref response, response.Message);
                     return response;
                 }
-                
+
                 var avatarDetail = await AvatarManager.LoadAvatarDetailByEmailAsync(mail);
                 response.Result = avatarDetail.UmaJson;
             }
@@ -867,6 +909,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
                 response.IsError = true;
                 ErrorHandling.HandleError(ref response, e.Message);
             }
+
             return response;
         }
 
@@ -884,8 +927,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
                         ErrorHandling.HandleError(ref response, response.Message);
                         return response;
                     }
-                
-                    var avatar = (IAvatar)_httpContextAccessor.HttpContext.Items["Avatar"];
+
+                    var avatar = (IAvatar) _httpContextAccessor.HttpContext.Items["Avatar"];
                     if (avatar == null)
                     {
                         response.Message = "Do not found avatar";
@@ -904,6 +947,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
                     response.IsError = true;
                     ErrorHandling.HandleError(ref response, e.Message);
                 }
+
                 return response;
             });
         }
@@ -919,7 +963,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
                     response.IsError = true;
                     ErrorHandling.HandleError(ref response, response.Message);
                 }
-                
+
                 response.Result = await AvatarManager.SearchAsync(searchParams);
             }
             catch (Exception e)
@@ -929,20 +973,39 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
                 response.IsError = true;
                 ErrorHandling.HandleError(ref response, e.Message);
             }
+
             return response;
+        }
+
+        private async Task<OASISResult<IAvatar>> GetAvatar(Guid id)
+        {
+            var result = new OASISResult<IAvatar>();
+            var avatar = await AvatarManager.LoadAvatarAsync(id);
+
+            if (avatar == null)
+            {
+                result.Message = "Avatar not found";
+                result.IsError = true;
+                ErrorHandling.HandleError(ref result, result.Message);
+                return result;
+            }
+
+            result.Result = avatar;
+            return result;
         }
 
         private (RefreshToken, IAvatar) GetRefreshToken(string token)
         {
             //TODO: PERFORMANCE} Implement in Providers so more efficient and do not need to return whole list!
-            IAvatar avatar = AvatarManager.LoadAllAvatarsWithPasswords().FirstOrDefault(x => x.RefreshTokens.Any(t => t.Token == token));
+            var avatar = AvatarManager.LoadAllAvatarsWithPasswords()
+                .FirstOrDefault(x => x.RefreshTokens.Any(t => t.Token == token));
 
-            if (avatar == null) 
+            if (avatar == null)
                 throw new AppException("Invalid token");
 
             var refreshToken = avatar.RefreshTokens.Single(x => x.Token == token);
 
-            if (!refreshToken.IsActive) 
+            if (!refreshToken.IsActive)
                 throw new AppException("Invalid token");
 
             return (refreshToken, avatar);
@@ -955,9 +1018,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
             var key = Encoding.ASCII.GetBytes(_OASISDNA.OASIS.Security.Secret);
             var tokenDescriptor = new SecurityTokenDescriptor
             {
-                Subject = new ClaimsIdentity(new[] { new Claim("id", account.Id.ToString()) }),
+                Subject = new ClaimsIdentity(new[] {new Claim("id", account.Id.ToString())}),
                 Expires = DateTime.UtcNow.AddMinutes(15),
-                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
+                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key),
+                    SecurityAlgorithms.HmacSha256Signature)
             };
             var token = tokenHandler.CreateToken(tokenDescriptor);
             return tokenHandler.WriteToken(token);
@@ -965,7 +1029,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
 
         private RefreshToken GenerateRefreshToken(string ipAddress)
         {
-            return new RefreshToken
+            return new()
             {
                 Token = RandomTokenString(),
                 Expires = DateTime.UtcNow.AddDays(7),
@@ -999,19 +1063,21 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
             if (!string.IsNullOrEmpty(origin))
             {
                 var resetUrl = $"{origin}/avatar/reset-password?token={avatar.ResetToken}";
-                message = $@"<p>Please click the below link to reset your password, the link will be valid for 1 day:</p>
+                message =
+                    $@"<p>Please click the below link to reset your password, the link will be valid for 1 day:</p>
                              <p><a href=""{resetUrl}"">{resetUrl}</a></p>";
             }
             else
             {
-                message = $@"<p>Please use the below token to reset your password with the <code>/avatar/reset-password</code> api route:</p>
+                message =
+                    $@"<p>Please use the below token to reset your password with the <code>/avatar/reset-password</code> api route:</p>
                              <p><code>{avatar.ResetToken}</code></p>";
             }
 
             EmailManager.Send(
-                to: avatar.Email,
-                subject: "OASIS - Reset Password",
-                html: $@"<h4>Reset Password</h4>
+                avatar.Email,
+                "OASIS - Reset Password",
+                $@"<h4>Reset Password</h4>
                          {message}"
             );
         }
