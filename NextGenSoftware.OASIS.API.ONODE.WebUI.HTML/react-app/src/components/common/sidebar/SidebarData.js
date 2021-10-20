@@ -27,26 +27,27 @@ const SidebarData = [
         subMenu: [
             {
                 id: 1,
-                name: "view avatar",
-                popupName:"viewavatar"
+                name: "View Avatar",
+                popupName:"viewAvatar"
             },
-            // {
-            //     id: 2,
-            //     name: <Link to="/avatar/upload">edit avatar</Link>,
-            // },
+            {
+                id: 2,
+                name: "Edit Avatar",
+            },
             {
                 id: 3,
-                name: "search avatars",
+                name: "Search Avatars",
+                popupName:"viewAvatar"
             },
             {
                 id: 4,
-                name: "avatar detail",
-                popupName:"avatardetail"
+                name: "Avatar Detail",
+                popupName:"avatarDetail"
             },
             {
                 id: 5,
-                name: "avatar wallet",
-                popupName:"avatarwallet"
+                name: "Avatar Wallet",
+                popupName:"avatarWallet"
             },
         ],
     },
@@ -115,27 +116,27 @@ const SidebarData = [
             {
                 id: 1,
                 name: "Pay With SEEDS",
-                popupName: "paywithseeds" 
+                popupName: "payWithSeeds" 
             },
             {
                 id: 2,
                 name: "Donate SEEDS",
-                popupName: "donateseeds"
+                popupName: "donateSeeds"
             },
             {
                 id: 3,
                 name: "Reward SEEDS",
-                popupName: "rewardseeds"
+                popupName: "rewardSeeds"
             },
             {
                 id: 4,
                 name: "Send Invite To Join SEEDS",
-                popupName:"sendinvite"
+                popupName:"sendInvite"
             },
             {
                 id: 5,
                 name: "Accept Invite",
-                popupName: "acceptinvite" 
+                popupName: "acceptInvite" 
             },
             {
 
@@ -202,14 +203,14 @@ const SidebarData = [
         id: 6,
         name: "provider",
         subMenu: [
-            {
-                id: 0,
-                name: <Link to="/provider/key-management"> key Managment</Link>,
-            },
-            {
-                id: 1,
-                name: <Link to="/provider/provider"> View Providers</Link>,
-            },
+            // {
+            //     id: 0,
+            //     name: <Link to="/provider/key-management"> key Managment</Link>,
+            // },
+            // {
+            //     id: 1,
+            //     name: <Link to="/provider/provider"> View Providers</Link>,
+            // },
             {
                 id: 2,
                 name: "Manage Providers",

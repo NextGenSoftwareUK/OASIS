@@ -14,10 +14,10 @@ class DonateSeeds extends React.Component {
                     centered 
                     className="custom-modal custom-popup-component" 
                     show={show} 
-                    onHide={() => hide('seeds', 'donateseeds')}
+                    onHide={() => hide('seeds', 'donateSeeds')}
                 >
                     <Modal.Body>
-                        <span className="form-cross-icon" onClick={() => hide('seeds', 'donateeeds')}>
+                        <span className="form-cross-icon" onClick={() => hide('seeds', 'donateSeeds')}>
                             <i className="fa fa-times"></i>
                         </span>
 

@@ -14,10 +14,10 @@ class AcceptInvite extends React.Component {
                     centered 
                     className="custom-modal custom-popup-component" 
                     show={show} 
-                    onHide={() => hide('seeds', 'acceptinvite')}
+                    onHide={() => hide('seeds', 'acceptInvite')}
                 >
                     <Modal.Body>
-                        <span className="form-cross-icon" onClick={() => hide('seeds', 'acceptinvite')}>
+                        <span className="form-cross-icon" onClick={() => hide('seeds', 'acceptInvite')}>
                             <i className="fa fa-times"></i>
                         </span>
 
