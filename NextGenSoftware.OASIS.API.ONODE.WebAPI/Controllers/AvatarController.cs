@@ -6,7 +6,6 @@ using Microsoft.AspNetCore.Mvc;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
-using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Interfaces;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Models;
@@ -25,8 +24,6 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         {
             _avatarService = avatarService;
         }
-
-        private AvatarManager AvatarManager => Program.AvatarManager;
 
         [HttpGet("GetTerms")]
         public async Task<OASISResult<string>> GetTerms()
@@ -297,8 +294,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             if (!Avatar.OwnsToken(token) && Avatar.AvatarType.Value != AvatarType.Wizard)
                 return new OASISResult<string>() {Result = "Unauthorized", IsError = true};
 
-            await _avatarService.RevokeToken(token, ipAddress());
-            return new OASISResult<string>() {Result = "Token revoked", IsError = false};
+            return await _avatarService.RevokeToken(token, ipAddress());
         }
 
         /// <summary>
@@ -396,11 +392,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpPost("forgot-password")]
         public async Task<OASISResult<string>> ForgotPassword(ForgotPasswordRequest model)
         {
-            await _avatarService.ForgotPassword(model, Request.Headers["origin"]);
-            return new OASISResult<string>()
-            {
-                Result = "Please check your email for password reset instructions", IsError = false, Message = "Success"
-            };
+            return await _avatarService.ForgotPassword(model, Request.Headers["origin"]);
         }
 
         /// <summary>
@@ -430,8 +422,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpPost("validate-reset-token")]
         public async Task<OASISResult<string>> ValidateResetToken(ValidateResetTokenRequest model)
         {
-            await _avatarService.ValidateResetToken(model);
-            return new OASISResult<string> {Result = "Token is valid", IsError = false, Message = "Success"};
+            return await _avatarService.ValidateResetToken(model);
         }
 
         /// <summary>
@@ -443,9 +434,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpPost("reset-password")]
         public async Task<OASISResult<string>> ResetPassword(ResetPasswordRequest model)
         {
-            await _avatarService.ResetPassword(model);
-            return new OASISResult<string>()
-                {Result = "Password reset successful, you can now login", Message = "Success", IsError = false};
+            return await _avatarService.ResetPassword(model);
         }
 
         /// <summary>
@@ -511,33 +500,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         public async Task<OASISResult<KarmaAkashicRecord>> AddKarmaToAvatar(Guid avatarId,
             AddRemoveKarmaToAvatarRequest addKarmaToAvatarRequest)
         {
-            object karmaTypePositiveObject = null;
-            object karmaSourceTypeObject = null;
-
-            if (!Enum.TryParse(typeof(KarmaTypePositive), addKarmaToAvatarRequest.KarmaType,
-                out karmaTypePositiveObject))
-                return new OASISResult<KarmaAkashicRecord>()
-                {
-                    Result = null,
-                    Message = string.Concat(
-                        "ERROR: KarmaType needs to be one of the values found in KarmaTypePositive enumeration. Possible value can be:\n\n",
-                        EnumHelper.GetEnumValues(typeof(KarmaTypePositive))),
-                    IsError = true
-                };
-
-            if (!Enum.TryParse(typeof(KarmaSourceType), addKarmaToAvatarRequest.karmaSourceType,
-                out karmaSourceTypeObject))
-                return new OASISResult<KarmaAkashicRecord>()
-                {
-                    Result = null,
-                    Message = string.Concat(
-                        "ERROR: KarmaSourceType needs to be one of the values found in KarmaSourceType enumeration. Possible value can be:\n\n",
-                        EnumHelper.GetEnumValues(typeof(KarmaSourceType))),
-                    IsError = true
-                };
-            return Program.AvatarManager.AddKarmaToAvatar(avatarId, (KarmaTypePositive) karmaTypePositiveObject,
-                (KarmaSourceType) karmaSourceTypeObject, addKarmaToAvatarRequest.KaramSourceTitle,
-                addKarmaToAvatarRequest.KarmaSourceDesc);
+            return await _avatarService.AddKarmaToAvatar(avatarId, addKarmaToAvatarRequest);
         }
 
         /// <summary>
@@ -566,43 +529,6 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             return await AddKarmaToAvatar(avatarId, addKarmaToAvatarRequest);
         }
 
-        /*
-        /// <summary>
-        /// Remove karma from the given avatar. They must be logged in &amp; authenticated for this method to work. karmaType = The type of negative karma, karmaSourceType = Where the karma was lost (App, dApp, hApp, Website, Game, karamSourceTitle/karamSourceDesc = The name/desc of the app/website/game where the karma was lost.
-        /// </summary>
-        /// <param name="avatar">The avatar to remove the karma from.</param>
-        /// <param name="karmaType">The type of negative karma.</param>
-        /// <param name="karmaSourceType">Where the karma was lost (App, dApp, hApp, Website, Game.</param>
-        /// <param name="karamSourceTitle">The name of the app/website/game where the karma was lost.</param>
-        /// <param name="karmaSourceDesc">The description of the app/website/game where the karma was lost.</param>
-        /// <returns></returns>
-        [Authorize]
-        [HttpPost("RemoveKarmaFromAvatar")]
-        public ActionResult<IAvatar> RemoveKarmaFromAvatar(AddRemoveKarmaToAvatarRequest addKarmaToAvatarRequest)
-        {
-            return Ok(Program.AvatarManager.RemoveKarmaFromAvatar(addKarmaToAvatarRequest.Avatar, addKarmaToAvatarRequest.KarmaType, addKarmaToAvatarRequest.karmaSourceType, addKarmaToAvatarRequest.KaramSourceTitle, addKarmaToAvatarRequest.KarmaSourceDesc));
-        }
-
-        /// <summary>
-        /// Remove karma from the given avatar. They must be logged in &amp; authenticated for this method to work. karmaType = The type of negative karma, karmaSourceType = Where the karma was lost (App, dApp, hApp, Website, Game, karamSourceTitle/karamSourceDesc = The name/desc of the app/website/game where the karma was lost. Pass in the provider you wish to use. Set the setglobally flag to false for this provider to be used only for this request or true for it to be used for all future requests too.
-        /// </summary>
-        /// <param name="avatar">The avatar to remove the karma from.</param>
-        /// <param name="karmaType">The type of negative karma.</param>
-        /// <param name="karmaSourceType">Where the karma was lost (App, dApp, hApp, Website, Game.</param>
-        /// <param name="karamSourceTitle">The name of the app/website/game where the karma was lost.</param>
-        /// <param name="karmaSourceDesc">The description of the app/website/game where the karma was lost.</param>
-        /// <param name="providerType">Pass in the provider you wish to use.</param>
-        /// <param name="setGlobally"> Set this to false for this provider to be used only for this request or true for it to be used for all future requests too.</param>
-        /// <returns></returns>
-        [Authorize]
-        [HttpPost("RemoveKarmaFromAvatar/{providerType}/{setGlobally}")]
-        public ActionResult<IAvatar> RemoveKarmaFromAvatar(AddRemoveKarmaToAvatarRequest addKarmaToAvatarRequest, ProviderType providerType, bool setGlobally = false)
-        {
-            GetAndActivateProvider(providerType, setGlobally);
-            return RemoveKarmaFromAvatar(addKarmaToAvatarRequest);
-        }
-        */
-
         /// <summary>
         ///     Remove karma from the given avatar. They must be logged in &amp; authenticated for this method to work. karmaType =
         ///     The type of negative karma, karmaSourceType = Where the karma was lost (App, dApp, hApp, Website, Game,
@@ -619,31 +545,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         public async Task<OASISResult<KarmaAkashicRecord>> RemoveKarmaFromAvatar(Guid avatarId,
             AddRemoveKarmaToAvatarRequest addKarmaToAvatarRequest)
         {
-            object karmaTypeNegativeObject = null;
-            object karmaSourceTypeObject = null;
-
-            if (!Enum.TryParse(typeof(KarmaTypeNegative), addKarmaToAvatarRequest.KarmaType,
-                out karmaTypeNegativeObject))
-                return new OASISResult<KarmaAkashicRecord>()
-                {
-                    Result = null,
-                    Message = string.Concat(
-                        "ERROR: KarmaType needs to be one of the values found in KarmaTypeNegative enumeration. Possible value can be:\n\n",
-                        EnumHelper.GetEnumValues(typeof(KarmaTypeNegative))),
-                    IsError = false
-                };
-            if (!Enum.TryParse(typeof(KarmaSourceType), addKarmaToAvatarRequest.karmaSourceType,
-                out karmaSourceTypeObject))
-                return new OASISResult<KarmaAkashicRecord>()
-                {
-                    Result = null,
-                    Message = string.Concat(
-                        "ERROR: KarmaSourceType needs to be one of the values found in KarmaSourceType enumeration. Possible value can be:\n\n",
-                        EnumHelper.GetEnumValues(typeof(KarmaSourceType)))
-                };
-            return Program.AvatarManager.RemoveKarmaFromAvatar(avatarId, (KarmaTypeNegative) karmaTypeNegativeObject,
-                (KarmaSourceType) karmaSourceTypeObject, addKarmaToAvatarRequest.KaramSourceTitle,
-                addKarmaToAvatarRequest.KarmaSourceDesc);
+            return await _avatarService.RemoveKarmaFromAvatar(avatarId, addKarmaToAvatarRequest);
         }
 
         /// <summary>

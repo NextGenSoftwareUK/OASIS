@@ -17,6 +17,7 @@ using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Helpers;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Interfaces;
+using NextGenSoftware.OASIS.API.ONODE.WebAPI.Models;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Avatar;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Security;
 using BC = BCrypt.Net.BCrypt;
@@ -220,6 +221,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
 
                 // send email
                 SendPasswordResetEmail(avatar, origin);
+                response.Result = "Please check your email for password reset instructions";
             }
             catch (Exception e)
             {
@@ -295,6 +297,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
                     ErrorHandling.HandleError(ref saveAvatar, saveAvatar.Message);
                     return response;
                 }
+
+                response.Result = "Password reset successful, you can now login";
             }
             catch (Exception e)
             {
@@ -1036,6 +1040,86 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
                 }
                 return response;
             });
+        }
+
+        public async Task<OASISResult<KarmaAkashicRecord>> AddKarmaToAvatar(Guid avatarId, AddRemoveKarmaToAvatarRequest addRemoveKarmaToAvatarRequest)
+        {
+            return await Task.Run(() =>
+            {
+                var response = new OASISResult<KarmaAkashicRecord>();
+                try
+                {
+                    object karmaTypePositiveObject = null;
+                    object karmaSourceTypeObject = null;
+
+                    if (!Enum.TryParse(typeof(KarmaTypePositive), addRemoveKarmaToAvatarRequest.KarmaType,
+                        out karmaTypePositiveObject))
+                    {
+                        response.IsError = true;
+                        response.IsSaved = false;
+                        response.Message = string.Concat(
+                            "ERROR: KarmaType needs to be one of the values found in KarmaTypePositive enumeration. Possible value can be:\n\n",
+                            EnumHelper.GetEnumValues(typeof(KarmaTypePositive)));
+                        ErrorHandling.HandleError(ref response, response.Message);
+                    }
+
+                    if (!Enum.TryParse(typeof(KarmaSourceType), addRemoveKarmaToAvatarRequest.karmaSourceType,
+                        out karmaSourceTypeObject))
+                    {
+                        response.IsError = true;
+                        response.IsSaved = false;
+                        response.Message = string.Concat(
+                            "ERROR: KarmaSourceType needs to be one of the values found in KarmaSourceType enumeration. Possible value can be:\n\n",
+                            EnumHelper.GetEnumValues(typeof(KarmaSourceType)));
+                        ErrorHandling.HandleError(ref response, response.Message);
+                    }
+
+                    response.Result = AvatarManager.AddKarmaToAvatar(avatarId,
+                        (KarmaTypePositive) karmaTypePositiveObject,
+                        (KarmaSourceType) karmaSourceTypeObject, addRemoveKarmaToAvatarRequest.KaramSourceTitle,
+                        addRemoveKarmaToAvatarRequest.KarmaSourceDesc).Result;
+                }
+                catch (Exception e)
+                {
+                    response.Exception = e;
+                    response.Message = e.Message;
+                    response.IsError = true;
+                    response.IsSaved = false;
+                    ErrorHandling.HandleError(ref response, e.Message);
+                }
+
+                return response;
+            });
+        }
+
+        public async Task<OASISResult<KarmaAkashicRecord>> RemoveKarmaFromAvatar(Guid avatarId, AddRemoveKarmaToAvatarRequest addKarmaToAvatarRequest)
+        {
+            object karmaTypeNegativeObject = null;
+            object karmaSourceTypeObject = null;
+
+            if (!Enum.TryParse(typeof(KarmaTypeNegative), addKarmaToAvatarRequest.KarmaType,
+                out karmaTypeNegativeObject))
+                return new OASISResult<KarmaAkashicRecord>()
+                {
+                    Result = null,
+                    Message = string.Concat(
+                        "ERROR: KarmaType needs to be one of the values found in KarmaTypeNegative enumeration. Possible value can be:\n\n",
+                        EnumHelper.GetEnumValues(typeof(KarmaTypeNegative))),
+                    IsError = false
+                };
+            if (!Enum.TryParse(typeof(KarmaSourceType), addKarmaToAvatarRequest.karmaSourceType,
+                out karmaSourceTypeObject))
+                return new OASISResult<KarmaAkashicRecord>()
+                {
+                    Result = null,
+                    Message = string.Concat(
+                        "ERROR: KarmaSourceType needs to be one of the values found in KarmaSourceType enumeration. Possible value can be:\n\n",
+                        EnumHelper.GetEnumValues(typeof(KarmaSourceType)))
+                };
+            return Program.AvatarManager.RemoveKarmaFromAvatar(avatarId, (KarmaTypeNegative) karmaTypeNegativeObject,
+                (KarmaSourceType) karmaSourceTypeObject, addKarmaToAvatarRequest.KaramSourceTitle,
+                addKarmaToAvatarRequest.KarmaSourceDesc);
+            
         }
 
         private async Task<OASISResult<IAvatar>> GetAvatar(Guid id)
