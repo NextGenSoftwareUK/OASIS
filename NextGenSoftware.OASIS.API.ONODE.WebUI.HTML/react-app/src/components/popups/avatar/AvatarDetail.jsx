@@ -14,10 +14,10 @@ class AvatarDetail extends React.Component {
                     centered
                     className="custom-modal custom-popup-component w-100"
                     show={show}
-                    onHide={() => hide('avatar', 'avatardetail')}
+                    onHide={() => hide('avatar', 'avatarDetail')}
                 >
                     <Modal.Body>
-                        <span className="form-cross-icon" onClick={() => hide('avatar', 'avatardetail')}>
+                        <span className="form-cross-icon" onClick={() => hide('avatar', 'avatarDetail')}>
                             <i className="fa fa-times"></i>
                         </span>
 

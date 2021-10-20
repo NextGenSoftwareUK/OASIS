@@ -14,10 +14,10 @@ class SendInvite extends React.Component {
                     centered 
                     className="custom-modal custom-popup-component" 
                     show={show} 
-                    onHide={() => hide('seeds', 'sendinvite')}
+                    onHide={() => hide('seeds', 'sendInvite')}
                 >
                     <Modal.Body>
-                        <span className="form-cross-icon" onClick={() => hide('seeds', 'sendinvite')}>
+                        <span className="form-cross-icon" onClick={() => hide('seeds', 'sendInvite')}>
                             <i className="fa fa-times"></i>
                         </span>
 

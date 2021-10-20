@@ -1,15 +1,9 @@
    
 import React from "react";
-import { BrowserRouter as Router, Route, Switch } from "react-router-dom";
 
 import SideNav from "./common/SideNav";
 import Navbar from "./common/Navbar";
 import Sidebar from "./common/sidebar/Sidebar";
-//  import PayWithSeeds from "./pages/seeds/PayWithSeeds";
-// import SendInvite from "./pages/seeds/SendInvite";
-// import AcceptInvite from "./pages/seeds/AcceptInvite";
-import Karma from "./pages/karma/Karma";
-import Home from "./pages/Home";
 import Login from "./Login";
 import Signup from "./Signup";
 import AddData from "./popups/data-screen/AddData";
@@ -27,9 +21,6 @@ import AvatarDetail from "./popups/avatar/AvatarDetail";
 import AvatarWallet from "./popups/avatar/AvatarWallet";
 import ViewAvatar from "./popups/avatar/ViewAvatar";
 import Message from "./popups/messages/Message";
-// import UploadAvatar from "../components/pages/avatar/uploadAvatar";
-// import Provider from "../components/pages/providers/Provider";
-// import Keymanagement from "../components/pages/providers/KeyManagement";
 
 import "../assets/scss/general.scss";
 import "../assets/scss/style.scss";
@@ -37,7 +28,6 @@ import "../assets/scss/Seeds.scss";
 
 import axios from "axios";
 import 'react-toastify/dist/ReactToastify.css';
-// import { Contacts } from "@material-ui/icons";
 
 class App extends React.Component {
     state = {
@@ -64,18 +54,18 @@ class App extends React.Component {
             },
             {
                 seeds: {
-                    acceptinvite: false,
-                    paywithseeds: false,
-                    donateseeds: false,
-                    sendinvite: false,
-                    rewardseeds: false
+                    acceptInvite: false,
+                    payWithSeeds: false,
+                    donateSeeds: false,
+                    sendInvite: false,
+                    rewardSeeds: false
                 }
             },
             {
                 avatar: {
-                    avatardetail: false,
-                    avatarwallet: false,
-                    viewavatar: false
+                    avatarDetail: false,
+                    avatarWallet: false,
+                    viewAvatar: false
                 },
             }
         ],
@@ -90,7 +80,6 @@ class App extends React.Component {
     }
 
     setUserData = (data) => {
-        console.log(data);
         this.setState({
             user: data,
         });
@@ -153,6 +142,8 @@ class App extends React.Component {
     };
 
     toggleScreenPopup = (menuOption, menuName) => {
+        console.log(menuOption);
+        console.log(menuName)
         let sidebarMenuOption = [...this.state.sidebarMenuOption];
 
         sidebarMenuOption.map((item) => {
@@ -169,58 +160,25 @@ class App extends React.Component {
     render() {
         return (
             <div className="main-container">
-                <Router>
-                    <header>
-                        <Navbar
-                            showSidebar={this.state.showSidebar}
-                            toggleSidebar={this.toggleSidebar}
-                            showLogin={this.showLogin}
-                            showSignup={this.showSignup}
-                            handleLogout={this.handleLogout}
-                            user={this.state.user}
-                        />
-                        {/* <SideNav
-                            showSidebar={this.state.showSidebar}
-                            toggleSidebar={this.toggleSidebar}
-                        /> */}
-                        <Sidebar
-                            showSidebar={this.state.showSidebar}
-                            toggleSidebar={this.toggleSidebar}
-                            toggleScreenPopup={this.toggleScreenPopup}
-                        />
-                    </header>
-
-                    <div className="content-container">
-                        <Switch>
-                            <Route exact path="/home" component={Home} />
-
-                            <Route path="/pay-with-seeds" component={PayWithSeeds} />
-                            <Route path="/donateWithSeeds">
-                                <PayWithSeeds seedType="Donate" />
-                            </Route>
-                            <Route path="/rewardWithSeeds">
-                                <PayWithSeeds seedType="Reward" />
-                            </Route>
-                            <Route
-                                path="/accept-invite-to-join-seeds"
-                                component={AcceptInvite}
-                            />
-
-                            <Route path="/send-invite" component={SendInvite} />
-                            <Route exact path="/karma" component={Karma} />
-                            <Route exact path="/avatar/view" component={ViewAvatar} />
-                            <Route exact path="/avatar/wallet" component={AvatarWallet} />
-                            <Route exact path="/message" component={Message} />
-
-                            {/* <Route exact path="/avatar/upload" component={UploadAvatar} />
-                            <Route path="/provider/provider" component={Provider} />
-                            <Route
-                                path="/provider/key-management"
-                                component={Keymanagement}
-                            /> */}
-                        </Switch>
-                    </div>
-                </Router>
+                <header>
+                    <Navbar
+                        showSidebar={this.state.showSidebar}
+                        toggleSidebar={this.toggleSidebar}
+                        showLogin={this.showLogin}
+                        showSignup={this.showSignup}
+                        handleLogout={this.handleLogout}
+                        user={this.state.user}
+                    />
+                    {/* <SideNav
+                        showSidebar={this.state.showSidebar}
+                        toggleSidebar={this.toggleSidebar}
+                    /> */}
+                    <Sidebar
+                        showSidebar={this.state.showSidebar}
+                        toggleSidebar={this.toggleSidebar}
+                        toggleScreenPopup={this.toggleScreenPopup}
+                    />
+                </header>
 
                 <Login
                     className="custom-form"
@@ -273,28 +231,28 @@ class App extends React.Component {
 
                 {/* ========== SEEDS POPUPS START  =========== */}
 
-                <AcceptInvite
-                    show={this.state.sidebarMenuOption[2].seeds.acceptinvite}
+                {/* <AcceptInvite
+                    show={this.state.sidebarMenuOption[2].seeds.acceptInvite}
                     hide={this.toggleScreenPopup}
-                />
+                /> */}
 
                 <DonateSeeds
-                    show={this.state.sidebarMenuOption[2].seeds.donateseeds}
+                    show={this.state.sidebarMenuOption[2].seeds.donateSeeds}
                     hide={this.toggleScreenPopup}
                 />
 
                 <PayWithSeeds
-                    show={this.state.sidebarMenuOption[2].seeds.paywithseeds}
+                    show={this.state.sidebarMenuOption[2].seeds.payWithSeeds}
                     hide={this.toggleScreenPopup}
                 />
 
                 <RewardSeeds
-                    show={this.state.sidebarMenuOption[2].seeds.rewardseeds}
+                    show={this.state.sidebarMenuOption[2].seeds.rewardSeeds}
                     hide={this.toggleScreenPopup}
                 />
 
                 <SendInvite
-                    show={this.state.sidebarMenuOption[2].seeds.sendinvite}
+                    show={this.state.sidebarMenuOption[2].seeds.sendInvite}
                     hide={this.toggleScreenPopup}
                 />
                 {/* ========== SEEDS POPUPS END  =========== */}
@@ -302,21 +260,20 @@ class App extends React.Component {
                 {/* ========== AVATAR  POPUPS START  =========== */}
 
                 <AvatarDetail
-                    show={this.state.sidebarMenuOption[3].avatar.avatardetail}
+                    show={this.state.sidebarMenuOption[3].avatar.avatarDetail}
                     hide={this.toggleScreenPopup}
                 />
 
                 <AvatarWallet
-                    show={this.state.sidebarMenuOption[3].avatar.avatarwallet}
+                    show={this.state.sidebarMenuOption[3].avatar.avatarWallet}
                     hide={this.toggleScreenPopup}
                 />
 
                 <ViewAvatar
-                    show={this.state.sidebarMenuOption[3].avatar.viewavatar}
+                    show={this.state.sidebarMenuOption[3].avatar.vieWavatar}
                     hide={this.toggleScreenPopup}
                 />
                 {/* ========== AVATAR  POPUPS END  =========== */}
-
             </div>
         );
     }
