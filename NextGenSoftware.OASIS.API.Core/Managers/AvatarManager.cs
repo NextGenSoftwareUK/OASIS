@@ -465,31 +465,26 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return details;
         }
 
-        //public async Task<IAvatarThumbnail> LoadAvatarThumbnailAsync(Guid id)
-        //{
-        //    var avatarThumbnail = await ProviderManager.SetAndActivateCurrentStorageProvider(ProviderType.Default).Result.LoadAvatarThumbnailAsync(id);
-        //    return avatarThumbnail;
-        //}
-
         public IAvatarDetail LoadAvatarDetail(Guid id)
         {
             //TODO: Need to handle return of OASISResult properly...
-            var detail =  ProviderManager.SetAndActivateCurrentStorageProvider(ProviderType.Default).Result.LoadAvatarDetailAsync(id).Result;
+            var detail =  ProviderManager.SetAndActivateCurrentStorageProvider(ProviderType.Default).Result.LoadAvatarDetail(id);
             return detail;
         }
 
         public IEnumerable<IAvatarDetail> LoadAllAvatarDetails()
         {
             //TODO: Need to handle return of OASISResult properly...
-            var details = ProviderManager.SetAndActivateCurrentStorageProvider(ProviderType.Default).Result.LoadAllAvatarDetailsAsync().Result;
+            var details = ProviderManager.SetAndActivateCurrentStorageProvider(ProviderType.Default).Result.LoadAllAvatarDetails();
             return details;
         }
 
-        //public IAvatarThumbnail LoadAvatarThumbnail(Guid id)
-        //{
-        //    var avatarThumbnail = ProviderManager.SetAndActivateCurrentStorageProvider(ProviderType.Default).Result.LoadAvatarThumbnailAsync(id).Result;
-        //    return avatarThumbnail;
-        //}
+        public async Task<IEnumerable<IAvatarDetail>> LoadAllAvatarDetailsAsync()
+        {
+            //TODO: Need to handle return of OASISResult properly...
+            var details = await ProviderManager.SetAndActivateCurrentStorageProvider(ProviderType.Default).Result.LoadAllAvatarDetailsAsync();
+            return details;
+        }
 
         public IAvatar LoadAvatar(Guid id, ProviderType providerType = ProviderType.Default)
         {
