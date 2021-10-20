@@ -4,10 +4,6 @@ import SidebarMenuItem from './SidebarMenuItem';
 
 class Sidebar extends React.Component {
 
-    toggleSidebarMenuItem = () => {
-
-    }
-
     render() {
         console.log(data)
         return (
