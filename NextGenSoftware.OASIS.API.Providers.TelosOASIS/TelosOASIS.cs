@@ -15,47 +15,16 @@ namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS
         private static Dictionary<Guid, Account> _avatarIdToTelosAccountLookup = new Dictionary<Guid, Account>();
         private AvatarManager _avatarManager = null;
 
-        public string Host { get; set; }
         public EOSIOOASIS.EOSIOOASIS EOSIOOASIS { get; set; }
 
-        //TODO: We may just want to pass in the host and not the full OASISDNA is it is not needed?
-        public TelosOASIS(string host) : base()
-        {
-            this.Host = host;
-            Init();
-        }
-
-        // I think we should only pass in the OASISDNA if we need more than just the Host? Or if we need to update the OASISDNA like IPFSOASIS does...
-        /*
-        public TelosOASIS() : base()
-        {
-
-        }
-
-        public TelosOASIS(string OASISDNAPath) : base(OASISDNAPath)
-        {
-            Init();
-        }
-
-        public TelosOASIS(OASISDNA OASISDNA) : base(OASISDNA)
-        {
-            Init();
-        }
-
-        public TelosOASIS(OASISDNA OASISDNA, string OASISDNAPath) : base(OASISDNA, OASISDNAPath)
-        {
-            Init();
-        }*/
-
-        private void Init()
+        public TelosOASIS(string host)
         {
             this.ProviderName = "TelosOASIS";
             this.ProviderDescription = "Telos Provider";
-            this.ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.TelosOASIS);
-            this.ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
+            this.ProviderType = new API.Core.Helpers.EnumValue<ProviderType>(API.Core.Enums.ProviderType.TelosOASIS);
+            this.ProviderCategory = new Core.Helpers.EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
 
-            //EOSIOOASIS = new EOSIOOASIS.EOSIOOASIS(OASISDNA.OASIS.StorageProviders.TelosOASIS.ConnectionString);
-            EOSIOOASIS = new EOSIOOASIS.EOSIOOASIS(this.Host);
+            EOSIOOASIS = new EOSIOOASIS.EOSIOOASIS(host);
         }
 
         private AvatarManager AvatarManagerInstance
@@ -63,7 +32,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS
             get
             {
                 if (_avatarManager == null)
-                    _avatarManager = new AvatarManager(ProviderManager.GetStorageProvider(Core.Enums.ProviderType.MongoDBOASIS), OASISDNA);
+                    _avatarManager = new AvatarManager(ProviderManager.GetStorageProvider(Core.Enums.ProviderType.MongoDBOASIS), AvatarManagerInstance.OASISDNA);
                     //_avatarManager = new AvatarManager(this); // TODO: URGENT: PUT THIS BACK IN ASAP! TEMP USING MONGO UNTIL EOSIO/Telos METHODS IMPLEMENTED...
 
                 return _avatarManager;
@@ -219,9 +188,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS
         {
             throw new NotImplementedException();
         }
-
-      
-
+        
         public override IAvatar SaveAvatar(IAvatar Avatar)
         {
             throw new NotImplementedException();

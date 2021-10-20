@@ -25,7 +25,7 @@ const ReactGrid = ({ rows, columns, columnWidths }) => {
                     <IntegratedSorting />
                     <FilteringState defaultFilters={[]} />
                     <IntegratedFiltering />
-                    <Table/>
+                    <Table />
                     <TableColumnResizing defaultColumnWidths={columnWidths} />
                     <TableHeaderRow showSortingControls />
                     <TableFilterRow />
