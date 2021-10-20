@@ -589,11 +589,6 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             // users can update their own account and admins can update any account
             if (id != Avatar.Id && Avatar.AvatarType.Value != AvatarType.Wizard)
                 return new OASISResult<IAvatar>() {Result = null, IsError = true, Message = "Unauthorized"};
-
-            // only admins can update role
-            if (avatar.AvatarType != "Wizard")
-                avatar.AvatarType = null;
-
             return await _avatarService.Update(id, avatar);
         }
 
@@ -604,10 +599,6 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             // users can update their own account and admins can update any account
             if (email != Avatar.Email && Avatar.AvatarType.Value != AvatarType.Wizard)
                 return new OASISResult<IAvatar>() {Result = null, IsError = true, Message = "Unauthorized"};
-            // only admins can update role
-            if (avatar.AvatarType != "Wizard")
-                avatar.AvatarType = null;
-
             return await _avatarService.UpdateByEmail(email, avatar);
         }
 
@@ -618,9 +609,6 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             // users can update their own account and admins can update any account
             if (username != Avatar.Email && Avatar.AvatarType.Value != AvatarType.Wizard)
                 return new OASISResult<IAvatar>() {Result = null, IsError = true, Message = "Unauthorized"};
-            // only admins can update role
-            if (avatar.AvatarType != "Wizard")
-                avatar.AvatarType = null;
             return await _avatarService.UpdateByUsername(username, avatar);
         }
 
