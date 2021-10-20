@@ -2,14 +2,12 @@ using System;
 using System.Text;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
 using AutoMapper;
-using EOSNewYork.EOSCore.Serialization;
 using Microsoft.AspNetCore.Http;
 using BC = BCrypt.Net.BCrypt;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
@@ -564,10 +562,17 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
 
         public async Task<OASISResult<IAvatar>> UpdateByEmail(string email, UpdateRequest avatar)
         {
+            var response = new OASISResult<IAvatar>();
             IAvatar origAvatar = await AvatarManager.LoadAvatarByEmailAsync(email);
 
             if (!string.IsNullOrEmpty(avatar.Email) && avatar.Email != origAvatar.Email)
-                throw new AppException($"Email '{avatar.Email}' is already taken");
+            {
+                response.IsError = true;
+                response.IsSaved = false;
+                response.Message = $"Email '{avatar.Email}' is already taken";
+                ErrorHandling.HandleError(ref response, response.Message);
+                return response;
+            }
 
             // hash password if it was entered
             if (!string.IsNullOrEmpty(avatar.Password))
@@ -576,15 +581,34 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
             //TODO: Fix this.
             _mapper.Map(avatar, origAvatar);
             origAvatar.ModifiedDate = DateTime.UtcNow;
-            return RemoveAuthDetails(AvatarManager.SaveAvatar(origAvatar).Result);
+            var saveResult = AvatarManager.SaveAvatar(origAvatar);
+            if (saveResult.IsError)
+            {
+                response.Message = saveResult.Message;
+                response.IsSaved = false;
+                response.IsError = true;
+                ErrorHandling.HandleError(ref response, response.Message);
+                return response;
+            }
+            response.Result = RemoveAuthDetails(saveResult.Result);
+            return response;
         }
 
-        public async Task<IAvatar> UpdateByUsername(string username, UpdateRequest avatar)
+        public async Task<OASISResult<IAvatar>> UpdateByUsername(string username, UpdateRequest avatar)
         {
+            var response = new OASISResult<IAvatar>();
+            
             IAvatar origAvatar = await AvatarManager.LoadAvatarByUsernameAsync(username);
 
-            if (!string.IsNullOrEmpty(avatar.Email) && avatar.Email != origAvatar.Email && (await AvatarManager.LoadAvatarByEmailAsync(avatar.Email) != null))
-                throw new AppException($"Email '{avatar.Email}' is already taken");
+            if (!string.IsNullOrEmpty(avatar.Email) && avatar.Email != origAvatar.Email &&
+                (await AvatarManager.LoadAvatarByEmailAsync(avatar.Email) != null))
+            {
+                response.Message = $"Email '{avatar.Email}' is already taken";
+                response.IsError = true;
+                response.IsSaved = false;
+                ErrorHandling.HandleError(ref response, response.Message);
+                return response;
+            }
 
             // hash password if it was entered
             if (!string.IsNullOrEmpty(avatar.Password))
@@ -594,54 +618,103 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
             _mapper.Map(avatar, origAvatar);
             origAvatar.ModifiedDate = DateTime.UtcNow;
 
-            return RemoveAuthDetails(AvatarManager.SaveAvatar(origAvatar).Result);
+            var saveAvatar = AvatarManager.SaveAvatar(origAvatar);
+            if (saveAvatar.IsError)
+            {
+                response.Message = saveAvatar.Message;
+                response.IsError = true;
+                response.IsSaved = false;
+                ErrorHandling.HandleError(ref response, response.Message);
+                return response;
+            }
+            response.Result = RemoveAuthDetails(saveAvatar.Result);
+            return response;
         }
 
-        public bool Delete(Guid id)
+        public async Task<OASISResult<bool>> Delete(Guid id)
         {
-            // Default to soft delete.
-            return AvatarManager.DeleteAvatar(id);
-        }
-
-        public async Task<bool> DeleteByUsername(string username)
-        {
-            return await AvatarManager.DeleteAvatarByUsernameAsync(username);
-        }
-
-        public async Task<bool> DeleteByEmail(string email)
-        {
-            return await AvatarManager.DeleteAvatarByEmailAsync(email);
-        }
-        
-        public OASISResult<string> ValidateAccountToken(string accountToken)
-        {
-            var response = new OASISResult<string>();
-
+            var response = new OASISResult<bool>();
             try
             {
-                var key = Encoding.ASCII.GetBytes(OASISBootLoader.OASISBootLoader.OASISDNA.OASIS.Security.Secret);
-                var tokenHandler = new JwtSecurityTokenHandler();
-                tokenHandler.ValidateToken(accountToken, new TokenValidationParameters
-                {
-                    ValidateIssuerSigningKey = true,
-                    IssuerSigningKey = new SymmetricSecurityKey(key),
-                    ValidateIssuer = false,
-                    ValidateAudience = false,
-                    ClockSkew = TimeSpan.Zero
-                }, out _);
-                response.IsError = false;
-                response.Result = "Token is Valid!";
+                // Default to soft delete.
+                response.Result = await AvatarManager.DeleteAvatarAsync(id);
             }
             catch (Exception e)
             {
                 response.IsError = true;
-                response.Exception = e;
+                response.IsSaved = false;
                 response.Message = e.Message;
-                response.Result = "Token Validating Failed!";
                 ErrorHandling.HandleError(ref response, e.Message);
             }
-            
             return response;
+        }
+
+        public async Task<OASISResult<bool>> DeleteByUsername(string username)
+        {
+            var response = new OASISResult<bool>();
+            try
+            {
+                // Default to soft delete.
+                response.Result = await AvatarManager.DeleteAvatarByUsernameAsync(username);
+            }
+            catch (Exception e)
+            {
+                response.IsError = true;
+                response.IsSaved = false;
+                response.Message = e.Message;
+                ErrorHandling.HandleError(ref response, e.Message);
+            }
+            return response;
+        }
+
+        public async Task<OASISResult<bool>> DeleteByEmail(string email)
+        {
+            var response = new OASISResult<bool>();
+            try
+            {
+                // Default to soft delete.
+                response.Result = await AvatarManager.DeleteAvatarByEmailAsync(email);
+            }
+            catch (Exception e)
+            {
+                response.IsError = true;
+                response.IsSaved = false;
+                response.Message = e.Message;
+                ErrorHandling.HandleError(ref response, e.Message);
+            }
+            return response;
+        }
+        
+        public async Task<OASISResult<string>> ValidateAccountToken(string accountToken)
+        {
+            return await Task.Run(() =>
+            {
+                var response = new OASISResult<string>();
+                try
+                {
+                    var key = Encoding.ASCII.GetBytes(OASISBootLoader.OASISBootLoader.OASISDNA.OASIS.Security.Secret);
+                    var tokenHandler = new JwtSecurityTokenHandler();
+                    tokenHandler.ValidateToken(accountToken, new TokenValidationParameters
+                    {
+                        ValidateIssuerSigningKey = true,
+                        IssuerSigningKey = new SymmetricSecurityKey(key),
+                        ValidateIssuer = false,
+                        ValidateAudience = false,
+                        ClockSkew = TimeSpan.Zero
+                    }, out _);
+                    response.IsError = false;
+                    response.Result = "Token is Valid!";
+                }
+                catch (Exception e)
+                {
+                    response.IsError = true;
+                    response.Exception = e;
+                    response.Message = e.Message;
+                    response.Result = "Token Validating Failed!";
+                    ErrorHandling.HandleError(ref response, e.Message);
+                }
+                return response;
+            });
         }
         
         private async Task<OASISResult<IAvatar>> GetAvatar(Guid id)
