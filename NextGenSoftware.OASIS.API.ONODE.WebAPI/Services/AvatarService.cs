@@ -165,20 +165,23 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
         {
             return await Task.Run(() =>
             {
+                var result = new OASISResult<IAvatar>();
                 if (string.IsNullOrEmpty(origin))
                     origin = Program.CURRENT_OASISAPI;
                 if (!Enum.TryParse(typeof(AvatarType), model.AvatarType, out _))
-                    return new OASISResult<IAvatar>
-                    {
-                        Result = null,
-                        Message = string.Concat(
-                            "ERROR: AvatarType needs to be one of the values found in AvatarType enumeration. Possible value can be:\n\n",
-                            EnumHelper.GetEnumValues(typeof(AvatarType))),
-                        IsError = true
-                    };
+                {
+                    result.Message = string.Concat(
+                        "ERROR: AvatarType needs to be one of the values found in AvatarType enumeration. Possible value can be:\n\n",
+                        EnumHelper.GetEnumValues(typeof(AvatarType)));
+                    result.IsError = true;
+                    result.IsSaved = false;
+                    ErrorHandling.HandleError(ref result, result.Message);
+                    return result;
+                }
 
-                return AvatarManager.Register(model.Title, model.FirstName, model.LastName, model.Email, model.Password,
+                result = AvatarManager.Register(model.Title, model.FirstName, model.LastName, model.Email, model.Password,
                     (AvatarType) Enum.Parse(typeof(AvatarType), model.AvatarType), origin, model.CreatedOASISType);
+                return result;
             });
         }
 
@@ -338,6 +341,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
                 result.Message = "Guid is empty, please speceify a valid Guid.";
                 result.IsError = true;
                 ErrorHandling.HandleError(ref result, result.Message);
+                return result;
             }
 
             var avatarResult = await GetAvatar(id);
@@ -355,6 +359,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
                 result.IsError = true;
                 result.Message = avatarResult.Message;
                 ErrorHandling.HandleError(ref result, avatarResult.Message);
+                return result;
             }
 
             return result;
