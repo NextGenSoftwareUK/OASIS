@@ -5,7 +5,6 @@ import SidebarMenuItem from './SidebarMenuItem';
 class Sidebar extends React.Component {
 
     render() {
-        console.log(data)
         return (
             <div className={`sidebar ${this.props.showSidebar ? "sidebar-show" : ""}`}>
                 <ul className="sidebar-list">

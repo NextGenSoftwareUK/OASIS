@@ -14,10 +14,10 @@ class PayWithSeeds extends React.Component {
                     centered 
                     className="custom-modal custom-popup-component" 
                     show={show} 
-                    onHide={() => hide('seeds', 'paywithseeds')}
+                    onHide={() => hide('seeds', 'payWithSeeds')}
                 >
                     <Modal.Body>
-                        <span className="form-cross-icon" onClick={() => hide('seeds', 'paywithseeds')}>
+                        <span className="form-cross-icon" onClick={() => hide('seeds', 'payWithSeeds')}>
                             <i className="fa fa-times"></i>
                         </span>
 

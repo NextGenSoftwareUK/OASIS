@@ -142,6 +142,8 @@ class App extends React.Component {
     };
 
     toggleScreenPopup = (menuOption, menuName) => {
+        console.log(menuOption);
+        console.log(menuName)
         let sidebarMenuOption = [...this.state.sidebarMenuOption];
 
         sidebarMenuOption.map((item) => {
@@ -229,10 +231,10 @@ class App extends React.Component {
 
                 {/* ========== SEEDS POPUPS START  =========== */}
 
-                <AcceptInvite
+                {/* <AcceptInvite
                     show={this.state.sidebarMenuOption[2].seeds.acceptInvite}
                     hide={this.toggleScreenPopup}
-                />
+                /> */}
 
                 <DonateSeeds
                     show={this.state.sidebarMenuOption[2].seeds.donateSeeds}
