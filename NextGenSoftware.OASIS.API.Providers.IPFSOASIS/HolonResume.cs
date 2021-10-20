@@ -1,4 +1,6 @@
-﻿using System;
+﻿using NextGenSoftware.OASIS.API.Core.Enums;
+using System;
+using System.Collections.Generic;
 
 namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
 {
@@ -7,6 +9,9 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
         public Guid Id { get; set; }
         public string login { get; set; }
         public string password { get; set; }
-
+        public string email { get; set; }
+        public Dictionary<ProviderType, string> ProviderKey { get; set; }
+        public Guid ParentHolonId { get; set; }
+        public HolonType HolonType { get; set; }
     }
 }

@@ -3,18 +3,17 @@ using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
-using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Enum;
+using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Builder;
 using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Interfaces;
 using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Services.HttpHandler;
 using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Models.Cargo;
-using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Models.Common;
 using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Models.Request;
 using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Models.Response;
 
 namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Handlers.Queries
 {
-    public class GetAllUserCollectiblesHandler : IHandle<Response<PaginationResponseWithResults<IEnumerable<GetAllUserCollectiblesResponseModel>>>, GetAllUserCollectiblesRequestModel>
+    public class GetAllUserCollectiblesHandler : IHandle<OASISResult<PaginationResponseWithResults<IEnumerable<GetAllUserCollectiblesResponseModel>>>, GetAllUserCollectiblesRequestModel>
     {
         private readonly IHttpHandler _httpClient;
 
@@ -29,9 +28,9 @@ namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Handlers
         /// </summary>
         /// <param name="request">Request parameters</param>
         /// <returns>All User Collectibles</returns>
-        public async Task<Response<PaginationResponseWithResults<IEnumerable<GetAllUserCollectiblesResponseModel>>>> Handle(GetAllUserCollectiblesRequestModel request)
+        public async Task<OASISResult<PaginationResponseWithResults<IEnumerable<GetAllUserCollectiblesResponseModel>>>> Handle(GetAllUserCollectiblesRequestModel request)
         {
-            var response = new Response<PaginationResponseWithResults<IEnumerable<GetAllUserCollectiblesResponseModel>>>();
+            var response = new OASISResult<PaginationResponseWithResults<IEnumerable<GetAllUserCollectiblesResponseModel>>>();
             try
             {
                 var queryBuilder = new UrlQueryBuilder();
@@ -47,18 +46,18 @@ namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Handlers
                 var httpResponse = await _httpClient.SendAsync(httRequest);
                 if (!httpResponse.IsSuccessStatusCode)
                 {
+                    response.IsError = true;
                     response.Message = httpResponse.ReasonPhrase;
-                    response.ResponseStatus = ResponseStatus.Fail;
                     return response;
                 }
                 var responseString = await httpResponse.Content.ReadAsStringAsync();
                 var data = JsonConvert.DeserializeObject<PaginationResponseWithResults<IEnumerable<GetAllUserCollectiblesResponseModel>>>(responseString);
-                response.Payload = data;
+                response.Result = data;
                 return response;
             }
             catch (Exception e)
             {
-                response.ResponseStatus = ResponseStatus.Fail;
+                response.IsError = true;
                 response.Message = e.Message;
                 return response;
             }

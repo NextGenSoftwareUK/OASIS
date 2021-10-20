@@ -5,7 +5,7 @@ import { Modal } from "react-bootstrap";
 import MessageContacts from "../../common/message/MessageContacts";
 import Messages from "../../common/message/Messages";
 import "../../../assets/scss/popup.scss";
-import "../../../assets/scss/Message.scss";
+import "../../../assets/scss/message.scss";
 import avatar from "../../../assets/images/loggedin.png"
 
 class Message extends React.Component {

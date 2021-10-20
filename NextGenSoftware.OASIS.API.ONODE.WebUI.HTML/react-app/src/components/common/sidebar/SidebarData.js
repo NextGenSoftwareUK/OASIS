@@ -28,14 +28,25 @@ const SidebarData = [
             {
                 id: 1,
                 name: "view avatar",
+                popupName:"viewavatar"
             },
-            {
-                id: 2,
-                name: <Link to="/avatar/upload">edit avatar</Link>,
-            },
+            // {
+            //     id: 2,
+            //     name: <Link to="/avatar/upload">edit avatar</Link>,
+            // },
             {
                 id: 3,
                 name: "search avatars",
+            },
+            {
+                id: 4,
+                name: "avatar detail",
+                popupName:"avatardetail"
+            },
+            {
+                id: 5,
+                name: "avatar wallet",
+                popupName:"avatarwallet"
             },
         ],
     },
@@ -104,19 +115,27 @@ const SidebarData = [
             {
                 id: 1,
                 name: "Pay With SEEDS",
+                popupName: "paywithseeds" 
             },
             {
                 id: 2,
                 name: "Donate SEEDS",
+                popupName: "donateseeds"
             },
             {
                 id: 3,
                 name: "Reward SEEDS",
+                popupName: "rewardseeds"
             },
             {
                 id: 4,
-
                 name: "Send Invite To Join SEEDS",
+                popupName:"sendinvite"
+            },
+            {
+                id: 5,
+                name: "Accept Invite",
+                popupName: "acceptinvite" 
             },
             {
 
@@ -162,6 +181,7 @@ const SidebarData = [
             {
                 id: 6,
                 name: "View SEEDS",
+                popupName: "viewseeds"
             },
             {
                 id: 7,
@@ -174,6 +194,7 @@ const SidebarData = [
             {
                 id: 9,
                 name: "Search Seeds",
+                // popupName: "searchseeds"
             },
         ],
     },
@@ -275,7 +296,7 @@ const SidebarData = [
             },
             {
                 id: 2,
-                name: "ContactPopup",
+                name: "Contact Popup",
                 popupName: 'contactPopup'
             }
         ],

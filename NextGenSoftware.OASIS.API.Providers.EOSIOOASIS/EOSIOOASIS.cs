@@ -30,7 +30,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             get
             {
                 if (_avatarManager == null)
-                    _avatarManager = new AvatarManager(ProviderManager.GetStorageProvider(Core.Enums.ProviderType.MongoDBOASIS));
+                    _avatarManager = new AvatarManager(ProviderManager.GetStorageProvider(Core.Enums.ProviderType.MongoDBOASIS), AvatarManagerInstance.OASISDNA);
                     //_avatarManager = new AvatarManager(this); // TODO: URGENT: PUT THIS BACK IN ASAP! TEMP USING MONGO UNTIL EOSIO METHODS IMPLEMENTED...
 
                 return _avatarManager;
@@ -356,7 +356,6 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
         {
             throw new NotImplementedException();
         }
-
 
         public async Task<Account> GetEOSIOAccountAsync(string eosioAccountName)
         {

@@ -1,43 +1,43 @@
 import React from "react"
-import {Link} from "react-router-dom"
+import { Link } from "react-router-dom"
 import axios from "axios"
 import Loader from "react-loader-spinner"
-import {Modal} from "react-bootstrap"
-import {login, getUserById} from "../../../functions"
+import { Modal, ModalBody } from "react-bootstrap"
+import { login, getUserById } from "../../../functions"
 import ReactGrid from "../../ReactGrid"
 
-import "../../../assets/scss/view-avatar.scss"
-import "../../../assets/scss/popup.scss"
+import "../../../assets/scss/avatar-popup.scss"
+// import "../../../assets/scss/popup.scss"
 
 class ViewAvatar extends React.Component {
-	constructor(props){
-		super(props)
-		this.state = {
-			columns: [
-				{name: 'avatar', title: 'Avatar'},
-				{name: 'level', title: 'Level'},
-				{name: 'karma', title: 'Karma'},
-				{name: 'sex', title: 'Sex'},
-				{name: 'created', title: 'Created'},
-				{name: 'modified', title: 'Last Beamed In'},
-				{name: 'online', title: 'Online'},
-			],
-            columnWidth: [
-                {columnName: 'avatar', width: 220},
-                {columnName: 'level', width: 90},
-                {columnName: 'karma', width: 90},
-                {columnName: 'sex', width: 90},
-                {columnName: 'created', width: 150},
-                {columnName: 'modified', width: 150},
-                {columnName: 'online', width: 90}
+    constructor(props) {
+        super(props)
+        this.state = {
+            columns: [
+                { name: 'avatar', title: 'Avatar' },
+                { name: 'level', title: 'Level' },
+                { name: 'karma', title: 'Karma' },
+                { name: 'sex', title: 'Sex' },
+                { name: 'created', title: 'Created' },
+                { name: 'modified', title: 'Last Beamed In' },
+                { name: 'online', title: 'Online' },
             ],
-			rows: [],
-			loading: true,
-			loggedIn: true
-		}
-	}
+            columnWidth: [
+                { columnName: 'avatar', width: 220 },
+                { columnName: 'level', width: 90 },
+                { columnName: 'karma', width: 90 },
+                { columnName: 'sex', width: 90 },
+                { columnName: 'created', width: 150 },
+                { columnName: 'modified', width: 150 },
+                { columnName: 'online', width: 90 }
+            ],
+            rows: [],
+            loading: true,
+            loggedIn: true
+        }
+    }
 
-	async componentDidMount() {
+    async componentDidMount() {
         var token, refresh, credentials;
 
         //If user object exists in localstorage, get the refresh token
@@ -68,22 +68,22 @@ class ViewAvatar extends React.Component {
         axios(config)
             .then(async (response) => {
                 let avatars = []
-                for (let i = 0; i <= response.data.length - 1; i++){
-                	const data = response.data[i]
+                for (let i = 0; i <= response.data.length - 1; i++) {
+                    const data = response.data[i]
                     const id = data.id;
-                    let tkn = {jwt: token}
+                    let tkn = { jwt: token }
                     const user = await getUserById(id, tkn)
                     console.log(user)
-                	const avatar = {
-                		avatar: data.username,
-                		level: data.level,
-                		karma: data.karma,
-                		sex: 'Male',
-                		created: user.createdDate,
-                		modified: user.modifiedDate,
-                		online: data.isBeamedIn ? 'Yes' : 'No'
-                	}
-                	avatars.push(avatar)
+                    const avatar = {
+                        avatar: data.username,
+                        level: data.level,
+                        karma: data.karma,
+                        sex: 'Male',
+                        created: user.createdDate,
+                        modified: user.modifiedDate,
+                        online: data.isBeamedIn ? 'Yes' : 'No'
+                    }
+                    avatars.push(avatar)
                 }
 
                 this.setState({ rows: avatars });
@@ -97,30 +97,42 @@ class ViewAvatar extends React.Component {
             });
     }
 
-	render(){
-		return (
-			<Modal dialogClassName="modal-90w" size="xl" onHide={()=>this.props.history.push('/')} show={true}>
-                <Modal.Header closeButton>
-                    <Modal.Title>View Avatars</Modal.Title>
-                </Modal.Header>
-                {this.state.loggedIn ? (
-                	<>
-                        {this.state.loading ? (
-                            <Loader type="Oval" height={30} width={30} color="#fff" />
-                        ) : 
-                            <ReactGrid
-                                rows={this.state.rows}
-                                columns={this.state.columns}
-                                columnWidths={this.state.columnWidth}
-                            />
-                        }
-                     </>
-                ) : (
-                    <h1>You are not logged in! </h1>
-                )}
+    render() {
+        const { show, hide } = this.props;
+        return (
+            <Modal
+                centered
+                className="custom-modal custom-popup-component"
+                size="xl"
+                show={show}
+                onHide={() => hide('avatar', 'viewavatar')}
+            >
+               
+                <ModalBody>
+                    <span className="form-cross-icon" onClick={() => hide('avatar', 'viewavatar')}>
+                        <i className="fa fa-times"></i>
+                    </span>
+                    {this.state.loggedIn ? (
+                        <>
+                            {this.state.loading ? (
+                                <Loader type="Oval" height={30} width={30} color="#fff" />
+                            ) :
+                                <ReactGrid
+                                    rows={this.state.rows}
+                                    columns={this.state.columns}
+                                    columnWidths={this.state.columnWidth}
+                                />
+                            }
+                        </>
+                    ) : (
+                        <h2 >You are not logged in! </h2>
+                    )}
+
+                </ModalBody>
+
             </Modal>
-		)
-	}
+        )
+    }
 }
 
 export default ViewAvatar
