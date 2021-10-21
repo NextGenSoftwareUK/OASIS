@@ -270,7 +270,7 @@ class App extends React.Component {
                 />
 
                 <ViewAvatar
-                    show={this.state.sidebarMenuOption[3].avatar.vieWavatar}
+                    show={this.state.sidebarMenuOption[3].avatar.viewAvatar}
                     hide={this.toggleScreenPopup}
                 />
                 {/* ========== AVATAR  POPUPS END  =========== */}
