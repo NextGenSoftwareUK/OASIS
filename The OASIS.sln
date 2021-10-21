@@ -186,9 +186,12 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.ONODE.BLL.TestHarness", "NextGenSoftware.OASIS.API.ONODE.BLL.TestHarness\NextGenSoftware.OASIS.API.ONODE.BLL.TestHarness.csproj", "{05D1141B-FA9D-42A2-9E32-8A9555AE0210}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.Providers.ONION-Protocol", "NextGenSoftware.OASIS.API.Providers.ONION-Protocol\NextGenSoftware.OASIS.API.Providers.ONION-Protocol.csproj", "{87D9D6DD-7FE9-480A-8643-F272AEACA0CE}"
+EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.Providers.CosmosOASIS", "NextGenSoftware.OASIS.API.Providers.COSMOSOASIS\NextGenSoftware.OASIS.API.Providers.CosmosOASIS.csproj", "{272D6882-9ADE-4587-82E7-C728E2B5DA61}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS", "NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS\NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS.csproj", "{585A0A10-884C-46FD-8AD3-65DFF3BA7D65}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS", "NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS\NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS.csproj", "{585A0A10-884C-46FD-8AD3-65DFF3BA7D65}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.Providers.Neo4jOASIS2", "NextGenSoftware.OASIS.API.Providers.Neo4jOASIS2\NextGenSoftware.OASIS.API.Providers.Neo4jOASIS2.csproj", "{9F9F7951-472A-4667-9BD7-6FDE02FF575F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -1515,6 +1518,24 @@ Global
 		{585A0A10-884C-46FD-8AD3-65DFF3BA7D65}.Release|x64.Build.0 = Release|Any CPU
 		{585A0A10-884C-46FD-8AD3-65DFF3BA7D65}.Release|x86.ActiveCfg = Release|Any CPU
 		{585A0A10-884C-46FD-8AD3-65DFF3BA7D65}.Release|x86.Build.0 = Release|Any CPU
+		{9F9F7951-472A-4667-9BD7-6FDE02FF575F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9F9F7951-472A-4667-9BD7-6FDE02FF575F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9F9F7951-472A-4667-9BD7-6FDE02FF575F}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{9F9F7951-472A-4667-9BD7-6FDE02FF575F}.Debug|x64.Build.0 = Debug|Any CPU
+		{9F9F7951-472A-4667-9BD7-6FDE02FF575F}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{9F9F7951-472A-4667-9BD7-6FDE02FF575F}.Debug|x86.Build.0 = Debug|Any CPU
+		{9F9F7951-472A-4667-9BD7-6FDE02FF575F}.Linux|Any CPU.ActiveCfg = Debug|Any CPU
+		{9F9F7951-472A-4667-9BD7-6FDE02FF575F}.Linux|Any CPU.Build.0 = Debug|Any CPU
+		{9F9F7951-472A-4667-9BD7-6FDE02FF575F}.Linux|x64.ActiveCfg = Debug|Any CPU
+		{9F9F7951-472A-4667-9BD7-6FDE02FF575F}.Linux|x64.Build.0 = Debug|Any CPU
+		{9F9F7951-472A-4667-9BD7-6FDE02FF575F}.Linux|x86.ActiveCfg = Debug|Any CPU
+		{9F9F7951-472A-4667-9BD7-6FDE02FF575F}.Linux|x86.Build.0 = Debug|Any CPU
+		{9F9F7951-472A-4667-9BD7-6FDE02FF575F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9F9F7951-472A-4667-9BD7-6FDE02FF575F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9F9F7951-472A-4667-9BD7-6FDE02FF575F}.Release|x64.ActiveCfg = Release|Any CPU
+		{9F9F7951-472A-4667-9BD7-6FDE02FF575F}.Release|x64.Build.0 = Release|Any CPU
+		{9F9F7951-472A-4667-9BD7-6FDE02FF575F}.Release|x86.ActiveCfg = Release|Any CPU
+		{9F9F7951-472A-4667-9BD7-6FDE02FF575F}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
