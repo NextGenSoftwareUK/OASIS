@@ -108,7 +108,8 @@ class ViewAvatar extends React.Component {
                 onHide={() => hide('avatar', 'viewAvatar')}
             >
                
-                <ModalBody>
+                <ModalBody
+					className="p-50">
                     <span className="form-cross-icon" onClick={() => hide('avatar', 'viewAvatar')}>
                         <i className="fa fa-times"></i>
                     </span>
