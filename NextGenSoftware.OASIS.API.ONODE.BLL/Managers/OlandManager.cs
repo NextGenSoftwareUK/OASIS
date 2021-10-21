@@ -3,11 +3,13 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
+using EOSNewYork.EOSCore.Serialization;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Objects;
+using NextGenSoftware.OASIS.API.DNA;
 
 namespace NextGenSoftware.OASIS.API.ONODE.BLL.Managers
 {
@@ -41,6 +43,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.BLL.Managers
                     response.IsSaved = false;
                     response.Result = null;
                     response.Message = loadResult.Message;
+                    ErrorHandling.HandleError(ref response, response.Message);
                     return response;
                 }
                 
@@ -65,6 +68,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.BLL.Managers
                 response.IsError = true;
                 response.IsSaved = false;
                 response.Result = null;
+                ErrorHandling.HandleError(ref response, e.Message);
             }
             return response;
         }
@@ -81,6 +85,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.BLL.Managers
                     response.IsSaved = false;
                     response.Result = null;
                     response.Message = loadResult.Message;
+                    ErrorHandling.HandleError(ref response, response.Message);
                     return response;
                 }
 
@@ -106,6 +111,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.BLL.Managers
                 response.IsError = true;
                 response.IsSaved = false;
                 response.Result = null;
+                ErrorHandling.HandleError(ref response, e.Message);
             }
             return response;
         }
@@ -144,6 +150,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.BLL.Managers
                     response.IsSaved = false;
                     response.Result = null;
                     response.Message = saveResult.Message;
+                    ErrorHandling.HandleError(ref response, response.Message);
                     return response;
                 }
             }
@@ -154,6 +161,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.BLL.Managers
                 response.IsError = true;
                 response.IsSaved = false;
                 response.Result = null;
+                ErrorHandling.HandleError(ref response, e.Message);
             }
             return response;
         }
@@ -189,6 +197,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.BLL.Managers
                     response.IsSaved = false;
                     response.Result = null;
                     response.Message = saveResult.Message;
+                    ErrorHandling.HandleError(ref response, response.Message);
                     return response;
                 }
             }
@@ -199,6 +208,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.BLL.Managers
                 response.IsError = true;
                 response.IsSaved = false;
                 response.Result = null;
+                ErrorHandling.HandleError(ref response, e.Message);
             }
             return response;
         }
@@ -236,6 +246,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.BLL.Managers
                     response.IsSaved = false;
                     response.Result = null;
                     response.Message = saveResult.Message;
+                    ErrorHandling.HandleError(ref response, response.Message);
                     return response;
                 }
             }
@@ -246,6 +257,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.BLL.Managers
                 response.IsError = true;
                 response.IsSaved = false;
                 response.Result = null;
+                ErrorHandling.HandleError(ref response, e.Message);
             }
             return response;
         }
