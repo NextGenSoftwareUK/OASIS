@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core.Helpers;
+using NextGenSoftware.OASIS.API.ONODE.WebAPI.Repositories;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 {
@@ -11,7 +12,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
     [EnableCors]
     public class SCMSContacts : OASISControllerBase
     {
-        SCMSRepository _scmsRepository = new SCMSRepository();
+        private readonly SCMSRepository _scmsRepository = new();
         
         [HttpGet]
         public async Task<OASISResult<IEnumerable<Contact>>> GetAllContacts()
