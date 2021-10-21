@@ -18,7 +18,7 @@ using Neo4jClient;
 
 namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
 {
-    public class Neo4jOASIS : OASISStorageBase, IOASISStorage, IOASISNET
+    public class Neo4jOASIS2 : OASISStorageBase, IOASISStorage, IOASISNET
     {
         public GraphClient GraphClient { get; set; }
         public string Host { get; set; }
@@ -28,7 +28,7 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
        // private AvatarRepository avatarRepository;
 
 
-        public Neo4jOASIS(string host, string username, string password)
+        public Neo4jOASIS2(string host, string username, string password)
         {
             this.ProviderName = "Neo4jOASIS";
             this.ProviderDescription = "Neo4j Provider";
