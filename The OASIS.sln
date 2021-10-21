@@ -187,7 +187,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.O
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.Providers.CosmosOASIS", "NextGenSoftware.OASIS.API.Providers.COSMOSOASIS\NextGenSoftware.OASIS.API.Providers.CosmosOASIS.csproj", "{272D6882-9ADE-4587-82E7-C728E2B5DA61}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS", "NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS\NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS.csproj", "{585A0A10-884C-46FD-8AD3-65DFF3BA7D65}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS", "NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS\NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS.csproj", "{585A0A10-884C-46FD-8AD3-65DFF3BA7D65}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.Providers.CMOSBCOASIS.TestHarness", "NextGenSoftware.OASIS.API.Providers.CMOSBCOASIS.TestHarness\NextGenSoftware.OASIS.API.Providers.CMOSBCOASIS.TestHarness.csproj", "{3FCE2230-AA6F-4B04-AD62-24F7D6CA8D89}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -1496,6 +1498,24 @@ Global
 		{585A0A10-884C-46FD-8AD3-65DFF3BA7D65}.Release|x64.Build.0 = Release|Any CPU
 		{585A0A10-884C-46FD-8AD3-65DFF3BA7D65}.Release|x86.ActiveCfg = Release|Any CPU
 		{585A0A10-884C-46FD-8AD3-65DFF3BA7D65}.Release|x86.Build.0 = Release|Any CPU
+		{3FCE2230-AA6F-4B04-AD62-24F7D6CA8D89}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3FCE2230-AA6F-4B04-AD62-24F7D6CA8D89}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3FCE2230-AA6F-4B04-AD62-24F7D6CA8D89}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{3FCE2230-AA6F-4B04-AD62-24F7D6CA8D89}.Debug|x64.Build.0 = Debug|Any CPU
+		{3FCE2230-AA6F-4B04-AD62-24F7D6CA8D89}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{3FCE2230-AA6F-4B04-AD62-24F7D6CA8D89}.Debug|x86.Build.0 = Debug|Any CPU
+		{3FCE2230-AA6F-4B04-AD62-24F7D6CA8D89}.Linux|Any CPU.ActiveCfg = Debug|Any CPU
+		{3FCE2230-AA6F-4B04-AD62-24F7D6CA8D89}.Linux|Any CPU.Build.0 = Debug|Any CPU
+		{3FCE2230-AA6F-4B04-AD62-24F7D6CA8D89}.Linux|x64.ActiveCfg = Debug|Any CPU
+		{3FCE2230-AA6F-4B04-AD62-24F7D6CA8D89}.Linux|x64.Build.0 = Debug|Any CPU
+		{3FCE2230-AA6F-4B04-AD62-24F7D6CA8D89}.Linux|x86.ActiveCfg = Debug|Any CPU
+		{3FCE2230-AA6F-4B04-AD62-24F7D6CA8D89}.Linux|x86.Build.0 = Debug|Any CPU
+		{3FCE2230-AA6F-4B04-AD62-24F7D6CA8D89}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3FCE2230-AA6F-4B04-AD62-24F7D6CA8D89}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3FCE2230-AA6F-4B04-AD62-24F7D6CA8D89}.Release|x64.ActiveCfg = Release|Any CPU
+		{3FCE2230-AA6F-4B04-AD62-24F7D6CA8D89}.Release|x64.Build.0 = Release|Any CPU
+		{3FCE2230-AA6F-4B04-AD62-24F7D6CA8D89}.Release|x86.ActiveCfg = Release|Any CPU
+		{3FCE2230-AA6F-4B04-AD62-24F7D6CA8D89}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
