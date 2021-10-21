@@ -33,7 +33,7 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS
         {
             this.ProviderName = "COSMOSBlockChainOASIS";
             this.ProviderDescription = "COSMOS Block Chain Provider";
-            this.ProviderType = new Core.Helpers.EnumValue<ProviderType>(Core.Enums.ProviderType.EthereumOASIS);
+            this.ProviderType = new Core.Helpers.EnumValue<ProviderType>(Core.Enums.ProviderType.CosmosBlockChainOASIS);
             this.ProviderCategory = new Core.Helpers.EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
             this.HostUri = hostUri;
 
