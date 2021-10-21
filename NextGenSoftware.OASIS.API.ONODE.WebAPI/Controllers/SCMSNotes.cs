@@ -4,13 +4,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core.Helpers;
+using NextGenSoftware.OASIS.API.ONODE.WebAPI.Repositories;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-
-    [EnableCors()]
+    [EnableCors]
     public class SCMSNotes : ControllerBase
     {
         SCMSRepository _scmsRepository = new SCMSRepository();
@@ -18,13 +18,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpGet]
         public async Task<OASISResult<IEnumerable<Note>>> GetAllNotes()
         {
-            return new(await _scmsRepository.GetAllNotes());
+            return await _scmsRepository.GetAllNotes();
         }
-
-        //[HttpGet]
-        //public async Task<DeliveryItem> GetDeliveryItems(string id)
-        //{
-        //    return await Task.Run(() => _scmsRepository.GetDelivery(id));
-        //}
     }
 }

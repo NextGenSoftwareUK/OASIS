@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core.Helpers;
+using NextGenSoftware.OASIS.API.ONODE.WebAPI.Repositories;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 {
@@ -13,18 +14,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
     [EnableCors()]
     public class SCMSLogs : ControllerBase
     {
-        SCMSRepository _scmsRepository = new SCMSRepository();
+        SCMSRepository _scmsRepository = new();
 
         [HttpGet]
         public async Task<OASISResult<IEnumerable<Log>>> GetAllLogs()
         {
-            return new(await _scmsRepository.GetAllLogs());
+            return await _scmsRepository.GetAllLogs();
         }
-
-        //[HttpGet]
-        //public async Task<DeliveryItem> GetDeliveryItems(string id)
-        //{
-        //    return await Task.Run(() => _scmsRepository.GetDelivery(id));
-        //}
     }
 }
