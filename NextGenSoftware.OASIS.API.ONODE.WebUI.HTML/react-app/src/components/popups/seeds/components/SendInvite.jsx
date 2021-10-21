@@ -2,8 +2,6 @@ import React from 'react';
 
 import { Modal } from 'react-bootstrap';
 
-import '../../../assets/scss/seeds-popup.scss';
-
 class SendInvite extends React.Component {
     render() { 
         const { show, hide } = this.props;
