@@ -3,8 +3,11 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Linq;
+using EOSNewYork.EOSCore.Serialization;
+using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Interfaces;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
@@ -12,73 +15,41 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
     public class SCMSRepository : ISCMSRepository
     {
         MongoDbContext db = new MongoDbContext();
-        //private AvatarManager _avatarManager;
+        private AvatarManager AvatarManager => Program.AvatarManager;
 
-        public AvatarManager AvatarManager
+        public async Task<OASISResult<Sequence>> GetSequence(string id)
         {
-            get
-            {
-                return Program.AvatarManager;
-
-                //if (_avatarManager == null)
-                //{
-                //    _avatarManager = new AvatarManager();
-                //    _avatarManager.OnOASISManagerError += _avatarManager_OnOASISManagerError;
-                //}
-
-                //return _avatarManager;
-            }
-        }
-
-        //private void _avatarManager_OnOASISManagerError(object sender, OASISErrorEventArgs e)
-        //{
-        //    //TODO: Log and handle errors here.
-        //}
-
-        //public async Task Add(Avatar Avatar)
-        //{
-        //    try
-        //    {
-        //        await db.Avatar.InsertOneAsync(Avatar);
-        //    }
-        //    catch
-        //    {
-        //        throw;
-        //    }
-        //}
-
-        //private AvatarManager GetAvatarManager()
-        //{
-        //    if (AvatarManager.Instance.CurrentOASISStorageProvider == null)
-        //        AvatarManager.Instance.SetOASISStorageProvider(new HoloOASIS("ws://localhost:8888")); //Default to HoloOASIS Provider.
-
-        //    return AvatarManager.Instance;
-        //}
-
-        public async Task<Sequence> GetSequence(string id)
-        {
+            var response = new OASISResult<Sequence>();
             try
             {
-                FilterDefinition<Sequence> filter = Builders<Sequence>.Filter.Eq("Id", id);
-                return await db.Sequence.Find(filter).FirstOrDefaultAsync();
-            }
-            catch
-            {
-                throw;
-            }
-        }
-
-        public async Task<IEnumerable<Sequence>> GetAllSequences()
-        {
-            try
-            {
-                //return await db.Sequence.Find(_ => true).ToListAsync();
-                return await db.Sequence.AsQueryable().ToListAsync();
+                FilterDefinition<Sequence> filter = Builders<Sequence>.Filter.Eq("Id", id); 
+                response.Result = await db.Sequence.Find(filter).FirstOrDefaultAsync();
             }
             catch (Exception ex)
             {
-                throw;
+                response.Exception = ex;
+                response.Message = ex.Message;
+                response.IsError = true;
+                ErrorHandling.HandleError(ref response, ex.Message);
             }
+            return response;
+        }
+
+        public async Task<OASISResult<IEnumerable<Sequence>>> GetAllSequences()
+        {
+            var response = new OASISResult<IEnumerable<Sequence>>();
+            try
+            {
+                response.Result = await db.Sequence.AsQueryable().ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                response.Message = ex.Message;
+                response.IsError = true;
+                ErrorHandling.HandleError(ref response, ex.Message);
+            }
+            return response;
         }
 
         public async Task<IEnumerable<Sequence>> GetSequencesBySequenceNo(int SequenceNo)
@@ -94,17 +65,22 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
             }
         }
 
-        public async Task<Phase> GetPhase(string id)
+        public async Task<OASISResult<Phase>> GetPhase(string id)
         {
+            var response = new OASISResult<Phase>();
             try
             {
                 FilterDefinition<Phase> filter = Builders<Phase>.Filter.Eq("Id", id);
-                return await db.Phase.Find(filter).FirstOrDefaultAsync();
+                response.Result = await db.Phase.Find(filter).FirstOrDefaultAsync();
             }
-            catch
+            catch(Exception ex)
             {
-                throw;
+                response.IsError = true;
+                response.Message = ex.Message;
+                response.Exception = ex;
+                ErrorHandling.HandleError(ref response, ex.Message);
             }
+            return response;
         }
 
         public async Task<IEnumerable<Phase>> GetPhasesByPhaseNo(int phaseNo)
@@ -120,59 +96,79 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
             }
         }
 
-        public async Task<IEnumerable<Phase>> GetAllPhases()
+        public async Task<OASISResult<IEnumerable<Phase>>> GetAllPhases()
         {
+            var response = new OASISResult<IEnumerable<Phase>>();
             try
             {
-                //return await db.Sequence.Find(_ => true).ToListAsync();
-                return await db.Phase.AsQueryable().ToListAsync();
+                response.Result = await db.Phase.AsQueryable().ToListAsync();
             }
             catch (Exception ex)
             {
-                throw;
+                response.Exception = ex;
+                response.Message = ex.Message;
+                response.IsError = true;
+                ErrorHandling.HandleError(ref response, ex.Message);
             }
+            return response;
         }
 
-        public async Task<Contract> GetContract(string id)
+        public async Task<OASISResult<Contract>> GetContract(string id)
         {
+            var response = new OASISResult<Contract>();
             try
             {
                 FilterDefinition<Contract> filter = Builders<Contract>.Filter.Eq("Id", id);
-                return await db.Contract.Find(filter).FirstOrDefaultAsync();
+                response.Result = await db.Contract.Find(filter).FirstOrDefaultAsync();
             }
-            catch
+            catch(Exception ex)
             {
-                throw;
+                response.Exception = ex;
+                response.Message = ex.Message;
+                response.IsError = true;
+                ErrorHandling.HandleError(ref response, ex.Message);
             }
+            return response;
         }
 
-        public async Task<IEnumerable<Contract>> GetAllContracts()
+        public async Task<OASISResult<IEnumerable<Contract>>> GetAllContracts()
         {
+            var response = new OASISResult<IEnumerable<Contract>>();
             try
             {
-                return await db.Contract.AsQueryable().ToListAsync();
+                response.Result = await db.Contract.AsQueryable().ToListAsync();
             }
             catch (Exception ex)
             {
-                throw;
+                response.Exception = ex;
+                response.Message = ex.Message;
+                response.IsError = true;
+                ErrorHandling.HandleError(ref response, ex.Message);
             }
+            return response;
         }
 
-        public async Task<Contact> GetContact(string id)
+        public async Task<OASISResult<Contact>> GetContact(string id)
         {
+            var response = new OASISResult<Contact>();
             try
             {
                 FilterDefinition<Contact> filter = Builders<Contact>.Filter.Eq("Id", id);
-                return await db.Contact.Find(filter).FirstOrDefaultAsync();
+                response.Result = await db.Contact.Find(filter).FirstOrDefaultAsync();
             }
-            catch
+            catch(Exception ex)
             {
-                throw;
+                response.Exception = ex;
+                response.Message = ex.Message;
+                response.IsError = true;
+                ErrorHandling.HandleError(ref response, ex.Message);
             }
+            return response;
         }
 
-        public async Task<IEnumerable<Contact>> GetAllContacts(bool loadPhase = false)
+        public async Task<OASISResult<IEnumerable<Contact>>> GetAllContacts(bool loadPhase = false)
         {
+            var response = new OASISResult<IEnumerable<Contact>>();
             try
             {
                 var contacts = await db.Contact.AsQueryable().ToListAsync();
@@ -180,20 +176,26 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
                 if (loadPhase)
                 {
                     foreach (Contact contact in contacts.AsQueryable())
-                        contact.Phase = await GetPhase(contact.PhaseId);
+                    {
+                        var phase = await GetPhase(contact.PhaseId);
+                        contact.Phase = phase.Result;
+                    }
                 }
-
-                contacts = LoadUserDataIntoContacts(contacts);
-                return contacts;
+                response.Result = LoadUserDataIntoContacts(contacts);
             }
             catch (Exception ex)
             {
-                throw;
+                response.Exception = ex;
+                response.Message = ex.Message;
+                response.IsError = true;
+                ErrorHandling.HandleError(ref response, ex.Message);
             }
+            return response;
         }
         
-        public async Task<IEnumerable<Contact>> GetAllContacts(int SequenceNo, int PhaseNo, bool loadPhase = false)
+        public async Task<OASISResult<IEnumerable<Contact>>> GetAllContacts(int SequenceNo, int PhaseNo, bool loadPhase = false)
         {
+            var response = new OASISResult<IEnumerable<Contact>>();
             try
             {
                 List<Contact> filteredContacts = new List<Contact>();
@@ -222,107 +224,23 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
                     }
                 }
 
-                filteredContacts = LoadUserDataIntoContacts(filteredContacts);
-
-                /*
-                //var contacts = await db.Contact.Find({"VIP": true, "Country": "Germany"});
-                List<Contact> filteredContacts = new List<Contact>();
-                //FilterDefinition<Contact> filter = Builders<Contact>.Filter.Eq("SequenceNo", SequenceNo);
-
-            //    var contacts = await db.Contact.Find(filter).ToListAsync();
-
-              //  string connectionString = "mongodb://localhost:27017";
-              //  var client = new MongoClient(connectionString);
-
-              //  var db = client.GetDatabase("test");
-                var contacts = db.MongoDbBEB.GetCollection<Contact>("Contact");
-                var resultOfJoin = contacts.Aggregate()
-                    .Lookup("Phase", "PhaseId", "_id", @as: "Phase")
-                    //.Lookup("Phase.Sequence", "Phase.SequenceId", "_id", @as: "Sequence")  //TODO: Need to find out why this doesn't work?!
-                   .Unwind("Phase")
-                    //.Unwind("Sequence")
-                    .As<Contact>()
-                    .ToList();
-
-     
-                foreach (Contact contact in resultOfJoin)
-                {
-                    if (contact.Phase.PhaseNo == PhaseNo)
-                    {
-                        foreach (Sequence sequence in filteredSequences)
-                        {
-                            if (contact.Phase.SequenceId == sequence.Id)
-                            {
-                                filteredContacts.Add(contact);
-                                break;
-                            }
-                        }
-                    }
-
-                    //if (contact.Phase.PhaseNo == PhaseNo && contact.Phase.Sequence.SequenceNo == SequenceNo.ToString())
-                    //    filteredContacts.Add(contact);
-                }
-                */
-
-
-                /*
-                var users = db.User.AsQueryable().ToListAsync();
-
-                foreach (Contact contact in filteredContacts)
-                {
-                    foreach (User user in users.Result)
-                    {
-                        if (contact.UserId == user.Id)
-                        {
-                            contact.FirstName = user.FirstName;
-                            contact.LastName = user.LastName;
-                            contact.Address = user.Address;
-                            contact.Country = user.Country;
-                            contact.County = user.County;
-                            contact.CreatedByUserId = user.CreatedByUserId;
-                            contact.CreatedDate = user.CreatedDate;
-                            contact.DeletedByUserId = user.DeletedByUserId;
-                            contact.DeletedDate = user.DeletedDate;
-                            contact.Email = user.Email;
-                            contact.DOB = user.DOB;
-                            contact.Landline = user.LastName;
-                            contact.Mobile = user.Mobile;
-                            contact.ModifledByUserId = user.ModifledByUserId;
-                            contact.ModifledDate = user.ModifledDate;
-                            contact.Password = user.Password;
-                            contact.Postcode = user.Postcode;
-                            contact.Title = user.Title;
-                            contact.Town = user.Town;
-                            contact.Username = user.Username;
-                            contact.UserType = user.UserType;
-                            contact.Version = user.Version;
-                            break;
-                        }
-                    }
-                }*/
-
-                //return await db.Sequence.Find(_ => true).ToListAsync();
-                //return await db.Contact.AsQueryable().ToListAsync();
-                //return contacts.Result;
-                return filteredContacts;
+                response.Result = LoadUserDataIntoContacts(filteredContacts);
             }
             catch (Exception ex)
             {
-                throw;
+                response.Exception = ex;
+                response.Message = ex.Message;
+                response.IsError = true;
+                ErrorHandling.HandleError(ref response, ex.Message);
             }
+            return response;
         }
         
         private List<Contact> LoadUserDataIntoContacts(List<Contact> contacts)
         {
-            //var users = db.Avatar.AsQueryable().ToListAsync();            
-
             // TODO: Be good if can find global way of caching the AvatarManager because expensive to start up the providers each time.
             // Just want one persisted/cached but more tricky in web so may need to put it into a cache...
-
-            //OASISProviderManager.SetOASISSettings()
-            // OASISProviderManager.GetAndActivateProvider();
             
-            //var users = AvatarManager.LoadAllAvatarsAsync();
             IEnumerable<IAvatar> avatars = AvatarManager.LoadAllAvatars();
 
             //TODO: Need to change Contact fields in Mongo to match new ones (like Created/Modified/Deleted, etc since User/Profile renamed to Avatar.
@@ -335,19 +253,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
                     {
                         contact.FirstName = avatar.FirstName;
                         contact.LastName = avatar.LastName;
-                        //contact.Address = avatar.Address;
-                        //contact.Country = avatar.Country;
-                        //contact.County = avatar.County;
                         contact.CreatedDate = avatar.CreatedDate;
                         contact.DeletedDate = avatar.DeletedDate;
                         contact.Email = avatar.Email;
-                       // contact.DOB = avatar.DOB;
                         contact.Landline = avatar.LastName;
-                        //contact.Mobile = avatar.Mobile;
                         contact.Password = avatar.Password;
-                        //contact.Postcode = avatar.Postcode;
                         contact.Title = avatar.Title;
-                       // contact.Town = avatar.Town;
                         contact.CreatedDate = avatar.CreatedDate;
                         contact.DeletedDate = avatar.DeletedDate;
                         contact.Email = avatar.Email;
@@ -357,12 +268,6 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
                         contact.Username = avatar.Username;
                         contact.AvatarType = avatar.AvatarType;
                         contact.Version = avatar.Version;
-
-                        //contact.CreatedByAvatarId = avatar.CreatedByAvatarId;
-                        //contact.DeletedByAvatarId = avatar.DeletedByAvatarId;
-                        //contact.ModifiedByAvatarId = avatar.ModifiedByAvatarId;
-                        //contact.ModifiedDate = avatar.ModifiedDate;
-
                         //TODO: Change to use Avatar EVERYWHERE ASAP...
                         contact.CreatedByUserId = avatar.CreatedByAvatarId.ToString();
                         contact.DeletedByUserId = avatar.DeletedByAvatarId.ToString();
@@ -376,31 +281,6 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
             return contacts;
         }
 
-        /*
-        public async Task Update(Avatar Avatar)
-        {
-            try
-            {
-                await db.Avatar.ReplaceOneAsync(filter: g => g.Id == Avatar.Id, replacement: Avatar);
-            }
-            catch
-            {
-                throw;
-            }
-        }
-        public async Task Delete(string id)
-        {
-            try
-            {
-                FilterDefinition<Avatar> data = Builders<Avatar>.Filter.Eq("Id", id);
-                await db.Avatar.DeleteOneAsync(data);
-            }
-            catch
-            {
-                throw;
-            }
-        }*/
-
         public Task AddSequence(Sequence sequence)
         {
             throw new System.NotImplementedException();
@@ -410,10 +290,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
         {
             throw new System.NotImplementedException();
         }
-
-        //public async Task<Delivery> GetDelivery(string id, bool loadDeliveryItems = true, bool loadSignedByUser = true, bool loadSentToPhase = true, bool loadMaterial = true, bool loadFile = true)
-        public async Task<Delivery> GetDelivery(string id, bool loadDeliveryItems = true, bool loadSignedByUser = true, bool loadSentToPhase = true, bool loadFile = true)
+        
+        public async Task<OASISResult<Delivery>> GetDelivery(string id, bool loadDeliveryItems = true, bool loadSignedByUser = true, bool loadSentToPhase = true, bool loadFile = true)
         {
+            var response = new OASISResult<Delivery>();
             try
             {
                 FilterDefinition<Delivery> filter = Builders<Delivery>.Filter.Eq("Id", id);
@@ -424,75 +304,74 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
 
                 if (loadSignedByUser)
                 {
-                    //Avatar user = await GetAvatar(delivery.SignedByUserId);
-                    
                     //TODO: Fix BUG in MongoDBOASIS with being able to return async methods ASAP!
-                    //IAvatar user = await AvatarManager.LoadAvatarAsync(Guid.Parse(delivery.SignedByUserId));
-                    IAvatar avatar = AvatarManager.LoadAvatar(Guid.Parse(delivery.SignedByUserId));
+                    IAvatar avatar = await AvatarManager.LoadAvatarAsync(Guid.Parse(delivery.SignedByUserId));
 
                     if (avatar != null)
                         delivery.SignedByUserFullName = avatar.FullName;
                 }
 
                 if (loadSentToPhase)
-                    delivery.SentToPhase = await GetPhase(delivery.SentToPhaseId);
+                {
+                    var sentToPhase = await GetPhase(delivery.SentToPhaseId);
+                    delivery.SentToPhase = sentToPhase.Result;
+                }
 
                 if (delivery.SentToPhase != null)
-                    delivery.SentToPhase.Sequence = await GetSequence(delivery.SentToPhase.SequenceId);
+                {
+                    var sequence = await GetSequence(delivery.SentToPhase.SequenceId);
+                    delivery.SentToPhase.Sequence = sequence.Result;
+                }
 
                 if (delivery.DeliveryItems != null)
                 {
-                    foreach (DeliveryItem deliveryItem in delivery.DeliveryItems)
+                    foreach (var deliveryItem in delivery.DeliveryItems.Where(deliveryItem => loadFile))
                     {
-                        if (loadFile)
-                            deliveryItem.File = await GetFile(deliveryItem.FileId);
-
-                        /*
-                        if (loadMaterial)
-                        {
-                            Material material = await GetMaterial(deliveryItem.MaterialId);
-
-                            if (material != null)
-                            {
-                                deliveryItem.Material = material;
-
-                                if (loadFile)
-                                    material.File = await GetFile(material.FileId);
-                            }
-                        }*/
+                        var file = await GetFile(deliveryItem.FileId);
+                        deliveryItem.File = file.Result;
                     }
                 }
 
-                return delivery;
+                response.Result = delivery;
             }
-            catch
+            catch(Exception e)
             {
-                throw;
+                response.Exception = e;
+                response.Message = e.Message;
+                response.IsError = true;
+                ErrorHandling.HandleError(ref response, e.Message);
             }
+            return response;
         }
 
-        //public async Task<IEnumerable<Delivery>> GetAllDeliveries(bool loadDeliveryItems = true, bool loadSignedByUser = true, bool loadSentToPhase = true, bool loadMaterial = true, bool loadFile = true)
-        public async Task<IEnumerable<Delivery>> GetAllDeliveries(bool loadDeliveryItems = true, bool loadSignedByUser = true, bool loadSentToPhase = true,  bool loadFile = true)
+        public async Task<OASISResult<IEnumerable<Delivery>>> GetAllDeliveries(bool loadDeliveryItems = true, bool loadSignedByUser = true, bool loadSentToPhase = true,  bool loadFile = true)
         {
+            var response = new OASISResult<IEnumerable<Delivery>>();
             try
             {
                 var deliveries = await db.Delivery.AsQueryable().ToListAsync();
-               
-                for (int i = 0; i < deliveries.Count; i++)
-                    deliveries[i] = await GetDelivery(deliveries[i].Id, loadDeliveryItems, loadSignedByUser, loadSentToPhase, loadFile);
-                //deliveries[i] = await GetDelivery(deliveries[i].Id, loadDeliveryItems,  loadSignedByUser, loadSentToPhase, loadMaterial, loadFile);
 
-                return deliveries;
+                for (int i = 0; i < deliveries.Count; i++)
+                {
+                    var delivery = await GetDelivery(deliveries[i].Id, loadDeliveryItems, loadSignedByUser, loadSentToPhase, loadFile);
+                    deliveries[i] = delivery.Result;
+                }
+
+                response.Result = deliveries;
             }
             catch (Exception ex)
             {
-                throw;
+                response.Message = ex.Message;
+                response.Exception = ex;
+                response.IsError = true;
+                ErrorHandling.HandleError(ref response, ex.Message);
             }
+            return response;
         }
-
-        //public async Task<IEnumerable<Delivery>> GetAllDeliveries(int sequenceNo, int phaseNo, bool loadDeliveryItems = true, bool loadSignedByUser = true, bool loadSentToPhase = true, bool loadMaterial = true, bool loadFile = true)
-        public async Task<IEnumerable<Delivery>> GetAllDeliveries(int sequenceNo, int phaseNo, bool loadDeliveryItems = true, bool loadSignedByUser = true, bool loadSentToPhase = true, bool loadFile = true)
+        
+        public async Task<OASISResult<IEnumerable<Delivery>>> GetAllDeliveries(int sequenceNo, int phaseNo, bool loadDeliveryItems = true, bool loadSignedByUser = true, bool loadSentToPhase = true, bool loadFile = true)
         {
+            var response = new OASISResult<IEnumerable<Delivery>>();
             try
             {
                 List<Delivery> filteredDeliveries = new List<Delivery>();
@@ -510,8 +389,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
                             {
                                 if (phase.SequenceId == sequence.Id)
                                 {
-                                    //deliveries[i] = await GetDelivery(deliveries[i].Id, loadDeliveryItems, loadSignedByUser, loadSentToPhase, loadMaterial, loadFile);
-                                    deliveries[i] = await GetDelivery(deliveries[i].Id, loadDeliveryItems, loadSignedByUser, loadSentToPhase, loadFile);
+                                    var delivery = await GetDelivery(deliveries[i].Id, loadDeliveryItems, loadSignedByUser, loadSentToPhase, loadFile);
+                                    deliveries[i] = delivery.Result;
                                     filteredDeliveries.Add(deliveries[i]);
                                     break;
                                 }
@@ -520,46 +399,52 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
                     }
                 }
 
-                return filteredDeliveries;
-
-                // var deliveries = db.GetCollection<Delivery>("Instances");
-
-
-                //var resultOfJoin = deliveries.Result.Aggregate()
-                //    .Lookup("Templates", "TemplateId", "_id", @as: "Template")
-                //    .Unwind("Template")
-                //    .As<Instance>()
-                //    .ToList();
+                response.Result = filteredDeliveries;
             }
             catch (Exception ex)
             {
-                throw;
+                response.Exception = ex;
+                response.Message = ex.Message;
+                response.IsError = true;
+                ErrorHandling.HandleError(ref response, ex.Message);
             }
+
+            return response;
         }
 
-        public async Task<DeliveryItem> GetDeliveryItem(string id)
+        public async Task<OASISResult<DeliveryItem>> GetDeliveryItem(string id)
         {
+            var response = new OASISResult<DeliveryItem>();
             try
             {
                 FilterDefinition<DeliveryItem> filter = Builders<DeliveryItem>.Filter.Eq("Id", id);
-                return await db.DeliveryItem.Find(filter).FirstOrDefaultAsync();
+                response.Result = await db.DeliveryItem.Find(filter).FirstOrDefaultAsync();
             }
             catch (Exception ex)
             {
-                throw;
+                response.Message = ex.Message;
+                response.Exception = ex;
+                response.IsError = true;
+                ErrorHandling.HandleError(ref response, ex.Message);
             }
+            return response;
         }
 
-        public async Task<IEnumerable<DeliveryItem>> GetAllDeliveryItems()
+        public async Task<OASISResult<IEnumerable<DeliveryItem>>> GetAllDeliveryItems()
         {
+            var response = new OASISResult<IEnumerable<DeliveryItem>>();
             try
             {
-                return await db.DeliveryItem.AsQueryable().ToListAsync();
+                response.Result = await db.DeliveryItem.AsQueryable().ToListAsync();
             }
             catch (Exception ex)
             {
-                throw;
+                response.Exception = ex;
+                response.Message = ex.Message;
+                response.IsError = true;
+                ErrorHandling.HandleError(ref response, ex.Message);
             }
+            return response;
         }
 
         public async Task<IEnumerable<DeliveryItem>> GetDeliveryItemsForDelivery(string deliveryId)
@@ -575,32 +460,13 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
             }
         }
 
-        /*
-        public async Task<Avatar> GetAvatar(string id)
-        {
-            FilterDefinition<Avatar> filter = Builders<Avatar>.Filter.Eq("Id", id);
-            return await db.Avatar.Find(filter).FirstOrDefaultAsync();
-        }
-
-        public async Task<IEnumerable<Avatar>> GetAllAvatars()
-        {
-            try
-            {
-                return await db.Avatar.AsQueryable().ToListAsync();
-            }
-            catch (Exception ex)
-            {
-                throw;
-            }
-        }*/
-
-        public async Task<Drawing> GetDrawing(string id)
+        public async Task<OASISResult<Drawing>> GetDrawing(string id)
         {
             FilterDefinition<Drawing> filter = Builders<Drawing>.Filter.Eq("Id", id);
             return await db.Drawing.Find(filter).FirstOrDefaultAsync();
         }
 
-        public async Task<IEnumerable<Drawing>> GetAllDrawings(bool loadPhase = false, bool loadFile = true)
+        public async Task<OASISResult<IEnumerable<Drawing>>> GetAllDrawings(bool loadPhase = false, bool loadFile = true)
         {
             try
             {
@@ -626,7 +492,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
             }
         }
 
-        public async Task<IEnumerable<Drawing>> GetAllDrawings(int SequenceNo, int PhaseNo, bool loadPhase = false, bool loadFile= true)
+        public async Task<OASISResult<IEnumerable<Drawing>>> GetAllDrawings(int SequenceNo, int PhaseNo, bool loadPhase = false, bool loadFile= true)
         {
             try
             {
@@ -771,7 +637,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
             }
         }
 
-        public async Task<File> GetFile(string id)
+        public async Task<OASISResult<File>> GetFile(string id)
         {
             try
             {
@@ -784,7 +650,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
             }
         }
 
-        public async Task<IEnumerable<File>> GetAllFiles()
+        public async Task<OASISResult<IEnumerable<File>>> GetAllFiles()
         {
             try
             {
@@ -796,7 +662,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
             }
         }
 
-        public async Task<Handover> GetHandover(string id)
+        public async Task<OASISResult<Handover>> GetHandover(string id)
         {
             try
             {
@@ -809,7 +675,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
             }
         }
 
-        public async Task<IEnumerable<Handover>> GetAllHandovers()
+        public async Task<OASISResult<IEnumerable<Handover>>> GetAllHandovers()
         {
             try
             {
@@ -821,7 +687,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
             }
         }
 
-        public async Task<Link> GetLink(string id)
+        public async Task<OASISResult<Link>> GetLink(string id)
         {
             try
             {
@@ -834,7 +700,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
             }
         }
 
-        public async Task<IEnumerable<Link>> GetAllLinks()
+        public async Task<OASISResult<IEnumerable<Link>>> GetAllLinks()
         {
             try
             {
@@ -846,7 +712,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
             }
         }
 
-        public async Task<Log> GetLog(string id)
+        public async Task<OASISResult<Log>> GetLog(string id)
         {
             try
             {
@@ -859,7 +725,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
             }
         }
 
-        public async Task<IEnumerable<Log>> GetAllLogs()
+        public async Task<OASISResult<IEnumerable<Log>>> GetAllLogs()
         {
             try
             {
@@ -871,7 +737,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
             }
         }
 
-        public async Task<Material> GetMaterial(string id)
+        public async Task<OASISResult<Material>> GetMaterial(string id)
         {
             try
             {
@@ -884,7 +750,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
             }
         }
 
-        public async Task<IEnumerable<Material>> GetAllMaterials()
+        public async Task<OASISResult<IEnumerable<Material>>> GetAllMaterials()
         {
             try
             {
@@ -896,7 +762,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
             }
         }
 
-        public async Task<Note> GetNote(string id)
+        public async Task<OASISResult<Note>> GetNote(string id)
         {
             try
             {
@@ -909,7 +775,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
             }
         }
 
-        public async Task<IEnumerable<Note>> GetAllNotes()
+        public async Task<OASISResult<IEnumerable<Note>>> GetAllNotes()
         {
             try
             {
@@ -921,7 +787,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
             }
         }
 
-        public async Task<Trigger> GetTrigger(string id)
+        public async Task<OASISResult<Trigger>> GetTrigger(string id)
         {
             try
             {
@@ -934,7 +800,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
             }
         }
 
-        public async Task<IEnumerable<Trigger>> GetAllTriggers()
+        public async Task<OASISResult<IEnumerable<Trigger>>> GetAllTriggers()
         {
             try
             {
