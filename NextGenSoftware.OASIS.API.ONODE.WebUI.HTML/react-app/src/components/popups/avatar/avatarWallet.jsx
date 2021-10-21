@@ -66,13 +66,13 @@ class AvatarWallet extends React.Component {
 				className="custom-modal custom-popup-component w-100"
 				size="xl"
 				show={show}
-				onHide={() => hide('avatar', 'avatarwallet')}
+				onHide={() => hide('avatar', 'avatarWallet')}
 			>
 			
 				<Modal.Body
 					className="p-50"
 				>
-					<span className="form-cross-icon" onClick={() => hide('avatar', 'avatarwallet')}>
+					<span className="form-cross-icon" onClick={() => hide('avatar', 'avatarWallet')}>
 						<i className="fa fa-times"></i>
 					</span>
 					{this.state.loggedIn ? (
