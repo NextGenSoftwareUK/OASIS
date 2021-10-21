@@ -145,7 +145,7 @@
         transition: left 0.3s ease-in;
         z-index: 2;
         @media (min-width: 320px) and (max-width: 767px) {
-            left: -100%;
+            left: -120%;
         }
         .sidebar-list {
             padding-top: 70px;
