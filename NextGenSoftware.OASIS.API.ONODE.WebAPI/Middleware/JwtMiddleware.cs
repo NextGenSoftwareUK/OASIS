@@ -1,10 +1,14 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
+using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
+using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Managers;
 
@@ -13,28 +17,20 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Middleware
     public class JwtMiddleware
     {
         private readonly RequestDelegate _next;
-
-        //public JwtMiddleware(RequestDelegate next, IOptions<OASISSettings> OASISSettings)
+        
         public JwtMiddleware(RequestDelegate next)
         {
             _next = next;
-          //  OASISProviderManager.OASISSettings = OASISSettings.Value;
         }
 
         public async Task Invoke(HttpContext context)
         {
-         //   if (!ProviderManager.IgnoreDefaultProviderTypes && ProviderManager.DefaultProviderTypes != null && ProviderManager.CurrentStorageProviderType != (ProviderType)Enum.Parse(typeof(ProviderType), ProviderManager.DefaultProviderTypes[0]))
-         //       ProviderManager.SetAndActivateCurrentStorageProvider(ProviderType.Default);
-
             var token = context.Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
-
             if (token != null)
                 await AttachAccountToContext(context, token);
-
             await _next(context);
         }
 
-        //private async Task attachAccountToContext(HttpContext context, DataContext dataContext, string token)
         private async Task AttachAccountToContext(HttpContext context, string token)
         {
             try
@@ -54,19 +50,22 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Middleware
                 var jwtToken = (JwtSecurityToken)validatedToken;
                 var id = Guid.Parse(jwtToken.Claims.First(x => x.Type == "id").Value);
 
-                context.Items["Avatar"] = (Core.Holons.Avatar)Program.AvatarManager.LoadAvatar(id);
+                context.Items["Avatar"] = await Program.AvatarManager.LoadAvatarAsync(id);
                 AvatarManager.LoggedInAvatar = (IAvatar)context.Items["Avatar"];
-
             }
             catch (Exception ex)
             {
-                
-                
-                
-                throw new Exception("Token Authorization Failed.");
-                // account is not attached to context so request won't have access to secure routes
-                
-                //TODO: Log and handle error
+                var exceptionResponse = new OASISResult<string>()
+                {
+                    Message = ex.Message,
+                    Result = "Authentication Failed",
+                    IsError = true,
+                };
+                context.Response.StatusCode = 500;
+                context.Response.ContentType = "application/json";
+                await context.Response.Body.WriteAsync(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(exceptionResponse)));
+                context.Response.ContentLength = context.Response.Body.Length;
+                ErrorHandling.HandleError(ref exceptionResponse, ex.Message);
             }
         }
     }

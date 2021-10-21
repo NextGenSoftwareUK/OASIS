@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core.Helpers;
+using NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Models.Common;
 using NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Models.Requests;
 using NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Models.Responses;
 using Solnet.Extensions;
@@ -27,115 +28,173 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Service
         public async Task<OASISResult<ExchangeTokenResult>> ExchangeTokens(ExchangeTokenRequest exchangeTokenRequest)
         {
             var response = new OASISResult<ExchangeTokenResult>();
-            var blockHash = await _rpcClient.GetRecentBlockHashAsync();
-
-            var mintAccount = new PublicKey(exchangeTokenRequest.MintAccount.PublicKey);
-            var fromAccount = new PublicKey(exchangeTokenRequest.FromAccount.PublicKey);
-            var toAccount = new PublicKey(exchangeTokenRequest.ToAccount.PublicKey);
-            
-            var tx = new TransactionBuilder().
-                SetRecentBlockHash(blockHash.Result.Value.Blockhash).
-                SetFeePayer(fromAccount).
-                AddInstruction(TokenProgram.InitializeAccount(
-                    toAccount,
-                    mintAccount,
-                    fromAccount)).
-                AddInstruction(TokenProgram.Transfer(
-                    fromAccount,
-                    toAccount,
-                    exchangeTokenRequest.Amount,
-                    fromAccount)).
-                AddInstruction(MemoProgram.NewMemo(fromAccount, exchangeTokenRequest.MemoText)).
-                Build(_wallet.Account);
-            
-            var sendTransactionResult = await _rpcClient.SendTransactionAsync(tx);
-            if (!sendTransactionResult.WasSuccessful)
+            try
             {
-                response.IsError = true;
-                response.Message = sendTransactionResult.Reason;
-                return response;
+                var (err, res) = exchangeTokenRequest.IsRequestValid();
+                if (!err)
+                {
+                    response.Message = res;
+                    response.IsError = true;
+                    ErrorHandling.HandleError(ref response, res);
+                    return response;
+                }
+                
+                var blockHash = await _rpcClient.GetRecentBlockHashAsync();
+
+                var mintAccount = new PublicKey(exchangeTokenRequest.MintAccount.PublicKey);
+                var fromAccount = new PublicKey(exchangeTokenRequest.FromAccount.PublicKey);
+                var toAccount = new PublicKey(exchangeTokenRequest.ToAccount.PublicKey);
+            
+                var tx = new TransactionBuilder().
+                    SetRecentBlockHash(blockHash.Result.Value.Blockhash).
+                    SetFeePayer(fromAccount).
+                    AddInstruction(TokenProgram.InitializeAccount(
+                        toAccount,
+                        mintAccount,
+                        fromAccount)).
+                    AddInstruction(TokenProgram.Transfer(
+                        fromAccount,
+                        toAccount,
+                        exchangeTokenRequest.Amount,
+                        fromAccount)).
+                    AddInstruction(MemoProgram.NewMemo(fromAccount, exchangeTokenRequest.MemoText)).
+                    Build(_wallet.Account);
+            
+                var sendTransactionResult = await _rpcClient.SendTransactionAsync(tx);
+                if (!sendTransactionResult.WasSuccessful)
+                {
+                    response.IsError = true;
+                    response.Message = sendTransactionResult.Reason;
+                    ErrorHandling.HandleError(ref response, response.Message);
+                    return response;
+                }
+                response.Result = new ExchangeTokenResult(sendTransactionResult.Result);
             }
-            response.Result = new ExchangeTokenResult(sendTransactionResult.Result);
+            catch (Exception e)
+            {
+                response.Exception = e;
+                response.Message = e.Message;
+                response.IsError = true;
+                ErrorHandling.HandleError(ref response, e.Message);
+            }
             return response;
         }
         
         public async Task<OASISResult<MintNftResult>> MintNft(MintNftRequest mintNftRequest)
         {
             var response = new OASISResult<MintNftResult>();
-            
-            var blockHash = await _rpcClient.GetRecentBlockHashAsync();
-            var minBalanceForExemptionAcc = (await _rpcClient.GetMinimumBalanceForRentExemptionAsync(TokenProgram.TokenAccountDataSize)).Result;
-            var minBalanceForExemptionMint =(await _rpcClient.GetMinimumBalanceForRentExemptionAsync(TokenProgram.MintAccountDataSize)).Result;
+            try
+            {
+                var (err, res) = mintNftRequest.IsRequestValid();
+                if (!err)
+                {
+                    response.IsError = true;
+                    response.Message = res;
+                    ErrorHandling.HandleError(ref response, res);
+                    return response;
+                }
+                
+                var blockHash = await _rpcClient.GetRecentBlockHashAsync();
+                var minBalanceForExemptionAcc = (await _rpcClient.GetMinimumBalanceForRentExemptionAsync(TokenProgram.TokenAccountDataSize)).Result;
+                var minBalanceForExemptionMint =(await _rpcClient.GetMinimumBalanceForRentExemptionAsync(TokenProgram.MintAccountDataSize)).Result;
 
-            var mintAccount = new PublicKey(mintNftRequest.MintAccount.PublicKey);
-            var ownerAccount = new PublicKey(mintNftRequest.FromAccount.PublicKey);
-            var initialAccount = new PublicKey(mintNftRequest.ToAccount.PublicKey);
-            
-            var tx = new TransactionBuilder().
-                SetRecentBlockHash(blockHash.Result.Value.Blockhash).
-                SetFeePayer(ownerAccount).
-                AddInstruction(SystemProgram.CreateAccount(
-                    ownerAccount,
-                    mintAccount,
-                    minBalanceForExemptionMint,
-                    TokenProgram.MintAccountDataSize,
-                    TokenProgram.ProgramIdKey)).
-                AddInstruction(TokenProgram.InitializeMint(
-                    mintAccount,
-                    mintNftRequest.MintDecimals,
-                    ownerAccount,
-                    ownerAccount)).
-                AddInstruction(SystemProgram.CreateAccount(
-                    ownerAccount,
-                    initialAccount,
-                    minBalanceForExemptionAcc,
-                    TokenProgram.TokenAccountDataSize,
-                    TokenProgram.ProgramIdKey)).
-                AddInstruction(TokenProgram.InitializeAccount(
-                    initialAccount,
-                    mintAccount,
-                    ownerAccount)).
-                AddInstruction(TokenProgram.MintTo(
-                    mintAccount,
-                    initialAccount,
-                    mintNftRequest.Amount,
-                    ownerAccount)).
-                AddInstruction(MemoProgram.NewMemo(initialAccount, mintNftRequest.MemoText)).
-                Build(_wallet.Account);
-            
-            var sendTransactionResult = await _rpcClient.SimulateTransactionAsync(tx);
-            if (!sendTransactionResult.WasSuccessful)
+                var mintAccount = new PublicKey(mintNftRequest.MintAccount.PublicKey);
+                var ownerAccount = new PublicKey(mintNftRequest.FromAccount.PublicKey);
+                var initialAccount = new PublicKey(mintNftRequest.ToAccount.PublicKey);
+                
+                var tx = new TransactionBuilder().
+                    SetRecentBlockHash(blockHash.Result.Value.Blockhash).
+                    SetFeePayer(ownerAccount).
+                    AddInstruction(SystemProgram.CreateAccount(
+                        ownerAccount,
+                        mintAccount,
+                        minBalanceForExemptionMint,
+                        TokenProgram.MintAccountDataSize,
+                        TokenProgram.ProgramIdKey)).
+                    AddInstruction(TokenProgram.InitializeMint(
+                        mintAccount,
+                        mintNftRequest.MintDecimals,
+                        ownerAccount,
+                        ownerAccount)).
+                    AddInstruction(SystemProgram.CreateAccount(
+                        ownerAccount,
+                        initialAccount,
+                        minBalanceForExemptionAcc,
+                        TokenProgram.TokenAccountDataSize,
+                        TokenProgram.ProgramIdKey)).
+                    AddInstruction(TokenProgram.InitializeAccount(
+                        initialAccount,
+                        mintAccount,
+                        ownerAccount)).
+                    AddInstruction(TokenProgram.MintTo(
+                        mintAccount,
+                        initialAccount,
+                        mintNftRequest.Amount,
+                        ownerAccount)).
+                    AddInstruction(MemoProgram.NewMemo(initialAccount, mintNftRequest.MemoText)).
+                    Build(_wallet.Account);
+                
+                var sendTransactionResult = await _rpcClient.SimulateTransactionAsync(tx);
+                if (!sendTransactionResult.WasSuccessful)
+                {
+                    response.IsError = true;
+                    response.Message = sendTransactionResult.Reason;
+                    ErrorHandling.HandleError(ref response, response.Message);
+                    return response;
+                }
+                response.Result = new MintNftResult(sendTransactionResult.Result.Value.Error.InstructionError.BorshIoError);
+            }
+            catch (Exception e)
             {
                 response.IsError = true;
-                response.Message = sendTransactionResult.Reason;
-                return response;
+                response.Message = e.Message;
+                ErrorHandling.HandleError(ref response, e.Message);
             }
-            response.Result = new MintNftResult(sendTransactionResult.Result.Value.Error.InstructionError.BorshIoError);
             return response;
         }
 
         public async Task<OASISResult<SendTransactionResult>> SendTransaction(SendTransactionRequest sendTransactionRequest)
         {
             var response = new OASISResult<SendTransactionResult>();
-            var fromAccount = new PublicKey(sendTransactionRequest.FromAccount.PublicKey);
-            var toAccount = new PublicKey(sendTransactionRequest.ToAccount.PublicKey);
-            var blockHash = await _rpcClient.GetRecentBlockHashAsync();
-
-            var tx = new TransactionBuilder().
-                SetRecentBlockHash(blockHash.Result.Value.Blockhash).
-                SetFeePayer(fromAccount).
-                AddInstruction(MemoProgram.NewMemo(fromAccount, sendTransactionRequest.MemoText)).
-                AddInstruction(SystemProgram.Transfer(fromAccount, toAccount, sendTransactionRequest.Lampposts)).
-                Build(_wallet.Account);
-
-            var sendTransactionResult = await _rpcClient.SendTransactionAsync(tx);
-            if (!sendTransactionResult.WasSuccessful)
+            try
             {
-                response.IsError = true;
-                response.Message = sendTransactionResult.Reason;
-                return response;
+                var (err, res) = sendTransactionRequest.IsRequestValid();
+                if (!err)
+                {
+                    response.Message = res;
+                    response.IsError = true;
+                    ErrorHandling.HandleError(ref response, res);
+                    return response;
+                }
+
+                var fromAccount = new PublicKey(sendTransactionRequest.FromAccount.PublicKey);
+                var toAccount = new PublicKey(sendTransactionRequest.ToAccount.PublicKey);
+                var blockHash = await _rpcClient.GetRecentBlockHashAsync();
+
+                var tx = new TransactionBuilder().
+                    SetRecentBlockHash(blockHash.Result.Value.Blockhash).
+                    SetFeePayer(fromAccount).
+                    AddInstruction(MemoProgram.NewMemo(fromAccount, sendTransactionRequest.MemoText)).
+                    AddInstruction(SystemProgram.Transfer(fromAccount, toAccount, sendTransactionRequest.Lampposts)).
+                    Build(_wallet.Account);
+
+                var sendTransactionResult = await _rpcClient.SendTransactionAsync(tx);
+                if (!sendTransactionResult.WasSuccessful)
+                {
+                    response.IsError = true;
+                    response.Message = sendTransactionResult.Reason;
+                    ErrorHandling.HandleError(ref response, response.Message);
+                    return response;
+                }
+                response.Result = new SendTransactionResult(sendTransactionResult.Result);
             }
-            response.Result = new SendTransactionResult(sendTransactionResult.Result);
+            catch (Exception e)
+            {
+                response.Exception = e;
+                response.Message = e.Message;
+                response.IsError = true;
+                ErrorHandling.HandleError(ref response, e.Message);
+            }
             return response;
         }
 
@@ -152,16 +211,19 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Service
             {
                 response.IsError = true;
                 response.Message = "Account address is not correct or metadata not exists";
+                ErrorHandling.HandleError(ref response, response.Message);
             }
             catch (NullReferenceException)
             {
                 response.IsError = true;
                 response.Message = "Account address is not correct or metadata not exists";
+                ErrorHandling.HandleError(ref response, response.Message);
             }
             catch (Exception e)
             {
                 response.IsError = true;
                 response.Message = e.Message;
+                ErrorHandling.HandleError(ref response, e.Message);
             }
             return response;
         }
@@ -194,6 +256,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Service
             {
                 response.IsError = true;
                 response.Message = e.Message;
+                ErrorHandling.HandleError(ref response, e.Message);
             }
             return response;
         }
