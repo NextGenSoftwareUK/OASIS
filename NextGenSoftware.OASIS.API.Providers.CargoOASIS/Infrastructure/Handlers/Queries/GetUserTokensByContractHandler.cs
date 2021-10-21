@@ -52,6 +52,7 @@ namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Handlers
                     {
                         response.IsError = true;
                         response.Message = "Access JWT Token is empty, but Skip Auth is False";
+                        ErrorHandling.HandleError(ref response, response.Message);
                         return response;
                     }
                     httRequest.Headers.Add("Authorization", $"Bearer {request.AccessJwtToken}");
@@ -60,6 +61,8 @@ namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Handlers
                 if (!httpResponse.IsSuccessStatusCode)
                 {
                     response.Message = httpResponse.ReasonPhrase;
+                    response.IsError = true;
+                    ErrorHandling.HandleError(ref response, response.Message);
                     return response;
                 }
                 var responseString = await httpResponse.Content.ReadAsStringAsync();
@@ -70,6 +73,8 @@ namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Handlers
             catch (Exception e)
             {
                 response.Message = e.Message;
+                response.IsError = true;
+                ErrorHandling.HandleError(ref response, e.Message);
                 return response;
             }
         }
