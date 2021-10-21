@@ -425,7 +425,6 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 string errorMessage = string.Concat("All registered OASIS Providers in the AutoFailOverList failed to load holons for parent with id ", id, ", and holonType ", Enum.GetName(typeof(HolonType), holonType), ". Please view the logs for more information. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString());
                 result.Message = errorMessage;
                 LoggingManager.Log(errorMessage, LogType.Error);
-                ErrorHandling.HandleError(ref result, result.Message);
             }
 
             SwitchBackToCurrentProvider(currentProviderType, ref result);
@@ -583,7 +582,6 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 string errorMessage = string.Concat("All registered OASIS Providers in the AutoFailOverList failed to load holons for parent with providerKey ", providerKey, ", and holonType ", Enum.GetName(typeof(HolonType), holonType), ". Please view the logs for more information. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString());
                 result.Message = errorMessage;
                 LoggingManager.Log(errorMessage, LogType.Error);
-                ErrorHandling.HandleError(ref result, result.Message);
             }
 
             SwitchBackToCurrentProvider(currentProviderType, ref result);
@@ -740,7 +738,6 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 string errorMessage = string.Concat("All registered OASIS Providers in the AutoFailOverList failed to load all holons for holonType ", Enum.GetName(typeof(HolonType), holonType), ". Please view the logs for more information. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString());
                 result.Message = errorMessage;
                 LoggingManager.Log(errorMessage, LogType.Error);
-                ErrorHandling.HandleError(ref result, result.Message);
             }
 
             SwitchBackToCurrentProvider(currentProviderType, ref result);
@@ -779,7 +776,6 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 string errorMessage = string.Concat("All registered OASIS Providers in the AutoFailOverList failed to load all holons for holonType ", Enum.GetName(typeof(HolonType), holonType), ". Please view the logs for more information. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString());
                 result.Message = errorMessage;
                 LoggingManager.Log(errorMessage, LogType.Error);
-                ErrorHandling.HandleError(ref result, result.Message);
             }
             else
                 MapMetaData(result);
@@ -909,7 +905,6 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 string errorMessage = string.Concat("All registered OASIS Providers in the AutoFailOverList failed to save ", LoggingHelper.GetHolonInfoForLogging(holon), ". Please view the logs for more information. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString());
                 result.Message = errorMessage;
                 LoggingManager.Log(errorMessage, LogType.Error);
-                ErrorHandling.HandleError(ref result, result.Message);
             }
            
             if (ProviderManager.IsAutoReplicationEnabled)
@@ -1249,7 +1244,6 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 {
                     result.IsError = true;
                     result.Message = providerResult.Message;
-                    ErrorHandling.HandleError(ref result, result.Message);
                 }
                 else
                 {
@@ -1284,7 +1278,6 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                                     result.IsError = true;
                                     result.InnerMessages.Add(errorMessage);
                                     LoggingManager.Log(errorMessage, LogType.Error);
-                                    ErrorHandling.HandleError(ref result, result.Message);
                                     result.Exception = ex;
                                 }
                             }
@@ -1298,7 +1291,6 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 result.IsError = true;
                 result.Message = errorMessage;
                 LoggingManager.Log(errorMessage, LogType.Error);
-                ErrorHandling.HandleError(ref result, result.Message);
                 result.Exception = ex;
             }
 
@@ -1306,7 +1298,6 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             {
                 result.IsError = true;
                 result.Message = string.Concat("More than one error occured in DeleteHolonAsync attempting to auto-replicate the deletion of the holon with id: ", id, ", softDelete = ", softDelete);
-                ErrorHandling.HandleError(ref result, result.Message);   
             }
 
             return result;

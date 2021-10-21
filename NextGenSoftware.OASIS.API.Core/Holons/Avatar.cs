@@ -14,7 +14,20 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
     // If people need to add/subreact karma from the Avatar then they need to use the AvatarDetail object, same with if they need to query their KarmaAkasicRecords (karma audit).
     public class Avatar : HolonBase, IAvatar
     {
-        public new Guid Id 
+        //public new Guid Id 
+        //{
+        //    get
+        //    {
+        //        return base.Id;
+        //    }
+        //    set
+        //    {
+        //        base.Id = value;
+        //    }
+        //}
+
+        //Needed to work around bug in WebAPI where base class properties are not returned/serialized (it cannot be the same property name or it breaks Mongo for some unknown reason!)
+        public Guid AvatarId
         {
             get
             {

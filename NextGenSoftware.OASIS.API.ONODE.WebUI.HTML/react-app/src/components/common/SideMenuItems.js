@@ -27,7 +27,7 @@ export default class SideMenuItems extends Component {
                             {
                                 menu.subNav.map((item, index) =>
                                     <li key={index} onClick={this.props.hideSideNav}>
-                                        <Link className="side-nav-subnav link" to={item.path}>{item.title}</Link>
+                                        {/* <Link className="side-nav-subnav link" to={item.path}>{item.title}</Link> */}
                                     </li>)
                             }
                         </ul>

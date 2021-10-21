@@ -470,7 +470,8 @@ namespace NextGenSoftware.Holochain.HoloNET.Client.Core
                     await m_Socket.ConnectAsync(uri, m_CancellationToken);
                     OnOpen?.Invoke();
 
-                    await Receive();
+                    //await Receive();
+                    Receive();
                 }
                 catch (Exception ex)
                 {
@@ -479,11 +480,11 @@ namespace NextGenSoftware.Holochain.HoloNET.Client.Core
                 }
                 finally
                 {
-                    if (m_Socket != null)
-                    {
-                        m_TokenSource.Cancel();
-                        m_Socket.Dispose();
-                    }
+                    //if (m_Socket != null)
+                    //{
+                    //    m_TokenSource.Cancel();
+                    //    m_Socket.Dispose();
+                    //}
                 }
             }
 
@@ -635,7 +636,7 @@ namespace NextGenSoftware.Holochain.HoloNET.Client.Core
             public async Task Receive()
             {
                 WebSocketCloseCode closeCode = WebSocketCloseCode.Abnormal;
-                await new WaitForBackgroundThread();
+               // await new WaitForBackgroundThread();
 
                 ArraySegment<byte> buffer = new ArraySegment<byte>(new byte[8192]);
                 try
