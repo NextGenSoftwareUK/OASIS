@@ -1,20 +1,18 @@
-﻿using MongoDB.Driver;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using System.Linq;
-using EOSNewYork.EOSCore.Serialization;
+using System.Threading.Tasks;
+using MongoDB.Driver;
 using NextGenSoftware.OASIS.API.Core.Helpers;
-using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
-using NextGenSoftware.OASIS.API.DNA;
+using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Interfaces;
 
-namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
+namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Repositories
 {
     public class SCMSRepository : ISCMSRepository
     {
-        MongoDbContext db = new MongoDbContext();
+        MongoDbContext db = new();
         private AvatarManager AvatarManager => Program.AvatarManager;
 
         public async Task<OASISResult<Sequence>> GetSequence(string id)
@@ -656,114 +654,159 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
 
         public async Task<OASISResult<IEnumerable<Link>>> GetAllLinks()
         {
+            var response = new OASISResult<IEnumerable<Link>>();
             try
             {
-                return await db.Link.AsQueryable().ToListAsync();
+                response.Result = await db.Link.AsQueryable().ToListAsync();
             }
             catch (Exception ex)
             {
-                throw;
+                response.Exception = ex;
+                response.Message = ex.Message;
+                response.IsError = true;
+                ErrorHandling.HandleError(ref response, ex.Message);
             }
+            return response;
         }
 
         public async Task<OASISResult<Log>> GetLog(string id)
         {
+            var response = new OASISResult<Log>();
             try
             {
                 FilterDefinition<Log> filter = Builders<Log>.Filter.Eq("Id", id);
-                return await db.Log.Find(filter).FirstOrDefaultAsync();
+                response.Result = await db.Log.Find(filter).FirstOrDefaultAsync();
             }
             catch (Exception ex)
             {
-                throw;
+                response.Message = ex.Message;
+                response.IsError = true;
+                response.Exception = ex;
+                ErrorHandling.HandleError(ref response, ex.Message);
             }
+            return response;
         }
 
         public async Task<OASISResult<IEnumerable<Log>>> GetAllLogs()
         {
+            var response = new OASISResult<IEnumerable<Log>>();
             try
             {
-                return await db.Log.AsQueryable().ToListAsync();
+                response.Result = await db.Log.AsQueryable().ToListAsync();
             }
             catch (Exception ex)
             {
-                throw;
+                response.Exception = ex;
+                response.Message = ex.Message;
+                response.IsSaved = true;
+                ErrorHandling.HandleError(ref response, ex.Message);
             }
+            return response;
         }
 
         public async Task<OASISResult<Material>> GetMaterial(string id)
         {
+            var response = new OASISResult<Material>();
             try
             {
                 FilterDefinition<Material> filter = Builders<Material>.Filter.Eq("Id", id);
-                return await db.Material.Find(filter).FirstOrDefaultAsync();
+                response.Result = await db.Material.Find(filter).FirstOrDefaultAsync();
             }
             catch (Exception ex)
             {
-                throw;
+                response.Exception = ex;
+                response.Message = ex.Message;
+                response.IsSaved = true;
+                ErrorHandling.HandleError(ref response, ex.Message);
             }
+            return response;
         }
 
         public async Task<OASISResult<IEnumerable<Material>>> GetAllMaterials()
         {
+            var response = new OASISResult<IEnumerable<Material>>();
             try
             {
-                return await db.Material.AsQueryable().ToListAsync();
+                response.Result = await db.Material.AsQueryable().ToListAsync();
             }
             catch (Exception ex)
             {
-                throw;
+                response.Exception = ex;
+                response.Message = ex.Message;
+                response.IsSaved = true;
+                ErrorHandling.HandleError(ref response, ex.Message);
             }
+            return response;
         }
 
         public async Task<OASISResult<Note>> GetNote(string id)
         {
+            var response = new OASISResult<Note>();
             try
             {
                 FilterDefinition<Note> filter = Builders<Note>.Filter.Eq("Id", id);
-                return await db.Note.Find(filter).FirstOrDefaultAsync();
+                response.Result = await db.Note.Find(filter).FirstOrDefaultAsync();
             }
             catch (Exception ex)
             {
-                throw;
+                response.Exception = ex;
+                response.Message = ex.Message;
+                response.IsError = true;
+                ErrorHandling.HandleError(ref response, ex.Message);
             }
+            return response;
         }
 
         public async Task<OASISResult<IEnumerable<Note>>> GetAllNotes()
         {
+            var response = new OASISResult<IEnumerable<Note>>();
             try
             {
-                return await db.Note.AsQueryable().ToListAsync();
+                response.Result = await db.Note.AsQueryable().ToListAsync();
             }
             catch (Exception ex)
             {
-                throw;
+                response.Exception = ex;
+                response.Message = ex.Message;
+                response.IsError = true;
+                ErrorHandling.HandleError(ref response, ex.Message);
             }
+            return response;
         }
 
         public async Task<OASISResult<Trigger>> GetTrigger(string id)
         {
+            var response = new OASISResult<Trigger>();
             try
             {
                 FilterDefinition<Trigger> filter = Builders<Trigger>.Filter.Eq("Id", id);
-                return await db.Trigger.Find(filter).FirstOrDefaultAsync();
+                response.Result = await db.Trigger.Find(filter).FirstOrDefaultAsync();
             }
             catch (Exception ex)
             {
-                throw;
+                response.Exception = ex;
+                response.Message = ex.Message;
+                response.IsError = true;
+                ErrorHandling.HandleError(ref response, ex.Message);
             }
+            return response;
         }
 
         public async Task<OASISResult<IEnumerable<Trigger>>> GetAllTriggers()
         {
+            var response = new OASISResult<IEnumerable<Trigger>>();
             try
             {
-                return await db.Trigger.AsQueryable().ToListAsync();
+                response.Result = await db.Trigger.AsQueryable().ToListAsync();
             }
             catch (Exception ex)
             {
-                throw;
+                response.Exception = ex;
+                response.Message = ex.Message;
+                response.IsError = true;
+                ErrorHandling.HandleError(ref response, ex.Message);
             }
+            return response;
         }
     }
 }
