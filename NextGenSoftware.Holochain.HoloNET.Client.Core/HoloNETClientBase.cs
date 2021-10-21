@@ -13,14 +13,14 @@ using NextGenSoftware.Holochain.HoloNET.Client.MessagePack;
 
 namespace NextGenSoftware.Holochain.HoloNET.Client.Core
 {
-    //[MessagePackObject]
+    [MessagePackObject]
     [Serializable]
     public class Temp
     {
-       // [Key(0)]
+        [Key(0)]
         public string Name { get; set; }
 
-        //[Key(1)]
+        [Key(1)]
         public string Desc { get; set; }
     }
 
@@ -94,6 +94,14 @@ namespace NextGenSoftware.Holochain.HoloNET.Client.Core
             get
             {
                 return WebSocket.State;
+            }
+        }
+
+        public WebSocketState2 State2
+        {
+            get
+            {
+                return webSocket2.State;
             }
         }
 
@@ -359,8 +367,8 @@ namespace NextGenSoftware.Holochain.HoloNET.Client.Core
                                 fn_name = function,
                                 zome_name = zome,
                                 //payload = MessagePackSerializer.Serialize(paramsObject),
-                                //payload = MessagePackSerializer.Serialize(new Temp() { Name = "blah", Desc = "moooooo!" }),
-                                payload = formatter.Serialize(new Temp() { Name = "blah", Desc = "moooooo!" }),
+                                payload = MessagePackSerializer.Serialize(new Temp() { Name = "blah", Desc = "moooooo!" }),
+                               // payload = formatter.Serialize(new Temp() { Name = "blah", Desc = "moooooo!" }),
                                 provenance = Encoding.UTF8.GetBytes(AgentPubKey),
                                 cap = null
                             }
@@ -370,11 +378,14 @@ namespace NextGenSoftware.Holochain.HoloNET.Client.Core
                         {
                             id = Convert.ToUInt64(id),
                             type = "Request",
-                            //data = MessagePackSerializer.Serialize(holoNETData)
-                            data = formatter.Serialize(holoNETData)
+                            data = MessagePackSerializer.Serialize(holoNETData)
+                           // data = formatter.Serialize(holoNETData)
                         };
 
-                        await webSocket2.Send(formatter.Serialize(request));
+                        // await webSocket2.Send(formatter.Serialize(request));
+                         await webSocket2.Send(MessagePackSerializer.Serialize(request));
+
+
                         //await SendRawDataAsync(formatter.Serialize(request));
                         // await SendRawDataAsync(MessagePackSerializer.Serialize(request));
                     }
