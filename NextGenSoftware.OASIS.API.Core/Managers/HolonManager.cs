@@ -931,7 +931,9 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
             SwitchBackToCurrentProvider(currentProviderType, ref result);
             result.IsSaved = result.Result != null && result.Result.Id != Guid.Empty;
-            result.Result.IsChanged = !result.IsSaved;
+
+            if (result.Result != null)
+                result.Result.IsChanged = !result.IsSaved;
 
             return result;
         }
@@ -1575,10 +1577,15 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             }
             catch (Exception ex)
             {
-                if (result != null)
-                    result.Result = null;
+                string errorMessage = string.Concat("An error occured attempting to load the holon for id ", id, " using the ", Enum.GetName(providerType), " provider. Error Details: ", ex.ToString());
 
-                LoggingManager.Log(string.Concat("An error occured attempting to load the holon for id ", id, " using the ", Enum.GetName(providerType), " provider. Error Details: ", ex.ToString()), LogType.Error);
+                if (result != null)
+                {
+                    result.Result = null;
+                    ErrorHandling.HandleError(ref result, errorMessage);
+                }
+                else
+                    LoggingManager.Log(errorMessage, LogType.Error);
             }
 
             return result;
@@ -1610,10 +1617,15 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             }
             catch (Exception ex)
             {
-                if (result != null)
-                    result.Result = default(T);
+                string errorMessage = string.Concat("An error occured attempting to load the holon for id ", id, " using the ", Enum.GetName(providerType), " provider. Error Details: ", ex.ToString());
 
-                LoggingManager.Log(string.Concat("An error occured attempting to load the holon for id ", id, " using the ", Enum.GetName(providerType), " provider. Error Details: ", ex.ToString()), LogType.Error);
+                if (result != null)
+                {
+                    result.Result = default(T);
+                    ErrorHandling.HandleError(ref result, errorMessage);
+                }
+                else
+                    LoggingManager.Log(errorMessage, LogType.Error);
             }
 
             return result;
@@ -1643,10 +1655,15 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             }
             catch (Exception ex)
             {
-                if (result != null)
-                    result.Result = null;
+                string errorMessage = string.Concat("An error occured attempting to load the holon for id ", id, " using the ", Enum.GetName(providerType), " provider. Error Details: ", ex.ToString());
 
-                LoggingManager.Log(string.Concat("An error occured attempting to load the holon for id ", id, " using the ", Enum.GetName(providerType), " provider. Error Details: ", ex.ToString()), LogType.Error);
+                if (result != null)
+                {
+                    result.Result = null;
+                    ErrorHandling.HandleError(ref result, errorMessage);
+                }
+                else
+                    LoggingManager.Log(errorMessage, LogType.Error);
             }
 
             return result;
@@ -1677,10 +1694,15 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             }
             catch (Exception ex)
             {
-                if (result != null)
-                    result.Result = default(T);
+                string errorMessage = string.Concat("An error occured attempting to load the holon for id ", id, " using the ", Enum.GetName(providerType), " provider. Error Details: ", ex.ToString());
 
-                LoggingManager.Log(string.Concat("An error occured attempting to load the holon for id ", id, " using the ", Enum.GetName(providerType), " provider. Error Details: ", ex.ToString()), LogType.Error);
+                if (result != null)
+                {
+                    result.Result = default(T);
+                    ErrorHandling.HandleError(ref result, errorMessage);
+                }
+                else
+                    LoggingManager.Log(errorMessage, LogType.Error);
             }
 
             return result;
@@ -1710,10 +1732,15 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             }
             catch (Exception ex)
             {
-                if (result != null)
-                    result.Result = null;
+                string errorMessage = string.Concat("An error occured attempting to load the holon for providerKey ", providerKey, " using the ", Enum.GetName(providerType), " provider. Error Details: ", ex.ToString());
 
-                LoggingManager.Log(string.Concat("An error occured attempting to load the holon for providerKey ", providerKey, " using the ", Enum.GetName(providerType), " provider. Error Details: ", ex.ToString()), LogType.Error);
+                if (result != null)
+                {
+                    result.Result = null;
+                    ErrorHandling.HandleError(ref result, errorMessage);
+                }
+                else
+                    LoggingManager.Log(errorMessage, LogType.Error);
             }
 
             return result;
@@ -1744,10 +1771,15 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             }
             catch (Exception ex)
             {
-                if (result != null)
-                    result.Result = default(T);
+                string errorMessage = string.Concat("An error occured attempting to load the holon for providerKey ", providerKey, " using the ", Enum.GetName(providerType), " provider. Error Details: ", ex.ToString());
 
-                LoggingManager.Log(string.Concat("An error occured attempting to load the holon for providerKey ", providerKey, " using the ", Enum.GetName(providerType), " provider. Error Details: ", ex.ToString()), LogType.Error);
+                if (result != null)
+                {
+                    result.Result = default(T);
+                    ErrorHandling.HandleError(ref result, errorMessage);
+                }
+                else
+                    LoggingManager.Log(errorMessage, LogType.Error);
             }
 
             return result;
@@ -1777,10 +1809,15 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             }
             catch (Exception ex)
             {
-                if (result != null)
-                    result.Result = null;
+                string errorMessage = string.Concat("An error occured attempting to load the holon for providerKey ", providerKey, " using the ", Enum.GetName(providerType), " provider. Error Details: ", ex.ToString());
 
-                LoggingManager.Log(string.Concat("An error occured attempting to load the holon for providerKey ", providerKey, " using the ", Enum.GetName(providerType), " provider. Error Details: ", ex.ToString()), LogType.Error);
+                if (result != null)
+                {
+                    result.Result = null;
+                    ErrorHandling.HandleError(ref result, errorMessage);
+                }
+                else
+                    LoggingManager.Log(errorMessage, LogType.Error);
             }
 
             return result;
@@ -1811,10 +1848,15 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             }
             catch (Exception ex)
             {
-                if (result != null)
-                    result.Result = default(T);
+                string errorMessage = string.Concat("An error occured attempting to load the holon for providerKey ", providerKey, " using the ", Enum.GetName(providerType), " provider. Error Details: ", ex.ToString());
 
-                LoggingManager.Log(string.Concat("An error occured attempting to load the holon for providerKey ", providerKey, " using the ", Enum.GetName(providerType), " provider. Error Details: ", ex.ToString()), LogType.Error);
+                if (result != null)
+                {
+                    result.Result = default(T);
+                    ErrorHandling.HandleError(ref result, errorMessage);
+                }
+                else
+                    LoggingManager.Log(errorMessage, LogType.Error);
             }
 
             return result;
@@ -1844,10 +1886,15 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             }
             catch (Exception ex)
             {
-                if (result != null)
-                    result.Result = null;
+                string errorMessage = string.Concat("An error occured attempting to load the holons for parent with id ", id, " and holonType ", Enum.GetName(typeof(HolonType), holonType), " using the ", Enum.GetName(providerType), " provider. Error Details: ", ex.ToString());
 
-                LoggingManager.Log(string.Concat("An error occured attempting to load the holons for parent with id ", id, " and holonType ", Enum.GetName(typeof(HolonType), holonType), " using the ", Enum.GetName(providerType), " provider. Error Details: ", ex.ToString()), LogType.Error);
+                if (result != null)
+                {
+                    result.Result = null;
+                    ErrorHandling.HandleError(ref result, errorMessage);
+                }
+                else
+                    LoggingManager.Log(errorMessage, LogType.Error);
             }
 
             return result;
@@ -1878,10 +1925,15 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             }
             catch (Exception ex)
             {
-                if (result != null)
-                    result.Result = null;
+                string errorMessage = string.Concat("An error occured attempting to load the holons for parent with id ", id, " and holonType ", Enum.GetName(typeof(HolonType), holonType), " using the ", Enum.GetName(providerType), " provider. Error Details: ", ex.ToString());
 
-                LoggingManager.Log(string.Concat("An error occured attempting to load the holons for parent with id ", id, " and holonType ", Enum.GetName(typeof(HolonType), holonType), " using the ", Enum.GetName(providerType), " provider. Error Details: ", ex.ToString()), LogType.Error);
+                if (result != null)
+                {
+                    result.Result = null;
+                    ErrorHandling.HandleError(ref result, errorMessage);
+                }
+                else
+                    LoggingManager.Log(errorMessage, LogType.Error);
             }
 
             return result;
@@ -1911,10 +1963,15 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             }
             catch (Exception ex)
             {
-                if (result != null)
-                    result.Result = null;
+                string errorMessage = string.Concat("An error occured attempting to load the holons for parent with id ", id, " and holonType ", Enum.GetName(typeof(HolonType), holonType), " using the ", Enum.GetName(providerType), " provider. Error Details: ", ex.ToString());
 
-                LoggingManager.Log(string.Concat("An error occured attempting to load the holons for parent with id ", id, " and holonType ", Enum.GetName(typeof(HolonType), holonType), " using the ", Enum.GetName(providerType), " provider. Error Details: ", ex.ToString()), LogType.Error);
+                if (result != null)
+                {
+                    result.Result = null;
+                    ErrorHandling.HandleError(ref result, errorMessage);
+                }
+                else
+                    LoggingManager.Log(errorMessage, LogType.Error);
             }
 
             return result;
@@ -1945,10 +2002,15 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             }
             catch (Exception ex)
             {
-                if (result != null)
-                    result.Result = null;
+                string errorMessage = string.Concat("An error occured attempting to load the holons for parent with id ", id, " and holonType ", Enum.GetName(typeof(HolonType), holonType), " using the ", Enum.GetName(providerType), " provider. Error Details: ", ex.ToString());
 
-                LoggingManager.Log(string.Concat("An error occured attempting to load the holons for parent with id ", id, " and holonType ", Enum.GetName(typeof(HolonType), holonType), " using the ", Enum.GetName(providerType), " provider. Error Details: ", ex.ToString()), LogType.Error);
+                if (result != null)
+                {
+                    result.Result = null;
+                    ErrorHandling.HandleError(ref result, errorMessage);
+                }
+                else
+                    LoggingManager.Log(errorMessage, LogType.Error);
             }
 
             return result;
@@ -1978,10 +2040,15 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             }
             catch (Exception ex)
             {
-                if (result != null)
-                    result.Result = null;
+                string errorMessage = string.Concat("An error occured attempting to load the holons for parent with providerKey ", providerKey, " and holonType ", Enum.GetName(typeof(HolonType), holonType), " using the ", Enum.GetName(providerType), " provider. Error Details: ", ex.ToString());
 
-                LoggingManager.Log(string.Concat("An error occured attempting to load the holons for parent with providerKey ", providerKey, " and holonType ", Enum.GetName(typeof(HolonType), holonType), " using the ", Enum.GetName(providerType), " provider. Error Details: ", ex.ToString()), LogType.Error);
+                if (result != null)
+                {
+                    result.Result = null;
+                    ErrorHandling.HandleError(ref result, errorMessage);
+                }
+                else
+                    LoggingManager.Log(errorMessage, LogType.Error);
             }
 
             return result;
@@ -2012,10 +2079,15 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             }
             catch (Exception ex)
             {
-                if (result != null)
-                    result.Result = null;
+                string errorMessage = string.Concat("An error occured attempting to load the holons for parent with providerKey ", providerKey, " and holonType ", Enum.GetName(typeof(HolonType), holonType), " using the ", Enum.GetName(providerType), " provider. Error Details: ", ex.ToString());
 
-                LoggingManager.Log(string.Concat("An error occured attempting to load the holons for parent with providerKey ", providerKey, " and holonType ", Enum.GetName(typeof(HolonType), holonType), " using the ", Enum.GetName(providerType), " provider. Error Details: ", ex.ToString()), LogType.Error);
+                if (result != null)
+                {
+                    result.Result = null;
+                    ErrorHandling.HandleError(ref result, errorMessage);
+                }
+                else
+                    LoggingManager.Log(errorMessage, LogType.Error);
             }
 
             return result;
@@ -2045,10 +2117,15 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             }
             catch (Exception ex)
             {
-                if (result != null)
-                    result.Result = null;
+                string errorMessage = string.Concat("An error occured attempting to load the holons for parent with providerKey ", providerKey, " and holonType ", Enum.GetName(typeof(HolonType), holonType), " using the ", Enum.GetName(providerType), " provider. Error Details: ", ex.ToString());
 
-                LoggingManager.Log(string.Concat("An error occured attempting to load the holons for parent with providerKey ", providerKey, " and holonType ", Enum.GetName(typeof(HolonType), holonType), " using the ", Enum.GetName(providerType), " provider. Error Details: ", ex.ToString()), LogType.Error);
+                if (result != null)
+                {
+                    result.Result = null;
+                    ErrorHandling.HandleError(ref result, errorMessage);
+                }
+                else
+                    LoggingManager.Log(errorMessage, LogType.Error);
             }
 
             return result;
@@ -2089,10 +2166,15 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             }
             catch (Exception ex)
             {
-                if (result != null)
-                    result.Result = null;
+                string errorMessage = string.Concat("An error occured attempting to load the holons for parent with providerKey ", providerKey, " and holonType ", Enum.GetName(typeof(HolonType), holonType), " using the ", Enum.GetName(providerType), " provider. Error Details: ", ex.ToString());
 
-                LoggingManager.Log(string.Concat("An error occured attempting to load the holons for parent with providerKey ", providerKey, " and holonType ", Enum.GetName(typeof(HolonType), holonType), " using the ", Enum.GetName(providerType), " provider. Error Details: ", ex.ToString()), LogType.Error);
+                if (result != null)
+                {
+                    result.Result = null;
+                    ErrorHandling.HandleError(ref result, errorMessage);
+                }
+                else
+                    LoggingManager.Log(errorMessage, LogType.Error);
             }
 
             return result;
@@ -2122,10 +2204,15 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             }
             catch (Exception ex)
             {
-                if (result != null)
-                    result.Result = null;
+                string errorMessage = string.Concat("An error occured attempting to load all holons for holonType ", Enum.GetName(typeof(HolonType), holonType), " using the ", Enum.GetName(providerType), " provider. Error Details: ", ex.ToString());
 
-                LoggingManager.Log(string.Concat("An error occured attempting to load all holons for holonType ", Enum.GetName(typeof(HolonType), holonType), " using the ", Enum.GetName(providerType), " provider. Error Details: ", ex.ToString()), LogType.Error);
+                if (result != null)
+                {
+                    result.Result = null;
+                    ErrorHandling.HandleError(ref result, errorMessage);
+                }
+                else
+                    LoggingManager.Log(errorMessage, LogType.Error);
             }
 
             return result;
@@ -2156,10 +2243,15 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             }
             catch (Exception ex)
             {
-                if (result != null)
-                    result.Result = null;
+                string errorMessage = string.Concat("An error occured attempting to load all holons for holonType ", Enum.GetName(typeof(HolonType), holonType), " using the ", Enum.GetName(providerType), " provider. Error Details: ", ex.ToString());
 
-                LoggingManager.Log(string.Concat("An error occured attempting to load all holons for holonType ", Enum.GetName(typeof(HolonType), holonType), " using the ", Enum.GetName(providerType), " provider. Error Details: ", ex.ToString()), LogType.Error);
+                if (result != null)
+                {
+                    result.Result = null;
+                    ErrorHandling.HandleError(ref result, errorMessage);
+                }
+                else
+                    LoggingManager.Log(errorMessage, LogType.Error);
             }
 
             return result;
@@ -2189,10 +2281,15 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             }
             catch (Exception ex)
             {
-                if (result != null)
-                    result.Result = null;
+                string errorMessage = string.Concat("An error occured attempting to load all holons for holonType ", Enum.GetName(typeof(HolonType), holonType), " using the ", Enum.GetName(providerType), " provider. Error Details: ", ex.ToString());
 
-                LoggingManager.Log(string.Concat("An error occured attempting to load all holons for holonType ", Enum.GetName(typeof(HolonType), holonType), " using the ", Enum.GetName(providerType), " provider. Error Details: ", ex.ToString()), LogType.Error);
+                if (result != null)
+                {
+                    result.Result = null;
+                    ErrorHandling.HandleError(ref result, errorMessage);
+                }
+                else
+                    LoggingManager.Log(errorMessage, LogType.Error);
             }
 
             return result;
@@ -2223,10 +2320,15 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             }
             catch (Exception ex)
             {
-                if (result != null)
-                    result.Result = null;
+                string errorMessage = string.Concat("An error occured attempting to load all holons for holonType ", Enum.GetName(typeof(HolonType), holonType), " using the ", Enum.GetName(providerType), " provider. Error Details: ", ex.ToString());
 
-                LoggingManager.Log(string.Concat("An error occured attempting to load all holons for holonType ", Enum.GetName(typeof(HolonType), holonType), " using the ", Enum.GetName(providerType), " provider. Error Details: ", ex.ToString()), LogType.Error);
+                if (result != null)
+                {
+                    result.Result = null;
+                    ErrorHandling.HandleError(ref result, errorMessage);
+                }
+                else
+                    LoggingManager.Log(errorMessage, LogType.Error);
             }
 
             return result;
@@ -2270,9 +2372,12 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             catch (Exception ex)
             {
                 if (result != null)
+                {
                     result.Result = null;
-
-                LogError(holon, providerType, ex.ToString());
+                    ErrorHandling.HandleError(ref result, $"An error occured attempting to save the {LoggingHelper.GetHolonInfoForLogging(holon)} in the SaveHolonAsync method for the {Enum.GetName(typeof(ProviderType), providerType)} provider. Reason: {ex.ToString()}");
+                }
+                else
+                    LogError(holon, providerType, ex.ToString());
             }
 
             return result;
@@ -2315,9 +2420,12 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             catch (Exception ex)
             {
                 if (result != null)
+                {
                     result.Result = null;
-
-                LogError(holon, providerType, ex.ToString());
+                    ErrorHandling.HandleError(ref result, $"An error occured attempting to save the {LoggingHelper.GetHolonInfoForLogging(holon)} in the SaveHolonAsync method for the {Enum.GetName(typeof(ProviderType), providerType)} provider. Reason: {ex.ToString()}");
+                }
+                else
+                    LogError(holon, providerType, ex.ToString());
             }
 
             return result;
@@ -2359,10 +2467,15 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             }
             catch (Exception ex)
             {
-                if (result != null)
-                    result.Result = null;
+                string errorMessage = string.Concat("An error occured attempting to save the holons in the SaveHolons method using the ", Enum.GetName(providerType), " provider. Error Details: ", ex.ToString());
 
-                LoggingManager.Log(string.Concat("An error occured attempting to save the holons using the ", Enum.GetName(providerType), " provider. Error Details: ", ex.ToString()), LogType.Error);
+                if (result != null)
+                {
+                    result.Result = null;
+                    ErrorHandling.HandleError(ref result, errorMessage);
+                }
+                else
+                    LoggingManager.Log(errorMessage, LogType.Error);
             }
 
             return result;
@@ -2404,10 +2517,15 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             }
             catch (Exception ex)
             {
-                if (result != null)
-                    result.Result = null;
+                string errorMessage = $"An error occured attempting to save the holons in the SaveHolonsAsync method for the {Enum.GetName(providerType)} provider. Reason: {ex.ToString()}";
 
-                LoggingManager.Log(string.Concat("An error occured attempting to save the holons using the ", Enum.GetName(providerType), " provider. Error Details: ", ex.ToString()), LogType.Error);
+                if (result != null)
+                {
+                    result.Result = null;
+                    ErrorHandling.HandleError(ref result, errorMessage);
+                }
+                else
+                    LoggingManager.Log(errorMessage, LogType.Error);
             }
 
             return result;
@@ -2499,19 +2617,14 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         {
             string result = "";
             foreach (string innerMessage in innerMessages)
-                result = string.Concat(result, innerMessage, "/n");
+                result = string.Concat(result, innerMessage, "\n\n");
 
             return result;
         }
 
-        //private void HandleSaveHolonError(ref OASISResult<IHolon> result, IHolon holon)
-        //{
-        //    ErrorHandling.HandleError(ref result, string.Concat("All registered OASIS Providers in the AutoFailOverList failed to save ", LoggingHelper.GetHolonInfoForLogging(holon), ". Reason: ", BuildInnerMessageError(result.InnerMessages), ". Please view the logs and InnerMessages property for more information. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString()));
-        //}
-
         private void HandleSaveHolonError<T>(ref OASISResult<T> result, IHolon holon) where T : IHolon
         {
-            ErrorHandling.HandleError(ref result, string.Concat("All registered OASIS Providers in the AutoFailOverList failed to save ", LoggingHelper.GetHolonInfoForLogging(holon), ". Reason: ", BuildInnerMessageError(result.InnerMessages), ". Please view the logs and InnerMessages property for more information. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString()));
+            ErrorHandling.HandleError(ref result, string.Concat("All registered OASIS Providers in the AutoFailOverList failed to save ", LoggingHelper.GetHolonInfoForLogging(holon), ". Reason: ", BuildInnerMessageError(result.InnerMessages), "Please view the logs and InnerMessages property for more information. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString()));
         }
     }
 }

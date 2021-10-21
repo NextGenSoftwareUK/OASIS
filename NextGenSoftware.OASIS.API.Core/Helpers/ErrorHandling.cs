@@ -20,6 +20,7 @@ namespace NextGenSoftware.OASIS.API.Core.Helpers
             if (includeStackTrace || ShowStackTrace)
                 errorMessage = string.Concat(errorMessage, "StackTrace:\n", Environment.StackTrace);
 
+            result.IsSaved = false;
             result.IsError = true;
             result.Message = errorMessage;
             
