@@ -48,6 +48,7 @@ namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Handlers
                 {
                     response.Message = httpResp.ReasonPhrase;
                     response.IsError = true;
+                    ErrorHandling.HandleError(ref response, response.Message);
                     return response;
                 }
 
@@ -59,6 +60,7 @@ namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Handlers
             {
                 response.IsError = true;
                 response.Message = e.Message;
+                ErrorHandling.HandleError(ref response, e.Message);
                 return response;
             }
         }
