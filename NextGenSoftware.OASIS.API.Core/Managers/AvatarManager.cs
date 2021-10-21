@@ -945,6 +945,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             {
                 result.IsError = true;
                 result.Message = "Avatar Not Found";
+                ErrorHandling.HandleError(ref result, result.Message);
             }
 
             //TODO: Need to implement like avove and HolonManager does to include error handling, auto replication, auto failed over, logging, etc...

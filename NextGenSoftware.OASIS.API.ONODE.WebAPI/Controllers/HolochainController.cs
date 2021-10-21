@@ -39,30 +39,6 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             return new(Program.AvatarManager.GetPrivateProviderKeyForAvatar(avatarId, ProviderType.HoloOASIS));
         }
 
-        ///// <summary>
-        ///// Get's the EOSIO account.
-        ///// </summary>
-        ///// <param name="eosioAccountName"></param>
-        ///// <returns></returns>
-        //[Authorize]
-        //[HttpGet("GetEOSIOAccount")]
-        //public ActionResult<Account> GetEOSIOAccount(string eosioAccountName)
-        //{
-        //    return Ok(SEEDSOASIS.TelosOASIS.GetEOSIOAccount(eosioAccountName));
-        //}
-
-        ///// <summary>
-        ///// Get's the EOSIO account for the given Avatar.
-        ///// </summary>
-        ///// <param name="avatarId"></param>
-        ///// <returns></returns>
-        //[Authorize]
-        //[HttpGet("GetEOSIOAccountForAvatar")]
-        //public ActionResult<Account> GetEOSIOAccountForAvatar(Guid avatarId)
-        //{
-        //    return Ok(SEEDSOASIS.TelosOASIS.GetEOSIOAccountForAvatar(avatarId));
-        //}
-
         /// <summary>
         /// Get's the Avatar id for the the given EOS account name.
         /// </summary>
