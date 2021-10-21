@@ -19,22 +19,6 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
     [EnableCors()]
     public class KarmaController : OASISControllerBase
     {
-        public KarmaController()
-        {
-
-        }
-
-        ///// <summary>
-        ///// Get all positive karma weightings.
-        ///// </summary>
-        ///// <param name="karmaType"></param>
-        ///// <returns></returns>
-        //[HttpGet("GetAllPositiveKarmaWeightings/{karmaType}")]
-        //public ActionResult<bool> GetAllPositiveKarmaWeightings(KarmaTypePositive karmaType)
-        //{
-        //    return Ok();
-        //}
-
         /// <summary>
         /// Get karma weighting for a given positive karma cateogey.
         /// </summary>
@@ -58,17 +42,6 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         {
             return new();
         }
-
-        ///// <summary>
-        ///// Get all negative karma weightings.
-        ///// </summary>
-        ///// <param name="karmaType"></param>
-        ///// <returns></returns>
-        //[HttpGet("GetAllNegativeKarmaWeightings/{karmaType}")]
-        //public ActionResult<bool> GetAllNegativeKarmaWeightings(KarmaTypeNegative karmaType)
-        //{
-        //    return Ok();
-        //}
 
         /// <summary>
         /// Get karma weighting for a given negative karma cateogey.

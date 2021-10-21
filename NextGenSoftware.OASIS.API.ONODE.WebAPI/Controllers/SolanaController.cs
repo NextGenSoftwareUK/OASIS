@@ -10,7 +10,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    //[Authorize]
+    [Authorize]
     public class SolanaController : OASISControllerBase
     {
         private readonly ISolanaService _solanaService;
