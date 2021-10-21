@@ -112,6 +112,9 @@ class ViewAvatar extends React.Component {
                     <span className="form-cross-icon" onClick={() => hide('avatar', 'viewAvatar')}>
                         <i className="fa fa-times"></i>
                     </span>
+                    <div>
+                        <h2>View Avatar</h2>
+                    </div>
                     {/* {this.state.loggedIn ? ( */}
                         <>
                             {/* {this.state.loading ? (
