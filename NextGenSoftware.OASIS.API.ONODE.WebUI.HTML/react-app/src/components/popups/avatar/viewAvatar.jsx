@@ -112,21 +112,21 @@ class ViewAvatar extends React.Component {
                     <span className="form-cross-icon" onClick={() => hide('avatar', 'viewAvatar')}>
                         <i className="fa fa-times"></i>
                     </span>
-                    {this.state.loggedIn ? (
+                    {/* {this.state.loggedIn ? ( */}
                         <>
-                            {this.state.loading ? (
+                            {/* {this.state.loading ? (
                                 <Loader type="Oval" height={30} width={30} color="#fff" />
-                            ) :
+                            ) : */}
                                 <ReactGrid
                                     rows={this.state.rows}
                                     columns={this.state.columns}
                                     columnWidths={this.state.columnWidth}
                                 />
-                            }
+                            {/* } */}
                         </>
-                    ) : (
+                    {/* ) : (
                         <h2 >You are not logged in! </h2>
-                    )}
+                    )} */}
 
                 </ModalBody>
 
