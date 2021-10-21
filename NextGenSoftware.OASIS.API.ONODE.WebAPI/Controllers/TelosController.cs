@@ -33,11 +33,6 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             }
         }
 
-        public TelosController()
-        {
-
-        }
-
         /// <summary>
         /// Get's the Telos account name for the given Avatar.
         /// </summary>
