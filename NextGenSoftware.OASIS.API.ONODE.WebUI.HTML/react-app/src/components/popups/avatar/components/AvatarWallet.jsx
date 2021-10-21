@@ -1,14 +1,10 @@
 import React from "react"
 import Loader from "react-loader-spinner";
-import { Link } from "react-router-dom"
 import { Modal } from "react-bootstrap"
 
-import ReactGrid from "../../ReactGrid";
-import { login } from "../../../functions"
-
-
-import "../../../assets/scss/avatar-popup.scss"
-// import "../../../assets/scss/popup.scss"
+import ReactGrid from "../../../ReactGrid";
+import { login } from "../../../../functions"
+import '../../../../assets/scss/avatar-popup.scss';
 
 class AvatarWallet extends React.Component {
 	constructor(props) {
