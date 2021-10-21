@@ -2,8 +2,6 @@ import React from "react";
 
 import { Modal } from "react-bootstrap";
 
-import "../../../assets/scss/data-screen.scss";
-
 import { ToastContainer, toast } from "react-toastify";
 
 class OffChainManagement extends React.Component {
