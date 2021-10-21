@@ -462,12 +462,25 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
 
         public async Task<OASISResult<Drawing>> GetDrawing(string id)
         {
-            FilterDefinition<Drawing> filter = Builders<Drawing>.Filter.Eq("Id", id);
-            return await db.Drawing.Find(filter).FirstOrDefaultAsync();
+            var response = new OASISResult<Drawing>();
+            try
+            {
+                FilterDefinition<Drawing> filter = Builders<Drawing>.Filter.Eq("Id", id); 
+                response.Result = await db.Drawing.Find(filter).FirstOrDefaultAsync();
+            }
+            catch (Exception e)
+            {
+                response.Exception = e;
+                response.Message = e.Message;
+                response.IsError = true;
+                ErrorHandling.HandleError(ref response, e.Message);
+            }
+            return response;
         }
 
         public async Task<OASISResult<IEnumerable<Drawing>>> GetAllDrawings(bool loadPhase = false, bool loadFile = true)
         {
+            var response = new OASISResult<IEnumerable<Drawing>>();
             try
             {
                 var drawings = await db.Drawing.AsQueryable().ToListAsync();
@@ -477,23 +490,34 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
                     foreach (Drawing drawing in drawings)
                     {
                         if (loadPhase)
-                            drawing.Phase = await GetPhase(drawing.PhaseId);
+                        {
+                            var phase = await GetPhase(drawing.PhaseId);
+                            drawing.Phase = phase.Result;
+                        }
 
                         if (loadFile)
-                            drawing.File = await GetFile(drawing.FileId);
+                        {
+                            var file = await GetFile(drawing.FileId);
+                            drawing.File = file.Result;
+                        }
                     }
                 }
-                
-                return drawings;
+
+                response.Result = drawings;
             }
             catch (Exception ex)
             {
-                throw;
+                response.Exception = ex;
+                response.Message = ex.Message;
+                response.IsError = true;
+                ErrorHandling.HandleError(ref response, ex.Message);
             }
+            return response;
         }
 
         public async Task<OASISResult<IEnumerable<Drawing>>> GetAllDrawings(int SequenceNo, int PhaseNo, bool loadPhase = false, bool loadFile= true)
         {
+            var response = new OASISResult<IEnumerable<Drawing>>();
             try
             {
                 List<Drawing> filteredDrawings = new List<Drawing>();
@@ -501,7 +525,6 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
                 var filteredPhases = await GetPhasesByPhaseNo(PhaseNo);
                 var filteredSequences = await GetSequencesBySequenceNo(SequenceNo);
                 var drawings = await db.Drawing.AsQueryable().ToListAsync();
-                //var drawings = await GetAllDrawings();
 
                 foreach (Drawing drawing in drawings.AsQueryable())
                 {
@@ -524,180 +547,111 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
                     }
 
                     if (loadFile)
-                        drawing.File = await GetFile(drawing.FileId);
-                }
-
-                // Load the child File objects.
-                /*
-                if (loadFile)
-                {
-                    foreach (Drawing drawing in filteredDrawings)
-                        drawing.File = await GetFile(drawing.FileId);
-                }*/
-
-
-                //Use to pull back the whole Phase object too but that adds a lot more to the payload send back so we only want the File object
-                /*
-                var drawings = db.MongoDbBEB.GetCollection<Drawing>("Drawing");
-
-                var resultOfJoin = drawings.Aggregate();
-
-                if (includeFileObject)
-                    resultOfJoin = (IAggregateFluent<Drawing>)resultOfJoin.Lookup("File", "FileId", "_id", @as: "File").Unwind("File");
-
-                if (includePhaseObject)
-                    resultOfJoin = (IAggregateFluent<Drawing>)resultOfJoin.Lookup("Phase", "PhaseId", "_id", @as: "Phase").Unwind("Phase");
-                
-                var drawingsExtended = resultOfJoin.As<Drawing>().ToList();
-                */
-
-                /*
-                var resultOfJoin = drawings.Aggregate()
-                   // .Lookup("Phase", "PhaseId", "_id", @as: "Phase")
-                    .Lookup("File", "FileId", "_id", @as: "File")
-                   //.Lookup("Phase.Sequence", "Phase.SequenceId", "_id", @as: "Sequence")  //TODO: Need to find out why this doesn't work?!
-                 //  .Unwind("Phase")
-                   .Unwind("File")
-                    //.Unwind("Sequence")
-                    .As<Drawing>()
-                    .ToList();
-                    */
-
-                /*
-                foreach (Drawing drawing in resultOfJoin)
-                {
-                    if (drawing.Phase.PhaseNo == PhaseNo)
                     {
-                        foreach (Sequence sequence in filteredSequences)
-                        {
-                            if (drawing.Phase.SequenceId == sequence.Id)
-                            {
-                                filteredDrawings.Add(drawing);
-                                break;
-                            }
-                        }
+                        var file = await GetFile(drawing.FileId);
+                        drawing.File = file.Result;
                     }
-
-                    //if (contact.Phase.PhaseNo == PhaseNo && contact.Phase.Sequence.SequenceNo == SequenceNo.ToString())
-                    //    filteredContacts.Add(contact);
                 }
                 
-                if (!includePhaseObject)
-                {
-                    FilterDefinition<Phase> phaseFilter = Builders<Phase>.Filter.Eq("PhaseNo", PhaseNo);
-                    var filteredPhases = await db.Phase.Find(phaseFilter).ToListAsync();
-
-                    foreach (Drawing drawing in drawingsExtended)
-                    {
-                        foreach (Phase phase in filteredPhases)
-                        {
-                            if (phase.Id == drawing.PhaseId)
-                            {
-                                foreach (Sequence sequence in filteredSequences)
-                                {
-                                    if (phase.SequenceId == sequence.Id)
-                                    {
-                                        filteredDrawings.Add(drawing);
-                                        break;
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-                else
-                {
-                    //If Phase has been loaded already (later we will try and get the join above to also load sequences)
-                    foreach (Drawing drawing in drawingsExtended)
-                    {
-                        if (drawing.Phase.PhaseNo == PhaseNo)
-                        {
-                            foreach (Sequence sequence in filteredSequences)
-                            {
-                                if (drawing.Phase.SequenceId == sequence.Id)
-                                {
-                                    filteredDrawings.Add(drawing);
-                                    break;
-                                }
-                            }
-                        }   
-                    }
-                }
-                */
-
-                // Load the child File objects.
-                //foreach (Drawing drawing in filteredDrawings)
-                //  drawing.File = await GetFile(drawing.FileId);
-
-                return filteredDrawings;
+                response.Result = filteredDrawings;
             }
             catch (Exception ex)
             {
-                throw;
+                response.Exception = ex;
+                response.Message = ex.Message;
+                response.IsError = true;
+                ErrorHandling.HandleError(ref response, ex.Message);
             }
+            return response;
         }
 
         public async Task<OASISResult<File>> GetFile(string id)
         {
+            var response = new OASISResult<File>();
             try
             {
                 FilterDefinition<File> filter = Builders<File>.Filter.Eq("Id", id);
-                return await db.File.Find(filter).FirstOrDefaultAsync();
+                response.Result = await db.File.Find(filter).FirstOrDefaultAsync();
             }
             catch (Exception ex)
             {
-                throw;
+                response.Exception = ex;
+                response.Message = ex.Message;
+                response.IsError = true;
+                ErrorHandling.HandleError(ref response, ex.Message);
             }
+            return response;
         }
 
         public async Task<OASISResult<IEnumerable<File>>> GetAllFiles()
         {
+            var response = new OASISResult<IEnumerable<File>>();
             try
             {
-                return await db.File.AsQueryable().ToListAsync();
+                response.Result = await db.File.AsQueryable().ToListAsync();
             }
             catch (Exception ex)
             {
-                throw;
+                response.Exception = ex;
+                response.Message = ex.Message;
+                response.IsSaved = true;
+                ErrorHandling.HandleError(ref response, ex.Message);
             }
+            return response;
         }
 
         public async Task<OASISResult<Handover>> GetHandover(string id)
         {
+            var response = new OASISResult<Handover>();
             try
             {
                 FilterDefinition<Handover> filter = Builders<Handover>.Filter.Eq("Id", id);
-                return await db.Handover.Find(filter).FirstOrDefaultAsync();
+                response.Result = await db.Handover.Find(filter).FirstOrDefaultAsync();
             }
             catch (Exception ex)
             {
-                throw;
+                response.Exception = ex;
+                response.Message = ex.Message;
+                response.IsSaved = true;
+                ErrorHandling.HandleError(ref response, ex.Message);
             }
+
+            return response;
         }
 
         public async Task<OASISResult<IEnumerable<Handover>>> GetAllHandovers()
         {
+            var response = new OASISResult<IEnumerable<Handover>>();
             try
             {
-                return await db.Handover.AsQueryable().ToListAsync();
+                response.Result = await db.Handover.AsQueryable().ToListAsync();
             }
             catch (Exception ex)
             {
-                throw;
+                response.Exception = ex;
+                response.Message = ex.Message;
+                response.IsSaved = true;
+                ErrorHandling.HandleError(ref response, ex.Message);
             }
+            return response;
         }
 
         public async Task<OASISResult<Link>> GetLink(string id)
         {
+            var response = new OASISResult<Link>();
             try
             {
                 FilterDefinition<Link> filter = Builders<Link>.Filter.Eq("Id", id);
-                return await db.Link.Find(filter).FirstOrDefaultAsync();
+                response.Result = await db.Link.Find(filter).FirstOrDefaultAsync();
             }
             catch (Exception ex)
             {
-                throw;
+                response.Exception = ex;
+                response.Message = ex.Message;
+                response.IsError = true;
+                ErrorHandling.HandleError(ref response, ex.Message);
             }
+            return response;
         }
 
         public async Task<OASISResult<IEnumerable<Link>>> GetAllLinks()
