@@ -68,10 +68,8 @@ class AvatarWallet extends React.Component {
 				show={show}
 				onHide={() => hide('avatar', 'avatarWallet')}
 			>
-			
-				<Modal.Body
-					className="p-50"
-				>
+
+				<Modal.Body>
 					<span className="form-cross-icon" onClick={() => hide('avatar', 'avatarWallet')}>
 						<i className="fa fa-times"></i>
 					</span>
@@ -81,6 +79,9 @@ class AvatarWallet extends React.Component {
 								<Loader type="Oval" height={30} width={30} color="#fff" />
 							) :
 								<>
+									<div>
+										<h2>Avatar Wallet</h2>
+									</div>
 									<div className="avatarWallet-grid">
 										<ReactGrid
 											rows={this.state.rows}
