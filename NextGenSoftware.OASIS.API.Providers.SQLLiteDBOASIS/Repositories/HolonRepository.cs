@@ -47,7 +47,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Repositories{
             catch (Exception ex)
             {
                 result.IsError = true;
-                result.Message = $"Error occurred adding holon in SQLLiteOASIS Provider.";
+                result.Message = $"Error occurred adding the holon in SQLLiteOASIS Provider in Add method. Reason: {ex.ToString()}";
                 result.Exception = ex;
             }
 
@@ -82,7 +82,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Repositories{
             catch (Exception ex)
             {
                 result.IsError = true;
-                result.Message = $"Error occurred adding holon in SQLLiteOASIS Provider.";
+                result.Message = $"Error occurred adding the holon in SQLLiteOASIS Provider in AddAsync method. Reason: {ex.ToString()}";
                 result.Exception = ex;
             }
 
