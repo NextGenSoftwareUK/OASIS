@@ -1,5 +1,3 @@
-import { Link } from "react-router-dom";
-
 const SidebarData = [
     {
         id: 1,
@@ -37,7 +35,7 @@ const SidebarData = [
             {
                 id: 3,
                 name: "Search Avatars",
-                popupName:"viewAvatar"
+                popupName:"searchAvatar"
             },
             {
                 id: 4,
