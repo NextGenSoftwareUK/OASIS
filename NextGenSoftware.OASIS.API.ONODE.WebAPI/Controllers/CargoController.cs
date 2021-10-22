@@ -25,6 +25,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             _cargoService = cargoService;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="requestModel"></param>
+        /// <returns></returns>
         [HttpPost]
         [Route("AuthorizeAccount")]
         public async Task<OASISResult<CreateAccountResponseModel>> AuthorizeAccount(
@@ -33,6 +38,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             return await _cargoService.AuthorizeCargoAccount(requestModel);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="requestModel"></param>
+        /// <returns></returns>
         [HttpPost]
         [Route("AuthenticateAccount")]
         public async Task<OASISResult<CreateAccountResponseModel>> AuthenticateAccount([FromBody] AuthenticateAccountRequestModel requestModel)
@@ -40,6 +50,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             return await _cargoService.AuthenticateCargoAccount(requestModel);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="requestModel"></param>
+        /// <returns></returns>
         [HttpPost]
         [Route("PurchaseSale")]
         public async Task<OASISResult<PurchaseResponseModel>> PurchaseCargoSale([FromBody] PurchaseRequestModel requestModel)
@@ -47,6 +62,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             return await _cargoService.PurchaseCargoSale(requestModel);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="requestModel"></param>
+        /// <returns></returns>
         [HttpPost]
         [Route("CancelSale")]
         public async Task<OASISResult<CancelSaleResponseModel>> CancelCargoSale([FromBody] CancelSaleRequestModel requestModel)
@@ -54,6 +74,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             return await _cargoService.CancelCargoSale(requestModel);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="orderParams"></param>
+        /// <returns></returns>
         [HttpGet]
         [Route("GetOrders")]
         public async Task<OASISResult<PaginationResponseWithResults<IEnumerable<Order>>>> GetCargoOrders(
@@ -62,6 +87,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             return await _cargoService.GetCargoOrders(orderParams);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="requestModel"></param>
+        /// <returns></returns>
         [HttpGet]
         [Route("GetUserTokensByContract")]
         public async Task<OASISResult<GetUserTokensByContractResponseModel>> GetUserTokensByContract(
@@ -70,6 +100,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             return await _cargoService.GetUserTokensByContract(requestModel);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="requestModel"></param>
+        /// <returns></returns>
         [HttpGet]
         [Route("GetCollectiblesListByProjectId")]
         public async Task<OASISResult<GetCollectiblesListByProjectIdResponseModel>> CollectiblesListByProjectId(

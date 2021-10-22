@@ -193,6 +193,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.P
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.Providers.Neo4jOASIS2", "NextGenSoftware.OASIS.API.Providers.Neo4jOASIS2\NextGenSoftware.OASIS.API.Providers.Neo4jOASIS2.csproj", "{9F9F7951-472A-4667-9BD7-6FDE02FF575F}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.TestHarness", "NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.TestHarness\NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.TestHarness.csproj", "{70714199-3387-419E-81E8-D44EB49D24C2}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -1536,6 +1538,24 @@ Global
 		{9F9F7951-472A-4667-9BD7-6FDE02FF575F}.Release|x64.Build.0 = Release|Any CPU
 		{9F9F7951-472A-4667-9BD7-6FDE02FF575F}.Release|x86.ActiveCfg = Release|Any CPU
 		{9F9F7951-472A-4667-9BD7-6FDE02FF575F}.Release|x86.Build.0 = Release|Any CPU
+		{70714199-3387-419E-81E8-D44EB49D24C2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{70714199-3387-419E-81E8-D44EB49D24C2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{70714199-3387-419E-81E8-D44EB49D24C2}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{70714199-3387-419E-81E8-D44EB49D24C2}.Debug|x64.Build.0 = Debug|Any CPU
+		{70714199-3387-419E-81E8-D44EB49D24C2}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{70714199-3387-419E-81E8-D44EB49D24C2}.Debug|x86.Build.0 = Debug|Any CPU
+		{70714199-3387-419E-81E8-D44EB49D24C2}.Linux|Any CPU.ActiveCfg = Debug|Any CPU
+		{70714199-3387-419E-81E8-D44EB49D24C2}.Linux|Any CPU.Build.0 = Debug|Any CPU
+		{70714199-3387-419E-81E8-D44EB49D24C2}.Linux|x64.ActiveCfg = Debug|Any CPU
+		{70714199-3387-419E-81E8-D44EB49D24C2}.Linux|x64.Build.0 = Debug|Any CPU
+		{70714199-3387-419E-81E8-D44EB49D24C2}.Linux|x86.ActiveCfg = Debug|Any CPU
+		{70714199-3387-419E-81E8-D44EB49D24C2}.Linux|x86.Build.0 = Debug|Any CPU
+		{70714199-3387-419E-81E8-D44EB49D24C2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{70714199-3387-419E-81E8-D44EB49D24C2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{70714199-3387-419E-81E8-D44EB49D24C2}.Release|x64.ActiveCfg = Release|Any CPU
+		{70714199-3387-419E-81E8-D44EB49D24C2}.Release|x64.Build.0 = Release|Any CPU
+		{70714199-3387-419E-81E8-D44EB49D24C2}.Release|x86.ActiveCfg = Release|Any CPU
+		{70714199-3387-419E-81E8-D44EB49D24C2}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
