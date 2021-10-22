@@ -315,19 +315,6 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             return ProviderManager.DeActivateProvider(providerType);
         }
 
-        ///// <summary>
-        ///// Set's the default providers to be used (in priority order).
-        ///// </summary>
-        ///// <param name="providers"></param>
-        ///// <returns></returns>
-        //[Authorize]
-        //[HttpPost("SetDefaultProviders/{providers}")]
-        //public ActionResult<bool> SetDefaultProviders(string[] providers)
-        //{
-        //    ProviderManager.DefaultProviderTypes = providers;
-        //    return Ok(true);
-        //}
-
         /// <summary>
         /// Enable/disable auto-replication between providers. If this is set to true then the OASIS will automatically replicate all data including the user's avatar to all available providers.
         /// </summary>
@@ -357,19 +344,6 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 providerTypesList.Add((ProviderType)Enum.Parse(typeof(ProviderType), type));
             return ProviderManager.SetAutoReplicationForProviders(autoReplicate, new List<ProviderType>(providerTypesList)) ? OASISBootLoader.OASISBootLoader.RegisterProvidersInAutoReplicatingList() : new(false);
         }
-
-        ///// <summary>
-        ///// Enable/disable auto-replication for the provider. If this is set to true then the OASIS will automatically replicate all data including the user's avatar to the list of providers passed in. The OASIS will continue to replicate to the given providers until this method is called again passing in false along with a list of providers to disable auto-replication. NOTE: If a provider is in the list of providers to auto-replicate but is missing from the list when false is passed in, then it will continue to auto-replicate.
-        ///// </summary>
-        ///// <param name="autoReplicate"></param>
-        ///// <param name="providerType"></param>
-        ///// <returns></returns>
-        //[Authorize]
-        //[HttpPost("SetAutoReplicateForProvider/{autoReplicate}/{providerType}")]
-        //public ActionResult<bool> SetAutoReplicateForProvider(bool autoReplicate, ProviderType providerType)
-        //{
-        //    return Ok(ProviderManager.SetAutoReplicateForProviders(autoReplicate, new List<ProviderType>() { providerType }));
-        //}
 
 
         /// <summary>
@@ -432,20 +406,6 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             
             return ProviderManager.SetAutoLoadBalanceForProviders(addToLoadBalanceList, new List<ProviderType>(providerTypesList)) ? OASISBootLoader.OASISBootLoader.RegisterProvidersInAutoLoadBalanceList() : new(false);
         }
-
-        ///// <summary>
-        ///// Enable/disable auto-failover for the provider. If this is set to true then the OASIS will automatically switch to the next provider in the list of providers passed in. The OASIS will continue to auto-fail over to the next provider in the list until this method is called again passing in false.
-        ///// </summary>
-        ///// <param name="addToFailOverList"></param>
-        ///// <param name="providerType"></param>
-        ///// <returns></returns>
-        //[Authorize]
-        //[HttpPost("SetAutoFailOverForProvider/{addToFailOverList}/{providerType}")]
-        //public ActionResult<bool> SetAutoFailOverForProvider(bool addToFailOverList, ProviderType providerType)
-        //{
-        //    return Ok(ProviderManager.SetAutoFailOverForProviders(addToFailOverList, new List<ProviderType>() { providerType }));
-        //}
-
 
         /// <summary>
         /// Override a provider's config such as connnectionstring, etc

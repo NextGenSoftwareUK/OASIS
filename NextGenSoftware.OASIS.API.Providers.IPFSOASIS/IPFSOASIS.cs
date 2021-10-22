@@ -18,6 +18,7 @@ using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using Microsoft.Extensions.Configuration;
 using NextGenSoftware.OASIS.API.DNA;
+using System.Linq.Expressions;
 
 namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
 {
@@ -25,31 +26,41 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
     {
         public IpfsClient IPFSClient;
         public IpfsEngine IPFSEngine; //= new IpfsEngine();
-        private List<IAvatar> AvatarsList;
+
         private List<IAvatarDetail> AvatarsDetailsList;
-        private List<IHolon> HolonsList;
-        private string avatarFileAddress;
-        private string holonFileAddress;
         private string avatarDetailsFileAddress;
-        private Dictionary<HolonResume, string> _idLookup = new Dictionary<HolonResume, string>();
+        private Dictionary<string, HolonResume> _idLookup = new Dictionary<string, HolonResume>();
+        private OASISDNA _OASISDNA;
+        private string _OASISDNAPath;
 
-        public IPFSOASIS() : base()
+        public IPFSOASIS()
         {
+            OASISDNAManager.LoadDNA();
+            _OASISDNA = OASISDNAManager.OASISDNA;
+            _OASISDNAPath = OASISDNAManager.OASISDNAPath;
+
             Init();
         }
 
-        public IPFSOASIS(string OASISDNAPath) : base(OASISDNAPath)
+        public IPFSOASIS(string OASISDNAPath)
         {
+            _OASISDNAPath = OASISDNAPath;
+            OASISDNAManager.LoadDNA(_OASISDNAPath);
+            _OASISDNA = OASISDNAManager.OASISDNA;
             Init();
         }
 
-        public IPFSOASIS(OASISDNA OASISDNA) : base(OASISDNA)
+        public IPFSOASIS(OASISDNA OASISDNA)
         {
+            _OASISDNA = OASISDNA;
+            _OASISDNAPath = OASISDNAManager.OASISDNAPath;
             Init();
         }
 
-        public IPFSOASIS(OASISDNA OASISDNA, string OASISDNAPath) : base(OASISDNA, OASISDNAPath)
+        public IPFSOASIS(OASISDNA OASISDNA, string OASISDNAPath)
         {
+            _OASISDNA = OASISDNA;
+            _OASISDNAPath = OASISDNAPath;
             Init();
         }
 
@@ -59,15 +70,11 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
             this.ProviderDescription = "IPFS Provider";
             this.ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.IPFSOASIS);
             this.ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
-
-           // string address = OASISDNA.OASIS.StorageProviders.IPFSOASIS.LookUpIPFSAddress;
-           // OASISDNA.OASIS.StorageProviders.IPFSOASIS.LookUpIPFSAddress = "test";
-           // OASISDNAManager.SaveDNA(OASISDNAPath, OASISDNA);
         }
 
         public override void ActivateProvider()
         {
-            IPFSClient = new IpfsClient(OASISDNA.OASIS.StorageProviders.IPFSOASIS.ConnectionString);
+            IPFSClient = new IpfsClient(_OASISDNA.OASIS.StorageProviders.IPFSOASIS.ConnectionString);
             base.ActivateProvider();
         }
 
@@ -81,35 +88,31 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
 
         public async Task<string> LoadFileToJson(string address)
         {
-            using (var stream = await IPFSClient.FileSystem.ReadFileAsync(address))
-            {
-                using (var ms = new MemoryStream())
-                {
-                    stream.CopyTo(ms);
-                    ms.ToArray();
-                    return Encoding.ASCII.GetString(ms.ToArray());
-                }
-            }
+            await using var stream = await IPFSClient.FileSystem.ReadFileAsync(address);
+            await using var ms = new MemoryStream();
+            await stream.CopyToAsync(ms);
+            ms.ToArray();
+            return Encoding.ASCII.GetString(ms.ToArray());
         }
+
         public async Task<string> LoadStringToJson(string address)
         {
-            string text = await IPFSClient.FileSystem.ReadAllTextAsync((Cid)address);
-
+            string text = await IPFSClient.FileSystem.ReadAllTextAsync((Cid) address);
             return text;
         }
 
-
         /******************************/
-        public async Task<Dictionary<HolonResume, string>> LoadLookupToJson()
+        public async Task<Dictionary<string, HolonResume>> LoadLookupToJson()
         {
-            //_idLookUpIPFSAddress = new ConfigurationBuilder().AddJsonFile(IPFS).Build().GetSection("Params:IdLookUpIPFSAddress").ToString();
-            //_lookUpIPFSAddress = new ConfigurationBuilder().AddJsonFile(_OASISDNAPath).Build().GetSection("OASIS:StorageProviders:IPFSOASIS:LookUpIPFSAddress").Value;
-
-            //  IConfigurationRoot root = new ConfigurationBuilder().AddJsonFile(_OASISDNAPath).Build();
-            //  root.
-
-            string json = await LoadStringToJson(OASISDNA.OASIS.StorageProviders.IPFSOASIS.LookUpIPFSAddress);
-            _idLookup = JArray.Parse(json).ToObject<Dictionary<HolonResume, string>>();
+            try
+            {
+                string json = await LoadStringToJson(_OASISDNA.OASIS.StorageProviders.IPFSOASIS.LookUpIPFSAddress);
+                _idLookup = JsonConvert.DeserializeObject<Dictionary<string, HolonResume>>(json);
+            }
+            catch
+            {
+                _idLookup = new Dictionary<string, HolonResume>();
+            }
 
             return _idLookup;
         }
@@ -117,66 +120,97 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
         public async Task<string> SaveJsonToFile<T>(List<T> list)
         {
             string json = JsonConvert.SerializeObject(list);
-
             var fsn = await IPFSClient.FileSystem.AddTextAsync(json);
-            return (string)fsn.Id;
+            return (string) fsn.Id;
         }
 
-        public async Task<string> SaveLookupToFile(Dictionary<HolonResume, string> idLookup)
+        public async Task<string> SaveLookupToFile(Dictionary<string, HolonResume> idLookup)
         {
             string json = JsonConvert.SerializeObject(idLookup);
             var fsn = await IPFSClient.FileSystem.AddTextAsync(json);
-            
-            OASISDNA.OASIS.StorageProviders.IPFSOASIS.LookUpIPFSAddress = fsn.Id;
-            OASISDNAManager.SaveDNA(OASISDNAPath, OASISDNA);
 
-            //new ConfigurationBuilder().AddJsonFile(IPFS).Build()["Params:IdLookUpIPFSAddress"] = _idLookUpIPFSAddress;
-           // new ConfigurationBuilder().AddJsonFile(_OASISDNAPath).Build()["OASIS:StorageProviders:IPFSOASIS:LookUpIPFSAddress"] = _lookUpIPFSAddress;
+            _OASISDNA.OASIS.StorageProviders.IPFSOASIS.LookUpIPFSAddress = fsn.Id;
+            OASISDNAManager.SaveDNA(_OASISDNAPath, _OASISDNA);
+
             return fsn.Id;
         }
 
-        public async Task<string> SaveAvatarToFile(IAvatar avatar)
+        public async Task<IAvatar> SaveAvatarToFile(IAvatar avatar)
         {
             //If we have a previous version of this avatar saved, then add a pointer back to the previous version.
             _idLookup = await LoadLookupToJson();
-            HolonResume avatarDico = _idLookup.Keys.FirstOrDefault(a => a.Id == avatar.Id);
+            HolonResume dico = _idLookup.Values.FirstOrDefault(a => a.Id == avatar.Id);
 
-            if (_idLookup.Count(a => a.Key.Id == avatar.Id) > 0)
-                avatar.PreviousVersionProviderKey[Core.Enums.ProviderType.IPFSOASIS] = _idLookup[avatarDico];
+            // in case there is no element in _idlookup dictionary
+            if (dico == null)
+                dico = new HolonResume();
+
+
+            if (_idLookup.Count(a => a.Value.Id == avatar.Id) > 0)
+                avatar.PreviousVersionProviderKey[Core.Enums.ProviderType.IPFSOASIS] =
+                    _idLookup.FirstOrDefault(a => a.Value.Id == avatar.Id).Key;
 
             string json = JsonConvert.SerializeObject(avatar);
             var fsn = await IPFSClient.FileSystem.AddTextAsync(json);
 
             // we store just values that we will use as a filter of search in other methods.
-            avatarDico.Id = avatar.Id;
-            avatarDico.login = avatar.Username;
-            avatarDico.password = avatar.Password;
 
-            _idLookup[avatarDico] = fsn.Id;
+            dico.Id = avatar.Id;
+            dico.login = avatar.Username;
+            dico.password = avatar.Password;
+            dico.ProviderKey = avatar.ProviderKey;
+            dico.email = avatar.Email;
+
+            if (_idLookup.Count == 0)
+                _idLookup.Add(fsn.Id, dico);
+            else
+                _idLookup[fsn.Id] = dico;
+
+
+            await SaveLookupToFile(_idLookup);
+
+            return avatar;
+        }
+
+        public async Task<IHolon> SaveHolonToFile(IHolon holon)
+        {
+            //If we have a previous version of this avatar saved, then add a pointer back to the previous version.
+            _idLookup = await LoadLookupToJson();
+            HolonResume dico = _idLookup.Values.FirstOrDefault(a => a.Id == holon.Id);
+
+            if (_idLookup.Count(a => a.Value.Id == holon.Id) > 0)
+                holon.PreviousVersionProviderKey[Core.Enums.ProviderType.IPFSOASIS] =
+                    _idLookup.FirstOrDefault(a => a.Value.Id == holon.Id).Key;
+
+            string json = JsonConvert.SerializeObject(holon);
+            var fsn = await IPFSClient.FileSystem.AddTextAsync(json);
+
+            // we store just values that we will use as a filter of search in other methods.
+            dico.Id = holon.Id;
+            dico.ProviderKey = holon.ProviderKey;
+            dico.ParentHolonId = holon.ParentHolonId;
+            dico.HolonType = holon.HolonType;
+
+            if (_idLookup.Count == 0)
+                _idLookup.Add(fsn.Id, dico);
+            else
+                _idLookup[fsn.Id] = dico;
 
             string id = await SaveLookupToFile(_idLookup);
 
-            return id;
+            return holon;
         }
 
         public override async Task<IAvatar> LoadAvatarAsync(string username, string password)
         {
-            string json = "";
-            _idLookup = await LoadLookupToJson();
-
-            HolonResume avatarDico = _idLookup.Keys.FirstOrDefault(a => a.login == username && a.password == password);
-            string avatarAddress = _idLookup[avatarDico];
-
-            json = await LoadStringToJson(avatarAddress);
-            IAvatar avatar = JArray.Parse(json).ToObject<IAvatar>();
-            return avatar;
+            return await LoadAvatarTemplateAsync(a => a.login == username && a.password == password);
         }
         /************************************************************/
 
         public async Task<string> SaveTextToFile(string text)
         {
             var fsn = await IPFSClient.FileSystem.AddTextAsync(text);
-            return (string)fsn.Id;
+            return fsn.Id;
         }
 
 
@@ -205,61 +239,27 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
 
         public override async Task<IAvatar> SaveAvatarAsync(IAvatar avatar)
         {
-            avatarFileAddress = await SaveAvatarToFile(avatar);
-
-            return avatar;
-        }
-        /*
-        public override IHolon SaveHolon(IHolon holon)
-        {
-            return SaveHolonAsync(holon).Result;
+            return await SaveAvatarToFile(avatar);
         }
 
-        public override async Task<IHolon> SaveHolonAsync(IHolon holon)
-        {
-            if (HolonsList == null)
-                HolonsList = new List<IHolon>();
-
-            HolonsList.Add(holon);
-
-            holonFileAddress = await SaveJsonToFile<IHolon>(HolonsList);
-
-            return holon;
-        }
-
-        public override IEnumerable<IHolon> SaveHolons(IEnumerable<IHolon> holons)
-        {
-            return SaveHolonsAsync(holons).Result;
-        }
-
-        public override async Task<IEnumerable<IHolon>> SaveHolonsAsync(IEnumerable<IHolon> holons)
-        {
-            if (HolonsList == null)
-                HolonsList = new List<IHolon>();
-
-            HolonsList.AddRange(holons);
-
-            holonFileAddress = await SaveJsonToFile<IHolon>(HolonsList);
-
-            return holons;
-        }
-       */
         public override async Task<ISearchResults> SearchAsync(ISearchParams searchTerm)
         {
-            ISearchResults result = (ISearchResults)new SearchResults();
+            ISearchResults result = (ISearchResults) new SearchResults();
 
             IEnumerable<IAvatar> Avatars = await LoadAllAvatarsAsync();
 
             IEnumerable<IHolon> Holons = await LoadAllHolonsAsync();
 
-            Avatars = Avatars.Where(a => a.Name.Contains(searchTerm.SearchQuery) | a.Description.Contains(searchTerm.SearchQuery)).ToList();
-            Holons = Holons.Where(h => h.Name.Contains(searchTerm.SearchQuery) | h.Description.Contains(searchTerm.SearchQuery)).ToList();
+            Avatars = Avatars.Where(a =>
+                a.Name.Contains(searchTerm.SearchQuery) | a.Description.Contains(searchTerm.SearchQuery)).ToList();
+            Holons = Holons.Where(h =>
+                h.Name.Contains(searchTerm.SearchQuery) | h.Description.Contains(searchTerm.SearchQuery)).ToList();
 
             foreach (var h in Holons)
-                result.SearchResultHolons.Add((Holon)h);
+                result.SearchResultHolons.Add((Holon) h);
 
             foreach (var ava in Avatars)
-                result.SearchResultHolons.Add((Holon)ava);
+                result.SearchResultHolons.Add((Holon) ava);
 
             return result;
         }
@@ -271,15 +271,7 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
 
         public override async Task<IHolon> LoadHolonAsync(Guid id)
         {
-            string json = "";
-
-            json = await LoadStringToJson(holonFileAddress);
-
-            HolonsList = JArray.Parse(json).ToObject<List<Holon>>().ToList<IHolon>();
-
-            IHolon holon = HolonsList.Where(a => a.Id == id).FirstOrDefault();
-
-            return holon;
+            return await LoadHolonTemplateAsync(a => a.Id == id);
         }
 
         public override IHolon LoadHolon(string providerKey)
@@ -289,33 +281,85 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
 
         public override async Task<IHolon> LoadHolonAsync(string providerKey)
         {
+            return await LoadHolonTemplateAsync(a => a.ProviderKey.Where(b => b.Value == providerKey).Any());
+        }
+
+        /*** Templates****/
+
+        public async Task<IAvatar> LoadAvatarTemplateAsync(Func<HolonResume, bool> predicate)
+        {
             string json = "";
+            _idLookup = await LoadLookupToJson();
 
-            json = await LoadStringToJson(holonFileAddress);
+            HolonResume avatarDico = _idLookup.Values.FirstOrDefault(predicate);
+            string avatarAddress = _idLookup.FirstOrDefault(a => a.Value.Id == avatarDico.Id).Key;
 
-            HolonsList = JArray.Parse(json).ToObject<List<Holon>>().ToList<IHolon>();
+            json = await LoadStringToJson(avatarAddress);
+            IAvatar avatar = JsonConvert.DeserializeObject<Avatar>(json);
 
-            IHolon holon = HolonsList.Where(a => a.ProviderKey.Where(b => b.Value == providerKey).Any()).FirstOrDefault();
+            return avatar;
+        }
+
+        public async Task<IAvatarDetail> LoadAvatarDetailTemplateAsync(Func<HolonResume, bool> predicate)
+        {
+            string json = "";
+            _idLookup = await LoadLookupToJson();
+
+            HolonResume avatarDico = _idLookup.Values.FirstOrDefault(predicate);
+            string avatarAddress = _idLookup.FirstOrDefault(a => a.Value.Id == avatarDico.Id).Key;
+
+            json = await LoadStringToJson(avatarAddress);
+            IAvatarDetail avatarDetail = JsonConvert.DeserializeObject<AvatarDetail>(json);
+
+            return avatarDetail;
+        }
+
+
+        public async Task<IHolon> LoadHolonTemplateAsync(Func<HolonResume, bool> predicate)
+        {
+            string json = "";
+            _idLookup = await LoadLookupToJson();
+
+            HolonResume avatarDico = _idLookup.Values.FirstOrDefault(predicate);
+            string avatarAddress = _idLookup.FirstOrDefault(a => a.Value.Id == avatarDico.Id).Key;
+
+            json = await LoadStringToJson(avatarAddress);
+            IHolon holon = JsonConvert.DeserializeObject<Holon>(json);
 
             return holon;
         }
+
+        public async Task<IEnumerable<IHolon>> LoadHolonsForParentTemplateAsync(Func<HolonResume, bool> predicate)
+        {
+            List<IHolon> holons = new List<IHolon>();
+            string json = "";
+            _idLookup = await LoadLookupToJson();
+
+            IEnumerable<HolonResume> holonsDico = _idLookup.Values.Where(predicate).AsEnumerable();
+
+            foreach (var h in holonsDico)
+            {
+                string holonAddress = _idLookup.FirstOrDefault(a => a.Value.Id == h.Id).Key;
+                ;
+
+                json = await LoadStringToJson(holonAddress);
+                IHolon holon = JsonConvert.DeserializeObject<Holon>(json);
+                holons.Add(holon);
+            }
+
+            return holons;
+        }
+        /***********/
 
         public override IEnumerable<IHolon> LoadHolonsForParent(Guid id, HolonType type = HolonType.All)
         {
             return LoadHolonsForParentAsync(id, type).Result;
         }
 
-        public override async Task<IEnumerable<IHolon>> LoadHolonsForParentAsync(Guid id, HolonType type = HolonType.All)
+        public override async Task<IEnumerable<IHolon>> LoadHolonsForParentAsync(Guid id,
+            HolonType type = HolonType.All)
         {
-            string json = "";
-
-            json = await LoadStringToJson(holonFileAddress);
-
-            HolonsList = JArray.Parse(json).ToObject<List<Holon>>().ToList<IHolon>();
-
-            IEnumerable<IHolon> holons = HolonsList.Where(a => a.ParentHolonId == id && a.HolonType == type).AsEnumerable();
-
-            return holons;
+            return await LoadHolonsForParentTemplateAsync(a => a.ParentHolonId == id && a.HolonType == type);
         }
 
         public override IEnumerable<IHolon> LoadHolonsForParent(string providerKey, HolonType type = HolonType.All)
@@ -335,24 +379,11 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
 
         public override async Task<bool> DeleteAvatarAsync(Guid id, bool softDelete = true)
         {
-            string json = "";
             try
             {
-                json = await LoadStringToJson(avatarFileAddress);
+                IAvatar avatar = await LoadAvatarTemplateAsync(a => a.Id == id);
 
-                AvatarsList = JArray.Parse(json).ToObject<List<Avatar>>().ToList<IAvatar>();
-                if (softDelete)
-                {
-                    AvatarsList.Where(a => a.Id == id).FirstOrDefault().PreviousVersionProviderKey.Add(Core.Enums.ProviderType.IPFSOASIS, avatarFileAddress);
-                    AvatarsList.Where(a => a.Id == id).FirstOrDefault().IsActive = false;
-                    AvatarsList.Where(a => a.Id == id).FirstOrDefault().DeletedDate = DateTime.Now;
-                }
-                else
-                {
-                    var avatar = AvatarsList.Where(a => a.Id == id).FirstOrDefault();
-                    AvatarsList.Remove(avatar);
-                }
-                avatarFileAddress = await SaveJsonToFile<IAvatar>(AvatarsList);
+                await SaveAvatarToFile(avatar);
                 return true;
             }
             catch
@@ -363,25 +394,12 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
 
         public override async Task<bool> DeleteAvatarAsync(string providerKey, bool softDelete = true)
         {
-            string json = "";
             try
             {
-                json = await LoadStringToJson(avatarFileAddress);
+                IAvatar avatar =
+                    await LoadAvatarTemplateAsync(a => a.ProviderKey.Where(b => b.Value == providerKey).Any());
 
-                AvatarsList = JArray.Parse(json).ToObject<List<Avatar>>().ToList<IAvatar>();
-
-                if (softDelete)
-                {
-                    AvatarsList.Where(a => a.ProviderKey.Where(b => b.Value == providerKey).Any()).FirstOrDefault().PreviousVersionProviderKey.Add(Core.Enums.ProviderType.IPFSOASIS, avatarFileAddress);
-                    AvatarsList.Where(a => a.ProviderKey.Where(b => b.Value == providerKey).Any()).FirstOrDefault().IsActive = false;
-                    AvatarsList.Where(a => a.ProviderKey.Where(b => b.Value == providerKey).Any()).FirstOrDefault().DeletedDate = DateTime.Now;
-                }
-                else
-                {
-                    var avatar = AvatarsList.Where(a => a.ProviderKey.Where(b => b.Value == providerKey).Any()).FirstOrDefault();
-                    AvatarsList.Remove(avatar);
-                }
-                avatarFileAddress = await SaveJsonToFile<IAvatar>(AvatarsList);
+                await SaveAvatarToFile(avatar);
                 return true;
             }
             catch
@@ -389,6 +407,7 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
                 return false;
             }
         }
+
         public override bool DeleteHolon(Guid id, bool softDelete = true)
         {
             return DeleteHolonAsync(id, softDelete).Result;
@@ -401,26 +420,12 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
 
         public override async Task<bool> DeleteHolonAsync(Guid id, bool softDelete = true)
         {
-            string json = "";
             try
             {
-                json = await LoadStringToJson(holonFileAddress);
+                IHolon holon = await LoadHolonTemplateAsync(a => a.Id == id);
 
-                HolonsList = JArray.Parse(json).ToObject<List<Holon>>().ToList<IHolon>();
+                await SaveHolonToFile(holon);
 
-                if (softDelete)
-                {
-                    HolonsList.Where(a => a.Id == id).FirstOrDefault().PreviousVersionProviderKey.Add(Core.Enums.ProviderType.IPFSOASIS, holonFileAddress);
-                    HolonsList.Where(a => a.Id == id).FirstOrDefault().IsActive = false;
-                    HolonsList.Where(a => a.Id == id).FirstOrDefault().DeletedDate = DateTime.Now;
-
-                }
-                else
-                {
-                    var holon = HolonsList.Where(a => a.Id == id).FirstOrDefault();
-                    HolonsList.Remove(holon);
-                }
-                holonFileAddress = await SaveJsonToFile<IHolon>(HolonsList);
                 return true;
             }
             catch
@@ -431,26 +436,13 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
 
         public override async Task<bool> DeleteHolonAsync(string providerKey, bool softDelete = true)
         {
-            string json = "";
             try
             {
-                json = await LoadStringToJson(holonFileAddress);
+                IHolon holon =
+                    await LoadHolonTemplateAsync(a => a.ProviderKey.Where(b => b.Value == providerKey).Any());
 
-                HolonsList = JArray.Parse(json).ToObject<List<Holon>>().ToList<IHolon>();
+                await SaveHolonToFile(holon);
 
-
-                if (softDelete)
-                {
-                    HolonsList.Where(a => a.ProviderKey.Where(b => b.Value == providerKey).Any()).FirstOrDefault().PreviousVersionProviderKey.Add(Core.Enums.ProviderType.IPFSOASIS, holonFileAddress);
-                    HolonsList.Where(a => a.ProviderKey.Where(b => b.Value == providerKey).Any()).FirstOrDefault().IsActive = false;
-                    HolonsList.Where(a => a.ProviderKey.Where(b => b.Value == providerKey).Any()).FirstOrDefault().DeletedDate = DateTime.Now;
-                }
-                else
-                {
-                    var holon = HolonsList.Where(a => a.ProviderKey.Where(b => b.Value == providerKey).Any()).FirstOrDefault();
-                    HolonsList.Remove(holon);
-                }
-                holonFileAddress = await SaveJsonToFile<IHolon>(HolonsList);
                 return true;
             }
             catch
@@ -476,20 +468,24 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
 
         public override async Task<IEnumerable<IAvatar>> LoadAllAvatarsAsync()
         {
+            List<IAvatar> avatars = new List<IAvatar>();
             string json = "";
+            _idLookup = await LoadLookupToJson();
 
-            try
+            IEnumerable<HolonResume> Dico = _idLookup.Values.AsEnumerable();
+
+            foreach (var d in Dico)
             {
-                json = await LoadStringToJson(avatarFileAddress);
+                string avatarAddress = _idLookup.FirstOrDefault(a => a.Value.Id == d.Id).Key;
+
+                json = await LoadStringToJson(avatarAddress);
+
+                IAvatar avatar = (IAvatar) JsonConvert.DeserializeObject<Avatar>(json);
+
+                avatars.Add(avatar);
             }
-            catch (Exception ex)
-            {
 
-            }
-            AvatarsList = JArray.Parse(json).ToObject<List<Avatar>>().ToList<IAvatar>();
-
-            return AvatarsList.AsEnumerable();
-
+            return avatars.AsEnumerable();
         }
 
         public override IEnumerable<IHolon> LoadAllHolons(HolonType type = HolonType.Holon)
@@ -499,20 +495,23 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
 
         public override async Task<IEnumerable<IHolon>> LoadAllHolonsAsync(HolonType type = HolonType.Holon)
         {
+            List<IHolon> HolonsList = new List<IHolon>();
             string json = "";
+            _idLookup = await LoadLookupToJson();
 
-            try
+            IEnumerable<HolonResume> Dico = _idLookup.Values.AsEnumerable();
+
+            foreach (var d in Dico)
             {
-                json = await LoadStringToJson(holonFileAddress);
+                string HolonAddress = _idLookup.FirstOrDefault(a => a.Value.Id == d.Id).Key;
+                ;
+
+                json = await LoadStringToJson(HolonAddress);
+                IHolon holon = JsonConvert.DeserializeObject<Holon>(json);
+                HolonsList.Add(holon);
             }
-            catch (Exception ex)
-            {
-            }
-            HolonsList = JArray.Parse(json).ToObject<List<Holon>>().ToList<IHolon>();
 
-
-
-            return HolonsList.Where(a => a.HolonType == type).ToList();
+            return HolonsList.Where(a => a.HolonType == type);
         }
 
 
@@ -528,28 +527,12 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
 
         public override async Task<IAvatar> LoadAvatarAsync(string providerKey)
         {
-            string json = "";
-
-            json = await LoadStringToJson(avatarFileAddress);
-
-            AvatarsList = JArray.Parse(json).ToObject<List<Avatar>>().ToList<IAvatar>();
-
-            IAvatar avatar = AvatarsList.Where(a => a.ProviderKey.Where(b => b.Value == providerKey).Any()).FirstOrDefault();
-
-            return avatar;
+            return await LoadAvatarTemplateAsync(a => a.ProviderKey.Where(b => b.Value == providerKey).Any());
         }
 
         public override async Task<IAvatar> LoadAvatarAsync(Guid Id)
         {
-            string json = "";
-
-            json = await LoadStringToJson(avatarFileAddress);
-
-            AvatarsList = JArray.Parse(json).ToObject<List<Avatar>>().ToList<IAvatar>();
-
-            IAvatar avatar = AvatarsList.Where(a => a.Id == Id).FirstOrDefault();
-
-            return avatar;
+            return await LoadAvatarTemplateAsync(a => a.Id == Id);
         }
 
 
@@ -564,16 +547,14 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
         }
 
 
-        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(string providerKey, HolonType type = HolonType.All)
+        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(string providerKey,
+            HolonType type = HolonType.All)
         {
             string json = "";
             OASISResult<IEnumerable<IHolon>> res = new OASISResult<IEnumerable<IHolon>>();
 
-            json = await LoadStringToJson(holonFileAddress);
-
-            HolonsList = JArray.Parse(json).ToObject<List<Holon>>().ToList<IHolon>();
-
-            res.Result = HolonsList.Where(a => a.ProviderKey.Where(a => a.Value == providerKey).Any() && a.HolonType == type).ToList();
+            res.Result = await LoadHolonsForParentTemplateAsync(a =>
+                a.ProviderKey.Where(a => a.Value == providerKey).Any() && a.HolonType == type);
 
             return res;
         }
@@ -585,15 +566,7 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
 
         public override async Task<IAvatarDetail> LoadAvatarDetailAsync(Guid id)
         {
-            string json = "";
-
-            json = await LoadStringToJson(avatarDetailsFileAddress);
-
-            AvatarsDetailsList = (List<IAvatarDetail>)JsonConvert.DeserializeObject(json);
-
-            IAvatarDetail avatar = AvatarsDetailsList.Where(a => a.Id == id).FirstOrDefault();
-
-            return avatar;
+            return await LoadAvatarDetailTemplateAsync(a => a.Id == id);
         }
 
         public override IEnumerable<IAvatarDetail> LoadAllAvatarDetails()
@@ -607,7 +580,7 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
 
             json = await LoadStringToJson(avatarDetailsFileAddress);
 
-            AvatarsDetailsList = (List<IAvatarDetail>)JsonConvert.DeserializeObject(json);
+            AvatarsDetailsList = (List<IAvatarDetail>) JsonConvert.DeserializeObject(json);
 
             return AvatarsDetailsList;
         }
@@ -633,20 +606,12 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
 
         public override async Task<IAvatar> LoadAvatarByEmailAsync(string avatarEmail)
         {
-            IEnumerable<IAvatar> Avatars = await LoadAllAvatarsAsync();
-
-            IAvatar avatar = Avatars.Where(a => a.Email == avatarEmail).FirstOrDefault();
-
-            return avatar;
+            return await LoadAvatarTemplateAsync(a => a.email == avatarEmail);
         }
 
         public override async Task<IAvatar> LoadAvatarByUsernameAsync(string avatarUsername)
         {
-            IEnumerable<IAvatar> Avatars = await LoadAllAvatarsAsync();
-
-            IAvatar avatar = Avatars.Where(a => a.Username == avatarUsername).FirstOrDefault();
-
-            return avatar;
+            return await LoadAvatarTemplateAsync(a => a.login == avatarUsername);
         }
 
         public override IAvatar LoadAvatarByEmail(string avatarEmail)
@@ -666,20 +631,12 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
 
         public override async Task<IAvatarDetail> LoadAvatarDetailByUsernameAsync(string avatarUsername)
         {
-            IEnumerable<IAvatarDetail> AvatarDetail = await LoadAllAvatarDetailsAsync();
-
-            IAvatarDetail avatarDetail = AvatarDetail.Where(a => a.Username == avatarUsername).FirstOrDefault();
-
-            return avatarDetail;
+            return await LoadAvatarDetailTemplateAsync(a => a.login == avatarUsername);
         }
 
         public override async Task<IAvatarDetail> LoadAvatarDetailByEmailAsync(string avatarEmail)
         {
-            IEnumerable<IAvatarDetail> AvatarDetail = await LoadAllAvatarDetailsAsync();
-
-            IAvatarDetail avatarDetail = AvatarDetail.Where(a => a.Email == avatarEmail).FirstOrDefault();
-
-            return avatarDetail;
+            return await LoadAvatarDetailTemplateAsync(a => a.email == avatarEmail);
         }
 
         public override bool DeleteAvatarByEmail(string avatarEmail, bool softDelete = true)
@@ -694,25 +651,12 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
 
         public override async Task<bool> DeleteAvatarByEmailAsync(string avatarEmail, bool softDelete = true)
         {
-            string json = "";
             try
             {
-                json = await LoadStringToJson(avatarFileAddress);
+                IAvatar avatar = await LoadAvatarTemplateAsync(a => a.email == avatarEmail);
 
-                AvatarsList = JArray.Parse(json).ToObject<List<Avatar>>().ToList<IAvatar>();
-                if (softDelete)
-                {
-                    AvatarsList.Where(a => a.Email == avatarEmail).FirstOrDefault().PreviousVersionProviderKey.Add(Core.Enums.ProviderType.IPFSOASIS, avatarFileAddress);
-                    AvatarsList.Where(a => a.Email == avatarEmail).FirstOrDefault().IsActive = false;
-                    AvatarsList.Where(a => a.Email == avatarEmail).FirstOrDefault().DeletedDate = DateTime.Now;
+                await SaveAvatarToFile(avatar);
 
-                }
-                else
-                {
-                    var avatar = AvatarsList.Where(a => a.Email == avatarEmail).FirstOrDefault();
-                    AvatarsList.Remove(avatar);
-                }
-                avatarFileAddress = await SaveJsonToFile<IAvatar>(AvatarsList);
                 return true;
             }
             catch
@@ -723,25 +667,11 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
 
         public override async Task<bool> DeleteAvatarByUsernameAsync(string avatarUsername, bool softDelete = true)
         {
-            string json = "";
             try
             {
-                json = await LoadStringToJson(avatarFileAddress);
+                IAvatar avatar = await LoadAvatarTemplateAsync(a => a.login == avatarUsername);
+                await SaveAvatarToFile(avatar);
 
-                AvatarsList = JArray.Parse(json).ToObject<List<Avatar>>().ToList<IAvatar>();
-
-                if (softDelete)
-                {
-                    AvatarsList.Where(a => a.Username == avatarUsername).FirstOrDefault().PreviousVersionProviderKey.Add(Core.Enums.ProviderType.IPFSOASIS, avatarFileAddress);
-                    AvatarsList.Where(a => a.Username == avatarUsername).FirstOrDefault().IsActive = false;
-                    AvatarsList.Where(a => a.Username == avatarUsername).FirstOrDefault().DeletedDate = DateTime.Now;
-                }
-                else
-                {
-                    var avatar = AvatarsList.Where(a => a.Username == avatarUsername).FirstOrDefault();
-                    AvatarsList.Remove(avatar);
-                }
-                avatarFileAddress = await SaveJsonToFile(AvatarsList);
                 return true;
             }
             catch
@@ -752,22 +682,35 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
 
         public override OASISResult<IHolon> SaveHolon(IHolon holon, bool saveChildrenRecursive = true)
         {
-            throw new NotImplementedException();
+            return SaveHolonAsync(holon, saveChildrenRecursive).Result;
         }
 
-        public override Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon, bool saveChildrenRecursive = true)
+        public override async Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon, bool saveChildrenRecursive = true)
         {
-            throw new NotImplementedException();
+            OASISResult<IHolon> res = new OASISResult<IHolon>();
+
+            res.Result = await SaveHolonToFile(holon);
+            return res;
         }
 
-        public override OASISResult<IEnumerable<IHolon>> SaveHolons(IEnumerable<IHolon> holons, bool saveChildrenRecursive = true)
+        public override OASISResult<IEnumerable<IHolon>> SaveHolons(IEnumerable<IHolon> holons,
+            bool saveChildrenRecursive = true)
         {
-            throw new NotImplementedException();
+            return SaveHolonsAsync(holons, saveChildrenRecursive).Result;
         }
 
-        public override Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons, bool saveChildrenRecursive = true)
+        public override async Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons,
+            bool saveChildrenRecursive = true)
         {
-            throw new NotImplementedException();
+            OASISResult<IEnumerable<IHolon>> res = new OASISResult<IEnumerable<IHolon>>();
+
+            foreach (var h in holons)
+            {
+                await SaveHolonToFile(h);
+            }
+
+            res.Result = holons;
+            return res;
         }
     }
 }

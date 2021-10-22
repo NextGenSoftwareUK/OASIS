@@ -46,9 +46,9 @@
       "AutoLoadBalanceEnabled": "true",
       "AutoLoadBalanceReadPollIntervalMins": "10",
       "AutoLoadBalanceWritePollIntervalMins": "10",
-      "AutoReplicationProviders": "MongoDBOASIS, SQLLiteDBOASIS, Neo4jOASIS, IPFSOASIS, HoloOASIS, TelosOASIS, EOSIOOASIS, EthereumOASIS, ThreeFoldOASIS",
-      "AutoFailOverProviders": "MongoDBOASIS, SQLLiteDBOASIS, Neo4jOASIS, IPFSOASIS, HoloOASIS, TelosOASIS, EOSIOOASIS, EthereumOASIS, ThreeFoldOASIS",
-      "AutoLoadBalanceProviders": "MongoDBOASIS, SQLLiteDBOASIS, Neo4jOASIS, IPFSOASIS, HoloOASIS, TelosOASIS, EOSIOOASIS, EthereumOASIS, ThreeFoldOASIS",
+      "AutoReplicationProviders": "MongoDBOASIS, SolanaOASIS, SQLLiteDBOASIS, Neo4jOASIS, IPFSOASIS, HoloOASIS, TelosOASIS, EOSIOOASIS, EthereumOASIS, ThreeFoldOASIS",
+      "AutoFailOverProviders": "MongoDBOASIS, SolanaOASIS, SQLLiteDBOASIS, Neo4jOASIS, IPFSOASIS, HoloOASIS, TelosOASIS, EOSIOOASIS, EthereumOASIS, ThreeFoldOASIS",
+      "AutoLoadBalanceProviders": "MongoDBOASIS, SolanaOASIS, SQLLiteDBOASIS, Neo4jOASIS, IPFSOASIS, HoloOASIS, TelosOASIS, EOSIOOASIS, EthereumOASIS, ThreeFoldOASIS",
 
       //Can be:
       //Cold (will only register and activate (connect, etc) each provider when you fist make a call into it - fastest initial OASIS boot but slowest initial call into each OASIS Provider as it is registered and activated. Has the smallest initial memory footprint.
@@ -75,6 +75,12 @@
       },
       "TelosOASIS": {
         "ConnectionString": "https://node.hypha.earth"
+      },      
+      "CargoOASIS": {
+        "ConnectionString": "",
+        "SingingMessage": "",
+        "PrivateKey" : "",
+        "HostUrl": ""
       },
       "SEEDSOASIS": {
         "ConnectionString": "https://node.hypha.earth"

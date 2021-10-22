@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core.Helpers;
+using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Interfaces;
 using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Core.Models.Cargo;
 using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Core.Models.Request;
@@ -17,15 +18,27 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
 {
     public class CargoService : ICargoService
     {
+        private readonly OASISDNA _OASISDNA;
+        public CargoService()
+        {
+            _OASISDNA = OASISBootLoader.OASISBootLoader.OASISDNA;
+        }
+        
         public async Task<OASISResult<CreateAccountResponseModel>> AuthorizeCargoAccount(CreateAccountRequestModel requestModel)
         {
             var handler = new CreateAccountHandler(new HttpHandler(), new Web3SignatureProvider());
+            requestModel.HostUrl = _OASISDNA.OASIS.StorageProviders.CargoOASIS.HostUrl;
+            requestModel.PrivateKey = _OASISDNA.OASIS.StorageProviders.CargoOASIS.PrivateKey;
+            requestModel.SingingMessage = _OASISDNA.OASIS.StorageProviders.CargoOASIS.SingingMessage;
             return await handler.Handle(requestModel);
         }
 
         public async Task<OASISResult<CreateAccountResponseModel>> AuthenticateCargoAccount(AuthenticateAccountRequestModel requestModel)
         {
             var handler = new AuthenticateAccountHandler(new HttpHandler(), new Web3SignatureProvider());
+            requestModel.HostUrl = _OASISDNA.OASIS.StorageProviders.CargoOASIS.HostUrl;
+            requestModel.PrivateKey = _OASISDNA.OASIS.StorageProviders.CargoOASIS.PrivateKey;
+            requestModel.SingingMessage = _OASISDNA.OASIS.StorageProviders.CargoOASIS.SingingMessage;
             return await handler.Handle(requestModel);
         }
 

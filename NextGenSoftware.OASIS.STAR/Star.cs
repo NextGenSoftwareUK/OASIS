@@ -1212,6 +1212,7 @@ namespace NextGenSoftware.OASIS.STAR
             Omiverse omniverse = new Omiverse();
             omniverse.IsNewHolon = true;
             omniverse.Id = Guid.NewGuid();
+            omniverse.CreatedOASISType = new EnumValue<OASISType>(OASISType.STARCLI);
 
             GreatGrandSuperStar greatGrandSuperStar = new GreatGrandSuperStar(); //GODHEAD ;-)
             greatGrandSuperStar.IsNewHolon = true;
@@ -1219,6 +1220,7 @@ namespace NextGenSoftware.OASIS.STAR
             greatGrandSuperStar.Description = "GreatGrandSuperStar at the centre of the Omniverse (The OASIS). Can create Multiverses, Universes, Galaxies, SolarSystems, Stars, Planets (Super OAPPS) and moons (OAPPS)";
             greatGrandSuperStar.ParentOmiverse = omniverse;
             greatGrandSuperStar.ParentOmiverseId = omniverse.Id;
+            greatGrandSuperStar.CreatedOASISType = new EnumValue<OASISType>(OASISType.STARCLI);
             //await greatGrandSuperStar.InitializeAsync();
             result = await greatGrandSuperStar.SaveAsync();
 
@@ -1237,6 +1239,7 @@ namespace NextGenSoftware.OASIS.STAR
                 if (!omiverseResult.IsError && omiverseResult.Result != null)
                 {
                     Multiverse multiverse = new Multiverse();
+                    multiverse.CreatedOASISType = new EnumValue<OASISType>(OASISType.STARCLI);
                     multiverse.Name = "Our Multiverse.";
                     multiverse.Description = "The Multiverse that our Milky Way Galaxy belongs to, the default Multiverse.";
                     multiverse.ParentOmiverse = omiverseResult.Result;
@@ -1252,6 +1255,7 @@ namespace NextGenSoftware.OASIS.STAR
                         STARDNA.DefaultGrandSuperStarId = multiverse.GrandSuperStar.Id.ToString();
 
                         GalaxyCluster galaxyCluster = new GalaxyCluster();
+                        galaxyCluster.CreatedOASISType = new EnumValue<OASISType>(OASISType.STARCLI);
                         galaxyCluster.Name = "Milky Way Galaxy Cluster.";
                         galaxyCluster.Description = "The Galaxy Cluster that our Milky Way Galaxy belongs to, the default Galaxy Cluster.";
                         Mapper<IMultiverse, GalaxyCluster>.MapParentCelestialBodyProperties(multiverse, galaxyCluster);
@@ -1269,6 +1273,7 @@ namespace NextGenSoftware.OASIS.STAR
                             galaxyCluster = (GalaxyCluster)galaxyClusterResult.Result;
 
                             Galaxy galaxy = new Galaxy();
+                            galaxy.CreatedOASISType = new EnumValue<OASISType>(OASISType.STARCLI);
                             galaxy.Name = "The Milky Way Galaxy";
                             galaxy.Description = "Our Milky Way Galaxy, which is the default Galaxy.";
                             Mapper<IGalaxyCluster, Galaxy>.MapParentCelestialBodyProperties(galaxyCluster, galaxy);
@@ -1283,12 +1288,14 @@ namespace NextGenSoftware.OASIS.STAR
                                 STARDNA.DefaultSuperStarId = galaxy.SuperStar.Id.ToString();
 
                                 SolarSystem solarSystem = new SolarSystem();
+                                solarSystem.CreatedOASISType = new EnumValue<OASISType>(OASISType.STARCLI);
                                 solarSystem.Name = "The Solar System";
                                 solarSystem.Description = "Our Solar System, which is the default Solar System.";
                                 solarSystem.Id = Guid.NewGuid();
                                 solarSystem.IsNewHolon = true;
 
                                 Star star = new Star();
+                                star.CreatedOASISType = new EnumValue<OASISType>(OASISType.STARCLI);
                                 Mapper<IGalaxy, Star>.MapParentCelestialBodyProperties(galaxy, star);
                                 star.Name = "The Sun (Sol)";
                                 star.Description = "The Sun at the centre of our Solar System";
@@ -1320,6 +1327,7 @@ namespace NextGenSoftware.OASIS.STAR
                                         solarSystem = (SolarSystem)solarSystemResult.Result;
 
                                         Planet ourWorld = new Planet();
+                                        ourWorld.CreatedOASISType = new EnumValue<OASISType>(OASISType.STARCLI);
                                         ourWorld.Name = "Our World";
                                         ourWorld.Description = "The digital twin of our planet and the default planet.";
                                         Mapper<ISolarSystem, Planet>.MapParentCelestialBodyProperties(solarSystem, ourWorld);

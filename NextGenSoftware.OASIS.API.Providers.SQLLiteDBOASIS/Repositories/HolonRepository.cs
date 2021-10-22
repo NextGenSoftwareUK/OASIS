@@ -33,9 +33,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Repositories{
                     holon.CreatedByAvatarId = AvatarManager.LoggedInAvatar.Id;
 
                 holon.CreatedDate = DateTime.Now;
-
                 HolonModel holonModel = new HolonModel(holon);
-                holonModel.CreatedProviderType = ProviderType.SQLLiteDBOASIS;
 
                 dataBase.Holons.Add(holonModel);
                 dataBase.SaveChanges();
@@ -49,7 +47,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Repositories{
             catch (Exception ex)
             {
                 result.IsError = true;
-                result.Message = $"Error occurred adding holon in SQLLiteOASIS Provider.";
+                result.Message = $"Error occurred adding the holon in SQLLiteOASIS Provider in Add method. Reason: {ex.ToString()}";
                 result.Exception = ex;
             }
 
@@ -84,7 +82,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Repositories{
             catch (Exception ex)
             {
                 result.IsError = true;
-                result.Message = $"Error occurred adding holon in SQLLiteOASIS Provider.";
+                result.Message = $"Error occurred adding the holon in SQLLiteOASIS Provider in AddAsync method. Reason: {ex.ToString()}";
                 result.Exception = ex;
             }
 

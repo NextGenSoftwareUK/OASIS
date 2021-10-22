@@ -50,9 +50,10 @@ namespace NextGenSoftware.Holochain.HoloNET.Client.TestHarness
 
             await holoNETClient.Connect();
 
-            if (holoNETClient.State == System.Net.WebSockets.WebSocketState.Open)
-           {
-               // await holoNETClient.GetHolochainInstancesAsync();
+            //if (holoNETClient.State == System.Net.WebSockets.WebSocketState.Open)
+            if (holoNETClient.State2 == WebSocketState2.Open)
+            {
+                // await holoNETClient.GetHolochainInstancesAsync();
                 await holoNETClient.CallZomeFunctionAsync("1", "test-instance", "our_world_core", "test", ZomeCallback, null);
 
                // await holoNETClient.CallZomeFunctionAsync("1", "test-instance", "our_world_core", "test", ZomeCallback, new { message = new { content = "blah!" } });
