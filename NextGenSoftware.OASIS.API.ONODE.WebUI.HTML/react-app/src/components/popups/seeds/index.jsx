@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 
+import AcceptInvite from './components/AcceptInvite';
 import DonateSeeds from './components/DonateSeeds';
 import PayWithSeeds from './components/PayWithSeeds';
 import RewardSeeds from './components/RewardSeeds';
@@ -12,10 +13,10 @@ class Seeds extends React.Component {
     render() {
         return(
             <>
-                {/* <AcceptInvite
+                <AcceptInvite
                     show={this.props.seeds.acceptInvite}
                     hide={this.props.toggleScreenPopup}
-                /> */}
+                />
 
                 <DonateSeeds
                     show={this.props.seeds.donateSeeds}
