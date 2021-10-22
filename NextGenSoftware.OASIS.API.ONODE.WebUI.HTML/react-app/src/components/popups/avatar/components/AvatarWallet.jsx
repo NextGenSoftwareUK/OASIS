@@ -2,100 +2,135 @@ import React from "react"
 import Loader from "react-loader-spinner";
 import { Modal } from "react-bootstrap"
 
-import ReactGrid from "../../../ReactGrid";
+// import ReactGrid from "../../../ReactGrid";
+import { AgGridColumn, AgGridReact } from 'ag-grid-react'
 import { login } from "../../../../functions"
 import '../../../../assets/scss/avatar-popup.scss';
 
 class AvatarWallet extends React.Component {
-	constructor(props) {
-		super(props)
-		this.state = {
-			columns: [
-				{ name: 'date', title: 'Date' },
-				{ name: 'note', title: 'Note' },
-				{ name: 'balance', title: 'Balance' },
-				{ name: 'provider', title: 'Provider' },
-				{ name: 'type', title: 'Type' }
-			],
-			columnWidth: [
-				{ columnName: 'date', width: 180 },
-				{ columnName: 'note', width: 180 },
-				{ columnName: 'balance', width: 180 },
-				{ columnName: 'provider', width: 180 },
-				{ columnName: 'type', width: 180 }
-			],
-			rows: [],
-			loading: true,
-			loggedIn: true,
-		}
-	}
+	
+    state = {
+        columnDefs: [
+            { 
+                field: 'Date',
+				filter: 'agDateColumnFilter',
+                filterParams: filterParams,
+            },
+            {
+                field: 'Note',
 
-	async componentDidMount() {
-		// Api calls
-		var token, refresh, credentials;
+            },
+            { field: 'Balance' },
+            {
+                field: 'Provider',
+            },
+            { field: 'Type' },
+         
+        ],
+        defaultColDef: {
+            flex: 1,
+            minWidth: 150,
+            filter: true,
+            sortable: true,
+            floatingFilter: true,
+            resizable: true,
+        },
+        rowData: null,
+		loading: true,
+		loggedIn: true,
+    };
 
-		//If user object exists in localstorage, get the refresh token
-		//and the jwtToken
-		if (localStorage.getItem("user")) {
-			credentials = JSON.parse(localStorage.getItem("credentials"));
-			let avatar = await login(credentials);
-			if (avatar !== -1) {
-				token = avatar.jwtToken;
-				refresh = avatar.refreshToken;
-			}
-			this.setState({ loading: false })
-		}
+    onGridReady = (params) => {
+        this.gridApi = params.api;
+        this.gridColumnApi = params.columnApi;
+    
+        const updateData = (data) => {
+          this.setState({ rowData: data });
+        };
+    
+        fetch('https://www.ag-grid.com/example-assets/olympic-winners.json')
+          .then((resp) => resp.json())
+          .then((data) => updateData(data));
+    };
+	// async componentDidMount() {
+	// 	// Api calls
+	// 	var token, refresh, credentials;
 
-		//else (for now) show an alert and redirect to home
-		else {
-			// alert("not logged in");
-			this.setState({ loggedIn: true });
-			this.setState({ loading: false })
-		}
-	}
+	// 	//If user object exists in localstorage, get the refresh token
+	// 	//and the jwtToken
+	// 	if (localStorage.getItem("user")) {
+	// 		credentials = JSON.parse(localStorage.getItem("credentials"));
+	// 		let avatar = await login(credentials);
+	// 		if (avatar !== -1) {
+	// 			token = avatar.jwtToken;
+	// 			refresh = avatar.refreshToken;
+	// 		}
+	// 		this.setState({ loading: false })
+	// 	}
 
-	render() {
-		const { show, hide } = this.props;
-		return (
-			<Modal
-				centered
-				className="custom-modal custom-popup-component w-100"
-				size="xl"
-				show={show}
-				onHide={() => hide('avatar', 'avatarWallet')}
-			>
+	// 	//else (for now) show an alert and redirect to home
+	// 	else {
+	// 		// alert("not logged in");
+	// 		this.setState({ loggedIn: true });
+	// 		this.setState({ loading: false })
+	// 	}
+	// }
 
-				<Modal.Body>
-					<span className="form-cross-icon" onClick={() => hide('avatar', 'avatarWallet')}>
-						<i className="fa fa-times"></i>
-					</span>
-					{this.state.loggedIn ? (
-						<>
-							{this.state.loading ? (
-								<Loader type="Oval" height={30} width={30} color="#fff" />
-							) :
-								<>
-									<div>
-										<h2>Avatar Wallet</h2>
-									</div>
-									<div className="avatarWallet-grid">
-										<ReactGrid
-											rows={this.state.rows}
-											columns={this.state.columns}
-											columnWidths={this.state.columnWidth}
-										/>
-									</div>
+    render() { 
+        const { show, hide } = this.props;
 
-								</>
-							}
+        return (
+            <>
+                <Modal 
+                    centered 
+                    className="custom-modal custom-popup-component light-custom-popup" 
+                    show={show}
+                    dialogClassName="modal-90w"
+                    onHide={() => hide('avatar', 'avatarWallet')}
+                >
+                    <Modal.Body>
+                        <span className="form-cross-icon" onClick={() => hide('avatar', 'avatarWallet')}>
+                            <i className="fa fa-times"></i>
+                        </span>
 
-						</>
-					) : <h3>You are not logged in!</h3>
-					}
-				</Modal.Body>
-			</Modal>
-		)
-	}
+                        <h2 className="grid-heading">Avatar Wallet</h2>
+
+                        <div className="ag-theme-alpine custom-ag-parent">
+                            <AgGridReact
+                                columnDefs={this.state.columnDefs}
+                                defaultColDef={this.state.defaultColDef}
+                                onGridReady={this.onGridReady}
+                                rowData={this.state.rowData}
+                            />
+                        </div>
+                    </Modal.Body>
+                </Modal>
+            </>
+        );
+    }
 }
 
 export default AvatarWallet
+
+var filterParams = {
+    comparator: function (filterLocalDateAtMidnight, cellValue) {
+        var dateAsString = cellValue;
+        if (dateAsString == null) return -1;
+        var dateParts = dateAsString.split('/');
+        var cellDate = new Date(
+            Number(dateParts[2]),
+            Number(dateParts[1]) - 1,
+            Number(dateParts[0])
+        );
+        if (filterLocalDateAtMidnight.getTime() === cellDate.getTime()) {
+            return 0;
+        }
+        if (cellDate < filterLocalDateAtMidnight) {
+            return -1;
+        }
+        if (cellDate > filterLocalDateAtMidnight) {
+            return 1;
+        }
+    },
+    browserDatePicker: true,
+};
