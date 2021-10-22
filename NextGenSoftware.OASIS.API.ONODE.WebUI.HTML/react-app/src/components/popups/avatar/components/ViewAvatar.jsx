@@ -1,13 +1,10 @@
-import React from "react"
-import { Link } from "react-router-dom"
-import axios from "axios"
-import Loader from "react-loader-spinner"
-import { Modal, ModalBody } from "react-bootstrap"
-import { login, getUserById } from "../../../functions"
-import ReactGrid from "../../ReactGrid"
+import React from "react";
+import axios from "axios";
+import { Modal, ModalBody } from "react-bootstrap";
 
-import "../../../assets/scss/avatar-popup.scss"
-// import "../../../assets/scss/popup.scss"
+import { login, getUserById } from "../../../../functions";
+import ReactGrid from "../../../ReactGrid";
+import '../../../../assets/scss/avatar-popup.scss';
 
 class ViewAvatar extends React.Component {
     constructor(props) {
@@ -112,6 +109,9 @@ class ViewAvatar extends React.Component {
                     <span className="form-cross-icon" onClick={() => hide('avatar', 'viewAvatar')}>
                         <i className="fa fa-times"></i>
                     </span>
+                    <div>
+                        <h2>View Avatar</h2>
+                    </div>
                     {/* {this.state.loggedIn ? ( */}
                         <>
                             {/* {this.state.loading ? (

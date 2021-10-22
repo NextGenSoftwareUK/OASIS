@@ -1,14 +1,10 @@
 import React from "react"
 import Loader from "react-loader-spinner";
-import { Link } from "react-router-dom"
 import { Modal } from "react-bootstrap"
 
-import ReactGrid from "../../ReactGrid";
-import { login } from "../../../functions"
-
-
-import "../../../assets/scss/avatar-popup.scss"
-// import "../../../assets/scss/popup.scss"
+import ReactGrid from "../../../ReactGrid";
+import { login } from "../../../../functions"
+import '../../../../assets/scss/avatar-popup.scss';
 
 class AvatarWallet extends React.Component {
 	constructor(props) {
@@ -68,10 +64,8 @@ class AvatarWallet extends React.Component {
 				show={show}
 				onHide={() => hide('avatar', 'avatarWallet')}
 			>
-			
-				<Modal.Body
-					className="p-50"
-				>
+
+				<Modal.Body>
 					<span className="form-cross-icon" onClick={() => hide('avatar', 'avatarWallet')}>
 						<i className="fa fa-times"></i>
 					</span>
@@ -81,6 +75,9 @@ class AvatarWallet extends React.Component {
 								<Loader type="Oval" height={30} width={30} color="#fff" />
 							) :
 								<>
+									<div>
+										<h2>Avatar Wallet</h2>
+									</div>
 									<div className="avatarWallet-grid">
 										<ReactGrid
 											rows={this.state.rows}

@@ -2,7 +2,7 @@ import React from 'react';
 
 import { Modal } from 'react-bootstrap';
 
-import '../../../assets/scss/avatar-popup.scss';
+import '../../../../assets/scss/avatar-popup.scss';
 
 class AvatarDetail extends React.Component {
     render() {
