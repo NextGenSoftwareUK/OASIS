@@ -11,31 +11,32 @@ import '../../../assets/scss/seeds-popup.scss';
 class Seeds extends React.Component {
 
     render() {
+        const props=this.props;
         return(
             <>
                 <AcceptInvite
-                    show={this.props.seeds.acceptInvite}
-                    hide={this.props.toggleScreenPopup}
+                    show={props.seeds.acceptInvite}
+                    hide={props.toggleScreenPopup}
                 />
 
                 <DonateSeeds
-                    show={this.props.seeds.donateSeeds}
-                    hide={this.props.toggleScreenPopup}
+                    show={props.seeds.donateSeeds}
+                    hide={props.toggleScreenPopup}
                 />
 
                 <PayWithSeeds
-                    show={this.props.seeds.payWithSeeds}
-                    hide={this.props.toggleScreenPopup}
+                    show={props.seeds.payWithSeeds}
+                    hide={props.toggleScreenPopup}
                 />
 
                 <RewardSeeds
-                    show={this.props.seeds.rewardSeeds}
-                    hide={this.props.toggleScreenPopup}
+                    show={props.seeds.rewardSeeds}
+                    hide={props.toggleScreenPopup}
                 />
 
                 <SendInvite
-                    show={this.props.seeds.sendInvite}
-                    hide={this.props.toggleScreenPopup}
+                    show={props.seeds.sendInvite}
+                    hide={props.toggleScreenPopup}
                 />
             </>
         )
