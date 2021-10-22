@@ -70,6 +70,7 @@ namespace NextGenSoftware.OASIS.API.DNA
         public IPFSOASISSettings IPFSOASIS { get; set; }
         public Neo4jOASISSettings Neo4jOASIS { get; set; }
         public SolanaOASISSettings SolanaOASIS { get; set; }
+        public CargoOASISSettings CargoOASIS { get; set; }
     }
 
     public class EmailSettings
@@ -84,6 +85,13 @@ namespace NextGenSoftware.OASIS.API.DNA
     public class ProviderSettingsBase
     {
         public string ConnectionString { get; set; }
+    }
+    
+    public class CargoOASISSettings : ProviderSettingsBase
+    {
+        public string SingingMessage { get; set; }
+        public string PrivateKey { get; set; }
+        public string HostUrl { get; set; }
     }
     
     public class SolanaOASISSettings : ProviderSettingsBase
