@@ -795,35 +795,27 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
             result = SaveHolonForProviderType(PrepareHolonForSaving(holon), providerType, saveChildrenRecursive, result);
 
-            if (result.Result == null && ProviderManager.IsAutoFailOverEnabled)
+            if ((result.IsError || result.Result == null) && ProviderManager.IsAutoFailOverEnabled)
             {
-                foreach (EnumValue<ProviderType> type in ProviderManager.GetProviderAutoFailOverList())
-                {
-                    if (type.Value != providerType && type.Value != ProviderManager.CurrentStorageProviderType.Value)
-                    {
-                        result = SaveHolonForProviderType(holon, type.Value, saveChildrenRecursive, result);
+                ErrorHandling.HandleError(ref result, result.Message);
+                result.InnerMessages.Add(result.Message);
+                result.IsWarning = true;
+                result.IsError = false;
 
-                        if (result.Result != null)
-                            break;
-                    }
-                }
+                result = SaveHolonForListOfProviders(holon, result, providerType, ProviderManager.GetProviderAutoFailOverList(), "auto-failover", false, saveChildrenRecursive);
             }
 
-            if (result.Result == null || result.IsError)
+            if (result.InnerMessages.Count > 0)
                 HandleSaveHolonError(ref result, holon);
-  
-            if (ProviderManager.IsAutoReplicationEnabled)
-            {
-                foreach (EnumValue<ProviderType> type in ProviderManager.GetProvidersThatAreAutoReplicating())
-                {
-                    if (type.Value != providerType && type.Value != ProviderManager.CurrentStorageProviderType.Value)
-                        SaveHolonForProviderType(holon, type.Value, saveChildrenRecursive);
-                }
-            }
+            
+            else if (ProviderManager.IsAutoReplicationEnabled)
+                result = SaveHolonForListOfProviders(holon, result, providerType, ProviderManager.GetProvidersThatAreAutoReplicating(), "auto-replicate", true, saveChildrenRecursive);
 
             SwitchBackToCurrentProvider(currentProviderType, ref result);
             result.IsSaved = result.Result != null && result.Result.Id != Guid.Empty;
-            result.Result.IsChanged = !result.IsSaved;
+
+            if (result.Result != null)
+                result.Result.IsChanged = !result.IsSaved;
 
             return result;
         }
@@ -843,42 +835,24 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 result.IsWarning = true;
                 result.IsError = false;
 
-                foreach (EnumValue<ProviderType> type in ProviderManager.GetProviderAutoFailOverList())
-                {
-                    if (type.Value != providerType && type.Value != ProviderManager.CurrentStorageProviderType.Value)
-                    {
-                        holonSaveResult = SaveHolonForProviderType(holon, type.Value, saveChildrenRecursive, holonSaveResult);
-
-                        if (holonSaveResult.IsError || holonSaveResult.Result == null)
-                        {
-                            ErrorHandling.HandleError(ref holonSaveResult, holonSaveResult.Message);
-                            result.InnerMessages.Add(result.Message);
-                            result.IsWarning = true;
-                            result.IsError = false;
-                        }
-                        else
-                            break;
-                    }
-                }
+                result = SaveHolonForListOfProviders(holon, result, providerType, ProviderManager.GetProviderAutoFailOverList(), "auto-failover", false, saveChildrenRecursive);
             }
 
-            if (holonSaveResult.Result == null || holonSaveResult.IsError)
+            if (result.InnerMessages.Count > 0)
                 HandleSaveHolonError(ref result, holon);
             else
+            {
                 result.Result = Mapper<IHolon, T>.MapBaseHolonProperties(holonSaveResult.Result, result.Result);
 
-            if (ProviderManager.IsAutoReplicationEnabled)
-            {
-                foreach (EnumValue<ProviderType> type in ProviderManager.GetProvidersThatAreAutoReplicating())
-                {
-                    if (type.Value != providerType && type.Value != ProviderManager.CurrentStorageProviderType.Value)
-                        SaveHolonForProviderType(holon, type.Value, saveChildrenRecursive);
-                }
+                if (ProviderManager.IsAutoReplicationEnabled)
+                    result = SaveHolonForListOfProviders(holon, result, providerType, ProviderManager.GetProvidersThatAreAutoReplicating(), "auto-replicate", true, saveChildrenRecursive);
             }
 
             SwitchBackToCurrentProvider(currentProviderType, ref result);
             result.IsSaved = result.Result != null && result.Result.Id != Guid.Empty;
-            result.Result.IsChanged = !result.IsSaved;
+
+            if (result.Result != null)
+                result.Result.IsChanged = !result.IsSaved;
 
             return result;
         }
@@ -898,36 +872,14 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 result.IsWarning = true;
                 result.IsError = false;
 
-                foreach (EnumValue<ProviderType> type in ProviderManager.GetProviderAutoFailOverList())
-                {
-                    if (type.Value != providerType && type.Value != ProviderManager.CurrentStorageProviderType.Value)
-                    {
-                        result = await SaveHolonForProviderTypeAsync(holon, type.Value, saveChildrenRecursive, result);
-
-                        if (result.IsError || result.Result == null)
-                        {
-                            ErrorHandling.HandleError(ref result, result.Message);
-                            result.InnerMessages.Add(result.Message);
-                            result.IsWarning = true;
-                            result.IsError = false;
-                        }
-                        else
-                            break;
-                    }
-                }
+                result = await SaveHolonForListOfProvidersAsync(holon, result, providerType, ProviderManager.GetProviderAutoFailOverList(), "auto-failover", false, saveChildrenRecursive);
             }
 
-            if (result.Result == null || result.IsError)
+            if (result.InnerMessages.Count > 0)
                 HandleSaveHolonError(ref result, holon);
 
-            if (ProviderManager.IsAutoReplicationEnabled)
-            {
-                foreach (EnumValue<ProviderType> type in ProviderManager.GetProvidersThatAreAutoReplicating())
-                {
-                    if (type.Value != providerType && type.Value != ProviderManager.CurrentStorageProviderType.Value)
-                        await SaveHolonForProviderTypeAsync(holon, type.Value, saveChildrenRecursive);
-                }
-            }
+            else if (ProviderManager.IsAutoReplicationEnabled)
+                result = await SaveHolonForListOfProvidersAsync(holon, result, providerType, ProviderManager.GetProvidersThatAreAutoReplicating(), "auto-replicate", true, saveChildrenRecursive);
 
             SwitchBackToCurrentProvider(currentProviderType, ref result);
             result.IsSaved = result.Result != null && result.Result.Id != Guid.Empty;
@@ -955,42 +907,24 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 result.IsWarning = true;
                 result.IsError = false;
 
-                foreach (EnumValue<ProviderType> type in ProviderManager.GetProviderAutoFailOverList())
-                {
-                    if (type.Value != providerType && type.Value != ProviderManager.CurrentStorageProviderType.Value)
-                    {
-                        holonSaveResult = await SaveHolonForProviderTypeAsync(holon, type.Value, saveChildrenRecursive, holonSaveResult);
-
-                        if (holonSaveResult.IsError || holonSaveResult.Result == null)
-                        {
-                            ErrorHandling.HandleError(ref holonSaveResult, holonSaveResult.Message);
-                            result.InnerMessages.Add(holonSaveResult.Message);
-                            result.IsWarning = true;
-                            result.IsError = false;
-                        }
-                        else
-                            break;
-                    }
-                }
+                result = await SaveHolonForListOfProvidersAsync(holon, result, providerType, ProviderManager.GetProviderAutoFailOverList(), "auto-failover", false, saveChildrenRecursive);
             }
 
-            if (result.Result == null || result.IsError)
+            if (result.InnerMessages.Count > 0)
                 HandleSaveHolonError(ref result, holon);
             else
+            {
                 result.Result = Mapper<IHolon, T>.MapBaseHolonProperties(holonSaveResult.Result, result.Result);
 
-            if (ProviderManager.IsAutoReplicationEnabled)
-            {
-                foreach (EnumValue<ProviderType> type in ProviderManager.GetProvidersThatAreAutoReplicating())
-                {
-                    if (type.Value != providerType && type.Value != ProviderManager.CurrentStorageProviderType.Value)
-                        await SaveHolonForProviderTypeAsync(holon, type.Value, saveChildrenRecursive);
-                }
+                if (ProviderManager.IsAutoReplicationEnabled)
+                    result = await SaveHolonForListOfProvidersAsync(holon, result, providerType, ProviderManager.GetProvidersThatAreAutoReplicating(), "auto-replicate", true, saveChildrenRecursive);
             }
 
             SwitchBackToCurrentProvider(currentProviderType, ref result);
             result.IsSaved = result.Result != null && result.Result.Id != Guid.Empty;
-            result.Result.IsChanged = !result.IsSaved;
+
+            if (result.Result != null)
+                result.Result.IsChanged = !result.IsSaved;
 
             return result;
         }
@@ -1000,36 +934,36 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             ProviderType currentProviderType = ProviderManager.CurrentStorageProviderType.Value;
             OASISResult<IEnumerable<IHolon>> result = new OASISResult<IEnumerable<IHolon>>();
 
-            result = SaveHolonsForProviderType(PrepareHolonsForSaving(holons), providerType, saveChildrenRecursive, result);
-
-            if (result.Result == null && ProviderManager.IsAutoFailOverEnabled)
+            if (holons.Count() == 0)
             {
-                foreach (EnumValue<ProviderType> type in ProviderManager.GetProviderAutoFailOverList())
-                {
-                    if (type.Value != providerType && type.Value != ProviderManager.CurrentStorageProviderType.Value)
-                        result = SaveHolonsForProviderType(holons, type.Value, saveChildrenRecursive, result);
-                }
+                result.Message = "No holons found to save.";
+                result.IsWarning = true;
+                result.IsSaved = false;
+                return result;
             }
 
-            if (result.Result == null)
+            result = SaveHolonsForProviderType(PrepareHolonsForSaving(holons), providerType, result, saveChildrenRecursive);
+
+            if ((result.IsError || result.Result == null) && ProviderManager.IsAutoFailOverEnabled)
             {
-                result.IsError = true;
-                result.Message = string.Concat("All Registered OASIS Providers In The AutoFailOverList Failed To Save The Holons. Providers in list are ", ProviderManager.GetProviderAutoFailOverListAsString());
+                ErrorHandling.HandleError(ref result, result.Message);
+                result.InnerMessages.Add(result.Message);
+                result.IsWarning = true;
+                result.IsError = false;
+
+                result = SaveHolonsForListOfProviders(holons, result, providerType, ProviderManager.GetProviderAutoFailOverList(), "auto-failover", false, saveChildrenRecursive);
             }
+
+            if (result.InnerMessages.Count > 0)
+                HandleSaveHolonError(ref result);
             else
             {
                 //Should already be false but just in case...
                 foreach (IHolon holon in result.Result)
                     holon.IsChanged = false;
-            }
 
-            if (ProviderManager.IsAutoReplicationEnabled)
-            {
-                foreach (EnumValue<ProviderType> type in ProviderManager.GetProvidersThatAreAutoReplicating())
-                {
-                    if (type.Value != providerType && type.Value != ProviderManager.CurrentStorageProviderType.Value)
-                        SaveHolonsForProviderType(holons, type.Value);
-                }
+                if (ProviderManager.IsAutoReplicationEnabled)
+                    result = SaveHolonsForListOfProviders(holons, result, providerType, ProviderManager.GetProvidersThatAreAutoReplicating(), "auto-replicate", true, saveChildrenRecursive);
             }
 
             SwitchBackToCurrentProvider(currentProviderType, ref result);
@@ -1044,25 +978,31 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             OASISResult<IEnumerable<IHolon>> holonSaveResult = new OASISResult<IEnumerable<IHolon>>();
             List<T> originalHolons = new List<T>();
 
+            if (holons.Count() == 0)
+            {
+                result.Message = "No holons found to save.";
+                result.IsWarning = true;
+                result.IsSaved = false;
+                return result;
+            }
+
             foreach (IHolon holon in holons)
                 originalHolons.Add((T)holon);
 
-            holonSaveResult = SaveHolonsForProviderType(PrepareHolonsForSaving(holons), providerType, saveChildrenRecursive, holonSaveResult);
+            holonSaveResult = SaveHolonsForProviderType(PrepareHolonsForSaving(holons), providerType, holonSaveResult, saveChildrenRecursive);
 
-            if (holonSaveResult.Result == null && ProviderManager.IsAutoFailOverEnabled)
+            if ((holonSaveResult.IsError || holonSaveResult.Result == null) && ProviderManager.IsAutoFailOverEnabled)
             {
-                foreach (EnumValue<ProviderType> type in ProviderManager.GetProviderAutoFailOverList())
-                {
-                    if (type.Value != providerType && type.Value != ProviderManager.CurrentStorageProviderType.Value)
-                        holonSaveResult = SaveHolonsForProviderType(holons, type.Value, saveChildrenRecursive, holonSaveResult);
-                }
+                ErrorHandling.HandleError(ref holonSaveResult, holonSaveResult.Message);
+                result.InnerMessages.Add(holonSaveResult.Message);
+                result.IsWarning = true;
+                result.IsError = false;
+
+                result = SaveHolonsForListOfProviders(holons, result, providerType, ProviderManager.GetProviderAutoFailOverList(), "auto-failover", false, saveChildrenRecursive);
             }
 
-            if (holonSaveResult.Result == null)
-            {
-                result.IsError = true;
-                result.Message = string.Concat("All Registered OASIS Providers In The AutoFailOverList Failed To Save The Holons. Providers in list are ", ProviderManager.GetProviderAutoFailOverListAsString());
-            }
+            if (result.InnerMessages.Count > 0)
+                HandleSaveHolonError(ref result);
             else
             {
                 List<IHolon> savedHolons = holonSaveResult.Result.ToList();
@@ -1075,15 +1015,9 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                     //Update the base holon properties that have now been updated (id, createddate, modifieddata, etc)
                     originalHolons[i] = Mapper<IHolon, T>.MapBaseHolonProperties(savedHolons[i], originalHolons[i]);
                 }
-            }
 
-            if (ProviderManager.IsAutoReplicationEnabled)
-            {
-                foreach (EnumValue<ProviderType> type in ProviderManager.GetProvidersThatAreAutoReplicating())
-                {
-                    if (type.Value != providerType && type.Value != ProviderManager.CurrentStorageProviderType.Value)
-                        SaveHolonsForProviderType(holons, type.Value);
-                }
+                if (ProviderManager.IsAutoReplicationEnabled)
+                    result = SaveHolonsForListOfProviders(holons, result, providerType, ProviderManager.GetProvidersThatAreAutoReplicating(), "auto-replicate", true, saveChildrenRecursive);
             }
 
             result.Result = originalHolons;
@@ -1098,36 +1032,36 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             ProviderType currentProviderType = ProviderManager.CurrentStorageProviderType.Value;
             OASISResult<IEnumerable<IHolon>> result = new OASISResult<IEnumerable<IHolon>>();
 
-            result = await SaveHolonsForProviderTypeAsync(PrepareHolonsForSaving(holons), providerType, saveChildrenRecursive, result);
-
-            if (result.Result == null && ProviderManager.IsAutoFailOverEnabled)
+            if (holons.Count() == 0)
             {
-                foreach (EnumValue<ProviderType> type in ProviderManager.GetProviderAutoFailOverList())
-                {
-                    if (type.Value != providerType && type.Value != ProviderManager.CurrentStorageProviderType.Value)
-                        result = await SaveHolonsForProviderTypeAsync(holons, type.Value, saveChildrenRecursive, result);
-                }
+                result.Message = "No holons found to save.";
+                result.IsWarning = true;
+                result.IsSaved = false;
+                return result;
             }
 
-            if (result.Result == null)
+            result = await SaveHolonsForProviderTypeAsync(PrepareHolonsForSaving(holons), providerType, result, saveChildrenRecursive);
+
+            if ((result.IsError || result.Result == null) && ProviderManager.IsAutoFailOverEnabled)
             {
-                result.IsError = true;
-                result.Message = string.Concat("All Registered OASIS Providers In The AutoFailOverList Failed To Save The Holons. Providers in list are ", ProviderManager.GetProviderAutoFailOverListAsString());
+                ErrorHandling.HandleError(ref result, result.Message);
+                result.InnerMessages.Add(result.Message);
+                result.IsWarning = true;
+                result.IsError = false;
+
+                result = await SaveHolonsForListOfProvidersAsync(holons, result, providerType, ProviderManager.GetProviderAutoFailOverList(), "auto-failover", false, saveChildrenRecursive);
             }
+
+            if (result.InnerMessages.Count > 0)
+                HandleSaveHolonError(ref result);
             else
             {
                 //Should already be false but just in case...
                 foreach (IHolon holon in result.Result)
                     holon.IsChanged = false;
-            }
 
-            if (ProviderManager.IsAutoReplicationEnabled)
-            {
-                foreach (EnumValue<ProviderType> type in ProviderManager.GetProvidersThatAreAutoReplicating())
-                {
-                    if (type.Value != providerType && type.Value != ProviderManager.CurrentStorageProviderType.Value)
-                        await SaveHolonsForProviderTypeAsync(holons, type.Value);
-                }
+                if (ProviderManager.IsAutoReplicationEnabled)
+                    result = await SaveHolonsForListOfProvidersAsync(holons, result, providerType, ProviderManager.GetProvidersThatAreAutoReplicating(), "auto-replicate", true, saveChildrenRecursive);
             }
 
             SwitchBackToCurrentProvider(currentProviderType, ref result);
@@ -1142,25 +1076,31 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             OASISResult<IEnumerable<IHolon>> holonSaveResult = new OASISResult<IEnumerable<IHolon>>();
             List<T> originalHolons = new List<T>();
 
+            if (holons.Count() == 0)
+            {
+                result.Message = "No holons found to save.";
+                result.IsWarning = true;
+                result.IsSaved = false;
+                return result;
+            }
+
             foreach (IHolon holon in holons)
                 originalHolons.Add((T)holon);
 
-            holonSaveResult = await SaveHolonsForProviderTypeAsync(PrepareHolonsForSaving(holons), providerType, saveChildrenRecursive, holonSaveResult);
+            holonSaveResult = await SaveHolonsForProviderTypeAsync(PrepareHolonsForSaving(holons), providerType, holonSaveResult, saveChildrenRecursive);
 
-            if (holonSaveResult.Result == null && ProviderManager.IsAutoFailOverEnabled)
+            if ((holonSaveResult.IsError || holonSaveResult.Result == null) && ProviderManager.IsAutoFailOverEnabled)
             {
-                foreach (EnumValue<ProviderType> type in ProviderManager.GetProviderAutoFailOverList())
-                {
-                    if (type.Value != providerType && type.Value != ProviderManager.CurrentStorageProviderType.Value)
-                        holonSaveResult = await SaveHolonsForProviderTypeAsync(holons, type.Value, saveChildrenRecursive, holonSaveResult);
-                }
+                ErrorHandling.HandleError(ref holonSaveResult, holonSaveResult.Message);
+                result.InnerMessages.Add(holonSaveResult.Message);
+                result.IsWarning = true;
+                result.IsError = false;
+
+                result = await SaveHolonsForListOfProvidersAsync(holons, result, providerType, ProviderManager.GetProviderAutoFailOverList(), "auto-failover", false, saveChildrenRecursive);
             }
 
-            if (holonSaveResult.Result == null)
-            {
-                result.IsError = true;
-                result.Message = string.Concat("All Registered OASIS Providers In The AutoFailOverList Failed To Save The Holons. Providers in list are ", ProviderManager.GetProviderAutoFailOverListAsString());
-            }
+            if (result.InnerMessages.Count > 0)
+                HandleSaveHolonError(ref result);
             else
             {
                 List<IHolon> savedHolons = holonSaveResult.Result.ToList();
@@ -1173,15 +1113,9 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                     //Update the base holon properties that have now been updated (id, createddate, modifieddata, etc)
                     originalHolons[i] = Mapper<IHolon, T>.MapBaseHolonProperties(savedHolons[i], originalHolons[i]);
                 }
-            }
 
-            if (ProviderManager.IsAutoReplicationEnabled)
-            {
-                foreach (EnumValue<ProviderType> type in ProviderManager.GetProvidersThatAreAutoReplicating())
-                {
-                    if (type.Value != providerType && type.Value != ProviderManager.CurrentStorageProviderType.Value)
-                        await SaveHolonsForProviderTypeAsync(holons, type.Value);
-                }
+                if (ProviderManager.IsAutoReplicationEnabled)
+                    result = await SaveHolonsForListOfProvidersAsync(holons, result, providerType, ProviderManager.GetProvidersThatAreAutoReplicating(), "auto-replicate", true, saveChildrenRecursive);
             }
 
             SwitchBackToCurrentProvider(currentProviderType, ref result);
@@ -2180,7 +2114,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return result;
         }
 
-        private OASISResult<IEnumerable<IHolon>> LoadAllHolonsForProviderType(HolonType holonType, ProviderType providerType, OASISResult<IEnumerable<IHolon>> result = null)
+        private OASISResult<IEnumerable<IHolon>> LoadAllHolonsForProviderType(HolonType holonType, ProviderType providerType, OASISResult<IEnumerable<IHolon>> result)
         {
             try
             {
@@ -2218,7 +2152,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return result;
         }
 
-        private OASISResult<IEnumerable<T>> LoadAllHolonsForProviderType<T>(HolonType holonType, ProviderType providerType, OASISResult<IEnumerable<T>> result = null) where T : IHolon, new()
+        private OASISResult<IEnumerable<T>> LoadAllHolonsForProviderType<T>(HolonType holonType, ProviderType providerType, OASISResult<IEnumerable<T>> result) where T : IHolon, new()
         {
             try
             {
@@ -2257,7 +2191,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return result;
         }
 
-        private async Task<OASISResult<IEnumerable<IHolon>>> LoadAllHolonsForProviderTypeAsync(HolonType holonType, ProviderType providerType, OASISResult<IEnumerable<IHolon>> result = null)
+        private async Task<OASISResult<IEnumerable<IHolon>>> LoadAllHolonsForProviderTypeAsync(HolonType holonType, ProviderType providerType, OASISResult<IEnumerable<IHolon>> result)
         {
             try
             {
@@ -2295,7 +2229,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return result;
         }
 
-        private async Task<OASISResult<IEnumerable<T>>> LoadAllHolonsForProviderTypeAsync<T>(HolonType holonType, ProviderType providerType, OASISResult<IEnumerable<T>> result = null) where T : IHolon, new()
+        private async Task<OASISResult<IEnumerable<T>>> LoadAllHolonsForProviderTypeAsync<T>(HolonType holonType, ProviderType providerType, OASISResult<IEnumerable<T>> result) where T : IHolon, new()
         {
             try
             {
@@ -2335,7 +2269,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         }
 
         //TODO: Why do we pass in result?! Need to look into this tomorrow! ;-) lol
-        private OASISResult<IHolon> SaveHolonForProviderType(IHolon holon, ProviderType providerType, bool saveChildrenRecursive, OASISResult<IHolon> result = null)
+        private OASISResult<IHolon> SaveHolonForProviderType(IHolon holon, ProviderType providerType, bool saveChildrenRecursive, OASISResult<IHolon> result)
         {
             try
             {
@@ -2383,7 +2317,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return result;
         }
 
-        private async Task<OASISResult<IHolon>> SaveHolonForProviderTypeAsync(IHolon holon, ProviderType providerType, bool saveChildrenRecursive, OASISResult<IHolon> result = null)
+        private async Task<OASISResult<IHolon>> SaveHolonForProviderTypeAsync(IHolon holon, ProviderType providerType, bool saveChildrenRecursive, OASISResult<IHolon> result) //TODO: Dont think this should be an optional param?!
         {
             try
             {
@@ -2431,7 +2365,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return result;
         }
 
-        private OASISResult<IEnumerable<IHolon>> SaveHolonsForProviderType(IEnumerable<IHolon> holons, ProviderType providerType, bool saveChildrenRecursive = true, OASISResult<IEnumerable<IHolon>> result = null)
+        private OASISResult<IEnumerable<IHolon>> SaveHolonsForProviderType(IEnumerable<IHolon> holons, ProviderType providerType, OASISResult<IEnumerable<IHolon>> result, bool saveChildrenRecursive = true)
         {
             try
             {
@@ -2481,7 +2415,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return result;
         }
 
-        private async Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsForProviderTypeAsync(IEnumerable<IHolon> holons, ProviderType providerType,  bool saveChildrenRecursive = true, OASISResult<IEnumerable<IHolon>> result = null)
+        private async Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsForProviderTypeAsync(IEnumerable<IHolon> holons, ProviderType providerType, OASISResult<IEnumerable<IHolon>> result, bool saveChildrenRecursive = true)
         {
             try
             {
@@ -2529,6 +2463,115 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             }
 
             return result;
+        }
+
+        private OASISResult<IEnumerable<T>> SaveHolonsForListOfProviders<T>(IEnumerable<IHolon> holons, OASISResult<IEnumerable<T>> result, ProviderType currentProviderType, List<EnumValue<ProviderType>> providers, string listName, bool continueOSuccess, bool saveChildrenRecursive = true) where T : IHolon
+        {
+            OASISResult<IEnumerable<IHolon>> holonSaveResult = new OASISResult<IEnumerable<IHolon>>();
+
+            foreach (EnumValue<ProviderType> type in providers)
+            {
+                if (type.Value != currentProviderType && type.Value != ProviderManager.CurrentStorageProviderType.Value)
+                {
+                    holonSaveResult = SaveHolonsForProviderType(holons, type.Value, holonSaveResult, saveChildrenRecursive);
+
+                    if (holonSaveResult.IsError || holonSaveResult.Result == null)
+                        HandleSaveHolonForListOfProviderError(result, holonSaveResult, listName, type.Name);
+
+                    else if (!continueOSuccess)
+                        break;
+                }
+            }
+
+            return result;
+        }
+
+        private async Task<OASISResult<IEnumerable<T>>> SaveHolonsForListOfProvidersAsync<T>(IEnumerable<IHolon> holons, OASISResult<IEnumerable<T>> result, ProviderType currentProviderType, List<EnumValue<ProviderType>> providers, string listName, bool continueOSuccess, bool saveChildrenRecursive = true) where T : IHolon
+        {
+            OASISResult<IEnumerable<IHolon>> holonSaveResult = new OASISResult<IEnumerable<IHolon>>();
+
+            foreach (EnumValue<ProviderType> type in providers)
+            {
+                if (type.Value != currentProviderType && type.Value != ProviderManager.CurrentStorageProviderType.Value)
+                {
+                    holonSaveResult = await SaveHolonsForProviderTypeAsync(holons, type.Value, holonSaveResult, saveChildrenRecursive);
+
+                    if (holonSaveResult.IsError || holonSaveResult.Result == null)
+                        HandleSaveHolonForListOfProviderError(result, holonSaveResult, listName, type.Name);
+
+                    else if (!continueOSuccess)
+                        break;
+                }
+            }
+
+            return result;
+        }
+
+        private OASISResult<T> SaveHolonForListOfProviders<T>(IHolon holon, OASISResult<T> result, ProviderType currentProviderType, List<EnumValue<ProviderType>> providers, string listName, bool continueOSuccess, bool saveChildrenRecursive = true) where T : IHolon
+        {
+            OASISResult<IHolon> holonSaveResult = new OASISResult<IHolon>();
+
+            foreach (EnumValue<ProviderType> type in providers)
+            {
+                if (type.Value != currentProviderType && type.Value != ProviderManager.CurrentStorageProviderType.Value)
+                {
+                    holonSaveResult = SaveHolonForProviderType(holon, type.Value, saveChildrenRecursive, holonSaveResult);
+
+                    if (holonSaveResult.IsError || holonSaveResult.Result == null)
+                        HandleSaveHolonForListOfProviderError(result, holonSaveResult, listName, type.Name);
+
+                    else if (!continueOSuccess)
+                        break;
+                }
+            }
+
+            return result;
+        }
+
+        private async Task<OASISResult<T>> SaveHolonForListOfProvidersAsync<T>(IHolon holon, OASISResult<T> result, ProviderType currentProviderType, List<EnumValue<ProviderType>> providers, string listName, bool continueOSuccess, bool saveChildrenRecursive = true) where T : IHolon
+        {
+            OASISResult<IHolon> holonSaveResult = new OASISResult<IHolon>();
+
+            foreach (EnumValue<ProviderType> type in providers)
+            {
+                if (type.Value != currentProviderType && type.Value != ProviderManager.CurrentStorageProviderType.Value)
+                {
+                    holonSaveResult = await SaveHolonForProviderTypeAsync(holon, type.Value, saveChildrenRecursive, holonSaveResult);
+
+                    if (holonSaveResult.IsError || holonSaveResult.Result == null)
+                        HandleSaveHolonForListOfProviderError(result, holonSaveResult, listName, type.Name);
+
+                    else if (!continueOSuccess)
+                        break;
+                }
+            }
+
+            return result;
+        }
+
+        private OASISResult<T> HandleSaveHolonForListOfProviderError<T>(OASISResult<T> result, OASISResult<IHolon> holonSaveResult, string listName, string providerName) where T : IHolon
+        {
+            holonSaveResult.Message = GetSaveHolonForListOfProvidersErrorMessage(listName, providerName, holonSaveResult.Message);
+            ErrorHandling.HandleError(ref holonSaveResult, holonSaveResult.Message);
+            result.InnerMessages.Add(holonSaveResult.Message);
+            result.IsWarning = true;
+            result.IsError = false;
+            return result;
+        }
+
+        private OASISResult<IEnumerable<T>> HandleSaveHolonForListOfProviderError<T>(OASISResult<IEnumerable<T>> result, OASISResult<IEnumerable<IHolon>> holonSaveResult, string listName, string providerName) where T : IHolon
+        {
+            holonSaveResult.Message = GetSaveHolonForListOfProvidersErrorMessage(listName, providerName, holonSaveResult.Message);
+            ErrorHandling.HandleError(ref holonSaveResult, holonSaveResult.Message);
+            result.InnerMessages.Add(holonSaveResult.Message);
+            result.IsWarning = true;
+            result.IsError = false;
+            return result;
+        }
+
+        private string GetSaveHolonForListOfProvidersErrorMessage(string listName, string providerName, string holoSaveResultErrorMessage)
+        {
+            return $"Error attempting to save in {listName} list for provider {providerName}. Reason: {holoSaveResultErrorMessage}";
         }
 
         private void SwitchBackToCurrentProvider<T>(ProviderType currentProviderType, ref OASISResult<T> result)
@@ -2622,9 +2665,19 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return result;
         }
 
-        private void HandleSaveHolonError<T>(ref OASISResult<T> result, IHolon holon) where T : IHolon
+        private string BuildSaveHolonErrorMessage(List<string> innerMessages, IHolon holon = null)
         {
-            ErrorHandling.HandleError(ref result, string.Concat("All registered OASIS Providers in the AutoFailOverList failed to save ", LoggingHelper.GetHolonInfoForLogging(holon), ". Reason: ", BuildInnerMessageError(result.InnerMessages), "Please view the logs and InnerMessages property for more information. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString()));
+            return string.Concat("All registered OASIS Providers in the AutoFailOverList failed to save ", holon != null ? LoggingHelper.GetHolonInfoForLogging(holon) : "", ". Reason: ", BuildInnerMessageError(innerMessages), "Please view the logs and InnerMessages property for more information. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString());
+        }
+
+        private void HandleSaveHolonError<T>(ref OASISResult<IEnumerable<T>> result, IHolon holon = null) where T : IHolon
+        {
+            ErrorHandling.HandleError(ref result, BuildSaveHolonErrorMessage(result.InnerMessages, holon));
+        }
+
+        private void HandleSaveHolonError<T>(ref OASISResult<T> result, IHolon holon = null) where T : IHolon
+        {
+            ErrorHandling.HandleError(ref result, BuildSaveHolonErrorMessage(result.InnerMessages, holon));
         }
     }
 }
