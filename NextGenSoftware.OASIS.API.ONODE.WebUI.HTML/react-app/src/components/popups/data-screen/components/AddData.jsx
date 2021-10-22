@@ -2,8 +2,6 @@ import React from 'react';
 
 import { Modal } from 'react-bootstrap';
 
-import '../../../assets/scss/data-screen.scss';
-
 class AddData extends React.Component {
     render() { 
         const { show, hide } = this.props;

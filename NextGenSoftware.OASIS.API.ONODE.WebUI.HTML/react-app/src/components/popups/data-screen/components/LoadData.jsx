@@ -3,8 +3,6 @@ import React from 'react';
 import { Modal } from 'react-bootstrap';
 import { AgGridColumn, AgGridReact } from 'ag-grid-react';
 
-import '../../../assets/scss/data-screen.scss';
-
 class LoadData extends React.Component {
 
     state = {

@@ -75,6 +75,12 @@
       },
       "TelosOASIS": {
         "ConnectionString": "https://node.hypha.earth"
+      },      
+      "CargoOASIS": {
+        "ConnectionString": "",
+        "SingingMessage": "",
+        "PrivateKey" : "",
+        "HostUrl": ""
       },
       "SEEDSOASIS": {
         "ConnectionString": "https://node.hypha.earth"
