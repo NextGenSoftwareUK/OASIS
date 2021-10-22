@@ -81,7 +81,11 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.DataBaseModels{
             this.DimensionLevel = source.DimensionLevel;
             this.SubDimensionLevel = source.SubDimensionLevel;
 
-            this.CreatedProviderType = source.CreatedProviderType.Value;
+            if (source.CreatedProviderType != null)
+                this.CreatedProviderType = source.CreatedProviderType.Value;
+            else
+                this.CreatedProviderType = ProviderType.SQLLiteDBOASIS;
+
             this.CreatedOASISType = source.CreatedOASISType.Value;
             
             this.CreatedDate = source.CreatedDate;

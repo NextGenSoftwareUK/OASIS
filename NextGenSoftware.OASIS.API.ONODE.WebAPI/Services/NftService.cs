@@ -70,6 +70,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
                         {
                             response.IsError = true;
                             response.Message = cargoPurchaseResponse.Message;
+                            ErrorHandling.HandleError(ref response, response.Message);
                             return response;
                         }
                         nftTransaction.TransactionResult = cargoPurchaseResponse.Result.TransactionHash;
@@ -80,9 +81,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
                         {
                             response.IsError = true;
                             response.Message = exchangeResult.Message;
+                            ErrorHandling.HandleError(ref response, response.Message);
                             return response;
                         }
-
                         nftTransaction.TransactionResult = exchangeResult.Result.TransactionHash;
                         break;
                 }
@@ -93,6 +94,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
                 response.IsError = true;
                 response.Exception = e;
                 response.Message = e.Message;
+                ErrorHandling.HandleError(ref response, e.Message);
             }
             return response;
         }
@@ -106,6 +108,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
                 {
                     response.IsError = true;
                     response.Message = "Count property need to be greater then zero!";
+                    ErrorHandling.HandleError(ref response, response.Message);
                     return response;
                 }
 
@@ -118,6 +121,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
                 response.IsError = true;
                 response.Message = e.Message;
                 response.Exception = e;
+                ErrorHandling.HandleError(ref response, e.Message);
             }
             return response;
         }
@@ -132,6 +136,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
                     response.IsError = true;
                     response.IsSaved = false;
                     response.Message = "Request is NULL! Bad Request!";
+                    ErrorHandling.HandleError(ref response, response.Message);
                     return response;
                 }
                 
@@ -141,6 +146,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
                     response.IsError = true;
                     response.IsSaved = false;
                     response.Message = cargoPurchaseResponse.Message;
+                    ErrorHandling.HandleError(ref response, response.Message);
                     return response;
                 }
 
@@ -166,6 +172,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
                 response.IsError = false;
                 response.Message = e.Message;
                 response.Exception = e;
+                ErrorHandling.HandleError(ref response, e.Message);
             }
             return response;
         }

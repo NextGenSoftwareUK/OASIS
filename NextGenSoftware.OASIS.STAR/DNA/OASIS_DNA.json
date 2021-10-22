@@ -5,7 +5,6 @@
     }
   },
   "AllowedHosts": "*",
-
   "OASIS": {
     "Terms": "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.\n\n",
     "Logging": {
@@ -19,8 +18,8 @@
       "LogAllWarnings": "true"
     },
     "Security": {
-      "DoesAvatarNeedToBeVerifiedBeforeLogin": "true",
-      "Secret": "",
+      "DoesAvatarNeedToBeVerifiedBeforeLogin": "false",
+      "Secret": "F64DAE56-D03C-482D-AEA6-69950A0042909131E81A-5170-401A-BE9F-275BE73851F7",
       "AvatarPassword": {
         "BCryptEncryptionEnabled": "true",
         "Rijndael256EncryptionEnabled": "true",
@@ -33,12 +32,12 @@
       }
     },
     "Email": {
-      "EmailFrom": "",
-      "SmtpHost": "",
-      "SmtpPort": 587,
-      // "SmtpPort": 25,
-      "SmtpUser": "",
-      "SmtpPass": ""
+      "EmailFrom": "anorak@theoasisplatform.world",
+      "SmtpHost": "mailuk2.promailserver.com",
+     // "SmtpPort": 587,
+      "SmtpPort": 25,
+      "SmtpUser": "anorak@oasisplatform.world",
+      "SmtpPass": "z5wbkgtndevacrxms'ih1puflyq?jo"
     },
     "StorageProviders": {
       "AutoReplicationEnabled": "true",
@@ -61,11 +60,14 @@
         "HolochainVersion": "Redux" //Can be Redux or RSM.
       },
       "MongoDBOASIS": {
-        "ConnectionString": "",
+        "ConnectionString": "mongodb+srv://dbadmin:8qdJWyWUp8C2IEi4@oasisapi-oipck.mongodb.net/OASISAPI?retryWrites=true&w=majority",
+        //"ConnectionString": "mongodb+srv://oasisadmin:4ABeZIUHwTVbiFWn@oasisapi-oipck.mongodb.net/OASISAPI?retryWrites=true&w=majority",
+        //"ConnectionString": "mongodb+srv://dbadmin:ZDVxEMHJJTfdtJ0S@oasisapi-oipck.mongodb.net/OASISAPI?retryWrites=true&w=majority",
+        // "ConnectionString": "mongodb+srv://oasisuser:EHPpjGAmW74lg8qS@oasisapi-oipck.mongodb.net/OASISAPI?retryWrites=true&w=majority",
 
         "DBName": "OASISAPI_DEV"
-        //"DBName": "OASISAPI_STAGING"
-        //"DBName": "OASISAPI_LIVE"
+        //"DBName": "OASISAPI_TEST"
+       // "DBName": "OASISAPI_LIVE"
       },
       "SQLLiteDBOASIS": {
         "ConnectionString": "Data Source=OASISSQLLiteDB.db"
@@ -87,8 +89,8 @@
       },
       "Neo4JOASIS": {
         "ConnectionString": "http://localhost:7474",
-        "Username": "",
-        "Password": ""
+        "Username": "neo4j",
+        "Password": "letthereb@light!"
       },
       "IPFSOASIS": {
         "ConnectionString": "http://localhost:5001",
