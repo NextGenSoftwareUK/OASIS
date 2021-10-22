@@ -10,26 +10,27 @@ import "../../../assets/scss/data-screen.scss";
 class DataScreen extends React.Component {
 
     render() {
+        const props=this.props;
         return(
             <>
                 <AddData
-                    show={this.props.data.sendData}
-                    hide={this.props.toggleScreenPopup}
+                    show={props.data.sendData}
+                    hide={props.toggleScreenPopup}
                 />
 
                 <LoadData
-                    show={this.props.data.loadData}
-                    hide={this.props.toggleScreenPopup}
+                    show={props.data.loadData}
+                    hide={props.toggleScreenPopup}
                 />
 
                 <OffChainManagement
-                    show={this.props.data.offChainManagement}
-                    hide={this.props.toggleScreenPopup}
+                    show={props.data.offChainManagement}
+                    hide={props.toggleScreenPopup}
                 />
 
                 <CrossChainManagement
-                    show={this.props.data.crossChainManagement}
-                    hide={this.props.toggleScreenPopup}
+                    show={props.data.crossChainManagement}
+                    hide={props.toggleScreenPopup}
                 />
             </>
         )

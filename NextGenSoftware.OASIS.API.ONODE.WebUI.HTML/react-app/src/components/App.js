@@ -11,7 +11,6 @@ import ContactPopup from "./popups/nft/ContactPopup";
 
 import "../assets/scss/general.scss";
 import "../assets/scss/style.scss";
-import "../assets/scss/Seeds.scss";
 
 import axios from "axios";
 import 'react-toastify/dist/ReactToastify.css';
@@ -184,6 +183,11 @@ class App extends React.Component {
                     hide={this.hideSignup}
                     change={this.showLogin}
                 />
+                
+                 <DataScreen 
+                    data={this.state.sidebarMenuOption[0].data}
+                    toggleScreenPopup={this.toggleScreenPopup}
+                />
 
                 <Solana
                     show={this.state.sidebarMenuOption[1].nft.solana}
@@ -193,13 +197,7 @@ class App extends React.Component {
                 <ContactPopup
                     show={this.state.sidebarMenuOption[1].nft.contactPopup}
                     hide={this.toggleScreenPopup}
-                />
-
-                <DataScreen 
-                    data={this.state.sidebarMenuOption[0].data}
-                    toggleScreenPopup={this.toggleScreenPopup}
-                />
-                
+                />                
                 <Seeds 
                     seeds={this.state.sidebarMenuOption[2].seeds}
                     toggleScreenPopup={this.toggleScreenPopup}
