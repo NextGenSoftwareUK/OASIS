@@ -38,6 +38,8 @@ namespace NextGenSoftware.OASIS.STAR
 
             if (!holonResult.IsError && holonResult.Result != null)
                 result.Result = Mapper<IHolon, Omiverse>.MapBaseHolonProperties(holonResult.Result);
+            else
+                OASISResultHolonToHolonHelper<IHolon, IOmiverse>.CopyResult(holonResult, result);
 
             return result;
         }
@@ -92,16 +94,10 @@ namespace NextGenSoftware.OASIS.STAR
                     if (!addThirdDimensionToMultiverseResult.IsError && addThirdDimensionToMultiverseResult.Result != null)
                         multiverseResult.Result.Dimensions.ThirdDimension = addThirdDimensionToMultiverseResult.Result;
                     else
-                    {
-                        multiverseResult.IsError = true;
-                        multiverseResult.Message = addThirdDimensionToMultiverseResult.Message;
-                    }
+                        OASISResultHolonToHolonHelper<IThirdDimension, IMultiverse>.CopyResult(addThirdDimensionToMultiverseResult, multiverseResult);
                 }
                 else
-                {
-                    multiverseResult.IsError = true;
-                    multiverseResult.Message = grandSuperStarResult.Message;
-                }
+                    OASISResultHolonToHolonHelper<IHolon, IMultiverse>.CopyResult(grandSuperStarResult, multiverseResult);
             }
 
             //TODO: One day there may also be init code here for the other dimensions, etc.... ;-)
@@ -519,8 +515,6 @@ namespace NextGenSoftware.OASIS.STAR
             return GetAllSuperStarsForOmiverseAsync(refresh).Result;
         }
 
-
-
         public async Task<OASISResult<IEnumerable<ISolarSystem>>> GetAllSolarSystemsOutSideOfGalaxiesForOmiverseAsync(bool refresh = true)
         {
             OASISResult<IEnumerable<ISolarSystem>> result = new OASISResult<IEnumerable<ISolarSystem>>();
@@ -587,7 +581,6 @@ namespace NextGenSoftware.OASIS.STAR
         {
             return GetAllSolarSystemsOutSideOfGalaxyClustersForOmiverseAsync(refresh).Result;
         }
-
 
         public async Task<OASISResult<IEnumerable<ISolarSystem>>> GetAllSolarSystemsForOmiverseAsync(bool refresh = true)
         {
@@ -689,7 +682,6 @@ namespace NextGenSoftware.OASIS.STAR
         {
             return GetAllStarsOutSideOfGalaxyClustersForOmiverseAsync(refresh).Result;
         }
-
 
         public async Task<OASISResult<IEnumerable<IStar>>> GetAllStarsForOmiverseAsync(bool refresh = true)
         {

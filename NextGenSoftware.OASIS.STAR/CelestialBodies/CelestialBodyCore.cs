@@ -157,6 +157,9 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
 
         public async Task<OASISResult<IHolon>> SaveCelestialBodyAsync(IHolon savingHolon)
         {
+            return await base.SaveHolonAsync(savingHolon);
+
+            /*
             IOmiverse parentOmiverse = null;
             IDimension parentDimension = null;
             IMultiverse parentMultiverse = null;
@@ -213,10 +216,12 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
             savingHolon.ParentMoon = null;
             savingHolon.ParentZome = null;
             savingHolon.ParentHolon = null;
+            */
 
             // RemoveCores(savingHolon);
-            OASISResult<IHolon> result = await base.SaveHolonAsync(savingHolon);
+            //  OASISResult<IHolon> result = await base.SaveHolonAsync(savingHolon);
 
+            /*
             // Restore the core.
             if (result.Result != null && core != null)
             {
@@ -240,9 +245,9 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
                 celestialBody.ParentMoon = parentMoon;
                 celestialBody.ParentZome = parentZome;
                 celestialBody.ParentHolon = parentHolon;
-            }
+            }*/
 
-            return result;
+            // return result;
         }
 
         public OASISResult<IHolon> SaveCelestialBody(IHolon savingHolon)
@@ -347,7 +352,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
                     holon.ParentGalaxyId = parentCelestialBody.Id;
                     break;
 
-                case HolonType.SoloarSystem:
+                case HolonType.SolarSystem:
                     holon.ParentSolarSystemId = parentCelestialBody.Id;
                     break;
 

@@ -13,7 +13,11 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosOASIS.Entites
 {
     public class Avatar : Entity, IAvatar
     {
-        public new Guid Id { get { return Guid.Parse(base.Id); } set { base.Id = $"{value}"; } }
+        public Guid AvatarId
+        {
+            get { return base.Id; }
+            set { base.Id = value; }
+        }
 
         public Dictionary<ProviderType, string> ProviderPrivateKey { get; set; } = new Dictionary<ProviderType, string>();
         public Dictionary<ProviderType, string> ProviderPublicKey { get; set; } = new Dictionary<ProviderType, string>();

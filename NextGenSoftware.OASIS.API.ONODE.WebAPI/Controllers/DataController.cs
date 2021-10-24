@@ -160,7 +160,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpPost("SaveHolon")]
-        public async Task<OASISResult<IHolon>> SaveHolon(Holon holon)
+        public async Task<OASISResult<IHolon>> SaveHolon(IHolon holon)
         {
             return await HolonManager.SaveHolonAsync(holon); 
         }

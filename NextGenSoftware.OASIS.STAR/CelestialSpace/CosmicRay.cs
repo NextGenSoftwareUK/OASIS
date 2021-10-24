@@ -5,6 +5,9 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
 {
     public class CosmicRay : Holon, ICosmicRay
     {
-
+        public CosmicRay()
+        {
+            this.HolonType = API.Core.Enums.HolonType.CosmicRay;
+        }
     }
 }
