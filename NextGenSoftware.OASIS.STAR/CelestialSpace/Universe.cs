@@ -16,5 +16,10 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
         public List<IAsteroid> Asteroids { get; set; } = new List<IAsteroid>();
         public List<IComet> Comets { get; set; } = new List<IComet>();
         public List<IMeteroid> Meteroids { get; set; } = new List<IMeteroid>();
+
+        public Universe()
+        {
+            this.HolonType = API.Core.Enums.HolonType.Universe;
+        }
     }
 }

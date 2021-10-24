@@ -17,17 +17,17 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
 
         public Planet() : base(HolonType.Planet)
         {
-            this.HolonType = HolonType.Planet;
+           // this.HolonType = HolonType.Planet;
         }
 
         public Planet(Guid id) : base(id, HolonType.Planet)
         {
-            this.HolonType = HolonType.Planet;
+           // this.HolonType = HolonType.Planet;
         }
 
         public Planet(Dictionary<ProviderType, string> providerKey) : base(providerKey, HolonType.Planet)
         {
-            this.HolonType = HolonType.Planet;
+          //  this.HolonType = HolonType.Planet;
         }
     }
 }

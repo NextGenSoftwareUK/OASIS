@@ -5,6 +5,9 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
 {
     public class SpaceTimeAbnormally : Holon, ISpaceTimeAbnormally
     {
-
+        public SpaceTimeAbnormally()
+        {
+            this.HolonType = API.Core.Enums.HolonType.SpaceTimeAbnormally;
+        }
     }
 }

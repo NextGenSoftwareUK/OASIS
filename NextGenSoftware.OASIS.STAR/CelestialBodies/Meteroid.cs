@@ -9,17 +9,17 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
     {
         public Meteroid() : base(HolonType.Meteroid)
         {
-            this.HolonType = HolonType.Meteroid;
+           // this.HolonType = HolonType.Meteroid;
         }
 
         public Meteroid(Guid id) : base(id, HolonType.Meteroid)
         {
-            this.HolonType = HolonType.Meteroid;
+           // this.HolonType = HolonType.Meteroid;
         }
 
         public Meteroid(Dictionary<ProviderType, string> providerKey) : base(providerKey, HolonType.Meteroid)
         {
-            this.HolonType = HolonType.Meteroid;
+          //  this.HolonType = HolonType.Meteroid;
         } 
     }
 }

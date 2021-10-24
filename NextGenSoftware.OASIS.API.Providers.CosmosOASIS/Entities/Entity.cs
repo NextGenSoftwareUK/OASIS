@@ -1,4 +1,6 @@
-﻿namespace NextGenSoftware.OASIS.API.Providers.CosmosOASIS.Entites
+﻿using System;
+
+namespace NextGenSoftware.OASIS.API.Providers.CosmosOASIS.Entites
 {
 	public abstract class Entity
 	{
@@ -6,6 +8,6 @@
 		/// Entity identifier
 		/// </summary>
 		/// <example>5fe3fc2a-cbac-4df0-8031-fdca0f682989</example>
-		public string Id { get; set; }
+		public Guid Id { get; set; }
 	}
 }

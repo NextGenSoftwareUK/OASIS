@@ -893,6 +893,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             result.Result.Name = holon.Result.Name;
             result.Result.Description = holon.Result.Description;
             result.Result.HolonType = holon.Result.HolonType;
+            result.Result.CreatedOASISType = holon.Result.CreatedOASISType;
             // oasisHolon.CreatedProviderType = new EnumValue<ProviderType>(holon.CreatedProviderType);
             result.Result.CreatedProviderType = holon.Result.CreatedProviderType;
             //oasisHolon.CreatedProviderType.Value = Core.Enums.ProviderType.MongoDBOASIS;
@@ -963,6 +964,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             mongoHolon.PreviousVersionProviderKey = holon.PreviousVersionProviderKey;
             mongoHolon.ProviderMetaData = holon.ProviderMetaData;
             mongoHolon.MetaData = holon.MetaData;
+            mongoHolon.CreatedOASISType = holon.CreatedOASISType;
             mongoHolon.CreatedProviderType = holon.CreatedProviderType;
             mongoHolon.HolonType = holon.HolonType;
             mongoHolon.Name = holon.Name;
