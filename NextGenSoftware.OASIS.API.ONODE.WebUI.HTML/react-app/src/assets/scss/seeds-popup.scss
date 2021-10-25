@@ -21,6 +21,7 @@
     label {
         color: #fff;
         padding: 0.25rem 1rem;
+        margin-bottom: 10px;
     }
     .popup {
         background-color: rgba(28, 28, 33, 0.8);
@@ -131,7 +132,7 @@
 
 .seed-container {
     h1 {
-        margin-bottom: 20px;
+        margin-bottom: 22px;
         .custom-selectbox {
             padding: 0.25rem 5px;
             font-size: 18px;
@@ -144,7 +145,7 @@
             @media screen and (min-width:320px) and (max-width:767px) {
                 font-size: 15px;
                 height: 35px;
-                padding: 0.25rem 15px;
+                // padding: 0.25rem 15px;
             }
         }
     }
@@ -153,6 +154,7 @@
     }
     .form-container {
         .single-form-row {
+            margin-bottom: 22px;
             label {
                 display: block;
                 padding: 0px;
@@ -171,9 +173,9 @@
                 }
             }
         }
-        .mb-30 {
-            margin-bottom: 30px;
-        }
+        // .mb-30 {
+        //     margin-bottom: 30px;
+        // }
         .btn-right {
             text-align: right;
             .btn-width {
