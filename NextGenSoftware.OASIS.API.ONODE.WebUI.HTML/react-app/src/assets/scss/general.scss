@@ -169,6 +169,7 @@ option{
         margin: 0 0 35px;
         p {
             margin: 0;
+            font-size: 18px;
         }
     }
     .form-inputs {
@@ -193,9 +194,11 @@ option{
         }
         .single-form-field {
             display: grid;
-            margin: 0 0 25px;
+            // margin: 0 0 0 25px;
+            grid-template-rows: auto 1fr;
+            grid-gap: 10px;
             label {
-                margin: 0 0 5px;
+                // margin: 0 0 5px;
                 color: #fff;
                 display: block;
                 text-align: left;
@@ -208,6 +211,7 @@ option{
                 outline: none;
                 border: none;
                 background-color: #fff;
+                width: 100%;
             }
             .have-icon {
                 position: relative;
