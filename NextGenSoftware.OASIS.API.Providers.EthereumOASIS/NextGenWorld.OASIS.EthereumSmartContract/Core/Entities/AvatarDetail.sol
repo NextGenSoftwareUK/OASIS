@@ -7,6 +7,9 @@ import "..\Enums\ProviderType.sol";
 import "..\Common\Achievement.sol";
 import "..\Common\AvatarAttributes.sol";
 import "..\Common\AvatarAura.sol";
+import "..\Enums\OASISType.sol";
+import "..\Enums\DimensionLevel.sol";
+import "..\Enums\Color.sol";
 
 struct AvatarDetail {
     string AvatarId;
@@ -27,7 +30,7 @@ struct AvatarDetail {
     OASISType CreatedOASISType;
     mapping(DimensionLevel => string) DimensionLevelIds;
     uint256 DOB;
-    ConsoleColor FavouriteColour;
+    Color FavouriteColour;
     GeneKey GeneKeys;
     AvatarGift Gifts;
     HeartRateEntry HeartRateData;
