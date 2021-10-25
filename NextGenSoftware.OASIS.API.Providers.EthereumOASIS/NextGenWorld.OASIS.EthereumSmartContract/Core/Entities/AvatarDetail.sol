@@ -10,6 +10,12 @@ import "..\Common\AvatarAura.sol";
 import "..\Enums\OASISType.sol";
 import "..\Enums\DimensionLevel.sol";
 import "..\Enums\Color.sol";
+import "..\Common\GeneKey.sol";
+import "..\Common\AvatarGift.sol";
+import "..\Common\HeartRateEntry.sol";
+import "..\Common\HumanDesign.sol";
+import "..\Common\InventoryItem.sol";
+import "..\Common\KarmaAkashicRecord.sol";
 
 struct AvatarDetail {
     string AvatarId;
@@ -43,7 +49,7 @@ struct AvatarDetail {
     int Level;
     string Mobile;
     string Model3D;
-    IOmiverse Omiverse;
+    Omiverse Omiverse;
     string Postcode;
     mapping(ProviderType => string) ProviderPrivateKey;
     mapping(ProviderType => string) ProviderPublicKey;
