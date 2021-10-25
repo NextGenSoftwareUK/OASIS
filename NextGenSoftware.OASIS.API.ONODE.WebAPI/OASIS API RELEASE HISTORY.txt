@@ -46,3 +46,16 @@ Then when we do a release, this file will be linked to the Swagger documentation
 - Added Release History link to this doc on main Swagger text at the top of the OASIS API.
 
 ----------------------------------------------------------------------------------------------------------------------------
+0.19 ALPHA
+
+- ErrorHandling on all routes
+- Solana Provider Integrated
+- Added Admin controller for managing coupons and olands
+- Fixed bug in getting Avatar by JWT token
+- Cargo Provider Documented
+- Solana Provider Documented
+- Added GetCurrentLiveVersion Route
+- Added GetCurrentStagingVersion Route
+- IFPS Provider Integrated
+
+----------------------------------------------------------------------------------------------------------------------------
