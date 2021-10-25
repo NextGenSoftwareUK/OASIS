@@ -9,4 +9,10 @@
       <PackageReference Include="Nethereum.Web3" Version="4.0.5" />
     </ItemGroup>
 
+    <ItemGroup>
+      <None Update="abi_file">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
+    </ItemGroup>
+
 </Project>

@@ -2,10 +2,6 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Nethereum.Contracts;
-//using Nethereum.Model;
-using Nethereum.Web3.Accounts;
-using Nethereum.Web3;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
