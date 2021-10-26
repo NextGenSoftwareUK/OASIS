@@ -194,9 +194,9 @@ option{
         }
         .single-form-field {
             display: grid;
-            // margin: 0 0 0 25px;
+            margin: 0 0 15px;
             grid-template-rows: auto 1fr;
-            grid-gap: 10px;
+            grid-gap: 5px;
             label {
                 // margin: 0 0 5px;
                 color: #fff;
@@ -231,7 +231,6 @@ option{
             span.text-danger {
                 color: #dc3545 !important;
                 display: inline-block;
-                margin: 8px 0 0;
                 text-align: left;
             }
         }

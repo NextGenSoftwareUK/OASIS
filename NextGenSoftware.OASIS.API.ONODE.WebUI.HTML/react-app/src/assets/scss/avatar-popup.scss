@@ -6,14 +6,11 @@
 .p-50 {
     padding: 50px !important;
 }
-h2 
-{
-    .fs
-    {
-        color: white;
-        margin-bottom: 25px !important;
-        font-size: 22px !important;
-    } 
+h2.fs {
+    color: white;
+    font-size: 22px !important;
+    margin-bottom: 25px !important;
+    
 }
 
 a {
@@ -238,7 +235,7 @@ input[type="submit"] {
     width: 100%;
     font-size: 14px;
     color: #323232;
-    @media screen and (min-width:320px) and (max-width:767px) {
+    @media screen and (min-width: 320px) and (max-width: 767px) {
         font-size: 12px;
     }
 }
@@ -293,7 +290,7 @@ input[type="submit"] {
             .title {
                 margin-top: 240px;
                 font-size: 34px;
-                @media screen and (min-width:320px) and (max-width:767px) {
+                @media screen and (min-width: 320px) and (max-width: 767px) {
                     font-size: 20px;
                     margin-top: 210px;
                 }
@@ -326,7 +323,7 @@ input[type="submit"] {
                 -webkit-transform: rotate(12deg);
                 -moz-transform: rotate(12deg);
                 -o-transform: rotate(12deg);
-            } 
+            }
             &:after {
                 content: "";
                 position: absolute;
@@ -357,10 +354,9 @@ input[type="submit"] {
     line-height: 20px;
     height: 20px;
     font-weight: 400;
-    @media screen and (min-width:320px) and (max-width:767px) {
+    @media screen and (min-width: 320px) and (max-width: 767px) {
         font-size: 13px;
-    }  
-    
+    }
 }
 // .card-inner {
 //     padding: 0;
