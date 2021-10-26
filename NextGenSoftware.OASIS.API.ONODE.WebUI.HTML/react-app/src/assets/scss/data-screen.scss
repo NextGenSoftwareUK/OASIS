@@ -96,16 +96,25 @@ h2.grid-heading {
     font-size: 22px;
     line-height: 22px;
     margin: 0 0 25px;
+    color: #fff;
 }
 
 .off-chain-management {
     h3 {
         font-size: 18px;
+        margin-bottom: 15px;
     }
     .off-chain-container {
         display: grid;
         grid-template-columns: 2fr 1fr 2fr;
         grid-gap: 20px;
+
+        @media screen and (min-width:320px) and (max-width:767px) {
+            grid-template-rows: 2fr auto 2fr;
+            grid-template-columns: 1fr;
+            margin-bottom: 20px;
+            justify-items: center;
+        }
         ul {
             background-color: #fff;
             height: 200px;
@@ -113,6 +122,11 @@ h2.grid-heading {
             border: 1px solid #999;
             border-radius: 4px;
             padding: 8px 0;
+            @media screen and (min-width:320px) and (max-width:767px) {
+                margin: 0;
+                padding: 0;
+                width: 200px;
+            }
             li {
                 margin: 0 0 5px;
                 &:last-child {
@@ -147,6 +161,12 @@ h2.grid-heading {
     }
     .buttons-list {
         padding: 12px 0 0;
+        @media screen and (min-width:320px) and (max-width:767px) {
+            padding: 0;
+            display: grid;
+            grid-template-rows: 1fr 1fr 1fr 1fr;
+            grid-gap: 10px;
+        }
         button {
             margin: 0 0 8px;
             width: 110px;
@@ -155,6 +175,10 @@ h2.grid-heading {
             text-align: center;
             font-size: 14px;
             height: 35px;
+            @media screen and (min-width:320px) and (max-width:767px) {
+                margin: 0;
+                width: 200px;
+            }
             &:last-child {
                 margin: 0;
             }
@@ -162,7 +186,12 @@ h2.grid-heading {
     }
     .save-button-container {
         text-align: right;
-        margin: 12px 0 0;   
+        // margin: 12px 0 0; 
+        
+        @media screen and (min-width:320px) and (max-width:767px) {
+            // width: 120px;
+            text-align: center;
+        }
     }
     button {
         width: 100px;

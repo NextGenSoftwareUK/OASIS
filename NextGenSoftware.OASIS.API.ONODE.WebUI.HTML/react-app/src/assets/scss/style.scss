@@ -7,14 +7,13 @@
             display: grid;
             grid-template-columns: 1fr 1fr;
             align-items: center;
-            padding: 0 1rem;
-            padding-right: 2rem;
+            padding: 0px 16px;
             position: relative;
             z-index: 10;
             height: inherit;
             @media screen and (min-width: 320px) and (max-width: 767px) {
-                grid-template-rows: 1fr 1fr;
-                grid-template-columns: 1fr;
+                grid-template-rows: 1fr;
+                grid-template-columns: auto 1fr;
             }
 
             .nav-left {
@@ -25,6 +24,9 @@
                 align-items: center;
                 grid-gap: 20px;
                 backdrop-filter: blur(2px);
+                @media screen and (min-width: 320px) and (max-width: 767px) {
+                    grid-gap: 15px;
+                }
                 .nav-menu-btn {
                     position: relative;
                     display: grid;
@@ -55,6 +57,13 @@
                         }
                     }
                 }
+                img.nav-logo {
+                    width: 100px;
+                    @media screen and (min-width:320px) and (max-width:767px) {
+                        width: 60px;
+                        height: 60px;
+                    }
+                }
                 .nav-menu-btn.nav-menu-open {
                     .nav-menu-btn-burger {
                         background: transparent;
@@ -81,12 +90,18 @@
                 display: grid;
                 grid-template-columns: 1fr auto;
                 grid-gap: 20px;
+                @media screen and (min-width: 320px) and (max-width: 767px) {
+                    grid-gap: 15px;
+                }
                 ul {
                     margin: 0;
                     li {
                         display: inline-block;
                         margin-right: 40px;
                         position: relative;
+                        @media screen and (min-width: 320px) and (max-width: 767px) {
+                            margin-right: 14px;
+                        }
                         &:last-child {
                             margin: 0;
                         }
@@ -104,6 +119,9 @@
                             font-size: 16px;
                             cursor: pointer;
                             text-decoration: none;
+                            @media screen and (min-width: 320px) and (max-width: 767px) {
+                                font-size: 14px;
+                            }
                             &:hover {
                                 color: #1885c9;
                                 transition: all 0.2s ease;
