@@ -154,11 +154,14 @@
     }
     .form-container {
         .single-form-row {
-            margin-bottom: 22px;
+            margin-bottom: 20px;
+            display: grid;
+            grid-gap: 15px;
             label {
                 display: block;
                 padding: 0px;
                 font-size: 17px;
+                margin: 0;
                 @media screen and (min-width:320px) and (max-width:767px) {
                     font-size: 15px;
                 }
@@ -172,15 +175,19 @@
                     height: 35px;
                 }
             }
+            &:last-child {
+                margin: 0;
+            }
         }
         // .mb-30 {
         //     margin-bottom: 30px;
         // }
         .btn-right {
-            text-align: right;
+            justify-items: end;
             .btn-width {
                 width: 150px;
             }
         }
+        
     }
 }

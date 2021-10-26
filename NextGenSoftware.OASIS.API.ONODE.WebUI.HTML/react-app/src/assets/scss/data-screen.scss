@@ -96,6 +96,7 @@ h2.grid-heading {
     font-size: 22px;
     line-height: 22px;
     margin: 0 0 25px;
+    color: #fff;
 }
 
 .off-chain-management {
@@ -105,7 +106,7 @@ h2.grid-heading {
     }
     .off-chain-container {
         display: grid;
-        grid-template-columns: 1fr 1fr 1fr;
+        grid-template-columns: 2fr 1fr 2fr;
         grid-gap: 20px;
 
         @media screen and (min-width:320px) and (max-width:767px) {
@@ -176,7 +177,7 @@ h2.grid-heading {
             height: 35px;
             @media screen and (min-width:320px) and (max-width:767px) {
                 margin: 0;
-                width: 180px;
+                width: 200px;
             }
             &:last-child {
                 margin: 0;
@@ -185,7 +186,12 @@ h2.grid-heading {
     }
     .save-button-container {
         text-align: right;
-        margin: 12px 0 0;   
+        // margin: 12px 0 0; 
+        
+        @media screen and (min-width:320px) and (max-width:767px) {
+            // width: 120px;
+            text-align: center;
+        }
     }
     button {
         width: 100px;
