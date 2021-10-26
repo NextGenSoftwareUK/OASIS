@@ -1,13 +1,10 @@
-
 import React from "react";
-import Loader from "react-loader-spinner";
 
 import ShowIcon from '../assets/images/visible-icon.svg';
 import HideIcon from '../assets/images/hidden-icon.svg';
 
-import Alert from './Alert';
 import { ToastContainer, toast } from "react-toastify";
-
+import Loader from "react-loader-spinner";
 import { Modal } from 'react-bootstrap';
 import axios from "axios";
 import { Formik } from "formik";
@@ -19,23 +16,36 @@ export default class Signup extends React.Component {
         super(props);
 
         this.state = {
-            email: '',
-            password: '',
-            confirmPassword: '',
-            showPassword: false,
-            showConfirmPassword: false,
             loading: false,
-            alert: null
+            user_data: {
+                firstName: '',
+                las_name: '',
+                email: '',
+                password: '',
+                confirmPassword: '',
+                acceptTerms: false,
+                avatarType: ''
+
+            },
+            showPassword: false,
+            showconfirmPassword: false,
         }
     }
 
     initialValues = {
+        firstName: '',
+        lastName: '',
         email: '',
         password: '',
-        confirmPassword: ''
+        confirmPassword: '',
+        acceptTerms: false
     }
 
     validationSchema = Yup.object().shape({
+        firstName: Yup.string()
+            .required("First name is required"),
+        lastName: Yup.string()
+            .required("Last name is required"),
         email: Yup.string()
             .email("Email is invalid")
             .required("Email is required"),
@@ -45,16 +55,21 @@ export default class Signup extends React.Component {
         confirmPassword: Yup.string()
             .required("No password provided.")
             .min(8, "Password is too short - should be 8 characters minimum.")
-            .oneOf([Yup.ref('password'), null], "Password did not match")
+            .oneOf([Yup.ref('password'), null], "Password did not match"),
+        acceptTerms: Yup.boolean()
+            .required("acceptTerms is required to be checked")    
     })
 
     handleSignup = () => {
-        // e.preventDefault();
-
-        if (this.state.password === this.state.confirmPassword) {
+        if (this.state.user_data.password === this.state.user_data.confirmPassword) {
+            const { firstName, lastName, email, password, confirmPassword, acceptTerms } = this.state.user_data;
             let data = {
-                email: this.state.email,
-                password: this.state.password
+                firstName: firstName,
+                lastName: lastName,
+                email: email,
+                password: password,
+                confirmPassword: confirmPassword,
+                acceptTerms: acceptTerms
             }
 
             const headers = {
@@ -65,53 +80,52 @@ export default class Signup extends React.Component {
             axios.post('https://api.oasisplatform.world/api/avatar/register', data, { headers })
                 .then(response => {
                     console.log(response)
+                    console.log(response.response)
                     this.setState({ loading: false })
-                    // this.setState({ alert: { type: 'success', text: response.data } });
-                    // Remove alert after 5 sec
-                    // setTimeout(() => this.setState({ alert: null }), 5000)
-                    // console.log(this.state.alert)
                     toast.success("Success")
                 }).catch(error => {
-                    console.error(error.response.data);
+                    console.log(JSON.parse(error))
+                    console.log(error)
                     this.setState({ loading: false })
-                    // this.setState({ alert: { type: 'error', text: error.response.data.title } })
-                    // setTimeout(() => this.setState({ alert: null }), 5000)
-                    toast.error("one or more validation is occur");
+                    toast.error(error.errors);
                 });
         } else {
-            console.log('Password did not match');
-            // alert('Password did not match');
-               toast.error("password did not match")
+            toast.error("password did not match")
         }
     }
 
     render() {
-        const { alert, showPassword, showConfirmPassword, loading } = this.state;
+        const { showPassword, showconfirmPassword, loading } = this.state;
         const { show, hide, change } = this.props;
 
         return (
             <>
             <ToastContainer
-            position="top-center"
-            autoClose={5000}
-            hideProgressBar={false}
-            newestOnTop={false}
-            closeOnClick
-            rtl={false}
-            pauseOnFocusLoss
-            draggable
-            pauseOnHover
-          />
+                position="top-center"
+                autoClose={5000}
+                hideProgressBar={false}
+                newestOnTop={false}
+                closeOnClick
+                rtl={false}
+                pauseOnFocusLoss
+                draggable
+                pauseOnHover
+            />
             <Formik
                 initialValues={this.initialValues}
                 validationSchema={this.validationSchema}
                 onSubmit={(values, { setSubmitting, resetForm }) => {
                     setTimeout(() => {
-                        this.setState({
-                            email: values.email,
-                            password: values.password,
-                            confirmPassword: values.confirmPassword
-                        })
+                        const { firstName, lastName, email, password, confirmPassword, acceptTerms } = values;
+                        let user_data = {
+                            firstName: firstName,
+                            lastName: lastName,
+                            email: email,
+                            password: password,
+                            confirmPassword: confirmPassword,
+                            acceptTerms: acceptTerms
+                        }
+                        this.setState({ user_data })
                         this.handleSignup();
 
                         setSubmitting(true);
@@ -128,7 +142,6 @@ export default class Signup extends React.Component {
                             </span>
 
                             <form className="custom-form" onSubmit={handleSubmit}>
-                                {alert ? <Alert message={alert.text} type={alert.type} /> : null}
                                 <div className="form-header">
                                     <h2>Sign Up</h2>
 
@@ -139,6 +152,32 @@ export default class Signup extends React.Component {
                                 </div>
 
                                 <div className="form-inputs">
+                                    <div className={this.handleFormFieldClass(errors.firstName, touched.firstName)}>
+                                        <label>First Name</label>
+                                        <input
+                                            type="text"
+                                            name="firstName"
+                                            value={values.firstName}
+                                            onChange={handleChange}
+                                            onBlur={handleBlur}
+                                            placeholder="Jhone Doe"
+                                        />
+                                        <span className="text-danger">{errors.firstName && touched.firstName && errors.firstName}</span>
+                                    </div>
+
+                                    <div className={this.handleFormFieldClass(errors.lastName, touched.lastName)}>
+                                        <label>Last Name</label>
+                                        <input
+                                            type="text"
+                                            name="lastName"
+                                            value={values.lastName}
+                                            onChange={handleChange}
+                                            onBlur={handleBlur}
+                                            placeholder="Jhone Doe"
+                                        />
+                                        <span className="text-danger">{errors.lastName && touched.lastName && errors.lastName}</span>
+                                    </div>
+
                                     <div className={this.handleFormFieldClass(errors.email, touched.email)}>
                                         <label>EMAIL</label>
                                         <input
@@ -177,7 +216,7 @@ export default class Signup extends React.Component {
                                         <label>CONFIRM PASSWORD</label>
                                         <div className="have-icon">
                                             <input
-                                                type={`${showConfirmPassword ? "text" : "password"}`}
+                                                type={`${showconfirmPassword ? "text" : "password"}`}
                                                 name="confirmPassword"
                                                 value={values.confirmPassword}
                                                 onChange={handleChange}
@@ -186,8 +225,8 @@ export default class Signup extends React.Component {
                                             />
                                             <img
                                                 className="field-icon"
-                                                onClick={() => this.setState({ showConfirmPassword: !showConfirmPassword })}
-                                                src={showConfirmPassword ? ShowIcon : HideIcon}
+                                                onClick={() => this.setState({ showconfirmPassword: !showconfirmPassword })}
+                                                src={showconfirmPassword ? ShowIcon : HideIcon}
                                                 alt="loading..."
                                             />
                                         </div>
