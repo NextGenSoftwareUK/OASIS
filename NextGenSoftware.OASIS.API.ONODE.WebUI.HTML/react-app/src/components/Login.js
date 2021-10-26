@@ -3,7 +3,6 @@ import React from 'react';
 import ShowIcon from '../assets/images/visible-icon.svg';
 import HideIcon from '../assets/images/hidden-icon.svg';
 
-import Alert from './Alert';
 import { ToastContainer, toast } from "react-toastify";
 
 import { Modal } from 'react-bootstrap';
@@ -23,7 +22,6 @@ export default class Login extends React.Component {
             password: '',
             showPassword: false,
             loading: false,
-            alert: null,
             user: null
         }
     }
@@ -57,7 +55,6 @@ export default class Login extends React.Component {
             .then(response => {
                 if (response.data.isError) {
                     toast.error(" Your email or password is invalid!");
-                    // this.setState({ alert: { type: 'error', text: response.data.message }, loading: false })
                     return
                 }
                 localStorage.setItem('user', JSON.stringify(response.data.avatar))
@@ -65,22 +62,19 @@ export default class Login extends React.Component {
                 
                 this.setState({loading: false})
                 toast.success(" Successfully Updated!");
-                // this.setState({ alert: {type: 'success', text: response.data.message} })
                 this.setState({user: response.data.avatar})
 
                 this.props.setUserStateData(response.data.avatar);
 
                 this.props.hide();
-                // setTimeout(() => this.setState({ alert: null }), 5000)
             }).catch(error => {
                 console.error('There was an error!', error);
                 this.setState({ loading: false })
-                // setTimeout(() => this.setState({ alert: null }), 5000)
             })
     }
 
     render() {
-        const { alert, showPassword, loading } = this.state;
+        const { showPassword, loading } = this.state;
         const { show, hide, change } = this.props;
 
         return (
@@ -122,7 +116,6 @@ export default class Login extends React.Component {
                                 </span>
 
                                 <form className="custom-form" onSubmit={handleSubmit}>
-                                    {alert ? <Alert message={alert.text} type={alert.type} /> : null}
                                     <div className="form-header">
                                         <h2>Log In</h2>
 
