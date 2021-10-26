@@ -75,7 +75,11 @@
       },
       "TelosOASIS": {
         "ConnectionString": "https://node.hypha.earth"
-      },      
+      },
+      "SolanaOASIS": {
+        "WalletMnemonicWords": "",
+        "ConnectionString": ""
+      },
       "CargoOASIS": {
         "ConnectionString": "",
         "SingingMessage": "",
