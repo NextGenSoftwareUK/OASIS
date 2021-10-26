@@ -16,6 +16,11 @@ import "..\Common\HeartRateEntry.sol";
 import "..\Common\HumanDesign.sol";
 import "..\Common\InventoryItem.sol";
 import "..\Common\KarmaAkashicRecord.sol";
+import "..\Common\Spell.sol";
+import "..\Common\AvatarSkills.sol";
+import "..\Common\AvatarStats.sol";
+import "..\Common\Omiverse.sol";
+import "..\Common\AvatarChakras.sol";
 
 struct AvatarDetail {
     string AvatarId;
@@ -57,9 +62,9 @@ struct AvatarDetail {
     mapping(ProviderType => string) ProviderWalletAddress;
     AvatarSkills Skills;
     Spell[] Spells;
-    ConsoleColor STARCLIColour;
+    Color STARCLIColour;
     AvatarStats Stats;
-    AvatarSuperPowers SuperPowers;
+    AvatarSkills SuperPowers;
     string Town;
     string UmaJson;
     int XP;
