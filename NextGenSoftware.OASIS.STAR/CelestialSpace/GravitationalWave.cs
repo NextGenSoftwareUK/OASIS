@@ -5,6 +5,9 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
 {
     public class GravitationalWave : Holon, IGravitationalWave
     {
-
+        public GravitationalWave()
+        {
+            this.HolonType = API.Core.Enums.HolonType.GravitationalWave;
+        }
     }
 }

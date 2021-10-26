@@ -1,9 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using MongoDB.Bson;
-using MongoDB.Bson.Serialization.Attributes;
-using MongoDB.Bson.Serialization.Options;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
@@ -32,7 +29,6 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities
         //  public string ProviderKey { get; set; } //Unique key used by each provider (e.g. hashaddress in hc, etc).
         public HolonType HolonType { get; set; }
         */
-
 
         public Guid ParentOmiverseId { get; set; } //The Omiverse this Holon belongs to.
         public IOmiverse ParentOmiverse { get; set; } //The Omiverse this Holon belongs to.

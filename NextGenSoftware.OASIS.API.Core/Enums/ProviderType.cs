@@ -33,6 +33,7 @@
         Neo4jOASIS,
         All,
         None,
-        Default
+        Default,
+        CosmosBlockChainOASIS,
     }
 }

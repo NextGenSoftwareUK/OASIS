@@ -7,21 +7,22 @@ import ViewAvatar from './components/ViewAvatar';
 class Avatar extends React.Component {
 
     render() {
+        const props=this.props;
         return(
             <>
                 <AvatarDetail
-                    show={this.props.avatar.avatarDetail}
-                    hide={this.props.toggleScreenPopup}
+                    show={props.avatar.avatarDetail}
+                    hide={props.toggleScreenPopup}
                 />
 
                 <AvatarWallet
-                    show={this.props.avatar.avatarWallet}
-                    hide={this.props.toggleScreenPopup}
+                    show={props.avatar.avatarWallet}
+                    hide={props.toggleScreenPopup}
                 />
 
                 <ViewAvatar
-                    show={this.props.avatar.viewAvatar}
-                    hide={this.props.toggleScreenPopup}
+                    show={props.avatar.viewAvatar}
+                    hide={props.toggleScreenPopup}
                 />
             </>
         )

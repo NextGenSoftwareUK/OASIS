@@ -26,11 +26,12 @@ namespace NextGenSoftware.OASIS.API.Core.Enums
         Zome,
         Holon,
         Omiverse,
+        SuperVerse,
         Multiverse,
         Universe,
         GalaxyCluster,
         Galaxy,
-        SoloarSystem,
+        SolarSystem,
         Dimension,
         WormHole,
         BlackHole,
@@ -42,6 +43,6 @@ namespace NextGenSoftware.OASIS.API.Core.Enums
         StarDust,
         CosmicWave,
         CosmicRay,
-        GravitionalWave
+        GravitationalWave
     }
 }

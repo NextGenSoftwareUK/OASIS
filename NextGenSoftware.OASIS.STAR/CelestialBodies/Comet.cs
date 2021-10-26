@@ -9,17 +9,17 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
     {
         public Comet() : base(HolonType.Comet)
         {
-            this.HolonType = HolonType.Comet;
+           // this.HolonType = HolonType.Comet;
         }
 
         public Comet(Guid id) : base(id, HolonType.Comet)
         {
-            this.HolonType = HolonType.Comet;
+           // this.HolonType = HolonType.Comet;
         }
 
         public Comet(Dictionary<ProviderType, string> providerKey) : base(providerKey, HolonType.Comet)
         {
-            this.HolonType = HolonType.Comet;
+          //  this.HolonType = HolonType.Comet;
         } 
     }
 }

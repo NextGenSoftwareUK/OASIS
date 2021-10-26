@@ -33,39 +33,29 @@ namespace NextGenSoftware.OASIS.API.ONODE.BLL.Managers
             purchaseHolon.MetaData["AvatarId"] = avatarId.ToString();
             purchaseHolon.MetaData["JsonSelectedTiles"] = jsonSelectedTiles;
 
+            //If you do not want to use relfection then use the MetaData directly and pass in a Holon (not prefered way).
+            //return _holonManager.SaveHolon<Holon>(purchaseHolon);
+
+            //Or you can call the non-generic overload
             return _holonManager.SaveHolon(purchaseHolon);
         }
 
         public OASISResult<IHolon> LoadNFTPurchaseData(Guid holonId)
         {
+            //This will have the metadata in the metadata dictionary, that you will need to extract yourself (not prefered way).
             return _holonManager.LoadHolon(holonId);
         }
 
         public OASISResult<PurchaseNFTHolon> PurchaseNFT2(string walletAddress, string avatarUsername, Guid avatarId, string jsonSelectedTiles)
         {
-            OASISResult<PurchaseNFTHolon> result = new OASISResult<PurchaseNFTHolon>();
-
             PurchaseNFTHolon purchaseHolon = new PurchaseNFTHolon();
             purchaseHolon.WalletAddress = walletAddress;
             purchaseHolon.AvatarUsername = avatarUsername;
             purchaseHolon.AvatarId = avatarId;
             purchaseHolon.JsonSelectedTiles = jsonSelectedTiles;
 
-            //TODO: SaveHolon also needs to be made into a Generic method like the new LoadHolon<T> method below... :)
-            OASISResult<IHolon> holonResult = _holonManager.SaveHolon(purchaseHolon);
-
-            if (!holonResult.IsError && holonResult.Result != null)
-            {
-                result.Result = Mapper<IHolon, PurchaseNFTHolon>.MapBaseHolonProperties(holonResult.Result);
-                result.Result.WalletAddress = result.Result.MetaData["WalletAddress"];
-                result.Result.AvatarUsername = result.Result.MetaData["AvatarUsername"];
-                result.Result.AvatarId = new Guid(result.Result.MetaData["AvatarId"].ToString());
-                result.Result.JsonSelectedTiles = result.Result.MetaData["AvatarId"];
-            }
-            else
-                OASISResultHolonToHolonHelper<IHolon, PurchaseNFTHolon>.CopyResult(holonResult, result);
-
-            return result;
+            //If you don't mind using reflection (very small overhead especially compared to I/O storage, etc then use this way (recommended).
+            return _holonManager.SaveHolon<PurchaseNFTHolon>(purchaseHolon);
         }
 
         public OASISResult<PurchaseNFTHolon> LoadNFTPurchaseData2(Guid holonId)
@@ -87,11 +77,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.BLL.Managers
             return result;
         }
 
-        // TODO: This is the way we want to ideally load custom Holons! ;-)
-        // There may be better ways of doing this that does not involve reflection or the MetaData Dictionary? Maybe JSON? etc...
-        // Please investigate and use best and fastest performing way... thanks! ;-)
         public OASISResult<PurchaseNFTHolon> LoadNFTPurchaseData3(Guid holonId)
         {
+            // Prefered way to lead holons that are strongly typed.
             return _holonManager.LoadHolon<PurchaseNFTHolon>(holonId);
         }
     }
