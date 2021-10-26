@@ -157,5 +157,15 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Prototypes{
         {
             throw new NotImplementedException();
         }
+
+        public Task<OASISResult<ICelestialBody>> SaveAsync<T>(bool saveChildren = true, bool continueOnError = true) where T : ICelestialBody, new()
+        {
+            throw new NotImplementedException();
+        }
+
+        public OASISResult<ICelestialBody> Save<T>(bool saveChildren = true, bool continueOnError = true) where T : ICelestialBody, new()
+        {
+            throw new NotImplementedException();
+        }
     }
 }

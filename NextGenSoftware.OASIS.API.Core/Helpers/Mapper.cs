@@ -1,9 +1,97 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 
 namespace NextGenSoftware.OASIS.API.Core.Helpers
 {
+    public static class Mapper
+    {
+        public static IHolon MapBaseHolonProperties(IHolon sourceHolon, IHolon targetHolon)
+        {
+            targetHolon.Id = sourceHolon.Id;
+            targetHolon.ProviderKey = sourceHolon.ProviderKey;
+            targetHolon.Name = sourceHolon.Name;
+            targetHolon.Description = sourceHolon.Description;
+            targetHolon.HolonType = sourceHolon.HolonType;
+            targetHolon.ParentGreatGrandSuperStar = sourceHolon.ParentGreatGrandSuperStar;
+            targetHolon.ParentGreatGrandSuperStarId = sourceHolon.ParentGreatGrandSuperStarId;
+            targetHolon.ParentGrandSuperStar = sourceHolon.ParentGrandSuperStar;
+            targetHolon.ParentGrandSuperStarId = sourceHolon.ParentGrandSuperStarId;
+            targetHolon.ParentSuperStar = sourceHolon.ParentSuperStar;
+            targetHolon.ParentSuperStarId = sourceHolon.ParentSuperStarId;
+            targetHolon.ParentStar = sourceHolon.ParentStar;
+            targetHolon.ParentStarId = sourceHolon.ParentStarId;
+            targetHolon.ParentPlanet = sourceHolon.ParentPlanet;
+            targetHolon.ParentPlanetId = sourceHolon.ParentPlanetId;
+            targetHolon.ParentMoon = sourceHolon.ParentMoon;
+            targetHolon.ParentMoonId = sourceHolon.ParentMoonId;
+            targetHolon.ParentZome = sourceHolon.ParentZome;
+            targetHolon.ParentZomeId = sourceHolon.ParentZomeId;
+            targetHolon.ParentHolon = sourceHolon.ParentHolon;
+            targetHolon.ParentHolonId = sourceHolon.ParentHolonId;
+            targetHolon.ParentOmiverse = sourceHolon.ParentOmiverse;
+            targetHolon.ParentOmiverseId = sourceHolon.ParentOmiverseId;
+            targetHolon.ParentUniverse = sourceHolon.ParentUniverse;
+            targetHolon.ParentUniverseId = sourceHolon.ParentUniverseId;
+            targetHolon.ParentGalaxy = sourceHolon.ParentGalaxy;
+            targetHolon.ParentGalaxyId = sourceHolon.ParentGalaxyId;
+            targetHolon.ParentSolarSystem = sourceHolon.ParentSolarSystem;
+            targetHolon.ParentSolarSystemId = sourceHolon.ParentSolarSystemId;
+            targetHolon.Children = sourceHolon.Children;
+            targetHolon.Nodes = sourceHolon.Nodes;
+            //targetHolon.CelestialBodyCore.Id = sourceHolon.Id; //TODO: Dont think need targetHolon now?
+            //targetHolon.CelestialBodyCore.ProviderKey = sourceHolon.ProviderKey; //TODO: Dont think need targetHolon now?
+            targetHolon.CreatedByAvatar = sourceHolon.CreatedByAvatar;
+            targetHolon.CreatedByAvatarId = sourceHolon.CreatedByAvatarId;
+            targetHolon.CreatedDate = sourceHolon.CreatedDate;
+            targetHolon.ModifiedByAvatar = sourceHolon.ModifiedByAvatar;
+            targetHolon.ModifiedByAvatarId = sourceHolon.ModifiedByAvatarId;
+            targetHolon.ModifiedDate = sourceHolon.ModifiedDate;
+            targetHolon.DeletedByAvatar = sourceHolon.DeletedByAvatar;
+            targetHolon.DeletedByAvatarId = sourceHolon.DeletedByAvatarId;
+            targetHolon.DeletedDate = sourceHolon.DeletedDate;
+            targetHolon.Version = sourceHolon.Version;
+            targetHolon.IsActive = sourceHolon.IsActive;
+            targetHolon.IsChanged = sourceHolon.IsChanged;
+            targetHolon.IsNewHolon = sourceHolon.IsNewHolon;
+            targetHolon.MetaData = sourceHolon.MetaData;
+            targetHolon.ProviderMetaData = sourceHolon.ProviderMetaData;
+            targetHolon.Original = sourceHolon.Original;
+
+            return targetHolon;
+        }
+
+        public static ICelestialBody MapParentCelestialBodyProperties(ICelestialBody sourceCelestialBody, ICelestialBody targetCelestialBody)
+        {
+            targetCelestialBody.ParentGreatGrandSuperStar = sourceCelestialBody.ParentGreatGrandSuperStar;
+            targetCelestialBody.ParentGreatGrandSuperStarId = sourceCelestialBody.ParentGreatGrandSuperStarId;
+            targetCelestialBody.ParentGrandSuperStar = sourceCelestialBody.ParentGrandSuperStar;
+            targetCelestialBody.ParentGrandSuperStarId = sourceCelestialBody.ParentGrandSuperStarId;
+            targetCelestialBody.ParentSuperStar = sourceCelestialBody.ParentSuperStar;
+            targetCelestialBody.ParentSuperStarId = sourceCelestialBody.ParentSuperStarId;
+            targetCelestialBody.ParentStar = sourceCelestialBody.ParentStar;
+            targetCelestialBody.ParentStarId = sourceCelestialBody.ParentStarId;
+            targetCelestialBody.ParentPlanet = sourceCelestialBody.ParentPlanet;
+            targetCelestialBody.ParentPlanetId = sourceCelestialBody.ParentPlanetId;
+            targetCelestialBody.ParentMoon = sourceCelestialBody.ParentMoon;
+            targetCelestialBody.ParentMoonId = sourceCelestialBody.ParentMoonId;
+            targetCelestialBody.ParentZome = sourceCelestialBody.ParentZome;
+            targetCelestialBody.ParentZomeId = sourceCelestialBody.ParentZomeId;
+            targetCelestialBody.ParentHolon = sourceCelestialBody.ParentHolon;
+            targetCelestialBody.ParentHolonId = sourceCelestialBody.ParentHolonId;
+            targetCelestialBody.ParentOmiverse = sourceCelestialBody.ParentOmiverse;
+            targetCelestialBody.ParentOmiverseId = sourceCelestialBody.ParentOmiverseId;
+            targetCelestialBody.ParentUniverse = sourceCelestialBody.ParentUniverse;
+            targetCelestialBody.ParentUniverseId = sourceCelestialBody.ParentUniverseId;
+            targetCelestialBody.ParentGalaxy = sourceCelestialBody.ParentGalaxy;
+            targetCelestialBody.ParentGalaxyId = sourceCelestialBody.ParentGalaxyId;
+            targetCelestialBody.ParentSolarSystem = sourceCelestialBody.ParentSolarSystem;
+            targetCelestialBody.ParentSolarSystemId = sourceCelestialBody.ParentSolarSystemId;
+
+            return targetCelestialBody;
+        }
+    }
+
     public static class Mapper<T1, T2> 
         where T1 : IHolon
         where T2 : IHolon, new()

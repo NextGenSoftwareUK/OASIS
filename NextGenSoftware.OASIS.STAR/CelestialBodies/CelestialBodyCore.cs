@@ -158,102 +158,23 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
         public async Task<OASISResult<IHolon>> SaveCelestialBodyAsync(IHolon savingHolon)
         {
             return await base.SaveHolonAsync(savingHolon);
-
-            /*
-            IOmiverse parentOmiverse = null;
-            IDimension parentDimension = null;
-            IMultiverse parentMultiverse = null;
-            IUniverse parentUniverse = null;
-            IGalaxyCluster parentGalaxyCluster = null;
-            IGalaxy parentGalaxy = null;
-            ISolarSystem parentSolarSystem = null;
-            IGreatGrandSuperStar parentGreatGrandSuperStar = null;
-            IGrandSuperStar parentGrandSuperStar = null;
-            ISuperStar parentSuperStar = null;
-            IStar parentStar = null;
-            IPlanet parentPlanet = null;
-            IMoon parentMoon = null;
-            IZome parentZome = null;
-            IHolon parentHolon = null;
-            ICelestialBodyCore core = null;
-
-            ICelestialBody celestialBody = savingHolon as ICelestialBody;
-
-            if (celestialBody != null)
-            {
-                core = celestialBody.CelestialBodyCore;
-                celestialBody.CelestialBodyCore = null;
-            }
-
-            parentOmiverse = savingHolon.ParentOmiverse;
-            parentDimension = savingHolon.ParentDimension;
-            parentMultiverse = savingHolon.ParentMultiverse;
-            parentUniverse = savingHolon.ParentUniverse;
-            parentGalaxyCluster = savingHolon.ParentGalaxyCluster;
-            parentGalaxy = savingHolon.ParentGalaxy;
-            parentSolarSystem = savingHolon.ParentSolarSystem;
-            parentGreatGrandSuperStar = savingHolon.ParentGreatGrandSuperStar;
-            parentGrandSuperStar = savingHolon.ParentGrandSuperStar;
-            parentSuperStar = savingHolon.ParentSuperStar;
-            parentStar = savingHolon.ParentStar;
-            parentPlanet = savingHolon.ParentPlanet;
-            parentMoon = savingHolon.ParentMoon;
-            parentZome = savingHolon.ParentZome;
-            parentHolon = savingHolon.ParentHolon;
-
-            savingHolon.ParentOmiverse = null;
-            savingHolon.ParentDimension = null;
-            savingHolon.ParentMultiverse = null;
-            savingHolon.ParentUniverse = null;
-            savingHolon.ParentGalaxyCluster = null;
-            savingHolon.ParentGalaxy = null;
-            savingHolon.ParentSolarSystem = null;
-            savingHolon.ParentGreatGrandSuperStar = null;
-            savingHolon.ParentGrandSuperStar = null;
-            savingHolon.ParentSuperStar = null;
-            savingHolon.ParentStar = null;
-            savingHolon.ParentPlanet = null;
-            savingHolon.ParentMoon = null;
-            savingHolon.ParentZome = null;
-            savingHolon.ParentHolon = null;
-            */
-
-            // RemoveCores(savingHolon);
-            //  OASISResult<IHolon> result = await base.SaveHolonAsync(savingHolon);
-
-            /*
-            // Restore the core.
-            if (result.Result != null && core != null)
-            {
-                celestialBody = savingHolon as ICelestialBody;
-
-                if (celestialBody != null)
-                    celestialBody.CelestialBodyCore = core;
-
-                celestialBody.ParentOmiverse = parentOmiverse;
-                celestialBody.ParentDimension = parentDimension;
-                celestialBody.ParentMultiverse = parentMultiverse;
-                celestialBody.ParentUniverse = parentUniverse;
-                celestialBody.ParentGalaxyCluster = parentGalaxyCluster;
-                celestialBody.ParentGalaxy = parentGalaxy;
-                celestialBody.ParentSolarSystem = parentSolarSystem;
-                celestialBody.ParentGreatGrandSuperStar = parentGreatGrandSuperStar;
-                celestialBody.ParentGrandSuperStar = parentGrandSuperStar;
-                celestialBody.ParentSuperStar = parentSuperStar;
-                celestialBody.ParentStar = parentStar;
-                celestialBody.ParentPlanet = parentPlanet;
-                celestialBody.ParentMoon = parentMoon;
-                celestialBody.ParentZome = parentZome;
-                celestialBody.ParentHolon = parentHolon;
-            }*/
-
-            // return result;
         }
 
         public OASISResult<IHolon> SaveCelestialBody(IHolon savingHolon)
         {
             //TODO: Not sure if this is a good way of doing this?
             return SaveCelestialBodyAsync(savingHolon).Result;
+        }
+
+        public async Task<OASISResult<T>> SaveCelestialBodyAsync<T>(IHolon savingHolon) where T : IHolon, new()
+        {
+            return await base.SaveHolonAsync<T>(savingHolon);
+        }
+
+        public OASISResult<T> SaveCelestialBody<T>(IHolon savingHolon) where T : IHolon, new()
+        {
+            //TODO: Not sure if this is a good way of doing this?
+            return SaveCelestialBodyAsync<T>(savingHolon).Result;
         }
 
         public async Task<OASISResult<ICelestialBody>> LoadCelestialBodyAsync()
@@ -405,86 +326,5 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
 
             return result;
         }
-
-        /*
-        private void RemoveCores(IHolon holon)
-        {
-            // Temp remove the core from the celestialBody otherwise we have a infinite recursive issue in the OASIS Providers when saving/serialaizaing, etc.
-            ICelestialBodyCore core = null;
-            ICelestialBodyCore parentHolonCore = null;
-            ICelestialBodyCore parentStarCore = null;
-            ICelestialBodyCore parentPlanetCore = null;
-            ICelestialBodyCore parentMoonCore = null;
-            ICelestialBody celestialBody = holon as ICelestialBody;
-
-            if (celestialBody != null)
-            {
-                core = celestialBody.CelestialBodyCore;
-                celestialBody.CelestialBodyCore = null;
-
-                foreach (Zome zome in celestialBody.CelestialBodyCore.Zomes)
-                    RemoveCores(zome);
-
-                //ICelestialBody parent = celestialBody.ParentHolon as ICelestialBody;
-
-                //if (parent != null)
-                //    parentHolonCore = parent.CelestialBodyCore;
-
-                //parentStarCore = celestialBody.ParentStar.CelestialBodyCore;
-                //parentPlanetCore = celestialBody.ParentPlanet.CelestialBodyCore;
-                //parentMoonCore = celestialBody.ParentMoon.CelestialBodyCore;
-
-                RemoveCores(celestialBody.ParentHolon);
-                RemoveCores(celestialBody.ParentStar);
-                RemoveCores(celestialBody.ParentPlanet);
-                RemoveCores(celestialBody.ParentMoon);
-            }
-        }
-
-        private void RestoreCores(IHolon holon)
-        {
-            // Temp remove the core from the celestialBody otherwise we have a infinite recursive issue in the OASIS Providers when saving/serialaizaing, etc.
-            ICelestialBodyCore core = null;
-            ICelestialBodyCore parentHolonCore = null;
-            ICelestialBodyCore parentStarCore = null;
-            ICelestialBodyCore parentPlanetCore = null;
-            ICelestialBodyCore parentMoonCore = null;
-            ICelestialBody celestialBody = holon as ICelestialBody;
-
-            if (celestialBody != null)
-            {
-                switch (celestialBody.HolonType)
-                {
-                    case HolonType.Star:
-                        celestialBody.CelestialBodyCore = new StarCore(celestialBody.Id, (IStar)celestialBody);
-                        break;
-
-                    case HolonType.Planet:
-                        celestialBody.CelestialBodyCore = new PlanetCore(celestialBody.Id, (IPlanet)celestialBody);
-                        break;
-
-                    case HolonType.Moon:
-                        celestialBody.CelestialBodyCore = new MoonCore(celestialBody.Id, (IMoon)celestialBody);
-                        break;
-                }
-
-                foreach (Zome zome in celestialBody.CelestialBodyCore.Zomes)
-                    RemoveCores(zome);
-
-                ICelestialBody parent = celestialBody.ParentHolon as ICelestialBody;
-
-                if (parent != null)
-                    parentHolonCore = parent.CelestialBodyCore;
-
-                parentStarCore = celestialBody.ParentStar.CelestialBodyCore;
-                parentPlanetCore = celestialBody.ParentPlanet.CelestialBodyCore;
-                parentMoonCore = celestialBody.ParentMoon.CelestialBodyCore;
-
-                RestoreCores(celestialBody.ParentHolon);
-                RestoreCores(celestialBody.ParentStar);
-                RestoreCores(celestialBody.ParentPlanet);
-                RestoreCores(celestialBody.ParentMoon);
-            }
-        }*/
     }
 }
