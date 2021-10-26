@@ -16,12 +16,19 @@
             font-size: 18px;
             background-color: transparent;
             height: 40px;
+            @media screen and (min-width:320px) and (max-width:767px) {
+                height: 35px;
+                font-size: 15px;
+            }
         }
     }
     input[type="file"] {
         border: none;
         padding: 0;
         color: #fff;
+        @media screen and (min-width:320px) and (max-width:767px) {
+            font-size: 15px;
+        }
     }
     form {
         h3 {
@@ -32,6 +39,12 @@
             margin: 0 0 35px;
             display: grid;
             grid-template-columns: 100px 1fr;
+            @media screen and (min-width:320px) and (max-width:767px) {
+                 grid-template-rows: 1fr;
+                 grid-template-columns: 1fr;
+                 margin-bottom: 15px;
+            }
+
             &:last-child {
                 margin: 0;
             }
@@ -40,6 +53,10 @@
                 margin: 0;
                 font-size: 18px;
                 padding: 0 15px 0 0;
+                @media screen and (min-width:320px) and (max-width:767px) {
+                    margin-bottom: 10px;
+                    font-size: 15px;
+                }
             }
             textarea {
                 border-radius: 5px;

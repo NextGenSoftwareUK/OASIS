@@ -26,5 +26,10 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
                     return false;
             }
         }
+
+        public GalaxyCluster()
+        {
+            this.HolonType = API.Core.Enums.HolonType.GalaxyCluster;
+        }
     }
 }

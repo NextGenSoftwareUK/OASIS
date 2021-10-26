@@ -50,6 +50,7 @@ class LoadData extends React.Component {
             sortable: true,
             floatingFilter: true,
             resizable: true,
+            // overflow:true
         },
         rowData: null,
     };

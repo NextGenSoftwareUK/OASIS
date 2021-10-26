@@ -10,5 +10,10 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
         public IGreatGrandSuperStar GreatGrandSuperStar { get; set; } = new GreatGrandSuperStar(); //let's you jump between Multiverses/Dimensions.
         public IOmniverseDimensions Dimensions { get; set; } = new OmniverseDimensions();
         public List<IMultiverse> Multiverses { get; set; } = new List<IMultiverse>();
+
+        public Omiverse()
+        {
+            this.HolonType = API.Core.Enums.HolonType.Omiverse;
+        }
     }
 }

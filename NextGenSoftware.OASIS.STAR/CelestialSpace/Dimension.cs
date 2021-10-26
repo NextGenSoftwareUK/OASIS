@@ -7,7 +7,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
     public class Dimension : Holon, IDimension
     {
         //public DimensionLevel DimensionLevel { get; set; }
-        
+
         /*
         public List<IGalaxyCluster> GalaxyClusters { get; set; }
         public List<ISolarSystem> SoloarSystems { get; set; } //TODO: Can we have SoloarSystems outside of Galaxy Clusters? Think so... yes! :)
@@ -18,5 +18,10 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
         public List<IComet> Comets { get; set; }
         public List<IMeteroid> Meteroids { get; set; }
         */
+
+        public Dimension()
+        {
+            this.HolonType = HolonType.Dimension;
+        }
     }
 }

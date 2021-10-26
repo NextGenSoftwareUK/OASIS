@@ -6,6 +6,9 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
 {
     public class Nebula : Holon, INebula
     {
-
+        public Nebula()
+        {
+            this.HolonType = API.Core.Enums.HolonType.Nebula;
+        }
     }
 }

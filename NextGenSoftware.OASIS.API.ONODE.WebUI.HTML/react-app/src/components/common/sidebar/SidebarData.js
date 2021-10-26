@@ -39,13 +39,13 @@ const SidebarData = [
             },
             {
                 id: 4,
-                name: "Avatar Detail",
-                popupName:"avatarDetail"
+                name: "Avatar Wallet",
+                popupName:"avatarWallet"
             },
             {
                 id: 5,
-                name: "Avatar Wallet",
-                popupName:"avatarWallet"
+                name: "Avatar Detail",
+                popupName:"avatarDetail"
             },
         ],
     },

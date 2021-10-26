@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using System.Linq;
 using NextGenSoftware.OASIS.API.Core;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Enums;
@@ -8,8 +9,8 @@ using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories;
 using Avatar = NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities.Avatar;
-using Holon = NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities.Holon;
 using AvatarDetail = NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities.AvatarDetail;
+using Holon = NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities.Holon;
 
 namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
 {
@@ -331,7 +332,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
                 ? ConvertMongoEntityToOASISHolon(await _holonRepository.AddAsync(ConvertOASISHolonToMongoEntity(holon)))
                 : ConvertMongoEntityToOASISHolon(await _holonRepository.UpdateAsync(ConvertOASISHolonToMongoEntity(holon)));
 
-            if (!result.IsError && result.Result != null && saveChildrenRecursive && result.Result.Children != null)
+            if (!result.IsError && result.Result != null && saveChildrenRecursive && result.Result.Children != null && result.Result.Children.Count() > 0)
             {
                 OASISResult<IEnumerable<IHolon>> saveChildrenResult = SaveHolons(result.Result.Children);
 
@@ -353,7 +354,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
                 ? ConvertMongoEntityToOASISHolon(_holonRepository.Add(ConvertOASISHolonToMongoEntity(holon)))
                 : ConvertMongoEntityToOASISHolon(_holonRepository.Update(ConvertOASISHolonToMongoEntity(holon)));
 
-            if (!result.IsError && result.Result != null && saveChildrenRecursive && result.Result.Children != null)
+            if (!result.IsError && result.Result != null && saveChildrenRecursive && result.Result.Children != null && result.Result.Children.Count() > 0)
             {
                 OASISResult<IEnumerable<IHolon>> saveChildrenResult = SaveHolons(result.Result.Children);
 
@@ -373,6 +374,14 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
         {
             OASISResult<IEnumerable<IHolon>> result = new OASISResult<IEnumerable<IHolon>>();
             List<IHolon> savedHolons = new List<IHolon>();
+
+            if (holons.Count() == 0)
+            {
+                result.Message = "No holons found to save.";
+                result.IsWarning = true;
+                result.IsSaved = false;
+                return result;
+            }
 
             // Recursively save all child holons.
             foreach (IHolon holon in holons)
@@ -413,6 +422,14 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
         {
             OASISResult<IEnumerable<IHolon>> result = new OASISResult<IEnumerable<IHolon>>();
             List<IHolon> savedHolons = new List<IHolon>();
+
+            if (holons.Count() == 0)
+            {
+                result.Message = "No holons found to save.";
+                result.IsWarning = true;
+                result.IsSaved = false;
+                return result;
+            }
 
             // Recursively save all child holons.
             foreach (IHolon holon in holons)
@@ -876,6 +893,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             result.Result.Name = holon.Result.Name;
             result.Result.Description = holon.Result.Description;
             result.Result.HolonType = holon.Result.HolonType;
+            result.Result.CreatedOASISType = holon.Result.CreatedOASISType;
             // oasisHolon.CreatedProviderType = new EnumValue<ProviderType>(holon.CreatedProviderType);
             result.Result.CreatedProviderType = holon.Result.CreatedProviderType;
             //oasisHolon.CreatedProviderType.Value = Core.Enums.ProviderType.MongoDBOASIS;
@@ -946,6 +964,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             mongoHolon.PreviousVersionProviderKey = holon.PreviousVersionProviderKey;
             mongoHolon.ProviderMetaData = holon.ProviderMetaData;
             mongoHolon.MetaData = holon.MetaData;
+            mongoHolon.CreatedOASISType = holon.CreatedOASISType;
             mongoHolon.CreatedProviderType = holon.CreatedProviderType;
             mongoHolon.HolonType = holon.HolonType;
             mongoHolon.Name = holon.Name;

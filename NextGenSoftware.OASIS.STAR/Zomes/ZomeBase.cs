@@ -15,6 +15,22 @@ namespace NextGenSoftware.OASIS.STAR.Zomes
     {
         private HolonManager _holonManager = null;
         private const string CONST_USERMESSAGE_ID_OR_PROVIDERKEY_NOTSET = "Both Id and ProviderKey are null, one of these need to be set before calling this method.";
+        private IOmiverse _parentOmiverse = null;
+        private IDimension _parentDimension = null;
+        private IMultiverse _parentMultiverse = null;
+        private IUniverse _parentUniverse = null;
+        private IGalaxyCluster _parentGalaxyCluster = null;
+        private IGalaxy _parentGalaxy = null;
+        private ISolarSystem _parentSolarSystem = null;
+        private IGreatGrandSuperStar _parentGreatGrandSuperStar = null;
+        private IGrandSuperStar _parentGrandSuperStar = null;
+        private ISuperStar _parentSuperStar = null;
+        private IStar _parentStar = null;
+        private IPlanet _parentPlanet = null;
+        private IMoon _parentMoon = null;
+        private IZome _parentZome = null;
+        private IHolon _parentHolon = null;
+        private ICelestialBodyCore _core = null;
 
         public List<IHolon> _holons = new List<IHolon>();
 
@@ -256,23 +272,17 @@ namespace NextGenSoftware.OASIS.STAR.Zomes
 
         public virtual async Task<OASISResult<IHolon>> SaveHolonAsync(IHolon savingHolon)
         {
+            RemoveCelesialBodies(savingHolon);
             OASISResult<IHolon> result = await _holonManager.SaveHolonAsync(savingHolon);
-
-            if (result.IsError)
-                OnZomeError?.Invoke(this, new ZomeErrorEventArgs() { Reason = string.Concat("Error in SaveHolonAsync method for holon with ", LoggingHelper.GetHolonInfoForLogging(savingHolon), Enum.GetName(typeof(HolonType), savingHolon.HolonType), ". Error Details: ", result.Message), ErrorDetails = result.Exception });
-
-            OnHolonSaved?.Invoke(this, new HolonSavedEventArgs() { Result = result });
+            HandleSaveHolonResult(savingHolon, "SaveHolonAsync", ref result);
             return result;
         }
 
         public virtual OASISResult<IHolon> SaveHolon(IHolon savingHolon)
         {
+            RemoveCelesialBodies(savingHolon);
             OASISResult<IHolon> result = _holonManager.SaveHolon(savingHolon);
-
-            if (result.IsError)
-                OnZomeError?.Invoke(this, new ZomeErrorEventArgs() { Reason = string.Concat("Error in SaveHolon method for holon with ", LoggingHelper.GetHolonInfoForLogging(savingHolon), Enum.GetName(typeof(HolonType), savingHolon.HolonType), ". Error Details: ", result.Message), ErrorDetails = result.Exception });
-
-            OnHolonSaved?.Invoke(this, new HolonSavedEventArgs() { Result = result });
+            HandleSaveHolonResult(savingHolon, "SaveHolon", ref result);
             return result;
         }
 
@@ -514,6 +524,88 @@ namespace NextGenSoftware.OASIS.STAR.Zomes
                     result.Message = "ERROR, there should only be one GreatGrandSuperStar!";
                 }
             }
+        }
+
+        private void RemoveCelesialBodies(IHolon holon)
+        {
+            ICelestialBody celestialBody = holon as ICelestialBody;
+
+            if (celestialBody != null)
+            {
+                _core = celestialBody.CelestialBodyCore;
+                celestialBody.CelestialBodyCore = null;
+            }
+
+            _parentOmiverse = holon.ParentOmiverse;
+            _parentDimension = holon.ParentDimension;
+            _parentMultiverse = holon.ParentMultiverse;
+            _parentUniverse = holon.ParentUniverse;
+            _parentGalaxyCluster = holon.ParentGalaxyCluster;
+            _parentGalaxy = holon.ParentGalaxy;
+            _parentSolarSystem = holon.ParentSolarSystem;
+            _parentGreatGrandSuperStar = holon.ParentGreatGrandSuperStar;
+            _parentGrandSuperStar = holon.ParentGrandSuperStar;
+            _parentSuperStar = holon.ParentSuperStar;
+            _parentStar = holon.ParentStar;
+            _parentPlanet = holon.ParentPlanet;
+            _parentMoon = holon.ParentMoon;
+            _parentZome = holon.ParentZome;
+            _parentHolon = holon.ParentHolon;
+
+            holon.ParentOmiverse = null;
+            holon.ParentDimension = null;
+            holon.ParentMultiverse = null;
+            holon.ParentUniverse = null;
+            holon.ParentGalaxyCluster = null;
+            holon.ParentGalaxy = null;
+            holon.ParentSolarSystem = null;
+            holon.ParentGreatGrandSuperStar = null;
+            holon.ParentGrandSuperStar = null;
+            holon.ParentSuperStar = null;
+            holon.ParentStar = null;
+            holon.ParentPlanet = null;
+            holon.ParentMoon = null;
+            holon.ParentZome = null;
+            holon.ParentHolon = null;
+        }
+
+        private IHolon RestoreCelesialBodies(IHolon originalHolon, IHolon savedHolon)
+        {
+            ICelestialBody celestialBody = originalHolon as ICelestialBody;
+
+            if (celestialBody != null)
+                celestialBody.CelestialBodyCore = _core;
+
+
+
+            celestialBody.ParentOmiverse = _parentOmiverse;
+            celestialBody.ParentDimension = _parentDimension;
+            celestialBody.ParentMultiverse = _parentMultiverse;
+            celestialBody.ParentUniverse = _parentUniverse;
+            celestialBody.ParentGalaxyCluster = _parentGalaxyCluster;
+            celestialBody.ParentGalaxy = _parentGalaxy;
+            celestialBody.ParentSolarSystem = _parentSolarSystem;
+            celestialBody.ParentGreatGrandSuperStar = _parentGreatGrandSuperStar;
+            celestialBody.ParentGrandSuperStar = _parentGrandSuperStar;
+            celestialBody.ParentSuperStar = _parentSuperStar;
+            celestialBody.ParentStar = _parentStar;
+            celestialBody.ParentPlanet = _parentPlanet;
+            celestialBody.ParentMoon = _parentMoon;
+            celestialBody.ParentZome = _parentZome;
+            celestialBody.ParentHolon = _parentHolon;
+
+            return celestialBody;
+        }
+
+        private void HandleSaveHolonResult(IHolon savingHolon, string callingMethodName, ref OASISResult<IHolon> result)
+        {
+            if (!result.IsError && result.Result != null)
+            {
+                result.Result = RestoreCelesialBodies(savingHolon, result.Result);
+                OnHolonSaved?.Invoke(this, new HolonSavedEventArgs() { Result = result });
+            }
+            else
+                OnZomeError?.Invoke(this, new ZomeErrorEventArgs() { Reason = string.Concat("Error in ", callingMethodName, " method for holon with ", LoggingHelper.GetHolonInfoForLogging(savingHolon), Enum.GetName(typeof(HolonType), savingHolon.HolonType), ". Error Details: ", result.Message), ErrorDetails = result.Exception });
         }
     }
 }

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using System.Linq;
 using Microsoft.EntityFrameworkCore;
 using NextGenSoftware.OASIS.API.Core;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
@@ -351,7 +352,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
             OASISResult<IHolon> result = holon.IsNewHolon ? holonRepository.Add(holon)
                 : holonRepository.Update(holon);
 
-            if (!result.IsError && result.Result != null && saveChildrenRecursive && result.Result.Children != null)
+            if (!result.IsError && result.Result != null && saveChildrenRecursive && result.Result.Children != null && result.Result.Children.Count() > 0)
             {
                 OASISResult<IEnumerable<IHolon>> saveChildrenResult = SaveHolons(result.Result.Children);
 
@@ -372,7 +373,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
             OASISResult<IHolon> result = holon.IsNewHolon ? holonRepository.Add(holon)
                 : holonRepository.Update(holon);
 
-            if (!result.IsError && result.Result != null && saveChildrenRecursive && result.Result.Children != null)
+            if (!result.IsError && result.Result != null && saveChildrenRecursive && result.Result.Children != null && result.Result.Children.Count() > 0)
             {
                 OASISResult<IEnumerable<IHolon>> saveChildrenResult = await SaveHolonsAsync(result.Result.Children);
 
@@ -392,6 +393,14 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
         {
             OASISResult<IEnumerable<IHolon>> result = new OASISResult<IEnumerable<IHolon>>();
             List<IHolon> savedHolons = new List<IHolon>();
+
+            if (holons.Count() == 0)
+            {
+                result.Message = "No holons found to save.";
+                result.IsWarning = true;
+                result.IsSaved = false;
+                return result;
+            }
 
             // Recursively save all child holons.
             foreach (IHolon holon in holons)
@@ -432,6 +441,14 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
         {
             OASISResult<IEnumerable<IHolon>> result = new OASISResult<IEnumerable<IHolon>>();
             List<IHolon> savedHolons = new List<IHolon>();
+
+            if (holons.Count() == 0)
+            {
+                result.Message = "No holons found to save.";
+                result.IsWarning = true;
+                result.IsSaved = false;
+                return result;
+            }
 
             // Recursively save all child holons.
             foreach (IHolon holon in holons)

@@ -46,7 +46,10 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities
 
         public int Version { get; set; }
         public Guid PreviousVersionId { get; set; }
+
+        [BsonDictionaryOptions(DictionaryRepresentation.ArrayOfArrays)]
         public Dictionary<ProviderType, string> PreviousVersionProviderKey { get; set; } = new Dictionary<ProviderType, string>();
+
         public bool IsActive { get; set; }
 
         //  [BsonRepresentation(BsonType.ObjectId)]
