@@ -76,7 +76,6 @@ class ViewAvatar extends React.Component {
 
     //     //else (for now) show an alert and redirect to home
     //     else {
-    //         // alert("not logged in");
     //         this.setState({ loggedIn: false });
     //     }
     //     let config = {

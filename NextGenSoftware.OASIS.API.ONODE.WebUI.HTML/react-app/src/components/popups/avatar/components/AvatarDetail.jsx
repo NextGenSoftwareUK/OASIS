@@ -69,7 +69,6 @@ class AvatarDetail extends React.Component {
 
 	// 	//else (for now) show an alert and redirect to home
 	// 	else {
-	// 		// alert("not logged in");
 	// 		this.setState({ loggedIn: true });
 	// 		this.setState({ loading: false })
 	// 	}
