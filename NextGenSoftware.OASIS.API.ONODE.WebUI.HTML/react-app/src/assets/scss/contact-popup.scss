@@ -5,24 +5,38 @@
         h2 {
             margin-bottom: 20px;
         }
-        .single-btn {
-            background: #fff;
-            border-radius: 4px;
-            height: 30px;
-            width: 100px;
-            justify-self: end;
-            grid-column: 2;
-            font-size: 16px;
-            margin-right: 20px;
-        } 
-        .contact-Popup{
-            .custom-ag-parent{
+        .contact-Popup {
+            .custom-ag-parent {
                 margin-bottom: 20px;
             }
-            .right-btn{
-                text-align: right;
+            .button-bar {
+                display: grid;
+                grid-template-columns: auto auto auto auto 1fr;
+                grid-gap: 20px;
+                @media screen and (min-width:320px) and (max-width:767px) {
+                    grid-template-rows: auto auto auto auto 1fr; 
+                    grid-template-columns: 1fr;
+                    // justify-items: center;
+                }
+            }
+            .right-btn {
+                display: grid;
+                grid-gap: 20px;
+                grid-template-columns: 1fr auto;
+                justify-items: end;
+                @media screen and (min-width:320px) and (max-width:767px) {
+                    grid-template-rows: 1fr 1fr;
+                    grid-template-columns: 1fr;
+                    justify-items: end;
+                }
+            }
+            .single-btn {
+                background: #fff;
+                border-radius: 4px;
+                height: 30px;
+                width: 130px;
+                font-size: 16px;
             }
         }
-        
     }
 }
