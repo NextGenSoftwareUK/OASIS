@@ -3,12 +3,7 @@
 pragma solidity ^0.8.9;
 
 import "..\Entities\Holon.sol";
-import "..\Enums\NodeType.sol";
 
-struct Node {
-    string Id;
-    string ParentId;
-    Holon Parent;
-    string NodeName;
-    NodeType NodeType;
+struct ZomeBase {
+    Holon[] Holons;
 }
