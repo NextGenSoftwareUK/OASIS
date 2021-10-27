@@ -34,7 +34,7 @@ namespace NextGenSoftware.OASIS.STAR
         public async Task<OASISResult<IOmiverse>> AddOmiverseAsync(IOmiverse omiverse)
         {
             OASISResult<IOmiverse> result = new OASISResult<IOmiverse>();
-            OASISResult<IHolon> holonResult = await SaveHolonAsync(omiverse);
+            OASISResult<IHolon> holonResult = await SaveHolonAsync(omiverse, false);
 
             if (!holonResult.IsError && holonResult.Result != null)
                 result.Result = Mapper<IHolon, Omiverse>.MapBaseHolonProperties(holonResult.Result);

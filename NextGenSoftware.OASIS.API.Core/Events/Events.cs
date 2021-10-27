@@ -8,6 +8,7 @@ namespace NextGenSoftware.OASIS.API.Core.Events
         public delegate void HolonLoaded(object sender, HolonLoadedEventArgs e);
         public delegate void HolonsLoaded(object sender, HolonsLoadedEventArgs e);
         public delegate void HolonSaved(object sender, HolonSavedEventArgs e);
+        public delegate void HolonSaved<T>(object sender, HolonSavedEventArgs<T> e);
         public delegate void HolonsSaved(object sender, HolonsSavedEventArgs e);
         public delegate void ZomesLoaded(object sender, ZomesLoadedEventArgs e);
         public delegate void ZomeSaved(object sender, ZomeSavedEventArgs e);

@@ -32,6 +32,8 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces.STAR
         OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(Dictionary<ProviderType, string> providerKey, HolonType holonType = HolonType.All);
         Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(HolonType holonType = HolonType.All); //TODO: Do we need to pass in the Id or ProviderKey when it can be got from the zome/holon itself like this method does?
         OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(HolonType holonType = HolonType.All);
+        Task<OASISResult<T>> SaveHolonAsync<T>(IHolon savingHolon) where T : IHolon, new();
+        OASISResult<T> SaveHolon<T>(IHolon savingHolon) where T : IHolon, new();
         Task<OASISResult<IHolon>> SaveHolonAsync(IHolon savingHolon);
         OASISResult<IHolon> SaveHolon(IHolon savingHolon);
         Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> savingHolons);
