@@ -6,19 +6,18 @@ using System.Threading.Tasks;
 using System.Text;
 using System.Linq;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using MailKit.Search;
+using Microsoft.Extensions.Configuration;
 using Ipfs.Http;
 using Ipfs.Engine;
 using Ipfs;
+using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.API.Core;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Helpers;
-using Microsoft.Extensions.Configuration;
-using NextGenSoftware.OASIS.API.DNA;
-using System.Linq.Expressions;
+using NextGenSoftware.OASIS.API.Core.Managers;
+using NextGenSoftware.OASIS.API.Core.Objects;
 
 namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
 {
@@ -152,6 +151,7 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
 
             string json = JsonConvert.SerializeObject(avatar);
             var fsn = await IPFSClient.FileSystem.AddTextAsync(json);
+            avatar.ProviderKey[Core.Enums.ProviderType.IPFSOASIS] = fsn.Id;
 
             // we store just values that we will use as a filter of search in other methods.
 
@@ -184,6 +184,7 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
 
             string json = JsonConvert.SerializeObject(holon);
             var fsn = await IPFSClient.FileSystem.AddTextAsync(json);
+            holon.ProviderKey[Core.Enums.ProviderType.IPFSOASIS] = fsn.Id;
 
             // we store just values that we will use as a filter of search in other methods.
             dico.Id = holon.Id;
@@ -197,7 +198,6 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
                 _idLookup[fsn.Id] = dico;
 
             string id = await SaveLookupToFile(_idLookup);
-
             return holon;
         }
 
@@ -244,10 +244,8 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
 
         public override async Task<ISearchResults> SearchAsync(ISearchParams searchTerm)
         {
-            ISearchResults result = (ISearchResults) new SearchResults();
-
+            ISearchResults result = new SearchResults();
             IEnumerable<IAvatar> Avatars = await LoadAllAvatarsAsync();
-
             IEnumerable<IHolon> Holons = await LoadAllHolonsAsync();
 
             Avatars = Avatars.Where(a =>
@@ -340,8 +338,7 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
             foreach (var h in holonsDico)
             {
                 string holonAddress = _idLookup.FirstOrDefault(a => a.Value.Id == h.Id).Key;
-                ;
-
+                
                 json = await LoadStringToJson(holonAddress);
                 IHolon holon = JsonConvert.DeserializeObject<Holon>(json);
                 holons.Add(holon);
@@ -383,6 +380,9 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
             {
                 IAvatar avatar = await LoadAvatarTemplateAsync(a => a.Id == id);
 
+                avatar.DeletedByAvatarId = AvatarManager.LoggedInAvatar.Id;
+                avatar.DeletedDate = DateTime.Now;
+
                 await SaveAvatarToFile(avatar);
                 return true;
             }
@@ -398,6 +398,9 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
             {
                 IAvatar avatar =
                     await LoadAvatarTemplateAsync(a => a.ProviderKey.Where(b => b.Value == providerKey).Any());
+
+                avatar.DeletedByAvatarId = AvatarManager.LoggedInAvatar.Id;
+                avatar.DeletedDate = DateTime.Now;
 
                 await SaveAvatarToFile(avatar);
                 return true;
@@ -424,6 +427,9 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
             {
                 IHolon holon = await LoadHolonTemplateAsync(a => a.Id == id);
 
+                holon.DeletedByAvatarId = AvatarManager.LoggedInAvatar.Id;
+                holon.DeletedDate = DateTime.Now;
+
                 await SaveHolonToFile(holon);
 
                 return true;
@@ -440,6 +446,9 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
             {
                 IHolon holon =
                     await LoadHolonTemplateAsync(a => a.ProviderKey.Where(b => b.Value == providerKey).Any());
+
+                holon.DeletedByAvatarId = AvatarManager.LoggedInAvatar.Id;
+                holon.DeletedDate = DateTime.Now;
 
                 await SaveHolonToFile(holon);
 
@@ -655,6 +664,9 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
             {
                 IAvatar avatar = await LoadAvatarTemplateAsync(a => a.email == avatarEmail);
 
+                avatar.DeletedByAvatarId = AvatarManager.LoggedInAvatar.Id;
+                avatar.DeletedDate = DateTime.Now;
+
                 await SaveAvatarToFile(avatar);
 
                 return true;
@@ -671,6 +683,9 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
             {
                 IAvatar avatar = await LoadAvatarTemplateAsync(a => a.login == avatarUsername);
                 await SaveAvatarToFile(avatar);
+
+                avatar.DeletedByAvatarId = AvatarManager.LoggedInAvatar.Id;
+                avatar.DeletedDate = DateTime.Now;
 
                 return true;
             }
@@ -702,15 +717,12 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
         public override async Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons,
             bool saveChildrenRecursive = true)
         {
-            OASISResult<IEnumerable<IHolon>> res = new OASISResult<IEnumerable<IHolon>>();
+            List<IHolon> savedHolons = new List<IHolon>();
 
-            foreach (var h in holons)
-            {
-                await SaveHolonToFile(h);
-            }
+            foreach (var holon in holons)
+                savedHolons.Add(await SaveHolonToFile(holon));
 
-            res.Result = holons;
-            return res;
+            return new OASISResult<IEnumerable<IHolon>>(savedHolons);
         }
     }
 }

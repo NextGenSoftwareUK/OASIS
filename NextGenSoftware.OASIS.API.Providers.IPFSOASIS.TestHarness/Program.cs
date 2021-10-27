@@ -34,11 +34,11 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS.TestHarness
             ipfs.SaveAvatar(b);
 
             IEnumerable<IAvatar> avatars = await ipfs.LoadAllAvatarsAsync();
-
             Avatar avatar = (Avatar)await ipfs.LoadAvatarAsync("farid", "man");
 
-            bool isdeleted = ipfs.DeleteAvatarByUsername("qqq");
+            //TODO: Please test every method here...
 
+            bool isdeleted = ipfs.DeleteAvatarByUsername("qqq");
             ipfs.DeActivateProvider();
 
             //  Console.WriteLine("Output: " + ci.Id);
