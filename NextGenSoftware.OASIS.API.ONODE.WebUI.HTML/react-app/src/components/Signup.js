@@ -25,8 +25,8 @@ export default class Signup extends React.Component {
                 email: '',
                 password: '',
                 confirmPassword: '',
-                acceptTerms: false,
-                avatarType: ''
+                acceptTerms: true,
+                avatarType: 'User'
 
             },
             showPassword: false,
@@ -40,7 +40,7 @@ export default class Signup extends React.Component {
         email: '',
         password: '',
         confirmPassword: '',
-        acceptTerms: false
+        acceptTerms: true
     }
 
     validationSchema = Yup.object().shape({
@@ -58,8 +58,8 @@ export default class Signup extends React.Component {
             .required("No password provided.")
             .min(8, "Password is too short - should be 8 characters minimum.")
             .oneOf([Yup.ref('password'), null], "Password did not match"),
-        acceptTerms: Yup.boolean()
-            .required("acceptTerms is required to be checked")    
+        // acceptTerms: Yup.boolean()
+        //     .required("acceptTerms is required to be checked")    
     })
 
     handleSignup = () => {
@@ -71,7 +71,8 @@ export default class Signup extends React.Component {
                 email: email,
                 password: password,
                 confirmPassword: confirmPassword,
-                acceptTerms: acceptTerms
+                acceptTerms: acceptTerms,
+                avatarType: 'User'
             }
 
             const headers = {
@@ -233,9 +234,20 @@ export default class Signup extends React.Component {
                                             />
                                         </div>
                                         <span className="text-danger">{errors.confirmPassword && touched.confirmPassword && errors.confirmPassword}</span>
+                                    </div> 
+                                    <div className="remember-me">
+                                            <label>
+                                                <input 
+                                                    type="checkbox"
+                                                    name="acceptTerms" 
+                                                    value={values.acceptTerms}
+                                                    onChange={handleChange}
+                                                    id="acceptTerms" 
+                                                />
+                                                Accept Terms
+                                            </label>
                                     </div>
-
-                                    
+                                    <span className="text-danger">{errors.acceptTerms}</span>                                   
 
                                     <button type="submit" className="submit-button grid-btn" disabled={isSubmitting}>
                                         {loading ? 'Creating Account ' : 'Submit '} {loading ? <Loader type="Oval" height={15} width={15} color="#fff" /> : null}
@@ -251,7 +263,7 @@ export default class Signup extends React.Component {
     }
 
     handleFormFieldClass(error, touched) {
-        let classes = "single-form-field  ";
+        let classes = "single-form-field  m-0";
         classes += (error && touched) ? "has-error" : "";
 
         return classes;

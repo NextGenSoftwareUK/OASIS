@@ -11,4 +11,10 @@
     .grid-btn {
         grid-column: 1/3;
     }
+    .m-0 {
+        margin-bottom: 0px !important;
+        @media screen and (min-width:320px) and (max-width:767px) {
+            margin-bottom: 20px !important;
+        }
+    }
 }
