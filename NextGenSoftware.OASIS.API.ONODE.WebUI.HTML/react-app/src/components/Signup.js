@@ -10,6 +10,8 @@ import axios from "axios";
 import { Formik } from "formik";
 import * as Yup from "yup";
 
+import "../../src/assets/scss/signup.scss";
+
 export default class Signup extends React.Component {
 
     constructor(props) {
@@ -151,7 +153,7 @@ export default class Signup extends React.Component {
                                     </p>
                                 </div>
 
-                                <div className="form-inputs">
+                                <div className="form-inputs grid-form">
                                     <div className={this.handleFormFieldClass(errors.firstName, touched.firstName)}>
                                         <label>First Name</label>
                                         <input
@@ -178,7 +180,7 @@ export default class Signup extends React.Component {
                                         <span className="text-danger">{errors.lastName && touched.lastName && errors.lastName}</span>
                                     </div>
 
-                                    <div className={this.handleFormFieldClass(errors.email, touched.email)}>
+                                    <div className={`${this.handleFormFieldClass(errors.email, touched.email)} mail-box`}>
                                         <label>EMAIL</label>
                                         <input
                                             type="email"
@@ -212,7 +214,7 @@ export default class Signup extends React.Component {
                                         <span className="text-danger">{errors.password && touched.password && errors.password}</span>
                                     </div>
                                     
-                                    <div className={this.handleFormFieldClass(errors.confirmPassword, touched.confirmPassword)}>
+                                    <div className={this.handleFormFieldClass(errors.confirmPassword, touched.confirmPassword)} >
                                         <label>CONFIRM PASSWORD</label>
                                         <div className="have-icon">
                                             <input
@@ -235,7 +237,7 @@ export default class Signup extends React.Component {
 
                                     
 
-                                    <button type="submit" className="submit-button" disabled={isSubmitting}>
+                                    <button type="submit" className="submit-button grid-btn" disabled={isSubmitting}>
                                         {loading ? 'Creating Account ' : 'Submit '} {loading ? <Loader type="Oval" height={15} width={15} color="#fff" /> : null}
                                     </button>
                                 </div>
@@ -249,7 +251,7 @@ export default class Signup extends React.Component {
     }
 
     handleFormFieldClass(error, touched) {
-        let classes = "single-form-field ";
+        let classes = "single-form-field  ";
         classes += (error && touched) ? "has-error" : "";
 
         return classes;

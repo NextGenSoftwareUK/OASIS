@@ -1,0 +1,14 @@
+.grid-form {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-gap: 20px;
+    @media screen and (min-width:320px) and (max-width:767px) {
+        display: block;
+    }
+    .mail-box {
+        grid-column: 1/3;
+    }
+    .grid-btn {
+        grid-column: 1/3;
+    }
+}

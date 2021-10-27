@@ -111,6 +111,7 @@ class ContactPopup extends React.Component {
                                 <button className="single-btn" >Find Avatar</button>
                                 <button className="single-btn" >Create List</button>
                             </div>
+                            
                         </div>
                     </Modal.Body>
                 </Modal>

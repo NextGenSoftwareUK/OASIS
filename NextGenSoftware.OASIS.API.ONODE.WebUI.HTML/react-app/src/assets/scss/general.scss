@@ -194,9 +194,9 @@ option{
         }
         .single-form-field {
             display: grid;
-            margin: 0 0 15px;
+            margin: 0 0 25px;
             grid-template-rows: auto 1fr;
-            grid-gap: 5px;
+            // grid-gap: 5px;
             label {
                 // margin: 0 0 5px;
                 color: #fff;
