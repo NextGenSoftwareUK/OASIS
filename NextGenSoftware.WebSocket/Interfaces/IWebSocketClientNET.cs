@@ -1,8 +1,8 @@
 ﻿using System;
 
-namespace NextGenSoftware.Holochain.HoloNET.Client.Core
+namespace NextGenSoftware.WebSocket
 {
-    public interface IHoloNETClientNET
+    public interface IWebSocketClientNET
     {
         //async Task<bool> Connect(Uri EndPoint);
         bool Connect(Uri EndPoint);

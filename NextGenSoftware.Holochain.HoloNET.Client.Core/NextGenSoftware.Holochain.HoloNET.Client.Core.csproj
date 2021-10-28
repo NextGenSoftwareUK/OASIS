@@ -12,6 +12,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\NextGenSoftware.Holochain.HoloNET.Client.MessagePack\NextGenSoftware.Holochain.HoloNET.Client.MessagePack.csproj" />
+    <ProjectReference Include="..\NextGenSoftware.WebSocket\NextGenSoftware.WebSocket.csproj" />
   </ItemGroup>
 
 </Project>

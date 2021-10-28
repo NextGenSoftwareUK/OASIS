@@ -9,6 +9,7 @@ using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using NextGenSoftware.Holochain.HoloNET.Client.Core;
+using NextGenSoftware.WebSocket;
 
 namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Core
 {
@@ -155,7 +156,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Core
             
         }
 
-        private void HoloOASIS_OnDataReceived(object sender, DataReceivedEventArgs e)
+        private void HoloOASIS_OnDataReceived(object sender, HoloNETDataReceivedEventArgs e)
         {
             
         }
