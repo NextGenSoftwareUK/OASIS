@@ -1,4 +1,5 @@
 ﻿using NextGenSoftware.Holochain.HoloNET.Client.Core;
+using NextGenSoftware.WebSocket;
 
 namespace NextGenSoftware.Holochain.HoloNET.Client.Desktop
 {

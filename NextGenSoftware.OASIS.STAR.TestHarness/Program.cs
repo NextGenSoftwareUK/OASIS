@@ -235,7 +235,8 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
                 STAR.OASISAPI.Data.LoadAllHolons(HolonType.Restaurant); //  Loads all resaurants from all providers.
 
                 // Holochain Support
-                await STAR.OASISAPI.Providers.Holochain.HoloNETClient.CallZomeFunctionAsync(STAR.OASISAPI.Providers.Holochain.HoloNETClient.AgentPubKey, "our_world_core", "load_holons", null);
+                //TODO: Sort this out soon! ;-)
+                await STAR.OASISAPI.Providers.Holochain.HoloNETClient.CallZomeFunctionAsync(STAR.OASISAPI.Providers.Holochain.HoloNETClient.Config.AgentPubKey, "our_world_core", "load_holons", null);
 
                 // IPFS Support
                 await STAR.OASISAPI.Providers.IPFS.IPFSEngine.FileSystem.ReadFileAsync("");
