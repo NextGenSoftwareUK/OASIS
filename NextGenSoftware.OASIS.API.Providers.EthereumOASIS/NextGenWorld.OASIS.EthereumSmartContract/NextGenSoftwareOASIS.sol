@@ -32,7 +32,6 @@ contract NextGenSoftwareOASIS {
         string username,
         string email,
         string password,
-        AvatarType avatarType,
         bool acceptTerms,
         bool isVerified,
         string jwtToken,
@@ -81,6 +80,99 @@ contract NextGenSoftwareOASIS {
         totalAvatarsCount++;
         return totalAvatarsCount;
     }
+
+    function SaveHolon(
+        string parentOmiverseId,
+        string parentMultiverseId,
+        string parentUniverseId,
+        string parentDimensionId,
+        string parentGalaxyClusterId,
+        string parentGalaxyId,
+        string parentSolarSystemId,
+        string parentGreatGrandSuperStarId,
+        string parentGrandSuperStarId,
+        string parentSuperStarId,
+        string parentStarId,
+        string parentPlanetId,
+        string parentMoonId,
+        string parentZomeId,
+        string parentHolonId
+    ) public returns (uint256) {
+        Holon memory newHolon = Holon(
+        {
+            ParentOmiverseId: parentOmiverseId,
+            ParentMultiverseId: parentMultiverseId,
+            ParentUniverseId: parentUniverseId,
+            ParentDimensionId: parentDimensionId,
+            ParentGalaxyClusterId: parentGalaxyClusterId,
+            ParentGalaxyId: parentGalaxyId,
+            ParentSolarSystemId: parentSolarSystemId,
+            ParentGreatGrandSuperStarId: parentGreatGrandSuperStarId,
+            ParentGrandSuperStarId: parentGrandSuperStarId,
+            ParentSuperStarId: parentSuperStarId,
+            ParentStarId: parentStarId,
+            ParentPlanetId: parentPlanetId,
+            ParentMoonId: parentMoonId,
+            ParentZomeId: parentZomeId,
+            ParentHolonId: parentHolonId
+        });
+        holons.push(newHolon);
+        totalHolonsCount++;
+        return totalHolonsCount;
+    }
+
+    function SaveAvatarDetail(
+        string avatarId,
+        string title,
+        string firstName,
+        string lastName,
+        string fullName,
+        string username,
+        string email,
+        string avatarAddress,
+        string country,
+        string county,
+        uint256 dob,
+        string image2D,
+        int karma,
+        string landline,
+        int level,
+        string mobile,
+        string model3D,
+        string postcode,
+        string town,
+        string umaJson,
+        int xp
+    ) public returns (uint256) {
+        AvatarDetail memory newHolon = AvatarDetail(
+        {
+            AvatarId: avatarId,
+            Title: title,
+            FirstName: firstName,
+            LastName: lastName,
+            FullName: fullName,
+            Username: username,
+            Email: email,
+            Address: avatarAddress,
+            Country: country,
+            County: county,
+            DOB: dob,
+            Image2D: image2D,
+            Karma: karma,
+            Landline: landline,
+            Level: level,
+            Mobile: mobile,
+            Model3D: model3D,
+            Postcode: postcode,
+            Town: town,
+            UmaJson: umaJson,
+            XP: xp
+        });
+        avatarDetails.push(newHolon);
+        totalAvatarDetailsCount++;
+        return totalAvatarDetailsCount;
+    }
+    
 
     function GetAvatarsCount() public view returns (uint256 count) {
         return avatar.length;
