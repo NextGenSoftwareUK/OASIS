@@ -55,9 +55,9 @@ enum KarmaTypePositive {
     BeingSuperStrong,
     BeingGrateful,
     SpeakingYourTruth,
-    NutritionBecomeVegan, //can include vegan, vegetarian, pesteritan, etc.
-    NutritionBecomeVegeterain, //can include vegan, vegetarian, pesteritan, etc.
-    NutritionBecomePesetarian, //can include vegan, vegetarian, pesteritan, etc.
+    NutritionBecomeVegan,
+    NutritionBecomeVegeterain,
+    NutritionBecomePesetarian,
     NutritionEatDrinkHealthy,
     SelfHelpImprovement,
     HelpingTheEnvironment,
