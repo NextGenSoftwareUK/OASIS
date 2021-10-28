@@ -18,6 +18,8 @@ import "..\Common\Zoom.sol";
 import "..\Common\Moon.sol";
 import "..\Common\Planet.sol";
 import "..\Common\SuperStar.sol";
+import "..\Common\Universe.sol";
+import "..\Common\Zoom.sol";
 
 struct Holon {
     string ParentOmiverseId;
