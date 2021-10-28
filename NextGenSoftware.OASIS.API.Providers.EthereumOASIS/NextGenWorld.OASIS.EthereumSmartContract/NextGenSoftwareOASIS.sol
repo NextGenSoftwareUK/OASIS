@@ -23,7 +23,7 @@ contract NextGenSoftwareOASIS {
         totalHolonsCount = 0;
     }
 
-    function SaveAvatar(
+    function CreateAvatar(
         string avatarId,
         string title,
         string firstName,
@@ -81,7 +81,7 @@ contract NextGenSoftwareOASIS {
         return totalAvatarsCount;
     }
 
-    function SaveHolon(
+    function CreateHolon(
         string parentOmiverseId,
         string parentMultiverseId,
         string parentUniverseId,
@@ -121,7 +121,7 @@ contract NextGenSoftwareOASIS {
         return totalHolonsCount;
     }
 
-    function SaveAvatarDetail(
+    function CreateAvatarDetail(
         string avatarId,
         string title,
         string firstName,
@@ -172,8 +172,88 @@ contract NextGenSoftwareOASIS {
         totalAvatarDetailsCount++;
         return totalAvatarDetailsCount;
     }
-    
 
+    function UpdateAvatar(
+        string memory avatarId,
+        string memory title,
+        string memory firstName,
+        string memory lastName,
+        string memory fullName,
+        string memory username,
+        string memory email,
+        string memory password,
+        bool memory acceptTerms,
+        bool memory isVerified,
+        string memory jwtToken,
+        uint256 memory passwordReset,
+        string memory refreshToken,
+        string memory resetToken,
+        uint256 memory resetTokenExpires,
+        string memory verificationToken,
+        uint256 memory verified,
+        uint256 memory lastBeamedIn,
+        uint256 memory lastBeamedOut,
+        bool memory isBeamedIn,
+        string memory image2D,
+        int memory karma,
+        int memory level,
+        int memory xp
+    ) public returns (bool) {
+        for (uint256 i = 0; i < totalAvatarsCount; i++) {
+            if (avatars[i].AvatarId == avatarId) {
+                avatars[i].Title = title;
+                avatars[i].FirstName = firstName;
+                avatars[i].LastName = lastName;
+                avatars[i].FullName = fullName;
+                avatars[i].Username = username;
+                avatars[i].Email = email;
+                avatars[i].Password = password;
+                avatars[i].AcceptTerms = acceptTerms;
+                avatars[i].IsVerified = isVerified;
+                avatars[i].JwtToken = jwtToken;
+                avatars[i].PasswordReset = passwordReset;
+                avatars[i].RefreshToken = refreshToken;
+                avatars[i].ResetToken = resetToken;
+                avatars[i].ResetTokenExpires = resetTokenExpires;
+                avatars[i].VerificationToken = verificationToken;
+                avatars[i].Verified = verified;
+                avatars[i].LastBeamedIn = lastBeamedIn;
+                avatars[i].LastBeamedIn = lastBeamedIn;
+                avatars[i].IsBeamedIn = isBeamedIn;
+                avatars[i].Image2D = image2D;
+                avatars[i].Karma = karma;
+                avatars[i].Level = level;
+                avatars[i].XP = xp;
+                return true;
+            }
+        }
+        return false;
+    }
+
+    function DeleteAvatar(string memory avatarId) public returns (bool) {
+        require(totalAvatarsCount > 0);
+        for (uint256 i = 0; i < totalAvatarsCount; i++) {
+            if (avatars[i].AvatarId == avatarId) {
+                avatars[i] = avatars[totalAvatarsCount - 1];
+                delete avatars[totalAvatarsCount - 1];
+                totalAvatarsCount--;
+                return true;
+            }
+        }
+        return false;
+    }
+
+    function GetAvatarById(string memory avatarId) public view returns (Avatar memory)
+    {
+        require(totalAvatarsCount > 0);
+        for (uint256 i = 0; i < totalAvatarsCount; i++) {
+            if (avatars[i].AvatarId == avatarId) {
+                return avatars[i];
+            }
+        }
+        return;
+    }
+    
     function GetAvatarsCount() public view returns (uint256 count) {
         return avatar.length;
     }
