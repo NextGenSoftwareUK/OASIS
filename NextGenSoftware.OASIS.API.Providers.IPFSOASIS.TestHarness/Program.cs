@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using System.Linq;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 
@@ -16,7 +17,6 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS.TestHarness
             IPFSOASIS ipfs = new IPFSOASIS(); 
             ipfs.ActivateProvider();
      
-
             Avatar a = new Avatar();
             a.Username = "farid";
             a.Password = "man";
@@ -44,11 +44,10 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS.TestHarness
             Avatar avatar3 = (Avatar)ipfs.LoadAvatarForProviderKey("QmS21Kp5q2FMN5GwZhUpwsdGwRiaTp5T77ARDgbzxE5jVV");
 
             Avatar avatar4 = (Avatar)ipfs.LoadAvatar(Guid.Parse("f4d209e7-d985-4687-b04c-d29520aadcff"));
-
-            //TODO: Please test every method here...
-
-            bool isdeleted = ipfs.DeleteAvatarByUsername("qqq");
-
+            
+       
+          //  bool isdeleted = ipfs.DeleteAvatarByUsername("qqq");
+          
             Holon h = new Holon();
             h.Description = "rrr";
             h.Name = "ffff";
@@ -57,14 +56,14 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS.TestHarness
 
             ipfs.SaveHolon(h);
 
-            IEnumerable<IHolon> holons=  ipfs.LoadAllHolons();
+            List<IHolon> holons = ipfs.LoadAllHolons().ToList();
 
             IHolon holon = ipfs.LoadHolon(h.Id);
 
             IEnumerable<IHolon> holons1 = ipfs.LoadHolonsForParent(h.Id);
 
             ipfs.DeleteHolon(h.Id);
-
+          
             AvatarDetail ad = new AvatarDetail();
             ad.Username = "farid";
             ad.Address = "man";

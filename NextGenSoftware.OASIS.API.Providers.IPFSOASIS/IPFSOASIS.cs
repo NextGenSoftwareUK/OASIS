@@ -160,6 +160,7 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
             dico.password = avatar.Password;
             dico.ProviderKey = avatar.ProviderKey;
             dico.email = avatar.Email;
+            dico.HolonType = HolonType.Avatar;
 
             if (_idLookup.Count == 0)
                 _idLookup.Add(fsn.Id, dico);
@@ -230,6 +231,7 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
             dico.login = avatarDetail.Username;           
             dico.ProviderKey = avatarDetail.ProviderKey;
             dico.email = avatarDetail.Email;
+            dico.HolonType = HolonType.AvatarDetail;
 
             if (_idLookup.Count == 0)
                 _idLookup.Add(fsn.Id, dico);
@@ -554,8 +556,7 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
             foreach (var d in Dico)
             {
                 string HolonAddress = _idLookup.FirstOrDefault(a => a.Value.Id == d.Id).Key;
-                ;
-
+      
                 json = await LoadStringToJson(HolonAddress);
                 IHolon holon = JsonConvert.DeserializeObject<Holon>(json);
                 HolonsList.Add(holon);
@@ -627,11 +628,8 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
         public override async Task<IEnumerable<IAvatarDetail>> LoadAllAvatarDetailsAsync()
         {
             string json = "";
-
             json = await LoadStringToJson(avatarDetailsFileAddress);
-
             AvatarsDetailsList = (List<IAvatarDetail>) JsonConvert.DeserializeObject(json);
-
             return AvatarsDetailsList;
         }
 
@@ -719,10 +717,11 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
             try
             {
                 IAvatar avatar = await LoadAvatarTemplateAsync(a => a.login == avatarUsername);
-                await SaveAvatarToFile(avatar);
 
                 avatar.DeletedByAvatarId = AvatarManager.LoggedInAvatar.Id;
                 avatar.DeletedDate = DateTime.Now;
+
+                await SaveAvatarToFile(avatar);
 
                 return true;
             }

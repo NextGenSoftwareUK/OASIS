@@ -6,6 +6,7 @@ namespace NextGenSoftware.OASIS.API.Core.Enums
         All,
         Player,
         Avatar,
+        AvatarDetail,
         Quest,
         Park,
         Restaurant,
