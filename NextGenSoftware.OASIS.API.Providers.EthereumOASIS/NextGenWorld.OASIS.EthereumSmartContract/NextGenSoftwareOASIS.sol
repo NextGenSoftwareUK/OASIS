@@ -362,13 +362,35 @@ contract NextGenSoftwareOASIS {
         }
         return false;
     }
-
+    
     function GetAvatarById(string memory avatarId) public view returns (Avatar memory)
     {
         require(totalAvatarsCount > 0);
         for (uint256 i = 0; i < totalAvatarsCount; i++) {
             if (avatars[i].AvatarId == avatarId) {
                 return avatars[i];
+            }
+        }
+        return;
+    }
+
+    function GetAvatarDetailById(string memory avatarId) public view returns (AvatarDetail memory)
+    {
+        require(totalAvatarDetailsCount > 0);
+        for (uint256 i = 0; i < totalAvatarDetailsCount; i++) {
+            if (avatarDetails[i].AvatarId == avatarId) {
+                return avatarDetails[i];
+            }
+        }
+        return;
+    }
+
+    function GetHolonById(string memory holonId) public view returns (Holon memory)
+    {
+        require(totalHolonsCount > 0);
+        for (uint256 i = 0; i < totalHolonsCount; i++) {
+            if (holons[i].HolonId == holonId) {
+                return holons[i];
             }
         }
         return;
