@@ -82,6 +82,7 @@ contract NextGenSoftwareOASIS {
     }
 
     function CreateHolon(
+        string holonId,
         string parentOmiverseId,
         string parentMultiverseId,
         string parentUniverseId,
@@ -100,6 +101,7 @@ contract NextGenSoftwareOASIS {
     ) public returns (uint256) {
         Holon memory newHolon = Holon(
         {
+            HolonId: holonId,
             ParentOmiverseId: parentOmiverseId,
             ParentMultiverseId: parentMultiverseId,
             ParentUniverseId: parentUniverseId,
@@ -224,6 +226,98 @@ contract NextGenSoftwareOASIS {
                 avatars[i].Karma = karma;
                 avatars[i].Level = level;
                 avatars[i].XP = xp;
+                return true;
+            }
+        }
+        return false;
+    }
+
+    function UpdateAvatarDetail(
+        string avatarId,
+        string title,
+        string firstName,
+        string lastName,
+        string fullName,
+        string username,
+        string email,
+        string avatarAddress,
+        string country,
+        string county,
+        uint256 dob,
+        string image2D,
+        int karma,
+        string landline,
+        int level,
+        string mobile,
+        string model3D,
+        string postcode,
+        string town,
+        string umaJson,
+        int xp
+    ) public returns (uint256) {
+        for (uint256 i = 0; i < totalAvatarDetailsCount; i++) {
+            if (avatarDetails[i].AvatarId == avatarId) {
+                avatarDetails[i].Title = title;
+                avatarDetails[i].FirstName = firstName;
+                avatarDetails[i].LastName = lastName;
+                avatarDetails[i].FullName = fullName;
+                avatarDetails[i].Username = username;
+                avatarDetails[i].Email = email;
+                avatarDetails[i].Country = country;
+                avatarDetails[i].County = county;
+                avatarDetails[i].DOB = dob;
+                avatarDetails[i].Address = avatarAddress;
+                avatarDetails[i].Image2D = image2D;
+                avatarDetails[i].Landline = landline;
+                avatarDetails[i].Mobile = mobile;
+                avatarDetails[i].Model3D = model3D;
+                avatarDetails[i].Postcode = postcode;
+                avatarDetails[i].Town = town;
+                avatarDetails[i].UmaJson = umaJson;
+                avatarDetails[i].Karma = karma;
+                avatarDetails[i].Level = level;
+                avatarDetails[i].XP = xp;
+                return true;
+            }
+        }
+        return false;
+    }
+
+    function UpdateHolon(
+        string holonId,
+        string parentOmiverseId,
+        string parentMultiverseId,
+        string parentUniverseId,
+        string parentDimensionId,
+        string parentGalaxyClusterId,
+        string parentGalaxyId,
+        string parentSolarSystemId,
+        string parentGreatGrandSuperStarId,
+        string parentGrandSuperStarId,
+        string parentSuperStarId,
+        string parentStarId,
+        string parentPlanetId,
+        string parentMoonId,
+        string parentZomeId,
+        string parentHolonId
+    ) public returns (uint256) {
+        for (uint256 i = 0; i < totalAvatarDetailsCount; i++) {
+            if (holons[i].HolonId == holonId) {
+                holons[i].ParentOmiverseId = parentOmiverseId;
+                holons[i].parentOmiverseId = parentMultiverseId;
+                holons[i].parentOmiverseId = parentUniverseId;
+                holons[i].parentOmiverseId = parentDimensionId;
+                holons[i].parentOmiverseId = parentGalaxyClusterId;
+                holons[i].parentOmiverseId = parentSolarSystemId;
+                holons[i].parentOmiverseId = parentGreatGrandSuperStarId;
+                holons[i].parentOmiverseId = parentGalaxyId;
+                holons[i].parentOmiverseId = parentSuperStarId;
+                holons[i].parentOmiverseId = parentStarId;
+                holons[i].parentOmiverseId = parentPlanetId;
+                holons[i].parentOmiverseId = parentMoonId;
+                holons[i].parentOmiverseId = ParentOmiverseId;
+                holons[i].parentOmiverseId = parentZomeId;
+                holons[i].parentOmiverseId = parentHolonId;
                 return true;
             }
         }
