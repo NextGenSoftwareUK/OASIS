@@ -242,6 +242,32 @@ contract NextGenSoftwareOASIS {
         }
         return false;
     }
+    
+    function DeleteAvatarDetail(string memory avatarDetailId) public returns (bool) {
+        require(totalAvatarDetailsCount > 0);
+        for (uint256 i = 0; i < totalAvatarDetailsCount; i++) {
+            if (avatarDetails[i].AvatarId == avatarDetailId) {
+                avatarDetails[i] = avatarDetails[totalAvatarDetailsCount - 1];
+                delete avatarDetails[totalAvatarDetailsCount - 1];
+                totalAvatarDetailsCount--;
+                return true;
+            }
+        }
+        return false;
+    }
+    
+    function DeleteHolon(string memory holonId) public returns (bool) {
+        require(totalHolonsCount > 0);
+        for (uint256 i = 0; i < totalHolonsCount; i++) {
+            if (holons[i].HolonId == holonId) {
+                holons[i] = holons[totalHolonsCount - 1];
+                delete holons[totalHolonsCount - 1];
+                totalHolonsCount--;
+                return true;
+            }
+        }
+        return false;
+    }
 
     function GetAvatarById(string memory avatarId) public view returns (Avatar memory)
     {

@@ -22,6 +22,7 @@ import "..\Common\Universe.sol";
 import "..\Common\Zoom.sol";
 
 struct Holon {
+    string HolonId;
     string ParentOmiverseId;
     Omiverse ParentOmiverse;
     string ParentMultiverseId;
