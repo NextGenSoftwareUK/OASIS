@@ -81,7 +81,7 @@ namespace NextGenSoftware.OASIS.STAR
                 multiverseResult.Result.GrandSuperStar.ParentMultiverseId = multiverse.Id;
 
                 // Now we need to save the GrandSuperStar as a seperate Holon to get a Id.
-                OASISResult<IHolon> grandSuperStarResult = await SaveHolonAsync(multiverseResult.Result.GrandSuperStar);
+                OASISResult<IHolon> grandSuperStarResult = await SaveHolonAsync(multiverseResult.Result.GrandSuperStar, false);
 
                 if (!grandSuperStarResult.IsError && grandSuperStarResult.Result != null)
                 {
