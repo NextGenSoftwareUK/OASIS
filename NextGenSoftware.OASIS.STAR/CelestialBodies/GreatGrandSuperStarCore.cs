@@ -37,12 +37,32 @@ namespace NextGenSoftware.OASIS.STAR
             OASISResult<IHolon> holonResult = await SaveHolonAsync(omiverse, false);
 
             if (!holonResult.IsError && holonResult.Result != null)
-                result.Result = Mapper<IHolon, Omiverse>.MapBaseHolonProperties(holonResult.Result);
+                result.Result = (IOmiverse)holonResult.Result;
+                //result.Result = Mapper<IHolon, Omiverse>.MapBaseHolonProperties(holonResult.Result);
             else
                 OASISResultHolonToHolonHelper<IHolon, IOmiverse>.CopyResult(holonResult, result);
 
             return result;
         }
+
+        /*
+        public async Task<OASISResult<IOmiverse>> AddOmiverseAsync(IOmiverse omiverse)
+        {
+            OASISResult<IOmiverse> result = new OASISResult<IOmiverse>();
+            OASISResult<Omiverse> holonResult = await SaveHolonAsync<Omiverse>(omiverse, false);
+
+            if (!result.IsError && holonResult.Result != null)
+                result.Result = Mapper<IHolon, Omiverse>.MapBaseHolonProperties(holonResult.Result);
+            else
+                OASISResultHolonToHolonHelper<Omiverse, IOmiverse>.CopyResult(holonResult, result);
+
+            return result;
+        }
+
+        public async Task<OASISResult<Omiverse>> AddOmiverseAsync(IOmiverse omiverse)
+        {
+            return await SaveHolonAsync<Omiverse>(omiverse, false);
+        }*/
 
         public OASISResult<IOmiverse> AddOmiverse(IOmiverse omiverse)
         {
@@ -67,18 +87,21 @@ namespace NextGenSoftware.OASIS.STAR
         /// <returns></returns>
         public async Task<OASISResult<IMultiverse>> AddMultiverseAsync(IMultiverse multiverse)
         {
-            OASISResult<IMultiverse> multiverseResult = OASISResultHolonToHolonHelper<IHolon, IMultiverse>.CopyResult(
-               await AddHolonToCollectionAsync(GreatGrandSuperStar, multiverse, (List<IHolon>)Mapper<IMultiverse, Holon>.MapBaseHolonProperties(
-                   GreatGrandSuperStar.ParentOmiverse.Multiverses)), new OASISResult<IMultiverse>());
+            OASISResult<IHolon> holonResult =  await AddHolonToCollectionAsync(GreatGrandSuperStar, multiverse, (List<IHolon>)Mapper<IMultiverse, Holon>.Convert(GreatGrandSuperStar.ParentOmiverse.Multiverses));
+            OASISResult<IMultiverse> multiverseResult = OASISResultHolonToHolonHelper<IHolon, IMultiverse>.CopyResult(holonResult, new OASISResult<IMultiverse>());
+
+           //OASISResult <IMultiverse> multiverseResult = OASISResultHolonToHolonHelper<IHolon, IMultiverse>.CopyResult(
+           //    await AddHolonToCollectionAsync(GreatGrandSuperStar, multiverse, (List<IHolon>)Mapper<IMultiverse, Holon>.MapBaseHolonProperties(
+           //        GreatGrandSuperStar.ParentOmiverse.Multiverses)), new OASISResult<IMultiverse>());
 
             if (!multiverseResult.IsError && multiverseResult.Result != null)
             {
-                Mapper<IHolon, Multiverse>.MapBaseHolonProperties(multiverseResult.Result, (Multiverse)multiverse);
+                //Mapper<IHolon, Multiverse>.MapBaseHolonProperties(multiverseResult.Result, (Multiverse)multiverse);
 
-                multiverseResult.Result.GrandSuperStar.ParentOmiverse = multiverse.ParentOmiverse;
-                multiverseResult.Result.GrandSuperStar.ParentOmiverseId = multiverse.ParentOmiverseId;
-                multiverseResult.Result.GrandSuperStar.ParentMultiverse = multiverse;
-                multiverseResult.Result.GrandSuperStar.ParentMultiverseId = multiverse.Id;
+                multiverseResult.Result.GrandSuperStar.ParentOmiverse = multiverseResult.Result.ParentOmiverse;
+                multiverseResult.Result.GrandSuperStar.ParentOmiverseId = multiverseResult.Result.ParentOmiverseId;
+                multiverseResult.Result.GrandSuperStar.ParentMultiverse = multiverseResult.Result;
+                multiverseResult.Result.GrandSuperStar.ParentMultiverseId = multiverseResult.Result.Id;
 
                 // Now we need to save the GrandSuperStar as a seperate Holon to get a Id.
                 OASISResult<IHolon> grandSuperStarResult = await SaveHolonAsync(multiverseResult.Result.GrandSuperStar, false);

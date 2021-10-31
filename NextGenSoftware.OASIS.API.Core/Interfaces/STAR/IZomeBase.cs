@@ -36,8 +36,8 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces.STAR
         OASISResult<T> SaveHolon<T>(IHolon savingHolon, bool mapBaseHolonProperties = true) where T : IHolon, new();
         Task<OASISResult<IHolon>> SaveHolonAsync(IHolon savingHolon, bool mapBaseHolonProperties = true);
         OASISResult<IHolon> SaveHolon(IHolon savingHolon, bool mapBaseHolonProperties = true);
-        Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> savingHolons);
-        OASISResult<IEnumerable<IHolon>> SaveHolons(IEnumerable<IHolon> savingHolons);
+        Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> savingHolons, bool mapBaseHolonProperties = true);
+        OASISResult<IEnumerable<IHolon>> SaveHolons(IEnumerable<IHolon> savingHolons, bool mapBaseHolonProperties = true);
         Task<OASISResult<IZome>> SaveAsync(bool saveChildren = true, bool continueOnError = true);
         OASISResult<IZome> Save(bool saveChildren = true, bool continueOnError  = true);
         Task<OASISResult<IEnumerable<IHolon>>> AddHolonAsync(IHolon holon);
