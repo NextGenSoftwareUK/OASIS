@@ -157,7 +157,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
 
         public async Task<OASISResult<IHolon>> SaveCelestialBodyAsync(IHolon savingHolon)
         {
-            return await base.SaveHolonAsync(savingHolon);
+            return await base.SaveHolonAsync(savingHolon, false);
         }
 
         public OASISResult<IHolon> SaveCelestialBody(IHolon savingHolon)
@@ -168,7 +168,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
 
         public async Task<OASISResult<T>> SaveCelestialBodyAsync<T>(IHolon savingHolon) where T : IHolon, new()
         {
-            return await base.SaveHolonAsync<T>(savingHolon);
+            return await base.SaveHolonAsync<T>(savingHolon, false);
         }
 
         public OASISResult<T> SaveCelestialBody<T>(IHolon savingHolon) where T : IHolon, new()
@@ -300,7 +300,8 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
             
             holons.Add(holon);
 
-            OASISResult<IEnumerable<IHolon>> holonsResult = await base.SaveHolonsAsync(holons);
+            //OASISResult<IEnumerable<IHolon>> holonsResult = await base.SaveHolonsAsync(holons, false);
+            OASISResult<IEnumerable<IHolon>> holonsResult = await base.SaveHolonsAsync(holons, true); //TODO: Temp to test new code...
             OASISResultCollectionToHolonHelper<IEnumerable<IHolon>, IHolon>.CopyResult(holonsResult, ref result);
 
             if (!holonsResult.IsError)
