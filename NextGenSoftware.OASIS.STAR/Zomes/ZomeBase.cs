@@ -688,7 +688,6 @@ namespace NextGenSoftware.OASIS.STAR.Zomes
                     result.Result = Mapper.MapBaseHolonProperties(savingHolons, result.Result);
 
                 result.Result = RestoreCelesialBodies(savingHolons);
-
                 OnHolonsSaved?.Invoke(this, new HolonsSavedEventArgs() { Result = result });
             }
             else
