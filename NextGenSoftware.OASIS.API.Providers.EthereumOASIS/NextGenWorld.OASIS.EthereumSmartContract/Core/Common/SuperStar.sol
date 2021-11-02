@@ -2,13 +2,13 @@
 // compiler version must be greater than or equal to 0.8.3 and less than 0.9.0
 pragma solidity ^0.8.9;
 
-import "..\Enums\DimensionLevel.sol";
-import "..\Enums\StarType.sol";
-import "..\Enums\StarClassification.sol";
-import "..\Enums\StarBinaryType.sol";
-import "..\Enums\SpaceQuadrantType.sol";
+import "../Enums/DimensionLevel.sol";
+import "../Enums/StarType.sol";
+import "../Enums/StarClassification.sol";
+import "../Enums/StarBinaryType.sol";
+import "../Enums/SpaceQuadrantType.sol";
 import "./CelestialBodyCore.sol";
-import "..\Enums\GenesisType.sol";
+import "../Enums/GenesisType.sol";
 
 struct SuperStar {
     DimensionLevel DimensionLevel;
