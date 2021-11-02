@@ -160,6 +160,7 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
             dico.password = avatar.Password;
             dico.ProviderKey = avatar.ProviderKey;
             dico.email = avatar.Email;
+            dico.HolonType = HolonType.Avatar;
 
             if (_idLookup.Count == 0)
                 _idLookup.Add(fsn.Id, dico);
@@ -177,6 +178,10 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
             //If we have a previous version of this avatar saved, then add a pointer back to the previous version.
             _idLookup = await LoadLookupToJson();
             HolonResume dico = _idLookup.Values.FirstOrDefault(a => a.Id == holon.Id);
+
+            // in case there is no element in _idlookup dictionary
+            if (dico == null)
+                dico = new HolonResume();
 
             if (_idLookup.Count(a => a.Value.Id == holon.Id) > 0)
                 holon.PreviousVersionProviderKey[Core.Enums.ProviderType.IPFSOASIS] =
@@ -199,6 +204,44 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
 
             string id = await SaveLookupToFile(_idLookup);
             return holon;
+        }
+
+        public async Task<IAvatarDetail> SaveAvatarDetailToFile(IAvatarDetail avatarDetail)
+        {
+            //If we have a previous version of this avatar saved, then add a pointer back to the previous version.
+            _idLookup = await LoadLookupToJson();
+            HolonResume dico = _idLookup.Values.FirstOrDefault(a => a.Id == avatarDetail.Id);
+
+            // in case there is no element in _idlookup dictionary
+            if (dico == null)
+                dico = new HolonResume();
+
+
+            if (_idLookup.Count(a => a.Value.Id == avatarDetail.Id) > 0)
+                avatarDetail.PreviousVersionProviderKey[Core.Enums.ProviderType.IPFSOASIS] =
+                    _idLookup.FirstOrDefault(a => a.Value.Id == avatarDetail.Id).Key;
+
+            string json = JsonConvert.SerializeObject(avatarDetail);
+            var fsn = await IPFSClient.FileSystem.AddTextAsync(json);
+            avatarDetail.ProviderKey[Core.Enums.ProviderType.IPFSOASIS] = fsn.Id;
+
+            // we store just values that we will use as a filter of search in other methods.
+
+            dico.Id = avatarDetail.Id;
+            dico.login = avatarDetail.Username;           
+            dico.ProviderKey = avatarDetail.ProviderKey;
+            dico.email = avatarDetail.Email;
+            dico.HolonType = HolonType.AvatarDetail;
+
+            if (_idLookup.Count == 0)
+                _idLookup.Add(fsn.Id, dico);
+            else
+                _idLookup[fsn.Id] = dico;
+
+
+            await SaveLookupToFile(_idLookup);
+
+            return avatarDetail;
         }
 
         public override async Task<IAvatar> LoadAvatarAsync(string username, string password)
@@ -513,8 +556,7 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
             foreach (var d in Dico)
             {
                 string HolonAddress = _idLookup.FirstOrDefault(a => a.Value.Id == d.Id).Key;
-                ;
-
+      
                 json = await LoadStringToJson(HolonAddress);
                 IHolon holon = JsonConvert.DeserializeObject<Holon>(json);
                 HolonsList.Add(holon);
@@ -586,11 +628,8 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
         public override async Task<IEnumerable<IAvatarDetail>> LoadAllAvatarDetailsAsync()
         {
             string json = "";
-
             json = await LoadStringToJson(avatarDetailsFileAddress);
-
             AvatarsDetailsList = (List<IAvatarDetail>) JsonConvert.DeserializeObject(json);
-
             return AvatarsDetailsList;
         }
 
@@ -599,13 +638,9 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
             return SaveAvatarDetailAsync(Avatar).Result;
         }
 
-        public override async Task<IAvatarDetail> SaveAvatarDetailAsync(IAvatarDetail Avatar)
+        public override async Task<IAvatarDetail> SaveAvatarDetailAsync(IAvatarDetail avatarDetail)
         {
-            AvatarsDetailsList.Add(Avatar);
-
-            avatarDetailsFileAddress = await SaveJsonToFile<IAvatarDetail>(AvatarsDetailsList);
-
-            return Avatar;
+           return await SaveAvatarDetailToFile(avatarDetail);
         }
 
         public override IAvatar LoadAvatarByUsername(string avatarUsername)
@@ -635,7 +670,7 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
 
         public override IAvatarDetail LoadAvatarDetailByUsername(string avatarUsername)
         {
-            return LoadAvatarDetailByEmailAsync(avatarUsername).Result;
+            return LoadAvatarDetailByUsernameAsync(avatarUsername).Result;
         }
 
         public override async Task<IAvatarDetail> LoadAvatarDetailByUsernameAsync(string avatarUsername)
@@ -682,10 +717,11 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
             try
             {
                 IAvatar avatar = await LoadAvatarTemplateAsync(a => a.login == avatarUsername);
-                await SaveAvatarToFile(avatar);
 
                 avatar.DeletedByAvatarId = AvatarManager.LoggedInAvatar.Id;
                 avatar.DeletedDate = DateTime.Now;
+
+                await SaveAvatarToFile(avatar);
 
                 return true;
             }

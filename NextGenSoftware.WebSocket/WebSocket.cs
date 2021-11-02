@@ -29,6 +29,7 @@ namespace NextGenSoftware.WebSocket
         // Properties
         public string EndPoint { get; private set; }
         public ClientWebSocket ClientWebSocket { get; private set; }
+        public UnityWebSocket UnityWebSocket { get; private set; }
         public WebSocketConfig Config
         {
             get
@@ -48,7 +49,8 @@ namespace NextGenSoftware.WebSocket
         {
             get
             {
-                return ClientWebSocket.State;
+                //return ClientWebSocket.State;
+                return UnityWebSocket.ClientWebSocket.State;
             }
         }
 
@@ -69,8 +71,15 @@ namespace NextGenSoftware.WebSocket
         public WebSocket(string endPointURI, ILogger logger)
         {
             Logger = logger;
-            ClientWebSocket = new ClientWebSocket();
-            ClientWebSocket.Options.KeepAliveInterval = TimeSpan.FromSeconds(Config.KeepAliveSeconds);
+            // ClientWebSocket = new ClientWebSocket();
+            // ClientWebSocket.Options.KeepAliveInterval = TimeSpan.FromSeconds(Config.KeepAliveSeconds);
+            
+            UnityWebSocket = new UnityWebSocket(endPointURI);
+            UnityWebSocket.OnOpen += UnityWebSocket_OnOpen;
+            UnityWebSocket.OnClose += UnityWebSocket_OnClose;
+            UnityWebSocket.OnError += UnityWebSocket_OnError;
+            UnityWebSocket.OnMessage += UnityWebSocket_OnMessage;
+
             EndPoint = endPointURI;
 
             _cancellationToken = _cancellationTokenSource.Token; //TODO: do something with this!
@@ -82,61 +91,61 @@ namespace NextGenSoftware.WebSocket
             //UnityWebSocket.OnMessage += WebSocket2_OnMessage;
         }
 
-        //private void WebSocket2_OnMessage(byte[] data)
-        //{
+        private void UnityWebSocket_OnMessage(byte[] data)
+        {
+            //throw new NotImplementedException();
+        }
 
-        //}
+        private void UnityWebSocket_OnError(string errorMsg)
+        {
+            //throw new NotImplementedException();
+        }
 
-        //private void WebSocket2_OnError(string errorMsg)
-        //{
+        private void UnityWebSocket_OnClose(WebSocketCloseCode closeCode)
+        {
+          //  throw new NotImplementedException();
+        }
 
-        //}
-
-        //private void WebSocket2_OnClose(WebSocketCloseCode closeCode)
-        //{
-
-        //}
-
-        //private void WebSocket2_OnOpen()
-        //{
-
-        //}
-
-        //public async Task Connect()
-        //{
-        //    await UnityWebSocket.Connect();
-        //    await webSocket2.Receive();
-        //}
+        private void UnityWebSocket_OnOpen()
+        {
+          //  throw new NotImplementedException();
+        }
 
         public async Task Connect()
         {
-            try
-            {
-                if (Logger == null)
-                    throw new WebSocketException("ERROR: No Logger Has Been Specified! Please set a Logger with the Logger Property.");
-
-                if (ClientWebSocket.State != WebSocketState.Connecting && ClientWebSocket.State != WebSocketState.Open && ClientWebSocket.State != WebSocketState.Aborted)
-                {
-                    Logger.Log(string.Concat("Connecting to ", EndPoint, "..."), LogType.Info);
-
-                    await ClientWebSocket.ConnectAsync(new Uri(EndPoint), CancellationToken.None);
-                    //NetworkServiceProvider.Connect(new Uri(EndPoint));
-                    //TODO: need to be able to await this.
-
-                    //if (NetworkServiceProvider.NetSocketState == NetSocketState.Open)
-                    if (ClientWebSocket.State == WebSocketState.Open)
-                    {
-                        Logger.Log(string.Concat("Connected to ", EndPoint), LogType.Info);
-                        OnConnected?.Invoke(this, new ConnectedEventArgs { EndPoint = EndPoint });
-                        StartListen();
-                    }
-                }
-            }
-            catch (Exception e)
-            {
-                HandleError(string.Concat("Error occured connecting to ", EndPoint), e);
-            }
+            await UnityWebSocket.Connect();
+           // await UnityWebSocket.Receive();
         }
+
+        //public async Task Connect()
+        //{
+        //    try
+        //    {
+        //        if (Logger == null)
+        //            throw new WebSocketException("ERROR: No Logger Has Been Specified! Please set a Logger with the Logger Property.");
+
+        //        if (ClientWebSocket.State != WebSocketState.Connecting && ClientWebSocket.State != WebSocketState.Open && ClientWebSocket.State != WebSocketState.Aborted)
+        //        {
+        //            Logger.Log(string.Concat("Connecting to ", EndPoint, "..."), LogType.Info);
+
+        //            await ClientWebSocket.ConnectAsync(new Uri(EndPoint), CancellationToken.None);
+        //            //NetworkServiceProvider.Connect(new Uri(EndPoint));
+        //            //TODO: need to be able to await this.
+
+        //            //if (NetworkServiceProvider.NetSocketState == NetSocketState.Open)
+        //            if (ClientWebSocket.State == WebSocketState.Open)
+        //            {
+        //                Logger.Log(string.Concat("Connected to ", EndPoint), LogType.Info);
+        //                OnConnected?.Invoke(this, new ConnectedEventArgs { EndPoint = EndPoint });
+        //                StartListen();
+        //            }
+        //        }
+        //    }
+        //    catch (Exception e)
+        //    {
+        //        HandleError(string.Concat("Error occured connecting to ", EndPoint), e);
+        //    }
+        //}
 
         public async Task Disconnect()
         {
@@ -166,7 +175,9 @@ namespace NextGenSoftware.WebSocket
         public async Task SendRawDataAsync(byte[] data)
         {
             Logger.Log("Sending Raw Data...", LogType.Info);
+            await UnityWebSocket.Send(data);
 
+            /*
             if (ClientWebSocket.State != WebSocketState.Open)
             {
                 string msg = "Connection is not open!";
@@ -188,6 +199,7 @@ namespace NextGenSoftware.WebSocket
                 Logger.Log(string.Concat("Sending Data Packet ", i, " of ", messagesCount, "..."), LogType.Debug);
                 await ClientWebSocket.SendAsync(new ArraySegment<byte>(data, offset, count), WebSocketMessageType.Text, lastMessage, _cancellationToken);
             }
+            */
 
             Logger.Log("Sending Raw Data... Done!", LogType.Info);
         }

@@ -13,15 +13,23 @@ using NextGenSoftware.Holochain.HoloNET.Client.MessagePack;
 
 namespace NextGenSoftware.Holochain.HoloNET.Client.Core
 {
-    [MessagePackObject]
+    //[MessagePackObject]
+    //[Serializable]
+    //public class Temp
+    //{
+    //    [Key(0)]
+    //    public string Name { get; set; }
+
+    //    [Key(1)]
+    //    public string Desc { get; set; }
+    //}
+
+   // [MessagePackObject]
     [Serializable]
     public class Temp
     {
-        [Key(0)]
-        public string Name { get; set; }
-
-        [Key(1)]
-        public string Desc { get; set; }
+       // [Key(0)]
+        public int number { get; set; }
     }
 
     public abstract class HoloNETClientBase
@@ -101,6 +109,7 @@ namespace NextGenSoftware.Holochain.HoloNET.Client.Core
        
         public HoloNETClientBase(string holochainConductorURI, HolochainVersion version, ILogger logger)
         {
+            HolochainVersion = version;
             Logger = logger;
             WebSocket = new WebSocket.WebSocket(holochainConductorURI, logger);
 
@@ -390,8 +399,10 @@ namespace NextGenSoftware.Holochain.HoloNET.Client.Core
                                 fn_name = function,
                                 zome_name = zome,
                                 //payload = MessagePackSerializer.Serialize(paramsObject),
-                                payload = MessagePackSerializer.Serialize(new Temp() { Name = "blah", Desc = "moooooo!" }),
-                               // payload = formatter.Serialize(new Temp() { Name = "blah", Desc = "moooooo!" }),
+                                // payload = formatter.Serialize(paramsObject),
+                                payload = formatter.Serialize(new Temp() {number = 10 }),
+                                //payload = MessagePackSerializer.Serialize(new Temp() { Name = "blah", Desc = "moooooo!" }),
+                                //payload = formatter.Serialize(new Temp() { Name = "blah", Desc = "moooooo!" }),
                                 provenance = Encoding.UTF8.GetBytes(Config.AgentPubKey),
                                 cap = null
                             }
@@ -401,18 +412,15 @@ namespace NextGenSoftware.Holochain.HoloNET.Client.Core
                         {
                             id = Convert.ToUInt64(id),
                             type = "Request",
-                            data = MessagePackSerializer.Serialize(holoNETData)
-                           // data = formatter.Serialize(holoNETData)
+                            //data = MessagePackSerializer.Serialize(holoNETData)
+                            data = formatter.Serialize(holoNETData)
                         };
 
                         // await webSocket2.Send(formatter.Serialize(request));
                         //await webSocket2.Send(MessagePackSerializer.Serialize(request));
 
-
-                        //await SendRawDataAsync(formatter.Serialize(request));
-                        // await SendRawDataAsync(MessagePackSerializer.Serialize(request));
-
-                        await WebSocket.SendRawDataAsync(MessagePackSerializer.Serialize(request));
+                        await WebSocket.SendRawDataAsync(formatter.Serialize(request));
+                       // await WebSocket.SendRawDataAsync(MessagePackSerializer.Serialize(request));
                     }
                     break;
             }

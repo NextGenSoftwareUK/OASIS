@@ -92,7 +92,7 @@
       },
       "IPFSOASIS": {
         "ConnectionString": "http://localhost:5001",
-        "LookUpIPFSAddress": "QmV6NXgrahBuAdpdK4t1GZhbNnP9Pafjc2eqh2fNV65dP3"
+        "LookUpIPFSAddress": ""
       }
     }
   }
