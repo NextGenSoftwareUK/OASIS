@@ -83,10 +83,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
             {
                 response.Exception = e;
                 response.Message = e.Message;
-                response.IsError = false;
+                response.IsError = true;
                 ErrorHandling.HandleError(ref response, e.Message);
             }
-
             return response;
         }
 

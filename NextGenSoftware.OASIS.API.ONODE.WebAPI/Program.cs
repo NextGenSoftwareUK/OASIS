@@ -12,7 +12,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
     {
         private static AvatarManager _avatarManager;
 
-        public static bool IsDevEnviroment;
+        public static bool IsDevEnviroment = false;
         public static string LIVE_OASISAPI = "https://api.oasisplatform.world/api";
         public static string DEV_OASISAPI = "http://localhost:5000/api";
         
