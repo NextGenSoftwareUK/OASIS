@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text.Json.Serialization;
 
 namespace NextGenSoftware.OASIS.API.Core.Helpers
 {
@@ -12,6 +13,7 @@ namespace NextGenSoftware.OASIS.API.Core.Helpers
 
         //public List<OASISResult<T2>> InnerResults { get; set; } = new List<OASISResult<T2>>();
         public List<string> InnerMessages = new List<string>();
+        [JsonIgnore]
         public Exception Exception { get; set; }
         public Dictionary<string, string> MetaData = new Dictionary<string, string>();
         public bool IsError 
