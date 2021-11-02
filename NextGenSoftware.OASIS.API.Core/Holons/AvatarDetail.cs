@@ -12,6 +12,11 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
 {
     public class AvatarDetail : Holon, IAvatarDetail
     {
+        public AvatarDetail()
+        {
+            this.HolonType = HolonType.AvatarDetail;
+        }
+
         //FORCE TO DUPLICATE THESE PROPERTIES FROM AVATAR BECAUSE MULTIPLE INHERIETANCE NOT SUPPORTED IN C#! :(
         //TODO: Be good if we can find a better work around?! ;-)
 
@@ -119,11 +124,6 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
 
         // A record of all the karma the user has earnt/lost along with when and where from.
         public List<KarmaAkashicRecord> KarmaAkashicRecords { get; set; }
-
-        public AvatarDetail()
-        {
-            this.HolonType = HolonType.Avatar;
-        }
 
         public async Task<KarmaAkashicRecord> KarmaEarntAsync(KarmaTypePositive karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc, string webLink = null, bool autoSave = true, int karmaOverride = 0)
         {

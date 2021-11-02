@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 
@@ -59,6 +60,17 @@ namespace NextGenSoftware.OASIS.API.Core.Helpers
             targetHolon.Original = sourceHolon.Original;
 
             return targetHolon;
+        }
+
+        public static IEnumerable<IHolon> MapBaseHolonProperties(IEnumerable<IHolon> sourceHolons, IEnumerable<IHolon> targetHolons)
+        {
+            List<IHolon> sourceList = sourceHolons.ToList();
+            List<IHolon> targetList = targetHolons.ToList();
+
+            for (int i=0; i < sourceHolons.Count(); i++)
+                targetList[i] = (MapBaseHolonProperties(sourceList[i], targetList[i]));
+
+            return targetList;
         }
 
         public static ICelestialBody MapParentCelestialBodyProperties(ICelestialBody sourceCelestialBody, ICelestialBody targetCelestialBody)
@@ -162,6 +174,26 @@ namespace NextGenSoftware.OASIS.API.Core.Helpers
 
             foreach (T1 sourceHolon in sourceHolons)
                 targetList.Add(MapBaseHolonProperties(sourceHolon));
+
+            return targetList;
+        }
+
+        //public static IEnumerable<T2> Convert(IEnumerable<T1> sourceHolons)
+        //{
+        //    List<T2> targetList = new List<T2>();
+
+        //    foreach (T1 sourceHolon in sourceHolons)
+        //        targetList.Add((T2)sourceHolon);
+
+        //    return targetList;
+        //}
+
+        public static IEnumerable<IHolon> Convert(IEnumerable<T1> sourceHolons)
+        {
+            List<IHolon> targetList = new List<IHolon>();
+
+            foreach (T1 sourceHolon in sourceHolons)
+                targetList.Add(sourceHolon);
 
             return targetList;
         }
