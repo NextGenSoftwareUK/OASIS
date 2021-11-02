@@ -77,7 +77,7 @@
         "ConnectionString": "https://node.hypha.earth"
       },
       "SolanaOASIS": {
-        "WalletMnemonicWords": "pattern vessel trade prosper cube okay dust pet primary during captain endless",
+        "WalletMnemonicWords": "",
         "ConnectionString": ""
       },
       "CargoOASIS": {
