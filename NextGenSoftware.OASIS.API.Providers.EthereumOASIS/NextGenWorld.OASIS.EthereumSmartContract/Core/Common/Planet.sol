@@ -3,9 +3,9 @@
 pragma solidity ^0.8.9;
 
 import "./Moon.sol";
-import "..\Enums\GenesisType.sol";
+import "../Enums/GenesisType.sol";
 import "./CelestialBodyCore.sol";
-import "..\Enums\SpaceQuadrantType.sol";
+import "../Enums/SpaceQuadrantType.sol";
     
 struct Planet {
     SpaceQuadrantType SpaceQuadrant;

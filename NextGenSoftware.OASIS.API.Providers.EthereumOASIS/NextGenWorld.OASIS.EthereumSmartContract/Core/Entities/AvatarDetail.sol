@@ -2,25 +2,25 @@
 // compiler version must be greater than or equal to 0.8.3 and less than 0.9.0
 pragma solidity ^0.8.9;
 
-import "..\Enums\AvatarType.sol";
-import "..\Enums\ProviderType.sol";
-import "..\Common\Achievement.sol";
-import "..\Common\AvatarAttributes.sol";
-import "..\Common\AvatarAura.sol";
-import "..\Enums\OASISType.sol";
-import "..\Enums\DimensionLevel.sol";
-import "..\Enums\Color.sol";
-import "..\Common\GeneKey.sol";
-import "..\Common\AvatarGift.sol";
-import "..\Common\HeartRateEntry.sol";
-import "..\Common\HumanDesign.sol";
-import "..\Common\InventoryItem.sol";
-import "..\Common\KarmaAkashicRecord.sol";
-import "..\Common\Spell.sol";
-import "..\Common\AvatarSkills.sol";
-import "..\Common\AvatarStats.sol";
-import "..\Common\Omiverse.sol";
-import "..\Common\AvatarChakras.sol";
+import "../Enums/AvatarType.sol";
+import "../Enums/ProviderType.sol";
+import "../Common/Achievement.sol";
+import "../Common/AvatarAttributes.sol";
+import "../Common/AvatarAura.sol";
+import "../Enums/OASISType.sol";
+import "../Enums/DimensionLevel.sol";
+import "../Enums/Color.sol";
+import "../Common/GeneKey.sol";
+import "../Common/AvatarGift.sol";
+import "../Common/HeartRateEntry.sol";
+import "../Common/HumanDesign.sol";
+import "../Common/InventoryItem.sol";
+import "../Common/KarmaAkashicRecord.sol";
+import "../Common/Spell.sol";
+import "../Common/AvatarSkills.sol";
+import "../Common/AvatarStats.sol";
+import "../Common/Omiverse.sol";
+import "../Common/AvatarChakras.sol";
 
 struct AvatarDetail {
     string AvatarId;
