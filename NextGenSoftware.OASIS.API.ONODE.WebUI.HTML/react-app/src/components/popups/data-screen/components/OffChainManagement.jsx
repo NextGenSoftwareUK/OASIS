@@ -118,7 +118,7 @@ class OffChainManagement extends React.Component {
                       REMOVE ALL
                     </button>
                   </div>
-
+                        
                   <ul className="list-item list-box">
                     {this.state.tagsList.map((tag) =>
                       tag.status ? (
