@@ -22,14 +22,15 @@ class RewardSeeds extends React.Component {
                         <div className="popup-container default-popup">
                             <div className="seed-container paywith-seeds">
                                 <h1>
-                                    <select
+                                Donate with Seeds
+                                    {/* <select
                                         className="custom-selectbox"
                                     >
                                         <option value="Reward">Reward</option>
                                         <option value="Donate">Donate</option>
                                         <option value="Pay">Pay</option>
                                     </select>
-                                    with Seeds
+                                    with Seeds */}
                                 </h1>
                                 <div className="form-container">
                                     <form>

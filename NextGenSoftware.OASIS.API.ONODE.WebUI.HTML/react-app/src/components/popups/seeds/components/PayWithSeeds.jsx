@@ -22,14 +22,14 @@ class PayWithSeeds extends React.Component {
                         <div className="popup-container default-popup">
                             <div className="seed-container paywith-seeds">
                                 <h1>
-                                    <select
+                                Pay with Seeds
+                                    {/* <select
                                         className="custom-selectbox"
                                     >
-                                        <option value="Pay">Pay</option>
-                                        <option value="Donate">Donate</option>
-                                        <option value="Reward">Reward</option>
-                                    </select>
-                                    with Seeds
+                                        <option value="Pay">Pay with Seeds</option>
+                                        <option value="Donate">Donate with Seeds</option>
+                                        <option value="Reward">Reward with Seeds</option>
+                                    </select> */}
                                 </h1>
                                 <div className="form-container">
                                     <form>
