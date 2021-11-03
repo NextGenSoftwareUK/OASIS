@@ -106,13 +106,13 @@ class OffChainManagement extends React.Component {
                   </ul>
 
                   <div className="buttons-list">
-                    <button>ADD</button>
+                    {/* <button>ADD</button> */}
 
                     <button onClick={() => this.toggleAllTags("add")}>
                       ADD ALL
                     </button>
 
-                    <button>REMOVE</button>
+                    {/* <button>REMOVE</button> */}
 
                     <button onClick={() => this.toggleAllTags("remove")}>
                       REMOVE ALL
