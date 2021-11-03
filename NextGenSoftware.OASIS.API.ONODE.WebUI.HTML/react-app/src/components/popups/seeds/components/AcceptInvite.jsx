@@ -21,8 +21,8 @@ class AcceptInvite extends React.Component {
 
                         <div className="popup-container default-popup">
                             <div className="seed-container paywith-seeds">
-                                <h1 className="fs-34"> 
-                                    Accept Invite to Join with Seeds
+                                <h1> 
+                                    Accept Invite to Join Seeds
                                 </h1>
                                 <div className="form-container">
                                     <form>
