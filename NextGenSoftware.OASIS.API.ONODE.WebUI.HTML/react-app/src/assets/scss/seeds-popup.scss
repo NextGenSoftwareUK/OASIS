@@ -2,8 +2,6 @@
     width: 100%;
     color: #fff;
     h1 {
-        font-weight: 400;
-        font-size: 2rem;
         text-align: center;
         margin-bottom: 3rem;
         @media (max-width: 550px) {
@@ -133,21 +131,25 @@
 .seed-container {
     h1 {
         margin-bottom: 22px;
-        .custom-selectbox {
-            padding: 0.25rem 5px;
-            font-size: 18px;
-            height: 40px;
-            border-radius: 5px;
-            border: 1px solid #909092;
-            background-color: transparent;
-            color: #fff;
-            margin-right: 15px;
-            @media screen and (min-width:320px) and (max-width:767px) {
-                font-size: 15px;
-                height: 35px;
-                // padding: 0.25rem 15px;
-            }
-        }
+        font-size: 30px;
+        // .custom-selectbox {
+        //     padding: 0.25rem 5px;
+        //     font-size: 25px;
+        //     border-radius: 5px;
+        //     border: 1px solid #909092;
+        //     background-color: transparent;
+        //     color: #fff;
+        //     width: 240px;
+        //     option {
+        //         font-size: 22px;
+        //     }
+        //     @media screen and (min-width:320px) and (max-width:767px) {
+        //         font-size: 15px;
+        //         height: 35px;
+        //         max-width: fit-content;
+        //         // padding: 0.25rem 15px;
+        //     }
+        // }
     }
     .fs-34 {
         font-size: 34px;

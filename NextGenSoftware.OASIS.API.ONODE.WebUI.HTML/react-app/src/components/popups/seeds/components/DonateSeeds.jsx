@@ -25,9 +25,9 @@ class DonateSeeds extends React.Component {
                                     <select
                                         className="custom-selectbox"
                                     >
-                                        <option value="Donate">Donate</option>
-                                        <option value="Pay">Pay</option>
-                                        <option value="Reward">Reward</option>
+                                        <option value="Pay">Pay with Seeds</option>
+                                        <option value="Donate">Donate with Seeds</option>
+                                        <option value="Reward">Reward with Seeds</option>
                                     </select>
                                     with Seeds
                                 </h1>
