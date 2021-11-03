@@ -45,11 +45,6 @@ class SendInvite extends React.Component {
                                             <label>Seeds to Gift</label>
                                             <input type="text" />
                                         </p>
-
-                                        <p className="single-form-row mb-30">
-                                            <label>Show Quality</label>
-                                            <input type="text" />
-                                        </p>
                                         
                                         <p className="single-form-row btn-right">
                                             <button 
