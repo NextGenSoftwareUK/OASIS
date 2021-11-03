@@ -71,10 +71,6 @@
         }
     }
     button.submit-button {
-        background: #fff;
-        border-radius: 4px;
-        height: 30px;
-        width: 100px;
         justify-self: end;
         grid-column: 2;    
     }
@@ -167,17 +163,11 @@ h2.grid-heading {
         @media screen and (min-width:320px) and (max-width:767px) {
             padding: 0;
             display: grid;
-            grid-template-rows: 1fr 1fr 1fr 1fr;
-            grid-gap: 10px;
+            grid-template-rows: 1fr 1fr;
+            grid-gap: 15px;
         }
         button {
             margin: 0 0 25px;
-            width: 110px;
-            background-color: #fff;
-            border-radius: 4px;
-            text-align: center;
-            font-size: 14px;
-            height: 35px;
             @media screen and (min-width:320px) and (max-width:767px) {
                 margin: 0;
                 width: 200px;
@@ -195,12 +185,5 @@ h2.grid-heading {
             // width: 120px;
             text-align: center;
         }
-    }
-    button {
-        width: 100px;
-        background-color: #fff;
-        border-radius: 4px;
-        text-align: center;
-        height: 35px;
     }
 }

@@ -1,6 +1,6 @@
 body {
     margin: 0;
-    font-family: 'Titillium Web', sans-serif;
+    font-family: "Titillium Web", sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     background: url("../images/bg.gif");
@@ -10,7 +10,9 @@ body {
     background-position: top;
 }
 
-select, input, select {
+select,
+input,
+select {
     border: none;
     outline: none;
 }
@@ -29,20 +31,20 @@ ul {
         list-style: none;
     }
 }
-  
+
 code {
-    font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New', monospace;
+    font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New", monospace;
 }
 
-input[type=number]::-webkit-inner-spin-button, 
-input[type=number]::-webkit-outer-spin-button { 
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
     -webkit-appearance: none;
     -moz-appearance: none;
     appearance: none;
-    margin: 0; 
+    margin: 0;
 }
-input[type=number] {
-    -moz-appearance:textfield;
+input[type="number"] {
+    -moz-appearance: textfield;
 }
 
 button {
@@ -62,7 +64,7 @@ input {
         transition: all 0.2s ease;
     }
 }
-.link-inverse { 
+.link-inverse {
     color: #fff;
     &:hover {
         color: #1885c9;
@@ -82,7 +84,7 @@ input {
         background-color: #52b2ee;
     }
 }
-.button-inverse{
+.button-inverse {
     color: #1885c9;
     padding: 0.5rem 1rem;
     border-radius: 5rem;
@@ -99,7 +101,7 @@ input {
 .custom-modal {
     .modal-dialog.modal-90w {
         width: 90%;
-        max-width: none!important;
+        max-width: none !important;
     }
     span.form-cross-icon {
         color: #fff;
@@ -149,16 +151,17 @@ input {
     cursor: pointer;
 }
 
-option{
+option {
     color: #000;
 }
 .custom-form {
-	background-color: hsla(240, 8%, 12%, 0.8);
-	border-radius: 8px;
-	padding: 2rem 3rem;
+    background-color: hsla(240, 8%, 12%, 0.8);
+    border-radius: 8px;
+    padding: 2rem 3rem;
     text-align: center;
     position: relative;
-    p, h2 {
+    p,
+    h2 {
         color: #fff;
     }
     h2 {
@@ -197,8 +200,8 @@ option{
             margin: 0 0 25px;
             grid-template-rows: auto 1fr;
             // grid-gap: 5px;
-            @media screen and (min-width:320px) and (max-width:767px) {
-              margin:0 0 20px;
+            @media screen and (min-width: 320px) and (max-width: 767px) {
+                margin: 0 0 20px;
             }
             label {
                 // margin: 0 0 5px;
@@ -259,7 +262,15 @@ option{
         }
     }
 }
-
+.sm-button {
+    background-color: #1885c9;
+    color: #fff;
+    border-radius: 5rem;
+    width: 120px;
+    height: 35px;
+    font-size: 16px;
+    text-align: center;
+}
 .v-middle {
     position: absolute;
     top: 50%;
@@ -292,10 +303,10 @@ option{
         color: #fff;
     }
 }
-.send-button-container {
-    background: #fff;
-    border-radius: 4px;
-    height: 30px;
-    width: 100px;
-    font-size: 16px;
-}
+// .send-button-container {
+//     background: #fff;
+//     border-radius: 4px;
+//     height: 30px;
+//     width: 100px;
+//     font-size: 16px;
+// }

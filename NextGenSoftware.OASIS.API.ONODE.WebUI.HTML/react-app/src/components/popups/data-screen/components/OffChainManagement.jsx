@@ -108,13 +108,13 @@ class OffChainManagement extends React.Component {
                   <div className="buttons-list">
                     {/* <button>ADD</button> */}
 
-                    <button onClick={() => this.toggleAllTags("add")}>
+                    <button className=" sm-button" onClick={() => this.toggleAllTags("add")}>
                       ADD ALL
                     </button>
 
                     {/* <button>REMOVE</button> */}
 
-                    <button onClick={() => this.toggleAllTags("remove")}>
+                    <button className=" sm-button" onClick={() => this.toggleAllTags("remove")}>
                       REMOVE ALL
                     </button>
                   </div>
@@ -139,7 +139,7 @@ class OffChainManagement extends React.Component {
                 </div>
 
                 <div className="save-button-container">
-                  <button onClick={this.saveData} type="submit">
+                  <button className=" sm-button" onClick={this.saveData} type="submit">
                     Save
                   </button>
                 </div>

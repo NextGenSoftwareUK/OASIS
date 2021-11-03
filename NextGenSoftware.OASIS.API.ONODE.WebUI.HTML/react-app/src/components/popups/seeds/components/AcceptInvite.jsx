@@ -38,7 +38,7 @@ class AcceptInvite extends React.Component {
 
                                         <p className="single-form-row btn-right">
                                             <button 
-                                                className="send-button-container btn-width" 
+                                                className=" btn-width sm-button" 
                                                 type="submit"
                                             >Accept Invitation</button>
                                         </p>
