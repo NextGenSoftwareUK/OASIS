@@ -51,7 +51,7 @@ class AddData extends React.Component {
 
                                         <p className="single-form-row">
                                             <button 
-                                                className="submit-button" 
+                                                className="submit-button sm-button" 
                                                 type="submit"
                                             >Save</button>
                                         </p>

@@ -55,7 +55,7 @@ class RewardSeeds extends React.Component {
                                         
                                         <p className="single-form-row btn-right">
                                             <button 
-                                                className="send-button-container" 
+                                                className="sm-button" 
                                                 type="submit"
                                             >Reward</button>
                                         </p>
