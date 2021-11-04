@@ -26,7 +26,7 @@ const SidebarData = [
             {
                 id: 1,
                 name: "View Avatar",
-                popupName:"viewAvatar"
+                popupName: "viewAvatar"
             },
             {
                 id: 2,
@@ -35,12 +35,12 @@ const SidebarData = [
             {
                 id: 3,
                 name: "Search Avatars",
-                popupName:"searchAvatar"
+                popupName: "searchAvatar"
             },
             {
                 id: 4,
                 name: "Avatar Wallet",
-                popupName:"avatarWallet"
+                popupName: "avatarWallet"
             },
             // {
             //     id: 5,
@@ -114,7 +114,7 @@ const SidebarData = [
             {
                 id: 1,
                 name: "Pay With SEEDS",
-                popupName: "payWithSeeds" 
+                popupName: "payWithSeeds"
             },
             {
                 id: 2,
@@ -129,12 +129,12 @@ const SidebarData = [
             {
                 id: 4,
                 name: "Send Invite To Join SEEDS",
-                popupName:"sendInvite"
+                popupName: "sendInvite"
             },
             {
                 id: 5,
                 name: "Accept Invite to Join Seeds",
-                popupName: "acceptInvite" 
+                popupName: "acceptInvite"
             },
             // {
 
@@ -169,7 +169,7 @@ const SidebarData = [
             //             id: 6,
             //             name: "Search Data",
             //         },
-                  
+
             //     ]
             // },
             // {
@@ -346,7 +346,52 @@ const SidebarData = [
     {
         id: 14,
         name: "developer",
-        subMenu: [],
+        subMenu: [
+            {
+                name: "OASIS API LIVE",
+                path: "",
+            },
+            {
+                name: "OASIS API STAGING",
+                path: "",
+            },
+            {
+                name: "OASIS API UI LIVE",
+                path: "",
+            },
+            {
+                name: "OASIS API UI STAGING",
+                path: "",
+            },
+            {
+                name: "STAR ODK",
+                path: "",
+            },
+            {
+                name: "OASIS API Postman JSON File",
+                path: "",
+            },
+            {
+                name: "OASIS API DEV ENVIROMENT POSTMAN JSON FILE",
+                path: "",
+            },
+            {
+                name: "OASIS API STAGING ENVIROMENT POSTMAN JSON FILE",
+                path: "",
+            },
+            {
+                name: "OASIS API LIVE ENVIROMENT POSTMAN JSON FILE",
+                path: "",
+            },
+            {
+                name: "Code/Documentation",
+                path: "",
+            },
+            {
+                name: "The Justice League Academy",
+                path: "",
+            },
+        ],
     },
 ];
 
