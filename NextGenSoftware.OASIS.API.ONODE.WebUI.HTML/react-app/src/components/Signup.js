@@ -192,7 +192,7 @@ export default class Signup extends React.Component {
                                         </div>
 
                                         <div className={`${this.handleFormFieldClass(errors.email, touched.email)} mail-box`}>
-                                            <label>EMAIL</label>
+                                            <label>Email</label>
                                             <input
                                                 type="email"
                                                 name="email"
@@ -205,7 +205,7 @@ export default class Signup extends React.Component {
                                         </div>
 
                                         <div className={this.handleFormFieldClass(errors.password, touched.password)}>
-                                            <label>PASSWORD</label>
+                                            <label>Password</label>
                                             <div className="have-icon">
                                                 <input
                                                     type={`${showPassword ? "text" : "password"}`}
@@ -226,7 +226,7 @@ export default class Signup extends React.Component {
                                         </div>
                                         
                                         <div className={this.handleFormFieldClass(errors.confirmPassword, touched.confirmPassword)} >
-                                            <label>CONFIRM PASSWORD</label>
+                                            <label>Confirm Password</label>
                                             <div className="have-icon">
                                                 <input
                                                     type={`${showconfirmPassword ? "text" : "password"}`}
@@ -273,7 +273,7 @@ export default class Signup extends React.Component {
     }
 
     handleFormFieldClass(error, touched) {
-        let classes = "single-form-field  m-0";
+        let classes = "single-form-field ";
         classes += (error && touched) ? "has-error" : "";
 
         return classes;
