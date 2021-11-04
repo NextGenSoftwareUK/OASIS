@@ -42,11 +42,11 @@ const SidebarData = [
                 name: "Avatar Wallet",
                 popupName:"avatarWallet"
             },
-            {
-                id: 5,
-                name: "Avatar Detail",
-                popupName:"avatarDetail"
-            },
+            // {
+            //     id: 5,
+            //     name: "Avatar Detail",
+            //     popupName:"avatarDetail"
+            // },
         ],
     },
     {
