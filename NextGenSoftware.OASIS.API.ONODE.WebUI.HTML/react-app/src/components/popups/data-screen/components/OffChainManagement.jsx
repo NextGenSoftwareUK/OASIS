@@ -85,25 +85,27 @@ class OffChainManagement extends React.Component {
               <div className="data-screen-container off-chain-management">
                 <h2>Off Chain Management</h2>
 
-                <h3>On Chain Provider</h3>
                 <div className="off-chain-container">
-                  <ul className="list-item list-box">
-                    {this.state.tagsList.map((tag) =>
-                      tag.status ? null : (
-                        <li key={tag.id}>
-                          <label>
-                            <input
-                              type="checkbox"
-                              name="checkbox"
-                              checked={tag.status}
-                              onChange={() => this.handleInputTagChange(tag)}
-                            />
-                            <span>{tag.name}</span>
-                          </label>
-                        </li>
-                      )
-                    )}
-                  </ul>
+                  <div className="All-provider">
+                    <h3>All Provider</h3>
+                    <ul className="list-item list-box">
+                      {this.state.tagsList.map((tag) =>
+                        tag.status ? null : (
+                          <li key={tag.id}>
+                            <label>
+                              <input
+                                type="checkbox"
+                                name="checkbox"
+                                checked={tag.status}
+                                onChange={() => this.handleInputTagChange(tag)}
+                              />
+                              <span>{tag.name}</span>
+                            </label>
+                          </li>
+                        )
+                      )}
+                    </ul>
+                  </div>
 
                   <div className="buttons-list">
                     {/* <button>ADD</button> */}
@@ -118,24 +120,28 @@ class OffChainManagement extends React.Component {
                       REMOVE ALL
                     </button>
                   </div>
-                        
-                  <ul className="list-item list-box">
-                    {this.state.tagsList.map((tag) =>
-                      tag.status ? (
-                        <li key={tag.id}>
-                          <label>
-                            <input
-                              type="checkbox"
-                              name="checkbox"
-                              checked={tag.status}
-                              onChange={() => this.handleInputTagChange(tag)}
-                            />
-                            <span>{tag.name}</span>
-                          </label>
-                        </li>
-                      ) : null
-                    )}
-                  </ul>
+                  <div className="off-chain-provider">
+                    <h3>Off Chain Provider</h3>
+                    <ul className="list-item list-box">
+                      {this.state.tagsList.map((tag) =>
+                        tag.status ? (
+                          <li key={tag.id}>
+                            <label>
+                              <input
+                                type="checkbox"
+                                name="checkbox"
+                                checked={tag.status}
+                                onChange={() => this.handleInputTagChange(tag)}
+                              />
+                              <span>{tag.name}</span>
+                            </label>
+                          </li>
+                        ) : null
+                      )}
+                    </ul>
+                  </div>
+
+
                 </div>
 
                 <div className="save-button-container">

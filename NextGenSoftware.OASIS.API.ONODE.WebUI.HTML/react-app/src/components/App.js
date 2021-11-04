@@ -52,7 +52,7 @@ class App extends React.Component {
             },
             {
                 avatar: {
-                    avatarDetail: false,
+                    // avatarDetail: false,
                     avatarWallet: false,
                     viewAvatar: false
                 },
