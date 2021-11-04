@@ -21,15 +21,8 @@ class PayWithSeeds extends React.Component {
 
                         <div className="popup-container default-popup">
                             <div className="seed-container paywith-seeds">
-                                <h1>
+                                <h1 className="single-heading">
                                 Pay with Seeds
-                                    {/* <select
-                                        className="custom-selectbox"
-                                    >
-                                        <option value="Pay">Pay with Seeds</option>
-                                        <option value="Donate">Donate with Seeds</option>
-                                        <option value="Reward">Reward with Seeds</option>
-                                    </select> */}
                                 </h1>
                                 <div className="form-container">
                                     <form>

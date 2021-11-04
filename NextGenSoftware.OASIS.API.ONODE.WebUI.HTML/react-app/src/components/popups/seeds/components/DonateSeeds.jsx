@@ -21,7 +21,7 @@ class DonateSeeds extends React.Component {
 
                         <div className="popup-container default-popup">
                             <div className="seed-container paywith-seeds">
-                                <h1>
+                                <h1 className="single-heading">
                                 Donate with Seeds
                                     {/* <select
                                         className="custom-selectbox"

@@ -136,7 +136,7 @@ class ViewAvatar extends React.Component {
                             <i className="fa fa-times"></i>
                         </span>
 
-                        <h2 className="grid-heading">View Avatar</h2>
+                        <h1 className="single-heading">View Avatar</h1>
 
                         <div className="ag-theme-alpine custom-ag-parent">
                             <AgGridReact

@@ -21,7 +21,7 @@ class SendInvite extends React.Component {
 
                         <div className="popup-container default-popup">
                             <div className="seed-container paywith-seeds">
-                                <h1 > 
+                                <h1 className="single-heading"> 
                                 Send Invite To Join Seeds
                                 </h1>
                                 <div className="form-container">

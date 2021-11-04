@@ -83,7 +83,7 @@ class OffChainManagement extends React.Component {
 
             <div className="popup-container default-popup">
               <div className="data-screen-container off-chain-management">
-                <h2>Off Chain Management</h2>
+                <h1 className="single-heading">Off Chain Management</h1>
 
                 <div className="off-chain-container">
                   <div className="All-provider">

@@ -1,11 +1,5 @@
 .data-screen-container {
     margin: 0 auto;
-    h2 {
-        font-size: 22px;
-        margin: 0 0 25px;
-        font-weight: 500;
-        color: #fff;
-    }
     .have-selectbox {
         width: 150px;
         .custom-selectbox {
@@ -86,13 +80,6 @@
             }
         }
     }
-}
-
-h2.grid-heading {
-    font-size: 22px;
-    line-height: 22px;
-    margin: 0 0 25px;
-    color: #fff;
 }
 
 .off-chain-management {
