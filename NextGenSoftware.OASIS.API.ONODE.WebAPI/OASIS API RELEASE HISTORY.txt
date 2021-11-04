@@ -59,3 +59,10 @@ Then when we do a release, this file will be linked to the Swagger documentation
 - IFPS Provider Integrated
 
 ----------------------------------------------------------------------------------------------------------------------------
+0.19.1 ALPHA
+
+- Fixed Authorization Error
+- Fixed Email Validation
+
+----------------------------------------------------------------------------------------------------------------------------
+
