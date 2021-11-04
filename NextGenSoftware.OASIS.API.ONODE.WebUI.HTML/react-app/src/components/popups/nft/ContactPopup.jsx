@@ -88,7 +88,7 @@ class ContactPopup extends React.Component {
 
                         <div className="popup-container contact-Popup default-popup">
                             <div className="popup-content">
-                                <h2>Contacts</h2>
+                                <h1 className="single-heading">Contacts</h1>
                                 <div className="button-bar">
                                     <button className="sm-button" >Friends</button>
                                     <button className="sm-button">Family</button>

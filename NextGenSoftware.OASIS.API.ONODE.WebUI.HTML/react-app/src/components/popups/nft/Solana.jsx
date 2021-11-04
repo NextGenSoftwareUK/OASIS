@@ -23,7 +23,7 @@ class Solana extends React.Component {
 
                         <div className="popup-container default-popup">
                             <div className="nft-container solana">
-                                <h2>Solana Provider</h2>
+                                <h1 className="single-heading">Solana Provider</h1>
 
                                 <div className="form-container">
                                     <form>

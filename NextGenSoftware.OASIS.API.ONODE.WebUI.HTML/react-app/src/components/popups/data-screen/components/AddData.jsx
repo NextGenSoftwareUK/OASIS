@@ -21,7 +21,7 @@ class AddData extends React.Component {
 
                         <div className="popup-container default-popup">
                             <div className="data-screen-container">
-                                <h2>Data</h2>
+                                <h1 className="single-heading">Data</h1>
 
                                 <div className="form-container">
                                     <form>
