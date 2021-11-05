@@ -56,6 +56,7 @@ const SidebarData = [
             {
                 id: 1,
                 name: "View Curent Karma Weightings",
+                popupName: "viewKarma"
             },
             {
                 id: 2,
