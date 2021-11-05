@@ -257,7 +257,7 @@ export default class Signup extends React.Component {
                                                     Accept Terms
                                                 </label>
                                         </div>
-                                        <span className="text-danger">{errors.acceptTerms}</span>                                   
+                                        <span className="text-danger">{errors.acceptTerms && touched.acceptTerms && errors.acceptTerms}</span>                                   
 
                                         <button type="submit" className="submit-button grid-btn" disabled={isSubmitting}>
                                             {loading ? 'Creating Account ' : 'Submit '} {loading ? <Loader type="Oval" height={15} width={15} color="#fff" /> : null}
