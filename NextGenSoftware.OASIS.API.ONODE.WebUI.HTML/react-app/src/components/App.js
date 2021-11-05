@@ -1,4 +1,3 @@
-   
 import React from "react";
 
 import SideNav from "./common/SideNav";
@@ -8,6 +7,7 @@ import Login from "./Login";
 import Signup from "./Signup";
 import Solana from "./popups/nft/Solana";
 import ContactPopup from "./popups/nft/ContactPopup";
+import Karma from "./popups/karma";
 
 import "../assets/scss/general.scss";
 import "../assets/scss/style.scss";
@@ -52,11 +52,15 @@ class App extends React.Component {
             },
             {
                 avatar: {
-                    // avatarDetail: false,
                     avatarWallet: false,
                     viewAvatar: false
                 },
-            }
+            },
+            {
+                karma: {
+                    viewKarma: false
+                },
+            },
         ],
     };
 
@@ -183,8 +187,8 @@ class App extends React.Component {
                     hide={this.hideSignup}
                     change={this.showLogin}
                 />
-                
-                 <DataScreen 
+
+                <DataScreen
                     data={this.state.sidebarMenuOption[0].data}
                     toggleScreenPopup={this.toggleScreenPopup}
                 />
@@ -197,14 +201,18 @@ class App extends React.Component {
                 <ContactPopup
                     show={this.state.sidebarMenuOption[1].nft.contactPopup}
                     hide={this.toggleScreenPopup}
-                />                
-                <Seeds 
+                />
+                <Seeds
                     seeds={this.state.sidebarMenuOption[2].seeds}
                     toggleScreenPopup={this.toggleScreenPopup}
                 />
-                
-                <Avatar 
+                <Avatar
                     avatar={this.state.sidebarMenuOption[3].avatar}
+                    toggleScreenPopup={this.toggleScreenPopup}
+                />
+
+                <Karma 
+                    karma={this.state.sidebarMenuOption[4].karma}
                     toggleScreenPopup={this.toggleScreenPopup}
                 />
             </div>
