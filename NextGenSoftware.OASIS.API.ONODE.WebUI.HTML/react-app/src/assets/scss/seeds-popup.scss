@@ -39,82 +39,6 @@
         }
     }
 }
-
-// .payWithSeeds-select {
-//     font-size: 1.75rem;
-//     color: #fff;
-//     background-color: transparent;
-//     font-weight: 400;
-//     border-radius: 5px;
-//     margin-right: 1rem;
-//     border: 1px solid #909092;
-//     width: auto;
-//     @media (max-width:550px) {
-//         font-size: 1.5rem;
-//     }
-// }
-// .payWithSeeds-field-group{
-//     width: 100%;
-//     display: flex;
-//     flex-direction: column;
-//     margin-bottom: 1rem;
-// }
-// .accept-invite-button{
-//     margin-top: 2rem;
-//     position: relative;
-//     left: 60%;
-//     @media (max-width: 550px) {
-//         width: 100%;
-//         left: 0;
-//     }
-// }
-// .search-popup{
-//     width: 100% !important;
-// }
-// .search-seeds-row1{
-//     display: grid;
-//     grid-template-columns: repeat(4, auto 200px);
-//     row-gap: 1rem;
-//     margin-bottom: 1rem;
-//     @media (max-width: 1250px) {
-//         grid-template-columns: repeat(2, auto 1fr);
-//     }
-//     @media (max-width: 890px) {
-//         grid-template-columns: auto 1fr;
-//     }
-//     @media (max-width: 550px) {
-//         grid-template-columns: 1fr;
-//         row-gap: 0;
-//     }
-// }
-// .search-seeds-row2{
-//     display: flex;
-//     justify-content: space-between;
-//     @media (max-width: 890px) {
-//         flex-direction: column;
-//     }
-//     .search-checkbox-group{
-//         display: inline;
-//         @media (max-width: 620px) {
-//             display: inline-block;
-//         }
-//     }
-// }
-// .view-popup{
-//     width: 100% !important;
-//     text-align: left;
-//     .view-seeds-buttons{
-//         display: flex;
-//         justify-content: space-between;
-//         a{
-//             margin: 1rem;
-//         }
-//         @media (max-width: 750px) {
-//             flex-direction: column;
-//         }
-//     }
-// }
-
 .seed-container {
     h1 {
         text-align: center;
@@ -132,6 +56,21 @@
                 @media screen and (min-width: 320px) and (max-width: 767px) {
                     font-size: 15px;
                 }
+                input{
+                    width: 15px;
+                }
+            }
+            label.radio-btn {
+                display: grid;
+                grid-template-columns: 15px 50px 15px 120px;
+                grid-gap: 15px;
+                align-items: center;
+            }
+            label.single-radio-btn {
+                display: grid;
+                grid-template-columns: auto 1fr;
+                grid-gap: 15px;
+                align-items: center;
             }
             input {
                 width: 100%;
