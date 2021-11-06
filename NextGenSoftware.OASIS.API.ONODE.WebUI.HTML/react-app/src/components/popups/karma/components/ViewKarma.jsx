@@ -59,15 +59,13 @@ class ViewKarma extends React.Component {
                     centered
                     className="custom-modal custom-popup-component"
                     show={show}
+                    dialogClassName="modal-90w"
                     onHide={() => hide('karma', 'viewKarma')}
                 >
                     <Modal.Body>
                         <span className="form-cross-icon" onClick={() => hide('karma', 'viewKarma')}>
                             <i className="fa fa-times"></i>
                         </span>
-
-                        <div className="popup-container">
-
                         <h1 className="single-heading">View Current Karma</h1>
                         
                                <div className="ag-theme-alpine custom-ag-parent">
@@ -78,7 +76,6 @@ class ViewKarma extends React.Component {
                                    rowData={this.state.rowData}
                                />
                            </div>
-                        </div>
                     </Modal.Body>
                 </Modal>
             </>
