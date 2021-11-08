@@ -3,15 +3,15 @@ import React from 'react';
 import { Modal } from 'react-bootstrap';
 
 class AcceptInvite extends React.Component {
-    render() { 
+    render() {
         const { show, hide } = this.props;
 
         return (
             <>
-                <Modal 
-                    centered 
-                    className="custom-modal custom-popup-component" 
-                    show={show} 
+                <Modal
+                    centered
+                    className="custom-modal custom-popup-component"
+                    show={show}
                     onHide={() => hide('seeds', 'acceptInvite')}
                 >
                     <Modal.Body>
@@ -21,24 +21,29 @@ class AcceptInvite extends React.Component {
 
                         <div className="popup-container default-popup">
                             <div className="seed-container paywith-seeds">
-                                <h1 className="fs-34"> 
-                                    Accept Invite to Join with Seeds
+                                <h1 className="single-heading">
+                                    Accept Invite to Join Seeds
                                 </h1>
                                 <div className="form-container">
                                     <form>
                                         <p className="single-form-row">
-                                            <label>Recieving Account: Avatar or Seed Username</label>
-                                             <input type="text"  placeholder="username"/>
+                                            <label className="radio-btn">
+                                                <input type="radio" id="html" name="fav_language" value="HTML" />
+                                                Avatar
+                                                <input type="radio" id="html" name="fav_language" value="HTML" />
+                                                Seed Username
+                                            </label>
+                                            <input type="text" placeholder="username" />
                                         </p>
 
                                         <p className="single-form-row  mb-30">
                                             <label>Invite Secret</label>
-                                             <input type="text" />
+                                            <input type="text" />
                                         </p>
 
                                         <p className="single-form-row btn-right">
-                                            <button 
-                                                className="send-button-container btn-width" 
+                                            <button
+                                                className=" btn-width sm-button"
                                                 type="submit"
                                             >Accept Invitation</button>
                                         </p>
@@ -52,5 +57,5 @@ class AcceptInvite extends React.Component {
         );
     }
 }
- 
-export default AcceptInvite ;
+
+export default AcceptInvite;
