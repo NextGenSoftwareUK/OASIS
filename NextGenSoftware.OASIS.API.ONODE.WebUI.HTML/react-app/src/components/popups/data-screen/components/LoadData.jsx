@@ -85,7 +85,7 @@ class LoadData extends React.Component {
                             <i className="fa fa-times"></i>
                         </span>
 
-                        <h2 className="grid-heading">Data</h2>
+                        <h1 className="single-heading">Data</h1>
 
                         <div className="ag-theme-alpine custom-ag-parent">
                             <AgGridReact

@@ -3,15 +3,15 @@ import React from 'react';
 import { Modal } from 'react-bootstrap';
 
 class PayWithSeeds extends React.Component {
-    render() { 
+    render() {
         const { show, hide } = this.props;
 
         return (
             <>
-                <Modal 
-                    centered 
-                    className="custom-modal custom-popup-component" 
-                    show={show} 
+                <Modal
+                    centered
+                    className="custom-modal custom-popup-component"
+                    show={show}
                     onHide={() => hide('seeds', 'payWithSeeds')}
                 >
                     <Modal.Body>
@@ -21,26 +21,25 @@ class PayWithSeeds extends React.Component {
 
                         <div className="popup-container default-popup">
                             <div className="seed-container paywith-seeds">
-                                <h1>
-                                    <select
-                                        className="custom-selectbox"
-                                    >
-                                        <option value="Pay">Pay</option>
-                                        <option value="Donate">Donate</option>
-                                        <option value="Reward">Reward</option>
-                                    </select>
-                                    with Seeds
+                                <h1 className="single-heading">
+                                    Pay with Seeds
                                 </h1>
                                 <div className="form-container">
                                     <form>
                                         <p className="single-form-row">
-                                            <label>FROM: Avatar or Seed Username</label>
-                                             <input type="text"  placeholder="username"/>
+                                            <label className="single-radio-btn">
+                                                <input type="radio" id="html" name="fav_language" value="HTML" />
+                                                Avatar
+                                            </label>
+                                            <input type="text" placeholder="username" />
                                         </p>
 
                                         <p className="single-form-row">
-                                            <label>TO: Avatar or Seed Username</label>
-                                             <input type="text"  placeholder="username"/>
+                                            <label className="single-radio-btn">
+                                                <input type="radio" id="html" name="fav_language" value="HTML" />
+                                                Seed Username
+                                            </label>
+                                            <input type="text" placeholder="username" />
                                         </p>
 
                                         <p className="single-form-row">
@@ -52,10 +51,10 @@ class PayWithSeeds extends React.Component {
                                             <label>Note</label>
                                             <input type="text" />
                                         </p>
-                                        
+
                                         <p className="single-form-row btn-right">
-                                            <button 
-                                                className="send-button-container" 
+                                            <button
+                                                className="sm-button"
                                                 type="submit"
                                             >Pay</button>
                                         </p>
@@ -69,5 +68,5 @@ class PayWithSeeds extends React.Component {
         );
     }
 }
- 
-export default PayWithSeeds ;
+
+export default PayWithSeeds;
