@@ -26,7 +26,7 @@ const SidebarData = [
             {
                 id: 1,
                 name: "View Avatar",
-                popupName:"viewAvatar"
+                popupName: "viewAvatar"
             },
             {
                 id: 2,
@@ -35,18 +35,18 @@ const SidebarData = [
             {
                 id: 3,
                 name: "Search Avatars",
-                popupName:"searchAvatar"
+                popupName: "searchAvatar"
             },
             {
                 id: 4,
                 name: "Avatar Wallet",
-                popupName:"avatarWallet"
+                popupName: "avatarWallet"
             },
-            {
-                id: 5,
-                name: "Avatar Detail",
-                popupName:"avatarDetail"
-            },
+            // {
+            //     id: 5,
+            //     name: "Avatar Detail",
+            //     popupName:"avatarDetail"
+            // },
         ],
     },
     {
@@ -56,6 +56,7 @@ const SidebarData = [
             {
                 id: 1,
                 name: "View Curent Karma Weightings",
+                popupName: "viewKarma"
             },
             {
                 id: 2,
@@ -114,7 +115,7 @@ const SidebarData = [
             {
                 id: 1,
                 name: "Pay With SEEDS",
-                popupName: "payWithSeeds" 
+                popupName: "payWithSeeds"
             },
             {
                 id: 2,
@@ -129,54 +130,54 @@ const SidebarData = [
             {
                 id: 4,
                 name: "Send Invite To Join SEEDS",
-                popupName:"sendInvite"
+                popupName: "sendInvite"
             },
             {
                 id: 5,
-                name: "Accept Invite",
-                popupName: "acceptInvite" 
+                name: "Accept Invite to Join Seeds",
+                popupName: "acceptInvite"
             },
-            {
+            // {
 
-                name: "data",
-                subMenu: [
-                    {
-                        id: 1,
-                        name: "Load Data",
-                        popupName: 'loadData'
-                    },
-                    {
-                        id: 2,
-                        name: "Send Data",
-                        popupName: 'sendData'
-                    },
-                    {
-                        id: 3,
-                        name: "Manage Data",
-                        popupName: 'manageData'
-                    },
-                    {
-                        id: 4,
-                        name: "Cross-Chain Management",
-                        popupName: 'crossChainManagement'
-                    },
-                    {
-                        id: 5,
-                        name: "Off-Chain Management",
-                        popupName: 'offChainManagement'
-                    },
-                    {
-                        id: 6,
-                        name: "Search Data",
-                    },
-                  
-                ]
-            },
-            {
+            //     name: "data",
+            //     subMenu: [
+            //         {
+            //             id: 1,
+            //             name: "Load Data",
+            //             popupName: 'loadData'
+            //         },
+            //         {
+            //             id: 2,
+            //             name: "Send Data",
+            //             popupName: 'sendData'
+            //         },
+            //         {
+            //             id: 3,
+            //             name: "Manage Data",
+            //             popupName: 'manageData'
+            //         },
+            //         {
+            //             id: 4,
+            //             name: "Cross-Chain Management",
+            //             popupName: 'crossChainManagement'
+            //         },
+            //         {
+            //             id: 5,
+            //             name: "Off-Chain Management",
+            //             popupName: 'offChainManagement'
+            //         },
+            //         {
+            //             id: 6,
+            //             name: "Search Data",
+            //         },
 
-                id: 5,
-                name: "Accept Invite to join seeds",
-            },
+            //     ]
+            // },
+            // {
+
+            //     id: 5,
+            //     name: "Accept Invite to join seeds",
+            // },
             {
                 id: 6,
                 name: "View SEEDS",
@@ -346,7 +347,52 @@ const SidebarData = [
     {
         id: 14,
         name: "developer",
-        subMenu: [],
+        subMenu: [
+            {
+                name: "OASIS API LIVE",
+                path: "",
+            },
+            {
+                name: "OASIS API STAGING",
+                path: "",
+            },
+            {
+                name: "OASIS API UI LIVE",
+                path: "",
+            },
+            {
+                name: "OASIS API UI STAGING",
+                path: "",
+            },
+            {
+                name: "STAR ODK",
+                path: "",
+            },
+            {
+                name: "OASIS API Postman JSON File",
+                path: "",
+            },
+            {
+                name: "OASIS API DEV ENVIROMENT POSTMAN JSON FILE",
+                path: "",
+            },
+            {
+                name: "OASIS API STAGING ENVIROMENT POSTMAN JSON FILE",
+                path: "",
+            },
+            {
+                name: "OASIS API LIVE ENVIROMENT POSTMAN JSON FILE",
+                path: "",
+            },
+            {
+                name: "Code/Documentation",
+                path: "",
+            },
+            {
+                name: "The Justice League Academy",
+                path: "",
+            },
+        ],
     },
 ];
 

@@ -21,7 +21,7 @@ class CrossChainManagement extends React.Component {
 
                         <div className="popup-container default-popup">
                             <div className="data-screen-container">
-                                <h2>Cross Chain Management</h2>
+                                <h1 className="single-heading">Cross Chain Management</h1>
 
                                 <div className="form-container">
                                     <form>
@@ -51,7 +51,7 @@ class CrossChainManagement extends React.Component {
 
                                         <p className="single-form-row">
                                             <button 
-                                                className="submit-button" 
+                                                className="submit-button sm-button" 
                                                 type="submit"
                                             >Save</button>
                                         </p>

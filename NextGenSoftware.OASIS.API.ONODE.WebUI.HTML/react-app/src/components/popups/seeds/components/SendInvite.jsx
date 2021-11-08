@@ -3,15 +3,15 @@ import React from 'react';
 import { Modal } from 'react-bootstrap';
 
 class SendInvite extends React.Component {
-    render() { 
+    render() {
         const { show, hide } = this.props;
 
         return (
             <>
-                <Modal 
-                    centered 
-                    className="custom-modal custom-popup-component" 
-                    show={show} 
+                <Modal
+                    centered
+                    className="custom-modal custom-popup-component"
+                    show={show}
                     onHide={() => hide('seeds', 'sendInvite')}
                 >
                     <Modal.Body>
@@ -21,19 +21,25 @@ class SendInvite extends React.Component {
 
                         <div className="popup-container default-popup">
                             <div className="seed-container paywith-seeds">
-                                <h1 className="fs-34"> 
-                                    Send Invite to Join with Seeds
+                                <h1 className="single-heading">
+                                    Send Invite To Join Seeds
                                 </h1>
                                 <div className="form-container">
                                     <form>
                                         <p className="single-form-row">
-                                            <label>FROM: Avatar or Seed Username</label>
-                                             <input type="text" placeholder="username" />
+                                            <label className="single-radio-btn">
+                                                <input type="radio" id="html" name="fav_language" value="HTML" />
+                                                Avatar
+                                            </label>
+                                            <input type="text" placeholder="username" />
                                         </p>
 
                                         <p className="single-form-row">
-                                            <label>TO: Avatar or Seed Username</label>
-                                             <input type="text"  placeholder="username"/>
+                                            <label className="single-radio-btn">
+                                                <input type="radio" id="html" name="fav_language" value="HTML" />
+                                                Seed Username
+                                            </label>
+                                            <input type="text" placeholder="username" />
                                         </p>
 
                                         <p className="single-form-row">
@@ -46,14 +52,9 @@ class SendInvite extends React.Component {
                                             <input type="text" />
                                         </p>
 
-                                        <p className="single-form-row mb-30">
-                                            <label>Show Quality</label>
-                                            <input type="text" />
-                                        </p>
-                                        
                                         <p className="single-form-row btn-right">
-                                            <button 
-                                                className="send-button-container" 
+                                            <button
+                                                className="sm-button"
                                                 type="submit"
                                             >Send</button>
                                         </p>
@@ -67,5 +68,5 @@ class SendInvite extends React.Component {
         );
     }
 }
- 
-export default SendInvite ;
+
+export default SendInvite;

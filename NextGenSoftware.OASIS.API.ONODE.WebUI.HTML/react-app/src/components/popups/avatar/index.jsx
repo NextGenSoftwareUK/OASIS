@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 
-import AvatarDetail from './components/AvatarDetail';
+// import AvatarDetail from './components/AvatarDetail';
 import AvatarWallet from './components/AvatarWallet';
 import ViewAvatar from './components/ViewAvatar';
 
@@ -10,10 +10,10 @@ class Avatar extends React.Component {
         const props=this.props;
         return(
             <>
-                <AvatarDetail
+                {/* <AvatarDetail
                     show={props.avatar.avatarDetail}
                     hide={props.toggleScreenPopup}
-                />
+                /> */}
 
                 <AvatarWallet
                     show={props.avatar.avatarWallet}
