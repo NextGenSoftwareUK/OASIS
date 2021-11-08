@@ -2,7 +2,7 @@
     display: grid;
     grid-template-columns: 1fr 1fr;
     grid-gap: 20px;
-    @media screen and (min-width:320px) and (max-width:767px) {
+    @media screen and (min-width: 320px) and (max-width: 767px) {
         display: block;
     }
     .mail-box {
@@ -11,10 +11,21 @@
     .grid-btn {
         grid-column: 1/3;
     }
-    .m-0 {
+    // .m-0 {
+    //     margin-bottom: 0px !important;
+    //     @media screen and (min-width:320px) and (max-width:767px) {
+    //         margin-bottom: 20px !important;
+    //     }
+    // }
+    .single-form-field {
         margin-bottom: 0px !important;
-        @media screen and (min-width:320px) and (max-width:767px) {
-            margin-bottom: 20px !important;
-        }
+        display: block !important;
+        text-align: left;
+    }
+    .remember-me {
+        margin: 0 !important;
+    }
+    span.text-danger {
+        font-size: 14px;
     }
 }
