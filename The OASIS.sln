@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.28803.352
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.ONODE.WebAPI", "NextGenSoftware.OASIS.API.ONODE.WebAPI\NextGenSoftware.OASIS.API.ONODE.WebAPI.csproj", "{A8131B22-06EC-424A-B689-9411C8176BE8}"
 EndProject
@@ -185,8 +185,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.C
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.ONODE.BLL.TestHarness", "NextGenSoftware.OASIS.API.ONODE.BLL.TestHarness\NextGenSoftware.OASIS.API.ONODE.BLL.TestHarness.csproj", "{05D1141B-FA9D-42A2-9E32-8A9555AE0210}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.Providers.ONION-Protocol", "NextGenSoftware.OASIS.API.Providers.ONION-Protocol\NextGenSoftware.OASIS.API.Providers.ONION-Protocol.csproj", "{87D9D6DD-7FE9-480A-8643-F272AEACA0CE}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.Providers.CosmosOASIS", "NextGenSoftware.OASIS.API.Providers.COSMOSOASIS\NextGenSoftware.OASIS.API.Providers.CosmosOASIS.csproj", "{272D6882-9ADE-4587-82E7-C728E2B5DA61}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS", "NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS\NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS.csproj", "{585A0A10-884C-46FD-8AD3-65DFF3BA7D65}"
@@ -195,9 +193,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.P
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.TestHarness", "NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.TestHarness\NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.TestHarness.csproj", "{70714199-3387-419E-81E8-D44EB49D24C2}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.WebSocket", "NextGenSoftware.WebSocket\NextGenSoftware.WebSocket.csproj", "{2C24A93F-4188-4A29-88E7-B1322273CD0B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.WebSocket", "NextGenSoftware.WebSocket\NextGenSoftware.WebSocket.csproj", "{2C24A93F-4188-4A29-88E7-B1322273CD0B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.Providers.OrionProtocolOASIS", "NextGenSoftware.OASIS.API.Providers.OrionProtocolOASIS\NextGenSoftware.OASIS.API.Providers.OrionProtocolOASIS.csproj", "{04384F17-4372-4A87-BC8F-B032825FD0A3}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.Providers.OrionProtocolOASIS", "NextGenSoftware.OASIS.API.Providers.OrionProtocolOASIS\NextGenSoftware.OASIS.API.Providers.OrionProtocolOASIS.csproj", "{04384F17-4372-4A87-BC8F-B032825FD0A3}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -1470,24 +1468,6 @@ Global
 		{05D1141B-FA9D-42A2-9E32-8A9555AE0210}.Release|x64.Build.0 = Release|Any CPU
 		{05D1141B-FA9D-42A2-9E32-8A9555AE0210}.Release|x86.ActiveCfg = Release|Any CPU
 		{05D1141B-FA9D-42A2-9E32-8A9555AE0210}.Release|x86.Build.0 = Release|Any CPU
-		{87D9D6DD-7FE9-480A-8643-F272AEACA0CE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{87D9D6DD-7FE9-480A-8643-F272AEACA0CE}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{87D9D6DD-7FE9-480A-8643-F272AEACA0CE}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{87D9D6DD-7FE9-480A-8643-F272AEACA0CE}.Debug|x64.Build.0 = Debug|Any CPU
-		{87D9D6DD-7FE9-480A-8643-F272AEACA0CE}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{87D9D6DD-7FE9-480A-8643-F272AEACA0CE}.Debug|x86.Build.0 = Debug|Any CPU
-		{87D9D6DD-7FE9-480A-8643-F272AEACA0CE}.Linux|Any CPU.ActiveCfg = Debug|Any CPU
-		{87D9D6DD-7FE9-480A-8643-F272AEACA0CE}.Linux|Any CPU.Build.0 = Debug|Any CPU
-		{87D9D6DD-7FE9-480A-8643-F272AEACA0CE}.Linux|x64.ActiveCfg = Debug|Any CPU
-		{87D9D6DD-7FE9-480A-8643-F272AEACA0CE}.Linux|x64.Build.0 = Debug|Any CPU
-		{87D9D6DD-7FE9-480A-8643-F272AEACA0CE}.Linux|x86.ActiveCfg = Debug|Any CPU
-		{87D9D6DD-7FE9-480A-8643-F272AEACA0CE}.Linux|x86.Build.0 = Debug|Any CPU
-		{87D9D6DD-7FE9-480A-8643-F272AEACA0CE}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{87D9D6DD-7FE9-480A-8643-F272AEACA0CE}.Release|Any CPU.Build.0 = Release|Any CPU
-		{87D9D6DD-7FE9-480A-8643-F272AEACA0CE}.Release|x64.ActiveCfg = Release|Any CPU
-		{87D9D6DD-7FE9-480A-8643-F272AEACA0CE}.Release|x64.Build.0 = Release|Any CPU
-		{87D9D6DD-7FE9-480A-8643-F272AEACA0CE}.Release|x86.ActiveCfg = Release|Any CPU
-		{87D9D6DD-7FE9-480A-8643-F272AEACA0CE}.Release|x86.Build.0 = Release|Any CPU
 		{272D6882-9ADE-4587-82E7-C728E2B5DA61}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{272D6882-9ADE-4587-82E7-C728E2B5DA61}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{272D6882-9ADE-4587-82E7-C728E2B5DA61}.Debug|x64.ActiveCfg = Debug|Any CPU
