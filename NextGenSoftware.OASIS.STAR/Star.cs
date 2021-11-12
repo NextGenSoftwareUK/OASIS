@@ -1026,84 +1026,89 @@ namespace NextGenSoftware.OASIS.STAR
         {
             if (starDNA != null)
             {
-                ValidateFolder(starDNA.CelestialBodyDNA, "starDNA.CelestialBodyDNA", true);
-                ValidateFolder(starDNA.GenesisCSharpFolder, "starDNA.GenesisCSharpFolder", false, true);
-                ValidateFolder(starDNA.GenesisRustFolder, "starDNA.GenesisRustFolder", false, true);
-                ValidateFolder(starDNA.CSharpDNATemplateFolder, "starDNA.CSharpDNATemplateFolder");
-                ValidateFile(starDNA.CSharpDNATemplateFolder, starDNA.CSharpTemplateHolonDNA, "starDNA.CSharpTemplateHolonDNA");
-                ValidateFile(starDNA.CSharpDNATemplateFolder, starDNA.CSharpTemplateZomeDNA, "starDNA.CSharpTemplateZomeDNA");
-                ValidateFile(starDNA.CSharpDNATemplateFolder, starDNA.CSharpTemplateIStarDNA, "starDNA.CSharpTemplateIStarDNA");
-                ValidateFile(starDNA.CSharpDNATemplateFolder, starDNA.CSharpTemplateStarDNA, "starDNA.CSharpTemplateStarDNA");
-                ValidateFile(starDNA.CSharpDNATemplateFolder, starDNA.CSharpTemplateIPlanetDNA, "starDNA.CSharpTemplateIPlanetDNA");
-                ValidateFile(starDNA.CSharpDNATemplateFolder, starDNA.CSharpTemplateIPlanetDNA, "starDNA.CSharpTemplatePlanetDNA");
-                ValidateFile(starDNA.CSharpDNATemplateFolder, starDNA.CSharpTemplateIMoonDNA, "starDNA.CSharpTemplateIMoonDNA");
-                ValidateFile(starDNA.CSharpDNATemplateFolder, starDNA.CSharpTemplateIMoonDNA, "starDNA.CSharpTemplateMoonDNA");
-                ValidateFile(starDNA.CSharpDNATemplateFolder, starDNA.CSharpTemplateCelestialBodyDNA, "starDNA.CSharpTemplateCelestialBodyDNA");
+                ValidateFolder("", starDNA.BasePath, "STARDNA.BasePath");
+                ValidateFolder(starDNA.BasePath, starDNA.CelestialBodyDNA, "STARDNA.CelestialBodyDNA", true);
+                ValidateFolder(starDNA.BasePath, starDNA.GenesisCSharpFolder, "STARDNA.GenesisCSharpFolder", false, true);
+                ValidateFolder(starDNA.BasePath, starDNA.GenesisRustFolder, "STARDNA.GenesisRustFolder", false, true);
+                ValidateFolder(starDNA.BasePath, starDNA.CSharpDNATemplateFolder, "STARDNA.CSharpDNATemplateFolder");
+                ValidateFile(starDNA.BasePath, starDNA.CSharpDNATemplateFolder, starDNA.CSharpTemplateHolonDNA, "STARDNA.CSharpTemplateHolonDNA");
+                ValidateFile(starDNA.BasePath, starDNA.CSharpDNATemplateFolder, starDNA.CSharpTemplateZomeDNA, "STARDNA.CSharpTemplateZomeDNA");
+                ValidateFile(starDNA.BasePath, starDNA.CSharpDNATemplateFolder, starDNA.CSharpTemplateIStarDNA, "STARDNA.CSharpTemplateIStarDNA");
+                ValidateFile(starDNA.BasePath, starDNA.CSharpDNATemplateFolder, starDNA.CSharpTemplateStarDNA, "STARDNA.CSharpTemplateStarDNA");
+                ValidateFile(starDNA.BasePath, starDNA.CSharpDNATemplateFolder, starDNA.CSharpTemplateIPlanetDNA, "STARDNA.CSharpTemplateIPlanetDNA");
+                ValidateFile(starDNA.BasePath, starDNA.CSharpDNATemplateFolder, starDNA.CSharpTemplateIPlanetDNA, "STARDNA.CSharpTemplatePlanetDNA");
+                ValidateFile(starDNA.BasePath, starDNA.CSharpDNATemplateFolder, starDNA.CSharpTemplateIMoonDNA, "STARDNA.CSharpTemplateIMoonDNA");
+                ValidateFile(starDNA.BasePath, starDNA.CSharpDNATemplateFolder, starDNA.CSharpTemplateIMoonDNA, "STARDNA.CSharpTemplateMoonDNA");
+                ValidateFile(starDNA.BasePath, starDNA.CSharpDNATemplateFolder, starDNA.CSharpTemplateCelestialBodyDNA, "STARDNA.CSharpTemplateCelestialBodyDNA");
 
                 switch (starDNA.HolochainVersion.ToUpper())
                 {
                     case "REDUX":
                         {
-                            ValidateFolder(starDNA.RustDNAReduxTemplateFolder, "starDNA.RustDNAReduxTemplateFolder");
-                            ValidateFile(starDNA.RustDNAReduxTemplateFolder, starDNA.RustTemplateCreate, "starDNA.RustTemplateCreate");
-                            ValidateFile(starDNA.RustDNAReduxTemplateFolder, starDNA.RustTemplateDelete, "starDNA.RustTemplateDelete");
-                            ValidateFile(starDNA.RustDNAReduxTemplateFolder, starDNA.RustTemplateLib, "starDNA.RustTemplateLib");
-                            ValidateFile(starDNA.RustDNAReduxTemplateFolder, starDNA.RustTemplateRead, "starDNA.RustTemplateRead");
-                            ValidateFile(starDNA.RustDNAReduxTemplateFolder, starDNA.RustTemplateUpdate, "starDNA.RustTemplateUpdate");
-                            ValidateFile(starDNA.RustDNAReduxTemplateFolder, starDNA.RustTemplateList, "starDNA.RustTemplateList");
-                            ValidateFile(starDNA.RustDNAReduxTemplateFolder, starDNA.RustTemplateValidation, "starDNA.RustTemplateValidation");
+                            ValidateFolder(starDNA.BasePath, starDNA.RustDNAReduxTemplateFolder, "STARDNA.RustDNAReduxTemplateFolder");
+                            ValidateFile(starDNA.BasePath, starDNA.RustDNAReduxTemplateFolder, starDNA.RustTemplateCreate, "STARDNA.RustTemplateCreate");
+                            ValidateFile(starDNA.BasePath, starDNA.RustDNAReduxTemplateFolder, starDNA.RustTemplateDelete, "STARDNA.RustTemplateDelete");
+                            ValidateFile(starDNA.BasePath, starDNA.RustDNAReduxTemplateFolder, starDNA.RustTemplateLib, "STARDNA.RustTemplateLib");
+                            ValidateFile(starDNA.BasePath, starDNA.RustDNAReduxTemplateFolder, starDNA.RustTemplateRead, "STARDNA.RustTemplateRead");
+                            ValidateFile(starDNA.BasePath, starDNA.RustDNAReduxTemplateFolder, starDNA.RustTemplateUpdate, "STARDNA.RustTemplateUpdate");
+                            ValidateFile(starDNA.BasePath, starDNA.RustDNAReduxTemplateFolder, starDNA.RustTemplateList, "STARDNA.RustTemplateList");
+                            ValidateFile(starDNA.BasePath, starDNA.RustDNAReduxTemplateFolder, starDNA.RustTemplateValidation, "STARDNA.RustTemplateValidation");
                         }
                         break;
 
                     case "RSM":
                         {
-                            ValidateFolder(starDNA.RustDNARSMTemplateFolder, "starDNA.RustDNARSMTemplateFolder");
-                            ValidateFile(starDNA.RustDNARSMTemplateFolder, starDNA.RustTemplateCreate, "starDNA.RustTemplateCreate");
-                            ValidateFile(starDNA.RustDNARSMTemplateFolder, starDNA.RustTemplateDelete, "starDNA.RustTemplateDelete");
-                            ValidateFile(starDNA.RustDNARSMTemplateFolder, starDNA.RustTemplateLib, "starDNA.RustTemplateLib");
-                            ValidateFile(starDNA.RustDNARSMTemplateFolder, starDNA.RustTemplateRead, "starDNA.RustTemplateRead");
-                            ValidateFile(starDNA.RustDNARSMTemplateFolder, starDNA.RustTemplateUpdate, "starDNA.RustTemplateUpdate");
-                            ValidateFile(starDNA.RustDNARSMTemplateFolder, starDNA.RustTemplateList, "starDNA.RustTemplateList");
-                            ValidateFile(starDNA.RustDNARSMTemplateFolder, starDNA.RustTemplateValidation, "starDNA.RustTemplateValidation");
+                            ValidateFolder(starDNA.BasePath, starDNA.RustDNARSMTemplateFolder, "STARDNA.RustDNARSMTemplateFolder");
+                            ValidateFile(starDNA.BasePath, starDNA.RustDNARSMTemplateFolder, starDNA.RustTemplateCreate, "STARDNA.RustTemplateCreate");
+                            ValidateFile(starDNA.BasePath, starDNA.RustDNARSMTemplateFolder, starDNA.RustTemplateDelete, "STARDNA.RustTemplateDelete");
+                            ValidateFile(starDNA.BasePath, starDNA.RustDNARSMTemplateFolder, starDNA.RustTemplateLib, "STARDNA.RustTemplateLib");
+                            ValidateFile(starDNA.BasePath, starDNA.RustDNARSMTemplateFolder, starDNA.RustTemplateRead, "STARDNA.RustTemplateRead");
+                            ValidateFile(starDNA.BasePath, starDNA.RustDNARSMTemplateFolder, starDNA.RustTemplateUpdate, "STARDNA.RustTemplateUpdate");
+                            ValidateFile(starDNA.BasePath, starDNA.RustDNARSMTemplateFolder, starDNA.RustTemplateList, "STARDNA.RustTemplateList");
+                            ValidateFile(starDNA.BasePath, starDNA.RustDNARSMTemplateFolder, starDNA.RustTemplateValidation, "STARDNA.RustTemplateValidation");
                         }
                         break;
                 }
             }
             else
-                throw new ArgumentNullException("starDNA is null, please check and try again.");
+                throw new ArgumentNullException("STARDNA is null, please check and try again.");
         }
 
         private static void ValidateLightDNA(string dnaFolder, string genesisCSharpFolder, string genesisRustFolder)
         {
-            ValidateFolder(dnaFolder, "dnaFolder");
-            ValidateFolder(genesisCSharpFolder, "genesisCSharpFolder", false, true);
-            ValidateFolder(genesisRustFolder, "genesisRustFolder", false, true);
+            ValidateFolder("", dnaFolder, "dnaFolder");
+            ValidateFolder("", genesisCSharpFolder, "genesisCSharpFolder", false, true);
+            ValidateFolder("", genesisRustFolder, "genesisRustFolder", false, true);
         }
 
-        private static void ValidateFolder(string folder, string folderParam, bool checkIfContainsFiles = false, bool createIfDoesNotExist = false)
+        private static void ValidateFolder(string basePath, string folder, string folderParam, bool checkIfContainsFiles = false, bool createIfDoesNotExist = false)
         {
+            string path = string.IsNullOrEmpty(basePath) ? folder : $"{basePath}\\{folder}";
+
             if (string.IsNullOrEmpty(folder))
                 throw new ArgumentNullException(folderParam, string.Concat("The ", folderParam, " param in the StarDNA is null, please double check and try again."));
 
-            if (checkIfContainsFiles && Directory.GetFiles(folder).Length == 0)
-                throw new InvalidOperationException(string.Concat("The ", folderParam, " folder in the StarDNA is empty."));
+            if (checkIfContainsFiles && Directory.GetFiles(path).Length == 0)
+                throw new InvalidOperationException(string.Concat("The ", folderParam, " folder (", path, ") in the StarDNA is empty."));
 
-            if (!Directory.Exists(folder))
+            if (!Directory.Exists(path))
             {
                 if (createIfDoesNotExist)
-                    Directory.CreateDirectory(folder);
+                    Directory.CreateDirectory(path);
                 else
-                    throw new InvalidOperationException(string.Concat("The ", folderParam, " was not found, please double check and try again."));
+                    throw new InvalidOperationException(string.Concat("The ", folderParam, " was not found (", path, "), please double check and try again."));
             }
         }
 
-        private static void ValidateFile(string folder, string file, string fileParam)
+        private static void ValidateFile(string basePath, string folder, string file, string fileParam)
         {
+            string path = $"{basePath}\\{folder}";
+
             if (string.IsNullOrEmpty(file))
                 throw new ArgumentNullException(fileParam, string.Concat("The ", fileParam, " param in the StarDNA is null, please double check and try again."));
 
-            if (!File.Exists(string.Concat(folder, "\\", file)))
-                throw new FileNotFoundException(string.Concat("The ", fileParam, " file is not valid, please double check and try again."), string.Concat(folder, "\\", file));
+            if (!File.Exists(string.Concat(path, "\\", file)))
+                throw new FileNotFoundException(string.Concat("The ", fileParam, " file is not valid, the file does not exist, please double check and try again."), string.Concat(path, "\\", file));
         }
 
         private static STARDNA LoadDNA()
