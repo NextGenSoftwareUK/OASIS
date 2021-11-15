@@ -95,7 +95,9 @@
         "ConnectionString": ""
       },
       "EthereumOASIS": {
-        "ConnectionString": "http://localhost:7545"
+        "ConnectionString": "http://localhost:7545",
+        "AbiPath": "ethereum_abi",
+        "ProjectId": "deeae1e5eba14585a662655f06497def"
       },
       "Neo4JOASIS": {
         "ConnectionString": "http://localhost:7474",

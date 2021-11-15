@@ -19,7 +19,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS.TestHarness
         {
             return JsonConvert.SerializeObject(this);
         }
-    };
+    }
 
     internal static class Program
     {
