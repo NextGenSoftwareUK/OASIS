@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Nethereum.Web3;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
@@ -10,13 +11,26 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
 {
     public class EthereumOASIS : OASISStorageBase, IOASISStorage, IOASISNET
     {
-        
-        public EthereumOASIS(string hostUri)
+        private readonly string _hostUri;
+        private readonly string _projectId;
+        private readonly string _abi;
+        private readonly string _abiByteCode;
+        private readonly string _password;
+        private readonly string _senderAddress;
+
+        public EthereumOASIS(string hostUri, string projectId, string abi, string abiByteCode, string password, string senderAddress)
         {
             this.ProviderName = "EthereumOASIS";
             this.ProviderDescription = "Ethereum Provider";
             this.ProviderType = new Core.Helpers.EnumValue<ProviderType>(Core.Enums.ProviderType.EthereumOASIS);
             this.ProviderCategory = new Core.Helpers.EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
+
+            _hostUri = hostUri;
+            _projectId = projectId;
+            _abi = abi;
+            _abiByteCode = abiByteCode;
+            _password = password;
+            _senderAddress = senderAddress;
         }
         
         public IEnumerable<IHolon> GetHolonsNearMe(HolonType Type)
@@ -94,19 +108,145 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             throw new NotImplementedException();
         }
 
-        public override Task<IAvatar> SaveAvatarAsync(IAvatar Avatar)
+        public override async Task<IAvatar> SaveAvatarAsync(IAvatar avatar)
         {
-            throw new NotImplementedException();
+            var web3 = new Web3();
+            await web3.Personal.UnlockAccount.SendRequestAsync(_senderAddress, _password, 120);
+
+            var transactionHash = await web3.Eth.DeployContract.SendRequestAsync(_abi, _abiByteCode, _senderAddress);
+
+            var receipt = await web3.Eth.Transactions.GetTransactionReceipt.SendRequestAsync(transactionHash);
+            while (receipt == null)
+            {
+                await Task.Delay(5000);
+                receipt = await web3.Eth.Transactions.GetTransactionReceipt.SendRequestAsync(transactionHash);
+            }
+
+            var contractAddress = receipt.ContractAddress;
+            var contract = web3.Eth.GetContract(_abi, contractAddress);
+            var mFunc = contract.GetFunction("CreateAvatar");
+            object[] avatarObjects = {
+                avatar.AvatarId,
+                avatar.Title,
+                avatar.FirstName,
+                avatar.LastName,
+                avatar.FullName,
+                avatar.Username,
+                avatar.Email,
+                avatar.Password,
+                avatar.AvatarType,
+                avatar.AcceptTerms,
+                avatar.IsVerified,
+                avatar.JwtToken,
+                avatar.PasswordReset,
+                avatar.RefreshToken,
+                avatar.ResetToken,
+                avatar.ResetTokenExpires,
+                avatar.VerificationToken,
+                avatar.Verified,
+                avatar.LastBeamedIn,
+                avatar.LastBeamedOut,
+                avatar.IsBeamedIn,
+                avatar.Image2D,
+                avatar.Karma,
+                avatar.Level,
+                avatar.XP
+            };
+            await mFunc.CallAsync<int>(avatarObjects);
+            return avatar;
         }
 
-        public override IAvatarDetail SaveAvatarDetail(IAvatarDetail Avatar)
+        public override IAvatarDetail SaveAvatarDetail(IAvatarDetail avatar)
         {
-            throw new NotImplementedException();
+            var web3 = new Web3();
+            web3.Personal.UnlockAccount.SendRequestAsync(_senderAddress, _password, 120)
+                .ConfigureAwait(false).GetAwaiter().GetResult();
+
+            var transactionHash = web3.Eth.DeployContract.SendRequestAsync(_abi, _abiByteCode, _senderAddress)
+                .ConfigureAwait(false).GetAwaiter().GetResult();
+
+            var receipt = web3.Eth.Transactions.GetTransactionReceipt.SendRequestAsync(transactionHash)
+                .ConfigureAwait(false).GetAwaiter().GetResult();
+            while (receipt == null)
+            {
+                Task.Delay(5000);
+                receipt = web3.Eth.Transactions.GetTransactionReceipt.SendRequestAsync(transactionHash)
+                    .ConfigureAwait(false).GetAwaiter().GetResult();
+            }
+
+            var contractAddress = receipt.ContractAddress;
+            var contract = web3.Eth.GetContract(_abi, contractAddress);
+            var mFunc = contract.GetFunction("CreateAvatarDetail");
+            object[] avatarObjects = {
+                avatar.Id,
+                avatar.Title,
+                avatar.FirstName,
+                avatar.LastName,
+                avatar.FullName,
+                avatar.Username,
+                avatar.Email,
+                avatar.Address,
+                avatar.Country,
+                avatar.County,
+                avatar.DOB,
+                avatar.Image2D,
+                avatar.Karma,
+                avatar.Landline,
+                avatar.Level,
+                avatar.Mobile,
+                avatar.Model3D,
+                avatar.Postcode,
+                avatar.Town,
+                avatar.UmaJson,
+                avatar.XP
+            };
+            mFunc.CallAsync<int>(avatarObjects)
+                .ConfigureAwait(false).GetAwaiter().GetResult();
+            return avatar;
         }
 
-        public override async Task<IAvatarDetail> SaveAvatarDetailAsync(IAvatarDetail Avatar)
+        public override async Task<IAvatarDetail> SaveAvatarDetailAsync(IAvatarDetail avatar)
         {
-            throw new NotImplementedException();
+            var web3 = new Web3();
+            await web3.Personal.UnlockAccount.SendRequestAsync(_senderAddress, _password, 120);
+
+            var transactionHash = await web3.Eth.DeployContract.SendRequestAsync(_abi, _abiByteCode, _senderAddress);
+
+            var receipt = await web3.Eth.Transactions.GetTransactionReceipt.SendRequestAsync(transactionHash);
+            while (receipt == null)
+            {
+                await Task.Delay(5000);
+                receipt = await web3.Eth.Transactions.GetTransactionReceipt.SendRequestAsync(transactionHash);
+            }
+
+            var contractAddress = receipt.ContractAddress;
+            var contract = web3.Eth.GetContract(_abi, contractAddress);
+            var mFunc = contract.GetFunction("CreateAvatarDetail");
+            object[] avatarObjects = {
+                avatar.Id,
+                avatar.Title,
+                avatar.FirstName,
+                avatar.LastName,
+                avatar.FullName,
+                avatar.Username,
+                avatar.Email,
+                avatar.Address,
+                avatar.Country,
+                avatar.County,
+                avatar.DOB,
+                avatar.Image2D,
+                avatar.Karma,
+                avatar.Landline,
+                avatar.Level,
+                avatar.Mobile,
+                avatar.Model3D,
+                avatar.Postcode,
+                avatar.Town,
+                avatar.UmaJson,
+                avatar.XP
+            };
+            await mFunc.CallAsync<int>(avatarObjects);
+            return avatar;
         }
 
         public override Task<ISearchResults> SearchAsync(ISearchParams searchTerm)
@@ -124,9 +264,56 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             throw new NotImplementedException();
         }
 
-        public override IAvatar SaveAvatar(IAvatar Avatar)
+        public override IAvatar SaveAvatar(IAvatar avatar)
         {
-            throw new NotImplementedException();
+            var web3 = new Web3();
+            web3.Personal.UnlockAccount.SendRequestAsync(_senderAddress, _password, 120)
+                .ConfigureAwait(false).GetAwaiter().GetResult();
+
+            var transactionHash = web3.Eth.DeployContract.SendRequestAsync(_abi, _abiByteCode, _senderAddress)
+                .ConfigureAwait(false).GetAwaiter().GetResult();
+
+            var receipt = web3.Eth.Transactions.GetTransactionReceipt.SendRequestAsync(transactionHash)
+                .ConfigureAwait(false).GetAwaiter().GetResult();
+            while (receipt == null)
+            {
+                receipt = web3.Eth.Transactions.GetTransactionReceipt.SendRequestAsync(transactionHash)
+                    .ConfigureAwait(false).GetAwaiter().GetResult();
+            }
+
+            var contractAddress = receipt.ContractAddress;
+            var contract = web3.Eth.GetContract(_abi, contractAddress);
+            var mFunc = contract.GetFunction("CreateAvatar");
+            object[] avatarObjects = {
+                avatar.AvatarId,
+                avatar.Title,
+                avatar.FirstName,
+                avatar.LastName,
+                avatar.FullName,
+                avatar.Username,
+                avatar.Email,
+                avatar.Password,
+                avatar.AvatarType,
+                avatar.AcceptTerms,
+                avatar.IsVerified,
+                avatar.JwtToken,
+                avatar.PasswordReset,
+                avatar.RefreshToken,
+                avatar.ResetToken,
+                avatar.ResetTokenExpires,
+                avatar.VerificationToken,
+                avatar.Verified,
+                avatar.LastBeamedIn,
+                avatar.LastBeamedOut,
+                avatar.IsBeamedIn,
+                avatar.Image2D,
+                avatar.Karma,
+                avatar.Level,
+                avatar.XP
+            };
+            mFunc.CallAsync<int>(avatarObjects)
+                .ConfigureAwait(false).GetAwaiter().GetResult();
+            return avatar;
         }
 
         public override IAvatar LoadAvatar(string username)
@@ -277,22 +464,172 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
 
         public override OASISResult<IHolon> SaveHolon(IHolon holon, bool saveChildrenRecursive = true)
         {
-            throw new NotImplementedException();
+            var web3 = new Web3();
+            web3.Personal.UnlockAccount.SendRequestAsync(_senderAddress, _password, 120)
+                .ConfigureAwait(false).GetAwaiter().GetResult();
+
+            var transactionHash = web3.Eth.DeployContract.SendRequestAsync(_abi, _abiByteCode, _senderAddress)
+                .ConfigureAwait(false).GetAwaiter().GetResult();
+
+            var receipt = web3.Eth.Transactions.GetTransactionReceipt.SendRequestAsync(transactionHash)
+                .ConfigureAwait(false).GetAwaiter().GetResult();
+            while (receipt == null)
+            {
+                receipt = web3.Eth.Transactions.GetTransactionReceipt.SendRequestAsync(transactionHash)
+                    .ConfigureAwait(false).GetAwaiter().GetResult();
+            }
+
+            var contractAddress = receipt.ContractAddress;
+            var contract = web3.Eth.GetContract(_abi, contractAddress);
+            var mFunc = contract.GetFunction("CreateAvatarDetail");
+            object[] holonObjects = {
+                holon.Id,
+                holon.ParentOmiverseId,
+                holon.ParentMultiverseId,
+                holon.ParentUniverseId,
+                holon.ParentDimensionId,
+                holon.ParentGalaxyClusterId,
+                holon.ParentGalaxyId,
+                holon.ParentSolarSystemId,
+                holon.ParentGreatGrandSuperStarId,
+                holon.ParentGrandSuperStarId,
+                holon.ParentSuperStarId,
+                holon.ParentStarId,
+                holon.ParentPlanetId,
+                holon.ParentMoonId,
+                holon.ParentZomeId,
+                holon.ParentHolonId
+            };
+            mFunc.CallAsync<int>(holonObjects)
+                .ConfigureAwait(false).GetAwaiter().GetResult();
+            return new OASISResult<IHolon>(holon);
         }
 
-        public override Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon, bool saveChildrenRecursive = true)
+        public override async Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon, bool saveChildrenRecursive = true)
         {
-            throw new NotImplementedException();
+            var web3 = new Web3();
+            await web3.Personal.UnlockAccount.SendRequestAsync(_senderAddress, _password, 120);
+
+            var transactionHash = await web3.Eth.DeployContract.SendRequestAsync(_abi, _abiByteCode, _senderAddress);
+
+            var receipt = await web3.Eth.Transactions.GetTransactionReceipt.SendRequestAsync(transactionHash);
+            while (receipt == null)
+            {
+                await Task.Delay(5000);
+                receipt = await web3.Eth.Transactions.GetTransactionReceipt.SendRequestAsync(transactionHash);
+            }
+
+            var contractAddress = receipt.ContractAddress;
+            var contract = web3.Eth.GetContract(_abi, contractAddress);
+            var mFunc = contract.GetFunction("CreateAvatarDetail");
+            object[] holonObjects = {
+                holon.Id,
+                holon.ParentOmiverseId,
+                holon.ParentMultiverseId,
+                holon.ParentUniverseId,
+                holon.ParentDimensionId,
+                holon.ParentGalaxyClusterId,
+                holon.ParentGalaxyId,
+                holon.ParentSolarSystemId,
+                holon.ParentGreatGrandSuperStarId,
+                holon.ParentGrandSuperStarId,
+                holon.ParentSuperStarId,
+                holon.ParentStarId,
+                holon.ParentPlanetId,
+                holon.ParentMoonId,
+                holon.ParentZomeId,
+                holon.ParentHolonId
+            };
+            await mFunc.CallAsync<int>(holonObjects);
+            return new OASISResult<IHolon>(holon);
         }
 
         public override OASISResult<IEnumerable<IHolon>> SaveHolons(IEnumerable<IHolon> holons, bool saveChildrenRecursive = true)
         {
-            throw new NotImplementedException();
+            var web3 = new Web3(); 
+            web3.Personal.UnlockAccount.SendRequestAsync(_senderAddress, _password, 120)
+                .ConfigureAwait(false).GetAwaiter().GetResult();
+
+            var transactionHash = web3.Eth.DeployContract.SendRequestAsync(_abi, _abiByteCode, _senderAddress)
+                .ConfigureAwait(false).GetAwaiter().GetResult();
+
+            var receipt = web3.Eth.Transactions.GetTransactionReceipt.SendRequestAsync(transactionHash)
+                .ConfigureAwait(false).GetAwaiter().GetResult();
+            while (receipt == null)
+            {
+                receipt = web3.Eth.Transactions.GetTransactionReceipt.SendRequestAsync(transactionHash)
+                    .ConfigureAwait(false).GetAwaiter().GetResult();
+            }
+
+            var contractAddress = receipt.ContractAddress;
+            var contract = web3.Eth.GetContract(_abi, contractAddress);
+            var mFunc = contract.GetFunction("CreateAvatarDetail");
+            foreach (var holon in holons)
+            {
+                object[] holonObjects = {
+                    holon.Id,
+                    holon.ParentOmiverseId,
+                    holon.ParentMultiverseId,
+                    holon.ParentUniverseId,
+                    holon.ParentDimensionId,
+                    holon.ParentGalaxyClusterId,
+                    holon.ParentGalaxyId,
+                    holon.ParentSolarSystemId,
+                    holon.ParentGreatGrandSuperStarId,
+                    holon.ParentGrandSuperStarId,
+                    holon.ParentSuperStarId,
+                    holon.ParentStarId,
+                    holon.ParentPlanetId,
+                    holon.ParentMoonId,
+                    holon.ParentZomeId,
+                    holon.ParentHolonId
+                };
+                mFunc.CallAsync<int>(holonObjects)
+                    .ConfigureAwait(false).GetAwaiter().GetResult();
+            }
+            return new OASISResult<IEnumerable<IHolon>>(holons);
         }
 
-        public override Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons, bool saveChildrenRecursive = true)
+        public override async Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons, bool saveChildrenRecursive = true)
         {
-            throw new NotImplementedException();
+            var web3 = new Web3();
+            await web3.Personal.UnlockAccount.SendRequestAsync(_senderAddress, _password, 120);
+
+            var transactionHash = await web3.Eth.DeployContract.SendRequestAsync(_abi, _abiByteCode, _senderAddress);
+
+            var receipt = await web3.Eth.Transactions.GetTransactionReceipt.SendRequestAsync(transactionHash);
+            while (receipt == null)
+            {
+                await Task.Delay(5000);
+                receipt = await web3.Eth.Transactions.GetTransactionReceipt.SendRequestAsync(transactionHash);
+            }
+
+            var contractAddress = receipt.ContractAddress;
+            var contract = web3.Eth.GetContract(_abi, contractAddress);
+            var mFunc = contract.GetFunction("CreateAvatarDetail");
+            foreach (var holon in holons)
+            {
+                object[] holonObjects = {
+                    holon.Id,
+                    holon.ParentOmiverseId,
+                    holon.ParentMultiverseId,
+                    holon.ParentUniverseId,
+                    holon.ParentDimensionId,
+                    holon.ParentGalaxyClusterId,
+                    holon.ParentGalaxyId,
+                    holon.ParentSolarSystemId,
+                    holon.ParentGreatGrandSuperStarId,
+                    holon.ParentGrandSuperStarId,
+                    holon.ParentSuperStarId,
+                    holon.ParentStarId,
+                    holon.ParentPlanetId,
+                    holon.ParentMoonId,
+                    holon.ParentZomeId,
+                    holon.ParentHolonId
+                };
+                await mFunc.CallAsync<int>(holonObjects);
+            }
+            return new OASISResult<IEnumerable<IHolon>>(holons);
         }
     }
 }
