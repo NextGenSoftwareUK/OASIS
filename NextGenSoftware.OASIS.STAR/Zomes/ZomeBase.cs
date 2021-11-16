@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using System.Linq;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Events;
 using NextGenSoftware.OASIS.API.Core.Helpers;
@@ -273,7 +274,7 @@ namespace NextGenSoftware.OASIS.STAR.Zomes
 
         public virtual async Task<OASISResult<IHolon>> SaveHolonAsync(IHolon savingHolon, bool mapBaseHolonProperties = true)
         {
-            RemoveCelesialBodies(savingHolon);
+            savingHolon = RemoveCelesialBodies(savingHolon);
             OASISResult<IHolon> result = await _holonManager.SaveHolonAsync(savingHolon);
             HandleSaveHolonResult(savingHolon, "SaveHolonAsync", ref result, mapBaseHolonProperties);
             return result;
@@ -281,7 +282,7 @@ namespace NextGenSoftware.OASIS.STAR.Zomes
 
         public virtual OASISResult<IHolon> SaveHolon(IHolon savingHolon, bool mapBaseHolonProperties = true)
         {
-            RemoveCelesialBodies(savingHolon);
+            savingHolon = RemoveCelesialBodies(savingHolon);
             OASISResult<IHolon> result = _holonManager.SaveHolon(savingHolon);
             HandleSaveHolonResult(savingHolon, "SaveHolon", ref result, mapBaseHolonProperties);
             return result;
@@ -289,7 +290,7 @@ namespace NextGenSoftware.OASIS.STAR.Zomes
 
         public virtual async Task<OASISResult<T>> SaveHolonAsync<T>(IHolon savingHolon, bool mapBaseHolonProperties = true) where T : IHolon, new()
         {
-            RemoveCelesialBodies(savingHolon);
+            savingHolon = RemoveCelesialBodies(savingHolon);
             OASISResult<T> result = await _holonManager.SaveHolonAsync<T>(savingHolon);
             HandleSaveHolonResult(savingHolon, "SaveHolonAsync", ref result, mapBaseHolonProperties);
             return result;
@@ -297,7 +298,7 @@ namespace NextGenSoftware.OASIS.STAR.Zomes
 
         public virtual OASISResult<T> SaveHolon<T>(IHolon savingHolon, bool mapBaseHolonProperties = true) where T : IHolon, new()
         {
-            RemoveCelesialBodies(savingHolon);
+            savingHolon = RemoveCelesialBodies(savingHolon);
             OASISResult<T> result = _holonManager.SaveHolon<T>(savingHolon);
             HandleSaveHolonResult(savingHolon, "SaveHolon", ref result, mapBaseHolonProperties);
             return result;
@@ -305,7 +306,7 @@ namespace NextGenSoftware.OASIS.STAR.Zomes
 
         public virtual async Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> savingHolons, bool mapBaseHolonProperties = true)
         {
-            RemoveCelesialBodies(savingHolons);
+            savingHolons = RemoveCelesialBodies(savingHolons);
             OASISResult<IEnumerable<IHolon>> result = await _holonManager.SaveHolonsAsync(savingHolons);
             HandleSaveHolonsResult(savingHolons, "SaveHolonsAsync", ref result, mapBaseHolonProperties);
             return result;
@@ -313,7 +314,7 @@ namespace NextGenSoftware.OASIS.STAR.Zomes
 
         public virtual OASISResult<IEnumerable<IHolon>> SaveHolons(IEnumerable<IHolon> savingHolons, bool mapBaseHolonProperties = true)
         {
-            RemoveCelesialBodies(savingHolons);
+            savingHolons = RemoveCelesialBodies(savingHolons);
             OASISResult<IEnumerable<IHolon>> result = _holonManager.SaveHolons(savingHolons);
             HandleSaveHolonsResult(savingHolons, "SaveHolonsAsync", ref result, mapBaseHolonProperties);
             return result;
@@ -539,10 +540,14 @@ namespace NextGenSoftware.OASIS.STAR.Zomes
             }
         }
 
-        private void RemoveCelesialBodies(IEnumerable<IHolon> holons)
+        private IEnumerable<IHolon> RemoveCelesialBodies(IEnumerable<IHolon> holons)
         {
-            foreach (IHolon holon in holons)
-                RemoveCelesialBodies(holon);
+            List<IHolon> holonsList = holons.ToList();
+
+            for (int i = 0; i < holonsList.Count(); i++)
+                holonsList[i] = RemoveCelesialBodies(holonsList[i]);
+
+            return holonsList;
         }
 
         private IEnumerable<IHolon> RestoreCelesialBodies(IEnumerable<IHolon> holons)
@@ -555,7 +560,7 @@ namespace NextGenSoftware.OASIS.STAR.Zomes
             return restoredHolons;
         }
 
-        private void RemoveCelesialBodies(IHolon holon)
+        private IHolon RemoveCelesialBodies(IHolon holon)
         {
             if (holon.Id == Guid.Empty)
             {
@@ -602,6 +607,8 @@ namespace NextGenSoftware.OASIS.STAR.Zomes
             holon.ParentMoon = null;
             holon.ParentZome = null;
             holon.ParentHolon = null;
+
+            return holon;
         }
 
         private IHolon RestoreCelesialBodies(IHolon originalHolon) 

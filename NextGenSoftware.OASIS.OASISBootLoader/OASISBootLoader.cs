@@ -158,16 +158,14 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                     result.IsError = true;
 
                     if (ProviderManager.IsAutoFailOverEnabled)
-                        result.Message = $"CRITCAL ERROR: None of the OASIS Providers listed in the AutoFailOver List managed to start. Check logs or InnerMessages for more details. Providers in AutoFailOverList are {ProviderManager.GetProviderAutoFailOverListAsString()}.";
+                        result.Message = $"CRITCAL ERROR: None of the OASIS Providers listed in the AutoFailOver List managed to start. Reason: {OASISResultHelper.BuildInnerMessageError(result.InnerMessages)}Check logs or InnerMessages for more details. Providers in AutoFailOverList are {ProviderManager.GetProviderAutoFailOverListAsString()}.";
                     else
-                        result.Message = "$CRITCAL ERROR:AutoFailOver is DISABLED and the first provider in the list failed to start.";
-
-
+                        result.Message = $"CRITCAL ERROR: AutoFailOver is DISABLED and the first provider in the list failed to start. Reason: {result.InnerMessages[0]}";
                 }
                 else if (result.InnerMessages.Count > 0)
                 {
                     result.IsWarning = true;
-                    result.Message = $"WARNING: The {ProviderManager.CurrentStorageProviderType.Name} Provider started but others failed to start. Please check the logs or InnerMessages for more details.";
+                    result.Message = $"WARNING: The {ProviderManager.CurrentStorageProviderType.Name} Provider started but others failed to start. Reason: {OASISResultHelper.BuildInnerMessageError(result.InnerMessages)}Please check the logs or InnerMessages for more details. Providers in AutoFailOverList are {ProviderManager.GetProviderAutoFailOverListAsString()}.";
                 }
             }
             else
