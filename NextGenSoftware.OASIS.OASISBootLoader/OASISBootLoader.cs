@@ -17,8 +17,9 @@ using NextGenSoftware.OASIS.API.Providers.Neo4jOASIS;
 using NextGenSoftware.OASIS.API.Providers.TelosOASIS;
 using NextGenSoftware.OASIS.API.Providers.EthereumOASIS;
 using NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS;
-using NextGenSoftware.Holochain.HoloNET.Client.Core;
 using NextGenSoftware.OASIS.API.Providers.SOLANAOASIS;
+using NextGenSoftware.Holochain.HoloNET.Client.Core;
+
 
 namespace NextGenSoftware.OASIS.OASISBootLoader
 {
@@ -45,8 +46,7 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                 IsOASISBooting = true;
 
                 OASISDNAManager.OASISDNA = OASISDNA;
-                LoggingManager.CurrentLoggingFramework = (LoggingFramework) Enum.Parse(typeof(LoggingFramework),
-                    OASISDNA.OASIS.Logging.LoggingFramework);
+                LoggingManager.CurrentLoggingFramework = (LoggingFramework) Enum.Parse(typeof(LoggingFramework), OASISDNA.OASIS.Logging.LoggingFramework);
                 ErrorHandling.LogAllErrors = OASISDNA.OASIS.ErrorHandling.LogAllErrors;
                 ErrorHandling.LogAllWarnings = OASISDNA.OASIS.ErrorHandling.LogAllWarnings;
                 ErrorHandling.ShowStackTrace = OASISDNA.OASIS.ErrorHandling.ShowStackTrace;
@@ -134,16 +134,41 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                     }
                 }
 
-                OASISResult<IOASISStorage> providerManagerResult =
-                    GetAndActivateProvider(ProviderManager.GetProviderAutoFailOverList()[0].Value);
+                //TODO: Double check this code when I am not half asleep! ;-) lol
+                foreach (EnumValue<ProviderType> providerType in ProviderManager.GetProviderAutoFailOverList())
+                {
+                    OASISResult<IOASISStorage> providerManagerResult = GetAndActivateProvider(providerType.Value);
 
-                if (providerManagerResult.IsError)
+                    if ((providerManagerResult.IsError || providerManagerResult.Result == null))
+                    {
+                        ErrorHandling.HandleError(ref result, providerManagerResult.Message);
+                        result.InnerMessages.Add(providerManagerResult.Message);
+                        result.IsWarning = true;
+                        result.IsError = false;
+
+                        if (!ProviderManager.IsAutoFailOverEnabled)
+                            break;
+                    }
+                    else
+                        break;
+                }
+
+                if (ProviderManager.CurrentStorageProvider == null)
                 {
                     result.IsError = true;
-                    result.Message = providerManagerResult.Message;
+
+                    if (ProviderManager.IsAutoFailOverEnabled)
+                        result.Message = $"CRITCAL ERROR: None of the OASIS Providers listed in the AutoFailOver List managed to start. Check logs or InnerMessages for more details. Providers in AutoFailOverList are {ProviderManager.GetProviderAutoFailOverListAsString()}.";
+                    else
+                        result.Message = "$CRITCAL ERROR:AutoFailOver is DISABLED and the first provider in the list failed to start.";
+
+
                 }
-                else
-                    result.Result = providerManagerResult.Result;
+                else if (result.InnerMessages.Count > 0)
+                {
+                    result.IsWarning = true;
+                    result.Message = $"WARNING: The {ProviderManager.CurrentStorageProviderType.Name} Provider started but others failed to start. Please check the logs or InnerMessages for more details.";
+                }
             }
             else
                 result.Result = ProviderManager.CurrentStorageProvider;
@@ -172,17 +197,8 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
             if (providerType != ProviderManager.CurrentStorageProviderType.Value)
             {
                 RegisterProvider(providerType, customConnectionString, forceRegister);
-                OASISResult<IOASISStorage> providerManagerResult =
-                    ProviderManager.SetAndActivateCurrentStorageProvider(providerType, setGlobally);
 
-                if (providerManagerResult.IsError)
-                {
-                    result.IsError = true;
-                    result.Message = providerManagerResult.Message;
-                    //result.Message = string.Concat("Error activating provider ", Enum.GetName(typeof(ProviderType), providerType), ". Reason: ", providerManagerResult.Message);
-                }
-                else
-                    result.Result = providerManagerResult.Result;
+                result = ProviderManager.SetAndActivateCurrentStorageProvider(providerType, setGlobally);
             }
 
             if (result.IsError != true)
