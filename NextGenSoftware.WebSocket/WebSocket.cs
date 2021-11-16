@@ -154,7 +154,7 @@ namespace NextGenSoftware.WebSocket
                 if (Logger == null)
                     throw new WebSocketException("ERROR: No Logger Has Been Specified! Please set a Logger with the Logger Property.");
 
-                if (ClientWebSocket.State != WebSocketState.Connecting && ClientWebSocket.State != WebSocketState.Closed && ClientWebSocket.State != WebSocketState.Aborted && ClientWebSocket.State != WebSocketState.CloseSent && ClientWebSocket.State != WebSocketState.CloseReceived)
+                if (ClientWebSocket != null && ClientWebSocket.State != WebSocketState.Connecting && ClientWebSocket.State != WebSocketState.Closed && ClientWebSocket.State != WebSocketState.Aborted && ClientWebSocket.State != WebSocketState.CloseSent && ClientWebSocket.State != WebSocketState.CloseReceived)
                 {
                     Logger.Log(string.Concat("Disconnecting from ", EndPoint, "..."), LogType.Info);
                     await ClientWebSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Client manually disconnected.", CancellationToken.None);

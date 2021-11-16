@@ -57,9 +57,12 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
         public override void DeActivateProvider()
         {
             //TODO: {URGENT} Disconnect, Dispose and release resources here.
-            Database.MongoDB = null;
-            Database.MongoClient = null;
-            Database = null;
+            if (Database != null)
+            {
+                Database.MongoDB = null;
+                Database.MongoClient = null;
+                Database = null;
+            }
 
             base.DeActivateProvider();
         }

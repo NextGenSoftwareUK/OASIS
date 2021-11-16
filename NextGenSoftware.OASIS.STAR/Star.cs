@@ -260,11 +260,14 @@ namespace NextGenSoftware.OASIS.STAR
 
         private static void WireUpEvents()
         {
-            DefaultStar.OnHolonLoaded += InnerStar_OnHolonLoaded;
-            DefaultStar.OnHolonSaved += InnerStar_OnHolonSaved;
-            DefaultStar.OnHolonsLoaded += InnerStar_OnHolonsLoaded;
-            DefaultStar.OnZomeError += InnerStar_OnZomeError;
-            DefaultStar.OnInitialized += InnerStar_OnInitialized;
+            if (DefaultStar != null)
+            {
+                DefaultStar.OnHolonLoaded += InnerStar_OnHolonLoaded;
+                DefaultStar.OnHolonSaved += InnerStar_OnHolonSaved;
+                DefaultStar.OnHolonsLoaded += InnerStar_OnHolonsLoaded;
+                DefaultStar.OnZomeError += InnerStar_OnZomeError;
+                DefaultStar.OnInitialized += InnerStar_OnInitialized;
+            }
         }
 
         private static void InnerStar_OnInitialized(object sender, System.EventArgs e)
@@ -1370,7 +1373,10 @@ namespace NextGenSoftware.OASIS.STAR
             }
 
             SaveDNA();
-            result.Message = "STAR Ignited and The OASIS Omniverse Created.";
+
+            if (!result.IsError)
+                result.Message = "STAR Ignited and The OASIS Omniverse Created.";
+            
             return result;
         }
 
