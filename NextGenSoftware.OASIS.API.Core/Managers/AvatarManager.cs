@@ -1147,9 +1147,15 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             if (string.IsNullOrEmpty(avatar.Username))
                 avatar.Username = avatar.Email;
 
+            if (avatar.Id == Guid.Empty)
+            {
+                avatar.Id = Guid.NewGuid();
+                avatar.IsNewHolon = true;
+            }
+
             // TODO: I think it's best to include audit stuff here so the providers do not need to worry about it?
             // Providers could always override this behaviour if they choose...
-            if (avatar.Id != Guid.Empty)
+            if (!avatar.IsNewHolon)
             {
                 avatar.ModifiedDate = DateTime.Now;
 
@@ -1173,9 +1179,15 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             if (string.IsNullOrEmpty(avatar.Username))
                 avatar.Username = avatar.Email;
 
+            if (avatar.Id == Guid.Empty)
+            {
+                avatar.Id = Guid.NewGuid();
+                avatar.IsNewHolon = true;
+            }
+
             // TODO: I think it's best to include audit stuff here so the providers do not need to worry about it?
             // Providers could always override this behaviour if they choose...
-            if (avatar.Id != Guid.Empty)
+            if (!avatar.IsNewHolon)
             {
                 avatar.ModifiedDate = DateTime.Now;
 

@@ -378,9 +378,17 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             OASISResult<IEnumerable<IHolon>> result = new OASISResult<IEnumerable<IHolon>>();
             List<IHolon> savedHolons = new List<IHolon>();
 
+            if (holons == null)
+            {
+                result.Message = "Holons is null";
+                result.IsWarning = true;
+                result.IsSaved = false;
+                return result;
+            }
+
             if (holons.Count() == 0)
             {
-                result.Message = "No holons found to save.";
+                result.Message = "Holons collection is empty.";
                 result.IsWarning = true;
                 result.IsSaved = false;
                 return result;
@@ -393,7 +401,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
 
                 if (!holonResult.IsError && holonResult.Result != null)
                 {
-                    if (saveChildrenRecursive)
+                    if (saveChildrenRecursive && holonResult.Result.Children != null && holonResult.Result.Children.Count() > 0)
                     {
                         OASISResult<IEnumerable<IHolon>> saveChildrenResult = SaveHolons(holonResult.Result.Children);
 
@@ -415,6 +423,8 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
                 }
             }
 
+            result.Result = savedHolons.ToList();
+
             if (result.IsError)
                 result.Message = "One or more errors occured saving the holons in the SQLLiteOASIS Provider. Please check the InnerMessages property for more infomration.";
 
@@ -426,9 +436,17 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             OASISResult<IEnumerable<IHolon>> result = new OASISResult<IEnumerable<IHolon>>();
             List<IHolon> savedHolons = new List<IHolon>();
 
+            if (holons == null)
+            {
+                result.Message = "Holons is null";
+                result.IsWarning = true;
+                result.IsSaved = false;
+                return result;
+            }
+
             if (holons.Count() == 0)
             {
-                result.Message = "No holons found to save.";
+                result.Message = "Holons collection is empty.";
                 result.IsWarning = true;
                 result.IsSaved = false;
                 return result;
@@ -441,7 +459,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
 
                 if (!holonResult.IsError && holonResult.Result != null)
                 {
-                    if (saveChildrenRecursive)
+                    if (saveChildrenRecursive && holonResult.Result.Children != null && holonResult.Result.Children.Count() > 0)
                     {
                         OASISResult<IEnumerable<IHolon>> saveChildrenResult = await SaveHolonsAsync(holonResult.Result.Children);
 
@@ -462,6 +480,8 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
                     result.InnerMessages.Add($"Holon with id {holon.Id} and name {holon.Name} faild to save. Reason: {holonResult.Message}");
                 }
             }
+
+            result.Result = savedHolons.ToList();
 
             if (result.IsError)
                 result.Message = "One or more errors occured saving the holons in the SQLLiteOASIS Provider. Please check the InnerMessages property for more infomration.";

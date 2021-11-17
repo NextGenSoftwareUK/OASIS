@@ -52,92 +52,65 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
 
         public override async Task<IEnumerable<IAvatar>> LoadAllAvatarsAsync()
         {
-            OASISResult<List<Avatar>> repoResult = await avatarRepository.GetAvatarsAsync();
-
-            return(repoResult.Result);
+            return (await avatarRepository.GetAvatarsAsync()).Result;
         }
 
         public override IEnumerable<IAvatar> LoadAllAvatars()
         {
-            OASISResult<List<Avatar>> repoResult = avatarRepository.GetAvatars();
-
-            return repoResult.Result;
+            return avatarRepository.GetAvatars().Result;
         }
 
         public override IAvatar LoadAvatarByEmail(string avatarEmail)
         {
-            OASISResult<Avatar> repoResult = avatarRepository.GetAvatarByEmail(avatarEmail);
-            
-            return(repoResult.Result);
+            return avatarRepository.GetAvatarByEmail(avatarEmail).Result;
         }
 
         public override IAvatar LoadAvatarByUsername(string avatarUsername)
         {
-            OASISResult<Avatar> repoResult = avatarRepository.GetAvatar(avatarUsername);
-            
-            return(repoResult.Result);
+            return avatarRepository.GetAvatar(avatarUsername).Result;
         }
 
         public override async Task<IAvatar> LoadAvatarAsync(string providerKey)
         {
-            OASISResult<Avatar> repoResult = await avatarRepository.GetAvatarAsync(providerKey);
-            
-            return(repoResult.Result);
+            return (await avatarRepository.GetAvatarAsync(providerKey)).Result;
         }
 
         public override async Task<IAvatar> LoadAvatarAsync(Guid id)
         {
-            OASISResult<Avatar> repoResult = await avatarRepository.GetAvatarAsync(id);
-            
-            return(repoResult.Result);
+            return (await avatarRepository.GetAvatarAsync(id)).Result;
         }
 
         public override async Task<IAvatar> LoadAvatarByEmailAsync(string avatarEmail)
         {
-            OASISResult<Avatar> repoResult = await avatarRepository.GetAvatarByEmailAsync(avatarEmail);
-            
-            return(repoResult.Result);
+            return (await avatarRepository.GetAvatarByEmailAsync(avatarEmail)).Result;
         }
 
         public override async Task<IAvatar> LoadAvatarByUsernameAsync(string avatarUsername)
         {
-            OASISResult<Avatar> repoResult = await avatarRepository.GetAvatarAsync(avatarUsername);
-            
-            return(repoResult.Result);
+            return (await avatarRepository.GetAvatarAsync(avatarUsername)).Result;
         }
 
         public override IAvatar LoadAvatar(Guid id)
         {
-            OASISResult<Avatar> repoResult = avatarRepository.GetAvatar(id);
-            
-            return(repoResult.Result);
+            return avatarRepository.GetAvatar(id).Result;
         }
 
         public override async Task<IAvatar> LoadAvatarAsync(string username, string password)
         {
-            OASISResult<Avatar> repoResult = await avatarRepository.GetAvatarAsync(username, password);
-            
-            return(repoResult.Result);
+            return (await avatarRepository.GetAvatarAsync(username, password)).Result;
         }
 
         public override IAvatar LoadAvatar(string username, string password)
         {
-            OASISResult<Avatar> repoResult = avatarRepository.GetAvatar(username, password);
-            
-            return(repoResult.Result);
+            return avatarRepository.GetAvatar(username, password).Result;
         }
 
         public override async Task<IAvatar> SaveAvatarAsync(IAvatar avatar)
         {
-            OASISResult<Avatar> repoResult = null;
+            OASISResult<IAvatar> repoResult = avatar.IsNewHolon ? await avatarRepository.AddAsync(avatar) 
+                : await avatarRepository.UpdateAsync(avatar);
 
-            if(avatar.Id == Guid.Empty){
-                repoResult = await avatarRepository.AddAsync((Avatar)avatar);
-            }
-            else{
-                repoResult = await avatarRepository.UpdateAsync((Avatar)avatar);
-            }
-            return(repoResult.Result);
+            return (repoResult.Result);
         }
 
         //TODO: Move this into Search Reposirary like Avatar is...
@@ -173,22 +146,13 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
 
         public override IAvatar SaveAvatar(IAvatar avatar)
         {
-            OASISResult<Avatar> repoResult = null;
-
-            if(avatar.Id == Guid.Empty){
-                repoResult = avatarRepository.Add((Avatar)avatar);
-            }
-            else{
-                repoResult = avatarRepository.Update((Avatar)avatar);
-            }
-            return(repoResult.Result);
+            return avatar.IsNewHolon ? avatarRepository.Add(avatar).Result
+                : avatarRepository.Update(avatar).Result;
         }
 
         public override IAvatar LoadAvatar(string username)
         {
-            OASISResult<Avatar> repoResult = avatarRepository.GetAvatar(username);
-            
-            return(repoResult.Result);
+            return avatarRepository.GetAvatar(username).Result;
         }
 
         public override bool DeleteAvatar(Guid id, bool softDelete = true)
@@ -230,15 +194,14 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
 
         public override async Task<IAvatar> LoadAvatarForProviderKeyAsync(string providerKey)
         {
-            OASISResult<Avatar> repoResult = await avatarRepository.GetAvatarAsync(providerKey);
-            
-            return(repoResult.Result);
+            OASISResult<IAvatar> repoResult = await avatarRepository.GetAvatarAsync(providerKey);
+            return repoResult.Result;
         }
 
         public override IAvatar LoadAvatarForProviderKey(string providerKey)
         {
-            OASISResult<Avatar> repoResult = avatarRepository.GetAvatar(providerKey);
-            return(repoResult.Result);
+            OASISResult<IAvatar> repoResult = avatarRepository.GetAvatar(providerKey);
+            return repoResult.Result;
         }
 
         public override bool DeleteAvatar(string providerKey, bool softDelete = true)
@@ -394,9 +357,17 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
             OASISResult<IEnumerable<IHolon>> result = new OASISResult<IEnumerable<IHolon>>();
             List<IHolon> savedHolons = new List<IHolon>();
 
+            if (holons == null)
+            {
+                result.Message = "Holons is null";
+                result.IsWarning = true;
+                result.IsSaved = false;
+                return result;
+            }
+
             if (holons.Count() == 0)
             {
-                result.Message = "No holons found to save.";
+                result.Message = "Holons collection is empty.";
                 result.IsWarning = true;
                 result.IsSaved = false;
                 return result;
@@ -409,7 +380,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
 
                 if (!holonResult.IsError && holonResult.Result != null)
                 {
-                    if (saveChildrenRecursive)
+                    if (saveChildrenRecursive && holonResult.Result.Children != null && holonResult.Result.Children.Count() > 0)
                     {
                         OASISResult<IEnumerable<IHolon>> saveChildrenResult = SaveHolons(holonResult.Result.Children);
 
@@ -431,6 +402,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                 }
             }
 
+            result.Result = savedHolons.ToList();
+
             if (result.IsError)
                 result.Message = "One or more errors occured saving the holons in the SQLLiteOASIS Provider. Please check the InnerMessages property for more infomration.";
 
@@ -442,9 +415,17 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
             OASISResult<IEnumerable<IHolon>> result = new OASISResult<IEnumerable<IHolon>>();
             List<IHolon> savedHolons = new List<IHolon>();
 
+            if (holons == null)
+            {
+                result.Message = "Holons is null";
+                result.IsWarning = true;
+                result.IsSaved = false;
+                return result;
+            }
+
             if (holons.Count() == 0)
             {
-                result.Message = "No holons found to save.";
+                result.Message = "Holons collection is empty.";
                 result.IsWarning = true;
                 result.IsSaved = false;
                 return result;
@@ -457,7 +438,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
 
                 if (!holonResult.IsError && holonResult.Result != null)
                 {
-                    if (saveChildrenRecursive)
+                    if (saveChildrenRecursive && holonResult.Result.Children != null && holonResult.Result.Children.Count() > 0)
                     {
                         OASISResult<IEnumerable<IHolon>> saveChildrenResult = await SaveHolonsAsync(holonResult.Result.Children);
 
@@ -479,6 +460,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                 }
             }
 
+            result.Result = savedHolons.ToList();
+
             if (result.IsError)
                 result.Message = "One or more errors occured saving the holons in the SQLLiteOASIS Provider. Please check the InnerMessages property for more infomration.";
 
@@ -487,74 +470,66 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
 
         public override IAvatarDetail LoadAvatarDetail(Guid id)
         {
-            OASISResult<AvatarDetail> repoResult = avatarRepository.GetAvatarDetail(id);
+            OASISResult<IAvatarDetail> repoResult = avatarRepository.GetAvatarDetail(id);
             return(repoResult.Result);
         }
 
         public override IAvatarDetail LoadAvatarDetailByEmail(string avatarEmail)
         {
-            OASISResult<AvatarDetail> repoResult = avatarRepository.GetAvatarDetailByEmail(avatarEmail);
+            OASISResult<IAvatarDetail> repoResult = avatarRepository.GetAvatarDetailByEmail(avatarEmail);
             return(repoResult.Result);
         }
 
         public override IAvatarDetail LoadAvatarDetailByUsername(string avatarUsername)
         {
-            OASISResult<AvatarDetail> repoResult = avatarRepository.GetAvatarDetail(avatarUsername);
+            OASISResult<IAvatarDetail> repoResult = avatarRepository.GetAvatarDetail(avatarUsername);
             return(repoResult.Result);
         }
 
         public override async Task<IAvatarDetail> LoadAvatarDetailAsync(Guid id)
         {
-            OASISResult<AvatarDetail> repoResult = await avatarRepository.GetAvatarDetailAsync(id);
+            OASISResult<IAvatarDetail> repoResult = await avatarRepository.GetAvatarDetailAsync(id);
             return(repoResult.Result);
         }
 
         public override async Task<IAvatarDetail> LoadAvatarDetailByUsernameAsync(string avatarUsername)
         {
-            OASISResult<AvatarDetail> repoResult = await avatarRepository.GetAvatarDetailAsync(avatarUsername);
+            OASISResult<IAvatarDetail> repoResult = await avatarRepository.GetAvatarDetailAsync(avatarUsername);
             return(repoResult.Result);
         }
 
         public override async Task<IAvatarDetail> LoadAvatarDetailByEmailAsync(string avatarEmail)
         {
-            OASISResult<AvatarDetail> repoResult = await avatarRepository.GetAvatarDetailByEmailAsync(avatarEmail);
+            OASISResult<IAvatarDetail> repoResult = await avatarRepository.GetAvatarDetailByEmailAsync(avatarEmail);
             return(repoResult.Result);
         }
 
         public override IEnumerable<IAvatarDetail> LoadAllAvatarDetails()
         {
-            OASISResult<IEnumerable<AvatarDetail>> repoResult = avatarRepository.GetAvatarDetails();
+            OASISResult<IEnumerable<IAvatarDetail>> repoResult = avatarRepository.GetAvatarDetails();
             return(repoResult.Result);
         }
 
         public override async Task<IEnumerable<IAvatarDetail>> LoadAllAvatarDetailsAsync()
         {
-            OASISResult<IEnumerable<AvatarDetail>> repoResult = await avatarRepository.GetAvatarDetailsAsync();
+            OASISResult<IEnumerable<IAvatarDetail>> repoResult = await avatarRepository.GetAvatarDetailsAsync();
             return(repoResult.Result);
         }
 
         public override IAvatarDetail SaveAvatarDetail(IAvatarDetail avatar)
         {
-            OASISResult<AvatarDetail> repoResult = null;
-            if(avatar.Id == Guid.Empty){
-                repoResult = avatarRepository.Add((AvatarDetail)avatar);
-            }
-            else{
-                repoResult = avatarRepository.Update((AvatarDetail)avatar);
-            }
-            return(repoResult.Result);
+            OASISResult<IAvatarDetail> repoResult = avatar.IsNewHolon ? avatarRepository.Add(avatar) 
+                : avatarRepository.Update(avatar);
+
+            return repoResult.Result;
         }
 
         public override async Task<IAvatarDetail> SaveAvatarDetailAsync(IAvatarDetail avatar)
         {
-            OASISResult<AvatarDetail> repoResult = null;
-            if(avatar.Id == Guid.Empty){
-                repoResult = await avatarRepository.AddAsync((AvatarDetail)avatar);
-            }
-            else{
-                repoResult = await avatarRepository.UpdateAsync((AvatarDetail)avatar);
-            }
-            return(repoResult.Result);
+            OASISResult<IAvatarDetail> repoResult = avatar.IsNewHolon ? await avatarRepository.AddAsync(avatar)
+                : await avatarRepository.UpdateAsync(avatar);
+
+            return repoResult.Result;
         }
     }
 }
