@@ -306,6 +306,12 @@ namespace NextGenSoftware.OASIS.STAR.Zomes
 
         public virtual async Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> savingHolons, bool mapBaseHolonProperties = true)
         {
+            if (savingHolons == null)
+                return new OASISResult<IEnumerable<IHolon>>(savingHolons) { Message = "Holons collection is null.", IsWarning = true };
+
+            if (savingHolons.Count() == 0)
+                return new OASISResult<IEnumerable<IHolon>>(savingHolons) { Message = "Holons collection is empty.", IsWarning = true };
+
             savingHolons = RemoveCelesialBodies(savingHolons);
             OASISResult<IEnumerable<IHolon>> result = await _holonManager.SaveHolonsAsync(savingHolons);
             HandleSaveHolonsResult(savingHolons, "SaveHolonsAsync", ref result, mapBaseHolonProperties);
@@ -314,6 +320,12 @@ namespace NextGenSoftware.OASIS.STAR.Zomes
 
         public virtual OASISResult<IEnumerable<IHolon>> SaveHolons(IEnumerable<IHolon> savingHolons, bool mapBaseHolonProperties = true)
         {
+            if (savingHolons == null)
+                return new OASISResult<IEnumerable<IHolon>>(savingHolons) { Message = "Holons collection is null.", IsWarning = true };
+
+            if (savingHolons.Count() == 0)
+                return new OASISResult<IEnumerable<IHolon>>(savingHolons) { Message = "Holons collection is empty.", IsWarning = true };
+
             savingHolons = RemoveCelesialBodies(savingHolons);
             OASISResult<IEnumerable<IHolon>> result = _holonManager.SaveHolons(savingHolons);
             HandleSaveHolonsResult(savingHolons, "SaveHolonsAsync", ref result, mapBaseHolonProperties);

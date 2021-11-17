@@ -8,6 +8,7 @@ using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.DataBaseModels;
 using NextGenSoftware.OASIS.API.Core.Managers;
+using NextGenSoftware.OASIS.API.Core.Interfaces;
 
 namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Repositories{
 
@@ -20,18 +21,20 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Repositories{
             this.dataBase=dataBase;
         }
         
-        public OASISResult<Avatar> Add(Avatar avatar)
+        public OASISResult<IAvatar> Add(IAvatar avatar)
         {
-            OASISResult<Avatar> result = new OASISResult<Avatar>();
+            OASISResult<IAvatar> result = new OASISResult<IAvatar>();
             try
             {
-                avatar.Id = Guid.NewGuid();
+                if (avatar.Id == Guid.Empty)
+                    avatar.Id = Guid.NewGuid();
+
                 avatar.CreatedProviderType = new EnumValue<ProviderType>(ProviderType.SQLLiteDBOASIS);
 
-                if (AvatarManager.LoggedInAvatar != null)
-                    avatar.CreatedByAvatarId = AvatarManager.LoggedInAvatar.Id;
+                //if (AvatarManager.LoggedInAvatar != null)
+                //    avatar.CreatedByAvatarId = AvatarManager.LoggedInAvatar.Id;
 
-                avatar.CreatedDate = DateTime.Now;
+               // avatar.CreatedDate = DateTime.Now;
 
                 AvatarModel avatarModel=new AvatarModel(avatar);
                 dataBase.Avatars.Add(avatarModel);
@@ -47,18 +50,20 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Repositories{
             catch (Exception ex)
             {
                 result.IsError = true;
-                result.Message = $"Error occurred adding avatar in SQLLiteOASIS Provider.";
+                result.Message = $"Error occurred adding avatar in SQLLiteOASIS Provider. Reason: {ex.ToString()}";
                 result.Exception = ex;
             }
             return result;
         }
 
-        public OASISResult<AvatarDetail> Add(AvatarDetail avatar)
+        public OASISResult<IAvatarDetail> Add(IAvatarDetail avatar)
         {
-            OASISResult<AvatarDetail> result = new OASISResult<AvatarDetail>();
+            OASISResult<IAvatarDetail> result = new OASISResult<IAvatarDetail>();
             try
             {
-                avatar.Id = Guid.NewGuid();
+                if (avatar.Id == Guid.Empty)
+                    avatar.Id = Guid.NewGuid();
+
                 avatar.CreatedProviderType = new EnumValue<ProviderType>(ProviderType.SQLLiteDBOASIS);
 
                 if (AvatarManager.LoggedInAvatar != null)
@@ -80,24 +85,26 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Repositories{
             catch (Exception ex)
             {
                 result.IsError = true;
-                result.Message = $"Error occurred adding avatarDetail in SQLLiteOASIS Provider.";
+                result.Message = $"Error occurred adding avatarDetail in SQLLiteOASIS Provider. Reason: {ex.ToString()}";
                 result.Exception = ex;
             }
             return result;
         }
 
-        public async Task<OASISResult<Avatar>> AddAsync(Avatar avatar)
+        public async Task<OASISResult<IAvatar>> AddAsync(IAvatar avatar)
         {
-            OASISResult<Avatar> result = new OASISResult<Avatar>();
+            OASISResult<IAvatar> result = new OASISResult<IAvatar>();
             try
             {
-                avatar.Id = Guid.NewGuid();
+                if (avatar.Id == Guid.Empty)
+                    avatar.Id = Guid.NewGuid();
+
                 avatar.CreatedProviderType = new EnumValue<ProviderType>(ProviderType.SQLLiteDBOASIS);
 
-                if (AvatarManager.LoggedInAvatar != null)
-                    avatar.CreatedByAvatarId = AvatarManager.LoggedInAvatar.Id;
+                //if (AvatarManager.LoggedInAvatar != null)
+                //    avatar.CreatedByAvatarId = AvatarManager.LoggedInAvatar.Id;
 
-                avatar.CreatedDate = DateTime.Now;
+                //avatar.CreatedDate = DateTime.Now;
 
                 AvatarModel avatarModel=new AvatarModel(avatar);
                 await dataBase.Avatars.AddAsync(avatarModel);
@@ -113,24 +120,26 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Repositories{
             catch (Exception ex)
             {
                 result.IsError = true;
-                result.Message = $"Error occurred adding avatar in SQLLiteOASIS Provider.";
+                result.Message = $"Error occurred adding avatar in SQLLiteOASIS Provider. Reason: {ex.ToString()}";
                 result.Exception = ex;
             }
             return result;
         }
 
-        public async Task<OASISResult<AvatarDetail>> AddAsync(AvatarDetail avatar)
+        public async Task<OASISResult<IAvatarDetail>> AddAsync(IAvatarDetail avatar)
         {
-            OASISResult<AvatarDetail> result = new OASISResult<AvatarDetail>();
+            OASISResult<IAvatarDetail> result = new OASISResult<IAvatarDetail>();
             try
             {
-                avatar.Id = Guid.NewGuid();
+                if (avatar.Id == Guid.Empty)
+                    avatar.Id = Guid.NewGuid();
+
                 avatar.CreatedProviderType = new EnumValue<ProviderType>(ProviderType.SQLLiteDBOASIS);
 
-                if (AvatarManager.LoggedInAvatar != null)
-                    avatar.CreatedByAvatarId = AvatarManager.LoggedInAvatar.Id;
+                //if (AvatarManager.LoggedInAvatar != null)
+                //    avatar.CreatedByAvatarId = AvatarManager.LoggedInAvatar.Id;
 
-                avatar.CreatedDate = DateTime.Now;
+                //avatar.CreatedDate = DateTime.Now;
 
                 AvatarDetailModel avatarModel=new AvatarDetailModel(avatar);
                 await dataBase.AvatarDetails.AddAsync(avatarModel);
@@ -145,7 +154,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Repositories{
             catch (Exception ex)
             {
                 result.IsError = true;
-                result.Message = $"Error occurred adding avatarDetail in SQLLiteOASIS Provider.";
+                result.Message = $"Error occurred adding avatar in SQLLiteOASIS Provider. Reason: {ex.ToString()}";
                 result.Exception = ex;
             }
             return result;
@@ -183,7 +192,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Repositories{
             catch(Exception ex)
             {
                 result.IsError = true;
-                result.Message = $"Error occurred deleting avatar in SQLLiteOASIS Provider.";
+                result.Message = $"Error occurred deleting avatar in SQLLiteOASIS Provider. Reason: {ex.ToString()}";
                 result.Exception = ex;
             }
             return(result);
@@ -220,7 +229,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Repositories{
             catch(Exception ex)
             {
                 result.IsError = true;
-                result.Message = $"Error occurred deleting avatar in SQLLiteOASIS Provider.";
+                result.Message = $"Error occurred deleting avatar in SQLLiteOASIS Provider. Reason: {ex.ToString()}";
                 result.Exception = ex;
             }
             return(result);
@@ -259,7 +268,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Repositories{
             catch(Exception ex){
 
                 result.IsError = true;
-                result.Message = $"Error occurred deleting avatar in SQLLiteOASIS Provider.";
+                result.Message = $"Error occurred deleting avatar in SQLLiteOASIS Provider. Reason: {ex.ToString()}";
                 result.Exception = ex;
             }
             return(result);
@@ -298,7 +307,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Repositories{
             catch(Exception ex){
 
                 result.IsError = true;
-                result.Message = $"Error occurred deleting avatar in SQLLiteOASIS Provider.";
+                result.Message = $"Error occurred deleting avatar in SQLLiteOASIS Provider. Reason: {ex.ToString()}";
                 result.Exception = ex;
             }
             return(result);
@@ -337,7 +346,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Repositories{
             catch(Exception ex)
             {
                 result.IsError = true;
-                result.Message = $"Error occurred deleting avatar in SQLLiteOASIS Provider.";
+                result.Message = $"Error occurred deleting avatar in SQLLiteOASIS Provider. Reason: {ex.ToString()}";
                 result.Exception = ex;
             }
             return(result);
@@ -374,15 +383,15 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Repositories{
             catch(Exception ex)
             {
                 result.IsError = true;
-                result.Message = $"Error occurred deleting avatar in SQLLiteOASIS Provider.";
+                result.Message = $"Error occurred deleting avatar in SQLLiteOASIS Provider. Reason: {ex.ToString()}";
                 result.Exception = ex;
             }
             return(result);
         }
 
-        public OASISResult<Avatar> GetAvatar(Guid id)
+        public OASISResult<IAvatar> GetAvatar(Guid id)
         {
-            OASISResult<Avatar> result=new OASISResult<Avatar>();
+            OASISResult<IAvatar> result=new OASISResult<IAvatar>();
             String convertedId = id.ToString();
             try
             {
@@ -398,15 +407,15 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Repositories{
             catch(Exception ex)
             {
                 result.IsError = true;
-                result.Message = $"Error occurred getting avatar in SQLLiteOASIS Provider.";
+                result.Message = $"Error occurred getting avatar in SQLLiteOASIS Provider. Reason: {ex.ToString()}";
                 result.Exception = ex;
             }
             return(result);
         }
 
-        public OASISResult<Avatar> GetAvatar(string username)
+        public OASISResult<IAvatar> GetAvatar(string username)
         {
-            OASISResult<Avatar> result=new OASISResult<Avatar>();
+            OASISResult<IAvatar> result=new OASISResult<IAvatar>();
             try
             {
                 AvatarModel avatarModel = dataBase.Avatars.AsNoTracking().FirstOrDefault(x => x.Username.Equals(username));
@@ -421,15 +430,15 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Repositories{
             catch(Exception ex)
             {
                 result.IsError = true;
-                result.Message = $"Error occurred getting avatar in SQLLiteOASIS Provider.";
+                result.Message = $"Error occurred getting avatar in SQLLiteOASIS Provider. Reason: {ex.ToString()}";
                 result.Exception = ex;
             }
             return(result);
         }
 
-        public OASISResult<Avatar> GetAvatar(string username, string password)
+        public OASISResult<IAvatar> GetAvatar(string username, string password)
         {
-            OASISResult<Avatar> result=new OASISResult<Avatar>();
+            OASISResult<IAvatar> result=new OASISResult<IAvatar>();
             try
             {
                 AvatarModel avatarModel = dataBase.Avatars.AsNoTracking().FirstOrDefault(x => x.Username.Equals(username) && x.Password.Equals(password));
@@ -444,15 +453,15 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Repositories{
             catch(Exception ex)
             {
                 result.IsError = true;
-                result.Message = $"Error occurred getting avatar in SQLLiteOASIS Provider.";
+                result.Message = $"Error occurred getting avatar in SQLLiteOASIS Provider. Reason: {ex.ToString()}";
                 result.Exception = ex;
             }
             return(result);
         }
 
-        public async Task<OASISResult<Avatar>> GetAvatarAsync(Guid id)
+        public async Task<OASISResult<IAvatar>> GetAvatarAsync(Guid id)
         {
-            OASISResult<Avatar> result=new OASISResult<Avatar>();
+            OASISResult<IAvatar> result=new OASISResult<IAvatar>();
             try
             {
                 String convertedId = id.ToString();
@@ -471,15 +480,15 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Repositories{
             catch(Exception ex)
             {
                 result.IsError = true;
-                result.Message = $"Error occurred getting avatar in SQLLiteOASIS Provider.";
+                result.Message = $"Error occurred getting avatar in SQLLiteOASIS Provider. Reason: {ex.ToString()}";
                 result.Exception = ex;
             }
             return(result);
         }
 
-        public async Task<OASISResult<Avatar>> GetAvatarAsync(string username)
+        public async Task<OASISResult<IAvatar>> GetAvatarAsync(string username)
         {
-            OASISResult<Avatar> result=new OASISResult<Avatar>();
+            OASISResult<IAvatar> result=new OASISResult<IAvatar>();
             try
             {
                 AvatarModel avatarModel = dataBase.Avatars.AsNoTracking().FirstOrDefault(x => x.Username.Equals(username));
@@ -497,15 +506,15 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Repositories{
             catch(Exception ex)
             {
                 result.IsError = true;
-                result.Message = $"Error occurred getting avatar in SQLLiteOASIS Provider.";
+                result.Message = $"Error occurred getting avatar in SQLLiteOASIS Provider. Reason: {ex.ToString()}";
                 result.Exception = ex;
             }
             return(result);
         }
 
-        public async Task<OASISResult<Avatar>> GetAvatarAsync(string username, string password)
+        public async Task<OASISResult<IAvatar>> GetAvatarAsync(string username, string password)
         {
-            OASISResult<Avatar> result=new OASISResult<Avatar>();
+            OASISResult<IAvatar> result=new OASISResult<IAvatar>();
             try
             {
                 AvatarModel avatarModel = dataBase.Avatars.AsNoTracking().FirstOrDefault(x => x.Username.Equals(username) && x.Password.Equals(password));
@@ -523,15 +532,15 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Repositories{
             catch(Exception ex)
             {
                 result.IsError = true;
-                result.Message = $"Error occurred getting avatar in SQLLiteOASIS Provider.";
+                result.Message = $"Error occurred getting avatar in SQLLiteOASIS Provider. Reason: {ex.ToString()}";
                 result.Exception = ex;
             }
             return(result);
         }
 
-        public async Task<OASISResult<Avatar>> GetAvatarByEmailAsync(string avatarEmail)
+        public async Task<OASISResult<IAvatar>> GetAvatarByEmailAsync(string avatarEmail)
         {
-            OASISResult<Avatar> result=new OASISResult<Avatar>();
+            OASISResult<IAvatar> result=new OASISResult<IAvatar>();
             try
             {
                 AvatarModel avatarModel = dataBase.Avatars.AsNoTracking().FirstOrDefault(x => x.Email.Equals(avatarEmail));
@@ -548,15 +557,15 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Repositories{
             catch(Exception ex)
             {
                 result.IsError = true;
-                result.Message = $"Error occurred getting avatar in SQLLiteOASIS Provider.";
+                result.Message = $"Error occurred getting avatar in SQLLiteOASIS Provider. Reason: {ex.ToString()}";
                 result.Exception = ex;
             }
             return(result);
         }
 
-        public OASISResult<Avatar> GetAvatarByEmail(string avatarEmail)
+        public OASISResult<IAvatar> GetAvatarByEmail(string avatarEmail)
         {
-            OASISResult<Avatar> result=new OASISResult<Avatar>();
+            OASISResult<IAvatar> result=new OASISResult<IAvatar>();
             try
             {
                 AvatarModel avatarModel = dataBase.Avatars.AsNoTracking().FirstOrDefault(x => x.Email.Equals(avatarEmail));
@@ -570,15 +579,15 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Repositories{
             catch(Exception ex)
             {
                 result.IsError = true;
-                result.Message = $"Error occurred getting avatar in SQLLiteOASIS Provider.";
+                result.Message = $"Error occurred getting avatar in SQLLiteOASIS Provider. Reason: {ex.ToString()}";
                 result.Exception = ex;
             }
             return(result);
         }
 
-        public OASISResult<AvatarDetail> GetAvatarDetail(Guid id)
+        public OASISResult<IAvatarDetail> GetAvatarDetail(Guid id)
         {
-            OASISResult<AvatarDetail> result=new OASISResult<AvatarDetail>();
+            OASISResult<IAvatarDetail> result=new OASISResult<IAvatarDetail>();
             try
             {
                 String convertedId = id.ToString();
@@ -594,15 +603,16 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Repositories{
             catch(Exception ex)
             {
                 result.IsError = true;
-                result.Message = $"Error occurred getting AvatarDetail in SQLLiteOASIS Provider.";
+                result.Message = $"Error occurred getting AvatarDetail in SQLLiteOASIS Provider. Reason: {ex.ToString()}";
                 result.Exception = ex;
             }
             return(result);
         }
 
-        public OASISResult<AvatarDetail> GetAvatarDetail(string username)
+        public OASISResult<IAvatarDetail> GetAvatarDetail(string username)
         {
-            OASISResult<AvatarDetail> result=new OASISResult<AvatarDetail>();
+            OASISResult<IAvatarDetail> result=new OASISResult<IAvatarDetail>();
+
             try
             {
                 AvatarDetailModel avatarModel = dataBase.AvatarDetails.AsNoTracking().FirstOrDefault(x => x.Username.Equals(username));
@@ -617,42 +627,41 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Repositories{
             catch(Exception ex)
             {
                 result.IsError = true;
-                result.Message = $"Error occurred getting AvatarDetail in SQLLiteOASIS Provider.";
+                result.Message = $"Error occurred getting AvatarDetail in SQLLiteOASIS Provider. Reason: {ex.ToString()}";
                 result.Exception = ex;
             }
             return(result);
         }
 
-        public async Task<OASISResult<AvatarDetail>> GetAvatarDetailAsync(Guid id)
+        public async Task<OASISResult<IAvatarDetail>> GetAvatarDetailAsync(Guid id)
         {
-            OASISResult<AvatarDetail> result=new OASISResult<AvatarDetail>();
+            OASISResult<IAvatarDetail> result=new OASISResult<IAvatarDetail>();
             try
             {
                 String convertedId = id.ToString();
                 AvatarDetailModel avatarModel = dataBase.AvatarDetails.AsNoTracking().FirstOrDefault(x => x.Id.Equals(convertedId));
 
-                if (avatarModel != null){
-
+                if (avatarModel != null)
+                {
                     Action loadAction = delegate(){LoadAvatarDetailReferences(avatarModel);};
                     Task loadReferencesTask = new Task(loadAction);
 
                     await loadReferencesTask;
-
                     result.Result=avatarModel.GetAvatar();
                 }
             }
             catch(Exception ex)
             {
                 result.IsError = true;
-                result.Message = $"Error occurred getting AvatarDetail in SQLLiteOASIS Provider.";
+                result.Message = $"Error occurred getting AvatarDetail in SQLLiteOASIS Provider. Reason: {ex.ToString()}";
                 result.Exception = ex;
             }
             return(result);
         }
 
-        public async Task<OASISResult<AvatarDetail>> GetAvatarDetailAsync(string username)
+        public async Task<OASISResult<IAvatarDetail>> GetAvatarDetailAsync(string username)
         {
-            OASISResult<AvatarDetail> result=new OASISResult<AvatarDetail>();
+            OASISResult<IAvatarDetail> result=new OASISResult<IAvatarDetail>();
             try
             {
                 AvatarDetailModel avatarModel = dataBase.AvatarDetails.AsNoTracking().FirstOrDefault(x => x.Username.Equals(username));
@@ -669,15 +678,15 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Repositories{
             catch(Exception ex)
             {
                 result.IsError = true;
-                result.Message = $"Error occurred getting AvatarDetail in SQLLiteOASIS Provider.";
+                result.Message = $"Error occurred getting AvatarDetail in SQLLiteOASIS Provider. Reason: {ex.ToString()}";
                 result.Exception = ex;
             }
             return(result);
         }
 
-        public OASISResult<AvatarDetail> GetAvatarDetailByEmail(string avatarEmail)
+        public OASISResult<IAvatarDetail> GetAvatarDetailByEmail(string avatarEmail)
         {
-            OASISResult<AvatarDetail> result=new OASISResult<AvatarDetail>();
+            OASISResult<IAvatarDetail> result=new OASISResult<IAvatarDetail>();
             try
             {
                 AvatarDetailModel avatarModel = dataBase.AvatarDetails.AsNoTracking().FirstOrDefault(x => x.Email.Equals(avatarEmail));
@@ -692,15 +701,15 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Repositories{
             catch(Exception ex)
             {
                 result.IsError = true;
-                result.Message = $"Error occurred getting AvatarDetail in SQLLiteOASIS Provider.";
+                result.Message = $"Error occurred getting AvatarDetail in SQLLiteOASIS Provider. Reason: {ex.ToString()}";
                 result.Exception = ex;
             }
             return(result);
         }
 
-        public async Task<OASISResult<AvatarDetail>> GetAvatarDetailByEmailAsync(string avatarEmail)
+        public async Task<OASISResult<IAvatarDetail>> GetAvatarDetailByEmailAsync(string avatarEmail)
         {
-            OASISResult<AvatarDetail> result=new OASISResult<AvatarDetail>();
+            OASISResult<IAvatarDetail> result=new OASISResult<IAvatarDetail>();
             try
             {
                 AvatarDetailModel avatarModel = dataBase.AvatarDetails.AsNoTracking().FirstOrDefault(x => x.Email.Equals(avatarEmail));
@@ -718,44 +727,48 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Repositories{
             catch(Exception ex)
             {
                 result.IsError = true;
-                result.Message = $"Error occurred getting AvatarDetail in SQLLiteOASIS Provider.";
+                result.Message = $"Error occurred getting AvatarDetail in SQLLiteOASIS Provider. Reason: {ex.ToString()}";
                 result.Exception = ex;
             }
             return(result);
         }
 
-        public OASISResult<IEnumerable<AvatarDetail>> GetAvatarDetails()
+        public OASISResult<IEnumerable<IAvatarDetail>> GetAvatarDetails()
         {
-            OASISResult<IEnumerable<AvatarDetail>> result=new OASISResult<IEnumerable<AvatarDetail>>();
-            try{
+            OASISResult<IEnumerable<IAvatarDetail>> result=new OASISResult<IEnumerable<IAvatarDetail>>();
+
+            try
+            {
                 List<AvatarDetail> details = new List<AvatarDetail>();
+                List<AvatarDetailModel> detailModels=dataBase.AvatarDetails.AsNoTracking().ToList();
 
-                List<AvatarDetailModel> detailModels=dataBase.AvatarDetails.AsNoTracking().ToList<AvatarDetailModel>();
                 foreach (AvatarDetailModel model in detailModels)
                 {
                     LoadAvatarDetailReferences(model);
                     details.Add(model.GetAvatar());
                 }
+
                 result.Result = details;
 
             }
             catch(Exception ex)
             {
                 result.IsError = true;
-                result.Message = $"Error occurred getting AvatarDetail in SQLLiteOASIS Provider.";
+                result.Message = $"Error occurred getting AvatarDetail in SQLLiteOASIS Provider. Reason: {ex.ToString()}";
                 result.Exception = ex;
             }
             return(result);
         }
 
-        public async Task<OASISResult<IEnumerable<AvatarDetail>>> GetAvatarDetailsAsync()
+        public async Task<OASISResult<IEnumerable<IAvatarDetail>>> GetAvatarDetailsAsync()
         {
-            OASISResult<IEnumerable<AvatarDetail>> result=new OASISResult<IEnumerable<AvatarDetail>>();
+            OASISResult<IEnumerable<IAvatarDetail>> result = new OASISResult<IEnumerable<IAvatarDetail>>();
+
             try
             {
-                List<AvatarDetail> details=new List<AvatarDetail>();
+                List<IAvatarDetail> details = new List<IAvatarDetail>();
+                List<AvatarDetailModel> detailModels=dataBase.AvatarDetails.AsNoTracking().ToList();
 
-                List<AvatarDetailModel> detailModels=dataBase.AvatarDetails.AsNoTracking().ToList<AvatarDetailModel>();
                 foreach (AvatarDetailModel model in detailModels)
                 {
                     Action loadAction = delegate(){LoadAvatarDetailReferences(model);};
@@ -771,46 +784,47 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Repositories{
             catch(Exception ex)
             {
                 result.IsError = true;
-                result.Message = $"Error occurred getting AvatarDetail in SQLLiteOASIS Provider.";
+                result.Message = $"Error occurred getting AvatarDetail in SQLLiteOASIS Provider. Reason: {ex.ToString()}";
                 result.Exception = ex;
             }
             return(result);
         }
 
-        public OASISResult<List<Avatar>> GetAvatars()
+        public OASISResult<IEnumerable<IAvatar>> GetAvatars()
         {
-            OASISResult<List<Avatar>> result=new OASISResult<List<Avatar>>();
+            OASISResult<IEnumerable<IAvatar>> result = new OASISResult<IEnumerable<IAvatar>>();
 
-            try{
+            try
+            {
+                List<IAvatar> avatarsList = new List<IAvatar>();
+                List<AvatarModel> avatarModels=dataBase.Avatars.ToList();
 
-                List<Avatar> avatarsList=new List<Avatar>();
-
-                List<AvatarModel> avatarModels=dataBase.Avatars.ToList<AvatarModel>();
                 foreach (AvatarModel model in avatarModels)
                 {
                     LoadAvatarReferences(model);
                     avatarsList.Add(model.GetAvatar());
                 }
+
                 result.Result = avatarsList;
 
             }
             catch(Exception ex)
             {
                 result.IsError = true;
-                result.Message = $"Error occurred getting AvatarDetail in SQLLiteOASIS Provider.";
+                result.Message = $"Error occurred getting AvatarDetail in SQLLiteOASIS Provider. Reason: {ex.ToString()}";
                 result.Exception = ex;
             }
             return(result);
         }
 
-        public async Task<OASISResult<List<Avatar>>> GetAvatarsAsync()
+        public async Task<OASISResult<IEnumerable<IAvatar>>> GetAvatarsAsync()
         {
-            OASISResult<List<Avatar>> result=new OASISResult<List<Avatar>>();
+            OASISResult<IEnumerable<IAvatar>> result=new OASISResult<IEnumerable<IAvatar>>();
             try
             {
-                List<Avatar> avatarsList=new List<Avatar>();
+                List<IAvatar> avatarsList = new List<IAvatar>();
+                List<AvatarModel> avatarModels=dataBase.Avatars.ToList();
 
-                List<AvatarModel> avatarModels=dataBase.Avatars.ToList<AvatarModel>();
                 foreach (AvatarModel model in avatarModels)
                 {
                     Action loadAction = delegate(){LoadAvatarReferences(model);};
@@ -825,21 +839,21 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Repositories{
             catch(Exception ex)
             {
                 result.IsError = true;
-                result.Message = $"Error occurred getting AvatarDetail in SQLLiteOASIS Provider.";
+                result.Message = $"Error occurred getting AvatarDetail in SQLLiteOASIS Provider. Reason: {ex.ToString()}";
                 result.Exception = ex;
             }
             return(result);
         }
 
-        public OASISResult<Avatar> Update(Avatar avatar)
+        public OASISResult<IAvatar> Update(IAvatar avatar)
         {
-            OASISResult<Avatar> result=new OASISResult<Avatar>();
+            OASISResult<IAvatar> result=new OASISResult<IAvatar>();
             try
             {
-                if (AvatarManager.LoggedInAvatar != null)
-                    avatar.ModifiedByAvatarId = AvatarManager.LoggedInAvatar.Id;
+                //if (AvatarManager.LoggedInAvatar != null)
+                //   avatar.ModifiedByAvatarId = AvatarManager.LoggedInAvatar.Id;
 
-                avatar.ModifiedDate = DateTime.Now;  
+                //avatar.ModifiedDate = DateTime.Now;  
                 
                 AvatarModel avatarModel=new AvatarModel(avatar);
 
@@ -851,21 +865,21 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Repositories{
             catch(Exception ex)
             {
                 result.IsError = true;
-                result.Message = $"Error occurred updating AvatarDetail in SQLLiteOASIS Provider.";
+                result.Message = $"Error occurred updating AvatarDetail in SQLLiteOASIS Provider. Reason: {ex.ToString()}";
                 result.Exception = ex;
             }
             return(result);
         }
 
-        public OASISResult<AvatarDetail> Update(AvatarDetail avatar)
+        public OASISResult<IAvatarDetail> Update(IAvatarDetail avatar)
         {
-            OASISResult<AvatarDetail> result=new OASISResult<AvatarDetail>();
+            OASISResult<IAvatarDetail> result=new OASISResult<IAvatarDetail>();
             try
             {
-                if (AvatarManager.LoggedInAvatar != null)
-                    avatar.ModifiedByAvatarId = AvatarManager.LoggedInAvatar.Id;
+               //if (AvatarManager.LoggedInAvatar != null)
+                //    avatar.ModifiedByAvatarId = AvatarManager.LoggedInAvatar.Id;
 
-                avatar.ModifiedDate = DateTime.Now;  
+                //avatar.ModifiedDate = DateTime.Now;  
 
                 AvatarDetailModel avatarModel=new AvatarDetailModel(avatar);
 
@@ -877,21 +891,21 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Repositories{
             catch(Exception ex)
             {
                 result.IsError = true;
-                result.Message = $"Error occurred updating AvatarDetail in SQLLiteOASIS Provider.";
+                result.Message = $"Error occurred updating AvatarDetail in SQLLiteOASIS Provider. Reason: {ex.ToString()}";
                 result.Exception = ex;
             }
             return(result);
         }
 
-        public async Task<OASISResult<Avatar>> UpdateAsync(Avatar avatar)
+        public async Task<OASISResult<IAvatar>> UpdateAsync(IAvatar avatar)
         {
-            OASISResult<Avatar> result=new OASISResult<Avatar>();
+            OASISResult<IAvatar> result=new OASISResult<IAvatar>();
             try
             {
-                if (AvatarManager.LoggedInAvatar != null)
-                    avatar.ModifiedByAvatarId = AvatarManager.LoggedInAvatar.Id;
+               // if (AvatarManager.LoggedInAvatar != null)
+                //    avatar.ModifiedByAvatarId = AvatarManager.LoggedInAvatar.Id;
 
-                avatar.ModifiedDate = DateTime.Now;  
+                //avatar.ModifiedDate = DateTime.Now;  
 
                 AvatarModel avatarModel=new AvatarModel(avatar);
 
@@ -903,21 +917,21 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Repositories{
             catch(Exception ex)
             {
                 result.IsError = true;
-                result.Message = $"Error occurred updating AvatarDetail in SQLLiteOASIS Provider.";
+                result.Message = $"Error occurred updating AvatarDetail in SQLLiteOASIS Provider. Reason: {ex.ToString()}";
                 result.Exception = ex;
             }
             return(result);
         }
 
-        public async Task<OASISResult<AvatarDetail>> UpdateAsync(AvatarDetail avatar)
+        public async Task<OASISResult<IAvatarDetail>> UpdateAsync(IAvatarDetail avatar)
         {
-            OASISResult<AvatarDetail> result=new OASISResult<AvatarDetail>();
+            OASISResult<IAvatarDetail> result=new OASISResult<IAvatarDetail>();
             try
             {
-                if (AvatarManager.LoggedInAvatar != null)
-                    avatar.ModifiedByAvatarId = AvatarManager.LoggedInAvatar.Id;
+                //if (AvatarManager.LoggedInAvatar != null)
+                //    avatar.ModifiedByAvatarId = AvatarManager.LoggedInAvatar.Id;
 
-                avatar.ModifiedDate = DateTime.Now;  
+               // avatar.ModifiedDate = DateTime.Now;  
 
                 AvatarDetailModel avatarModel=new AvatarDetailModel(avatar);
 
@@ -929,7 +943,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Repositories{
             catch(Exception ex)
             {
                 result.IsError = true;
-                result.Message = $"Error occurred updating AvatarDetail in SQLLiteOASIS Provider.";
+                result.Message = $"Error occurred updating AvatarDetail in SQLLiteOASIS Provider. Reason: {ex.ToString()}";
                 result.Exception = ex;
             }
             return(result);

@@ -6,6 +6,7 @@ using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using NextGenSoftware.OASIS.API.Core.Interfaces;
 
 namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.DataBaseModels{
 
@@ -68,7 +69,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.DataBaseModels{
         public List<MetaDataModel> MetaData { get; set;}
 
         public AvatarModel(){}
-        public AvatarModel(Avatar source){
+        public AvatarModel(IAvatar source){
 
             if(source.Id == Guid.Empty){
                 this.Id = Guid.NewGuid().ToString();
