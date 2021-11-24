@@ -7,7 +7,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
 {
     public class Galaxy : Holon, IGalaxy
     {
-        public ISuperStar SuperStar { get; set; } = new SuperStar();
+        public ISuperStar SuperStar { get; set; } = new SuperStar() { CreatedOASISType = new API.Core.Helpers.EnumValue<API.Core.Enums.OASISType>(API.Core.Enums.OASISType.STARCLI) };
         public List<ISolarSystem> SolarSystems { get; set; } = new List<ISolarSystem>();
         public List<INebula> Nebulas { get; set; } = new List<INebula>();
         public List<IStar> Stars { get; set; } = new List<IStar>();

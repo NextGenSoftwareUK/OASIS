@@ -625,6 +625,7 @@ namespace NextGenSoftware.OASIS.STAR.Zomes
 
         private IHolon RestoreCelesialBodies(IHolon originalHolon) 
         {
+            originalHolon.IsNewHolon = false;
             originalHolon.ParentOmiverse = _parentOmiverse[originalHolon.Id];
             originalHolon.ParentDimension = _parentDimension[originalHolon.Id];
             originalHolon.ParentMultiverse = _parentMultiverse[originalHolon.Id];
@@ -693,6 +694,7 @@ namespace NextGenSoftware.OASIS.STAR.Zomes
                     Mapper.MapBaseHolonProperties(savingHolon, result.Result);
 
                 result.Result = RestoreCelesialBodies(savingHolon);
+                //result.Result = RestoreCelesialBodies(result.Result);
                 OnHolonSaved?.Invoke(this, new HolonSavedEventArgs() { Result = result });
             }
             else

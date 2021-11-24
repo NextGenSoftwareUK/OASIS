@@ -301,7 +301,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
             holons.Add(holon);
 
             //OASISResult<IEnumerable<IHolon>> holonsResult = await base.SaveHolonsAsync(holons, false);
-            OASISResult<IEnumerable<IHolon>> holonsResult = await base.SaveHolonsAsync(holons, true); //TODO: Temp to test new code...
+            OASISResult<IEnumerable<IHolon>> holonsResult = await base.SaveHolonsAsync(holons, false); //TODO: Temp to test new code...
             OASISResultCollectionToHolonHelper<IEnumerable<IHolon>, IHolon>.CopyResult(holonsResult, ref result);
 
             if (!holonsResult.IsError)

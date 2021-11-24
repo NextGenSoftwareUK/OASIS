@@ -293,9 +293,14 @@ namespace NextGenSoftware.OASIS.STAR
 
         public async Task<OASISResult<IGalaxyCluster>> AddGalaxyClusterToUniverseAsync(IUniverse universe, IGalaxyCluster galaxyCluster)
         {
-            return OASISResultHolonToHolonHelper<IHolon, IGalaxyCluster>.CopyResult(
-               await AddHolonToCollectionAsync(universe, galaxyCluster, (List<IHolon>)Mapper<IGalaxyCluster, Holon>.MapBaseHolonProperties(
-                   universe.GalaxyClusters)), new OASISResult<IGalaxyCluster>());
+            OASISResult<IHolon> holonResult = await AddHolonToCollectionAsync(universe, galaxyCluster, (List<IHolon>)Mapper<IGalaxyCluster, Holon>.Convert(universe.GalaxyClusters));
+            OASISResult<IGalaxyCluster> galaxyClusterResult = OASISResultHolonToHolonHelper<IHolon, IGalaxyCluster>.CopyResult(holonResult, new OASISResult<IGalaxyCluster>());
+            galaxyClusterResult.Result = (IGalaxyCluster)holonResult.Result;
+            return galaxyClusterResult;
+
+            //return OASISResultHolonToHolonHelper<IHolon, IGalaxyCluster>.CopyResult(
+            //   await AddHolonToCollectionAsync(universe, galaxyCluster, (List<IHolon>)Mapper<IGalaxyCluster, Holon>.MapBaseHolonProperties(
+            //      universe.GalaxyClusters)), new OASISResult<IGalaxyCluster>());
         }
 
         public OASISResult<IGalaxyCluster> AddGalaxyClusterToUniverse(IUniverse universe, IGalaxyCluster galaxyCluster)
@@ -352,11 +357,15 @@ namespace NextGenSoftware.OASIS.STAR
                 galaxy.SuperStar.ParentGalaxyClusterId = galaxyCluster.Id;
                 galaxy.SuperStar.ParentGalaxy = galaxy;
                 galaxy.SuperStar.ParentGalaxyId = galaxy.Id;
-            }    
+            }
 
-            result = OASISResultHolonToHolonHelper<IHolon, IGalaxy>.CopyResult(
-                await AddHolonToCollectionAsync(galaxyCluster, galaxy, (List<IHolon>)Mapper<IGalaxy, Holon>.MapBaseHolonProperties(
-                    galaxyCluster.Galaxies)), new OASISResult<IGalaxy>());
+            //result = OASISResultHolonToHolonHelper<IHolon, IGalaxy>.CopyResult(
+            //    await AddHolonToCollectionAsync(galaxyCluster, galaxy, (List<IHolon>)Mapper<IGalaxy, Holon>.MapBaseHolonProperties(
+            //        galaxyCluster.Galaxies)), new OASISResult<IGalaxy>());
+
+            OASISResult<IHolon> holonResult = await AddHolonToCollectionAsync(galaxyCluster, galaxy, (List<IHolon>)Mapper<IGalaxy, Holon>.Convert(galaxyCluster.Galaxies));
+            result = OASISResultHolonToHolonHelper<IHolon, IGalaxy>.CopyResult(holonResult, new OASISResult<IGalaxy>());
+            result.Result = (IGalaxy)holonResult.Result;
 
             if (!result.IsError && result.Result != null)
             {
@@ -387,9 +396,14 @@ namespace NextGenSoftware.OASIS.STAR
 
         public async Task<OASISResult<ISolarSystem>> AddSolarSystemToUniverseAsync(IUniverse universe, ISolarSystem solarSystem)
         {
-            return OASISResultHolonToHolonHelper<IHolon, ISolarSystem>.CopyResult(
-                await AddHolonToCollectionAsync(universe, solarSystem, (List<IHolon>)Mapper<ISolarSystem, Holon>.MapBaseHolonProperties(
-                    universe.SolarSystems)), new OASISResult<ISolarSystem>());
+            OASISResult<IHolon> holonResult = await AddHolonToCollectionAsync(universe, solarSystem, (List<IHolon>)Mapper<ISolarSystem, Holon>.Convert(universe.SolarSystems));
+            OASISResult<ISolarSystem> result = OASISResultHolonToHolonHelper<IHolon, ISolarSystem>.CopyResult(holonResult, new OASISResult<ISolarSystem>());
+            result.Result = (ISolarSystem)holonResult.Result;
+            return result;
+
+            //return OASISResultHolonToHolonHelper<IHolon, ISolarSystem>.CopyResult(
+            //    await AddHolonToCollectionAsync(universe, solarSystem, (List<IHolon>)Mapper<ISolarSystem, Holon>.MapBaseHolonProperties(
+            //        universe.SolarSystems)), new OASISResult<ISolarSystem>());
         }
 
         public OASISResult<ISolarSystem> AddSolarSystemToUniverse(IUniverse universe, ISolarSystem solarSystem)
@@ -402,6 +416,11 @@ namespace NextGenSoftware.OASIS.STAR
             return OASISResultHolonToHolonHelper<IHolon, IStar>.CopyResult(
                 await AddHolonToCollectionAsync(universe, star, (List<IHolon>)Mapper<IStar, Holon>.MapBaseHolonProperties(
                     universe.Stars)), new OASISResult<IStar>());
+
+            //OASISResult<IHolon> holonResult = await AddHolonToCollectionAsync(universe, solarSystem, (List<IHolon>)Mapper<ISolarSystem, Holon>.Convert(universe.SolarSystems));
+            //OASISResult<ISolarSystem> result = OASISResultHolonToHolonHelper<IHolon, ISolarSystem>.CopyResult(holonResult, new OASISResult<ISolarSystem>());
+            //result.Result = (ISolarSystem)holonResult.Result;
+            //return result;
         }
 
         public OASISResult<IStar> AddStarToUniverse(IUniverse universe, IStar star)

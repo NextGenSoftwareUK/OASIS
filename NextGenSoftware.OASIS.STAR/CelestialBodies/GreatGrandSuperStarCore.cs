@@ -89,6 +89,8 @@ namespace NextGenSoftware.OASIS.STAR
         {
             OASISResult<IHolon> holonResult =  await AddHolonToCollectionAsync(GreatGrandSuperStar, multiverse, (List<IHolon>)Mapper<IMultiverse, Holon>.Convert(GreatGrandSuperStar.ParentOmiverse.Multiverses));
             OASISResult<IMultiverse> multiverseResult = OASISResultHolonToHolonHelper<IHolon, IMultiverse>.CopyResult(holonResult, new OASISResult<IMultiverse>());
+            multiverseResult.Result = (IMultiverse)holonResult.Result;
+
 
            //OASISResult <IMultiverse> multiverseResult = OASISResultHolonToHolonHelper<IHolon, IMultiverse>.CopyResult(
            //    await AddHolonToCollectionAsync(GreatGrandSuperStar, multiverse, (List<IHolon>)Mapper<IMultiverse, Holon>.MapBaseHolonProperties(
