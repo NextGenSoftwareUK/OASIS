@@ -45,9 +45,14 @@ namespace NextGenSoftware.OASIS.STAR
 
         public async Task<OASISResult<IStar>> AddStarAsync(IStar star)
         {
-            return OASISResultHolonToHolonHelper<IHolon, IStar>.CopyResult(
-                await AddHolonToCollectionAsync(SuperStar, star, (List<IHolon>)Mapper<IStar, Holon>.MapBaseHolonProperties(
-                    SuperStar.ParentGalaxy.Stars)), new OASISResult<IStar>());
+            OASISResult<IHolon> holonResult = await AddHolonToCollectionAsync(SuperStar, star, (List<IHolon>)Mapper<IStar, Holon>.Convert(SuperStar.ParentGalaxy.Stars));
+            OASISResult<IStar> result = OASISResultHolonToHolonHelper<IHolon, IStar>.CopyResult(holonResult, new OASISResult<IStar>());
+            result.Result = (IStar)holonResult.Result;
+            return result;
+
+            //return OASISResultHolonToHolonHelper<IHolon, IStar>.CopyResult(
+            //    await AddHolonToCollectionAsync(SuperStar, star, (List<IHolon>)Mapper<IStar, Holon>.MapBaseHolonProperties(
+            //        SuperStar.ParentGalaxy.Stars)), new OASISResult<IStar>());
         }
 
         public OASISResult<IStar> AddStar(IStar star)

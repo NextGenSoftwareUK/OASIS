@@ -47,6 +47,7 @@ namespace NextGenSoftware.OASIS.API.Core.Helpers
             toResult.IsWarning = fromResult.IsWarning;
             toResult.Message = fromResult.Message;
             toResult.MetaData = fromResult.MetaData;
+           // toResult.Result = fromResult.Result;
 
             return toResult;
         }
