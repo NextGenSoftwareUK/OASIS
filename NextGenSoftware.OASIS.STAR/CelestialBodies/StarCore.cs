@@ -31,9 +31,14 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
 
         public async Task<OASISResult<ISolarSystem>> AddSolarSystemAsync(ISolarSystem solarSystem)
         {
-            return OASISResultHolonToHolonHelper<IHolon, ISolarSystem>.CopyResult(
-                await AddHolonToCollectionAsync(Star, solarSystem, (List<IHolon>)Mapper<ISolarSystem, Holon>.MapBaseHolonProperties(
-                    Star.ParentGalaxy.SolarSystems)), new OASISResult<ISolarSystem>());
+            OASISResult<IHolon> holonResult = await AddHolonToCollectionAsync(Star, solarSystem, (List<IHolon>)Mapper<ISolarSystem, Holon>.Convert(Star.ParentGalaxy.SolarSystems));
+            OASISResult<ISolarSystem> result = OASISResultHolonToHolonHelper<IHolon, ISolarSystem>.CopyResult(holonResult, new OASISResult<ISolarSystem>());
+            result.Result = (ISolarSystem)holonResult.Result;
+            return result;
+
+            //return OASISResultHolonToHolonHelper<IHolon, ISolarSystem>.CopyResult(
+            //    await AddHolonToCollectionAsync(Star, solarSystem, (List<IHolon>)Mapper<ISolarSystem, Holon>.MapBaseHolonProperties(
+            //        Star.ParentGalaxy.SolarSystems)), new OASISResult<ISolarSystem>());
         }
 
         public OASISResult<ISolarSystem> AddSolarSystem(ISolarSystem solarSystem)
@@ -43,9 +48,14 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
 
         public async Task<OASISResult<IPlanet>> AddPlanetAsync(IPlanet planet)
         {
-            return OASISResultHolonToHolonHelper<IHolon, IPlanet>.CopyResult(
-                await AddHolonToCollectionAsync(Star, planet, (List<IHolon>)Mapper<IPlanet, Holon>.MapBaseHolonProperties(
-                    Star.ParentSolarSystem.Planets)), new OASISResult<IPlanet>());
+            OASISResult<IHolon> holonResult = await AddHolonToCollectionAsync(Star, planet, (List<IHolon>)Mapper<IPlanet, Holon>.Convert(Star.ParentSolarSystem.Planets));
+            OASISResult<IPlanet> result = OASISResultHolonToHolonHelper<IHolon, IPlanet>.CopyResult(holonResult, new OASISResult<IPlanet>());
+            result.Result = (IPlanet)holonResult.Result;
+            return result;
+
+            //return OASISResultHolonToHolonHelper<IHolon, IPlanet>.CopyResult(
+            //    await AddHolonToCollectionAsync(Star, planet, (List<IHolon>)Mapper<IPlanet, Holon>.MapBaseHolonProperties(
+            //        Star.ParentSolarSystem.Planets)), new OASISResult<IPlanet>());
         }
 
         public OASISResult<IPlanet> AddPlanet(IPlanet planet)

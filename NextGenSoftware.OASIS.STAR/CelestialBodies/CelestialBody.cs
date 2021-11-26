@@ -14,6 +14,7 @@ using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.STAR.Zomes;
 using NextGenSoftware.OASIS.STAR.CelestialSpace;
+using Mapster;
 
 namespace NextGenSoftware.OASIS.STAR.CelestialBodies
 {
@@ -841,29 +842,42 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
             return CelestialBodyCore.LoadZomes();
         } 
 
+        /*
         public async Task<OASISResult<ICelestialBody>> LoadCelestialBodyAsync()
         {
-            OASISResult<ICelestialBody> result = await CelestialBodyCore.LoadCelestialBodyAsync();
+            //OASISResult<ICelestialBody> result = await CelestialBodyCore.LoadCelestialBodyAsync();
 
-            if (!result.IsError)
-                SetProperties(result.Result);
+            //if (!result.IsError)
+            //    SetProperties(result.Result);
 
-            return result;
+            //return result;
 
-            //(await CelestialBodyCore.LoadCelestialBodyAsync()).Adapt(this);
+            return new OASISResult<ICelestialBody>((await CelestialBodyCore.LoadCelestialBodyAsync()).Adapt(this));
             //IHolon holon = await CelestialBodyCore.LoadCelestialBodyAsync();
            // holon.Adapt(this);
+        }*/
+
+        public async Task<OASISResult<IHolon>> LoadCelestialBodyAsync()
+        {
+            return await CelestialBodyCore.LoadCelestialBodyAsync();
         }
 
+        /*
         public OASISResult<ICelestialBody> LoadCelestialBody()
         {
-            OASISResult<ICelestialBody> result = CelestialBodyCore.LoadCelestialBody();
+            //OASISResult<ICelestialBody> result = CelestialBodyCore.LoadCelestialBody();
 
-            if (!result.IsError)
-                SetProperties(result.Result);
+            //if (!result.IsError)
+            //    SetProperties(result.Result);
 
-            return result;
+            //return result;
             //CelestialBodyCore.LoadCelestialBody().Adapt(this);
+            return new OASISResult<ICelestialBody>(CelestialBodyCore.LoadCelestialBody().Adapt(this));
+        }*/
+
+        public OASISResult<IHolon> LoadCelestialBody()
+        {
+            return CelestialBodyCore.LoadCelestialBody();
         }
 
         public async Task InitializeAsync()
@@ -915,6 +929,9 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
                     CelestialBodyCore = new GreatGrandSuperStarCore((IGreatGrandSuperStar)this);
                     break;
             }
+
+            CelestialBodyCore.Id = this.Id;
+            CelestialBodyCore.ProviderKey = this.ProviderKey;
         }
 
         private void WireUpEvents()

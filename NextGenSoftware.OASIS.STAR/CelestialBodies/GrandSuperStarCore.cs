@@ -338,30 +338,15 @@ namespace NextGenSoftware.OASIS.STAR
                 galaxy.SuperStar = new SuperStar();
                 galaxy.SuperStar.Id = Guid.NewGuid();
                 galaxy.SuperStar.IsNewHolon = true;
-
-                Mapper<IHolon, SuperStar>.MapParentCelestialBodyProperties(galaxyCluster, (SuperStar)galaxy.SuperStar);
-                //galaxy.SuperStar.ParentOmiverse = galaxyCluster.ParentOmiverse;
-                //galaxy.SuperStar.ParentOmiverseId = galaxyCluster.ParentOmiverseId;
-                //galaxy.SuperStar.ParentGreatGrandSuperStar = galaxyCluster.ParentGreatGrandSuperStar;
-                //galaxy.SuperStar.ParentGreatGrandSuperStarId = galaxyCluster.ParentGreatGrandSuperStarId;
-                //galaxy.SuperStar.ParentGrandSuperStar = multiverse.ParentGrandSuperStar;
-                //galaxy.SuperStar.ParentGrandSuperStarId = multiverse.ParentGrandSuperStarId;
-                //galaxy.SuperStar.ParentMultiverse.ParentMultiverse = galaxyCluster.ParentMultiverse;
-                //galaxy.SuperStar.ParentMultiverseId = galaxyCluster.ParentMultiverseId;
-                //galaxy.SuperStar.ParentDimension = galaxyCluster.ParentDimension;
-                //galaxy.SuperStar.ParentDimensionId = galaxyCluster.ParentDimensionId;
-                //galaxy.SuperStar.ParentUniverse = galaxyCluster.ParentUniverse;
-                //galaxy.SuperStar.ParentUniverseId = galaxyCluster.ParentUniverseId;
-
-                galaxy.SuperStar.ParentGalaxyCluster = galaxyCluster;
-                galaxy.SuperStar.ParentGalaxyClusterId = galaxyCluster.Id;
-                galaxy.SuperStar.ParentGalaxy = galaxy;
-                galaxy.SuperStar.ParentGalaxyId = galaxy.Id;
             }
 
-            //result = OASISResultHolonToHolonHelper<IHolon, IGalaxy>.CopyResult(
-            //    await AddHolonToCollectionAsync(galaxyCluster, galaxy, (List<IHolon>)Mapper<IGalaxy, Holon>.MapBaseHolonProperties(
-            //        galaxyCluster.Galaxies)), new OASISResult<IGalaxy>());
+            Mapper<IHolon, SuperStar>.MapParentCelestialBodyProperties(galaxyCluster, (SuperStar)galaxy.SuperStar);
+                
+            galaxy.SuperStar.ParentGalaxyCluster = galaxyCluster;
+            galaxy.SuperStar.ParentGalaxyClusterId = galaxyCluster.Id;
+            galaxy.SuperStar.ParentGalaxy = galaxy;
+            galaxy.SuperStar.ParentGalaxyId = galaxy.Id;
+            
 
             OASISResult<IHolon> holonResult = await AddHolonToCollectionAsync(galaxyCluster, galaxy, (List<IHolon>)Mapper<IGalaxy, Holon>.Convert(galaxyCluster.Galaxies));
             result = OASISResultHolonToHolonHelper<IHolon, IGalaxy>.CopyResult(holonResult, new OASISResult<IGalaxy>());

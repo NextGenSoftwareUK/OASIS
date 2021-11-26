@@ -330,8 +330,13 @@ namespace NextGenSoftware.OASIS.STAR
 
         public static OASISResult<IAvatar> BeamIn(string username, string password)
         {
+            string IPAddress = "";
             string hostName = Dns.GetHostName();
-            string IPAddress = Dns.GetHostEntry(hostName).AddressList[2].ToString();
+            IPHostEntry entry = Dns.GetHostEntry(hostName);
+
+            if (entry != null && entry.AddressList.Length > 2)
+                IPAddress = Dns.GetHostEntry(hostName).AddressList[2].ToString();
+
             //string IPAddress = Dns.GetHostByName(hostName).AddressList[3].ToString();
             //+string IPAddress = Dns.GetHostByName(hostName).AddressList[4].ToString();
 
@@ -1177,13 +1182,11 @@ namespace NextGenSoftware.OASIS.STAR
         
         private static OASISResult<ICelestialBody> IgniteInnerStar(ref OASISResult<ICelestialBody> result)
         {
-            //OASISResult<ICelestialBody> result = new OASISResult<ICelestialBody>();
-
             if (_starId == Guid.Empty)
                 result = CreateOASISOmniverseAsync().Result;
             else
             {
-                DefaultStar = new CelestialBodies.Star(_starId); //TODO: Temp set InnerStar as The Sun at the centre of our Solar System.
+                DefaultStar = new Star(_starId); //TODO: Temp set InnerStar as The Sun at the centre of our Solar System.
                 DefaultStar.Initialize();
             }
 
