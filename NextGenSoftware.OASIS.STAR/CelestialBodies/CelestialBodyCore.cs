@@ -177,21 +177,27 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
             return SaveCelestialBodyAsync<T>(savingHolon).Result;
         }
 
-        public async Task<OASISResult<ICelestialBody>> LoadCelestialBodyAsync()
+        //public async Task<OASISResult<ICelestialBody>> LoadCelestialBodyAsync()
+        //{
+        //    OASISResult<ICelestialBody> result = new OASISResult<ICelestialBody>();
+        //    OASISResult<IHolon> holonResult = await base.LoadHolonAsync();
+        //    OASISResultHolonToHolonHelper<IHolon, ICelestialBody>.CopyResult(holonResult, ref result);
+
+        //    if (!holonResult.IsError && holonResult.Result != null)
+        //    {
+        //        //result.Result = Mapper<IHolon, CelestialBody>.MapBaseHolonProperties(holonResult.Result);
+        //        result.Result = (ICelestialBody)holonResult.Result; //TODO: Not sure if this cast will work? Probably not... Need to map...
+        //    }
+
+        //    return result;
+        //}
+
+        public async Task<OASISResult<IHolon>> LoadCelestialBodyAsync()
         {
-            OASISResult<ICelestialBody> result = new OASISResult<ICelestialBody>();
-            OASISResult<IHolon> holonResult = await base.LoadHolonAsync();
-            OASISResultHolonToHolonHelper<IHolon, ICelestialBody>.CopyResult(holonResult, ref result);
-
-            if (!holonResult.IsError && holonResult.Result != null)
-            {
-                //result.Result = Mapper<IHolon, CelestialBody>.MapBaseHolonProperties(holonResult.Result);
-                result.Result = (ICelestialBody)holonResult.Result; //TODO: Not sure if this cast will work? Probably not... Need to map...
-            }
-
-            return result;
+            return await base.LoadHolonAsync();
         }
 
+        /*
         public OASISResult<ICelestialBody> LoadCelestialBody()
         {
             OASISResult<ICelestialBody> result = new OASISResult<ICelestialBody>();
@@ -201,10 +207,66 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
             if (!holonResult.IsError && holonResult.Result != null)
             {
                 //result.Result = Mapper<IHolon, CelestialBody>.MapBaseHolonProperties(holonResult.Result);
-                result.Result = (ICelestialBody)holonResult.Result; //TODO: Not sure if this cast will work? Probably not... Need to map...
+                //result.Result = Mapper.MapBaseHolonProperties(holonResult.Result, (ICelestialBody)result.Result);
+
+                result.Result = new CelestialBody();
+                result.Result.Id = holonResult.Result.Id;
+                result.Result.ProviderKey = holonResult.Result .ProviderKey;
+                result.Result.Name = holonResult.Result .Name;
+                result.Result.Description = holonResult.Result .Description;
+                result.Result.HolonType = holonResult.Result .HolonType;
+                result.Result.ParentGreatGrandSuperStar = holonResult.Result .ParentGreatGrandSuperStar;
+                result.Result.ParentGreatGrandSuperStarId = holonResult.Result .ParentGreatGrandSuperStarId;
+                result.Result.ParentGrandSuperStar = holonResult.Result .ParentGrandSuperStar;
+                result.Result.ParentGrandSuperStarId = holonResult.Result .ParentGrandSuperStarId;
+                result.Result.ParentSuperStar = holonResult.Result .ParentSuperStar;
+                result.Result.ParentSuperStarId = holonResult.Result .ParentSuperStarId;
+                result.Result.ParentStar = holonResult.Result .ParentStar;
+                result.Result.ParentStarId = holonResult.Result .ParentStarId;
+                result.Result.ParentPlanet = holonResult.Result .ParentPlanet;
+                result.Result.ParentPlanetId = holonResult.Result .ParentPlanetId;
+                result.Result.ParentMoon = holonResult.Result .ParentMoon;
+                result.Result.ParentMoonId = holonResult.Result .ParentMoonId;
+                result.Result.ParentZome = holonResult.Result .ParentZome;
+                result.Result.ParentZomeId = holonResult.Result .ParentZomeId;
+                result.Result.ParentHolon = holonResult.Result .ParentHolon;
+                result.Result.ParentHolonId = holonResult.Result .ParentHolonId;
+                result.Result.ParentOmiverse = holonResult.Result .ParentOmiverse;
+                result.Result.ParentOmiverseId = holonResult.Result .ParentOmiverseId;
+                result.Result.ParentUniverse = holonResult.Result .ParentUniverse;
+                result.Result.ParentUniverseId = holonResult.Result .ParentUniverseId;
+                result.Result.ParentGalaxy = holonResult.Result .ParentGalaxy;
+                result.Result.ParentGalaxyId = holonResult.Result .ParentGalaxyId;
+                result.Result.ParentSolarSystem = holonResult.Result .ParentSolarSystem;
+                result.Result.ParentSolarSystemId = holonResult.Result .ParentSolarSystemId;
+                result.Result.Children = holonResult.Result .Children;
+                result.Result.Nodes = holonResult.Result .Nodes;
+                //result.Result.CelestialBodyCore.Id = holonResult.Result .Id; //TODO: Dont think need result.Result now?
+                //result.Result.CelestialBodyCore.ProviderKey = holonResult.Result .ProviderKey; //TODO: Dont think need result.Result now?
+                result.Result.CreatedByAvatar = holonResult.Result .CreatedByAvatar;
+                result.Result.CreatedByAvatarId = holonResult.Result .CreatedByAvatarId;
+                result.Result.CreatedDate = holonResult.Result .CreatedDate;
+                result.Result.ModifiedByAvatar = holonResult.Result .ModifiedByAvatar;
+                result.Result.ModifiedByAvatarId = holonResult.Result .ModifiedByAvatarId;
+                result.Result.ModifiedDate = holonResult.Result .ModifiedDate;
+                result.Result.DeletedByAvatar = holonResult.Result .DeletedByAvatar;
+                result.Result.DeletedByAvatarId = holonResult.Result .DeletedByAvatarId;
+                result.Result.DeletedDate = holonResult.Result .DeletedDate;
+                result.Result.Version = holonResult.Result .Version;
+                result.Result.IsActive = holonResult.Result .IsActive;
+                result.Result.IsChanged = holonResult.Result .IsChanged;
+                result.Result.IsNewHolon = holonResult.Result .IsNewHolon;
+                result.Result.MetaData = holonResult.Result .MetaData;
+                result.Result.ProviderMetaData = holonResult.Result .ProviderMetaData;
+                result.Result.Original = holonResult.Result .Original;
             }
 
             return result;
+        }*/
+
+        public OASISResult<IHolon> LoadCelestialBody()
+        {
+            return base.LoadHolon();
         }
 
         protected virtual async Task<OASISResult<IHolon>> AddHolonToCollectionAsync(IHolon parentCelestialBody, IHolon holon, List<IHolon> holons)
