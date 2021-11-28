@@ -20,8 +20,8 @@
       "LogAllWarnings": "true"
     },
     "Security": {
-      "DoesAvatarNeedToBeVerifiedBeforeLogin": "false",
-      "Secret": "F64DAE56-D03C-482D-AEA6-69950A0042909131E81A-5170-401A-BE9F-275BE73851F7",
+      "DoesAvatarNeedToBeVerifiedBeforeLogin": "true",
+      "Secret": "62FBEAD4-4C06-42DF-A827-CE003F2385F8248BC15E-9D9D-446A-A38B-24C0D8A05F9D",
       "AvatarPassword": {
         "BCryptEncryptionEnabled": "true",
         "Rijndael256EncryptionEnabled": "true",
@@ -34,15 +34,15 @@
       }
     },
     "Email": {
-      "EmailFrom": "",
-      "SmtpHost": "",
+      "EmailFrom": "anorak@theoasisplatform.world",
+      "SmtpHost": "mailuk2.promailserver.com",
       // "SmtpPort": 587,
-      "SmtpPort": 0,
-      "SmtpUser": "",
-      "SmtpPass": ""
+      "SmtpPort": 25,
+      "SmtpUser": "anorak@oasisplatform.world",
+      "SmtpPass": "7cb?e9tvnw$dhpogaqjilkrfzuxyms"
     },
     "StorageProviders": {
-      "AutoReplicationEnabled": "true",
+      "AutoReplicationEnabled": "false",
       "AutoFailOverEnabled": "true",
       "AutoLoadBalanceEnabled": "true",
       "AutoLoadBalanceReadPollIntervalMins": "10",
@@ -62,14 +62,14 @@
         "HolochainVersion": "Redux" //Can be Redux or RSM.
       },
       "MongoDBOASIS": {
-        "ConnectionString": "",
+        "ConnectionString": "mongodb+srv://dbadmin:BcQIJzJgUIkghQpr@oasisapi-oipck.mongodb.net/OASISAPI?retryWrites=true&w=majority",
         //"ConnectionString": "mongodb+srv://oasisadmin:4ABeZIUHwTVbiFWn@oasisapi-oipck.mongodb.net/OASISAPI?retryWrites=true&w=majority",
         //"ConnectionString": "mongodb+srv://dbadmin:ZDVxEMHJJTfdtJ0S@oasisapi-oipck.mongodb.net/OASISAPI?retryWrites=true&w=majority",
         // "ConnectionString": "mongodb+srv://oasisuser:EHPpjGAmW74lg8qS@oasisapi-oipck.mongodb.net/OASISAPI?retryWrites=true&w=majority",
 
-        "DBName": "OASISAPI_DEV"
+         "DBName": "OASISAPI_DEV"
         //"DBName": "OASISAPI_TEST"
-        // "DBName": "OASISAPI_LIVE"
+        //"DBName": "OASISAPI_LIVE"
       },
       "SQLLiteDBOASIS": {
         "ConnectionString": "Data Source=OASISSQLLiteDB.db"
@@ -91,8 +91,8 @@
       },
       "Neo4JOASIS": {
         "ConnectionString": "http://localhost:7474",
-        "Username": "",
-        "Password": ""
+        "Username": "neo4j",
+        "Password": "letthereb@light!"
       },
       "IPFSOASIS": {
         "ConnectionString": "http://localhost:5001",
