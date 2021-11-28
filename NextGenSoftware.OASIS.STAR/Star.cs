@@ -334,8 +334,11 @@ namespace NextGenSoftware.OASIS.STAR
             string hostName = Dns.GetHostName();
             IPHostEntry entry = Dns.GetHostEntry(hostName);
 
-            if (entry != null && entry.AddressList.Length > 2)
-                IPAddress = Dns.GetHostEntry(hostName).AddressList[2].ToString();
+            //if (entry != null && entry.AddressList.Length > 2)
+            //    IPAddress = Dns.GetHostEntry(hostName).AddressList[2].ToString();
+
+            if (entry != null && entry.AddressList.Length > 1)
+                IPAddress = Dns.GetHostEntry(hostName).AddressList[1].ToString();
 
             //string IPAddress = Dns.GetHostByName(hostName).AddressList[3].ToString();
             //+string IPAddress = Dns.GetHostByName(hostName).AddressList[4].ToString();
@@ -1187,7 +1190,7 @@ namespace NextGenSoftware.OASIS.STAR
             else
             {
                 DefaultStar = new Star(_starId); //TODO: Temp set InnerStar as The Sun at the centre of our Solar System.
-                DefaultStar.Initialize();
+                //DefaultStar.Initialize();
             }
 
             WireUpEvents();

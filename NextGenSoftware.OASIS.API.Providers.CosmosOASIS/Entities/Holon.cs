@@ -15,7 +15,7 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosOASIS.Entities
 {
     public class Holon : Entity, IHolon
     {
-        public new Guid Id { get { return Guid.Parse(base.Id); } set { base.Id = $"{value}"; } }
+        //public new Guid Id { get { return Guid.Parse(base.Id); } set { base.Id = $"{value}"; } }
         public string Name { get; set; }
         public string Description { get; set; }
         public IHolon Original { get; set; }

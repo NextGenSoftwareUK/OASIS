@@ -165,13 +165,16 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
             return await Task.Run(() =>
             {
                 var result = new OASISResult<IAvatar>();
+
                 if (string.IsNullOrEmpty(origin))
                     origin = Program.CURRENT_OASISAPI;
+
                 if (!Enum.TryParse(typeof(AvatarType), model.AvatarType, out _))
                 {
                     result.Message = string.Concat(
                         "ERROR: AvatarType needs to be one of the values found in AvatarType enumeration. Possible value can be:\n\n",
                         EnumHelper.GetEnumValues(typeof(AvatarType)));
+
                     result.IsError = true;
                     result.IsSaved = false;
                     ErrorHandling.HandleError(ref result, result.Message);
@@ -180,6 +183,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
 
                 result = AvatarManager.Register(model.Title, model.FirstName, model.LastName, model.Email, model.Password,
                     (AvatarType) Enum.Parse(typeof(AvatarType), model.AvatarType), origin, model.CreatedOASISType);
+
                 return result;
             });
         }

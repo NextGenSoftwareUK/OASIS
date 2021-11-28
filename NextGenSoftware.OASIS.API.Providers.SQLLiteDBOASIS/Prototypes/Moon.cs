@@ -5,6 +5,7 @@ using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Events;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Holons;
+using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using NextGenSoftware.OASIS.API.Core.Objects;
 
@@ -72,12 +73,12 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Prototypes{
             throw new NotImplementedException();
         }
 
-        public Task<OASISResult<ICelestialBody>> LoadCelestialBodyAsync()
+        public Task<OASISResult<IHolon>> LoadCelestialBodyAsync()
         {
             throw new NotImplementedException();
         }
 
-        public OASISResult<ICelestialBody> LoadCelestialBody()
+        public OASISResult<IHolon> LoadCelestialBody()
         {
             throw new NotImplementedException();
         }

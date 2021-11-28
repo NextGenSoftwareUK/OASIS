@@ -129,7 +129,8 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
 
         public override async Task<IAvatar> SaveAvatarAsync(IAvatar avatar)
         {
-            return ConvertMongoEntityToOASISAvatar(avatar.Id == Guid.Empty ?
+            //return ConvertMongoEntityToOASISAvatar(avatar.Id == Guid.Empty ?
+            return ConvertMongoEntityToOASISAvatar(avatar.IsNewHolon ?
                await _avatarRepository.AddAsync(ConvertOASISAvatarToMongoEntity(avatar)) :
                await _avatarRepository.UpdateAsync(ConvertOASISAvatarToMongoEntity(avatar)));
         }
@@ -146,7 +147,8 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
 
         public override IAvatar SaveAvatar(IAvatar avatar)
         {
-            return ConvertMongoEntityToOASISAvatar(avatar.Id == Guid.Empty ?
+            //return ConvertMongoEntityToOASISAvatar(avatar.Id == Guid.Empty ?
+            return ConvertMongoEntityToOASISAvatar(avatar.IsNewHolon ?
                 _avatarRepository.Add(ConvertOASISAvatarToMongoEntity(avatar)) :
                 _avatarRepository.Update(ConvertOASISAvatarToMongoEntity(avatar)));
         }
