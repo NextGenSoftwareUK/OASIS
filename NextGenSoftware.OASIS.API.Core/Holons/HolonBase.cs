@@ -7,10 +7,33 @@ using NextGenSoftware.OASIS.API.Core.Interfaces;
 
 namespace NextGenSoftware.OASIS.API.Core.Holons
 {
-    public class HolonBase : IHolonBase, INotifyPropertyChanged
+    public abstract class HolonBase : IHolonBase, INotifyPropertyChanged
     {
         private string _name;
         private string _description;
+
+        public HolonBase()
+        {
+            IsNewHolon = true;
+            //Id = Guid.NewGuid(); //TODO: Not sure if to have this or not?
+        }
+
+        public HolonBase(HolonType holonType)
+        {
+            IsNewHolon = true;
+            //Id = Guid.NewGuid(); //TODO: Not sure if to have this or not?
+            HolonType = holonType;
+        }
+
+        public HolonBase(Guid id)
+        {
+            Id = id;
+        }
+
+        public HolonBase(Dictionary<ProviderType, string> providerKey)
+        {
+            ProviderKey = providerKey;
+        }
 
         public IHolon Original { get; set; }
 

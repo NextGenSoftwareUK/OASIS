@@ -352,6 +352,76 @@ namespace NextGenSoftware.OASIS.STAR
             {
                 LoggedInAvatar = (Avatar)result.Result;
                 LoggedInAvatarDetail = (AvatarDetail)OASISAPI.Avatar.LoadAvatarDetail(LoggedInAvatar.Id);
+
+                if (username == "davidellams@hotmail.com" || username == "davidellams@gmail.com")
+                {
+                    LoggedInAvatarDetail = new AvatarDetail();
+                    LoggedInAvatarDetail.Karma = 777777;
+                    LoggedInAvatarDetail.XP = 2222222;
+
+                    LoggedInAvatarDetail.GeneKeys.Add(new GeneKey() { Name = "Expectation", Gift = "a gift", Shadow = "a shadow", Sidhi = "a sidhi" });
+                    LoggedInAvatarDetail.GeneKeys.Add(new GeneKey() { Name = "Invisibility", Gift = "a gift", Shadow = "a shadow", Sidhi = "a sidhi" });
+                    LoggedInAvatarDetail.GeneKeys.Add(new GeneKey() { Name = "Rapture", Gift = "a gift", Shadow = "a shadow", Sidhi = "a sidhi" });
+
+                    LoggedInAvatarDetail.HumanDesign.Type = "Generator";
+                    LoggedInAvatarDetail.Inventory.Add(new InventoryItem() { Name = "Magical Armour" });
+                    LoggedInAvatarDetail.Inventory.Add(new InventoryItem() { Name = "Mighty Wizard Sword" });
+
+                    LoggedInAvatarDetail.Spells.Add(new Spell() { Name = "Super Spell" });
+                    LoggedInAvatarDetail.Spells.Add(new Spell() { Name = "Super Speed Spell" });
+                    LoggedInAvatarDetail.Spells.Add(new Spell() { Name = "Super Srength Spell" });
+
+                    LoggedInAvatarDetail.Achievements.Add(new Achievement() { Name = "Becoming Superman!" });
+                    LoggedInAvatarDetail.Achievements.Add(new Achievement() { Name = "Completing STAR!" });
+
+                    LoggedInAvatarDetail.Gifts.Add(new AvatarGift() { GiftType = KarmaTypePositive.BeASuperHero });
+
+                    LoggedInAvatarDetail.Aura.Brightness = 99;
+                    LoggedInAvatarDetail.Aura.Level = 77;
+                    LoggedInAvatarDetail.Aura.Progress = 88;
+                    LoggedInAvatarDetail.Aura.Size = 10;
+                    LoggedInAvatarDetail.Aura.Value = 777;
+
+                    LoggedInAvatarDetail.Chakras.Root.Level = 77;
+                    LoggedInAvatarDetail.Chakras.Root.Progress = 99;
+                    LoggedInAvatarDetail.Chakras.Root.XP = 8783;
+
+                    LoggedInAvatarDetail.Attributes.Dexterity = 99;
+                    LoggedInAvatarDetail.Attributes.Endurance = 99;
+                    LoggedInAvatarDetail.Attributes.Intelligence = 99;
+                    LoggedInAvatarDetail.Attributes.Magic = 99;
+                    LoggedInAvatarDetail.Attributes.Speed = 99;
+                    LoggedInAvatarDetail.Attributes.Strength = 99;
+                    LoggedInAvatarDetail.Attributes.Toughness = 99;
+                    LoggedInAvatarDetail.Attributes.Vitality = 99;
+                    LoggedInAvatarDetail.Attributes.Wisdom = 99;
+
+                    LoggedInAvatarDetail.Stats.Energy.Current = 99;
+                    LoggedInAvatarDetail.Stats.Energy.Max = 99;
+                    LoggedInAvatarDetail.Stats.HP.Current = 99;
+                    LoggedInAvatarDetail.Stats.HP.Max = 99;
+                    LoggedInAvatarDetail.Stats.Mana.Current = 99;
+                    LoggedInAvatarDetail.Stats.Mana.Max = 99;
+                    LoggedInAvatarDetail.Stats.Staminia.Current = 99;
+                    LoggedInAvatarDetail.Stats.Staminia.Max = 99;
+
+                    LoggedInAvatarDetail.SuperPowers.AstralProjection = 99;
+                    LoggedInAvatarDetail.SuperPowers.BioLocatation = 88;
+                    LoggedInAvatarDetail.SuperPowers.Flight = 99;
+                    LoggedInAvatarDetail.SuperPowers.FreezeBreath = 88;
+                    LoggedInAvatarDetail.SuperPowers.HeatVision = 99;
+                    LoggedInAvatarDetail.SuperPowers.Invulerability = 99;
+                    LoggedInAvatarDetail.SuperPowers.SuperSpeed = 99;
+                    LoggedInAvatarDetail.SuperPowers.SuperStrength = 99;
+                    LoggedInAvatarDetail.SuperPowers.XRayVision = 99;
+                    LoggedInAvatarDetail.SuperPowers.Teleportation = 99;
+                    LoggedInAvatarDetail.SuperPowers.Telekineseis = 99;
+
+                    LoggedInAvatarDetail.Skills.Computers = 99;
+                    LoggedInAvatarDetail.Skills.Engineering = 99;
+                }
+                
+
             }
 
             return result;
@@ -419,11 +489,11 @@ namespace NextGenSoftware.OASIS.STAR
             switch (STARDNA.HolochainVersion.ToUpper())
             {
                 case "REDUX":
-                    rustDNAFolder = STARDNA.RustDNAReduxTemplateFolder;
+                    rustDNAFolder = $"{STARDNA.BasePath}\\{STARDNA.RustDNAReduxTemplateFolder}";
                     break;
 
                 case "RSM":
-                    rustDNAFolder = STARDNA.RustDNARSMTemplateFolder;
+                    rustDNAFolder = $"{STARDNA.BasePath}\\{STARDNA.RustDNARSMTemplateFolder}";
                     break;
             }
 
@@ -439,33 +509,33 @@ namespace NextGenSoftware.OASIS.STAR
             string stringTemplate = new FileInfo(string.Concat(rustDNAFolder, "\\", STARDNA.RustTemplateString)).OpenText().ReadToEnd();
             string boolTemplate = new FileInfo(string.Concat(rustDNAFolder, "\\", STARDNA.RustTemplateBool)).OpenText().ReadToEnd();
 
-            string iHolonTemplate = new FileInfo(string.Concat(STARDNA.CSharpDNATemplateFolder, "\\", STARDNA.CSharpTemplateIHolonDNA)).OpenText().ReadToEnd();
-            string holonTemplateCsharp = new FileInfo(string.Concat(STARDNA.CSharpDNATemplateFolder, "\\", STARDNA.CSharpTemplateHolonDNA)).OpenText().ReadToEnd();
-            string zomeTemplateCsharp = new FileInfo(string.Concat(STARDNA.CSharpDNATemplateFolder, "\\", STARDNA.CSharpTemplateZomeDNA)).OpenText().ReadToEnd();
-            string iStarTemplateCsharp = new FileInfo(string.Concat(STARDNA.CSharpDNATemplateFolder, "\\", STARDNA.CSharpTemplateIStarDNA)).OpenText().ReadToEnd();
-            string starTemplateCsharp = new FileInfo(string.Concat(STARDNA.CSharpDNATemplateFolder, "\\", STARDNA.CSharpTemplateStarDNA)).OpenText().ReadToEnd();
-            string iPlanetTemplateCsharp = new FileInfo(string.Concat(STARDNA.CSharpDNATemplateFolder, "\\", STARDNA.CSharpTemplateIPlanetDNA)).OpenText().ReadToEnd();
-            string planetTemplateCsharp = new FileInfo(string.Concat(STARDNA.CSharpDNATemplateFolder, "\\", STARDNA.CSharpTemplatePlanetDNA)).OpenText().ReadToEnd();
-            string iMoonTemplateCsharp = new FileInfo(string.Concat(STARDNA.CSharpDNATemplateFolder, "\\", STARDNA.CSharpTemplateIMoonDNA)).OpenText().ReadToEnd();
-            string moonTemplateCsharp = new FileInfo(string.Concat(STARDNA.CSharpDNATemplateFolder, "\\", STARDNA.CSharpTemplateMoonDNA)).OpenText().ReadToEnd();
-            string TemplateCsharp = new FileInfo(string.Concat(STARDNA.CSharpDNATemplateFolder, "\\", STARDNA.CSharpTemplatePlanetDNA)).OpenText().ReadToEnd();
+            string iHolonTemplate = new FileInfo(string.Concat(STARDNA.BasePath, "\\", STARDNA.CSharpDNATemplateFolder, "\\", STARDNA.CSharpTemplateIHolonDNA)).OpenText().ReadToEnd();
+            string holonTemplateCsharp = new FileInfo(string.Concat(STARDNA.BasePath, "\\", STARDNA.CSharpDNATemplateFolder, "\\", STARDNA.CSharpTemplateHolonDNA)).OpenText().ReadToEnd();
+            string zomeTemplateCsharp = new FileInfo(string.Concat(STARDNA.BasePath, "\\", STARDNA.CSharpDNATemplateFolder, "\\", STARDNA.CSharpTemplateZomeDNA)).OpenText().ReadToEnd();
+            string iStarTemplateCsharp = new FileInfo(string.Concat(STARDNA.BasePath, "\\", STARDNA.CSharpDNATemplateFolder, "\\", STARDNA.CSharpTemplateIStarDNA)).OpenText().ReadToEnd();
+            string starTemplateCsharp = new FileInfo(string.Concat(STARDNA.BasePath, "\\", STARDNA.CSharpDNATemplateFolder, "\\", STARDNA.CSharpTemplateStarDNA)).OpenText().ReadToEnd();
+            string iPlanetTemplateCsharp = new FileInfo(string.Concat(STARDNA.BasePath, "\\", STARDNA.CSharpDNATemplateFolder, "\\", STARDNA.CSharpTemplateIPlanetDNA)).OpenText().ReadToEnd();
+            string planetTemplateCsharp = new FileInfo(string.Concat(STARDNA.BasePath, "\\", STARDNA.CSharpDNATemplateFolder, "\\", STARDNA.CSharpTemplatePlanetDNA)).OpenText().ReadToEnd();
+            string iMoonTemplateCsharp = new FileInfo(string.Concat(STARDNA.BasePath, "\\", STARDNA.CSharpDNATemplateFolder, "\\", STARDNA.CSharpTemplateIMoonDNA)).OpenText().ReadToEnd();
+            string moonTemplateCsharp = new FileInfo(string.Concat(STARDNA.BasePath, "\\", STARDNA.CSharpDNATemplateFolder, "\\", STARDNA.CSharpTemplateMoonDNA)).OpenText().ReadToEnd();
+            string TemplateCsharp = new FileInfo(string.Concat(STARDNA.BasePath, "\\", STARDNA.CSharpDNATemplateFolder, "\\", STARDNA.CSharpTemplatePlanetDNA)).OpenText().ReadToEnd();
 
-            string iCelestialBodyTemplateCsharp = new FileInfo(string.Concat(STARDNA.CSharpDNATemplateFolder, "\\", STARDNA.CSharpTemplateICelestialBodyDNA)).OpenText().ReadToEnd();
-            string celestialBodyTemplateCsharp = new FileInfo(string.Concat(STARDNA.CSharpDNATemplateFolder, "\\", STARDNA.CSharpTemplateCelestialBodyDNA)).OpenText().ReadToEnd();
-            string iZomeTemplate = new FileInfo(string.Concat(STARDNA.CSharpDNATemplateFolder, "\\", STARDNA.CSharpTemplateIZomeDNA)).OpenText().ReadToEnd();
+            string iCelestialBodyTemplateCsharp = new FileInfo(string.Concat(STARDNA.BasePath, "\\", STARDNA.CSharpDNATemplateFolder, "\\", STARDNA.CSharpTemplateICelestialBodyDNA)).OpenText().ReadToEnd();
+            string celestialBodyTemplateCsharp = new FileInfo(string.Concat(STARDNA.BasePath, "\\", STARDNA.CSharpDNATemplateFolder, "\\", STARDNA.CSharpTemplateCelestialBodyDNA)).OpenText().ReadToEnd();
+            string iZomeTemplate = new FileInfo(string.Concat(STARDNA.BasePath, "\\", STARDNA.CSharpDNATemplateFolder, "\\", STARDNA.CSharpTemplateIZomeDNA)).OpenText().ReadToEnd();
 
             //If folder is not passed in via command line args then use default in config file.
             if (string.IsNullOrEmpty(dnaFolder))
-                dnaFolder = STARDNA.CelestialBodyDNA;
+                dnaFolder = $"{STARDNA.BasePath}\\{STARDNA.CelestialBodyDNA}";
 
             if (string.IsNullOrEmpty(genesisCSharpFolder))
-                genesisCSharpFolder = STARDNA.GenesisCSharpFolder;
+                genesisCSharpFolder = $"{STARDNA.BasePath}\\{STARDNA.GenesisCSharpFolder}";
 
             if (string.IsNullOrEmpty(genesisRustFolder))
-                genesisRustFolder = STARDNA.GenesisRustFolder;
+                genesisRustFolder = $"{STARDNA.BasePath}\\{STARDNA.GenesisRustFolder}";
 
             if (string.IsNullOrEmpty(genesisNameSpace))
-                genesisNameSpace = STARDNA.GenesisNamespace;
+                genesisNameSpace = $"{STARDNA.BasePath}\\{STARDNA.GenesisNamespace}";
 
             DirectoryInfo dirInfo = new DirectoryInfo(dnaFolder);
             FileInfo[] files = dirInfo.GetFiles();
@@ -543,16 +613,21 @@ namespace NextGenSoftware.OASIS.STAR
                     break;
             }
 
-           // newBody.CelestialBody = newBody; //TODO: Causes an infinite recursion because CelestialBody is a Holon itself so its linking to itself.
+            // newBody.CelestialBody = newBody; //TODO: Causes an infinite recursion because CelestialBody is a Holon itself so its linking to itself.
+            newBody.Id = Guid.NewGuid(); //TODO: Not sure if to put this into HolonBase or not?
+            //newBody.IsNewHolon = true;
             newBody.Name = name;
             newBody.OnZomeError += NewBody_OnZomeError;
-            await newBody.InitializeAsync();
+            //await newBody.InitializeAsync();
+
+            /*
             OASISResult<ICelestialBody> newBodyResult = await newBody.SaveAsync(); //Need to save to get the id to be used for ParentId below (zomes, holons & nodes).
 
             if (newBodyResult.IsError)
                 return new CoronalEjection() { ErrorOccured = true, Message = string.Concat("Error Saving New CelestialBody. Reason: ", newBodyResult.Message) };
             else
                 newBody = (CelestialBody)newBodyResult.Result;
+            */
 
             //TODO: MOVE ALL RUST CODE INTO HOLOOASIS.GENERATENATIVECODE METHOD.
             IZome currentZome = null;
