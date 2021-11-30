@@ -15,19 +15,10 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
         public PlanetSubType PlanetSubType { get; set; }
         public PlanetClassification PlanetClassification { get; set; }
 
-        public Planet() : base(HolonType.Planet)
-        {
-           // this.HolonType = HolonType.Planet;
-        }
+        public Planet() : base(HolonType.Planet){}
 
-        public Planet(Guid id) : base(id, HolonType.Planet)
-        {
-           // this.HolonType = HolonType.Planet;
-        }
+        public Planet(Guid id) : base(id, HolonType.Planet) {}
 
-        public Planet(Dictionary<ProviderType, string> providerKey) : base(providerKey, HolonType.Planet)
-        {
-          //  this.HolonType = HolonType.Planet;
-        }
+        public Planet(Dictionary<ProviderType, string> providerKey) : base(providerKey, HolonType.Planet) {}
     }
 }

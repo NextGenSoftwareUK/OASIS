@@ -71,29 +71,31 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
         public int NumberRegisteredAvatars { get; set; }
         public int NunmerActiveAvatars { get; set; }
 
-        public CelestialBody()
-        {
-            Initialize(); //TODO: It never called this from the constructor before, was there a good reason? Will soon find out! ;-)
-        }
+        //public CelestialBody() : base ()
+        //{
+        //    Initialize(); //TODO: It never called this from the constructor before, was there a good reason? Will soon find out! ;-)
+        //}
 
-        public CelestialBody(HolonType holonType)
+        public CelestialBody(HolonType holonType) : base(holonType)
         {
-            this.HolonType = holonType;
+            //this.HolonType = holonType;
             Initialize();  //TODO: It never called this from the constructor before, was there a good reason? Will soon find out! ;-)
         }
 
-        public CelestialBody(Guid id, HolonType holonType)
+        public CelestialBody(Guid id, HolonType holonType) : base(id)
+        //public CelestialBody(Guid id) : base(id)
         {
             this.HolonType = holonType;
-            this.Id = id;
+            //this.Id = id;
             Initialize();
         }
 
-        public CelestialBody(Dictionary<ProviderType, string> providerKey, HolonType holonType)
+        public CelestialBody(Dictionary<ProviderType, string> providerKey, HolonType holonType) : base(providerKey)
+        //public CelestialBody(Dictionary<ProviderType, string> providerKey) : base(providerKey)
         {
             this.HolonType = holonType;
-            this.ProviderKey = providerKey;
-            //Initialize();  //TODO: It never called this from the constructor before, was there a good reason? Will soon find out! ;-)
+            //this.ProviderKey = providerKey;
+            Initialize();  //TODO: It never called this from the constructor before, was there a good reason? Will soon find out! ;-)
         }
 
         
@@ -532,25 +534,37 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
 
         private void SetParentIdsForPlanet(IGreatGrandSuperStar greatGrandSuperStar, IGrandSuperStar grandSuperStar, ISuperStar superStar, IStar star, IPlanet planet)
         {
-            planet.ParentOmiverse = greatGrandSuperStar.ParentOmiverse;
-            planet.ParentOmiverseId = greatGrandSuperStar.ParentOmiverseId;
-            planet.ParentGreatGrandSuperStar = greatGrandSuperStar;
-            planet.ParentGreatGrandSuperStarId = greatGrandSuperStar.Id;
+            if (greatGrandSuperStar != null)
+            {
+                planet.ParentOmiverse = greatGrandSuperStar.ParentOmiverse;
+                planet.ParentOmiverseId = greatGrandSuperStar.ParentOmiverseId;
+                planet.ParentGreatGrandSuperStar = greatGrandSuperStar;
+                planet.ParentGreatGrandSuperStarId = greatGrandSuperStar.Id;
+            }
 
-            planet.ParentUniverse = grandSuperStar.ParentUniverse;
-            planet.ParentUniverseId = grandSuperStar.ParentUniverseId;
-            planet.ParentGrandSuperStar = grandSuperStar;
-            planet.ParentGrandSuperStarId = grandSuperStar.Id;
+            if (grandSuperStar != null)
+            {
+                planet.ParentUniverse = grandSuperStar.ParentUniverse;
+                planet.ParentUniverseId = grandSuperStar.ParentUniverseId;
+                planet.ParentGrandSuperStar = grandSuperStar;
+                planet.ParentGrandSuperStarId = grandSuperStar.Id;
+                planet.ParentGalaxy = grandSuperStar.ParentGalaxy;
+                planet.ParentGalaxyId = grandSuperStar.ParentGalaxy.Id;
+            }
 
-            planet.ParentGalaxy = grandSuperStar.ParentGalaxy;
-            planet.ParentGalaxyId = grandSuperStar.ParentGalaxy.Id;
-            planet.ParentSuperStar = superStar;
-            planet.ParentSuperStarId = superStar.Id;
+            if (superStar != null)
+            {
+                planet.ParentSuperStar = superStar;
+                planet.ParentSuperStarId = superStar.Id;
+            }
 
-            planet.ParentSolarSystem = star.ParentSolarSystem;
-            planet.ParentSolarSystemId = star.ParentSolarSystem.Id;
-            planet.ParentStar = star;
-            planet.ParentStarId = star.Id;
+            if (star != null)
+            {
+                planet.ParentSolarSystem = star.ParentSolarSystem;
+                planet.ParentSolarSystemId = star.ParentSolarSystem.Id;
+                planet.ParentStar = star;
+                planet.ParentStarId = star.Id;
+            }
 
             if (planet.CelestialBodyCore.Zomes != null)
             {
@@ -884,8 +898,12 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
         {
             InitCelestialBodyCore();
             WireUpEvents();
-            await LoadCelestialBodyAsync();
-            await LoadZomesAsync();
+
+            if (Id != Guid.Empty || (ProviderKey != null && ProviderKey.Keys.Count > 0))
+            {
+                await LoadCelestialBodyAsync();
+                await LoadZomesAsync();
+            }
         }
 
         public void Initialize()
@@ -893,7 +911,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
             InitCelestialBodyCore();
             WireUpEvents();
 
-            if (Id != Guid.Empty || ProviderKey.Keys.Count > 0)
+            if (Id != Guid.Empty || (ProviderKey != null && ProviderKey.Keys.Count > 0))
             {
                 LoadCelestialBody();
                 LoadZomes();

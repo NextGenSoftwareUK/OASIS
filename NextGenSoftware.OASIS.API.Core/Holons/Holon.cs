@@ -11,62 +11,20 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
 {
     public class Holon : HolonBase, IHolon, INotifyPropertyChanged
     {
-        /*
-        private string _name;
-        private string _description;
-
-        public IHolon Original { get; set; }
-
-        public Guid Id { get; set; } //Unique id within the OASIS.
-        public string Name
+        public Holon() : base()
         {
-            get
-            {
-                return _name;
-            }
-
-            set
-            {
-                if (value != _name)
-                {
-                    IsChanged = true;
-                    NotifyPropertyChanged("Name");
-                }
-
-                _name = value;
-            }
-        }
-        public string Description
-        {
-            get
-            {
-                return _description;
-            }
-
-            set
-            {
-                if (value != _description)
-                {
-                    IsChanged = true;
-                    NotifyPropertyChanged("Description");
-                }
-
-                _description = value;
-            }
+            Init();
         }
 
-        //TODO: Finish converting all properties so are same as above...
+        public Holon(HolonType holonType) : base(holonType) 
+        {
+            Init();
+        }
 
-        public bool IsNewHolon { get; set; }
-        public bool IsChanged { get; set; }
-        */
+        public Holon(Guid id) : base(id) {}
 
-        //public Dictionary<ProviderType, string> ProviderKey { get; set; } = new Dictionary<ProviderType, string>(); //Unique key used by each provider (e.g. hashaddress in hc, accountname for Telos, id in MongoDB etc).        
-        //public Dictionary<ProviderType, Dictionary<string, string>> ProviderMetaData { get; set; } = new Dictionary<ProviderType, Dictionary<string, string>>(); // Key/Value pair meta data can be stored here, which is unique for that provider.
-        //public Dictionary<string, string> MetaData { get; set; } = new Dictionary<string, string>(); // Key/Value pair meta data can be stored here that applies globally across ALL providers.
-       // public HolonType HolonType { get; set; }
-       
-        
+        public Holon(Dictionary<ProviderType, string> providerKey) : base(providerKey) {}
+
         public Guid ParentOmiverseId { get; set; } //The Omiverse this Holon belongs to.
         public IOmiverse ParentOmiverse { get; set; } //The Omiverse this Holon belongs to.
         public Guid ParentMultiverseId { get; set; } //The Multiverse this Holon belongs to.
@@ -130,7 +88,7 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
         /// </summary>
       //  public event PropertyChangedEventHandler PropertyChanged;
 
-        public Holon()
+        private void Init()
         {
             //TODO: Need to check if these are fired when an item in the collection is changed (not just added/removed).
             if (ChildrenTest != null)
