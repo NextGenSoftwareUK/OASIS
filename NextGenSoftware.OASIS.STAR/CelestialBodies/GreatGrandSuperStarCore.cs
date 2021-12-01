@@ -100,17 +100,23 @@ namespace NextGenSoftware.OASIS.STAR
             {
                 //Mapper<IHolon, Multiverse>.MapBaseHolonProperties(multiverseResult.Result, (Multiverse)multiverse);
 
-                multiverseResult.Result.GrandSuperStar.ParentOmiverse = multiverseResult.Result.ParentOmiverse;
-                multiverseResult.Result.GrandSuperStar.ParentOmiverseId = multiverseResult.Result.ParentOmiverseId;
+                Mapper<IMultiverse, GrandSuperStar>.MapParentCelestialBodyProperties(multiverseResult.Result, (GrandSuperStar)multiverseResult.Result.GrandSuperStar);
+                //multiverseResult.Result.GrandSuperStar.ParentOmiverse = multiverseResult.Result.ParentOmiverse;
+                //multiverseResult.Result.GrandSuperStar.ParentOmiverseId = multiverseResult.Result.ParentOmiverseId;
+                //multiverseResult.Result.GrandSuperStar.ParentGreatGrandSuperStar = multiverseResult.Result.ParentGreatGrandSuperStar;
+                //multiverseResult.Result.GrandSuperStar.ParentGreatGrandSuperStarId = multiverseResult.Result.ParentGreatGrandSuperStar.Id;
+                
                 multiverseResult.Result.GrandSuperStar.ParentMultiverse = multiverseResult.Result;
                 multiverseResult.Result.GrandSuperStar.ParentMultiverseId = multiverseResult.Result.Id;
+
+
 
                 // Now we need to save the GrandSuperStar as a seperate Holon to get a Id.
                 OASISResult<IHolon> grandSuperStarResult = await SaveHolonAsync(multiverseResult.Result.GrandSuperStar, false);
 
                 if (!grandSuperStarResult.IsError && grandSuperStarResult.Result != null)
                 {
-                    Mapper<IHolon, GrandSuperStar>.MapBaseHolonProperties(grandSuperStarResult.Result, (GrandSuperStar)multiverseResult.Result.GrandSuperStar);
+                    //Mapper<IHolon, GrandSuperStar>.MapBaseHolonProperties(grandSuperStarResult.Result, (GrandSuperStar)multiverseResult.Result.GrandSuperStar, false);
 
                     // The GrandSuperStar at the centre of the new Multiverse is resposnsible for creating its own child dimensions and universes.
                     // Create's the ThirdDimension within the new Multiverse along with a child MagicVerse and UniversePrime.

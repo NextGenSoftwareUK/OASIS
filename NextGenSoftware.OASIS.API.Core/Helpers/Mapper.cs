@@ -7,37 +7,48 @@ namespace NextGenSoftware.OASIS.API.Core.Helpers
 {
     public static class Mapper
     {
-        public static IHolon MapBaseHolonProperties(IHolon sourceHolon, IHolon targetHolon)
+        public static IHolon MapBaseHolonProperties(IHolon sourceHolon, IHolon targetHolon, bool mapCelestialProperties = true)
         {
             targetHolon.Id = sourceHolon.Id;
             targetHolon.ProviderKey = sourceHolon.ProviderKey;
             targetHolon.Name = sourceHolon.Name;
             targetHolon.Description = sourceHolon.Description;
             targetHolon.HolonType = sourceHolon.HolonType;
-            targetHolon.ParentGreatGrandSuperStar = sourceHolon.ParentGreatGrandSuperStar;
-            targetHolon.ParentGreatGrandSuperStarId = sourceHolon.ParentGreatGrandSuperStarId;
-            targetHolon.ParentGrandSuperStar = sourceHolon.ParentGrandSuperStar;
-            targetHolon.ParentGrandSuperStarId = sourceHolon.ParentGrandSuperStarId;
-            targetHolon.ParentSuperStar = sourceHolon.ParentSuperStar;
-            targetHolon.ParentSuperStarId = sourceHolon.ParentSuperStarId;
-            targetHolon.ParentStar = sourceHolon.ParentStar;
-            targetHolon.ParentStarId = sourceHolon.ParentStarId;
-            targetHolon.ParentPlanet = sourceHolon.ParentPlanet;
-            targetHolon.ParentPlanetId = sourceHolon.ParentPlanetId;
-            targetHolon.ParentMoon = sourceHolon.ParentMoon;
-            targetHolon.ParentMoonId = sourceHolon.ParentMoonId;
-            targetHolon.ParentZome = sourceHolon.ParentZome;
-            targetHolon.ParentZomeId = sourceHolon.ParentZomeId;
-            targetHolon.ParentHolon = sourceHolon.ParentHolon;
-            targetHolon.ParentHolonId = sourceHolon.ParentHolonId;
-            targetHolon.ParentOmiverse = sourceHolon.ParentOmiverse;
-            targetHolon.ParentOmiverseId = sourceHolon.ParentOmiverseId;
-            targetHolon.ParentUniverse = sourceHolon.ParentUniverse;
-            targetHolon.ParentUniverseId = sourceHolon.ParentUniverseId;
-            targetHolon.ParentGalaxy = sourceHolon.ParentGalaxy;
-            targetHolon.ParentGalaxyId = sourceHolon.ParentGalaxyId;
-            targetHolon.ParentSolarSystem = sourceHolon.ParentSolarSystem;
-            targetHolon.ParentSolarSystemId = sourceHolon.ParentSolarSystemId;
+
+            if (mapCelestialProperties)
+            {
+                targetHolon.ParentGreatGrandSuperStar = sourceHolon.ParentGreatGrandSuperStar;
+                targetHolon.ParentGreatGrandSuperStarId = sourceHolon.ParentGreatGrandSuperStarId;
+                targetHolon.ParentGrandSuperStar = sourceHolon.ParentGrandSuperStar;
+                targetHolon.ParentGrandSuperStarId = sourceHolon.ParentGrandSuperStarId;
+                targetHolon.ParentSuperStar = sourceHolon.ParentSuperStar;
+                targetHolon.ParentSuperStarId = sourceHolon.ParentSuperStarId;
+                targetHolon.ParentStar = sourceHolon.ParentStar;
+                targetHolon.ParentStarId = sourceHolon.ParentStarId;
+                targetHolon.ParentPlanet = sourceHolon.ParentPlanet;
+                targetHolon.ParentPlanetId = sourceHolon.ParentPlanetId;
+                targetHolon.ParentMoon = sourceHolon.ParentMoon;
+                targetHolon.ParentMoonId = sourceHolon.ParentMoonId;
+                targetHolon.ParentZome = sourceHolon.ParentZome;
+                targetHolon.ParentZomeId = sourceHolon.ParentZomeId;
+                targetHolon.ParentHolon = sourceHolon.ParentHolon;
+                targetHolon.ParentHolonId = sourceHolon.ParentHolonId;
+                targetHolon.ParentOmiverse = sourceHolon.ParentOmiverse;
+                targetHolon.ParentOmiverseId = sourceHolon.ParentOmiverseId;
+                targetHolon.ParentMultiverse = sourceHolon.ParentMultiverse;
+                targetHolon.ParentMultiverseId = sourceHolon.ParentMultiverseId;
+                targetHolon.ParentDimension = sourceHolon.ParentDimension;
+                targetHolon.ParentDimensionId = sourceHolon.ParentDimensionId;
+                targetHolon.ParentUniverse = sourceHolon.ParentUniverse;
+                targetHolon.ParentUniverseId = sourceHolon.ParentUniverseId;
+                targetHolon.ParentGalaxyCluster = sourceHolon.ParentGalaxyCluster;
+                targetHolon.ParentGalaxyClusterId = sourceHolon.ParentGalaxyClusterId;
+                targetHolon.ParentGalaxy = sourceHolon.ParentGalaxy;
+                targetHolon.ParentGalaxyId = sourceHolon.ParentGalaxyId;
+                targetHolon.ParentSolarSystem = sourceHolon.ParentSolarSystem;
+                targetHolon.ParentSolarSystemId = sourceHolon.ParentSolarSystemId;
+            }
+
             targetHolon.Children = sourceHolon.Children;
             targetHolon.Nodes = sourceHolon.Nodes;
             //targetHolon.CelestialBodyCore.Id = sourceHolon.Id; //TODO: Dont think need targetHolon now?
@@ -93,8 +104,14 @@ namespace NextGenSoftware.OASIS.API.Core.Helpers
             targetCelestialBody.ParentHolonId = sourceCelestialBody.ParentHolonId;
             targetCelestialBody.ParentOmiverse = sourceCelestialBody.ParentOmiverse;
             targetCelestialBody.ParentOmiverseId = sourceCelestialBody.ParentOmiverseId;
+            targetCelestialBody.ParentMultiverse = sourceCelestialBody.ParentMultiverse;
+            targetCelestialBody.ParentMultiverseId = sourceCelestialBody.ParentMultiverseId;
+            targetCelestialBody.ParentDimension = sourceCelestialBody.ParentDimension;
+            targetCelestialBody.ParentDimensionId = sourceCelestialBody.ParentDimensionId;
             targetCelestialBody.ParentUniverse = sourceCelestialBody.ParentUniverse;
             targetCelestialBody.ParentUniverseId = sourceCelestialBody.ParentUniverseId;
+            targetCelestialBody.ParentGalaxyCluster = sourceCelestialBody.ParentGalaxyCluster;
+            targetCelestialBody.ParentGalaxyClusterId = sourceCelestialBody.ParentGalaxyClusterId;
             targetCelestialBody.ParentGalaxy = sourceCelestialBody.ParentGalaxy;
             targetCelestialBody.ParentGalaxyId = sourceCelestialBody.ParentGalaxyId;
             targetCelestialBody.ParentSolarSystem = sourceCelestialBody.ParentSolarSystem;
@@ -114,37 +131,48 @@ namespace NextGenSoftware.OASIS.API.Core.Helpers
             return MapBaseHolonProperties(sourceHolon, new T2());
         }
 
-        public static T2 MapBaseHolonProperties(T1 sourceHolon, T2 targetHolon)
+        public static T2 MapBaseHolonProperties(T1 sourceHolon, T2 targetHolon, bool mapCelestialProperties = true)
         {
             targetHolon.Id = sourceHolon.Id;
             targetHolon.ProviderKey = sourceHolon.ProviderKey;
             targetHolon.Name = sourceHolon.Name;
             targetHolon.Description = sourceHolon.Description;
             targetHolon.HolonType = sourceHolon.HolonType;
-            targetHolon.ParentGreatGrandSuperStar = sourceHolon.ParentGreatGrandSuperStar;
-            targetHolon.ParentGreatGrandSuperStarId = sourceHolon.ParentGreatGrandSuperStarId;
-            targetHolon.ParentGrandSuperStar = sourceHolon.ParentGrandSuperStar;
-            targetHolon.ParentGrandSuperStarId = sourceHolon.ParentGrandSuperStarId;
-            targetHolon.ParentSuperStar = sourceHolon.ParentSuperStar;
-            targetHolon.ParentSuperStarId = sourceHolon.ParentSuperStarId;
-            targetHolon.ParentStar = sourceHolon.ParentStar;
-            targetHolon.ParentStarId = sourceHolon.ParentStarId;
-            targetHolon.ParentPlanet = sourceHolon.ParentPlanet;
-            targetHolon.ParentPlanetId = sourceHolon.ParentPlanetId;
-            targetHolon.ParentMoon = sourceHolon.ParentMoon;
-            targetHolon.ParentMoonId = sourceHolon.ParentMoonId;
-            targetHolon.ParentZome = sourceHolon.ParentZome;
-            targetHolon.ParentZomeId = sourceHolon.ParentZomeId;
-            targetHolon.ParentHolon = sourceHolon.ParentHolon;
-            targetHolon.ParentHolonId = sourceHolon.ParentHolonId;
-            targetHolon.ParentOmiverse = sourceHolon.ParentOmiverse;
-            targetHolon.ParentOmiverseId = sourceHolon.ParentOmiverseId;
-            targetHolon.ParentUniverse = sourceHolon.ParentUniverse;
-            targetHolon.ParentUniverseId = sourceHolon.ParentUniverseId;
-            targetHolon.ParentGalaxy = sourceHolon.ParentGalaxy;
-            targetHolon.ParentGalaxyId = sourceHolon.ParentGalaxyId;
-            targetHolon.ParentSolarSystem = sourceHolon.ParentSolarSystem;
-            targetHolon.ParentSolarSystemId = sourceHolon.ParentSolarSystemId;
+
+            if (mapCelestialProperties)
+            {
+                targetHolon.ParentGreatGrandSuperStar = sourceHolon.ParentGreatGrandSuperStar;
+                targetHolon.ParentGreatGrandSuperStarId = sourceHolon.ParentGreatGrandSuperStarId;
+                targetHolon.ParentGrandSuperStar = sourceHolon.ParentGrandSuperStar;
+                targetHolon.ParentGrandSuperStarId = sourceHolon.ParentGrandSuperStarId;
+                targetHolon.ParentSuperStar = sourceHolon.ParentSuperStar;
+                targetHolon.ParentSuperStarId = sourceHolon.ParentSuperStarId;
+                targetHolon.ParentStar = sourceHolon.ParentStar;
+                targetHolon.ParentStarId = sourceHolon.ParentStarId;
+                targetHolon.ParentPlanet = sourceHolon.ParentPlanet;
+                targetHolon.ParentPlanetId = sourceHolon.ParentPlanetId;
+                targetHolon.ParentMoon = sourceHolon.ParentMoon;
+                targetHolon.ParentMoonId = sourceHolon.ParentMoonId;
+                targetHolon.ParentZome = sourceHolon.ParentZome;
+                targetHolon.ParentZomeId = sourceHolon.ParentZomeId;
+                targetHolon.ParentHolon = sourceHolon.ParentHolon;
+                targetHolon.ParentHolonId = sourceHolon.ParentHolonId;
+                targetHolon.ParentOmiverse = sourceHolon.ParentOmiverse;
+                targetHolon.ParentOmiverseId = sourceHolon.ParentOmiverseId;
+                targetHolon.ParentMultiverse = sourceHolon.ParentMultiverse;
+                targetHolon.ParentMultiverseId = sourceHolon.ParentMultiverseId;
+                targetHolon.ParentDimension = sourceHolon.ParentDimension;
+                targetHolon.ParentDimensionId = sourceHolon.ParentDimensionId;
+                targetHolon.ParentUniverse = sourceHolon.ParentUniverse;
+                targetHolon.ParentUniverseId = sourceHolon.ParentUniverseId;
+                targetHolon.ParentGalaxyCluster = sourceHolon.ParentGalaxyCluster;
+                targetHolon.ParentGalaxyClusterId = sourceHolon.ParentGalaxyClusterId;
+                targetHolon.ParentGalaxy = sourceHolon.ParentGalaxy;
+                targetHolon.ParentGalaxyId = sourceHolon.ParentGalaxyId;
+                targetHolon.ParentSolarSystem = sourceHolon.ParentSolarSystem;
+                targetHolon.ParentSolarSystemId = sourceHolon.ParentSolarSystemId;
+            }
+
             targetHolon.Children = sourceHolon.Children;
             targetHolon.Nodes = sourceHolon.Nodes;
             //targetHolon.CelestialBodyCore.Id = sourceHolon.Id; //TODO: Dont think need targetHolon now?
@@ -223,8 +251,14 @@ namespace NextGenSoftware.OASIS.API.Core.Helpers
             targetCelestialBody.ParentHolonId = sourceCelestialBody.ParentHolonId;
             targetCelestialBody.ParentOmiverse = sourceCelestialBody.ParentOmiverse;
             targetCelestialBody.ParentOmiverseId = sourceCelestialBody.ParentOmiverseId;
+            targetCelestialBody.ParentMultiverse = sourceCelestialBody.ParentMultiverse;
+            targetCelestialBody.ParentMultiverseId = sourceCelestialBody.ParentMultiverseId;
+            targetCelestialBody.ParentDimension = sourceCelestialBody.ParentDimension;
+            targetCelestialBody.ParentDimensionId = sourceCelestialBody.ParentDimensionId;
             targetCelestialBody.ParentUniverse = sourceCelestialBody.ParentUniverse;
             targetCelestialBody.ParentUniverseId = sourceCelestialBody.ParentUniverseId;
+            targetCelestialBody.ParentGalaxyCluster = sourceCelestialBody.ParentGalaxyCluster;
+            targetCelestialBody.ParentGalaxyClusterId = sourceCelestialBody.ParentGalaxyClusterId;
             targetCelestialBody.ParentGalaxy = sourceCelestialBody.ParentGalaxy;
             targetCelestialBody.ParentGalaxyId = sourceCelestialBody.ParentGalaxyId;
             targetCelestialBody.ParentSolarSystem = sourceCelestialBody.ParentSolarSystem;

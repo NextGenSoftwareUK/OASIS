@@ -667,6 +667,7 @@ namespace NextGenSoftware.OASIS.STAR
                             currentZome = new Zome()
                             {
                                 Name = zomeName,
+                                CreatedOASISType = new EnumValue<OASISType>(OASISType.STARCLI),
                                 HolonType = HolonType.Zome,
                                 ParentHolonId = newBody.Id,
                                 ParentPlanetId = newBody.HolonType == HolonType.Planet ? newBody.Id : Guid.Empty,
@@ -800,7 +801,8 @@ namespace NextGenSoftware.OASIS.STAR
                             // TODO: Current Zome Id will be empty here so need to save the zome before? (above when the zome is first created and added to the newBody zomes collection).
                             currentHolon = new Holon() 
                             { 
-                                Name = holonName, 
+                                Name = holonName,
+                                CreatedOASISType = new EnumValue<OASISType>(OASISType.STARCLI),
                                 HolonType = HolonType.Holon, 
                                 ParentHolonId = currentZome.Id, 
                                 ParentZomeId = currentZome.Id, 
@@ -1260,30 +1262,27 @@ namespace NextGenSoftware.OASIS.STAR
         
         private static OASISResult<ICelestialBody> IgniteInnerStar(ref OASISResult<ICelestialBody> result)
         {
+            _starId = Guid.Empty; //TODO:Temp, remove after!
+
             if (_starId == Guid.Empty)
-                result = CreateOASISOmniverseAsync().Result;
+                result = OASISOmniverseGenesisAsync().Result;
             else
-            {
                 DefaultStar = new Star(_starId); //TODO: Temp set InnerStar as The Sun at the centre of our Solar System.
-                //DefaultStar.Initialize();
-            }
 
             WireUpEvents();
             return result;
         }
 
-
         private static async Task<OASISResult<ICelestialBody>> IgniteInnerStarAsync()
         {
             OASISResult<ICelestialBody> result = new OASISResult<ICelestialBody>();
 
+            _starId = Guid.Empty; //TODO:Temp, remove after!
+
             if (_starId == Guid.Empty)
-                result = await CreateOASISOmniverseAsync();
+                result = await OASISOmniverseGenesisAsync();
             else
-            {
-                DefaultStar = new CelestialBodies.Star(_starId); //TODO: Temp set InnerStar as The Sun at the centre of our Solar System.
-                await DefaultStar.InitializeAsync();
-            }
+                DefaultStar = new Star(_starId); //TODO: Temp set InnerStar as The Sun at the centre of our Solar System.
 
             WireUpEvents();
             return result;
@@ -1294,7 +1293,7 @@ namespace NextGenSoftware.OASIS.STAR
         /// </summary>
         /// <param name="result"></param>
         /// <returns></returns>
-        private static async Task<OASISResult<ICelestialBody>> CreateOASISOmniverseAsync()
+        private static async Task<OASISResult<ICelestialBody>> OASISOmniverseGenesisAsync()
         {
             OASISResult<ICelestialBody> result = new OASISResult<ICelestialBody>();
 
@@ -1335,6 +1334,7 @@ namespace NextGenSoftware.OASIS.STAR
                     multiverse.ParentOmiverseId = omiverseResult.Result.Id;
                     multiverse.ParentGreatGrandSuperStar = greatGrandSuperStar;
                     multiverse.ParentGreatGrandSuperStarId = greatGrandSuperStar.Id;
+                    multiverse.GrandSuperStar.Name = "The GrandSuperStar at the centre of our Multiverse/Universe.";
 
                     OASISResult<IMultiverse> multiverseResult = await ((GreatGrandSuperStarCore)greatGrandSuperStar.CelestialBodyCore).AddMultiverseAsync(multiverse);
 
