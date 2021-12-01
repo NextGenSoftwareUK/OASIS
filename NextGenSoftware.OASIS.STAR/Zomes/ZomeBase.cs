@@ -350,19 +350,22 @@ namespace NextGenSoftware.OASIS.STAR.Zomes
             if (saveChildren && (!continueOnError && !zomeResult.IsError && holonResult.Result != null)
                 || continueOnError && (zomeResult.IsError || holonResult.Result == null))
             {
-                this.Id = holonResult.Result.Id;
-                this.ProviderKey = holonResult.Result.ProviderKey;
-                this.CreatedByAvatar = holonResult.Result.CreatedByAvatar;
-                this.CreatedByAvatarId = holonResult.Result.CreatedByAvatarId;
-                this.CreatedDate = holonResult.Result.CreatedDate;
-                this.ModifiedByAvatar = holonResult.Result.ModifiedByAvatar;
-                this.ModifiedByAvatarId = holonResult.Result.ModifiedByAvatarId;
-                this.ModifiedDate = holonResult.Result.ModifiedDate;
-                this.Children = holonResult.Result.Children;
+                if (holonResult.Result != null)
+                {
+                    this.Id = holonResult.Result.Id;
+                    this.ProviderKey = holonResult.Result.ProviderKey;
+                    this.CreatedByAvatar = holonResult.Result.CreatedByAvatar;
+                    this.CreatedByAvatarId = holonResult.Result.CreatedByAvatarId;
+                    this.CreatedDate = holonResult.Result.CreatedDate;
+                    this.ModifiedByAvatar = holonResult.Result.ModifiedByAvatar;
+                    this.ModifiedByAvatarId = holonResult.Result.ModifiedByAvatarId;
+                    this.ModifiedDate = holonResult.Result.ModifiedDate;
+                    this.Children = holonResult.Result.Children;
+                }
 
                 ZomeHelper.SetParentIdsForZome(this.ParentGreatGrandSuperStar, this.ParentGrandSuperStar, this.ParentSuperStar, this.ParentStar, this.ParentPlanet, this.ParentMoon, (IZome)this);
 
-                // Now save the zome child holons (each OASIS Provider will recursively save each child holon, could do the recursion here and just save each holon indivudally with SaveHolonAsync but this way each OASIS Provider can optimise the the way it saves (batches, etc), which would be quicker than making multiple calls...)
+                // Now save the zome child holons (each OASIS Provider will recursively save each child holon, could do the recursion here and just save each holon indivudally with SaveHolonAsync but this way each OASIS Provider can optimise the way it saves (batches, etc), which would be quicker than making multiple calls...)
                 OASISResult<IEnumerable<IHolon>> holonsResult = await _holonManager.SaveHolonsAsync(this.Holons);
 
                 if (holonsResult.IsError)
@@ -379,28 +382,28 @@ namespace NextGenSoftware.OASIS.STAR.Zomes
                     // Now we need to save the zome again so its child holons have their ids set.
                     // TODO: We may not need to do this save again in future since when we load the zome we could lazy load its child holons seperatley from their parentZomeIds.
                     // But loading the zome with all its child holons will be faster than loading them seperatley (but only if the current OASIS Provider supports this, so far MongoDBOASIS does).
-                    holonResult = await _holonManager.SaveHolonAsync(this);
+                    holonResult = await _holonManager.SaveHolonAsync(this); //TODO: Not sure if we need to do this?
 
                     if (holonsResult.IsError)
                     {
                         zomeResult.IsError = true;
                         zomeResult.Message = holonsResult.Message;
                     }
-                    else
-                    {
-                        this.Holons = (List<IHolon>)holonsResult.Result; // Update the holons collection now the holons will have their id's set.
+                    //else
+                    //{
+                    //    //this.Holons = (List<IHolon>)holonsResult.Result; // Update the holons collection now the holons will have their id's set.
 
-                        // Now we need to save the zome again so its child holons have their ids set.
-                        // TODO: We may not need to do this save again in future since when we load the zome we could lazy load its child holons seperatley from their parentZomeIds.
-                        // But loading the zome with all its child holons will be faster than loading them seperatley (but only if the current OASIS Provider supports this, so far MongoDBOASIS does).
-                        holonResult = _holonManager.SaveHolon(this);
+                    //    // Now we need to save the zome again so its child holons have their ids set.
+                    //    // TODO: We may not need to do this save again in future since when we load the zome we could lazy load its child holons seperatley from their parentZomeIds.
+                    //    // But loading the zome with all its child holons will be faster than loading them seperatley (but only if the current OASIS Provider supports this, so far MongoDBOASIS does).
+                    //    holonResult = _holonManager.SaveHolon(this);
 
-                        if (holonsResult.IsError)
-                        {
-                            zomeResult.IsError = true;
-                            zomeResult.Message = holonsResult.Message;
-                        }
-                    }
+                    //    if (holonsResult.IsError)
+                    //    {
+                    //        zomeResult.IsError = true;
+                    //        zomeResult.Message = holonsResult.Message;
+                    //    }
+                    //}
                 }
             }
 
@@ -424,15 +427,18 @@ namespace NextGenSoftware.OASIS.STAR.Zomes
             if (saveChildren && (!continueOnError && !zomeResult.IsError && holonResult.Result != null) 
                 || continueOnError && (zomeResult.IsError || holonResult.Result == null))
             {
-                this.Id = holonResult.Result.Id;
-                this.ProviderKey = holonResult.Result.ProviderKey;
-                this.CreatedByAvatar = holonResult.Result.CreatedByAvatar;
-                this.CreatedByAvatarId = holonResult.Result.CreatedByAvatarId;
-                this.CreatedDate = holonResult.Result.CreatedDate;
-                this.ModifiedByAvatar = holonResult.Result.ModifiedByAvatar;
-                this.ModifiedByAvatarId = holonResult.Result.ModifiedByAvatarId;
-                this.ModifiedDate = holonResult.Result.ModifiedDate;
-                this.Children = holonResult.Result.Children;
+                if (holonResult.Result != null)
+                {
+                    this.Id = holonResult.Result.Id;
+                    this.ProviderKey = holonResult.Result.ProviderKey;
+                    this.CreatedByAvatar = holonResult.Result.CreatedByAvatar;
+                    this.CreatedByAvatarId = holonResult.Result.CreatedByAvatarId;
+                    this.CreatedDate = holonResult.Result.CreatedDate;
+                    this.ModifiedByAvatar = holonResult.Result.ModifiedByAvatar;
+                    this.ModifiedByAvatarId = holonResult.Result.ModifiedByAvatarId;
+                    this.ModifiedDate = holonResult.Result.ModifiedDate;
+                    this.Children = holonResult.Result.Children;
+                }
 
                 ZomeHelper.SetParentIdsForZome(this.ParentGreatGrandSuperStar, this.ParentGrandSuperStar, this.ParentSuperStar, this.ParentStar, this.ParentPlanet, this.ParentMoon, (IZome)this);
 
@@ -453,28 +459,28 @@ namespace NextGenSoftware.OASIS.STAR.Zomes
                     // Now we need to save the zome again so its child holons have their ids set.
                     // TODO: We may not need to do this save again in future since when we load the zome we could lazy load its child holons seperatley from their parentZomeIds.
                     // But loading the zome with all its child holons will be faster than loading them seperatley (but only if the current OASIS Provider supports this, so far MongoDBOASIS does).
-                    holonResult = _holonManager.SaveHolon(this);
+                    holonResult = _holonManager.SaveHolon(this); //TODO: Not sure if we need to do this?
 
                     if (holonsResult.IsError)
                     {
                         zomeResult.IsError = true;
                         zomeResult.Message = holonsResult.Message;
                     }
-                    else
-                    {
-                        this.Holons = (List<IHolon>)holonsResult.Result; // Update the holons collection now the holons will have their id's set.
+                    //else
+                    //{
+                    //    this.Holons = (List<IHolon>)holonsResult.Result; // Update the holons collection now the holons will have their id's set.
 
-                        // Now we need to save the zome again so its child holons have their ids set.
-                        // TODO: We may not need to do this save again in future since when we load the zome we could lazy load its child holons seperatley from their parentZomeIds.
-                        // But loading the zome with all its child holons will be faster than loading them seperatley (but only if the current OASIS Provider supports this, so far MongoDBOASIS does).
-                        holonResult = _holonManager.SaveHolon(this);
+                    //    // Now we need to save the zome again so its child holons have their ids set.
+                    //    // TODO: We may not need to do this save again in future since when we load the zome we could lazy load its child holons seperatley from their parentZomeIds.
+                    //    // But loading the zome with all its child holons will be faster than loading them seperatley (but only if the current OASIS Provider supports this, so far MongoDBOASIS does).
+                    //    holonResult = _holonManager.SaveHolon(this);
 
-                        if (holonsResult.IsError)
-                        {
-                            zomeResult.IsError = true;
-                            zomeResult.Message = holonsResult.Message;
-                        }
-                    }
+                    //    if (holonsResult.IsError)
+                    //    {
+                    //        zomeResult.IsError = true;
+                    //        zomeResult.Message = holonsResult.Message;
+                    //    }
+                    //}
                 }
             }
 
