@@ -87,6 +87,18 @@ namespace NextGenSoftware.OASIS.STAR
         /// <returns></returns>
         public async Task<OASISResult<IMultiverse>> AddMultiverseAsync(IMultiverse multiverse)
         {
+            if (multiverse.GrandSuperStar == null)
+                multiverse.GrandSuperStar = new GrandSuperStar();
+
+            if (multiverse.GrandSuperStar.Id == Guid.Empty)
+            {
+                multiverse.GrandSuperStar.Id = Guid.NewGuid();
+                multiverse.GrandSuperStar.IsNewHolon = true;
+            }
+
+            multiverse.ParentGrandSuperStar = multiverse.GrandSuperStar;
+            multiverse.ParentGrandSuperStarId = multiverse.GrandSuperStar.Id;
+
             OASISResult<IHolon> holonResult =  await AddHolonToCollectionAsync(GreatGrandSuperStar, multiverse, (List<IHolon>)Mapper<IMultiverse, Holon>.Convert(GreatGrandSuperStar.ParentOmiverse.Multiverses));
             OASISResult<IMultiverse> multiverseResult = OASISResultHolonToHolonHelper<IHolon, IMultiverse>.CopyResult(holonResult, new OASISResult<IMultiverse>());
             multiverseResult.Result = (IMultiverse)holonResult.Result;
@@ -108,6 +120,8 @@ namespace NextGenSoftware.OASIS.STAR
                 
                 multiverseResult.Result.GrandSuperStar.ParentMultiverse = multiverseResult.Result;
                 multiverseResult.Result.GrandSuperStar.ParentMultiverseId = multiverseResult.Result.Id;
+                multiverseResult.Result.GrandSuperStar.ParentGrandSuperStar = null;
+                multiverseResult.Result.GrandSuperStar.ParentGrandSuperStarId = Guid.Empty;
 
 
 

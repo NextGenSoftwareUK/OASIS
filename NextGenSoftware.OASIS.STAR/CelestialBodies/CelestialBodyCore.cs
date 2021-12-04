@@ -285,78 +285,167 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
 
             // TODO: Need to double check this logic below is right! ;-)
             holon.IsNewHolon = true; //TODO: I am pretty sure every holon being added to a collection using this method will be a new one?
-            holon.ParentOmiverseId = parentCelestialBody.ParentOmiverseId;
-            holon.ParentMultiverseId = parentCelestialBody.ParentMultiverseId;
-            holon.ParentUniverseId = parentCelestialBody.ParentUniverseId;
-            holon.ParentDimensionId = parentCelestialBody.ParentDimensionId;
-            holon.ParentGalaxyClusterId = parentCelestialBody.ParentGalaxyClusterId;
-            holon.ParentGalaxyId = parentCelestialBody.ParentGalaxyId;
-            holon.ParentSolarSystemId = parentCelestialBody.ParentSolarSystemId;
-            holon.ParentGreatGrandSuperStarId = parentCelestialBody.ParentGreatGrandSuperStarId;
-            holon.ParentGrandSuperStarId = parentCelestialBody.ParentGrandSuperStarId;
-            holon.ParentSuperStarId = parentCelestialBody.ParentSuperStarId;
-            holon.ParentStarId = parentCelestialBody.ParentStarId;
-            holon.ParentPlanetId = parentCelestialBody.ParentPlanetId;
-            holon.ParentMoonId = parentCelestialBody.ParentMoonId;
-            holon.ParentZomeId = parentCelestialBody.ParentZomeId;
-            holon.ParentHolonId = parentCelestialBody.ParentHolonId;
+
+            if (holon.ParentOmiverseId == Guid.Empty)
+            {
+                holon.ParentOmiverseId = parentCelestialBody.ParentOmiverseId;
+                holon.ParentOmiverse = parentCelestialBody.ParentOmiverse;
+            }
+
+            if (holon.ParentMultiverseId == Guid.Empty)
+            {
+                holon.ParentMultiverseId = parentCelestialBody.ParentMultiverseId;
+                holon.ParentMultiverse = parentCelestialBody.ParentMultiverse;
+            }
+
+            if (holon.ParentUniverseId == Guid.Empty)
+            {
+                holon.ParentUniverseId = parentCelestialBody.ParentUniverseId;
+                holon.ParentUniverse = parentCelestialBody.ParentUniverse;
+            }
+
+            if (holon.ParentDimensionId == Guid.Empty)
+            {
+                holon.ParentDimensionId = parentCelestialBody.ParentDimensionId;
+                holon.ParentDimension = parentCelestialBody.ParentDimension;
+            }
+
+            if (holon.ParentGalaxyClusterId == Guid.Empty)
+            {
+                holon.ParentGalaxyClusterId = parentCelestialBody.ParentGalaxyClusterId;
+                holon.ParentGalaxyCluster = parentCelestialBody.ParentGalaxyCluster;
+            }
+
+            if (holon.ParentGalaxyId == Guid.Empty)
+            {
+                holon.ParentGalaxyId = parentCelestialBody.ParentGalaxyId;
+                holon.ParentGalaxy = parentCelestialBody.ParentGalaxy;
+            }
+
+            if (holon.ParentSolarSystemId == Guid.Empty)
+            {
+                holon.ParentSolarSystemId = parentCelestialBody.ParentSolarSystemId;
+                holon.ParentSolarSystem = parentCelestialBody.ParentSolarSystem;
+            }
+
+            if (holon.ParentGreatGrandSuperStarId == Guid.Empty)
+            {
+                holon.ParentGreatGrandSuperStarId = parentCelestialBody.ParentGreatGrandSuperStarId;
+                holon.ParentGreatGrandSuperStar = parentCelestialBody.ParentGreatGrandSuperStar;
+            }
+
+            if (holon.ParentGrandSuperStarId == Guid.Empty)
+            {
+                holon.ParentGrandSuperStarId = parentCelestialBody.ParentGrandSuperStarId;
+                holon.ParentGrandSuperStar = parentCelestialBody.ParentGrandSuperStar;
+            }
+
+            if (holon.ParentSuperStarId == Guid.Empty)
+            {
+                holon.ParentSuperStarId = parentCelestialBody.ParentSuperStarId;
+                holon.ParentSuperStar = parentCelestialBody.ParentSuperStar;
+            }
+
+            if (holon.ParentStarId == Guid.Empty)
+            {
+                holon.ParentStarId = parentCelestialBody.ParentStarId;
+                holon.ParentStar = parentCelestialBody.ParentStar;
+            }
+
+            if (holon.ParentPlanetId == Guid.Empty)
+            {
+                holon.ParentPlanetId = parentCelestialBody.ParentPlanetId;
+                holon.ParentPlanet = parentCelestialBody.ParentPlanet;
+            }
+
+            if (holon.ParentMoonId == Guid.Empty)
+            {
+                holon.ParentMoonId = parentCelestialBody.ParentMoonId;
+                holon.ParentMoon = parentCelestialBody.ParentMoon;
+            }
+
+            if (holon.ParentZomeId == Guid.Empty)
+            {
+                holon.ParentZomeId = parentCelestialBody.ParentZomeId;
+                holon.ParentZome = parentCelestialBody.ParentZome;
+            }
+
+            if (holon.ParentHolonId == Guid.Empty)
+            {
+                holon.ParentHolonId = parentCelestialBody.ParentHolonId;
+                holon.ParentHolon = parentCelestialBody.ParentHolon;
+            }
 
             switch (parentCelestialBody.HolonType)
             {
                 case HolonType.GreatGrandSuperStar:
                     holon.ParentGreatGrandSuperStarId = parentCelestialBody.Id;
+                    holon.ParentGreatGrandSuperStar = (IGreatGrandSuperStar)parentCelestialBody;
                     break;
 
                 case HolonType.GrandSuperStar:
                     holon.ParentGrandSuperStarId = parentCelestialBody.Id;
+                    holon.ParentGrandSuperStar = (IGrandSuperStar)parentCelestialBody;
                     break;
 
                 case HolonType.SuperStar:
                     holon.ParentSuperStarId = parentCelestialBody.Id;
+                    holon.ParentSuperStar = (ISuperStar)parentCelestialBody;
                     break;
 
                 case HolonType.Multiverse:
                     holon.ParentMultiverseId = parentCelestialBody.Id;
+                    holon.ParentMultiverse = (IMultiverse)parentCelestialBody;
                     break;
 
                 case HolonType.Universe:
                     holon.ParentUniverseId = parentCelestialBody.Id;
+                    holon.ParentUniverse = (IUniverse)parentCelestialBody;
                     break;
 
                 case HolonType.Dimension:
                     holon.ParentDimensionId = parentCelestialBody.Id;
+                    holon.ParentDimension = (IDimension)parentCelestialBody;
                     break;
 
                 case HolonType.GalaxyCluster:
                     holon.ParentGalaxyClusterId = parentCelestialBody.Id;
+                    holon.ParentGalaxyCluster = (IGalaxyCluster)parentCelestialBody;
                     break;
 
                 case HolonType.Galaxy:
                     holon.ParentGalaxyId = parentCelestialBody.Id;
+                    holon.ParentGalaxy = (IGalaxy)parentCelestialBody;
                     break;
 
                 case HolonType.SolarSystem:
                     holon.ParentSolarSystemId = parentCelestialBody.Id;
+                    holon.ParentSolarSystem = (ISolarSystem)parentCelestialBody;
                     break;
 
                 case HolonType.Star:
                     holon.ParentStarId = parentCelestialBody.Id;
+                    holon.ParentStar = (IStar)parentCelestialBody;
                     break;
 
                 case HolonType.Planet:
                     holon.ParentPlanetId = parentCelestialBody.Id;
+                    holon.ParentPlanet = (IPlanet)parentCelestialBody;
                     break;
 
                 case HolonType.Moon:
                     holon.ParentMoonId = parentCelestialBody.Id;
+                    holon.ParentMoon = (IMoon)parentCelestialBody;
                     break;
 
                 case HolonType.Zome:
                     holon.ParentZomeId = parentCelestialBody.Id;
+                    holon.ParentZome = (IZome)parentCelestialBody;
                     break;
 
                 case HolonType.Holon:
                     holon.ParentHolonId = parentCelestialBody.Id;
+                    holon.ParentHolon = parentCelestialBody;
                     break;
             }
             
