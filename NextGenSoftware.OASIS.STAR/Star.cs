@@ -196,62 +196,19 @@ namespace NextGenSoftware.OASIS.STAR
                 return result;
             }
 
-            // SuperStarCore = new SuperStarCore(_starId);
-            // WireUpEvents();
-
-            //IgniteInnerStar(ref result, starId);
             IgniteInnerStar(ref result);
 
-            //if (!result.IsError)
-            //{
-            //    SuperStarCore = new SuperStarCore(InnerStar.Id);
-            //    WireUpEvents();
-            //}
-
-            Status = StarStatus.Ingited;
-            OnStarIgnited.Invoke(null, new StarIgnitedEventArgs() { Message = result.Message });
-            IsStarIgnited = true;
-            return result;
-
-
-
-            // OASISResult<ICelestialBody> result = IgniteSuperStarInternal(STARDNAPath, OASISDNAPath, starId);
-
-            /*
-            if (!result.IsError && InnerStar.Id == Guid.Empty)
+            if (result.IsError)
+                Status = StarStatus.Error;
+            else
             {
-                //TODO: Implement Save method (non async version) and call instead of below:
-                result = InnerStar.SaveAsync().Result;
-
-                if (!result.IsError && result.IsSaved)
-                {
-                    result.Message = "SuperSTAR Ignited";
-                    STARDNA.StarId = InnerStar.Id.ToString(); 
-                    SaveDNA();
-                }
-            }*/
-
-        }
-
-        /*
-        public static async Task<OASISResult<ICelestialBody>> IgniteSuperStarAsync(string STARDNAPath = STAR_DNA_DEFAULT_PATH, string OASISDNAPath = OASIS_DNA_DEFAULT_PATH, string starId = null)
-        {
-            OASISResult<ICelestialBody> result = IgniteSuperStarInternal(STARDNAPath, OASISDNAPath, starId);
-
-            if (!result.IsError && InnerStar.Id == Guid.Empty)
-            {
-                result = await InnerStar.SaveAsync();
-
-                if (!result.IsError && result.IsSaved)
-                {
-                    result.Message = "SuperSTAR Ignited";
-                    STARDNA.StarId = InnerStar.Id.ToString(); //TODO: May just store this internally by adding a LoadSuperStar method which would call LoadHolon passing in HolonType SuperStar (depends if if there will be more than one SuperStar in future? ;-) ) Maybe for distributing so can easier handle load? It's one SuperStar per Galaxy so could have more than one Galaxy? So The OASIS and COSMIC would be a full Universe with multiple Galaxies with their own SuperStar in the centre... ;-) YES! But would we need a GrandSuperStar then? For the centre of the Universe? Which will connect to other Universes and creates SuperStars? Or could a SuperStar just create other SuperStars? :) Yes think better to just for now allow SuperStar to create other SuperStars... ;-)
-                    SaveDNA();
-                }
+                Status = StarStatus.Ingited;
+                OnStarIgnited.Invoke(null, new StarIgnitedEventArgs() { Message = result.Message });
+                IsStarIgnited = true;
             }
 
             return result;
-        }*/
+        }
 
         public static OASISResult<bool> ExtinguishSuperStar()
         {
@@ -1383,33 +1340,42 @@ namespace NextGenSoftware.OASIS.STAR
                                 solarSystem.Id = Guid.NewGuid();
                                 solarSystem.IsNewHolon = true;
 
-                                Star star = new Star();
-                                star.CreatedOASISType = new EnumValue<OASISType>(OASISType.STARCLI);
-                                Mapper<IGalaxy, Star>.MapParentCelestialBodyProperties(galaxy, star);
-                                star.Name = "Our Sun (Sol)";
-                                star.Description = "The Sun at the centre of our Solar System";
-                                star.ParentGalaxy = galaxy;
-                                star.ParentGalaxyId = galaxy.Id;
-                                star.ParentSolarSystem = solarSystem;
-                                star.ParentSolarSystemId = solarSystem.Id;
-                               // await star.InitializeAsync();
+                                Mapper<IGalaxy, Star>.MapParentCelestialBodyProperties(galaxy, (Star)solarSystem.Star);
+                                solarSystem.Star.Name = "Our Sun (Sol)";
+                                solarSystem.Star.Description = "The Sun at the centre of our Solar System";
+                                solarSystem.Star.ParentGalaxy = galaxy;
+                                solarSystem.Star.ParentGalaxyId = galaxy.Id;
+                                solarSystem.Star.ParentSolarSystem = solarSystem;
+                                solarSystem.Star.ParentSolarSystemId = solarSystem.Id;
 
-                                OASISResult<IStar> starResult = await ((SuperStarCore)galaxy.SuperStar.CelestialBodyCore).AddStarAsync(star);
+                                //Star star = new Star();
+                                //star.CreatedOASISType = new EnumValue<OASISType>(OASISType.STARCLI);
+                                //Mapper<IGalaxy, Star>.MapParentCelestialBodyProperties(galaxy, star);
+                                //star.Name = "Our Sun (Sol)";
+                                //star.Description = "The Sun at the centre of our Solar System";
+                                //star.ParentGalaxy = galaxy;
+                                //star.ParentGalaxyId = galaxy.Id;
+                                //star.ParentSolarSystem = solarSystem;
+                                //star.ParentSolarSystemId = solarSystem.Id;
+
+                                OASISResult<IStar> starResult = await ((SuperStarCore)galaxy.SuperStar.CelestialBodyCore).AddStarAsync(solarSystem.Star);
 
                                 if (!starResult.IsError && starResult.Result != null)
                                 {
-                                    star = (Star)starResult.Result;
-                                    DefaultStar = star; //TODO: TEMP: For now the default Star in STAR ODK will be our Sun (this will be more dynamic later on).
+                                    solarSystem.Star = (Star)starResult.Result;
+                                    DefaultStar = solarSystem.Star; //TODO: TEMP: For now the default Star in STAR ODK will be our Sun (this will be more dynamic later on).
                                     STARDNA.DefaultStarId = DefaultStar.Id.ToString();
                                     
-                                    Mapper<IStar, SolarSystem>.MapParentCelestialBodyProperties(star, solarSystem);
-                                    solarSystem.ParentStar = star;
-                                    solarSystem.ParentStarId = star.Id;
+                                    Mapper<IStar, SolarSystem>.MapParentCelestialBodyProperties(solarSystem.Star, solarSystem);
+                                    solarSystem.ParentStar = solarSystem.Star;
+                                    solarSystem.ParentStarId = solarSystem.Star.Id;
+                                    solarSystem.ParentSolarSystem = null;
+                                    solarSystem.ParentSolarSystemId = Guid.Empty;
 
                                     //TODO: Not sure if this method should also automatically create a Star inside it like the methods above do for Galaxy, Universe etc?
                                     // I like how a Star creates its own Solar System from its StarDust, which is how it works in real life I am pretty sure? So I think this is best... :)
                                     //TODO: For some reason I could not get Galaxy and Universe to work the same way? Need to come back to this so they all work in the same consistent manner...
-                                    OASISResult<ISolarSystem> solarSystemResult = await ((StarCore)star.CelestialBodyCore).AddSolarSystemAsync(solarSystem);
+                                    OASISResult<ISolarSystem> solarSystemResult = await ((StarCore)solarSystem.Star.CelestialBodyCore).AddSolarSystemAsync(solarSystem);
 
                                     if (!solarSystemResult.IsError && solarSystemResult.Result != null)
                                     {
@@ -1424,7 +1390,7 @@ namespace NextGenSoftware.OASIS.STAR
                                         ourWorld.ParentSolarSystemId = solarSystem.Id;
                                        // await ourWorld.InitializeAsync();
 
-                                        OASISResult<IPlanet> ourWorldResult = await ((StarCore)star.CelestialBodyCore).AddPlanetAsync(ourWorld);
+                                        OASISResult<IPlanet> ourWorldResult = await ((StarCore)solarSystem.Star.CelestialBodyCore).AddPlanetAsync(ourWorld);
 
                                         if (!ourWorldResult.IsError && ourWorldResult.Result != null)
                                         {
