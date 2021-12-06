@@ -11,6 +11,7 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
 {
     public class Holon : HolonBase, IHolon, INotifyPropertyChanged
     {
+        private ISolarSystem _parentSolarSystem = null;
         public Holon() : base()
         {
             Init();
@@ -41,6 +42,20 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
         public IGalaxy ParentGalaxy { get; set; } //The Galaxy this Holon belongs to.
         public Guid ParentSolarSystemId { get; set; } //The SolarSystem this Holon belongs to.
         public ISolarSystem ParentSolarSystem { get; set; } //The SolarSystem this Holon belongs to.
+        //public ISolarSystem ParentSolarSystem //The SolarSystem this Holon belongs to.
+        //{
+        //    get
+        //    {
+        //        if (_parentSolarSystem == null)
+        //            _parentSolarSystem = new SolarSystem();
+
+        //        return _parentSolarSystem;
+        //    }
+        //    set
+        //    {
+        //        _parentSolarSystem = value;
+        //    }
+        //}
         public Guid ParentGreatGrandSuperStarId { get; set; } //The GreatGrandSuperStar this Holon belongs to.
         public IGreatGrandSuperStar ParentGreatGrandSuperStar { get; set; } //The GreatGrandSuperStar this Holon belongs to.
         public Guid ParentGrandSuperStarId { get; set; } //The GrandSuperStar this Holon belongs to.
@@ -230,6 +245,11 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
             return base.HasHolonChanged(checkChildren);
         }
 
+        public bool LoadChildHolons()
+        {
+            //TODO: IMPLEMENT ASAP!
+            return true;
+        }
 
         /*
         //https://stackoverflow.com/questions/2363801/what-would-be-the-best-way-to-implement-change-tracking-on-an-object

@@ -402,7 +402,7 @@ namespace NextGenSoftware.OASIS.STAR
         //TODO: Create non async version of Light();
         private static async Task<CoronalEjection> LightAsync(GenesisType type, string name, ICelestialBody celestialBodyParent = null, string dnaFolder = "", string genesisCSharpFolder = "", string genesisRustFolder = "", string genesisNameSpace = "")
         {
-            CelestialBody newBody = null;
+            CelestialBodies.CelestialSpace newBody = null;
             bool holonReached = false;
             string holonBufferRust = "";
             string holonBufferCsharp = "";
@@ -631,6 +631,7 @@ namespace NextGenSoftware.OASIS.STAR
                                 ParentMoonId = newBody.HolonType == HolonType.Moon ? newBody.Id : Guid.Empty
                             };
 
+                            Mapper.MapParentCelestialBodyProperties(newBody, currentZome);
                             //currentZome = new Zome() { Name = zomeName, HolonType = HolonType.Zome, ParentId = newBody.Id, ParentCelestialBodyId = newBody.Id };
                             await newBody.CelestialBodyCore.AddZomeAsync(currentZome); //TODO: May need to save this once holons and nodes/fields have been added?
                         }
@@ -756,17 +757,18 @@ namespace NextGenSoftware.OASIS.STAR
                             }*/
 
                             // TODO: Current Zome Id will be empty here so need to save the zome before? (above when the zome is first created and added to the newBody zomes collection).
-                            currentHolon = new Holon() 
-                            { 
+                            currentHolon = new Holon()
+                            {
                                 Name = holonName,
                                 CreatedOASISType = new EnumValue<OASISType>(OASISType.STARCLI),
-                                HolonType = HolonType.Holon, 
-                                ParentHolonId = currentZome.Id, 
-                                ParentZomeId = currentZome.Id, 
+                                HolonType = HolonType.Holon,
+                                ParentHolonId = currentZome.Id,
+                                ParentZomeId = currentZome.Id,
                                 ParentPlanetId = newBody.HolonType == HolonType.Planet ? newBody.Id : Guid.Empty, 
                                 ParentMoonId = newBody.HolonType == HolonType.Moon ? newBody.Id : Guid.Empty 
                             };
 
+                            Mapper.MapParentCelestialBodyProperties(newBody, currentHolon);
                             currentZome.Holons.Add((Holon)currentHolon); 
 
                             holonName = holonName.ToSnakeCase();
@@ -789,7 +791,7 @@ namespace NextGenSoftware.OASIS.STAR
            //     newBody.CelestialBodyCore.Zomes.Add(currentZome);
 
             //TODO: Need to save the collection of Zomes/Holons that belong to this planet here...
-            await newBody.SaveAsync(); // Need to save again so newly added zomes/holons/nodes are also saved.
+            //await newBody.SaveAsync(); // Need to save again so newly added zomes/holons/nodes are also saved. //TODO: NO NEED TO SAVE BECAUSE IT IS SAVED IN METHODS BELOW...
 
             switch (type)
             {
@@ -809,11 +811,11 @@ namespace NextGenSoftware.OASIS.STAR
                     }
 
                 case GenesisType.Planet:
-                    {
+                    {                      
                         OASISResult<IPlanet> result = await ((StarCore)celestialBodyParent.CelestialBodyCore).AddPlanetAsync((IPlanet)newBody);
 
                         if (result != null)
-                        { 
+                        {
                             if (result.IsError)
                                 return new CoronalEjection() { ErrorOccured = true, Message = result.Message, CelestialBody = result.Result };
                             else
@@ -907,14 +909,14 @@ namespace NextGenSoftware.OASIS.STAR
             return new CoronalEjection();
         }
 
-        public static CoronalEjection Flare(CelestialBody body)
+        public static CoronalEjection Flare(CelestialBodies.CelestialSpace body)
         {
             //TODO: Build rust code using hc conductor and .net code using dotnet compiler.
             return new CoronalEjection();
         }
 
         //Activate & Launch - Launch & activate a planet (OAPP) by shining the star's light upon it...
-        public static void Shine(CelestialBody body)
+        public static void Shine(CelestialBodies.CelestialSpace body)
         {
 
         }
@@ -925,7 +927,7 @@ namespace NextGenSoftware.OASIS.STAR
         }
 
         //Dractivate
-        public static void Dim(CelestialBody body)
+        public static void Dim(CelestialBodies.CelestialSpace body)
         {
 
         }
@@ -936,7 +938,7 @@ namespace NextGenSoftware.OASIS.STAR
         }
 
         //Deploy
-        public static void Seed(CelestialBody body)
+        public static void Seed(CelestialBodies.CelestialSpace body)
         {
 
         }
@@ -947,7 +949,7 @@ namespace NextGenSoftware.OASIS.STAR
         }
 
         // Run Tests
-        public static void Twinkle(CelestialBody body)
+        public static void Twinkle(CelestialBodies.CelestialSpace body)
         {
 
         }
@@ -958,7 +960,7 @@ namespace NextGenSoftware.OASIS.STAR
         }
 
         // Delete Planet (OAPP)
-        public static void Dust(CelestialBody body)
+        public static void Dust(CelestialBodies.CelestialSpace body)
         {
 
         }
@@ -969,7 +971,7 @@ namespace NextGenSoftware.OASIS.STAR
         }
 
         // Delete Planet (OAPP)
-        public static void Evolve(CelestialBody body)
+        public static void Evolve(CelestialBodies.CelestialSpace body)
         {
 
         }
@@ -980,7 +982,7 @@ namespace NextGenSoftware.OASIS.STAR
         }
 
         // Delete Planet (OAPP)
-        public static void Mutate(CelestialBody body)
+        public static void Mutate(CelestialBodies.CelestialSpace body)
         {
 
         }
@@ -991,7 +993,7 @@ namespace NextGenSoftware.OASIS.STAR
         }
 
         // Highlight the Planet (OAPP) in the OAPP Store (StarNET)
-        public static void Radiate(CelestialBody body)
+        public static void Radiate(CelestialBodies.CelestialSpace body)
         {
 
         }
@@ -1002,7 +1004,7 @@ namespace NextGenSoftware.OASIS.STAR
         }
 
         // Show how much light the planet (OAPP) is emitting into the solar system (StarNET/HoloNET)
-        public static void Emit(CelestialBody body)
+        public static void Emit(CelestialBodies.CelestialSpace body)
         {
 
         }
@@ -1013,7 +1015,7 @@ namespace NextGenSoftware.OASIS.STAR
         }
 
         // Show stats of the Planet (OAPP)
-        public static void Reflect(CelestialBody body)
+        public static void Reflect(CelestialBodies.CelestialSpace body)
         {
 
         }
@@ -1024,7 +1026,7 @@ namespace NextGenSoftware.OASIS.STAR
         }
 
         // Send/Receive Love
-        public static void Love(CelestialBody body)
+        public static void Love(CelestialBodies.CelestialSpace body)
         {
 
         }
@@ -1035,7 +1037,7 @@ namespace NextGenSoftware.OASIS.STAR
         }
 
         // Show network stats/management/settings
-        public static void Burst(CelestialBody body)
+        public static void Burst(CelestialBodies.CelestialSpace body)
         {
 
         }
@@ -1046,7 +1048,7 @@ namespace NextGenSoftware.OASIS.STAR
         }
 
         // ????
-        public static void Pulse(CelestialBody body)
+        public static void Pulse(CelestialBodies.CelestialSpace body)
         {
 
         }
@@ -1057,7 +1059,7 @@ namespace NextGenSoftware.OASIS.STAR
         }
 
         // Reserved For Future Use...
-        public static void Super(CelestialBody body)
+        public static void Super(CelestialBodies.CelestialSpace body)
         {
 
         }
@@ -1219,7 +1221,7 @@ namespace NextGenSoftware.OASIS.STAR
         
         private static OASISResult<ICelestialBody> IgniteInnerStar(ref OASISResult<ICelestialBody> result)
         {
-            _starId = Guid.Empty; //TODO:Temp, remove after!
+           // _starId = Guid.Empty; //TODO:Temp, remove after!
 
             if (_starId == Guid.Empty)
                 result = OASISOmniverseGenesisAsync().Result;
@@ -1234,7 +1236,7 @@ namespace NextGenSoftware.OASIS.STAR
         {
             OASISResult<ICelestialBody> result = new OASISResult<ICelestialBody>();
 
-            _starId = Guid.Empty; //TODO:Temp, remove after!
+         //   _starId = Guid.Empty; //TODO:Temp, remove after!
 
             if (_starId == Guid.Empty)
                 result = await OASISOmniverseGenesisAsync();

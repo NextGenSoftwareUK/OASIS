@@ -66,6 +66,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
             if (holonResult.Result != null && !holonResult.IsError)
             {
                 result.Result = Mapper<IHolon, Zome>.MapBaseHolonProperties(holonResult.Result);
+                this.Zomes = (List<IZome>)result.Result;
                 OnZomesLoaded?.Invoke(this, new ZomesLoadedEventArgs { Zomes = Zomes });
             }
 
@@ -81,6 +82,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
             if (holonResult.Result != null && !holonResult.IsError)
             {
                 result.Result = Mapper<IHolon, Zome>.MapBaseHolonProperties(holonResult.Result);
+                this.Zomes = (List<IZome>)result.Result;
                 OnZomesLoaded?.Invoke(this, new ZomesLoadedEventArgs { Zomes = Zomes });
             }
 
@@ -269,7 +271,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
             return base.LoadHolon();
         }
 
-        protected virtual async Task<OASISResult<IHolon>> AddHolonToCollectionAsync(IHolon parentCelestialBody, IHolon holon, List<IHolon> holons)
+        protected virtual async Task<OASISResult<IHolon>> AddHolonToCollectionAsync(IHolon parentCelestialBody, IHolon holon, List<IHolon> holons, bool saveHolon = true)
         {
             OASISResult<IHolon> result = new OASISResult<IHolon>();
 
@@ -452,14 +454,26 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
             holons.Add(holon);
 
             //OASISResult<IEnumerable<IHolon>> holonsResult = await base.SaveHolonsAsync(holons, false);
-            OASISResult<IEnumerable<IHolon>> holonsResult = await base.SaveHolonsAsync(holons, false); //TODO: Temp to test new code...
-            OASISResultCollectionToHolonHelper<IEnumerable<IHolon>, IHolon>.CopyResult(holonsResult, ref result);
+            //OASISResult<IEnumerable<IHolon>> holonsResult = await base.SaveHolonsAsync(holons, false); //TODO: Temp to test new code...
 
-            if (!holonsResult.IsError)
+            if (saveHolon)
             {
-                IHolon savedHolon = holons.FirstOrDefault(x => x.Name == holon.Name);
-                result.Result = savedHolon;
+                result = await base.SaveHolonAsync(holon, false); //TODO: WE ONLY NEED TO SAVE THE NEW HOLON, NO NEED TO RE-SAVE THE WHOLE COLLECTION AGAIN! ;-)
+                result.IsSaved = true;
             }
+            else
+            {
+                result.Message = "Holon was not saved due to saveHolon being set to false.";
+                result.IsSaved = false;
+            }
+
+            //OASISResultCollectionToHolonHelper<IEnumerable<IHolon>, IHolon>.CopyResult(holonsResult, ref result);
+
+            //if (!holonsResult.IsError)
+            //{
+            //    IHolon savedHolon = holons.FirstOrDefault(x => x.Name == holon.Name);
+            //    result.Result = savedHolon;
+            //}
 
             return result;
         }

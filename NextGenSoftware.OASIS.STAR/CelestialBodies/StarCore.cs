@@ -6,6 +6,7 @@ using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using NextGenSoftware.OASIS.API.Core.Holons;
+using NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Prototypes;
 
 namespace NextGenSoftware.OASIS.STAR.CelestialBodies
 {
@@ -48,14 +49,24 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
 
         public async Task<OASISResult<IPlanet>> AddPlanetAsync(IPlanet planet)
         {
-            OASISResult<IHolon> holonResult = await AddHolonToCollectionAsync(Star, planet, (List<IHolon>)Mapper<IPlanet, Holon>.Convert(Star.ParentSolarSystem.Planets));
+            if (Star.ParentSolarSystem == null)
+            {
+                Star.ParentSolarSystem = new SolarSystem()
+
+            }
+
+            OASISResult<IHolon> holonResult = await AddHolonToCollectionAsync(Star, planet, (List<IHolon>)Mapper<IPlanet, Holon>.Convert(Star.ParentSolarSystem.Planets), false);
             OASISResult<IPlanet> result = OASISResultHolonToHolonHelper<IHolon, IPlanet>.CopyResult(holonResult, new OASISResult<IPlanet>());
             result.Result = (IPlanet)holonResult.Result;
-            return result;
 
-            //return OASISResultHolonToHolonHelper<IHolon, IPlanet>.CopyResult(
-            //    await AddHolonToCollectionAsync(Star, planet, (List<IHolon>)Mapper<IPlanet, Holon>.MapBaseHolonProperties(
-            //        Star.ParentSolarSystem.Planets)), new OASISResult<IPlanet>());
+            if (result != null && result.Result != null && !result.IsError)
+            {
+                OASISResult<ICelestialBody> celestialBodyResult = await planet.SaveAsync<Planet>();
+                result = OASISResultHolonToHolonHelper<ICelestialBody, IPlanet>.CopyResult(celestialBodyResult, result);
+                result.Result = (IPlanet)celestialBodyResult.Result;
+            }
+
+            return result;
         }
 
         public OASISResult<IPlanet> AddPlanet(IPlanet planet)

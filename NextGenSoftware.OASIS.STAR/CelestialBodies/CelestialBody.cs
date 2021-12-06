@@ -901,8 +901,23 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
 
             if (Id != Guid.Empty || (ProviderKey != null && ProviderKey.Keys.Count > 0))
             {
-                await LoadCelestialBodyAsync();
+                OASISResult<IHolon> celestialBodyResult = await LoadCelestialBodyAsync();
+
+                if (celestialBodyResult != null && !celestialBodyResult.IsError && celestialBodyResult.Result != null)
+                    Mapper.MapBaseHolonProperties(celestialBodyResult.Result, this);
+                else
+                    throw new Exception($"ERROR: Error loading CelesitalBody, reason: {celestialBodyResult.Message}"); //TODO: Replace exception with bubbling up OASISResult (needs to be OASIS wide ASAP).
+
+                //await LoadCelestialBodyAsync();
                 await LoadZomesAsync();
+
+               
+                //OASISResult<IEnumerable<IZome>> zomesResult = await LoadZomesAsync();
+
+                //if (zomesResult != null && !zomesResult.IsError && zomesResult.Result != null)
+                //    this.CelestialBodyCore.Zomes = (List<IZome>)zomesResult.Result;
+                //else
+                //    throw new Exception($"ERROR: Error loading CelesitalBody Zomes, reason: {zomesResult.Message}"); //TODO: Replace exception with bubbling up OASISResult (needs to be OASIS wide ASAP).
             }
         }
 
@@ -913,8 +928,24 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
 
             if (Id != Guid.Empty || (ProviderKey != null && ProviderKey.Keys.Count > 0))
             {
-                LoadCelestialBody();
+                //LoadCelestialBody();
+
+                OASISResult<IHolon> celestialBodyResult = LoadCelestialBody();
+
+                if (celestialBodyResult != null && !celestialBodyResult.IsError && celestialBodyResult.Result != null)
+                    Mapper.MapBaseHolonProperties(celestialBodyResult.Result, this);
+                else
+                    throw new Exception($"ERROR: Error loading CelesitalBody, reason: {celestialBodyResult.Message}"); //TODO: Replace exception with bubbling up OASISResult (needs to be OASIS wide ASAP).
+
                 LoadZomes();
+
+                
+                // OASISResult<IEnumerable<IZome>> zomesResult = LoadZomes();
+
+                //if (zomesResult != null && !zomesResult.IsError && zomesResult.Result != null)
+                //    this.CelestialBodyCore.Zomes = (List<IZome>)zomesResult.Result;
+                //else
+                //    throw new Exception($"ERROR: Error loading CelesitalBody Zomes, reason: {zomesResult.Message}"); //TODO: Replace exception with bubbling up OASISResult (needs to be OASIS wide ASAP).
             }
         }
 
