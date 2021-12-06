@@ -402,7 +402,7 @@ namespace NextGenSoftware.OASIS.STAR
         //TODO: Create non async version of Light();
         private static async Task<CoronalEjection> LightAsync(GenesisType type, string name, ICelestialBody celestialBodyParent = null, string dnaFolder = "", string genesisCSharpFolder = "", string genesisRustFolder = "", string genesisNameSpace = "")
         {
-            CelestialBodies.CelestialSpace newBody = null;
+            CelestialBodies.CelestialBody newBody = null;
             bool holonReached = false;
             string holonBufferRust = "";
             string holonBufferCsharp = "";
@@ -909,14 +909,14 @@ namespace NextGenSoftware.OASIS.STAR
             return new CoronalEjection();
         }
 
-        public static CoronalEjection Flare(CelestialBodies.CelestialSpace body)
+        public static CoronalEjection Flare(CelestialBodies.CelestialBody body)
         {
             //TODO: Build rust code using hc conductor and .net code using dotnet compiler.
             return new CoronalEjection();
         }
 
         //Activate & Launch - Launch & activate a planet (OAPP) by shining the star's light upon it...
-        public static void Shine(CelestialBodies.CelestialSpace body)
+        public static void Shine(CelestialBodies.CelestialBody body)
         {
 
         }
@@ -927,7 +927,7 @@ namespace NextGenSoftware.OASIS.STAR
         }
 
         //Dractivate
-        public static void Dim(CelestialBodies.CelestialSpace body)
+        public static void Dim(CelestialBodies.CelestialBody body)
         {
 
         }
@@ -938,7 +938,7 @@ namespace NextGenSoftware.OASIS.STAR
         }
 
         //Deploy
-        public static void Seed(CelestialBodies.CelestialSpace body)
+        public static void Seed(CelestialBodies.CelestialBody body)
         {
 
         }
@@ -949,7 +949,7 @@ namespace NextGenSoftware.OASIS.STAR
         }
 
         // Run Tests
-        public static void Twinkle(CelestialBodies.CelestialSpace body)
+        public static void Twinkle(CelestialBodies.CelestialBody body)
         {
 
         }
@@ -960,7 +960,7 @@ namespace NextGenSoftware.OASIS.STAR
         }
 
         // Delete Planet (OAPP)
-        public static void Dust(CelestialBodies.CelestialSpace body)
+        public static void Dust(CelestialBodies.CelestialBody body)
         {
 
         }
@@ -971,7 +971,7 @@ namespace NextGenSoftware.OASIS.STAR
         }
 
         // Delete Planet (OAPP)
-        public static void Evolve(CelestialBodies.CelestialSpace body)
+        public static void Evolve(CelestialBodies.CelestialBody body)
         {
 
         }
@@ -982,7 +982,7 @@ namespace NextGenSoftware.OASIS.STAR
         }
 
         // Delete Planet (OAPP)
-        public static void Mutate(CelestialBodies.CelestialSpace body)
+        public static void Mutate(CelestialBodies.CelestialBody body)
         {
 
         }
@@ -993,7 +993,7 @@ namespace NextGenSoftware.OASIS.STAR
         }
 
         // Highlight the Planet (OAPP) in the OAPP Store (StarNET)
-        public static void Radiate(CelestialBodies.CelestialSpace body)
+        public static void Radiate(CelestialBodies.CelestialBody body)
         {
 
         }
@@ -1004,7 +1004,7 @@ namespace NextGenSoftware.OASIS.STAR
         }
 
         // Show how much light the planet (OAPP) is emitting into the solar system (StarNET/HoloNET)
-        public static void Emit(CelestialBodies.CelestialSpace body)
+        public static void Emit(CelestialBodies.CelestialBody body)
         {
 
         }
@@ -1015,7 +1015,7 @@ namespace NextGenSoftware.OASIS.STAR
         }
 
         // Show stats of the Planet (OAPP)
-        public static void Reflect(CelestialBodies.CelestialSpace body)
+        public static void Reflect(CelestialBodies.CelestialBody body)
         {
 
         }
@@ -1026,7 +1026,7 @@ namespace NextGenSoftware.OASIS.STAR
         }
 
         // Send/Receive Love
-        public static void Love(CelestialBodies.CelestialSpace body)
+        public static void Love(CelestialBodies.CelestialBody body)
         {
 
         }
@@ -1037,7 +1037,7 @@ namespace NextGenSoftware.OASIS.STAR
         }
 
         // Show network stats/management/settings
-        public static void Burst(CelestialBodies.CelestialSpace body)
+        public static void Burst(CelestialBodies.CelestialBody body)
         {
 
         }
@@ -1048,7 +1048,7 @@ namespace NextGenSoftware.OASIS.STAR
         }
 
         // ????
-        public static void Pulse(CelestialBodies.CelestialSpace body)
+        public static void Pulse(CelestialBodies.CelestialBody body)
         {
 
         }
@@ -1059,7 +1059,7 @@ namespace NextGenSoftware.OASIS.STAR
         }
 
         // Reserved For Future Use...
-        public static void Super(CelestialBodies.CelestialSpace body)
+        public static void Super(CelestialBodies.CelestialBody body)
         {
 
         }
