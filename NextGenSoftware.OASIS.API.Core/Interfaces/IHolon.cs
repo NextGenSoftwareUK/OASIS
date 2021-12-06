@@ -66,6 +66,8 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces
         //EnumValue<ProviderType> CreatedProviderType { get; set; }
         ObservableCollection<INode> Nodes { get; set; }
 
-      //  bool HasHolonChanged(bool checkChildren = true);
+        //  bool HasHolonChanged(bool checkChildren = true);
+
+        public bool LoadChildHolons();
     }
 }

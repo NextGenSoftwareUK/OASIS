@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
@@ -84,38 +85,97 @@ namespace NextGenSoftware.OASIS.API.Core.Helpers
             return targetList;
         }
 
-        public static ICelestialBody MapParentCelestialBodyProperties(ICelestialBody sourceCelestialBody, ICelestialBody targetCelestialBody)
+        public static IHolon MapParentCelestialBodyProperties(IHolon sourceCelestialBody, IHolon targetCelestialBody, bool onlyMapIfTargetIsNull = true)
         {
-            targetCelestialBody.ParentGreatGrandSuperStar = sourceCelestialBody.ParentGreatGrandSuperStar;
-            targetCelestialBody.ParentGreatGrandSuperStarId = sourceCelestialBody.ParentGreatGrandSuperStarId;
-            targetCelestialBody.ParentGrandSuperStar = sourceCelestialBody.ParentGrandSuperStar;
-            targetCelestialBody.ParentGrandSuperStarId = sourceCelestialBody.ParentGrandSuperStarId;
-            targetCelestialBody.ParentSuperStar = sourceCelestialBody.ParentSuperStar;
-            targetCelestialBody.ParentSuperStarId = sourceCelestialBody.ParentSuperStarId;
-            targetCelestialBody.ParentStar = sourceCelestialBody.ParentStar;
-            targetCelestialBody.ParentStarId = sourceCelestialBody.ParentStarId;
-            targetCelestialBody.ParentPlanet = sourceCelestialBody.ParentPlanet;
-            targetCelestialBody.ParentPlanetId = sourceCelestialBody.ParentPlanetId;
-            targetCelestialBody.ParentMoon = sourceCelestialBody.ParentMoon;
-            targetCelestialBody.ParentMoonId = sourceCelestialBody.ParentMoonId;
-            targetCelestialBody.ParentZome = sourceCelestialBody.ParentZome;
-            targetCelestialBody.ParentZomeId = sourceCelestialBody.ParentZomeId;
-            targetCelestialBody.ParentHolon = sourceCelestialBody.ParentHolon;
-            targetCelestialBody.ParentHolonId = sourceCelestialBody.ParentHolonId;
-            targetCelestialBody.ParentOmiverse = sourceCelestialBody.ParentOmiverse;
-            targetCelestialBody.ParentOmiverseId = sourceCelestialBody.ParentOmiverseId;
-            targetCelestialBody.ParentMultiverse = sourceCelestialBody.ParentMultiverse;
-            targetCelestialBody.ParentMultiverseId = sourceCelestialBody.ParentMultiverseId;
-            targetCelestialBody.ParentDimension = sourceCelestialBody.ParentDimension;
-            targetCelestialBody.ParentDimensionId = sourceCelestialBody.ParentDimensionId;
-            targetCelestialBody.ParentUniverse = sourceCelestialBody.ParentUniverse;
-            targetCelestialBody.ParentUniverseId = sourceCelestialBody.ParentUniverseId;
-            targetCelestialBody.ParentGalaxyCluster = sourceCelestialBody.ParentGalaxyCluster;
-            targetCelestialBody.ParentGalaxyClusterId = sourceCelestialBody.ParentGalaxyClusterId;
-            targetCelestialBody.ParentGalaxy = sourceCelestialBody.ParentGalaxy;
-            targetCelestialBody.ParentGalaxyId = sourceCelestialBody.ParentGalaxyId;
-            targetCelestialBody.ParentSolarSystem = sourceCelestialBody.ParentSolarSystem;
-            targetCelestialBody.ParentSolarSystemId = sourceCelestialBody.ParentSolarSystemId;
+            if (targetCelestialBody.ParentGreatGrandSuperStar == null || (targetCelestialBody.ParentGreatGrandSuperStar != null && !onlyMapIfTargetIsNull))
+                targetCelestialBody.ParentGreatGrandSuperStar = sourceCelestialBody.ParentGreatGrandSuperStar;
+
+            if (targetCelestialBody.ParentGreatGrandSuperStarId == Guid.Empty || (targetCelestialBody.ParentGreatGrandSuperStarId != Guid.Empty && !onlyMapIfTargetIsNull))
+                    targetCelestialBody.ParentGreatGrandSuperStarId = sourceCelestialBody.ParentGreatGrandSuperStarId;
+
+            if (targetCelestialBody.ParentGrandSuperStar == null || (targetCelestialBody.ParentGrandSuperStar != null && !onlyMapIfTargetIsNull))
+                targetCelestialBody.ParentGrandSuperStar = sourceCelestialBody.ParentGrandSuperStar;
+
+            if (targetCelestialBody.ParentGrandSuperStarId == Guid.Empty || (targetCelestialBody.ParentGrandSuperStarId != Guid.Empty && !onlyMapIfTargetIsNull))
+                targetCelestialBody.ParentGrandSuperStarId = sourceCelestialBody.ParentGrandSuperStarId;
+
+            if (targetCelestialBody.ParentSuperStar == null || (targetCelestialBody.ParentSuperStar != null && !onlyMapIfTargetIsNull))
+                targetCelestialBody.ParentSuperStar = sourceCelestialBody.ParentSuperStar;
+
+            if (targetCelestialBody.ParentSuperStarId == Guid.Empty || (targetCelestialBody.ParentSuperStarId != Guid.Empty && !onlyMapIfTargetIsNull))
+                targetCelestialBody.ParentSuperStarId = sourceCelestialBody.ParentSuperStarId;
+
+            if (targetCelestialBody.ParentStar == null || (targetCelestialBody.ParentStar != null && !onlyMapIfTargetIsNull))
+                targetCelestialBody.ParentStar = sourceCelestialBody.ParentStar;
+
+            if (targetCelestialBody.ParentStarId == Guid.Empty || (targetCelestialBody.ParentStarId != Guid.Empty && !onlyMapIfTargetIsNull))
+                targetCelestialBody.ParentStarId = sourceCelestialBody.ParentStarId;
+
+            if (targetCelestialBody.ParentPlanet == null || (targetCelestialBody.ParentPlanet != null && !onlyMapIfTargetIsNull))
+                targetCelestialBody.ParentPlanet = sourceCelestialBody.ParentPlanet;
+
+            if (targetCelestialBody.ParentPlanetId == Guid.Empty || (targetCelestialBody.ParentPlanetId != Guid.Empty && !onlyMapIfTargetIsNull))
+                targetCelestialBody.ParentPlanetId = sourceCelestialBody.ParentPlanetId;
+
+            if (targetCelestialBody.ParentMoon == null || (targetCelestialBody.ParentMoon != null && !onlyMapIfTargetIsNull))
+                targetCelestialBody.ParentMoon = sourceCelestialBody.ParentMoon;
+
+            if (targetCelestialBody.ParentMoonId == Guid.Empty || (targetCelestialBody.ParentMoonId != Guid.Empty && !onlyMapIfTargetIsNull))
+                targetCelestialBody.ParentMoonId = sourceCelestialBody.ParentMoonId;
+
+            if (targetCelestialBody.ParentZome == null || (targetCelestialBody.ParentZome != null && !onlyMapIfTargetIsNull))
+                targetCelestialBody.ParentZome = sourceCelestialBody.ParentZome;
+
+            if (targetCelestialBody.ParentZomeId == Guid.Empty || (targetCelestialBody.ParentZomeId != Guid.Empty && !onlyMapIfTargetIsNull))
+                targetCelestialBody.ParentZomeId = sourceCelestialBody.ParentZomeId;
+
+            if (targetCelestialBody.ParentHolon == null || (targetCelestialBody.ParentHolon != null && !onlyMapIfTargetIsNull))
+                targetCelestialBody.ParentHolon = sourceCelestialBody.ParentHolon;
+
+            if (targetCelestialBody.ParentHolonId == Guid.Empty || (targetCelestialBody.ParentHolonId != Guid.Empty && !onlyMapIfTargetIsNull))
+                targetCelestialBody.ParentHolonId = sourceCelestialBody.ParentHolonId;
+
+            if (targetCelestialBody.ParentOmiverse == null || (targetCelestialBody.ParentOmiverse != null && !onlyMapIfTargetIsNull))
+                targetCelestialBody.ParentOmiverse = sourceCelestialBody.ParentOmiverse;
+
+            if (targetCelestialBody.ParentOmiverseId == Guid.Empty || (targetCelestialBody.ParentOmiverseId != Guid.Empty && !onlyMapIfTargetIsNull))
+                targetCelestialBody.ParentOmiverseId = sourceCelestialBody.ParentOmiverseId;
+
+            if (targetCelestialBody.ParentMultiverse == null || (targetCelestialBody.ParentMultiverse != null && !onlyMapIfTargetIsNull))
+                targetCelestialBody.ParentMultiverse = sourceCelestialBody.ParentMultiverse;
+
+            if (targetCelestialBody.ParentMultiverseId == Guid.Empty || (targetCelestialBody.ParentMultiverseId != Guid.Empty && !onlyMapIfTargetIsNull))
+                targetCelestialBody.ParentMultiverseId = sourceCelestialBody.ParentMultiverseId;
+
+            if (targetCelestialBody.ParentDimension == null || (targetCelestialBody.ParentDimension != null && !onlyMapIfTargetIsNull))
+                targetCelestialBody.ParentDimension = sourceCelestialBody.ParentDimension;
+
+            if (targetCelestialBody.ParentDimensionId == Guid.Empty || (targetCelestialBody.ParentDimensionId != Guid.Empty && !onlyMapIfTargetIsNull))
+                targetCelestialBody.ParentDimensionId = sourceCelestialBody.ParentDimensionId;
+
+            if (targetCelestialBody.ParentUniverse == null || (targetCelestialBody.ParentUniverse != null && !onlyMapIfTargetIsNull))
+                targetCelestialBody.ParentUniverse = sourceCelestialBody.ParentUniverse;
+
+            if (targetCelestialBody.ParentUniverseId == Guid.Empty || (targetCelestialBody.ParentUniverseId != Guid.Empty && !onlyMapIfTargetIsNull))
+                targetCelestialBody.ParentUniverseId = sourceCelestialBody.ParentUniverseId;
+
+            if (targetCelestialBody.ParentGalaxyCluster == null || (targetCelestialBody.ParentGalaxyCluster != null && !onlyMapIfTargetIsNull))
+                targetCelestialBody.ParentGalaxyCluster = sourceCelestialBody.ParentGalaxyCluster;
+
+            if (targetCelestialBody.ParentGalaxyClusterId == Guid.Empty || (targetCelestialBody.ParentGalaxyClusterId != Guid.Empty && !onlyMapIfTargetIsNull))
+                targetCelestialBody.ParentGalaxyClusterId = sourceCelestialBody.ParentGalaxyClusterId;
+
+            if (targetCelestialBody.ParentGalaxy == null || (targetCelestialBody.ParentGalaxy != null && !onlyMapIfTargetIsNull))
+                targetCelestialBody.ParentGalaxy = sourceCelestialBody.ParentGalaxy;
+
+            if (targetCelestialBody.ParentGalaxyId == Guid.Empty || (targetCelestialBody.ParentGalaxyId != Guid.Empty && !onlyMapIfTargetIsNull))
+                targetCelestialBody.ParentGalaxyId = sourceCelestialBody.ParentGalaxyId;
+
+            if (targetCelestialBody.ParentSolarSystem == null || (targetCelestialBody.ParentSolarSystem != null && !onlyMapIfTargetIsNull))
+                targetCelestialBody.ParentSolarSystem = sourceCelestialBody.ParentSolarSystem;
+
+            if (targetCelestialBody.ParentSolarSystemId == Guid.Empty || (targetCelestialBody.ParentSolarSystemId != Guid.Empty && !onlyMapIfTargetIsNull))
+                targetCelestialBody.ParentSolarSystemId = sourceCelestialBody.ParentSolarSystemId;
 
             return targetCelestialBody;
         }
@@ -231,39 +291,98 @@ namespace NextGenSoftware.OASIS.API.Core.Helpers
             return MapParentCelestialBodyProperties(sourceHolon, new T2());
         }
 
-        public static T2 MapParentCelestialBodyProperties(T1 sourceCelestialBody, T2 targetCelestialBody)
+        public static T2 MapParentCelestialBodyProperties(T1 sourceCelestialBody, T2 targetCelestialBody, bool onlyMapIfTargetIsNull = true)
         {
-            targetCelestialBody.ParentGreatGrandSuperStar = sourceCelestialBody.ParentGreatGrandSuperStar;
-            targetCelestialBody.ParentGreatGrandSuperStarId = sourceCelestialBody.ParentGreatGrandSuperStarId;
-            targetCelestialBody.ParentGrandSuperStar = sourceCelestialBody.ParentGrandSuperStar;
-            targetCelestialBody.ParentGrandSuperStarId = sourceCelestialBody.ParentGrandSuperStarId;
-            targetCelestialBody.ParentSuperStar = sourceCelestialBody.ParentSuperStar;
-            targetCelestialBody.ParentSuperStarId = sourceCelestialBody.ParentSuperStarId;
-            targetCelestialBody.ParentStar = sourceCelestialBody.ParentStar;
-            targetCelestialBody.ParentStarId = sourceCelestialBody.ParentStarId;
-            targetCelestialBody.ParentPlanet = sourceCelestialBody.ParentPlanet;
-            targetCelestialBody.ParentPlanetId = sourceCelestialBody.ParentPlanetId;
-            targetCelestialBody.ParentMoon = sourceCelestialBody.ParentMoon;
-            targetCelestialBody.ParentMoonId = sourceCelestialBody.ParentMoonId;
-            targetCelestialBody.ParentZome = sourceCelestialBody.ParentZome;
-            targetCelestialBody.ParentZomeId = sourceCelestialBody.ParentZomeId;
-            targetCelestialBody.ParentHolon = sourceCelestialBody.ParentHolon;
-            targetCelestialBody.ParentHolonId = sourceCelestialBody.ParentHolonId;
-            targetCelestialBody.ParentOmiverse = sourceCelestialBody.ParentOmiverse;
-            targetCelestialBody.ParentOmiverseId = sourceCelestialBody.ParentOmiverseId;
-            targetCelestialBody.ParentMultiverse = sourceCelestialBody.ParentMultiverse;
-            targetCelestialBody.ParentMultiverseId = sourceCelestialBody.ParentMultiverseId;
-            targetCelestialBody.ParentDimension = sourceCelestialBody.ParentDimension;
-            targetCelestialBody.ParentDimensionId = sourceCelestialBody.ParentDimensionId;
-            targetCelestialBody.ParentUniverse = sourceCelestialBody.ParentUniverse;
-            targetCelestialBody.ParentUniverseId = sourceCelestialBody.ParentUniverseId;
-            targetCelestialBody.ParentGalaxyCluster = sourceCelestialBody.ParentGalaxyCluster;
-            targetCelestialBody.ParentGalaxyClusterId = sourceCelestialBody.ParentGalaxyClusterId;
-            targetCelestialBody.ParentGalaxy = sourceCelestialBody.ParentGalaxy;
-            targetCelestialBody.ParentGalaxyId = sourceCelestialBody.ParentGalaxyId;
-            targetCelestialBody.ParentSolarSystem = sourceCelestialBody.ParentSolarSystem;
-            targetCelestialBody.ParentSolarSystemId = sourceCelestialBody.ParentSolarSystemId;
- 
+            if (targetCelestialBody.ParentGreatGrandSuperStar == null || (targetCelestialBody.ParentGreatGrandSuperStar != null && !onlyMapIfTargetIsNull))
+                targetCelestialBody.ParentGreatGrandSuperStar = sourceCelestialBody.ParentGreatGrandSuperStar;
+
+            if (targetCelestialBody.ParentGreatGrandSuperStarId == Guid.Empty || (targetCelestialBody.ParentGreatGrandSuperStarId != Guid.Empty && !onlyMapIfTargetIsNull))
+                targetCelestialBody.ParentGreatGrandSuperStarId = sourceCelestialBody.ParentGreatGrandSuperStarId;
+
+            if (targetCelestialBody.ParentGrandSuperStar == null || (targetCelestialBody.ParentGrandSuperStar != null && !onlyMapIfTargetIsNull))
+                targetCelestialBody.ParentGrandSuperStar = sourceCelestialBody.ParentGrandSuperStar;
+
+            if (targetCelestialBody.ParentGrandSuperStarId == Guid.Empty || (targetCelestialBody.ParentGrandSuperStarId != Guid.Empty && !onlyMapIfTargetIsNull))
+                targetCelestialBody.ParentGrandSuperStarId = sourceCelestialBody.ParentGrandSuperStarId;
+
+            if (targetCelestialBody.ParentSuperStar == null || (targetCelestialBody.ParentSuperStar != null && !onlyMapIfTargetIsNull))
+                targetCelestialBody.ParentSuperStar = sourceCelestialBody.ParentSuperStar;
+
+            if (targetCelestialBody.ParentSuperStarId == Guid.Empty || (targetCelestialBody.ParentSuperStarId != Guid.Empty && !onlyMapIfTargetIsNull))
+                targetCelestialBody.ParentSuperStarId = sourceCelestialBody.ParentSuperStarId;
+
+            if (targetCelestialBody.ParentStar == null || (targetCelestialBody.ParentStar != null && !onlyMapIfTargetIsNull))
+                targetCelestialBody.ParentStar = sourceCelestialBody.ParentStar;
+
+            if (targetCelestialBody.ParentStarId == Guid.Empty || (targetCelestialBody.ParentStarId != Guid.Empty && !onlyMapIfTargetIsNull))
+                targetCelestialBody.ParentStarId = sourceCelestialBody.ParentStarId;
+
+            if (targetCelestialBody.ParentPlanet == null || (targetCelestialBody.ParentPlanet != null && !onlyMapIfTargetIsNull))
+                targetCelestialBody.ParentPlanet = sourceCelestialBody.ParentPlanet;
+
+            if (targetCelestialBody.ParentPlanetId == Guid.Empty || (targetCelestialBody.ParentPlanetId != Guid.Empty && !onlyMapIfTargetIsNull))
+                targetCelestialBody.ParentPlanetId = sourceCelestialBody.ParentPlanetId;
+
+            if (targetCelestialBody.ParentMoon == null || (targetCelestialBody.ParentMoon != null && !onlyMapIfTargetIsNull))
+                targetCelestialBody.ParentMoon = sourceCelestialBody.ParentMoon;
+
+            if (targetCelestialBody.ParentMoonId == Guid.Empty || (targetCelestialBody.ParentMoonId != Guid.Empty && !onlyMapIfTargetIsNull))
+                targetCelestialBody.ParentMoonId = sourceCelestialBody.ParentMoonId;
+
+            if (targetCelestialBody.ParentZome == null || (targetCelestialBody.ParentZome != null && !onlyMapIfTargetIsNull))
+                targetCelestialBody.ParentZome = sourceCelestialBody.ParentZome;
+
+            if (targetCelestialBody.ParentZomeId == Guid.Empty || (targetCelestialBody.ParentZomeId != Guid.Empty && !onlyMapIfTargetIsNull))
+                targetCelestialBody.ParentZomeId = sourceCelestialBody.ParentZomeId;
+
+            if (targetCelestialBody.ParentHolon == null || (targetCelestialBody.ParentHolon != null && !onlyMapIfTargetIsNull))
+                targetCelestialBody.ParentHolon = sourceCelestialBody.ParentHolon;
+
+            if (targetCelestialBody.ParentHolonId == Guid.Empty || (targetCelestialBody.ParentHolonId != Guid.Empty && !onlyMapIfTargetIsNull))
+                targetCelestialBody.ParentHolonId = sourceCelestialBody.ParentHolonId;
+
+            if (targetCelestialBody.ParentOmiverse == null || (targetCelestialBody.ParentOmiverse != null && !onlyMapIfTargetIsNull))
+                targetCelestialBody.ParentOmiverse = sourceCelestialBody.ParentOmiverse;
+
+            if (targetCelestialBody.ParentOmiverseId == Guid.Empty || (targetCelestialBody.ParentOmiverseId != Guid.Empty && !onlyMapIfTargetIsNull))
+                targetCelestialBody.ParentOmiverseId = sourceCelestialBody.ParentOmiverseId;
+
+            if (targetCelestialBody.ParentMultiverse == null || (targetCelestialBody.ParentMultiverse != null && !onlyMapIfTargetIsNull))
+                targetCelestialBody.ParentMultiverse = sourceCelestialBody.ParentMultiverse;
+
+            if (targetCelestialBody.ParentMultiverseId == Guid.Empty || (targetCelestialBody.ParentMultiverseId != Guid.Empty && !onlyMapIfTargetIsNull))
+                targetCelestialBody.ParentMultiverseId = sourceCelestialBody.ParentMultiverseId;
+
+            if (targetCelestialBody.ParentDimension == null || (targetCelestialBody.ParentDimension != null && !onlyMapIfTargetIsNull))
+                targetCelestialBody.ParentDimension = sourceCelestialBody.ParentDimension;
+
+            if (targetCelestialBody.ParentDimensionId == Guid.Empty || (targetCelestialBody.ParentDimensionId != Guid.Empty && !onlyMapIfTargetIsNull))
+                targetCelestialBody.ParentDimensionId = sourceCelestialBody.ParentDimensionId;
+
+            if (targetCelestialBody.ParentUniverse == null || (targetCelestialBody.ParentUniverse != null && !onlyMapIfTargetIsNull))
+                targetCelestialBody.ParentUniverse = sourceCelestialBody.ParentUniverse;
+
+            if (targetCelestialBody.ParentUniverseId == Guid.Empty || (targetCelestialBody.ParentUniverseId != Guid.Empty && !onlyMapIfTargetIsNull))
+                targetCelestialBody.ParentUniverseId = sourceCelestialBody.ParentUniverseId;
+
+            if (targetCelestialBody.ParentGalaxyCluster == null || (targetCelestialBody.ParentGalaxyCluster != null && !onlyMapIfTargetIsNull))
+                targetCelestialBody.ParentGalaxyCluster = sourceCelestialBody.ParentGalaxyCluster;
+
+            if (targetCelestialBody.ParentGalaxyClusterId == Guid.Empty || (targetCelestialBody.ParentGalaxyClusterId != Guid.Empty && !onlyMapIfTargetIsNull))
+                targetCelestialBody.ParentGalaxyClusterId = sourceCelestialBody.ParentGalaxyClusterId;
+
+            if (targetCelestialBody.ParentGalaxy == null || (targetCelestialBody.ParentGalaxy != null && !onlyMapIfTargetIsNull))
+                targetCelestialBody.ParentGalaxy = sourceCelestialBody.ParentGalaxy;
+
+            if (targetCelestialBody.ParentGalaxyId == Guid.Empty || (targetCelestialBody.ParentGalaxyId != Guid.Empty && !onlyMapIfTargetIsNull))
+                targetCelestialBody.ParentGalaxyId = sourceCelestialBody.ParentGalaxyId;
+
+            if (targetCelestialBody.ParentSolarSystem == null || (targetCelestialBody.ParentSolarSystem != null && !onlyMapIfTargetIsNull))
+                targetCelestialBody.ParentSolarSystem = sourceCelestialBody.ParentSolarSystem;
+
+            if (targetCelestialBody.ParentSolarSystemId == Guid.Empty || (targetCelestialBody.ParentSolarSystemId != Guid.Empty && !onlyMapIfTargetIsNull))
+                targetCelestialBody.ParentSolarSystemId = sourceCelestialBody.ParentSolarSystemId;
+
             return targetCelestialBody;
         }
         public static IEnumerable<T2> MapParentCelestialBodyProperties(IEnumerable<T1> sourceCelestialBodies)

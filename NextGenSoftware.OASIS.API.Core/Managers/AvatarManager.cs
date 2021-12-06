@@ -360,6 +360,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 result.Result = true;
                 avatar.Verified = DateTime.UtcNow;
                 avatar.VerificationToken = null;
+                //avatar.IsNewHolon = false;
                 OASISResult<IAvatar> saveAvatarResult = SaveAvatar(avatar);
 
                 result.IsError = saveAvatarResult.IsError;
@@ -1152,6 +1153,8 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 avatar.Id = Guid.NewGuid();
                 avatar.IsNewHolon = true;
             }
+            else
+                avatar.IsNewHolon = false;
 
             // TODO: I think it's best to include audit stuff here so the providers do not need to worry about it?
             // Providers could always override this behaviour if they choose...

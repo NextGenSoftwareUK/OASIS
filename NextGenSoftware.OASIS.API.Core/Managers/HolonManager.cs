@@ -1461,6 +1461,8 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 holon.Id = Guid.NewGuid();
                 holon.IsNewHolon = true;
             }
+            else
+                holon.IsNewHolon = false;
 
             //if (holon.Id != Guid.Empty)
             if (!holon.IsNewHolon)
