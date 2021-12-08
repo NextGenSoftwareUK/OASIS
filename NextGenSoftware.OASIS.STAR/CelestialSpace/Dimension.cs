@@ -1,10 +1,11 @@
-﻿using NextGenSoftware.OASIS.API.Core.Enums;
-using NextGenSoftware.OASIS.API.Core.Holons;
+﻿using System;
+using System.Collections.Generic;
+using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 
 namespace NextGenSoftware.OASIS.STAR.CelestialSpace
 {
-    public class Dimension : Holon, IDimension
+    public class Dimension : CelestialSpace, IDimension
     {
         //public DimensionLevel DimensionLevel { get; set; }
 
@@ -19,9 +20,10 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
         public List<IMeteroid> Meteroids { get; set; }
         */
 
-        public Dimension()
-        {
-            this.HolonType = HolonType.Dimension;
-        }
+        public Dimension() : base(HolonType.Dimension) { }
+
+        public Dimension(Guid id) : base(id, HolonType.Dimension) { }
+
+        public Dimension(Dictionary<ProviderType, string> providerKey) : base(providerKey, HolonType.Dimension) { }
     }
 }

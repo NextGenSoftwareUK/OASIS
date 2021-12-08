@@ -1,10 +1,11 @@
-﻿using System.Collections.Generic;
-using NextGenSoftware.OASIS.API.Core.Holons;
+﻿using System;
+using System.Collections.Generic;
+using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 
 namespace NextGenSoftware.OASIS.STAR.CelestialSpace
 {
-    public class GalaxyCluster : Holon, IGalaxyCluster
+    public class GalaxyCluster : CelestialSpace, IGalaxyCluster
     {
         public List<IGalaxy> Galaxies { get; set; } = new List<IGalaxy>();
         public List<ISolarSystem> SoloarSystems { get; set; } = new List<ISolarSystem>(); //TODO: Can we have SoloarSystems outside of Galaxies? Think so... yes! :)
@@ -27,9 +28,10 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
             }
         }
 
-        public GalaxyCluster()
-        {
-            this.HolonType = API.Core.Enums.HolonType.GalaxyCluster;
-        }
+        public GalaxyCluster() : base(HolonType.GalaxyCluster) { }
+
+        public GalaxyCluster(Guid id) : base(id, HolonType.GalaxyCluster) { }
+
+        public GalaxyCluster(Dictionary<ProviderType, string> providerKey) : base(providerKey, HolonType.GalaxyCluster) { }
     }
 }
