@@ -34,6 +34,8 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces.STAR
         //bool IsInitialized { get; }
         Task<OASISResult<ICelestialBody>> SaveAsync<T>(bool saveChildren = true, bool continueOnError = true) where T : ICelestialBody, new();
         OASISResult<ICelestialBody> Save<T>(bool saveChildren = true, bool continueOnError = true) where T : ICelestialBody, new();
+        Task<OASISResult<ICelestialBody>> SaveAsync(bool saveChildren = true, bool continueOnError = true);
+        OASISResult<ICelestialBody> Save(bool saveChildren = true, bool continueOnError = true);
         Task<OASISResult<IEnumerable<IZome>>> LoadZomesAsync();
         OASISResult<IEnumerable<IZome>> LoadZomes();
         //Task<OASISResult<ICelestialBody>> LoadCelestialBodyAsync();

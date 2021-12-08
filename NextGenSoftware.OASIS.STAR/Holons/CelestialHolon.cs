@@ -19,6 +19,9 @@ namespace NextGenSoftware.OASIS.STAR.Holons
         public bool IsInitialized { get; set; }
 
         public event Initialized OnInitialized;
+        public event CelestialHolonLoaded OnCelestialHolonLoaded;
+        public event CelestialHolonSaved OnCelestialHolonSaved;
+        public event CelestialHolonError OnCelestialHolonError;
         //public event HolonsLoaded OnHolonsLoaded;
         //public event HolonSaved OnHolonSaved;
         //public event HolonLoaded OnHolonLoaded;
