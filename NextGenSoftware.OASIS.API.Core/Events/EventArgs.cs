@@ -20,6 +20,21 @@ namespace NextGenSoftware.OASIS.API.Core.Events
         public Exception ErrorDetails { get; set; }
     }
 
+    public class CelestialHolonLoadedEventArgs : EventArgs
+    {
+        public OASISResult<ICelestialHolon> Result { get; set; }
+    }
+
+    public class CelestialHolonSavedEventArgs : EventArgs
+    {
+        public OASISResult<ICelestialHolon> Result { get; set; }
+    }
+
+    public class CelestialHolonErrorEventArgs : EventArgs
+    {
+        public OASISResult<ICelestialHolon> Result { get; set; }
+    }
+
     public class ZomesLoadedEventArgs : EventArgs
     {
         public List<IZome> Zomes { get; set; }
