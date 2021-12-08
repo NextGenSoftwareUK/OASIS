@@ -1,11 +1,12 @@
-﻿using System.Collections.Generic;
-using NextGenSoftware.OASIS.API.Core.Holons;
+﻿using System;
+using System.Collections.Generic;
+using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using NextGenSoftware.OASIS.STAR.CelestialBodies;
 
 namespace NextGenSoftware.OASIS.STAR.CelestialSpace
 {
-    public class Galaxy : Holon, IGalaxy
+    public class Galaxy : CelestialSpace, IGalaxy
     {
         public ISuperStar SuperStar { get; set; } = new SuperStar() { CreatedOASISType = new API.Core.Helpers.EnumValue<API.Core.Enums.OASISType>(API.Core.Enums.OASISType.STARCLI) };
         public List<ISolarSystem> SolarSystems { get; set; } = new List<ISolarSystem>();
@@ -16,9 +17,10 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
         public List<IComet> Comets { get; set; } = new List<IComet>();
         public List<IMeteroid> Meteroids { get; set; } = new List<IMeteroid>();
 
-        public Galaxy()
-        {
-            this.HolonType = API.Core.Enums.HolonType.Galaxy;
-        }
+        public Galaxy() : base(HolonType.Galaxy) { }
+
+        public Galaxy(Guid id) : base(id, HolonType.Galaxy) { }
+
+        public Galaxy(Dictionary<ProviderType, string> providerKey) : base(providerKey, HolonType.Galaxy) { }
     }
 }

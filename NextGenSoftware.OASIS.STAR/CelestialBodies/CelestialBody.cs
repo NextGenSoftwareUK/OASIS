@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Collections.ObjectModel;
-using System.Drawing;
 using NextGenSoftware.OASIS.API.Core.Events;
 using static NextGenSoftware.OASIS.API.Core.Events.Events;
 using NextGenSoftware.OASIS.API.Core.Enums;
@@ -15,51 +14,52 @@ using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.STAR.Zomes;
 using NextGenSoftware.OASIS.STAR.CelestialSpace;
 using Mapster;
+using NextGenSoftware.OASIS.STAR.Holons;
 
 namespace NextGenSoftware.OASIS.STAR.CelestialBodies
 {
-    public abstract class CelestialBody : Holon, ICelestialBody
+    public abstract class CelestialBody : CelestialHolon, ICelestialBody
     {
         public ICelestialBodyCore CelestialBodyCore { get; set; } // This is the core zome of the planet (OAPP), which links to all the other planet zomes/holons...
-        public GenesisType GenesisType { get; set; }
-        //public OASISAPIManager OASISAPI = new OASISAPIManager(new List<IOASISProvider>() { new SEEDSOASIS() });
+                                                                  // public GenesisType GenesisType { get; set; }
+                                                                  //public OASISAPIManager OASISAPI = new OASISAPIManager(new List<IOASISProvider>() { new SEEDSOASIS() });
 
-        public bool IsInitialized
-        {
-            get
-            {
-                return CelestialBodyCore != null;
-            }
-        }
+        //public bool IsInitialized
+        //{
+        //    get
+        //    {
+        //        return CelestialBodyCore != null;
+        //    }
+        //}
 
+        //public event Initialized OnInitialized;
         public event HolonsLoaded OnHolonsLoaded;
-        public event ZomesLoaded OnZomesLoaded;
         public event HolonSaved OnHolonSaved;
         public event HolonLoaded OnHolonLoaded;
-        public event Initialized OnInitialized;
+        public event ZomesLoaded OnZomesLoaded;
         public event ZomeError OnZomeError;
 
-        public SpaceQuadrantType SpaceQuadrant { get; set; }
-        public int SpaceSector { get; set; }
-        public float SuperGalacticLatitute { get; set; }
-        public float SuperGalacticLongitute { get; set; }
-        public float GalacticLatitute { get; set; }
-        public float GalacticLongitute { get; set; }
-        public float HorizontalLatitute { get; set; }
-        public float HorizontalLongitute { get; set; }
-        public float EquatorialLatitute { get; set; }
-        public float EquatorialLongitute { get; set; }
-        public float EclipticLatitute { get; set; }
-        public float EclipticLongitute { get; set; }
-        public Color Colour { get; set; }
-        public int Size { get; set; }
-        public int Radius { get; set; }
-        public int Age { get; set; }
+        //public SpaceQuadrantType SpaceQuadrant { get; set; }
+        //public int SpaceSector { get; set; }
+        //public float SuperGalacticLatitute { get; set; }
+        //public float SuperGalacticLongitute { get; set; }
+        //public float GalacticLatitute { get; set; }
+        //public float GalacticLongitute { get; set; }
+        //public float HorizontalLatitute { get; set; }
+        //public float HorizontalLongitute { get; set; }
+        //public float EquatorialLatitute { get; set; }
+        //public float EquatorialLongitute { get; set; }
+        //public float EclipticLatitute { get; set; }
+        //public float EclipticLongitute { get; set; }
+        //public Color Colour { get; set; }
+        //public int Size { get; set; }
+        //public int Radius { get; set; }
+        //public int Age { get; set; }
         public int Mass { get; set; }
         public int Density { get; set; }
         public int RotationPeriod { get; set; } //How long it takes to rotate on its axis.
         public int OrbitPeriod { get; set; } //How long it takes to orbit its ParentStar.
-        public int Temperature { get; set; }
+        //public int Temperature { get; set; }
         public int Weight { get; set; }
         public int GravitaionalPull { get; set; }
         public int OrbitPositionFromParentStar { get; set; }
@@ -71,33 +71,20 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
         public int NumberRegisteredAvatars { get; set; }
         public int NunmerActiveAvatars { get; set; }
 
-        //public CelestialBody() : base ()
-        //{
-        //    Initialize(); //TODO: It never called this from the constructor before, was there a good reason? Will soon find out! ;-)
-        //}
-
         public CelestialBody(HolonType holonType) : base(holonType)
         {
-            //this.HolonType = holonType;
-            Initialize();  //TODO: It never called this from the constructor before, was there a good reason? Will soon find out! ;-)
-        }
-
-        public CelestialBody(Guid id, HolonType holonType) : base(id)
-        //public CelestialBody(Guid id) : base(id)
-        {
-            this.HolonType = holonType;
-            //this.Id = id;
             Initialize();
         }
 
-        public CelestialBody(Dictionary<ProviderType, string> providerKey, HolonType holonType) : base(providerKey)
-        //public CelestialBody(Dictionary<ProviderType, string> providerKey) : base(providerKey)
+        public CelestialBody(Guid id, HolonType holonType) : base(id, holonType)
         {
-            this.HolonType = holonType;
-            //this.ProviderKey = providerKey;
-            Initialize();  //TODO: It never called this from the constructor before, was there a good reason? Will soon find out! ;-)
+            Initialize();
         }
 
+        public CelestialBody(Dictionary<ProviderType, string> providerKey, HolonType holonType) : base(providerKey, holonType)
+        {
+            Initialize();
+        }
         
         public async Task<OASISResult<ICelestialBody>> SaveAsync(bool saveChildren = true, bool continueOnError = true)
         {
@@ -854,54 +841,36 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
         public OASISResult<IEnumerable<IZome>> LoadZomes()
         {
             return CelestialBodyCore.LoadZomes();
-        } 
+        }
 
-        /*
-        public async Task<OASISResult<ICelestialBody>> LoadCelestialBodyAsync()
-        {
-            //OASISResult<ICelestialBody> result = await CelestialBodyCore.LoadCelestialBodyAsync();
+        //public async Task<OASISResult<IHolon>> LoadCelestialBodyAsync()
+        //{
+        //    return await CelestialBodyCore.LoadCelestialBodyAsync();
+        //}
 
-            //if (!result.IsError)
-            //    SetProperties(result.Result);
+        //public OASISResult<IHolon> LoadCelestialBody()
+        //{
+        //    return CelestialBodyCore.LoadCelestialBody();
+        //}
 
-            //return result;
-
-            return new OASISResult<ICelestialBody>((await CelestialBodyCore.LoadCelestialBodyAsync()).Adapt(this));
-            //IHolon holon = await CelestialBodyCore.LoadCelestialBodyAsync();
-           // holon.Adapt(this);
-        }*/
-
-        public async Task<OASISResult<IHolon>> LoadCelestialBodyAsync()
+        public override async Task<OASISResult<IHolon>> LoadAsync()
         {
             return await CelestialBodyCore.LoadCelestialBodyAsync();
         }
 
-        /*
-        public OASISResult<ICelestialBody> LoadCelestialBody()
-        {
-            //OASISResult<ICelestialBody> result = CelestialBodyCore.LoadCelestialBody();
-
-            //if (!result.IsError)
-            //    SetProperties(result.Result);
-
-            //return result;
-            //CelestialBodyCore.LoadCelestialBody().Adapt(this);
-            return new OASISResult<ICelestialBody>(CelestialBodyCore.LoadCelestialBody().Adapt(this));
-        }*/
-
-        public OASISResult<IHolon> LoadCelestialBody()
+        public override OASISResult<IHolon> Load()
         {
             return CelestialBodyCore.LoadCelestialBody();
         }
 
-        public async Task InitializeAsync()
+        protected override async Task InitializeAsync()
         {
             InitCelestialBodyCore();
             WireUpEvents();
 
             if (Id != Guid.Empty || (ProviderKey != null && ProviderKey.Keys.Count > 0))
             {
-                OASISResult<IHolon> celestialBodyResult = await LoadCelestialBodyAsync();
+                OASISResult<IHolon> celestialBodyResult = await LoadAsync();
 
                 if (celestialBodyResult != null && !celestialBodyResult.IsError && celestialBodyResult.Result != null)
                     Mapper.MapBaseHolonProperties(celestialBodyResult.Result, this);
@@ -919,9 +888,11 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
                 //else
                 //    throw new Exception($"ERROR: Error loading CelesitalBody Zomes, reason: {zomesResult.Message}"); //TODO: Replace exception with bubbling up OASISResult (needs to be OASIS wide ASAP).
             }
+
+            await base.InitializeAsync();
         }
 
-        public void Initialize()
+        protected override void Initialize()
         {
             InitCelestialBodyCore();
             WireUpEvents();
@@ -930,7 +901,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
             {
                 //LoadCelestialBody();
 
-                OASISResult<IHolon> celestialBodyResult = LoadCelestialBody();
+                OASISResult<IHolon> celestialBodyResult = Load();
 
                 if (celestialBodyResult != null && !celestialBodyResult.IsError && celestialBodyResult.Result != null)
                     Mapper.MapBaseHolonProperties(celestialBodyResult.Result, this);
@@ -947,6 +918,8 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
                 //else
                 //    throw new Exception($"ERROR: Error loading CelesitalBody Zomes, reason: {zomesResult.Message}"); //TODO: Replace exception with bubbling up OASISResult (needs to be OASIS wide ASAP).
             }
+
+            base.Initialize();
         }
 
         private void InitCelestialBodyCore()

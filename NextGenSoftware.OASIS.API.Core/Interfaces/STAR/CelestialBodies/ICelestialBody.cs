@@ -9,32 +9,15 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces.STAR
 {
     public interface ICelestialBody : ICelestialHolon
     {
-        // event DataReceived OnDataReceived;
-       // event Disconnected OnDisconnected;
         event HolonLoaded OnHolonLoaded;
-        event HolonSaved OnHolonSaved;
         event HolonsLoaded OnHolonsLoaded;
-        event Initialized OnInitialized;
+        event HolonSaved OnHolonSaved;
         event ZomeError OnZomeError;
         event ZomesLoaded OnZomesLoaded;
+        // event DataReceived OnDataReceived;
+        // event Disconnected OnDisconnected;
 
-        public SpaceQuadrantType SpaceQuadrant { get; set; }
-        public int SpaceSector { get; set; }
-        public float SuperGalacticLatitute { get; set; }
-        public float SuperGalacticLongitute { get; set; }
-        public float GalacticLatitute { get; set; }
-        public float GalacticLongitute { get; set; }
-        public float HorizontalLatitute { get; set; }
-        public float HorizontalLongitute { get; set; }
-        public float EquatorialLatitute { get; set; }
-        public float EquatorialLongitute { get; set; }
-        public float EclipticLatitute { get; set; }
-        public float EclipticLongitute { get; set; }
-        public int Size { get; set; }
-        public int Radius { get; set; }
-        public int Age { get; set; }
         public int Mass { get; set; }
-        public int Temperature { get; set; }
         public int Weight { get; set; }
         public int GravitaionalPull { get; set; }
         public int OrbitPositionFromParentStar { get; set; }
@@ -47,20 +30,18 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces.STAR
         public int NunmerActiveAvatars { get; set; }
 
         ICelestialBodyCore CelestialBodyCore { get; set; }
-        GenesisType GenesisType { get; set; }
-        bool IsInitialized { get; }
-        //Task<OASISResult<ICelestialBody>> SaveAsync(bool saveChildren = true, bool continueOnError = true);
-        //OASISResult<ICelestialBody> Save(bool saveChildren = true, bool continueOnError = true);
+        //GenesisType GenesisType { get; set; }
+        //bool IsInitialized { get; }
         Task<OASISResult<ICelestialBody>> SaveAsync<T>(bool saveChildren = true, bool continueOnError = true) where T : ICelestialBody, new();
         OASISResult<ICelestialBody> Save<T>(bool saveChildren = true, bool continueOnError = true) where T : ICelestialBody, new();
         Task<OASISResult<IEnumerable<IZome>>> LoadZomesAsync();
         OASISResult<IEnumerable<IZome>> LoadZomes();
         //Task<OASISResult<ICelestialBody>> LoadCelestialBodyAsync();
         //OASISResult<ICelestialBody> LoadCelestialBody();
-        Task<OASISResult<IHolon>> LoadCelestialBodyAsync();
-        OASISResult<IHolon> LoadCelestialBody();
-        Task InitializeAsync();
-        void Initialize();
+       // Task<OASISResult<IHolon>> LoadCelestialBodyAsync();
+        //OASISResult<IHolon> LoadCelestialBody();
+        //Task InitializeAsync();
+        //void Initialize();
         void Dim();
         void Emit();
         void Evolve();

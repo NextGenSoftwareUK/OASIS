@@ -6,7 +6,7 @@ using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using NextGenSoftware.OASIS.API.Core.Holons;
-using NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Prototypes;
+using NextGenSoftware.OASIS.STAR.CelestialSpace;
 
 namespace NextGenSoftware.OASIS.STAR.CelestialBodies
 {
@@ -50,10 +50,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
         public async Task<OASISResult<IPlanet>> AddPlanetAsync(IPlanet planet)
         {
             if (Star.ParentSolarSystem == null)
-            {
-                Star.ParentSolarSystem = new SolarSystem()
-
-            }
+                Star.ParentSolarSystem = new SolarSystem(Star.ParentSolarSystemId);
 
             OASISResult<IHolon> holonResult = await AddHolonToCollectionAsync(Star, planet, (List<IHolon>)Mapper<IPlanet, Holon>.Convert(Star.ParentSolarSystem.Planets), false);
             OASISResult<IPlanet> result = OASISResultHolonToHolonHelper<IHolon, IPlanet>.CopyResult(holonResult, new OASISResult<IPlanet>());
