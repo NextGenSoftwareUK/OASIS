@@ -7,6 +7,12 @@ namespace NextGenSoftware.OASIS.API.Core.Events
         public delegate void Initialized(object sender, EventArgs e);
         public delegate void CelestialHolonLoaded(object sender, CelestialHolonLoadedEventArgs e);
         public delegate void CelestialHolonSaved(object sender, CelestialHolonSavedEventArgs e);
+        public delegate void CelestialBodyLoaded(object sender, CelestialBodyLoadedEventArgs e);
+        public delegate void CelestialBodiesLoaded(object sender, CelestialBodiesLoadedEventArgs e);
+        public delegate void CelestialBodySaved(object sender, CelestialBodySavedEventArgs e);
+        public delegate void CelestialBodiesSaved(object sender, CelestialBodiesSavedEventArgs e);
+        public delegate void CelestialSpaceLoaded(object sender, CelestialSpaceLoadedEventArgs e);
+        public delegate void CelestialSpaceSaved(object sender, CelestialSpaceSavedEventArgs e);
         public delegate void HolonLoaded(object sender, HolonLoadedEventArgs e);
         public delegate void HolonsLoaded(object sender, HolonsLoadedEventArgs e);
         public delegate void HolonSaved(object sender, HolonSavedEventArgs e);
@@ -18,6 +24,8 @@ namespace NextGenSoftware.OASIS.API.Core.Events
         public delegate void HolonRemoved(object sender, HolonRemovedEventArgs e);
         public delegate void ZomeError(object sender, ZomeErrorEventArgs e);
         public delegate void CelestialHolonError(object sender, CelestialHolonErrorEventArgs e);
+        public delegate void CelestialBodyError(object sender, CelestialBodyErrorEventArgs e);
+        public delegate void CelestialSpaceError(object sender, CelestialSpaceErrorEventArgs e);
 
         // public delegate void Disconnected(object sender, DisconnectedEventArgs e);
         // public delegate void DataReceived(object sender, DataReceivedEventArgs e);

@@ -15,11 +15,15 @@ namespace NextGenSoftware.OASIS.API.Core.Helpers
         public int ErrorCount { get; set; }
         public int WarningCount { get; set; }
         public int SavedCount { get; set; }
+        public int LoadedCount { get; set; }
 
         public List<string> InnerMessages = new List<string>();
+
         [JsonIgnore]
         public Exception Exception { get; set; }
+
         public Dictionary<string, string> MetaData = new Dictionary<string, string>();
+
         public bool IsError 
         { 
             get
@@ -53,6 +57,7 @@ namespace NextGenSoftware.OASIS.API.Core.Helpers
         }
 
         public bool IsSaved { get; set; }
+        public bool IsLoaded { get; set; }
 
         public string Message
         {

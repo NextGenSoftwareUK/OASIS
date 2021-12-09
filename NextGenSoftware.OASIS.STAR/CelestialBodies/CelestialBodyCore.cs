@@ -194,9 +194,20 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
         //    return result;
         //}
 
-        public async Task<OASISResult<IHolon>> LoadCelestialBodyAsync()
+        //public async Task<OASISResult<IHolon>> LoadCelestialBodyAsync()
+        //{
+        //    return await base.LoadHolonAsync();
+        //}
+
+        public async Task<OASISResult<ICelestialBody>> LoadCelestialBodyAsync()
         {
-            return await base.LoadHolonAsync();
+            OASISResult<ICelestialBody> result = new OASISResult<ICelestialBody>();
+            OASISResult<IHolon> holonResult = await base.LoadHolonAsync();
+            result.Result = (ICelestialBody)holonResult.Result;
+            OASISResultHolonToHolonHelper<IHolon, ICelestialBody>.CopyResult(holonResult, result);
+            //result.Result = (ICelestialBody)await base.LoadHolonAsync();
+
+            return result;
         }
 
         /*
@@ -266,9 +277,18 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
             return result;
         }*/
 
-        public OASISResult<IHolon> LoadCelestialBody()
+        //public OASISResult<IHolon> LoadCelestialBody()
+        //{
+        //    return base.LoadHolon();
+        //}
+
+        public OASISResult<ICelestialBody> LoadCelestialBody()
         {
-            return base.LoadHolon();
+            OASISResult<ICelestialBody> result = new OASISResult<ICelestialBody>();
+            OASISResult<IHolon> holonResult = base.LoadHolon();
+            result.Result = (ICelestialBody)holonResult.Result;
+            OASISResultHolonToHolonHelper<IHolon, ICelestialBody>.CopyResult(holonResult, result);
+            return result;
         }
 
         protected virtual async Task<OASISResult<IHolon>> AddHolonToCollectionAsync(IHolon parentCelestialBody, IHolon holon, List<IHolon> holons, bool saveHolon = true)

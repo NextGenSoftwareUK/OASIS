@@ -17,8 +17,8 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces.STAR
 
         //Task<OASISResult<ICelestialBody>> LoadCelestialBodyAsync();
         //OASISResult<ICelestialBody> LoadCelestialBody();
-        Task<OASISResult<IHolon>> LoadCelestialBodyAsync();
-        OASISResult<IHolon> LoadCelestialBody();
+        Task<OASISResult<ICelestialBody>> LoadCelestialBodyAsync();
+        OASISResult<ICelestialBody> LoadCelestialBody();
         Task<OASISResult<IEnumerable<IZome>>> LoadZomesAsync();
         OASISResult<IEnumerable<IZome>> LoadZomes();
         Task<OASISResult<IHolon>> SaveCelestialBodyAsync(IHolon savingHolon);

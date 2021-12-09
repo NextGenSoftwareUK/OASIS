@@ -33,9 +33,9 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces.STAR
         bool IsInitialized { get; }
 
        // abstract Task<OASISResult<ICelestialHolon>> SaveAsync<T>(bool saveChildren = true, bool continueOnError = true) where T : ICelestialHolon, new();
-        //abstract OASISResult<ICelestialHolon> Save<T>(bool saveChildren = true, bool continueOnError = true) where T : ICelestialHolon, new();
-        abstract Task<OASISResult<IHolon>> LoadAsync();
-        abstract OASISResult<IHolon> Load();
+       // abstract OASISResult<ICelestialHolon> Save<T>(bool saveChildren = true, bool continueOnError = true) where T : ICelestialHolon, new();
+       // abstract Task<OASISResult<IHolon>> LoadAsync(bool loadChildren = true, bool continueOnError = true);
+       // abstract OASISResult<IHolon> Load(bool loadChildren = true, bool continueOnError = true);
        // protected abstract Task InitializeAsync();
        // protected abstract void Initialize();
     }
