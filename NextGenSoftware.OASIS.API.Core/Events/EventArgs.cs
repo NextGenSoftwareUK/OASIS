@@ -35,6 +35,48 @@ namespace NextGenSoftware.OASIS.API.Core.Events
         public OASISResult<ICelestialHolon> Result { get; set; }
     }
 
+    public class CelestialBodyLoadedEventArgs : EventArgs
+    {
+        public OASISResult<ICelestialBody> Result { get; set; }
+    }
+
+    public class CelestialBodiesLoadedEventArgs : EventArgs
+    {
+        public OASISResult<ICelestialSpace> Result { get; set; }
+        public IEnumerable<ICelestialBody> CelestialBodies { get; set; }
+    }
+
+    public class CelestialBodySavedEventArgs : EventArgs
+    {
+        public OASISResult<ICelestialBody> Result { get; set; }
+    }
+
+    public class CelestialBodiesSavedEventArgs : EventArgs
+    {
+        public OASISResult<ICelestialSpace> Result { get; set; }
+        public IEnumerable<ICelestialBody> CelestialBodies { get; set; }
+    }
+
+    public class CelestialBodyErrorEventArgs : EventArgs
+    {
+        public OASISResult<ICelestialBody> Result { get; set; }
+    }
+
+    public class CelestialSpaceLoadedEventArgs : EventArgs
+    {
+        public OASISResult<ICelestialSpace> Result { get; set; }
+    }
+
+    public class CelestialSpaceSavedEventArgs : EventArgs
+    {
+        public OASISResult<ICelestialSpace> Result { get; set; }
+    }
+
+    public class CelestialSpaceErrorEventArgs : EventArgs
+    {
+        public OASISResult<ICelestialSpace> Result { get; set; }
+    }
+
     public class ZomesLoadedEventArgs : EventArgs
     {
         public List<IZome> Zomes { get; set; }

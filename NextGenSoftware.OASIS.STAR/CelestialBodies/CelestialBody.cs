@@ -33,6 +33,9 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
         //}
 
         //public event Initialized OnInitialized;
+        public event CelestialBodyLoaded OnCelestialBodyLoaded;
+        public event CelestialBodySaved OnCelestialBodySaved;
+        public event CelestialBodyError OnCelestialBodyError;
         public event HolonsLoaded OnHolonsLoaded;
         public event HolonSaved OnHolonSaved;
         public event HolonLoaded OnHolonLoaded;
@@ -420,10 +423,10 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
             return result;
         }
 
-        //public OASISResult<ICelestialBody> Save(bool saveChildren = true, bool continueOnError = true)
-        //{
-        //    return SaveAsync(saveChildren, continueOnError).Result; //TODO: Best way of doing this?
-        //}
+        public OASISResult<ICelestialBody> Save(bool saveChildren = true, bool continueOnError = true)
+        {
+            return SaveAsync(saveChildren, continueOnError).Result; //TODO: Best way of doing this?
+        }
 
         public OASISResult<ICelestialBody> Save<T>(bool saveChildren = true, bool continueOnError = true) where T : ICelestialBody, new()
         {
@@ -853,14 +856,32 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
         //    return CelestialBodyCore.LoadCelestialBody();
         //}
 
-        public override async Task<OASISResult<IHolon>> LoadAsync()
+        //public override async Task<OASISResult<ICelestialBody>> LoadAsync(bool loadZomes = true, bool continueOnError = true)
+        public async Task<OASISResult<ICelestialBody>> LoadAsync(bool loadZomes = true, bool continueOnError = true)
         {
-            return await CelestialBodyCore.LoadCelestialBodyAsync();
+            OASISResult<ICelestialBody> result = await CelestialBodyCore.LoadCelestialBodyAsync();
+
+            if ((result != null && !result.IsError && result.Result != null)
+                || ((result == null || result.IsError || result.Result == null) && continueOnError))
+            {
+                if (loadZomes)
+                {
+                    OASISResult<IEnumerable<IZome>> zomeResult = await LoadZomesAsync();
+
+                    if (!(zomeResult != null && !zomeResult.IsError && zomeResult.Result != null))
+                        ErrorHandling.HandleWarning(ref result, $"The CelestialBody {this.Name} with type {Enum.GetName(typeof(HolonType), this.HolonType)} loaded fine but it's zomes failed to load. Reason: {zomeResult.Message}");
+                }
+            }
+
+            return result;
+            //return await CelestialBodyCore.LoadCelestialBodyAsync();
         }
 
-        public override OASISResult<IHolon> Load()
+        //public override OASISResult<ICelestialBody> Load(bool loadZomes = true, bool continueOnError = true)
+        public OASISResult<ICelestialBody> Load(bool loadZomes = true, bool continueOnError = true)
         {
-            return CelestialBodyCore.LoadCelestialBody();
+            return LoadAsync(loadZomes, continueOnError).Result;
+            //return CelestialBodyCore.LoadCelestialBody();
         }
 
         protected override async Task InitializeAsync()
