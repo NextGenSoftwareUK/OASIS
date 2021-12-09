@@ -32,6 +32,7 @@ namespace NextGenSoftware.OASIS.API.Core.Events
 
     public class CelestialHolonErrorEventArgs : EventArgs
     {
+        public string Reason { get; set; }
         public OASISResult<ICelestialHolon> Result { get; set; }
     }
 
@@ -59,6 +60,7 @@ namespace NextGenSoftware.OASIS.API.Core.Events
 
     public class CelestialBodyErrorEventArgs : EventArgs
     {
+        public string Reason { get; set; }
         public OASISResult<ICelestialBody> Result { get; set; }
     }
 
@@ -74,6 +76,7 @@ namespace NextGenSoftware.OASIS.API.Core.Events
 
     public class CelestialSpaceErrorEventArgs : EventArgs
     {
+        public string Reason { get; set; }
         public OASISResult<ICelestialSpace> Result { get; set; }
     }
 

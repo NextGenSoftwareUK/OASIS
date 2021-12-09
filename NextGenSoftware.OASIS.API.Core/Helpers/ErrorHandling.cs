@@ -14,7 +14,7 @@ namespace NextGenSoftware.OASIS.API.Core.Helpers
         public static bool LogAllWarnings { get; set; } = true;
 
         //WARNING: ONLY set includeStackTrace to true for debug/dev mode due to performance overhead. This param should never be needed because the ShowStackTrace flag will be used for Dev/Debug mode. 
-        public static void HandleError<T>(ref OASISResult<T> result, string errorMessage, bool log = true, bool includeStackTrace = false, bool throwException = false)
+        public static void HandleError<T>(ref OASISResult<T> result, string errorMessage, bool log = true, bool includeStackTrace = false, bool throwException = false, bool addToInnerMessages = false, bool incrementErrorCount = true)
         {
             //NOTE: If you are throwing an exception then you do not need to show an additional stack trace here because the exception has it already! ;-)
             if (includeStackTrace || ShowStackTrace)
@@ -23,7 +23,13 @@ namespace NextGenSoftware.OASIS.API.Core.Helpers
             result.IsSaved = false;
             result.IsError = true;
             result.Message = errorMessage;
-            
+
+            if (addToInnerMessages)
+                result.InnerMessages.Add(errorMessage);
+
+            if (incrementErrorCount)
+                result.ErrorCount++;
+
             if (log || LogAllErrors)
                 LoggingManager.Log(errorMessage, Enums.LogType.Error);
 
@@ -31,7 +37,7 @@ namespace NextGenSoftware.OASIS.API.Core.Helpers
                 throw new Exception(errorMessage);
         }
 
-        public static void HandleWarning<T>(ref OASISResult<T> result, string message, bool log = true, bool includeStackTrace = false, bool throwException = false)
+        public static void HandleWarning<T>(ref OASISResult<T> result, string message, bool log = true, bool includeStackTrace = false, bool throwException = false, bool addToInnerMessages = true, bool incrementWarningCount = true)
         {
             //NOTE: If you are throwing an exception then you do not need to show an additional stack trace here because the exception has it already! ;-)
             if (includeStackTrace || ShowStackTrace)
@@ -39,6 +45,12 @@ namespace NextGenSoftware.OASIS.API.Core.Helpers
 
             result.IsWarning = true;
             result.Message = message;
+
+            if (addToInnerMessages)
+                result.InnerMessages.Add(message);
+
+            if (incrementWarningCount)
+                result.WarningCount++;
 
             if (log || LogAllWarnings)
                 LoggingManager.Log(message, Enums.LogType.Warn);

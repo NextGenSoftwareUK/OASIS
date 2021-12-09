@@ -5,10 +5,11 @@ using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using NextGenSoftware.OASIS.API.Core.Helpers;
+using NextGenSoftware.OASIS.API.Core.Events;
+using static NextGenSoftware.OASIS.API.Core.Events.Events;
+using NextGenSoftware.OASIS.API.Core.Exceptions;
 using NextGenSoftware.OASIS.STAR.Holons;
 using NextGenSoftware.OASIS.STAR.CelestialBodies;
-using static NextGenSoftware.OASIS.API.Core.Events.Events;
-using NextGenSoftware.OASIS.API.Core.Events;
 
 namespace NextGenSoftware.OASIS.STAR.CelestialSpace
 {
@@ -22,11 +23,11 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
 
         public List<ICelestialBody> CelestialBodies = new List<ICelestialBody>();
 
-        public enum LoadSaveCelestialBodiesEnum
-        {
-            Load,
-            Save
-        }
+        //public enum LoadSaveCelestialBodiesEnum
+        //{
+        //    Load,
+        //    Save
+        //}
 
         public CelestialSpace(HolonType holonType) : base(holonType)
         {
@@ -49,85 +50,83 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
 
             if (Id != Guid.Empty || (ProviderKey != null && ProviderKey.Keys.Count > 0))
             {
-                //LoadCelestialBody();
-
                 OASISResult<ICelestialSpace> celestialSpaceResult = Load();
 
                 if (celestialSpaceResult != null && !celestialSpaceResult.IsError && celestialSpaceResult.Result != null)
+                {
                     Mapper.MapBaseHolonProperties(celestialSpaceResult.Result, this);
+                    base.Initialize();
+                }
                 else
-                    throw new Exception($"ERROR: Error loading CelesitalSpace, reason: {celestialSpaceResult.Message}"); //TODO: Replace exception with bubbling up OASISResult (needs to be OASIS wide ASAP).
-
-                LoadZomes();
-
-
-                // OASISResult<IEnumerable<IZome>> zomesResult = LoadZomes();
-
-                //if (zomesResult != null && !zomesResult.IsError && zomesResult.Result != null)
-                //    this.CelestialBodyCore.Zomes = (List<IZome>)zomesResult.Result;
-                //else
-                //    throw new Exception($"ERROR: Error loading CelesitalBody Zomes, reason: {zomesResult.Message}"); //TODO: Replace exception with bubbling up OASISResult (needs to be OASIS wide ASAP).
+                {
+                    string msg = $"ERROR: Error loading {LoggingHelper.GetHolonInfoForLogging(this, "CelestialSpace")}, reason: {celestialSpaceResult.Message}";
+                    
+                    if (OnCelestialSpaceError != null)
+                        OnCelestialSpaceError(this, new CelestialSpaceErrorEventArgs() { Reason = msg, Result = celestialSpaceResult });
+                    else
+                        throw new OASISException<ICelestialSpace>(msg, celestialSpaceResult);
+                }
             }
-
-            base.Initialize();
         }
 
         protected override async Task InitializeAsync()
         {
-            //TODO: Load and Wireup Events like CelestialBody, etc.
-            await base.InitializeAsync();
+            WireUpEvents();
+
+            if (Id != Guid.Empty || (ProviderKey != null && ProviderKey.Keys.Count > 0))
+            {
+                OASISResult<ICelestialSpace> celestialSpaceResult = await LoadAsync();
+
+                if (celestialSpaceResult != null && !celestialSpaceResult.IsError && celestialSpaceResult.Result != null)
+                {
+                    Mapper.MapBaseHolonProperties(celestialSpaceResult.Result, this);
+                    await base.InitializeAsync();
+                }
+                else
+                {
+                    string msg = $"ERROR: Error loading {LoggingHelper.GetHolonInfoForLogging(this, "CelestialSpace")}, reason: {celestialSpaceResult.Message}";
+
+                    if (OnCelestialSpaceError != null)
+                        OnCelestialSpaceError(this, new CelestialSpaceErrorEventArgs() { Reason = msg, Result = celestialSpaceResult });
+                    else
+                        throw new OASISException<ICelestialSpace>(msg, celestialSpaceResult);
+                }
+            }
         }
 
         public async Task<OASISResult<ICelestialSpace>> LoadAsync(bool loadChildren = true, bool continueOnError = true)
         {
             OASISResult<ICelestialSpace> result = new OASISResult<ICelestialSpace>();
-            OASISResult<IHolon> holonResult = new OASISResult<IHolon>();
+            IStar star = GetCelestialSpaceNearestStar();
 
-            switch (this.HolonType)
+            if (star == null)
             {
-                case HolonType.Omiverse:
-                    holonResult = await this.ParentGreatGrandSuperStar.CelestialBodyCore.LoadHolonAsync(this.Id);
-                    break;
-
-                case HolonType.Multiverse:
-                case HolonType.Universe:
-                    holonResult = await this.ParentGrandSuperStar.CelestialBodyCore.LoadHolonAsync(this.Id);
-                    break;
-
-                case HolonType.Galaxy:
-                case HolonType.GalaxyCluster:
-                    holonResult = await this.ParentSuperStar.CelestialBodyCore.LoadHolonAsync(this.Id);
-                    break;
-
-                case HolonType.SolarSystem:
-                    holonResult = await this.ParentStar.CelestialBodyCore.LoadHolonAsync(this.Id);
-                    break;
-
-                default:
-                    {
-                        if (this.ParentStar != null)
-                            holonResult = await this.ParentStar.CelestialBodyCore.LoadHolonAsync(this.Id);
-
-                        else if (this.ParentSuperStar != null)
-                            holonResult = await this.ParentSuperStar.CelestialBodyCore.LoadHolonAsync(this.Id);
-
-                        else if (this.ParentGrandSuperStar != null)
-                            holonResult = await this.ParentGrandSuperStar.CelestialBodyCore.LoadHolonAsync(this.Id);
-
-                        else if (this.ParentGreatGrandSuperStar != null)
-                            holonResult = await this.ParentGreatGrandSuperStar.CelestialBodyCore.LoadHolonAsync(this.Id);
-                    }
+                ErrorHandling.HandleError(ref result, $"Error loading the {LoggingHelper.GetHolonInfoForLogging(this, "CelestialSpace")}. Could not find the nearest star for the {LoggingHelper.GetHolonInfoForLogging(this, "CelestialSpace")}.");
+                OnCelestialSpaceError?.Invoke(this, new CelestialSpaceErrorEventArgs() { Reason = "Error occured in CelestialSpace.LoadAsync method. See Result.Message Property For More Info.", Result = result });
+                return result;
             }
+
+            OASISResult<IHolon> holonResult = await star.CelestialBodyCore.LoadHolonAsync(this.Id);
 
             if ((holonResult != null && !holonResult.IsError && holonResult.Result != null)
                 || ((holonResult == null || holonResult.IsError || holonResult.Result == null) && continueOnError))
             {
+                if (!(holonResult != null && !holonResult.IsError && holonResult.Result != null))
+                {
+                    // If there was an error then continueOnError must have been set to true.
+                    ErrorHandling.HandleWarning(ref result, $"An errror occured loading the {LoggingHelper.GetHolonInfoForLogging(this, "CelestialSpace")}. ContinueOnError is set to true so continuing to attempt to load the celestial bodies... Reason: {holonResult.Message}");
+                    OnCelestialSpaceError?.Invoke(this, new CelestialSpaceErrorEventArgs() { Reason = $"Error occured in CelestialSpace.LoadHolonAsync method whilst loading the {LoggingHelper.GetHolonInfoForLogging(this, "CelestialSpace holon")}. See Result.Message Property For More Info.", Result = result });
+                }
+
                 if (loadChildren)
                 {
                     OASISResult<ICelestialSpace> celestialBodiesResult = await LoadCelestialBodiesAsync();
 
                     if (!(celestialBodiesResult != null && !celestialBodiesResult.IsError && celestialBodiesResult.Result != null))
-                        ErrorHandling.HandleWarning(ref result, $"The CelestialSpace {this.Name} with type {Enum.GetName(typeof(HolonType), this.HolonType)} loaded fine but one or more of it's celestialbodies failed to load. Reason: {celestialBodiesResult.Message}");
+                    {
+                        ErrorHandling.HandleWarning(ref result, $"The {LoggingHelper.GetHolonInfoForLogging(this, "CelestialSpace")} loaded fine but one or more of it's celestialbodies failed to load. Reason: {celestialBodiesResult.Message}");
+                        OnCelestialSpaceError?.Invoke(this, new CelestialSpaceErrorEventArgs() { Reason = "Error occured in CelestialSpace.LoadAsync method. See Result.Message Property For More Info.", Result = result });
+                    }
                 }
             }
 
@@ -153,9 +152,8 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
                 if (!(celestialBodyResult != null && celestialBodyResult.Result != null && !celestialBodyResult.IsError))
                 {
                     result.ErrorCount++;
-                    string message = $"There was an error whilst loading the CelestialBody {celestialBody.Name} of type {Enum.GetName(typeof(HolonType), celestialBody.HolonType)}. Reason: {celestialBodyResult.Message}";
-                    result.InnerMessages.Add(message);
-                    ErrorHandling.HandleWarning(ref celestialBodyResult, message);
+                    ErrorHandling.HandleWarning(ref celestialBodyResult, $"There was an error whilst loading the {LoggingHelper.GetHolonInfoForLogging(celestialBody, "CelestialBody")}. Reason: {celestialBodyResult.Message}", true, false, false, true, false);
+                    OnCelestialSpaceError?.Invoke(this, new CelestialSpaceErrorEventArgs() { Reason = $"Error occured in CelestialSpace.LoadCelestialBodiesAsync method whilst loading the {LoggingHelper.GetHolonInfoForLogging(this, "CelestialSpace holon")}. See Result.Message Property For More Info.", Result = result });
 
                     if (!continueOnError)
                         break;
@@ -166,7 +164,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
 
             if (result.ErrorCount > 0)
             {
-                string message = $"{result.ErrorCount} Error(s) occured loading {CelestialBodies.Count} CelestialBodies in the CelestialSpace {this.Name} of type {Enum.GetName(typeof(HolonType), this.HolonType)}. Please check the logs and InnerMessages for more info. Reason: {OASISResultHelper.BuildInnerMessageError(result.InnerMessages)}";
+                string message = $"{result.ErrorCount} Error(s) occured loading {CelestialBodies.Count} CelestialBodies in the {LoggingHelper.GetHolonInfoForLogging(this, "CelestialSpace")}. Please check the logs and InnerMessages for more info. Reason: {OASISResultHelper.BuildInnerMessageError(result.InnerMessages)}";                
 
                 if (result.LoadedCount == 0)
                     ErrorHandling.HandleError(ref result, message);
@@ -175,6 +173,8 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
                     ErrorHandling.HandleWarning(ref result, message);
                     result.IsLoaded = true;
                 }
+
+                OnCelestialSpaceError?.Invoke(this, new CelestialSpaceErrorEventArgs() { Reason = "Error occured in CelestialSpace.LoadCelestialBodiesAsync method. See Result.Message Property For More Info.", Result = result });
             }
             else
                 result.IsLoaded = true;
@@ -189,18 +189,56 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
             return LoadCelestialBodiesAsync(loadChildren, continueOnError).Result;
         }
 
-        public async Task<OASISResult<ICelestialSpace>> SaveAsync<T>(bool saveChildren = true, bool continueOnError = true) where T : ICelestialSpace, new()
+        public async Task<OASISResult<ICelestialSpace>> SaveAsync(bool saveChildren = true, bool continueOnError = true)
         {
+            OASISResult<ICelestialSpace> result = new OASISResult<ICelestialSpace>();
+            IStar star = GetCelestialSpaceNearestStar();
 
+            if (star == null)
+            {
+                ErrorHandling.HandleError(ref result, $"Error saving the {LoggingHelper.GetHolonInfoForLogging(this, "CelestialSpace")}. Could not find the nearest star for the {LoggingHelper.GetHolonInfoForLogging(this, "CelestialSpace")}.");
+                OnCelestialSpaceError?.Invoke(this, new CelestialSpaceErrorEventArgs() { Reason = "Error occured in CelestialSpace.SaveAsync method. See Result.Message Property For More Info.", Result = result });
+                return result;
+            }
+
+            OASISResult<IHolon> holonResult = await star.CelestialBodyCore.SaveHolonAsync(this);
+
+            if ((holonResult != null && !holonResult.IsError && holonResult.Result != null)
+                || ((holonResult == null || holonResult.IsError || holonResult.Result == null) && continueOnError))
+            {
+                if (!(holonResult != null && !holonResult.IsError && holonResult.Result != null))
+                {
+                    // If there was an error then continueOnError must have been set to true.
+                    ErrorHandling.HandleWarning(ref result, $"An errror occured saving the {LoggingHelper.GetHolonInfoForLogging(this, "CelestialSpace")}. ContinueOnError is set to true so continuing to attempt to save the celestial bodies... Reason: {holonResult.Message}");
+                    OnCelestialSpaceError?.Invoke(this, new CelestialSpaceErrorEventArgs() { Reason = $"Error occured in CelestialSpace.SaveAsync method whilst saving the {LoggingHelper.GetHolonInfoForLogging(this, "CelestialSpace holon")}. See Result.Message Property For More Info.", Result = result });
+                }
+
+                if (saveChildren)
+                {
+                    OASISResult<ICelestialSpace> celestialBodiesResult = await SaveCelestialBodiesAsync(saveChildren, continueOnError);
+
+                    if (!(celestialBodiesResult != null && !celestialBodiesResult.IsError && celestialBodiesResult.Result != null))
+                    {
+                        if (result.IsWarning)
+                            ErrorHandling.HandleError(ref result, $"The {LoggingHelper.GetHolonInfoForLogging(this, "CelestialSpace")} failed to save and one or more of it's celestialbodies failed to save. Reason: {celestialBodiesResult.Message}");
+                        else
+                            ErrorHandling.HandleWarning(ref result, $"The {LoggingHelper.GetHolonInfoForLogging(this, "CelestialSpace")} saved fine but one or more of it's celestialbodies failed to save. Reason: {celestialBodiesResult.Message}");
+                        
+                        OnCelestialSpaceError?.Invoke(this, new CelestialSpaceErrorEventArgs() { Reason = "Error occured in CelestialSpace.SaveAsync method. See Result.Message Property For More Info.", Result = result });
+                    }
+                }
+            }
+
+            OnCelestialSpaceSaved?.Invoke(this, new CelestialSpaceSavedEventArgs() { Result = result });
+            return result;
         }
 
-        public OASISResult<ICelestialSpace> Save<T>(bool saveChildren = true, bool continueOnError = true) where T : ICelestialSpace, new()
+        public OASISResult<ICelestialSpace> Save(bool saveChildren = true, bool continueOnError = true)
         {
-
+            return SaveAsync(saveChildren, continueOnError).Result;
         }
 
-
-        public async Task<OASISResult<ICelestialSpace>> SaveCelestialBodiesAsync<T>(bool saveChildren = true, bool continueOnError = true) where T : ICelestialSpace, new()
+        public async Task<OASISResult<ICelestialSpace>> SaveCelestialBodiesAsync(bool saveChildren = true, bool continueOnError = true)
         {
             OASISResult<ICelestialSpace> result = new OASISResult<ICelestialSpace>();
             OASISResult<ICelestialBody> celestialBodyResult = null;
@@ -213,9 +251,8 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
                 if (!(celestialBodyResult != null && celestialBodyResult.Result != null && !celestialBodyResult.IsError))
                 {
                     result.ErrorCount++;
-                    string message = $"There was an error whilst saving the CelestialBody {celestialBody.Name} of type {Enum.GetName(typeof(HolonType), celestialBody.HolonType)}. Reason: {celestialBodyResult.Message}";
-                    result.InnerMessages.Add(message);
-                    ErrorHandling.HandleWarning(ref celestialBodyResult, message);
+                    ErrorHandling.HandleWarning(ref celestialBodyResult, $"There was an error whilst saving the {LoggingHelper.GetHolonInfoForLogging(celestialBody, "CelestialBody")}. Reason: {celestialBodyResult.Message}", true, false, false, true, false);
+                    OnCelestialSpaceError?.Invoke(this, new CelestialSpaceErrorEventArgs() { Reason = $"Error occured in CelestialSpace.SaveCelestialBodiesAsync method whilst saving the {LoggingHelper.GetHolonInfoForLogging(this, "CelestialSpace holon")}. See Result.Message Property For More Info.", Result = result });
 
                     if (!continueOnError)
                         break;
@@ -226,7 +263,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
 
             if (result.ErrorCount > 0)
             {
-                string message = $"{result.ErrorCount} Error(s) occured saving {CelestialBodies.Count} CelestialBodies in the CelestialSpace {this.Name} of type {Enum.GetName(typeof(HolonType), this.HolonType)}. Please check the logs and InnerMessages for more info. Reason: {OASISResultHelper.BuildInnerMessageError(result.InnerMessages)}";
+                string message = $"{result.ErrorCount} Error(s) occured saving {CelestialBodies.Count} CelestialBodies in the {LoggingHelper.GetHolonInfoForLogging(this, "CelestialSpace")}. Please check the logs and InnerMessages for more info. Reason: {OASISResultHelper.BuildInnerMessageError(result.InnerMessages)}";
                 
                 if (result.SavedCount == 0)
                     ErrorHandling.HandleError(ref result, message);
@@ -235,18 +272,19 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
                     ErrorHandling.HandleWarning(ref result, message);
                     result.IsSaved = true;
                 }
+
+                OnCelestialSpaceError?.Invoke(this, new CelestialSpaceErrorEventArgs() { Reason = $"Error occured in CelestialSpace.SaveCelestialBodiesAsync method whilst saving the CelestialBodies for {LoggingHelper.GetHolonInfoForLogging(this, "CelestialSpace holon")}. See Result.Message Property For More Info.", Result = result });
             }
             else
                 result.IsSaved = true;
 
-            //OnCelestialSpaceSaved?.Invoke(this, new CelestialSpaceSavedEventArgs() { Result = result});
             OnCelestialBodiesSaved?.Invoke(this, new CelestialBodiesSavedEventArgs() { Result = result, CelestialBodies = this.CelestialBodies });
             return result;
         }
 
-        public OASISResult<ICelestialSpace> SaveCelestialBodies<T>(bool saveChildren = true, bool continueOnError = true) where T : ICelestialSpace, new()
+        public OASISResult<ICelestialSpace> SaveCelestialBodies(bool saveChildren = true, bool continueOnError = true)
         {
-            return SaveCelestialBodiesAsync<T>(saveChildren, continueOnError).Result;
+            return SaveCelestialBodiesAsync(saveChildren, continueOnError).Result;
         }
 
         protected void RegisterCelestialBodies(IEnumerable<ICelestialBody> celestialBodies)
@@ -279,6 +317,43 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
                 celestialBody.OnHolonSaved += CelestialBody_OnHolonSaved;
                 celestialBody.OnZomesLoaded += CelestialBody_OnZomesLoaded;
                 celestialBody.OnZomeError += CelestialBody_OnZomeError;
+            }
+        }
+
+        private IStar GetCelestialSpaceNearestStar()
+        {
+            switch (this.HolonType)
+            {
+                case HolonType.Omiverse:
+                    return ParentGreatGrandSuperStar;
+
+                case HolonType.Multiverse:
+                case HolonType.Universe:
+                    return ParentGrandSuperStar;
+
+                case HolonType.Galaxy:
+                case HolonType.GalaxyCluster:
+                    return ParentSuperStar;
+
+                case HolonType.SolarSystem:
+                    return ParentStar;
+
+                default:
+                    {
+                        if (this.ParentStar != null)
+                            return ParentStar;
+
+                        else if (this.ParentSuperStar != null)
+                            return ParentSuperStar;
+
+                        else if (this.ParentGrandSuperStar != null)
+                            return ParentGrandSuperStar;
+
+                        else if (this.ParentGreatGrandSuperStar != null)
+                            return ParentGreatGrandSuperStar;
+                        
+                        return null;
+                    }
             }
         }
 
