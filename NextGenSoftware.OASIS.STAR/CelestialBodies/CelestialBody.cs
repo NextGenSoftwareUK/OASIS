@@ -36,11 +36,11 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
         public event CelestialBodyLoaded OnCelestialBodyLoaded;
         public event CelestialBodySaved OnCelestialBodySaved;
         public event CelestialBodyError OnCelestialBodyError;
-        public event HolonsLoaded OnHolonsLoaded;
-        public event HolonSaved OnHolonSaved;
-        public event HolonLoaded OnHolonLoaded;
         public event ZomesLoaded OnZomesLoaded;
         public event ZomeError OnZomeError;
+        public event HolonLoaded OnHolonLoaded;
+        public event HolonsLoaded OnHolonsLoaded;
+        public event HolonSaved OnHolonSaved;
 
         //public SpaceQuadrantType SpaceQuadrant { get; set; }
         //public int SpaceSector { get; set; }
