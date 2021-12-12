@@ -7,7 +7,6 @@ using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Events;
 using static NextGenSoftware.OASIS.API.Core.Events.Events;
-using NextGenSoftware.OASIS.API.Core.Exceptions;
 using NextGenSoftware.OASIS.STAR.Holons;
 using NextGenSoftware.OASIS.STAR.CelestialBodies;
 
@@ -62,21 +61,6 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
 
                 if (celestialSpaceResult != null && !celestialSpaceResult.IsError && celestialSpaceResult.Result != null)
                     base.Initialize();
-
-                //if (celestialSpaceResult != null && !celestialSpaceResult.IsError && celestialSpaceResult.Result != null)
-                //{
-                //    Mapper.MapBaseHolonProperties(celestialSpaceResult.Result, this);
-                //    base.Initialize();
-                //}
-                //else
-                //{
-                //    string msg = $"ERROR: Error loading {LoggingHelper.GetHolonInfoForLogging(this, "CelestialSpace")}, reason: {celestialSpaceResult.Message}";
-
-                //    if (OnCelestialSpaceError != null)
-                //        OnCelestialSpaceError(this, new CelestialSpaceErrorEventArgs() { Reason = msg, Result = celestialSpaceResult });
-                //    else
-                //        throw new OASISException<ICelestialSpace>(msg, celestialSpaceResult);
-                //}
             }
         }
 
@@ -90,21 +74,6 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
 
                 if (celestialSpaceResult != null && !celestialSpaceResult.IsError && celestialSpaceResult.Result != null)
                     await base.InitializeAsync();
-
-                //if (celestialSpaceResult != null && !celestialSpaceResult.IsError && celestialSpaceResult.Result != null)
-                //{
-                //    Mapper.MapBaseHolonProperties(celestialSpaceResult.Result, this);
-                //    await base.InitializeAsync();
-                //}
-                //else
-                //{
-                //    string msg = $"ERROR: Error loading {LoggingHelper.GetHolonInfoForLogging(this, "CelestialSpace")}, reason: {celestialSpaceResult.Message}";
-
-                //    if (OnCelestialSpaceError != null)
-                //        OnCelestialSpaceError(this, new CelestialSpaceErrorEventArgs() { Reason = msg, Result = celestialSpaceResult });
-                //    else
-                //        throw new OASISException<ICelestialSpace>(msg, celestialSpaceResult);
-                //}
             }
         }
 
@@ -131,7 +100,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
                 {
                     // If there was an error then continueOnError must have been set to true.
                     ErrorHandling.HandleWarning(ref result, $"An errror occured loading the {LoggingHelper.GetHolonInfoForLogging(this, "CelestialSpace")}. ContinueOnError is set to true so continuing to attempt to load the celestial bodies... Reason: {holonResult.Message}");
-                    OnCelestialSpaceError?.Invoke(this, new CelestialSpaceErrorEventArgs() { Reason = $"Error occured in CelestialSpace.LoadHolonAsync method whilst loading the {LoggingHelper.GetHolonInfoForLogging(this, "CelestialSpace holon")}. See Result.Message Property For More Info.", Result = result });
+                    OnCelestialSpaceError?.Invoke(this, new CelestialSpaceErrorEventArgs() { Reason = $"Error occured in CelestialSpace.LoadAsync method whilst loading the {LoggingHelper.GetHolonInfoForLogging(this, "CelestialSpace holon")}. See Result.Message Property For More Info.", Result = result });
                 }
 
                 if (loadChildren)

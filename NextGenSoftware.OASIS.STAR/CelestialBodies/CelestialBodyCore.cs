@@ -57,10 +57,11 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
         {
         }
 
-        public async Task<OASISResult<IEnumerable<IZome>>> LoadZomesAsync()
+        public async Task<OASISResult<IEnumerable<IZome>>> LoadZomesAsync(bool loadChildren = true, bool resursive = true, bool continueOnError = true)
         {
+            //TODO: NEED TO ADD LOADCHILDREN PARAM ASAP.
             OASISResult<IEnumerable<IZome>> result = new OASISResult<IEnumerable<IZome>>();
-            OASISResult<IEnumerable<IHolon>>  holonResult = await base.LoadHolonsForParentAsync();
+            OASISResult<IEnumerable<IHolon>>  holonResult = await base.LoadHolonsForParentAsync(HolonType.Zome, loadChildren, resursive, continueOnError);
             OASISResultCollectionToCollectionHelper<IEnumerable<IHolon>, IEnumerable<IZome>>.CopyResult(holonResult, ref result);
 
             if (holonResult.Result != null && !holonResult.IsError)
@@ -73,10 +74,10 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
             return result;
         }
 
-        public OASISResult<IEnumerable<IZome>> LoadZomes()
+        public OASISResult<IEnumerable<IZome>> LoadZomes(bool loadChildren = true, bool resursive = true, bool continueOnError = true)
         {
             OASISResult<IEnumerable<IZome>> result = new OASISResult<IEnumerable<IZome>>();
-            OASISResult<IEnumerable<IHolon>> holonResult = base.LoadHolonsForParent();
+            OASISResult<IEnumerable<IHolon>> holonResult = base.LoadHolonsForParent(HolonType.Zome, loadChildren, resursive, continueOnError);
             OASISResultCollectionToCollectionHelper<IEnumerable<IHolon>, IEnumerable<IZome>>.CopyResult(holonResult, ref result);
 
             if (holonResult.Result != null && !holonResult.IsError)
@@ -89,7 +90,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
             return result;
         }
 
-        public async Task<OASISResult<IZome>> AddZomeAsync(IZome zome)
+        public async Task<OASISResult<IZome>> AddZomeAsync(IZome zome, bool saveChildren = true, bool resursive = true, bool continueOnError = true)
         {
             OASISResult<IZome> result = new OASISResult<IZome>();
 
@@ -102,14 +103,14 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
                 this.Zomes.Add(zome);
                 
                 //TODO: This is used in quite a few places but not sure how efficient it is because it will always save the entire collection even if its not needed?
-                OASISResult<IEnumerable<IHolon>> holonsResult = await base.SaveHolonsAsync(this.Zomes);
+                OASISResult<IEnumerable<IHolon>> holonsResult = await base.SaveHolonsAsync(this.Zomes, true, saveChildren, resursive, continueOnError);
                 OASISResultCollectionToHolonHelper<IEnumerable<IHolon>, IZome>.CopyResult(holonsResult, ref result);
             }
 
             return result;
         }
 
-        public OASISResult<IZome> AddZome(IZome zome)
+        public OASISResult<IZome> AddZome(IZome zome, bool saveChildren = true, bool resursive = true, bool continueOnError = true)
         {
             OASISResult<IZome> result = new OASISResult<IZome>();
 
@@ -122,7 +123,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
                 this.Zomes.Add(zome);
 
                 //TODO: This is used in quite a few places but not sure how efficient it is because it will always save the entire collection even if its not needed?
-                OASISResult<IEnumerable<IHolon>> holonsResult = base.SaveHolons(this.Zomes);
+                OASISResult<IEnumerable<IHolon>> holonsResult = base.SaveHolons(this.Zomes, true, saveChildren, resursive, continueOnError);
                 OASISResultCollectionToHolonHelper<IEnumerable<IHolon>, IZome>.CopyResult(holonsResult, ref result);
             }
 
@@ -132,9 +133,10 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
         public async Task<OASISResult<IEnumerable<IZome>>> RemoveZomeAsync(IZome zome)
         {
             OASISResult<IEnumerable<IZome>> result = new OASISResult<IEnumerable<IZome>>();
-
             this.Zomes.Remove(zome);
-            OASISResult<IEnumerable<IHolon>> holonsResult = await base.SaveHolonsAsync(this.Zomes);
+
+            //Don't think we need to save children if we are just removing a holon?
+            OASISResult<IEnumerable<IHolon>> holonsResult = await base.SaveHolonsAsync(this.Zomes, true, false, false, false);
             OASISResultCollectionToCollectionHelper<IEnumerable<IHolon>, IEnumerable<IZome>>.CopyResult(holonsResult, ref result);
 
             if (!holonsResult.IsError && holonsResult.Result != null)
@@ -146,9 +148,10 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
         public OASISResult<IEnumerable<IZome>> RemoveZome(IZome zome)
         {
             OASISResult<IEnumerable<IZome>> result = new OASISResult<IEnumerable<IZome>>();
-
             this.Zomes.Remove(zome);
-            OASISResult<IEnumerable<IHolon>> holonsResult = base.SaveHolons(this.Zomes);
+
+            //Don't think we need to save children if we are just removing a zome?
+            OASISResult<IEnumerable<IHolon>> holonsResult = base.SaveHolons(this.Zomes, true, false, false, false);
             OASISResultCollectionToCollectionHelper<IEnumerable<IHolon>, IEnumerable<IZome>>.CopyResult(holonsResult, ref result);
 
             if (!holonsResult.IsError && holonsResult.Result != null)
