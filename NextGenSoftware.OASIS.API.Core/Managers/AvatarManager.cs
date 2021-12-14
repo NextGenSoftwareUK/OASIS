@@ -228,8 +228,8 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 return result;
             }
 
-            //IAvatar avatar = new Avatar() { FirstName = firstName, LastName = lastName, Password = password, Title = avatarTitle, Email = email, AvatarType = new EnumValue<AvatarType>(avatarType), CreatedOASISType = new EnumValue<OASISType>(createdOASISType), STARCLIColour = cliColour, FavouriteColour = favColour };
             IAvatar avatar = new Avatar() { FirstName = firstName, LastName = lastName, Password = password, Title = avatarTitle, Email = email, AvatarType = new EnumValue<AvatarType>(avatarType), CreatedOASISType = new EnumValue<OASISType>(createdOASISType) };
+            IAvatarDetail avatarDetail = new AvatarDetail() { FirstName = firstName, LastName = lastName, Title = avatarTitle, Email = email, AvatarType = new EnumValue<AvatarType>(avatarType), CreatedOASISType = new EnumValue<OASISType>(createdOASISType), STARCLIColour = cliColour, FavouriteColour = favColour };
 
             /*
             // TODO: Temp! Remove later!
@@ -300,37 +300,34 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 avatar.Skills.Engineering = 99;
             }*/
 
-            // first registered account is an admin
-            //var isFirstAccount = _context.Accounts.Count() == 0;
-
-            //TODO: PERFORMANCE} Implement in Providers so more efficient and do not need to return whole list!
-
-            //TODO: Not sure if this is a good idea or not? Currently you can register as a wizard (admin) or normal user.
-            // The normal register screen will create user types but if logged in as a wizard, then they can create other wizards.
-            //var isFirstAccount = avatars.Count() == 0;
-            //avatar.AvatarType = isFirstAccount ? AvatarType.Wizard : AvatarType.User;
-
             avatar.CreatedDate = DateTime.UtcNow;
+            avatarDetail.CreatedDate = DateTime.UtcNow;
             avatar.VerificationToken = randomTokenString();
 
             // hash password
             avatar.Password = BC.HashPassword(password);
 
-            // save account
-            //  _context.Accounts.Add(account);
-            // _context.SaveChanges();
-            //AvatarManager.SaveAvatarAsync(avatar);
-
             //TODO: Get async version working ASAP! :)
-
             OASISResult<IAvatar> saveAvatarResult = SaveAvatar(avatar);
             avatar = saveAvatarResult.Result;
 
             if (!saveAvatarResult.IsError && saveAvatarResult.IsSaved)
             {
-                sendVerificationEmail(avatar, origin);
-                result.Result = RemoveAuthDetails(avatar);
-                result.IsSaved = true;
+                OASISResult<IAvatarDetail> saveAvatarDetailResult = SaveAvatarDetail(avatarDetail);
+
+                if (saveAvatarDetailResult != null && !saveAvatarDetailResult.IsError && saveAvatarDetailResult.Result != null)
+                {
+                    sendVerificationEmail(avatar, origin);
+                    result.Result = RemoveAuthDetails(avatar);
+                    result.IsSaved = true;
+                    result.Message = "Avatar Created Successfully. Please check your email for the verification email. You will not be able to log in till you have verified your email. Thank you.";
+                }
+                else
+                {
+                    result.Message = saveAvatarDetailResult.Message;
+                    result.IsError = saveAvatarDetailResult.IsError;
+                    result.IsSaved = saveAvatarDetailResult.IsSaved;
+                }
             }
             else
             {
@@ -897,9 +894,15 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             //TODO: Need to handle return of OASISResult properly...
             OASISResult<KarmaAkashicRecord> result = new OASISResult<KarmaAkashicRecord>();
             IAvatarDetail avatar = ProviderManager.SetAndActivateCurrentStorageProvider(provider).Result.LoadAvatarDetail(avatarId);
-            
+            //IAvatar avatar = ProviderManager.SetAndActivateCurrentStorageProvider(provider).Result.LoadAvatar(avatarId);
+
             if (avatar != null)
+            {
                 result.Result = ProviderManager.CurrentStorageProvider.AddKarmaToAvatar(avatar, karmaType, karmaSourceType, karamSourceTitle, karmaSourceDesc, karmaSourceWebLink);
+
+                if (result.Result != null)
+                    result.Message = "Karma Successfully Added To Avatar.";
+            }
             else
             {
                 result.IsError = true;
@@ -939,9 +942,15 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
             //TODO: Need to handle return of OASISResult properly...
             IAvatarDetail avatar = ProviderManager.SetAndActivateCurrentStorageProvider(provider).Result.LoadAvatarDetail(avatarId);
+            //IAvatar avatar = ProviderManager.SetAndActivateCurrentStorageProvider(provider).Result.LoadAvatar(avatarId);
 
             if (avatar != null)
+            {
                 result.Result = ProviderManager.CurrentStorageProvider.RemoveKarmaFromAvatar(avatar, karmaType, karmaSourceType, karamSourceTitle, karmaSourceDesc, karmaSourceWebLink);
+
+                if (result.Result != null)
+                    result.Message = "Karma Successfully Removed From Avatar.";
+            }
             else
             {
                 result.IsError = true;

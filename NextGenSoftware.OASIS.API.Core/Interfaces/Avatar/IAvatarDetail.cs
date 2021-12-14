@@ -15,6 +15,7 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces
         // Using the multiple interfaces workaround seems to only work for methods, but not properties?
 
         new Guid Id { get; set; }
+        /*
         string Title { get; set; }
         string FirstName { get; set; }
         string LastName { get; set; }
@@ -23,6 +24,7 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces
         string Email { get; set; }
        // string Password { get; set; } //Password only needed for SSO so is only in Avatar Object.
         //END DUPLICATION
+        */
 
         List<Achievement> Achievements { get; set; }
         string Address { get; set; }

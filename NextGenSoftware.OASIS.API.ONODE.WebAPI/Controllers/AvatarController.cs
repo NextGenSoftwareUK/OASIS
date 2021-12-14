@@ -218,6 +218,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [HttpPost("authenticate/{providerType}/{setGlobally}")]
         public async Task<OASISResult<AuthenticateResponse>> Authenticate(AuthenticateRequest model,
+        //public async Task<OASISResult<IAvatar>> Authenticate(AuthenticateRequest model,
             ProviderType providerType = ProviderType.Default, bool setGlobally = false)
         {
             GetAndActivateProvider(providerType, setGlobally);
@@ -232,10 +233,16 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [HttpPost("authenticate")]
         public async Task<OASISResult<AuthenticateResponse>> Authenticate(AuthenticateRequest model)
+        //public async Task<OASISResult<IAvatar>> Authenticate(AuthenticateRequest model)
         {
             var response = await _avatarService.Authenticate(model, ipAddress());
+
             if (!response.IsError && response.Result.Avatar != null)
                 setTokenCookie(response.Result.Avatar.RefreshToken);
+
+            //if (!response.IsError && response.Result != null)
+            //    setTokenCookie(response.Result.RefreshToken);
+
             return response;
         }
 

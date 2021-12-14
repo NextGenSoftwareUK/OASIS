@@ -31,7 +31,7 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
                 base.Id = value;
             }
         }
-
+        /*
         public new string Name
         {
             get
@@ -55,7 +55,7 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
             }
         }
         //END DUPLICATION
-
+        */
 
 
         //TODO: Think best to encrypt these?
@@ -229,7 +229,7 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
             return record;
         }
 
-       
+
 
         public override bool HasHolonChanged(bool checkChildren = true)
         {
@@ -238,8 +238,8 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
                 if (((IAvatarDetail)Original).DOB != DOB)
                     return true;
 
-                if (((IAvatarDetail)Original).Email != Email)
-                    return true;
+                //if (((IAvatarDetail)Original).Email != Email)
+                //    return true;
 
                 //TODO: Finish this ASAP!
             }
