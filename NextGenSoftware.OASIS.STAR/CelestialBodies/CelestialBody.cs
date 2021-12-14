@@ -27,7 +27,9 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
         public event CelestialBodySaved OnCelestialBodySaved;
         public event CelestialBodyError OnCelestialBodyError;
         public event ZomesLoaded OnZomesLoaded;
+        public event ZomesSaved OnZomesSaved;
         public event ZomeError OnZomeError;
+        public event ZomesError OnZomesError;
         public event HolonLoaded OnHolonLoaded;
         public event HolonsLoaded OnHolonsLoaded;
         public event HolonSaved OnHolonSaved;
@@ -406,6 +408,154 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
             return SaveAsync<T>(saveChildren, continueOnError).Result; //TODO: Best way of doing this?
         }
 
+        //TODO: Do we need to use ICelestialBody or IZome here? It will call different Saves depending which we use...
+        public async Task<OASISResult<IEnumerable<IZome>>> SaveZomesAsync(bool saveChildren = true, bool recursive = true, bool continueOnError = true)
+        {
+            OASISResult<IZome> result = new OASISResult<IZome>();
+
+            if (zomes != null)
+            {
+                foreach (IZome zome in zomes)
+                {
+                    if (zome.HasHolonChanged())
+                    {
+                        result = await zome.SaveAsync();
+
+                        if (result.IsError)
+                            break;
+                    }
+                }
+            }
+
+            //TODO: Improve result/error handling
+            return result;
+        }
+
+        public OASISResult<IEnumerable<IZome>> SaveZomes(bool saveChildren = true, bool recursive = true, bool continueOnError = true)
+        {
+            OASISResult<IEnumerable<IZome>> result = new OASISResult<IEnumerable<IZome>>();
+            OASISResult<IZome> zomeResult = new OASISResult<IZome>();
+
+            if (this.CelestialBodyCore.Zomes != null)
+            {
+                foreach (IZome zome in this.CelestialBodyCore.Zomes)
+                {
+                    if (zome.HasHolonChanged())
+                    {
+                        zomeResult = zome.Save(saveChildren, recursive, continueOnError);
+
+                        if (zomeResult != null && zomeResult.Result != null && !zomeResult.IsError)
+                            result.SavedCount++;
+                        else
+                        {
+                            result.ErrorCount++;
+                            ErrorHandling.HandleWarning(ref zomeResult, $"There was an error in the CelestialBody.SaveZomes method whilst saving the {LoggingHelper.GetHolonInfoForLogging(zome, "Zome")}. Reason: {zomeResult.Message}", true, false, false, true, false);
+                            //OnCelestialBodyError?.Invoke(this, new CelestialBodyErrorEventArgs() { Reason = $"{result.Message}", Result = result });
+                            OnZomesError?.Invoke(this, new ZomesErrorEventArgs() { Reason = $"{result.Message}", Result = result });
+
+                            if (!continueOnError)
+                                break;
+                        }
+                    }
+                }
+            }
+
+            if (result.ErrorCount > 0)
+            {
+                string message = $"{result.ErrorCount} Error(s) occured saving {CelestialBodyCore.Zomes.Count} Zomes in the {LoggingHelper.GetHolonInfoForLogging(this, "CelestialBody")}. Please check the logs and InnerMessages for more info. Reason: {OASISResultHelper.BuildInnerMessageError(result.InnerMessages)}";
+
+                if (result.SavedCount == 0)
+                    ErrorHandling.HandleError(ref result, message);
+                else
+                {
+                    ErrorHandling.HandleWarning(ref result, message);
+                    result.IsSaved = true;
+                }
+
+                OnZomesError?.Invoke(this, new ZomesErrorEventArgs() { Reason = $"Error occured in CelestialBody.SaveZomes method whilst saving the Zomes for {LoggingHelper.GetHolonInfoForLogging(this, "CelestialBody holon")}. See Result.Message Property For More Info.", Result = result });
+            }
+            else
+                result.IsSaved = true;
+
+            //TODO: Not sure if we should raise this event if an error occured? They can check the IsError and Message properties to check if it was successful but they can also check it in the OnError event...
+            OnZomesSaved?.Invoke(this, new ZomesSavedEventArgs() { Result = result, Zomes = CelestialBodyCore.Zomes });
+            return result;
+
+        }
+
+        // Build
+        public CoronalEjection Flare()
+        {
+            return new CoronalEjection();
+            // return Star.Flare(this);
+        }
+
+        // Activate & Launch - Launch & activate the planet (OAPP) by shining the star's light upon it...
+        public void Shine()
+        {
+            // Star.Shine(this);
+        }
+
+        // Deactivate the planet (OAPP)
+        public void Dim()
+        {
+            //Star.Dim(this);
+        }
+
+        // Deploy the planet (OAPP)
+        public void Seed()
+        {
+            //Star.Seed(this);
+        }
+
+        // Run Tests
+        public void Twinkle()
+        {
+            //Star.Twinkle(this);
+        }
+
+        // Highlight the Planet (OAPP) in the OAPP Store (StarNET). *Admin Only*
+        public void Radiate()
+        {
+            //Star.Radiate(this);
+        }
+
+        // Show how much light the planet (OAPP) is emitting into the solar system (StarNET/HoloNET)
+        public void Emit()
+        {
+            // Star.Emit(this);
+        }
+
+        // Show stats of the Planet (OAPP).
+        public void Reflect()
+        {
+            // Star.Reflect(this);
+        }
+
+        // Upgrade/update a Planet (OAPP).
+        public void Evolve()
+        {
+            //Star.Evolve(this);
+        }
+
+        // Import/Export hApp, dApp & others.
+        public void Mutate()
+        {
+            // Star.Mutate(this);
+        }
+
+        // Send/Receive Love
+        public void Love()
+        {
+            // Star.Love(this);
+        }
+
+        // Reserved For Future Use...
+        public void Super()
+        {
+            //Star.Super(this);
+        }
+
         protected override async Task InitializeAsync()
         {
             InitCelestialBodyCore();
@@ -477,51 +627,6 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
                 ((CelestialBodyCore)CelestialBodyCore).OnHolonSaved += CelestialBodyCore_OnHolonSaved;
                 ((CelestialBodyCore)CelestialBodyCore).OnZomeError += CelestialBodyCore_OnZomeError;
             }
-        }
-
-        //TODO: Do we need to use ICelestialBody or IZome here? It will call different Saves depending which we use...
-        private async Task<OASISResult<IZome>> SaveCelestialBodyChildrenAsync(IEnumerable<IZome> zomes)
-        {
-            OASISResult<IZome> result = new OASISResult<IZome>();
-
-            if (zomes != null)
-            {
-                foreach (IZome zome in zomes)
-                {
-                    if (zome.HasHolonChanged())
-                    {
-                        result = await zome.SaveAsync();
-
-                        if (result.IsError)
-                            break;
-                    }
-                }
-            }
-
-            //TODO: Improve result/error handling
-            return result;
-        }
-
-        private OASISResult<IZome> SaveCelestialBodyChildren(IEnumerable<IZome> zomes)
-        {
-            OASISResult<IZome> result = new OASISResult<IZome>();
-
-            if (zomes != null)
-            {
-                foreach (IZome zome in zomes)
-                {
-                    if (zome.HasHolonChanged())
-                    {
-                        result = zome.Save();
-
-                        if (result.IsError)
-                            break;
-                    }
-                }
-            }
-
-            //TODO: Improve result/error handling
-            return result;
         }
 
         private void SetProperties(IHolon holon)
@@ -800,79 +905,6 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
         }
         */
 
-        // Build
-        public CoronalEjection Flare()
-        {
-            return new CoronalEjection();
-           // return Star.Flare(this);
-        }
-
-        // Activate & Launch - Launch & activate the planet (OAPP) by shining the star's light upon it...
-        public void Shine()
-        {
-           // Star.Shine(this);
-        }
-
-        // Deactivate the planet (OAPP)
-        public void Dim()
-        {
-            //Star.Dim(this);
-        }
-
-        // Deploy the planet (OAPP)
-        public void Seed()
-        {
-            //Star.Seed(this);
-        }
-
-        // Run Tests
-        public void Twinkle()
-        {
-            //Star.Twinkle(this);
-        }
-
-        // Highlight the Planet (OAPP) in the OAPP Store (StarNET). *Admin Only*
-        public void Radiate()
-        {
-            //Star.Radiate(this);
-        }
-
-        // Show how much light the planet (OAPP) is emitting into the solar system (StarNET/HoloNET)
-        public void Emit()
-        {
-           // Star.Emit(this);
-        }
-
-        // Show stats of the Planet (OAPP).
-        public void Reflect()
-        {
-           // Star.Reflect(this);
-        }
-
-        // Upgrade/update a Planet (OAPP).
-        public void Evolve()
-        {
-            //Star.Evolve(this);
-        }
-
-        // Import/Export hApp, dApp & others.
-        public void Mutate()
-        {
-           // Star.Mutate(this);
-        }
-
-        // Send/Receive Love
-        public void Love()
-        {
-           // Star.Love(this);
-        }
-
-        // Reserved For Future Use...
-        public void Super()
-        {
-            //Star.Super(this);
-        }
-
         private void CelestialBodyCore_OnZomeError(object sender, ZomeErrorEventArgs e)
         {
             OnZomeError?.Invoke(sender, e);
@@ -955,6 +987,26 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
             return LoadAsync(loadZomes, continueOnError).Result;
         }
 
+        public IZome GetZomeThatHolonBelongsTo(IHolon holon)
+        {
+            return (IZome)CelestialBodyCore.Holons.FirstOrDefault(x => x.Id == holon.Id).ParentHolon;
+        }
+
+        public List<IHolon> GetHolonsThatBelongToZome(IZome zome)
+        {
+            return CelestialBodyCore.Holons.Where(x => x.ParentHolon.Id == zome.Id).ToList();
+        }
+
+        public IZome GetZomeByName(string name)
+        {
+            return CelestialBodyCore.Zomes.FirstOrDefault(x => x.Name == name);
+        }
+
+        public IZome GetZomeById(Guid id)
+        {
+            return CelestialBodyCore.Zomes.FirstOrDefault(x => x.Id == id);
+        }
+
         private async void CelestialBodyCore_OnHolonSaved(object sender, HolonSavedEventArgs e)
         {
             OnHolonSaved?.Invoke(sender, e);
@@ -1033,6 +1085,8 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
         //TODO: Come back to this, this is what is fired when each zome is loaded once the celestialbody is loaded but I think for now we will lazy load them later...
         private void Zome_OnHolonLoaded(object sender, HolonLoadedEventArgs e)
         {
+            OnHolonLoaded?.Invoke(sender, e);
+
             // 10/12/21: OBSOLETE: NO LONGER NEEDED, ZOMES ARE AUTOMATICALLY LOADED WHEN CELESTIALBODY IS (IF LOADZOMES PARAM IS SET TO TRUE0, OTHERWISE CAN CALL LOADZOMES LATER TO LOAD ALL ZOMES.
             // 10/12/21: TODO:     MAY ADD ABILITY TO LOAD INDIVIDUAL ZOMES BY EITHER NAME/ID/PROVIDERKEY
 
@@ -1082,6 +1136,8 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
 
         private void Zome_OnHolonSaved(object sender, HolonSavedEventArgs e)
         {
+            OnHolonSaved?.Invoke(sender, e);
+
             // CODE BELOW IS OBSOLETE, PROVIDER KEYS AND PARENTS ARE AUTOMATICALLY SET BEFORE SAVING AND JUST AFTER SAVING SO NO NEED FOR BELOW...
 
             /*
@@ -1155,26 +1211,6 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
 
                 OnHolonSaved?.Invoke(this, e);
             }*/
-        }
-
-        private IZome GetZomeThatHolonBelongsTo(IHolon holon)
-        {
-            return (IZome)CelestialBodyCore.Holons.FirstOrDefault(x => x.Id == holon.Id).ParentHolon;
-        }
-
-        private List<IHolon> GetHolonsThatBelongToZome(IZome zome)
-        {
-            return CelestialBodyCore.Holons.Where(x => x.ParentHolon.Id == zome.Id).ToList();
-        }
-
-        private IZome GetZomeByName(string name)
-        {
-            return CelestialBodyCore.Zomes.FirstOrDefault(x => x.Name == name);
-        }
-
-        private IZome GetZomeById(Guid id)
-        {
-            return CelestialBodyCore.Zomes.FirstOrDefault(x => x.Id == id);
         }
     }
 }

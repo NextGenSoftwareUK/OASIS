@@ -15,19 +15,21 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
     public abstract class CelestialSpace : CelestialHolon, ICelestialSpace
     {
         public event CelestialSpaceLoaded OnCelestialSpaceLoaded;
-        public event CelestialBodiesLoaded OnCelestialBodiesLoaded;
         public event CelestialSpaceSaved OnCelestialSpaceSaved;
-        public event CelestialBodiesSaved OnCelestialBodiesSaved;
         public event CelestialSpaceError OnCelestialSpaceError;
         public event CelestialBodyLoaded OnCelestialBodyLoaded;
         public event CelestialBodySaved OnCelestialBodySaved;
         public event CelestialBodyError OnCelestialBodyError;
+        public event CelestialBodiesLoaded OnCelestialBodiesLoaded;
+        public event CelestialBodiesSaved OnCelestialBodiesSaved;
+        public event CelestialBodiesError OnCelestialBodiesError;
         public event ZomesLoaded OnZomesLoaded;
         public event ZomeError OnZomeError;
         public event HolonLoaded OnHolonLoaded;
         public event HolonsLoaded OnHolonsLoaded;
         public event HolonSaved OnHolonSaved;
-      
+        public event HolonError OnHolonError; //TODO: Use?
+
         public List<ICelestialBody> CelestialBodies = new List<ICelestialBody>();
 
         //public enum LoadSaveCelestialBodiesEnum
@@ -99,22 +101,23 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
                 else
                 {
                     // If there was an error then continueOnError must have been set to true.
-                    ErrorHandling.HandleWarning(ref result, $"An errror occured loading the {LoggingHelper.GetHolonInfoForLogging(this, "CelestialSpace")}. ContinueOnError is set to true so continuing to attempt to load the celestial bodies... Reason: {holonResult.Message}");
-                    OnCelestialSpaceError?.Invoke(this, new CelestialSpaceErrorEventArgs() { Reason = $"Error occured in CelestialSpace.LoadAsync method whilst loading the {LoggingHelper.GetHolonInfoForLogging(this, "CelestialSpace holon")}. See Result.Message Property For More Info.", Result = result });
+                    ErrorHandling.HandleWarning(ref result, $"An errror occured in CelestialSpace.LoadAsync method whilst loading the {LoggingHelper.GetHolonInfoForLogging(this, "CelestialSpace")}. ContinueOnError is set to true so continuing to attempt to load the celestial bodies... Reason: {holonResult.Message}");
+                    OnCelestialSpaceError?.Invoke(this, new CelestialSpaceErrorEventArgs() { Reason = $"{result.Message}", Result = result });
                 }
 
                 if (loadChildren)
                 {
-                    OASISResult<ICelestialSpace> celestialBodiesResult = await LoadCelestialBodiesAsync();
+                    //OASISResult<ICelestialSpace> celestialBodiesResult = await LoadCelestialBodiesAsync();
+                    OASISResult<IEnumerable<ICelestialBody>> celestialBodiesResult = await LoadCelestialBodiesAsync();
 
                     if (!(celestialBodiesResult != null && !celestialBodiesResult.IsError && celestialBodiesResult.Result != null))
                     {
                         if (result.IsWarning)
-                            ErrorHandling.HandleError(ref result, $"The {LoggingHelper.GetHolonInfoForLogging(this, "CelestialSpace")} failed to load and one or more of it's celestialbodies failed to load. Reason: {celestialBodiesResult.Message}");
+                            ErrorHandling.HandleError(ref result, $"Error occured in CelestialSpace.LoadAsync method. The {LoggingHelper.GetHolonInfoForLogging(this, "CelestialSpace")} failed to load and one or more of it's celestialbodies failed to load. Reason: {celestialBodiesResult.Message}");
                         else
-                            ErrorHandling.HandleWarning(ref result, $"The {LoggingHelper.GetHolonInfoForLogging(this, "CelestialSpace")} loaded fine but one or more of it's celestialbodies failed to load. Reason: {celestialBodiesResult.Message}");
+                            ErrorHandling.HandleWarning(ref result, $"Error occured in CelestialSpace.LoadAsync method. The {LoggingHelper.GetHolonInfoForLogging(this, "CelestialSpace")} loaded fine but one or more of it's celestialbodies failed to load. Reason: {celestialBodiesResult.Message}");
                         
-                        OnCelestialSpaceError?.Invoke(this, new CelestialSpaceErrorEventArgs() { Reason = "Error occured in CelestialSpace.LoadAsync method. See Result.Message Property For More Info.", Result = result });
+                        OnCelestialSpaceError?.Invoke(this, new CelestialSpaceErrorEventArgs() { Reason = $"{result.Message}", Result = result });
                     }
                 }
             }
@@ -129,22 +132,25 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
         }
 
         //public override async Task<OASISResult<ICelestialSpace>> LoadAsync(bool loadChildren = true, bool continueOnError = true)
-        public async Task<OASISResult<ICelestialSpace>> LoadCelestialBodiesAsync(bool loadChildren = true, bool continueOnError = true)
+        //public async Task<OASISResult<ICelestialSpace>> LoadCelestialBodiesAsync(bool loadChildren = true, bool continueOnError = true)
+        public async Task<OASISResult<IEnumerable<ICelestialBody>>> LoadCelestialBodiesAsync(bool loadChildren = true, bool recursive = true, bool continueOnError = true)
         {
-            OASISResult<ICelestialSpace> result = new OASISResult<ICelestialSpace>();
+            //OASISResult<ICelestialSpace> result = new OASISResult<ICelestialSpace>();
+            OASISResult<IEnumerable<ICelestialBody>> result = new OASISResult<IEnumerable<ICelestialBody>>(this.CelestialBodies);
             OASISResult<ICelestialBody> celestialBodyResult = null;
 
             foreach (ICelestialBody celestialBody in CelestialBodies)
             {
-                celestialBodyResult = await celestialBody.LoadAsync(loadChildren, continueOnError);
+                celestialBodyResult = await celestialBody.LoadAsync(loadChildren, recursive, continueOnError);
 
                 if (celestialBodyResult != null && celestialBodyResult.Result != null && !celestialBodyResult.IsError)
                     result.LoadedCount++;
                 else
                 {
                     result.ErrorCount++;
-                    ErrorHandling.HandleWarning(ref celestialBodyResult, $"There was an error whilst loading the {LoggingHelper.GetHolonInfoForLogging(celestialBody, "CelestialBody")}. Reason: {celestialBodyResult.Message}", true, false, false, true, false);
-                    OnCelestialSpaceError?.Invoke(this, new CelestialSpaceErrorEventArgs() { Reason = $"Error occured in CelestialSpace.LoadCelestialBodiesAsync method whilst loading the {LoggingHelper.GetHolonInfoForLogging(this, "CelestialSpace holon")}. See Result.Message Property For More Info.", Result = result });
+                    ErrorHandling.HandleWarning(ref celestialBodyResult, $"There was an error in CelestialSpace.LoadCelestialBodiesAsync method whilst loading the {LoggingHelper.GetHolonInfoForLogging(celestialBody, "CelestialBody")}. Reason: {celestialBodyResult.Message}", true, false, false, true, false);
+                    //OnCelestialSpaceError?.Invoke(this, new CelestialSpaceErrorEventArgs() { Reason = $"{result.Message}", Result = result });
+                    OnCelestialBodiesError?.Invoke(this, new CelestialBodiesErrorEventArgs() { Reason = $"{result.Message}", Result = result });
 
                     if (!continueOnError)
                         break;
@@ -153,7 +159,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
 
             if (result.ErrorCount > 0)
             {
-                string message = $"{result.ErrorCount} Error(s) occured loading {CelestialBodies.Count} CelestialBodies in the {LoggingHelper.GetHolonInfoForLogging(this, "CelestialSpace")}. Please check the logs and InnerMessages for more info. Reason: {OASISResultHelper.BuildInnerMessageError(result.InnerMessages)}";                
+                string message = $"{result.ErrorCount} Error(s) occured in CelestialSpace.LoadCelestialBodiesAsync method loading {CelestialBodies.Count} CelestialBodies in the {LoggingHelper.GetHolonInfoForLogging(this, "CelestialSpace")}. Please check the logs and InnerMessages for more info. Reason: {OASISResultHelper.BuildInnerMessageError(result.InnerMessages)}";                
 
                 if (result.LoadedCount == 0)
                     ErrorHandling.HandleError(ref result, message);
@@ -163,20 +169,25 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
                     result.IsLoaded = true;
                 }
 
-                OnCelestialSpaceError?.Invoke(this, new CelestialSpaceErrorEventArgs() { Reason = "Error occured in CelestialSpace.LoadCelestialBodiesAsync method. See Result.Message Property For More Info.", Result = result });
+                //OnCelestialSpaceError?.Invoke(this, new CelestialSpaceErrorEventArgs() { Reason = $"{result.Message}", Result = result });
+                OnCelestialBodiesError?.Invoke(this, new CelestialBodiesErrorEventArgs() { Reason = $"{result.Message}", Result = result });
             }
             else
                 result.IsLoaded = true;
 
             //TODO: Not sure if we should raise this event if an error occured? They can check the IsError and Message properties to check if it was successful but they can also check it in the OnError event...
-            OnCelestialBodiesLoaded?.Invoke(this, new CelestialBodiesLoadedEventArgs() { Result = result, CelestialBodies = this.CelestialBodies });
+            //OnCelestialBodiesLoaded?.Invoke(this, new CelestialBodiesLoadedEventArgs() { Result = result, CelestialBodies = this.CelestialBodies });
+
+            //result.Result = this.CelestialBodies;
+            OnCelestialBodiesLoaded?.Invoke(this, new CelestialBodiesLoadedEventArgs() { Result = result });
             return result;
         }
 
         //public override OASISResult<ICelestialSpace> Load(bool loadChildren = true, bool continueOnError = true)
-        public OASISResult<ICelestialSpace> LoadCelestialBodies(bool loadChildren = true, bool continueOnError = true)
+        //public OASISResult<ICelestialSpace> LoadCelestialBodies(bool loadChildren = true, bool continueOnError = true)
+        public OASISResult<IEnumerable<ICelestialBody>> LoadCelestialBodies(bool loadChildren = true, bool recursive = true, bool continueOnError = true)
         {
-            return LoadCelestialBodiesAsync(loadChildren, continueOnError).Result;
+            return LoadCelestialBodiesAsync(loadChildren, recursive, continueOnError).Result;
         }
 
         public async Task<OASISResult<ICelestialSpace>> SaveAsync(bool saveChildren = true, bool continueOnError = true)
@@ -228,7 +239,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
             return SaveAsync(saveChildren, continueOnError).Result;
         }
 
-        public async Task<OASISResult<ICelestialSpace>> SaveCelestialBodiesAsync(bool saveChildren = true, bool continueOnError = true)
+        public async Task<OASISResult<ICelestialSpace>> SaveCelestialBodiesAsync(bool saveChildren = true, bool recursive = true, bool continueOnError = true)
         {
             OASISResult<ICelestialSpace> result = new OASISResult<ICelestialSpace>();
             OASISResult<ICelestialBody> celestialBodyResult = null;
@@ -236,7 +247,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
             //Save all CelestialBodies contained within this space.
             foreach (ICelestialBody celestialBody in CelestialBodies)
             {
-                celestialBodyResult = await celestialBody.SaveAsync(saveChildren, continueOnError);
+                celestialBodyResult = await celestialBody.SaveAsync(saveChildren, recursive, continueOnError);
 
                 if (celestialBodyResult != null && celestialBodyResult.Result != null && !celestialBodyResult.IsError)
                     result.SavedCount++;
