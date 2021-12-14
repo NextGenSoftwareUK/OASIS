@@ -9,11 +9,20 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces.STAR
 {
     public interface ICelestialBody : ICelestialHolon
     {
-        event HolonLoaded OnHolonLoaded;
-        event HolonsLoaded OnHolonsLoaded;
-        event HolonSaved OnHolonSaved;
-        event ZomeError OnZomeError;
-        event ZomesLoaded OnZomesLoaded;
+        public event CelestialBodyLoaded OnCelestialBodyLoaded;
+        public event CelestialBodySaved OnCelestialBodySaved;
+        public event CelestialBodyError OnCelestialBodyError;
+        public event ZomeLoaded OnZomeLoaded;
+        public event ZomesLoaded OnZomesLoaded;
+        public event ZomeSaved OnZomeSaved;
+        public event ZomesSaved OnZomesSaved;
+        public event ZomeError OnZomeError;
+        public event ZomesError OnZomesError;
+        public event HolonLoaded OnHolonLoaded;
+        public event HolonsLoaded OnHolonsLoaded;
+        public event HolonSaved OnHolonSaved;
+        public event HolonsSaved OnHolonsSaved;
+        public event HolonError OnHolonError;
         // event DataReceived OnDataReceived;
         // event Disconnected OnDisconnected;
 
@@ -32,20 +41,17 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces.STAR
         ICelestialBodyCore CelestialBodyCore { get; set; }
         //GenesisType GenesisType { get; set; }
         //bool IsInitialized { get; }
-        Task<OASISResult<ICelestialBody>> SaveAsync<T>(bool saveChildren = true, bool continueOnError = true) where T : ICelestialBody, new();
-        OASISResult<ICelestialBody> Save<T>(bool saveChildren = true, bool continueOnError = true) where T : ICelestialBody, new();
-        Task<OASISResult<ICelestialBody>> SaveAsync(bool saveChildren = true, bool continueOnError = true);
-        OASISResult<ICelestialBody> Save(bool saveChildren = true, bool continueOnError = true);
-        Task<OASISResult<ICelestialBody>> LoadAsync(bool loadZomes = true, bool continueOnError = true);
-        OASISResult<ICelestialBody> Load(bool loadZomes = true, bool continueOnError = true);
-        Task<OASISResult<IEnumerable<IZome>>> LoadZomesAsync();
-        OASISResult<IEnumerable<IZome>> LoadZomes();
-        //Task<OASISResult<ICelestialBody>> LoadCelestialBodyAsync();
-        //OASISResult<ICelestialBody> LoadCelestialBody();
-       // Task<OASISResult<IHolon>> LoadCelestialBodyAsync();
-        //OASISResult<IHolon> LoadCelestialBody();
-        //Task InitializeAsync();
-        //void Initialize();
+        Task<OASISResult<ICelestialBody>> SaveAsync<T>(bool saveChildren = true, bool recursive = true, bool continueOnError = true) where T : ICelestialBody, new();
+        OASISResult<ICelestialBody> Save<T>(bool saveChildren = true, bool recursive = true, bool continueOnError = true) where T : ICelestialBody, new();
+        Task<OASISResult<ICelestialBody>> SaveAsync(bool saveChildren = true, bool recursive = true, bool continueOnError = true);
+        OASISResult<ICelestialBody> Save(bool saveChildren = true, bool recursive = true, bool continueOnError = true);
+        Task<OASISResult<ICelestialBody>> LoadAsync(bool loadChildren = true, bool recursive = true, bool continueOnError = true);
+        OASISResult<ICelestialBody> Load(bool loadChildren = true, bool recursive = true, bool continueOnError = true);
+        Task<OASISResult<IEnumerable<IZome>>> LoadZomesAsync(bool loadChildren = true, bool recursive = true, bool continueOnError = true);
+        OASISResult<IEnumerable<IZome>> LoadZomes(bool loadChildren = true, bool recursive = true, bool continueOnError = true);
+        Task<OASISResult<IEnumerable<IZome>>> SaveZomesAsync(bool saveChildren = true, bool recursive = true, bool continueOnError = true);
+        OASISResult<IEnumerable<IZome>> SaveZomes(bool saveChildren = true, bool recursive = true, bool continueOnError = true);
+
         void Dim();
         void Emit();
         void Evolve();
