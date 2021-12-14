@@ -135,14 +135,18 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
                await _avatarRepository.UpdateAsync(ConvertOASISAvatarToMongoEntity(avatar)));
         }
 
-        public override IAvatarDetail SaveAvatarDetail(IAvatarDetail Avatar)
+        public override IAvatarDetail SaveAvatarDetail(IAvatarDetail avatar)
         {
-            throw new NotImplementedException();
+            return ConvertMongoEntityToOASISAvatarDetail(avatar.IsNewHolon ?
+               _avatarRepository.Add(ConvertOASISAvatarDetailToMongoEntity(avatar)) :
+               _avatarRepository.Update(ConvertOASISAvatarDetailToMongoEntity(avatar)));
         }
 
-        public override async Task<IAvatarDetail> SaveAvatarDetailAsync(IAvatarDetail Avatar)
+        public override async Task<IAvatarDetail> SaveAvatarDetailAsync(IAvatarDetail avatar)
         {
-            throw new NotImplementedException();
+            return ConvertMongoEntityToOASISAvatarDetail(avatar.IsNewHolon ?
+               await _avatarRepository.AddAsync(ConvertOASISAvatarDetailToMongoEntity(avatar)) :
+               await _avatarRepository.UpdateAsync(ConvertOASISAvatarDetailToMongoEntity(avatar)));
         }
 
         public override IAvatar SaveAvatar(IAvatar avatar)
@@ -782,6 +786,57 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
 
             return mongoAvatar;
         }
+
+        /*
+        private AvatarDetail ConvertOASISAvatarToMongoEntity(IAvatarDetail avatarDetail)
+        {
+            if (avatarDetail == null)
+                return null;
+
+            AvatarDetail mongoAvatar = new AvatarDetail();
+
+            if (avatarDetail.ProviderKey != null && avatarDetail.ProviderKey.ContainsKey(Core.Enums.ProviderType.MongoDBOASIS))
+                mongoAvatar.Id = avatarDetail.ProviderKey[Core.Enums.ProviderType.MongoDBOASIS];
+
+            //if (avatar.CreatedProviderType != null)
+            //    mongoAvatar.CreatedProviderType = avatar.CreatedProviderType.Value;
+
+            mongoAvatar.HolonId = avatarDetail.Id;
+            // mongoAvatar.AvatarId = avatarDetail.Id;
+            mongoAvatar.ProviderKey = avatarDetail.ProviderKey;
+            mongoAvatar.ProviderMetaData = avatarDetail.ProviderMetaData;
+            mongoAvatar.PreviousVersionId = avatarDetail.PreviousVersionId;
+            mongoAvatar.PreviousVersionProviderKey = avatarDetail.PreviousVersionProviderKey;
+            mongoAvatar.Name = avatarDetail.Name;
+            mongoAvatar.Description = avatarDetail.Description;
+            mongoAvatar.FirstName = avatarDetail.FirstName;
+            mongoAvatar.LastName = avatarDetail.LastName;
+            mongoAvatar.Email = avatarDetail.Email;
+            mongoAvatar.Title = avatarDetail.Title;
+            mongoAvatar.Username = avatarDetail.Username;
+            mongoAvatar.HolonType = avatarDetail.HolonType;
+            mongoAvatar.AvatarType = avatarDetail.AvatarType;
+            mongoAvatar.CreatedProviderType = avatarDetail.CreatedProviderType;
+            mongoAvatar.CreatedOASISType = avatarDetail.CreatedOASISType;
+            mongoAvatar.MetaData = avatarDetail.MetaData;
+            mongoAvatar.Image2D = avatarDetail.Image2D;
+            mongoAvatar.Karma = avatarDetail.Karma;
+            mongoAvatar.XP = avatarDetail.XP;
+            mongoAvatar.Image2D = avatarDetail.Image2D;
+            mongoAvatar.IsChanged = avatarDetail.IsChanged;
+            mongoAvatar.CreatedByAvatarId = avatarDetail.CreatedByAvatarId.ToString();
+            mongoAvatar.CreatedDate = avatarDetail.CreatedDate;
+            mongoAvatar.DeletedByAvatarId = avatarDetail.DeletedByAvatarId.ToString();
+            mongoAvatar.DeletedDate = avatarDetail.DeletedDate;
+            mongoAvatar.ModifiedByAvatarId = avatarDetail.ModifiedByAvatarId.ToString();
+            mongoAvatar.ModifiedDate = avatarDetail.ModifiedDate;
+            mongoAvatar.DeletedDate = avatarDetail.DeletedDate;
+            mongoAvatar.Version = avatarDetail.Version;
+            mongoAvatar.IsActive = avatarDetail.IsActive;
+
+
+            return mongoAvatar;
+        }*/
 
         private AvatarDetail ConvertOASISAvatarDetailToMongoEntity(IAvatarDetail avatar)
         {

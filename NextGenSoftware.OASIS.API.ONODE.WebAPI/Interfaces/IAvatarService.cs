@@ -16,6 +16,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Interfaces
         Task<OASISResult<string>> GetTerms();
         Task<OASISResult<string>> ValidateAccountToken(string accountToken);
         Task<OASISResult<AuthenticateResponse>> Authenticate(AuthenticateRequest model, string ipAddress);
+        //Task<OASISResult<IAvatar>> Authenticate(AuthenticateRequest model, string ipAddress);
         Task<OASISResult<IAvatar>> RefreshToken(string token, string ipAddress);
         Task<OASISResult<string>> RevokeToken(string token, string ipAddress);
         Task<OASISResult<IAvatar>> Register(RegisterRequest model, string origin);

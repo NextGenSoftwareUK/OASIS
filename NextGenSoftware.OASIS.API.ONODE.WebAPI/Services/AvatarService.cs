@@ -70,14 +70,16 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
                 var result = await AvatarManager.AuthenticateAsync(model.Email, model.Password, ipAddress);
                 if (result.IsError)
                 {
-                    response.IsError = true;
-                    response.Message = response.Message;
-                    ErrorHandling.HandleError(ref response, response.Message);
+                    //response.IsError = true;
+                    //response.Message = result.Message;
+                    ErrorHandling.HandleError(ref response, result.Message);
                     return response;
                 }
 
+                response.Message = "Avatar Successfully Authenticated.";
+
                 response.Result = new AuthenticateResponse
-                    {Message = "Avatar Successfully Authenticated.", Avatar = result.Result};
+                { Message = response.Message, Avatar = result.Result };
             }
             catch (Exception e)
             {
@@ -88,6 +90,32 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
             }
             return response;
         }
+
+        //public async Task<OASISResult<IAvatar>> Authenticate(AuthenticateRequest model, string ipAddress)
+        //{
+        //    var response = new OASISResult<IAvatar>();
+
+        //    try
+        //    {
+        //        response = await AvatarManager.AuthenticateAsync(model.Email, model.Password, ipAddress);
+
+        //        if (response.IsError)
+        //        {
+        //            ErrorHandling.HandleError(ref response, response.Message);
+        //            return response;
+        //        }
+
+        //        response.Message = "Avatar Successfully Authenticated.";
+        //    }
+        //    catch (Exception e)
+        //    {
+        //        response.Exception = e;
+        //        response.Message = e.Message;
+        //        response.IsError = true;
+        //        ErrorHandling.HandleError(ref response, e.Message);
+        //    }
+        //    return response;
+        //}
 
         public async Task<OASISResult<IAvatar>> RefreshToken(string token, string ipAddress)
         {
@@ -1095,10 +1123,15 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
                         ErrorHandling.HandleError(ref response, response.Message);
                     }
 
-                    response.Result = AvatarManager.AddKarmaToAvatar(avatarId,
-                        (KarmaTypePositive) karmaTypePositiveObject,
-                        (KarmaSourceType) karmaSourceTypeObject, addRemoveKarmaToAvatarRequest.KaramSourceTitle,
-                        addRemoveKarmaToAvatarRequest.KarmaSourceDesc).Result;
+                    //response.Result = AvatarManager.AddKarmaToAvatar(avatarId,
+                    //    (KarmaTypePositive) karmaTypePositiveObject,
+                    //    (KarmaSourceType) karmaSourceTypeObject, addRemoveKarmaToAvatarRequest.KaramSourceTitle,
+                    //    addRemoveKarmaToAvatarRequest.KarmaSourceDesc).Result;
+
+                    response = AvatarManager.AddKarmaToAvatar(avatarId,
+                       (KarmaTypePositive)karmaTypePositiveObject,
+                       (KarmaSourceType)karmaSourceTypeObject, addRemoveKarmaToAvatarRequest.KaramSourceTitle,
+                       addRemoveKarmaToAvatarRequest.KarmaSourceDesc);
                 }
                 catch (Exception e)
                 {
@@ -1142,10 +1175,14 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
                     ErrorHandling.HandleError(ref response, response.Message);
                     return response;
                 }
-                
-                response.Result = AvatarManager.RemoveKarmaFromAvatar(avatarId, (KarmaTypeNegative) karmaTypeNegativeObject,
-                    (KarmaSourceType) karmaSourceTypeObject, addKarmaToAvatarRequest.KaramSourceTitle,
-                    addKarmaToAvatarRequest.KarmaSourceDesc).Result;
+
+                //response.Result = AvatarManager.RemoveKarmaFromAvatar(avatarId, (KarmaTypeNegative) karmaTypeNegativeObject,
+                //    (KarmaSourceType) karmaSourceTypeObject, addKarmaToAvatarRequest.KaramSourceTitle,
+                //    addKarmaToAvatarRequest.KarmaSourceDesc).Result;
+
+                response = AvatarManager.RemoveKarmaFromAvatar(avatarId, (KarmaTypeNegative)karmaTypeNegativeObject,
+                    (KarmaSourceType)karmaSourceTypeObject, addKarmaToAvatarRequest.KaramSourceTitle,
+                    addKarmaToAvatarRequest.KarmaSourceDesc);
             }
             catch (Exception e)
             {

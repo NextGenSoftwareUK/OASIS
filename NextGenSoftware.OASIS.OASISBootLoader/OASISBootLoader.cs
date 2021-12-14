@@ -229,37 +229,39 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                 switch (providerType)
                 {
                     case ProviderType.HoloOASIS:
-                    {
-                        object hcVersion = null;
-
-                        if (Enum.TryParse(typeof(HolochainVersion),
-                            OASISDNA.OASIS.StorageProviders.HoloOASIS.HolochainVersion, out hcVersion))
                         {
-                            HoloOASIS holoOASIS =
-                                new HoloOASIS(
-                                    overrideConnectionString == null
-                                        ? OASISDNA.OASIS.StorageProviders.HoloOASIS.ConnectionString
-                                        : overrideConnectionString, (HolochainVersion) hcVersion);
-                            holoOASIS.OnHoloOASISError += HoloOASIS_OnHoloOASISError;
-                            holoOASIS.StorageProviderError += HoloOASIS_StorageProviderError;
-                            registeredProvider = holoOASIS;
+                            object hcVersion = null;
+
+                            if (Enum.TryParse(typeof(HolochainVersion),
+                                OASISDNA.OASIS.StorageProviders.HoloOASIS.HolochainVersion, out hcVersion))
+                            {
+                                HoloOASIS holoOASIS =
+                                    new HoloOASIS(
+                                        overrideConnectionString == null
+                                            ? OASISDNA.OASIS.StorageProviders.HoloOASIS.ConnectionString
+                                            : overrideConnectionString, (HolochainVersion)hcVersion);
+                                holoOASIS.OnHoloOASISError += HoloOASIS_OnHoloOASISError;
+                                holoOASIS.StorageProviderError += HoloOASIS_StorageProviderError;
+                                registeredProvider = holoOASIS;
+                            }
+                            else
+                                throw new ArgumentOutOfRangeException(
+                                    "OASISDNA.OASIS.StorageProviders.HoloOASIS.HolochainVersion",
+                                    OASISDNA.OASIS.StorageProviders.HoloOASIS.HolochainVersion,
+                                    "The HolochainVersion needs to be either RSM or Redux.");
                         }
-                        else
-                            throw new ArgumentOutOfRangeException(
-                                "OASISDNA.OASIS.StorageProviders.HoloOASIS.HolochainVersion",
-                                OASISDNA.OASIS.StorageProviders.HoloOASIS.HolochainVersion,
-                                "The HolochainVersion needs to be either RSM or Redux.");
-                    }
                         break;
 
                     case ProviderType.SQLLiteDBOASIS:
                     {
-                        SQLLiteDBOASIS SQLLiteDBOASIS = new SQLLiteDBOASIS(overrideConnectionString == null
-                            ? OASISDNA.OASIS.StorageProviders.SQLLiteDBOASIS.ConnectionString
-                            : overrideConnectionString);
-                        SQLLiteDBOASIS.StorageProviderError += SQLLiteDBOASIS_StorageProviderError;
-                        registeredProvider = SQLLiteDBOASIS;
-                    }
+                            //TODO: need to fix or re-write SQLLiteDBOASIS Provider ASAP!
+
+                            SQLLiteDBOASIS SQLLiteDBOASIS = new SQLLiteDBOASIS(overrideConnectionString == null
+                                ? OASISDNA.OASIS.StorageProviders.SQLLiteDBOASIS.ConnectionString
+                                : overrideConnectionString);
+                            SQLLiteDBOASIS.StorageProviderError += SQLLiteDBOASIS_StorageProviderError;
+                            registeredProvider = SQLLiteDBOASIS;
+                        }
                         break;
 
                     case ProviderType.MongoDBOASIS:

@@ -83,7 +83,9 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
         public bool IsBeamedIn { get; set; }
 
         public List<RefreshToken> RefreshTokens { get; set; } = new List<RefreshToken>();
-        public string Image2D { get; set; }
+       // public string Image2D { get; set; }
+        
+        /*
         public int Karma { get; set; } //TODO: This really needs to have a private setter but in the HoloOASIS provider it needs to copy the object along with each property... would prefer another work around if possible?
         public int XP { get; set; }
         public int Level
@@ -106,7 +108,7 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
 
                 return 1; //Default.
             }
-        }
+        }*/
 
         public bool OwnsToken(string token)
         {
@@ -121,5 +123,240 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
         {
             return (ProviderManager.CurrentStorageProvider).SaveAvatar(this);
         }
+
+        /*
+        private int GetKarmaForType(KarmaTypePositive karmaType)
+        {
+            switch (karmaType)
+            {
+                case KarmaTypePositive.BeAHero:
+                    return 7;
+
+                case KarmaTypePositive.BeASuperHero:
+                    return 8;
+
+                case KarmaTypePositive.BeATeamPlayer:
+                    return 5;
+
+                case KarmaTypePositive.BeingDetermined:
+                    return 5;
+
+                case KarmaTypePositive.BeingFast:
+                    return 5;
+
+                case KarmaTypePositive.ContributingTowardsAGoodCauseAdministrator:
+                    return 3;
+
+                case KarmaTypePositive.ContributingTowardsAGoodCauseSpeaker:
+                    return 8;
+
+                case KarmaTypePositive.ContributingTowardsAGoodCauseContributor:
+                    return 5;
+
+                case KarmaTypePositive.ContributingTowardsAGoodCauseCreatorOrganiser:
+                    return 10;
+
+                case KarmaTypePositive.ContributingTowardsAGoodCauseFunder:
+                    return 8;
+
+                case KarmaTypePositive.ContributingTowardsAGoodCausePeacefulProtesterActivist:
+                    return 5;
+
+                case KarmaTypePositive.ContributingTowardsAGoodCauseSharer:
+                    return 3;
+
+                case KarmaTypePositive.HelpingAnimals:
+                    return 5;
+
+                case KarmaTypePositive.HelpingTheEnvironment:
+                    return 5;
+
+                case KarmaTypePositive.Other:
+                    return 2;
+
+                case KarmaTypePositive.OurWorld:
+                    return 5;
+
+                case KarmaTypePositive.SelfHelpImprovement:
+                    return 2;
+
+                //TODO: Finish...
+
+                default:
+                    return 0;
+            }
+
+        }
+
+        private int GetKarmaForType(KarmaTypeNegative karmaType)
+        {
+            switch (karmaType)
+            {
+                case KarmaTypeNegative.AttackPhysciallyOtherPersonOrPeople:
+                    return 10;
+
+                case KarmaTypeNegative.AttackVerballyOtherPersonOrPeople:
+                    return 5;
+
+                case KarmaTypeNegative.BeingSelfish:
+                    return 3;
+
+                case KarmaTypeNegative.DisrespectPersonOrPeople:
+                    return 4;
+
+                case KarmaTypeNegative.DropLitter:
+                    return 9;
+
+                case KarmaTypeNegative.HarmingAnimals:
+                    return 10;
+
+                case KarmaTypeNegative.HarmingChildren:
+                    return 9;
+
+                case KarmaTypeNegative.HarmingNature:
+                    return 10;
+
+                case KarmaTypeNegative.NotTeamPlayer:
+                    return 3;
+
+                case KarmaTypeNegative.NutritionEatDiary:
+                    return 6;
+
+                case KarmaTypeNegative.NutritionEatDrinkUnhealthy:
+                    return 3;
+
+                case KarmaTypeNegative.NutritionEatMeat:
+                    return 7;
+
+                case KarmaTypeNegative.Other:
+                    return 1;
+
+                case KarmaTypeNegative.OurWorldAttackOtherPlayer:
+                    return 7;
+
+                case KarmaTypeNegative.OurWorldBeSelfish:
+                    return 4;
+
+                case KarmaTypeNegative.OurWorldDisrespectOtherPlayer:
+                    return 5;
+
+                case KarmaTypeNegative.OurWorldDropLitter:
+                    return 7;
+
+                case KarmaTypeNegative.OurWorldNotTeamPlayer:
+                    return 3;
+
+                default:
+                    return 0;
+            }
+        }
+
+
+        // A record of all the karma the user has earnt/lost along with when and where from.
+        public List<KarmaAkashicRecord> KarmaAkashicRecords { get; set; }
+
+        public async Task<KarmaAkashicRecord> KarmaEarntAsync(KarmaTypePositive karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc, string webLink = null, bool autoSave = true, int karmaOverride = 0)
+        {
+            KarmaAkashicRecord record = AddKarmaToAkashicRecord(karmaType, karmaSourceType, karamSourceTitle, karmaSourceDesc, webLink, karmaOverride);
+
+            if (autoSave)
+                await SaveAsync();
+
+            return record;
+        }
+
+        public KarmaAkashicRecord KarmaEarnt(KarmaTypePositive karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc, string webLink = null, bool autoSave = true, int karmaOverride = 0)
+        {
+            KarmaAkashicRecord record = AddKarmaToAkashicRecord(karmaType, karmaSourceType, karamSourceTitle, karmaSourceDesc, webLink, karmaOverride);
+
+            if (autoSave)
+                Save();
+
+            return record;
+        }
+
+        public async Task<KarmaAkashicRecord> KarmaLostAsync(KarmaTypeNegative karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc, string webLink = null, bool autoSave = true, int karmaOverride = 0)
+        {
+            KarmaAkashicRecord record = RemoveKarmaFromAkashicRecord(karmaType, karmaSourceType, karamSourceTitle, karmaSourceDesc, webLink, karmaOverride);
+
+            if (autoSave)
+                await SaveAsync();
+
+            return record;
+        }
+
+        public KarmaAkashicRecord KarmaLost(KarmaTypeNegative karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc, string webLink = null, bool autoSave = true, int karmaOverride = 0)
+        {
+            KarmaAkashicRecord record = RemoveKarmaFromAkashicRecord(karmaType, karmaSourceType, karamSourceTitle, karmaSourceDesc, webLink, karmaOverride);
+
+            if (autoSave)
+                Save();
+
+            return record;
+        }
+
+        private KarmaAkashicRecord AddKarmaToAkashicRecord(KarmaTypePositive karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc, string webLink = null, int karmaOverride = 0)
+        {
+            int karma = GetKarmaForType(karmaType);
+
+            if (karmaType == KarmaTypePositive.Other)
+                karma = karmaOverride;
+
+            this.Karma += karma;
+
+            KarmaAkashicRecord record = new KarmaAkashicRecord
+            {
+                AvatarId = Id,
+                Date = DateTime.Now,
+                Karma = karma,
+                TotalKarma = this.Karma,
+                Provider = ProviderManager.CurrentStorageProviderType,
+                KarmaSourceTitle = karamSourceTitle,
+                KarmaSourceDesc = karmaSourceDesc,
+                WebLink = webLink,
+                KarmaSource = new EnumValue<KarmaSourceType>(karmaSourceType),
+                KarmaEarntOrLost = new EnumValue<KarmaEarntOrLost>(KarmaEarntOrLost.Earnt),
+                KarmaTypeNegative = new EnumValue<KarmaTypeNegative>(KarmaTypeNegative.None),
+                KarmaTypePositive = new EnumValue<KarmaTypePositive>(karmaType),
+            };
+
+            if (this.KarmaAkashicRecords == null)
+                this.KarmaAkashicRecords = new List<KarmaAkashicRecord>();
+
+            this.KarmaAkashicRecords.Add(record);
+            return record;
+        }
+
+        private KarmaAkashicRecord RemoveKarmaFromAkashicRecord(KarmaTypeNegative karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc, string webLink = null, int karmaOverride = 0)
+        {
+            int karma = GetKarmaForType(karmaType);
+
+            if (karmaType == KarmaTypeNegative.Other)
+                karma = karmaOverride;
+
+            this.Karma -= karma;
+
+            KarmaAkashicRecord record = new KarmaAkashicRecord
+            {
+                AvatarId = Id,
+                Date = DateTime.Now,
+                Karma = karma,
+                TotalKarma = this.Karma,
+                Provider = ProviderManager.CurrentStorageProviderType,
+                KarmaSourceTitle = karamSourceTitle,
+                KarmaSourceDesc = karmaSourceDesc,
+                WebLink = webLink,
+                KarmaSource = new EnumValue<KarmaSourceType>(karmaSourceType),
+                KarmaEarntOrLost = new EnumValue<KarmaEarntOrLost>(KarmaEarntOrLost.Lost),
+                KarmaTypeNegative = new EnumValue<KarmaTypeNegative>(karmaType),
+                KarmaTypePositive = new EnumValue<KarmaTypePositive>(KarmaTypePositive.None),
+            };
+
+            if (this.KarmaAkashicRecords == null)
+                this.KarmaAkashicRecords = new List<KarmaAkashicRecord>();
+
+            this.KarmaAkashicRecords.Add(record);
+            return record;
+        }*/
     }
 }
