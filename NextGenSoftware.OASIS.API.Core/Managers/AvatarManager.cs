@@ -89,7 +89,8 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                     result.Message = "This avatar is no longer active. Please contact support or create a new avatar.";
                 }
 
-                if (!result.Result.IsVerified && OASISDNA.OASIS.Security.DoesAvatarNeedToBeVerifiedBeforeLogin)
+                //if (!result.Result.IsVerified && OASISDNA.OASIS.Security.DoesAvatarNeedToBeVerifiedBeforeLogin)
+                if (!result.Result.IsVerified && OASISDNA.OASIS.Security.SendVerificationEmail)
                 {
                     result.IsError = true;
                     result.Message = "Avatar has not been verified. Please check your email.";
@@ -208,132 +209,77 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
         public OASISResult<IAvatar> Register(string avatarTitle, string firstName, string lastName, string email, string password, AvatarType avatarType, string origin, OASISType createdOASISType, ConsoleColor cliColour = ConsoleColor.Green, ConsoleColor favColour = ConsoleColor.Green)
         {
-            OASISResult<IAvatar> result = new OASISResult<IAvatar>();
-           // IEnumerable<IAvatar> avatars = LoadAllAvatars();
+            OASISResult<IAvatar> result = PrepareToRegisterAvatar(avatarTitle, firstName, lastName, email, password, avatarType, origin, createdOASISType);
 
-            if (!ValidationHelper.IsValidEmail(email))
+            if (result != null && !result.IsError && result.Result != null)
             {
-                result.IsError = true;
-                result.Message = "The email is not valid.";
-                return result;
-            }
+                // AvatarDetail needs to have the same unique ID as Avatar so the records match (they will have unique/different provider keys per each provider)
+                OASISResult<IAvatarDetail> avatarDetailResult = PrepareToRegisterAvatarDetail(result.Result.Id, result.Result.Username, result.Result.Email, createdOASISType, cliColour, favColour);
 
-            //TODO: {PERFORMANCE} Add this method to the providers so more efficient.
-            if (CheckIfEmailIsAlreadyInUse(email))
-            {
-                // send already registered error in email to prevent account enumeration
-                sendAlreadyRegisteredEmail(email, origin);
-                result.IsError = true;
-                result.Message = "Avatar Already Registered.";
-                return result;
-            }
-
-            IAvatar avatar = new Avatar() { FirstName = firstName, LastName = lastName, Password = password, Title = avatarTitle, Email = email, AvatarType = new EnumValue<AvatarType>(avatarType), CreatedOASISType = new EnumValue<OASISType>(createdOASISType) };
-            IAvatarDetail avatarDetail = new AvatarDetail() { FirstName = firstName, LastName = lastName, Title = avatarTitle, Email = email, AvatarType = new EnumValue<AvatarType>(avatarType), CreatedOASISType = new EnumValue<OASISType>(createdOASISType), STARCLIColour = cliColour, FavouriteColour = favColour };
-
-            /*
-            // TODO: Temp! Remove later!
-            if (email == "davidellams@hotmail.com")
-            {
-                avatar.Karma = 777777;
-                avatar.XP = 2222222;
-
-                avatar.GeneKeys.Add(new GeneKey() { Name = "Expectation", Gift = "a gift", Shadow = "a shadow", Sidhi = "a sidhi" });
-                avatar.GeneKeys.Add(new GeneKey() { Name = "Invisibility", Gift = "a gift", Shadow = "a shadow", Sidhi = "a sidhi" });
-                avatar.GeneKeys.Add(new GeneKey() { Name = "Rapture", Gift = "a gift", Shadow = "a shadow", Sidhi = "a sidhi" });
-
-                avatar.HumanDesign.Type = "Generator";
-                avatar.Inventory.Add(new InventoryItem() { Name = "Magical Armour" });
-                avatar.Inventory.Add(new InventoryItem() { Name = "Mighty Wizard Sword" });
-
-                avatar.Spells.Add(new Spell() { Name = "Super Spell" });
-                avatar.Spells.Add(new Spell() { Name = "Super Speed Spell" });
-                avatar.Spells.Add(new Spell() { Name = "Super Srength Spell" });
-
-                avatar.Achievements.Add(new Achievement() { Name = "Becoming Superman!" });
-                avatar.Achievements.Add(new Achievement() { Name = "Completing STAR!" });
-
-                avatar.Gifts.Add(new AvatarGift() { GiftType = KarmaTypePositive.BeASuperHero });
-
-                avatar.Aura.Brightness = 99;
-                avatar.Aura.Level = 77;
-                avatar.Aura.Progress = 88;
-                avatar.Aura.Size = 10;
-                avatar.Aura.Value = 777;
-
-                avatar.Chakras.Root.Level = 77;
-                avatar.Chakras.Root.Progress = 99;
-                avatar.Chakras.Root.XP = 8783;
-
-                avatar.Attributes.Dexterity = 99;
-                avatar.Attributes.Endurance = 99;
-                avatar.Attributes.Intelligence = 99;
-                avatar.Attributes.Magic = 99;
-                avatar.Attributes.Speed = 99;
-                avatar.Attributes.Strength = 99;
-                avatar.Attributes.Toughness = 99;
-                avatar.Attributes.Vitality = 99;
-                avatar.Attributes.Wisdom = 99;
-
-                avatar.Stats.Energy.Current = 99;
-                avatar.Stats.Energy.Max = 99;
-                avatar.Stats.HP.Current = 99;
-                avatar.Stats.HP.Max = 99;
-                avatar.Stats.Mana.Current = 99;
-                avatar.Stats.Mana.Max = 99;
-                avatar.Stats.Staminia.Current = 99;
-                avatar.Stats.Staminia.Max = 99;
-
-                avatar.SuperPowers.AstralProjection = 99;
-                avatar.SuperPowers.BioLocatation = 88;
-                avatar.SuperPowers.Flight = 99;
-                avatar.SuperPowers.FreezeBreath = 88;
-                avatar.SuperPowers.HeatVision = 99;
-                avatar.SuperPowers.Invulerability = 99;
-                avatar.SuperPowers.SuperSpeed = 99;
-                avatar.SuperPowers.SuperStrength = 99;
-                avatar.SuperPowers.XRayVision = 99;
-                avatar.SuperPowers.Teleportation = 99;
-                avatar.SuperPowers.Telekineseis = 99;
-
-                avatar.Skills.Computers = 99;
-                avatar.Skills.Engineering = 99;
-            }*/
-
-            avatar.CreatedDate = DateTime.UtcNow;
-            avatarDetail.CreatedDate = DateTime.UtcNow;
-            avatar.VerificationToken = randomTokenString();
-
-            // hash password
-            avatar.Password = BC.HashPassword(password);
-
-            //TODO: Get async version working ASAP! :)
-            OASISResult<IAvatar> saveAvatarResult = SaveAvatar(avatar);
-            avatar = saveAvatarResult.Result;
-
-            if (!saveAvatarResult.IsError && saveAvatarResult.IsSaved)
-            {
-                OASISResult<IAvatarDetail> saveAvatarDetailResult = SaveAvatarDetail(avatarDetail);
-
-                if (saveAvatarDetailResult != null && !saveAvatarDetailResult.IsError && saveAvatarDetailResult.Result != null)
+                if (avatarDetailResult != null && !avatarDetailResult.IsError && avatarDetailResult.Result != null)
                 {
-                    sendVerificationEmail(avatar, origin);
-                    result.Result = RemoveAuthDetails(avatar);
-                    result.IsSaved = true;
-                    result.Message = "Avatar Created Successfully. Please check your email for the verification email. You will not be able to log in till you have verified your email. Thank you.";
-                }
-                else
-                {
-                    result.Message = saveAvatarDetailResult.Message;
-                    result.IsError = saveAvatarDetailResult.IsError;
-                    result.IsSaved = saveAvatarDetailResult.IsSaved;
+                    OASISResult<IAvatar> saveAvatarResult = SaveAvatar(result.Result);
+
+                    if (!saveAvatarResult.IsError && saveAvatarResult.IsSaved)
+                    {
+                        result.Result = saveAvatarResult.Result;
+                        OASISResult<IAvatarDetail> saveAvatarDetailResult = SaveAvatarDetail(avatarDetailResult.Result);
+
+                        if (saveAvatarDetailResult != null && !saveAvatarDetailResult.IsError && saveAvatarDetailResult.Result != null)
+                            result = AvatarRegistered(result, origin);
+                        else
+                        {
+                            result.Message = saveAvatarDetailResult.Message;
+                            result.IsError = saveAvatarDetailResult.IsError;
+                            result.IsSaved = saveAvatarDetailResult.IsSaved;
+                        }
+                    }
+                    else
+                    {
+                        result.Message = saveAvatarResult.Message;
+                        result.IsError = saveAvatarResult.IsError;
+                        result.IsSaved = saveAvatarResult.IsSaved;
+                    }
                 }
             }
-            else
+
+            return result;
+        }
+
+        public async Task<OASISResult<IAvatar>> RegisterAsync(string avatarTitle, string firstName, string lastName, string email, string password, AvatarType avatarType, string origin, OASISType createdOASISType, ConsoleColor cliColour = ConsoleColor.Green, ConsoleColor favColour = ConsoleColor.Green)
+        {
+            OASISResult<IAvatar> result = PrepareToRegisterAvatar(avatarTitle, firstName, lastName, email, password, avatarType, origin, createdOASISType);
+
+            if (result != null && !result.IsError && result.Result != null)
             {
-                result.Message = saveAvatarResult.Message;
-                result.IsError = saveAvatarResult.IsError;
-                result.IsSaved = saveAvatarResult.IsSaved;
+                // AvatarDetail needs to have the same unique ID as Avatar so the records match (they will have unique/different provider keys per each provider)
+                OASISResult<IAvatarDetail> avatarDetailResult = PrepareToRegisterAvatarDetail(result.Result.Id, result.Result.Username, result.Result.Email, createdOASISType, cliColour, favColour);
+
+                if (avatarDetailResult != null && !avatarDetailResult.IsError && avatarDetailResult.Result != null)
+                {
+                    OASISResult<IAvatar> saveAvatarResult = await SaveAvatarAsync(result.Result);
+
+                    if (!saveAvatarResult.IsError && saveAvatarResult.IsSaved)
+                    {
+                        result.Result = saveAvatarResult.Result;
+                        OASISResult<IAvatarDetail> saveAvatarDetailResult = await SaveAvatarDetailAsync(avatarDetailResult.Result);
+
+                        if (saveAvatarDetailResult != null && !saveAvatarDetailResult.IsError && saveAvatarDetailResult.Result != null)
+                            result = AvatarRegistered(result, origin);
+                        else
+                        {
+                            result.Message = saveAvatarDetailResult.Message;
+                            result.IsError = saveAvatarDetailResult.IsError;
+                            result.IsSaved = saveAvatarDetailResult.IsSaved;
+                        }
+                    }
+                    else
+                    {
+                        result.Message = saveAvatarResult.Message;
+                        result.IsError = saveAvatarResult.IsError;
+                        result.IsSaved = saveAvatarResult.IsSaved;
+                    }
+                }
             }
 
             return result;
@@ -556,7 +502,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
             return avatar;
         }
-
+        /*
         public async Task<IAvatar> SaveAvatarAsync(IAvatar avatar, ProviderType providerType = ProviderType.Default)
         {
             ProviderType currentProviderType = ProviderManager.CurrentStorageProviderType.Value;
@@ -621,9 +567,9 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
             ProviderManager.SetAndActivateCurrentStorageProvider(currentProviderType);
             return savedAvatar;
-        }
+        }*/
 
-        public OASISResult<IAvatar> SaveAvatar(IAvatar avatar, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IAvatar>> SaveAvatarAsync(IAvatar avatar, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IAvatar> result = new OASISResult<IAvatar>();
             ProviderType currentProviderType = ProviderManager.CurrentStorageProviderType.Value;
@@ -633,9 +579,15 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 int removingDays = OASISDNA.OASIS.Security.RemoveOldRefreshTokensAfterXDays;
                 int removeQty = avatar.RefreshTokens.RemoveAll(token => (DateTime.Today - token.Created).TotalDays > removingDays);
 
-                //TODO: Need to handle return of OASISResult properly...
-                result.Result = ProviderManager.SetAndActivateCurrentStorageProvider(providerType).Result.SaveAvatar(PrepareAvatarForSaving(avatar));
-                result.IsSaved = true;
+                OASISResult<IOASISStorage> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
+
+                if (providerResult != null && providerResult.Result != null && !providerResult.IsError)
+                {
+                    result.Result = await providerResult.Result.SaveAvatarAsync(PrepareAvatarForSaving(avatar));
+                    result.IsSaved = true;
+                }
+                else
+                    ErrorHandling.HandleError(ref result, providerResult.Message);
             }
             catch (Exception ex)
             {
@@ -651,12 +603,16 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                     {
                         try
                         {
-                            //TODO: Need to handle return of OASISResult properly...
-                            result.Result = ProviderManager.SetAndActivateCurrentStorageProvider(type.Value).Result.SaveAvatar(avatar);
-                            result.IsSaved = true;
-
-                        if (result.Result != null)
+                            OASISResult<IOASISStorage> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(type.Value);
+                            
+                            if (providerResult != null && providerResult.Result != null && !providerResult.IsError)
+                            {
+                                result.Result = await providerResult.Result.SaveAvatarAsync(avatar);
+                                result.IsSaved = true;
                                 break;
+                            }
+                            else
+                                ErrorHandling.HandleError(ref result, providerResult.Message);
                         }
                         catch (Exception ex)
                         {
@@ -682,8 +638,107 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                     {
                         try
                         {
-                            //TODO: Need to handle return of OASISResult properly...
-                            ProviderManager.SetAndActivateCurrentStorageProvider(type.Value).Result.SaveAvatar(avatar);
+                            //TODO: Implement better error handling/logging like used elsewhere in HolonManager and CelestialBody/CelestialSpace etc.
+                            OASISResult<IOASISStorage> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(type.Value);
+
+                            if (providerResult != null && providerResult.Result != null && !providerResult.IsError)
+                            {
+                                result.Result = await providerResult.Result.SaveAvatarAsync(avatar);
+                                result.IsSaved = true;
+                            }
+                            else
+                                ErrorHandling.HandleWarning(ref result, providerResult.Message);
+                        }
+                        catch (Exception ex)
+                        {
+                            LoggingManager.Log(string.Concat("Error replicating avatar ", avatar.Name, " with id ", avatar.Id, " for provider ", type.Name, ". Error Message: ", ex.ToString()), LogType.Error);
+                        }
+                    }
+                }
+            }
+
+            ProviderManager.SetAndActivateCurrentStorageProvider(currentProviderType);
+            return result;
+        }
+
+        public OASISResult<IAvatar> SaveAvatar(IAvatar avatar, ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<IAvatar> result = new OASISResult<IAvatar>();
+            ProviderType currentProviderType = ProviderManager.CurrentStorageProviderType.Value;
+
+            try
+            {
+                int removingDays = OASISDNA.OASIS.Security.RemoveOldRefreshTokensAfterXDays;
+                int removeQty = avatar.RefreshTokens.RemoveAll(token => (DateTime.Today - token.Created).TotalDays > removingDays);
+
+                OASISResult<IOASISStorage> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
+
+                if (providerResult != null && providerResult.Result != null && !providerResult.IsError)
+                {
+                    result.Result = providerResult.Result.SaveAvatar(PrepareAvatarForSaving(avatar));
+                    result.IsSaved = true;
+                }
+                else
+                    ErrorHandling.HandleError(ref result, providerResult.Message);
+            }
+            catch (Exception ex)
+            {
+                LoggingManager.Log(string.Concat("Error saving avatar ", avatar.Name, " with id ", avatar.Id, " for provider ", ProviderManager.CurrentStorageProviderType.Name, ". Error Message: ", ex.ToString()), LogType.Error);
+                result.Result = null;
+            }
+
+            if (result.Result == null && ProviderManager.IsAutoFailOverEnabled)
+            {
+                foreach (EnumValue<ProviderType> type in ProviderManager.GetProviderAutoFailOverList())
+                {
+                    if (type.Value != providerType && type.Value != ProviderManager.CurrentStorageProviderType.Value)
+                    {
+                        try
+                        {
+                            OASISResult<IOASISStorage> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(type.Value);
+
+                            if (providerResult != null && providerResult.Result != null && !providerResult.IsError)
+                            {
+                                result.Result = providerResult.Result.SaveAvatar(avatar);
+                                result.IsSaved = true;
+                                break;
+                            }
+                            else
+                                ErrorHandling.HandleError(ref result, providerResult.Message);
+                        }
+                        catch (Exception ex)
+                        {
+                            result.Result = null;
+                            LoggingManager.Log(string.Concat("Error saving avatar ", avatar.Name, " with id ", avatar.Id, " for provider ", type.Name, ". Error Message: ", ex.ToString()), LogType.Error);
+                            //If the next provider errors then just continue to the next provider.
+                        }
+                    }
+                }
+            }
+
+            if (result.Result == null)
+            {
+                result.IsError = true;
+                result.Message = string.Concat("All Registered OASIS Providers In The AutoFailOverList Failed To Save The Avatar. Providers in list are ", ProviderManager.GetProviderAutoFailOverListAsString());
+            }
+
+            if (ProviderManager.IsAutoReplicationEnabled)
+            {
+                foreach (EnumValue<ProviderType> type in ProviderManager.GetProvidersThatAreAutoReplicating())
+                {
+                    if (type.Value != providerType && type.Value != ProviderManager.CurrentStorageProviderType.Value)
+                    {
+                        try
+                        {
+                            OASISResult<IOASISStorage> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(type.Value);
+
+                            if (providerResult != null && providerResult.Result != null && !providerResult.IsError)
+                            {
+                                result.Result = providerResult.Result.SaveAvatar(avatar);
+                                result.IsSaved = true;
+                            }
+                            else
+                                ErrorHandling.HandleWarning(ref result, providerResult.Message);
                         }
                         catch (Exception ex)
                         {
@@ -704,9 +759,15 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
             try
             {
-                //TODO: Need to handle return of OASISResult properly...
-                result.Result = ProviderManager.SetAndActivateCurrentStorageProvider(providerType).Result.SaveAvatarDetail(PrepareAvatarDetailForSaving(avatar));
-                result.IsSaved = true;
+                OASISResult<IOASISStorage> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
+
+                if (providerResult != null && providerResult.Result != null && !providerResult.IsError)
+                {
+                    result.Result = providerResult.Result.SaveAvatarDetail(PrepareAvatarDetailForSaving(avatar));
+                    result.IsSaved = true;
+                }
+                else
+                    ErrorHandling.HandleError(ref result, providerResult.Message);
             }
             catch (Exception ex)
             {
@@ -722,12 +783,16 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                     {
                         try
                         {
-                            //TODO: Need to handle return of OASISResult properly...
-                            result.Result = ProviderManager.SetAndActivateCurrentStorageProvider(type.Value).Result.SaveAvatarDetail(avatar);
-                            result.IsSaved = true;
+                            OASISResult<IOASISStorage> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(type.Value);
 
-                            if (result.Result != null)
+                            if (providerResult != null && providerResult.Result != null && !providerResult.IsError)
+                            {
+                                result.Result = providerResult.Result.SaveAvatarDetail(avatar);
+                                result.IsSaved = true;
                                 break;
+                            }
+                            else
+                                ErrorHandling.HandleError(ref result, providerResult.Message);
                         }
                         catch (Exception ex)
                         {
@@ -753,8 +818,15 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                     {
                         try
                         {
-                            //TODO: Need to handle return of OASISResult properly...
-                            ProviderManager.SetAndActivateCurrentStorageProvider(type.Value).Result.SaveAvatarDetail(avatar);
+                            OASISResult<IOASISStorage> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(type.Value);
+
+                            if (providerResult != null && providerResult.Result != null && !providerResult.IsError)
+                            {
+                                result.Result = providerResult.Result.SaveAvatarDetail(avatar);
+                                result.IsSaved = true;
+                            }
+                            else
+                                ErrorHandling.HandleWarning(ref result, providerResult.Message);
                         }
                         catch (Exception ex)
                         {
@@ -775,9 +847,15 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
             try
             {
-                //TODO: Need to handle return of OASISResult properly...
-                result.Result = await ProviderManager.SetAndActivateCurrentStorageProvider(providerType).Result.SaveAvatarDetailAsync(PrepareAvatarDetailForSaving(avatar));
-                result.IsSaved = true;
+                OASISResult<IOASISStorage> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
+
+                if (providerResult != null && providerResult.Result != null && !providerResult.IsError)
+                {
+                    result.Result = await providerResult.Result.SaveAvatarDetailAsync(PrepareAvatarDetailForSaving(avatar));
+                    result.IsSaved = true;
+                }
+                else
+                    ErrorHandling.HandleError(ref result, providerResult.Message);
             }
             catch (Exception ex)
             {
@@ -793,12 +871,16 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                     {
                         try
                         {
-                            //TODO: Need to handle return of OASISResult properly...
-                            result.Result = await ProviderManager.SetAndActivateCurrentStorageProvider(type.Value).Result.SaveAvatarDetailAsync(avatar);
-                            result.IsSaved = true;
+                            OASISResult<IOASISStorage> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(type.Value);
 
-                            if (result.Result != null)
+                            if (providerResult != null && providerResult.Result != null && !providerResult.IsError)
+                            {
+                                result.Result = await providerResult.Result.SaveAvatarDetailAsync(avatar);
+                                result.IsSaved = true;
                                 break;
+                            }
+                            else
+                                ErrorHandling.HandleError(ref result, providerResult.Message);
                         }
                         catch (Exception ex)
                         {
@@ -824,8 +906,15 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                     {
                         try
                         {
-                            //TODO: Need to handle return of OASISResult properly...
-                            await ProviderManager.SetAndActivateCurrentStorageProvider(type.Value).Result.SaveAvatarDetailAsync(avatar);
+                            OASISResult<IOASISStorage> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(type.Value);
+
+                            if (providerResult != null && providerResult.Result != null && !providerResult.IsError)
+                            {
+                                result.Result = await providerResult.Result.SaveAvatarDetailAsync(avatar);
+                                result.IsSaved = true;
+                            }
+                            else
+                                ErrorHandling.HandleWarning(ref result, providerResult.Message);
                         }
                         catch (Exception ex)
                         {
@@ -1149,7 +1238,8 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
         public bool CheckIfEmailIsAlreadyInUse(string email)
         {
-            return LoadAllAvatars().Any(x => x.Email == email);
+            //return LoadAllAvatars().Any(x => x.Email == email);
+            return LoadAvatarByEmailAsync(email).Result != null;
         }
 
         private IAvatar PrepareAvatarForSaving(IAvatar avatar)
@@ -1162,7 +1252,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 avatar.Id = Guid.NewGuid();
                 avatar.IsNewHolon = true;
             }
-            else
+            else if (avatar.CreatedDate != DateTime.MinValue)
                 avatar.IsNewHolon = false;
 
             // TODO: I think it's best to include audit stuff here so the providers do not need to worry about it?
@@ -1188,14 +1278,16 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
         private IAvatarDetail PrepareAvatarDetailForSaving(IAvatarDetail avatar)
         {
-            if (string.IsNullOrEmpty(avatar.Username))
-                avatar.Username = avatar.Email;
+            //if (string.IsNullOrEmpty(avatar.Username))
+            //    avatar.Username = avatar.Email;
 
             if (avatar.Id == Guid.Empty)
             {
                 avatar.Id = Guid.NewGuid();
                 avatar.IsNewHolon = true;
             }
+            else if (avatar.CreatedDate != DateTime.MinValue)
+                avatar.IsNewHolon = false;
 
             // TODO: I think it's best to include audit stuff here so the providers do not need to worry about it?
             // Providers could always override this behaviour if they choose...
@@ -1254,11 +1346,16 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
         private IAvatar RemoveAuthDetails(IAvatar avatar)
         {
-            //  avatar.VerificationToken = null; //TODO: Put back in when LIVE!
+            if (OASISDNA.OASIS.Security.HideVerificationToken)
+              avatar.VerificationToken = null; 
 
             avatar.Password = null;
-            // avatar.RefreshToken = null;
-            //avatar.RefreshTokens = null;
+
+            if (OASISDNA.OASIS.Security.HideRefreshTokens)
+            {
+                //avatar.RefreshToken = null;
+                avatar.RefreshTokens = null;
+            }
 
             return avatar;
         }
@@ -1313,6 +1410,129 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                          <p>Ready Player One?</p>
                          {message}"
             );
+        }
+
+        private OASISResult<IAvatar> PrepareToRegisterAvatar(string avatarTitle, string firstName, string lastName, string email, string password, AvatarType avatarType, string origin, OASISType createdOASISType)
+        {
+            OASISResult<IAvatar> result = new OASISResult<IAvatar>();
+
+            if (!ValidationHelper.IsValidEmail(email))
+            {
+                result.IsError = true;
+                result.Message = "The email is not valid.";
+                return result;
+            }
+
+            //TODO: {PERFORMANCE} Add this method to the providers so more efficient.
+            if (CheckIfEmailIsAlreadyInUse(email))
+            {
+                // send already registered error in email to prevent account enumeration
+                sendAlreadyRegisteredEmail(email, origin);
+                result.IsError = true;
+                result.Message = "Avatar Already Registered.";
+                return result;
+            }
+
+            result.Result = new Avatar() { Id = Guid.NewGuid(), IsNewHolon = true, FirstName = firstName, LastName = lastName, Password = password, Title = avatarTitle, Email = email, AvatarType = new EnumValue<AvatarType>(avatarType), CreatedOASISType = new EnumValue<OASISType>(createdOASISType) };
+
+            //result.Result.CreatedDate = DateTime.UtcNow;
+            result.Result.VerificationToken = randomTokenString();
+
+            // hash password
+            result.Result.Password = BC.HashPassword(password);
+
+            return result;
+        }
+
+        private OASISResult<IAvatarDetail> PrepareToRegisterAvatarDetail(Guid avatarId, string username, string email, OASISType createdOASISType, ConsoleColor cliColour = ConsoleColor.Green, ConsoleColor favColour = ConsoleColor.Green)
+        {
+            OASISResult<IAvatarDetail> result = new OASISResult<IAvatarDetail>();
+            IAvatarDetail avatarDetail = new AvatarDetail() { Id = avatarId, IsNewHolon = true, Email = email, Username = username, CreatedOASISType = new EnumValue<OASISType>(createdOASISType), STARCLIColour = cliColour, FavouriteColour = favColour };
+
+            // TODO: Temp! Remove later!
+            if (email == "davidellams@hotmail.com")
+            {
+                avatarDetail.Karma = 777777;
+                avatarDetail.XP = 2222222;
+
+                avatarDetail.GeneKeys.Add(new GeneKey() { Name = "Expectation", Gift = "a gift", Shadow = "a shadow", Sidhi = "a sidhi" });
+                avatarDetail.GeneKeys.Add(new GeneKey() { Name = "Invisibility", Gift = "a gift", Shadow = "a shadow", Sidhi = "a sidhi" });
+                avatarDetail.GeneKeys.Add(new GeneKey() { Name = "Rapture", Gift = "a gift", Shadow = "a shadow", Sidhi = "a sidhi" });
+
+                avatarDetail.HumanDesign.Type = "Generator";
+                avatarDetail.Inventory.Add(new InventoryItem() { Name = "Magical Armour" });
+                avatarDetail.Inventory.Add(new InventoryItem() { Name = "Mighty Wizard Sword" });
+
+                avatarDetail.Spells.Add(new Spell() { Name = "Super Spell" });
+                avatarDetail.Spells.Add(new Spell() { Name = "Super Speed Spell" });
+                avatarDetail.Spells.Add(new Spell() { Name = "Super Srength Spell" });
+
+                avatarDetail.Achievements.Add(new Achievement() { Name = "Becoming Superman!" });
+                avatarDetail.Achievements.Add(new Achievement() { Name = "Completing STAR!" });
+
+                avatarDetail.Gifts.Add(new AvatarGift() { GiftType = KarmaTypePositive.BeASuperHero });
+
+                avatarDetail.Aura.Brightness = 99;
+                avatarDetail.Aura.Level = 77;
+                avatarDetail.Aura.Progress = 88;
+                avatarDetail.Aura.Size = 10;
+                avatarDetail.Aura.Value = 777;
+
+                avatarDetail.Chakras.Root.Level = 77;
+                avatarDetail.Chakras.Root.Progress = 99;
+                avatarDetail.Chakras.Root.XP = 8783;
+
+                avatarDetail.Attributes.Dexterity = 99;
+                avatarDetail.Attributes.Endurance = 99;
+                avatarDetail.Attributes.Intelligence = 99;
+                avatarDetail.Attributes.Magic = 99;
+                avatarDetail.Attributes.Speed = 99;
+                avatarDetail.Attributes.Strength = 99;
+                avatarDetail.Attributes.Toughness = 99;
+                avatarDetail.Attributes.Vitality = 99;
+                avatarDetail.Attributes.Wisdom = 99;
+
+                avatarDetail.Stats.Energy.Current = 99;
+                avatarDetail.Stats.Energy.Max = 99;
+                avatarDetail.Stats.HP.Current = 99;
+                avatarDetail.Stats.HP.Max = 99;
+                avatarDetail.Stats.Mana.Current = 99;
+                avatarDetail.Stats.Mana.Max = 99;
+                avatarDetail.Stats.Staminia.Current = 99;
+                avatarDetail.Stats.Staminia.Max = 99;
+
+                avatarDetail.SuperPowers.AstralProjection = 99;
+                avatarDetail.SuperPowers.BioLocatation = 88;
+                avatarDetail.SuperPowers.Flight = 99;
+                avatarDetail.SuperPowers.FreezeBreath = 88;
+                avatarDetail.SuperPowers.HeatVision = 99;
+                avatarDetail.SuperPowers.Invulerability = 99;
+                avatarDetail.SuperPowers.SuperSpeed = 99;
+                avatarDetail.SuperPowers.SuperStrength = 99;
+                avatarDetail.SuperPowers.XRayVision = 99;
+                avatarDetail.SuperPowers.Teleportation = 99;
+                avatarDetail.SuperPowers.Telekineseis = 99;
+
+                avatarDetail.Skills.Computers = 99;
+                avatarDetail.Skills.Engineering = 99;
+            }
+
+            //avatarDetail.CreatedDate = DateTime.UtcNow;
+
+            result.Result = avatarDetail;
+            return result;
+        }
+
+        private OASISResult<IAvatar> AvatarRegistered(OASISResult<IAvatar> result, string origin)
+        {
+            if (OASISDNA.OASIS.Security.SendVerificationEmail)
+                sendVerificationEmail(result.Result, origin);
+
+            result.Result = RemoveAuthDetails(result.Result);
+            result.IsSaved = true;
+            result.Message = "Avatar Created Successfully. Please check your email for the verification email. You will not be able to log in till you have verified your email. Thank you.";
+
+            return result;
         }
     }
 }

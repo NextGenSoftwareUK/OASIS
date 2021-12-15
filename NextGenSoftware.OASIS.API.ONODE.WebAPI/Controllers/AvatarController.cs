@@ -331,7 +331,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpPost("register")]
         public async Task<OASISResult<IAvatar>> Register(RegisterRequest model)
         {
-            return await _avatarService.Register(model, Request.Headers["origin"]);
+            return await _avatarService.RegisterAsync(model, Request.Headers["origin"]);
         }
 
         /// <summary>

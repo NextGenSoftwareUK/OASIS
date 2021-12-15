@@ -336,7 +336,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
                         lastname = Avatar.LastName,
                         //dob = Avatar.DOB.ToString(),
                        // playeraddr = Avatar.Address,
-                        karma = Avatar.Karma
+                       // karma = Avatar.Karma
                     }
                 ));
 

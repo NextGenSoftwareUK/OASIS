@@ -31,6 +31,10 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
                 base.Id = value;
             }
         }
+        
+        public string Username { get; set; }
+        public string Email { get; set; }
+
         /*
         public new string Name
         {
@@ -41,9 +45,8 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
         }
 
         public EnumValue<AvatarType> AvatarType { get; set; }
-        public string Username { get; set; }
+        
       //  public string Password { get; set; }
-        public string Email { get; set; }
         public string Title { get; set; }
         public string FirstName { get; set; }
         public string LastName { get; set; }
