@@ -12,19 +12,19 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities
     {
         public string UmaJson { get; set; }
         public string Image2D { get; set; }
-        public string Title { get; set; }
-        public string FirstName { get; set; }
-        public string LastName { get; set; }
-        public string FullName
-        {
-            get
-            {
-                return string.Concat(Title, " ", FirstName, " ", LastName);
-            }
-        }
+        //public string Title { get; set; }
+        //public string FirstName { get; set; }
+        //public string LastName { get; set; }
+        //public string FullName
+        //{
+        //    get
+        //    {
+        //        return string.Concat(Title, " ", FirstName, " ", LastName);
+        //    }
+        //}
         public string Email { get; set; }
         public string Username { get; set; }
-        public string Password { get; set; }
+        //public string Password { get; set; }
         public string Address { get; set; }
         public string Postcode { get; set; }
         public string Town { get; set; }
@@ -33,7 +33,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities
         public string Landline { get; set; }
         public string Mobile { get; set; }
         public DateTime DOB { get; set; }
-        public EnumValue<AvatarType> AvatarType { get; set; }
+        //public EnumValue<AvatarType> AvatarType { get; set; }
         public int Karma { get; set; }
 
         [BsonDictionaryOptions(DictionaryRepresentation.ArrayOfArrays)]

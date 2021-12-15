@@ -15,6 +15,9 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces
         // Using the multiple interfaces workaround seems to only work for methods, but not properties?
 
         new Guid Id { get; set; }
+        public string Username { get; set; }
+        public string Email { get; set; }
+
         /*
         string Title { get; set; }
         string FirstName { get; set; }
@@ -30,11 +33,11 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces
         string Address { get; set; }
         AvatarAttributes Attributes { get; set; }
         AvatarAura Aura { get; set; }
-        EnumValue<AvatarType> AvatarType { get; set; }
+        //EnumValue<AvatarType> AvatarType { get; set; }
         AvatarChakras Chakras { get; set; }
         string Country { get; set; }
         string County { get; set; }
-        EnumValue<OASISType> CreatedOASISType { get; set; }
+        //EnumValue<OASISType> CreatedOASISType { get; set; }
         Dictionary<DimensionLevel, Guid> DimensionLevelIds { get; set; }
         Dictionary<DimensionLevel, IHolon> DimensionLevels { get; set; }
         DateTime DOB { get; set; }

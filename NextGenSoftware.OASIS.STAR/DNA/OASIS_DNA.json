@@ -20,8 +20,11 @@
       "LogAllWarnings": "true"
     },
     "Security": {
-      "DoesAvatarNeedToBeVerifiedBeforeLogin": "true",
-      "Secret": "62FBEAD4-4C06-42DF-A827-CE003F2385F8248BC15E-9D9D-446A-A38B-24C0D8A05F9D",
+      "HideVerificationToken": "true",
+      "HideRefreshTokens": "true",
+      //"DoesAvatarNeedToBeVerifiedBeforeLogin": "true",
+      "SendVerificationEmail": "true",
+      "Secret": "",
       "AvatarPassword": {
         "BCryptEncryptionEnabled": "true",
         "Rijndael256EncryptionEnabled": "true",
@@ -34,12 +37,12 @@
       }
     },
     "Email": {
-      "EmailFrom": "anorak@theoasisplatform.world",
-      "SmtpHost": "mailuk2.promailserver.com",
+      "EmailFrom": "",
+      "SmtpHost": "",
       // "SmtpPort": 587,
       "SmtpPort": 25,
-      "SmtpUser": "anorak@oasisplatform.world",
-      "SmtpPass": "7cb?e9tvnw$dhpogaqjilkrfzuxyms"
+      "SmtpUser": "",
+      "SmtpPass": ""
     },
     "StorageProviders": {
       "AutoReplicationEnabled": "false",
@@ -62,12 +65,8 @@
         "HolochainVersion": "Redux" //Can be Redux or RSM.
       },
       "MongoDBOASIS": {
-        "ConnectionString": "mongodb+srv://dbadmin:BcQIJzJgUIkghQpr@oasisapi-oipck.mongodb.net/OASISAPI?retryWrites=true&w=majority",
-        //"ConnectionString": "mongodb+srv://oasisadmin:4ABeZIUHwTVbiFWn@oasisapi-oipck.mongodb.net/OASISAPI?retryWrites=true&w=majority",
-        //"ConnectionString": "mongodb+srv://dbadmin:ZDVxEMHJJTfdtJ0S@oasisapi-oipck.mongodb.net/OASISAPI?retryWrites=true&w=majority",
-        // "ConnectionString": "mongodb+srv://oasisuser:EHPpjGAmW74lg8qS@oasisapi-oipck.mongodb.net/OASISAPI?retryWrites=true&w=majority",
-
-         "DBName": "OASISAPI_DEV"
+        "ConnectionString": "mongodb://localhost:27017",
+        "DBName": "OASISAPI_DEV"
         //"DBName": "OASISAPI_TEST"
         //"DBName": "OASISAPI_LIVE"
       },
@@ -91,8 +90,8 @@
       },
       "Neo4JOASIS": {
         "ConnectionString": "http://localhost:7474",
-        "Username": "neo4j",
-        "Password": "letthereb@light!"
+        "Username": "",
+        "Password": ""
       },
       "IPFSOASIS": {
         "ConnectionString": "http://localhost:5001",
