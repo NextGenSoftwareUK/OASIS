@@ -14,7 +14,7 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces
         bool ProviderActivated { get; }
         //virtual void ActivateProvider();
         //virtual void DeActivateProvider();
-        void ActivateProvider();
-        void DeActivateProvider();
+        OASISResult<bool> ActivateProvider();
+        OASISResult<bool> DeActivateProvider();
     }
 }

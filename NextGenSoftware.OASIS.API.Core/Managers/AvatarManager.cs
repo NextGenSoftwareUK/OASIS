@@ -346,7 +346,9 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             IEnumerable<IAvatar> avatars = ProviderManager.SetAndActivateCurrentStorageProvider(provider).Result.LoadAllAvatarsAsync().Result;
 
             foreach (IAvatar avatar in avatars)
-                avatar.Password = null;
+                RemoveAuthDetails(avatar);
+                //avatar = RemoveAuthDetails(avatar);
+                //avatar.Password = null;
 
             return avatars;
         }
@@ -1344,7 +1346,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return BitConverter.ToString(randomBytes).Replace("-", "");
         }
 
-        private IAvatar RemoveAuthDetails(IAvatar avatar)
+        public IAvatar RemoveAuthDetails(IAvatar avatar)
         {
             if (OASISDNA.OASIS.Security.HideVerificationToken)
               avatar.VerificationToken = null; 

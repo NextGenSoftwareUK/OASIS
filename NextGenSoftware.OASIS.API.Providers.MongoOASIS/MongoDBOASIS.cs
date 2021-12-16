@@ -157,32 +157,32 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
                 _avatarRepository.Update(ConvertOASISAvatarToMongoEntity(avatar)));
         }
 
-        public override bool DeleteAvatarByUsername(string avatarUsername, bool softDelete = true)
+        public override OASISResult<bool> DeleteAvatarByUsername(string avatarUsername, bool softDelete = true)
         {
             return _avatarRepository.Delete(x => x.Username == avatarUsername, softDelete);
         }
 
-        public override async Task<bool> DeleteAvatarAsync(Guid id, bool softDelete = true)
+        public override async Task<OASISResult<bool>> DeleteAvatarAsync(Guid id, bool softDelete = true)
         {
             return await _avatarRepository.DeleteAsync(id, softDelete);
         }
 
-        public override async Task<bool> DeleteAvatarByEmailAsync(string avatarEmail, bool softDelete = true)
+        public override async Task<OASISResult<bool>> DeleteAvatarByEmailAsync(string avatarEmail, bool softDelete = true)
         {
             return await _avatarRepository.DeleteAsync(x => x.Email == avatarEmail, softDelete);
         }
 
-        public override async Task<bool> DeleteAvatarByUsernameAsync(string avatarUsername, bool softDelete = true)
+        public override async Task<OASISResult<bool>> DeleteAvatarByUsernameAsync(string avatarUsername, bool softDelete = true)
         {
             return await _avatarRepository.DeleteAsync(x => x.Username == avatarUsername, softDelete);
         }
 
-        public override bool DeleteAvatar(Guid id, bool softDelete = true)
+        public override OASISResult<bool> DeleteAvatar(Guid id, bool softDelete = true)
         {
             return _avatarRepository.Delete(id, softDelete);
         }
 
-        public override bool DeleteAvatarByEmail(string avatarEmail, bool softDelete = true)
+        public override OASISResult<bool> DeleteAvatarByEmail(string avatarEmail, bool softDelete = true)
         {
             return _avatarRepository.Delete(x => x.Email == avatarEmail, softDelete);
         }
@@ -197,12 +197,12 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             return ConvertMongoEntityToOASISAvatar(_avatarRepository.GetAvatar(providerKey));
         }
 
-        public override bool DeleteAvatar(string providerKey, bool softDelete = true)
+        public override OASISResult<bool> DeleteAvatar(string providerKey, bool softDelete = true)
         {
             return _avatarRepository.Delete(providerKey, softDelete);
         }
 
-        public override async Task<bool> DeleteAvatarAsync(string providerKey, bool softDelete = true)
+        public override async Task<OASISResult<bool>> DeleteAvatarAsync(string providerKey, bool softDelete = true)
         {
             return await _avatarRepository.DeleteAsync(providerKey, softDelete);
         }

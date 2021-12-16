@@ -51,7 +51,7 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
 
         }
 
-        public override bool DeleteAvatar(Guid id, bool softDelete = true)
+        public OASISResult<bool> DeleteAvatar(Guid id, bool softDelete = true)
         {
             GraphClient.Cypher.OptionalMatch("(avatar:Avatar)-[r]-()")
                 .Where((Avatar avatar) => avatar.Id == id)
@@ -69,37 +69,37 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
             //}
         }
 
-        public override bool DeleteAvatarByEmail(string avatarEmail, bool softDelete = true)
+        public override OASISResult<bool> DeleteAvatarByEmail(string avatarEmail, bool softDelete = true)
         {
             throw new NotImplementedException();
         }
 
-        public override bool DeleteAvatarByUsername(string avatarUsername, bool softDelete = true)
+        public override OASISResult<bool> DeleteAvatarByUsername(string avatarUsername, bool softDelete = true)
         {
             throw new NotImplementedException();
         }
 
-        public override async Task<bool> DeleteAvatarByUsernameAsync(string avatarUsername, bool softDelete = true)
+        public override async Task<OASISResult<bool>> DeleteAvatarByUsernameAsync(string avatarUsername, bool softDelete = true)
         {
             throw new NotImplementedException();
         }
 
-        public override bool DeleteAvatar(string providerKey, bool softDelete = true)
+        public override OASISResult<bool> DeleteAvatar(string providerKey, bool softDelete = true)
         {
             throw new NotImplementedException();
         }
 
-        public override Task<bool> DeleteAvatarAsync(Guid id, bool softDelete = true)
+        public override Task<OASISResult<bool>> DeleteAvatarAsync(Guid id, bool softDelete = true)
         {
             throw new NotImplementedException();
         }
 
-        public override async Task<bool> DeleteAvatarByEmailAsync(string avatarEmail, bool softDelete = true)
+        public override async Task<OASISResult<bool>> DeleteAvatarByEmailAsync(string avatarEmail, bool softDelete = true)
         {
             throw new NotImplementedException();
         }
 
-        public override Task<bool> DeleteAvatarAsync(string providerKey, bool softDelete = true)
+        public override Task<OASISResult<bool>> DeleteAvatarAsync(string providerKey, bool softDelete = true)
         {
             throw new NotImplementedException();
         }
