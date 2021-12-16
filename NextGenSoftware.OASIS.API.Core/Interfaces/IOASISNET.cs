@@ -1,7 +1,6 @@
-﻿using NextGenSoftware.OASIS.API.Core.Enums;
-using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Collections.Generic;
+using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.Core.Helpers;
 
 namespace NextGenSoftware.OASIS.API.Core.Interfaces
 {
@@ -9,7 +8,7 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces
     // This will involve peer to peer communcation.
     public interface IOASISNET : IOASISProvider
     {
-        IEnumerable<IPlayer> GetPlayersNearMe();
-        IEnumerable<IHolon> GetHolonsNearMe(HolonType Type);
+        OASISResult<IEnumerable<IPlayer>> GetPlayersNearMe();
+        OASISResult<IEnumerable<IHolon>> GetHolonsNearMe(HolonType Type);
     }
 }

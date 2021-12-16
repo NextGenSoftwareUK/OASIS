@@ -93,6 +93,8 @@ namespace NextGenSoftware.OASIS.API.Core
         {
             StorageProviderError?.Invoke(this, new AvatarManagerErrorEventArgs { EndPoint = endPoint, Reason = reason, ErrorDetails = errorDetails });
         }
+
+        /*
         public abstract Task<IEnumerable<IAvatar>> LoadAllAvatarsAsync();
         public abstract IEnumerable<IAvatar> LoadAllAvatars();
         public abstract IAvatar LoadAvatarByUsername(string avatarUsername);
@@ -121,14 +123,14 @@ namespace NextGenSoftware.OASIS.API.Core
         public abstract Task<IAvatar> SaveAvatarAsync(IAvatar Avatar);
         public abstract IAvatarDetail SaveAvatarDetail(IAvatarDetail Avatar);
         public abstract Task<IAvatarDetail> SaveAvatarDetailAsync(IAvatarDetail Avatar);
-        public abstract bool DeleteAvatar(Guid id, bool softDelete = true);
-        public abstract bool DeleteAvatarByEmail(string avatarEmail, bool softDelete = true);
-        public abstract bool DeleteAvatarByUsername(string avatarUsername, bool softDelete = true);
-        public abstract Task<bool> DeleteAvatarAsync(Guid id, bool softDelete = true);
-        public abstract Task<bool> DeleteAvatarByEmailAsync(string avatarEmail, bool softDelete = true);
-        public abstract Task<bool> DeleteAvatarByUsernameAsync(string avatarUsername, bool softDelete = true);
-        public abstract bool DeleteAvatar(string providerKey, bool softDelete = true);
-        public abstract Task<bool> DeleteAvatarAsync(string providerKey, bool softDelete = true);
+        public abstract OASISResult<bool> DeleteAvatar(Guid id, bool softDelete = true);
+        public abstract OASISResult<bool> DeleteAvatarByEmail(string avatarEmail, bool softDelete = true);
+        public abstract OASISResult<bool> DeleteAvatarByUsername(string avatarUsername, bool softDelete = true);
+        public abstract Task<OASISResult<bool>> DeleteAvatarAsync(Guid id, bool softDelete = true);
+        public abstract Task<OASISResult<bool>> DeleteAvatarByEmailAsync(string avatarEmail, bool softDelete = true);
+        public abstract Task<OASISResult<bool>> DeleteAvatarByUsernameAsync(string avatarUsername, bool softDelete = true);
+        public abstract OASISResult<bool> DeleteAvatar(string providerKey, bool softDelete = true);
+        public abstract Task<OASISResult<bool>> DeleteAvatarAsync(string providerKey, bool softDelete = true);
         public abstract Task<ISearchResults> SearchAsync(ISearchParams searchParams);
         public abstract IHolon LoadHolon(Guid id);
         public abstract Task<IHolon> LoadHolonAsync(Guid id);
@@ -150,5 +152,64 @@ namespace NextGenSoftware.OASIS.API.Core
         public abstract Task<bool> DeleteHolonAsync(Guid id, bool softDelete = true);
         public abstract bool DeleteHolon(string providerKey, bool softDelete = true);
         public abstract Task<bool> DeleteHolonAsync(string providerKey, bool softDelete = true);
+        */
+
+        public abstract Task<OASISResult<IEnumerable<IAvatar>>> LoadAllAvatarsAsync();
+        public abstract OASISResult<IEnumerable<IAvatar>> LoadAllAvatars();
+        public abstract OASISResult<IAvatar> LoadAvatarByUsername(string avatarUsername);
+        public abstract Task<OASISResult<IAvatar>> LoadAvatarAsync(Guid Id);
+        public abstract Task<OASISResult<IAvatar>> LoadAvatarByEmailAsync(string avatarEmail);
+        public abstract Task<OASISResult<IAvatar>> LoadAvatarByUsernameAsync(string avatarUsername);
+        public abstract OASISResult<IAvatar> LoadAvatar(Guid Id);
+        public abstract OASISResult<IAvatar> LoadAvatarByEmail(string avatarEmail);
+        public abstract Task<OASISResult<IAvatar>> LoadAvatarAsync(string username, string password);
+        public abstract OASISResult<IAvatar> LoadAvatar(string username, string password);
+        public abstract OASISResult<IAvatar> LoadAvatar(string username);
+        public abstract Task<OASISResult<IAvatar>> LoadAvatarAsync(string username);
+        public abstract Task<OASISResult<IAvatar>> LoadAvatarForProviderKeyAsync(string providerKey);
+        public abstract OASISResult<IAvatar> LoadAvatarForProviderKey(string providerKey);
+        // public abstract Task<IAvatarThumbnail> LoadAvatarThumbnailAsync(Guid id);
+        //  public abstract IAvatarThumbnail LoadAvatarThumbnail(Guid id);
+        public abstract OASISResult<IAvatarDetail> LoadAvatarDetail(Guid id);
+        public abstract OASISResult<IAvatarDetail> LoadAvatarDetailByEmail(string avatarEmail);
+        public abstract OASISResult<IAvatarDetail> LoadAvatarDetailByUsername(string avatarUsername);
+        public abstract Task<OASISResult<IAvatarDetail>> LoadAvatarDetailAsync(Guid id);
+        public abstract Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByUsernameAsync(string avatarUsername);
+        public abstract Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByEmailAsync(string avatarEmail);
+        public abstract OASISResult<IEnumerable<IAvatarDetail>> LoadAllAvatarDetails();
+        public abstract Task<OASISResult<IEnumerable<IAvatarDetail>>> LoadAllAvatarDetailsAsync();
+        public abstract OASISResult<IAvatar> SaveAvatar(IAvatar Avatar);
+        public abstract Task<OASISResult<IAvatar>> SaveAvatarAsync(IAvatar Avatar);
+        public abstract OASISResult<IAvatarDetail> SaveAvatarDetail(IAvatarDetail Avatar);
+        public abstract Task<OASISResult<IAvatarDetail>> SaveAvatarDetailAsync(IAvatarDetail Avatar);
+        public abstract OASISResult<bool> DeleteAvatar(Guid id, bool softDelete = true);
+        public abstract OASISResult<bool> DeleteAvatarByEmail(string avatarEmail, bool softDelete = true);
+        public abstract OASISResult<bool> DeleteAvatarByUsername(string avatarUsername, bool softDelete = true);
+        public abstract Task<OASISResult<bool>> DeleteAvatarAsync(Guid id, bool softDelete = true);
+        public abstract Task<OASISResult<bool>> DeleteAvatarByEmailAsync(string avatarEmail, bool softDelete = true);
+        public abstract Task<OASISResult<bool>> DeleteAvatarByUsernameAsync(string avatarUsername, bool softDelete = true);
+        public abstract OASISResult<bool> DeleteAvatar(string providerKey, bool softDelete = true);
+        public abstract Task<OASISResult<bool>> DeleteAvatarAsync(string providerKey, bool softDelete = true);
+        public abstract Task<OASISResult<ISearchResults>> SearchAsync(ISearchParams searchParams);
+        public abstract OASISResult<IHolon> LoadHolon(Guid id);
+        public abstract Task<OASISResult<IHolon>> LoadHolonAsync(Guid id);
+        public abstract OASISResult<IHolon> LoadHolon(string providerKey);
+        public abstract Task<OASISResult<IHolon>> LoadHolonAsync(string providerKey);
+        public abstract OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(Guid id, HolonType type = HolonType.All);
+        public abstract Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(Guid id, HolonType type = HolonType.All);
+        public abstract OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(string providerKey, HolonType type = HolonType.All);
+        public abstract Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(string providerKey, HolonType type = HolonType.All);
+        public abstract OASISResult<IEnumerable<IHolon>> LoadAllHolons(HolonType type = HolonType.All);
+        public abstract Task<OASISResult<IEnumerable<IHolon>>> LoadAllHolonsAsync(HolonType type = HolonType.All);
+
+        //TODO: We need to migrate ALL OASIS methods to use the OASISResult Pattern ASAP! Thankyou! :)
+        public abstract OASISResult<IHolon> SaveHolon(IHolon holon, bool saveChildrenRecursive = true);
+        public abstract Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon, bool saveChildrenRecursive = true);
+        public abstract OASISResult<IEnumerable<IHolon>> SaveHolons(IEnumerable<IHolon> holons, bool saveChildrenRecursive = true);
+        public abstract Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons, bool saveChildrenRecursive = true);
+        public abstract OASISResult<bool> DeleteHolon(Guid id, bool softDelete = true);
+        public abstract Task<OASISResult<bool>> DeleteHolonAsync(Guid id, bool softDelete = true);
+        public abstract OASISResult<bool> DeleteHolon(string providerKey, bool softDelete = true);
+        public abstract Task<OASISResult<bool>> DeleteHolonAsync(string providerKey, bool softDelete = true);
     }
 }

@@ -18,45 +18,6 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
             this.ProviderCategory = new Core.Helpers.EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
         }
 
-        public override bool DeleteAvatar(Guid id, bool softDelete = true)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override bool DeleteAvatarByEmail(string avatarEmail, bool softDelete = true)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override bool DeleteAvatarByUsername(string avatarUsername, bool softDelete = true)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override async Task<bool> DeleteAvatarByUsernameAsync(string avatarUsername, bool softDelete = true)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override bool DeleteAvatar(string providerKey, bool softDelete = true)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override Task<bool> DeleteAvatarAsync(Guid id, bool softDelete = true)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override async Task<bool> DeleteAvatarByEmailAsync(string avatarEmail, bool softDelete = true)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override Task<bool> DeleteAvatarAsync(string providerKey, bool softDelete = true)
-        {
-            throw new NotImplementedException();
-        }
 
         public override bool DeleteHolon(Guid id, bool softDelete = true)
         {
@@ -289,6 +250,46 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
         }
 
         public override Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons, bool saveChildrenRecursive = true)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override OASISResult<bool> DeleteAvatar(Guid id, bool softDelete = true)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override OASISResult<bool> DeleteAvatarByEmail(string avatarEmail, bool softDelete = true)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override OASISResult<bool> DeleteAvatarByUsername(string avatarUsername, bool softDelete = true)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override Task<OASISResult<bool>> DeleteAvatarAsync(Guid id, bool softDelete = true)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override Task<OASISResult<bool>> DeleteAvatarByEmailAsync(string avatarEmail, bool softDelete = true)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override Task<OASISResult<bool>> DeleteAvatarByUsernameAsync(string avatarUsername, bool softDelete = true)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override OASISResult<bool> DeleteAvatar(string providerKey, bool softDelete = true)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override Task<OASISResult<bool>> DeleteAvatarAsync(string providerKey, bool softDelete = true)
         {
             throw new NotImplementedException();
         }
