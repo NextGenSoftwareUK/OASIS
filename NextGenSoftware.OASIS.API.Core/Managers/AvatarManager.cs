@@ -1249,9 +1249,11 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             if (string.IsNullOrEmpty(avatar.Username))
                 avatar.Username = avatar.Email;
 
-            if (avatar.Id == Guid.Empty)
+            if (avatar.Id == Guid.Empty || avatar.CreatedDate == DateTime.MinValue)
             {
-                avatar.Id = Guid.NewGuid();
+                if (avatar.Id == Guid.Empty)
+                    avatar.Id = Guid.NewGuid();
+
                 avatar.IsNewHolon = true;
             }
             else if (avatar.CreatedDate != DateTime.MinValue)
@@ -1265,6 +1267,10 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
                 if (LoggedInAvatar != null)
                     avatar.ModifiedByAvatarId = LoggedInAvatar.Id;
+
+                avatar.Version++;
+                avatar.PreviousVersionId = avatar.VersionId;
+                avatar.VersionId = Guid.NewGuid();
             }
             else
             {
@@ -1273,6 +1279,9 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
                 if (LoggedInAvatar != null)
                     avatar.CreatedByAvatarId = LoggedInAvatar.Id;
+
+                avatar.Version = 1;
+                avatar.VersionId = Guid.NewGuid();
             }
 
             return avatar;

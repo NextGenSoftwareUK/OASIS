@@ -36,8 +36,8 @@ namespace NextGenSoftware.OASIS.API.Core.Helpers
     //}
 
     public static class OASISResultHolonToHolonHelper<T1, T2> 
-        where T1 : IHolon
-        where T2 : IHolon //, new()
+        where T1 : IHolonBase
+        where T2 : IHolonBase //, new()
     {
         public static OASISResult<T2> CopyResult(OASISResult<T1> fromResult, ref OASISResult<T2> toResult)
         {
@@ -59,8 +59,8 @@ namespace NextGenSoftware.OASIS.API.Core.Helpers
     }
 
     public static class OASISResultCollectionToCollectionHelper<T1, T2>
-       where T1 : IEnumerable<IHolon>
-       where T2 : IEnumerable<IHolon> 
+       where T1 : IEnumerable<IHolonBase>
+       where T2 : IEnumerable<IHolonBase> 
     {
         public static OASISResult<T2> CopyResult(OASISResult<T1> fromResult, ref OASISResult<T2> toResult)
         {
@@ -81,8 +81,8 @@ namespace NextGenSoftware.OASIS.API.Core.Helpers
     }
 
     public static class OASISResultCollectionToHolonHelper<T1, T2>
-       where T1 : IEnumerable<IHolon>
-       where T2 : IHolon 
+       where T1 : IEnumerable<IHolonBase>
+       where T2 : IHolonBase
     {
         public static OASISResult<T2> CopyResult(OASISResult<T1> fromResult, ref OASISResult<T2> toResult)
         {
@@ -103,8 +103,8 @@ namespace NextGenSoftware.OASIS.API.Core.Helpers
     }
 
     public static class OASISResultHolonToCollectionHelper<T1, T2>
-       where T1 : IHolon
-       where T2 : IEnumerable<IHolon> 
+       where T1 : IHolonBase
+       where T2 : IEnumerable<IHolonBase> 
     {
         public static OASISResult<T2> CopyResult(OASISResult<T1> fromResult, ref OASISResult<T2> toResult)
         {

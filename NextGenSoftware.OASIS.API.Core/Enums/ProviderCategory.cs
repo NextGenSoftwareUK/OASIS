@@ -6,6 +6,8 @@ namespace NextGenSoftware.OASIS.API.Core.Enums
         Storage,
         Network,
         StorageAndNetwork,
+        SmartContract,
+        NFT,
         Application,
         Renderer
     }

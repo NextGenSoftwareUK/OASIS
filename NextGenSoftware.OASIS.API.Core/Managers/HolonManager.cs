@@ -1458,12 +1458,14 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             // TODO: I think it's best to include audit stuff here so the providers do not need to worry about it?
             // Providers could always override this behaviour if they choose...
 
-            if (holon.Id == Guid.Empty)
+            if (holon.Id == Guid.Empty || holon.CreatedDate == DateTime.MinValue)
             {
-                holon.Id = Guid.NewGuid();
+                if ((holon.Id == Guid.Empty)
+                    holon.Id = Guid.NewGuid();
+
                 holon.IsNewHolon = true;
             }
-            else
+            else if (holon.CreatedDate != DateTime.MinValue)
                 holon.IsNewHolon = false;
 
             //if (holon.Id != Guid.Empty)
@@ -1473,6 +1475,10 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
                 if (AvatarManager.LoggedInAvatar != null)
                     holon.ModifiedByAvatarId = AvatarManager.LoggedInAvatar.Id;
+
+                holon.Version++;
+                holon.PreviousVersionId = holon.VersionId;
+                holon.VersionId = Guid.NewGuid();
             }
             else
             {
@@ -1481,6 +1487,9 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
                 if (AvatarManager.LoggedInAvatar != null)
                     holon.CreatedByAvatarId = AvatarManager.LoggedInAvatar.Id;
+
+                holon.Version = 1;
+                holon.VersionId = Guid.NewGuid();
             }
 
             // Retreive any custom properties and store in the holon metadata dictionary.
