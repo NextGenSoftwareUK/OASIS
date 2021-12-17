@@ -8,7 +8,7 @@ using NextGenSoftware.OASIS.API.Core.Helpers;
 
 namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
 {
-    public class BlockStackOASIS : OASISStorageBase, IOASISStorage, IOASISNET
+    public class BlockStackOASIS : OASISStorageProviderBase, IOASISStorage, IOASISNETProvider
     {
         public BlockStackOASIS()
         {

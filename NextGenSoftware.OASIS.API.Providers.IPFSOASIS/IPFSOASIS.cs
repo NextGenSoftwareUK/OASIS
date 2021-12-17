@@ -21,7 +21,7 @@ using NextGenSoftware.OASIS.API.Core.Objects;
 
 namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
 {
-    public class IPFSOASIS : OASISStorageBase, IOASISStorage, IOASISNET
+    public class IPFSOASIS : OASISStorageProviderBase, IOASISStorage, IOASISNETProvider
     {
         public IpfsClient IPFSClient;
         public IpfsEngine IPFSEngine; //= new IpfsEngine();

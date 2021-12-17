@@ -9,7 +9,7 @@ using NextGenSoftware.OASIS.API.Core.Helpers;
 
 namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
 {
-    public class ScuttlebuttOASIS : OASISStorageBase, IOASISStorage, IOASISNET
+    public class ScuttlebuttOASIS : OASISStorageProviderBase, IOASISStorage, IOASISNETProvider
     {
         public ScuttlebuttOASIS()
         {

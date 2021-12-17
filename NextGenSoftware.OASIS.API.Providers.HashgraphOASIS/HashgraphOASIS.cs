@@ -9,7 +9,7 @@ using NextGenSoftware.OASIS.API.Core.Helpers;
 
 namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
 {
-    public class HashgraphOASIS : OASISStorageBase, IOASISStorage, IOASISNET
+    public class HashgraphOASIS : OASISStorageProviderBase, IOASISStorage, IOASISNETProvider
     {
         public HashgraphOASIS()
         {

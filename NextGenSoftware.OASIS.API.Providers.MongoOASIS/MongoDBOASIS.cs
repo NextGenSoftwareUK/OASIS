@@ -14,7 +14,7 @@ using Holon = NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities.Holon;
 
 namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
 {
-    public class MongoDBOASIS : OASISStorageBase, IOASISStorage, IOASISNET, IOASISSuperStar
+    public class MongoDBOASIS : OASISStorageProviderBase, IOASISStorage, IOASISNETProvider, IOASISSuperStar
     {
         public MongoDbContext Database { get; set; }
         private AvatarRepository _avatarRepository = null;

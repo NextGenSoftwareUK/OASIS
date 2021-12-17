@@ -10,7 +10,7 @@ using NextGenSoftware.OASIS.API.Core.Helpers;
 
 namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS
 {
-    public class CosmosBlockChainOASIS : OASISStorageBase, IOASISStorage, IOASISNET
+    public class CosmosBlockChainOASIS : OASISStorageProviderBase, IOASISStorage, IOASISNETProvider
     {
         public string HostUri { get; set; }
 

@@ -13,7 +13,7 @@ using NextGenSoftware.WebSocket;
 
 namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Core
 {
-    public abstract class HoloOASISBase : OASISStorageBase, IOASISNET, IOASISStorage, IOASISSuperStar
+    public abstract class HoloOASISBase : OASISStorageProviderBase, IOASISNETProvider, IOASISStorage, IOASISSuperStar
     {
         private const string OURWORLD_ZOME = "our_world_core";
         private const string LOAD_Avatar_FUNC = "load_Avatar";

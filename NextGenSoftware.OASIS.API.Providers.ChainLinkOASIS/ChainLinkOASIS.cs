@@ -9,7 +9,7 @@ using NextGenSoftware.OASIS.API.Core.Helpers;
 
 namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
 {
-    public class ChainLinkOASIS : OASISStorageBase, IOASISStorage, IOASISNET
+    public class ChainLinkOASIS : OASISStorageProviderBase, IOASISStorage, IOASISNETProvider
     {
         public ChainLinkOASIS()
         {

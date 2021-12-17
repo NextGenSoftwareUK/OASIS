@@ -11,34 +11,34 @@ using NextGenSoftware.OASIS.API.DNA;
 
 namespace NextGenSoftware.OASIS.API.Core
 {
-    public abstract class OASISStorageBase : OASISProvider, IOASISStorage
+    public abstract class OASISStorageProviderBase : OASISProvider, IOASISStorageProvider
     {
         public OASISDNA OASISDNA { get; set; }
         public string OASISDNAPath { get; set; }
 
         public event AvatarManager.StorageProviderError StorageProviderError;
 
-        public OASISStorageBase()
+        public OASISStorageProviderBase()
         {
             OASISDNAManager.LoadDNA();
             this.OASISDNA = OASISDNAManager.OASISDNA;
             this.OASISDNAPath = OASISDNAManager.OASISDNAPath;
         }
 
-        public OASISStorageBase(string OASISDNAPath)
+        public OASISStorageProviderBase(string OASISDNAPath)
         {
             this.OASISDNAPath = OASISDNAPath;
             OASISDNAManager.LoadDNA(OASISDNAPath);
             this.OASISDNA = OASISDNAManager.OASISDNA;
         }
 
-        public OASISStorageBase(OASISDNA OASISDNA)
+        public OASISStorageProviderBase(OASISDNA OASISDNA)
         {
             this.OASISDNA = OASISDNA;
             this.OASISDNAPath = OASISDNAManager.OASISDNAPath;
         }
 
-        public OASISStorageBase(OASISDNA OASISDNA, string OASISDNAPath)
+        public OASISStorageProviderBase(OASISDNA OASISDNA, string OASISDNAPath)
         {
             this.OASISDNA = OASISDNA;
             this.OASISDNAPath = OASISDNAPath;
@@ -69,22 +69,22 @@ namespace NextGenSoftware.OASIS.API.Core
         //    return user;
         //}
 
-        public Task<KarmaAkashicRecord> AddKarmaToAvatarAsync(IAvatarDetail avatar, KarmaTypePositive karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc, string karmaSourceWebLink)
+        public Task<OASISResult<KarmaAkashicRecord>> AddKarmaToAvatarAsync(IAvatarDetail avatar, KarmaTypePositive karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc, string karmaSourceWebLink)
         {
             return avatar.KarmaEarntAsync(karmaType, karmaSourceType, karamSourceTitle, karmaSourceDesc, karmaSourceWebLink);
         }
 
-        public Task<KarmaAkashicRecord> RemoveKarmaFromAvatarAsync(IAvatarDetail avatar, KarmaTypeNegative karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc, string karmaSourceWebLink)
+        public Task<OASISResult<KarmaAkashicRecord>> RemoveKarmaFromAvatarAsync(IAvatarDetail avatar, KarmaTypeNegative karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc, string karmaSourceWebLink)
         {
             return avatar.KarmaLostAsync(karmaType, karmaSourceType, karamSourceTitle, karmaSourceDesc, karmaSourceWebLink);
         }
 
-        public KarmaAkashicRecord AddKarmaToAvatar(IAvatarDetail avatar, KarmaTypePositive karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc, string karmaSourceWebLink)
+        public OASISResult<KarmaAkashicRecord> AddKarmaToAvatar(IAvatarDetail avatar, KarmaTypePositive karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc, string karmaSourceWebLink)
         {
             return avatar.KarmaEarnt(karmaType, karmaSourceType, karamSourceTitle, karmaSourceDesc, karmaSourceWebLink);
         }
 
-        public KarmaAkashicRecord RemoveKarmaFromAvatar(IAvatarDetail avatar, KarmaTypeNegative karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc, string karmaSourceWebLink)
+        public OASISResult<KarmaAkashicRecord> RemoveKarmaFromAvatar(IAvatarDetail avatar, KarmaTypeNegative karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc, string karmaSourceWebLink)
         {
             return avatar.KarmaLost(karmaType, karmaSourceType, karamSourceTitle, karmaSourceDesc, karmaSourceWebLink);
         }
@@ -157,7 +157,7 @@ namespace NextGenSoftware.OASIS.API.Core
         public abstract Task<OASISResult<IEnumerable<IAvatar>>> LoadAllAvatarsAsync(int version = 0);
         public abstract OASISResult<IEnumerable<IAvatar>> LoadAllAvatars(int version = 0);
         public abstract OASISResult<IAvatar> LoadAvatarByUsername(string avatarUsername, int version = 0);
-        public abstract Task<OASISResult<IAvatar>> LoadAvatarAsync(Guid Id);
+        public abstract Task<OASISResult<IAvatar>> LoadAvatarAsync(Guid Id, int version = 0);
         public abstract Task<OASISResult<IAvatar>> LoadAvatarByEmailAsync(string avatarEmail, int version = 0);
         public abstract Task<OASISResult<IAvatar>> LoadAvatarByUsernameAsync(string avatarUsername, int version = 0);
         public abstract OASISResult<IAvatar> LoadAvatar(Guid Id, int version = 0);
@@ -165,7 +165,7 @@ namespace NextGenSoftware.OASIS.API.Core
         public abstract Task<OASISResult<IAvatar>> LoadAvatarAsync(string username, string password, int version = 0);
         public abstract OASISResult<IAvatar> LoadAvatar(string username, string password, int version = 0);
         public abstract OASISResult<IAvatar> LoadAvatar(string username, int version = 0);
-        public abstract Task<OASISResult<IAvatar>> LoadAvatarAsync(string username);
+        public abstract Task<OASISResult<IAvatar>> LoadAvatarAsync(string username, int version = 0);
         public abstract Task<OASISResult<IAvatar>> LoadAvatarForProviderKeyAsync(string providerKey, int version = 0);
         public abstract OASISResult<IAvatar> LoadAvatarForProviderKey(string providerKey, int version = 0);
         // public abstract Task<IAvatarThumbnail> LoadAvatarThumbnailAsync(Guid id);
@@ -190,23 +190,23 @@ namespace NextGenSoftware.OASIS.API.Core
         public abstract Task<OASISResult<bool>> DeleteAvatarByUsernameAsync(string avatarUsername, bool softDelete = true);
         public abstract OASISResult<bool> DeleteAvatar(string providerKey, bool softDelete = true);
         public abstract Task<OASISResult<bool>> DeleteAvatarAsync(string providerKey, bool softDelete = true);
-        public abstract Task<OASISResult<ISearchResults>> SearchAsync(ISearchParams searchParams);
-        public abstract OASISResult<IHolon> LoadHolon(Guid id, bool loadChildren = true, bool recursive = true, bool continueOnError = true, int version = 0);
-        public abstract Task<OASISResult<IHolon>> LoadHolonAsync(Guid id, bool loadChildren = true, bool recursive = true, bool continueOnError = true, int version = 0);
-        public abstract OASISResult<IHolon> LoadHolon(string providerKey, bool loadChildren = true, bool recursive = true, bool continueOnError = true, int version = 0);
-        public abstract Task<OASISResult<IHolon>> LoadHolonAsync(string providerKey, bool loadChildren = true, bool recursive = true, bool continueOnError = true, int version = 0);
-        public abstract OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(Guid id, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, bool continueOnError = true, int version = 0);
-        public abstract Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(Guid id, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, bool continueOnError = true, int version = 0);
-        public abstract OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(string providerKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, bool continueOnError = true, int version = 0);
-        public abstract Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(string providerKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, bool continueOnError = true, int version = 0);
-        public abstract OASISResult<IEnumerable<IHolon>> LoadAllHolons(HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, bool continueOnError = true, int version = 0);
-        public abstract Task<OASISResult<IEnumerable<IHolon>>> LoadAllHolonsAsync(HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, bool continueOnError = true, int version = 0);
+        public abstract Task<OASISResult<ISearchResults>> SearchAsync(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int childDepth = 0, bool continueOnError = true, int version = 0);
+        public abstract OASISResult<IHolon> LoadHolon(Guid id, bool loadChildren = true, bool recursive = true, int childDepth = 0, bool continueOnError = true, int version = 0);
+        public abstract Task<OASISResult<IHolon>> LoadHolonAsync(Guid id, bool loadChildren = true, bool recursive = true, int childDepth = 0, bool continueOnError = true, int version = 0);
+        public abstract OASISResult<IHolon> LoadHolon(string providerKey, bool loadChildren = true, bool recursive = true, int childDepth = 0, bool continueOnError = true, int version = 0);
+        public abstract Task<OASISResult<IHolon>> LoadHolonAsync(string providerKey, bool loadChildren = true, bool recursive = true, int childDepth = 0, bool continueOnError = true, int version = 0);
+        public abstract OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(Guid id, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int childDepth = 0, bool continueOnError = true, int version = 0);
+        public abstract Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(Guid id, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int childDepth = 0, bool continueOnError = true, int version = 0);
+        public abstract OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(string providerKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int childDepth = 0, bool continueOnError = true, int version = 0);
+        public abstract Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(string providerKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int childDepth = 0, bool continueOnError = true, int version = 0);
+        public abstract OASISResult<IEnumerable<IHolon>> LoadAllHolons(HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int childDepth = 0, bool continueOnError = true, int version = 0);
+        public abstract Task<OASISResult<IEnumerable<IHolon>>> LoadAllHolonsAsync(HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int childDepth = 0, bool continueOnError = true, int version = 0);
 
         //TODO: We need to migrate ALL OASIS methods to use the OASISResult Pattern ASAP! Thankyou! :)
-        public abstract OASISResult<IHolon> SaveHolon(IHolon holon, bool saveChildren = true, bool recursive = true, bool continueOnError = true);
-        public abstract Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon, bool saveChildren = true, bool recursive = true, bool continueOnError = true);
-        public abstract OASISResult<IEnumerable<IHolon>> SaveHolons(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, bool continueOnError = true);
-        public abstract Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, bool continueOnError = true);
+        public abstract OASISResult<IHolon> SaveHolon(IHolon holon, bool saveChildren = true, bool recursive = true, int childDepth = 0, bool continueOnError = true);
+        public abstract Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon, bool saveChildren = true, bool recursive = true, int childDepth = 0, bool continueOnError = true);
+        public abstract OASISResult<IEnumerable<IHolon>> SaveHolons(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int childDepth = 0, bool continueOnError = true);
+        public abstract Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int childDepth = 0, bool continueOnError = true);
         public abstract OASISResult<bool> DeleteHolon(Guid id, bool softDelete = true);
         public abstract Task<OASISResult<bool>> DeleteHolonAsync(Guid id, bool softDelete = true);
         public abstract OASISResult<bool> DeleteHolon(string providerKey, bool softDelete = true);

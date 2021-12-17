@@ -6,7 +6,7 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces
 {
     // This interface provides methods to discover and interact with other nodes/peers on the distributed/decentralised network (ONET)
     // This will involve peer to peer communcation.
-    public interface IOASISNET : IOASISProvider
+    public interface IOASISNETProvider : IOASISProvider
     {
         OASISResult<IEnumerable<IPlayer>> GetPlayersNearMe();
         OASISResult<IEnumerable<IHolon>> GetHolonsNearMe(HolonType Type);

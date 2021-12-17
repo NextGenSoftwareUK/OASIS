@@ -10,7 +10,7 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces
 {
     // This interface is responsbile for persisting data/state to storage, this could be a local DB or other local 
     // storage or through a distributed/decentralised provider such as IPFS (IPFSOASIS Provider coming soon) or Holochain (HoloOASIS Provider implemented).
-    public interface IOASISStorage : IOASISProvider
+    public interface IOASISStorageProvider : IOASISProvider
     {
         OASISResult<IAvatar> LoadAvatarForProviderKey(string providerKey, int version = 0);
         Task<OASISResult<IAvatar>> LoadAvatarForProviderKeyAsync(string providerKey, int version = 0);
@@ -54,28 +54,28 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces
         Task<OASISResult<KarmaAkashicRecord>> RemoveKarmaFromAvatarAsync(IAvatarDetail Avatar, KarmaTypeNegative karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc, string karmaSourceWebLink = null);
 
         //TODO: We need to migrate ALL OASIS methods to use the OASISResult Pattern ASAP! Thankyou! :)
-        OASISResult<IHolon> SaveHolon(IHolon holon, bool saveChildren = true, bool recursive = true, bool continueOnError = true);
-        Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon, bool saveChildren = true, bool recursive = true, bool continueOnError = true);
-        OASISResult<IEnumerable<IHolon>> SaveHolons(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, bool continueOnError = true);
-        Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, bool continueOnError = true);
-        OASISResult<IHolon> LoadHolon(Guid id, bool loadChildren = true, bool recursive = true, bool continueOnError = true, int version = 0);
+        OASISResult<IHolon> SaveHolon(IHolon holon, bool saveChildren = true, bool recursive = true, int childDepth = 0, bool continueOnError = true);
+        Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon, bool saveChildren = true, bool recursive = true, int childDepth = 0, bool continueOnError = true);
+        OASISResult<IEnumerable<IHolon>> SaveHolons(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int childDepth = 0, bool continueOnError = true);
+        Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int childDepth = 0, bool continueOnError = true);
+        OASISResult<IHolon> LoadHolon(Guid id, bool loadChildren = true, bool recursive = true, int childDepth = 0, bool continueOnError = true, int version = 0);
 
       //  T LoadHolon<T>(Guid id) where T : IHolon;
-        Task<OASISResult<IHolon>> LoadHolonAsync(Guid id, bool loadChildren = true, bool recursive = true, bool continueOnError = true, int version = 0);
-        OASISResult<IHolon> LoadHolon(string providerKey, bool loadChildren = true, bool recursive = true, bool continueOnError = true, int version = 0);
-        Task<OASISResult<IHolon>> LoadHolonAsync(string providerKey, bool loadChildren = true, bool recursive = true, bool continueOnError = true, int version = 0);
-        OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(Guid id, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, bool continueOnError = true, int version = 0);
-        Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(Guid id, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, bool continueOnError = true, int version = 0);
-        OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(string providerKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, bool continueOnError = true, int version = 0);
-        Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(string providerKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, bool continueOnError = true, int version = 0);
-        OASISResult<IEnumerable<IHolon>> LoadAllHolons(HolonType type = HolonType.All, int version = 0);
-        Task<OASISResult<IEnumerable<IHolon>>> LoadAllHolonsAsync(HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, bool continueOnError = true, int version = 0);
+        Task<OASISResult<IHolon>> LoadHolonAsync(Guid id, bool loadChildren = true, bool recursive = true, int childDepth = 0, bool continueOnError = true, int version = 0);
+        OASISResult<IHolon> LoadHolon(string providerKey, bool loadChildren = true, bool recursive = true, int childDepth = 0, bool continueOnError = true, int version = 0);
+        Task<OASISResult<IHolon>> LoadHolonAsync(string providerKey, bool loadChildren = true, bool recursive = true, int childDepth = 0, bool continueOnError = true, int version = 0);
+        OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(Guid id, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int childDepth = 0, bool continueOnError = true, int version = 0);
+        Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(Guid id, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int childDepth = 0, bool continueOnError = true, int version = 0);
+        OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(string providerKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int childDepth = 0, bool continueOnError = true, int version = 0);
+        Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(string providerKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int childDepth = 0, bool continueOnError = true, int version = 0);
+        OASISResult<IEnumerable<IHolon>> LoadAllHolons(HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int childDepth = 0, bool continueOnError = true, int version = 0);
+        Task<OASISResult<IEnumerable<IHolon>>> LoadAllHolonsAsync(HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int childDepth = 0, bool continueOnError = true, int version = 0);
         OASISResult<bool> DeleteHolon(Guid id, bool softDelete = true);
         Task<OASISResult<bool>> DeleteHolonAsync(Guid id, bool softDelete = true);
         OASISResult<bool> DeleteHolon(string providerKey, bool softDelete = true);
         Task<OASISResult<bool>> DeleteHolonAsync(string providerKey, bool softDelete = true);
 
-        Task<OASISResult<ISearchResults>> SearchAsync(ISearchParams searchParams, int version = 0);
+        Task<OASISResult<ISearchResults>> SearchAsync(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int childDepth = 0, bool continueOnError = true, int version = 0);
 
         event StorageProviderError StorageProviderError;
 

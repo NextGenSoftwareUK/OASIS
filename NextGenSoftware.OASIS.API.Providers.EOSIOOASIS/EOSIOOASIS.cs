@@ -16,7 +16,7 @@ using NextGenSoftware.OASIS.API.Core.Helpers;
 
 namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
 {
-    public class EOSIOOASIS : OASISStorageBase, IOASISStorage, IOASISNET, IOASISSuperStar
+    public class EOSIOOASIS : OASISStorageProviderBase, IOASISStorage, IOASISNETProvider, IOASISSuperStar
     {
         private static Dictionary<Guid, Account> _avatarIdToEOSIOAccountLookup = new Dictionary<Guid, Account>();
         private AvatarManager _avatarManager = null;

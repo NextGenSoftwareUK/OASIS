@@ -12,7 +12,7 @@ using NextGenSoftware.OASIS.API.Core.Helpers;
 
 namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
 {
-    public class EthereumOASIS : OASISStorageBase, IOASISStorage, IOASISNET
+    public class EthereumOASIS : OASISStorageProviderBase, IOASISStorage, IOASISNETProvider
     {
         public Web3 Web3 { get; set; }
         public string HostUri { get; set; }
