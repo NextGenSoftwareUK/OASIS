@@ -8,7 +8,7 @@ using NextGenSoftware.OASIS.API.Core.Helpers;
 
 namespace NextGenSoftware.OASIS.API.Providers.SOLIDOASIS
 {
-    public class SOLIDOASIS : OASISStorageBase, IOASISStorage, IOASISNET
+    public class SOLIDOASIS : OASISStorageProviderBase, IOASISStorage, IOASISNETProvider
     {
         //public event AvatarManager.StorageProviderError OnStorageProviderError;
 

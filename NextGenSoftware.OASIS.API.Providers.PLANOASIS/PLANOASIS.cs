@@ -8,7 +8,7 @@ using NextGenSoftware.OASIS.API.Core.Helpers;
 
 namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
 {
-    public class PLANOASIS : OASISStorageBase, IOASISStorage, IOASISNET
+    public class PLANOASIS : OASISStorageProviderBase, IOASISStorage, IOASISNETProvider
     {
         public PLANOASIS()
         {

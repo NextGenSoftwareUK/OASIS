@@ -12,7 +12,7 @@ using NextGenSoftware.OASIS.API.Core.Helpers;
 
 namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
 {
-    public class SQLLiteDBOASIS : OASISStorageBase, IOASISStorage, IOASISNET
+    public class SQLLiteDBOASIS : OASISStorageProviderBase, IOASISStorage, IOASISNETProvider
     {
         private string connectionString;
         //private DataContext appDataContext;

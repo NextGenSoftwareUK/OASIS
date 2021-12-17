@@ -10,7 +10,7 @@ using NextGenSoftware.OASIS.API.Core.Helpers;
 
 namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS
 {
-    public class TelosOASIS : OASISStorageBase, IOASISStorage, IOASISNET
+    public class TelosOASIS : OASISStorageProviderBase, IOASISStorage, IOASISNETProvider
     {
         private static Dictionary<Guid, Account> _avatarIdToTelosAccountLookup = new Dictionary<Guid, Account>();
         private AvatarManager _avatarManager = null;

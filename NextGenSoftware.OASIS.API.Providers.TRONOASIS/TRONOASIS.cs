@@ -8,7 +8,7 @@ using NextGenSoftware.OASIS.API.Core.Helpers;
 
 namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
 {
-    public class TRONOASIS : OASISStorageBase, IOASISStorage, IOASISNET
+    public class TRONOASIS : OASISStorageProviderBase, IOASISStorage, IOASISNETProvider
     {
         public TRONOASIS()
         {

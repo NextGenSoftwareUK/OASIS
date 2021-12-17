@@ -8,7 +8,7 @@ using NextGenSoftware.OASIS.API.Core.Helpers;
 
 namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
 {
-    public class ThreeFoldOASIS : OASISStorageBase, IOASISStorage, IOASISNET
+    public class ThreeFoldOASIS : OASISStorageProviderBase, IOASISStorage, IOASISNETProvider
     {
         public string HostUri { get; set; }
 

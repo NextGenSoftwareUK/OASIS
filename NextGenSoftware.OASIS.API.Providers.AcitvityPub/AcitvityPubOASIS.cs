@@ -9,7 +9,7 @@ using NextGenSoftware.OASIS.API.Core.Helpers;
 
 namespace NextGenSoftware.OASIS.API.Providers.AcitvityPubOASIS
 {
-    public class AcitvityPubOASIS : OASISStorageBase,  IOASISStorage, IOASISNET
+    public class AcitvityPubOASIS : OASISStorageProviderBase,  IOASISStorage, IOASISNETProvider
     {
         public AcitvityPubOASIS()
         {

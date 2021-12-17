@@ -151,12 +151,12 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return GetStorageProviders().Select(x => x.ProviderType.Value).ToList();
         }
 
-        public static List<IOASISNET> GetNetworkProviders()
+        public static List<IOASISNETProvider> GetNetworkProviders()
         {
-            List<IOASISNET> networkProviders = new List<IOASISNET>();
+            List<IOASISNETProvider> networkProviders = new List<IOASISNETProvider>();
 
             foreach (IOASISProvider provider in _registeredProviders.Where(x => x.ProviderCategory.Value == ProviderCategory.Network || x.ProviderCategory.Value == ProviderCategory.StorageAndNetwork).ToList())
-                networkProviders.Add((IOASISNET)provider);
+                networkProviders.Add((IOASISNETProvider)provider);
 
             return networkProviders;
         }
@@ -203,9 +203,9 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return (IOASISStorage)_registeredProviders.FirstOrDefault(x => x.ProviderType.Value == type && x.ProviderCategory.Value == ProviderCategory.Storage);
         }
 
-        public static IOASISNET GetNetworkProvider(ProviderType type)
+        public static IOASISNETProvider GetNetworkProvider(ProviderType type)
         {
-            return (IOASISNET)_registeredProviders.FirstOrDefault(x => x.ProviderType.Value == type && x.ProviderCategory.Value == ProviderCategory.Network);
+            return (IOASISNETProvider)_registeredProviders.FirstOrDefault(x => x.ProviderType.Value == type && x.ProviderCategory.Value == ProviderCategory.Network);
         }
 
         public static IOASISRenderer GetRendererProvider(ProviderType type)
