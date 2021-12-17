@@ -139,6 +139,7 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
         public Avatar DeletedByAvatar { get; set; }
         public DateTime DeletedDate { get; set; }
         public int Version { get; set; }
+        public Guid VersionId { get; set; }
         public Guid PreviousVersionId { get; set; }
         public Dictionary<ProviderType, string> PreviousVersionProviderKey { get; set; } = new Dictionary<ProviderType, string>(); 
         public bool IsActive { get; set; }

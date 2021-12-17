@@ -35,8 +35,13 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Reposit
 
             try
             {
-                entity.Id = new Guid();
-                entity.IsNewHolon = true;
+                //Now done in AvatarManager and HolonManager so no need for it here... :)
+                //TODO: Need to move this new Blockchain version control system into HolonManager so is shared with other Providers...
+                //entity.Id = new Guid();
+                //entity.IsNewHolon = true;
+                //entity.Version = 1;
+                //entity.VersionId = Guid.NewGuid();
+
                 var account = _wallet.Account;
                 var blockHash = _rpcClient.GetRecentBlockHash();
 
@@ -51,13 +56,19 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Reposit
                 if (sendTransactionResult != null && sendTransactionResult.WasSuccessful)
                 {
                     result.Result = entity;
-                    result.Result.ProviderKey[Core.Enums.ProviderType.SolanaOASIS] = sendTransactionResult.Result;
-                    OASISResult<T> updateResult = Update<T>(entity);
+                    result.IsSaved = true;
 
-                    if (updateResult != null && !updateResult.IsError && updateResult.Result != null)
-                        result.IsSaved = true;
-                    else
-                        ErrorHandling.HandleError(ref result, $"{errorMessage} Reason: {updateResult.Message}");
+                    //TODO: Not much point setting the provider key because we cannot update the record, update below will create a NEW record. 
+                    //So only in the Update method do we link to the previous version...
+
+                    // We can of course always return the providerKey, which the caller can then store or do as they wish, it just will not be stored on the blockchain record.
+                    result.Result.ProviderKey[ProviderType.SolanaOASIS] = sendTransactionResult.Result;
+                    //OASISResult<T> updateResult = Update<T>(entity);
+
+                    //if (updateResult != null && !updateResult.IsError && updateResult.Result != null)
+                    //    result.IsSaved = true;
+                    //else
+                    //    ErrorHandling.HandleError(ref result, $"{errorMessage} Reason: {updateResult.Message}");
                 }
                 else
                     ErrorHandling.HandleError(ref result, $"{errorMessage} {GetTransactionResultError(sendTransactionResult)}");
@@ -76,8 +87,13 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Reposit
 
             try
             {
-                entity.Id = new Guid();
-                entity.IsNewHolon = true;
+                //Now done in AvatarManager and HolonManager so no need for it here... :)
+                //TODO: Need to move this new Blockchain version control system into HolonManager so is shared with other Providers...
+                //entity.Id = new Guid();
+                //entity.IsNewHolon = true;
+                //entity.Version = 1;
+                //entity.VersionId = Guid.NewGuid();
+
                 var account = _wallet.Account;
                 var blockHash = await _rpcClient.GetRecentBlockHashAsync();
 
@@ -92,13 +108,19 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Reposit
                 if (sendTransactionResult != null && sendTransactionResult.WasSuccessful)
                 {
                     result.Result = entity;
-                    result.Result.ProviderKey[Core.Enums.ProviderType.SolanaOASIS] = sendTransactionResult.Result;
-                    OASISResult<T> updateResult = Update<T>(entity);
+                    result.IsSaved = true;
 
-                    if (updateResult != null && !updateResult.IsError && updateResult.Result != null)
-                        result.IsSaved = true;
-                    else
-                        ErrorHandling.HandleError(ref result, $"{errorMessage} Reason: {updateResult.Message}");
+                    //TODO: Not much point setting the provider key because we cannot update the record, update below will create a NEW record. 
+                    //So only in the Update method do we link to the previous version...
+
+                    // We can of course always return the providerKey, which the caller can then store or do as they wish, it just will not be stored on the blockchain record.
+                    result.Result.ProviderKey[ProviderType.SolanaOASIS] = sendTransactionResult.Result;
+                    //OASISResult<T> updateResult = Update<T>(entity);
+
+                    //if (updateResult != null && !updateResult.IsError && updateResult.Result != null)
+                    //    result.IsSaved = true;
+                    //else
+                    //    ErrorHandling.HandleError(ref result, $"{errorMessage} Reason: {updateResult.Message}");
                 }
                 else
                     ErrorHandling.HandleError(ref result, $"{errorMessage} {GetTransactionResultError(sendTransactionResult)}");
@@ -200,14 +222,19 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Reposit
 
             try
             {
+                //Now done in AvatarManager and HolonManager so no need for it here... :)
+                /*
+                // We need to store the previous version id, this will effectively be a linked list where each record will point to it's previous version.
                 //entity.PreviousVersionId = entity.Id;
                 //entity.Id = new Guid();
-                //entity.IsNewHolon = false;
-
-                //Store the previous ProviderKey to link the records but use the same Id (Guid).
-
-                //TODO: Needs more thought... ;-)
-                entity.PreviousVersionProviderKey[ProviderType.SolanaOASIS] = entity.ProviderKey[ProviderType.SolanaOASIS];
+                entity.IsNewHolon = false;
+                
+                // Actually I think this way is better, we keep the same unique ID but just increment the version.
+                // So later we can query for a record for a given id and version number.... :)
+                // So don't think we need a previousVersionID at all? Maybe we could store just in case we need for later?
+                entity.Version++;
+                entity.PreviousVersionId = entity.VersionId;
+                */
 
                 var account = _wallet.Account;
                 var blockHash = _rpcClient.GetRecentBlockHash();
@@ -224,6 +251,22 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Reposit
                 {
                     result.Result = entity;
                     result.IsSaved = true;
+
+                    // TODO: Not much point setting the provider key because we cannot update the record, update below will create a NEW record.
+                    //So only in the Update method do we link to the previous version...
+
+                    // We can of course always return the providerKey, which the caller can then store or do as they wish, it just will not be stored on the blockchain record.
+                    result.Result.ProviderKey[ProviderType.SolanaOASIS] = sendTransactionResult.Result;
+                    
+                    //TODO: Actually we can save the providerKey in the next version of the record. Just not sure if we need or want to do this?
+                    // Probably not a good idea because of the overhead writing to a Blockchain such as gas fees, time, etc.
+                    //result.Result.PreviousVersionProviderKey[ProviderType.SolanaOASIS] = sendTransactionResult.Result;
+                    //OASISResult<T> updateResult = Update<T>(entity);
+
+                    //if (updateResult != null && !updateResult.IsError && updateResult.Result != null)
+                    //    result.IsSaved = true;
+                    //else
+                    //    ErrorHandling.HandleError(ref result, $"{errorMessage} Reason: {updateResult.Message}");
                 }
                 else
                     ErrorHandling.HandleError(ref result, $"{errorMessage} {GetTransactionResultError(sendTransactionResult)}");
@@ -244,15 +287,20 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Reposit
 
             try
             {
+                //Now done in AvatarManager and HolonManager so no need for it here... :)
+                /*
+                // We need to store the previous version id, this will effectively be a linked list where each record will point to it's previous version.
                 //entity.PreviousVersionId = entity.Id;
                 //entity.Id = new Guid();
-                //entity.IsNewHolon = false;
-
-                //Store the previous ProviderKey to link the records but use the same Id (Guid).
-
-                //TODO: Needs more thought... ;-)
-                entity.PreviousVersionProviderKey[ProviderType.SolanaOASIS] = entity.ProviderKey[ProviderType.SolanaOASIS];
+                entity.IsNewHolon = false;
                 
+                // Actually I think this way is better, we keep the same unique ID but just increment the version.
+                // So later we can query for a record for a given id and version number.... :)
+                // So don't think we need a previousVersionID at all? Maybe we could store just in case we need for later?
+                entity.Version++;
+                entity.PreviousVersionId = entity.VersionId;
+                */
+
                 var account = _wallet.Account;
                 var blockHash = await _rpcClient.GetRecentBlockHashAsync();
 
@@ -268,6 +316,22 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Reposit
                 {
                     result.Result = entity;
                     result.IsSaved = true;
+
+                    // TODO: Not much point setting the provider key because we cannot update the record, update below will create a NEW record.
+                    //So only in the Update method do we link to the previous version...
+
+                    // We can of course always return the providerKey, which the caller can then store or do as they wish, it just will not be stored on the blockchain record.
+                    result.Result.ProviderKey[ProviderType.SolanaOASIS] = sendTransactionResult.Result;
+
+                    //TODO: Actually we can save the providerKey in the next version of the record. Just not sure if we need or want to do this?
+                    // Probably not a good idea because of the overhead writing to a Blockchain such as gas fees, time, etc.
+                    //result.Result.PreviousVersionProviderKey[ProviderType.SolanaOASIS] = sendTransactionResult.Result;
+                    //OASISResult<T> updateResult = await UpdateAsync<T>(entity);
+
+                    //if (updateResult != null && !updateResult.IsError && updateResult.Result != null)
+                    //    result.IsSaved = true;
+                    //else
+                    //    ErrorHandling.HandleError(ref result, $"{errorMessage} Reason: {updateResult.Message}");
                 }
                 else
                     ErrorHandling.HandleError(ref result, $"{errorMessage} {GetTransactionResultError(sendTransactionResult)}");
