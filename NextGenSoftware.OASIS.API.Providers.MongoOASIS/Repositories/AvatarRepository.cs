@@ -132,10 +132,21 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
             }
         }
 
-        public Avatar GetAvatar(Expression<Func<Avatar, bool>> expression)
+        public OASISResult<Avatar> GetAvatar(Expression<Func<Avatar, bool>> expression)
         {
-            var filter = Builders<Avatar>.Filter.Where(expression);
-            return _dbContext.Avatar.Find(filter).FirstOrDefault();
+            OASISResult<Avatar> result = new OASISResult<Avatar>();
+
+            try
+            {
+                var filter = Builders<Avatar>.Filter.Where(expression);
+                result.Result = _dbContext.Avatar.Find(filter).FirstOrDefault();
+            }
+            catch (Exception ex)
+            {
+                ErrorHandling.HandleError(ref result, $"Error in GetAvatar method in AvatarRepository loading Avatar. Reason: {ex}");
+            }
+
+            return result;
         }
         
         public async Task<Avatar> GetAvatarAsync(Expression<Func<Avatar, bool>> expression)
@@ -399,7 +410,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
             {
                 if (softDelete)
                 {
-                    Avatar avatar = GetAvatar(expression);
+                    Avatar avatar = GetAvatar(expression).Result;
 
                     if (avatar == null)
                     {
