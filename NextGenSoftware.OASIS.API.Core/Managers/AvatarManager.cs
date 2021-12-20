@@ -32,7 +32,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
        // public OASISDNA OASISDNA { get; set; }
         
-        public List<IOASISStorage> OASISStorageProviders { get; set; }
+        public List<IOASISStorageProvider> OASISStorageProviders { get; set; }
         
         public ProviderManagerConfig Config
         {
@@ -48,13 +48,13 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         public delegate void StorageProviderError(object sender, AvatarManagerErrorEventArgs e);
 
        //TODO: Not sure we want to pass the OASISDNA here?
-        public AvatarManager(IOASISStorage OASISStorageProvider, OASISDNA OASISDNA = null) : base(OASISStorageProvider, OASISDNA)
+        public AvatarManager(IOASISStorageProvider OASISStorageProvider, OASISDNA OASISDNA = null) : base(OASISStorageProvider, OASISDNA)
         {
             
         }
 
         //TODO: In future more than one storage provider can be active at a time where each call can specify which provider to use.
-        //public AvatarManager(IOASISStorage OASISStorageProvider) : base(OASISStorageProvider)
+        //public AvatarManager(IOASISStorageProvider OASISStorageProvider) : base(OASISStorageProvider)
         //{
             
         //}
@@ -325,14 +325,14 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         public IEnumerable<IAvatar> LoadAllAvatarsWithPasswords(ProviderType provider = ProviderType.Default)
         {
             //TODO: Need to handle return of OASISResult properly...
-            IEnumerable<IAvatar> avatars = ProviderManager.SetAndActivateCurrentStorageProvider(provider).Result.LoadAllAvatars();
+            IEnumerable<IAvatar> avatars = ProviderManager.SetAndActivateCurrentStorageProvider(provider).Result.LoadAllAvatars().Result;
             return avatars;
         }
 
         public IEnumerable<IAvatar> LoadAllAvatars(ProviderType provider = ProviderType.Default)
         {
             //TODO: Need to handle return of OASISResult properly...
-            IEnumerable<IAvatar> avatars = ProviderManager.SetAndActivateCurrentStorageProvider(provider).Result.LoadAllAvatars();
+            IEnumerable<IAvatar> avatars = ProviderManager.SetAndActivateCurrentStorageProvider(provider).Result.LoadAllAvatars().Result;
 
             foreach (IAvatar avatar in avatars)
                 avatar.Password = null;
@@ -343,7 +343,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         public async Task<IEnumerable<IAvatar>> LoadAllAvatarsAsync(ProviderType provider = ProviderType.Default)
         {
             //TODO: Need to handle return of OASISResult properly...
-            IEnumerable<IAvatar> avatars = ProviderManager.SetAndActivateCurrentStorageProvider(provider).Result.LoadAllAvatarsAsync().Result;
+            IEnumerable<IAvatar> avatars = ProviderManager.SetAndActivateCurrentStorageProvider(provider).Result.LoadAllAvatarsAsync().Result.Result;
 
             foreach (IAvatar avatar in avatars)
                 RemoveAuthDetails(avatar);
@@ -356,29 +356,29 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         public async Task<IAvatar> LoadAvatarAsync(string username, ProviderType provider = ProviderType.Default)
         {
             //TODO: Need to handle return of OASISResult properly...
-            IAvatar avatar = await ProviderManager.SetAndActivateCurrentStorageProvider(provider).Result.LoadAvatarAsync(username);
+            OASISResult<IAvatar> avatar = await ProviderManager.SetAndActivateCurrentStorageProvider(provider).Result.LoadAvatarAsync(username);
             // avatar.Password = null;
-            return avatar;
+            return avatar.Result;
         }
         
         public async Task<IAvatar> LoadAvatarByUsernameAsync(string username, ProviderType provider = ProviderType.Default)
         {
             //TODO: Need to handle return of OASISResult properly...
             var avatar = await ProviderManager.SetAndActivateCurrentStorageProvider(provider).Result.LoadAvatarByUsernameAsync(username);
-            return avatar;
+            return avatar.Result;
         }
 
         public async Task<IAvatar> LoadAvatarByEmailAsync(string email, ProviderType provider = ProviderType.Default)
         {
             //TODO: Need to handle return of OASISResult properly...
             var avatar = await ProviderManager.SetAndActivateCurrentStorageProvider(provider).Result.LoadAvatarByEmailAsync(email);
-            return avatar;
+            return avatar.Result;
         }
 
         public async Task<IAvatar> LoadAvatarAsync(Guid id, ProviderType providerType = ProviderType.Default)
         {
             //TODO: Need to handle return of OASISResult properly...
-            IAvatar avatar = ProviderManager.SetAndActivateCurrentStorageProvider(providerType).Result.LoadAvatarAsync(id).Result;
+            IAvatar avatar = ProviderManager.SetAndActivateCurrentStorageProvider(providerType).Result.LoadAvatarAsync(id).Result.Result;
             // avatar.Password = null;
             return avatar;
         }
@@ -387,67 +387,67 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         {
             //TODO: Need to handle return of OASISResult properly...
             var detail = await ProviderManager.SetAndActivateCurrentStorageProvider(ProviderType.Default).Result.LoadAvatarDetailAsync(id);
-            return detail;
+            return detail.Result;
         }
         
         public async Task<IAvatarDetail> LoadAvatarDetailByEmailAsync(string email)
         {
             //TODO: Need to handle return of OASISResult properly...
             var detail = await ProviderManager.SetAndActivateCurrentStorageProvider(ProviderType.Default).Result.LoadAvatarDetailByEmailAsync(email);
-            return detail;
+            return detail.Result;
         }
         
         public async Task<IAvatarDetail> LoadAvatarDetailByUsernameAsync(string username)
         {
             //TODO: Need to handle return of OASISResult properly...
             var detail = await ProviderManager.SetAndActivateCurrentStorageProvider(ProviderType.Default).Result.LoadAvatarDetailByUsernameAsync(username);
-            return detail;
+            return detail.Result;
         }
 
         public async Task<IEnumerable<IAvatarDetail>> LoadAllAvatarDetailAsync()
         {
             //TODO: Need to handle return of OASISResult properly...
             var details = await ProviderManager.SetAndActivateCurrentStorageProvider(ProviderType.Default).Result.LoadAllAvatarDetailsAsync();
-            return details;
+            return details.Result;
         }
 
         public IAvatarDetail LoadAvatarDetail(Guid id)
         {
             //TODO: Need to handle return of OASISResult properly...
             var detail =  ProviderManager.SetAndActivateCurrentStorageProvider(ProviderType.Default).Result.LoadAvatarDetail(id);
-            return detail;
+            return detail.Result;
         }
 
         public IEnumerable<IAvatarDetail> LoadAllAvatarDetails()
         {
             //TODO: Need to handle return of OASISResult properly...
             var details = ProviderManager.SetAndActivateCurrentStorageProvider(ProviderType.Default).Result.LoadAllAvatarDetails();
-            return details;
+            return details.Result;
         }
 
         public async Task<IEnumerable<IAvatarDetail>> LoadAllAvatarDetailsAsync()
         {
             //TODO: Need to handle return of OASISResult properly...
             var details = await ProviderManager.SetAndActivateCurrentStorageProvider(ProviderType.Default).Result.LoadAllAvatarDetailsAsync();
-            return details;
+            return details.Result;
         }
 
         public IAvatar LoadAvatar(Guid id, ProviderType providerType = ProviderType.Default)
         {
             //TODO: Need to handle return of OASISResult properly...
-            IAvatar avatar = ProviderManager.SetAndActivateCurrentStorageProvider(providerType).Result.LoadAvatar(id);
+            IAvatar avatar = ProviderManager.SetAndActivateCurrentStorageProvider(providerType).Result.LoadAvatar(id).Result;
             //avatar.Password = null;
             return avatar;
         }
 
         public async Task<IAvatar> LoadAvatarAsync(string username, string password, ProviderType providerType = ProviderType.Default)
         {
-            return ProviderManager.SetAndActivateCurrentStorageProvider(providerType).Result.LoadAvatarAsync(username, password).Result;
+            return ProviderManager.SetAndActivateCurrentStorageProvider(providerType).Result.LoadAvatarAsync(username, password).Result.Result;
         }
 
         public IAvatar LoadAvatar(string username, string password, ProviderType providerType = ProviderType.Default)
         {
-            return ProviderManager.SetAndActivateCurrentStorageProvider(providerType).Result.LoadAvatar(username, password);
+            return ProviderManager.SetAndActivateCurrentStorageProvider(providerType).Result.LoadAvatar(username, password).Result;
         }
 
         //TODO: Replicate Auto-Fail over and Auto-Replication code for all Avatar, HolonManager methods etc...
@@ -460,7 +460,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             try
             {
                 //TODO: Need to handle return of OASISResult properly...
-                avatar = ProviderManager.SetAndActivateCurrentStorageProvider(providerType).Result.LoadAvatar(username);
+                avatar = ProviderManager.SetAndActivateCurrentStorageProvider(providerType).Result.LoadAvatar(username).Result;
             }
             catch (Exception ex)
             {
@@ -477,7 +477,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                         try
                         {
                             //TODO: Need to handle return of OASISResult properly...
-                            avatar = ProviderManager.SetAndActivateCurrentStorageProvider(type.Value).Result.LoadAvatar(username);
+                            avatar = ProviderManager.SetAndActivateCurrentStorageProvider(type.Value).Result.LoadAvatar(username).Result;
                             needToChangeBack = true;
 
                             if (avatar != null)
@@ -581,12 +581,16 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 int removingDays = OASISDNA.OASIS.Security.RemoveOldRefreshTokensAfterXDays;
                 int removeQty = avatar.RefreshTokens.RemoveAll(token => (DateTime.Today - token.Created).TotalDays > removingDays);
 
-                OASISResult<IOASISStorage> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
+                OASISResult<IOASISStorageProvider> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
 
                 if (providerResult != null && providerResult.Result != null && !providerResult.IsError)
                 {
-                    result.Result = await providerResult.Result.SaveAvatarAsync(PrepareAvatarForSaving(avatar));
-                    result.IsSaved = true;
+                    result = await providerResult.Result.SaveAvatarAsync(PrepareAvatarForSaving(avatar));
+                    
+                    if (result != null && !result.IsError && result.Result != null)
+                        result.IsSaved = true;
+                    else
+                        ErrorHandling.HandleError(ref result, result.Message);
                 }
                 else
                     ErrorHandling.HandleError(ref result, providerResult.Message);
@@ -605,11 +609,11 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                     {
                         try
                         {
-                            OASISResult<IOASISStorage> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(type.Value);
+                            OASISResult<IOASISStorageProvider> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(type.Value);
                             
                             if (providerResult != null && providerResult.Result != null && !providerResult.IsError)
                             {
-                                result.Result = await providerResult.Result.SaveAvatarAsync(avatar);
+                                result = await providerResult.Result.SaveAvatarAsync(avatar);
                                 result.IsSaved = true;
                                 break;
                             }
@@ -641,11 +645,11 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                         try
                         {
                             //TODO: Implement better error handling/logging like used elsewhere in HolonManager and CelestialBody/CelestialSpace etc.
-                            OASISResult<IOASISStorage> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(type.Value);
+                            OASISResult<IOASISStorageProvider> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(type.Value);
 
                             if (providerResult != null && providerResult.Result != null && !providerResult.IsError)
                             {
-                                result.Result = await providerResult.Result.SaveAvatarAsync(avatar);
+                                result = await providerResult.Result.SaveAvatarAsync(avatar);
                                 result.IsSaved = true;
                             }
                             else
@@ -673,11 +677,11 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 int removingDays = OASISDNA.OASIS.Security.RemoveOldRefreshTokensAfterXDays;
                 int removeQty = avatar.RefreshTokens.RemoveAll(token => (DateTime.Today - token.Created).TotalDays > removingDays);
 
-                OASISResult<IOASISStorage> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
+                OASISResult<IOASISStorageProvider> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
 
                 if (providerResult != null && providerResult.Result != null && !providerResult.IsError)
                 {
-                    result.Result = providerResult.Result.SaveAvatar(PrepareAvatarForSaving(avatar));
+                    result = providerResult.Result.SaveAvatar(PrepareAvatarForSaving(avatar));
                     result.IsSaved = true;
                 }
                 else
@@ -697,11 +701,11 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                     {
                         try
                         {
-                            OASISResult<IOASISStorage> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(type.Value);
+                            OASISResult<IOASISStorageProvider> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(type.Value);
 
                             if (providerResult != null && providerResult.Result != null && !providerResult.IsError)
                             {
-                                result.Result = providerResult.Result.SaveAvatar(avatar);
+                                result = providerResult.Result.SaveAvatar(avatar);
                                 result.IsSaved = true;
                                 break;
                             }
@@ -732,11 +736,11 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                     {
                         try
                         {
-                            OASISResult<IOASISStorage> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(type.Value);
+                            OASISResult<IOASISStorageProvider> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(type.Value);
 
                             if (providerResult != null && providerResult.Result != null && !providerResult.IsError)
                             {
-                                result.Result = providerResult.Result.SaveAvatar(avatar);
+                                result = providerResult.Result.SaveAvatar(avatar);
                                 result.IsSaved = true;
                             }
                             else
@@ -761,11 +765,11 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
             try
             {
-                OASISResult<IOASISStorage> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
+                OASISResult<IOASISStorageProvider> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
 
                 if (providerResult != null && providerResult.Result != null && !providerResult.IsError)
                 {
-                    result.Result = providerResult.Result.SaveAvatarDetail(PrepareAvatarDetailForSaving(avatar));
+                    result = providerResult.Result.SaveAvatarDetail(PrepareAvatarDetailForSaving(avatar));
                     result.IsSaved = true;
                 }
                 else
@@ -785,11 +789,11 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                     {
                         try
                         {
-                            OASISResult<IOASISStorage> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(type.Value);
+                            OASISResult<IOASISStorageProvider> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(type.Value);
 
                             if (providerResult != null && providerResult.Result != null && !providerResult.IsError)
                             {
-                                result.Result = providerResult.Result.SaveAvatarDetail(avatar);
+                                result = providerResult.Result.SaveAvatarDetail(avatar);
                                 result.IsSaved = true;
                                 break;
                             }
@@ -820,11 +824,11 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                     {
                         try
                         {
-                            OASISResult<IOASISStorage> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(type.Value);
+                            OASISResult<IOASISStorageProvider> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(type.Value);
 
                             if (providerResult != null && providerResult.Result != null && !providerResult.IsError)
                             {
-                                result.Result = providerResult.Result.SaveAvatarDetail(avatar);
+                                result = providerResult.Result.SaveAvatarDetail(avatar);
                                 result.IsSaved = true;
                             }
                             else
@@ -849,11 +853,11 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
             try
             {
-                OASISResult<IOASISStorage> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
+                OASISResult<IOASISStorageProvider> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
 
                 if (providerResult != null && providerResult.Result != null && !providerResult.IsError)
                 {
-                    result.Result = await providerResult.Result.SaveAvatarDetailAsync(PrepareAvatarDetailForSaving(avatar));
+                    result = await providerResult.Result.SaveAvatarDetailAsync(PrepareAvatarDetailForSaving(avatar));
                     result.IsSaved = true;
                 }
                 else
@@ -873,11 +877,11 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                     {
                         try
                         {
-                            OASISResult<IOASISStorage> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(type.Value);
+                            OASISResult<IOASISStorageProvider> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(type.Value);
 
                             if (providerResult != null && providerResult.Result != null && !providerResult.IsError)
                             {
-                                result.Result = await providerResult.Result.SaveAvatarDetailAsync(avatar);
+                                result = await providerResult.Result.SaveAvatarDetailAsync(avatar);
                                 result.IsSaved = true;
                                 break;
                             }
@@ -908,11 +912,11 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                     {
                         try
                         {
-                            OASISResult<IOASISStorage> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(type.Value);
+                            OASISResult<IOASISStorageProvider> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(type.Value);
 
                             if (providerResult != null && providerResult.Result != null && !providerResult.IsError)
                             {
-                                result.Result = await providerResult.Result.SaveAvatarDetailAsync(avatar);
+                                result = await providerResult.Result.SaveAvatarDetailAsync(avatar);
                                 result.IsSaved = true;
                             }
                             else
@@ -936,58 +940,199 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         {
             //TODO: Need to handle return of OASISResult properly...
             //TODO: Need to implement Delete like HolonManager does to include error handling, auto replication, auto failed over, logging, etc...
-            return ProviderManager.SetAndActivateCurrentStorageProvider(providerType).Result.DeleteAvatar(id, softDelete);
+            return ProviderManager.SetAndActivateCurrentStorageProvider(providerType).Result.DeleteAvatar(id, softDelete).Result;
         }
 
         public async Task<bool> DeleteAvatarAsync(Guid id, bool softDelete = true, ProviderType providerType = ProviderType.Default)
         {
+            string errorMessage = "Error in DeleteAvatarAsync method in AvatarManager.";
+            OASISResult<IOASISStorageProvider> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
+            OASISResult<bool> result = new OASISResult<bool>();
+
+            if (providerResult != null && !providerResult.IsError && providerResult.Result != null)
+            {
+                result = await providerResult.Result.DeleteAvatarAsync(id, softDelete);
+
+                if (result != null && !result.IsError && result.Result)
+                {
+                    result.Message = "Avatar Successfully Deleted.";
+                    result.IsSaved = true;
+                }
+                else
+                    ErrorHandling.HandleError(ref result, $"{errorMessage} Reason: {result.Message}");
+            }
+            else
+                ErrorHandling.HandleError(ref result, $"{errorMessage} Reason: {providerResult.Message}");
+
+            return result.Result;
+
             //TODO: Need to handle return of OASISResult properly...
             //TODO: Need to implement Delete like HolonManager does to include error handling, auto replication, auto failed over, logging, etc...
-            return await ProviderManager.SetAndActivateCurrentStorageProvider(providerType).Result.DeleteAvatarAsync(id, softDelete);
+            //return await ProviderManager.SetAndActivateCurrentStorageProvider(providerType).Result.DeleteAvatarAsync(id, softDelete).Result;
         }
         
         public async Task<bool> DeleteAvatarByUsernameAsync(string userName, bool softDelete = true, ProviderType providerType = ProviderType.Default)
         {
+            string errorMessage = "Error in DeleteAvatarByUsernameAsync method in AvatarManager.";
+            OASISResult<IOASISStorageProvider> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
+            OASISResult<bool> result = new OASISResult<bool>();
+
+            if (providerResult != null && !providerResult.IsError && providerResult.Result != null)
+            {
+                result = await providerResult.Result.DeleteAvatarByUsernameAsync(userName, softDelete);
+
+                if (result != null && !result.IsError && result.Result)
+                {
+                    result.Message = "Avatar Successfully Deleted.";
+                    result.IsSaved = true;
+                }
+                else
+                    ErrorHandling.HandleError(ref result, $"{errorMessage} Reason: {result.Message}");
+            }
+            else
+                ErrorHandling.HandleError(ref result, $"{errorMessage} Reason: {providerResult.Message}");
+
+            return result.Result;
+
             //TODO: Need to handle return of OASISResult properly...
             //TODO: Need to implement Delete like HolonManager does to include error handling, auto replication, auto failed over, logging, etc...
-            return await ProviderManager.SetAndActivateCurrentStorageProvider(providerType).Result.DeleteAvatarByUsernameAsync(userName, softDelete);
+            //return await ProviderManager.SetAndActivateCurrentStorageProvider(providerType).Result.DeleteAvatarByUsernameAsync(userName, softDelete);
         }
         
         public async Task<bool> DeleteAvatarByEmailAsync(string email, bool softDelete = true, ProviderType providerType = ProviderType.Default)
         {
+            string errorMessage = "Error in DeleteAvatarByEmailAsync method in AvatarManager.";
+            OASISResult<IOASISStorageProvider> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
+            OASISResult<bool> result = new OASISResult<bool>();
+
+            if (providerResult != null && !providerResult.IsError && providerResult.Result != null)
+            {
+                result = await providerResult.Result.DeleteAvatarByEmailAsync(email, softDelete);
+
+                if (result != null && !result.IsError && result.Result)
+                {
+                    result.Message = "Avatar Successfully Deleted.";
+                    result.IsSaved = true;
+                }
+                else
+                    ErrorHandling.HandleError(ref result, $"{errorMessage} Reason: {result.Message}");
+            }
+            else
+                ErrorHandling.HandleError(ref result, $"{errorMessage} Reason: {providerResult.Message}");
+
+            return result.Result;
+
             //TODO: Need to handle return of OASISResult properly...
             //TODO: Need to implement Delete like HolonManager does to include error handling, auto replication, auto failed over, logging, etc...
-            return await ProviderManager.SetAndActivateCurrentStorageProvider(providerType).Result.DeleteAvatarByEmailAsync(email, softDelete);
+            //return await ProviderManager.SetAndActivateCurrentStorageProvider(providerType).Result.DeleteAvatarByEmailAsync(email, softDelete);
         }
 
-        public async Task<KarmaAkashicRecord> AddKarmaToAvatarAsync(IAvatarDetail avatar, KarmaTypePositive karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc, string karmaSourceWebLink = null, ProviderType provider = ProviderType.Default)
+        public async Task<KarmaAkashicRecord> AddKarmaToAvatarAsync(IAvatarDetail avatar, KarmaTypePositive karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc, string karmaSourceWebLink = null, ProviderType providerType = ProviderType.Default)
         {
+            string errorMessage = "Error in AddKarmaToAvatarAsync method in AvatarManager.";
+            OASISResult<IOASISStorageProvider> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
+            OASISResult<KarmaAkashicRecord> result = new OASISResult<KarmaAkashicRecord>();
+
+            if (providerResult != null && !providerResult.IsError && providerResult.Result != null)
+            {
+                result = await providerResult.Result.AddKarmaToAvatarAsync(avatar, karmaType, karmaSourceType, karamSourceTitle, karmaSourceDesc, karmaSourceWebLink);
+
+                if (result != null && !result.IsError && result.Result != null)
+                {
+                    result.Message = "Karma Successfully Added To Avatar.";
+                    result.IsSaved = true;
+                }
+                else
+                    ErrorHandling.HandleError(ref result, $"{errorMessage} Reason: {result.Message}");
+            }
+            else
+                ErrorHandling.HandleError(ref result, $"{errorMessage} Reason: {providerResult.Message}");
+
+            return result.Result;
+
             //TODO: Need to handle return of OASISResult properly..
             ////TODO: Need to implement Delete like HolonManager does to include error handling, auto replication, auto failed over, logging, etc....
-            return await ProviderManager.SetAndActivateCurrentStorageProvider(provider).Result.AddKarmaToAvatarAsync(avatar, karmaType, karmaSourceType, karamSourceTitle, karmaSourceDesc, karmaSourceWebLink);
+            //return await ProviderManager.SetAndActivateCurrentStorageProvider(provider).Result.AddKarmaToAvatarAsync(avatar, karmaType, karmaSourceType, karamSourceTitle, karmaSourceDesc, karmaSourceWebLink);
         }
-        public async Task<KarmaAkashicRecord> AddKarmaToAvatarAsync(Guid avatarId, KarmaTypePositive karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc, string karmaSourceWebLink = null, ProviderType provider = ProviderType.Default)
+        public async Task<KarmaAkashicRecord> AddKarmaToAvatarAsync(Guid avatarId, KarmaTypePositive karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc, string karmaSourceWebLink = null, ProviderType providerType = ProviderType.Default)
         {
+            string errorMessage = "Error in AddKarmaToAvatarAsync method in AvatarManager.";
+            OASISResult<IOASISStorageProvider> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
+            OASISResult<KarmaAkashicRecord> result = new OASISResult<KarmaAkashicRecord>();
+
+            if (providerResult != null && !providerResult.IsError && providerResult.Result != null)
+            {
+                OASISResult<IAvatarDetail> avatarResult = await providerResult.Result.LoadAvatarDetailAsync(avatarId);
+
+                if(avatarResult != null && !avatarResult.IsError && avatarResult.Result != null)
+                {
+                    result = await providerResult.Result.AddKarmaToAvatarAsync(avatarResult.Result, karmaType, karmaSourceType, karamSourceTitle, karmaSourceDesc, karmaSourceWebLink);
+
+                    if (result != null && !result.IsError && result.Result != null)
+                    {
+                        result.Message = "Karma Successfully Added To Avatar.";
+                        result.IsSaved = true;
+                    }
+                    else
+                        ErrorHandling.HandleError(ref result, $"{errorMessage} Reason: {result.Message}");
+                }
+                else
+                    ErrorHandling.HandleError(ref result, $"{errorMessage} Reason: Avatar Not Found. Error Details: {avatarResult.Message}");
+            }
+            else
+                ErrorHandling.HandleError(ref result, $"{errorMessage} Reason: {providerResult.Message}");
+
+            return result.Result;
+
             //TODO: Need to handle return of OASISResult properly...
             //TODO: Need to implement Delete like HolonManager does to include error handling, auto replication, auto failed over, logging, etc...
-            IAvatarDetail avatar = ProviderManager.SetAndActivateCurrentStorageProvider(provider).Result.LoadAvatarDetail(avatarId);
-            return await ProviderManager.CurrentStorageProvider.AddKarmaToAvatarAsync(avatar, karmaType, karmaSourceType, karamSourceTitle, karmaSourceDesc, karmaSourceWebLink);
+            //IAvatarDetail avatar = ProviderManager.SetAndActivateCurrentStorageProvider(provider).Result.LoadAvatarDetail(avatarId);
+            //return await ProviderManager.CurrentStorageProvider.AddKarmaToAvatarAsync(avatar, karmaType, karmaSourceType, karamSourceTitle, karmaSourceDesc, karmaSourceWebLink);
         }
 
-        public OASISResult<KarmaAkashicRecord> AddKarmaToAvatar(IAvatarDetail avatar, KarmaTypePositive karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc, string karmaSourceWebLink = null, ProviderType provider = ProviderType.Default)
+        public OASISResult<KarmaAkashicRecord> AddKarmaToAvatar(IAvatarDetail avatar, KarmaTypePositive karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc, string karmaSourceWebLink = null, ProviderType providerType = ProviderType.Default)
         {
             //TODO: Need to handle return of OASISResult properly...
             //TODO: Need to implement Delete like HolonManager does to include error handling, auto replication, auto failed over, logging, etc...
-            return new OASISResult<KarmaAkashicRecord>(ProviderManager.SetAndActivateCurrentStorageProvider(provider).Result.AddKarmaToAvatar(avatar, karmaType, karmaSourceType, karamSourceTitle, karmaSourceDesc, karmaSourceWebLink));
+            return new OASISResult<KarmaAkashicRecord>(ProviderManager.SetAndActivateCurrentStorageProvider(providerType).Result.AddKarmaToAvatar(avatar, karmaType, karmaSourceType, karamSourceTitle, karmaSourceDesc, karmaSourceWebLink).Result);
         }
-        public OASISResult<KarmaAkashicRecord> AddKarmaToAvatar(Guid avatarId, KarmaTypePositive karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc, string karmaSourceWebLink = null, ProviderType provider = ProviderType.Default)
+        public OASISResult<KarmaAkashicRecord> AddKarmaToAvatar(Guid avatarId, KarmaTypePositive karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc, string karmaSourceWebLink = null, ProviderType providerType = ProviderType.Default)
         {
+            string errorMessage = "Error in AddKarmaToAvatar method in AvatarManager.";
+            OASISResult<IOASISStorageProvider> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
+            OASISResult<KarmaAkashicRecord> result = new OASISResult<KarmaAkashicRecord>();
+
+            if (providerResult != null && !providerResult.IsError && providerResult.Result != null)
+            {
+                OASISResult<IAvatarDetail> avatarResult = providerResult.Result.LoadAvatarDetail(avatarId);
+
+                if (avatarResult != null && !avatarResult.IsError && avatarResult.Result != null)
+                {
+                    result = providerResult.Result.AddKarmaToAvatar(avatarResult.Result, karmaType, karmaSourceType, karamSourceTitle, karmaSourceDesc, karmaSourceWebLink);
+
+                    if (result != null && !result.IsError && result.Result != null)
+                    {
+                        result.Message = "Karma Successfully Added To Avatar.";
+                        result.IsSaved = true;
+                    }
+                    else
+                        ErrorHandling.HandleError(ref result, $"{errorMessage} Reason: {result.Message}");
+                }
+                else
+                    ErrorHandling.HandleError(ref result, $"{errorMessage} Reason: Avatar Not Found. Error Details: {avatarResult.Message}");
+            }
+            else
+                ErrorHandling.HandleError(ref result, $"{errorMessage} Reason: {providerResult.Message}");
+
+            return result;
+
+            /*
             //TODO: Need to handle return of OASISResult properly...
             OASISResult<KarmaAkashicRecord> result = new OASISResult<KarmaAkashicRecord>();
-            IAvatarDetail avatar = ProviderManager.SetAndActivateCurrentStorageProvider(provider).Result.LoadAvatarDetail(avatarId);
+            OASISResult<IAvatarDetail> avatarResult = ProviderManager.SetAndActivateCurrentStorageProvider(provider).Result.LoadAvatarDetail(avatarId);
             //IAvatar avatar = ProviderManager.SetAndActivateCurrentStorageProvider(provider).Result.LoadAvatar(avatarId);
 
-            if (avatar != null)
+            if (avatarResult != null )
             {
                 result.Result = ProviderManager.CurrentStorageProvider.AddKarmaToAvatar(avatar, karmaType, karmaSourceType, karamSourceTitle, karmaSourceDesc, karmaSourceWebLink);
 
@@ -1003,32 +1148,132 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             //TODO: Need to implement like avove and HolonManager does to include error handling, auto replication, auto failed over, logging, etc...
 
             return result;
+            */
         }
 
-        public async Task<KarmaAkashicRecord> RemoveKarmaFromAvatarAsync(IAvatarDetail avatar, KarmaTypeNegative karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc, string karmaSourceWebLink = null, ProviderType provider = ProviderType.Default)
+        public async Task<KarmaAkashicRecord> RemoveKarmaFromAvatarAsync(IAvatarDetail avatar, KarmaTypeNegative karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc, string karmaSourceWebLink = null, ProviderType providerType = ProviderType.Default)
         {
             //TODO: Need to handle return of OASISResult properly...
             //TODO: Need to implement like avove and HolonManager does to include error handling, auto replication, auto failed over, logging, etc...
-            return await ProviderManager.SetAndActivateCurrentStorageProvider(provider).Result.RemoveKarmaFromAvatarAsync(avatar, karmaType, karmaSourceType, karamSourceTitle, karmaSourceDesc, karmaSourceWebLink);
+            //return await ProviderManager.SetAndActivateCurrentStorageProvider(provider).Result.RemoveKarmaFromAvatarAsync(avatar, karmaType, karmaSourceType, karamSourceTitle, karmaSourceDesc, karmaSourceWebLink).Result;
+
+            string errorMessage = "Error in RemoveKarmaFromAvatarAsync method in AvatarManager.";
+            OASISResult<IOASISStorageProvider> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
+            OASISResult<KarmaAkashicRecord> result = new OASISResult<KarmaAkashicRecord>();
+
+            if (providerResult != null && !providerResult.IsError && providerResult.Result != null)
+            {
+                result = await providerResult.Result.RemoveKarmaFromAvatarAsync(avatar, karmaType, karmaSourceType, karamSourceTitle, karmaSourceDesc, karmaSourceWebLink);
+
+                if (result != null && !result.IsError && result.Result != null)
+                {
+                    result.Message = "Karma Successfully Removed From Avatar.";
+                    result.IsSaved = true;
+                }
+                else
+                    ErrorHandling.HandleError(ref result, $"{errorMessage} Reason: {result.Message}");
+            }
+            else
+                ErrorHandling.HandleError(ref result, $"{errorMessage} Reason: {providerResult.Message}");
+
+            return result.Result;
         }
 
-        public async Task<KarmaAkashicRecord> RemoveKarmaFromAvatarAsync(Guid avatarId, KarmaTypeNegative karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc, string karmaSourceWebLink = null, ProviderType provider = ProviderType.Default)
+        public async Task<KarmaAkashicRecord> RemoveKarmaFromAvatarAsync(Guid avatarId, KarmaTypeNegative karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc, string karmaSourceWebLink = null, ProviderType providerType = ProviderType.Default)
+        {
+            string errorMessage = "Error in RemoveKarmaFromAvatarAsync method in AvatarManager.";
+            OASISResult<IOASISStorageProvider> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
+            OASISResult<KarmaAkashicRecord> result = new OASISResult<KarmaAkashicRecord>();
+
+            if (providerResult != null && !providerResult.IsError && providerResult.Result != null)
+            {
+                OASISResult<IAvatarDetail> avatarResult = await providerResult.Result.LoadAvatarDetailAsync(avatarId);
+
+                if (avatarResult != null && !avatarResult.IsError && avatarResult.Result != null)
+                {
+                    result = await providerResult.Result.RemoveKarmaFromAvatarAsync(avatarResult.Result, karmaType, karmaSourceType, karamSourceTitle, karmaSourceDesc, karmaSourceWebLink);
+
+                    if (result != null && !result.IsError && result.Result != null)
+                    {
+                        result.Message = "Karma Successfully Removed From Avatar.";
+                        result.IsSaved = true;
+                    }
+                    else
+                        ErrorHandling.HandleError(ref result, $"{errorMessage} Reason: {result.Message}");
+                }
+                else
+                    ErrorHandling.HandleError(ref result, $"{errorMessage} Reason: Avatar Not Found. Error Details: {avatarResult.Message}");
+            }
+            else
+                ErrorHandling.HandleError(ref result, $"{errorMessage} Reason: {providerResult.Message}");
+
+            return result.Result;
+
+            //TODO: Need to handle return of OASISResult properly...
+            //TODO: Need to implement like avove and HolonManager does to include error handling, auto replication, auto failed over, logging, etc...
+            //IAvatarDetail avatar = ProviderManager.SetAndActivateCurrentStorageProvider(providerType).Result.LoadAvatarDetail(avatarId);
+            //return await ProviderManager.CurrentStorageProvider.RemoveKarmaFromAvatarAsync(avatar, karmaType, karmaSourceType, karamSourceTitle, karmaSourceDesc, karmaSourceWebLink);
+        }
+
+        public KarmaAkashicRecord RemoveKarmaFromAvatar(IAvatarDetail avatar, KarmaTypeNegative karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc, string karmaSourceWebLink = null, ProviderType providerType = ProviderType.Default)
         {
             //TODO: Need to handle return of OASISResult properly...
             //TODO: Need to implement like avove and HolonManager does to include error handling, auto replication, auto failed over, logging, etc...
-            IAvatarDetail avatar = ProviderManager.SetAndActivateCurrentStorageProvider(provider).Result.LoadAvatarDetail(avatarId);
-            return await ProviderManager.CurrentStorageProvider.RemoveKarmaFromAvatarAsync(avatar, karmaType, karmaSourceType, karamSourceTitle, karmaSourceDesc, karmaSourceWebLink);
+            //return ProviderManager.SetAndActivateCurrentStorageProvider(provider).Result.RemoveKarmaFromAvatar(avatar, karmaType, karmaSourceType, karamSourceTitle, karmaSourceDesc, karmaSourceWebLink);
+
+            string errorMessage = "Error in RemoveKarmaFromAvatar method in AvatarManager.";
+            OASISResult<IOASISStorageProvider> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
+            OASISResult<KarmaAkashicRecord> result = new OASISResult<KarmaAkashicRecord>();
+
+            if (providerResult != null && !providerResult.IsError && providerResult.Result != null)
+            {
+                result = providerResult.Result.RemoveKarmaFromAvatar(avatar, karmaType, karmaSourceType, karamSourceTitle, karmaSourceDesc, karmaSourceWebLink);
+
+                if (result != null && !result.IsError && result.Result != null)
+                {
+                    result.Message = "Karma Successfully Removed From Avatar.";
+                    result.IsSaved = true;
+                }
+                else
+                    ErrorHandling.HandleError(ref result, $"{errorMessage} Reason: {result.Message}");
+            }
+            else
+                ErrorHandling.HandleError(ref result, $"{errorMessage} Reason: {providerResult.Message}");
+
+            return result.Result;
         }
 
-        public KarmaAkashicRecord RemoveKarmaFromAvatar(IAvatarDetail avatar, KarmaTypeNegative karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc, string karmaSourceWebLink = null, ProviderType provider = ProviderType.Default)
+        public OASISResult<KarmaAkashicRecord> RemoveKarmaFromAvatar(Guid avatarId, KarmaTypeNegative karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc, string karmaSourceWebLink = null, ProviderType providerType = ProviderType.Default)
         {
-            //TODO: Need to handle return of OASISResult properly...
-            //TODO: Need to implement like avove and HolonManager does to include error handling, auto replication, auto failed over, logging, etc...
-            return ProviderManager.SetAndActivateCurrentStorageProvider(provider).Result.RemoveKarmaFromAvatar(avatar, karmaType, karmaSourceType, karamSourceTitle, karmaSourceDesc, karmaSourceWebLink);
-        }
+            string errorMessage = "Error in RemoveKarmaFromAvatar method in AvatarManager.";
+            OASISResult<IOASISStorageProvider> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
+            OASISResult<KarmaAkashicRecord> result = new OASISResult<KarmaAkashicRecord>();
 
-        public OASISResult<KarmaAkashicRecord> RemoveKarmaFromAvatar(Guid avatarId, KarmaTypeNegative karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc, string karmaSourceWebLink = null, ProviderType provider = ProviderType.Default)
-        {
+            if (providerResult != null && !providerResult.IsError && providerResult.Result != null)
+            {
+                OASISResult<IAvatarDetail> avatarResult = providerResult.Result.LoadAvatarDetail(avatarId);
+
+                if (avatarResult != null && !avatarResult.IsError && avatarResult.Result != null)
+                {
+                    result = providerResult.Result.RemoveKarmaFromAvatar(avatarResult.Result, karmaType, karmaSourceType, karamSourceTitle, karmaSourceDesc, karmaSourceWebLink);
+
+                    if (result != null && !result.IsError && result.Result != null)
+                    {
+                        result.Message = "Karma Successfully Removed From Avatar.";
+                        result.IsSaved = true;
+                    }
+                    else
+                        ErrorHandling.HandleError(ref result, $"{errorMessage} Reason: {result.Message}");
+                }
+                else
+                    ErrorHandling.HandleError(ref result, $"{errorMessage} Reason: Avatar Not Found. Error Details: {avatarResult.Message}");
+            }
+            else
+                ErrorHandling.HandleError(ref result, $"{errorMessage} Reason: {providerResult.Message}");
+
+            return result;
+
+            /*
             OASISResult<KarmaAkashicRecord> result = new OASISResult<KarmaAkashicRecord>();
 
             //TODO: Need to handle return of OASISResult properly...
@@ -1052,13 +1297,14 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             //TODO: Need to implement like avove and HolonManager does to include error handling, auto replication, auto failed over, logging, etc...
 
             return result;
+            */
         }
 
         // Could be used as the public key for private/public key pairs. Could also be a username/accountname/unique id/etc, etc.
         public IAvatarDetail LinkProviderKeyToAvatar(Guid avatarId, ProviderType providerTypeToLinkTo, string providerKey, ProviderType providerToLoadAvatarFrom = ProviderType.Default)
         {
             //TODO: Need to handle return of OASISResult properly...
-            IAvatarDetail avatar = ProviderManager.SetAndActivateCurrentStorageProvider(providerToLoadAvatarFrom).Result.LoadAvatarDetail(avatarId);
+            IAvatarDetail avatar = ProviderManager.SetAndActivateCurrentStorageProvider(providerToLoadAvatarFrom).Result.LoadAvatarDetail(avatarId).Result;
             avatar.ProviderKey[providerTypeToLinkTo] = providerKey;
             avatar = avatar.Save();
             return avatar;
@@ -1068,7 +1314,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         public IAvatarDetail LinkProviderPrivateKeyToAvatar(Guid avatarId, ProviderType providerTypeToLinkTo, string providerPrivateKey, ProviderType providerToLoadAvatarFrom = ProviderType.Default)
         {
             //TODO: Need to handle return of OASISResult properly...
-            IAvatarDetail avatar = ProviderManager.SetAndActivateCurrentStorageProvider(providerToLoadAvatarFrom).Result.LoadAvatarDetail(avatarId);
+            IAvatarDetail avatar = ProviderManager.SetAndActivateCurrentStorageProvider(providerToLoadAvatarFrom).Result.LoadAvatarDetail(avatarId).Result;
             avatar.ProviderPrivateKey[providerTypeToLinkTo] = StringCipher.Encrypt(providerPrivateKey);
             avatar = avatar.Save();
             return avatar;

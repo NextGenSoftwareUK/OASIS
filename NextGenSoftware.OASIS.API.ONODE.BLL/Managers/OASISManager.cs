@@ -11,7 +11,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.BLL.Managers
 
         public OASISManager()
         {
-            OASISResult<IOASISStorage> result = OASISBootLoader.OASISBootLoader.GetAndActivateDefaultProvider();
+            OASISResult<IOASISStorageProvider> result = OASISBootLoader.OASISBootLoader.GetAndActivateDefaultProvider();
 
             if (!result.IsError && result.Result != null)
                 Data = new HolonManager(result.Result);

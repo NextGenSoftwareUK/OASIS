@@ -43,9 +43,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         //    // OASISProviderManager.OASISSettings = settings.Value;
         //}
 
-        protected IOASISStorage GetAndActivateDefaultProvider()
+        protected IOASISStorageProvider GetAndActivateDefaultProvider()
         {
-            OASISResult<IOASISStorage> result = OASISBootLoader.OASISBootLoader.GetAndActivateDefaultProvider();
+            OASISResult<IOASISStorageProvider> result = OASISBootLoader.OASISBootLoader.GetAndActivateDefaultProvider();
 
             //TODO: Eventually want to replace all exceptions with OASISResult throughout the OASIS because then it makes sure errors are handled properly and friendly messages are shown (plus less overhead of throwing an entire stack trace!)
             if (result.IsError)
@@ -54,7 +54,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             return result.Result;
         }
 
-        protected IOASISStorage GetAndActivateProvider(ProviderType providerType, bool setGlobally = false)
+        protected IOASISStorageProvider GetAndActivateProvider(ProviderType providerType, bool setGlobally = false)
         {
             // TODO: Everywhere I have had to just return the .Result object of OASISResult we need to check for errors and handle correcty.
             // Or maybe better in this case and in the Managers (AvatarManager/HolonManager) just change the return types to OASISResult<T> and pass it up to show any errors/messages to UI if needed...
@@ -62,7 +62,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             return OASISBootLoader.OASISBootLoader.GetAndActivateProvider(providerType, null, false, setGlobally).Result;
         }
 
-        protected IOASISStorage GetAndActivateProvider(ProviderType providerType, string customConnectionString = null, bool forceRegister = false, bool setGlobally = false)
+        protected IOASISStorageProvider GetAndActivateProvider(ProviderType providerType, string customConnectionString = null, bool forceRegister = false, bool setGlobally = false)
         {
             // TODO: Everywhere I have had to just return the .Result object of OASISResult we need to check for errors and handle correcty.
             // Or maybe better in this case and in the Managers (AvatarManager/HolonManager) just change the return types to OASISResult<T> and pass it up to show any errors/messages to UI if needed...

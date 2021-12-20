@@ -15,7 +15,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.BLL.Managers
 
         public async Task<ISearchResults> SearchAsync(ISearchParams searchParams, ProviderType provider = ProviderType.Default)
         {
-            return await ((IOASISStorage)ProviderManager.SetAndActivateCurrentStorageProvider(provider)).SearchAsync(searchParams);
+            return await ((IOASISStorageProvider)ProviderManager.SetAndActivateCurrentStorageProvider(provider)).SearchAsync(searchParams);
         }
     }
 }

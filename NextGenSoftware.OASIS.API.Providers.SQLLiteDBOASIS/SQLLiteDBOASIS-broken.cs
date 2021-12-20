@@ -12,7 +12,7 @@
 
 //namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
 //{
-//    public class SQLLiteDBOASIS : OASISStorageBase, IOASISStorage, IOASISNET
+//    public class SQLLiteDBOASIS : OASISStorageBase, IOASISStorageProvider, IOASISNET
 //    {
 //        private string connectionString;
 //        private DataContext appDataContext;

@@ -9,7 +9,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
     {
        // private AvatarManagerConfig _config;
 
-        public List<IOASISStorage> OASISStorageProviders { get; set; }
+        public List<IOASISStorageProvider> OASISStorageProviders { get; set; }
 
         //public Task<IAvatar> LoadAvatarAsync(Guid id)
         //{
@@ -44,11 +44,11 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         public delegate void StorageProviderError(object sender, AvatarManagerErrorEventArgs e);
 
         /*
-        public AvatarManager(List<IOASISStorage> OASISStorageProviders)
+        public AvatarManager(List<IOASISStorageProvider> OASISStorageProviders)
         {
             this.OASISStorageProviders = OASISStorageProviders;
 
-            foreach (IOASISStorage provider in OASISStorageProviders)
+            foreach (IOASISStorageProvider provider in OASISStorageProviders)
             {
                 provider.OnStorageProviderError += OASISStorageProvider_OnStorageProviderError;
                 provider.ActivateProvider();
@@ -56,7 +56,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         }*/
 
        //TODO: In future more than one storage provider can be active at a time where each call can specify which provider to use.
-        public ReplicatorManager(IOASISStorage OASISStorageProvider) : base(OASISStorageProvider)
+        public ReplicatorManager(IOASISStorageProvider OASISStorageProvider) : base(OASISStorageProvider)
         {
             //if (!ProviderManager.IsProviderRegistered(OASISStorageProvider))
             //    ProviderManager.RegisterProvider(OASISStorageProvider);
