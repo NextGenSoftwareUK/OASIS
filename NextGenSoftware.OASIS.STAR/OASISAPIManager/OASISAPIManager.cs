@@ -39,7 +39,7 @@ namespace NextGenSoftware.OASIS.STAR.OASISAPIManager
 
             if (!result.IsError && result.Result)
             {
-                OASISResult<IOASISStorage> bootLoaderResult = OASISBootLoader.OASISBootLoader.GetAndActivateDefaultProvider();
+                OASISResult<IOASISStorageProvider> bootLoaderResult = OASISBootLoader.OASISBootLoader.GetAndActivateDefaultProvider();
 
                 if (bootLoaderResult.IsError)
                 {

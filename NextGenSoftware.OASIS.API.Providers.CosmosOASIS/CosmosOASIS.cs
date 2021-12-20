@@ -13,7 +13,7 @@ using System.Threading.Tasks;
 
 namespace NextGenSoftware.OASIS.API.Providers.CosmosOASIS
 {
-    public class CosmosOASIS : OASISStorageProviderBase, IOASISStorage, IOASISNETProvider
+    public class CosmosOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISNETProvider
     {
         private readonly Uri serviceEndpoint;
         private readonly string authKey;

@@ -9,7 +9,7 @@ using static NextGenSoftware.OASIS.API.Core.Managers.AvatarManager;
 namespace NextGenSoftware.OASIS.API.Core.Interfaces
 {
     // This interface is responsbile for persisting data/state to blockchain storage providers.
-    public interface IOASISBlockchainStorageProvider : IOASISStorage
+    public interface IOASISBlockchainStorageProvider : IOASISStorageProvider
     {
         //Blockchain providers have version control built in because they always store a new record rather than updating an existing.
         //Central Storage/DB's by default can update the same record, if this flag is set below then they will act more like a Blockchain and store a new copy of the record and link to the previous version.

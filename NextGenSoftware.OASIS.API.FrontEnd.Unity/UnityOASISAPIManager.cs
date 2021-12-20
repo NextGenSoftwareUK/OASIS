@@ -22,7 +22,7 @@ namespace NextGenSoftware.OASIS.API.FrontEnd.Unity
         }
 
         AvatarManager AvatarManager { get; set; }  //If the AvatarManager is going to contain additional business logic not contained in the providers then use this.
-        //IOASISStorage StorageProvider { get; set; }
+        //IOASISStorageProvider StorageProvider { get; set; }
 
         public async Task LoadAvatarAsync(string username, string password)
         {

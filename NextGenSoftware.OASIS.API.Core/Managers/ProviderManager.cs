@@ -33,9 +33,9 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
         // public static string[] DefaultProviderTypes { get; set; }
 
-        public static IOASISStorage DefaultGlobalStorageProvider { get; set; }
+        public static IOASISStorageProvider DefaultGlobalStorageProvider { get; set; }
 
-        public static IOASISStorage CurrentStorageProvider { get; private set; } //TODO: Need to work this out because in future there can be more than one provider active at a time.
+        public static IOASISStorageProvider CurrentStorageProvider { get; private set; } //TODO: Need to work this out because in future there can be more than one provider active at a time.
 
         public static bool OverrideProviderType { get; set; } = false;
 
@@ -135,12 +135,12 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return GetProviderTypes(GetProvidersOfCategory(category));
         }
 
-        public static List<IOASISStorage> GetStorageProviders()
+        public static List<IOASISStorageProvider> GetStorageProviders()
         {
-            List<IOASISStorage> storageProviders = new List<IOASISStorage>();
+            List<IOASISStorageProvider> storageProviders = new List<IOASISStorageProvider>();
 
             foreach (IOASISProvider provider in _registeredProviders.Where(x => x.ProviderCategory.Value == ProviderCategory.Storage || x.ProviderCategory.Value == ProviderCategory.StorageAndNetwork).ToList())
-                storageProviders.Add((IOASISStorage)provider);  
+                storageProviders.Add((IOASISStorageProvider)provider);  
 
             return storageProviders;
         }
@@ -198,9 +198,9 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return _registeredProviders.FirstOrDefault(x => x.ProviderType.Value == type);
         }
 
-        public static IOASISStorage GetStorageProvider(ProviderType type)
+        public static IOASISStorageProvider GetStorageProvider(ProviderType type)
         {
-            return (IOASISStorage)_registeredProviders.FirstOrDefault(x => x.ProviderType.Value == type && x.ProviderCategory.Value == ProviderCategory.Storage);
+            return (IOASISStorageProvider)_registeredProviders.FirstOrDefault(x => x.ProviderType.Value == type && x.ProviderCategory.Value == ProviderCategory.Storage);
         }
 
         public static IOASISNETProvider GetNetworkProvider(ProviderType type)
@@ -231,9 +231,9 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
       //  }
 
         // Called from Managers.
-        public static OASISResult<IOASISStorage> SetAndActivateCurrentStorageProvider(ProviderType providerType)
+        public static OASISResult<IOASISStorageProvider> SetAndActivateCurrentStorageProvider(ProviderType providerType)
         {
-            OASISResult<IOASISStorage> result = new OASISResult<IOASISStorage>();
+            OASISResult<IOASISStorageProvider> result = new OASISResult<IOASISStorageProvider>();
 
             if (providerType == ProviderType.Default)
                 result = SetAndActivateCurrentStorageProvider();
@@ -247,7 +247,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         }
 
         //TODO: Called internally (make private ?)
-        public static OASISResult<IOASISStorage> SetAndActivateCurrentStorageProvider()
+        public static OASISResult<IOASISStorageProvider> SetAndActivateCurrentStorageProvider()
         {
             // If a global provider has been set and the REST API call has not overiden the provider (OverrideProviderType) then set to global provider.
             if (DefaultGlobalStorageProvider != null && DefaultGlobalStorageProvider != CurrentStorageProvider && !OverrideProviderType)
@@ -261,11 +261,11 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             if (!_setProviderGlobally)
                 OverrideProviderType = false;
 
-            return new OASISResult<IOASISStorage>(CurrentStorageProvider);
+            return new OASISResult<IOASISStorageProvider>(CurrentStorageProvider);
         }
 
         // Called from ONODE.WebAPI.OASISProviderManager.
-        public static OASISResult<IOASISStorage> SetAndActivateCurrentStorageProvider(IOASISProvider OASISProvider)
+        public static OASISResult<IOASISStorageProvider> SetAndActivateCurrentStorageProvider(IOASISProvider OASISProvider)
         {
             if (OASISProvider != CurrentStorageProvider)
             {
@@ -278,14 +278,14 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 }
             }
 
-            return new OASISResult<IOASISStorage>(CurrentStorageProvider);
+            return new OASISResult<IOASISStorageProvider>(CurrentStorageProvider);
         }
 
         // Called from ONODE.WebAPI.OASISProviderManager.
         //TODO: In future more than one StorageProvider will be active at a time so we need to work out how to handle this...
-        public static OASISResult<IOASISStorage> SetAndActivateCurrentStorageProvider(ProviderType providerType, bool setGlobally = false)
+        public static OASISResult<IOASISStorageProvider> SetAndActivateCurrentStorageProvider(ProviderType providerType, bool setGlobally = false)
         {
-            OASISResult<IOASISStorage> result = new OASISResult<IOASISStorage>();
+            OASISResult<IOASISStorageProvider> result = new OASISResult<IOASISStorageProvider>();
             _setProviderGlobally = setGlobally;
 
             // TODO: Need to get this to use the next provider in the list if there is an issue with the first/current provider...
@@ -316,7 +316,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                     }
                    
                     CurrentStorageProviderType.Value = providerType;
-                    CurrentStorageProvider = (IOASISStorage)provider;
+                    CurrentStorageProvider = (IOASISStorageProvider)provider;
 
                     OASISResult<bool> activateProviderResult = ActivateProvider(CurrentStorageProvider);
 
@@ -348,7 +348,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             {
                 try
                 {
-                    provider.ActivateProvider();
+                    result = provider.ActivateProvider();
                 }
                 catch (Exception ex)
                 {
@@ -374,7 +374,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             {
                 try
                 {
-                    provider.DeActivateProvider();
+                    result = provider.DeActivateProvider();
                 }
                 catch (Exception ex)
                 {

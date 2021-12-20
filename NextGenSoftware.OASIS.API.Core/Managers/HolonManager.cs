@@ -18,7 +18,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         public delegate void StorageProviderError(object sender, AvatarManagerErrorEventArgs e);
 
         //TODO: In future more than one storage provider can be active at a time where each call can specify which provider to use.
-        public HolonManager(IOASISStorage OASISStorageProvider, OASISDNA OASISDNA = null) : base(OASISStorageProvider, OASISDNA)
+        public HolonManager(IOASISStorageProvider OASISStorageProvider, OASISDNA OASISDNA = null) : base(OASISStorageProvider, OASISDNA)
         {
 
         }
@@ -1175,7 +1175,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
             try
             {
-                OASISResult<IOASISStorage> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
+                OASISResult<IOASISStorageProvider> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
 
                 if (providerResult.IsError)
                 {
@@ -1184,7 +1184,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 }
                 else
                 {
-                    result.Result = providerResult.Result.DeleteHolon(id, softDelete);
+                    result = providerResult.Result.DeleteHolon(id, softDelete);
 
                     if (!result.IsError && result.Result && ProviderManager.IsAutoReplicationEnabled)
                     {
@@ -1194,7 +1194,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                             {
                                 try
                                 {
-                                    OASISResult<IOASISStorage> autoReplicateProviderResult = ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
+                                    OASISResult<IOASISStorageProvider> autoReplicateProviderResult = ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
 
                                     if (autoReplicateProviderResult.IsError)
                                     {
@@ -1203,7 +1203,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                                     }
                                     else
                                     {
-                                        result.Result = autoReplicateProviderResult.Result.DeleteHolon(id, softDelete);
+                                        result = autoReplicateProviderResult.Result.DeleteHolon(id, softDelete);
 
                                         if (result.IsError)
                                             result.InnerMessages.Add(string.Concat("An error occured in DeleteHolon method. id: ", id, ", softDelete = ", softDelete, ", providerType = ", Enum.GetName(typeof(ProviderType), type.Value)));
@@ -1246,7 +1246,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
             try
             {
-                OASISResult<IOASISStorage> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
+                OASISResult<IOASISStorageProvider> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
 
                 if (providerResult.IsError)
                 {
@@ -1255,7 +1255,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 }
                 else
                 {
-                    result.Result = await providerResult.Result.DeleteHolonAsync(id, softDelete);
+                    result = await providerResult.Result.DeleteHolonAsync(id, softDelete);
 
                     if (!result.IsError && result.Result && ProviderManager.IsAutoReplicationEnabled)
                     {
@@ -1265,7 +1265,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                             {
                                 try
                                 {
-                                    OASISResult<IOASISStorage> autoReplicateProviderResult = ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
+                                    OASISResult<IOASISStorageProvider> autoReplicateProviderResult = ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
 
                                     if (autoReplicateProviderResult.IsError)
                                     {
@@ -1274,7 +1274,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                                     }
                                     else
                                     {
-                                        result.Result = await autoReplicateProviderResult.Result.DeleteHolonAsync(id, softDelete);
+                                        result = await autoReplicateProviderResult.Result.DeleteHolonAsync(id, softDelete);
 
                                         if (result.IsError)
                                             result.InnerMessages.Add(string.Concat("An error occured in DeleteHolonAsync method. id: ", id, ", softDelete = ", softDelete, ", providerType = ", Enum.GetName(typeof(ProviderType), type.Value)));
@@ -1317,7 +1317,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
             try
             {
-                OASISResult<IOASISStorage> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
+                OASISResult<IOASISStorageProvider> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
 
                 if (providerResult.IsError)
                 {
@@ -1326,7 +1326,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 }
                 else
                 {
-                    result.Result = providerResult.Result.DeleteHolon(providerKey, softDelete);
+                    result = providerResult.Result.DeleteHolon(providerKey, softDelete);
 
                     if (!result.IsError && result.Result && ProviderManager.IsAutoReplicationEnabled)
                     {
@@ -1336,7 +1336,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                             {
                                 try
                                 {
-                                    OASISResult<IOASISStorage> autoReplicateProviderResult = ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
+                                    OASISResult<IOASISStorageProvider> autoReplicateProviderResult = ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
 
                                     if (autoReplicateProviderResult.IsError)
                                     {
@@ -1345,7 +1345,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                                     }
                                     else
                                     {
-                                        result.Result = autoReplicateProviderResult.Result.DeleteHolon(providerKey, softDelete);
+                                        result = autoReplicateProviderResult.Result.DeleteHolon(providerKey, softDelete);
 
                                         if (result.IsError)
                                             result.InnerMessages.Add(string.Concat("An error occured in DeleteHolon method. providerKey: ", providerKey, ", softDelete = ", softDelete, ", providerType = ", Enum.GetName(typeof(ProviderType), type.Value)));
@@ -1388,7 +1388,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
             try
             {
-                OASISResult<IOASISStorage> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
+                OASISResult<IOASISStorageProvider> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
 
                 if (providerResult.IsError)
                 {
@@ -1397,7 +1397,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 }
                 else
                 {
-                    result.Result = await providerResult.Result.DeleteHolonAsync(providerKey, softDelete);
+                    result = await providerResult.Result.DeleteHolonAsync(providerKey, softDelete);
 
                     if (!result.IsError && result.Result && ProviderManager.IsAutoReplicationEnabled)
                     {
@@ -1407,7 +1407,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                             {
                                 try
                                 {
-                                    OASISResult<IOASISStorage> autoReplicateProviderResult = ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
+                                    OASISResult<IOASISStorageProvider> autoReplicateProviderResult = ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
 
                                     if (autoReplicateProviderResult.IsError)
                                     {
@@ -1416,7 +1416,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                                     }
                                     else
                                     {
-                                        result.Result = await autoReplicateProviderResult.Result.DeleteHolonAsync(providerKey, softDelete);
+                                        result = await autoReplicateProviderResult.Result.DeleteHolonAsync(providerKey, softDelete);
 
                                         if (result.IsError)
                                             result.InnerMessages.Add(string.Concat("An error occured in DeleteHolonAsync method. providerKey: ", providerKey, ", softDelete = ", softDelete, ", providerType = ", Enum.GetName(typeof(ProviderType), type.Value)));
@@ -1460,7 +1460,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
             if (holon.Id == Guid.Empty || holon.CreatedDate == DateTime.MinValue)
             {
-                if ((holon.Id == Guid.Empty)
+                if (holon.Id == Guid.Empty)
                     holon.Id = Guid.NewGuid();
 
                 holon.IsNewHolon = true;
@@ -1536,7 +1536,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         {
             try
             {
-                OASISResult<IOASISStorage> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
+                OASISResult<IOASISStorageProvider> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
 
                 if (providerResult.IsError)
                 {
@@ -1550,7 +1550,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 }
                 else if (result != null)
                 {
-                    result.Result = providerResult.Result.LoadHolon(id);
+                    result = providerResult.Result.LoadHolon(id);
                     result.IsSaved = true;
                 }
             }
@@ -1572,9 +1572,11 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
         private OASISResult<T> LoadHolonForProviderType<T>(Guid id, ProviderType providerType, OASISResult<T> result = null) where T : IHolon, new()
         {
+            string errorMessage = string.Concat("An error occured attempting to load the holon for id ", id, " using the ", Enum.GetName(providerType), " provider.");
+
             try
             {
-                OASISResult<IOASISStorage> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
+                OASISResult<IOASISStorageProvider> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
 
                 if (providerResult.IsError)
                 {
@@ -1589,13 +1591,20 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 else if (result != null)
                 {
                     T convertedHolon = (T)Activator.CreateInstance(typeof(T));
-                    result.Result = Mapper<IHolon, T>.MapBaseHolonProperties(providerResult.Result.LoadHolon(id));
-                    result.IsSaved = true;
+                    OASISResult<IHolon> holonResult = providerResult.Result.LoadHolon(id);
+
+                    if (holonResult != null && !holonResult.IsError && holonResult.Result != null)
+                    {
+                        result.Result = Mapper<IHolon, T>.MapBaseHolonProperties(holonResult.Result);
+                        result.IsSaved = true;
+                    }
+                    else
+                        ErrorHandling.HandleError(ref result, $"{errorMessage} Reason: {holonResult.Message}");
                 }
             }
             catch (Exception ex)
             {
-                string errorMessage = string.Concat("An error occured attempting to load the holon for id ", id, " using the ", Enum.GetName(providerType), " provider. Error Details: ", ex.ToString());
+                errorMessage = $"{errorMessage} Reason: {ex}";
 
                 if (result != null)
                 {
@@ -1613,7 +1622,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         {
             try
             {
-                OASISResult<IOASISStorage> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
+                OASISResult<IOASISStorageProvider> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
 
                 if (providerResult.IsError)
                 {
@@ -1627,7 +1636,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 }
                 else if (result != null)
                 {
-                    result.Result = await providerResult.Result.LoadHolonAsync(id);
+                    result = await providerResult.Result.LoadHolonAsync(id);
                     result.IsSaved = true;
                 }
             }
@@ -1649,9 +1658,11 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
         private async Task<OASISResult<T>> LoadHolonForProviderTypeAsync<T>(Guid id, ProviderType providerType, OASISResult<T> result = null) where T : IHolon, new()
         {
+            string errorMessage = string.Concat("An error occured attempting to load the holon for id ", id, " using the ", Enum.GetName(providerType), " provider.");
+
             try
             {
-                OASISResult<IOASISStorage> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
+                OASISResult<IOASISStorageProvider> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
 
                 if (providerResult.IsError)
                 {
@@ -1666,13 +1677,20 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 else if (result != null)
                 {
                     T convertedHolon = (T)Activator.CreateInstance(typeof(T)); //TODO: Need to find faster alternative to relfection... maybe JSON?
-                    result.Result = Mapper<IHolon, T>.MapBaseHolonProperties(await providerResult.Result.LoadHolonAsync(id));
-                    result.IsSaved = true;
+                    OASISResult<IHolon> holonResult = await providerResult.Result.LoadHolonAsync(id);
+
+                    if (holonResult != null && !holonResult.IsError && holonResult.Result != null)
+                    {
+                        result.Result = Mapper<IHolon, T>.MapBaseHolonProperties(holonResult.Result);
+                        result.IsSaved = true;
+                    }
+                    else
+                        ErrorHandling.HandleError(ref result, $"{errorMessage} Reason: {holonResult.Message}");
                 }
             }
             catch (Exception ex)
             {
-                string errorMessage = string.Concat("An error occured attempting to load the holon for id ", id, " using the ", Enum.GetName(providerType), " provider. Error Details: ", ex.ToString());
+                errorMessage = $"{errorMessage} Reason: {ex}";
 
                 if (result != null)
                 {
@@ -1690,7 +1708,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         {
             try
             {
-                OASISResult<IOASISStorage> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
+                OASISResult<IOASISStorageProvider> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
 
                 if (providerResult.IsError)
                 {
@@ -1704,7 +1722,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 }
                 else if (result != null)
                 {
-                    result.Result = providerResult.Result.LoadHolon(providerKey);
+                    result = providerResult.Result.LoadHolon(providerKey);
                     result.IsSaved = true;
                 }
             }
@@ -1726,9 +1744,11 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
         private OASISResult<T> LoadHolonForProviderType<T>(string providerKey, ProviderType providerType, OASISResult<T> result = null) where T : IHolon, new()
         {
+            string errorMessage = string.Concat("An error occured attempting to load the holon for providerKey ", providerKey, " using the ", Enum.GetName(providerType), " provider.");
+
             try
             {
-                OASISResult<IOASISStorage> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
+                OASISResult<IOASISStorageProvider> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
 
                 if (providerResult.IsError)
                 {
@@ -1743,13 +1763,20 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 else if (result != null)
                 {
                     T convertedHolon = (T)Activator.CreateInstance(typeof(T)); //TODO: Need to find faster alternative to relfection... maybe JSON?
-                    result.Result = Mapper<IHolon, T>.MapBaseHolonProperties(providerResult.Result.LoadHolon(providerKey));
-                    result.IsSaved = true;
+                    OASISResult<IHolon> holonResult = providerResult.Result.LoadHolon(providerKey);
+
+                    if (holonResult != null && !holonResult.IsError && holonResult.Result != null)
+                    {
+                        result.Result = Mapper<IHolon, T>.MapBaseHolonProperties(holonResult.Result);
+                        result.IsSaved = true;
+                    }
+                    else
+                        ErrorHandling.HandleError(ref result, $"{errorMessage} Reason: {holonResult.Message}");
                 }
             }
             catch (Exception ex)
             {
-                string errorMessage = string.Concat("An error occured attempting to load the holon for providerKey ", providerKey, " using the ", Enum.GetName(providerType), " provider. Error Details: ", ex.ToString());
+                errorMessage = $"{errorMessage} Reason: {ex}";
 
                 if (result != null)
                 {
@@ -1767,7 +1794,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         {
             try
             {
-                OASISResult<IOASISStorage> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
+                OASISResult<IOASISStorageProvider> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
 
                 if (providerResult.IsError)
                 {
@@ -1781,7 +1808,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 }
                 else if (result != null)
                 {
-                    result.Result = await providerResult.Result.LoadHolonAsync(providerKey);
+                    result = await providerResult.Result.LoadHolonAsync(providerKey);
                     result.IsSaved = true;
                 }
             }
@@ -1803,9 +1830,11 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
         private async Task<OASISResult<T>> LoadHolonForProviderTypeAsync<T>(string providerKey, ProviderType providerType, OASISResult<T> result = null) where T : IHolon, new()
         {
+            string errorMessage = string.Concat("An error occured attempting to load the holon for providerKey ", providerKey, " using the ", Enum.GetName(providerType), " provider.");
+
             try
             {
-                OASISResult<IOASISStorage> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
+                OASISResult<IOASISStorageProvider> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
 
                 if (providerResult.IsError)
                 {
@@ -1820,13 +1849,20 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 else if (result != null)
                 {
                     T convertedHolon = (T)Activator.CreateInstance(typeof(T)); //TODO: Need to find faster alternative to relfection... maybe JSON?
-                    result.Result = Mapper<IHolon, T>.MapBaseHolonProperties(await providerResult.Result.LoadHolonAsync(providerKey));
-                    result.IsSaved = true;
+                    OASISResult<IHolon> holonResult = await providerResult.Result.LoadHolonAsync(providerKey);
+
+                    if (holonResult != null && !holonResult.IsError && holonResult.Result != null)
+                    {
+                        result.Result = Mapper<IHolon, T>.MapBaseHolonProperties(holonResult.Result);
+                        result.IsSaved = true;
+                    }
+                    else
+                        ErrorHandling.HandleError(ref result, $"{errorMessage} Reason: {holonResult.Message}");
                 }
             }
             catch (Exception ex)
             {
-                string errorMessage = string.Concat("An error occured attempting to load the holon for providerKey ", providerKey, " using the ", Enum.GetName(providerType), " provider. Error Details: ", ex.ToString());
+                errorMessage = $"{errorMessage} Reason: {ex}";
 
                 if (result != null)
                 {
@@ -1844,7 +1880,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         {
             try
             {
-                OASISResult<IOASISStorage> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
+                OASISResult<IOASISStorageProvider> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
 
                 if (providerResult.IsError)
                 {
@@ -1858,7 +1894,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 }
                 else if (result != null)
                 {
-                    result.Result = providerResult.Result.LoadHolonsForParent(id, holonType);
+                    result = providerResult.Result.LoadHolonsForParent(id, holonType);
                     result.IsSaved = true;
                 }
             }
@@ -1880,9 +1916,11 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
         private OASISResult<IEnumerable<T>> LoadHolonsForParentForProviderType<T>(Guid id, HolonType holonType, ProviderType providerType, OASISResult<IEnumerable<T>> result = null) where T : IHolon, new()
         {
+            string errorMessage = string.Concat("An error occured attempting to load the holons for parent with id ", id, " and holonType ", Enum.GetName(typeof(HolonType), holonType), " using the ", Enum.GetName(providerType), " provider.");
+
             try
             {
-                OASISResult<IOASISStorage> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
+                OASISResult<IOASISStorageProvider> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
 
                 if (providerResult.IsError)
                 {
@@ -1897,13 +1935,21 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 else if (result != null)
                 {
                     T convertedHolon = (T)Activator.CreateInstance(typeof(T)); //TODO: Need to find faster alternative to relfection... maybe JSON?
-                    result.Result = Mapper<IHolon, T>.MapBaseHolonProperties(providerResult.Result.LoadHolonsForParent(id, holonType)); 
-                    result.IsSaved = true;
+
+                    OASISResult<IEnumerable<IHolon>> holonsResult = providerResult.Result.LoadHolonsForParent(id, holonType);
+
+                    if (holonsResult != null && !holonsResult.IsError && holonsResult.Result != null)
+                    {
+                        result.Result = Mapper<IHolon, T>.MapBaseHolonProperties(holonsResult.Result);
+                        result.IsSaved = true;
+                    }
+                    else
+                        ErrorHandling.HandleError(ref result, $"{errorMessage} Reason: {holonsResult.Message}");
                 }
             }
             catch (Exception ex)
             {
-                string errorMessage = string.Concat("An error occured attempting to load the holons for parent with id ", id, " and holonType ", Enum.GetName(typeof(HolonType), holonType), " using the ", Enum.GetName(providerType), " provider. Error Details: ", ex.ToString());
+                errorMessage = $"{errorMessage} Reason: {ex}";
 
                 if (result != null)
                 {
@@ -1921,7 +1967,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         {
             try
             {
-                OASISResult<IOASISStorage> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
+                OASISResult<IOASISStorageProvider> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
 
                 if (providerResult.IsError)
                 {
@@ -1935,7 +1981,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 }
                 else if (result != null)
                 {
-                    result.Result = await providerResult.Result.LoadHolonsForParentAsync(id, holonType);
+                    result = await providerResult.Result.LoadHolonsForParentAsync(id, holonType);
                     result.IsSaved = true;
                 }
             }
@@ -1957,9 +2003,11 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
         private async Task<OASISResult<IEnumerable<T>>> LoadHolonsForParentForProviderTypeAsync<T>(Guid id, HolonType holonType, ProviderType providerType, OASISResult<IEnumerable<T>> result = null) where T : IHolon, new()
         {
+            string errorMessage = string.Concat("An error occured attempting to load the holons for parent with id ", id, " and holonType ", Enum.GetName(typeof(HolonType), holonType), " using the ", Enum.GetName(providerType), " provider.");
+
             try
             {
-                OASISResult<IOASISStorage> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
+                OASISResult<IOASISStorageProvider> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
 
                 if (providerResult.IsError)
                 {
@@ -1974,13 +2022,20 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 else if (result != null)
                 {
                     T convertedHolon = (T)Activator.CreateInstance(typeof(T)); //TODO: Need to find faster alternative to relfection... maybe JSON?
-                    result.Result = Mapper<IHolon, T>.MapBaseHolonProperties(await providerResult.Result.LoadHolonsForParentAsync(id, holonType));
-                    result.IsSaved = true;
+                    OASISResult<IEnumerable<IHolon>> holonsResult = await providerResult.Result.LoadHolonsForParentAsync(id, holonType);
+
+                    if (holonsResult != null && !holonsResult.IsError && holonsResult.Result != null)
+                    {
+                        result.Result = Mapper<IHolon, T>.MapBaseHolonProperties(holonsResult.Result);
+                        result.IsSaved = true;
+                    }
+                    else
+                        ErrorHandling.HandleError(ref result, $"{errorMessage} Reason: {holonsResult.Message}");
                 }
             }
             catch (Exception ex)
             {
-                string errorMessage = string.Concat("An error occured attempting to load the holons for parent with id ", id, " and holonType ", Enum.GetName(typeof(HolonType), holonType), " using the ", Enum.GetName(providerType), " provider. Error Details: ", ex.ToString());
+                errorMessage = $"{errorMessage} Reason: {ex}";
 
                 if (result != null)
                 {
@@ -1998,7 +2053,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         {
             try
             {
-                OASISResult<IOASISStorage> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
+                OASISResult<IOASISStorageProvider> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
 
                 if (providerResult.IsError)
                 {
@@ -2012,7 +2067,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 }
                 else if (result != null)
                 {
-                    result.Result = providerResult.Result.LoadHolonsForParent(providerKey, holonType);
+                    result = providerResult.Result.LoadHolonsForParent(providerKey, holonType);
                     result.IsSaved = true;
                 }
             }
@@ -2034,9 +2089,11 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
         private OASISResult<IEnumerable<T>> LoadHolonsForParentForProviderType<T>(string providerKey, HolonType holonType, ProviderType providerType, OASISResult<IEnumerable<T>> result = null) where T : IHolon, new()
         {
+            string errorMessage = string.Concat("An error occured attempting to load the holons for parent with providerKey ", providerKey, " and holonType ", Enum.GetName(typeof(HolonType), holonType), " using the ", Enum.GetName(providerType), " provider.");
+
             try
             {
-                OASISResult<IOASISStorage> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
+                OASISResult<IOASISStorageProvider> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
 
                 if (providerResult.IsError)
                 {
@@ -2051,13 +2108,20 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 else if (result != null)
                 {
                     T convertedHolon = (T)Activator.CreateInstance(typeof(T)); //TODO: Need to find faster alternative to relfection... maybe JSON?
-                    result.Result = Mapper<IHolon, T>.MapBaseHolonProperties(providerResult.Result.LoadHolonsForParent(providerKey, holonType));
-                    result.IsSaved = true;
+                    OASISResult<IEnumerable<IHolon>> holonResult = providerResult.Result.LoadHolonsForParent(providerKey, holonType);
+
+                    if (holonResult != null && !holonResult.IsError && holonResult.Result != null)
+                    {
+                        result.Result = Mapper<IHolon, T>.MapBaseHolonProperties(holonResult.Result);
+                        result.IsSaved = true;
+                    }
+                    else
+                        ErrorHandling.HandleError(ref result, $"{errorMessage} Reason: {holonResult.Message}");
                 }
             }
             catch (Exception ex)
             {
-                string errorMessage = string.Concat("An error occured attempting to load the holons for parent with providerKey ", providerKey, " and holonType ", Enum.GetName(typeof(HolonType), holonType), " using the ", Enum.GetName(providerType), " provider. Error Details: ", ex.ToString());
+                errorMessage = $"{errorMessage} Reason: {ex}";
 
                 if (result != null)
                 {
@@ -2075,7 +2139,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         {
             try
             {
-                OASISResult<IOASISStorage> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
+                OASISResult<IOASISStorageProvider> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
 
                 if (providerResult.IsError)
                 {
@@ -2113,7 +2177,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         {
             try
             {
-                OASISResult<IOASISStorage> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
+                OASISResult<IOASISStorageProvider> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
 
                 if (providerResult.IsError)
                 {
@@ -2162,7 +2226,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         {
             try
             {
-                OASISResult<IOASISStorage> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
+                OASISResult<IOASISStorageProvider> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
 
                 if (providerResult.IsError)
                 {
@@ -2176,7 +2240,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 }
                 else if (result != null)
                 {
-                    result.Result = providerResult.Result.LoadAllHolons(holonType);
+                    result = providerResult.Result.LoadAllHolons(holonType);
                     result.IsSaved = true;
                 }
             }
@@ -2198,9 +2262,11 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
         private OASISResult<IEnumerable<T>> LoadAllHolonsForProviderType<T>(HolonType holonType, ProviderType providerType, OASISResult<IEnumerable<T>> result) where T : IHolon, new()
         {
+            string errorMessage = string.Concat("An error occured attempting to load all holons for holonType ", Enum.GetName(typeof(HolonType), holonType), " using the ", Enum.GetName(providerType), " provider.");
+
             try
             {
-                OASISResult<IOASISStorage> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
+                OASISResult<IOASISStorageProvider> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
 
                 if (providerResult.IsError)
                 {
@@ -2215,13 +2281,21 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 else if (result != null)
                 {
                     T convertedHolon = (T)Activator.CreateInstance(typeof(T)); //TODO: Need to find faster alternative to relfection... maybe JSON?
-                    result.Result = Mapper<IHolon, T>.MapBaseHolonProperties(providerResult.Result.LoadAllHolons(holonType));
-                    result.IsSaved = true;
+
+                    OASISResult<IEnumerable<IHolon>> holonsResult = providerResult.Result.LoadAllHolons(holonType);
+
+                    if (holonsResult != null && !holonsResult.IsError && holonsResult.Result != null)
+                    {
+                        result.Result = Mapper<IHolon, T>.MapBaseHolonProperties(holonsResult.Result);
+                        result.IsSaved = true;
+                    }
+                    else
+                        ErrorHandling.HandleError(ref result, $"{errorMessage} Reason: {holonsResult.Message}");
                 }
             }
             catch (Exception ex)
             {
-                string errorMessage = string.Concat("An error occured attempting to load all holons for holonType ", Enum.GetName(typeof(HolonType), holonType), " using the ", Enum.GetName(providerType), " provider. Error Details: ", ex.ToString());
+                errorMessage = $"{errorMessage} Reason: {ex}";
 
                 if (result != null)
                 {
@@ -2239,7 +2313,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         {
             try
             {
-                OASISResult<IOASISStorage> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
+                OASISResult<IOASISStorageProvider> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
 
                 if (providerResult.IsError)
                 {
@@ -2253,7 +2327,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 }
                 else if (result != null)
                 {
-                    result.Result = await providerResult.Result.LoadAllHolonsAsync(holonType);
+                    result = await providerResult.Result.LoadAllHolonsAsync(holonType);
                     result.IsSaved = true;
                 }
             }
@@ -2275,9 +2349,11 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
         private async Task<OASISResult<IEnumerable<T>>> LoadAllHolonsForProviderTypeAsync<T>(HolonType holonType, ProviderType providerType, OASISResult<IEnumerable<T>> result) where T : IHolon, new()
         {
+            string errorMessage = string.Concat("An error occured attempting to load all holons for holonType ", Enum.GetName(typeof(HolonType), holonType), " using the ", Enum.GetName(providerType), " provider.");
+
             try
             {
-                OASISResult<IOASISStorage> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
+                OASISResult<IOASISStorageProvider> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
 
                 if (providerResult.IsError)
                 {
@@ -2292,13 +2368,20 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 else if (result != null)
                 {
                     T convertedHolon = (T)Activator.CreateInstance(typeof(T)); //TODO: Need to find faster alternative to relfection... maybe JSON?
-                    result.Result = Mapper<IHolon, T>.MapBaseHolonProperties(await providerResult.Result.LoadAllHolonsAsync(holonType));
-                    result.IsSaved = true;
+                    OASISResult<IEnumerable<IHolon>> holonsResult = await providerResult.Result.LoadAllHolonsAsync(holonType);
+
+                    if (holonsResult != null && !holonsResult.IsError && holonsResult.Result != null)
+                    {
+                        result.Result = Mapper<IHolon, T>.MapBaseHolonProperties(holonsResult.Result);
+                        result.IsSaved = true;
+                    }
+                    else
+                        ErrorHandling.HandleError(ref result, $"{errorMessage} Reason: {holonsResult.Message}");
                 }
             }
             catch (Exception ex)
             {
-                string errorMessage = string.Concat("An error occured attempting to load all holons for holonType ", Enum.GetName(typeof(HolonType), holonType), " using the ", Enum.GetName(providerType), " provider. Error Details: ", ex.ToString());
+                errorMessage = $"{errorMessage} Reason: {ex}";
 
                 if (result != null)
                 {
@@ -2317,7 +2400,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         {
             try
             {
-                OASISResult<IOASISStorage> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
+                OASISResult<IOASISStorageProvider> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
 
                 if (providerResult.IsError)
                 {
@@ -2365,7 +2448,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         {
             try
             {
-                OASISResult<IOASISStorage> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
+                OASISResult<IOASISStorageProvider> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
 
                 if (providerResult.IsError)
                 {
@@ -2413,7 +2496,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         {
             try
             {
-                OASISResult<IOASISStorage> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
+                OASISResult<IOASISStorageProvider> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
 
                 if (providerResult.IsError)
                 {
@@ -2463,7 +2546,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         {
             try
             {
-                OASISResult<IOASISStorage> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
+                OASISResult<IOASISStorageProvider> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
 
                 if (providerResult.IsError)
                 {
@@ -2628,7 +2711,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
         private void SwitchBackToCurrentProvider<T>(ProviderType currentProviderType, ref OASISResult<T> result)
         {
-            OASISResult<IOASISStorage> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(currentProviderType);
+            OASISResult<IOASISStorageProvider> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(currentProviderType);
 
             if (providerResult.IsError)
             {

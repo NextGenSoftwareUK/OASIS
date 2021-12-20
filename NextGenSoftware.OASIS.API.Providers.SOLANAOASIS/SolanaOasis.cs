@@ -221,7 +221,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS
             return await _solanaRepository.DeleteAsync<Avatar>(providerKey);
         }
 
-        public override OASISResult<IHolon> LoadHolon(string providerKey, bool loadChildren = true, bool recursive = true, int childDepth = 0, bool continueOnError = true, int version = 0)
+        public override OASISResult<IHolon> LoadHolon(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
         {
             OASISResult<Holon> holonResult = _solanaRepository.Get<Holon>(providerKey);
             OASISResult<IHolon> result = new OASISResult<IHolon>(holonResult.Result);
@@ -229,7 +229,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS
             return result;
         }
 
-        public override async Task<OASISResult<IHolon>> LoadHolonAsync(string providerKey, bool loadChildren = true, bool recursive = true, int childDepth = 0, bool continueOnError = true, int version = 0)
+        public override async Task<OASISResult<IHolon>> LoadHolonAsync(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
         {
             OASISResult<Holon> holonResult = await _solanaRepository.GetAsync<Holon>(providerKey);
             OASISResult<IHolon> result = new OASISResult<IHolon>(holonResult.Result);
@@ -237,48 +237,48 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS
             return result;
         }
 
-        public override OASISResult<IHolon> LoadHolon(Guid id, bool loadChildren = true, bool recursive = true, int childDepth = 0, bool continueOnError = true, int version = 0)
+        public override OASISResult<IHolon> LoadHolon(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
         {
             throw new NotImplementedException();
         }
 
-        public override Task<OASISResult<IHolon>> LoadHolonAsync(Guid id, bool loadChildren = true, bool recursive = true, int childDepth = 0, bool continueOnError = true, int version = 0)
+        public override Task<OASISResult<IHolon>> LoadHolonAsync(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
         {
             throw new NotImplementedException();
         }
 
-        public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(Guid id, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int childDepth = 0, bool continueOnError = true, int version = 0)
+        public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(Guid id, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, int version = 0)
         {
             throw new NotImplementedException();
         }
 
-        public override Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(Guid id, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int childDepth = 0, bool continueOnError = true, int version = 0)
+        public override Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(Guid id, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, int version = 0)
         {
             throw new NotImplementedException();
         }
 
-        public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(string providerKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int childDepth = 0, bool continueOnError = true, int version = 0)
+        public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(string providerKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, int version = 0)
         {
             throw new NotImplementedException();
         }
 
-        public override Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(string providerKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int childDepth = 0, bool continueOnError = true, int version = 0)
+        public override Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(string providerKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, int version = 0)
         {
             throw new NotImplementedException();
         }
 
-        public override OASISResult<IEnumerable<IHolon>> LoadAllHolons(HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int childDepth = 0, bool continueOnError = true, int version = 0)
+        public override OASISResult<IEnumerable<IHolon>> LoadAllHolons(HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, int version = 0)
         {
             throw new NotImplementedException();
         }
 
-        public override Task<OASISResult<IEnumerable<IHolon>>> LoadAllHolonsAsync(HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int childDepth = 0, bool continueOnError = true, int version = 0)
+        public override Task<OASISResult<IEnumerable<IHolon>>> LoadAllHolonsAsync(HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, int version = 0)
         {
             throw new NotImplementedException();
         }
 
 
-        public override OASISResult<IHolon> SaveHolon(IHolon holon, bool saveChildren = true, bool recursive = true, int childDepth = 0, bool continueOnError = true)
+        public override OASISResult<IHolon> SaveHolon(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true)
         {
             string errorMessage = "Error occured in SaveHolon method in SolanaOASIS Provider";
             OASISResult<IHolon> result = new OASISResult<IHolon>();
@@ -296,10 +296,10 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS
                 {
                     holon = holonResult.Result;
 
-                    if ((saveChildren && !recursive && childDepth == 0) || saveChildren && recursive && childDepth >= 0)
+                    //if ((saveChildren && !recursive && maxChildDepth == 0) || saveChildren && recursive && maxChildDepth >= 0)
+                    if (saveChildren)
                     {
-                        childDepth++;
-                        OASISResult<IEnumerable<IHolon>> holonsResult = SaveHolons(holon.Children, saveChildren, recursive, childDepth, continueOnError);
+                        OASISResult<IEnumerable<IHolon>> holonsResult = SaveHolons(holon.Children, saveChildren, recursive, maxChildDepth, 0, continueOnError);
 
                         if (holonsResult != null && !holonsResult.IsError && holonsResult.Result != null)
                             holon.Children = holonsResult.Result;
@@ -319,7 +319,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS
             return result;
         }
 
-        public override async Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon, bool saveChildren = true, bool recursive = true, int childDepth = 0, bool continueOnError = true)
+        public override async Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true)
         {
             string errorMessage = "Error occured in SaveHolonAsync method in SolanaOASIS Provider";
             OASISResult<IHolon> result = new OASISResult<IHolon>();
@@ -337,10 +337,10 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS
                 {
                     holon = holonResult.Result;
 
-                    if ((saveChildren && !recursive && childDepth == 0) || saveChildren && recursive && childDepth >= 0)
+                    //if ((saveChildren && !recursive && maxChildDepth == 0) || saveChildren && recursive && maxChildDepth >= 0)
+                    if (saveChildren)
                     {
-                        childDepth++;
-                        OASISResult<IEnumerable<IHolon>> holonsResult = await SaveHolonsAsync(holon.Children, saveChildren, recursive, childDepth, continueOnError);
+                        OASISResult<IEnumerable<IHolon>> holonsResult = await SaveHolonsAsync(holon.Children, saveChildren, recursive, maxChildDepth, 0, continueOnError);
 
                         if (holonsResult != null && !holonsResult.IsError && holonsResult.Result != null)
                             holon.Children = holonsResult.Result;
@@ -360,7 +360,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS
             return result;
         }
 
-        public override OASISResult<IEnumerable<IHolon>> SaveHolons(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int childDepth = 0, bool continueOnError = true)
+        public override OASISResult<IEnumerable<IHolon>> SaveHolons(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int currentChildDepth = 0, bool continueOnError = true)
         {
             string errorMessage = "Error occured in SaveHolonsAsync method in SolanaOASIS Provider";
             OASISResult<IEnumerable<IHolon>> result = new OASISResult<IEnumerable<IHolon>>();
@@ -384,10 +384,11 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS
                             break;
                     }
 
-                    if ((saveChildren && !recursive && childDepth == 0) || saveChildren && recursive && childDepth >= 0)
+                    //TODO: Need to apply this to Mongo & IPFS, etc too...
+                    if ((saveChildren && !recursive && currentChildDepth == 0) || saveChildren && recursive && currentChildDepth >= 0 && (maxChildDepth == 0 || (maxChildDepth > 0 && currentChildDepth <= maxChildDepth)))
                     {
-                        childDepth++;
-                        OASISResult<IEnumerable<IHolon>> holonsResult = SaveHolons(holon.Children, saveChildren, recursive, childDepth, continueOnError);
+                        currentChildDepth++;
+                        OASISResult<IEnumerable<IHolon>> holonsResult = SaveHolons(holon.Children, saveChildren, recursive, maxChildDepth, currentChildDepth, continueOnError);
 
                         if (holonsResult != null && !holonsResult.IsError && holonsResult.Result != null)
                             holon.Children = holonsResult.Result;
@@ -410,9 +411,9 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS
             }
 
             return result;
-        }
+        }, 
 
-        public override async Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int childDepth = 0, bool continueOnError = true)
+        public override async Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int currentChildDepth = 0, bool continueOnError = true)
         {
             string errorMessage = "Error occured in SaveHolonsAsync method in SolanaOASIS Provider";
             OASISResult<IEnumerable<IHolon>> result = new OASISResult<IEnumerable<IHolon>>();
@@ -436,10 +437,11 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS
                             break;
                     }
 
-                    if ((saveChildren && !recursive && childDepth == 0) || saveChildren && recursive && childDepth >= 0)
+                    //TODO: Need to apply this to Mongo & IPFS, etc too...
+                    if ((saveChildren && !recursive && currentChildDepth == 0) || saveChildren && recursive && currentChildDepth >= 0 && (maxChildDepth == 0 || (maxChildDepth > 0 && currentChildDepth <= maxChildDepth)))
                     {
-                        childDepth++;
-                        OASISResult<IEnumerable<IHolon>> holonsResult = await SaveHolonsAsync(holon.Children, saveChildren, recursive, childDepth, continueOnError);
+                        currentChildDepth++;
+                        OASISResult<IEnumerable<IHolon>> holonsResult = await SaveHolonsAsync(holon.Children, saveChildren, recursive, maxChildDepth, currentChildDepth, continueOnError);
 
                         if (holonsResult != null && !holonsResult.IsError && holonsResult.Result != null)
                             holon.Children = holonsResult.Result;
@@ -472,7 +474,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS
         }
 
         
-        public override Task<OASISResult<ISearchResults>> SearchAsync(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int childDepth = 0, bool continueOnError = true, int version = 0)
+        public override Task<OASISResult<ISearchResults>> SearchAsync(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
         {
             throw new NotImplementedException();
         }

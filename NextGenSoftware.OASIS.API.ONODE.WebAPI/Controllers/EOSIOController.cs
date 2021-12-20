@@ -20,7 +20,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             {
                 if (_EOSIOOASIS == null)
                 {
-                    OASISResult<IOASISStorage> result = OASISBootLoader.OASISBootLoader.GetAndActivateProvider(ProviderType.EOSIOOASIS);
+                    OASISResult<IOASISStorageProvider> result = OASISBootLoader.OASISBootLoader.GetAndActivateProvider(ProviderType.EOSIOOASIS);
 
                     //TODO: Eventually want to replace all exceptions with OASISResult throughout the OASIS because then it makes sure errors are handled properly and friendly messages are shown (plus less overhead of throwing an entire stack trace!)
                     if (result.IsError)
