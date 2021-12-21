@@ -333,7 +333,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
             try
             {
                 //TODO: PERFORMANCE} Implement in Providers so more efficient and do not need to return whole list!
-                var avatar = (await AvatarManager.LoadAllAvatarsAsync()).FirstOrDefault(x =>
+                var avatar = (await AvatarManager.LoadAllAvatarsAsync(false)).FirstOrDefault(x =>
                     x.ResetToken == model.Token &&
                     x.ResetTokenExpires > DateTime.UtcNow);
 
@@ -762,7 +762,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
             try
             {
                 // Default to soft delete.
-                response.Result = await AvatarManager.DeleteAvatarAsync(id);
+                response = await AvatarManager.DeleteAvatarAsync(id);
             }
             catch (Exception e)
             {
@@ -781,7 +781,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
             try
             {
                 // Default to soft delete.
-                response.Result = await AvatarManager.DeleteAvatarByUsernameAsync(username);
+                response = await AvatarManager.DeleteAvatarByUsernameAsync(username);
             }
             catch (Exception e)
             {
@@ -800,7 +800,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
             try
             {
                 // Default to soft delete.
-                response.Result = await AvatarManager.DeleteAvatarByEmailAsync(email);
+                response = await AvatarManager.DeleteAvatarByEmailAsync(email);
             }
             catch (Exception e)
             {

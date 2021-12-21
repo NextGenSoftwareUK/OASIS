@@ -699,6 +699,21 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <param name="telosAccountName"></param>
         /// <returns></returns>
         [Authorize]
+        [HttpPost("LinkProviderKeyToAvatar")]
+        public async Task<OASISResult<IAvatarDetail>> LinkProviderKeyToAvatar(
+            LinkProviderKeyToAvatar linkProviderKeyToAvatar)
+        {
+            return await _avatarService.LinkProviderKeyToAvatar(linkProviderKeyToAvatar.AvatarID,
+                linkProviderKeyToAvatar.ProviderType, linkProviderKeyToAvatar.ProviderKey);
+        }
+
+        /// <summary>
+        ///     Link's a given telosAccount to the given avatar.
+        /// </summary>
+        /// <param name="avatarId">The id of the avatar.</param>
+        /// <param name="telosAccountName"></param>
+        /// <returns></returns>
+        [Authorize]
         [HttpPost("{avatarId:Guid}/{telosAccountName}")]
         public async Task<OASISResult<IAvatarDetail>> LinkTelosAccountToAvatar(Guid avatarId, string telosAccountName)
         {

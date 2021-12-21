@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
+using System.Linq;
 using System.Threading.Tasks;
 using MongoDB.Driver;
 using NextGenSoftware.OASIS.API.Core.Helpers;
@@ -174,8 +175,16 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
         {
             try
             {
+                //TODO: Find out how mongo sorts descending by date! It works for non async fine (below)!
+                //FilterDefinition<Avatar> filter = Builders<Avatar>.Sort.Descending(x => x.CreatedDate).(x => x.Username == username);
                 FilterDefinition<Avatar> filter = Builders<Avatar>.Filter.Where(x => x.Username == username);
-                return await _dbContext.Avatar.FindAsync(filter).Result.FirstOrDefaultAsync();
+                //return await _dbContext.Avatar.FindAsync(filter).Result.FirstOrDefaultAsync();
+                List<Avatar> avatars = await _dbContext.Avatar.FindAsync(filter).Result.ToListAsync();
+
+                //Temp workaround till can find out how mongo sorts async collections!
+                avatars.Sort((x, y) => x.CreatedDate.CompareTo(y.CreatedDate));
+                avatars.Reverse();
+                return avatars[0];
             }
             catch (Exception ex)
             {
@@ -188,7 +197,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
             try
             {
                 FilterDefinition<Avatar> filter = Builders<Avatar>.Filter.Where(x => x.Username == username);
-                return _dbContext.Avatar.Find(filter).FirstOrDefault();
+                return _dbContext.Avatar.Find(filter).SortByDescending(x => x.CreatedDate).FirstOrDefault();
             }
             catch (Exception ex)
             {
@@ -495,6 +504,12 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                     if (avatar == null)
                     {
                         ErrorHandling.HandleError(ref result, $"{errorMessage} The avatar with id {id} was not found.");
+                        return result;
+                    }
+
+                    if (avatar.DeletedDate != DateTime.MinValue)
+                    {
+                        ErrorHandling.HandleError(ref result, $"{errorMessage} The avatar with id {id} was already soft deleted on {avatar.DeletedDate} by avatar with id {avatar.DeletedByAvatarId}.");
                         return result;
                     }
 
