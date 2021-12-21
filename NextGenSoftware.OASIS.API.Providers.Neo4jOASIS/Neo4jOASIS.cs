@@ -52,7 +52,7 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
 
         }
 
-        public OASISResult<bool> DeleteAvatar(Guid id, bool softDelete = true)
+        public override OASISResult<bool> DeleteAvatar(Guid id, bool softDelete = true)
         {
             GraphClient.Cypher.OptionalMatch("(avatar:Avatar)-[r]-()")
                 .Where((Avatar avatar) => avatar.Id == id)
@@ -354,11 +354,6 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
             throw new NotImplementedException();
         }
 
-        public override OASISResult<bool> DeleteAvatar(Guid id, bool softDelete = true)
-        {
-            throw new NotImplementedException();
-        }
-
         public override Task<OASISResult<ISearchResults>> SearchAsync(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
         {
             throw new NotImplementedException();
@@ -453,5 +448,10 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
         {
             throw new NotImplementedException();
         }
+
+        //public override OASISResult<bool> DeleteAvatar(Guid id, bool softDelete = true)
+        //{
+        //    throw new NotImplementedException();
+        //}
     }
 }

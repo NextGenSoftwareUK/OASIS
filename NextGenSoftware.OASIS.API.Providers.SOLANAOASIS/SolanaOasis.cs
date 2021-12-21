@@ -411,7 +411,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS
             }
 
             return result;
-        }, 
+        }
 
         public override async Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int currentChildDepth = 0, bool continueOnError = true)
         {

@@ -1,7 +1,7 @@
-﻿using NextGenSoftware.OASIS.API.Providers.CosmosOASIS.Entites;
+﻿using NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Entites;
 using System.Threading.Tasks;
 
-namespace NextGenSoftware.OASIS.API.Providers.CosmosOASIS.Interfaces
+namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Interfaces
 {
     public interface IRepository<T> where T : Entity
     {

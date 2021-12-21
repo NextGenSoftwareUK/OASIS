@@ -9,7 +9,7 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Threading.Tasks;
 
-namespace NextGenSoftware.OASIS.API.Providers.CosmosOASIS.Entites
+namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Entites
 {
     public class Avatar : Entity, IAvatar
     {
@@ -140,6 +140,7 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosOASIS.Entites
         public string Image2D { get; set; }
         public Guid PreviousVersionId { get; set; }
         public Dictionary<ProviderType, string> PreviousVersionProviderKey { get; set; }
+        public Guid VersionId { get; set; }
 
         public event PropertyChangedEventHandler PropertyChanged;
 

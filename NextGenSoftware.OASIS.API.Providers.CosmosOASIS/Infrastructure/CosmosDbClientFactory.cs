@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 using Microsoft.Azure.Documents;
 using Microsoft.Azure.Documents.Client;
 
-namespace NextGenSoftware.OASIS.API.Providers.CosmosOASIS.Infrastructure
+namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Infrastructure
 {
     public class CosmosDbClientFactory : ICosmosDbClientFactory
     {

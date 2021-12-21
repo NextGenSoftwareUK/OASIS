@@ -340,13 +340,16 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return avatars;
         }
 
-        public async Task<IEnumerable<IAvatar>> LoadAllAvatarsAsync(ProviderType provider = ProviderType.Default)
+        public async Task<IEnumerable<IAvatar>> LoadAllAvatarsAsync(bool removeAuthDetails = true, ProviderType provider = ProviderType.Default)
         {
             //TODO: Need to handle return of OASISResult properly...
             IEnumerable<IAvatar> avatars = ProviderManager.SetAndActivateCurrentStorageProvider(provider).Result.LoadAllAvatarsAsync().Result.Result;
 
-            foreach (IAvatar avatar in avatars)
-                RemoveAuthDetails(avatar);
+            if (removeAuthDetails)
+            {
+                foreach (IAvatar avatar in avatars)
+                    RemoveAuthDetails(avatar);
+            }
                 //avatar = RemoveAuthDetails(avatar);
                 //avatar.Password = null;
 
@@ -936,14 +939,14 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
 
         //TODO: Need to refactor methods below to match the new above ones.
-        public bool DeleteAvatar(Guid id, bool softDelete = true, ProviderType providerType = ProviderType.Default)
+        public OASISResult<bool> DeleteAvatar(Guid id, bool softDelete = true, ProviderType providerType = ProviderType.Default)
         {
             //TODO: Need to handle return of OASISResult properly...
             //TODO: Need to implement Delete like HolonManager does to include error handling, auto replication, auto failed over, logging, etc...
-            return ProviderManager.SetAndActivateCurrentStorageProvider(providerType).Result.DeleteAvatar(id, softDelete).Result;
+            return ProviderManager.SetAndActivateCurrentStorageProvider(providerType).Result.DeleteAvatar(id, softDelete);
         }
 
-        public async Task<bool> DeleteAvatarAsync(Guid id, bool softDelete = true, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<bool>> DeleteAvatarAsync(Guid id, bool softDelete = true, ProviderType providerType = ProviderType.Default)
         {
             string errorMessage = "Error in DeleteAvatarAsync method in AvatarManager.";
             OASISResult<IOASISStorageProvider> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
@@ -964,14 +967,14 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             else
                 ErrorHandling.HandleError(ref result, $"{errorMessage} Reason: {providerResult.Message}");
 
-            return result.Result;
+            return result;
 
             //TODO: Need to handle return of OASISResult properly...
             //TODO: Need to implement Delete like HolonManager does to include error handling, auto replication, auto failed over, logging, etc...
             //return await ProviderManager.SetAndActivateCurrentStorageProvider(providerType).Result.DeleteAvatarAsync(id, softDelete).Result;
         }
         
-        public async Task<bool> DeleteAvatarByUsernameAsync(string userName, bool softDelete = true, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<bool>> DeleteAvatarByUsernameAsync(string userName, bool softDelete = true, ProviderType providerType = ProviderType.Default)
         {
             string errorMessage = "Error in DeleteAvatarByUsernameAsync method in AvatarManager.";
             OASISResult<IOASISStorageProvider> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
@@ -992,14 +995,14 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             else
                 ErrorHandling.HandleError(ref result, $"{errorMessage} Reason: {providerResult.Message}");
 
-            return result.Result;
+            return result;
 
             //TODO: Need to handle return of OASISResult properly...
             //TODO: Need to implement Delete like HolonManager does to include error handling, auto replication, auto failed over, logging, etc...
             //return await ProviderManager.SetAndActivateCurrentStorageProvider(providerType).Result.DeleteAvatarByUsernameAsync(userName, softDelete);
         }
         
-        public async Task<bool> DeleteAvatarByEmailAsync(string email, bool softDelete = true, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<bool>> DeleteAvatarByEmailAsync(string email, bool softDelete = true, ProviderType providerType = ProviderType.Default)
         {
             string errorMessage = "Error in DeleteAvatarByEmailAsync method in AvatarManager.";
             OASISResult<IOASISStorageProvider> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
@@ -1020,7 +1023,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             else
                 ErrorHandling.HandleError(ref result, $"{errorMessage} Reason: {providerResult.Message}");
 
-            return result.Result;
+            return result;
 
             //TODO: Need to handle return of OASISResult properly...
             //TODO: Need to implement Delete like HolonManager does to include error handling, auto replication, auto failed over, logging, etc...

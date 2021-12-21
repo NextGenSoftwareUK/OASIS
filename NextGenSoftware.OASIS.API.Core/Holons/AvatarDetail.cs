@@ -133,7 +133,10 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
             KarmaAkashicRecord record = AddKarmaToAkashicRecord(karmaType, karmaSourceType, karamSourceTitle, karmaSourceDesc, webLink, karmaOverride);
 
             if (autoSave)
+            {
+                this.IsNewHolon = false;
                 await SaveAsync();
+            }
 
             //TODO: Handle OASISResult properly with Save above, etc.
             return new OASISResult<KarmaAkashicRecord>(record);
@@ -144,7 +147,10 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
             KarmaAkashicRecord record = AddKarmaToAkashicRecord(karmaType, karmaSourceType, karamSourceTitle, karmaSourceDesc, webLink, karmaOverride);
 
             if (autoSave)
+            {
+                this.IsNewHolon = false;
                 Save();
+            }
 
             //TODO: Handle OASISResult properly with Save above, etc.
             return new OASISResult<KarmaAkashicRecord>(record);
@@ -155,7 +161,10 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
             KarmaAkashicRecord record = RemoveKarmaFromAkashicRecord(karmaType, karmaSourceType, karamSourceTitle, karmaSourceDesc, webLink, karmaOverride);
 
             if (autoSave)
+            {
+                this.IsNewHolon = false;
                 await SaveAsync();
+            }
 
             //TODO: Handle OASISResult properly with Save above, etc.
             return new OASISResult<KarmaAkashicRecord>(record);
@@ -166,7 +175,10 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
             KarmaAkashicRecord record = RemoveKarmaFromAkashicRecord(karmaType, karmaSourceType, karamSourceTitle, karmaSourceDesc, webLink, karmaOverride);
 
             if (autoSave)
+            {
+                this.IsNewHolon = false;
                 Save();
+            }
 
             //TODO: Handle OASISResult properly with Save above, etc.
             return new OASISResult<KarmaAkashicRecord>(record);
@@ -382,11 +394,12 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
 
         public new async Task<IAvatarDetail> SaveAsync()
         {
-            return await (ProviderManager.CurrentStorageProvider).SaveAvatarDetailAsync(this);
+            OASISResult<IAvatarDetail> result = await (ProviderManager.CurrentStorageProvider).SaveAvatarDetailAsync(this);
+            return result.Result;
         }
         public new IAvatarDetail Save()
         {
-            return (ProviderManager.CurrentStorageProvider).SaveAvatarDetail(this);
+            return (ProviderManager.CurrentStorageProvider).SaveAvatarDetail(this).Result;
         }
     }
 }

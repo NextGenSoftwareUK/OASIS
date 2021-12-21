@@ -117,11 +117,12 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
 
         public async Task<IAvatar> SaveAsync()
         {
-            return await (ProviderManager.CurrentStorageProvider).SaveAvatarAsync(this);
+            OASISResult<IAvatar> result = await (ProviderManager.CurrentStorageProvider).SaveAvatarAsync(this);
+            return result.Result;
         }
         public IAvatar Save()
         {
-            return (ProviderManager.CurrentStorageProvider).SaveAvatar(this);
+            return (ProviderManager.CurrentStorageProvider).SaveAvatar(this).Result;
         }
 
         /*
