@@ -87,6 +87,22 @@ namespace NextGenSoftware.OASIS.API.Core.Events
         public OASISResult<ICelestialSpace> Result { get; set; }
     }
 
+    public class CelestialSpacesLoadedEventArgs : EventArgs
+    {
+        public OASISResult<IEnumerable<ICelestialSpace>> Result { get; set; }
+    }
+
+    public class CelestialSpacesSavedEventArgs : EventArgs
+    {
+        public OASISResult<IEnumerable<ICelestialSpace>> Result { get; set; }
+    }
+
+    public class CelestialSpacesErrorEventArgs : EventArgs
+    {
+        public string Reason { get; set; }
+        public OASISResult<IEnumerable<ICelestialSpace>> Result { get; set; }
+    }
+
     public class HolonLoadedEventArgs : EventArgs
     {
         public OASISResult<IHolon> Result { get; set; }

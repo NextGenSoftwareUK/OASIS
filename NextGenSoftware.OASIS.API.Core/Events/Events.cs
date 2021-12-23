@@ -17,22 +17,25 @@ namespace NextGenSoftware.OASIS.API.Core.Events
         public delegate void CelestialSpaceLoaded(object sender, CelestialSpaceLoadedEventArgs e);
         public delegate void CelestialSpaceSaved(object sender, CelestialSpaceSavedEventArgs e);
         public delegate void CelestialSpaceError(object sender, CelestialSpaceErrorEventArgs e);
+        public delegate void CelestialSpacesLoaded(object sender, CelestialSpacesLoadedEventArgs e);
+        public delegate void CelestialSpacesSaved(object sender, CelestialSpacesSavedEventArgs e);
+        public delegate void CelestialSpacesError(object sender, CelestialSpacesErrorEventArgs e);
+        public delegate void ZomeLoaded(object sender, ZomeLoadedEventArgs e);
+        public delegate void ZomeSaved(object sender, ZomeSavedEventArgs e);
+        public delegate void ZomeError(object sender, ZomeErrorEventArgs e);
+        public delegate void ZomesLoaded(object sender, ZomesLoadedEventArgs e);
+        public delegate void ZomesSaved(object sender, ZomesSavedEventArgs e);
+        public delegate void ZomesError(object sender, ZomesErrorEventArgs e);
         public delegate void HolonLoaded(object sender, HolonLoadedEventArgs e);
-        public delegate void HolonsLoaded(object sender, HolonsLoadedEventArgs e);
-        public delegate void HolonSaved(object sender, HolonSavedEventArgs e);
         public delegate void HolonSaved<T>(object sender, HolonSavedEventArgs<T> e);
+        public delegate void HolonSaved(object sender, HolonSavedEventArgs e);
+        public delegate void HolonError(object sender, HolonErrorEventArgs e);
+        public delegate void HolonsLoaded(object sender, HolonsLoadedEventArgs e);
         public delegate void HolonsSaved(object sender, HolonsSavedEventArgs e);
+        public delegate void HolonsError(object sender, HolonsErrorEventArgs e);
         public delegate void HolonAdded(object sender, HolonAddedEventArgs e);
         public delegate void HolonRemoved(object sender, HolonRemovedEventArgs e);
-        public delegate void HolonError(object sender, HolonErrorEventArgs e);
-        public delegate void HolonsError(object sender, HolonsErrorEventArgs e);
-        public delegate void ZomeLoaded(object sender, ZomeLoadedEventArgs e);
-        public delegate void ZomesLoaded(object sender, ZomesLoadedEventArgs e);
-        public delegate void ZomeSaved(object sender, ZomeSavedEventArgs e);
-        public delegate void ZomesSaved(object sender, ZomesSavedEventArgs e);
-        public delegate void ZomeError(object sender, ZomeErrorEventArgs e);
-        public delegate void ZomesError(object sender, ZomesErrorEventArgs e);
-
+        
         // public delegate void Disconnected(object sender, DisconnectedEventArgs e);
         // public delegate void DataReceived(object sender, DataReceivedEventArgs e);
         //TODO: Not sure if we want to expose the HoloNETClient events at this level? They can subscribe to them through the HoloNETClient property below...
