@@ -23,16 +23,17 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
         //public event Events.ZomesLoaded OnZomesLoaded;
 
         public event ZomeLoaded OnZomeLoaded;
-        public event ZomesLoaded OnZomesLoaded;
         public event ZomeSaved OnZomeSaved;
-        public event ZomesSaved OnZomesSaved;
         public event ZomeError OnZomeError;
+        public event ZomesLoaded OnZomesLoaded;
+        public event ZomesSaved OnZomesSaved;
         public event ZomesError OnZomesError;
         public event HolonLoaded OnHolonLoaded;
-        public event HolonsLoaded OnHolonsLoaded;
         public event HolonSaved OnHolonSaved;
-        public event HolonsSaved OnHolonsSaved;
         public event HolonError OnHolonError;
+        public event HolonsLoaded OnHolonsLoaded;
+        public event HolonsSaved OnHolonsSaved;
+        public event HolonsError OnHolonsError;
 
         public List<IZome> Zomes { get; set; } = new List<IZome>();
 
@@ -72,7 +73,6 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
 
         public async Task<OASISResult<IEnumerable<IZome>>> LoadZomesAsync(bool loadChildren = true, bool resursive = true, bool continueOnError = true)
         {
-            //TODO: NEED TO ADD LOADCHILDREN PARAM ASAP.
             OASISResult<IEnumerable<IZome>> result = new OASISResult<IEnumerable<IZome>>();
             OASISResult<IEnumerable<IHolon>>  holonResult = await base.LoadHolonsForParentAsync(HolonType.Zome, loadChildren, resursive, continueOnError);
             OASISResultCollectionToCollectionHelper<IEnumerable<IHolon>, IEnumerable<IZome>>.CopyResult(holonResult, ref result);
@@ -276,26 +276,26 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
             return result;
         }
 
-        public async Task<OASISResult<IHolon>> SaveCelestialBodyAsync(IHolon savingHolon)
+        public async Task<OASISResult<IHolon>> SaveCelestialBodyAsync(IHolon savingHolon, bool saveChildren = true, bool recursive = true, bool continueOnError = true)
         {
-            return await base.SaveHolonAsync(savingHolon, false);
+            return await base.SaveHolonAsync(savingHolon, false, saveChildren, recursive, continueOnError);
         }
 
-        public OASISResult<IHolon> SaveCelestialBody(IHolon savingHolon)
+        public OASISResult<IHolon> SaveCelestialBody(IHolon savingHolon, bool saveChildren = true, bool recursive = true, bool continueOnError = true)
         {
             //TODO: Not sure if this is a good way of doing this?
-            return SaveCelestialBodyAsync(savingHolon).Result;
+            return SaveCelestialBodyAsync(savingHolon, saveChildren, recursive, continueOnError).Result;
         }
 
-        public async Task<OASISResult<T>> SaveCelestialBodyAsync<T>(IHolon savingHolon) where T : IHolon, new()
+        public async Task<OASISResult<T>> SaveCelestialBodyAsync<T>(IHolon savingHolon, bool saveChildren = true, bool recursive = true, bool continueOnError = true) where T : IHolon, new()
         {
-            return await base.SaveHolonAsync<T>(savingHolon, false);
+            return await base.SaveHolonAsync<T>(savingHolon, false, saveChildren, recursive, continueOnError);
         }
 
-        public OASISResult<T> SaveCelestialBody<T>(IHolon savingHolon) where T : IHolon, new()
+        public OASISResult<T> SaveCelestialBody<T>(IHolon savingHolon, bool saveChildren = true, bool recursive = true, bool continueOnError = true) where T : IHolon, new()
         {
             //TODO: Not sure if this is a good way of doing this?
-            return SaveCelestialBodyAsync<T>(savingHolon).Result;
+            return SaveCelestialBodyAsync<T>(savingHolon, saveChildren, recursive, continueOnError).Result;
         }
 
         //public async Task<OASISResult<ICelestialBody>> LoadCelestialBodyAsync()
@@ -318,10 +318,10 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
         //    return await base.LoadHolonAsync();
         //}
 
-        public async Task<OASISResult<ICelestialBody>> LoadCelestialBodyAsync()
+        public async Task<OASISResult<ICelestialBody>> LoadCelestialBodyAsync(bool loadChildren = true, bool recursive = true, bool continueOnError = true)
         {
             OASISResult<ICelestialBody> result = new OASISResult<ICelestialBody>();
-            OASISResult<IHolon> holonResult = await base.LoadHolonAsync();
+            OASISResult<IHolon> holonResult = await base.LoadHolonAsync(loadChildren, recursive, continueOnError);
             result.Result = (ICelestialBody)holonResult.Result;
             OASISResultHolonToHolonHelper<IHolon, ICelestialBody>.CopyResult(holonResult, result);
             //result.Result = (ICelestialBody)await base.LoadHolonAsync();
@@ -401,10 +401,10 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
         //    return base.LoadHolon();
         //}
 
-        public OASISResult<ICelestialBody> LoadCelestialBody()
+        public OASISResult<ICelestialBody> LoadCelestialBody(bool loadChildren = true, bool recursive = true, bool continueOnError = true)
         {
             OASISResult<ICelestialBody> result = new OASISResult<ICelestialBody>();
-            OASISResult<IHolon> holonResult = base.LoadHolon();
+            OASISResult<IHolon> holonResult = base.LoadHolon(loadChildren, recursive, continueOnError);
             result.Result = (ICelestialBody)holonResult.Result;
             OASISResultHolonToHolonHelper<IHolon, ICelestialBody>.CopyResult(holonResult, result);
             return result;

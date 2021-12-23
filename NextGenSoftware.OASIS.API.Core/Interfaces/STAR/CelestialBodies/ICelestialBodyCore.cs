@@ -11,16 +11,17 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces.STAR
         List<IZome> Zomes { get; set; }
 
         public event ZomeLoaded OnZomeLoaded;
-        public event ZomesLoaded OnZomesLoaded;
         public event ZomeSaved OnZomeSaved;
-        public event ZomesSaved OnZomesSaved;
         public event ZomeError OnZomeError;
+        public event ZomesLoaded OnZomesLoaded;
+        public event ZomesSaved OnZomesSaved;
         public event ZomesError OnZomesError;
         public event HolonLoaded OnHolonLoaded;
-        public event HolonsLoaded OnHolonsLoaded;
         public event HolonSaved OnHolonSaved;
-        public event HolonsSaved OnHolonsSaved;
         public event HolonError OnHolonError;
+        public event HolonsLoaded OnHolonsLoaded;
+        public event HolonsSaved OnHolonsSaved;
+        public event HolonsError OnHolonsError;
 
         Task<OASISResult<ICelestialBody>> LoadCelestialBodyAsync(bool loadChildren = true, bool recursive = true, bool continueOnError = true);
         OASISResult<ICelestialBody> LoadCelestialBody(bool loadChildren = true, bool recursive = true, bool continueOnError = true);

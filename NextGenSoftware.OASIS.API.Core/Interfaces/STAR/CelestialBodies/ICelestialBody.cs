@@ -13,16 +13,17 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces.STAR
         public event CelestialBodySaved OnCelestialBodySaved;
         public event CelestialBodyError OnCelestialBodyError;
         public event ZomeLoaded OnZomeLoaded;
-        public event ZomesLoaded OnZomesLoaded;
         public event ZomeSaved OnZomeSaved;
-        public event ZomesSaved OnZomesSaved;
         public event ZomeError OnZomeError;
+        public event ZomesLoaded OnZomesLoaded;
+        public event ZomesSaved OnZomesSaved;
         public event ZomesError OnZomesError;
         public event HolonLoaded OnHolonLoaded;
-        public event HolonsLoaded OnHolonsLoaded;
         public event HolonSaved OnHolonSaved;
-        public event HolonsSaved OnHolonsSaved;
         public event HolonError OnHolonError;
+        public event HolonsLoaded OnHolonsLoaded;
+        public event HolonsSaved OnHolonsSaved;
+        public event HolonsError OnHolonsError;
         // event DataReceived OnDataReceived;
         // event Disconnected OnDisconnected;
 

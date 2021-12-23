@@ -27,16 +27,17 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
         public event CelestialBodySaved OnCelestialBodySaved;
         public event CelestialBodyError OnCelestialBodyError;
         public event ZomeLoaded OnZomeLoaded;
-        public event ZomesLoaded OnZomesLoaded;
         public event ZomeSaved OnZomeSaved;
-        public event ZomesSaved OnZomesSaved;
         public event ZomeError OnZomeError;
+        public event ZomesLoaded OnZomesLoaded;
+        public event ZomesSaved OnZomesSaved;
         public event ZomesError OnZomesError;
         public event HolonLoaded OnHolonLoaded;
-        public event HolonsLoaded OnHolonsLoaded;
         public event HolonSaved OnHolonSaved;
-        public event HolonsSaved OnHolonsSaved;
         public event HolonError OnHolonError;
+        public event HolonsLoaded OnHolonsLoaded;
+        public event HolonsSaved OnHolonsSaved;
+        public event HolonsError OnHolonsError;
 
         public int Mass { get; set; }
         public int Density { get; set; }
@@ -159,14 +160,15 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
 
                             if (!continueOnError && (holonsResult.IsError || holonsResult.Result == null))
                             {
-                                result.IsError = true;
-                                result.Message = string.Concat("Error occured saving GreatGrandSuperStar.ParentOmiverse.Multiverses. Error Details: ", holonsResult.Message);
+                                ErrorHandling.HandleError(ref result, string.Concat("Error occured saving GreatGrandSuperStar.ParentOmiverse.Multiverses. Error Details: ", holonsResult.Message));
                                 return result;
                             }
 
                             //TODO: Finish this later...
                             foreach (IMultiverse multiverse in ParentOmiverse.Multiverses)
                             {
+                                await multiverse.SaveAsync(saveChildren, recursive, continueOnError);
+
                                 holonResult = await CelestialBodyCore.SaveHolonAsync(Mapper<IUniverse, Holon>.MapBaseHolonProperties(multiverse.Dimensions.ThirdDimension.UniversePrime));
 
                                 if (!continueOnError && (holonResult.IsError || holonResult.Result == null))
@@ -185,7 +187,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
                                     return result;
                                 }
 
-                                holonsResult = await CelestialBodyCore.SaveHolonsAsync(Mapper<IMultiverse, Holon>.MapBaseHolonProperties(((IGreatGrandSuperStar)this).ParentOmiverse.Multiverses));
+                                holonsResult = await CelestialBodyCore.SaveHolonsAsync(Mapper<IUniverse, Holon>.MapBaseHolonProperties(multiverse.Dimensions.ThirdDimension.ParallelUniverses));
 
                                 if (!continueOnError && (holonsResult.IsError || holonsResult.Result == null))
                                 {
@@ -194,7 +196,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
                                     return result;
                                 }
 
-                                celestialBodyChildrenResult = await SaveCelestialBodyChildrenAsync((IEnumerable<IZome>)multiverse.Dimensions.ThirdDimension.ParallelUniverses);
+                                //celestialBodyChildrenResult = await SaveCelestialBodyChildrenAsync((IEnumerable<IZome>)multiverse.Dimensions.ThirdDimension.ParallelUniverses);
 
                                 //Need to save all other dimensions too... ;-)
                             }
@@ -282,11 +284,13 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
             // Finally we need to save again so the child holon ids's are stored in the graph...
             // TODO: We may not need to do this save again in future since when we load the zome we could lazy load its child holons seperatley from their parentIds.
             // But loading the celestialbody with all its child holons will be faster than loading them seperatley (but only if the current OASIS Provider supports this, so far MongoDBOASIS does).
+            // UPDATE: We now only need to save once (below)... :)
 
-            celestialBodyHolonResult = await CelestialBodyCore.SaveCelestialBodyAsync(this);
-            result.Message = celestialBodyHolonResult.Message;
-            result.IsSaved = celestialBodyHolonResult.IsSaved;
-            result.IsError = celestialBodyHolonResult.IsError;
+            celestialBodyHolonResult = await CelestialBodyCore.SaveCelestialBodyAsync(this, saveChildren, recursive, continueOnError);
+            OASISResultHolonToHolonHelper<IHolon, ICelestialBody>.CopyResult(celestialBodyHolonResult, result);
+            //result.Message = celestialBodyHolonResult.Message;
+            //result.IsSaved = celestialBodyHolonResult.IsSaved;
+            //result.IsError = celestialBodyHolonResult.IsError;
 
             if (!celestialBodyHolonResult.IsError && celestialBodyHolonResult.Result != null)
                 //celestialBodyHolonResult.Result.Adapt(this);
@@ -371,7 +375,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
                                     return result;
                                 }
 
-                                celestialBodyChildrenResult = await SaveCelestialBodyChildrenAsync((IEnumerable<IZome>)multiverse.Dimensions.ThirdDimension.ParallelUniverses);
+                                //celestialBodyChildrenResult = await SaveCelestialBodyChildrenAsync((IEnumerable<IZome>)multiverse.Dimensions.ThirdDimension.ParallelUniverses);
 
                                 //Need to save all other dimensions too... ;-)
                             }
