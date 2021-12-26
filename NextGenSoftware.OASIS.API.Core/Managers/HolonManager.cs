@@ -2400,6 +2400,11 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         {
             try
             {
+                HasHolonChanged(holon, ref result);
+
+                if (!result.HasAnyHolonsChanged)
+                    return result;
+
                 OASISResult<IOASISStorageProvider> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
 
                 if (providerResult.IsError)
@@ -2448,6 +2453,11 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         {
             try
             {
+                HasHolonChanged(holon, ref result);
+
+                if (!result.HasAnyHolonsChanged)
+                    return result;
+
                 OASISResult<IOASISStorageProvider> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
 
                 if (providerResult.IsError)
@@ -2496,6 +2506,11 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         {
             try
             {
+                HasAnyHolonsChanged(holons, ref result);
+
+                if (!result.HasAnyHolonsChanged)
+                    return result;
+
                 OASISResult<IOASISStorageProvider> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
 
                 if (providerResult.IsError)
@@ -2546,6 +2561,11 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         {
             try
             {
+                HasAnyHolonsChanged(holons, ref result);
+
+                if (!result.HasAnyHolonsChanged)
+                    return result;
+
                 OASISResult<IOASISStorageProvider> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
 
                 if (providerResult.IsError)
@@ -2597,6 +2617,11 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             OASISResult<IEnumerable<IHolon>> holonSaveResult = new OASISResult<IEnumerable<IHolon>>();
             ProviderType originalCurrentProvider = ProviderManager.CurrentStorageProviderType.Value;
 
+            HasAnyHolonsChanged(holons, ref result);
+
+            if (!result.HasAnyHolonsChanged)
+                return result;
+
             foreach (EnumValue<ProviderType> type in providers)
             {
                 //if (type.Value != currentProviderType && type.Value != ProviderManager.CurrentStorageProviderType.Value)
@@ -2619,6 +2644,11 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         {
             OASISResult<IEnumerable<IHolon>> holonSaveResult = new OASISResult<IEnumerable<IHolon>>();
             ProviderType originalCurrentProvider = ProviderManager.CurrentStorageProviderType.Value;
+
+            HasAnyHolonsChanged(holons, ref result);
+
+            if (!result.HasAnyHolonsChanged)
+                return result;
 
             foreach (EnumValue<ProviderType> type in providers)
             {
@@ -2643,6 +2673,11 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             OASISResult<IHolon> holonSaveResult = new OASISResult<IHolon>();
             ProviderType originalCurrentProvider = ProviderManager.CurrentStorageProviderType.Value;
 
+            HasHolonChanged(holon, ref result);
+
+            if (!result.HasAnyHolonsChanged)
+                return result;
+
             foreach (EnumValue<ProviderType> type in providers)
             {
                 //if (type.Value != currentProviderType && type.Value != ProviderManager.CurrentStorageProviderType.Value)
@@ -2665,6 +2700,11 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         {
             OASISResult<IHolon> holonSaveResult = new OASISResult<IHolon>();
             ProviderType originalCurrentProvider = ProviderManager.CurrentStorageProviderType.Value;
+
+            HasHolonChanged(holon, ref result);
+
+            if (!result.HasAnyHolonsChanged)
+                return result;
 
             foreach (EnumValue<ProviderType> type in providers)
             {
@@ -2799,6 +2839,36 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
         //    return result;
         //}
+
+        private OASISResult<T> HasHolonChanged<T>(IHolon holon, ref OASISResult<T> result)
+        {
+            if (!holon.HasHolonChanged())
+            {
+                result.Message = "No changes need saving";
+                result.HasAnyHolonsChanged = false;
+            }
+            else
+                result.HasAnyHolonsChanged = true;
+
+            return result;
+        }
+
+        private OASISResult<T> HasAnyHolonsChanged<T>(IEnumerable<IHolon> holons, ref OASISResult<T> result)
+        {
+            foreach (IHolon holon in holons)
+            {
+                if (holon.HasHolonChanged())
+                {
+                    result.HasAnyHolonsChanged = true;
+                    break;
+                }
+            }
+
+            if (!result.HasAnyHolonsChanged)
+                result.Message = "No changes need saving";
+
+            return result;
+        }
 
         private string BuildSaveHolonAutoFailOverErrorMessage(List<string> innerMessages, IHolon holon = null)
         {

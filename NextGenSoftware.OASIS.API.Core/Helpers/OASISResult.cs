@@ -16,6 +16,7 @@ namespace NextGenSoftware.OASIS.API.Core.Helpers
         public int WarningCount { get; set; }
         public int SavedCount { get; set; }
         public int LoadedCount { get; set; }
+        public bool HasAnyHolonsChanged { get; set; }
 
         public List<string> InnerMessages = new List<string>();
 
