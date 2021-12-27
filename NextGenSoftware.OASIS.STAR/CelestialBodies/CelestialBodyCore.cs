@@ -24,6 +24,8 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
 
         public event ZomeLoaded OnZomeLoaded;
         public event ZomeSaved OnZomeSaved;
+        public event ZomeAdded OnZomeAdded;
+        public event ZomeRemoved OnZomeRemoved;
         public event ZomeError OnZomeError;
         public event ZomesLoaded OnZomesLoaded;
         public event ZomesSaved OnZomesSaved;
@@ -223,6 +225,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
                 OASISResultCollectionToHolonHelper<IEnumerable<IHolon>, IZome>.CopyResult(holonsResult, ref result);
             }
 
+            OnZomeAdded?.Invoke(this, new ZomeAddedEventArgs() { Result = result });
             return result;
         }
 
@@ -243,6 +246,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
                 OASISResultCollectionToHolonHelper<IEnumerable<IHolon>, IZome>.CopyResult(holonsResult, ref result);
             }
 
+            OnZomeAdded?.Invoke(this, new ZomeAddedEventArgs() { Result = result });
             return result;
         }
 
@@ -258,6 +262,10 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
             if (!holonsResult.IsError && holonsResult.Result != null)
                 result.Result = Mapper<IHolon, Zome>.MapBaseHolonProperties(holonsResult.Result);
 
+            OASISResult<IZome> zomeRemoved = new OASISResult<IZome>(zome);
+            OASISResultCollectionToHolonHelper<IEnumerable<IZome>, IZome>.CopyResult(result, zomeRemoved);
+
+            OnZomeRemoved?.Invoke(this, new ZomeRemovedEventArgs() { Result = zomeRemoved });
             return result;
         }
 
@@ -273,6 +281,10 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
             if (!holonsResult.IsError && holonsResult.Result != null)
                 result.Result = Mapper<IHolon, Zome>.MapBaseHolonProperties(holonsResult.Result);
 
+            OASISResult<IZome> zomeRemoved = new OASISResult<IZome>(zome);
+            OASISResultCollectionToHolonHelper<IEnumerable<IZome>, IZome>.CopyResult(result, zomeRemoved);
+
+            OnZomeRemoved?.Invoke(this, new ZomeRemovedEventArgs() { Result = zomeRemoved });
             return result;
         }
 
