@@ -23,6 +23,8 @@ namespace NextGenSoftware.OASIS.API.Core.Events
         public delegate void ZomeLoaded(object sender, ZomeLoadedEventArgs e);
         public delegate void ZomeSaved(object sender, ZomeSavedEventArgs e);
         public delegate void ZomeError(object sender, ZomeErrorEventArgs e);
+        public delegate void ZomeAdded(object sender, ZomeAddedEventArgs e);
+        public delegate void ZomeRemoved(object sender, ZomeRemovedEventArgs e);
         public delegate void ZomesLoaded(object sender, ZomesLoadedEventArgs e);
         public delegate void ZomesSaved(object sender, ZomesSavedEventArgs e);
         public delegate void ZomesError(object sender, ZomesErrorEventArgs e);

@@ -28,6 +28,8 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
         public event CelestialBodyError OnCelestialBodyError;
         public event ZomeLoaded OnZomeLoaded;
         public event ZomeSaved OnZomeSaved;
+        public event ZomeAdded OnZomeAdded;
+        public event ZomeRemoved OnZomeRemoved;
         public event ZomeError OnZomeError;
         public event ZomesLoaded OnZomesLoaded;
         public event ZomesSaved OnZomesSaved;
@@ -112,12 +114,16 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
 
         public async Task<OASISResult<IEnumerable<IZome>>> LoadZomesAsync(bool loadChildren = true, bool recursive = true, bool continueOnError = true)
         {
-            return await CelestialBodyCore.LoadZomesAsync(loadChildren, recursive, continueOnError);
+            OASISResult<IEnumerable<IZome>> result = await CelestialBodyCore.LoadZomesAsync(loadChildren, recursive, continueOnError);
+            OnZomesLoaded?.Invoke(this, new ZomesLoadedEventArgs() { Result = result });
+            return result;
         }
 
         public OASISResult<IEnumerable<IZome>> LoadZomes(bool loadChildren = true, bool recursive = true, bool continueOnError = true)
         {
-            return CelestialBodyCore.LoadZomes(loadChildren, recursive, continueOnError);
+            OASISResult<IEnumerable<IZome>> result = CelestialBodyCore.LoadZomes(loadChildren, recursive, continueOnError);
+            OnZomesLoaded?.Invoke(this, new ZomesLoadedEventArgs() { Result = result });
+            return result;
         }
 
         public async Task<OASISResult<ICelestialBody>> SaveAsync(bool saveChildren = true, bool recursive = true, bool continueOnError = true)
@@ -809,10 +815,20 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
         {
             if (CelestialBodyCore != null)
             {
-                ((CelestialBodyCore)CelestialBodyCore).OnHolonsLoaded += CelestialBodyCore_OnHolonsLoaded;
-                ((CelestialBodyCore)CelestialBodyCore).OnZomesLoaded += CelestialBodyCore_OnZomesLoaded;
+                ((CelestialBodyCore)CelestialBodyCore).OnHolonLoaded += CelestialBody_OnHolonLoaded;
                 ((CelestialBodyCore)CelestialBodyCore).OnHolonSaved += CelestialBodyCore_OnHolonSaved;
+                ((CelestialBodyCore)CelestialBodyCore).OnHolonError += CelestialBody_OnHolonError;
+                ((CelestialBodyCore)CelestialBodyCore).OnHolonsLoaded += CelestialBodyCore_OnHolonsLoaded;
+                ((CelestialBodyCore)CelestialBodyCore).OnHolonsSaved += CelestialBody_OnHolonsSaved;
+                ((CelestialBodyCore)CelestialBodyCore).OnHolonsError += CelestialBody_OnHolonsError;
+                ((CelestialBodyCore)CelestialBodyCore).OnZomeLoaded += CelestialBody_OnZomeLoaded;
+                ((CelestialBodyCore)CelestialBodyCore).OnZomeSaved += CelestialBody_OnZomeSaved;
+                ((CelestialBodyCore)CelestialBodyCore).OnZomeAdded += CelestialBody_OnZomeAdded;
+                ((CelestialBodyCore)CelestialBodyCore).OnZomeRemoved += CelestialBody_OnZomeRemoved;
                 ((CelestialBodyCore)CelestialBodyCore).OnZomeError += CelestialBodyCore_OnZomeError;
+                ((CelestialBodyCore)CelestialBodyCore).OnZomesLoaded += CelestialBodyCore_OnZomesLoaded;
+                ((CelestialBodyCore)CelestialBodyCore).OnZomesSaved += CelestialBody_OnZomesSaved;
+                ((CelestialBodyCore)CelestialBodyCore).OnZomesError += CelestialBody_OnZomesError;
             }
         }
 
@@ -1096,6 +1112,45 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
         }
         */
 
+        public IZome GetZomeThatHolonBelongsTo(IHolon holon)
+        {
+            return (IZome)CelestialBodyCore.Holons.FirstOrDefault(x => x.Id == holon.Id).ParentHolon;
+        }
+
+        public List<IHolon> GetHolonsThatBelongToZome(IZome zome)
+        {
+            return CelestialBodyCore.Holons.Where(x => x.ParentHolon.Id == zome.Id).ToList();
+        }
+
+        public IZome GetZomeByName(string name)
+        {
+            return CelestialBodyCore.Zomes.FirstOrDefault(x => x.Name == name);
+        }
+
+        public IZome GetZomeById(Guid id)
+        {
+            return CelestialBodyCore.Zomes.FirstOrDefault(x => x.Id == id);
+        }
+        private void CelestialBody_OnZomeLoaded(object sender, ZomeLoadedEventArgs e)
+        {
+            OnZomeLoaded?.Invoke(sender, e);
+        }
+
+        private void CelestialBody_OnZomeSaved(object sender, ZomeSavedEventArgs e)
+        {
+            OnZomeSaved?.Invoke(sender, e);
+        }
+
+        private void CelestialBody_OnZomeAdded(object sender, ZomeAddedEventArgs e)
+        {
+            OnZomeAdded?.Invoke(sender, e);
+        }
+
+        private void CelestialBody_OnZomeRemoved(object sender, ZomeRemovedEventArgs e)
+        {
+            OnZomeRemoved?.Invoke(sender, e);
+        }
+
         private void CelestialBodyCore_OnZomeError(object sender, ZomeErrorEventArgs e)
         {
             OnZomeError?.Invoke(sender, e);
@@ -1122,29 +1177,19 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
             //Nice for Zomes to manage their own collections of holons (good practice) so will see... :)
         }
 
-        private void CelestialBodyCore_OnHolonsLoaded(object sender, HolonsLoadedEventArgs e)
+        private void CelestialBody_OnZomesSaved(object sender, ZomesSavedEventArgs e)
         {
-            OnHolonsLoaded?.Invoke(sender, e);
+            OnZomesSaved?.Invoke(sender, e);
         }
 
-        public IZome GetZomeThatHolonBelongsTo(IHolon holon)
+        private void CelestialBody_OnZomesError(object sender, ZomesErrorEventArgs e)
         {
-            return (IZome)CelestialBodyCore.Holons.FirstOrDefault(x => x.Id == holon.Id).ParentHolon;
+            OnZomesError?.Invoke(sender, e);
         }
 
-        public List<IHolon> GetHolonsThatBelongToZome(IZome zome)
+        private void CelestialBody_OnHolonLoaded(object sender, HolonLoadedEventArgs e)
         {
-            return CelestialBodyCore.Holons.Where(x => x.ParentHolon.Id == zome.Id).ToList();
-        }
-
-        public IZome GetZomeByName(string name)
-        {
-            return CelestialBodyCore.Zomes.FirstOrDefault(x => x.Name == name);
-        }
-
-        public IZome GetZomeById(Guid id)
-        {
-            return CelestialBodyCore.Zomes.FirstOrDefault(x => x.Id == id);
+            OnHolonLoaded?.Invoke(sender, e);
         }
 
         private async void CelestialBodyCore_OnHolonSaved(object sender, HolonSavedEventArgs e)
@@ -1221,6 +1266,36 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
                 }
             }*/
         }
+
+        private void CelestialBody_OnHolonError(object sender, HolonErrorEventArgs e)
+        {
+            OnHolonError?.Invoke(sender, e);
+        }
+
+        private void CelestialBodyCore_OnHolonsLoaded(object sender, HolonsLoadedEventArgs e)
+        {
+            OnHolonsLoaded?.Invoke(sender, e);
+        }
+
+        private void CelestialBody_OnHolonsSaved(object sender, HolonsSavedEventArgs e)
+        {
+            OnHolonsSaved?.Invoke(sender, e);
+        }
+
+        private void CelestialBody_OnHolonsError(object sender, HolonsErrorEventArgs e)
+        {
+            OnHolonsError?.Invoke(sender, e);
+        }
+
+       
+
+       
+
+      
+
+       
+
+       
 
         //TODO: Come back to this, this is what is fired when each zome is loaded once the celestialbody is loaded but I think for now we will lazy load them later...
         private void Zome_OnHolonLoaded(object sender, HolonLoadedEventArgs e)

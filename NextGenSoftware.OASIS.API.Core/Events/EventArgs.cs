@@ -183,6 +183,16 @@ namespace NextGenSoftware.OASIS.API.Core.Events
         //public HoloNETErrorEventArgs HoloNETErrorDetails { get; set; }
     }
 
+    public class ZomeAddedEventArgs : EventArgs
+    {
+        public OASISResult<IZome> Result { get; set; }
+    }
+
+    public class ZomeRemovedEventArgs : EventArgs
+    {
+        public OASISResult<IZome> Result { get; set; }
+    }
+
     public class ZomesErrorEventArgs : EventArgs
     {
         //public string EndPoint { get; set; }
