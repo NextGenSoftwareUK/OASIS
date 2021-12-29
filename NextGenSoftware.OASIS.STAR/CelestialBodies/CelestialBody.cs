@@ -1287,15 +1287,6 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
             OnHolonsError?.Invoke(sender, e);
         }
 
-       
-
-       
-
-      
-
-       
-
-       
 
         //TODO: Come back to this, this is what is fired when each zome is loaded once the celestialbody is loaded but I think for now we will lazy load them later...
         private void Zome_OnHolonLoaded(object sender, HolonLoadedEventArgs e)
