@@ -23,6 +23,7 @@ using NextGenSoftware.OASIS.STAR.Zomes;
 using NextGenSoftware.OASIS.STAR.EventArgs;
 using NextGenSoftware.OASIS.STAR.ErrorEventArgs;
 using NextGenSoftware.OASIS.STAR.Enums;
+using static NextGenSoftware.OASIS.API.Core.Events.Events;
 
 namespace NextGenSoftware.OASIS.STAR
 {
@@ -96,17 +97,45 @@ namespace NextGenSoftware.OASIS.STAR
 
         //public static IMapper Mapper { get; set; }
 
-        public delegate void HolonsLoaded(object sender, HolonsLoadedEventArgs e);
-        public static event HolonsLoaded OnHolonsLoaded;
+        //public delegate void HolonsLoaded(object sender, HolonsLoadedEventArgs e);
+        //public static event HolonsLoaded OnHolonsLoaded;
 
-        public delegate void ZomesLoaded(object sender, ZomesLoadedEventArgs e);
+        //public delegate void ZomesLoaded(object sender, ZomesLoadedEventArgs e);
+        //public static event ZomesLoaded OnZomesLoaded;
+
+        //public delegate void HolonSaved(object sender, HolonSavedEventArgs e);
+        //public static event HolonSaved OnHolonSaved;
+
+        //public delegate void HolonLoaded(object sender, HolonLoadedEventArgs e);
+        //public static event HolonLoaded OnHolonLoaded;
+
+        //public delegate void ZomeError(object sender, ZomeErrorEventArgs e);
+        //public static event ZomeError OnZomeError;
+
+        public static event CelestialSpaceLoaded OnCelestialSpaceLoaded;
+        public static event CelestialSpaceSaved OnCelestialSpaceSaved;
+        public static event CelestialSpaceError OnCelestialSpaceError;
+        public static event CelestialSpacesLoaded OnCelestialSpacesLoaded;
+        public static event CelestialSpacesSaved OnCelestialSpacesSaved;
+        public static event CelestialSpacesError OnCelestialSpacesError;
+        public static event CelestialBodyLoaded OnCelestialBodyLoaded;
+        public static event CelestialBodySaved OnCelestialBodySaved;
+        public static event CelestialBodyError OnCelestialBodyError;
+        public static event CelestialBodiesLoaded OnCelestialBodiesLoaded;
+        public static event CelestialBodiesSaved OnCelestialBodiesSaved;
+        public static event CelestialBodiesError OnCelestialBodiesError;
+        public static event ZomeLoaded OnZomeLoaded;
+        public static event ZomeSaved OnZomeSaved;
+        public static event ZomeError OnZomeError;
         public static event ZomesLoaded OnZomesLoaded;
-
-        public delegate void HolonSaved(object sender, HolonSavedEventArgs e);
-        public static event HolonSaved OnHolonSaved;
-
-        public delegate void HolonLoaded(object sender, HolonLoadedEventArgs e);
+        public static event ZomesSaved OnZomesSaved;
+        public static event ZomesError OnZomesError;
         public static event HolonLoaded OnHolonLoaded;
+        public static event HolonSaved OnHolonSaved;
+        public static event HolonError OnHolonError;
+        public static event HolonsLoaded OnHolonsLoaded;
+        public static event HolonsSaved OnHolonsSaved;
+        public static event HolonsError OnHolonsError;
 
         public delegate void StarIgnited(object sender, StarIgnitedEventArgs e);
         public static event StarIgnited OnStarIgnited;
@@ -125,9 +154,6 @@ namespace NextGenSoftware.OASIS.STAR
 
         public delegate void OASISBootError(object sender, OASISBootErrorEventArgs e);
         public static event OASISBootError OnOASISBootError;
-
-        public delegate void ZomeError(object sender, ZomeErrorEventArgs e);
-        public static event ZomeError OnZomeError;
 
         //TODO: Not sure if we want to expose the HoloNETClient events at this level? They can subscribe to them through the HoloNETClient property below...
         //public delegate void Disconnected(object sender, DisconnectedEventArgs e);
@@ -418,13 +444,13 @@ namespace NextGenSoftware.OASIS.STAR
             bool firstHolon = true;
             string rustDNAFolder = string.Empty;
 
-            if (LoggedInAvatar == null)
+            if (LoggedInAvatarDetail == null)
                 return new CoronalEjection() { ErrorOccured = true, Message = "Avatar is not logged in. Please log in before calling this command." };
 
-            if (LoggedInAvatar.Level < 77 && type == GenesisType.Star)
+            if (LoggedInAvatarDetail.Level < 77 && type == GenesisType.Star)
                 return new CoronalEjection() { ErrorOccured = true, Message = "Avatar must have reached level 77 before they can create stars. Please create a planet or moon instead..." };
 
-            if (LoggedInAvatar.Level < 33 && type == GenesisType.Planet)
+            if (LoggedInAvatarDetail.Level < 33 && type == GenesisType.Planet)
                 return new CoronalEjection() { ErrorOccured = true, Message = "Avatar must have reached level 33 before they can create planets. Please create a moon instead..." };
 
             if (celestialBodyParent == null && type == GenesisType.Moon)
@@ -570,13 +596,22 @@ namespace NextGenSoftware.OASIS.STAR
                     break;
             }
 
-            // newBody.CelestialBody = newBody; //TODO: Causes an infinite recursion because CelestialBody is a Holon itself so its linking to itself.
-            newBody.Id = Guid.NewGuid(); //TODO: Not sure if to put this into HolonBase or not?
+            newBody.Id = Guid.NewGuid();
             //newBody.IsNewHolon = true;
             newBody.Name = name;
+            newBody.OnCelestialBodySaved += NewBody_OnCelestialBodySaved;
+            newBody.OnCelestialBodyError += NewBody_OnCelestialBodyError;
+            newBody.OnZomeSaved += NewBody_OnZomeSaved;
             newBody.OnZomeError += NewBody_OnZomeError;
-            //await newBody.InitializeAsync();
-
+            newBody.OnZomesSaved += NewBody_OnZomesSaved;
+            newBody.OnZomesError += NewBody_OnZomesError;
+            newBody.OnHolonSaved += NewBody_OnHolonSaved;
+            newBody.OnHolonError += NewBody_OnHolonError;
+            newBody.OnHolonsSaved += NewBody_OnHolonsSaved;
+            newBody.OnHolonsError += NewBody_OnHolonsError;
+            
+          
+            // No need to save to get Id anymore... :)
             /*
             OASISResult<ICelestialBody> newBodyResult = await newBody.SaveAsync(); //Need to save to get the id to be used for ParentId below (zomes, holons & nodes).
 
@@ -901,6 +936,52 @@ namespace NextGenSoftware.OASIS.STAR
             //TODO: Need to save this to the StarNET store (still to be made!) (Will of course be written on top of the HDK/ODK...
             //This will be private on the store until the user publishes via the Star.Seed() command.
         }
+
+        private static void NewBody_OnCelestialBodySaved(object sender, CelestialBodySavedEventArgs e)
+        {
+            OnCelestialBodySaved?.Invoke(null, e);
+        }
+
+        private static void NewBody_OnCelestialBodyError(object sender, CelestialBodyErrorEventArgs e)
+        {
+            OnCelestialBodyError?.Invoke(null, e);
+        }
+
+        private static void NewBody_OnZomeSaved(object sender, ZomeSavedEventArgs e)
+        {
+            OnZomeSaved?.Invoke(null, e);
+        }
+
+        private static void NewBody_OnZomesSaved(object sender, ZomesSavedEventArgs e)
+        {
+            OnZomesSaved?.Invoke(null, e);
+        }
+
+        private static void NewBody_OnZomesError(object sender, ZomesErrorEventArgs e)
+        {
+            OnZomesError?.Invoke(null, e);
+        }
+
+        private static void NewBody_OnHolonSaved(object sender, HolonSavedEventArgs e)
+        {
+            OnHolonSaved?.Invoke(null, e);
+        }
+
+        private static void NewBody_OnHolonError(object sender, HolonErrorEventArgs e)
+        {
+            OnHolonError?.Invoke(null, e);
+        }
+
+        private static void NewBody_OnHolonsSaved(object sender, HolonsSavedEventArgs e)
+        {
+            OnHolonsSaved?.Invoke(null, e);
+        }
+
+        private static void NewBody_OnHolonsError(object sender, HolonsErrorEventArgs e)
+        {
+            OnHolonsError?.Invoke(null, e);
+        }
+
 
         // Build
         public static CoronalEjection Flare(string bodyName)
@@ -1256,10 +1337,15 @@ namespace NextGenSoftware.OASIS.STAR
         {
             OASISResult<ICelestialBody> result = new OASISResult<ICelestialBody>();
 
+            //StarStatus = StarStatus.
+            OnStarStatusChanged?.Invoke(null, new StarStatusChangedEventArgs() { MessageType = StarStatusMessageType.Processing, Message = "Omniverse not found. Initiating Omniverse Genesis Process..." });
+
             Omiverse omniverse = new Omiverse();
             omniverse.IsNewHolon = true;
             omniverse.Id = Guid.NewGuid();
             omniverse.CreatedOASISType = new EnumValue<OASISType>(OASISType.STARCLI);
+
+            OnStarStatusChanged?.Invoke(null, new StarStatusChangedEventArgs() { MessageType = StarStatusMessageType.Processing, Message = "Creating Great Grand Super Star..." });
 
             GreatGrandSuperStar greatGrandSuperStar = new GreatGrandSuperStar(); //GODHEAD ;-)
             greatGrandSuperStar.IsNewHolon = true;
@@ -1273,6 +1359,7 @@ namespace NextGenSoftware.OASIS.STAR
 
             if (!result.IsError && result.Result != null)
             {
+                OnStarStatusChanged?.Invoke(null, new StarStatusChangedEventArgs() { MessageType = StarStatusMessageType.Success, Message = "Great Grand Super Star Created." });
                 STARDNA.DefaultGreatGrandSuperStarId = greatGrandSuperStar.Id.ToString();
 
                 omniverse.Name = "The OASIS Omniverse";
@@ -1281,10 +1368,12 @@ namespace NextGenSoftware.OASIS.STAR
                 omniverse.ParentGreatGrandSuperStar = greatGrandSuperStar;
                 omniverse.ParentGreatGrandSuperStarId = greatGrandSuperStar.Id;
 
+                OnStarStatusChanged?.Invoke(null, new StarStatusChangedEventArgs() { MessageType = StarStatusMessageType.Processing, Message = "Creating Omniverse..." });
                 OASISResult<IOmiverse> omiverseResult = await ((GreatGrandSuperStarCore)greatGrandSuperStar.CelestialBodyCore).AddOmiverseAsync(omniverse);
 
                 if (!omiverseResult.IsError && omiverseResult.Result != null)
                 {
+                    OnStarStatusChanged?.Invoke(null, new StarStatusChangedEventArgs() { MessageType = StarStatusMessageType.Success, Message = "Omniverse Created." });
                     Multiverse multiverse = new Multiverse();
                     multiverse.CreatedOASISType = new EnumValue<OASISType>(OASISType.STARCLI);
                     multiverse.Name = "Our Multiverse.";
@@ -1295,10 +1384,12 @@ namespace NextGenSoftware.OASIS.STAR
                     multiverse.ParentGreatGrandSuperStarId = greatGrandSuperStar.Id;
                     multiverse.GrandSuperStar.Name = "The GrandSuperStar at the centre of our Multiverse/Universe.";
 
+                    OnStarStatusChanged?.Invoke(null, new StarStatusChangedEventArgs() { MessageType = StarStatusMessageType.Processing, Message = "Creating Default Multiverse..." });
                     OASISResult<IMultiverse> multiverseResult = await ((GreatGrandSuperStarCore)greatGrandSuperStar.CelestialBodyCore).AddMultiverseAsync(multiverse);
 
                     if (!multiverseResult.IsError && multiverseResult.Result != null)
                     {
+                        OnStarStatusChanged?.Invoke(null, new StarStatusChangedEventArgs() { MessageType = StarStatusMessageType.Success, Message = "Multiverse Created." });
                         multiverse = (Multiverse)multiverseResult.Result;
                         STARDNA.DefaultGrandSuperStarId = multiverse.GrandSuperStar.Id.ToString();
 
@@ -1314,10 +1405,12 @@ namespace NextGenSoftware.OASIS.STAR
                         galaxyCluster.ParentUniverseId = multiverse.Dimensions.ThirdDimension.MagicVerse.Id;
                         galaxyCluster.ParentUniverse = multiverse.Dimensions.ThirdDimension.MagicVerse;
 
+                        OnStarStatusChanged?.Invoke(null, new StarStatusChangedEventArgs() { MessageType = StarStatusMessageType.Processing, Message = "Creating Default Galaxy Cluster..." });
                         OASISResult<IGalaxyCluster> galaxyClusterResult = await ((GrandSuperStarCore)multiverse.GrandSuperStar.CelestialBodyCore).AddGalaxyClusterToUniverseAsync(multiverse.Dimensions.ThirdDimension.MagicVerse, galaxyCluster);
 
                         if (!galaxyClusterResult.IsError && galaxyClusterResult.Result != null)
                         {
+                            OnStarStatusChanged?.Invoke(null, new StarStatusChangedEventArgs() { MessageType = StarStatusMessageType.Success, Message = "Galaxy Cluster Created." }); ;
                             galaxyCluster = (GalaxyCluster)galaxyClusterResult.Result;
 
                             Galaxy galaxy = new Galaxy();
@@ -1328,10 +1421,12 @@ namespace NextGenSoftware.OASIS.STAR
                             galaxy.ParentGalaxyCluster = galaxyCluster;
                             galaxy.ParentGalaxyClusterId = galaxyCluster.Id;
 
+                            OnStarStatusChanged?.Invoke(null, new StarStatusChangedEventArgs() { MessageType = StarStatusMessageType.Processing, Message = "Creating Default Galaxy (Milky Way)..." });
                             OASISResult<IGalaxy> galaxyResult = await ((GrandSuperStarCore)multiverse.GrandSuperStar.CelestialBodyCore).AddGalaxyToGalaxyClusterAsync(galaxyCluster, galaxy);
 
                             if (!galaxyResult.IsError && galaxyResult.Result != null)
                             {
+                                OnStarStatusChanged?.Invoke(null, new StarStatusChangedEventArgs() { MessageType = StarStatusMessageType.Success, Message = "Galaxy Created." });
                                 galaxy = (Galaxy)galaxyResult.Result;
                                 STARDNA.DefaultSuperStarId = galaxy.SuperStar.Id.ToString();
 
@@ -1360,14 +1455,16 @@ namespace NextGenSoftware.OASIS.STAR
                                 //star.ParentSolarSystem = solarSystem;
                                 //star.ParentSolarSystemId = solarSystem.Id;
 
+                                OnStarStatusChanged?.Invoke(null, new StarStatusChangedEventArgs() { MessageType = StarStatusMessageType.Processing, Message = "Creating Default Star (Our Sun)..." });
                                 OASISResult<IStar> starResult = await ((SuperStarCore)galaxy.SuperStar.CelestialBodyCore).AddStarAsync(solarSystem.Star);
 
                                 if (!starResult.IsError && starResult.Result != null)
                                 {
+                                    OnStarStatusChanged?.Invoke(null, new StarStatusChangedEventArgs() { MessageType = StarStatusMessageType.Success, Message = "Star Created." });
                                     solarSystem.Star = (Star)starResult.Result;
                                     DefaultStar = solarSystem.Star; //TODO: TEMP: For now the default Star in STAR ODK will be our Sun (this will be more dynamic later on).
                                     STARDNA.DefaultStarId = DefaultStar.Id.ToString();
-                                    
+
                                     Mapper<IStar, SolarSystem>.MapParentCelestialBodyProperties(solarSystem.Star, solarSystem);
                                     solarSystem.ParentStar = solarSystem.Star;
                                     solarSystem.ParentStarId = solarSystem.Star.Id;
@@ -1377,10 +1474,13 @@ namespace NextGenSoftware.OASIS.STAR
                                     //TODO: Not sure if this method should also automatically create a Star inside it like the methods above do for Galaxy, Universe etc?
                                     // I like how a Star creates its own Solar System from its StarDust, which is how it works in real life I am pretty sure? So I think this is best... :)
                                     //TODO: For some reason I could not get Galaxy and Universe to work the same way? Need to come back to this so they all work in the same consistent manner...
+
+                                    OnStarStatusChanged?.Invoke(null, new StarStatusChangedEventArgs() { MessageType = StarStatusMessageType.Processing, Message = "Creating Default Solar System..." });
                                     OASISResult<ISolarSystem> solarSystemResult = await ((StarCore)solarSystem.Star.CelestialBodyCore).AddSolarSystemAsync(solarSystem);
 
                                     if (!solarSystemResult.IsError && solarSystemResult.Result != null)
                                     {
+                                        OnStarStatusChanged?.Invoke(null, new StarStatusChangedEventArgs() { MessageType = StarStatusMessageType.Success, Message = "Solar System Created." });
                                         solarSystem = (SolarSystem)solarSystemResult.Result;
 
                                         Planet ourWorld = new Planet();
@@ -1390,41 +1490,64 @@ namespace NextGenSoftware.OASIS.STAR
                                         Mapper<ISolarSystem, Planet>.MapParentCelestialBodyProperties(solarSystem, ourWorld);
                                         ourWorld.ParentSolarSystem = solarSystem;
                                         ourWorld.ParentSolarSystemId = solarSystem.Id;
-                                       // await ourWorld.InitializeAsync();
+                                        // await ourWorld.InitializeAsync();
 
+                                        OnStarStatusChanged?.Invoke(null, new StarStatusChangedEventArgs() { MessageType = StarStatusMessageType.Processing, Message = "Creating Default Planet (Our World)..." });
                                         OASISResult<IPlanet> ourWorldResult = await ((StarCore)solarSystem.Star.CelestialBodyCore).AddPlanetAsync(ourWorld);
 
                                         if (!ourWorldResult.IsError && ourWorldResult.Result != null)
                                         {
+                                            OnStarStatusChanged?.Invoke(null, new StarStatusChangedEventArgs() { MessageType = StarStatusMessageType.Success, Message = "Our World Created." });
                                             ourWorld = (Planet)ourWorldResult.Result;
                                             STARDNA.DefaultPlanetId = ourWorld.Id.ToString();
                                         }
                                         else
+                                        {
                                             OASISResultHolonToHolonHelper<IPlanet, ICelestialBody>.CopyResult(ourWorldResult, result);
+                                            OnStarStatusChanged?.Invoke(null, new StarStatusChangedEventArgs() { MessageType = StarStatusMessageType.Error, Message = $"Error Creating Our World. Reason: {ourWorldResult.Message}." });
+                                        }
                                     }
                                     else
                                         OASISResultHolonToHolonHelper<ISolarSystem, ICelestialBody>.CopyResult(solarSystemResult, result);
                                 }
                                 else
+                                {
                                     OASISResultHolonToHolonHelper<IStar, ICelestialBody>.CopyResult(starResult, result);
+                                    OnStarStatusChanged?.Invoke(null, new StarStatusChangedEventArgs() { MessageType = StarStatusMessageType.Error, Message = $"Error Creating Star. Reason: {starResult.Message}." });
+                                }
                             }
                             else
+                            {
                                 OASISResultHolonToHolonHelper<IGalaxy, ICelestialBody>.CopyResult(galaxyResult, result);
+                                OnStarStatusChanged?.Invoke(null, new StarStatusChangedEventArgs() { MessageType = StarStatusMessageType.Error, Message = $"Error Creating Galaxy. Reason: {galaxyResult.Message}." });
+                            }
                         }
                         else
+                        {
                             OASISResultHolonToHolonHelper<IGalaxyCluster, ICelestialBody>.CopyResult(galaxyClusterResult, result);
+                            OnStarStatusChanged?.Invoke(null, new StarStatusChangedEventArgs() { MessageType = StarStatusMessageType.Error, Message = $"Error Creating Galaxy Cluster. Reason: {galaxyClusterResult.Message}." });
+                        }
                     }
                     else
+                    {
                         OASISResultHolonToHolonHelper<IMultiverse, ICelestialBody>.CopyResult(multiverseResult, result);
+                        OnStarStatusChanged?.Invoke(null, new StarStatusChangedEventArgs() { MessageType = StarStatusMessageType.Error, Message = $"Error Creating Multiverse. Reason: {multiverseResult.Message}." });
+                    }
                 }
                 else
+                {
                     OASISResultHolonToHolonHelper<IOmiverse, ICelestialBody>.CopyResult(omiverseResult, result);
+                    OnStarStatusChanged?.Invoke(null, new StarStatusChangedEventArgs() { MessageType = StarStatusMessageType.Error, Message = $"Error Creating Omniverse. Reason: {omiverseResult.Message}."});
+                }
             }
 
             SaveDNA();
 
             if (!result.IsError)
+            {
                 result.Message = "STAR Ignited and The OASIS Omniverse Created.";
+                OnStarStatusChanged?.Invoke(null, new StarStatusChangedEventArgs() { MessageType = StarStatusMessageType.Success, Message = "Omniverse Genesis Process Complete." });
+            }
             
             return result;
         }

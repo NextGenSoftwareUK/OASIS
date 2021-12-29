@@ -42,10 +42,30 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
 
                 // TODO: Not sure what events should expose on Star, StarCore and HoloNETClient?
                 // I feel the events should at least be on the Star object, but then they need to be on the others to bubble them up (maybe could be hidden somehow?)
+                STAR.OnCelestialSpaceLoaded += STAR_OnCelestialSpaceLoaded;
+                STAR.OnCelestialSpaceSaved += STAR_OnCelestialSpaceSaved;
+                STAR.OnCelestialSpaceError += STAR_OnCelestialSpaceError;
+                STAR.OnCelestialSpacesLoaded += STAR_OnCelestialSpacesLoaded;
+                STAR.OnCelestialSpacesSaved += STAR_OnCelestialSpacesSaved;
+                STAR.OnCelestialSpacesError += STAR_OnCelestialSpacesError;
+                STAR.OnCelestialBodyLoaded += STAR_OnCelestialBodyLoaded;
+                STAR.OnCelestialBodySaved += STAR_OnCelestialBodySaved;
+                STAR.OnCelestialBodyError += STAR_OnCelestialBodyError;
+                STAR.OnCelestialBodiesLoaded += STAR_OnCelestialBodiesLoaded;
+                STAR.OnCelestialBodiesSaved += STAR_OnCelestialBodiesSaved;
+                STAR.OnCelestialBodiesError += STAR_OnCelestialBodiesError;
+                STAR.OnZomeLoaded += STAR_OnZomeLoaded;
+                STAR.OnZomeSaved += STAR_OnZomeSaved;
                 STAR.OnZomeError += STAR_OnZomeError;
+                STAR.OnZomesLoaded += STAR_OnZomesLoaded;
+                STAR.OnZomesSaved += STAR_OnZomesSaved;
+                STAR.OnZomesError += STAR_OnZomesError;
                 STAR.OnHolonLoaded += STAR_OnHolonLoaded;
-                STAR.OnHolonsLoaded += STAR_OnHolonsLoaded;
                 STAR.OnHolonSaved += STAR_OnHolonSaved;
+                STAR.OnHolonError += STAR_OnHolonError;
+                STAR.OnHolonsLoaded += STAR_OnHolonsLoaded;
+                STAR.OnHolonsSaved += STAR_OnHolonsSaved;
+                STAR.OnHolonsError += STAR_OnHolonsError;
                 STAR.OnStarIgnited += STAR_OnSuperStarIgnited;
                 STAR.OnStarError += STAR_OnSuperStarError;
                 STAR.OnStarStatusChanged += STAR_OnSuperStarStatusChanged;
@@ -82,52 +102,6 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
                 ShowErrorMessage(string.Concat("An unknown error has occured. Error Details: ", ex.ToString()));
                 //AnsiConsole.WriteException(ex, ExceptionFormats.ShortenEverything);
             }
-        }
-
-        private static void STAR_OnSuperStarStatusChanged(object sender, EventArgs.StarStatusChangedEventArgs e)
-        {
-            switch (e.Status)
-            {
-                case Enums.StarStatus.BootingOASIS:
-                    ShowWorkingMessage("BOOTING OASIS...");
-                    break;
-
-                case Enums.StarStatus.OASISBooted:
-                    ShowSuccessMessage("OASIS BOOTED");
-                    break;
-
-                case Enums.StarStatus.Igniting:
-                    ShowWorkingMessage("IGNITING STAR..."); 
-                    break;
-
-                case Enums.StarStatus.Ingited:
-                    ShowSuccessMessage("STAR IGNITED");
-                    break;
-
-                    //case Enums.SuperStarStatus.Error:
-                    //  ShowErrorMessage("SuperStar Error");
-            }
-        }
-
-        private static void STAR_OnOASISBootError(object sender, OASISBootErrorEventArgs e)
-        {
-            //ShowErrorMessage(string.Concat("OASIS Boot Error. Reason: ", e.ErrorReason));
-            ShowErrorMessage(e.ErrorReason);
-        }
-
-        private static void STAR_OnOASISBooted(object sender, EventArgs.OASISBootedEventArgs e)
-        {
-            //ShowSuccessMessage(string.Concat("OASIS BOOTED.", e.Message));
-        }
-
-        private static void STAR_OnSuperStarError(object sender, EventArgs.StarErrorEventArgs e)
-        {
-           // ShowErrorMessage(string.Concat("Error Igniting SuperStar. Reason: ", e.Reason));
-        }
-
-        private static void STAR_OnSuperStarIgnited(object sender, System.EventArgs e)
-        {
-            //ShowSuccessMessage("SUPERSTAR IGNITED");
         }
 
         private static async Task Test(string dnaFolder, string cSharpGeneisFolder, string rustGenesisFolder)
@@ -1098,6 +1072,172 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
             Console.WriteLine("");
             Console.WriteLine(" Human Design:");
             Console.WriteLine(string.Concat(" Type: ", STAR.LoggedInAvatarDetail.HumanDesign.Type));
+        }
+
+        private static void STAR_OnOASISBootError(object sender, OASISBootErrorEventArgs e)
+        {
+            //ShowErrorMessage(string.Concat("OASIS Boot Error. Reason: ", e.ErrorReason));
+            ShowErrorMessage(e.ErrorReason);
+        }
+
+        private static void STAR_OnOASISBooted(object sender, EventArgs.OASISBootedEventArgs e)
+        {
+            //ShowSuccessMessage(string.Concat("OASIS BOOTED.", e.Message));
+        }
+
+        private static void STAR_OnSuperStarError(object sender, EventArgs.StarErrorEventArgs e)
+        {
+            // ShowErrorMessage(string.Concat("Error Igniting SuperStar. Reason: ", e.Reason));
+        }
+
+        private static void STAR_OnSuperStarIgnited(object sender, System.EventArgs e)
+        {
+            //ShowSuccessMessage("SUPERSTAR IGNITED");
+        }
+
+        private static void STAR_OnCelestialSpacesError(object sender, CelestialSpacesErrorEventArgs e)
+        {
+            ShowErrorMessage($"Error occured saving CelestialSpaces. Reason: {e.Reason}");
+        }
+
+        private static void STAR_OnCelestialSpacesSaved(object sender, CelestialSpacesSavedEventArgs e)
+        {
+            ShowSuccessMessage($"CelesitalSpaces Saved Successfully. Details: {e.Result.Message}");
+        }
+
+        private static void STAR_OnCelestialSpacesLoaded(object sender, CelestialSpacesLoadedEventArgs e)
+        {
+            throw new NotImplementedException();
+        }
+
+        private static void STAR_OnCelestialSpaceError(object sender, CelestialSpaceErrorEventArgs e)
+        {
+            throw new NotImplementedException();
+        }
+
+        private static void STAR_OnCelestialSpaceSaved(object sender, CelestialSpaceSavedEventArgs e)
+        {
+            throw new NotImplementedException();
+        }
+
+        private static void STAR_OnCelestialSpaceLoaded(object sender, CelestialSpaceLoadedEventArgs e)
+        {
+            throw new NotImplementedException();
+        }
+
+        private static void STAR_OnCelestialBodiesError(object sender, CelestialBodiesErrorEventArgs e)
+        {
+            throw new NotImplementedException();
+        }
+
+        private static void STAR_OnCelestialBodiesSaved(object sender, CelestialBodiesSavedEventArgs e)
+        {
+            throw new NotImplementedException();
+        }
+
+        private static void STAR_OnCelestialBodiesLoaded(object sender, CelestialBodiesLoadedEventArgs e)
+        {
+            throw new NotImplementedException();
+        }
+
+        private static void STAR_OnCelestialBodyError(object sender, CelestialBodyErrorEventArgs e)
+        {
+            throw new NotImplementedException();
+        }
+
+        private static void STAR_OnCelestialBodySaved(object sender, CelestialBodySavedEventArgs e)
+        {
+            throw new NotImplementedException();
+        }
+
+        private static void STAR_OnCelestialBodyLoaded(object sender, CelestialBodyLoadedEventArgs e)
+        {
+            throw new NotImplementedException();
+        }
+
+        private static void STAR_OnZomesError(object sender, ZomesErrorEventArgs e)
+        {
+            throw new NotImplementedException();
+        }
+
+        private static void STAR_OnZomesSaved(object sender, ZomesSavedEventArgs e)
+        {
+            throw new NotImplementedException();
+        }
+
+        private static void STAR_OnZomesLoaded(object sender, ZomesLoadedEventArgs e)
+        {
+            throw new NotImplementedException();
+        }
+
+        private static void STAR_OnHolonsError(object sender, HolonsErrorEventArgs e)
+        {
+            throw new NotImplementedException();
+        }
+
+        private static void STAR_OnHolonError(object sender, HolonErrorEventArgs e)
+        {
+            throw new NotImplementedException();
+        }
+
+        private static void STAR_OnZomeSaved(object sender, ZomeSavedEventArgs e)
+        {
+            throw new NotImplementedException();
+        }
+
+        private static void STAR_OnZomeLoaded(object sender, ZomeLoadedEventArgs e)
+        {
+            throw new NotImplementedException();
+        }
+
+        private static void STAR_OnHolonsSaved(object sender, HolonsSavedEventArgs e)
+        {
+            throw new NotImplementedException();
+        }
+
+        private static void STAR_OnSuperStarStatusChanged(object sender, EventArgs.StarStatusChangedEventArgs e)
+        {
+            if (!string.IsNullOrEmpty(e.Message))
+            {
+                switch (e.MessageType)
+                {
+                    case Enums.StarStatusMessageType.Processing:
+                        ShowWorkingMessage(e.Message);
+                        break;
+
+                    case Enums.StarStatusMessageType.Success:
+                        ShowSuccessMessage(e.Message);
+                        break;
+
+                    case Enums.StarStatusMessageType.Error:
+                        ShowErrorMessage(e.Message);
+                        break;
+                }
+            }
+            else
+            {
+                switch (e.Status)
+                {
+                    case Enums.StarStatus.BootingOASIS:
+                        ShowWorkingMessage("BOOTING OASIS...");
+                        break;
+
+                    case Enums.StarStatus.OASISBooted:
+                        ShowSuccessMessage("OASIS BOOTED");
+                        break;
+
+                    case Enums.StarStatus.Igniting:
+                        ShowWorkingMessage("IGNITING STAR...");
+                        break;
+
+                    case Enums.StarStatus.Ingited:
+                        ShowSuccessMessage("STAR IGNITED");
+                        break;
+
+                        //case Enums.SuperStarStatus.Error:
+                        //  ShowErrorMessage("SuperStar Error");
+                }
+            }
         }
     }
 }
