@@ -91,7 +91,7 @@ namespace NextGenSoftware.OASIS.API.Core
 
         protected void OnStorageProviderError(string endPoint, string reason, Exception errorDetails)
         {
-            StorageProviderError?.Invoke(this, new AvatarManagerErrorEventArgs { EndPoint = endPoint, Reason = reason, ErrorDetails = errorDetails });
+            StorageProviderError?.Invoke(this, new AvatarManagerErrorEventArgs { EndPoint = endPoint, Reason = reason, Exception = errorDetails });
         }
 
         /*

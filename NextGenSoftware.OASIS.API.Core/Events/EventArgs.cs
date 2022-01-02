@@ -6,19 +6,30 @@ using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 
 namespace NextGenSoftware.OASIS.API.Core.Events
 {
-    public class AvatarManagerErrorEventArgs : EventArgs
+    public class OASISEventArgs<T> : EventArgs
+    {
+        public OASISResult<T> Result { get; set; }
+    }
+
+    public class OASISErrorEventArgs<T> : OASISEventArgs<T>
     {
         public string EndPoint { get; set; }
         public string Reason { get; set; }
-        public Exception ErrorDetails { get; set; }
-
+        public Exception Exception { get; set; }
     }
 
     public class OASISErrorEventArgs : EventArgs
     {
+        public string EndPoint { get; set; }
         public string Reason { get; set; }
-        public Exception ErrorDetails { get; set; }
+        public Exception Exception { get; set; }
     }
+
+    public class AvatarManagerErrorEventArgs : OASISErrorEventArgs<IAvatar>
+    {
+
+    }
+
     /*
     public class CelestialHolonLoadedEventArgs : EventArgs
     {
@@ -36,170 +47,155 @@ namespace NextGenSoftware.OASIS.API.Core.Events
         public OASISResult<ICelestialHolon> Result { get; set; }
     }
     */
-    public class CelestialBodyLoadedEventArgs : EventArgs
+    public class CelestialBodyLoadedEventArgs : OASISEventArgs<ICelestialBody>
     {
-        public OASISResult<ICelestialBody> Result { get; set; }
+
     }
 
-    public class CelestialBodySavedEventArgs : EventArgs
+    public class CelestialBodySavedEventArgs : OASISEventArgs<ICelestialBody>
     {
-        public OASISResult<ICelestialBody> Result { get; set; }
+        
     }
 
-    public class CelestialBodyErrorEventArgs : EventArgs
+    public class CelestialBodyErrorEventArgs : OASISErrorEventArgs<ICelestialBody>
     {
-        public string Reason { get; set; }
-        public OASISResult<ICelestialBody> Result { get; set; }
+
     }
 
-    public class CelestialBodiesLoadedEventArgs : EventArgs
+    public class CelestialBodiesLoadedEventArgs : OASISEventArgs<IEnumerable<ICelestialBody>>
     {
-        //public OASISResult<ICelestialSpace> Result { get; set; }
-        //public IEnumerable<ICelestialBody> CelestialBodies { get; set; }
-        public OASISResult<IEnumerable<ICelestialBody>> Result { get; set; }
+
     }
-    public class CelestialBodiesSavedEventArgs : EventArgs
+    public class CelestialBodiesSavedEventArgs : OASISEventArgs<IEnumerable<ICelestialBody>>
     {
-        //public OASISResult<ICelestialSpace> Result { get; set; }
-        //public IEnumerable<ICelestialBody> CelestialBodies { get; set; }
-        public OASISResult<IEnumerable<ICelestialBody>> Result { get; set; }
+
     }
 
-    public class CelestialBodiesErrorEventArgs : EventArgs
+    public class CelestialBodiesErrorEventArgs : OASISErrorEventArgs<IEnumerable<ICelestialBody>>
     {
-        public string Reason { get; set; }
-        public OASISResult<IEnumerable<ICelestialBody>> Result { get; set; }
+
     }
 
-    public class CelestialSpaceLoadedEventArgs : EventArgs
+    public class CelestialSpaceLoadedEventArgs : OASISEventArgs<ICelestialSpace>
     {
-        public OASISResult<ICelestialSpace> Result { get; set; }
+
     }
 
-    public class CelestialSpaceSavedEventArgs : EventArgs
+    public class CelestialSpaceSavedEventArgs : OASISEventArgs<ICelestialSpace>
     {
-        public OASISResult<ICelestialSpace> Result { get; set; }
+
     }
 
-    public class CelestialSpaceErrorEventArgs : EventArgs
+    public class CelestialSpaceErrorEventArgs : OASISErrorEventArgs<ICelestialSpace>
     {
-        public string Reason { get; set; }
-        public OASISResult<ICelestialSpace> Result { get; set; }
+
     }
 
-    public class CelestialSpacesLoadedEventArgs : EventArgs
+    public class CelestialSpacesLoadedEventArgs : OASISEventArgs<IEnumerable<ICelestialSpace>>
     {
-        public OASISResult<IEnumerable<ICelestialSpace>> Result { get; set; }
+
     }
 
-    public class CelestialSpacesSavedEventArgs : EventArgs
+    public class CelestialSpacesSavedEventArgs : OASISEventArgs<IEnumerable<ICelestialSpace>>
     {
-        public OASISResult<IEnumerable<ICelestialSpace>> Result { get; set; }
+
     }
 
-    public class CelestialSpacesErrorEventArgs : EventArgs
+    public class CelestialSpacesErrorEventArgs : OASISErrorEventArgs<IEnumerable<ICelestialSpace>>
     {
-        public string Reason { get; set; }
-        public OASISResult<IEnumerable<ICelestialSpace>> Result { get; set; }
+
     }
 
-    public class HolonLoadedEventArgs : EventArgs
+    public class HolonLoadedEventArgs : OASISEventArgs<IHolon>
     {
-        public OASISResult<IHolon> Result { get; set; }
+
     }
 
-    public class HolonsLoadedEventArgs : EventArgs
+    public class HolonSavedEventArgs : OASISEventArgs<IHolon>
     {
-        public OASISResult<IEnumerable<IHolon>> Result { get; set; }
+
     }
 
-    public class HolonSavedEventArgs : EventArgs
+    public class HolonAddedEventArgs : OASISEventArgs<IEnumerable<IHolon>>
     {
-        public OASISResult<IHolon> Result { get; set; }
-    }
-    public class HolonSavedEventArgs<IHolon> : EventArgs
-    {
-        public OASISResult<IHolon> Result { get; set; }
+
     }
 
-    public class HolonsSavedEventArgs : EventArgs
+    public class HolonRemovedEventArgs : OASISEventArgs<IEnumerable<IHolon>>
     {
-        public OASISResult<IEnumerable<IHolon>> Result { get; set; }
+
     }
 
-    public class HolonsSavedEventArgs<T> : EventArgs
+    //public class HolonSavedEventArgs<IHolon> : OASISEventArgs<IHolon>
+    //{
+
+    //}
+
+    public class HolonErrorEventArgs : OASISErrorEventArgs<IHolon>
     {
-        public OASISResult<IEnumerable<T>> Result { get; set; }
+
     }
 
-    public class HolonAddedEventArgs : EventArgs
+    public class HolonsLoadedEventArgs : OASISEventArgs<IEnumerable<IHolon>>
     {
-        public OASISResult<IEnumerable<IHolon>> Result { get; set; }
+       
     }
 
-    public class HolonRemovedEventArgs : EventArgs
+    public class HolonsSavedEventArgs : OASISEventArgs<IEnumerable<IHolon>>
     {
-        public OASISResult<IEnumerable<IHolon>> Result { get; set; }
+
     }
 
-    public class HolonErrorEventArgs : EventArgs
+    public class HolonsErrorEventArgs : OASISErrorEventArgs<IEnumerable<IHolon>>
     {
-        public string Reason { get; set; }
-        public OASISResult<IHolon> Result { get; set; }
+
     }
 
-    public class HolonsErrorEventArgs : EventArgs
+
+
+    //public class HolonsSavedEventArgs<T> : OASISEventArgs<T>
+    //{
+
+    //}
+
+    public class ZomeLoadedEventArgs : OASISEventArgs<IZome>
     {
-        public string Reason { get; set; }
-        public OASISResult<IEnumerable<IHolon>> Result { get; set; }
+
+    }
+   
+    public class ZomeSavedEventArgs : OASISEventArgs<IZome>
+    {
+
     }
 
-    public class ZomeLoadedEventArgs : EventArgs
+    public class ZomeAddedEventArgs : OASISEventArgs<IZome>
     {
-        public OASISResult<IZome> Result { get; set; }
+        
     }
 
-    public class ZomesLoadedEventArgs : EventArgs
+    public class ZomeRemovedEventArgs : OASISEventArgs<IZome>
     {
-        public OASISResult<IEnumerable<IZome>> Result { get; set; }
+
     }
 
-    public class ZomeSavedEventArgs : EventArgs
+    public class ZomeErrorEventArgs : OASISErrorEventArgs<IZome>
     {
-        public OASISResult<IZome> Result { get; set; }
+
     }
 
-    public class ZomesSavedEventArgs : EventArgs
+    public class ZomesLoadedEventArgs : OASISEventArgs<IEnumerable<IZome>>
     {
-        public OASISResult<IEnumerable<IZome>> Result { get; set; }
+
     }
 
-    public class ZomeErrorEventArgs : EventArgs
+    public class ZomesSavedEventArgs : OASISEventArgs<IEnumerable<IZome>>
     {
-        //public string EndPoint { get; set; }
-        public string Reason { get; set; }
-        public OASISResult<IZome> Result { get; set; }
-        //public Exception ErrorDetails { get; set; }
-        //public HoloNETErrorEventArgs HoloNETErrorDetails { get; set; }
+
     }
 
-    public class ZomeAddedEventArgs : EventArgs
+    public class ZomesErrorEventArgs : OASISErrorEventArgs<IEnumerable<IZome>>
     {
-        public OASISResult<IZome> Result { get; set; }
-    }
 
-    public class ZomeRemovedEventArgs : EventArgs
-    {
-        public OASISResult<IZome> Result { get; set; }
-    }
-
-    public class ZomesErrorEventArgs : EventArgs
-    {
-        //public string EndPoint { get; set; }
-        public string Reason { get; set; }
-        public OASISResult<IEnumerable<IZome>> Result { get; set; }
-        //public Exception ErrorDetails { get; set; }
-        //public HoloNETErrorEventArgs HoloNETErrorDetails { get; set; }
     }
 
     /*

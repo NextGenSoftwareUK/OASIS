@@ -770,7 +770,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
 
         private void CelestialBody_OnZomesError(object sender, ZomesErrorEventArgs e)
         {
-            OnZomeError?.Invoke(sender, e);
+            OnZomesError?.Invoke(sender, e);
         }
 
         private void CelestialBody_OnHolonLoaded(object sender, HolonLoadedEventArgs e)
