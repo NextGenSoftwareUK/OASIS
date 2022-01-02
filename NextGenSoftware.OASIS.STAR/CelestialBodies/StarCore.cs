@@ -58,7 +58,8 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
 
             if (result != null && result.Result != null && !result.IsError)
             {
-                OASISResult<ICelestialBody> celestialBodyResult = await planet.SaveAsync<Planet>();
+                //OASISResult<ICelestialBody> celestialBodyResult = await planet.SaveAsync<Planet>();
+                OASISResult<ICelestialBody> celestialBodyResult = await planet.SaveAsync();
                 result = OASISResultHolonToHolonHelper<ICelestialBody, IPlanet>.CopyResult(celestialBodyResult, result);
                 result.Result = (IPlanet)celestialBodyResult.Result;
             }

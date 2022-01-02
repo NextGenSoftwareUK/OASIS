@@ -45,7 +45,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
         private void OASISStorageProvider_StorageProviderError(object sender, AvatarManagerErrorEventArgs e)
         {
-            OnOASISManagerError?.Invoke(this, new OASISErrorEventArgs() { ErrorDetails = e.ErrorDetails, Reason = e.Reason });
+            OnOASISManagerError?.Invoke(this, new OASISErrorEventArgs() { Exception = e.Exception, Reason = e.Reason });
         }
     }
 }
