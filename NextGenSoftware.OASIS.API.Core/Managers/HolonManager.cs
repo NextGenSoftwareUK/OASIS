@@ -2842,6 +2842,10 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
         private OASISResult<T> HasHolonChanged<T>(IHolon holon, ref OASISResult<T> result)
         {
+            //TODO: TEMP! REMOVE ONCE FINISH IMPLEMENTING HASHOLONCHANGED METHOD BELOW...
+            result.HasAnyHolonsChanged = true;
+            return result;
+
             if (!holon.HasHolonChanged())
             {
                 result.Message = "No changes need saving";
@@ -2855,6 +2859,10 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
         private OASISResult<T> HasAnyHolonsChanged<T>(IEnumerable<IHolon> holons, ref OASISResult<T> result)
         {
+            //TODO: TEMP! REMOVE ONCE FINISH IMPLEMENTING HASHOLONCHANGED METHOD BELOW...
+            result.HasAnyHolonsChanged = true;
+            return result;
+
             foreach (IHolon holon in holons)
             {
                 if (holon.HasHolonChanged())

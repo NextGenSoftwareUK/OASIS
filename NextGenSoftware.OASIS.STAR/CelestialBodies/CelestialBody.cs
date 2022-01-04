@@ -754,7 +754,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
             InitCelestialBodyCore();
             WireUpEvents();
 
-            if (Id != Guid.Empty || (ProviderKey != null && ProviderKey.Keys.Count > 0))
+            if (!IsNewHolon && (Id != Guid.Empty || (ProviderKey != null && ProviderKey.Keys.Count > 0)))
             {
                 OASISResult<ICelestialBody> celestialBodyResult = await LoadAsync();
 
@@ -768,7 +768,8 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
             InitCelestialBodyCore();
             WireUpEvents();
 
-            if (Id != Guid.Empty || (ProviderKey != null && ProviderKey.Keys.Count > 0))
+            
+            if (!IsNewHolon && (Id != Guid.Empty || (ProviderKey != null && ProviderKey.Keys.Count > 0)))
             {
                 OASISResult<ICelestialBody> celestialBodyResult = Load();
 

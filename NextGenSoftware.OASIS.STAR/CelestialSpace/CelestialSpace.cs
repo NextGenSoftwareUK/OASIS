@@ -69,7 +69,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
             RegisterCelestialBodies(this.CelestialBodies);
             RegisterCelestialSpaces(this.CelestialSpaces);
 
-            if (Id != Guid.Empty || (ProviderKey != null && ProviderKey.Keys.Count > 0))
+            if (!IsNewHolon && (Id != Guid.Empty || (ProviderKey != null && ProviderKey.Keys.Count > 0)))
             {
                 OASISResult<ICelestialSpace> celestialSpaceResult = Load();
 
@@ -83,7 +83,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
             RegisterCelestialBodies(this.CelestialBodies);
             RegisterCelestialSpaces(this.CelestialSpaces);
 
-            if (Id != Guid.Empty || (ProviderKey != null && ProviderKey.Keys.Count > 0))
+            if (!IsNewHolon && (Id != Guid.Empty || (ProviderKey != null && ProviderKey.Keys.Count > 0)))
             {
                 OASISResult<ICelestialSpace> celestialSpaceResult = await LoadAsync();
 
@@ -284,6 +284,10 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
                     // If there was an error then continueOnError must have been set to true.
                     ErrorHandling.HandleWarning(ref result, $"An errror occured in CelestialSpace.SaveAsync method saving the {LoggingHelper.GetHolonInfoForLogging(this, "CelestialSpace")}. ContinueOnError is set to true so continuing to attempt to save the celestial bodies... Reason: {holonResult.Message}");
                     OnCelestialSpaceError?.Invoke(this, new CelestialSpaceErrorEventArgs() { Reason = $"{result.Message}", Result = result });
+                }
+                else
+                {
+                    result.Result = (ICelestialSpace)holonResult.Result;
                 }
 
                 if (saveChildren)
