@@ -103,27 +103,13 @@ namespace NextGenSoftware.OASIS.STAR
             OASISResult<IMultiverse> multiverseResult = OASISResultHolonToHolonHelper<IHolon, IMultiverse>.CopyResult(holonResult, new OASISResult<IMultiverse>());
             multiverseResult.Result = (IMultiverse)holonResult.Result;
 
-
-           //OASISResult <IMultiverse> multiverseResult = OASISResultHolonToHolonHelper<IHolon, IMultiverse>.CopyResult(
-           //    await AddHolonToCollectionAsync(GreatGrandSuperStar, multiverse, (List<IHolon>)Mapper<IMultiverse, Holon>.MapBaseHolonProperties(
-           //        GreatGrandSuperStar.ParentOmiverse.Multiverses)), new OASISResult<IMultiverse>());
-
             if (!multiverseResult.IsError && multiverseResult.Result != null)
             {
-                //Mapper<IHolon, Multiverse>.MapBaseHolonProperties(multiverseResult.Result, (Multiverse)multiverse);
-
                 Mapper<IMultiverse, GrandSuperStar>.MapParentCelestialBodyProperties(multiverseResult.Result, (GrandSuperStar)multiverseResult.Result.GrandSuperStar);
-                //multiverseResult.Result.GrandSuperStar.ParentOmiverse = multiverseResult.Result.ParentOmiverse;
-                //multiverseResult.Result.GrandSuperStar.ParentOmiverseId = multiverseResult.Result.ParentOmiverseId;
-                //multiverseResult.Result.GrandSuperStar.ParentGreatGrandSuperStar = multiverseResult.Result.ParentGreatGrandSuperStar;
-                //multiverseResult.Result.GrandSuperStar.ParentGreatGrandSuperStarId = multiverseResult.Result.ParentGreatGrandSuperStar.Id;
-                
                 multiverseResult.Result.GrandSuperStar.ParentMultiverse = multiverseResult.Result;
                 multiverseResult.Result.GrandSuperStar.ParentMultiverseId = multiverseResult.Result.Id;
                 multiverseResult.Result.GrandSuperStar.ParentGrandSuperStar = null;
                 multiverseResult.Result.GrandSuperStar.ParentGrandSuperStarId = Guid.Empty;
-
-
 
                 // Now we need to save the GrandSuperStar as a seperate Holon to get a Id.
                 OASISResult<IHolon> grandSuperStarResult = await SaveHolonAsync(multiverseResult.Result.GrandSuperStar, false);

@@ -114,6 +114,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
         {
             OASISResult<IEnumerable<IZome>> result = new OASISResult<IEnumerable<IZome>>();
             OASISResult<IZome> zomeResult = new OASISResult<IZome>();
+            List<IZome> savedZomes = new List<IZome>();
 
             if (this.Zomes != null)
             {
@@ -124,7 +125,10 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
                         zomeResult = await zome.SaveAsync(saveChildren, recursive, continueOnError);
 
                         if (zomeResult != null && zomeResult.Result != null && !zomeResult.IsError)
+                        {
                             result.SavedCount++;
+                            savedZomes.Add(zomeResult.Result);
+                        }
                         else
                         {
                             result.ErrorCount++;
@@ -155,6 +159,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
             else
                 result.IsSaved = true;
 
+            result.Result = savedZomes;
             OnZomesSaved?.Invoke(this, new ZomesSavedEventArgs() { Result = result });
             return result;
         }
@@ -163,6 +168,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
         {
             OASISResult<IEnumerable<IZome>> result = new OASISResult<IEnumerable<IZome>>();
             OASISResult<IZome> zomeResult = new OASISResult<IZome>();
+            List<IZome> savedZomes = new List<IZome>();
 
             if (this.Zomes != null)
             {
@@ -173,7 +179,10 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
                         zomeResult = zome.Save(saveChildren, recursive, continueOnError);
 
                         if (zomeResult != null && zomeResult.Result != null && !zomeResult.IsError)
+                        {
                             result.SavedCount++;
+                            savedZomes.Add(zomeResult.Result);
+                        }
                         else
                         {
                             result.ErrorCount++;
@@ -204,6 +213,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
             else
                 result.IsSaved = true;
 
+            result.Result = savedZomes;
             OnZomesSaved?.Invoke(this, new ZomesSavedEventArgs() { Result = result });
             return result;
         }
