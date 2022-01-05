@@ -25,8 +25,8 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Entities
 
 
 
-        public Guid ParentOmiverseId { get; set; } //The Omiverse this Holon belongs to.
-        public IOmiverse ParentOmiverse { get; set; } //The Omiverse this Holon belongs to.
+        public Guid ParentOmniverseId { get; set; } //The Omniverse this Holon belongs to.
+        public IOmiverse ParentOmniverse { get; set; } //The Omniverse this Holon belongs to.
         public Guid ParentMultiverseId { get; set; } //The Multiverse this Holon belongs to.
         public IMultiverse ParentMultiverse { get; set; } //The Multiverse this Holon belongs to.
         public Guid ParentUniverseId { get; set; } //The Universe this Holon belongs to.

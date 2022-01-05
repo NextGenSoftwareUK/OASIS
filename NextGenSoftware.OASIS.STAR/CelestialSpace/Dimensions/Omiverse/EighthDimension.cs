@@ -5,7 +5,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
 {
     public class EighthDimension : OmniverseDimension, IEighthDimension
     {
-        public EighthDimension()
+        public EighthDimension(IOmiverse omniverse = null) : base(omniverse)   
         {
             this.DimensionLevel = DimensionLevel.Eighth;
         }

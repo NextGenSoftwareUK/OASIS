@@ -6,11 +6,12 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
     //Core crystal of planet plane?
     public class FirstDimension : Dimension, IFirstDimension
     {
-        public IUniverse Universe { get; set; } = new Universe();
+        public IUniverse Universe { get; set; }
 
-        public FirstDimension()
+        public FirstDimension(IMultiverse multiverse = null)
         {
             this.DimensionLevel = DimensionLevel.First;
+            Universe = new Universe(multiverse);
         }
     }
 }

@@ -572,7 +572,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
         {
             switch (this.HolonType)
             {
-                case HolonType.Omiverse:
+                case HolonType.Omniverse:
                     NearestStar = ParentGreatGrandSuperStar;
                     break;
 

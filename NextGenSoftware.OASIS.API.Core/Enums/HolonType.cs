@@ -28,7 +28,7 @@ namespace NextGenSoftware.OASIS.API.Core.Enums
         Nebula,
         Zome,
         Holon,
-        Omiverse,
+        Omniverse,
         SuperVerse,
         Multiverse,
         Universe,

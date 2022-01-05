@@ -385,8 +385,8 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
                 result.Result.ParentZomeId = holonResult.Result .ParentZomeId;
                 result.Result.ParentHolon = holonResult.Result .ParentHolon;
                 result.Result.ParentHolonId = holonResult.Result .ParentHolonId;
-                result.Result.ParentOmiverse = holonResult.Result .ParentOmiverse;
-                result.Result.ParentOmiverseId = holonResult.Result .ParentOmiverseId;
+                result.Result.ParentOmniverse = holonResult.Result .ParentOmniverse;
+                result.Result.ParentOmniverseId = holonResult.Result .ParentOmniverseId;
                 result.Result.ParentUniverse = holonResult.Result .ParentUniverse;
                 result.Result.ParentUniverseId = holonResult.Result .ParentUniverseId;
                 result.Result.ParentGalaxy = holonResult.Result .ParentGalaxy;
@@ -449,10 +449,10 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
             // TODO: Need to double check this logic below is right! ;-)
             holon.IsNewHolon = true; //TODO: I am pretty sure every holon being added to a collection using this method will be a new one?
 
-            if (holon.ParentOmiverseId == Guid.Empty)
+            if (holon.ParentOmniverseId == Guid.Empty)
             {
-                holon.ParentOmiverseId = parentCelestialBody.ParentOmiverseId;
-                holon.ParentOmiverse = parentCelestialBody.ParentOmiverse;
+                holon.ParentOmniverseId = parentCelestialBody.ParentOmniverseId;
+                holon.ParentOmniverse = parentCelestialBody.ParentOmniverse;
             }
 
             if (holon.ParentMultiverseId == Guid.Empty)

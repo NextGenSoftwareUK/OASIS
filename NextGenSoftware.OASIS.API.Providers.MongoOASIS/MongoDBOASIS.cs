@@ -695,8 +695,8 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             oasisAvatar.ParentHolon = avatar.ParentHolon;
             oasisAvatar.ParentZomeId = avatar.ParentZomeId;
             oasisAvatar.ParentZome = avatar.ParentZome;
-            oasisAvatar.ParentOmiverse = avatar.ParentOmiverse;
-            oasisAvatar.ParentOmiverseId = avatar.ParentOmiverseId;
+            oasisAvatar.ParentOmniverse = avatar.ParentOmniverse;
+            oasisAvatar.ParentOmniverseId = avatar.ParentOmniverseId;
             oasisAvatar.ParentDimension = avatar.ParentDimension;
             oasisAvatar.ParentDimensionId = avatar.ParentDimensionId;
             oasisAvatar.ParentMultiverse = avatar.ParentMultiverse;
@@ -923,8 +923,8 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             mongoAvatar.ParentHolon = avatar.ParentHolon;
             mongoAvatar.ParentZomeId = avatar.ParentZomeId;
             mongoAvatar.ParentZome = avatar.ParentZome;
-            mongoAvatar.ParentOmiverse = avatar.ParentOmiverse;
-            mongoAvatar.ParentOmiverseId = avatar.ParentOmiverseId;
+            mongoAvatar.ParentOmniverse = avatar.ParentOmniverse;
+            mongoAvatar.ParentOmniverseId = avatar.ParentOmniverseId;
             mongoAvatar.ParentDimension = avatar.ParentDimension;
             mongoAvatar.ParentDimensionId = avatar.ParentDimensionId;
             mongoAvatar.ParentMultiverse = avatar.ParentMultiverse;
@@ -986,8 +986,8 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             result.Result.ParentHolon = holon.Result.ParentHolon;
             result.Result.ParentZomeId = holon.Result.ParentZomeId;
             result.Result.ParentZome = holon.Result.ParentZome;
-            result.Result.ParentOmiverse = holon.Result.ParentOmiverse;
-            result.Result.ParentOmiverseId = holon.Result.ParentOmiverseId;
+            result.Result.ParentOmniverse = holon.Result.ParentOmniverse;
+            result.Result.ParentOmniverseId = holon.Result.ParentOmniverseId;
             result.Result.ParentDimension = holon.Result.ParentDimension;
             result.Result.ParentDimensionId = holon.Result.ParentDimensionId;
             result.Result.ParentMultiverse = holon.Result.ParentMultiverse;
@@ -1057,8 +1057,8 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             mongoHolon.ParentHolon = holon.ParentHolon;
             mongoHolon.ParentZomeId = holon.ParentZomeId;
             mongoHolon.ParentZome = holon.ParentZome;
-            mongoHolon.ParentOmiverse = holon.ParentOmiverse;
-            mongoHolon.ParentOmiverseId = holon.ParentOmiverseId;
+            mongoHolon.ParentOmniverse = holon.ParentOmniverse;
+            mongoHolon.ParentOmniverseId = holon.ParentOmniverseId;
             mongoHolon.ParentDimension = holon.ParentDimension;
             mongoHolon.ParentDimensionId = holon.ParentDimensionId;
             mongoHolon.ParentMultiverse = holon.ParentMultiverse;

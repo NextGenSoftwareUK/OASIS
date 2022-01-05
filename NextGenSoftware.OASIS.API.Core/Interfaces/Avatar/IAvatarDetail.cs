@@ -54,7 +54,7 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces
         int Level { get; }
         string Mobile { get; set; }
         string Model3D { get; set; }
-        IOmiverse Omiverse { get; set; }
+        IOmiverse Omniverse { get; set; }
         string Postcode { get; set; }
         Dictionary<ProviderType, string> ProviderPrivateKey { get; set; }
         Dictionary<ProviderType, string> ProviderPublicKey { get; set; }

@@ -160,11 +160,11 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
 
                         if (saveChildren)
                         {
-                            OASISResult<ICelestialSpace> celestialSpaceResult = await ((IGreatGrandSuperStar)this).ParentOmiverse.SaveAsync(saveChildren, recursive, continueOnError);
+                            OASISResult<ICelestialSpace> celestialSpaceResult = await ((IGreatGrandSuperStar)this).ParentOmniverse.SaveAsync(saveChildren, recursive, continueOnError);
 
                             if (!(celestialSpaceResult != null && !celestialSpaceResult.IsError && celestialSpaceResult.Result != null))
                             {
-                                ErrorHandling.HandleWarning(ref result, $"There was an error in CelestialBody.SaveAsync method whilst saving the {LoggingHelper.GetHolonInfoForLogging(this, "CelestialBody")} (GreatGrandSuperStar) ParentOmiverse. Reason: {celestialSpaceResult.Message}");
+                                ErrorHandling.HandleWarning(ref result, $"There was an error in CelestialBody.SaveAsync method whilst saving the {LoggingHelper.GetHolonInfoForLogging(this, "CelestialBody")} (GreatGrandSuperStar) ParentOmniverse. Reason: {celestialSpaceResult.Message}");
                                 OnCelestialBodyError?.Invoke(this, new CelestialBodyErrorEventArgs() { Result = result });
 
                                 if (!continueOnError)
@@ -179,16 +179,16 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
 
 
                         /*
-                        holonsResult = await CelestialBodyCore.SaveHolonsAsync(Mapper<IMultiverse, Holon>.MapBaseHolonProperties(((IGreatGrandSuperStar)this).ParentOmiverse.Multiverses));
+                        holonsResult = await CelestialBodyCore.SaveHolonsAsync(Mapper<IMultiverse, Holon>.MapBaseHolonProperties(((IGreatGrandSuperStar)this).ParentOmniverse.Multiverses));
 
                         if (!continueOnError && (holonsResult.IsError || holonsResult.Result == null))
                         {
-                            ErrorHandling.HandleError(ref result, string.Concat("Error occured saving GreatGrandSuperStar.ParentOmiverse.Multiverses. Error Details: ", holonsResult.Message));
+                            ErrorHandling.HandleError(ref result, string.Concat("Error occured saving GreatGrandSuperStar.ParentOmniverse.Multiverses. Error Details: ", holonsResult.Message));
                             return result;
                         }
 
                         //TODO: Finish this later...
-                        foreach (IMultiverse multiverse in ParentOmiverse.Multiverses)
+                        foreach (IMultiverse multiverse in ParentOmniverse.Multiverses)
                         {
                             await multiverse.SaveAsync(saveChildren, recursive, continueOnError);
 
@@ -197,7 +197,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
                             if (!continueOnError && (holonResult.IsError || holonResult.Result == null))
                             {
                                 result.IsError = true;
-                                result.Message = string.Concat("Error occured saving GreatGrandSuperStar.ParentOmiverse.Multiverses[].Dimensions.ThirdDimension.UniversePrime. Error Details: ", holonResult.Message);
+                                result.Message = string.Concat("Error occured saving GreatGrandSuperStar.ParentOmniverse.Multiverses[].Dimensions.ThirdDimension.UniversePrime. Error Details: ", holonResult.Message);
                                 return result;
                             }
 
@@ -206,7 +206,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
                             if (!continueOnError && (holonResult.IsError || holonResult.Result == null))
                             {
                                 result.IsError = true;
-                                result.Message = string.Concat("Error occured saving GreatGrandSuperStar.ParentOmiverse.Multiverses[].Dimensions.ThirdDimension.MagicVerse. Error Details: ", holonResult.Message);
+                                result.Message = string.Concat("Error occured saving GreatGrandSuperStar.ParentOmniverse.Multiverses[].Dimensions.ThirdDimension.MagicVerse. Error Details: ", holonResult.Message);
                                 return result;
                             }
 
@@ -215,7 +215,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
                             if (!continueOnError && (holonsResult.IsError || holonsResult.Result == null))
                             {
                                 result.IsError = true;
-                                result.Message = string.Concat("Error occured saving GreatGrandSuperStar.ParentOmiverse.Multiverses[].Dimensions.ThirdDimension.ParallelUniverses. Error Details: ", holonsResult.Message);
+                                result.Message = string.Concat("Error occured saving GreatGrandSuperStar.ParentOmniverse.Multiverses[].Dimensions.ThirdDimension.ParallelUniverses. Error Details: ", holonsResult.Message);
                                 return result;
                             }
 
@@ -417,24 +417,24 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
         //                //THIS WILL REPLACE ALL THE MANUAL CODE BELOW! ;-) DOH! LOL
         //                if (saveChildren)
         //                {
-        //                    holonsResult = await CelestialBodyCore.SaveHolonsAsync(Mapper<IMultiverse, Holon>.MapBaseHolonProperties(((IGreatGrandSuperStar)this).ParentOmiverse.Multiverses));
+        //                    holonsResult = await CelestialBodyCore.SaveHolonsAsync(Mapper<IMultiverse, Holon>.MapBaseHolonProperties(((IGreatGrandSuperStar)this).ParentOmniverse.Multiverses));
 
         //                    if (!continueOnError && (holonsResult.IsError || holonsResult.Result == null))
         //                    {
         //                        result.IsError = true;
-        //                        result.Message = string.Concat("Error occured saving GreatGrandSuperStar.ParentOmiverse.Multiverses. Error Details: ", holonsResult.Message);
+        //                        result.Message = string.Concat("Error occured saving GreatGrandSuperStar.ParentOmniverse.Multiverses. Error Details: ", holonsResult.Message);
         //                        return result;
         //                    }
 
         //                    //TODO: Finish this later...
-        //                    foreach (IMultiverse multiverse in ParentOmiverse.Multiverses)
+        //                    foreach (IMultiverse multiverse in ParentOmniverse.Multiverses)
         //                    {
         //                        OASISResult<Universe> universeResult = await CelestialBodyCore.SaveHolonAsync<Universe>(Mapper<IUniverse, Holon>.MapBaseHolonProperties(multiverse.Dimensions.ThirdDimension.UniversePrime));
 
         //                        if (!continueOnError && (universeResult.IsError || universeResult.Result == null))
         //                        {
         //                            result.IsError = true;
-        //                            result.Message = string.Concat("Error occured saving GreatGrandSuperStar.ParentOmiverse.Multiverses[].Dimensions.ThirdDimension.UniversePrime. Error Details: ", universeResult.Message);
+        //                            result.Message = string.Concat("Error occured saving GreatGrandSuperStar.ParentOmniverse.Multiverses[].Dimensions.ThirdDimension.UniversePrime. Error Details: ", universeResult.Message);
         //                            return result;
         //                        }
 
@@ -443,16 +443,16 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
         //                        if (!continueOnError && (magicverseResult.IsError || magicverseResult.Result == null))
         //                        {
         //                            result.IsError = true;
-        //                            result.Message = string.Concat("Error occured saving GreatGrandSuperStar.ParentOmiverse.Multiverses[].Dimensions.ThirdDimension.MagicVerse. Error Details: ", magicverseResult.Message);
+        //                            result.Message = string.Concat("Error occured saving GreatGrandSuperStar.ParentOmniverse.Multiverses[].Dimensions.ThirdDimension.MagicVerse. Error Details: ", magicverseResult.Message);
         //                            return result;
         //                        }
 
-        //                        holonsResult = await CelestialBodyCore.SaveHolonsAsync(Mapper<IMultiverse, Holon>.MapBaseHolonProperties(((IGreatGrandSuperStar)this).ParentOmiverse.Multiverses));
+        //                        holonsResult = await CelestialBodyCore.SaveHolonsAsync(Mapper<IMultiverse, Holon>.MapBaseHolonProperties(((IGreatGrandSuperStar)this).ParentOmniverse.Multiverses));
 
         //                        if (!continueOnError && (holonsResult.IsError || holonsResult.Result == null))
         //                        {
         //                            result.IsError = true;
-        //                            result.Message = string.Concat("Error occured saving GreatGrandSuperStar.ParentOmiverse.Multiverses[].Dimensions.ThirdDimension.ParallelUniverses. Error Details: ", holonsResult.Message);
+        //                            result.Message = string.Concat("Error occured saving GreatGrandSuperStar.ParentOmniverse.Multiverses[].Dimensions.ThirdDimension.ParallelUniverses. Error Details: ", holonsResult.Message);
         //                            return result;
         //                        }
 
@@ -858,8 +858,8 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
             this.ParentZomeId = holon.ParentZomeId;
             this.ParentHolon = holon.ParentHolon;
             this.ParentHolonId = holon.ParentHolonId;
-            this.ParentOmiverse = holon.ParentOmiverse;
-            this.ParentOmiverseId = holon.ParentOmiverseId;
+            this.ParentOmniverse = holon.ParentOmniverse;
+            this.ParentOmniverseId = holon.ParentOmniverseId;
             this.ParentMultiverse = holon.ParentMultiverse;
             this.ParentMultiverseId = holon.ParentMultiverseId;
             this.ParentUniverse = holon.ParentUniverse;
@@ -907,8 +907,8 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
         {
             if (greatGrandSuperStar != null)
             {
-                planet.ParentOmiverse = greatGrandSuperStar.ParentOmiverse;
-                planet.ParentOmiverseId = greatGrandSuperStar.ParentOmiverseId;
+                planet.ParentOmniverse = greatGrandSuperStar.ParentOmniverse;
+                planet.ParentOmniverseId = greatGrandSuperStar.ParentOmniverseId;
                 planet.ParentGreatGrandSuperStar = greatGrandSuperStar;
                 planet.ParentGreatGrandSuperStarId = greatGrandSuperStar.Id;
             }
@@ -952,8 +952,8 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
 
         private void SetParentIdsForStar(IGreatGrandSuperStar greatGrandSuperStar, IGrandSuperStar grandSuperStar, ISuperStar superStar, IStar star)
         {
-            star.ParentOmiverse = greatGrandSuperStar.ParentOmiverse;
-            star.ParentOmiverseId = greatGrandSuperStar.ParentOmiverseId;
+            star.ParentOmniverse = greatGrandSuperStar.ParentOmniverse;
+            star.ParentOmniverseId = greatGrandSuperStar.ParentOmniverseId;
             star.ParentGreatGrandSuperStar = greatGrandSuperStar;
             star.ParentGreatGrandSuperStarId = greatGrandSuperStar.Id;
 
@@ -988,8 +988,8 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
 
             foreach (ISolarSystem solarSystem in superStar.ParentGalaxy.SolarSystems)
             {
-                solarSystem.ParentOmiverse = greatGrandSuperStar.ParentOmiverse;
-                solarSystem.ParentOmiverseId = greatGrandSuperStar.ParentOmiverseId;
+                solarSystem.ParentOmniverse = greatGrandSuperStar.ParentOmniverse;
+                solarSystem.ParentOmniverseId = greatGrandSuperStar.ParentOmniverseId;
                 solarSystem.ParentGreatGrandSuperStar = greatGrandSuperStar;
                 solarSystem.ParentGreatGrandSuperStarId = greatGrandSuperStar.Id;
 
@@ -1009,8 +1009,8 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
 
         private void SetParentIdsForGrandSuperStar(IGreatGrandSuperStar greatGrandSuperStar, IGrandSuperStar grandSuperStar)
         {
-            grandSuperStar.ParentOmiverse = greatGrandSuperStar.ParentOmiverse;
-            grandSuperStar.ParentOmiverseId = greatGrandSuperStar.ParentOmiverseId;
+            grandSuperStar.ParentOmniverse = greatGrandSuperStar.ParentOmniverse;
+            grandSuperStar.ParentOmniverseId = greatGrandSuperStar.ParentOmniverseId;
             grandSuperStar.ParentGreatGrandSuperStar = greatGrandSuperStar;
             grandSuperStar.ParentGreatGrandSuperStarId = greatGrandSuperStar.Id;
 
@@ -1022,8 +1022,8 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
             foreach (IStar star in grandSuperStar.ParentUniverse.Stars)
             {
                 // Stars that are outside of a Galaxy (do not have a superstar).
-                star.ParentOmiverse = greatGrandSuperStar.ParentOmiverse;
-                star.ParentOmiverseId = greatGrandSuperStar.ParentOmiverseId;
+                star.ParentOmniverse = greatGrandSuperStar.ParentOmniverse;
+                star.ParentOmniverseId = greatGrandSuperStar.ParentOmniverseId;
                 star.ParentGreatGrandSuperStar = greatGrandSuperStar;
                 star.ParentGreatGrandSuperStarId = greatGrandSuperStar.Id;
 
@@ -1039,8 +1039,8 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
             foreach (IGalaxyCluster galaxyCluster in grandSuperStar.ParentUniverse.GalaxyClusters)
             {
                 //TODO: Come back to this... finish this bit later..
-                galaxyCluster.ParentOmiverse = greatGrandSuperStar.ParentOmiverse;
-                galaxyCluster.ParentOmiverseId = greatGrandSuperStar.ParentOmiverseId;
+                galaxyCluster.ParentOmniverse = greatGrandSuperStar.ParentOmniverse;
+                galaxyCluster.ParentOmniverseId = greatGrandSuperStar.ParentOmniverseId;
                 galaxyCluster.ParentGreatGrandSuperStar = greatGrandSuperStar;
                 galaxyCluster.ParentGreatGrandSuperStarId = greatGrandSuperStar.Id;
 
@@ -1051,8 +1051,8 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
 
                 foreach (IGalaxy galaxy in galaxyCluster.Galaxies)
                 {
-                    galaxy.ParentOmiverse = greatGrandSuperStar.ParentOmiverse;
-                    galaxy.ParentOmiverseId = greatGrandSuperStar.ParentOmiverseId;
+                    galaxy.ParentOmniverse = greatGrandSuperStar.ParentOmniverse;
+                    galaxy.ParentOmniverseId = greatGrandSuperStar.ParentOmniverseId;
                     galaxy.ParentGreatGrandSuperStar = greatGrandSuperStar;
                     galaxy.ParentGreatGrandSuperStarId = greatGrandSuperStar.Id;
 
@@ -1068,10 +1068,10 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
 
         private void SetParentIdsForGreatGrandSuperStar(IGreatGrandSuperStar greatGrandSuperStar)
         {
-            foreach (IMultiverse multiverse in greatGrandSuperStar.ParentOmiverse.Multiverses)
+            foreach (IMultiverse multiverse in greatGrandSuperStar.ParentOmniverse.Multiverses)
             {
-                multiverse.ParentOmiverse = greatGrandSuperStar.ParentOmiverse;
-                multiverse.ParentOmiverseId = greatGrandSuperStar.ParentOmiverseId;
+                multiverse.ParentOmniverse = greatGrandSuperStar.ParentOmniverse;
+                multiverse.ParentOmniverseId = greatGrandSuperStar.ParentOmniverseId;
                 multiverse.ParentGreatGrandSuperStar = greatGrandSuperStar;
                 multiverse.ParentGreatGrandSuperStarId = greatGrandSuperStar.Id;
 
@@ -1080,8 +1080,8 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
 
                 foreach (IUniverse universe in multiverse.Dimensions.ThirdDimension.ParallelUniverses)
                 {
-                    universe.ParentOmiverse = greatGrandSuperStar.ParentOmiverse;
-                    universe.ParentOmiverseId = greatGrandSuperStar.ParentOmiverseId;
+                    universe.ParentOmniverse = greatGrandSuperStar.ParentOmniverse;
+                    universe.ParentOmniverseId = greatGrandSuperStar.ParentOmniverseId;
                     universe.ParentGreatGrandSuperStar = greatGrandSuperStar;
                     universe.ParentGreatGrandSuperStarId = greatGrandSuperStar.Id;
 

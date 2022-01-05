@@ -72,7 +72,7 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
                 STAR.OnOASISBooted += STAR_OnOASISBooted;
                 STAR.OnOASISBootError += STAR_OnOASISBootError;
 
-                OASISResult<ICelestialBody> result = STAR.IgniteStar();
+                OASISResult<IOmiverse> result = STAR.IgniteStar();
 
                 if (result.IsError)
                     ShowErrorMessage(string.Concat("Error Igniting STAR. Error Message: ", result.Message));
@@ -1015,7 +1015,7 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
 
         private static void STAR_OnOASISBooted(object sender, EventArgs.OASISBootedEventArgs e)
         {
-            ShowSuccessMessage(string.Concat("OASIS BOOTED.", e.Message));
+           // ShowSuccessMessage(string.Concat("OASIS BOOTED.", e.Message));
         }
 
         private static void STAR_OnStarError(object sender, EventArgs.StarErrorEventArgs e)

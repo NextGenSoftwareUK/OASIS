@@ -5,15 +5,15 @@ using System.Threading.Tasks;
 
 namespace NextGenSoftware.OASIS.API.Core.Interfaces.STAR
 {
-    // At the centre of the Omiverse (there can only be ONE) ;-) (creates Omiverses (with a GrandSuperStar at the centre of each).  Spirit/God/The Divine, etc
+    // At the centre of the Omniverse (there can only be ONE) ;-) (creates Omiverses (with a GrandSuperStar at the centre of each).  Spirit/God/The Divine, etc
     public interface IGreatGrandSuperStarCore
     {
         IGreatGrandSuperStar GreatGrandSuperStar { get; set; }
 
-        OASISResult<IOmiverse> AddOmiverse(IOmiverse omiverse);
-        Task<OASISResult<IOmiverse>> AddOmiverseAsync(IOmiverse omiverse);
+        OASISResult<IOmiverse> AddOmiverse(IOmiverse omniverse);
+        Task<OASISResult<IOmiverse>> AddOmiverseAsync(IOmiverse omniverse);
         OASISResult<IDimension> AddDimensionToOmniverse(IDimension dimension);
-        Task<OASISResult<IDimension>> AddDimensionToOmniverseAsync(IDimension omiverse);
+        Task<OASISResult<IDimension>> AddDimensionToOmniverseAsync(IDimension omniverse);
         OASISResult<IMultiverse> AddMultiverse(IMultiverse multiverse);
         Task<OASISResult<IMultiverse>> AddMultiverseAsync(IMultiverse multiverse);
         OASISResult<IEnumerable<IMultiverse>> GetAllMultiversesForOmiverse(bool refresh = true);
