@@ -87,7 +87,7 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
         // public int Karma { get; private set; }
         public int Karma { get; set; } //TODO: This really needs to have a private setter but in the HoloOASIS provider it needs to copy the object along with each property... would prefer another work around if possible?
         public int XP { get; set; }
-        public IOmiverse Omiverse { get; set; } //We have all of creation inside of us... ;-)
+        public IOmiverse Omniverse { get; set; } //We have all of creation inside of us... ;-)
         public List<AvatarGift> Gifts { get; set; } = new List<AvatarGift>();
         //public List<Chakra> Chakras { get; set; }
         public Dictionary<DimensionLevel, Guid> DimensionLevelIds { get; set; }

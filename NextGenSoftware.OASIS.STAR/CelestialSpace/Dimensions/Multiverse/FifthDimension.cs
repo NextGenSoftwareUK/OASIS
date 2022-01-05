@@ -6,11 +6,12 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
     //Love/wisdom dimension?
     public class FifthDimension : Dimension, IFifthDimension
     {
-        public IUniverse Universe { get; set; } = new Universe();
+        public IUniverse Universe { get; set; }
 
-        public FifthDimension()
+        public FifthDimension(IMultiverse multiverse)
         {
             this.DimensionLevel = DimensionLevel.Fifth;
+            this.Universe = new Universe(multiverse);
         }
     }
 }

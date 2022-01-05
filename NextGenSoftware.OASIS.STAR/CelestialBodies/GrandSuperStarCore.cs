@@ -196,8 +196,8 @@ namespace NextGenSoftware.OASIS.STAR
         //        return result;
         //    }
 
-        //    GrandSuperStar.ParentMultiverse.Dimensions.ThirdDimension.ParentOmiverse = GrandSuperStar.ParentMultiverse.ParentOmiverse;
-        //    GrandSuperStar.ParentMultiverse.Dimensions.ThirdDimension.ParentOmiverseId = GrandSuperStar.ParentMultiverse.ParentOmiverseId;
+        //    GrandSuperStar.ParentMultiverse.Dimensions.ThirdDimension.ParentOmniverse = GrandSuperStar.ParentMultiverse.ParentOmniverse;
+        //    GrandSuperStar.ParentMultiverse.Dimensions.ThirdDimension.ParentOmniverseId = GrandSuperStar.ParentMultiverse.ParentOmniverseId;
         //    GrandSuperStar.ParentMultiverse.Dimensions.ThirdDimension.ParentMultiverse = GrandSuperStar.ParentMultiverse;
         //    GrandSuperStar.ParentMultiverse.Dimensions.ThirdDimension.ParentMultiverseId = GrandSuperStar.ParentMultiverse.Id;
         //    GrandSuperStar.ParentMultiverse.Dimensions.ThirdDimension.ParentGrandSuperStar = GrandSuperStar;

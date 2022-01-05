@@ -5,7 +5,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
 {
     public class EleventhDimension : OmniverseDimension, IEleventhDimension
     {
-        public EleventhDimension()
+        public EleventhDimension(IOmiverse omniverse = null) : base(omniverse)
         {
             this.DimensionLevel = DimensionLevel.Eleventh;
         }

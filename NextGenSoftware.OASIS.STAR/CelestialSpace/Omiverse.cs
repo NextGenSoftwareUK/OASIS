@@ -7,9 +7,9 @@ using NextGenSoftware.OASIS.STAR.CelestialBodies;
 
 namespace NextGenSoftware.OASIS.STAR.CelestialSpace
 {
-    public class Omiverse : CelestialSpace, IOmiverse
+    public class Omniverse : CelestialSpace, IOmiverse
     {
-        private IOmniverseDimensions _dimensions = new OmniverseDimensions();
+        private IOmniverseDimensions _dimensions = null;
         private List<IMultiverse> _multiverses = new List<IMultiverse>();
 
         //let's you jump between Multiverses/Dimensions.
@@ -18,8 +18,8 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
         //    CreatedOASISType = new EnumValue<OASISType>(OASISType.STARCLI),
         //    Name = "GreatGrandSuperStar",
         //    Description = "GreatGrandSuperStar at the centre of the Omniverse (The OASIS). Can create Multiverses, Universes, Galaxies, SolarSystems, Stars, Planets (Super OAPPS) and moons (OAPPS)",
-        //    ParentOmiverse = this,
-        //    ParentOmiverseId = this.Id
+        //    ParentOmniverse = this,
+        //    ParentOmniverseId = this.Id
 
         //}; 
 
@@ -51,17 +51,17 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
             }
         }
 
-        public Omiverse() : base(HolonType.Omiverse) 
+        public Omniverse() : base(HolonType.Omniverse) 
         {
             Init();
         }
 
-        public Omiverse(Guid id) : base(id, HolonType.Omiverse) 
+        public Omniverse(Guid id) : base(id, HolonType.Omniverse) 
         {
             Init();
         }
 
-        public Omiverse(Dictionary<ProviderType, string> providerKey) : base(providerKey, HolonType.Omiverse) 
+        public Omniverse(Dictionary<ProviderType, string> providerKey) : base(providerKey, HolonType.Omniverse) 
         {
             Init();
         }
@@ -77,15 +77,24 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
                 CreatedOASISType = new EnumValue<OASISType>(OASISType.STARCLI),
                 Name = "GreatGrandSuperStar",
                 Description = "GreatGrandSuperStar at the centre of the Omniverse (The OASIS). Can create Multiverses, Universes, Galaxies, SolarSystems, Stars, Planets (Super OAPPS) and moons (OAPPS)",
-                ParentOmiverse = this,
-                ParentOmiverseId = this.Id
+                ParentOmniverse = this,
+                ParentOmniverseId = this.Id
             };
 
             ParentGreatGrandSuperStar = GreatGrandSuperStar;
             ParentGreatGrandSuperStarId = GreatGrandSuperStar.Id;
 
-            //TODO: Not sure if to add the seed multiverse and everything in it here?
-            Multiverses.Add(new Multiverse());
+            Dimensions = new OmniverseDimensions(this);
+
+            //Add a default multiverse.
+            Multiverse defaultMultiverse = new Multiverse(this)
+            {
+                Name = "Our Multiverse",
+                Description = "Our Multiverse that our Milky Way Galaxy belongs to, the default Multiverse."
+            };
+
+            defaultMultiverse.GrandSuperStar.Name = "The GrandSuperStar at the centre of our Multiverse/Universe.";
+            Multiverses.Add(defaultMultiverse);
         }
 
         private void RegisterAllCelestialSpaces()

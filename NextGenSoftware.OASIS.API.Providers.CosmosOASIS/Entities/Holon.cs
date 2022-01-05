@@ -25,8 +25,8 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Entities
         public Dictionary<ProviderType, Dictionary<string, string>> ProviderMetaData { get; set; }
         public Dictionary<string, string> MetaData { get; set; }
         public HolonType HolonType { get; set; }
-        public Guid ParentOmiverseId { get; set; }
-        public IOmiverse ParentOmiverse { get; set; }
+        public Guid ParentOmniverseId { get; set; }
+        public IOmiverse ParentOmniverse { get; set; }
         public Guid ParentMultiverseId { get; set; }
         public IMultiverse ParentMultiverse { get; set; }
         public Guid ParentUniverseId { get; set; }

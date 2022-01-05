@@ -8,9 +8,10 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
     {
         public IUniverse Universe { get; set; } = new Universe();
 
-        public SeventhDimension()
+        public SeventhDimension(IMultiverse multiverse = null)
         {
             this.DimensionLevel = DimensionLevel.Seventh;
+            this.Universe = new Universe(multiverse);
         }
     }
 }

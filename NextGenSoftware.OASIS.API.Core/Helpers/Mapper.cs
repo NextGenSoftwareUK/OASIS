@@ -34,8 +34,8 @@ namespace NextGenSoftware.OASIS.API.Core.Helpers
                 targetHolon.ParentZomeId = sourceHolon.ParentZomeId;
                 targetHolon.ParentHolon = sourceHolon.ParentHolon;
                 targetHolon.ParentHolonId = sourceHolon.ParentHolonId;
-                targetHolon.ParentOmiverse = sourceHolon.ParentOmiverse;
-                targetHolon.ParentOmiverseId = sourceHolon.ParentOmiverseId;
+                targetHolon.ParentOmniverse = sourceHolon.ParentOmniverse;
+                targetHolon.ParentOmniverseId = sourceHolon.ParentOmniverseId;
                 targetHolon.ParentMultiverse = sourceHolon.ParentMultiverse;
                 targetHolon.ParentMultiverseId = sourceHolon.ParentMultiverseId;
                 targetHolon.ParentDimension = sourceHolon.ParentDimension;
@@ -135,11 +135,11 @@ namespace NextGenSoftware.OASIS.API.Core.Helpers
             if (targetCelestialBody.ParentHolonId == Guid.Empty || (targetCelestialBody.ParentHolonId != Guid.Empty && !onlyMapIfTargetIsNull))
                 targetCelestialBody.ParentHolonId = sourceCelestialBody.ParentHolonId;
 
-            if (targetCelestialBody.ParentOmiverse == null || (targetCelestialBody.ParentOmiverse != null && !onlyMapIfTargetIsNull))
-                targetCelestialBody.ParentOmiverse = sourceCelestialBody.ParentOmiverse;
+            if (targetCelestialBody.ParentOmniverse == null || (targetCelestialBody.ParentOmniverse != null && !onlyMapIfTargetIsNull))
+                targetCelestialBody.ParentOmniverse = sourceCelestialBody.ParentOmniverse;
 
-            if (targetCelestialBody.ParentOmiverseId == Guid.Empty || (targetCelestialBody.ParentOmiverseId != Guid.Empty && !onlyMapIfTargetIsNull))
-                targetCelestialBody.ParentOmiverseId = sourceCelestialBody.ParentOmiverseId;
+            if (targetCelestialBody.ParentOmniverseId == Guid.Empty || (targetCelestialBody.ParentOmniverseId != Guid.Empty && !onlyMapIfTargetIsNull))
+                targetCelestialBody.ParentOmniverseId = sourceCelestialBody.ParentOmniverseId;
 
             if (targetCelestialBody.ParentMultiverse == null || (targetCelestialBody.ParentMultiverse != null && !onlyMapIfTargetIsNull))
                 targetCelestialBody.ParentMultiverse = sourceCelestialBody.ParentMultiverse;
@@ -217,8 +217,8 @@ namespace NextGenSoftware.OASIS.API.Core.Helpers
                 targetHolon.ParentZomeId = sourceHolon.ParentZomeId;
                 targetHolon.ParentHolon = sourceHolon.ParentHolon;
                 targetHolon.ParentHolonId = sourceHolon.ParentHolonId;
-                targetHolon.ParentOmiverse = sourceHolon.ParentOmiverse;
-                targetHolon.ParentOmiverseId = sourceHolon.ParentOmiverseId;
+                targetHolon.ParentOmniverse = sourceHolon.ParentOmniverse;
+                targetHolon.ParentOmniverseId = sourceHolon.ParentOmniverseId;
                 targetHolon.ParentMultiverse = sourceHolon.ParentMultiverse;
                 targetHolon.ParentMultiverseId = sourceHolon.ParentMultiverseId;
                 targetHolon.ParentDimension = sourceHolon.ParentDimension;
@@ -341,11 +341,11 @@ namespace NextGenSoftware.OASIS.API.Core.Helpers
             if (targetCelestialBody.ParentHolonId == Guid.Empty || (targetCelestialBody.ParentHolonId != Guid.Empty && !onlyMapIfTargetIsNull))
                 targetCelestialBody.ParentHolonId = sourceCelestialBody.ParentHolonId;
 
-            if (targetCelestialBody.ParentOmiverse == null || (targetCelestialBody.ParentOmiverse != null && !onlyMapIfTargetIsNull))
-                targetCelestialBody.ParentOmiverse = sourceCelestialBody.ParentOmiverse;
+            if (targetCelestialBody.ParentOmniverse == null || (targetCelestialBody.ParentOmniverse != null && !onlyMapIfTargetIsNull))
+                targetCelestialBody.ParentOmniverse = sourceCelestialBody.ParentOmniverse;
 
-            if (targetCelestialBody.ParentOmiverseId == Guid.Empty || (targetCelestialBody.ParentOmiverseId != Guid.Empty && !onlyMapIfTargetIsNull))
-                targetCelestialBody.ParentOmiverseId = sourceCelestialBody.ParentOmiverseId;
+            if (targetCelestialBody.ParentOmniverseId == Guid.Empty || (targetCelestialBody.ParentOmniverseId != Guid.Empty && !onlyMapIfTargetIsNull))
+                targetCelestialBody.ParentOmniverseId = sourceCelestialBody.ParentOmniverseId;
 
             if (targetCelestialBody.ParentMultiverse == null || (targetCelestialBody.ParentMultiverse != null && !onlyMapIfTargetIsNull))
                 targetCelestialBody.ParentMultiverse = sourceCelestialBody.ParentMultiverse;
@@ -431,8 +431,8 @@ namespace NextGenSoftware.OASIS.API.Core.Helpers
                 targetHolons[i].ParentZomeId = sourceHolons[i].ParentZomeId;
                 targetHolons[i].ParentHolon = sourceHolons[i].ParentHolon;
                 targetHolons[i].ParentHolonId = sourceHolons[i].ParentHolonId;
-                targetHolons[i].ParentOmiverse = sourceHolons[i].ParentOmiverse;
-                targetHolons[i].ParentOmiverseId = sourceHolons[i].ParentOmiverseId;
+                targetHolons[i].ParentOmniverse = sourceHolons[i].ParentOmniverse;
+                targetHolons[i].ParentOmniverseId = sourceHolons[i].ParentOmniverseId;
                 targetHolons[i].ParentUniverse = sourceHolons[i].ParentUniverse;
                 targetHolons[i].ParentUniverseId = sourceHolons[i].ParentUniverseId;
                 targetHolons[i].ParentGalaxy = sourceHolons[i].ParentGalaxy;
@@ -499,8 +499,8 @@ namespace NextGenSoftware.OASIS.API.Core.Helpers
                 targetCelestialBodies[i].ParentZomeId = sourceCelestialBodies[i].ParentZomeId;
                 targetCelestialBodies[i].ParentHolon = sourceCelestialBodies[i].ParentHolon;
                 targetCelestialBodies[i].ParentHolonId = sourceCelestialBodies[i].ParentHolonId;
-                targetCelestialBodies[i].ParentOmiverse = sourceCelestialBodies[i].ParentOmiverse;
-                targetCelestialBodies[i].ParentOmiverseId = sourceCelestialBodies[i].ParentOmiverseId;
+                targetCelestialBodies[i].ParentOmniverse = sourceCelestialBodies[i].ParentOmniverse;
+                targetCelestialBodies[i].ParentOmniverseId = sourceCelestialBodies[i].ParentOmniverseId;
                 targetCelestialBodies[i].ParentUniverse = sourceCelestialBodies[i].ParentUniverse;
                 targetCelestialBodies[i].ParentUniverseId = sourceCelestialBodies[i].ParentUniverseId;
                 targetCelestialBodies[i].ParentGalaxy = sourceCelestialBodies[i].ParentGalaxy;

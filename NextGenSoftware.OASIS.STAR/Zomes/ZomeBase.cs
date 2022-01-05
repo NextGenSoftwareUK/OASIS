@@ -582,7 +582,7 @@ namespace NextGenSoftware.OASIS.STAR.Zomes
                 celestialBody.CelestialBodyCore = null;
             }
 
-            _parentOmiverse[holon.Id] = holon.ParentOmiverse;
+            _parentOmiverse[holon.Id] = holon.ParentOmniverse;
             _parentDimension[holon.Id] = holon.ParentDimension;
             _parentMultiverse[holon.Id] = holon.ParentMultiverse;
             _parentUniverse[holon.Id] = holon.ParentUniverse;
@@ -598,7 +598,7 @@ namespace NextGenSoftware.OASIS.STAR.Zomes
             _parentZome[holon.Id] = holon.ParentZome;
             _parentHolon[holon.Id] = holon.ParentHolon;
 
-            holon.ParentOmiverse = null;
+            holon.ParentOmniverse = null;
             holon.ParentDimension = null;
             holon.ParentMultiverse = null;
             holon.ParentUniverse = null;
@@ -620,7 +620,7 @@ namespace NextGenSoftware.OASIS.STAR.Zomes
         private IHolon RestoreCelesialBodies(IHolon originalHolon) 
         {
             originalHolon.IsNewHolon = false;
-            originalHolon.ParentOmiverse = _parentOmiverse[originalHolon.Id];
+            originalHolon.ParentOmniverse = _parentOmiverse[originalHolon.Id];
             originalHolon.ParentDimension = _parentDimension[originalHolon.Id];
             originalHolon.ParentMultiverse = _parentMultiverse[originalHolon.Id];
             originalHolon.ParentUniverse = _parentUniverse[originalHolon.Id];

@@ -62,7 +62,7 @@ namespace NextGenSoftware.OASIS.STAR
         }
 
         public static bool IsStarIgnited { get; private set; }
-        //public static GreatGrandSuperStar InnerStar { get; set; } //Only ONE of these can ever exist and is at the centre of the Omiverse (also only ONE).
+        //public static GreatGrandSuperStar InnerStar { get; set; } //Only ONE of these can ever exist and is at the centre of the Omniverse (also only ONE).
 
         public static IGreatGrandSuperStar DefaultGreatGrandSuperStar { get; set; } //Will default to the GreatGrandSuperStar at the centre of our Omniverse.
         public static IGrandSuperStar DefaultGrandSuperStar { get; set; } //Will default to the GrandSuperStar at the centre of our Universe.
@@ -162,9 +162,9 @@ namespace NextGenSoftware.OASIS.STAR
         //public delegate void DataReceived(object sender, DataReceivedEventArgs e);
         //public static event DataReceived OnDataReceived;
        
-        public static OASISResult<ICelestialBody> IgniteStar(string STARDNAPath = STAR_DNA_DEFAULT_PATH, string OASISDNAPath = OASIS_DNA_DEFAULT_PATH, string starId = null)
+        public static OASISResult<IOmiverse> IgniteStar(string STARDNAPath = STAR_DNA_DEFAULT_PATH, string OASISDNAPath = OASIS_DNA_DEFAULT_PATH, string starId = null)
         {
-            OASISResult<ICelestialBody> result = new OASISResult<ICelestialBody>();
+            OASISResult<IOmiverse> result = new OASISResult<IOmiverse>();
             Status = StarStatus.Igniting;
 
             // If you wish to change the logging framework from the default (NLog) then set it below (or just change in OASIS_DNA - prefered way)
@@ -461,7 +461,7 @@ namespace NextGenSoftware.OASIS.STAR
 
             if (DefaultStar == null)
             {
-                OASISResult<ICelestialBody> result = await IgniteInnerStarAsync();
+                OASISResult<IOmiverse> result = await IgniteInnerStarAsync();
 
                 if (result.IsError)
                     return new CoronalEjection() { ErrorOccured = true, Message = string.Concat("Error Igniting Inner Star. Reason: ", result.Message) };
@@ -1300,7 +1300,7 @@ namespace NextGenSoftware.OASIS.STAR
                 return new OASISResult<bool>() { Message = "OASIS Already Booted" };
         }
         
-        private static OASISResult<ICelestialBody> IgniteInnerStar(ref OASISResult<ICelestialBody> result)
+        private static OASISResult<IOmiverse> IgniteInnerStar(ref OASISResult<IOmiverse> result)
         {
            // _starId = Guid.Empty; //TODO:Temp, remove after!
 
@@ -1313,9 +1313,9 @@ namespace NextGenSoftware.OASIS.STAR
             return result;
         }
 
-        private static async Task<OASISResult<ICelestialBody>> IgniteInnerStarAsync()
+        private static async Task<OASISResult<IOmiverse>> IgniteInnerStarAsync()
         {
-            OASISResult<ICelestialBody> result = new OASISResult<ICelestialBody>();
+            OASISResult<IOmiverse> result = new OASISResult<IOmiverse>();
 
          //   _starId = Guid.Empty; //TODO:Temp, remove after!
 
@@ -1339,45 +1339,66 @@ namespace NextGenSoftware.OASIS.STAR
             OASISResult<ICelestialSpace> celestialSpaceResult = new OASISResult<ICelestialSpace>();
             OnStarStatusChanged?.Invoke(null, new StarStatusChangedEventArgs() { MessageType = StarStatusMessageType.Processing, Message = "Omniverse not found. Initiating Omniverse Genesis Process..." });
 
-            OnStarStatusChanged?.Invoke(null, new StarStatusChangedEventArgs() { MessageType = StarStatusMessageType.Processing, Message = "Creating Omniverse & GreatGrandSuperStar..." });
-            Omiverse omniverse = new Omiverse();
+            OnStarStatusChanged?.Invoke(null, new StarStatusChangedEventArgs() { MessageType = StarStatusMessageType.Processing, Message = "Creating Omniverse..." });
+            
+            //Will create the Omniverse with all the omniverse dimensions (8 - 12) along with one default Multiverse and it's dimensions (1-7), each containing a Universe. 
+            //The 3rd Dimension will contain the UniversePrime and MagicVerse.
+            //It will also create the GreatGrandCentralStar in the centre of the Omniverse and also a GrandCentralStar at the centre of the Multiverse.
+            Omniverse omniverse = new Omniverse();
             celestialSpaceResult = await omniverse.SaveAsync();
             OASISResultHolonToHolonHelper<ICelestialSpace, IOmiverse>.CopyResult(celestialSpaceResult, result);
             result.Result = (IOmiverse)celestialSpaceResult.Result;
 
             if (!result.IsError && result.Result != null)
             {
-                OnStarStatusChanged?.Invoke(null, new StarStatusChangedEventArgs() { MessageType = StarStatusMessageType.Success, Message = "Omniverse & GreatGrandSuperStar Created." });
+                OnStarStatusChanged?.Invoke(null, new StarStatusChangedEventArgs() { MessageType = StarStatusMessageType.Success, Message = "Omniverse Created." });
                 STARDNA.DefaultGreatGrandSuperStarId = omniverse.GreatGrandSuperStar.Id.ToString();
+                STARDNA.DefaultGrandSuperStarId = omniverse.Multiverses[0].GrandSuperStar.Id.ToString();
 
-                //TODO: May not need any of the code below because the Omiverse Save method will recursively save all it's child CelestialBodies & CelesitalSpaces...
-                OnStarStatusChanged?.Invoke(null, new StarStatusChangedEventArgs() { MessageType = StarStatusMessageType.Processing, Message = "Creating Default Multiverse..." });
-                Multiverse multiverse = new Multiverse();
-                celestialSpaceResult = await multiverse.SaveAsync(); //TODO: Check tomorrow if this is better way than using old below method (On the STAR Core).
-                //OASISResult<IMultiverse> multiverseResult = await ((GreatGrandSuperStarCore)result.Result.GreatGrandSuperStar.CelestialBodyCore).AddMultiverseAsync(multiverse);
 
-                if (!celestialSpaceResult.IsError && celestialSpaceResult.Result != null)
-                {
-                    OnStarStatusChanged?.Invoke(null, new StarStatusChangedEventArgs() { MessageType = StarStatusMessageType.Success, Message = "Multiverse Created." });
-                    multiverse = (Multiverse)celestialSpaceResult.Result;
-                    STARDNA.DefaultGrandSuperStarId = multiverse.GrandSuperStar.Id.ToString();
+                //TODO: May not need any of the code below because the Omniverse Save method will recursively save all it's child CelestialBodies & CelesitalSpaces...
+                //OnStarStatusChanged?.Invoke(null, new StarStatusChangedEventArgs() { MessageType = StarStatusMessageType.Processing, Message = "Creating Default Multiverse..." });
+                //Multiverse multiverse = new Multiverse();
+                //celestialSpaceResult = await multiverse.SaveAsync(); //TODO: Check tomorrow if this is better way than using old below method (On the STAR Core).
+                ////OASISResult<IMultiverse> multiverseResult = await ((GreatGrandSuperStarCore)result.Result.GreatGrandSuperStar.CelestialBodyCore).AddMultiverseAsync(multiverse);
 
-                    GalaxyCluster galaxyCluster = new GalaxyCluster();
-                    galaxyCluster.CreatedOASISType = new EnumValue<OASISType>(OASISType.STARCLI);
-                    galaxyCluster.Name = "Our Milky Way Galaxy Cluster.";
-                    galaxyCluster.Description = "Our Galaxy Cluster that our Milky Way Galaxy belongs to, the default Galaxy Cluster.";
-                    Mapper<IMultiverse, GalaxyCluster>.MapParentCelestialBodyProperties(multiverse, galaxyCluster);
-                    galaxyCluster.ParentMultiverse = multiverse;
-                    galaxyCluster.ParentMultiverseId = multiverse.Id;
-                    galaxyCluster.ParentDimension = multiverse.Dimensions.ThirdDimension;
-                    galaxyCluster.ParentDimensionId = multiverse.Dimensions.ThirdDimension.Id;
-                    galaxyCluster.ParentUniverseId = multiverse.Dimensions.ThirdDimension.MagicVerse.Id;
-                    galaxyCluster.ParentUniverse = multiverse.Dimensions.ThirdDimension.MagicVerse;
+                //if (!celestialSpaceResult.IsError && celestialSpaceResult.Result != null)
+                //{
+                //    OnStarStatusChanged?.Invoke(null, new StarStatusChangedEventArgs() { MessageType = StarStatusMessageType.Success, Message = "Multiverse Created." });
+                //    multiverse = (Multiverse)celestialSpaceResult.Result;
+                //    STARDNA.DefaultGrandSuperStarId = multiverse.GrandSuperStar.Id.ToString();
 
-                    OnStarStatusChanged?.Invoke(null, new StarStatusChangedEventArgs() { MessageType = StarStatusMessageType.Processing, Message = "Creating Default Galaxy Cluster..." });
-                    OASISResult<IGalaxyCluster> galaxyClusterResult = await ((GrandSuperStarCore)multiverse.GrandSuperStar.CelestialBodyCore).AddGalaxyClusterToUniverseAsync(multiverse.Dimensions.ThirdDimension.MagicVerse, galaxyCluster);
+                //GalaxyCluster galaxyCluster = new GalaxyCluster();
+                //galaxyCluster.CreatedOASISType = new EnumValue<OASISType>(OASISType.STARCLI);
+                //galaxyCluster.Name = "Our Milky Way Galaxy Cluster.";
+                //galaxyCluster.Description = "Our Galaxy Cluster that our Milky Way Galaxy belongs to, the default Galaxy Cluster.";
+                //Mapper<IMultiverse, GalaxyCluster>.MapParentCelestialBodyProperties(multiverse, galaxyCluster);
+                //galaxyCluster.ParentMultiverse = multiverse;
+                //galaxyCluster.ParentMultiverseId = multiverse.Id;
+                //galaxyCluster.ParentDimension = multiverse.Dimensions.ThirdDimension;
+                //galaxyCluster.ParentDimensionId = multiverse.Dimensions.ThirdDimension.Id;
+                //galaxyCluster.ParentUniverseId = multiverse.Dimensions.ThirdDimension.MagicVerse.Id;
+                //galaxyCluster.ParentUniverse = multiverse.Dimensions.ThirdDimension.MagicVerse;
 
-                    if (!galaxyClusterResult.IsError && galaxyClusterResult.Result != null)
+                //OnStarStatusChanged?.Invoke(null, new StarStatusChangedEventArgs() { MessageType = StarStatusMessageType.Processing, Message = "Creating Default Galaxy Cluster..." });
+                //OASISResult<IGalaxyCluster> galaxyClusterResult = await ((GrandSuperStarCore)multiverse.GrandSuperStar.CelestialBodyCore).AddGalaxyClusterToUniverseAsync(multiverse.Dimensions.ThirdDimension.MagicVerse, galaxyCluster);
+
+                GalaxyCluster galaxyCluster = new GalaxyCluster();
+                galaxyCluster.CreatedOASISType = new EnumValue<OASISType>(OASISType.STARCLI);
+                galaxyCluster.Name = "Our Milky Way Galaxy Cluster.";
+                galaxyCluster.Description = "Our Galaxy Cluster that our Milky Way Galaxy belongs to, the default Galaxy Cluster.";
+                Mapper<IMultiverse, GalaxyCluster>.MapParentCelestialBodyProperties(omniverse.Multiverses[0], galaxyCluster);
+                galaxyCluster.ParentMultiverse = omniverse.Multiverses[0];
+                galaxyCluster.ParentMultiverseId = omniverse.Multiverses[0].Id;
+                galaxyCluster.ParentDimension = omniverse.Multiverses[0].Dimensions.ThirdDimension;
+                galaxyCluster.ParentDimensionId = omniverse.Multiverses[0].Dimensions.ThirdDimension.Id;
+                galaxyCluster.ParentUniverseId = omniverse.Multiverses[0].Dimensions.ThirdDimension.MagicVerse.Id;
+                galaxyCluster.ParentUniverse = omniverse.Multiverses[0].Dimensions.ThirdDimension.MagicVerse;
+
+                OnStarStatusChanged?.Invoke(null, new StarStatusChangedEventArgs() { MessageType = StarStatusMessageType.Processing, Message = "Creating Default Galaxy Cluster..." });
+                OASISResult<IGalaxyCluster> galaxyClusterResult = await ((GrandSuperStarCore)omniverse.Multiverses[0].GrandSuperStar.CelestialBodyCore).AddGalaxyClusterToUniverseAsync(omniverse.Multiverses[0].Dimensions.ThirdDimension.MagicVerse, galaxyCluster);
+
+                if (!galaxyClusterResult.IsError && galaxyClusterResult.Result != null)
                     {
                         OnStarStatusChanged?.Invoke(null, new StarStatusChangedEventArgs() { MessageType = StarStatusMessageType.Success, Message = "Galaxy Cluster Created." }); ;
                         galaxyCluster = (GalaxyCluster)galaxyClusterResult.Result;
@@ -1391,9 +1412,10 @@ namespace NextGenSoftware.OASIS.STAR
                         galaxy.ParentGalaxyClusterId = galaxyCluster.Id;
 
                         OnStarStatusChanged?.Invoke(null, new StarStatusChangedEventArgs() { MessageType = StarStatusMessageType.Processing, Message = "Creating Default Galaxy (Milky Way)..." });
-                        OASISResult<IGalaxy> galaxyResult = await ((GrandSuperStarCore)multiverse.GrandSuperStar.CelestialBodyCore).AddGalaxyToGalaxyClusterAsync(galaxyCluster, galaxy);
+                    //OASISResult<IGalaxy> galaxyResult = await ((GrandSuperStarCore)multiverse.GrandSuperStar.CelestialBodyCore).AddGalaxyToGalaxyClusterAsync(galaxyCluster, galaxy);
+                    OASISResult<IGalaxy> galaxyResult = await ((GrandSuperStarCore)omniverse.Multiverses[0].GrandSuperStar.CelestialBodyCore).AddGalaxyToGalaxyClusterAsync(galaxyCluster, galaxy);
 
-                        if (!galaxyResult.IsError && galaxyResult.Result != null)
+                    if (!galaxyResult.IsError && galaxyResult.Result != null)
                         {
                             OnStarStatusChanged?.Invoke(null, new StarStatusChangedEventArgs() { MessageType = StarStatusMessageType.Success, Message = "Galaxy Created." });
                             galaxy = (Galaxy)galaxyResult.Result;
@@ -1472,39 +1494,39 @@ namespace NextGenSoftware.OASIS.STAR
                                     }
                                     else
                                     {
-                                        OASISResultHolonToHolonHelper<IPlanet, ICelestialBody>.CopyResult(ourWorldResult, result);
+                                        OASISResultHolonToHolonHelper<IPlanet, IOmiverse>.CopyResult(ourWorldResult, result);
                                         OnStarStatusChanged?.Invoke(null, new StarStatusChangedEventArgs() { MessageType = StarStatusMessageType.Error, Message = $"Error Creating Our World. Reason: {ourWorldResult.Message}." });
                                     }
                                 }
                                 else
-                                    OASISResultHolonToHolonHelper<ISolarSystem, ICelestialBody>.CopyResult(solarSystemResult, result);
+                                    OASISResultHolonToHolonHelper<ISolarSystem, IOmiverse>.CopyResult(solarSystemResult, result);
                             }
                             else
                             {
-                                OASISResultHolonToHolonHelper<IStar, ICelestialBody>.CopyResult(starResult, result);
+                                OASISResultHolonToHolonHelper<IStar, IOmiverse>.CopyResult(starResult, result);
                                 OnStarStatusChanged?.Invoke(null, new StarStatusChangedEventArgs() { MessageType = StarStatusMessageType.Error, Message = $"Error Creating Star. Reason: {starResult.Message}." });
                             }
                         }
                         else
                         {
-                            OASISResultHolonToHolonHelper<IGalaxy, ICelestialBody>.CopyResult(galaxyResult, result);
+                            OASISResultHolonToHolonHelper<IGalaxy, IOmiverse>.CopyResult(galaxyResult, result);
                             OnStarStatusChanged?.Invoke(null, new StarStatusChangedEventArgs() { MessageType = StarStatusMessageType.Error, Message = $"Error Creating Galaxy. Reason: {galaxyResult.Message}." });
                         }
                     }
                     else
                     {
-                        OASISResultHolonToHolonHelper<IGalaxyCluster, ICelestialBody>.CopyResult(galaxyClusterResult, result);
+                        OASISResultHolonToHolonHelper<IGalaxyCluster, IOmiverse>.CopyResult(galaxyClusterResult, result);
                         OnStarStatusChanged?.Invoke(null, new StarStatusChangedEventArgs() { MessageType = StarStatusMessageType.Error, Message = $"Error Creating Galaxy Cluster. Reason: {galaxyClusterResult.Message}." });
                     }
-                }
-                else
-                {
-                    OASISResultHolonToHolonHelper<IMultiverse, ICelestialBody>.CopyResult(multiverseResult, result);
-                    OnStarStatusChanged?.Invoke(null, new StarStatusChangedEventArgs() { MessageType = StarStatusMessageType.Error, Message = $"Error Creating Multiverse. Reason: {multiverseResult.Message}." });
-                }
+                //}
+                //else
+                //{
+                //    OASISResultHolonToHolonHelper<IMultiverse, ICelestialBody>.CopyResult(multiverseResult, result);
+                //    OnStarStatusChanged?.Invoke(null, new StarStatusChangedEventArgs() { MessageType = StarStatusMessageType.Error, Message = $"Error Creating Multiverse. Reason: {multiverseResult.Message}." });
+                //}
             }
             else
-                OnStarStatusChanged?.Invoke(null, new StarStatusChangedEventArgs() { MessageType = StarStatusMessageType.Error, Message = $"Error Creating Omniverse & GreatGrandSuperStar. Reason: {result.Message}."});
+                OnStarStatusChanged?.Invoke(null, new StarStatusChangedEventArgs() { MessageType = StarStatusMessageType.Error, Message = $"Error Creating Omniverse. Reason: {result.Message}."});
 
             SaveDNA();
 
@@ -1530,7 +1552,7 @@ namespace NextGenSoftware.OASIS.STAR
             //StarStatus = StarStatus.
             OnStarStatusChanged?.Invoke(null, new StarStatusChangedEventArgs() { MessageType = StarStatusMessageType.Processing, Message = "Omniverse not found. Initiating Omniverse Genesis Process..." });
 
-            Omiverse omniverse = new Omiverse();
+            Omniverse omniverse = new Omniverse();
             //omniverse.Name = "The OASIS Omniverse";
             //omniverse.Description = "The OASIS Omniverse that contains everything else.";
             //omniverse.IsNewHolon = true;
@@ -1543,15 +1565,15 @@ namespace NextGenSoftware.OASIS.STAR
             //greatGrandSuperStar.IsNewHolon = true;
             //greatGrandSuperStar.Name = "GreatGrandSuperStar";
             //greatGrandSuperStar.Description = "GreatGrandSuperStar at the centre of the Omniverse (The OASIS). Can create Multiverses, Universes, Galaxies, SolarSystems, Stars, Planets (Super OAPPS) and moons (OAPPS)";
-            //greatGrandSuperStar.ParentOmiverse = omniverse;
-            //greatGrandSuperStar.ParentOmiverseId = omniverse.Id;
+            //greatGrandSuperStar.ParentOmniverse = omniverse;
+            //greatGrandSuperStar.ParentOmniverseId = omniverse.Id;
             //greatGrandSuperStar.CreatedOASISType = new EnumValue<OASISType>(OASISType.STARCLI);
 
             //omniverse.GreatGrandSuperStar.IsNewHolon = true;
             //omniverse.GreatGrandSuperStar.Name = "GreatGrandSuperStar";
             //omniverse.GreatGrandSuperStar.Description = "";
-            //omniverse.GreatGrandSuperStar.ParentOmiverse = omniverse;
-            //omniverse.GreatGrandSuperStar.ParentOmiverseId = omniverse.Id;
+            //omniverse.GreatGrandSuperStar.ParentOmniverse = omniverse;
+            //omniverse.GreatGrandSuperStar.ParentOmniverseId = omniverse.Id;
             //omniverse.ParentGreatGrandSuperStar = omniverse.GreatGrandSuperStar;
             //omniverse.ParentGreatGrandSuperStarId = omniverse.GreatGrandSuperStar.Id;
             //omniverse.GreatGrandSuperStar.CreatedOASISType = new EnumValue<OASISType>(OASISType.STARCLI);
@@ -1578,8 +1600,8 @@ namespace NextGenSoftware.OASIS.STAR
                     multiverse.CreatedOASISType = new EnumValue<OASISType>(OASISType.STARCLI);
                     multiverse.Name = "Our Multiverse.";
                     multiverse.Description = "Our Multiverse that our Milky Way Galaxy belongs to, the default Multiverse.";
-                    multiverse.ParentOmiverse = omiverseResult.Result;
-                    multiverse.ParentOmiverseId = omiverseResult.Result.Id;
+                    multiverse.ParentOmniverse = omiverseResult.Result;
+                    multiverse.ParentOmniverseId = omiverseResult.Result.Id;
                     multiverse.ParentGreatGrandSuperStar = omiverseResult.Result.GreatGrandSuperStar;
                     multiverse.ParentGreatGrandSuperStarId = omiverseResult.Result.GreatGrandSuperStar.Id;
                     multiverse.GrandSuperStar.Name = "The GrandSuperStar at the centre of our Multiverse/Universe.";

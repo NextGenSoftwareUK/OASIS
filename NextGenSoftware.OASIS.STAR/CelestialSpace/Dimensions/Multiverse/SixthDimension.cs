@@ -6,11 +6,12 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
     // Sacred Geometry/Structure
     public class SixthDimension : Dimension, ISixthDimension
     {
-        public IUniverse Universe { get; set; } = new Universe();
+        public IUniverse Universe { get; set; }
 
-        public SixthDimension()
+        public SixthDimension(IMultiverse multiverse = null)
         {
             this.DimensionLevel = DimensionLevel.Sixth;
+            this.Universe = new Universe(multiverse);
         }
     }
 }

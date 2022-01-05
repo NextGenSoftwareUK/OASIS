@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 
 namespace NextGenSoftware.OASIS.STAR.CelestialSpace
@@ -9,10 +10,36 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
     {
         public List<IUniverse> Universes { get; set; } = new List<IUniverse>();
 
-        public SuperVerse() : base(HolonType.SuperVerse) { }
+        public SuperVerse() : base(HolonType.SuperVerse)
+        {
+            Init();
+        }
 
-        public SuperVerse(Guid id) : base(id, HolonType.SuperVerse) { }
+        public SuperVerse(IOmiverse omniverse = null) : base(HolonType.SuperVerse) 
+        {
+            Init(omniverse);
+        }
 
-        public SuperVerse(Dictionary<ProviderType, string> providerKey) : base(providerKey, HolonType.SuperVerse) { }
+        public SuperVerse(Guid id, IOmiverse omniverse = null) : base(id, HolonType.SuperVerse) 
+        {
+            Init(omniverse);
+        }
+
+        public SuperVerse(Dictionary<ProviderType, string> providerKey, IOmiverse omniverse = null) : base(providerKey, HolonType.SuperVerse) 
+        {
+            Init(omniverse);
+        }
+
+        private void Init(IOmiverse omniverse = null)
+        {
+            this.CreatedOASISType = new EnumValue<OASISType>(OASISType.STARCLI);
+
+            if (omniverse != null)
+            {
+                Mapper<IOmiverse, SuperVerse>.MapParentCelestialBodyProperties(omniverse, this);
+                this.ParentOmniverse = omniverse;
+                this.ParentOmniverseId = omniverse.Id;
+            }
+        }
     }
 }
