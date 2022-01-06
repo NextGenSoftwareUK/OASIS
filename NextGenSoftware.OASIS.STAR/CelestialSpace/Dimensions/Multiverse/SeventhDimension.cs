@@ -1,17 +1,35 @@
-﻿using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
+﻿using System;
+using System.Collections.Generic;
+using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using NextGenSoftware.OASIS.API.Core.Enums;
 
 namespace NextGenSoftware.OASIS.STAR.CelestialSpace
 {
-    // Asscended Master plane (unity conciousness/ONENESS?)
-    public class SeventhDimension : Dimension, ISeventhDimension
+    public class SeventhDimension : MultiverseDimension, ISeventhDimension
     {
-        public IUniverse Universe { get; set; } = new Universe();
+        public IUniverse Universe { get; set; }
 
-        public SeventhDimension(IMultiverse multiverse = null)
+        public SeventhDimension(IMultiverse multiverse = null) : base(multiverse)
         {
+            Init(multiverse);
+        }
+
+        public SeventhDimension(Guid id, IMultiverse multiverse = null) : base(id, multiverse)
+        {
+            Init(multiverse);
+        }
+
+        public SeventhDimension(Dictionary<ProviderType, string> providerKey, IMultiverse multiverse = null) : base(providerKey, multiverse)
+        {
+            Init(multiverse);
+        }
+
+        private void Init(IMultiverse multiverse = null)
+        {
+            this.Name = "The Seventh Dimension";
+            this.Description = "The Asscended Masters reside here.";
             this.DimensionLevel = DimensionLevel.Seventh;
-            this.Universe = new Universe(multiverse);
+            Universe = new Universe(multiverse);
         }
     }
 }
