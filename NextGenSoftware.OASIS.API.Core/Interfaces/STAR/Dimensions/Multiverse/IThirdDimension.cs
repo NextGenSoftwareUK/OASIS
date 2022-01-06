@@ -3,7 +3,7 @@
 namespace NextGenSoftware.OASIS.API.Core.Interfaces.STAR
 {
     // Physical Plane
-    public interface IThirdDimension : IDimension
+    public interface IThirdDimension : IMultiverseDimension
     {
         // Primary Universe that we are in now.
         public IUniverse UniversePrime { get; set; }

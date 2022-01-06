@@ -1,11 +1,11 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using NextGenSoftware.OASIS.API.Core.Enums;
 
 namespace NextGenSoftware.OASIS.STAR.CelestialSpace
 {
-    // Physical Plane
-    public class ThirdDimension : Dimension, IThirdDimension
+    public class ThirdDimension : MultiverseDimension, IThirdDimension
     {
         // Primary Universe that we are in now.
         public IUniverse UniversePrime { get; set; }
@@ -26,8 +26,20 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
             Init(multiverse);
         }
 
+        public ThirdDimension(Guid id, IMultiverse multiverse = null) : base(id, multiverse)
+        {
+            Init(multiverse);
+        }
+
+        public ThirdDimension(Dictionary<ProviderType, string> providerKey, IMultiverse multiverse = null) : base(providerKey, multiverse)
+        {
+            Init(multiverse);
+        }
+
         private void Init(IMultiverse multiverse = null)
         {
+            this.Name = "The Third Dimension";
+            this.Description = "The Physical Plane - what people see and experience during day to day living.";
             this.DimensionLevel = DimensionLevel.Third;
             UniversePrime = new Universe(multiverse);
             MagicVerse = new Universe(multiverse);

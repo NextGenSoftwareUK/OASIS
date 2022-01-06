@@ -1,7 +1,7 @@
 ﻿
 namespace NextGenSoftware.OASIS.API.Core.Interfaces.STAR
 {
-    public interface ISeventhDimension : IDimension
+    public interface ISeventhDimension : IMultiverseDimension
     {
         IUniverse Universe { get; set; }
     }

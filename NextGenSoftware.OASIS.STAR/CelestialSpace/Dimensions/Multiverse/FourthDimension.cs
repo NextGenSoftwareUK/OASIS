@@ -1,18 +1,35 @@
-﻿using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
+﻿using System;
+using System.Collections.Generic;
+using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using NextGenSoftware.OASIS.API.Core.Enums;
 
 namespace NextGenSoftware.OASIS.STAR.CelestialSpace
 {
-    // Astral Plane (Thoughts/Emotions)
-    public class FourthDimension : Dimension, IFourthDimension
+    public class FourthDimension : MultiverseDimension, IFourthDimension
     {
-        //TODO: Not sure if this also has parallel universes like the third dimension does?
         public IUniverse Universe { get; set; }
 
-        public FourthDimension(IMultiverse multiverse = null)
+        public FourthDimension(IMultiverse multiverse = null) : base(multiverse)
         {
+            Init(multiverse);
+        }
+
+        public FourthDimension(Guid id, IMultiverse multiverse = null) : base(id, multiverse)
+        {
+            Init(multiverse);
+        }
+
+        public FourthDimension(Dictionary<ProviderType, string> providerKey, IMultiverse multiverse = null) : base(providerKey, multiverse)
+        {
+            Init(multiverse);
+        }
+
+        private void Init(IMultiverse multiverse = null)
+        {
+            this.Name = "The Fourth Dimension";
+            this.Description = "The Astral Plane.";
             this.DimensionLevel = DimensionLevel.Fourth;
-            this.Universe = new Universe(multiverse);
+            Universe = new Universe(multiverse);
         }
     }
 }
