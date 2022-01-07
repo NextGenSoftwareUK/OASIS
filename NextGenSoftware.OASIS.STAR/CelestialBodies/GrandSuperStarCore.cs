@@ -97,66 +97,69 @@ namespace NextGenSoftware.OASIS.STAR
             GrandSuperStar.ParentMultiverse.Dimensions.ThirdDimension.ParentGrandSuperStarId = GrandSuperStar.Id;
 
             // Now we need to save the ThirdDimension as a seperate Holon to get a Id.
-            OASISResult<IHolon> thirdDimensionResult = await SaveHolonAsync(GrandSuperStar.ParentMultiverse.Dimensions.ThirdDimension);
+            OASISResult<IHolon> thirdDimensionResult = await SaveHolonAsync(GrandSuperStar.ParentMultiverse.Dimensions.ThirdDimension, false);
 
             if (!thirdDimensionResult.IsError && thirdDimensionResult.Result != null)
             {
-                Mapper<IHolon, ThirdDimension>.MapBaseHolonProperties(thirdDimensionResult.Result, (ThirdDimension)GrandSuperStar.ParentMultiverse.Dimensions.ThirdDimension);
+               // Mapper<IHolon, ThirdDimension>.MapBaseHolonProperties(thirdDimensionResult.Result, (ThirdDimension)GrandSuperStar.ParentMultiverse.Dimensions.ThirdDimension);
                 result.Result = GrandSuperStar.ParentMultiverse.Dimensions.ThirdDimension;
 
-                Mapper<IGrandSuperStar, Universe>.MapParentCelestialBodyProperties(GrandSuperStar, (Universe)GrandSuperStar.ParentMultiverse.Dimensions.ThirdDimension.MagicVerse);
+                Mapper<IThirdDimension, Universe>.MapParentCelestialBodyProperties(GrandSuperStar.ParentMultiverse.Dimensions.ThirdDimension, (Universe)GrandSuperStar.ParentMultiverse.Dimensions.ThirdDimension.MagicVerse);
                 GrandSuperStar.ParentMultiverse.Dimensions.ThirdDimension.MagicVerse.ParentDimension = GrandSuperStar.ParentMultiverse.Dimensions.ThirdDimension;
                 GrandSuperStar.ParentMultiverse.Dimensions.ThirdDimension.MagicVerse.ParentDimensionId = GrandSuperStar.ParentMultiverse.Dimensions.ThirdDimension.Id;
-                GrandSuperStar.ParentMultiverse.Dimensions.ThirdDimension.MagicVerse.ParentGrandSuperStar = GrandSuperStar;
-                GrandSuperStar.ParentMultiverse.Dimensions.ThirdDimension.MagicVerse.ParentGrandSuperStarId = GrandSuperStar.Id;
+                //GrandSuperStar.ParentMultiverse.Dimensions.ThirdDimension.MagicVerse.ParentGrandSuperStar = GrandSuperStar;
+               // GrandSuperStar.ParentMultiverse.Dimensions.ThirdDimension.MagicVerse.ParentGrandSuperStarId = GrandSuperStar.Id;
 
                 // Now we need to save the MagicVerse as a seperate Holon to get a Id.
-                OASISResult<IHolon> magicVerseResult = await SaveHolonAsync(GrandSuperStar.ParentMultiverse.Dimensions.ThirdDimension.MagicVerse);
+                OASISResult<IHolon> magicVerseResult = await SaveHolonAsync(GrandSuperStar.ParentMultiverse.Dimensions.ThirdDimension.MagicVerse, false);
 
                 if (!magicVerseResult.IsError && magicVerseResult.Result != null)
                 {
-                    Mapper<IHolon, Universe>.MapBaseHolonProperties(magicVerseResult.Result, (Universe)GrandSuperStar.ParentMultiverse.Dimensions.ThirdDimension.MagicVerse);
+                    //Mapper<IHolon, Universe>.MapBaseHolonProperties(magicVerseResult.Result, (Universe)GrandSuperStar.ParentMultiverse.Dimensions.ThirdDimension.MagicVerse);
 
-                    Mapper<IGrandSuperStar, Universe>.MapParentCelestialBodyProperties(GrandSuperStar, (Universe)GrandSuperStar.ParentMultiverse.Dimensions.ThirdDimension.UniversePrime);
-                    GrandSuperStar.ParentMultiverse.Dimensions.ThirdDimension.UniversePrime.ParentDimension = GrandSuperStar.ParentMultiverse.Dimensions.ThirdDimension;
-                    GrandSuperStar.ParentMultiverse.Dimensions.ThirdDimension.UniversePrime.ParentDimensionId = GrandSuperStar.ParentMultiverse.Dimensions.ThirdDimension.Id;
-                    GrandSuperStar.ParentMultiverse.Dimensions.ThirdDimension.UniversePrime.ParentGrandSuperStar = GrandSuperStar;
-                    GrandSuperStar.ParentMultiverse.Dimensions.ThirdDimension.UniversePrime.ParentGrandSuperStarId = GrandSuperStar.Id;
+                    //Mapper<IGrandSuperStar, Universe>.MapParentCelestialBodyProperties(GrandSuperStar, (Universe)GrandSuperStar.ParentMultiverse.Dimensions.ThirdDimension.UniversePrime);
+                    //GrandSuperStar.ParentMultiverse.Dimensions.ThirdDimension.UniversePrime.ParentDimension = GrandSuperStar.ParentMultiverse.Dimensions.ThirdDimension;
+                    //GrandSuperStar.ParentMultiverse.Dimensions.ThirdDimension.UniversePrime.ParentDimensionId = GrandSuperStar.ParentMultiverse.Dimensions.ThirdDimension.Id;
+                    //GrandSuperStar.ParentMultiverse.Dimensions.ThirdDimension.UniversePrime.ParentGrandSuperStar = GrandSuperStar;
+                    //GrandSuperStar.ParentMultiverse.Dimensions.ThirdDimension.UniversePrime.ParentGrandSuperStarId = GrandSuperStar.Id;
+                    Mapper<IUniverse, Universe>.MapParentCelestialBodyProperties(GrandSuperStar.ParentMultiverse.Dimensions.ThirdDimension.MagicVerse, (Universe)GrandSuperStar.ParentMultiverse.Dimensions.ThirdDimension.UniversePrime);
 
                     // Now we need to save the UniversePrime as a seperate Holon to get a Id.
-                    OASISResult<IHolon> universePrimeResult = await SaveHolonAsync(GrandSuperStar.ParentMultiverse.Dimensions.ThirdDimension.UniversePrime);
+                    OASISResult<IHolon> universePrimeResult = await SaveHolonAsync(GrandSuperStar.ParentMultiverse.Dimensions.ThirdDimension.UniversePrime, false);
 
                     if (!universePrimeResult.IsError && universePrimeResult.Result != null)
                     {
-                        Mapper<IHolon, Universe>.MapBaseHolonProperties(universePrimeResult.Result, (Universe)GrandSuperStar.ParentMultiverse.Dimensions.ThirdDimension.UniversePrime);
+                        //Mapper<IHolon, Universe>.MapBaseHolonProperties(universePrimeResult.Result, (Universe)GrandSuperStar.ParentMultiverse.Dimensions.ThirdDimension.UniversePrime);
 
                         //TODO: Do we need to re-save the new GrandSuperStar so its child holon ids are also saved within the GrandSuperStar holon object in storage?
-                        OASISResult<IHolon> grandSuperStarHolonResult = await SaveHolonAsync(GrandSuperStar);
+                        
+                        //OASISResult<IHolon> grandSuperStarHolonResult = await SaveHolonAsync(GrandSuperStar, false);
 
-                        if (!grandSuperStarHolonResult.IsError && grandSuperStarHolonResult.Result != null)
-                        {
-                            Mapper<IHolon, GrandSuperStar>.MapBaseHolonProperties(grandSuperStarHolonResult.Result, (GrandSuperStar)GrandSuperStar);
+                        //if (!grandSuperStarHolonResult.IsError && grandSuperStarHolonResult.Result != null)
+                        //{
+                        //    //Mapper<IHolon, GrandSuperStar>.MapBaseHolonProperties(grandSuperStarHolonResult.Result, (GrandSuperStar)GrandSuperStar);
 
-                            //TODO: Do we need to re-save the multiverse so its child holon ids are also saved within the multiverse holon object in storage?
-                            OASISResult<IHolon> multiverseHolonResult = await SaveHolonAsync(GrandSuperStar.ParentMultiverse);
+                        //    //TODO: Do we need to re-save the multiverse so its child holon ids are also saved within the multiverse holon object in storage?
+                        //    OASISResult<IHolon> multiverseHolonResult = await SaveHolonAsync(GrandSuperStar.ParentMultiverse, false);
                             
-                            if (!multiverseHolonResult.IsError && multiverseHolonResult.Result != null)
-                            {
-                                Mapper<IHolon, Multiverse>.MapBaseHolonProperties(multiverseHolonResult.Result, (Multiverse)GrandSuperStar.ParentMultiverse);
+                        //    if (!multiverseHolonResult.IsError && multiverseHolonResult.Result != null)
+                        //    {
+                        //        //Mapper<IHolon, Multiverse>.MapBaseHolonProperties(multiverseHolonResult.Result, (Multiverse)GrandSuperStar.ParentMultiverse);
 
-                                //TODO: Do we need to re-save the new ThirdDimension so its child holon ids are also saved within the ThirdDimension holon object in storage?
-                                OASISResult<IHolon> thirdDimensionHolonResult = await SaveHolonAsync(GrandSuperStar.ParentMultiverse.Dimensions.ThirdDimension);
+                        //        //TODO: Do we need to re-save the new ThirdDimension so its child holon ids are also saved within the ThirdDimension holon object in storage?
+                        //        OASISResult<IHolon> thirdDimensionHolonResult = await SaveHolonAsync(GrandSuperStar.ParentMultiverse.Dimensions.ThirdDimension, false);
 
-                                if (!thirdDimensionHolonResult.IsError && thirdDimensionHolonResult.Result != null)
-                                    Mapper<IHolon, ThirdDimension>.MapBaseHolonProperties(thirdDimensionHolonResult.Result, (ThirdDimension)GrandSuperStar.ParentMultiverse.Dimensions.ThirdDimension);
-                                else
-                                    OASISResultHolonToHolonHelper<IHolon, IThirdDimension>.CopyResult(thirdDimensionHolonResult, result);
-                            }
-                            else
-                                OASISResultHolonToHolonHelper<IHolon, IThirdDimension>.CopyResult(multiverseHolonResult, result);
-                        }
-                        else
-                            OASISResultHolonToHolonHelper<IHolon, IThirdDimension>.CopyResult(grandSuperStarHolonResult, result);
+                        //        if (!thirdDimensionHolonResult.IsError && thirdDimensionHolonResult.Result != null)
+                        //            Mapper<IHolon, ThirdDimension>.MapBaseHolonProperties(thirdDimensionHolonResult.Result, (ThirdDimension)GrandSuperStar.ParentMultiverse.Dimensions.ThirdDimension);
+                        //        else
+                        //            OASISResultHolonToHolonHelper<IHolon, IThirdDimension>.CopyResult(thirdDimensionHolonResult, result);
+                        //    }
+                        //    else
+                        //        OASISResultHolonToHolonHelper<IHolon, IThirdDimension>.CopyResult(multiverseHolonResult, result);
+                        //}
+                        //else
+                        //    OASISResultHolonToHolonHelper<IHolon, IThirdDimension>.CopyResult(grandSuperStarHolonResult, result);
+                        
                     }
                     else
                         OASISResultHolonToHolonHelper<IHolon, IThirdDimension>.CopyResult(universePrimeResult, result);
@@ -193,8 +196,8 @@ namespace NextGenSoftware.OASIS.STAR
         //        return result;
         //    }
 
-        //    GrandSuperStar.ParentMultiverse.Dimensions.ThirdDimension.ParentOmiverse = GrandSuperStar.ParentMultiverse.ParentOmiverse;
-        //    GrandSuperStar.ParentMultiverse.Dimensions.ThirdDimension.ParentOmiverseId = GrandSuperStar.ParentMultiverse.ParentOmiverseId;
+        //    GrandSuperStar.ParentMultiverse.Dimensions.ThirdDimension.ParentOmniverse = GrandSuperStar.ParentMultiverse.ParentOmniverse;
+        //    GrandSuperStar.ParentMultiverse.Dimensions.ThirdDimension.ParentOmniverseId = GrandSuperStar.ParentMultiverse.ParentOmniverseId;
         //    GrandSuperStar.ParentMultiverse.Dimensions.ThirdDimension.ParentMultiverse = GrandSuperStar.ParentMultiverse;
         //    GrandSuperStar.ParentMultiverse.Dimensions.ThirdDimension.ParentMultiverseId = GrandSuperStar.ParentMultiverse.Id;
         //    GrandSuperStar.ParentMultiverse.Dimensions.ThirdDimension.ParentGrandSuperStar = GrandSuperStar;
@@ -293,9 +296,14 @@ namespace NextGenSoftware.OASIS.STAR
 
         public async Task<OASISResult<IGalaxyCluster>> AddGalaxyClusterToUniverseAsync(IUniverse universe, IGalaxyCluster galaxyCluster)
         {
-            return OASISResultHolonToHolonHelper<IHolon, IGalaxyCluster>.CopyResult(
-               await AddHolonToCollectionAsync(universe, galaxyCluster, (List<IHolon>)Mapper<IGalaxyCluster, Holon>.MapBaseHolonProperties(
-                   universe.GalaxyClusters)), new OASISResult<IGalaxyCluster>());
+            OASISResult<IHolon> holonResult = await AddHolonToCollectionAsync(universe, galaxyCluster, (List<IHolon>)Mapper<IGalaxyCluster, Holon>.Convert(universe.GalaxyClusters));
+            OASISResult<IGalaxyCluster> galaxyClusterResult = OASISResultHolonToHolonHelper<IHolon, IGalaxyCluster>.CopyResult(holonResult, new OASISResult<IGalaxyCluster>());
+            galaxyClusterResult.Result = (IGalaxyCluster)holonResult.Result;
+            return galaxyClusterResult;
+
+            //return OASISResultHolonToHolonHelper<IHolon, IGalaxyCluster>.CopyResult(
+            //   await AddHolonToCollectionAsync(universe, galaxyCluster, (List<IHolon>)Mapper<IGalaxyCluster, Holon>.MapBaseHolonProperties(
+            //      universe.GalaxyClusters)), new OASISResult<IGalaxyCluster>());
         }
 
         public OASISResult<IGalaxyCluster> AddGalaxyClusterToUniverse(IUniverse universe, IGalaxyCluster galaxyCluster)
@@ -325,49 +333,46 @@ namespace NextGenSoftware.OASIS.STAR
                 return result;
             }
 
-            galaxy.Id = Guid.NewGuid();
-            galaxy.IsNewHolon = true;
+            if (galaxy.Id == Guid.Empty)
+            {
+                galaxy.Id = Guid.NewGuid();
+                galaxy.IsNewHolon = true;
+            }
 
             if (galaxy.SuperStar == null)
-            {
                 galaxy.SuperStar = new SuperStar();
+
+            if (galaxy.SuperStar.Id == Guid.Empty)
+            {
                 galaxy.SuperStar.Id = Guid.NewGuid();
                 galaxy.SuperStar.IsNewHolon = true;
+            }
 
-                Mapper<IHolon, SuperStar>.MapParentCelestialBodyProperties(galaxyCluster, (SuperStar)galaxy.SuperStar);
-                //galaxy.SuperStar.ParentOmiverse = galaxyCluster.ParentOmiverse;
-                //galaxy.SuperStar.ParentOmiverseId = galaxyCluster.ParentOmiverseId;
-                //galaxy.SuperStar.ParentGreatGrandSuperStar = galaxyCluster.ParentGreatGrandSuperStar;
-                //galaxy.SuperStar.ParentGreatGrandSuperStarId = galaxyCluster.ParentGreatGrandSuperStarId;
-                //galaxy.SuperStar.ParentGrandSuperStar = multiverse.ParentGrandSuperStar;
-                //galaxy.SuperStar.ParentGrandSuperStarId = multiverse.ParentGrandSuperStarId;
-                //galaxy.SuperStar.ParentMultiverse.ParentMultiverse = galaxyCluster.ParentMultiverse;
-                //galaxy.SuperStar.ParentMultiverseId = galaxyCluster.ParentMultiverseId;
-                //galaxy.SuperStar.ParentDimension = galaxyCluster.ParentDimension;
-                //galaxy.SuperStar.ParentDimensionId = galaxyCluster.ParentDimensionId;
-                //galaxy.SuperStar.ParentUniverse = galaxyCluster.ParentUniverse;
-                //galaxy.SuperStar.ParentUniverseId = galaxyCluster.ParentUniverseId;
+            Mapper<IHolon, SuperStar>.MapParentCelestialBodyProperties(galaxyCluster, (SuperStar)galaxy.SuperStar);
+                
+            galaxy.SuperStar.ParentGalaxyCluster = galaxyCluster;
+            galaxy.SuperStar.ParentGalaxyClusterId = galaxyCluster.Id;
+            galaxy.SuperStar.ParentGalaxy = galaxy;
+            galaxy.SuperStar.ParentGalaxyId = galaxy.Id;
+            galaxy.ParentSuperStar = galaxy.SuperStar;
+            galaxy.ParentSuperStarId = galaxy.SuperStar.Id;
+            galaxy.ParentGalaxyCluster = galaxyCluster;
+            galaxy.ParentGalaxyClusterId = galaxyCluster.Id;
 
-                galaxy.SuperStar.ParentGalaxyCluster = galaxyCluster;
-                galaxy.SuperStar.ParentGalaxyClusterId = galaxyCluster.Id;
-                galaxy.SuperStar.ParentGalaxy = galaxy;
-                galaxy.SuperStar.ParentGalaxyId = galaxy.Id;
-            }    
-
-            result = OASISResultHolonToHolonHelper<IHolon, IGalaxy>.CopyResult(
-                await AddHolonToCollectionAsync(galaxyCluster, galaxy, (List<IHolon>)Mapper<IGalaxy, Holon>.MapBaseHolonProperties(
-                    galaxyCluster.Galaxies)), new OASISResult<IGalaxy>());
+            OASISResult<IHolon> holonResult = await AddHolonToCollectionAsync(galaxyCluster, galaxy, (List<IHolon>)Mapper<IGalaxy, Holon>.Convert(galaxyCluster.Galaxies));
+            result = OASISResultHolonToHolonHelper<IHolon, IGalaxy>.CopyResult(holonResult, new OASISResult<IGalaxy>());
+            result.Result = (IGalaxy)holonResult.Result;
 
             if (!result.IsError && result.Result != null)
             {
-                Mapper<IHolon, Galaxy>.MapBaseHolonProperties(result.Result, (Galaxy)galaxy);
+                //Mapper<IHolon, Galaxy>.MapBaseHolonProperties(result.Result, (Galaxy)galaxy);
 
                 // Now we need to save the SuperStar as a seperate Holon.
-                OASISResult<IHolon> superStarResult = await SaveHolonAsync(galaxy.SuperStar);
+                OASISResult<IHolon> superStarResult = await SaveHolonAsync(galaxy.SuperStar, false);
 
                 if (!superStarResult.IsError && superStarResult.Result != null)
                 {
-                    Mapper<IHolon, SuperStar>.MapBaseHolonProperties(superStarResult.Result, (SuperStar)galaxy.SuperStar);
+                   // Mapper<IHolon, SuperStar>.MapBaseHolonProperties(superStarResult.Result, (SuperStar)galaxy.SuperStar);
                     result.Result = galaxy;
                 }
                 else
@@ -387,9 +392,14 @@ namespace NextGenSoftware.OASIS.STAR
 
         public async Task<OASISResult<ISolarSystem>> AddSolarSystemToUniverseAsync(IUniverse universe, ISolarSystem solarSystem)
         {
-            return OASISResultHolonToHolonHelper<IHolon, ISolarSystem>.CopyResult(
-                await AddHolonToCollectionAsync(universe, solarSystem, (List<IHolon>)Mapper<ISolarSystem, Holon>.MapBaseHolonProperties(
-                    universe.SolarSystems)), new OASISResult<ISolarSystem>());
+            OASISResult<IHolon> holonResult = await AddHolonToCollectionAsync(universe, solarSystem, (List<IHolon>)Mapper<ISolarSystem, Holon>.Convert(universe.SolarSystems));
+            OASISResult<ISolarSystem> result = OASISResultHolonToHolonHelper<IHolon, ISolarSystem>.CopyResult(holonResult, new OASISResult<ISolarSystem>());
+            result.Result = (ISolarSystem)holonResult.Result;
+            return result;
+
+            //return OASISResultHolonToHolonHelper<IHolon, ISolarSystem>.CopyResult(
+            //    await AddHolonToCollectionAsync(universe, solarSystem, (List<IHolon>)Mapper<ISolarSystem, Holon>.MapBaseHolonProperties(
+            //        universe.SolarSystems)), new OASISResult<ISolarSystem>());
         }
 
         public OASISResult<ISolarSystem> AddSolarSystemToUniverse(IUniverse universe, ISolarSystem solarSystem)
@@ -402,6 +412,11 @@ namespace NextGenSoftware.OASIS.STAR
             return OASISResultHolonToHolonHelper<IHolon, IStar>.CopyResult(
                 await AddHolonToCollectionAsync(universe, star, (List<IHolon>)Mapper<IStar, Holon>.MapBaseHolonProperties(
                     universe.Stars)), new OASISResult<IStar>());
+
+            //OASISResult<IHolon> holonResult = await AddHolonToCollectionAsync(universe, solarSystem, (List<IHolon>)Mapper<ISolarSystem, Holon>.Convert(universe.SolarSystems));
+            //OASISResult<ISolarSystem> result = OASISResultHolonToHolonHelper<IHolon, ISolarSystem>.CopyResult(holonResult, new OASISResult<ISolarSystem>());
+            //result.Result = (ISolarSystem)holonResult.Result;
+            //return result;
         }
 
         public OASISResult<IStar> AddStarToUniverse(IUniverse universe, IStar star)

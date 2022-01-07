@@ -15,7 +15,7 @@
 //        //public OASISAPIManager()
 //        {
 //            ProviderManager.RegisterProviders(OASISProviders); //TODO: Soon you will not need to pass these in since MEF will taKe care of this for us.
-//            this.MapManager = new MapManager((IOASISStorage)OASISProviders[0]); //TODO: Fix this.
+//            this.MapManager = new MapManager((IOASISStorageProvider)OASISProviders[0]); //TODO: Fix this.
             
 //            // TODO: Soon you will not need to inject in a provider because the mappings below will be used instead...
 //            this.AvatarManager = new AvatarManager(ProviderManager.GetStorageProvider(ProviderType.HoloOASIS));

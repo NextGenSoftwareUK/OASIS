@@ -25,7 +25,7 @@ class AvatarWallet extends React.Component {
                             {/* Container */}
                             <div className="container opened" data-animation-in="fadeInLeft" data-animation-out="fadeOutLeft">
                                 
-                                    <h2 class="fs">Avatar Wallet</h2>    
+                                    <h1 class="single-heading">Avatar Wallet</h1>    
                                 {/* Card - Started */}
                                 <div className="card-started" id="home-card">
                                     {/* Profile */}

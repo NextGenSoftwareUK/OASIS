@@ -2,7 +2,7 @@
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
-using NextGenSoftware.OASIS.API.Providers.CosmosOASIS.Entites;
+using NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Entites;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -11,11 +11,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace NextGenSoftware.OASIS.API.Providers.CosmosOASIS.Entities
+namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Entities
 {
     public class Holon : Entity, IHolon
     {
-        public new Guid Id { get { return Guid.Parse(base.Id); } set { base.Id = $"{value}"; } }
+        //public new Guid Id { get { return Guid.Parse(base.Id); } set { base.Id = $"{value}"; } }
         public string Name { get; set; }
         public string Description { get; set; }
         public IHolon Original { get; set; }
@@ -25,8 +25,8 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosOASIS.Entities
         public Dictionary<ProviderType, Dictionary<string, string>> ProviderMetaData { get; set; }
         public Dictionary<string, string> MetaData { get; set; }
         public HolonType HolonType { get; set; }
-        public Guid ParentOmiverseId { get; set; }
-        public IOmiverse ParentOmiverse { get; set; }
+        public Guid ParentOmniverseId { get; set; }
+        public IOmiverse ParentOmniverse { get; set; }
         public Guid ParentMultiverseId { get; set; }
         public IMultiverse ParentMultiverse { get; set; }
         public Guid ParentUniverseId { get; set; }
@@ -75,10 +75,16 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosOASIS.Entities
         public Guid PreviousVersionId { get; set; }
         public Dictionary<ProviderType, string> PreviousVersionProviderKey { get; set; }
         public EnumValue<OASISType> CreatedOASISType { get; set; }
+        public Guid VersionId { get; set; }
 
         public event PropertyChangedEventHandler PropertyChanged;
 
         public bool HasHolonChanged(bool checkChildren = true)
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool LoadChildHolons()
         {
             throw new NotImplementedException();
         }

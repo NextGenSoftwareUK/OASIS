@@ -31,10 +31,10 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces
         DateTime? LastBeamedIn { get; set; }
         DateTime? LastBeamedOut { get; set; }
         bool IsBeamedIn { get; set; }
-        string Image2D { get; set; }
-        int Karma { get; set; }
-        int Level { get; }
-        int XP { get; set; }
+        //string Image2D { get; set; }
+        //int Karma { get; set; }
+        //int Level { get; }
+        //int XP { get; set; }
         bool OwnsToken(string token);
         IAvatar Save();
         Task<IAvatar> SaveAsync();

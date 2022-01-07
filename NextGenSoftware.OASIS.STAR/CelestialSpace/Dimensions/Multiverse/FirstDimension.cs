@@ -1,16 +1,36 @@
-﻿using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
+﻿using System;
+using System.Collections.Generic;
+using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using NextGenSoftware.OASIS.API.Core.Enums;
 
 namespace NextGenSoftware.OASIS.STAR.CelestialSpace
 {
-    //Core crystal of planet plane?
-    public class FirstDimension : Dimension, IFirstDimension
+    public class FirstDimension : MultiverseDimension, IFirstDimension
     {
-        public IUniverse Universe { get; set; } = new Universe();
+        public IUniverse Universe { get; set; }
 
-        public FirstDimension()
+        public FirstDimension(IMultiverse multiverse = null) : base(multiverse)
         {
+            Init(multiverse);
+        }
+
+        public FirstDimension(Guid id, IMultiverse multiverse = null) : base(id, multiverse)
+        {
+            Init(multiverse);
+        }
+
+        public FirstDimension(Dictionary<ProviderType, string> providerKey, IMultiverse multiverse = null) : base(providerKey, multiverse)
+        {
+            Init(multiverse);
+        }
+
+        private void Init(IMultiverse multiverse = null)
+        {
+            this.Name = "The First Dimension";
+            this.Description = "The Core Crystal Of Gaia (the planet) - ancient friendly Galactic Societies exist in Hollow Earth waiting to make contact when we are finally ready... :)";
             this.DimensionLevel = DimensionLevel.First;
+            Universe = new Universe(this);
+            base.RegisterCelestialSpaces(new List<ICelestialSpace>() { Universe });
         }
     }
 }

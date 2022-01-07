@@ -6,23 +6,23 @@ using System.Threading.Tasks;
 using System.Text;
 using System.Linq;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using MailKit.Search;
+using Microsoft.Extensions.Configuration;
 using Ipfs.Http;
 using Ipfs.Engine;
 using Ipfs;
+using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.API.Core;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Helpers;
-using Microsoft.Extensions.Configuration;
-using NextGenSoftware.OASIS.API.DNA;
-using System.Linq.Expressions;
+using NextGenSoftware.OASIS.API.Core.Managers;
+using NextGenSoftware.OASIS.API.Core.Objects;
 
 namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
 {
-    public class IPFSOASIS : OASISStorageBase, IOASISStorage, IOASISNET
+    //TODO: Implement OASISResult properly on below methods! :)
+    public class IPFSOASIS : OASISStorageProviderBase, IOASISBlockchainStorageProvider, IOASISNETProvider
     {
         public IpfsClient IPFSClient;
         public IpfsEngine IPFSEngine; //= new IpfsEngine();
@@ -72,17 +72,17 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
             this.ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
         }
 
-        public override void ActivateProvider()
+        public override OASISResult<bool> ActivateProvider()
         {
             IPFSClient = new IpfsClient(_OASISDNA.OASIS.StorageProviders.IPFSOASIS.ConnectionString);
-            base.ActivateProvider();
+            return base.ActivateProvider();
         }
 
-        public override void DeActivateProvider()
+        public override OASISResult<bool> DeActivateProvider()
         {
             IPFSClient.ShutdownAsync();
             IPFSClient = null;
-            base.DeActivateProvider();
+            return base.DeActivateProvider();
         }
 
 
@@ -152,6 +152,7 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
 
             string json = JsonConvert.SerializeObject(avatar);
             var fsn = await IPFSClient.FileSystem.AddTextAsync(json);
+            avatar.ProviderKey[Core.Enums.ProviderType.IPFSOASIS] = fsn.Id;
 
             // we store just values that we will use as a filter of search in other methods.
 
@@ -160,6 +161,7 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
             dico.password = avatar.Password;
             dico.ProviderKey = avatar.ProviderKey;
             dico.email = avatar.Email;
+            dico.HolonType = HolonType.Avatar;
 
             if (_idLookup.Count == 0)
                 _idLookup.Add(fsn.Id, dico);
@@ -178,12 +180,17 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
             _idLookup = await LoadLookupToJson();
             HolonResume dico = _idLookup.Values.FirstOrDefault(a => a.Id == holon.Id);
 
+            // in case there is no element in _idlookup dictionary
+            if (dico == null)
+                dico = new HolonResume();
+
             if (_idLookup.Count(a => a.Value.Id == holon.Id) > 0)
                 holon.PreviousVersionProviderKey[Core.Enums.ProviderType.IPFSOASIS] =
                     _idLookup.FirstOrDefault(a => a.Value.Id == holon.Id).Key;
 
             string json = JsonConvert.SerializeObject(holon);
             var fsn = await IPFSClient.FileSystem.AddTextAsync(json);
+            holon.ProviderKey[Core.Enums.ProviderType.IPFSOASIS] = fsn.Id;
 
             // we store just values that we will use as a filter of search in other methods.
             dico.Id = holon.Id;
@@ -197,11 +204,48 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
                 _idLookup[fsn.Id] = dico;
 
             string id = await SaveLookupToFile(_idLookup);
-
             return holon;
         }
 
-        public override async Task<IAvatar> LoadAvatarAsync(string username, string password)
+        public async Task<IAvatarDetail> SaveAvatarDetailToFile(IAvatarDetail avatarDetail)
+        {
+            //If we have a previous version of this avatar saved, then add a pointer back to the previous version.
+            _idLookup = await LoadLookupToJson();
+            HolonResume dico = _idLookup.Values.FirstOrDefault(a => a.Id == avatarDetail.Id);
+
+            // in case there is no element in _idlookup dictionary
+            if (dico == null)
+                dico = new HolonResume();
+
+
+            if (_idLookup.Count(a => a.Value.Id == avatarDetail.Id) > 0)
+                avatarDetail.PreviousVersionProviderKey[Core.Enums.ProviderType.IPFSOASIS] =
+                    _idLookup.FirstOrDefault(a => a.Value.Id == avatarDetail.Id).Key;
+
+            string json = JsonConvert.SerializeObject(avatarDetail);
+            var fsn = await IPFSClient.FileSystem.AddTextAsync(json);
+            avatarDetail.ProviderKey[Core.Enums.ProviderType.IPFSOASIS] = fsn.Id;
+
+            // we store just values that we will use as a filter of search in other methods.
+
+            dico.Id = avatarDetail.Id;
+            dico.login = avatarDetail.Username;           
+            dico.ProviderKey = avatarDetail.ProviderKey;
+            dico.email = avatarDetail.Email;
+            dico.HolonType = HolonType.AvatarDetail;
+
+            if (_idLookup.Count == 0)
+                _idLookup.Add(fsn.Id, dico);
+            else
+                _idLookup[fsn.Id] = dico;
+
+
+            await SaveLookupToFile(_idLookup);
+
+            return avatarDetail;
+        }
+
+        public override async Task<OASISResult<IAvatar>> LoadAvatarAsync(string username, string password, int version = 0)
         {
             return await LoadAvatarTemplateAsync(a => a.login == username && a.password == password);
         }
@@ -214,12 +258,12 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
         }
 
 
-        public override IAvatar LoadAvatar(string username, string password)
+        public override OASISResult<IAvatar> LoadAvatar(string username, string password, int version = 0)
         {
             return LoadAvatarAsync(username, password).Result;
         }
 
-        public override IAvatar SaveAvatar(IAvatar Avatar)
+        public override OASISResult<IAvatar> SaveAvatar(IAvatar Avatar)
         {
             return SaveAvatarAsync(Avatar).Result;
         }
@@ -237,56 +281,55 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
         //    return Avatar;
         //}
 
-        public override async Task<IAvatar> SaveAvatarAsync(IAvatar avatar)
+        public override async Task<OASISResult<IAvatar>> SaveAvatarAsync(IAvatar avatar)
         {
-            return await SaveAvatarToFile(avatar);
+            return new OASISResult<IAvatar>(await SaveAvatarToFile(avatar));
         }
 
-        public override async Task<ISearchResults> SearchAsync(ISearchParams searchTerm)
+        public override async Task<OASISResult<ISearchResults>> SearchAsync(ISearchParams searchTerm, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
         {
-            ISearchResults result = (ISearchResults) new SearchResults();
+            OASISResult<ISearchResults> result = new OASISResult<ISearchResults>();
+            OASISResult<IEnumerable<IAvatar>> avatars = await LoadAllAvatarsAsync();
+            OASISResult<IEnumerable<IHolon>> holons = await LoadAllHolonsAsync();
 
-            IEnumerable<IAvatar> Avatars = await LoadAllAvatarsAsync();
+            avatars = new OASISResult<IEnumerable<IAvatar>>(avatars.Result.Where(a =>
+                a.Name.Contains(searchTerm.SearchQuery) | a.Description.Contains(searchTerm.SearchQuery)).ToList());
 
-            IEnumerable<IHolon> Holons = await LoadAllHolonsAsync();
+            holons = new OASISResult<IEnumerable<IHolon>>(holons.Result.Where(h =>
+                h.Name.Contains(searchTerm.SearchQuery) | h.Description.Contains(searchTerm.SearchQuery)).ToList());
 
-            Avatars = Avatars.Where(a =>
-                a.Name.Contains(searchTerm.SearchQuery) | a.Description.Contains(searchTerm.SearchQuery)).ToList();
-            Holons = Holons.Where(h =>
-                h.Name.Contains(searchTerm.SearchQuery) | h.Description.Contains(searchTerm.SearchQuery)).ToList();
+            foreach (var h in holons.Result)
+                result.Result.SearchResultHolons.Add((Holon) h);
 
-            foreach (var h in Holons)
-                result.SearchResultHolons.Add((Holon) h);
-
-            foreach (var ava in Avatars)
-                result.SearchResultHolons.Add((Holon) ava);
+            foreach (var ava in avatars.Result)
+                result.Result.SearchResultHolons.Add((Holon) ava);
 
             return result;
         }
 
-        public override IHolon LoadHolon(Guid id)
+        public override OASISResult<IHolon> LoadHolon(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
         {
             return LoadHolonAsync(id).Result;
         }
 
-        public override async Task<IHolon> LoadHolonAsync(Guid id)
+        public override async Task<OASISResult<IHolon>> LoadHolonAsync(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
         {
             return await LoadHolonTemplateAsync(a => a.Id == id);
         }
 
-        public override IHolon LoadHolon(string providerKey)
+        public override OASISResult<IHolon> LoadHolon(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
         {
             return LoadHolonAsync(providerKey).Result;
         }
 
-        public override async Task<IHolon> LoadHolonAsync(string providerKey)
+        public override async Task<OASISResult<IHolon>> LoadHolonAsync(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
         {
             return await LoadHolonTemplateAsync(a => a.ProviderKey.Where(b => b.Value == providerKey).Any());
         }
 
         /*** Templates****/
 
-        public async Task<IAvatar> LoadAvatarTemplateAsync(Func<HolonResume, bool> predicate)
+        public async Task<OASISResult<IAvatar>> LoadAvatarTemplateAsync(Func<HolonResume, bool> predicate)
         {
             string json = "";
             _idLookup = await LoadLookupToJson();
@@ -297,10 +340,10 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
             json = await LoadStringToJson(avatarAddress);
             IAvatar avatar = JsonConvert.DeserializeObject<Avatar>(json);
 
-            return avatar;
+            return new OASISResult<IAvatar>(avatar);
         }
 
-        public async Task<IAvatarDetail> LoadAvatarDetailTemplateAsync(Func<HolonResume, bool> predicate)
+        public async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailTemplateAsync(Func<HolonResume, bool> predicate)
         {
             string json = "";
             _idLookup = await LoadLookupToJson();
@@ -311,11 +354,11 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
             json = await LoadStringToJson(avatarAddress);
             IAvatarDetail avatarDetail = JsonConvert.DeserializeObject<AvatarDetail>(json);
 
-            return avatarDetail;
+            return new OASISResult<IAvatarDetail>(avatarDetail);
         }
 
 
-        public async Task<IHolon> LoadHolonTemplateAsync(Func<HolonResume, bool> predicate)
+        public async Task<OASISResult<IHolon>> LoadHolonTemplateAsync(Func<HolonResume, bool> predicate)
         {
             string json = "";
             _idLookup = await LoadLookupToJson();
@@ -326,10 +369,10 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
             json = await LoadStringToJson(avatarAddress);
             IHolon holon = JsonConvert.DeserializeObject<Holon>(json);
 
-            return holon;
+            return new OASISResult<IHolon>(holon);
         }
 
-        public async Task<IEnumerable<IHolon>> LoadHolonsForParentTemplateAsync(Func<HolonResume, bool> predicate)
+        public async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentTemplateAsync(Func<HolonResume, bool> predicate)
         {
             List<IHolon> holons = new List<IHolon>();
             string json = "";
@@ -340,133 +383,151 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
             foreach (var h in holonsDico)
             {
                 string holonAddress = _idLookup.FirstOrDefault(a => a.Value.Id == h.Id).Key;
-                ;
-
+                
                 json = await LoadStringToJson(holonAddress);
                 IHolon holon = JsonConvert.DeserializeObject<Holon>(json);
                 holons.Add(holon);
             }
 
-            return holons;
+            return new OASISResult<IEnumerable<IHolon>>(holons);
         }
         /***********/
 
-        public override IEnumerable<IHolon> LoadHolonsForParent(Guid id, HolonType type = HolonType.All)
+        public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(Guid id, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, int version = 0)
         {
             return LoadHolonsForParentAsync(id, type).Result;
         }
 
-        public override async Task<IEnumerable<IHolon>> LoadHolonsForParentAsync(Guid id,
-            HolonType type = HolonType.All)
+        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(Guid id, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, int version = 0)
         {
             return await LoadHolonsForParentTemplateAsync(a => a.ParentHolonId == id && a.HolonType == type);
         }
 
-        public override IEnumerable<IHolon> LoadHolonsForParent(string providerKey, HolonType type = HolonType.All)
+        public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(string providerKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, int version = 0)
         {
-            return LoadHolonsForParentAsync(providerKey, type).Result.Result;
+            return LoadHolonsForParentAsync(providerKey, type).Result;
         }
 
-        public override bool DeleteAvatar(Guid id, bool softDelete = true)
+        public override OASISResult<bool> DeleteAvatar(Guid id, bool softDelete = true)
         {
             return DeleteAvatarAsync(id, softDelete).Result;
         }
 
-        public override bool DeleteAvatar(string providerKey, bool softDelete = true)
+        public override OASISResult<bool> DeleteAvatar(string providerKey, bool softDelete = true)
         {
             return DeleteAvatarAsync(providerKey, softDelete).Result;
         }
 
-        public override async Task<bool> DeleteAvatarAsync(Guid id, bool softDelete = true)
+        public override async Task<OASISResult<bool>> DeleteAvatarAsync(Guid id, bool softDelete = true)
         {
+            OASISResult<bool> result = new OASISResult<bool>();
+
             try
             {
-                IAvatar avatar = await LoadAvatarTemplateAsync(a => a.Id == id);
+                OASISResult<IAvatar> avatar = await LoadAvatarTemplateAsync(a => a.Id == id);
 
-                await SaveAvatarToFile(avatar);
-                return true;
+                avatar.Result.DeletedByAvatarId = AvatarManager.LoggedInAvatar.Id;
+                avatar.Result.DeletedDate = DateTime.Now;
+
+                await SaveAvatarToFile(avatar.Result);
+                result.Result = true;
             }
-            catch
+            catch (Exception ex)
             {
-                return false;
+                ErrorHandling.HandleError(ref result, $"An error occured in DeleteAvatarAsync in IPFSOASIS Provider. Reason: {ex.ToString()}");
             }
+
+            return result;
         }
 
-        public override async Task<bool> DeleteAvatarAsync(string providerKey, bool softDelete = true)
+        public override async Task<OASISResult<bool>> DeleteAvatarAsync(string providerKey, bool softDelete = true)
         {
+            OASISResult<bool> result = new OASISResult<bool>();
+
             try
             {
-                IAvatar avatar =
+                OASISResult<IAvatar> avatar =
                     await LoadAvatarTemplateAsync(a => a.ProviderKey.Where(b => b.Value == providerKey).Any());
 
-                await SaveAvatarToFile(avatar);
-                return true;
+                avatar.Result.DeletedByAvatarId = AvatarManager.LoggedInAvatar.Id;
+                avatar.Result.DeletedDate = DateTime.Now;
+
+                await SaveAvatarToFile(avatar.Result);
+                result.Result = true;
             }
-            catch
+            catch (Exception ex)
             {
-                return false;
+                ErrorHandling.HandleError(ref result, $"An error occured in DeleteAvatarAsync in IPFSOASIS Provider. Reason: {ex.ToString()}");
             }
+
+            return result;
         }
 
-        public override bool DeleteHolon(Guid id, bool softDelete = true)
+        public override OASISResult<bool> DeleteHolon(Guid id, bool softDelete = true)
         {
             return DeleteHolonAsync(id, softDelete).Result;
         }
 
-        public override bool DeleteHolon(string providerKey, bool softDelete = true)
+        public override OASISResult<bool> DeleteHolon(string providerKey, bool softDelete = true)
         {
             return DeleteHolonAsync(providerKey, softDelete).Result;
         }
 
-        public override async Task<bool> DeleteHolonAsync(Guid id, bool softDelete = true)
+        public override async Task<OASISResult<bool>> DeleteHolonAsync(Guid id, bool softDelete = true)
         {
+            OASISResult<bool> result = new OASISResult<bool>();
+
             try
             {
-                IHolon holon = await LoadHolonTemplateAsync(a => a.Id == id);
+                OASISResult<IHolon> holon = await LoadHolonTemplateAsync(a => a.Id == id);
 
-                await SaveHolonToFile(holon);
+                holon.Result.DeletedByAvatarId = AvatarManager.LoggedInAvatar.Id;
+                holon.Result.DeletedDate = DateTime.Now;
 
-                return true;
+                await SaveHolonToFile(holon.Result);
+
+                result.Result = true;
             }
-            catch
+            catch (Exception ex)
             {
-                return false;
+                result.Result = true;
+                ErrorHandling.HandleError(ref result, $"Error occured in DeleteHolonAsync method in IPFS Provider. Reason: {ex}");
             }
+
+            return result;
         }
 
-        public override async Task<bool> DeleteHolonAsync(string providerKey, bool softDelete = true)
+        public override async Task<OASISResult<bool>> DeleteHolonAsync(string providerKey, bool softDelete = true)
         {
+            OASISResult<bool> result = new OASISResult<bool>();
+
             try
             {
-                IHolon holon =
+                OASISResult<IHolon> holon =
                     await LoadHolonTemplateAsync(a => a.ProviderKey.Where(b => b.Value == providerKey).Any());
 
-                await SaveHolonToFile(holon);
+                holon.Result.DeletedByAvatarId = AvatarManager.LoggedInAvatar.Id;
+                holon.Result.DeletedDate = DateTime.Now;
 
-                return true;
+                await SaveHolonToFile(holon.Result);
+
+                result.Result = true;
             }
-            catch
+            catch (Exception ex)
             {
-                return false;
+                result.Result = true;
+                ErrorHandling.HandleError(ref result, $"Error occured in DeleteHolonAsync method in IPFS Provider. Reason: {ex}");
             }
+
+            return result;
         }
 
-        public IEnumerable<IHolon> GetHolonsNearMe(HolonType Type)
-        {
-            return LoadAllHolons(Type);
-        }
-
-        public IEnumerable<IPlayer> GetPlayersNearMe()
-        {
-            throw new NotImplementedException();
-        }
-
-        public override IEnumerable<IAvatar> LoadAllAvatars()
+        public override OASISResult<IEnumerable<IAvatar>> LoadAllAvatars(int version = 0)
         {
             return LoadAllAvatarsAsync().Result;
         }
 
-        public override async Task<IEnumerable<IAvatar>> LoadAllAvatarsAsync()
+        public override async Task<OASISResult<IEnumerable<IAvatar>>> LoadAllAvatarsAsync(int version = 0)
         {
             List<IAvatar> avatars = new List<IAvatar>();
             string json = "";
@@ -485,15 +546,15 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
                 avatars.Add(avatar);
             }
 
-            return avatars.AsEnumerable();
+            return new OASISResult<IEnumerable<IAvatar>>(avatars.AsEnumerable());
         }
 
-        public override IEnumerable<IHolon> LoadAllHolons(HolonType type = HolonType.Holon)
+        public override OASISResult<IEnumerable<IHolon>> LoadAllHolons(HolonType type = HolonType.Holon, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, int version = 0)
         {
             return LoadAllHolonsAsync(type).Result;
         }
 
-        public override async Task<IEnumerable<IHolon>> LoadAllHolonsAsync(HolonType type = HolonType.Holon)
+        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadAllHolonsAsync(HolonType type = HolonType.Holon, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, int version = 0)
         {
             List<IHolon> HolonsList = new List<IHolon>();
             string json = "";
@@ -504,188 +565,192 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
             foreach (var d in Dico)
             {
                 string HolonAddress = _idLookup.FirstOrDefault(a => a.Value.Id == d.Id).Key;
-                ;
-
+      
                 json = await LoadStringToJson(HolonAddress);
                 IHolon holon = JsonConvert.DeserializeObject<Holon>(json);
                 HolonsList.Add(holon);
             }
 
-            return HolonsList.Where(a => a.HolonType == type);
+            return new OASISResult<IEnumerable<IHolon>>(HolonsList.Where(a => a.HolonType == type));
         }
 
 
-        public override IAvatar LoadAvatar(Guid Id)
+        public override OASISResult<IAvatar> LoadAvatar(Guid Id, int version = 0)
         {
             return LoadAvatarAsync(Id).Result;
         }
 
-        public override IAvatar LoadAvatar(string username)
+        public override OASISResult<IAvatar> LoadAvatar(string username, int version = 0)
         {
             return LoadAvatarAsync(username).Result;
         }
 
-        public override async Task<IAvatar> LoadAvatarAsync(string providerKey)
+        public override async Task<OASISResult<IAvatar>> LoadAvatarAsync(string providerKey, int version = 0)
         {
             return await LoadAvatarTemplateAsync(a => a.ProviderKey.Where(b => b.Value == providerKey).Any());
         }
 
-        public override async Task<IAvatar> LoadAvatarAsync(Guid Id)
+        public override async Task<OASISResult<IAvatar>> LoadAvatarAsync(Guid Id, int version = 0)
         {
             return await LoadAvatarTemplateAsync(a => a.Id == Id);
         }
 
 
-        public override IAvatar LoadAvatarForProviderKey(string providerKey)
+        public override OASISResult<IAvatar> LoadAvatarForProviderKey(string providerKey, int version = 0)
         {
             return LoadAvatarForProviderKeyAsync(providerKey).Result;
         }
 
-        public override async Task<IAvatar> LoadAvatarForProviderKeyAsync(string providerKey)
+        public override async Task<OASISResult<IAvatar>> LoadAvatarForProviderKeyAsync(string providerKey, int version = 0)
         {
             return await LoadAvatarAsync(providerKey);
         }
 
 
-        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(string providerKey,
-            HolonType type = HolonType.All)
+        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(string providerKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, int version = 0)
         {
+            OASISResult<IEnumerable<IHolon>> result = new OASISResult<IEnumerable<IHolon>>();
             string json = "";
-            OASISResult<IEnumerable<IHolon>> res = new OASISResult<IEnumerable<IHolon>>();
 
-            res.Result = await LoadHolonsForParentTemplateAsync(a =>
+            result = await LoadHolonsForParentTemplateAsync(a =>
                 a.ProviderKey.Where(a => a.Value == providerKey).Any() && a.HolonType == type);
 
-            return res;
+            return result;
         }
 
-        public override IAvatarDetail LoadAvatarDetail(Guid id)
+        public override OASISResult<IAvatarDetail> LoadAvatarDetail(Guid id, int version = 0)
         {
             return LoadAvatarDetailAsync(id).Result;
         }
 
-        public override async Task<IAvatarDetail> LoadAvatarDetailAsync(Guid id)
+        public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailAsync(Guid id, int version = 0)
         {
             return await LoadAvatarDetailTemplateAsync(a => a.Id == id);
         }
 
-        public override IEnumerable<IAvatarDetail> LoadAllAvatarDetails()
+        public override OASISResult<IEnumerable<IAvatarDetail>> LoadAllAvatarDetails(int version = 0)
         {
             return LoadAllAvatarDetailsAsync().Result;
         }
 
-        public override async Task<IEnumerable<IAvatarDetail>> LoadAllAvatarDetailsAsync()
+        public override async Task<OASISResult<IEnumerable<IAvatarDetail>>> LoadAllAvatarDetailsAsync(int version = 0)
         {
             string json = "";
-
             json = await LoadStringToJson(avatarDetailsFileAddress);
-
             AvatarsDetailsList = (List<IAvatarDetail>) JsonConvert.DeserializeObject(json);
-
-            return AvatarsDetailsList;
+            return new OASISResult<IEnumerable<IAvatarDetail>>(AvatarsDetailsList);
         }
 
-        public override IAvatarDetail SaveAvatarDetail(IAvatarDetail Avatar)
+        public override OASISResult<IAvatarDetail> SaveAvatarDetail(IAvatarDetail Avatar)
         {
             return SaveAvatarDetailAsync(Avatar).Result;
         }
 
-        public override async Task<IAvatarDetail> SaveAvatarDetailAsync(IAvatarDetail Avatar)
+        public override async Task<OASISResult<IAvatarDetail>> SaveAvatarDetailAsync(IAvatarDetail avatarDetail)
         {
-            AvatarsDetailsList.Add(Avatar);
-
-            avatarDetailsFileAddress = await SaveJsonToFile<IAvatarDetail>(AvatarsDetailsList);
-
-            return Avatar;
+            return new OASISResult<IAvatarDetail>(await SaveAvatarDetailToFile(avatarDetail));
         }
 
-        public override IAvatar LoadAvatarByUsername(string avatarUsername)
+        public override OASISResult<IAvatar> LoadAvatarByUsername(string avatarUsername, int version = 0)
         {
             return LoadAvatarByUsernameAsync(avatarUsername).Result;
         }
 
-        public override async Task<IAvatar> LoadAvatarByEmailAsync(string avatarEmail)
+        public override async Task<OASISResult<IAvatar>> LoadAvatarByEmailAsync(string avatarEmail, int version = 0)
         {
             return await LoadAvatarTemplateAsync(a => a.email == avatarEmail);
         }
 
-        public override async Task<IAvatar> LoadAvatarByUsernameAsync(string avatarUsername)
+        public override async Task<OASISResult<IAvatar>> LoadAvatarByUsernameAsync(string avatarUsername, int version = 0)
         {
             return await LoadAvatarTemplateAsync(a => a.login == avatarUsername);
         }
 
-        public override IAvatar LoadAvatarByEmail(string avatarEmail)
+        public override OASISResult<IAvatar> LoadAvatarByEmail(string avatarEmail, int version = 0)
         {
             return LoadAvatarByEmailAsync(avatarEmail).Result;
         }
 
-        public override IAvatarDetail LoadAvatarDetailByEmail(string avatarEmail)
+        public override OASISResult<IAvatarDetail> LoadAvatarDetailByEmail(string avatarEmail, int version = 0)
         {
             return LoadAvatarDetailByEmailAsync(avatarEmail).Result;
         }
 
-        public override IAvatarDetail LoadAvatarDetailByUsername(string avatarUsername)
+        public override OASISResult<IAvatarDetail> LoadAvatarDetailByUsername(string avatarUsername, int version = 0)
         {
-            return LoadAvatarDetailByEmailAsync(avatarUsername).Result;
+            return LoadAvatarDetailByUsernameAsync(avatarUsername).Result;
         }
 
-        public override async Task<IAvatarDetail> LoadAvatarDetailByUsernameAsync(string avatarUsername)
+        public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByUsernameAsync(string avatarUsername, int version = 0)
         {
             return await LoadAvatarDetailTemplateAsync(a => a.login == avatarUsername);
         }
 
-        public override async Task<IAvatarDetail> LoadAvatarDetailByEmailAsync(string avatarEmail)
+        public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByEmailAsync(string avatarEmail, int version = 0)
         {
             return await LoadAvatarDetailTemplateAsync(a => a.email == avatarEmail);
         }
 
-        public override bool DeleteAvatarByEmail(string avatarEmail, bool softDelete = true)
+        public override OASISResult<bool> DeleteAvatarByEmail(string avatarEmail, bool softDelete = true)
         {
             return DeleteAvatarByUsernameAsync(avatarEmail).Result;
         }
 
-        public override bool DeleteAvatarByUsername(string avatarUsername, bool softDelete = true)
+        public override OASISResult<bool> DeleteAvatarByUsername(string avatarUsername, bool softDelete = true)
         {
             return DeleteAvatarByUsernameAsync(avatarUsername).Result;
         }
 
-        public override async Task<bool> DeleteAvatarByEmailAsync(string avatarEmail, bool softDelete = true)
+        public override async Task<OASISResult<bool>> DeleteAvatarByEmailAsync(string avatarEmail, bool softDelete = true)
         {
+            OASISResult<bool> result = new OASISResult<bool>();
+
             try
             {
-                IAvatar avatar = await LoadAvatarTemplateAsync(a => a.email == avatarEmail);
+                OASISResult<IAvatar> avatar = await LoadAvatarTemplateAsync(a => a.email == avatarEmail);
 
-                await SaveAvatarToFile(avatar);
+                avatar.Result.DeletedByAvatarId = AvatarManager.LoggedInAvatar.Id;
+                avatar.Result.DeletedDate = DateTime.Now;
 
-                return true;
+                await SaveAvatarToFile(avatar.Result);
+                result.Result = true;
             }
-            catch
+            catch (Exception ex)
             {
-                return false;
+                ErrorHandling.HandleError(ref result, $"An error occured in DeleteAvatarByEmailAsync in IPFSOASIS Provider. Reason: {ex.ToString()}");
             }
+
+            return result;
         }
 
-        public override async Task<bool> DeleteAvatarByUsernameAsync(string avatarUsername, bool softDelete = true)
+        public override async Task<OASISResult<bool>> DeleteAvatarByUsernameAsync(string avatarUsername, bool softDelete = true)
         {
+            OASISResult<bool> result = new OASISResult<bool>();
+
             try
             {
-                IAvatar avatar = await LoadAvatarTemplateAsync(a => a.login == avatarUsername);
-                await SaveAvatarToFile(avatar);
+                OASISResult<IAvatar> avatar = await LoadAvatarTemplateAsync(a => a.login == avatarUsername);
 
-                return true;
+                avatar.Result.DeletedByAvatarId = AvatarManager.LoggedInAvatar.Id;
+                avatar.Result.DeletedDate = DateTime.Now;
+
+                await SaveAvatarToFile(avatar.Result);
+                result.Result = true;
             }
-            catch
+            catch (Exception ex)
             {
-                return false;
+                ErrorHandling.HandleError(ref result, $"An error occured in DeleteAvatarByUsernameAsync in IPFSOASIS Provider. Reason: {ex.ToString()}");
             }
+
+            return result;
         }
 
-        public override OASISResult<IHolon> SaveHolon(IHolon holon, bool saveChildrenRecursive = true)
+        public override OASISResult<IHolon> SaveHolon(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true)
         {
-            return SaveHolonAsync(holon, saveChildrenRecursive).Result;
+            return SaveHolonAsync(holon, saveChildren).Result;
         }
 
-        public override async Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon, bool saveChildrenRecursive = true)
+        public override async Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true)
         {
             OASISResult<IHolon> res = new OASISResult<IHolon>();
 
@@ -693,24 +758,29 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
             return res;
         }
 
-        public override OASISResult<IEnumerable<IHolon>> SaveHolons(IEnumerable<IHolon> holons,
-            bool saveChildrenRecursive = true)
+        public override OASISResult<IEnumerable<IHolon>> SaveHolons(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true)
         {
-            return SaveHolonsAsync(holons, saveChildrenRecursive).Result;
+            return SaveHolonsAsync(holons, saveChildren).Result;
         }
 
-        public override async Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons,
-            bool saveChildrenRecursive = true)
+        public override async Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true)
         {
-            OASISResult<IEnumerable<IHolon>> res = new OASISResult<IEnumerable<IHolon>>();
+            List<IHolon> savedHolons = new List<IHolon>();
 
-            foreach (var h in holons)
-            {
-                await SaveHolonToFile(h);
-            }
+            foreach (var holon in holons)
+                savedHolons.Add(await SaveHolonToFile(holon));
 
-            res.Result = holons;
-            return res;
+            return new OASISResult<IEnumerable<IHolon>>(savedHolons);
+        }
+
+        OASISResult<IEnumerable<IPlayer>> IOASISNETProvider.GetPlayersNearMe()
+        {
+            throw new NotImplementedException();
+        }
+
+        OASISResult<IEnumerable<IHolon>> IOASISNETProvider.GetHolonsNearMe(HolonType Type)
+        {
+            throw new NotImplementedException();
         }
     }
 }

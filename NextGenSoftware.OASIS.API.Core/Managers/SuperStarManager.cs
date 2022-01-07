@@ -6,7 +6,7 @@
 //        public delegate void StorageProviderError(object sender, AvatarManagerErrorEventArgs e);
 
 //        //TODO: In future more than one storage provider can be active at a time where each call can specify which provider to use.
-//        public SuperStarManager(IOASISStorage OASISStorageProvider) : base(OASISStorageProvider)
+//        public SuperStarManager(IOASISStorageProvider OASISStorageProvider) : base(OASISStorageProvider)
 //        {
 
 //        }

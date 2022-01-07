@@ -14,34 +14,34 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
         public StarBinaryType StarBinaryType { get; set; }
 
 
-        public Star(HolonType holonType) : base(holonType)
-        {
-           // this.HolonType = holonType;
-        }
+        public Star(HolonType holonType) : base(holonType) { }
 
-        public Star(Guid id, HolonType holonType) : base(id, holonType)
-        {
-            //this.HolonType = HolonType.Star;
-        }
 
-        public Star(Dictionary<ProviderType, string> providerKey, HolonType holonType) : base(providerKey, holonType)
-        {
-            //this.HolonType = HolonType.Star;
-        }
+        //public Star(Guid id, HolonType holonType) : base(id, holonType)
+        //{
+        //    //this.HolonType = HolonType.Star;
+        //}
 
-        public Star() : base(HolonType.Star)
-        {
-            //this.HolonType = HolonType.Star;
-        }
+        public Star(Guid id) : base(id, HolonType.Star) { }
 
-        public Star(Guid id) : base(id, HolonType.Star)
-        {
-            //this.HolonType = HolonType.Star;
-        }
+        //public Star(Dictionary<ProviderType, string> providerKey, HolonType holonType) : base(providerKey, holonType)
+        //{
+        //    //this.HolonType = HolonType.Star;
+        //}
 
-        public Star(Dictionary<ProviderType, string> providerKey) : base(providerKey, HolonType.Star)
-        {
-            //this.HolonType = HolonType.Star;
-        }  
+        public Star(Dictionary<ProviderType, string> providerKey) : base(providerKey, HolonType.Star) { }
+
+
+        public Star() : base(HolonType.Star) { }
+
+        //public Star(Guid id) : base(id, HolonType.Star)
+        //{
+        //    //this.HolonType = HolonType.Star;
+        //}
+
+        //public Star(Dictionary<ProviderType, string> providerKey) : base(providerKey, HolonType.Star)
+        //{
+        //    //this.HolonType = HolonType.Star;
+        //}  
     }
 }

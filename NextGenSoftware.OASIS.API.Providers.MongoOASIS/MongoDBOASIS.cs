@@ -14,7 +14,8 @@ using Holon = NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities.Holon;
 
 namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
 {
-    public class MongoDBOASIS : OASISStorageBase, IOASISStorage, IOASISNET, IOASISSuperStar
+    //TODO: Implement OASISResult properly on below methods! :)
+    public class MongoDBOASIS : OASISStorageProviderBase, IOASISDBStorageProvider, IOASISNETProvider, IOASISSuperStar
     {
         public MongoDbContext Database { get; set; }
         private AvatarRepository _avatarRepository = null;
@@ -23,6 +24,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
 
         public string ConnectionString { get; set; }
         public string DBName { get; set; }
+        public bool IsVersionControlEnabled { get; set; }
 
         public MongoDBOASIS(string connectionString, string dbName)
         {
@@ -41,9 +43,8 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
                    _ => true);*/
         }
 
-        public override void ActivateProvider()
+        public override OASISResult<bool> ActivateProvider()
         {
-            //TODO: {URGENT} Find out how to check if MongoDB is connected, etc here...
             if (Database == null)
             {
                 Database = new MongoDbContext(ConnectionString, DBName);
@@ -51,183 +52,194 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
                 _holonRepository = new HolonRepository(Database);
             }
 
-            base.ActivateProvider();
+            return base.ActivateProvider();
         }
 
-        public override void DeActivateProvider()
+        public override OASISResult<bool> DeActivateProvider()
         {
             //TODO: {URGENT} Disconnect, Dispose and release resources here.
-            Database.MongoDB = null;
-            Database.MongoClient = null;
-            Database = null;
+            if (Database != null)
+            {
+                Database.MongoDB = null;
+                Database.MongoClient = null;
+                Database = null;
+            }
 
-            base.DeActivateProvider();
+            return base.DeActivateProvider();
         }
 
-        public override async Task<IEnumerable<IAvatar>> LoadAllAvatarsAsync()
+        public override async Task<OASISResult<IEnumerable<IAvatar>>> LoadAllAvatarsAsync(int version = 0)
         {
-            return ConvertMongoEntitysToOASISAvatars(await _avatarRepository.GetAvatarsAsync());
+            //TODO: Implement OASISResult properly ASAP! :)
+            return new OASISResult<IEnumerable<IAvatar>>(ConvertMongoEntitysToOASISAvatars(await _avatarRepository.GetAvatarsAsync()));
         }
 
-        public override IEnumerable<IAvatar> LoadAllAvatars()
+        public override OASISResult<IEnumerable<IAvatar>> LoadAllAvatars(int version = 0)
         {
-            return ConvertMongoEntitysToOASISAvatars(_avatarRepository.GetAvatars());
+            //TODO: Implement OASISResult properly ASAP! :)
+            return new OASISResult<IEnumerable<IAvatar>>(ConvertMongoEntitysToOASISAvatars(_avatarRepository.GetAvatars()));
         }
 
-        public override IAvatar LoadAvatarByEmail(string avatarEmail)
+        public override OASISResult<IAvatar> LoadAvatarByEmail(string avatarEmail, int version = 0)
         {
-            return ConvertMongoEntityToOASISAvatar(_avatarRepository.GetAvatar(x => x.Email == avatarEmail));
+            //TODO: Implement OASISResult properly ASAP! :)
+            return new OASISResult<IAvatar>(ConvertMongoEntityToOASISAvatar(_avatarRepository.GetAvatar(x => x.Email == avatarEmail).Result));
         }
 
-        public override IAvatar LoadAvatarByUsername(string avatarUsername)
+        public override OASISResult<IAvatar> LoadAvatarByUsername(string avatarUsername, int version = 0)
         {
-            return ConvertMongoEntityToOASISAvatar(_avatarRepository.GetAvatar(x => x.Username == avatarUsername));
+            //TODO: Implement OASISResult properly ASAP! :)
+            return new OASISResult<IAvatar>(ConvertMongoEntityToOASISAvatar(_avatarRepository.GetAvatar(x => x.Username == avatarUsername).Result));
         }
 
-        public override async Task<IAvatar> LoadAvatarAsync(string username)
+        public override async Task<OASISResult<IAvatar>> LoadAvatarAsync(string username, int version = 0)
         {
-            return ConvertMongoEntityToOASISAvatar(await _avatarRepository.GetAvatarAsync(username));
+            return new OASISResult<IAvatar>(ConvertMongoEntityToOASISAvatar(await _avatarRepository.GetAvatarAsync(username)));
         }
 
-        public override async Task<IAvatar> LoadAvatarByUsernameAsync(string avatarUsername)
+        public override async Task<OASISResult<IAvatar>> LoadAvatarByUsernameAsync(string avatarUsername, int version = 0)
         {
-            return ConvertMongoEntityToOASISAvatar(await _avatarRepository.GetAvatarAsync(x => x.Username == avatarUsername));
+            return new OASISResult<IAvatar>(ConvertMongoEntityToOASISAvatar(await _avatarRepository.GetAvatarAsync(x => x.Username == avatarUsername)));
         }
 
-        public override IAvatar LoadAvatar(string username)
+        public override OASISResult<IAvatar> LoadAvatar(string username, int version = 0)
         {
-            return ConvertMongoEntityToOASISAvatar(_avatarRepository.GetAvatar(username));
+            return new OASISResult<IAvatar>(ConvertMongoEntityToOASISAvatar(_avatarRepository.GetAvatar(username)));
         }
 
-        public override async Task<IAvatar> LoadAvatarAsync(Guid Id)
+        public override async Task<OASISResult<IAvatar>> LoadAvatarAsync(Guid Id, int version = 0)
         {
-            return ConvertMongoEntityToOASISAvatar(await _avatarRepository.GetAvatarAsync(Id));
+            return new OASISResult<IAvatar>(ConvertMongoEntityToOASISAvatar(await _avatarRepository.GetAvatarAsync(Id)));
         }
 
-        public override async Task<IAvatar> LoadAvatarByEmailAsync(string avatarEmail)
+        public override async Task<OASISResult<IAvatar>> LoadAvatarByEmailAsync(string avatarEmail, int version = 0)
         {
-            return ConvertMongoEntityToOASISAvatar(await _avatarRepository.GetAvatarAsync(x => x.Email == avatarEmail));
+            return new OASISResult<IAvatar>(ConvertMongoEntityToOASISAvatar(await _avatarRepository.GetAvatarAsync(x => x.Email == avatarEmail)));
         }
 
-        public override IAvatar LoadAvatar(Guid Id)
+        public override OASISResult<IAvatar> LoadAvatar(Guid Id, int version = 0)
         {
-            return ConvertMongoEntityToOASISAvatar(_avatarRepository.GetAvatar(Id));
+            return new OASISResult<IAvatar>(ConvertMongoEntityToOASISAvatar(_avatarRepository.GetAvatar(Id)));
         }
 
-        public override async Task<IAvatar> LoadAvatarAsync(string username, string password)
+        public override async Task<OASISResult<IAvatar>> LoadAvatarAsync(string username, string password, int version = 0)
         {
-            return ConvertMongoEntityToOASISAvatar(await _avatarRepository.GetAvatarAsync(username, password));
+            return new OASISResult<IAvatar>(ConvertMongoEntityToOASISAvatar(await _avatarRepository.GetAvatarAsync(username, password)));
         }
 
-        public override IAvatar LoadAvatar(string username, string password)
+        public override OASISResult<IAvatar> LoadAvatar(string username, string password, int version = 0)
         {
-            return ConvertMongoEntityToOASISAvatar(_avatarRepository.GetAvatar(username, password));
+            return new OASISResult<IAvatar>(ConvertMongoEntityToOASISAvatar(_avatarRepository.GetAvatar(username, password)));
         }
 
-        public override async Task<IAvatar> SaveAvatarAsync(IAvatar avatar)
+        public override async Task<OASISResult<IAvatar>> SaveAvatarAsync(IAvatar avatar)
         {
-            return ConvertMongoEntityToOASISAvatar(avatar.Id == Guid.Empty ?
+            return new OASISResult<IAvatar>(ConvertMongoEntityToOASISAvatar(avatar.IsNewHolon ?
                await _avatarRepository.AddAsync(ConvertOASISAvatarToMongoEntity(avatar)) :
-               await _avatarRepository.UpdateAsync(ConvertOASISAvatarToMongoEntity(avatar)));
+               await _avatarRepository.UpdateAsync(ConvertOASISAvatarToMongoEntity(avatar))));
         }
 
-        public override IAvatarDetail SaveAvatarDetail(IAvatarDetail Avatar)
+        public override OASISResult<IAvatarDetail> SaveAvatarDetail(IAvatarDetail avatar)
         {
-            throw new NotImplementedException();
+            return new OASISResult<IAvatarDetail>(ConvertMongoEntityToOASISAvatarDetail(avatar.IsNewHolon ?
+               _avatarRepository.Add(ConvertOASISAvatarDetailToMongoEntity(avatar)) :
+               _avatarRepository.Update(ConvertOASISAvatarDetailToMongoEntity(avatar))));
         }
 
-        public override async Task<IAvatarDetail> SaveAvatarDetailAsync(IAvatarDetail Avatar)
+        public override async Task<OASISResult<IAvatarDetail>> SaveAvatarDetailAsync(IAvatarDetail avatar)
         {
-            throw new NotImplementedException();
+            return new OASISResult<IAvatarDetail>(ConvertMongoEntityToOASISAvatarDetail(avatar.IsNewHolon ?
+               await _avatarRepository.AddAsync(ConvertOASISAvatarDetailToMongoEntity(avatar)) :
+               await _avatarRepository.UpdateAsync(ConvertOASISAvatarDetailToMongoEntity(avatar))));
         }
 
-        public override IAvatar SaveAvatar(IAvatar avatar)
+        public override OASISResult<IAvatar> SaveAvatar(IAvatar avatar)
         {
-            return ConvertMongoEntityToOASISAvatar(avatar.Id == Guid.Empty ?
+            return new OASISResult<IAvatar>(ConvertMongoEntityToOASISAvatar(avatar.IsNewHolon ?
                 _avatarRepository.Add(ConvertOASISAvatarToMongoEntity(avatar)) :
-                _avatarRepository.Update(ConvertOASISAvatarToMongoEntity(avatar)));
+                _avatarRepository.Update(ConvertOASISAvatarToMongoEntity(avatar))));
         }
 
-        public override bool DeleteAvatarByUsername(string avatarUsername, bool softDelete = true)
+        public override OASISResult<bool> DeleteAvatarByUsername(string avatarUsername, bool softDelete = true)
         {
             return _avatarRepository.Delete(x => x.Username == avatarUsername, softDelete);
         }
 
-        public override async Task<bool> DeleteAvatarAsync(Guid id, bool softDelete = true)
+        public override async Task<OASISResult<bool>> DeleteAvatarAsync(Guid id, bool softDelete = true)
         {
             return await _avatarRepository.DeleteAsync(id, softDelete);
         }
 
-        public override async Task<bool> DeleteAvatarByEmailAsync(string avatarEmail, bool softDelete = true)
+        public override async Task<OASISResult<bool>> DeleteAvatarByEmailAsync(string avatarEmail, bool softDelete = true)
         {
             return await _avatarRepository.DeleteAsync(x => x.Email == avatarEmail, softDelete);
         }
 
-        public override async Task<bool> DeleteAvatarByUsernameAsync(string avatarUsername, bool softDelete = true)
+        public override async Task<OASISResult<bool>> DeleteAvatarByUsernameAsync(string avatarUsername, bool softDelete = true)
         {
             return await _avatarRepository.DeleteAsync(x => x.Username == avatarUsername, softDelete);
         }
 
-        public override bool DeleteAvatar(Guid id, bool softDelete = true)
+        public override OASISResult<bool> DeleteAvatar(Guid id, bool softDelete = true)
         {
             return _avatarRepository.Delete(id, softDelete);
         }
 
-        public override bool DeleteAvatarByEmail(string avatarEmail, bool softDelete = true)
+        public override OASISResult<bool> DeleteAvatarByEmail(string avatarEmail, bool softDelete = true)
         {
             return _avatarRepository.Delete(x => x.Email == avatarEmail, softDelete);
         }
 
-        public override async Task<IAvatar> LoadAvatarForProviderKeyAsync(string providerKey)
+        public override async Task<OASISResult<IAvatar>> LoadAvatarForProviderKeyAsync(string providerKey, int version = 0)
         {
-            return ConvertMongoEntityToOASISAvatar(await _avatarRepository.GetAvatarAsync(providerKey));
+            return new OASISResult<IAvatar>(ConvertMongoEntityToOASISAvatar(await _avatarRepository.GetAvatarAsync(providerKey)));
         }
 
-        public override IAvatar LoadAvatarForProviderKey(string providerKey)
+        public override OASISResult<IAvatar> LoadAvatarForProviderKey(string providerKey, int version = 0)
         {
-            return ConvertMongoEntityToOASISAvatar(_avatarRepository.GetAvatar(providerKey));
+            return new OASISResult<IAvatar>(ConvertMongoEntityToOASISAvatar(_avatarRepository.GetAvatar(providerKey)));
         }
 
-        public override bool DeleteAvatar(string providerKey, bool softDelete = true)
+        public override OASISResult<bool> DeleteAvatar(string providerKey, bool softDelete = true)
         {
             return _avatarRepository.Delete(providerKey, softDelete);
         }
 
-        public override async Task<bool> DeleteAvatarAsync(string providerKey, bool softDelete = true)
+        public override async Task<OASISResult<bool>> DeleteAvatarAsync(string providerKey, bool softDelete = true)
         {
             return await _avatarRepository.DeleteAsync(providerKey, softDelete);
         }
 
 
         //TODO: {URGENT} FIX BEB SEARCH TO WORK WITH ISearchParams instead of string as it use to be!
-        public override async Task<ISearchResults> SearchAsync(ISearchParams searchTerm)
+        public override async Task<OASISResult<ISearchResults>> SearchAsync(ISearchParams searchTerm, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
         {
-            return await _searchRepository.SearchAsync(searchTerm);
+            return new OASISResult<ISearchResults>(await _searchRepository.SearchAsync(searchTerm));
         }
 
-        public override IAvatarDetail LoadAvatarDetailByUsername(string avatarUsername)
+        public override OASISResult<IAvatarDetail> LoadAvatarDetailByUsername(string avatarUsername, int version = 0)
         {
-            return ConvertMongoEntityToOASISAvatarDetail(_avatarRepository.GetAvatarDetail(x => x.Username == avatarUsername));
+            return new OASISResult<IAvatarDetail>(ConvertMongoEntityToOASISAvatarDetail(_avatarRepository.GetAvatarDetail(x => x.Username == avatarUsername)));
         }
 
-        public override async Task<IAvatarDetail> LoadAvatarDetailAsync(Guid id)
+        public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailAsync(Guid id, int version = 0)
         {
-            return ConvertMongoEntityToOASISAvatarDetail(await _avatarRepository.GetAvatarDetailAsync(id));
+            return new OASISResult<IAvatarDetail>(ConvertMongoEntityToOASISAvatarDetail(await _avatarRepository.GetAvatarDetailAsync(id)));
         }
 
-        public override async Task<IAvatarDetail> LoadAvatarDetailByUsernameAsync(string avatarUsername)
+        public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByUsernameAsync(string avatarUsername, int version = 0)
         {
-            return ConvertMongoEntityToOASISAvatarDetail(await _avatarRepository.GetAvatarDetailAsync(x => x.Username == avatarUsername));
+            return new OASISResult<IAvatarDetail>(ConvertMongoEntityToOASISAvatarDetail(await _avatarRepository.GetAvatarDetailAsync(x => x.Username == avatarUsername)));
         }
 
-        public override async Task<IAvatarDetail> LoadAvatarDetailByEmailAsync(string avatarEmail)
+        public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByEmailAsync(string avatarEmail, int version = 0)
         {
-            return ConvertMongoEntityToOASISAvatarDetail(await _avatarRepository.GetAvatarDetailAsync(x => x.Email == avatarEmail));
+            return new OASISResult<IAvatarDetail>(ConvertMongoEntityToOASISAvatarDetail(await _avatarRepository.GetAvatarDetailAsync(x => x.Email == avatarEmail)));
         }
 
-        public override async Task<IEnumerable<IAvatarDetail>> LoadAllAvatarDetailsAsync()
+        public override async Task<OASISResult<IEnumerable<IAvatarDetail>>> LoadAllAvatarDetailsAsync(int version = 0)
         {
-            return ConvertMongoEntitysToOASISAvatarDetails(await _avatarRepository.GetAvatarDetailsAsync());
+            return new OASISResult<IEnumerable<IAvatarDetail>>(ConvertMongoEntitysToOASISAvatarDetails(await _avatarRepository.GetAvatarDetailsAsync()));
         }
 
         //public override async Task<IAvatarThumbnail> LoadAvatarThumbnailAsync(Guid id)
@@ -235,19 +247,19 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
         //    return await _avatarRepository.GetAvatarThumbnailByIdAsync(id);
         //}
 
-        public override IAvatarDetail LoadAvatarDetail(Guid id)
+        public override OASISResult<IAvatarDetail> LoadAvatarDetail(Guid id, int version = 0)
         {
-            return ConvertMongoEntityToOASISAvatarDetail(_avatarRepository.GetAvatarDetail(id));
+            return new OASISResult<IAvatarDetail>(ConvertMongoEntityToOASISAvatarDetail(_avatarRepository.GetAvatarDetail(id)));
         }
 
-        public override IAvatarDetail LoadAvatarDetailByEmail(string avatarEmail)
+        public override OASISResult<IAvatarDetail> LoadAvatarDetailByEmail(string avatarEmail, int version = 0)
         {
-            return ConvertMongoEntityToOASISAvatarDetail(_avatarRepository.GetAvatarDetail(x => x.Email == avatarEmail));
+            return new OASISResult<IAvatarDetail>(ConvertMongoEntityToOASISAvatarDetail(_avatarRepository.GetAvatarDetail(x => x.Email == avatarEmail)));
         }
 
-        public override IEnumerable<IAvatarDetail> LoadAllAvatarDetails()
+        public override OASISResult<IEnumerable<IAvatarDetail>> LoadAllAvatarDetails(int version = 0)
         {
-            return ConvertMongoEntitysToOASISAvatarDetails(_avatarRepository.GetAvatarDetails());
+            return new OASISResult<IEnumerable<IAvatarDetail>>(ConvertMongoEntitysToOASISAvatarDetails(_avatarRepository.GetAvatarDetails()));
         }
 
         //public override IAvatarThumbnail LoadAvatarThumbnail(Guid id)
@@ -255,16 +267,16 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
         //    return _avatarRepository.GetAvatarThumbnailById(id);
         //}
 
-        public override async Task<IHolon> LoadHolonAsync(Guid id)
+        public override async Task<OASISResult<IHolon>> LoadHolonAsync(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
         {
             //TODO: Finish implementing OASISResult properly...
-            return ConvertMongoEntityToOASISHolon(new OASISResult<Holon>(await _holonRepository.GetHolonAsync(id))).Result;
+            return new OASISResult<IHolon>(ConvertMongoEntityToOASISHolon(new OASISResult<Holon>(await _holonRepository.GetHolonAsync(id))).Result);
         }
 
-        public override IHolon LoadHolon(Guid id)
+        public override OASISResult<IHolon> LoadHolon(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
         {
             //TODO: Finish implementing OASISResult properly...
-            return ConvertMongoEntityToOASISHolon(new OASISResult<Holon>(_holonRepository.GetHolon(id))).Result;
+            return new OASISResult<IHolon>(ConvertMongoEntityToOASISHolon(new OASISResult<Holon>(_holonRepository.GetHolon(id))).Result);
         }
 
 
@@ -273,29 +285,29 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
         //    return ConvertMongoEntityToOASISHolon(new OASISResult<Holon>(_holonRepository.GetHolon(id))).Result;
         //}
 
-        public override async Task<IHolon> LoadHolonAsync(string providerKey)
+        public override async Task<OASISResult<IHolon>> LoadHolonAsync(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
         {
             //TODO: Finish implementing OASISResult properly...
-            return ConvertMongoEntityToOASISHolon(new OASISResult<Holon>(await _holonRepository.GetHolonAsync(providerKey))).Result;
+            return new OASISResult<IHolon>(ConvertMongoEntityToOASISHolon(new OASISResult<Holon>(await _holonRepository.GetHolonAsync(providerKey))).Result);
         }
 
-        public override IHolon LoadHolon(string providerKey)
+        public override OASISResult<IHolon> LoadHolon(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
         {
             //TODO: Finish implementing OASISResult properly...
-            return ConvertMongoEntityToOASISHolon(new OASISResult<Holon>(_holonRepository.GetHolon(providerKey))).Result;
+            return new OASISResult<IHolon>(ConvertMongoEntityToOASISHolon(new OASISResult<Holon>(_holonRepository.GetHolon(providerKey))).Result);
         }
 
-        public override async Task<IEnumerable<IHolon>> LoadHolonsForParentAsync(Guid id, HolonType type = HolonType.All)
+        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(Guid id, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, int version = 0)
         {
-            return ConvertMongoEntitysToOASISHolons(await _holonRepository.GetAllHolonsForParentAsync(id, type));
+            return new OASISResult<IEnumerable<IHolon>>(ConvertMongoEntitysToOASISHolons(await _holonRepository.GetAllHolonsForParentAsync(id, type)));
         }
 
-        public override IEnumerable<IHolon> LoadHolonsForParent(Guid id, HolonType type = HolonType.All)
+        public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(Guid id, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, int version = 0)
         {
-            return ConvertMongoEntitysToOASISHolons(_holonRepository.GetAllHolonsForParent(id, type));
+            return new OASISResult<IEnumerable<IHolon>>(ConvertMongoEntitysToOASISHolons(_holonRepository.GetAllHolonsForParent(id, type)));
         }
 
-        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(string providerKey, HolonType type = HolonType.All)
+        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(string providerKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, int version = 0)
         {
             OASISResult<IEnumerable<IHolon>> result = new OASISResult<IEnumerable<IHolon>>();
             OASISResult<IEnumerable<Holon>> repoResult = await _holonRepository.GetAllHolonsForParentAsync(providerKey, type);
@@ -311,28 +323,28 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             return result;
         }
 
-        public override IEnumerable<IHolon> LoadHolonsForParent(string providerKey, HolonType type = HolonType.All)
+        public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(string providerKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, int version = 0)
         {
-            return ConvertMongoEntitysToOASISHolons(_holonRepository.GetAllHolonsForParent(providerKey, type));
+            return new OASISResult<IEnumerable<IHolon>>(ConvertMongoEntitysToOASISHolons(_holonRepository.GetAllHolonsForParent(providerKey, type)));
         }
 
-        public override async Task<IEnumerable<IHolon>> LoadAllHolonsAsync(HolonType type = HolonType.All)
+        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadAllHolonsAsync(HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, int version = 0)
         {
-            return ConvertMongoEntitysToOASISHolons(await _holonRepository.GetAllHolonsAsync(type));
+            return new OASISResult<IEnumerable<IHolon>>(ConvertMongoEntitysToOASISHolons(await _holonRepository.GetAllHolonsAsync(type)));
         }
 
-        public override IEnumerable<IHolon> LoadAllHolons(HolonType type = HolonType.All)
+        public override OASISResult<IEnumerable<IHolon>> LoadAllHolons(HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, int version = 0)
         {
-            return ConvertMongoEntitysToOASISHolons(_holonRepository.GetAllHolons(type));
+            return new OASISResult<IEnumerable<IHolon>>(ConvertMongoEntitysToOASISHolons(_holonRepository.GetAllHolons(type)));
         }
 
-        public override async Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon, bool saveChildrenRecursive = true)
+        public override async Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true)
         {
             OASISResult<IHolon> result =  holon.IsNewHolon
                 ? ConvertMongoEntityToOASISHolon(await _holonRepository.AddAsync(ConvertOASISHolonToMongoEntity(holon)))
                 : ConvertMongoEntityToOASISHolon(await _holonRepository.UpdateAsync(ConvertOASISHolonToMongoEntity(holon)));
 
-            if (!result.IsError && result.Result != null && saveChildrenRecursive && result.Result.Children != null && result.Result.Children.Count() > 0)
+            if (!result.IsError && result.Result != null && saveChildren && result.Result.Children != null && result.Result.Children.Count() > 0)
             {
                 OASISResult<IEnumerable<IHolon>> saveChildrenResult = SaveHolons(result.Result.Children);
 
@@ -348,13 +360,13 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             return result;
         }
 
-        public override OASISResult<IHolon> SaveHolon(IHolon holon, bool saveChildrenRecursive = true)
+        public override OASISResult<IHolon> SaveHolon(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true)
         {
             OASISResult<IHolon> result = holon.IsNewHolon
                 ? ConvertMongoEntityToOASISHolon(_holonRepository.Add(ConvertOASISHolonToMongoEntity(holon)))
                 : ConvertMongoEntityToOASISHolon(_holonRepository.Update(ConvertOASISHolonToMongoEntity(holon)));
 
-            if (!result.IsError && result.Result != null && saveChildrenRecursive && result.Result.Children != null && result.Result.Children.Count() > 0)
+            if (!result.IsError && result.Result != null && saveChildren && result.Result.Children != null && result.Result.Children.Count() > 0)
             {
                 OASISResult<IEnumerable<IHolon>> saveChildrenResult = SaveHolons(result.Result.Children);
 
@@ -370,14 +382,22 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             return result;
         }
 
-        public override OASISResult<IEnumerable<IHolon>> SaveHolons(IEnumerable<IHolon> holons, bool saveChildrenRecursive = true)
+        public override OASISResult<IEnumerable<IHolon>> SaveHolons(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true)
         {
             OASISResult<IEnumerable<IHolon>> result = new OASISResult<IEnumerable<IHolon>>();
             List<IHolon> savedHolons = new List<IHolon>();
 
+            if (holons == null)
+            {
+                result.Message = "Holons is null";
+                result.IsWarning = true;
+                result.IsSaved = false;
+                return result;
+            }
+
             if (holons.Count() == 0)
             {
-                result.Message = "No holons found to save.";
+                result.Message = "Holons collection is empty.";
                 result.IsWarning = true;
                 result.IsSaved = false;
                 return result;
@@ -390,7 +410,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
 
                 if (!holonResult.IsError && holonResult.Result != null)
                 {
-                    if (saveChildrenRecursive)
+                    if (saveChildren && holonResult.Result.Children != null && holonResult.Result.Children.Count() > 0)
                     {
                         OASISResult<IEnumerable<IHolon>> saveChildrenResult = SaveHolons(holonResult.Result.Children);
 
@@ -412,20 +432,30 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
                 }
             }
 
+            result.Result = savedHolons.ToList();
+
             if (result.IsError)
                 result.Message = "One or more errors occured saving the holons in the SQLLiteOASIS Provider. Please check the InnerMessages property for more infomration.";
 
             return result;
         }
 
-        public override async Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons, bool saveChildrenRecursive = true)
+        public override async Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true)
         {
             OASISResult<IEnumerable<IHolon>> result = new OASISResult<IEnumerable<IHolon>>();
             List<IHolon> savedHolons = new List<IHolon>();
 
+            if (holons == null)
+            {
+                result.Message = "Holons is null";
+                result.IsWarning = true;
+                result.IsSaved = false;
+                return result;
+            }
+
             if (holons.Count() == 0)
             {
-                result.Message = "No holons found to save.";
+                result.Message = "Holons collection is empty.";
                 result.IsWarning = true;
                 result.IsSaved = false;
                 return result;
@@ -438,7 +468,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
 
                 if (!holonResult.IsError && holonResult.Result != null)
                 {
-                    if (saveChildrenRecursive)
+                    if (saveChildren && holonResult.Result.Children != null && holonResult.Result.Children.Count() > 0)
                     {
                         OASISResult<IEnumerable<IHolon>> saveChildrenResult = await SaveHolonsAsync(holonResult.Result.Children);
 
@@ -460,30 +490,32 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
                 }
             }
 
+            result.Result = savedHolons.ToList();
+
             if (result.IsError)
                 result.Message = "One or more errors occured saving the holons in the SQLLiteOASIS Provider. Please check the InnerMessages property for more infomration.";
 
             return result;
         }
 
-        public override bool DeleteHolon(Guid id, bool softDelete = true)
+        public override OASISResult<bool> DeleteHolon(Guid id, bool softDelete = true)
         {
-            return _holonRepository.Delete(id, softDelete);
+            return new OASISResult<bool>(_holonRepository.Delete(id, softDelete));
         }
 
-        public override async Task<bool> DeleteHolonAsync(Guid id, bool softDelete = true)
+        public override async Task<OASISResult<bool>> DeleteHolonAsync(Guid id, bool softDelete = true)
         {
-            return await _holonRepository.DeleteAsync(id, softDelete);
+            return new OASISResult<bool>(await _holonRepository.DeleteAsync(id, softDelete));
         }
 
-        public override bool DeleteHolon(string providerKey, bool softDelete = true)
+        public override OASISResult<bool> DeleteHolon(string providerKey, bool softDelete = true)
         {
-            return _holonRepository.Delete(providerKey, softDelete);
+            return new OASISResult<bool>(_holonRepository.Delete(providerKey, softDelete));
         }
 
-        public override async Task<bool> DeleteHolonAsync(string providerKey, bool softDelete = true)
+        public override async Task<OASISResult<bool>> DeleteHolonAsync(string providerKey, bool softDelete = true)
         {
-            return await _holonRepository.DeleteAsync(providerKey, softDelete);
+            return new OASISResult<bool>(await _holonRepository.DeleteAsync(providerKey, softDelete));
         }
 
         public IEnumerable<IHolon> GetHolonsNearMe(HolonType Type)
@@ -564,10 +596,10 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             oasisAvatar.CreatedProviderType = avatar.CreatedProviderType;
             oasisAvatar.AvatarType = avatar.AvatarType;
             oasisAvatar.HolonType = avatar.HolonType;
-            oasisAvatar.Image2D = avatar.Image2D;
+           // oasisAvatar.Image2D = avatar.Image2D;
             //oasisAvatar.UmaJson = avatar.UmaJson; //TODO: Not sure whether to include UmaJson or not? I think Unity guys said is it pretty large?
-            oasisAvatar.Karma = avatar.Karma;
-            oasisAvatar.XP = avatar.XP;
+            //oasisAvatar.Karma = avatar.Karma;
+            //oasisAvatar.XP = avatar.XP;
             oasisAvatar.IsChanged = avatar.IsChanged;
             oasisAvatar.AcceptTerms = avatar.AcceptTerms;
             oasisAvatar.JwtToken = avatar.JwtToken;
@@ -605,15 +637,15 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             oasisAvatar.ProviderMetaData = avatar.ProviderMetaData;
             oasisAvatar.PreviousVersionId = avatar.PreviousVersionId;
             oasisAvatar.PreviousVersionProviderKey = avatar.PreviousVersionProviderKey;
-            oasisAvatar.Title = avatar.Title;
+           // oasisAvatar.Title = avatar.Title;
             oasisAvatar.Description = avatar.Description;
-            oasisAvatar.FirstName = avatar.FirstName;
-            oasisAvatar.LastName = avatar.LastName;
-            oasisAvatar.Email = avatar.Email;
-            oasisAvatar.Username = avatar.Username;
+            //oasisAvatar.FirstName = avatar.FirstName;
+            //oasisAvatar.LastName = avatar.LastName;
+            //oasisAvatar.Email = avatar.Email;
+            //oasisAvatar.Username = avatar.Username;
             oasisAvatar.CreatedOASISType = avatar.CreatedOASISType;
             oasisAvatar.CreatedProviderType = avatar.CreatedProviderType;
-            oasisAvatar.AvatarType = avatar.AvatarType;
+           // oasisAvatar.AvatarType = avatar.AvatarType;
             oasisAvatar.HolonType = avatar.HolonType;
             oasisAvatar.IsChanged = avatar.IsChanged;
             oasisAvatar.CreatedByAvatarId = Guid.Parse(avatar.CreatedByAvatarId);
@@ -646,7 +678,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             oasisAvatar.Achievements = avatar.Achievements;
             oasisAvatar.Inventory = avatar.Inventory;
             oasisAvatar.Address = avatar.Address;
-            oasisAvatar.AvatarType = avatar.AvatarType;
+           // oasisAvatar.AvatarType = avatar.AvatarType;
             oasisAvatar.Country = avatar.Country;
             oasisAvatar.County = avatar.County;
             oasisAvatar.Address = avatar.Address;
@@ -663,8 +695,8 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             oasisAvatar.ParentHolon = avatar.ParentHolon;
             oasisAvatar.ParentZomeId = avatar.ParentZomeId;
             oasisAvatar.ParentZome = avatar.ParentZome;
-            oasisAvatar.ParentOmiverse = avatar.ParentOmiverse;
-            oasisAvatar.ParentOmiverseId = avatar.ParentOmiverseId;
+            oasisAvatar.ParentOmniverse = avatar.ParentOmniverse;
+            oasisAvatar.ParentOmniverseId = avatar.ParentOmniverseId;
             oasisAvatar.ParentDimension = avatar.ParentDimension;
             oasisAvatar.ParentDimensionId = avatar.ParentDimensionId;
             oasisAvatar.ParentMultiverse = avatar.ParentMultiverse;
@@ -728,7 +760,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             mongoAvatar.CreatedProviderType = avatar.CreatedProviderType;
             mongoAvatar.CreatedOASISType = avatar.CreatedOASISType;
             mongoAvatar.MetaData = avatar.MetaData;
-            mongoAvatar.Image2D = avatar.Image2D;
+           // mongoAvatar.Image2D = avatar.Image2D;
             mongoAvatar.AcceptTerms = avatar.AcceptTerms;
             mongoAvatar.JwtToken = avatar.JwtToken;
             mongoAvatar.PasswordReset = avatar.PasswordReset;
@@ -738,9 +770,9 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             mongoAvatar.ResetTokenExpires = avatar.ResetTokenExpires;
             mongoAvatar.VerificationToken = avatar.VerificationToken;
             mongoAvatar.Verified = avatar.Verified;
-            mongoAvatar.Karma = avatar.Karma;
-            mongoAvatar.XP = avatar.XP;
-            mongoAvatar.Image2D = avatar.Image2D;
+            //mongoAvatar.Karma = avatar.Karma;
+           // mongoAvatar.XP = avatar.XP;
+           // mongoAvatar.Image2D = avatar.Image2D;
             mongoAvatar.IsChanged = avatar.IsChanged;
             mongoAvatar.CreatedByAvatarId = avatar.CreatedByAvatarId.ToString();
             mongoAvatar.CreatedDate = avatar.CreatedDate;
@@ -757,6 +789,57 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
 
             return mongoAvatar;
         }
+
+        /*
+        private AvatarDetail ConvertOASISAvatarToMongoEntity(IAvatarDetail avatarDetail)
+        {
+            if (avatarDetail == null)
+                return null;
+
+            AvatarDetail mongoAvatar = new AvatarDetail();
+
+            if (avatarDetail.ProviderKey != null && avatarDetail.ProviderKey.ContainsKey(Core.Enums.ProviderType.MongoDBOASIS))
+                mongoAvatar.Id = avatarDetail.ProviderKey[Core.Enums.ProviderType.MongoDBOASIS];
+
+            //if (avatar.CreatedProviderType != null)
+            //    mongoAvatar.CreatedProviderType = avatar.CreatedProviderType.Value;
+
+            mongoAvatar.HolonId = avatarDetail.Id;
+            // mongoAvatar.AvatarId = avatarDetail.Id;
+            mongoAvatar.ProviderKey = avatarDetail.ProviderKey;
+            mongoAvatar.ProviderMetaData = avatarDetail.ProviderMetaData;
+            mongoAvatar.PreviousVersionId = avatarDetail.PreviousVersionId;
+            mongoAvatar.PreviousVersionProviderKey = avatarDetail.PreviousVersionProviderKey;
+            mongoAvatar.Name = avatarDetail.Name;
+            mongoAvatar.Description = avatarDetail.Description;
+            mongoAvatar.FirstName = avatarDetail.FirstName;
+            mongoAvatar.LastName = avatarDetail.LastName;
+            mongoAvatar.Email = avatarDetail.Email;
+            mongoAvatar.Title = avatarDetail.Title;
+            mongoAvatar.Username = avatarDetail.Username;
+            mongoAvatar.HolonType = avatarDetail.HolonType;
+            mongoAvatar.AvatarType = avatarDetail.AvatarType;
+            mongoAvatar.CreatedProviderType = avatarDetail.CreatedProviderType;
+            mongoAvatar.CreatedOASISType = avatarDetail.CreatedOASISType;
+            mongoAvatar.MetaData = avatarDetail.MetaData;
+            mongoAvatar.Image2D = avatarDetail.Image2D;
+            mongoAvatar.Karma = avatarDetail.Karma;
+            mongoAvatar.XP = avatarDetail.XP;
+            mongoAvatar.Image2D = avatarDetail.Image2D;
+            mongoAvatar.IsChanged = avatarDetail.IsChanged;
+            mongoAvatar.CreatedByAvatarId = avatarDetail.CreatedByAvatarId.ToString();
+            mongoAvatar.CreatedDate = avatarDetail.CreatedDate;
+            mongoAvatar.DeletedByAvatarId = avatarDetail.DeletedByAvatarId.ToString();
+            mongoAvatar.DeletedDate = avatarDetail.DeletedDate;
+            mongoAvatar.ModifiedByAvatarId = avatarDetail.ModifiedByAvatarId.ToString();
+            mongoAvatar.ModifiedDate = avatarDetail.ModifiedDate;
+            mongoAvatar.DeletedDate = avatarDetail.DeletedDate;
+            mongoAvatar.Version = avatarDetail.Version;
+            mongoAvatar.IsActive = avatarDetail.IsActive;
+
+
+            return mongoAvatar;
+        }*/
 
         private AvatarDetail ConvertOASISAvatarDetailToMongoEntity(IAvatarDetail avatar)
         {
@@ -779,13 +862,13 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             mongoAvatar.PreviousVersionProviderKey = avatar.PreviousVersionProviderKey;
             mongoAvatar.Name = avatar.Name;
             mongoAvatar.Description = avatar.Description;
-            mongoAvatar.FirstName = avatar.FirstName;
-            mongoAvatar.LastName = avatar.LastName;
-            mongoAvatar.Email = avatar.Email;
-            mongoAvatar.Title = avatar.Title;
-            mongoAvatar.Username = avatar.Username;
+            //mongoAvatar.FirstName = avatar.FirstName;
+            //mongoAvatar.LastName = avatar.LastName;
+            //mongoAvatar.Email = avatar.Email;
+            //mongoAvatar.Title = avatar.Title;
+           // mongoAvatar.Username = avatar.Username;
             mongoAvatar.HolonType = avatar.HolonType;
-            mongoAvatar.AvatarType = avatar.AvatarType;
+           // mongoAvatar.AvatarType = avatar.AvatarType;
             mongoAvatar.CreatedProviderType = avatar.CreatedProviderType;
             mongoAvatar.CreatedOASISType = avatar.CreatedOASISType;
             mongoAvatar.MetaData = avatar.MetaData;
@@ -840,8 +923,8 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             mongoAvatar.ParentHolon = avatar.ParentHolon;
             mongoAvatar.ParentZomeId = avatar.ParentZomeId;
             mongoAvatar.ParentZome = avatar.ParentZome;
-            mongoAvatar.ParentOmiverse = avatar.ParentOmiverse;
-            mongoAvatar.ParentOmiverseId = avatar.ParentOmiverseId;
+            mongoAvatar.ParentOmniverse = avatar.ParentOmniverse;
+            mongoAvatar.ParentOmniverseId = avatar.ParentOmniverseId;
             mongoAvatar.ParentDimension = avatar.ParentDimension;
             mongoAvatar.ParentDimensionId = avatar.ParentDimensionId;
             mongoAvatar.ParentMultiverse = avatar.ParentMultiverse;
@@ -903,8 +986,8 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             result.Result.ParentHolon = holon.Result.ParentHolon;
             result.Result.ParentZomeId = holon.Result.ParentZomeId;
             result.Result.ParentZome = holon.Result.ParentZome;
-            result.Result.ParentOmiverse = holon.Result.ParentOmiverse;
-            result.Result.ParentOmiverseId = holon.Result.ParentOmiverseId;
+            result.Result.ParentOmniverse = holon.Result.ParentOmniverse;
+            result.Result.ParentOmniverseId = holon.Result.ParentOmniverseId;
             result.Result.ParentDimension = holon.Result.ParentDimension;
             result.Result.ParentDimensionId = holon.Result.ParentDimensionId;
             result.Result.ParentMultiverse = holon.Result.ParentMultiverse;
@@ -974,8 +1057,8 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             mongoHolon.ParentHolon = holon.ParentHolon;
             mongoHolon.ParentZomeId = holon.ParentZomeId;
             mongoHolon.ParentZome = holon.ParentZome;
-            mongoHolon.ParentOmiverse = holon.ParentOmiverse;
-            mongoHolon.ParentOmiverseId = holon.ParentOmiverseId;
+            mongoHolon.ParentOmniverse = holon.ParentOmniverse;
+            mongoHolon.ParentOmniverseId = holon.ParentOmniverseId;
             mongoHolon.ParentDimension = holon.ParentDimension;
             mongoHolon.ParentDimensionId = holon.ParentDimensionId;
             mongoHolon.ParentMultiverse = holon.ParentMultiverse;
@@ -1014,6 +1097,16 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             mongoHolon.IsActive = holon.IsActive;
             
             return mongoHolon;
+        }
+
+        OASISResult<IEnumerable<IPlayer>> IOASISNETProvider.GetPlayersNearMe()
+        {
+            throw new NotImplementedException();
+        }
+
+        OASISResult<IEnumerable<IHolon>> IOASISNETProvider.GetHolonsNearMe(HolonType Type)
+        {
+            throw new NotImplementedException();
         }
     }
 }

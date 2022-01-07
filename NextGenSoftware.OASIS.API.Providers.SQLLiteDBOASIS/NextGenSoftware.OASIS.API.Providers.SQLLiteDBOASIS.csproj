@@ -2,8 +2,24 @@
 
   <PropertyGroup>
     <OutputType>Library</OutputType>
-    <TargetFramework>net5.0</TargetFramework>
+    <TargetFramework>net6.0</TargetFramework>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="DataBaseModels\**" />
+    <Compile Remove="Prototypes\**" />
+    <Compile Remove="Repositories\**" />
+    <EmbeddedResource Remove="DataBaseModels\**" />
+    <EmbeddedResource Remove="Prototypes\**" />
+    <EmbeddedResource Remove="Repositories\**" />
+    <None Remove="DataBaseModels\**" />
+    <None Remove="Prototypes\**" />
+    <None Remove="Repositories\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Remove="DataContext.cs" />
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="3.1.8">

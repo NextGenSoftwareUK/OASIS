@@ -218,6 +218,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [HttpPost("authenticate/{providerType}/{setGlobally}")]
         public async Task<OASISResult<AuthenticateResponse>> Authenticate(AuthenticateRequest model,
+        //public async Task<OASISResult<IAvatar>> Authenticate(AuthenticateRequest model,
             ProviderType providerType = ProviderType.Default, bool setGlobally = false)
         {
             GetAndActivateProvider(providerType, setGlobally);
@@ -232,10 +233,16 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [HttpPost("authenticate")]
         public async Task<OASISResult<AuthenticateResponse>> Authenticate(AuthenticateRequest model)
+        //public async Task<OASISResult<IAvatar>> Authenticate(AuthenticateRequest model)
         {
             var response = await _avatarService.Authenticate(model, ipAddress());
+
             if (!response.IsError && response.Result.Avatar != null)
                 setTokenCookie(response.Result.Avatar.RefreshToken);
+
+            //if (!response.IsError && response.Result != null)
+            //    setTokenCookie(response.Result.RefreshToken);
+
             return response;
         }
 
@@ -324,7 +331,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpPost("register")]
         public async Task<OASISResult<IAvatar>> Register(RegisterRequest model)
         {
-            return await _avatarService.Register(model, Request.Headers["origin"]);
+            return await _avatarService.RegisterAsync(model, Request.Headers["origin"]);
         }
 
         /// <summary>
@@ -683,6 +690,21 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         {
             GetAndActivateProvider(providerType, setGlobally);
             return await Delete(id);
+        }
+
+        /// <summary>
+        ///     Link's a given telosAccount to the given avatar.
+        /// </summary>
+        /// <param name="avatarId">The id of the avatar.</param>
+        /// <param name="telosAccountName"></param>
+        /// <returns></returns>
+        [Authorize]
+        [HttpPost("LinkProviderKeyToAvatar")]
+        public async Task<OASISResult<IAvatarDetail>> LinkProviderKeyToAvatar(
+            LinkProviderKeyToAvatar linkProviderKeyToAvatar)
+        {
+            return await _avatarService.LinkProviderKeyToAvatar(linkProviderKeyToAvatar.AvatarID,
+                linkProviderKeyToAvatar.ProviderType, linkProviderKeyToAvatar.ProviderKey);
         }
 
         /// <summary>

@@ -22,7 +22,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         public delegate void StorageProviderError(object sender, OASISErrorEventArgs e);
 
        //TODO: In future more than one storage provider can be active at a time where each call can specify which provider to use.
-        public OASISManager(IOASISStorage OASISStorageProvider, OASISDNA OASISDNA = null)
+        public OASISManager(IOASISStorageProvider OASISStorageProvider, OASISDNA OASISDNA = null)
         {
             if (OASISStorageProvider != null)
             {
@@ -45,7 +45,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
         private void OASISStorageProvider_StorageProviderError(object sender, AvatarManagerErrorEventArgs e)
         {
-            OnOASISManagerError?.Invoke(this, new OASISErrorEventArgs() { ErrorDetails = e.ErrorDetails, Reason = e.Reason });
+            OnOASISManagerError?.Invoke(this, new OASISErrorEventArgs() { Exception = e.Exception, Reason = e.Reason });
         }
     }
 }

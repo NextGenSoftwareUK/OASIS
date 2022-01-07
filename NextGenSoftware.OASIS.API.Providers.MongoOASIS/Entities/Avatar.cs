@@ -8,7 +8,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities
 {
     public class Avatar : HolonBase
     {
-        public string Image2D { get; set; }
+        //public string Image2D { get; set; }
         public string Title { get; set; }
         public string FirstName { get; set; }
         public string LastName { get; set; }
@@ -24,9 +24,9 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities
         public string Password { get; set; }
         public EnumValue<AvatarType> AvatarType { get; set; }
        // public EnumValue<OASISType> CreatedOASISType { get; set; }
-        public int Karma { get; set; }
-        public int XP { get; set; }
-        public int Level { get; set; }
+        //public int Karma { get; set; }
+        //public int XP { get; set; }
+        //public int Level { get; set; }
         public bool AcceptTerms { get; set; }
         public string VerificationToken { get; set; }
         public DateTime? Verified { get; set; }

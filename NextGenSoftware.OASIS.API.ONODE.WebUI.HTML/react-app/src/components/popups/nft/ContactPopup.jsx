@@ -88,13 +88,13 @@ class ContactPopup extends React.Component {
 
                         <div className="popup-container contact-Popup default-popup">
                             <div className="popup-content">
-                                <h2>Contacts</h2>
+                                <h1 className="single-heading">Contacts</h1>
                                 <div className="button-bar">
-                                    <button className="single-btn" >Friends</button>
-                                    <button className="single-btn">Family</button>
-                                    <button className="single-btn">Colleagues</button>
-                                    <button className="single-btn">My list 1</button>
-                                    <button className="single-btn">My list 2</button>    
+                                    <button className="sm-button" >Friends</button>
+                                    <button className="sm-button">Family</button>
+                                    <button className="sm-button">Colleagues</button>
+                                    <button className="sm-button">My list 1</button>
+                                    <button className="sm-button">My list 2</button>    
                                 </div>   
                             </div>
                             
@@ -108,9 +108,10 @@ class ContactPopup extends React.Component {
                             </div>
 
                             <div className="right-btn">
-                                <button className="single-btn" >Find Avatar</button>
-                                <button className="single-btn" >Create List</button>
+                                <button className="sm-button" >Find Avatar</button>
+                                <button className="sm-button" >Create List</button>
                             </div>
+                            
                         </div>
                     </Modal.Body>
                 </Modal>

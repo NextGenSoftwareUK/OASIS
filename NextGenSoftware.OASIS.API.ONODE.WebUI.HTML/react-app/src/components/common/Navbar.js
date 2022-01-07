@@ -18,7 +18,7 @@ class Navbar extends React.Component {
                         <div className="nav-menu-btn-burger"></div>
                     </div>
 
-                    <img className="nav-logo" src={logo} alt="logo" />
+                    <a href="/"><img className="nav-logo" src={logo} alt="logo" /></a>
                 </div>
 
                 <div className="nav-right">

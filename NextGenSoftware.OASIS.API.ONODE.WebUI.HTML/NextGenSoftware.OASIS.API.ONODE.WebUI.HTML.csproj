@@ -1,16 +1,20 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
-    <TargetFramework>net5.0</TargetFramework>
+    <TargetFramework>net6.0</TargetFramework>
     <UserSecretsId>098ba6d2-d028-4641-99c5-c77225cb2a19</UserSecretsId>
     <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
   </PropertyGroup>
 
   <ItemGroup>
     <Compile Remove="api\**" />
+    <Compile Remove="ClientApp\oasis-angular\**" />
     <Content Remove="api\**" />
+    <Content Remove="ClientApp\oasis-angular\**" />
     <EmbeddedResource Remove="api\**" />
+    <EmbeddedResource Remove="ClientApp\oasis-angular\**" />
     <None Remove="api\**" />
+    <None Remove="ClientApp\oasis-angular\**" />
   </ItemGroup>
 
   <ItemGroup>

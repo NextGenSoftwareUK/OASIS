@@ -1,4 +1,5 @@
-﻿using System;
+﻿using NextGenSoftware.OASIS.API.Core.Helpers;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Avatar = NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities.Avatar;
@@ -12,10 +13,10 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Interfaces
         Task<Avatar> AddAsync(Avatar avatar);
         AvatarDetail Add(AvatarDetail avatar);
         Task<AvatarDetail> AddAsync(AvatarDetail avatar);
-        bool Delete(Guid id, bool softDelete = true);
-        bool Delete(string providerKey, bool softDelete = true);
-        Task<bool> DeleteAsync(Guid id, bool softDelete = true);
-        Task<bool> DeleteAsync(string providerKey, bool softDelete = true);
+        OASISResult<bool> Delete(Guid id, bool softDelete = true);
+        OASISResult<bool> Delete(string providerKey, bool softDelete = true);
+        Task<OASISResult<bool>> DeleteAsync(Guid id, bool softDelete = true);
+        Task<OASISResult<bool>> DeleteAsync(string providerKey, bool softDelete = true);
         Avatar GetAvatar(Guid id);
         Avatar GetAvatar(string username);
         Avatar GetAvatar(string username, string password);

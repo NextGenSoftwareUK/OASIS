@@ -9,32 +9,25 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces.STAR
 {
     public interface ICelestialBody : ICelestialHolon
     {
+        public event CelestialBodyLoaded OnCelestialBodyLoaded;
+        public event CelestialBodySaved OnCelestialBodySaved;
+        public event CelestialBodyError OnCelestialBodyError;
+        public event ZomeLoaded OnZomeLoaded;
+        public event ZomeSaved OnZomeSaved;
+        public event ZomeError OnZomeError;
+        public event ZomesLoaded OnZomesLoaded;
+        public event ZomesSaved OnZomesSaved;
+        public event ZomesError OnZomesError;
+        public event HolonLoaded OnHolonLoaded;
+        public event HolonSaved OnHolonSaved;
+        public event HolonError OnHolonError;
+        public event HolonsLoaded OnHolonsLoaded;
+        public event HolonsSaved OnHolonsSaved;
+        public event HolonsError OnHolonsError;
         // event DataReceived OnDataReceived;
-       // event Disconnected OnDisconnected;
-        event HolonLoaded OnHolonLoaded;
-        event HolonSaved OnHolonSaved;
-        event HolonsLoaded OnHolonsLoaded;
-        event Initialized OnInitialized;
-        event ZomeError OnZomeError;
-        event ZomesLoaded OnZomesLoaded;
+        // event Disconnected OnDisconnected;
 
-        public SpaceQuadrantType SpaceQuadrant { get; set; }
-        public int SpaceSector { get; set; }
-        public float SuperGalacticLatitute { get; set; }
-        public float SuperGalacticLongitute { get; set; }
-        public float GalacticLatitute { get; set; }
-        public float GalacticLongitute { get; set; }
-        public float HorizontalLatitute { get; set; }
-        public float HorizontalLongitute { get; set; }
-        public float EquatorialLatitute { get; set; }
-        public float EquatorialLongitute { get; set; }
-        public float EclipticLatitute { get; set; }
-        public float EclipticLongitute { get; set; }
-        public int Size { get; set; }
-        public int Radius { get; set; }
-        public int Age { get; set; }
         public int Mass { get; set; }
-        public int Temperature { get; set; }
         public int Weight { get; set; }
         public int GravitaionalPull { get; set; }
         public int OrbitPositionFromParentStar { get; set; }
@@ -47,18 +40,19 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces.STAR
         public int NunmerActiveAvatars { get; set; }
 
         ICelestialBodyCore CelestialBodyCore { get; set; }
-        GenesisType GenesisType { get; set; }
-        bool IsInitialized { get; }
-        //Task<OASISResult<ICelestialBody>> SaveAsync(bool saveChildren = true, bool continueOnError = true);
-        //OASISResult<ICelestialBody> Save(bool saveChildren = true, bool continueOnError = true);
-        Task<OASISResult<ICelestialBody>> SaveAsync<T>(bool saveChildren = true, bool continueOnError = true) where T : ICelestialBody, new();
-        OASISResult<ICelestialBody> Save<T>(bool saveChildren = true, bool continueOnError = true) where T : ICelestialBody, new();
-        Task<OASISResult<IEnumerable<IZome>>> LoadZomesAsync();
-        OASISResult<IEnumerable<IZome>> LoadZomes();
-        Task<OASISResult<ICelestialBody>> LoadCelestialBodyAsync();
-        OASISResult<ICelestialBody> LoadCelestialBody();
-        Task InitializeAsync();
-        void Initialize();
+        //GenesisType GenesisType { get; set; }
+        //bool IsInitialized { get; }
+        //Task<OASISResult<ICelestialBody>> SaveAsync<T>(bool saveChildren = true, bool recursive = true, bool continueOnError = true) where T : ICelestialBody, new();
+        //OASISResult<ICelestialBody> Save<T>(bool saveChildren = true, bool recursive = true, bool continueOnError = true) where T : ICelestialBody, new();
+        Task<OASISResult<ICelestialBody>> SaveAsync(bool saveChildren = true, bool recursive = true, bool continueOnError = true);
+        OASISResult<ICelestialBody> Save(bool saveChildren = true, bool recursive = true, bool continueOnError = true);
+        Task<OASISResult<ICelestialBody>> LoadAsync(bool loadChildren = true, bool recursive = true, bool continueOnError = true);
+        OASISResult<ICelestialBody> Load(bool loadChildren = true, bool recursive = true, bool continueOnError = true);
+        Task<OASISResult<IEnumerable<IZome>>> LoadZomesAsync(bool loadChildren = true, bool recursive = true, bool continueOnError = true);
+        OASISResult<IEnumerable<IZome>> LoadZomes(bool loadChildren = true, bool recursive = true, bool continueOnError = true);
+        Task<OASISResult<IEnumerable<IZome>>> SaveZomesAsync(bool saveChildren = true, bool recursive = true, bool continueOnError = true);
+        OASISResult<IEnumerable<IZome>> SaveZomes(bool saveChildren = true, bool recursive = true, bool continueOnError = true);
+
         void Dim();
         void Emit();
         void Evolve();

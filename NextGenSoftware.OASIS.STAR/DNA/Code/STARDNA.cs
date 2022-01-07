@@ -17,20 +17,19 @@ namespace NextGenSoftware.OASIS.STAR.DNA
     {
         //Default values that are used to generate a new STARDNA.json file if it is not found.
 
-        //TODO: Make the paths relative!
-        //public string RustDNATemplateFolder = @"C:\Users\david\source\repos\Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK\NextGenSoftware.OASIS.STAR\RustDNATemplates";
-        //public string CSharpDNATemplateFolder = @"C:\Users\david\source\repos\Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK\NextGenSoftware.OASIS.STAR\CSharpDNATemplates";
-        //public string CelestialBodyDNA = @"C:\Users\david\source\repos\Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK\NextGenSoftware.OASIS.STAR.TestHarness\CelestialBodyDNA";
-        //public string GenesisRustFolder = @"C:\Users\david\source\repos\Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK\NextGenSoftware.OASIS.STAR.TestHarness\Genesis\Rust";
-        //public string GenesisCSharpFolder = @"C:\Users\david\source\repos\Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK\NextGenSoftware.OASIS.STAR.TestHarness\Genesis\CSharp";
-        public string RustDNAReduxTemplateFolder = @"C:\CODE\Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK\NextGenSoftware.OASIS.STAR\RustDNATemplates\Redux";
-        public string RustDNARSMTemplateFolder = @"C:\CODE\Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK\NextGenSoftware.OASIS.STAR\RustDNATemplates\RSM";
-        public string CSharpDNATemplateFolder = @"C:\CODE\Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK\NextGenSoftware.OASIS.STAR\CSharpDNATemplates";
-        public string CelestialBodyDNA = @"C:\CODE\Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK\NextGenSoftware.OASIS.STAR.TestHarness\CelestialBodyDNA";
-        //public string GenesisRustFolder = @"C:\CODE\Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK\NextGenSoftware.OASIS.STAR.TestHarness\Genesis\Rust";
-        //public string GenesisCSharpFolder = @"C:\CODE\Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK\NextGenSoftware.OASIS.STAR.TestHarness\Genesis\CSharp";
-        public string GenesisRustFolder = @"C:\CODE\Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK\NextGenSoftware.OASIS.STAR.TestHarness\bin\Release\net5.0\Genesis\Rust";
-        public string GenesisCSharpFolder = @"C:\CODE\Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK\NextGenSoftware.OASIS.STAR.TestHarness\bin\Release\net5.0\Genesis\CSharp";
+        public string BasePath = @"C:\Users\\david\source\repos\Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK";
+        public string RustDNAReduxTemplateFolder = @"NextGenSoftware.OASIS.STAR\RustDNATemplates\Redux";
+        public string RustDNARSMTemplateFolder = @"NextGenSoftware.OASIS.STAR\RustDNATemplates\RSM";
+        public string CSharpDNATemplateFolder = @"NextGenSoftware.OASIS.STAR\CSharpDNATemplates";
+        public string CelestialBodyDNA = @"NextGenSoftware.OASIS.STAR.TestHarness\CelestialBodyDNA";
+        public string GenesisRustFolder = @"NextGenSoftware.OASIS.STAR.TestHarness\bin\Release\net5.0\Genesis\Rust";
+        public string GenesisCSharpFolder = @"NextGenSoftware.OASIS.STAR.TestHarness\bin\Release\net5.0\Genesis\CSharp";
+        //public string RustDNAReduxTemplateFolder = @"C:\CODE\Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK\NextGenSoftware.OASIS.STAR\RustDNATemplates\Redux";
+        //public string RustDNARSMTemplateFolder = @"C:\CODE\Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK\NextGenSoftware.OASIS.STAR\RustDNATemplates\RSM";
+        //public string CSharpDNATemplateFolder = @"C:\CODE\Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK\NextGenSoftware.OASIS.STAR\CSharpDNATemplates";
+        //public string CelestialBodyDNA = @"C:\CODE\Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK\NextGenSoftware.OASIS.STAR.TestHarness\CelestialBodyDNA";
+        //public string GenesisRustFolder = @"C:\CODE\Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK\NextGenSoftware.OASIS.STAR.TestHarness\bin\Release\net5.0\Genesis\Rust";
+        //public string GenesisCSharpFolder = @"C:\CODE\Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK\NextGenSoftware.OASIS.STAR.TestHarness\bin\Release\net5.0\Genesis\CSharp";
         public string GenesisNamespace = "NextGenSoftware.OASIS.STAR.TestHarness.Genesis";
         public string TemplateNamespace = "NextGenSoftware.OASIS.STAR.CSharpTemplates";
         public string RustTemplateLib = @"core\lib.rs";

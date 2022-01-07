@@ -15,6 +15,10 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces
         // Using the multiple interfaces workaround seems to only work for methods, but not properties?
 
         new Guid Id { get; set; }
+        public string Username { get; set; }
+        public string Email { get; set; }
+
+        /*
         string Title { get; set; }
         string FirstName { get; set; }
         string LastName { get; set; }
@@ -23,16 +27,17 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces
         string Email { get; set; }
        // string Password { get; set; } //Password only needed for SSO so is only in Avatar Object.
         //END DUPLICATION
+        */
 
         List<Achievement> Achievements { get; set; }
         string Address { get; set; }
         AvatarAttributes Attributes { get; set; }
         AvatarAura Aura { get; set; }
-        EnumValue<AvatarType> AvatarType { get; set; }
+        //EnumValue<AvatarType> AvatarType { get; set; }
         AvatarChakras Chakras { get; set; }
         string Country { get; set; }
         string County { get; set; }
-        EnumValue<OASISType> CreatedOASISType { get; set; }
+        //EnumValue<OASISType> CreatedOASISType { get; set; }
         Dictionary<DimensionLevel, Guid> DimensionLevelIds { get; set; }
         Dictionary<DimensionLevel, IHolon> DimensionLevels { get; set; }
         DateTime DOB { get; set; }
@@ -49,7 +54,7 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces
         int Level { get; }
         string Mobile { get; set; }
         string Model3D { get; set; }
-        IOmiverse Omiverse { get; set; }
+        IOmiverse Omniverse { get; set; }
         string Postcode { get; set; }
         Dictionary<ProviderType, string> ProviderPrivateKey { get; set; }
         Dictionary<ProviderType, string> ProviderPublicKey { get; set; }
@@ -65,10 +70,10 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces
         int XP { get; set; }
 
         //bool HasHolonChanged(bool checkChildren = true);
-        KarmaAkashicRecord KarmaEarnt(KarmaTypePositive karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc, string webLink = null, bool autoSave = true, int karmaOverride = 0);
-        Task<KarmaAkashicRecord> KarmaEarntAsync(KarmaTypePositive karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc, string webLink = null, bool autoSave = true, int karmaOverride = 0);
-        KarmaAkashicRecord KarmaLost(KarmaTypeNegative karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc, string webLink = null, bool autoSave = true, int karmaOverride = 0);
-        Task<KarmaAkashicRecord> KarmaLostAsync(KarmaTypeNegative karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc, string webLink = null, bool autoSave = true, int karmaOverride = 0);
+        OASISResult<KarmaAkashicRecord> KarmaEarnt(KarmaTypePositive karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc, string webLink = null, bool autoSave = true, int karmaOverride = 0);
+        Task<OASISResult<KarmaAkashicRecord>> KarmaEarntAsync(KarmaTypePositive karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc, string webLink = null, bool autoSave = true, int karmaOverride = 0);
+        OASISResult<KarmaAkashicRecord> KarmaLost(KarmaTypeNegative karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc, string webLink = null, bool autoSave = true, int karmaOverride = 0);
+        Task<OASISResult<KarmaAkashicRecord>> KarmaLostAsync(KarmaTypeNegative karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc, string webLink = null, bool autoSave = true, int karmaOverride = 0);
         IAvatarDetail Save();
         Task<IAvatarDetail> SaveAsync();
     }

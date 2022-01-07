@@ -8,15 +8,26 @@
         .contact-Popup {
             .custom-ag-parent {
                 margin-bottom: 20px;
+                height: 320px;
             }
             .button-bar {
                 display: grid;
                 grid-template-columns: auto auto auto auto 1fr;
                 grid-gap: 20px;
                 @media screen and (min-width:320px) and (max-width:767px) {
-                    grid-template-rows: auto auto auto auto 1fr; 
                     grid-template-columns: 1fr;
                     // justify-items: center;
+                }
+                @media screen and (min-width:768px) and (max-width:1023px) {
+                    grid-gap: 10px;
+                }
+                button {
+                    @media screen and (min-width:320px) and (max-width:767px) {
+                        width: 100%;
+                    } 
+                    @media screen and (min-width:768px) and (max-width:1023px) {
+                        width: 110px;
+                    } 
                 }
             }
             .right-btn {
@@ -29,13 +40,17 @@
                     grid-template-columns: 1fr;
                     justify-items: end;
                 }
-            }
-            .single-btn {
-                background: #fff;
-                border-radius: 4px;
-                height: 30px;
-                width: 130px;
-                font-size: 16px;
+                @media screen and (min-width:768px) and (max-width:1023px) {
+                    grid-gap: 10px;
+                }
+                button {
+                    @media screen and (min-width:320px) and (max-width:767px) {
+                        width: 100%;
+                    } 
+                    @media screen and (min-width:768px) and (max-width:1023px) {
+                        width: 110px;
+                    } 
+                }
             }
         }
     }
