@@ -20,7 +20,10 @@ namespace NextGenSoftware.OASIS.API.DNA
 
     public class SecuritySettings
     {
-        public bool DoesAvatarNeedToBeVerifiedBeforeLogin { get; set; }
+        public bool HideVerificationToken { get; set; }  
+        public bool HideRefreshTokens { get; set; }
+        public bool SendVerificationEmail { get; set; }
+        //public bool DoesAvatarNeedToBeVerifiedBeforeLogin { get; set; }
         public string Secret { get; set; }
         public int RemoveOldRefreshTokensAfterXDays{ set; get;}
         public EncryptionSettings AvatarPassword { get; set; }

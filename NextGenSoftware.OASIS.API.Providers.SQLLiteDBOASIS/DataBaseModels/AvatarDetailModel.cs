@@ -8,6 +8,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core.Helpers;
+using NextGenSoftware.OASIS.API.Core.Interfaces;
 
 namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.DataBaseModels{
 
@@ -103,7 +104,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.DataBaseModels{
         //public IHolon Original { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
         
         public AvatarDetailModel(){}
-        public AvatarDetailModel(AvatarDetail source){
+        public AvatarDetailModel(IAvatarDetail source){
 
             if(source.Id == Guid.Empty){
                 this.Id = Guid.NewGuid().ToString();

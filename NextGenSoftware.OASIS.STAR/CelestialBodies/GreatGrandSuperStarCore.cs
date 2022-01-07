@@ -11,7 +11,7 @@ using NextGenSoftware.OASIS.STAR.CelestialSpace;
 
 namespace NextGenSoftware.OASIS.STAR
 {
-    // At the centre of the Omiverse (there can only be ONE) ;-) (creates Multiverses (with a GrandSuperStar/Prime Creator at the centre of each).  Spirit/God/The Divine, etc
+    // At the centre of the Omniverse (there can only be ONE) ;-) (creates Multiverses (with a GrandSuperStar/Prime Creator at the centre of each).  Spirit/God/The Divine, etc
     public class GreatGrandSuperStarCore : CelestialBodyCore, IGreatGrandSuperStarCore
     {
         public IGreatGrandSuperStar GreatGrandSuperStar { get; set; }
@@ -31,29 +31,49 @@ namespace NextGenSoftware.OASIS.STAR
             GreatGrandSuperStar = greatGrandSuperStar;
         }
 
-        public async Task<OASISResult<IOmiverse>> AddOmiverseAsync(IOmiverse omiverse)
+        public async Task<OASISResult<IOmiverse>> AddOmiverseAsync(IOmiverse omniverse)
         {
             OASISResult<IOmiverse> result = new OASISResult<IOmiverse>();
-            OASISResult<IHolon> holonResult = await SaveHolonAsync(omiverse, false);
+            OASISResult<IHolon> holonResult = await SaveHolonAsync(omniverse, false);
 
             if (!holonResult.IsError && holonResult.Result != null)
-                result.Result = Mapper<IHolon, Omiverse>.MapBaseHolonProperties(holonResult.Result);
+                result.Result = (IOmiverse)holonResult.Result;
+                //result.Result = Mapper<IHolon, Omniverse>.MapBaseHolonProperties(holonResult.Result);
             else
                 OASISResultHolonToHolonHelper<IHolon, IOmiverse>.CopyResult(holonResult, result);
 
             return result;
         }
 
-        public OASISResult<IOmiverse> AddOmiverse(IOmiverse omiverse)
+        /*
+        public async Task<OASISResult<IOmiverse>> AddOmiverseAsync(IOmiverse omniverse)
         {
-            return AddOmiverseAsync(omiverse).Result;
+            OASISResult<IOmiverse> result = new OASISResult<IOmiverse>();
+            OASISResult<Omniverse> holonResult = await SaveHolonAsync<Omniverse>(omniverse, false);
+
+            if (!result.IsError && holonResult.Result != null)
+                result.Result = Mapper<IHolon, Omniverse>.MapBaseHolonProperties(holonResult.Result);
+            else
+                OASISResultHolonToHolonHelper<Omniverse, IOmiverse>.CopyResult(holonResult, result);
+
+            return result;
+        }
+
+        public async Task<OASISResult<Omniverse>> AddOmiverseAsync(IOmiverse omniverse)
+        {
+            return await SaveHolonAsync<Omniverse>(omniverse, false);
+        }*/
+
+        public OASISResult<IOmiverse> AddOmiverse(IOmiverse omniverse)
+        {
+            return AddOmiverseAsync(omniverse).Result;
         }
 
         public async Task<OASISResult<IDimension>> AddDimensionToOmniverseAsync(IDimension dimension)
         {
             return OASISResultHolonToHolonHelper<IHolon, IDimension>.CopyResult(
                 await AddHolonToCollectionAsync(GreatGrandSuperStar, dimension, (List<IHolon>)Mapper<IDimension, Holon>.MapBaseHolonProperties(
-                    GreatGrandSuperStar.ParentOmiverse.Dimensions.CustomDimensions)), new OASISResult<IDimension>());
+                    GreatGrandSuperStar.ParentOmniverse.Dimensions.CustomDimensions)), new OASISResult<IDimension>());
         }
 
         public OASISResult<IDimension> AddDimensionToOmniverse(IDimension dimension)
@@ -67,25 +87,36 @@ namespace NextGenSoftware.OASIS.STAR
         /// <returns></returns>
         public async Task<OASISResult<IMultiverse>> AddMultiverseAsync(IMultiverse multiverse)
         {
-            OASISResult<IMultiverse> multiverseResult = OASISResultHolonToHolonHelper<IHolon, IMultiverse>.CopyResult(
-               await AddHolonToCollectionAsync(GreatGrandSuperStar, multiverse, (List<IHolon>)Mapper<IMultiverse, Holon>.MapBaseHolonProperties(
-                   GreatGrandSuperStar.ParentOmiverse.Multiverses)), new OASISResult<IMultiverse>());
+            if (multiverse.GrandSuperStar == null)
+                multiverse.GrandSuperStar = new GrandSuperStar();
+
+            if (multiverse.GrandSuperStar.Id == Guid.Empty)
+            {
+                multiverse.GrandSuperStar.Id = Guid.NewGuid();
+                multiverse.GrandSuperStar.IsNewHolon = true;
+            }
+
+            multiverse.ParentGrandSuperStar = multiverse.GrandSuperStar;
+            multiverse.ParentGrandSuperStarId = multiverse.GrandSuperStar.Id;
+
+            OASISResult<IHolon> holonResult =  await AddHolonToCollectionAsync(GreatGrandSuperStar, multiverse, (List<IHolon>)Mapper<IMultiverse, Holon>.Convert(GreatGrandSuperStar.ParentOmniverse.Multiverses));
+            OASISResult<IMultiverse> multiverseResult = OASISResultHolonToHolonHelper<IHolon, IMultiverse>.CopyResult(holonResult, new OASISResult<IMultiverse>());
+            multiverseResult.Result = (IMultiverse)holonResult.Result;
 
             if (!multiverseResult.IsError && multiverseResult.Result != null)
             {
-                Mapper<IHolon, Multiverse>.MapBaseHolonProperties(multiverseResult.Result, (Multiverse)multiverse);
-
-                multiverseResult.Result.GrandSuperStar.ParentOmiverse = multiverse.ParentOmiverse;
-                multiverseResult.Result.GrandSuperStar.ParentOmiverseId = multiverse.ParentOmiverseId;
-                multiverseResult.Result.GrandSuperStar.ParentMultiverse = multiverse;
-                multiverseResult.Result.GrandSuperStar.ParentMultiverseId = multiverse.Id;
+                Mapper<IMultiverse, GrandSuperStar>.MapParentCelestialBodyProperties(multiverseResult.Result, (GrandSuperStar)multiverseResult.Result.GrandSuperStar);
+                multiverseResult.Result.GrandSuperStar.ParentMultiverse = multiverseResult.Result;
+                multiverseResult.Result.GrandSuperStar.ParentMultiverseId = multiverseResult.Result.Id;
+                multiverseResult.Result.GrandSuperStar.ParentGrandSuperStar = null;
+                multiverseResult.Result.GrandSuperStar.ParentGrandSuperStarId = Guid.Empty;
 
                 // Now we need to save the GrandSuperStar as a seperate Holon to get a Id.
-                OASISResult<IHolon> grandSuperStarResult = await SaveHolonAsync(multiverseResult.Result.GrandSuperStar);
+                OASISResult<IHolon> grandSuperStarResult = await SaveHolonAsync(multiverseResult.Result.GrandSuperStar, false);
 
                 if (!grandSuperStarResult.IsError && grandSuperStarResult.Result != null)
                 {
-                    Mapper<IHolon, GrandSuperStar>.MapBaseHolonProperties(grandSuperStarResult.Result, (GrandSuperStar)multiverseResult.Result.GrandSuperStar);
+                    //Mapper<IHolon, GrandSuperStar>.MapBaseHolonProperties(grandSuperStarResult.Result, (GrandSuperStar)multiverseResult.Result.GrandSuperStar, false);
 
                     // The GrandSuperStar at the centre of the new Multiverse is resposnsible for creating its own child dimensions and universes.
                     // Create's the ThirdDimension within the new Multiverse along with a child MagicVerse and UniversePrime.
@@ -110,16 +141,16 @@ namespace NextGenSoftware.OASIS.STAR
         {
             //return OASISResultHolonToHolonHelper<IHolon, IMultiverse>.CopyResult(
             //    await AddHolonToCollectionAsync(GreatGrandSuperStar, multiverse, (List<IHolon>)Mapper<IMultiverse, Holon>.MapBaseHolonProperties(
-            //        GreatGrandSuperStar.ParentOmiverse.Multiverses)), new OASISResult<IMultiverse>());
+            //        GreatGrandSuperStar.ParentOmniverse.Multiverses)), new OASISResult<IMultiverse>());
 
             OASISResult<IMultiverse> multiverseResult = OASISResultHolonToHolonHelper<IHolon, IMultiverse>.CopyResult(
                await AddHolonToCollectionAsync(GreatGrandSuperStar, multiverse, (List<IHolon>)Mapper<IMultiverse, Holon>.MapBaseHolonProperties(
-                   GreatGrandSuperStar.ParentOmiverse.Multiverses)), new OASISResult<IMultiverse>());
+                   GreatGrandSuperStar.ParentOmniverse.Multiverses)), new OASISResult<IMultiverse>());
 
             if (!multiverseResult.IsError && multiverseResult.Result != null)
             {
-                multiverseResult.Result.GrandSuperStar.ParentOmiverse = multiverse.ParentOmiverse;
-                multiverseResult.Result.GrandSuperStar.ParentOmiverseId = multiverse.ParentOmiverseId;
+                multiverseResult.Result.GrandSuperStar.ParentOmniverse = multiverse.ParentOmniverse;
+                multiverseResult.Result.GrandSuperStar.ParentOmniverseId = multiverse.ParentOmniverseId;
                 multiverseResult.Result.GrandSuperStar.ParentMultiverse = multiverse;
                 multiverseResult.Result.GrandSuperStar.ParentMultiverseId = multiverse.Id;
 
@@ -131,8 +162,8 @@ namespace NextGenSoftware.OASIS.STAR
                     Mapper<IHolon, GrandSuperStar>.MapBaseHolonProperties(grandSuperStarResult.Result, (GrandSuperStar)multiverseResult.Result.GrandSuperStar);
 
                     //TODO: I THINK THE GRAND SUPERSTAR SHOULD BE CREATING IT'S OWN DIMENSIONS AND UNIVERSES INSIDE ITS MULTIVERSE?
-                    multiverseResult.Result.Dimensions.ThirdDimension.ParentOmiverse = multiverse.ParentOmiverse;
-                    multiverseResult.Result.Dimensions.ThirdDimension.ParentOmiverseId = multiverse.ParentOmiverseId;
+                    multiverseResult.Result.Dimensions.ThirdDimension.ParentOmniverse = multiverse.ParentOmniverse;
+                    multiverseResult.Result.Dimensions.ThirdDimension.ParentOmniverseId = multiverse.ParentOmniverseId;
                     multiverseResult.Result.Dimensions.ThirdDimension.ParentMultiverse = multiverse;
                     multiverseResult.Result.Dimensions.ThirdDimension.ParentMultiverseId = multiverse.Id;
                     multiverseResult.Result.Dimensions.ThirdDimension.ParentGrandSuperStar = (GrandSuperStar)grandSuperStarResult.Result;
@@ -145,8 +176,8 @@ namespace NextGenSoftware.OASIS.STAR
                     {
                         Mapper<IHolon, ThirdDimension>.MapBaseHolonProperties(thirdDimensionResult.Result, (ThirdDimension)multiverseResult.Result.Dimensions.ThirdDimension);
 
-                        multiverseResult.Result.Dimensions.ThirdDimension.MagicVerse.ParentOmiverse = multiverse.ParentOmiverse;
-                        multiverseResult.Result.Dimensions.ThirdDimension.MagicVerse.ParentOmiverseId = multiverse.ParentOmiverseId;
+                        multiverseResult.Result.Dimensions.ThirdDimension.MagicVerse.ParentOmniverse = multiverse.ParentOmniverse;
+                        multiverseResult.Result.Dimensions.ThirdDimension.MagicVerse.ParentOmniverseId = multiverse.ParentOmniverseId;
                         multiverseResult.Result.Dimensions.ThirdDimension.MagicVerse.ParentMultiverse = multiverse;
                         multiverseResult.Result.Dimensions.ThirdDimension.MagicVerse.ParentMultiverseId = multiverse.Id;
                         multiverseResult.Result.Dimensions.ThirdDimension.MagicVerse.ParentGrandSuperStar = (GrandSuperStar)grandSuperStarResult.Result;
@@ -159,8 +190,8 @@ namespace NextGenSoftware.OASIS.STAR
                         {
                             Mapper<IHolon, Universe>.MapBaseHolonProperties(thirdDimensionResult.Result, (Universe)multiverseResult.Result.Dimensions.ThirdDimension.MagicVerse);
 
-                            multiverseResult.Result.Dimensions.ThirdDimension.UniversePrime.ParentOmiverse = multiverse.ParentOmiverse;
-                            multiverseResult.Result.Dimensions.ThirdDimension.UniversePrime.ParentOmiverseId = multiverse.ParentOmiverseId;
+                            multiverseResult.Result.Dimensions.ThirdDimension.UniversePrime.ParentOmniverse = multiverse.ParentOmniverse;
+                            multiverseResult.Result.Dimensions.ThirdDimension.UniversePrime.ParentOmniverseId = multiverse.ParentOmniverseId;
                             multiverseResult.Result.Dimensions.ThirdDimension.UniversePrime.ParentMultiverse = multiverse;
                             multiverseResult.Result.Dimensions.ThirdDimension.UniversePrime.ParentMultiverseId = multiverse.Id;
                             multiverseResult.Result.Dimensions.ThirdDimension.UniversePrime.ParentGrandSuperStar = (GrandSuperStar)grandSuperStarResult.Result;
@@ -237,7 +268,7 @@ namespace NextGenSoftware.OASIS.STAR
         public async Task<OASISResult<IEnumerable<IMultiverse>>> GetAllMultiversesForOmiverseAsync(bool refresh = true)
         {
             OASISResult<IEnumerable<IMultiverse>> result = new OASISResult<IEnumerable<IMultiverse>>();
-            OASISResult<IEnumerable<IHolon>> holonResult = await GetHolonsAsync(GreatGrandSuperStar.ParentOmiverse.Multiverses, HolonType.Multiverse, refresh);
+            OASISResult<IEnumerable<IHolon>> holonResult = await GetHolonsAsync(GreatGrandSuperStar.ParentOmniverse.Multiverses, HolonType.Multiverse, refresh);
             OASISResultCollectionToCollectionHelper<IEnumerable<IHolon>, IEnumerable<IMultiverse>>.CopyResult(holonResult, ref result);
             result.Result = Mapper<IHolon, Multiverse>.MapBaseHolonProperties(holonResult.Result);
             return result;
@@ -290,11 +321,11 @@ namespace NextGenSoftware.OASIS.STAR
                 }
             }
 
-            universes.AddRange(GreatGrandSuperStar.ParentOmiverse.Dimensions.EighthDimension.SuperVerse.Universes);
-            universes.AddRange(GreatGrandSuperStar.ParentOmiverse.Dimensions.NinthDimension.SuperVerse.Universes);
-            universes.AddRange(GreatGrandSuperStar.ParentOmiverse.Dimensions.TenthDimension.SuperVerse.Universes);
-            universes.AddRange(GreatGrandSuperStar.ParentOmiverse.Dimensions.EleventhDimension.SuperVerse.Universes);
-            universes.AddRange(GreatGrandSuperStar.ParentOmiverse.Dimensions.TwelfthDimension.SuperVerse.Universes);
+            universes.AddRange(GreatGrandSuperStar.ParentOmniverse.Dimensions.EighthDimension.SuperVerse.Universes);
+            universes.AddRange(GreatGrandSuperStar.ParentOmniverse.Dimensions.NinthDimension.SuperVerse.Universes);
+            universes.AddRange(GreatGrandSuperStar.ParentOmniverse.Dimensions.TenthDimension.SuperVerse.Universes);
+            universes.AddRange(GreatGrandSuperStar.ParentOmniverse.Dimensions.EleventhDimension.SuperVerse.Universes);
+            universes.AddRange(GreatGrandSuperStar.ParentOmniverse.Dimensions.TwelfthDimension.SuperVerse.Universes);
 
             result.Result = universes;
             return result;
@@ -347,13 +378,13 @@ namespace NextGenSoftware.OASIS.STAR
                     dimensions.AddRange(multiverse.Dimensions.CustomDimensions);
                 }
 
-                //Now add the Omiverse Dimensions (exist outside of the multiverses and spam across the entire Omiverse).
-                dimensions.Add(GreatGrandSuperStar.ParentOmiverse.Dimensions.EighthDimension);
-                dimensions.Add(GreatGrandSuperStar.ParentOmiverse.Dimensions.NinthDimension);
-                dimensions.Add(GreatGrandSuperStar.ParentOmiverse.Dimensions.TenthDimension);
-                dimensions.Add(GreatGrandSuperStar.ParentOmiverse.Dimensions.EleventhDimension);
-                dimensions.Add(GreatGrandSuperStar.ParentOmiverse.Dimensions.TwelfthDimension);
-                dimensions.AddRange(GreatGrandSuperStar.ParentOmiverse.Dimensions.CustomDimensions);
+                //Now add the Omniverse Dimensions (exist outside of the multiverses and spam across the entire Omniverse).
+                dimensions.Add(GreatGrandSuperStar.ParentOmniverse.Dimensions.EighthDimension);
+                dimensions.Add(GreatGrandSuperStar.ParentOmniverse.Dimensions.NinthDimension);
+                dimensions.Add(GreatGrandSuperStar.ParentOmniverse.Dimensions.TenthDimension);
+                dimensions.Add(GreatGrandSuperStar.ParentOmniverse.Dimensions.EleventhDimension);
+                dimensions.Add(GreatGrandSuperStar.ParentOmniverse.Dimensions.TwelfthDimension);
+                dimensions.AddRange(GreatGrandSuperStar.ParentOmniverse.Dimensions.CustomDimensions);
 
                 result.Result = dimensions;
             }

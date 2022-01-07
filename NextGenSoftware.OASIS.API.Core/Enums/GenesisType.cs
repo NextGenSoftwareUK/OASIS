@@ -3,7 +3,7 @@ namespace NextGenSoftware.OASIS.API.Core.Enums
 {
     public enum GenesisType
     {
-        //GreatGrandSuperStar, // Built-in and there will only ever be ONE of this within the OASIS. (Omiverse)
+        //GreatGrandSuperStar, // Built-in and there will only ever be ONE of this within the OASIS. (Omniverse)
        // GrandSuperStar, //level 166 (max level for avatar?) ( Universe)
        // SuperStar, //level 133 (Galaxy) Cannot create a SuperStar on its own, you create a Galaxy which comes with a new SuperStar at the centre.
         Moon, //Level 1

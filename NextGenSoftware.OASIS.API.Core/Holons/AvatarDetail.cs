@@ -12,6 +12,11 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
 {
     public class AvatarDetail : Holon, IAvatarDetail
     {
+        public AvatarDetail()
+        {
+            this.HolonType = HolonType.AvatarDetail;
+        }
+
         //FORCE TO DUPLICATE THESE PROPERTIES FROM AVATAR BECAUSE MULTIPLE INHERIETANCE NOT SUPPORTED IN C#! :(
         //TODO: Be good if we can find a better work around?! ;-)
 
@@ -26,7 +31,11 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
                 base.Id = value;
             }
         }
+        
+        public string Username { get; set; }
+        public string Email { get; set; }
 
+        /*
         public new string Name
         {
             get
@@ -36,9 +45,8 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
         }
 
         public EnumValue<AvatarType> AvatarType { get; set; }
-        public string Username { get; set; }
+        
       //  public string Password { get; set; }
-        public string Email { get; set; }
         public string Title { get; set; }
         public string FirstName { get; set; }
         public string LastName { get; set; }
@@ -50,7 +58,7 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
             }
         }
         //END DUPLICATION
-
+        */
 
 
         //TODO: Think best to encrypt these?
@@ -79,7 +87,7 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
         // public int Karma { get; private set; }
         public int Karma { get; set; } //TODO: This really needs to have a private setter but in the HoloOASIS provider it needs to copy the object along with each property... would prefer another work around if possible?
         public int XP { get; set; }
-        public IOmiverse Omiverse { get; set; } //We have all of creation inside of us... ;-)
+        public IOmiverse Omniverse { get; set; } //We have all of creation inside of us... ;-)
         public List<AvatarGift> Gifts { get; set; } = new List<AvatarGift>();
         //public List<Chakra> Chakras { get; set; }
         public Dictionary<DimensionLevel, Guid> DimensionLevelIds { get; set; }
@@ -120,49 +128,60 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
         // A record of all the karma the user has earnt/lost along with when and where from.
         public List<KarmaAkashicRecord> KarmaAkashicRecords { get; set; }
 
-        public AvatarDetail()
-        {
-            this.HolonType = HolonType.Avatar;
-        }
-
-        public async Task<KarmaAkashicRecord> KarmaEarntAsync(KarmaTypePositive karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc, string webLink = null, bool autoSave = true, int karmaOverride = 0)
+        public async Task<OASISResult<KarmaAkashicRecord>> KarmaEarntAsync(KarmaTypePositive karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc, string webLink = null, bool autoSave = true, int karmaOverride = 0)
         {
             KarmaAkashicRecord record = AddKarmaToAkashicRecord(karmaType, karmaSourceType, karamSourceTitle, karmaSourceDesc, webLink, karmaOverride);
 
             if (autoSave)
+            {
+                this.IsNewHolon = false;
                 await SaveAsync();
+            }
 
-            return record;
+            //TODO: Handle OASISResult properly with Save above, etc.
+            return new OASISResult<KarmaAkashicRecord>(record);
         }
 
-        public KarmaAkashicRecord KarmaEarnt(KarmaTypePositive karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc, string webLink = null, bool autoSave = true, int karmaOverride = 0)
+        public OASISResult<KarmaAkashicRecord> KarmaEarnt(KarmaTypePositive karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc, string webLink = null, bool autoSave = true, int karmaOverride = 0)
         {
             KarmaAkashicRecord record = AddKarmaToAkashicRecord(karmaType, karmaSourceType, karamSourceTitle, karmaSourceDesc, webLink, karmaOverride);
 
             if (autoSave)
+            {
+                this.IsNewHolon = false;
                 Save();
+            }
 
-            return record;
+            //TODO: Handle OASISResult properly with Save above, etc.
+            return new OASISResult<KarmaAkashicRecord>(record);
         }
 
-        public async Task<KarmaAkashicRecord> KarmaLostAsync(KarmaTypeNegative karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc, string webLink = null, bool autoSave = true, int karmaOverride = 0)
+        public async Task<OASISResult<KarmaAkashicRecord>> KarmaLostAsync(KarmaTypeNegative karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc, string webLink = null, bool autoSave = true, int karmaOverride = 0)
         {
             KarmaAkashicRecord record = RemoveKarmaFromAkashicRecord(karmaType, karmaSourceType, karamSourceTitle, karmaSourceDesc, webLink, karmaOverride);
 
             if (autoSave)
+            {
+                this.IsNewHolon = false;
                 await SaveAsync();
+            }
 
-            return record;
+            //TODO: Handle OASISResult properly with Save above, etc.
+            return new OASISResult<KarmaAkashicRecord>(record);
         }
 
-        public KarmaAkashicRecord KarmaLost(KarmaTypeNegative karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc, string webLink = null, bool autoSave = true, int karmaOverride = 0)
+        public OASISResult<KarmaAkashicRecord> KarmaLost(KarmaTypeNegative karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc, string webLink = null, bool autoSave = true, int karmaOverride = 0)
         {
             KarmaAkashicRecord record = RemoveKarmaFromAkashicRecord(karmaType, karmaSourceType, karamSourceTitle, karmaSourceDesc, webLink, karmaOverride);
 
             if (autoSave)
+            {
+                this.IsNewHolon = false;
                 Save();
+            }
 
-            return record;
+            //TODO: Handle OASISResult properly with Save above, etc.
+            return new OASISResult<KarmaAkashicRecord>(record);
         }
 
         private KarmaAkashicRecord AddKarmaToAkashicRecord(KarmaTypePositive karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc, string webLink = null, int karmaOverride = 0)
@@ -229,7 +248,7 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
             return record;
         }
 
-       
+
 
         public override bool HasHolonChanged(bool checkChildren = true)
         {
@@ -238,8 +257,8 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
                 if (((IAvatarDetail)Original).DOB != DOB)
                     return true;
 
-                if (((IAvatarDetail)Original).Email != Email)
-                    return true;
+                //if (((IAvatarDetail)Original).Email != Email)
+                //    return true;
 
                 //TODO: Finish this ASAP!
             }
@@ -375,11 +394,12 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
 
         public new async Task<IAvatarDetail> SaveAsync()
         {
-            return await (ProviderManager.CurrentStorageProvider).SaveAvatarDetailAsync(this);
+            OASISResult<IAvatarDetail> result = await (ProviderManager.CurrentStorageProvider).SaveAvatarDetailAsync(this);
+            return result.Result;
         }
         public new IAvatarDetail Save()
         {
-            return (ProviderManager.CurrentStorageProvider).SaveAvatarDetail(this);
+            return (ProviderManager.CurrentStorageProvider).SaveAvatarDetail(this).Result;
         }
     }
 }

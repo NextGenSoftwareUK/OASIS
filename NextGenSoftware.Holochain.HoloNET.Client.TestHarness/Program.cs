@@ -2,7 +2,7 @@
 using System.Threading.Tasks;
 using NextGenSoftware.Holochain.HoloNET.Client.Core;
 using NextGenSoftware.Holochain.HoloNET.Client.Desktop;
-
+using NextGenSoftware.WebSocket;
 
 namespace NextGenSoftware.Holochain.HoloNET.Client.TestHarness
 {
@@ -33,7 +33,7 @@ namespace NextGenSoftware.Holochain.HoloNET.Client.TestHarness
 
 
             // holoNETClient.HolochainVersion = HolochainVersion.RSM;
-            holoNETClient.Config.NeverTimeOut = true;
+            holoNETClient.WebSocket.Config.NeverTimeOut = true;
             //holoNETClient.Config.ErrorHandlingBehaviour = ErrorHandlingBehaviour.OnlyThrowExceptionIfNoErrorHandlerSubscribedToOnErrorEvent
             holoNETClient.Config.AutoStartConductor = false;
             holoNETClient.Config.AutoShutdownConductor = false;
@@ -50,16 +50,20 @@ namespace NextGenSoftware.Holochain.HoloNET.Client.TestHarness
 
             await holoNETClient.Connect();
 
-            //if (holoNETClient.State == System.Net.WebSockets.WebSocketState.Open)
-            if (holoNETClient.State2 == WebSocketState2.Open)
+            if (holoNETClient.State == System.Net.WebSockets.WebSocketState.Open)
+            //if (holoNETClient.State2 == WebSocketState2.Open)
             {
                 // await holoNETClient.GetHolochainInstancesAsync();
-                await holoNETClient.CallZomeFunctionAsync("1", "test-instance", "our_world_core", "test", ZomeCallback, null);
+                //await holoNETClient.CallZomeFunctionAsync("1", "test-instance", "our_world_core", "test", ZomeCallback, null);
 
-               // await holoNETClient.CallZomeFunctionAsync("1", "test-instance", "our_world_core", "test", ZomeCallback, new { message = new { content = "blah!" } });
+                await holoNETClient.CallZomeFunctionAsync("1", "test-instance", "whoami", "whoami", ZomeCallback, null);
+
+                await holoNETClient.CallZomeFunctionAsync("1", "test-instance", "numbers", "add_ten", ZomeCallback, new { number = 10 });
+
+                 //await holoNETClient.CallZomeFunctionAsync("1", "test-instance", "our_world_core", "test", ZomeCallback, new { message = new { content = "blah!" } });
                 //await holoNETClient.CallZomeFunctionAsync("2", "test-instance", "our_world_core", "test2", ZomeCallback, new { _message = "blah!" });
 
-               // await holoNETClient.CallZomeFunctionAsync("2", "test-instance", "our_world_core", "save_Avatar", ZomeCallback, new { address = "" });
+                // await holoNETClient.CallZomeFunctionAsync("2", "test-instance", "our_world_core", "save_Avatar", ZomeCallback, new { address = "" });
                 //await holoNETClient.CallZomeFunctionAsync("2", "test-instance", "our_world_core", "load_Avatar", ZomeCallback, new { address = "" });
 
                 // Load testing
@@ -123,7 +127,7 @@ namespace NextGenSoftware.Holochain.HoloNET.Client.TestHarness
             Console.WriteLine("");
         }
 
-        private static void HoloNETClient_OnDataReceived(object sender, DataReceivedEventArgs e)
+        private static void HoloNETClient_OnDataReceived(object sender, HoloNETDataReceivedEventArgs e)
         {
             if (!e.IsConductorDebugInfo)
             {

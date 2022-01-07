@@ -33,26 +33,46 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
         {
             try
             {
-                string dnaFolder = "C:\\CODE\\Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK\\NextGenSoftware.OASIS.STAR.TestHarness\\CelestialBodyDNA";
-                string cSharpGeneisFolder = "C:\\CODE\\Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK\\NextGenSoftware.OASIS.STAR.TestHarness\\bin\\Release\\net5.0\\Genesis\\CSharp";
-                string rustGenesisFolder = "C:\\CODE\\Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK\\NextGenSoftware.OASIS.STAR.TestHarness\\bin\\Release\\net5.0\\Genesis\\Rust";
+                string dnaFolder = "C:\\Users\\david\\source\\repos\\Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK\\NextGenSoftware.OASIS.STAR.TestHarness\\CelestialBodyDNA";
+                string cSharpGeneisFolder = "C:\\Users\\david\\source\\repos\\Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK\\NextGenSoftware.OASIS.STAR.TestHarness\\bin\\Release\\net6.0\\Genesis\\CSharp";
+                string rustGenesisFolder = "C:\\Users\\david\\source\\repos\\Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK\\NextGenSoftware.OASIS.STAR.TestHarness\\bin\\Release\\net6.0\\Genesis\\Rust";
 
                 ShowHeader();
                 ShowMessage("", false);
 
                 // TODO: Not sure what events should expose on Star, StarCore and HoloNETClient?
                 // I feel the events should at least be on the Star object, but then they need to be on the others to bubble them up (maybe could be hidden somehow?)
+                STAR.OnCelestialSpaceLoaded += STAR_OnCelestialSpaceLoaded;
+                STAR.OnCelestialSpaceSaved += STAR_OnCelestialSpaceSaved;
+                STAR.OnCelestialSpaceError += STAR_OnCelestialSpaceError;
+                STAR.OnCelestialSpacesLoaded += STAR_OnCelestialSpacesLoaded;
+                STAR.OnCelestialSpacesSaved += STAR_OnCelestialSpacesSaved;
+                STAR.OnCelestialSpacesError += STAR_OnCelestialSpacesError;
+                STAR.OnCelestialBodyLoaded += STAR_OnCelestialBodyLoaded;
+                STAR.OnCelestialBodySaved += STAR_OnCelestialBodySaved;
+                STAR.OnCelestialBodyError += STAR_OnCelestialBodyError;
+                STAR.OnCelestialBodiesLoaded += STAR_OnCelestialBodiesLoaded;
+                STAR.OnCelestialBodiesSaved += STAR_OnCelestialBodiesSaved;
+                STAR.OnCelestialBodiesError += STAR_OnCelestialBodiesError;
+                STAR.OnZomeLoaded += STAR_OnZomeLoaded;
+                STAR.OnZomeSaved += STAR_OnZomeSaved;
                 STAR.OnZomeError += STAR_OnZomeError;
+                STAR.OnZomesLoaded += STAR_OnZomesLoaded;
+                STAR.OnZomesSaved += STAR_OnZomesSaved;
+                STAR.OnZomesError += STAR_OnZomesError;
                 STAR.OnHolonLoaded += STAR_OnHolonLoaded;
-                STAR.OnHolonsLoaded += STAR_OnHolonsLoaded;
                 STAR.OnHolonSaved += STAR_OnHolonSaved;
-                STAR.OnStarIgnited += STAR_OnSuperStarIgnited;
-                STAR.OnStarError += STAR_OnSuperStarError;
-                STAR.OnStarStatusChanged += STAR_OnSuperStarStatusChanged;
+                STAR.OnHolonError += STAR_OnHolonError;
+                STAR.OnHolonsLoaded += STAR_OnHolonsLoaded;
+                STAR.OnHolonsSaved += STAR_OnHolonsSaved;
+                STAR.OnHolonsError += STAR_OnHolonsError;
+                STAR.OnStarIgnited += STAR_OnStarIgnited;
+                STAR.OnStarError += STAR_OnStarError;
+                STAR.OnStarStatusChanged += STAR_OnStarStatusChanged;
                 STAR.OnOASISBooted += STAR_OnOASISBooted;
                 STAR.OnOASISBootError += STAR_OnOASISBootError;
 
-                OASISResult<ICelestialBody> result = STAR.IgniteStar();
+                OASISResult<IOmiverse> result = STAR.IgniteStar();
 
                 if (result.IsError)
                     ShowErrorMessage(string.Concat("Error Igniting STAR. Error Message: ", result.Message));
@@ -72,6 +92,8 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
                     ShowMessage("", false);
 
                     await Test(dnaFolder, cSharpGeneisFolder, rustGenesisFolder);
+
+                    Console.ReadKey();
                 }
             }
             catch (Exception ex)
@@ -80,52 +102,6 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
                 ShowErrorMessage(string.Concat("An unknown error has occured. Error Details: ", ex.ToString()));
                 //AnsiConsole.WriteException(ex, ExceptionFormats.ShortenEverything);
             }
-        }
-
-        private static void STAR_OnSuperStarStatusChanged(object sender, EventArgs.StarStatusChangedEventArgs e)
-        {
-            switch (e.Status)
-            {
-                case Enums.StarStatus.BootingOASIS:
-                    ShowWorkingMessage("BOOTING OASIS...");
-                    break;
-
-                case Enums.StarStatus.OASISBooted:
-                    ShowSuccessMessage("OASIS BOOTED");
-                    break;
-
-                case Enums.StarStatus.Igniting:
-                    ShowWorkingMessage("IGNITING STAR..."); 
-                    break;
-
-                case Enums.StarStatus.Ingited:
-                    ShowSuccessMessage("STAR IGNITED");
-                    break;
-
-                    //case Enums.SuperStarStatus.Error:
-                    //  ShowErrorMessage("SuperStar Error");
-            }
-        }
-
-        private static void STAR_OnOASISBootError(object sender, OASISBootErrorEventArgs e)
-        {
-            //ShowErrorMessage(string.Concat("OASIS Boot Error. Reason: ", e.ErrorReason));
-            ShowErrorMessage(e.ErrorReason);
-        }
-
-        private static void STAR_OnOASISBooted(object sender, EventArgs.OASISBootedEventArgs e)
-        {
-            //ShowSuccessMessage(string.Concat("OASIS BOOTED.", e.Message));
-        }
-
-        private static void STAR_OnSuperStarError(object sender, EventArgs.StarErrorEventArgs e)
-        {
-           // ShowErrorMessage(string.Concat("Error Igniting SuperStar. Reason: ", e.Reason));
-        }
-
-        private static void STAR_OnSuperStarIgnited(object sender, System.EventArgs e)
-        {
-            //ShowSuccessMessage("SUPERSTAR IGNITED");
         }
 
         private static async Task Test(string dnaFolder, string cSharpGeneisFolder, string rustGenesisFolder)
@@ -223,19 +199,20 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
                 STAR.OASISAPI.Map.CreateAndDrawRouteOnMapBetweenHolons(newHolon, newHolon); // Load-balanced across all providers.
 
                 STAR.OASISAPI.Data.LoadHolon(newHolon.Id); // Load-balanced across all providers.
-                STAR.OASISAPI.Data.LoadHolon(newHolon.Id, ProviderType.IPFSOASIS); // Only loads from IPFS.
-                STAR.OASISAPI.Data.LoadAllHolons(HolonType.Moon, ProviderType.HoloOASIS); // Loads all moon (OAPPs) from Holochain.
+                STAR.OASISAPI.Data.LoadHolon(newHolon.Id, true, true, true, ProviderType.IPFSOASIS); // Only loads from IPFS.
+                STAR.OASISAPI.Data.LoadAllHolons(HolonType.Moon, true, true, true, ProviderType.HoloOASIS); // Loads all moon (OAPPs) from Holochain.
                 STAR.OASISAPI.Data.SaveHolon(newHolon); // Load-balanced across all providers.
-                STAR.OASISAPI.Data.SaveHolon(newHolon, true, ProviderType.EthereumOASIS); //  Only saves to Etherum.
+                STAR.OASISAPI.Data.SaveHolon(newHolon, true, true, true, ProviderType.EthereumOASIS); //  Only saves to Etherum.
 
-                STAR.OASISAPI.Data.LoadAllHolons(HolonType.All, ProviderType.Default); // Loads all parks from current default provider.
-                STAR.OASISAPI.Data.LoadAllHolons(HolonType.Park, ProviderType.All); // Loads all parks from all providers (load-balanced/fail over).
+                STAR.OASISAPI.Data.LoadAllHolons(HolonType.All, true, true, true, ProviderType.Default); // Loads all parks from current default provider.
+                STAR.OASISAPI.Data.LoadAllHolons(HolonType.Park, true, true, true, ProviderType.All); // Loads all parks from all providers (load-balanced/fail over).
                 STAR.OASISAPI.Data.LoadAllHolons(HolonType.Park); // shorthand for above.
                 STAR.OASISAPI.Data.LoadAllHolons(HolonType.Quest); //  Loads all quests from all providers.
                 STAR.OASISAPI.Data.LoadAllHolons(HolonType.Restaurant); //  Loads all resaurants from all providers.
 
                 // Holochain Support
-                await STAR.OASISAPI.Providers.Holochain.HoloNETClient.CallZomeFunctionAsync(STAR.OASISAPI.Providers.Holochain.HoloNETClient.AgentPubKey, "our_world_core", "load_holons", null);
+                //TODO: Sort this out soon! ;-)
+                await STAR.OASISAPI.Providers.Holochain.HoloNETClient.CallZomeFunctionAsync(STAR.OASISAPI.Providers.Holochain.HoloNETClient.Config.AgentPubKey, "our_world_core", "load_holons", null);
 
                 // IPFS Support
                 await STAR.OASISAPI.Providers.IPFS.IPFSEngine.FileSystem.ReadFileAsync("");
@@ -399,78 +376,6 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
         //    Console.WriteLine(string.Concat("HoloNET Client Error Occured. EndPoint: ", e.EndPoint, ". Reason: ", e.Reason, ". Error Details: ", e.ErrorDetails, "EndPoint: ", e.EndPoint));
         //}
 
-        private static void StarCore_OnZomeError(object sender, ZomeErrorEventArgs e)
-        {
-            //Console.WriteLine(string.Concat("Star Core Error Occured. EndPoint: ", e.EndPoint, ". Reason: ", e.Reason, ". Error Details: ", e.ErrorDetails, "HoloNETErrorDetails.Reason: ", e.HoloNETErrorDetails.Reason, "HoloNETErrorDetails.ErrorDetails: ", e.HoloNETErrorDetails.ErrorDetails));
-            ShowErrorMessage(string.Concat(" Star Core Error Occured. EndPoint: ", e.EndPoint, ". Reason: ", e.Reason, ". Error Details: ", e.ErrorDetails));
-        }
-
-        private static void STAR_OnInitialized(object sender, System.EventArgs e)
-        {
-            ShowSuccessMessage(" STAR Initialized.");
-        }
-
-        private static void STAR_OnHolonSaved(object sender, HolonSavedEventArgs e)
-        {
-            if (e.Result.IsError)
-                ShowErrorMessage(e.Result.Message);
-            else
-                ShowSuccessMessage(string.Concat(" STAR Holons Saved. Holon Saved: ", e.Result.Result.Name));
-        }
-
-        private static void STAR_OnHolonsLoaded(object sender, HolonsLoadedEventArgs e)
-        {
-            ShowSuccessMessage(string.Concat(" STAR Holons Loaded. Holons Loaded: ", e.Result.Result.Count()));
-        }
-
-        private static void STAR_OnHolonLoaded(object sender, HolonLoadedEventArgs e)
-        {
-            ShowSuccessMessage(string.Concat(" STAR Holons Loaded. Holon Name: ", e.Result.Result.Name));
-        }
-
-        private static void STAR_OnZomeError(object sender, ZomeErrorEventArgs e)
-        {
-            //Console.WriteLine(string.Concat("Star Error Occured. EndPoint: ", e.EndPoint, ". Reason: ", e.Reason, ". Error Details: ", e.ErrorDetails, "HoloNETErrorDetails.Reason: ", e.HoloNETErrorDetails.Reason, "HoloNETErrorDetails.ErrorDetails: ", e.HoloNETErrorDetails.ErrorDetails));
-            ShowErrorMessage(string.Concat(" STAR Error Occured. EndPoint: ", e.EndPoint, ". Reason: ", e.Reason, ". Error Details: ", e.ErrorDetails));
-        }
-
-        private static void OurWorld_OnZomeError(object sender, ZomeErrorEventArgs e)
-        {
-            //Console.WriteLine(string.Concat("Our World Error Occured. EndPoint: ", e.EndPoint, ". Reason: ", e.Reason, ". Error Details: ", e.ErrorDetails, "HoloNETErrorDetails.Reason: ", e.HoloNETErrorDetails.Reason, "HoloNETErrorDetails.ErrorDetails: ", e.HoloNETErrorDetails.ErrorDetails));
-            ShowErrorMessage(string.Concat(" Our World Error Occured. EndPoint: ", e.EndPoint, ". Reason: ", e.Reason, ". Error Details: ", e.ErrorDetails));
-        }
-
-        private static void OurWorld_OnHolonSaved(object sender, HolonSavedEventArgs e)
-        {
-            if (e.Result.IsError)
-                ShowErrorMessage(e.Result.Message);
-            else
-            {
-                Console.WriteLine(" Holon Saved");
-                Console.WriteLine(string.Concat(" Holon Id: ", e.Result.Result.Id));
-                Console.WriteLine(string.Concat(" Holon ProviderKey: ", e.Result.Result.ProviderKey));
-                Console.WriteLine(string.Concat(" Holon Name: ", e.Result.Result.Name));
-                Console.WriteLine(string.Concat("Holon Type: ", e.Result.Result.HolonType));
-                Console.WriteLine(string.Concat(" Holon Description: ", e.Result.Result.Description));
-
-                Console.WriteLine(" Loading Holon...");
-                //ourWorld.CelestialBodyCore.LoadHolonAsync(e.Holon.Name, e.Holon.ProviderKey);
-                _ourWorld.CelestialBodyCore.LoadHolonAsync(e.Result.Result.Id);
-            }
-        }
-
-        private static void OurWorld_OnHolonLoaded(object sender, HolonLoadedEventArgs e)
-        {
-            Console.WriteLine(" Holon Loaded");
-            Console.WriteLine(string.Concat(" Holon Id: ", e.Result.Result.Id));
-            Console.WriteLine(string.Concat(" Holon ProviderKey: ", e.Result.Result.ProviderKey));
-            Console.WriteLine(string.Concat(" Holon Name: ", e.Result.Result.Name));
-            Console.WriteLine(string.Concat(" Holon Type: ", e.Result.Result.HolonType));
-            Console.WriteLine(string.Concat(" Holon Description: ", e.Result.Result.Description));
-
-            //Console.WriteLine(string.Concat("ourWorld.Zomes[0].Holons[0].ProviderKey: ", ourWorld.Zomes[0].Holons[0].ProviderKey));
-            Console.WriteLine(string.Concat(" ourWorld.Zomes[0].Holons[0].ProviderKey: ", _ourWorld.CelestialBodyCore.Zomes[0].Holons[0].ProviderKey));
-        }
 
         private static void ShowColoursAvailable()
         {
@@ -924,6 +829,8 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
                 ShowWorkingMessage("Beaming In...");
                 //beamInResult = SuperStar.BeamIn("davidellams@hotmail.com", "my-super-secret-password");
                 beamInResult = STAR.BeamIn("davidellams@hotmail.com", "test!");
+                //beamInResult = STAR.BeamIn("davidellams@gmail.com", "test!");
+
                 ShowMessage("");
 
                 if (beamInResult.IsError)
@@ -963,9 +870,9 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
         private static void ShowAvatarStats()
         {
             ShowMessage("", false);
-            Console.WriteLine(string.Concat(" Karma: ", STAR.LoggedInAvatar.Karma));
-            Console.WriteLine(string.Concat(" Level: ", STAR.LoggedInAvatar.Level));
-            Console.WriteLine(string.Concat(" XP: ", STAR.LoggedInAvatar.XP));
+            Console.WriteLine(string.Concat(" Karma: ", STAR.LoggedInAvatarDetail.Karma));
+            Console.WriteLine(string.Concat(" Level: ", STAR.LoggedInAvatarDetail.Level));
+            Console.WriteLine(string.Concat(" XP: ", STAR.LoggedInAvatarDetail.XP));
 
             Console.WriteLine("");
             Console.WriteLine(" Chakras:");
@@ -1093,6 +1000,260 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
             Console.WriteLine("");
             Console.WriteLine(" Human Design:");
             Console.WriteLine(string.Concat(" Type: ", STAR.LoggedInAvatarDetail.HumanDesign.Type));
+        }
+
+        private static void STAR_OnInitialized(object sender, System.EventArgs e)
+        {
+            ShowSuccessMessage(" STAR Initialized.");
+        }
+
+        private static void STAR_OnOASISBootError(object sender, OASISBootErrorEventArgs e)
+        {
+            //ShowErrorMessage(string.Concat("OASIS Boot Error. Reason: ", e.ErrorReason));
+            ShowErrorMessage(e.ErrorReason);
+        }
+
+        private static void STAR_OnOASISBooted(object sender, EventArgs.OASISBootedEventArgs e)
+        {
+           // ShowSuccessMessage(string.Concat("OASIS BOOTED.", e.Message));
+        }
+
+        private static void STAR_OnStarError(object sender, EventArgs.StarErrorEventArgs e)
+        {
+             ShowErrorMessage(string.Concat("Error Igniting SuperStar. Reason: ", e.Reason));
+        }
+
+        private static void STAR_OnStarIgnited(object sender, System.EventArgs e)
+        {
+            ShowSuccessMessage("STAR IGNITED");
+        }
+
+        private static void STAR_OnStarStatusChanged(object sender, EventArgs.StarStatusChangedEventArgs e)
+        {
+            if (!string.IsNullOrEmpty(e.Message))
+            {
+                switch (e.MessageType)
+                {
+                    case Enums.StarStatusMessageType.Processing:
+                        ShowWorkingMessage(e.Message);
+                        break;
+
+                    case Enums.StarStatusMessageType.Success:
+                        ShowSuccessMessage(e.Message);
+                        break;
+
+                    case Enums.StarStatusMessageType.Error:
+                        ShowErrorMessage(e.Message);
+                        break;
+                }
+            }
+            else
+            {
+                switch (e.Status)
+                {
+                    case Enums.StarStatus.BootingOASIS:
+                        ShowWorkingMessage("BOOTING OASIS...");
+                        break;
+
+                    case Enums.StarStatus.OASISBooted:
+                        ShowSuccessMessage("OASIS BOOTED");
+                        break;
+
+                    case Enums.StarStatus.Igniting:
+                        ShowWorkingMessage("IGNITING STAR...");
+                        break;
+
+                    case Enums.StarStatus.Ingited:
+                        ShowSuccessMessage("STAR IGNITED");
+                        break;
+
+                        //case Enums.SuperStarStatus.Error:
+                        //  ShowErrorMessage("SuperStar Error");
+                }
+            }
+        }
+
+        private static void STAR_OnCelestialSpacesLoaded(object sender, CelestialSpacesLoadedEventArgs e)
+        {
+            string detailedMessage = string.IsNullOrEmpty(e.Result.Message) ? e.Result.Message : "";
+            ShowSuccessMessage($"CelesitalSpaces Loaded Successfully. {detailedMessage}");
+        }
+
+        private static void STAR_OnCelestialSpacesSaved(object sender, CelestialSpacesSavedEventArgs e)
+        {
+            string detailedMessage = string.IsNullOrEmpty(e.Result.Message) ? e.Result.Message : "";
+            ShowSuccessMessage($"CelesitalSpaces Saved Successfully. {detailedMessage}");
+        }
+
+        private static void STAR_OnCelestialSpacesError(object sender, CelestialSpacesErrorEventArgs e)
+        {
+            ShowErrorMessage($"Error occured loading/saving CelestialSpaces. Reason: {e.Reason}");
+        }
+
+        private static void STAR_OnCelestialSpaceLoaded(object sender, CelestialSpaceLoadedEventArgs e)
+        {
+            string detailedMessage = string.IsNullOrEmpty(e.Result.Message) ? e.Result.Message : "";
+            ShowSuccessMessage($"CelesitalSpace Loaded Successfully. {detailedMessage}");
+        }
+
+        private static void STAR_OnCelestialSpaceSaved(object sender, CelestialSpaceSavedEventArgs e)
+        {
+            string detailedMessage = string.IsNullOrEmpty(e.Result.Message) ? e.Result.Message : "";
+            ShowSuccessMessage($"CelesitalSpace Saved Successfully. {detailedMessage}");
+        }
+
+        private static void STAR_OnCelestialSpaceError(object sender, CelestialSpaceErrorEventArgs e)
+        {
+            ShowErrorMessage($"Error occured loading/saving CelestialSpace. Reason: {e.Reason}");
+        }
+
+        private static void STAR_OnCelestialBodyLoaded(object sender, CelestialBodyLoadedEventArgs e)
+        {
+            string detailedMessage = string.IsNullOrEmpty(e.Result.Message) ? e.Result.Message : "";
+            ShowSuccessMessage($"CelesitalBody Loaded Successfully. {detailedMessage}");
+        }
+        private static void STAR_OnCelestialBodySaved(object sender, CelestialBodySavedEventArgs e)
+        {
+            string detailedMessage = string.IsNullOrEmpty(e.Result.Message) ? e.Result.Message : "";
+            ShowSuccessMessage($"CelesitalBody Saved Successfully. {detailedMessage}");
+        }
+
+        private static void STAR_OnCelestialBodyError(object sender, CelestialBodyErrorEventArgs e)
+        {
+            ShowErrorMessage($"Error occured loading/saving CelestialBody. Reason: {e.Reason}");
+        }
+
+        private static void STAR_OnCelestialBodiesLoaded(object sender, CelestialBodiesLoadedEventArgs e)
+        {
+            string detailedMessage = string.IsNullOrEmpty(e.Result.Message) ? e.Result.Message : "";
+            ShowSuccessMessage($"CelesitalBodies Loaded Successfully. {detailedMessage}");
+        }
+
+        private static void STAR_OnCelestialBodiesSaved(object sender, CelestialBodiesSavedEventArgs e)
+        {
+            string detailedMessage = string.IsNullOrEmpty(e.Result.Message) ? e.Result.Message : "";
+            ShowSuccessMessage($"CelesitalBodies Saved Successfully. {detailedMessage}");
+        }
+
+        private static void STAR_OnCelestialBodiesError(object sender, CelestialBodiesErrorEventArgs e)
+        {
+            ShowErrorMessage($"Error occured loading/saving CelestialBodies. Reason: {e.Reason}");
+        }
+
+        private static void STAR_OnZomeLoaded(object sender, ZomeLoadedEventArgs e)
+        {
+            string detailedMessage = string.IsNullOrEmpty(e.Result.Message) ? e.Result.Message : "";
+            ShowSuccessMessage($"Zome Loaded Successfully. {detailedMessage}");
+        }
+
+        private static void STAR_OnZomeSaved(object sender, ZomeSavedEventArgs e)
+        {
+            string detailedMessage = string.IsNullOrEmpty(e.Result.Message) ? e.Result.Message : "";
+            ShowSuccessMessage($"Zome Saved Successfully. {detailedMessage}");
+        }
+
+        private static void STAR_OnZomeError(object sender, ZomeErrorEventArgs e)
+        {
+            ShowErrorMessage($"Error occured loading/saving Zome. Reason: {e.Reason}");
+            //Console.WriteLine(string.Concat("Star Error Occured. EndPoint: ", e.EndPoint, ". Reason: ", e.Reason, ". Error Details: ", e.ErrorDetails, "HoloNETErrorDetails.Reason: ", e.HoloNETErrorDetails.Reason, "HoloNETErrorDetails.ErrorDetails: ", e.HoloNETErrorDetails.ErrorDetails));
+            //ShowErrorMessage(string.Concat(" STAR Error Occured. EndPoint: ", e.EndPoint, ". Reason: ", e.Reason, ". Error Details: ", e.ErrorDetails));
+        }
+
+        private static void STAR_OnZomesLoaded(object sender, ZomesLoadedEventArgs e)
+        {
+            string detailedMessage = string.IsNullOrEmpty(e.Result.Message) ? e.Result.Message : "";
+            ShowSuccessMessage($"Zome Loaded Successfully. {detailedMessage}");
+        }
+
+        private static void STAR_OnZomesSaved(object sender, ZomesSavedEventArgs e)
+        {
+            string detailedMessage = string.IsNullOrEmpty(e.Result.Message) ? e.Result.Message : "";
+            ShowSuccessMessage($"Zome Saved Successfully. {detailedMessage}");
+        }
+
+        private static void STAR_OnZomesError(object sender, ZomesErrorEventArgs e)
+        {
+            ShowErrorMessage($"Error occured loading/saving Zomes. Reason: {e.Reason}");
+        }
+
+        private static void STAR_OnHolonLoaded(object sender, HolonLoadedEventArgs e)
+        {
+            ShowSuccessMessage(string.Concat(" STAR Holons Loaded. Holon Name: ", e.Result.Result.Name));
+        }
+
+        private static void STAR_OnHolonSaved(object sender, HolonSavedEventArgs e)
+        {
+            if (e.Result.IsError)
+                ShowErrorMessage(e.Result.Message);
+            else
+                ShowSuccessMessage(string.Concat(" STAR Holons Saved. Holon Saved: ", e.Result.Result.Name));
+        }
+
+        private static void STAR_OnHolonError(object sender, HolonErrorEventArgs e)
+        {
+            ShowErrorMessage($"Error occured loading/saving Holon. Reason: {e.Reason}");
+        }
+
+        private static void STAR_OnHolonsLoaded(object sender, HolonsLoadedEventArgs e)
+        {
+            ShowSuccessMessage(string.Concat(" STAR Holons Loaded. Holons Loaded: ", e.Result.Result.Count()));
+        }
+
+        private static void STAR_OnHolonsSaved(object sender, HolonsSavedEventArgs e)
+        {
+            string detailedMessage = string.IsNullOrEmpty(e.Result.Message) ? e.Result.Message : "";
+            ShowSuccessMessage($"Holons Saved Successfully. {detailedMessage}");
+        }
+
+        private static void STAR_OnHolonsError(object sender, HolonsErrorEventArgs e)
+        {
+            ShowErrorMessage($"Error occured loading/saving Holons. Reason: {e.Reason}");
+        }
+
+        private static void StarCore_OnZomeError(object sender, ZomeErrorEventArgs e)
+        {
+            ShowErrorMessage($"Error occured loading/saving Zome For StarCore. Reason: {e.Reason}");
+            //Console.WriteLine(string.Concat("Star Core Error Occured. EndPoint: ", e.EndPoint, ". Reason: ", e.Reason, ". Error Details: ", e.ErrorDetails, "HoloNETErrorDetails.Reason: ", e.HoloNETErrorDetails.Reason, "HoloNETErrorDetails.ErrorDetails: ", e.HoloNETErrorDetails.ErrorDetails));
+            //ShowErrorMessage(string.Concat(" Star Core Error Occured. EndPoint: ", e.EndPoint, ". Reason: ", e.Reason, ". Error Details: ", e.ErrorDetails));
+        }
+
+        private static void OurWorld_OnZomeError(object sender, ZomeErrorEventArgs e)
+        {
+            ShowErrorMessage($"Error occured loading/saving Zome For Planet Our World. Reason: {e.Reason}");
+            //Console.WriteLine(string.Concat("Our World Error Occured. EndPoint: ", e.EndPoint, ". Reason: ", e.Reason, ". Error Details: ", e.ErrorDetails, "HoloNETErrorDetails.Reason: ", e.HoloNETErrorDetails.Reason, "HoloNETErrorDetails.ErrorDetails: ", e.HoloNETErrorDetails.ErrorDetails));
+            //ShowErrorMessage(string.Concat(" Our World Error Occured. EndPoint: ", e.EndPoint, ". Reason: ", e.Reason, ". Error Details: ", e.ErrorDetails));
+        }
+
+        private static void OurWorld_OnHolonLoaded(object sender, HolonLoadedEventArgs e)
+        {
+            Console.WriteLine(" Holon Loaded");
+            Console.WriteLine(string.Concat(" Holon Id: ", e.Result.Result.Id));
+            Console.WriteLine(string.Concat(" Holon ProviderKey: ", e.Result.Result.ProviderKey));
+            Console.WriteLine(string.Concat(" Holon Name: ", e.Result.Result.Name));
+            Console.WriteLine(string.Concat(" Holon Type: ", e.Result.Result.HolonType));
+            Console.WriteLine(string.Concat(" Holon Description: ", e.Result.Result.Description));
+
+            //Console.WriteLine(string.Concat("ourWorld.Zomes[0].Holons[0].ProviderKey: ", ourWorld.Zomes[0].Holons[0].ProviderKey));
+            Console.WriteLine(string.Concat(" ourWorld.Zomes[0].Holons[0].ProviderKey: ", _ourWorld.CelestialBodyCore.Zomes[0].Holons[0].ProviderKey));
+        }
+
+        private static void OurWorld_OnHolonSaved(object sender, HolonSavedEventArgs e)
+        {
+            if (e.Result.IsError)
+                ShowErrorMessage(e.Result.Message);
+            else
+            {
+                Console.WriteLine(" Holon Saved");
+                Console.WriteLine(string.Concat(" Holon Id: ", e.Result.Result.Id));
+                Console.WriteLine(string.Concat(" Holon ProviderKey: ", e.Result.Result.ProviderKey));
+                Console.WriteLine(string.Concat(" Holon Name: ", e.Result.Result.Name));
+                Console.WriteLine(string.Concat("Holon Type: ", e.Result.Result.HolonType));
+                Console.WriteLine(string.Concat(" Holon Description: ", e.Result.Result.Description));
+
+                Console.WriteLine(" Loading Holon...");
+                //ourWorld.CelestialBodyCore.LoadHolonAsync(e.Holon.Name, e.Holon.ProviderKey);
+                _ourWorld.CelestialBodyCore.LoadHolonAsync(e.Result.Result.Id);
+            }
         }
     }
 }

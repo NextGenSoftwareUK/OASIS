@@ -27,12 +27,13 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Repositories{
 
             try
             {
-                holon.Id = Guid.NewGuid();
+                if (holon.Id == Guid.Empty)
+                    holon.Id = Guid.NewGuid();
                 
-                if (AvatarManager.LoggedInAvatar != null)
-                    holon.CreatedByAvatarId = AvatarManager.LoggedInAvatar.Id;
+                // if (AvatarManager.LoggedInAvatar != null)
+                //    holon.CreatedByAvatarId = AvatarManager.LoggedInAvatar.Id;
 
-                holon.CreatedDate = DateTime.Now;
+                //holon.CreatedDate = DateTime.Now;
                 HolonModel holonModel = new HolonModel(holon);
 
                 dataBase.Holons.Add(holonModel);
@@ -60,12 +61,13 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Repositories{
 
             try
             {
-                holon.Id = Guid.NewGuid();
-                
-                if (AvatarManager.LoggedInAvatar != null)
-                    holon.CreatedByAvatarId = AvatarManager.LoggedInAvatar.Id;
+                if (holon.Id == Guid.Empty)
+                    holon.Id = Guid.NewGuid();
 
-                holon.CreatedDate = DateTime.Now;
+                // if (AvatarManager.LoggedInAvatar != null)
+                //    holon.CreatedByAvatarId = AvatarManager.LoggedInAvatar.Id;
+
+                //holon.CreatedDate = DateTime.Now;
 
                 HolonModel holonModel = new HolonModel(holon);
                 holonModel.CreatedProviderType = ProviderType.SQLLiteDBOASIS;
@@ -535,10 +537,10 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Repositories{
 
             try
             {
-                if (AvatarManager.LoggedInAvatar != null)
-                    holon.ModifiedByAvatarId = AvatarManager.LoggedInAvatar.Id;
+                // if (AvatarManager.LoggedInAvatar != null)
+                //   holon.ModifiedByAvatarId = AvatarManager.LoggedInAvatar.Id;
 
-                holon.ModifiedDate = DateTime.Now;  
+                // holon.ModifiedDate = DateTime.Now;  
 
                 HolonModel holonModel = new HolonModel(holon);
                 dataBase.Holons.Update(holonModel);
@@ -560,10 +562,10 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Repositories{
             OASISResult<IHolon> result = new OASISResult<IHolon>();
             try
             {
-                if (AvatarManager.LoggedInAvatar != null)
-                    holon.ModifiedByAvatarId = AvatarManager.LoggedInAvatar.Id;
+                // if (AvatarManager.LoggedInAvatar != null)
+                //    holon.ModifiedByAvatarId = AvatarManager.LoggedInAvatar.Id;
 
-                holon.ModifiedDate = DateTime.Now; 
+                //holon.ModifiedDate = DateTime.Now; 
 
                 HolonModel holonModel = new HolonModel(holon);
                 dataBase.Holons.Update(holonModel);
@@ -585,10 +587,10 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Repositories{
             OASISResult<IHolon> result = new OASISResult<IHolon>();
             try
             {
-                if (AvatarManager.LoggedInAvatar != null)
-                    holon.ModifiedByAvatarId = AvatarManager.LoggedInAvatar.Id;
+                // if (AvatarManager.LoggedInAvatar != null)
+                //    holon.ModifiedByAvatarId = AvatarManager.LoggedInAvatar.Id;
 
-                holon.ModifiedDate = DateTime.Now; 
+                // holon.ModifiedDate = DateTime.Now; 
 
                 HolonModel holonModel=new HolonModel(holon);
                 dataBase.Holons.Update(holonModel);
@@ -610,10 +612,10 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Repositories{
             OASISResult<IHolon> result = new OASISResult<IHolon>();
             try
             {
-                if (AvatarManager.LoggedInAvatar != null)
-                    holon.ModifiedByAvatarId = AvatarManager.LoggedInAvatar.Id;
+                // if (AvatarManager.LoggedInAvatar != null)
+                //    holon.ModifiedByAvatarId = AvatarManager.LoggedInAvatar.Id;
 
-                holon.ModifiedDate = DateTime.Now; 
+                // holon.ModifiedDate = DateTime.Now; 
 
                 HolonModel holonModel = new HolonModel(holon);
                 dataBase.Holons.Update(holonModel);

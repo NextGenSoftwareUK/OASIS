@@ -50,6 +50,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             MailAddress addressFrom = new MailAddress(_OASISDNA.OASIS.Email.SmtpUser);
 
             MailMessage message = new MailMessage(from ?? _OASISDNA.OASIS.Email.EmailFrom, to);
+            message.IsBodyHtml = true;
             message.Subject = subject;
             message.Body = html;
 

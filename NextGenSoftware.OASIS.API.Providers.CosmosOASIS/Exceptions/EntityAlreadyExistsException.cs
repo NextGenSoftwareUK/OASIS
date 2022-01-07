@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace NextGenSoftware.OASIS.API.Providers.CosmosOASIS.Exceptions
+namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Exceptions
 {
     public class EntityAlreadyExistsException : Exception
     {

@@ -4,11 +4,11 @@ using System.Threading.Tasks;
 using Microsoft.Azure.Documents;
 using Microsoft.Azure.Documents.Client;
 using Newtonsoft.Json;
-using NextGenSoftware.OASIS.API.Providers.CosmosOASIS.Entites;
-using NextGenSoftware.OASIS.API.Providers.CosmosOASIS.Exceptions;
-using NextGenSoftware.OASIS.API.Providers.CosmosOASIS.Interfaces;
+using NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Interfaces;
+using NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Entites;
+using NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Exceptions;
 
-namespace NextGenSoftware.OASIS.API.Providers.CosmosOASIS.Infrastructure
+namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Infrastructure
 {
     public abstract class CosmosDbRepository<T> : IRepository<T>, IDocumentCollectionContext<T> where T : Entity
     {
@@ -67,7 +67,7 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosOASIS.Infrastructure
             try
             {
                 var cosmosDbClient = _cosmosDbClientFactory.GetClient(CollectionName);
-                await cosmosDbClient.ReplaceDocumentAsync(entity.Id, entity);
+                await cosmosDbClient.ReplaceDocumentAsync(entity.Id.ToString(), entity);
             }
             catch (DocumentClientException e)
             {
@@ -85,9 +85,9 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosOASIS.Infrastructure
             try
             {
                 var cosmosDbClient = _cosmosDbClientFactory.GetClient(CollectionName);
-                await cosmosDbClient.DeleteDocumentAsync(entity.Id, new RequestOptions
+                await cosmosDbClient.DeleteDocumentAsync(entity.Id.ToString(), new RequestOptions
                 {
-                    PartitionKey = ResolvePartitionKey(entity.Id)
+                    PartitionKey = ResolvePartitionKey(entity.Id.ToString())
                 });
             }
             catch (DocumentClientException e)
@@ -102,7 +102,8 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosOASIS.Infrastructure
         }
 
         public abstract string CollectionName { get; }
-        public virtual string GenerateId(T entity) => Guid.NewGuid().ToString();
+        //public virtual string GenerateId(T entity) => Guid.NewGuid().ToString();
+        public virtual Guid GenerateId(T entity) => Guid.NewGuid();
         public virtual PartitionKey ResolvePartitionKey(string entityId) => null;
     }
 }

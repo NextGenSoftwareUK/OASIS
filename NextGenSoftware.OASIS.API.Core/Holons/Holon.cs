@@ -11,64 +11,23 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
 {
     public class Holon : HolonBase, IHolon, INotifyPropertyChanged
     {
-        /*
-        private string _name;
-        private string _description;
-
-        public IHolon Original { get; set; }
-
-        public Guid Id { get; set; } //Unique id within the OASIS.
-        public string Name
+        private ISolarSystem _parentSolarSystem = null;
+        public Holon() : base()
         {
-            get
-            {
-                return _name;
-            }
-
-            set
-            {
-                if (value != _name)
-                {
-                    IsChanged = true;
-                    NotifyPropertyChanged("Name");
-                }
-
-                _name = value;
-            }
-        }
-        public string Description
-        {
-            get
-            {
-                return _description;
-            }
-
-            set
-            {
-                if (value != _description)
-                {
-                    IsChanged = true;
-                    NotifyPropertyChanged("Description");
-                }
-
-                _description = value;
-            }
+            Init();
         }
 
-        //TODO: Finish converting all properties so are same as above...
+        public Holon(HolonType holonType) : base(holonType) 
+        {
+            Init();
+        }
 
-        public bool IsNewHolon { get; set; }
-        public bool IsChanged { get; set; }
-        */
+        public Holon(Guid id) : base(id) {}
 
-        //public Dictionary<ProviderType, string> ProviderKey { get; set; } = new Dictionary<ProviderType, string>(); //Unique key used by each provider (e.g. hashaddress in hc, accountname for Telos, id in MongoDB etc).        
-        //public Dictionary<ProviderType, Dictionary<string, string>> ProviderMetaData { get; set; } = new Dictionary<ProviderType, Dictionary<string, string>>(); // Key/Value pair meta data can be stored here, which is unique for that provider.
-        //public Dictionary<string, string> MetaData { get; set; } = new Dictionary<string, string>(); // Key/Value pair meta data can be stored here that applies globally across ALL providers.
-       // public HolonType HolonType { get; set; }
-       
-        
-        public Guid ParentOmiverseId { get; set; } //The Omiverse this Holon belongs to.
-        public IOmiverse ParentOmiverse { get; set; } //The Omiverse this Holon belongs to.
+        public Holon(Dictionary<ProviderType, string> providerKey) : base(providerKey) {}
+
+        public Guid ParentOmniverseId { get; set; } //The Omniverse this Holon belongs to.
+        public IOmiverse ParentOmniverse { get; set; } //The Omniverse this Holon belongs to.
         public Guid ParentMultiverseId { get; set; } //The Multiverse this Holon belongs to.
         public IMultiverse ParentMultiverse { get; set; } //The Multiverse this Holon belongs to.
         public Guid ParentUniverseId { get; set; } //The Universe this Holon belongs to.
@@ -83,6 +42,20 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
         public IGalaxy ParentGalaxy { get; set; } //The Galaxy this Holon belongs to.
         public Guid ParentSolarSystemId { get; set; } //The SolarSystem this Holon belongs to.
         public ISolarSystem ParentSolarSystem { get; set; } //The SolarSystem this Holon belongs to.
+        //public ISolarSystem ParentSolarSystem //The SolarSystem this Holon belongs to.
+        //{
+        //    get
+        //    {
+        //        if (_parentSolarSystem == null)
+        //            _parentSolarSystem = new SolarSystem();
+
+        //        return _parentSolarSystem;
+        //    }
+        //    set
+        //    {
+        //        _parentSolarSystem = value;
+        //    }
+        //}
         public Guid ParentGreatGrandSuperStarId { get; set; } //The GreatGrandSuperStar this Holon belongs to.
         public IGreatGrandSuperStar ParentGreatGrandSuperStar { get; set; } //The GreatGrandSuperStar this Holon belongs to.
         public Guid ParentGrandSuperStarId { get; set; } //The GrandSuperStar this Holon belongs to.
@@ -130,7 +103,7 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
         /// </summary>
       //  public event PropertyChangedEventHandler PropertyChanged;
 
-        public Holon()
+        private void Init()
         {
             //TODO: Need to check if these are fired when an item in the collection is changed (not just added/removed).
             if (ChildrenTest != null)
@@ -272,6 +245,11 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
             return base.HasHolonChanged(checkChildren);
         }
 
+        public bool LoadChildHolons()
+        {
+            //TODO: IMPLEMENT ASAP!
+            return true;
+        }
 
         /*
         //https://stackoverflow.com/questions/2363801/what-would-be-the-best-way-to-implement-change-tracking-on-an-object

@@ -21,7 +21,7 @@ class AddData extends React.Component {
 
                         <div className="popup-container default-popup">
                             <div className="data-screen-container">
-                                <h2>Data</h2>
+                                <h1 className="single-heading">Data</h1>
 
                                 <div className="form-container">
                                     <form>
@@ -51,7 +51,7 @@ class AddData extends React.Component {
 
                                         <p className="single-form-row">
                                             <button 
-                                                className="submit-button" 
+                                                className="submit-button sm-button" 
                                                 type="submit"
                                             >Save</button>
                                         </p>

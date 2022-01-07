@@ -7,16 +7,35 @@ namespace NextGenSoftware.OASIS.STAR.Zomes
     {
         public static void SetParentIdsForHolon(IGreatGrandSuperStar greatGrandSuperStar, IGrandSuperStar grandSuperStar, ISuperStar superStar, IStar star, IPlanet planet, IMoon moon, IZome zome, IHolon holon)
         {
-            holon.ParentGreatGrandSuperStar = greatGrandSuperStar;
-            holon.ParentGreatGrandSuperStarId = greatGrandSuperStar.Id;
-            holon.ParentGrandSuperStar = grandSuperStar;
-            holon.ParentGrandSuperStarId = grandSuperStar.Id;
-            holon.ParentSuperStar = superStar;
-            holon.ParentSuperStarId = superStar.Id;
-            holon.ParentStar = star;
-            holon.ParentStarId = star.Id;
-            holon.ParentPlanet = planet;
-            holon.ParentPlanetId = planet.Id;
+            if (greatGrandSuperStar != null)
+            {
+                holon.ParentGreatGrandSuperStar = greatGrandSuperStar;
+                holon.ParentGreatGrandSuperStarId = greatGrandSuperStar.Id;
+            }
+
+            if (grandSuperStar != null)
+            {
+                holon.ParentGrandSuperStar = grandSuperStar;
+                holon.ParentGrandSuperStarId = grandSuperStar.Id;
+            }
+
+            if (superStar != null)
+            {
+                holon.ParentSuperStar = superStar;
+                holon.ParentSuperStarId = superStar.Id;
+            }
+
+            if (star != null)
+            {
+                holon.ParentStar = star;
+                holon.ParentStarId = star.Id;
+            }
+
+            if (planet != null)
+            {
+                holon.ParentPlanet = planet;
+                holon.ParentPlanetId = planet.Id;
+            }
 
             if (moon != null)
             {
@@ -30,8 +49,11 @@ namespace NextGenSoftware.OASIS.STAR.Zomes
                 holon.ParentZomeId = zome.Id;
             }
 
-            holon.ParentHolonId = zome.Id;
-            holon.ParentHolon = zome;
+            if (holon != null)
+            {
+                holon.ParentHolonId = holon.Id;
+                holon.ParentHolon = holon;
+            }
         }
 
         public static void SetParentIdsForHolonAndAllChildren(IGreatGrandSuperStar greatGrandSuperStar, IGrandSuperStar grandSuperStar, ISuperStar superStar, IStar star, IPlanet planet, IMoon moon, IZome zome, IHolon holon)

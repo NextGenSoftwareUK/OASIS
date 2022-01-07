@@ -13,16 +13,19 @@ namespace NextGenSoftware.OASIS.API.Core
         public EnumValue<ProviderCategory> ProviderCategory { get; set; }
 
         public EnumValue<ProviderType> ProviderType { get; set; }
-        public bool ProviderActivated { get; set; }
+        //public bool ProviderActivated { get; set; }
+        public bool ProviderActivated { get; private set; }
 
-        virtual public void ActivateProvider()
+        virtual public OASISResult<bool> ActivateProvider()
         {
             ProviderActivated = true;
+            return new OASISResult<bool>(true);
         }
 
-        virtual public void DeActivateProvider()
+        virtual public OASISResult<bool> DeActivateProvider()
         {
             ProviderActivated = false;
+            return new OASISResult<bool>(true);
         }
     }
 }

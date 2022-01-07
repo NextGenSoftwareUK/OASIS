@@ -7,10 +7,33 @@ using NextGenSoftware.OASIS.API.Core.Interfaces;
 
 namespace NextGenSoftware.OASIS.API.Core.Holons
 {
-    public class HolonBase : IHolonBase, INotifyPropertyChanged
+    public abstract class HolonBase : IHolonBase, INotifyPropertyChanged
     {
         private string _name;
         private string _description;
+
+        public HolonBase()
+        {
+            IsNewHolon = true;
+            Id = Guid.NewGuid(); //TODO: Not sure if to have this or not?
+        }
+
+        public HolonBase(HolonType holonType)
+        {
+            IsNewHolon = true;
+            Id = Guid.NewGuid(); //TODO: Not sure if to have this or not?
+            HolonType = holonType;
+        }
+
+        public HolonBase(Guid id)
+        {
+            Id = id;
+        }
+
+        public HolonBase(Dictionary<ProviderType, string> providerKey)
+        {
+            ProviderKey = providerKey;
+        }
 
         public IHolon Original { get; set; }
 
@@ -66,8 +89,8 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
         public HolonType HolonType { get; set; }
 
         /*
-        public Guid ParentOmiverseId { get; set; } //The Omiverse this Holon belongs to.
-        public IOmiverse ParentOmiverse { get; set; } //The Omiverse this Holon belongs to.
+        public Guid ParentOmniverseId { get; set; } //The Omniverse this Holon belongs to.
+        public IOmiverse ParentOmniverse { get; set; } //The Omniverse this Holon belongs to.
         public Guid ParentMultiverseId { get; set; } //The Multiverse this Holon belongs to.
         public IMultiverse ParentMultiverse { get; set; } //The Multiverse this Holon belongs to.
         public Guid ParentUniverseId { get; set; } //The Universe this Holon belongs to.
@@ -116,6 +139,7 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
         public Avatar DeletedByAvatar { get; set; }
         public DateTime DeletedDate { get; set; }
         public int Version { get; set; }
+        public Guid VersionId { get; set; }
         public Guid PreviousVersionId { get; set; }
         public Dictionary<ProviderType, string> PreviousVersionProviderKey { get; set; } = new Dictionary<ProviderType, string>(); 
         public bool IsActive { get; set; }

@@ -9,10 +9,11 @@ using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using NextGenSoftware.Holochain.HoloNET.Client.Core;
+using NextGenSoftware.WebSocket;
 
 namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Core
 {
-    public abstract class HoloOASISBase : OASISStorageBase, IOASISNET, IOASISStorage, IOASISSuperStar
+    public abstract class HoloOASISBase : OASISStorageProviderBase, IOASISNETProvider, IOASISBlockchainStorageProvider, IOASISSmartContractProvider, IOASISNFTProvider, IOASISSuperStar
     {
         private const string OURWORLD_ZOME = "our_world_core";
         private const string LOAD_Avatar_FUNC = "load_Avatar";
@@ -73,18 +74,6 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Core
          //   HoloNETClient.Config.FullPathToHolochainAppDNA = string.Concat(Directory.GetCurrentDirectory(), "\\our_world\\dist\\our_world.dna.json"); 
             
             //await HoloNETClient.Connect();
-        }
-
-        public override IEnumerable<IAvatar> LoadAllAvatars()
-        {
-            //TODO: Implement
-            throw new NotImplementedException();
-        }
-
-        public override IAvatar LoadAvatar(Guid Id)
-        {
-            //TODO: Implement
-            throw new NotImplementedException();
         }
 
         private void HoloNETClient_OnError(object sender, HoloNETErrorEventArgs e)
@@ -155,39 +144,9 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Core
             
         }
 
-        private void HoloOASIS_OnDataReceived(object sender, DataReceivedEventArgs e)
+        private void HoloOASIS_OnDataReceived(object sender, HoloNETDataReceivedEventArgs e)
         {
             
-        }
-        
-        public override IAvatarDetail LoadAvatarDetail(Guid id)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override async Task<IAvatarDetail> LoadAvatarDetailAsync(Guid id)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override IEnumerable<IAvatarDetail> LoadAllAvatarDetails()
-        {
-            throw new NotImplementedException();
-        }
-
-        public override async Task<IEnumerable<IAvatarDetail>> LoadAllAvatarDetailsAsync()
-        {
-            throw new NotImplementedException();
-        }
-
-        public override IAvatarDetail SaveAvatarDetail(IAvatarDetail Avatar)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override async Task<IAvatarDetail> SaveAvatarDetailAsync(IAvatarDetail Avatar)
-        {
-            throw new NotImplementedException();
         }
 
         private void HoloOASIS_OnConnected(object sender, ConnectedEventArgs e)
@@ -195,22 +154,22 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Core
             HoloNETClient.GetHolochainInstancesAsync();
         }
 
-        #region IOASISStorage Implementation
+        #region IOASISStorageProvider Implementation
 
-        public override async Task<IAvatar> LoadAvatarAsync(string AvatarEntryHash)
+        public override async Task<OASISResult<IAvatar>> LoadAvatarAsync(string AvatarEntryHash, int version = 0)
         {
             await _taskCompletionSourceGetInstance.Task;
 
             if (HoloNETClient.State == System.Net.WebSockets.WebSocketState.Open && !string.IsNullOrEmpty(_hcinstance))
             {
                 await HoloNETClient.CallZomeFunctionAsync(_hcinstance, OURWORLD_ZOME, LOAD_Avatar_FUNC, new { address = AvatarEntryHash });
-                return await _taskCompletionSourceLoadAvatar.Task;
+                return new OASISResult<IAvatar>(await _taskCompletionSourceLoadAvatar.Task);
             }
 
             return null;
         }
 
-        public override async Task<IAvatar> LoadAvatarAsync(Guid id)
+        public override async Task<OASISResult<IAvatar>> LoadAvatarAsync(Guid id, int version = 0)
         {
             await _taskCompletionSourceGetInstance.Task;
 
@@ -218,13 +177,13 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Core
             {
                 //TODO: Implement in HC/Rust
                 await HoloNETClient.CallZomeFunctionAsync(_hcinstance, OURWORLD_ZOME, LOAD_Avatar_FUNC, new { id });
-                return await _taskCompletionSourceLoadAvatar.Task;
+                return new OASISResult<IAvatar>(await _taskCompletionSourceLoadAvatar.Task);
             }
 
             return null;
         }
 
-        public override async Task<IAvatar> LoadAvatarAsync(string username, string password)
+        public override async Task<OASISResult<IAvatar>> LoadAvatarAsync(string username, string password, int version = 0)
         {
             await _taskCompletionSourceGetInstance.Task;
 
@@ -235,13 +194,13 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Core
 
                 //TODO: TEMP HARDCODED JUST TO TEST WITH!
                 await HoloNETClient.CallZomeFunctionAsync(_hcinstance, OURWORLD_ZOME, LOAD_Avatar_FUNC, new { address = "QmR6A1gkSmCsxnbDF7V9Eswnd4Kw9SWhuf8r4R643eDshg" });
-                return await _taskCompletionSourceLoadAvatar.Task;
+                return new OASISResult<IAvatar>(await _taskCompletionSourceLoadAvatar.Task);
             }
 
             return null;
         }
 
-        public override IAvatar LoadAvatar(string username, string password)
+        public override OASISResult<IAvatar> LoadAvatar(string username, string password, int version = 0)
         {
             // TODO: {URGENT} FIX THIS ASAP! Need to wait for GetInstance to complete, ideally this method should call the async method above..
             // Even better is we ONLY use the async method, need to fix the bug in WebAPI so it can call async methods from the controllers ASAP...
@@ -264,55 +223,9 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Core
             return null;
         }
 
-        public override Task<IEnumerable<IAvatar>> LoadAllAvatarsAsync()
-        {
-            //TODO: {URGENT} FIX ASAP!
-            //return new (IEnumerable<IAvatar>)IEnumerable<IAvatar>();
-
-            throw new System.NotImplementedException();
-        }
 
 
-        public override Task<ISearchResults> SearchAsync(ISearchParams searchParams)
-        {
-            throw new System.NotImplementedException();
-        }
-
-        /*
-        public override async Task<API.Core.IAvatar> SaveAvatarAsync(API.Core.IAvatar Avatar)
-        {
-            await _taskCompletionSourceGetInstance.Task;
-
-            if (HoloNETClient.State == System.Net.WebSockets.WebSocketState.Open && !string.IsNullOrEmpty(_hcinstance))
-            {
-                if (Avatar.Id == Guid.Empty)
-                    Avatar.Id = Guid.NewGuid();
-
-                Avatar hcAvatar = Avatar as Avatar;
-
-                if (hcAvatar == null)
-                    hcAvatar = ConvertAvatarToHoloOASISAvatar(Avatar);
-                else
-                {
-                    // Rust/HC does not like null strings so need to set to empty string.
-                    if (hcAvatar.HcAddressHash == null)
-                        hcAvatar.HcAddressHash = string.Empty;
-
-                    if (hcAvatar.ProviderKey == null)
-                        hcAvatar.ProviderKey = string.Empty;
-                }
-
-                _currentId++;
-                _savingAvatars[_currentId.ToString()] = ConvertAvatarToHoloOASISAvatar(hcAvatar);
-                await HoloNETClient.CallZomeFunctionAsync(_currentId.ToString(), _hcinstance, OURWORLD_ZOME, SAVE_Avatar_FUNC, new { entry = hcAvatar });
-                return await _taskCompletionSourceSaveAvatar.Task;
-            }
-
-            return null;
-        }
-        */
-
-        public override async Task<IAvatar> SaveAvatarAsync(IAvatar Avatar)
+        public override async Task<OASISResult<IAvatar>> SaveAvatarAsync(IAvatar Avatar)
         {
             await _taskCompletionSourceGetInstance.Task;
 
@@ -339,26 +252,256 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Core
                 //_savingAvatars[_currentId.ToString()] = ConvertAvatarToHoloOASISAvatar(hcAvatar);
                 _savingAvatars[_currentId.ToString()] = hcAvatar;
                 await HoloNETClient.CallZomeFunctionAsync(_currentId.ToString(), _hcinstance, OURWORLD_ZOME, SAVE_Avatar_FUNC, new { entry = hcAvatar });
-                return await _taskCompletionSourceSaveAvatar.Task;
+                return new OASISResult<IAvatar>(await _taskCompletionSourceSaveAvatar.Task);
             }
 
             return null;
         }
 
-
-            #endregion
-
-            #region IOASISNET Implementation
-
-        public IEnumerable<IHolon> GetHolonsNearMe(HolonType type)
+        public override OASISResult<bool> DeleteAvatar(Guid id, bool softDelete = true)
         {
             throw new NotImplementedException();
         }
 
-        public IEnumerable<IPlayer> GetPlayersNearMe()
+        public override OASISResult<bool> DeleteAvatar(string providerKey, bool softDelete = true)
         {
             throw new NotImplementedException();
         }
+
+        public override Task<OASISResult<bool>> DeleteAvatarAsync(Guid id, bool softDelete = true)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override Task<OASISResult<bool>> DeleteAvatarAsync(string providerKey, bool softDelete = true)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override OASISResult<bool> DeleteAvatarByEmail(string avatarEmail, bool softDelete = true)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override Task<OASISResult<bool>> DeleteAvatarByEmailAsync(string avatarEmail, bool softDelete = true)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override OASISResult<bool> DeleteAvatarByUsername(string avatarUsername, bool softDelete = true)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override Task<OASISResult<bool>> DeleteAvatarByUsernameAsync(string avatarUsername, bool softDelete = true)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override OASISResult<bool> DeleteHolon(Guid id, bool softDelete = true)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override OASISResult<bool> DeleteHolon(string providerKey, bool softDelete = true)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override Task<OASISResult<bool>> DeleteHolonAsync(Guid id, bool softDelete = true)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override Task<OASISResult<bool>> DeleteHolonAsync(string providerKey, bool softDelete = true)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override OASISResult<IEnumerable<IAvatarDetail>> LoadAllAvatarDetails(int version = 0)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override Task<OASISResult<IEnumerable<IAvatarDetail>>> LoadAllAvatarDetailsAsync(int version = 0)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override OASISResult<IEnumerable<IAvatar>> LoadAllAvatars(int version = 0)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override Task<OASISResult<IEnumerable<IAvatar>>> LoadAllAvatarsAsync(int version = 0)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override OASISResult<IEnumerable<IHolon>> LoadAllHolons(HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, int version = 0)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override Task<OASISResult<IEnumerable<IHolon>>> LoadAllHolonsAsync(HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, int version = 0)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override OASISResult<IAvatar> LoadAvatar(Guid Id, int version = 0)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override OASISResult<IAvatar> LoadAvatar(string username, int version = 0)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override OASISResult<IAvatar> LoadAvatarByEmail(string avatarEmail, int version = 0)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override Task<OASISResult<IAvatar>> LoadAvatarByEmailAsync(string avatarEmail, int version = 0)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override OASISResult<IAvatar> LoadAvatarByUsername(string avatarUsername, int version = 0)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override Task<OASISResult<IAvatar>> LoadAvatarByUsernameAsync(string avatarUsername, int version = 0)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override OASISResult<IAvatarDetail> LoadAvatarDetail(Guid id, int version = 0)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override Task<OASISResult<IAvatarDetail>> LoadAvatarDetailAsync(Guid id, int version = 0)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override OASISResult<IAvatarDetail> LoadAvatarDetailByEmail(string avatarEmail, int version = 0)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByEmailAsync(string avatarEmail, int version = 0)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override OASISResult<IAvatarDetail> LoadAvatarDetailByUsername(string avatarUsername, int version = 0)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByUsernameAsync(string avatarUsername, int version = 0)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override OASISResult<IAvatar> LoadAvatarForProviderKey(string providerKey, int version = 0)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override Task<OASISResult<IAvatar>> LoadAvatarForProviderKeyAsync(string providerKey, int version = 0)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override OASISResult<IHolon> LoadHolon(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override OASISResult<IHolon> LoadHolon(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override Task<OASISResult<IHolon>> LoadHolonAsync(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override Task<OASISResult<IHolon>> LoadHolonAsync(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(Guid id, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, int version = 0)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(string providerKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, int version = 0)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(Guid id, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, int version = 0)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(string providerKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, int version = 0)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override OASISResult<IAvatar> SaveAvatar(IAvatar Avatar)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override OASISResult<IAvatarDetail> SaveAvatarDetail(IAvatarDetail Avatar)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override Task<OASISResult<IAvatarDetail>> SaveAvatarDetailAsync(IAvatarDetail Avatar)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override OASISResult<IHolon> SaveHolon(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override OASISResult<IEnumerable<IHolon>> SaveHolons(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override Task<OASISResult<ISearchResults>> SearchAsync(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
+        {
+            throw new NotImplementedException();
+        }
+
+
+        #endregion
+
+        #region IOASISNET Implementation
 
         #endregion
 
@@ -442,7 +585,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Core
 
         /// <summary>
         /// Handles any errors thrown by HoloNET or HoloOASIS. It fires the OnHoloOASISError error handler if there are any 
-        /// subscriptions. The same applies to the OnStorageProviderError event implemented as part of the IOASISStorage interface.
+        /// subscriptions. The same applies to the OnStorageProviderError event implemented as part of the IOASISStorageProvider interface.
         /// </summary>
         /// <param name="reason"></param>
         /// <param name="errorDetails"></param>
@@ -454,217 +597,32 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Core
             OnHoloOASISError?.Invoke(this, new HoloOASISErrorEventArgs() { EndPoint = HoloNETClient.EndPoint, Reason = reason, ErrorDetails = errorDetails, HoloNETErrorDetails = holoNETEventArgs });
         }
 
-        public async override void ActivateProvider()
+        public override OASISResult<bool> ActivateProvider()
         {
             if (HoloNETClient.State != System.Net.WebSockets.WebSocketState.Open && HoloNETClient.State != System.Net.WebSockets.WebSocketState.Connecting)
-                await HoloNETClient.Connect();
+                HoloNETClient.Connect();
             
-            base.ActivateProvider();
+            return base.ActivateProvider();
         }
 
-        public async override void DeActivateProvider()
+        public override OASISResult<bool> DeActivateProvider()
         {
-            await HoloNETClient.Disconnect();
+            HoloNETClient.Disconnect();
            // HoloNETClient = null;
-            base.DeActivateProvider();
+            return base.DeActivateProvider();
         }
 
-                public override IAvatar LoadAvatarByEmail(string avatarEmail)
-        {
-            throw new System.NotImplementedException();
-        }
-
-        public override IAvatarDetail LoadAvatarDetailByEmail(string avatarEmail)
-        {
-            throw new System.NotImplementedException();
-        }
-
-        public override IAvatarDetail LoadAvatarDetailByUsername(string avatarUsername)
-        {
-            throw new System.NotImplementedException();
-        }
-
-        public override async Task<IAvatarDetail> LoadAvatarDetailByUsernameAsync(string avatarUsername)
-        {
-            throw new System.NotImplementedException();
-        }
-
-        public override async Task<IAvatarDetail> LoadAvatarDetailByEmailAsync(string avatarEmail)
-        {
-            throw new System.NotImplementedException();
-        }
-
-        public override bool DeleteAvatarByEmail(string avatarEmail, bool softDelete = true)
-        {
-            throw new System.NotImplementedException();
-        }
-
-        public override bool DeleteAvatarByUsername(string avatarUsername, bool softDelete = true)
-        {
-            throw new System.NotImplementedException();
-        }
-
-        public override async Task<bool> DeleteAvatarByEmailAsync(string avatarEmail, bool softDelete = true)
-        {
-            throw new System.NotImplementedException();
-        }
-
-        public override async Task<bool> DeleteAvatarByUsernameAsync(string avatarUsername, bool softDelete = true)
-        {
-            throw new System.NotImplementedException();
-        }
-
-        public override IAvatar LoadAvatarByUsername(string avatarUsername)
-        {
-            throw new System.NotImplementedException();
-        }
-
-        public override async Task<IAvatar> LoadAvatarByEmailAsync(string avatarEmail)
-        {
-            throw new System.NotImplementedException();
-        }
-
-        public override async Task<IAvatar> LoadAvatarByUsernameAsync(string avatarUsername)
-        {
-            throw new System.NotImplementedException();
-        }
-
-        public override bool DeleteAvatar(Guid id, bool softDelete = true)
+        OASISResult<IEnumerable<IPlayer>> IOASISNETProvider.GetPlayersNearMe()
         {
             throw new NotImplementedException();
         }
 
-        public override Task<bool> DeleteAvatarAsync(Guid id, bool softDelete = true)
+        OASISResult<IEnumerable<IHolon>> IOASISNETProvider.GetHolonsNearMe(HolonType Type)
         {
             throw new NotImplementedException();
         }
-
-        public override IAvatar LoadAvatar(string username)
-        {
-            throw new NotImplementedException();
-           // return new Avatar() { ProviderType =  };
-        }
-
-        public override IHolon LoadHolon(Guid id)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override IHolon LoadHolon(string providerKey)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override Task<IHolon> LoadHolonAsync(Guid id)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override Task<IHolon> LoadHolonAsync(string providerKey)
-        {
-            throw new NotImplementedException();
-        }
-
-
-        public override IAvatar SaveAvatar(IAvatar Avatar)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override OASISResult<IHolon> SaveHolon(IHolon holon, bool saveChildrenRecursive = true)
-        {
-            throw new System.NotImplementedException();
-        }
-
-        public override Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon, bool saveChildrenRecursive = true)
-        {
-            throw new System.NotImplementedException();
-        }
-
-        public override OASISResult<IEnumerable<IHolon>> SaveHolons(IEnumerable<IHolon> holons, bool saveChildrenRecursive = true)
-        {
-            throw new System.NotImplementedException();
-        }
-
-        public override Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons, bool saveChildrenRecursive = true)
-        {
-            throw new System.NotImplementedException();
-        }
-
-        public override bool DeleteAvatar(string providerKey, bool softDelete = true)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override Task<bool> DeleteAvatarAsync(string providerKey, bool softDelete = true)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override bool DeleteHolon(Guid id, bool softDelete = true)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override bool DeleteHolon(string providerKey, bool softDelete = true)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override Task<bool> DeleteHolonAsync(Guid id, bool softDelete = true)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override Task<bool> DeleteHolonAsync(string providerKey, bool softDelete = true)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override IAvatar LoadAvatarForProviderKey(string providerKey)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override Task<IAvatar> LoadAvatarForProviderKeyAsync(string providerKey)
-        {
-            throw new NotImplementedException();
-        }
-
-
-        //IOASISSuperStar Interface Implementation
 
         public bool NativeCodeGenesis(ICelestialBody celestialBody)
-        {
-            return true;
-        }
-
-        public override IEnumerable<IHolon> LoadAllHolons(HolonType type = HolonType.Holon)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override Task<IEnumerable<IHolon>> LoadAllHolonsAsync(HolonType type = HolonType.Holon)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override IEnumerable<IHolon> LoadHolonsForParent(Guid id, HolonType type = HolonType.Holon)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override IEnumerable<IHolon> LoadHolonsForParent(string providerKey, HolonType type = HolonType.Holon)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override Task<IEnumerable<IHolon>> LoadHolonsForParentAsync(Guid id, HolonType type = HolonType.Holon)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(string providerKey, HolonType type = HolonType.Holon)
         {
             throw new NotImplementedException();
         }

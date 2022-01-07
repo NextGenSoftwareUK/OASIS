@@ -1,9 +1,7 @@
 ﻿using NextGenSoftware.Holochain.HoloNET.Client.Core;
-using NextGenSoftware.OASIS.API.Core;
-using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Providers.HoloOASIS.Core;
-
+using NextGenSoftware.WebSocket;
 using System;
 using System.Threading.Tasks;
 
@@ -52,7 +50,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.TestHarness
             Console.WriteLine(string.Concat("Error Occured. Reason: ", e.Reason, (e.HoloNETErrorDetails != null ? string.Concat(", HoloNET Reason: ", e.HoloNETErrorDetails.Reason) : ""), (e.HoloNETErrorDetails != null ? string.Concat(", HoloNET Details: ", e.HoloNETErrorDetails.ErrorDetails.ToString()) : ""), "\n"));
         }
 
-        private static void HoloNETClient_OnConnected(object sender, Holochain.HoloNET.Client.Core.ConnectedEventArgs e)
+        private static void HoloNETClient_OnConnected(object sender, ConnectedEventArgs e)
         {
             Console.WriteLine("Connected");
         }

@@ -52,5 +52,19 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
         {
             return GetMoonsAsync(refresh).Result; //TODO: Is this the best way of doing this?
         }
+
+        public async Task<OASISResult<IEnumerable<IMoon>>> SaveMoonsAsync(bool saveChildren = true, bool recursive = true, bool continueOnError = true)
+        {
+            OASISResult<IEnumerable<IMoon>> result = new OASISResult<IEnumerable<IMoon>>();
+            OASISResult<IEnumerable<IHolon>> holonResult = await SaveHolonsAsync(Planet.Moons, true, saveChildren, recursive, continueOnError);
+            OASISResultCollectionToCollectionHelper<IEnumerable<IHolon>, IEnumerable<IMoon>>.CopyResult(holonResult, ref result);
+            result.Result = Mapper<IHolon, Moon>.MapBaseHolonProperties(holonResult.Result);
+            return result;
+        }
+
+        public OASISResult<IEnumerable<IMoon>> SaveMoons(bool saveChildren = true, bool recursive = true, bool continueOnError = true)
+        {
+            return SaveMoonsAsync(saveChildren, recursive, continueOnError).Result; //TODO: Is this the best way of doing this?
+        }
     }
 }

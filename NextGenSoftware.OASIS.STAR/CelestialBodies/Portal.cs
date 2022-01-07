@@ -7,19 +7,10 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
 {
     public class Portal : CelestialBody, IPortal
     {
-        public Portal() : base(HolonType.Portal)
-        {
-           // this.HolonType = HolonType.Portal;
-        }
+        public Portal() : base(HolonType.Portal) { }
 
-        public Portal(Guid id) : base(id, HolonType.Portal)
-        {
-           // this.HolonType = HolonType.Portal;
-        }
-
-        public Portal(Dictionary<ProviderType, string> providerKey) : base(providerKey, HolonType.Portal)
-        {
-           // this.HolonType = HolonType.Portal;
-        } 
+        public Portal(Guid id) : base(id, HolonType.Portal) { }
+       
+        public Portal(Dictionary<ProviderType, string> providerKey) : base(providerKey, HolonType.Portal) {} 
     }
 }

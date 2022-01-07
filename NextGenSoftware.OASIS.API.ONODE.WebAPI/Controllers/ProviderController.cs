@@ -30,7 +30,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize(AvatarType.Wizard)]
         [HttpGet("GetCurrentStorageProvider")]
-        public OASISResult<IOASISStorage> GetCurrentStorageProvider()
+        public OASISResult<IOASISStorageProvider> GetCurrentStorageProvider()
         {
             return new(ProviderManager.CurrentStorageProvider);
         }
@@ -213,10 +213,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpPost("RegisterProviderTypes/{providerTypes}")]
-        public OASISResult<IEnumerable<IOASISStorage>> RegisterProviderTypes(string providerTypes)
+        public OASISResult<IEnumerable<IOASISStorageProvider>> RegisterProviderTypes(string providerTypes)
         {
             string[] types = providerTypes.Split(',');
-            List<IOASISStorage> providers = new List<IOASISStorage>();
+            List<IOASISStorageProvider> providers = new List<IOASISStorageProvider>();
 
             foreach (string type in types)
                 OASISBootLoader.OASISBootLoader.RegisterProvider((ProviderType)Enum.Parse(typeof(ProviderType), type));

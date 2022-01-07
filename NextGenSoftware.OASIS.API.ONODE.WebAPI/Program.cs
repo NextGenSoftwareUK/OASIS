@@ -12,7 +12,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
     {
         private static AvatarManager _avatarManager;
 
-        public static bool IsDevEnviroment;
+        public static bool IsDevEnviroment = false;
         public static string LIVE_OASISAPI = "https://api.oasisplatform.world/api";
         public static string DEV_OASISAPI = "http://localhost:5000/api";
         
@@ -35,7 +35,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
                 // Normally code is simpler if you just pass the provider into the manager constructor like SearchManager does, it is just one instance that is disposed of again once the request has been serviced...
                 if (_avatarManager == null)
                 {
-                    OASISResult<IOASISStorage> result = OASISBootLoader.OASISBootLoader.GetAndActivateDefaultProvider();
+                    OASISResult<IOASISStorageProvider> result = OASISBootLoader.OASISBootLoader.GetAndActivateDefaultProvider();
 
                     //TODO: Eventually want to replace all exceptions with OASISResult throughout the OASIS because then it makes sure errors are handled properly and friendly messages are shown (plus less overhead of throwing an entire stack trace!)
                     if (result.IsError)
