@@ -5,7 +5,7 @@ using NextGenSoftware.OASIS.API.Core.Enums;
 
 namespace NextGenSoftware.OASIS.STAR.CelestialSpace
 {
-    public class TwelthDimension : OmniverseDimension, ITenthDimension
+    public class TwelthDimension : OmniverseDimension, ITwelfthDimension
     {
         public TwelthDimension(IOmiverse omniverse = null) : base(omniverse)
         {

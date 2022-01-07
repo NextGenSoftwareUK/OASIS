@@ -33,6 +33,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
         private void Init(IOmiverse omniverse = null)
         {
             this.CreatedOASISType = new EnumValue<OASISType>(OASISType.STARCLI);
+            base.RegisterCelestialSpaces(Universes);
 
             if (omniverse != null)
             {
@@ -40,6 +41,8 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
                 this.ParentOmniverse = omniverse;
                 this.ParentOmniverseId = omniverse.Id;
             }
+
+            base.RegisterCelestialSpaces(Universes);
         }
     }
 }

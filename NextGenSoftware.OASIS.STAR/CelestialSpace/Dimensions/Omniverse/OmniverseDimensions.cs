@@ -12,8 +12,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
             NinthDimension = new NinthDimension(omiverse);
             TenthDimension = new TenthDimension(omiverse);
             EleventhDimension = new EleventhDimension(omiverse);
-            TwelfthDimension = new TwelfthDimension(omiverse);
-            TwelfthDimension = new TwelfthDimension(omiverse);
+            TwelfthDimension = new TwelthDimension(omiverse);
         }
 
         public IEighthDimension EighthDimension { get; set; }

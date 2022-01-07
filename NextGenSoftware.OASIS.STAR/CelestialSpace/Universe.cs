@@ -127,49 +127,49 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
             Init();
         }
 
-        public Universe(IMultiverse multiverse = null) : base(HolonType.Universe) 
+        public Universe(IDimension dimension = null) : base(HolonType.Universe) 
         {
-            Init(multiverse);
+            Init(dimension);
         }
 
-        public Universe(Guid id, IMultiverse multiverse = null) : base(id, HolonType.Universe) 
+        public Universe(Guid id, IDimension dimension = null) : base(id, HolonType.Universe) 
         {
-            Init(multiverse);
+            Init(dimension);
         }
 
-        public Universe(Dictionary<ProviderType, string> providerKey, IMultiverse multiverse = null) : base(providerKey, HolonType.Universe) 
+        public Universe(Dictionary<ProviderType, string> providerKey, IDimension dimension = null) : base(providerKey, HolonType.Universe) 
         {
-            Init(multiverse);
+            Init(dimension);
         }
 
-        private void Init(IMultiverse multiverse = null)
+        private void Init(IDimension dimension = null)
         {
             this.CreatedOASISType = new EnumValue<OASISType>(OASISType.STARCLI);
 
-            if (multiverse != null)
+            if (dimension != null)
             {
-                Mapper<IMultiverse, Universe>.MapParentCelestialBodyProperties(multiverse, this);
-                this.ParentMultiverse = multiverse;
-                this.ParentMultiverseId = multiverse.Id;
+                Mapper<IDimension, Universe>.MapParentCelestialBodyProperties(dimension, this);
+                this.ParentDimension = dimension;
+                this.ParentDimensionId = dimension.Id;
             }
         }
 
         private void RegisterAllCelestialSpaces()
         {
             base.UnregisterAllCelestialSpaces();
-            base.RegisterCelestialSpaces(this.SolarSystems);
-            base.RegisterCelestialSpaces(this.Nebulas);
-            base.RegisterCelestialSpaces(this.GalaxyClusters);
+            base.RegisterCelestialSpaces(this.SolarSystems, false);
+            base.RegisterCelestialSpaces(this.Nebulas, false);
+            base.RegisterCelestialSpaces(this.GalaxyClusters, false);
         }
 
         private void RegisterAllCelestialBodies()
         {
             base.UnregisterAllCelestialBodies();
-            base.RegisterCelestialBodies(this.Stars);
-            base.RegisterCelestialBodies(this.Planets);
-            base.RegisterCelestialBodies(this.Asteroids);
-            base.RegisterCelestialBodies(this.Comets);
-            base.RegisterCelestialBodies(this.Meteroids);
+            base.RegisterCelestialBodies(this.Stars, false);
+            base.RegisterCelestialBodies(this.Planets, false);
+            base.RegisterCelestialBodies(this.Asteroids, false);
+            base.RegisterCelestialBodies(this.Comets, false);
+            base.RegisterCelestialBodies(this.Meteroids, false);
         }
     }
 }

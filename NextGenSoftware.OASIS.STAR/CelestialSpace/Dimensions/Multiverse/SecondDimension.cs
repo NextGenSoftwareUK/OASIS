@@ -29,7 +29,8 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
             this.Name = "The Second Dimension";
             this.Description = "The Animal/Vegetation Plane - where aniamls and plants exist.";
             this.DimensionLevel = DimensionLevel.Second;
-            Universe = new Universe(multiverse);
+            Universe = new Universe(this);
+            base.RegisterCelestialSpaces(new List<ICelestialSpace>() { Universe });
         }
     }
 }
