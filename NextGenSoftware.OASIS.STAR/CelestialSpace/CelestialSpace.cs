@@ -452,8 +452,11 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
             return SaveCelestialSpacesAsync(saveChildren, recursive, continueOnError).Result;
         }
 
-        protected void RegisterCelestialBodies(IEnumerable<ICelestialBody> celestialBodies)
+        protected void RegisterCelestialBodies(IEnumerable<ICelestialBody> celestialBodies, bool unregisterExistingBodiesFirst = true)
         {
+            if (unregisterExistingBodiesFirst)
+                UnregisterAllCelestialSpaces();
+
             this.CelestialBodies.AddRange(celestialBodies);
 
             foreach (CelestialBody celestialBody in this.CelestialBodies)
@@ -476,8 +479,11 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
             }
         }
 
-        protected void RegisterCelestialSpaces(IEnumerable<ICelestialSpace> celestialSpaces)
+        protected void RegisterCelestialSpaces(IEnumerable<ICelestialSpace> celestialSpaces, bool unregisterExistingSpacesFirst = true)
         {
+            if (unregisterExistingSpacesFirst)
+                UnregisterAllCelestialSpaces();
+
             this.CelestialSpaces.AddRange(celestialSpaces);
 
             foreach (CelestialSpace celestialSpace in this.CelestialSpaces)

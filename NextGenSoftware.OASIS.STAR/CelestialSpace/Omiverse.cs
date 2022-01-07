@@ -94,14 +94,15 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
             };
 
             defaultMultiverse.GrandSuperStar.Name = "The GrandSuperStar at the centre of our Multiverse/Universe.";
-            Multiverses.Add(defaultMultiverse);
+            Multiverses.Add(defaultMultiverse); //NOTE: Adding items to a collection does not trigger the Property Setter.
+            base.RegisterCelestialSpaces(this.Multiverses, false);
         }
 
         private void RegisterAllCelestialSpaces()
         {
             base.UnregisterAllCelestialSpaces();
-            base.RegisterCelestialSpaces(new List<ICelestialSpace>() { Dimensions.EighthDimension, Dimensions.NinthDimension, Dimensions.TenthDimension, Dimensions.EleventhDimension, Dimensions.TwelfthDimension });
-            base.RegisterCelestialSpaces(this.Multiverses);
+            base.RegisterCelestialSpaces(new List<ICelestialSpace>() { Dimensions.EighthDimension, Dimensions.NinthDimension, Dimensions.TenthDimension, Dimensions.EleventhDimension, Dimensions.TwelfthDimension }, false);
+            base.RegisterCelestialSpaces(this.Multiverses, false);
         }
     }
 }

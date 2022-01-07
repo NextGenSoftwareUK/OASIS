@@ -29,7 +29,8 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
             this.Name = "The Sixth Dimension";
             this.Description = "Sacred Geometry is found here - the building blocks of all that is such as the Flower of Life, etc.";
             this.DimensionLevel = DimensionLevel.Sixth;
-            Universe = new Universe(multiverse);
+            Universe = new Universe(this);
+            base.RegisterCelestialSpaces(new List<ICelestialSpace>() { Universe });
         }
     }
 }

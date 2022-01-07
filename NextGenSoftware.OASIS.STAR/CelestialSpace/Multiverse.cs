@@ -81,8 +81,8 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
         private void RegisterAllCelestialSpaces()
         {
             base.UnregisterAllCelestialSpaces();
-            base.RegisterCelestialSpaces(new List<ICelestialSpace>() { Dimensions.FirstDimension, Dimensions.SecondDimension, Dimensions.ThirdDimension, Dimensions.FourthDimension, Dimensions.FifthDimension, Dimensions.SixthDimension, Dimensions.SeventhDimension });
-            base.RegisterCelestialSpaces(Dimensions.CustomDimensions);
+            base.RegisterCelestialSpaces(new List<ICelestialSpace>() { Dimensions.FirstDimension, Dimensions.SecondDimension, Dimensions.ThirdDimension, Dimensions.FourthDimension, Dimensions.FifthDimension, Dimensions.SixthDimension, Dimensions.SeventhDimension }, false);
+            base.RegisterCelestialSpaces(Dimensions.CustomDimensions, false);
         }
     }
 }
