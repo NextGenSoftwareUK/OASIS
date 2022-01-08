@@ -1,4 +1,4 @@
-﻿// SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: UNLICENSED
 // compiler version must be greater than or equal to 0.8.3 and less than 0.9.0
 pragma solidity ^0.8.9;
 
@@ -14,13 +14,13 @@ struct Avatar {
     string Username;
     string Email;
     string Password;
-    AvatarType AvatarType;
+    // AvatarType AvatarType;
     bool AcceptTerms;
     bool IsVerified;
     string JwtToken;
     uint256 PasswordReset;
     string RefreshToken;
-    RefreshToken[] RefreshTokens;
+    // RefreshToken[] RefreshTokens;
     string ResetToken;
     uint256 ResetTokenExpires;
     string VerificationToken;
