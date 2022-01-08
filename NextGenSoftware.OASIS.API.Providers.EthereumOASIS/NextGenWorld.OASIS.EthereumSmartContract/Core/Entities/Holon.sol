@@ -1,4 +1,4 @@
-﻿// SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: UNLICENSED
 // compiler version must be greater than or equal to 0.8.3 and less than 0.9.0
 pragma solidity ^0.8.9;
 
@@ -24,37 +24,37 @@ import "../Common/Zoom.sol";
 struct Holon {
     string HolonId;
     string ParentOmiverseId;
-    Omiverse ParentOmiverse;
+    // Omiverse ParentOmiverse;
     string ParentMultiverseId;
-    Multiverse ParentMultiverse;
+    // Multiverse ParentMultiverse;
     string ParentUniverseId;
-    Universe ParentUniverse;
+    // Universe ParentUniverse;
     string ParentDimensionId;
-    Dimension ParentDimension;
-    DimensionLevel DimensionLevel;
-    SubDimensionLevel SubDimensionLevel;
+    // Dimension ParentDimension;
+    // DimensionLevel DimensionLevel;
+    // SubDimensionLevel SubDimensionLevel;
     string ParentGalaxyClusterId;
-    GalaxyCluster ParentGalaxyCluster;
+    // GalaxyCluster ParentGalaxyCluster;
     string ParentGalaxyId;
-    Galaxy ParentGalaxy;
+    // Galaxy ParentGalaxy;
     string ParentSolarSystemId;
-    SolarSystem ParentSolarSystem;
+    // SolarSystem ParentSolarSystem;
     string ParentGreatGrandSuperStarId;
-    GreatGrandSuperStar ParentGreatGrandSuperStar;
+    // GreatGrandSuperStar ParentGreatGrandSuperStar;
     string ParentGrandSuperStarId;
-    GrandSuperStar ParentGrandSuperStar;
+    // GrandSuperStar ParentGrandSuperStar;
     string ParentSuperStarId;
-    SuperStar ParentSuperStar;
+    // SuperStar ParentSuperStar;
     string ParentStarId;
-    Star ParentStar;
+    // Star ParentStar;
     string ParentPlanetId;
-    Planet ParentPlanet;
+    // Planet ParentPlanet;
     string ParentMoonId;    
-    Moon ParentMoon;
+    // Moon ParentMoon;
     string ParentZomeId;
-    Zome ParentZome;
+    // Zome ParentZome;
     string ParentHolonId;
-    Holon[] Children;
-    Holon[] ChildrenTest;
-    Node[] Nodes;
+    // Holon[] Children;
+    // Holon[] ChildrenTest;
+    // Node[] Nodes;
 }
