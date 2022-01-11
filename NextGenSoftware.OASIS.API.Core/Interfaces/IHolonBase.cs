@@ -23,6 +23,7 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces
         bool IsActive { get; set; }
         bool IsChanged { get; set; }
         bool IsNewHolon { get; set; }
+        bool IsSaving { get; set; }
         IHolon Original { get; set; }
         Avatar CreatedByAvatar { get; set; }
         Guid CreatedByAvatarId { get; set; }

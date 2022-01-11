@@ -29,7 +29,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
             this.Name = "The Seventh Dimension";
             this.Description = "The Asscended Masters reside here.";
             this.DimensionLevel = DimensionLevel.Seventh;
-            Universe = new Universe(this);
+            Universe = new Universe(this) { Name = $"{this.Name} Universe" };
             base.RegisterCelestialSpaces(new List<ICelestialSpace>() { Universe });
         }
     }

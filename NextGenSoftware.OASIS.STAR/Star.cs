@@ -937,8 +937,61 @@ namespace NextGenSoftware.OASIS.STAR
             //This will be private on the store until the user publishes via the Star.Seed() command.
         }
 
+        public static void ShowStatusMessage(StarStatusChangedEventArgs eventArgs)
+        {
+            OnStarStatusChanged?.Invoke(null, eventArgs);
+        }
+
+        public static void ShowStatusMessage<T>(OASISEventArgs<T> eventArgs)
+        {
+            if (eventArgs.Result != null && eventArgs.Result.Result != null)
+            {
+                if (!eventArgs.Result.IsError)
+                    OnStarStatusChanged?.Invoke(null, new StarStatusChangedEventArgs() { MessageType = StarStatusMessageType.Success, Message = $"{((IHolon)eventArgs.Result.Result).Name} Created." });
+                else
+                    OnStarStatusChanged?.Invoke(null, new StarStatusChangedEventArgs() { MessageType = StarStatusMessageType.Error, Message = $"Error Creating {((IHolon)eventArgs.Result.Result)}. Reason: {eventArgs.Result.Message}" });
+            }
+        }
+
         private static void NewBody_OnCelestialBodySaved(object sender, CelestialBodySavedEventArgs e)
         {
+            if (e.Result != null && e.Result.Result != null)
+            {
+                if (!e.Result.IsError)
+                    OnStarStatusChanged?.Invoke(null, new StarStatusChangedEventArgs() { MessageType = StarStatusMessageType.Success, Message = $"{e.Result.Result.Name} Created." });
+                else
+                    OnStarStatusChanged?.Invoke(null, new StarStatusChangedEventArgs() { MessageType = StarStatusMessageType.Error, Message = $"Error Creating {e.Result.Result.Name}. Reason: {e.Result.Message}" });
+            }
+
+            /*
+            switch (e.Result.Result.HolonType)
+            {
+                case HolonType.GreatGrandSuperStar:
+                    OnStarStatusChanged?.Invoke(null, new StarStatusChangedEventArgs() { MessageType = StarStatusMessageType.Success, Message = "GreatGrandSuperStar Created." });
+                    break;
+
+                case HolonType.GrandSuperStar:
+                    OnStarStatusChanged?.Invoke(null, new StarStatusChangedEventArgs() { MessageType = StarStatusMessageType.Success, Message = "GrandSuperStar Created." });
+                    break;
+
+                case HolonType.Multiverse:
+                    OnStarStatusChanged?.Invoke(null, new StarStatusChangedEventArgs() { MessageType = StarStatusMessageType.Success, Message = "Default Multiverse Created." });
+                    break;
+
+                case HolonType.Dimension:
+                    OnStarStatusChanged?.Invoke(null, new StarStatusChangedEventArgs() { MessageType = StarStatusMessageType.Success, Message = $"{e.Result.Result.Name} Created." });
+                    break;
+
+                case HolonType.Universe:
+                    OnStarStatusChanged?.Invoke(null, new StarStatusChangedEventArgs() { MessageType = StarStatusMessageType.Success, Message = "Default Universe Created." });
+                    break;
+            }*/
+
+            //switch (e.Result.Result.Name)
+            //{
+            //    case "ThirdDimenson"
+            //}
+
             OnCelestialBodySaved?.Invoke(null, e);
         }
 
@@ -1302,7 +1355,7 @@ namespace NextGenSoftware.OASIS.STAR
         
         private static OASISResult<IOmiverse> IgniteInnerStar(ref OASISResult<IOmiverse> result)
         {
-           // _starId = Guid.Empty; //TODO:Temp, remove after!
+            _starId = Guid.Empty; //TODO:Temp, remove after!
 
             if (_starId == Guid.Empty)
                 result = OASISOmniverseGenesisAsync().Result;
@@ -1317,7 +1370,7 @@ namespace NextGenSoftware.OASIS.STAR
         {
             OASISResult<IOmiverse> result = new OASISResult<IOmiverse>();
 
-         //   _starId = Guid.Empty; //TODO:Temp, remove after!
+            _starId = Guid.Empty; //TODO:Temp, remove after!
 
             if (_starId == Guid.Empty)
                 result = await OASISOmniverseGenesisAsync();

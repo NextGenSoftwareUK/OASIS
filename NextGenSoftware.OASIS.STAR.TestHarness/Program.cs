@@ -827,8 +827,8 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
                 */
 
                 ShowWorkingMessage("Beaming In...");
-                //beamInResult = SuperStar.BeamIn("davidellams@hotmail.com", "my-super-secret-password");
-                beamInResult = STAR.BeamIn("davidellams@hotmail.com", "test!");
+                beamInResult = STAR.BeamIn("davidellams@hotmail.com", "my-super-secret-password");
+                //beamInResult = STAR.BeamIn("davidellams@hotmail.com", "test!");
                 //beamInResult = STAR.BeamIn("davidellams@gmail.com", "test!");
 
                 ShowMessage("");
@@ -1025,7 +1025,7 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
 
         private static void STAR_OnStarIgnited(object sender, System.EventArgs e)
         {
-            ShowSuccessMessage("STAR IGNITED");
+            //ShowSuccessMessage("STAR IGNITED");
         }
 
         private static void STAR_OnStarStatusChanged(object sender, EventArgs.StarStatusChangedEventArgs e)

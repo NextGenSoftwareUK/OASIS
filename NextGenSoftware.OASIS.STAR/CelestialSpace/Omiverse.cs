@@ -4,6 +4,8 @@ using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using NextGenSoftware.OASIS.STAR.CelestialBodies;
+using NextGenSoftware.OASIS.STAR.Enums;
+using NextGenSoftware.OASIS.STAR.EventArgs;
 
 namespace NextGenSoftware.OASIS.STAR.CelestialSpace
 {
@@ -69,17 +71,21 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
         private void Init()
         {
             this.Name = "The OASIS Omniverse";
-            this.Description = "The OASIS Omniverse that contains everything else.";
+            this.Description = "The OASIS Omniverse that contains everything else including Multiverses and dimensions 8-12, each of which contain it's own SuperVerse that spams all Multiverses/Universes & Dimensions (1-12).";
             CreatedOASISType = new EnumValue<OASISType>(OASISType.STARCLI);
-            
+
             GreatGrandSuperStar = new GreatGrandSuperStar()
             {
                 CreatedOASISType = new EnumValue<OASISType>(OASISType.STARCLI),
                 Name = "GreatGrandSuperStar",
-                Description = "GreatGrandSuperStar at the centre of the Omniverse (The OASIS). Can create Multiverses, Universes, Galaxies, SolarSystems, Stars, Planets (Super OAPPS) and moons (OAPPS)",
+                Description = "GreatGrandSuperStar at the centre of the Omniverse (The OASIS). Can create Multiverses.",
+                //Description = "GreatGrandSuperStar at the centre of the Omniverse (The OASIS). Can create Multiverses, Universes, Galaxies, SolarSystems, Stars, Planets (Super OAPPS) and moons (OAPPS)",
                 ParentOmniverse = this,
                 ParentOmniverseId = this.Id
             };
+
+            GreatGrandSuperStar.OnCelestialBodySaved += GreatGrandSuperStar_OnCelestialBodySaved;
+            base.RegisterCelestialBodies(new List<ICelestialBody>() { this.GreatGrandSuperStar }, false);
 
             ParentGreatGrandSuperStar = GreatGrandSuperStar;
             ParentGreatGrandSuperStarId = GreatGrandSuperStar.Id;
@@ -89,13 +95,19 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
             //Add a default multiverse.
             Multiverse defaultMultiverse = new Multiverse(this)
             {
-                Name = "Our Multiverse",
-                Description = "Our Multiverse that our Milky Way Galaxy belongs to, the default Multiverse."
+                Name = "Our (Default) Multiverse",
+                Description = "Our Multiverse that our Milky Way Galaxy belongs to, the default Multiverse. It contains dimensions 1-7, each of which contain it's own Universe."
             };
 
-            defaultMultiverse.GrandSuperStar.Name = "The GrandSuperStar at the centre of our Multiverse/Universe.";
+            defaultMultiverse.GrandSuperStar.Description = "The GrandSuperStar at the centre of our Multiverse/Universe. Can create Universes within it's parent Multiverse.";
             Multiverses.Add(defaultMultiverse); //NOTE: Adding items to a collection does not trigger the Property Setter.
             base.RegisterCelestialSpaces(this.Multiverses, false);
+        }
+
+        private void GreatGrandSuperStar_OnCelestialBodySaved(object sender, API.Core.Events.CelestialBodySavedEventArgs e)
+        {
+            STAR.ShowStatusMessage(e);
+            GreatGrandSuperStar.OnCelestialBodySaved -= GreatGrandSuperStar_OnCelestialBodySaved;
         }
 
         private void RegisterAllCelestialSpaces()

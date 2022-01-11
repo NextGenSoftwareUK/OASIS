@@ -41,7 +41,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
                 this.ParentOmniverseId = omniverse.Id;
             }
 
-            SuperVerse = new SuperVerse(omniverse);
+            SuperVerse = new SuperVerse(omniverse) { Name = $"{this.Name} SuperVerse" };
             base.RegisterCelestialSpaces(new List<ICelestialSpace>() { SuperVerse });
         }
     }

@@ -344,6 +344,8 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
         {
             OASISResult<ICelestialBody> result = new OASISResult<ICelestialBody>();
             OASISResult<IHolon> holonResult = await base.LoadHolonAsync(loadChildren, recursive, continueOnError);
+            //result.Result = Mapper<IHolon, CelestialBody>.MapBaseHolonProperties(holonResult.Result, result.Result);
+            Mapper.MapBaseHolonProperties(holonResult.Result, result.Result);
             result.Result = (ICelestialBody)holonResult.Result;
             OASISResultHolonToHolonHelper<IHolon, ICelestialBody>.CopyResult(holonResult, result);
             //result.Result = (ICelestialBody)await base.LoadHolonAsync();
@@ -626,6 +628,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
             {
                 result.Message = "Holon was not saved due to saveHolon being set to false.";
                 result.IsSaved = false;
+                result.Result = holon;
             }
 
             //OASISResultCollectionToHolonHelper<IEnumerable<IHolon>, IHolon>.CopyResult(holonsResult, ref result);

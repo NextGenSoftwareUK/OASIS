@@ -265,12 +265,18 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
         public async Task<OASISResult<ICelestialSpace>> SaveAsync(bool saveChildren = true, bool recursive = true, bool continueOnError = true)
         {
             OASISResult<ICelestialSpace> result = new OASISResult<ICelestialSpace>();
+            IsSaving = true;
+
+            if (!STAR.IsStarIgnited)
+                STAR.ShowStatusMessage(new EventArgs.StarStatusChangedEventArgs() { MessageType = Enums.StarStatusMessageType.Processing, Message = $"Creating CelestialSpace {this.Name}..." });
+
             IStar star = GetCelestialSpaceNearestStar();
 
             if (star == null)
             {
                 ErrorHandling.HandleError(ref result, $"Error occured in CelestialSpace.SaveAsync method saving the {LoggingHelper.GetHolonInfoForLogging(this, "CelestialSpace")}. Could not find the nearest star for the {LoggingHelper.GetHolonInfoForLogging(this, "CelestialSpace")}.");
                 OnCelestialSpaceError?.Invoke(this, new CelestialSpaceErrorEventArgs() { Reason = $"{result.Message}", Result = result });
+                IsSaving = false;
                 return result;
             }
 
@@ -286,9 +292,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
                     OnCelestialSpaceError?.Invoke(this, new CelestialSpaceErrorEventArgs() { Reason = $"{result.Message}", Result = result });
                 }
                 else
-                {
                     result.Result = (ICelestialSpace)holonResult.Result;
-                }
 
                 if (saveChildren)
                 {
@@ -306,6 +310,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
                         if (!continueOnError)
                         {
                             OnCelestialSpaceSaved?.Invoke(this, new CelestialSpaceSavedEventArgs() { Result = result });
+                            IsSaving = false;
                             return result;
                         }
                     }
@@ -332,8 +337,19 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
                     ErrorHandling.HandleWarning(ref result, $"There was {result.WarningCount} error(s) in CelestialSpace.SaveAsync method whilst saving the {LoggingHelper.GetHolonInfoForLogging(this, "CelestialSpace")}. {result.SavedCount} operations did save correctly however. Please check the logs and InnerMessages property for more details. Inner Messages: {OASISResultHelper.BuildInnerMessageError(result.InnerMessages)}");
 
                 OnCelestialSpaceError?.Invoke(this, new CelestialSpaceErrorEventArgs() { Result = result });
+
+                if (!STAR.IsStarIgnited)
+                    STAR.ShowStatusMessage(new EventArgs.StarStatusChangedEventArgs() { MessageType = Enums.StarStatusMessageType.Error, Message = $"Error Creating CelestialSpace {this.Name}. Reason: {result.Message}" });
+            }
+            else
+            {
+                result.IsSaved = true;
+
+                if (!STAR.IsStarIgnited)
+                    STAR.ShowStatusMessage(new EventArgs.StarStatusChangedEventArgs() { MessageType = Enums.StarStatusMessageType.Success, Message = $"CelestialSpace {this.Name} Created." });
             }
 
+            IsSaving = false;
             OnCelestialSpaceSaved?.Invoke(this, new CelestialSpaceSavedEventArgs() { Result = result });
             return result;
         }
@@ -346,27 +362,31 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
         public async Task<OASISResult<IEnumerable<ICelestialBody>>> SaveCelestialBodiesAsync(bool saveChildren = true, bool recursive = true, bool continueOnError = true)
         {
             OASISResult<IEnumerable<ICelestialBody>> result = new OASISResult<IEnumerable<ICelestialBody>>(this.CelestialBodies);
+            IsSaving = true;
             OASISResult<ICelestialBody> celestialBodyResult = null;
 
             //Save all CelestialBodies contained within this space.
             foreach (ICelestialBody celestialBody in CelestialBodies)
             {
-                celestialBodyResult = await celestialBody.SaveAsync(saveChildren, recursive, continueOnError);
-
-                if (celestialBodyResult != null && celestialBodyResult.Result != null && !celestialBodyResult.IsError)
-                    result.SavedCount++;
-                else
+                if (!celestialBody.IsSaving)
                 {
-                    //result.ErrorCount++;
-                    //ErrorHandling.HandleWarning(ref celestialBodyResult, $"Error occured in CelestialSpace.SaveCelestialBodiesAsync method whilst saving the {LoggingHelper.GetHolonInfoForLogging(celestialBody, "CelestialBody")}. Reason: {celestialBodyResult.Message}", true, false, false, true, false);
-                    ErrorHandling.HandleWarning(ref celestialBodyResult, $"Error occured in CelestialSpace.SaveCelestialBodiesAsync method whilst saving the {LoggingHelper.GetHolonInfoForLogging(celestialBody, "CelestialBody")}. Reason: {celestialBodyResult.Message}");
+                    celestialBodyResult = await celestialBody.SaveAsync(saveChildren, recursive, continueOnError);
+
+                    if (celestialBodyResult != null && celestialBodyResult.Result != null && !celestialBodyResult.IsError)
+                        result.SavedCount++;
+                    else
+                    {
+                        //result.ErrorCount++;
+                        //ErrorHandling.HandleWarning(ref celestialBodyResult, $"Error occured in CelestialSpace.SaveCelestialBodiesAsync method whilst saving the {LoggingHelper.GetHolonInfoForLogging(celestialBody, "CelestialBody")}. Reason: {celestialBodyResult.Message}", true, false, false, true, false);
+                        ErrorHandling.HandleWarning(ref celestialBodyResult, $"Error occured in CelestialSpace.SaveCelestialBodiesAsync method whilst saving the {LoggingHelper.GetHolonInfoForLogging(celestialBody, "CelestialBody")}. Reason: {celestialBodyResult.Message}");
 
 
-                    //TODO: Think better to just raise one error (below) rather than lots for every item?
-                    //OnCelestialBodiesError?.Invoke(this, new CelestialBodiesErrorEventArgs() { Reason = $"{result.Message}", Result = result });
+                        //TODO: Think better to just raise one error (below) rather than lots for every item?
+                        //OnCelestialBodiesError?.Invoke(this, new CelestialBodiesErrorEventArgs() { Reason = $"{result.Message}", Result = result });
 
-                    if (!continueOnError)
-                        break;
+                        if (!continueOnError)
+                            break;
+                    }
                 }
             }
 
@@ -390,6 +410,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
                 result.IsSaved = true;
 
             OnCelestialBodiesSaved?.Invoke(this, new CelestialBodiesSavedEventArgs() { Result = result });
+            IsSaving = false;
             return result;
         }
 
@@ -402,25 +423,29 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
         {
             OASISResult<IEnumerable<ICelestialSpace>> result = new OASISResult<IEnumerable<ICelestialSpace>>(this.CelestialSpaces);
             OASISResult<ICelestialSpace> celestialSpaceResult = null;
+            IsSaving = true;
 
             //Save all CelestialSpaces contained within this space.
             foreach (ICelestialSpace celestialSpace in CelestialSpaces)
             {
-                celestialSpaceResult = await celestialSpace.SaveAsync(saveChildren, recursive, continueOnError);
-
-                if (celestialSpaceResult != null && celestialSpaceResult.Result != null && !celestialSpaceResult.IsError)
-                    result.SavedCount++;
-                else
+                if (!celestialSpace.IsSaving)
                 {
-                    //result.ErrorCount++;
-                    //ErrorHandling.HandleWarning(ref celestialSpaceResult, $"Error occured in CelestialSpace.SaveCelestialSpacesAsync method whilst saving the {LoggingHelper.GetHolonInfoForLogging(celestialSpace, "CelestialSpace")}. Reason: {celestialSpaceResult.Message}", true, false, false, true, false);
-                    ErrorHandling.HandleWarning(ref celestialSpaceResult, $"Error occured in CelestialSpace.SaveCelestialSpacesAsync method whilst saving the {LoggingHelper.GetHolonInfoForLogging(celestialSpace, "CelestialSpace")}. Reason: {celestialSpaceResult.Message}");
+                    celestialSpaceResult = await celestialSpace.SaveAsync(saveChildren, recursive, continueOnError);
 
-                    //TODO: Think better to just raise one error (below) rather than lots for every item?
-                    //OnCelestialBodiesError?.Invoke(this, new CelestialBodiesErrorEventArgs() { Reason = $"{result.Message}", Result = result });
+                    if (celestialSpaceResult != null && celestialSpaceResult.Result != null && !celestialSpaceResult.IsError)
+                        result.SavedCount++;
+                    else
+                    {
+                        //result.ErrorCount++;
+                        //ErrorHandling.HandleWarning(ref celestialSpaceResult, $"Error occured in CelestialSpace.SaveCelestialSpacesAsync method whilst saving the {LoggingHelper.GetHolonInfoForLogging(celestialSpace, "CelestialSpace")}. Reason: {celestialSpaceResult.Message}", true, false, false, true, false);
+                        ErrorHandling.HandleWarning(ref celestialSpaceResult, $"Error occured in CelestialSpace.SaveCelestialSpacesAsync method whilst saving the {LoggingHelper.GetHolonInfoForLogging(celestialSpace, "CelestialSpace")}. Reason: {celestialSpaceResult.Message}");
 
-                    if (!continueOnError)
-                        break;
+                        //TODO: Think better to just raise one error (below) rather than lots for every item?
+                        //OnCelestialBodiesError?.Invoke(this, new CelestialBodiesErrorEventArgs() { Reason = $"{result.Message}", Result = result });
+
+                        if (!continueOnError)
+                            break;
+                    }
                 }
             }
 
@@ -444,6 +469,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
                 result.IsSaved = true;
 
             OnCelestialSpacesSaved?.Invoke(this, new CelestialSpacesSavedEventArgs() { Result = result });
+            IsSaving = false;
             return result;
         }
 

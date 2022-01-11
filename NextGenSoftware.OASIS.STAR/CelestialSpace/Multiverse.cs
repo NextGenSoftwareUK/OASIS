@@ -48,15 +48,21 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
 
         private void Init(IOmiverse omniverse = null)
         {
-            //this.Name = "Our Multiverse";
-            //this.Description = "Our Multiverse that our Milky Way Galaxy belongs to, the default Multiverse.";
+            this.Name = "Multiverse";
+            this.Description = "A Multiverse that contains dimensions 1-7, each of which contain it's own Universe.";
             this.CreatedOASISType = new EnumValue<OASISType>(OASISType.STARCLI);
 
             GrandSuperStar = new GrandSuperStar()
             {
                 CreatedOASISType = new EnumValue<OASISType>(OASISType.STARCLI),
-                //Name = "The GrandSuperStar at the centre of our Multiverse/Universe.",
+                ParentMultiverse = this,
+                ParentMultiverseId = this.Id,
+                Name = "GrandSuperStar",
+                Description = "The GrandSuperStar at the centre of this Multiverse/Universe. Can create Universes within it's parent Multiverse.",
             };
+
+            GrandSuperStar.OnCelestialBodySaved += GrandSuperStar_OnCelestialBodySaved;
+            base.RegisterCelestialBodies(new List<ICelestialBody>() { this.GrandSuperStar }, false);
 
             ParentGrandSuperStar = GrandSuperStar;
             ParentGrandSuperStarId = GrandSuperStar.Id;
@@ -64,18 +70,20 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
             if (omniverse != null)
             {
                 Mapper<IOmiverse, Multiverse>.MapParentCelestialBodyProperties(omniverse, this);
+                Mapper<IOmiverse, GrandSuperStar>.MapParentCelestialBodyProperties(omniverse, (GrandSuperStar)GrandSuperStar);
                 this.ParentOmniverse = omniverse;
                 this.ParentOmniverseId = omniverse.Id;
-                //this.ParentGreatGrandSuperStar = omniverse.ParentGreatGrandSuperStar;
-                //this.ParentGreatGrandSuperStarId = omniverse.ParentGreatGrandSuperStarId;
-
                 this.GrandSuperStar.ParentOmniverse = omniverse;
                 this.GrandSuperStar.ParentOmniverseId = omniverse.Id;
-                //this.GrandSuperStar.ParentGreatGrandSuperStar = omniverse.ParentGreatGrandSuperStar;
-                //this.GrandSuperStar.ParentGreatGrandSuperStarId = omniverse.ParentGreatGrandSuperStarId;
             }
 
             Dimensions = new MultiverseDimensions(this);
+        }
+
+        private void GrandSuperStar_OnCelestialBodySaved(object sender, API.Core.Events.CelestialBodySavedEventArgs e)
+        {
+            STAR.ShowStatusMessage(e);
+            GrandSuperStar.OnCelestialBodySaved -= GrandSuperStar_OnCelestialBodySaved;
         }
 
         private void RegisterAllCelestialSpaces()
