@@ -56,6 +56,17 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
         public async Task<OASISResult<IEnumerable<IMoon>>> SaveMoonsAsync(bool saveChildren = true, bool recursive = true, bool continueOnError = true)
         {
             OASISResult<IEnumerable<IMoon>> result = new OASISResult<IEnumerable<IMoon>>();
+
+            if (Planet.Moons == null)
+                Planet.Moons = new List<IMoon>();
+
+            if (Planet.Moons.Count == 0)
+            {
+                result.IsWarning = true;
+                result.Message = "No moons found to save.";
+                return result;
+            }
+            
             OASISResult<IEnumerable<IHolon>> holonResult = await SaveHolonsAsync(Planet.Moons, true, saveChildren, recursive, continueOnError);
             OASISResultCollectionToCollectionHelper<IEnumerable<IHolon>, IEnumerable<IMoon>>.CopyResult(holonResult, ref result);
             result.Result = Mapper<IHolon, Moon>.MapBaseHolonProperties(holonResult.Result);

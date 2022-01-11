@@ -29,7 +29,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
             this.Name = "The Fifth Dimension";
             this.Description = "Love/Wisdom/Unity Conciusouness dimension. We will be asscending to this dimension soon... ;-)";
             this.DimensionLevel = DimensionLevel.Fifth;
-            Universe = new Universe(this);
+            Universe = new Universe(this) { Name = $"{this.Name} Universe"};
             base.RegisterCelestialSpaces(new List<ICelestialSpace>() { Universe });
         }
     }

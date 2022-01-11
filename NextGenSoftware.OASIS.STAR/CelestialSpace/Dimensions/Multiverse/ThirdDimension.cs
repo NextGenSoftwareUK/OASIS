@@ -21,7 +21,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
             Init();
         }
 
-        public ThirdDimension(IMultiverse multiverse = null)
+        public ThirdDimension(IMultiverse multiverse = null) : base(multiverse)
         {
             Init(multiverse);
         }
@@ -41,8 +41,8 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
             this.Name = "The Third Dimension";
             this.Description = "The Physical Plane - what people see and experience during day to day living.";
             this.DimensionLevel = DimensionLevel.Third;
-            UniversePrime = new Universe(this);
-            MagicVerse = new Universe(this);
+            UniversePrime = new Universe(this) { Name = $"{this.Name} Universe Prime" };
+            MagicVerse = new Universe(this) { Name = $"{this.Name} Universe (MagicVerse)" };
             base.RegisterCelestialSpaces(new List<ICelestialSpace>() { UniversePrime, MagicVerse });
         }
     }
