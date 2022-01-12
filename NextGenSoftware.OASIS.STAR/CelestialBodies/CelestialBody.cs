@@ -1042,35 +1042,61 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
             grandSuperStar.ParentGreatGrandSuperStar = greatGrandSuperStar;
             grandSuperStar.ParentGreatGrandSuperStarId = greatGrandSuperStar.Id;
 
-            Mapper.MapParentCelestialBodyProperties(grandSuperStar, grandSuperStar.ParentMultiverse.Dimensions.FirstDimension);
-            SetParentIdsForDimension(grandSuperStar.ParentMultiverse.Dimensions.FirstDimension);
-            Mapper.MapParentCelestialBodyProperties(grandSuperStar, grandSuperStar.ParentMultiverse.Dimensions.SecondDimension);
-            SetParentIdsForDimension(grandSuperStar.ParentMultiverse.Dimensions.SecondDimension);
-            Mapper.MapParentCelestialBodyProperties(grandSuperStar, grandSuperStar.ParentMultiverse.Dimensions.ThirdDimension);
-            SetParentIdsForDimension(grandSuperStar.ParentMultiverse.Dimensions.ThirdDimension);
-            Mapper.MapParentCelestialBodyProperties(grandSuperStar, grandSuperStar.ParentMultiverse.Dimensions.FourthDimension);
-            SetParentIdsForDimension(grandSuperStar.ParentMultiverse.Dimensions.FourthDimension);
-            Mapper.MapParentCelestialBodyProperties(grandSuperStar, grandSuperStar.ParentMultiverse.Dimensions.FifthDimension);
-            SetParentIdsForDimension(grandSuperStar.ParentMultiverse.Dimensions.FifthDimension);
-            Mapper.MapParentCelestialBodyProperties(grandSuperStar, grandSuperStar.ParentMultiverse.Dimensions.SixthDimension);
-            SetParentIdsForDimension(grandSuperStar.ParentMultiverse.Dimensions.SixthDimension);
-            Mapper.MapParentCelestialBodyProperties(grandSuperStar, grandSuperStar.ParentMultiverse.Dimensions.SeventhDimension);
-            SetParentIdsForDimension(grandSuperStar.ParentMultiverse.Dimensions.SeventhDimension);
+            SetParentIdsForMultiverseDimension(grandSuperStar.ParentMultiverse.Dimensions.FirstDimension, grandSuperStar);
+            SetParentIdsForMultiverseDimension(grandSuperStar.ParentMultiverse.Dimensions.SecondDimension, grandSuperStar);
+            SetParentIdsForMultiverseDimension(grandSuperStar.ParentMultiverse.Dimensions.ThirdDimension, grandSuperStar);
+            SetParentIdsForMultiverseDimension(grandSuperStar.ParentMultiverse.Dimensions.FourthDimension, grandSuperStar);
+            SetParentIdsForMultiverseDimension(grandSuperStar.ParentMultiverse.Dimensions.FifthDimension, grandSuperStar);
+            SetParentIdsForMultiverseDimension(grandSuperStar.ParentMultiverse.Dimensions.SixthDimension, grandSuperStar);
+            SetParentIdsForMultiverseDimension(grandSuperStar.ParentMultiverse.Dimensions.SeventhDimension, grandSuperStar);
         }
 
-        private void SetParentIdsForDimension(IMultiverseDimension dimension)
+        private void SetParentIdsForMultiverseDimension(IMultiverseDimension dimension, IGrandSuperStar grandSuperStar)
         {
+            Mapper.MapParentCelestialBodyProperties(grandSuperStar, dimension);
+            Mapper.MapParentCelestialBodyProperties(dimension, dimension.Universe);
+            dimension.Universe.ParentDimension = dimension;
+            dimension.Universe.ParentDimensionId = dimension.Id;
+
             foreach (IStar star in dimension.Universe.Stars)
             {
                 // Stars that are outside of a Galaxy (do not have a superstar).
-                Mapper.MapParentCelestialBodyProperties(dimension, dimension.Universe);
-                dimension.Universe.ParentDimension = dimension;
-                dimension.Universe.ParentDimensionId = dimension.Id;
                 star.ParentUniverse = dimension.Universe;
                 star.ParentUniverseId = dimension.Universe.Id;
 
-                SetParentIdsForStar(greatGrandSuperStar, grandSuperStar, null, star); //Stars outside of a Galaxy do not have a parent SuperStar (at the centre of each Galaxy).
+                SetParentIdsForStar(null, grandSuperStar, null, star);
             }
+
+            foreach (IPlanet planet in dimension.Universe.Planets)
+            {
+                // Planets that are outside of a Galaxy (do not have a superstar).
+                planet.ParentUniverse = dimension.Universe;
+                planet.ParentUniverseId = dimension.Universe.Id;
+
+                SetParentIdsForPlanet(null, grandSuperStar, null, null, planet);
+            }
+
+            foreach (ISolarSystem solarSystem in dimension.Universe.SolarSystems)
+            {
+                // SolarSystems that are outside of a Galaxy (do not have a superstar).
+                solarSystem.ParentUniverse = dimension.Universe;
+                solarSystem.ParentUniverseId = dimension.Universe.Id;
+
+                //TODO: Implement method below:
+                //SetParentIdsForSolarSystems(greatGrandSuperStar, grandSuperStar, null, null, solarSystem);
+            }
+
+            foreach (INebula nebula in dimension.Universe.Nebulas)
+            {
+                // SolarSystems that are outside of a Galaxy (do not have a superstar).
+                nebula.ParentUniverse = dimension.Universe;
+                nebula.ParentUniverseId = dimension.Universe.Id;
+
+                //TODO: Implement method below:
+                //SetParentIdsForNebulas(greatGrandSuperStar, grandSuperStar, null, null, nebula);
+            }
+
+            //TODO: Add rest of CelestialBodies/Spaces in Universe here...
 
             foreach (IGalaxyCluster galaxyCluster in dimension.Universe.GalaxyClusters)
             {
@@ -1084,8 +1110,20 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
                     galaxy.ParentGalaxyCluster = galaxyCluster;
                     galaxy.ParentGalaxyClusterId = galaxyCluster.Id;
 
-                    SetParentIdsForSuperStar(greatGrandSuperStar, grandSuperStar, galaxy.SuperStar);
+                    //SetParentIdsForSuperStar(greatGrandSuperStar, grandSuperStar, galaxy.SuperStar);
+                    SetParentIdsForSuperStar(null, grandSuperStar, galaxy.SuperStar);
                 }
+            }
+
+            ThirdDimension thirdDimension = dimension as ThirdDimension;
+
+            if (thirdDimension != null)
+            {
+                Mapper.MapParentCelestialBodyProperties(grandSuperStar, thirdDimension.MagicVerse);
+                //Mapper.MapParentCelestialBodyProperties(grandSuperStar, thirdDimension.UniversePrime);
+
+                foreach (IUniverse universe in thirdDimension.ParallelUniverses)
+                    Mapper.MapParentCelestialBodyProperties(grandSuperStar, universe);
             }
         }
 
@@ -1093,13 +1131,9 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
         {
             foreach (IMultiverse multiverse in greatGrandSuperStar.ParentOmniverse.Multiverses)
             {
-                multiverse.ParentOmniverse = greatGrandSuperStar.ParentOmniverse;
-                multiverse.ParentOmniverseId = greatGrandSuperStar.ParentOmniverseId;
+                Mapper.MapParentCelestialBodyProperties(greatGrandSuperStar, multiverse);
                 multiverse.ParentGreatGrandSuperStar = greatGrandSuperStar;
                 multiverse.ParentGreatGrandSuperStarId = greatGrandSuperStar.Id;
-
-                //TODO: Come back to this tomorrow...
-                //Mapper<IGreatGrandSuperStar, Multiverse>.MapParentCelestialBodyProperties(greatGrandSuperStar, (Multiverse)multiverse);
 
                 foreach (IUniverse universe in multiverse.Dimensions.ThirdDimension.ParallelUniverses)
                 {

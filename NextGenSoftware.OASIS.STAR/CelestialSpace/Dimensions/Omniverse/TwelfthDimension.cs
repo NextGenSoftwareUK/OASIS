@@ -27,6 +27,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
             this.Name = "The Twelth Dimension";
             this.Description = "Coming Soon...";
             this.DimensionLevel = DimensionLevel.Twelfth;
+            this.SuperVerse.Name = $"{this.Name} SuperVerse";
         }
     }
 }

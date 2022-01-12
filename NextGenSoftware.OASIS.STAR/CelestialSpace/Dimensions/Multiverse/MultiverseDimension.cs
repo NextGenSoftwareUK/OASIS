@@ -8,6 +8,8 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
 {
     public class MultiverseDimension : Dimension, IMultiverseDimension
     {
+        public IUniverse Universe { get; set; }
+
         public MultiverseDimension() : base()
         {
             Init();

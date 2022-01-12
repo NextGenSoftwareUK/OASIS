@@ -827,7 +827,7 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
                 */
 
                 ShowWorkingMessage("Beaming In...");
-                beamInResult = STAR.BeamIn("davidellams@hotmail.com", "my-super-secret-password");
+                beamInResult = STAR.BeamIn("davidellams@hotmail.com", "new-super-secret-password");
                 //beamInResult = STAR.BeamIn("davidellams@hotmail.com", "test!");
                 //beamInResult = STAR.BeamIn("davidellams@gmail.com", "test!");
 

@@ -27,6 +27,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
             this.Name = "The Eighth Dimension";
             this.Description = "Coming Soon...";
             this.DimensionLevel = DimensionLevel.Eighth;
+            this.SuperVerse.Name = $"{this.Name} SuperVerse";
         }
     }
 }
