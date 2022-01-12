@@ -84,7 +84,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
                 ParentOmniverseId = this.Id
             };
 
-            GreatGrandSuperStar.OnCelestialBodySaved += GreatGrandSuperStar_OnCelestialBodySaved;
+            //GreatGrandSuperStar.OnCelestialBodySaved += GreatGrandSuperStar_OnCelestialBodySaved;
             base.RegisterCelestialBodies(new List<ICelestialBody>() { this.GreatGrandSuperStar }, false);
 
             ParentGreatGrandSuperStar = GreatGrandSuperStar;
@@ -95,7 +95,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
             //Add a default multiverse.
             Multiverse defaultMultiverse = new Multiverse(this)
             {
-                Name = "Our (Default) Multiverse",
+                Name = "Our Multiverse (Default Multiverse)",
                 Description = "Our Multiverse that our Milky Way Galaxy belongs to, the default Multiverse. It contains dimensions 1-7, each of which contain it's own Universe."
             };
 
@@ -104,11 +104,11 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
             base.RegisterCelestialSpaces(this.Multiverses, false);
         }
 
-        private void GreatGrandSuperStar_OnCelestialBodySaved(object sender, API.Core.Events.CelestialBodySavedEventArgs e)
-        {
-            STAR.ShowStatusMessage(e);
-            GreatGrandSuperStar.OnCelestialBodySaved -= GreatGrandSuperStar_OnCelestialBodySaved;
-        }
+        //private void GreatGrandSuperStar_OnCelestialBodySaved(object sender, API.Core.Events.CelestialBodySavedEventArgs e)
+        //{
+        //    STAR.ShowStatusMessage(e);
+        //    GreatGrandSuperStar.OnCelestialBodySaved -= GreatGrandSuperStar_OnCelestialBodySaved;
+        //}
 
         private void RegisterAllCelestialSpaces()
         {

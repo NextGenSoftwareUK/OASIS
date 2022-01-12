@@ -61,7 +61,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
                 Description = "The GrandSuperStar at the centre of this Multiverse/Universe. Can create Universes within it's parent Multiverse.",
             };
 
-            GrandSuperStar.OnCelestialBodySaved += GrandSuperStar_OnCelestialBodySaved;
+            //GrandSuperStar.OnCelestialBodySaved += GrandSuperStar_OnCelestialBodySaved;
             base.RegisterCelestialBodies(new List<ICelestialBody>() { this.GrandSuperStar }, false);
 
             ParentGrandSuperStar = GrandSuperStar;
@@ -80,11 +80,11 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
             Dimensions = new MultiverseDimensions(this);
         }
 
-        private void GrandSuperStar_OnCelestialBodySaved(object sender, API.Core.Events.CelestialBodySavedEventArgs e)
-        {
-            STAR.ShowStatusMessage(e);
-            GrandSuperStar.OnCelestialBodySaved -= GrandSuperStar_OnCelestialBodySaved;
-        }
+        //private void GrandSuperStar_OnCelestialBodySaved(object sender, API.Core.Events.CelestialBodySavedEventArgs e)
+        //{
+        //    STAR.ShowStatusMessage(e);
+        //    GrandSuperStar.OnCelestialBodySaved -= GrandSuperStar_OnCelestialBodySaved;
+        //}
 
         private void RegisterAllCelestialSpaces()
         {

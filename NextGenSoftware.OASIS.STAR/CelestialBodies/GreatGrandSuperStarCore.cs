@@ -311,7 +311,8 @@ namespace NextGenSoftware.OASIS.STAR
                 {
                     universes.Add(multiverse.Dimensions.FirstDimension.Universe);
                     universes.Add(multiverse.Dimensions.SecondDimension.Universe);
-                    universes.Add(multiverse.Dimensions.ThirdDimension.UniversePrime);
+                    //universes.Add(multiverse.Dimensions.ThirdDimension.UniversePrime);
+                    universes.Add(multiverse.Dimensions.ThirdDimension.Universe);
                     universes.Add(multiverse.Dimensions.ThirdDimension.MagicVerse);
                     universes.AddRange(multiverse.Dimensions.ThirdDimension.ParallelUniverses);
                     universes.Add(multiverse.Dimensions.FourthDimension.Universe);
