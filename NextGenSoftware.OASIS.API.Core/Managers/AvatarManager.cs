@@ -108,7 +108,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
             if (result.Result != null & !result.IsError)
             {
-                var jwtToken = generateJwtToken(result.Result);
+                var jwtToken = GenerateJWTToken(result.Result);
                 var refreshToken = generateRefreshToken(ipAddress);
 
                 result.Result.RefreshTokens.Add(refreshToken);
@@ -179,7 +179,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
             if (result.Result != null & !result.IsError)
             {
-                var jwtToken = generateJwtToken(result.Result);
+                var jwtToken = GenerateJwtToken(result.Result);
                 var refreshToken = generateRefreshToken(ipAddress);
 
                 result.Result.RefreshTokens.Add(refreshToken);
@@ -1570,10 +1570,14 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return avatar;
         }
 
-        private string generateJwtToken(IAvatar account)
+        private string GenerateJwtToken(IAvatar account)
         {
+            //TODO: Replace exception with OASISResult ASAP.
+            if (string.IsNullOrEmpty(OASISDNA.OASIS.Security.SecretKey))
+                throw new ArgumentNullException("OASISDNA.OASIS.Security.SecretKey", "OASISDNA.OASIS.Security.SecretKey is missing, please generate a unique secret key from two GUID's.");
+            
             var tokenHandler = new JwtSecurityTokenHandler();
-            var key = Encoding.ASCII.GetBytes(OASISDNA.OASIS.Security.Secret);
+            var key = Encoding.ASCII.GetBytes(OASISDNA.OASIS.Security.SecretKey);
             var tokenDescriptor = new SecurityTokenDescriptor
             {
                 Subject = new ClaimsIdentity(new[] { new Claim("id", account.Id.ToString()) }),

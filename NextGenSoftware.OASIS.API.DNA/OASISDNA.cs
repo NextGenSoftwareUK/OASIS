@@ -24,7 +24,7 @@ namespace NextGenSoftware.OASIS.API.DNA
         public bool HideRefreshTokens { get; set; }
         public bool SendVerificationEmail { get; set; }
         //public bool DoesAvatarNeedToBeVerifiedBeforeLogin { get; set; }
-        public string Secret { get; set; }
+        public string SecretKey { get; set; }
         public int RemoveOldRefreshTokensAfterXDays{ set; get;}
         public EncryptionSettings AvatarPassword { get; set; }
         public EncryptionSettings OASISProviderPrivateKeys { get; set; }

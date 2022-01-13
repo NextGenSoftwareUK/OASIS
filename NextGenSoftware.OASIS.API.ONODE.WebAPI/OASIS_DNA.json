@@ -5,7 +5,6 @@
     }
   },
   "AllowedHosts": "*",
-
   "OASIS": {
     "Terms": "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.\n\n",
     "CurrentStagingVersion": "v0.19.1",
@@ -21,8 +20,11 @@
       "LogAllWarnings": "true"
     },
     "Security": {
-      "DoesAvatarNeedToBeVerifiedBeforeLogin": "true",
-      "Secret": "",
+      "HideVerificationToken": "true",
+      "HideRefreshTokens": "true",
+      //"DoesAvatarNeedToBeVerifiedBeforeLogin": "true",
+      "SendVerificationEmail": "true",
+      "SecretKey": ""
       "AvatarPassword": {
         "BCryptEncryptionEnabled": "true",
         "Rijndael256EncryptionEnabled": "true",
@@ -37,20 +39,20 @@
     "Email": {
       "EmailFrom": "",
       "SmtpHost": "",
-      "SmtpPort": 587,
-      // "SmtpPort": 25,
+      // "SmtpPort": 587,
+      "SmtpPort": 25,
       "SmtpUser": "",
       "SmtpPass": ""
     },
     "StorageProviders": {
-      "AutoReplicationEnabled": "true",
+      "AutoReplicationEnabled": "false",
       "AutoFailOverEnabled": "true",
       "AutoLoadBalanceEnabled": "true",
       "AutoLoadBalanceReadPollIntervalMins": "10",
       "AutoLoadBalanceWritePollIntervalMins": "10",
-      "AutoReplicationProviders": "MongoDBOASIS, SolanaOASIS, SQLLiteDBOASIS, Neo4jOASIS, IPFSOASIS, HoloOASIS, TelosOASIS, EOSIOOASIS, EthereumOASIS, ThreeFoldOASIS",
-      "AutoFailOverProviders": "MongoDBOASIS, SolanaOASIS, SQLLiteDBOASIS, Neo4jOASIS, IPFSOASIS, HoloOASIS, TelosOASIS, EOSIOOASIS, EthereumOASIS, ThreeFoldOASIS",
-      "AutoLoadBalanceProviders": "MongoDBOASIS, SolanaOASIS, SQLLiteDBOASIS, Neo4jOASIS, IPFSOASIS, HoloOASIS, TelosOASIS, EOSIOOASIS, EthereumOASIS, ThreeFoldOASIS",
+      "AutoReplicationProviders": "MongoDBOASIS, SQLLiteDBOASIS, Neo4jOASIS, IPFSOASIS, HoloOASIS, TelosOASIS, EOSIOOASIS, EthereumOASIS, ThreeFoldOASIS",
+      "AutoFailOverProviders": "MongoDBOASIS, SQLLiteDBOASIS, Neo4jOASIS, IPFSOASIS, HoloOASIS, TelosOASIS, EOSIOOASIS, EthereumOASIS, ThreeFoldOASIS",
+      "AutoLoadBalanceProviders": "MongoDBOASIS, SQLLiteDBOASIS, Neo4jOASIS, IPFSOASIS, HoloOASIS, TelosOASIS, EOSIOOASIS, EthereumOASIS, ThreeFoldOASIS",
 
       //Can be:
       //Cold (will only register and activate (connect, etc) each provider when you fist make a call into it - fastest initial OASIS boot but slowest initial call into each OASIS Provider as it is registered and activated. Has the smallest initial memory footprint.
@@ -63,10 +65,9 @@
         "HolochainVersion": "Redux" //Can be Redux or RSM.
       },
       "MongoDBOASIS": {
-        "ConnectionString": "",
-
+        "ConnectionString": "mongodb://localhost:27017",
         "DBName": "OASISAPI_DEV"
-        //"DBName": "OASISAPI_STAGING"
+        //"DBName": "OASISAPI_TEST"
         //"DBName": "OASISAPI_LIVE"
       },
       "SQLLiteDBOASIS": {
@@ -77,16 +78,6 @@
       },
       "TelosOASIS": {
         "ConnectionString": "https://node.hypha.earth"
-      },
-      "SolanaOASIS": {
-        "WalletMnemonicWords": "",
-        "ConnectionString": ""
-      },
-      "CargoOASIS": {
-        "ConnectionString": "",
-        "SingingMessage": "",
-        "PrivateKey": "",
-        "HostUrl": ""
       },
       "SEEDSOASIS": {
         "ConnectionString": "https://node.hypha.earth"

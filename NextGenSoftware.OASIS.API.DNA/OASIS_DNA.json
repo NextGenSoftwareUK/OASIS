@@ -25,7 +25,7 @@
       "HideRefreshTokens": "true",
       //"DoesAvatarNeedToBeVerifiedBeforeLogin": "true",
       "SendVerificationEmail": "true",
-      "Secret": "",
+      "SecretKey": "",
       "RemoveOldRefreshTokensAfterXDays": 7,
       "AvatarPassword": {
         "BCryptEncryptionEnabled": "true",
