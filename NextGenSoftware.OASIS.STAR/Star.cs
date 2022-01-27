@@ -410,25 +410,26 @@ namespace NextGenSoftware.OASIS.STAR
             return result;
         }
 
-        public static async Task<CoronalEjection> LightAsync(GenesisType type, string name, string dnaFolder = "", string genesisCSharpFolder = "", string genesisRustFolder = "", string genesisNameSpace = "")
+        public static async Task<OASISResult<CoronalEjection>> LightAsync(GenesisType type, string name, string dnaFolder = "", string genesisCSharpFolder = "", string genesisRustFolder = "", string genesisNameSpace = "")
         {
             return await LightAsync(type, name, (ICelestialBody)null, dnaFolder, genesisCSharpFolder, genesisRustFolder, genesisNameSpace);
         }
 
-        public static async Task<CoronalEjection> LightAsync(GenesisType type, string name, IStar starToAddPlanetTo = null, string dnaFolder = "", string genesisCSharpFolder = "", string genesisRustFolder = "", string genesisNameSpace = "")
+        public static async Task<OASISResult<CoronalEjection>> LightAsync(GenesisType type, string name, IStar starToAddPlanetTo = null, string dnaFolder = "", string genesisCSharpFolder = "", string genesisRustFolder = "", string genesisNameSpace = "")
         {
             return await LightAsync(type, name, (ICelestialBody)starToAddPlanetTo, dnaFolder, genesisCSharpFolder, genesisRustFolder, genesisNameSpace);
         }
 
-        public static async Task<CoronalEjection> LightAsync(GenesisType type, string name, IPlanet planetToAddMoonTo = null, string dnaFolder = "", string genesisCSharpFolder = "", string genesisRustFolder = "", string genesisNameSpace = "")
+        public static async Task<OASISResult<CoronalEjection>> LightAsync(GenesisType type, string name, IPlanet planetToAddMoonTo = null, string dnaFolder = "", string genesisCSharpFolder = "", string genesisRustFolder = "", string genesisNameSpace = "")
         {
             return await LightAsync(type, name, (ICelestialBody)planetToAddMoonTo, dnaFolder, genesisCSharpFolder, genesisRustFolder, genesisNameSpace);
         }
 
         //TODO: Create non async version of Light();
-        private static async Task<CoronalEjection> LightAsync(GenesisType type, string name, ICelestialBody celestialBodyParent = null, string dnaFolder = "", string genesisCSharpFolder = "", string genesisRustFolder = "", string genesisNameSpace = "")
+        private static async Task<OASISResult<CoronalEjection>> LightAsync(GenesisType type, string name, ICelestialBody celestialBodyParent = null, string dnaFolder = "", string genesisCSharpFolder = "", string genesisRustFolder = "", string genesisNameSpace = "")
         {
-            CelestialBodies.CelestialBody newBody = null;
+            //OASISResult<CoronalEjection> result = new OASISResult<CoronalEjection>();
+            ICelestialBody newBody = null;
             bool holonReached = false;
             string holonBufferRust = "";
             string holonBufferCsharp = "";
@@ -445,16 +446,16 @@ namespace NextGenSoftware.OASIS.STAR
             string rustDNAFolder = string.Empty;
 
             if (LoggedInAvatarDetail == null)
-                return new CoronalEjection() { ErrorOccured = true, Message = "Avatar is not logged in. Please log in before calling this command." };
+                return new OASISResult<CoronalEjection>() { IsError = true, Message = "Avatar is not logged in. Please log in before calling this command." };
 
             if (LoggedInAvatarDetail.Level < 77 && type == GenesisType.Star)
-                return new CoronalEjection() { ErrorOccured = true, Message = "Avatar must have reached level 77 before they can create stars. Please create a planet or moon instead..." };
+                return new OASISResult<CoronalEjection>() { IsError = true, Message = "Avatar must have reached level 77 before they can create stars. Please create a planet or moon instead..." };
 
             if (LoggedInAvatarDetail.Level < 33 && type == GenesisType.Planet)
-                return new CoronalEjection() { ErrorOccured = true, Message = "Avatar must have reached level 33 before they can create planets. Please create a moon instead..." };
+                return new OASISResult<CoronalEjection>() { IsError = true, Message = "Avatar must have reached level 33 before they can create planets. Please create a moon instead..." };
 
             if (celestialBodyParent == null && type == GenesisType.Moon)
-                return new CoronalEjection() { ErrorOccured = true, Message = "You must specify the planet to add the moon to." };
+                return new OASISResult<CoronalEjection>() { IsError = true, Message = "You must specify the planet to add the moon to." };
 
             if (!IsStarIgnited)
                 IgniteStar();
@@ -464,7 +465,7 @@ namespace NextGenSoftware.OASIS.STAR
                 OASISResult<IOmiverse> result = await IgniteInnerStarAsync();
 
                 if (result.IsError)
-                    return new CoronalEjection() { ErrorOccured = true, Message = string.Concat("Error Igniting Inner Star. Reason: ", result.Message) };
+                    return new OASISResult<CoronalEjection>() { IsError = true, Message = string.Concat("Error Igniting Inner Star. Reason: ", result.Message) };
             }
 
             ValidateLightDNA(dnaFolder, genesisCSharpFolder, genesisRustFolder);
@@ -837,12 +838,12 @@ namespace NextGenSoftware.OASIS.STAR
                         if (result != null)
                         {
                             if (result.IsError)
-                                return new CoronalEjection() { ErrorOccured = true, Message = result.Message, CelestialBody = result.Result };
+                                return new OASISResult<CoronalEjection>() { IsError = true, Message = result.Message, Result = new CoronalEjection() { CelestialBody = result.Result } };
                             else
-                                return new CoronalEjection() { ErrorOccured = false, Message = "Moon Successfully Created.", CelestialBody = result.Result };
+                                return new OASISResult<CoronalEjection>() { IsError = false, Message = "Moon Successfully Created.", Result = new CoronalEjection() { CelestialBody = result.Result } };
                         }
                         else
-                            return new CoronalEjection() { ErrorOccured = true, Message = "Unknown Error Occured Creating Moon." };
+                            return new OASISResult<CoronalEjection>() { IsError = true, Message = "Unknown Error Occured Creating Moon." };
                     }
 
                 case GenesisType.Planet:
@@ -852,12 +853,12 @@ namespace NextGenSoftware.OASIS.STAR
                         if (result != null)
                         {
                             if (result.IsError)
-                                return new CoronalEjection() { ErrorOccured = true, Message = result.Message, CelestialBody = result.Result };
+                                return new OASISResult<CoronalEjection>() { IsError = true, Message = result.Message, Result = new CoronalEjection() { CelestialBody = result.Result } };
                             else
-                                return new CoronalEjection() { ErrorOccured = false, Message = "Planet Successfully Created.", CelestialBody = result.Result };
+                                return new OASISResult<CoronalEjection>() { IsError = false, Message = "Planet Successfully Created.", Result = new CoronalEjection() { CelestialBody = result.Result } };
                         }
                         else
-                            return new CoronalEjection() { ErrorOccured = true, Message = "Unknown Error Occured Creating Planet." };
+                            return new OASISResult<CoronalEjection>() { IsError = true, Message = "Unknown Error Occured Creating Planet." };
                     }
 
                 case GenesisType.Star:
@@ -867,12 +868,12 @@ namespace NextGenSoftware.OASIS.STAR
                         if (result != null)
                         {
                             if (result.IsError)
-                                return new CoronalEjection() { ErrorOccured = true, Message = result.Message, CelestialBody = result.Result };
+                                return new OASISResult<CoronalEjection>() { IsError = true, Message = result.Message, Result = new CoronalEjection() { CelestialBody = result.Result } };
                             else
-                                return new CoronalEjection() { ErrorOccured = false, Message = "Star Successfully Created.", CelestialBody = result.Result };
+                                return new OASISResult<CoronalEjection>() { IsError = false, Message = "Star Successfully Created.", Result = new CoronalEjection() { CelestialBody = result.Result } };
                         }
                         else
-                            return new CoronalEjection() { ErrorOccured = true, Message = "Unknown Error Occured Creating Star." };
+                            return new OASISResult<CoronalEjection>() { IsError = true, Message = "Unknown Error Occured Creating Star." };
                     }
 
                 case GenesisType.SoloarSystem:
@@ -882,12 +883,12 @@ namespace NextGenSoftware.OASIS.STAR
                         if (result != null)
                         {
                             if (result.IsError)
-                                return new CoronalEjection() { ErrorOccured = true, Message = result.Message, CelestialSpace = result.Result, CelestialBody = result.Result.Star };
+                                return new OASISResult<CoronalEjection>() { IsError = true, Message = result.Message, Result = new CoronalEjection() { CelestialSpace = result.Result, CelestialBody = result.Result.Star } };
                             else
-                                return new CoronalEjection() { ErrorOccured = false, Message = "Star/SoloarSystem Successfully Created.", CelestialSpace = result.Result, CelestialBody = result.Result.Star };
+                                return new OASISResult<CoronalEjection>() { IsError = false, Message = "Star/SoloarSystem Successfully Created.", Result = new CoronalEjection() { CelestialSpace = result.Result, CelestialBody = result.Result.Star } };
                         }
                         else
-                            return new CoronalEjection() { ErrorOccured = true, Message = "Unknown Error Occured Creating Star/SoloarSystem." };
+                            return new OASISResult<CoronalEjection>() { IsError = true, Message = "Unknown Error Occured Creating Star/SoloarSystem." };
                     }
 
                 //TODO: Come back to this! ;-)
@@ -926,7 +927,7 @@ namespace NextGenSoftware.OASIS.STAR
                 //    }
 
                 default:
-                    return new CoronalEjection() { ErrorOccured = true, Message = "Unknown Error Occured.", CelestialBody = newBody };
+                    return new OASISResult<CoronalEjection>() { IsError = true, Message = "Unknown Error Occured.", Result = new CoronalEjection() { CelestialBody = newBody } };
             }
 
             //Generate any native code for the current provider.
@@ -1043,14 +1044,14 @@ namespace NextGenSoftware.OASIS.STAR
             return new CoronalEjection();
         }
 
-        public static CoronalEjection Flare(CelestialBodies.CelestialBody body)
+        public static CoronalEjection Flare(ICelestialBody body)
         {
             //TODO: Build rust code using hc conductor and .net code using dotnet compiler.
             return new CoronalEjection();
         }
 
         //Activate & Launch - Launch & activate a planet (OAPP) by shining the star's light upon it...
-        public static void Shine(CelestialBodies.CelestialBody body)
+        public static void Shine(ICelestialBody body)
         {
 
         }
@@ -1061,7 +1062,7 @@ namespace NextGenSoftware.OASIS.STAR
         }
 
         //Dractivate
-        public static void Dim(CelestialBodies.CelestialBody body)
+        public static void Dim(ICelestialBody body)
         {
 
         }
@@ -1072,7 +1073,7 @@ namespace NextGenSoftware.OASIS.STAR
         }
 
         //Deploy
-        public static void Seed(CelestialBodies.CelestialBody body)
+        public static void Seed(ICelestialBody body)
         {
 
         }
@@ -1083,7 +1084,7 @@ namespace NextGenSoftware.OASIS.STAR
         }
 
         // Run Tests
-        public static void Twinkle(CelestialBodies.CelestialBody body)
+        public static void Twinkle(ICelestialBody body)
         {
 
         }
@@ -1094,18 +1095,19 @@ namespace NextGenSoftware.OASIS.STAR
         }
 
         // Delete Planet (OAPP)
-        public static void Dust(CelestialBodies.CelestialBody body)
-        {
-
-        }
-
-        public static void Dust(string bodyName)
+        public static void Dust(ICelestialBody body)
         {
 
         }
 
         // Delete Planet (OAPP)
-        public static void Evolve(CelestialBodies.CelestialBody body)
+        public static void Dust(string bodyName)
+        {
+
+        }
+
+        
+        public static void Evolve(ICelestialBody body)
         {
 
         }
@@ -1115,8 +1117,7 @@ namespace NextGenSoftware.OASIS.STAR
 
         }
 
-        // Delete Planet (OAPP)
-        public static void Mutate(CelestialBodies.CelestialBody body)
+        public static void Mutate(ICelestialBody body)
         {
 
         }
@@ -1127,7 +1128,7 @@ namespace NextGenSoftware.OASIS.STAR
         }
 
         // Highlight the Planet (OAPP) in the OAPP Store (StarNET)
-        public static void Radiate(CelestialBodies.CelestialBody body)
+        public static void Radiate(ICelestialBody body)
         {
 
         }
@@ -1138,7 +1139,7 @@ namespace NextGenSoftware.OASIS.STAR
         }
 
         // Show how much light the planet (OAPP) is emitting into the solar system (StarNET/HoloNET)
-        public static void Emit(CelestialBodies.CelestialBody body)
+        public static void Emit(ICelestialBody body)
         {
 
         }
@@ -1149,7 +1150,7 @@ namespace NextGenSoftware.OASIS.STAR
         }
 
         // Show stats of the Planet (OAPP)
-        public static void Reflect(CelestialBodies.CelestialBody body)
+        public static void Reflect(ICelestialBody body)
         {
 
         }
@@ -1160,7 +1161,7 @@ namespace NextGenSoftware.OASIS.STAR
         }
 
         // Send/Receive Love
-        public static void Love(CelestialBodies.CelestialBody body)
+        public static void Love(ICelestialBody body)
         {
 
         }
@@ -1171,7 +1172,7 @@ namespace NextGenSoftware.OASIS.STAR
         }
 
         // Show network stats/management/settings
-        public static void Burst(CelestialBodies.CelestialBody body)
+        public static void Burst(ICelestialBody body)
         {
 
         }
@@ -1182,7 +1183,7 @@ namespace NextGenSoftware.OASIS.STAR
         }
 
         // ????
-        public static void Pulse(CelestialBodies.CelestialBody body)
+        public static void Pulse(ICelestialBody body)
         {
 
         }
@@ -1193,7 +1194,7 @@ namespace NextGenSoftware.OASIS.STAR
         }
 
         // Reserved For Future Use...
-        public static void Super(CelestialBodies.CelestialBody body)
+        public static void Super(ICelestialBody body)
         {
 
         }
@@ -1355,7 +1356,7 @@ namespace NextGenSoftware.OASIS.STAR
         
         private static OASISResult<IOmiverse> IgniteInnerStar(ref OASISResult<IOmiverse> result)
         {
-            _starId = Guid.Empty; //TODO:Temp, remove after!
+          //  _starId = Guid.Empty; //TODO:Temp, remove after!
 
             if (_starId == Guid.Empty)
                 result = OASISOmniverseGenesisAsync().Result;
@@ -1370,7 +1371,7 @@ namespace NextGenSoftware.OASIS.STAR
         {
             OASISResult<IOmiverse> result = new OASISResult<IOmiverse>();
 
-            _starId = Guid.Empty; //TODO:Temp, remove after!
+           // _starId = Guid.Empty; //TODO:Temp, remove after!
 
             if (_starId == Guid.Empty)
                 result = await OASISOmniverseGenesisAsync();

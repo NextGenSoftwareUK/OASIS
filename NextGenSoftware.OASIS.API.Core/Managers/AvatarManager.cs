@@ -179,7 +179,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
             if (result.Result != null & !result.IsError)
             {
-                var jwtToken = GenerateJwtToken(result.Result);
+                var jwtToken = GenerateJWTToken(result.Result);
                 var refreshToken = generateRefreshToken(ipAddress);
 
                 result.Result.RefreshTokens.Add(refreshToken);
@@ -1570,7 +1570,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return avatar;
         }
 
-        private string GenerateJwtToken(IAvatar account)
+        private string GenerateJWTToken(IAvatar account)
         {
             //TODO: Replace exception with OASISResult ASAP.
             if (string.IsNullOrEmpty(OASISDNA.OASIS.Security.SecretKey))

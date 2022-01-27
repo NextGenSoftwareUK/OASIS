@@ -85,6 +85,29 @@ namespace NextGenSoftware.OASIS.API.Core.Helpers
             return targetList;
         }
 
+        //public static IEnumerable<T2> CastCollection<T1, T2>(IEnumerable<T1> sourceHolons) //where T1 : IHolon//, T2 : IHolon
+        //{
+        //    List<T1> sourceList = sourceHolons.ToList();
+        //    List<T2> targetList = new List<T2>();
+
+        //    for (int i = 0; i < sourceHolons.Count(); i++)
+        //        targetList[i] = (T2)sourceList[i];
+
+        //    return targetList;
+        //}
+
+        //TODO: Need to get working properly.
+        public static IEnumerable<IHolon> CastCollection(IEnumerable<IHolon> sourceHolons) //where T1 : IHolon//, T2 : IHolon
+        {
+            List<IHolon> sourceList = sourceHolons.ToList();
+            List<IHolon> targetList = new List<IHolon>();
+
+            for (int i = 0; i < sourceHolons.Count(); i++)
+                targetList[i] = sourceList[i];
+
+            return targetList;
+        }
+
         public static IHolon MapParentCelestialBodyProperties(IHolon sourceCelestialBody, IHolon targetCelestialBody, bool onlyMapIfTargetIsNull = true)
         {
             if (targetCelestialBody.ParentGreatGrandSuperStar == null || (targetCelestialBody.ParentGreatGrandSuperStar != null && !onlyMapIfTargetIsNull))

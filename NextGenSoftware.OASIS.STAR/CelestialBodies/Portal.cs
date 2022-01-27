@@ -5,7 +5,7 @@ using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 
 namespace NextGenSoftware.OASIS.STAR.CelestialBodies
 {
-    public class Portal : CelestialBody, IPortal
+    public class Portal : CelestialBody<Portal>, IPortal
     {
         public Portal() : base(HolonType.Portal) { }
 
