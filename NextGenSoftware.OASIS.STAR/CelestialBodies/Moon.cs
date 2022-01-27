@@ -5,7 +5,7 @@ using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 
 namespace NextGenSoftware.OASIS.STAR.CelestialBodies
 {
-    public class Moon : CelestialBody, IMoon
+    public class Moon : CelestialBody<Moon>, IMoon
     {
         public Moon() : base(HolonType.Moon){}
 

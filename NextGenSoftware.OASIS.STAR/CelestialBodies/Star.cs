@@ -6,7 +6,7 @@ using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 namespace NextGenSoftware.OASIS.STAR.CelestialBodies
 {
     // At the centre of each Solar System
-    public class Star : CelestialBody, IStar
+    public class Star : CelestialBody<Star>, IStar
     {
         public int Luminosity { get; set; }
         public StarType StarType { get; set; }

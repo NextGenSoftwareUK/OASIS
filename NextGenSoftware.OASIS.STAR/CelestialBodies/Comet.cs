@@ -5,7 +5,7 @@ using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 
 namespace NextGenSoftware.OASIS.STAR.CelestialBodies
 {
-    public class Comet : CelestialBody, IComet
+    public class Comet : CelestialBody<Comet>, IComet
     {
         public Comet() : base(HolonType.Comet){}
 

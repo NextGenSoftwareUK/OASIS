@@ -5,7 +5,7 @@ using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 
 namespace NextGenSoftware.OASIS.STAR.CelestialBodies
 {
-    public class Meteroid : CelestialBody, IMeteroid
+    public class Meteroid : CelestialBody<Meteroid>, IMeteroid
     {
         public Meteroid() : base(HolonType.Meteroid){}
 

@@ -165,10 +165,14 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
         {
             //OASISResult<ICelestialSpace> result = new OASISResult<ICelestialSpace>();
             OASISResult<IEnumerable<ICelestialBody>> result = new OASISResult<IEnumerable<ICelestialBody>>(this.CelestialBodies);
-            OASISResult<ICelestialBody> celestialBodyResult = null;
+            //OASISResult<ICelestialBody> celestialBodyResult = null;
+            
+            //TODO: Find a way to use new generic version so can use ICelestialBody instead of IHolon.
+            OASISResult<IHolon> celestialBodyResult = null;
 
             foreach (ICelestialBody celestialBody in CelestialBodies)
             {
+                //TODO: Find a way to use new generic version so can use ICelestialBody instead of IHolon.
                 celestialBodyResult = await celestialBody.LoadAsync(loadChildren, recursive, continueOnError);
 
                 if (celestialBodyResult != null && celestialBodyResult.Result != null && !celestialBodyResult.IsError)
@@ -485,7 +489,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
 
             this.CelestialBodies.AddRange(celestialBodies);
 
-            foreach (CelestialBody celestialBody in this.CelestialBodies)
+            foreach (ICelestialBody celestialBody in this.CelestialBodies)
             {
                 celestialBody.OnCelestialBodyLoaded += CelestialBody_OnCelestialBodyLoaded;
                 celestialBody.OnCelestialBodySaved += CelestialBody_OnCelestialBodySaved;
@@ -512,7 +516,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
 
             this.CelestialSpaces.AddRange(celestialSpaces);
 
-            foreach (CelestialSpace celestialSpace in this.CelestialSpaces)
+            foreach (ICelestialSpace celestialSpace in this.CelestialSpaces)
             {
                 celestialSpace.OnCelestialSpaceLoaded += CelestialSpace_OnCelestialSpaceLoaded;
                 celestialSpace.OnCelestialSpaceSaved += CelestialSpace_OnCelestialSpaceSaved;
@@ -544,7 +548,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
         protected void UnregisterAllCelestialBodies()
         {
             //First unsubscibe events to prevent any memory leaks.
-            foreach (CelestialBody celestialBody in this.CelestialBodies)
+            foreach (ICelestialBody celestialBody in this.CelestialBodies)
             {
                 celestialBody.OnCelestialBodyLoaded -= CelestialBody_OnCelestialBodyLoaded;
                 celestialBody.OnCelestialBodySaved -= CelestialBody_OnCelestialBodySaved;
@@ -569,7 +573,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
         protected void UnregisterAllCelestialSpaces()
         {
             //First unsubscibe events to prevent any memory leaks.
-            foreach (CelestialSpace celestialSpace in this.CelestialSpaces)
+            foreach (ICelestialSpace celestialSpace in this.CelestialSpaces)
             {
                 celestialSpace.OnCelestialSpaceLoaded -= CelestialSpace_OnCelestialSpaceLoaded;
                 celestialSpace.OnCelestialSpaceSaved -= CelestialSpace_OnCelestialSpaceSaved;
