@@ -35,6 +35,10 @@ namespace NextGenSoftware.OASIS.STAR
         private static StarStatus _status;
         private static Guid _starId = Guid.Empty;
         private static OASISAPI _OASISAPI = null;
+        private static IPlanet _defaultPlanet = null;
+        private static ISuperStar _defaultSuperStar = null;
+        private static IGrandSuperStar _defaultGrandSuperStar = null;
+        private static IGreatGrandSuperStar _defaultGreatGrandSuperStar = null;
 
         public static string STARDNAPath { get; set; } = STAR_DNA_DEFAULT_PATH;
         public static string OASISDNAPath { get; set; } = OASIS_DNA_DEFAULT_PATH;
@@ -64,12 +68,87 @@ namespace NextGenSoftware.OASIS.STAR
         public static bool IsStarIgnited { get; private set; }
         //public static GreatGrandSuperStar InnerStar { get; set; } //Only ONE of these can ever exist and is at the centre of the Omniverse (also only ONE).
 
-        public static IGreatGrandSuperStar DefaultGreatGrandSuperStar { get; set; } //Will default to the GreatGrandSuperStar at the centre of our Omniverse.
-        public static IGrandSuperStar DefaultGrandSuperStar { get; set; } //Will default to the GrandSuperStar at the centre of our Universe.
-        public static ISuperStar DefaultSuperStar { get; set; } //Will default to the SuperStar at the centre of our Galaxy.
-        public static IStar DefaultStar { get; set; } //Will default to our Sun.
-        public static IPlanet DefaultPlanet { get; set; } //Will default to Our World.
+        //Will default to the GreatGrandSuperStar at the centre of our Omniverse.
+        public static IGreatGrandSuperStar DefaultGreatGrandSuperStar
+        {
+            get
+            {
+                return _defaultGreatGrandSuperStar;
+            }
+            set
+            {
+                if (_defaultGreatGrandSuperStar == null)
+                {
+                    if (STARDNA != null && !string.IsNullOrEmpty(STARDNA.DefaultGreatGrandSuperStarId) && Guid.TryParse(STARDNA.DefaultGreatGrandSuperStarId, out _))
+                        _defaultGreatGrandSuperStar = new GreatGrandSuperStar(new Guid(STARDNA.DefaultGreatGrandSuperStarId));
+                }
+            }
+        }
 
+        //public static IGreatGrandSuperStar DefaultGreatGrandSuperStar { get; set; } //Will default to the GreatGrandSuperStar at the centre of our Omniverse.
+
+        //Will default to the GrandSuperStar at the centre of our Universe.
+        public static IGrandSuperStar DefaultGrandSuperStar
+        {
+            get
+            {
+                if (_defaultGrandSuperStar == null)
+                {
+                    if (STARDNA != null && !string.IsNullOrEmpty(STARDNA.DefaultGrandSuperStarId) && Guid.TryParse(STARDNA.DefaultGrandSuperStarId, out _))
+                        _defaultGrandSuperStar = new GrandSuperStar(new Guid(STARDNA.DefaultGrandSuperStarId));
+                }
+
+                return _defaultGrandSuperStar;
+            }
+            set
+            {
+                _defaultGrandSuperStar = value;
+            }
+        }
+
+        //public static IGrandSuperStar DefaultGrandSuperStar { get; set; } //Will default to the GrandSuperStar at the centre of our Universe.
+
+        //Will default to the SuperStar at the centre of our Galaxy.
+        public static ISuperStar DefaultSuperStar
+        {
+            get
+            {
+                if (_defaultSuperStar == null)
+                {
+                    if (STARDNA != null && !string.IsNullOrEmpty(STARDNA.DefaultSuperStarId) && Guid.TryParse(STARDNA.DefaultSuperStarId, out _))
+                        _defaultSuperStar = new SuperStar(new Guid(STARDNA.DefaultSuperStarId));
+                }
+
+                return _defaultSuperStar;
+            }
+            set
+            {
+                _defaultSuperStar = value;
+            }
+        }
+
+        //public static ISuperStar DefaultSuperStar { get; set; } 
+        
+        public static IStar DefaultStar { get; set; } //Will default to our Sun.
+
+        //Will default to Our World.
+        public static IPlanet DefaultPlanet
+        {
+            get
+            {
+                if (_defaultPlanet == null)
+                {
+                    if (STARDNA != null && !string.IsNullOrEmpty(STARDNA.DefaultPlanetId) && Guid.TryParse(STARDNA.DefaultPlanetId, out _))
+                        _defaultPlanet = new Planet(new Guid(STARDNA.DefaultPlanetId));
+                }
+
+                return _defaultPlanet;
+            }
+            set
+            {
+                _defaultPlanet = value;
+            }
+        }
         // public static CelestialBodies.Star InnerStar { get; set; }
         //public static SuperStarCore SuperStarCore { get; set; }
         //public static List<CelestialBodies.Star> Stars { get; set; } = new List<CelestialBodies.Star>();
@@ -426,7 +505,7 @@ namespace NextGenSoftware.OASIS.STAR
         }
 
         //TODO: Create non async version of Light();
-        private static async Task<OASISResult<CoronalEjection>> LightAsync(GenesisType type, string name, ICelestialBody celestialBodyParent = null, string dnaFolder = "", string genesisCSharpFolder = "", string genesisRustFolder = "", string genesisNameSpace = "")
+        public static async Task<OASISResult<CoronalEjection>> LightAsync(GenesisType type, string name, ICelestialBody celestialBodyParent = null, string dnaFolder = "", string genesisCSharpFolder = "", string genesisRustFolder = "", string genesisNameSpace = "")
         {
             //OASISResult<CoronalEjection> result = new OASISResult<CoronalEjection>();
             ICelestialBody newBody = null;
@@ -454,8 +533,8 @@ namespace NextGenSoftware.OASIS.STAR
             if (LoggedInAvatarDetail.Level < 33 && type == GenesisType.Planet)
                 return new OASISResult<CoronalEjection>() { IsError = true, Message = "Avatar must have reached level 33 before they can create planets. Please create a moon instead..." };
 
-            if (celestialBodyParent == null && type == GenesisType.Moon)
-                return new OASISResult<CoronalEjection>() { IsError = true, Message = "You must specify the planet to add the moon to." };
+            //if (celestialBodyParent == null && type == GenesisType.Moon)
+            //    return new OASISResult<CoronalEjection>() { IsError = true, Message = "You must specify the planet to add the moon to." };
 
             if (!IsStarIgnited)
                 IgniteStar();
@@ -534,12 +613,10 @@ namespace NextGenSoftware.OASIS.STAR
                             celestialBodyParent = DefaultPlanet;
 
                         Mapper<IPlanet, Moon>.MapParentCelestialBodyProperties((IPlanet)celestialBodyParent, (Moon)newBody);
-                        //newBody.ParentHolon = celestialBodyParent;
-                        //newBody.ParentHolonId = celestialBodyParent.Id;
-                        //newBody.ParentPlanet = (IPlanet)celestialBodyParent;
-                        //newBody.ParentPlanetId = celestialBodyParent.ParentPlanetId;
-                        //newBody.ParentStar = celestialBodyParent.ParentStar;
-                        //newBody.ParentStarId = celestialBodyParent.ParentStarId;
+                        newBody.ParentHolon = celestialBodyParent;
+                        newBody.ParentHolonId = celestialBodyParent.Id;
+                        newBody.ParentPlanet = (IPlanet)celestialBodyParent;
+                        newBody.ParentPlanetId = celestialBodyParent.Id;
                     }
                     break;
 
@@ -552,10 +629,10 @@ namespace NextGenSoftware.OASIS.STAR
                             celestialBodyParent = DefaultStar;
 
                         Mapper<IStar, Planet>.MapParentCelestialBodyProperties((IStar)celestialBodyParent, (Planet)newBody);
-                        //newBody.ParentHolon = celestialBodyParent;
-                        //newBody.ParentHolonId = celestialBodyParent.Id;
-                        //newBody.ParentStar = (IStar)celestialBodyParent;
-                        //newBody.ParentStarId = celestialBodyParent.Id;
+                        newBody.ParentHolon = celestialBodyParent;
+                        newBody.ParentHolonId = celestialBodyParent.Id;
+                        newBody.ParentStar = (IStar)celestialBodyParent;
+                        newBody.ParentStarId = celestialBodyParent.Id;
                     }
                 break;
 
@@ -567,10 +644,10 @@ namespace NextGenSoftware.OASIS.STAR
                             celestialBodyParent = DefaultSuperStar;
 
                         Mapper<ISuperStar, Star>.MapParentCelestialBodyProperties((ISuperStar)celestialBodyParent, (Star)newBody);
-                        //newBody.ParentHolon = celestialBodyParent;
-                        //newBody.ParentHolonId = celestialBodyParent.Id;
-                        //newBody.ParentStar = (IStar)celestialBodyParent;
-                        //newBody.ParentStarId = celestialBodyParent.Id;
+                        newBody.ParentHolon = celestialBodyParent;
+                        newBody.ParentHolonId = celestialBodyParent.Id;
+                        newBody.ParentSuperStar = (ISuperStar)celestialBodyParent;
+                        newBody.ParentSuperStarId = celestialBodyParent.Id;
                     }
                 break;
 
@@ -582,6 +659,10 @@ namespace NextGenSoftware.OASIS.STAR
                             celestialBodyParent = DefaultGrandSuperStar;
 
                         Mapper<IGrandSuperStar, SuperStar>.MapParentCelestialBodyProperties((IGrandSuperStar)celestialBodyParent, (SuperStar)newBody);
+                        newBody.ParentHolon = celestialBodyParent;
+                        newBody.ParentHolonId = celestialBodyParent.Id;
+                        newBody.ParentGrandSuperStar = (IGrandSuperStar)celestialBodyParent;
+                        newBody.ParentGrandSuperStarId = celestialBodyParent.Id;
                     }
                     break;
 
@@ -593,6 +674,10 @@ namespace NextGenSoftware.OASIS.STAR
                             celestialBodyParent = DefaultGreatGrandSuperStar;
 
                         Mapper<IGreatGrandSuperStar, GrandSuperStar>.MapParentCelestialBodyProperties((IGreatGrandSuperStar)celestialBodyParent, (GrandSuperStar)newBody);
+                        newBody.ParentHolon = celestialBodyParent;
+                        newBody.ParentHolonId = celestialBodyParent.Id;
+                        newBody.ParentGreatGrandSuperStar = (IGreatGrandSuperStar)celestialBodyParent;
+                        newBody.ParentGreatGrandSuperStarId = celestialBodyParent.Id;
                     }
                     break;
             }
@@ -833,7 +918,12 @@ namespace NextGenSoftware.OASIS.STAR
             {
                 case GenesisType.Moon:
                     {
-                        OASISResult<IMoon> result =  await ((StarCore)celestialBodyParent.CelestialBodyCore).AddMoonAsync(newBody.ParentPlanet, (IMoon)newBody);
+                        //celestialBodyParent will be a Planet (Default is Our World).
+                        //TODO: Soon need to add this code to Holon or somewhere so Parent's are lazy loaded when accessed for first time.
+                        if (celestialBodyParent.ParentStar == null)
+                            celestialBodyParent.ParentStar = new Star(celestialBodyParent.ParentStarId);
+
+                        OASISResult<IMoon> result =  await ((StarCore)celestialBodyParent.ParentStar.CelestialBodyCore).AddMoonAsync(newBody.ParentPlanet, (IMoon)newBody);
 
                         if (result != null)
                         {
@@ -1361,7 +1451,13 @@ namespace NextGenSoftware.OASIS.STAR
             if (_starId == Guid.Empty)
                 result = OASISOmniverseGenesisAsync().Result;
             else
+            {
+                //DefaultPlanet = new Planet(new Guid(STARDNA.DefaultPlanetId));
                 DefaultStar = new Star(_starId); //TODO: Temp set InnerStar as The Sun at the centre of our Solar System.
+                //DefaultSuperStar = new SuperStar(new Guid(STARDNA.DefaultSuperStarId));
+                //DefaultGrandSuperStar = new GrandSuperStar(new Guid(STARDNA.DefaultGrandSuperStarId));
+                //DefaultGreatGrandSuperStar = new GreatGrandSuperStar(new Guid(STARDNA.DefaultGreatGrandSuperStarId));
+            }
 
             WireUpEvents();
             return result;
@@ -1371,12 +1467,18 @@ namespace NextGenSoftware.OASIS.STAR
         {
             OASISResult<IOmiverse> result = new OASISResult<IOmiverse>();
 
-           // _starId = Guid.Empty; //TODO:Temp, remove after!
+            // _starId = Guid.Empty; //TODO:Temp, remove after!
 
             if (_starId == Guid.Empty)
                 result = await OASISOmniverseGenesisAsync();
             else
+            {
+                //DefaultPlanet = new Planet(new Guid(STARDNA.DefaultPlanetId));
                 DefaultStar = new Star(_starId); //TODO: Temp set InnerStar as The Sun at the centre of our Solar System.
+                //DefaultSuperStar = new SuperStar(new Guid(STARDNA.DefaultSuperStarId));
+                //DefaultGrandSuperStar = new GrandSuperStar(new Guid(STARDNA.DefaultGrandSuperStarId));
+                //DefaultGreatGrandSuperStar = new GreatGrandSuperStar(new Guid(STARDNA.DefaultGreatGrandSuperStarId));
+            }
 
             WireUpEvents();
             return result;

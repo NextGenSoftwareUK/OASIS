@@ -80,10 +80,10 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
         private void Draw(char c)
         {
             Console.SetCursorPosition(Left, Top);
-            ConsoleColor existingColour = Console.ForegroundColor;
-            Console.ForegroundColor = Colour;
+            //ConsoleColor existingColour = Console.ForegroundColor;
+            //Console.ForegroundColor = Colour;
             Console.Write(c);
-            Console.ForegroundColor = existingColour;
+            //Console.ForegroundColor = existingColour;
         }
 
         private void Turn()

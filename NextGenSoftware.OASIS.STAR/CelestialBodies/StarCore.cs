@@ -72,11 +72,26 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
             return AddPlanetAsync(planet).Result;
         }
 
+        //TODO: Not sure if this should be in PlanetCore instead? Because technically STAR's create planets and moons from their stardust? :) And want this to be as accurate as possibile for the OASIS Simulation... ;-)
         public async Task<OASISResult<IMoon>> AddMoonAsync(IPlanet parentPlanet, IMoon moon)
         {
-            return OASISResultHolonToHolonHelper<IHolon, IMoon>.CopyResult(
-                await AddHolonToCollectionAsync(parentPlanet, moon, (List<IHolon>)Mapper<IMoon, Holon>.MapBaseHolonProperties(
-                    parentPlanet.Moons)), new OASISResult<IMoon>());
+            OASISResult<IMoon> result = new OASISResult<IMoon>();
+            //return OASISResultHolonToHolonHelper<IHolon, IMoon>.CopyResult(
+            //    await AddHolonToCollectionAsync(parentPlanet, moon, (List<IHolon>)Mapper<IMoon, Holon>.MapBaseHolonProperties(
+            //        parentPlanet.Moons)), new OASISResult<IMoon>());
+
+            List<IHolon> holons = new List<IHolon>();
+            foreach (IMoon innerMoon in parentPlanet.Moons)
+                holons.Add(innerMoon);
+
+            OASISResult<IHolon> holonResult = await AddHolonToCollectionAsync(parentPlanet, moon, holons);
+            OASISResultHolonToHolonHelper<IHolon, IMoon>.CopyResult(holonResult, result);
+            result.Result = (IMoon)holonResult.Result;
+            return result;
+
+            //return OASISResultHolonToHolonHelper<IHolon, IMoon>.CopyResult(
+            //    await AddHolonToCollectionAsync(parentPlanet, moon, (List<IHolon>) Mapper< IMoon, Holon >.MapBaseHolonProperties(
+            //          parentPlanet.Moons)), new OASISResult<IMoon>());
         }
 
         public OASISResult<IMoon> AddMoon(IPlanet parentPlanet, IMoon moon)
