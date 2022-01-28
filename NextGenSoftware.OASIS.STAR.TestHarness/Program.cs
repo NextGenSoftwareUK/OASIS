@@ -107,12 +107,14 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
 
         private static async Task Test(string dnaFolder, string cSharpGeneisFolder, string rustGenesisFolder)
         {
-            OASISResult<CoronalEjection> result = await GenerateCelestialBody("The Justice League Accademy", "Our World", GenesisType.Moon, dnaFolder, cSharpGeneisFolder, rustGenesisFolder, "NextGenSoftware.Holochain.HoloNET.HDK.Core.TestHarness.Genesis");
+            //Passing in null for the ParentCelestialBody will default it to the default planet (Our World).
+            OASISResult<CoronalEjection> result = await GenerateCelestialBody("The Justice League Accademy", null, GenesisType.Moon, dnaFolder, cSharpGeneisFolder, rustGenesisFolder, "NextGenSoftware.Holochain.HoloNET.HDK.Core.TestHarness.Genesis");
             
             if (result != null && !result.IsError && result.Result != null && result.Result.CelestialBody != null)
                 _jlaMoon = (Moon)result.Result.CelestialBody;
 
-            result = await GenerateCelestialBody("Super World", "Sol (Our Sun)", GenesisType.Planet, dnaFolder, cSharpGeneisFolder, rustGenesisFolder, "NextGenSoftware.Holochain.HoloNET.HDK.Core.TestHarness.Genesis");
+            //Passing in null for the ParentCelestialBody will default it to the default Star (Our Sun Sol).
+            result = await GenerateCelestialBody("Super World", null, GenesisType.Planet, dnaFolder, cSharpGeneisFolder, rustGenesisFolder, "NextGenSoftware.Holochain.HoloNET.HDK.Core.TestHarness.Genesis");
 
             if (result != null && !result.IsError && result.Result != null && result.Result.CelestialBody != null)
             {
@@ -341,18 +343,32 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
             }
         }
 
-        private static async Task<OASISResult<CoronalEjection>> GenerateCelestialBody(string name, string parentName, GenesisType genesisType, string dnaFolder, string cSharpGeneisFolder, string rustGenesisFolder, string genesisNameSpace)
+        private static async Task<OASISResult<CoronalEjection>> GenerateCelestialBody(string name, ICelestialBody parentCelestialBody, GenesisType genesisType, string dnaFolder, string cSharpGeneisFolder, string rustGenesisFolder, string genesisNameSpace)
         {
+            //OASISResult<CoronalEjection> lightResult = null;
+
             // Create (OAPP) by generating dynamic template/scaffolding code.
             string message = $"Generating {Enum.GetName(typeof(GenesisType), genesisType)} '{name}' (OAPP)";
 
-            if (genesisType == GenesisType.Moon)
-                message = $"{message} For Planet '{parentName}'";
+            if (genesisType == GenesisType.Moon && parentCelestialBody != null)
+                message = $"{message} For Planet '{parentCelestialBody.Name}'";
 
             message = $"{message} ...";
 
             ShowWorkingMessage(message);
-            OASISResult<CoronalEjection> lightResult = STAR.LightAsync(genesisType, name, dnaFolder, cSharpGeneisFolder, rustGenesisFolder, genesisNameSpace).Result;
+            OASISResult<CoronalEjection> lightResult = STAR.LightAsync(genesisType, name, parentCelestialBody, dnaFolder, cSharpGeneisFolder, rustGenesisFolder, genesisNameSpace).Result;
+
+            //switch (genesisType)
+            //{
+            //    case GenesisType.Moon:
+            //        lightResult = STAR.LightAsync(genesisType, name, parentCelestialBody, dnaFolder, cSharpGeneisFolder, rustGenesisFolder, genesisNameSpace).Result;
+            //        break;
+
+            //    case GenesisType.Planet:
+            //        lightResult = STAR.LightAsync(genesisType, name, dnaFolder, cSharpGeneisFolder, rustGenesisFolder, genesisNameSpace).Result;
+            //        break;
+            //}
+            
 
             if (lightResult.IsError)
                 ShowErrorMessage(string.Concat(" ERROR OCCURED. Error Message: ", lightResult.Message));
@@ -692,7 +708,10 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
 
                         while (!colourSet)
                         {
+                            //Defaults
                             Console.ForegroundColor = ConsoleColor.Yellow;
+                            _spinner.Colour = ConsoleColor.Green;
+
                             ShowMessage("Which colour would you prefer? ", true, true);
                             colour = Console.ReadLine();
                             colour = ExtensionMethods.ExtensionMethods.ToPascalCase(colour);
@@ -702,6 +721,7 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
                             {
                                 cliColour = (ConsoleColor)colourObj;
                                 Console.ForegroundColor = cliColour;
+                                _spinner.Colour = cliColour;
 
                                // ShowMessage("", false);
                                 ShowMessage("This colour ok? ", true, true);
