@@ -7,6 +7,7 @@ using NextGenSoftware.OASIS.API.Core.Interfaces;
 
 namespace NextGenSoftware.OASIS.API.Core.Managers
 {
+    //TODO: Need to upgrade all methods to return OASISResult wrapper ASAP! :)
     public class ProviderManager
     {
         private static List<IOASISProvider> _registeredProviders = new List<IOASISProvider>();

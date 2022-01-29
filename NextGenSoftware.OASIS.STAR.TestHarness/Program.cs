@@ -125,7 +125,16 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
                 result.Result.CelestialBody.OnZomeError += CelestialBody_OnZomeError;
 
                 ShowWorkingMessage("Loading Zomes & Holons...");
-                await result.Result.CelestialBody.LoadZomesAsync();
+                OASISResult<IEnumerable<IZome>> zomesResult = await result.Result.CelestialBody.LoadZomesAsync();
+
+                if (zomesResult != null && !zomesResult.IsError && zomesResult.Result != null)
+                {
+                    ShowSuccessMessage("Zomes & Holons Loaded Successfully.");
+                    ShowZomesAndHolons(zomesResult.Result);
+                }
+                else
+                    ShowErrorMessage($"An Error Occured Loading Zomes/Holons. Reason: {zomesResult.Message}");
+
                 _spinner.Stop();
 
                 Holon newHolon = new Holon();
@@ -133,62 +142,117 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
                 newHolon.Description = "Test Desc";
                 newHolon.HolonType = HolonType.Park;
 
-                ShowWorkingMessage("Saving Holon...");
+                ShowWorkingMessage("Saving Test Holon...");
+                OASISResult<IHolon> holonResult =  await result.Result.CelestialBody.CelestialBodyCore.SaveHolonAsync(newHolon);
 
-                // If you are using the generated code from Light above (highly recommended) you do not need to pass the HolonTypeName in, you only need to pass the holon in.
-                //ourWorld.CelestialBodyCore.SaveHolonAsync("Test", newHolon);
-                await result.Result.CelestialBody.CelestialBodyCore.SaveHolonAsync(newHolon);
+                if (!holonResult.IsError && holonResult.Result != null)
+                {
+                    ShowSuccessMessage("Test Holon Saved Successfully.");
+                    ShowSuccessMessage($"Id: {newHolon.Id}");
+                    ShowSuccessMessage($"Created By: {newHolon.CreatedByAvatarId}");
+                    ShowSuccessMessage($"Created Date: {newHolon.CreatedDate}");
+                }
+                else
+                    ShowErrorMessage($"Error Saving Test Holon. Reason: {holonResult.Message}");
+
 
                 // BEGIN OASIS API DEMO ***********************************************************************************
+                ShowMessage("BEGINNING OASIS API DEMO...");
 
                 //Set auto-replicate for all providers except IPFS and Neo4j.
-                ProviderManager.SetAutoReplicateForAllProviders(true);
-                ProviderManager.SetAutoReplicationForProviders(false, new List<ProviderType>() { ProviderType.IPFSOASIS, ProviderType.Neo4jOASIS });
+                //EnableOrDisableAutoProviderList(ProviderManager.SetAutoReplicateForAllProviders, true, null, "Enabling Auto-Replication For All Providers...", "Auto-Replication Successfully Enabled For All Providers.", "Error Occured Enabling Auto-Replication For All Providers.");
+                ShowWorkingMessage("Enabling Auto-Replication For All Providers...");
+                bool isSuccess = ProviderManager.SetAutoReplicateForAllProviders(true);
+                HandleEnableOrDisableAutoProviderListResponse(isSuccess, "Auto-Replication Successfully Enabled For All Providers.", "Error Occured Enabling Auto-Replication For All Providers.");
+
+                ShowWorkingMessage("Disabling Auto-Replication For IPFSOASIS & Neo4jOASIS Providers...");
+                isSuccess = ProviderManager.SetAutoReplicationForProviders(false, new List<ProviderType>() { ProviderType.IPFSOASIS, ProviderType.Neo4jOASIS });
+                //EnableOrDisableAutoProviderList(ProviderManager.SetAutoReplicationForProviders, false, new List<ProviderType>() { ProviderType.IPFSOASIS, ProviderType.Neo4jOASIS }, "Enabling Auto-Replication For All Providers...", "Auto-Replication Successfully Enabled For All Providers.", "Error Occured Enabling Auto-Replication For All Providers.");
+                HandleEnableOrDisableAutoProviderListResponse(isSuccess, "Auto-Replication Successfully Disabled For IPFSOASIS & Neo4jOASIS Providers.", "Error Occured Disabling Auto-Replication For IPFSOASIS & Neo4jOASIS Providers.");
 
                 //Set auto-failover for all providers except Holochain.
-                ProviderManager.SetAutoFailOverForAllProviders(true);
-                ProviderManager.SetAutoFailOverForProviders(false, new List<ProviderType>() { ProviderType.HoloOASIS });
+                ShowWorkingMessage("Enabling Auto-FailOver For All Providers...");
+                isSuccess = ProviderManager.SetAutoFailOverForAllProviders(true);
+                HandleEnableOrDisableAutoProviderListResponse(isSuccess, "Auto-FailOver Successfully Enabled For All Providers.", "Error Occured Enabling Auto-FailOver For All Providers.");
+
+                ShowWorkingMessage("Disabling Auto-FailOver For HoloOASIS Provider...");
+                isSuccess = ProviderManager.SetAutoFailOverForProviders(false, new List<ProviderType>() { ProviderType.HoloOASIS });
+                HandleEnableOrDisableAutoProviderListResponse(isSuccess, "Auto-FailOver Successfully Disabled For HoloOASIS.", "Error Occured Disabling Auto-FailOver For HoloOASIS Provider.");
 
                 //Set auto-load balance for all providers except Ethereum.
-                ProviderManager.SetAutoLoadBalanceForAllProviders(true);
-                ProviderManager.SetAutoLoadBalanceForProviders(false, new List<ProviderType>() { ProviderType.EthereumOASIS });
+                ShowWorkingMessage("Enabling Auto-Load-Balancing For All Providers...");
+                isSuccess = ProviderManager.SetAutoLoadBalanceForAllProviders(true);
+                HandleEnableOrDisableAutoProviderListResponse(isSuccess, "Auto-FailOver Successfully Disabled For HoloOASIS.", "Error Occured Disabling Auto-FailOver For HoloOASIS Provider.");
 
-                //  Set the default provider to MongoDB.
-                ProviderManager.SetAndActivateCurrentStorageProvider(ProviderType.MongoDBOASIS, true); // Set last param to false if you wish only the next call to use this provider.
+                ShowWorkingMessage("Disabling Auto-Load-Balancing For EthereumOASIS Provider...");
+                isSuccess = ProviderManager.SetAutoLoadBalanceForProviders(false, new List<ProviderType>() { ProviderType.EthereumOASIS });
+                HandleEnableOrDisableAutoProviderListResponse(isSuccess, "Auto-Load-Balancing Successfully Disabled For EthereumOASIS.", "Error Occured Disabling Auto-Load-Balancing For EthereumOASIS Provider.");
 
-
-
+                // Set the default provider to MongoDB.
+                // Set last param to false if you wish only the next call to use this provider.
+                ShowWorkingMessage("Setting Default Provider to MongoDBOASIS...");
+                HandleOASISResponse(ProviderManager.SetAndActivateCurrentStorageProvider(ProviderType.MongoDBOASIS, true), "Successfully Set Default Provider To MongoDBOASIS Provider.", "Error Occured Setting Default Provider To MongoDBOASIS."); 
+ 
                 //  Give HoloOASIS Store permission for the Name field(the field will only be stored on Holochain).
+                ShowWorkingMessage("Granting HoloOASIS Provider Store Permission For The Name Field..");
                 STAR.OASISAPI.Avatar.Config.FieldToProviderMappings.Name.Add(new ProviderManagerConfig.FieldToProviderMappingAccess { Access = ProviderManagerConfig.ProviderAccess.Store, Provider = ProviderType.HoloOASIS });
 
                 // Give all providers read/write access to the Karma field (will allow them to read and write to the field but it will only be stored on Holochain).
                 // You could choose to store it on more than one provider if you wanted the extra redundancy (but not normally needed since Holochain has a lot of redundancy built in).
+                ShowWorkingMessage("Granting All Providers Read/Write Permission For The Karma Field..");
                 STAR.OASISAPI.Avatar.Config.FieldToProviderMappings.Karma.Add(new ProviderManagerConfig.FieldToProviderMappingAccess { Access = ProviderManagerConfig.ProviderAccess.ReadWrite, Provider = ProviderType.All });
 
                 //Give Ethereum read-only access to the DOB field.
+                ShowWorkingMessage("Granting EthereumOASIS Providers Read-Only Permission For The DOB Field..");
                 STAR.OASISAPI.Avatar.Config.FieldToProviderMappings.DOB.Add(new ProviderManagerConfig.FieldToProviderMappingAccess { Access = ProviderManagerConfig.ProviderAccess.ReadOnly, Provider = ProviderType.EthereumOASIS });
 
 
                 // All calls are load-balanced and have multiple redudancy/fail over for all supported OASIS Providers.
+                ShowWorkingMessage("Loading All Avatars Load Balanced Across All Providers...");
                 STAR.OASISAPI.Avatar.LoadAllAvatars(); // Load-balanced across all providers.
+
+                ShowWorkingMessage("Loading All Avatars Only For The MongoDBOASIS Provider...");
                 STAR.OASISAPI.Avatar.LoadAllAvatars(ProviderType.MongoDBOASIS); // Only loads from MongoDB.
+
+                ShowWorkingMessage("Loading Avatar Only For The HoloOASIS Provider...");
                 STAR.OASISAPI.Avatar.LoadAvatar(STAR.LoggedInAvatar.Id, ProviderType.HoloOASIS); // Only loads from Holochain.
+
+                ShowWorkingMessage("Creating & Drawing Route On Map Between 2 Test Holons (Load Balanced Across All Providers)...");
                 STAR.OASISAPI.Map.CreateAndDrawRouteOnMapBetweenHolons(newHolon, newHolon); // Load-balanced across all providers.
 
+                ShowWorkingMessage("Loading Test Holon (Load Balanced Across All Providers)...");
                 STAR.OASISAPI.Data.LoadHolon(newHolon.Id); // Load-balanced across all providers.
+
+                ShowWorkingMessage("Loading Test Holon Only For IPFSOASIS Provider...");
                 STAR.OASISAPI.Data.LoadHolon(newHolon.Id, true, true, true, ProviderType.IPFSOASIS); // Only loads from IPFS.
+
+                ShowWorkingMessage("Loading All Holons Of Type Moon Only For HoloOASIS Provider...");
                 STAR.OASISAPI.Data.LoadAllHolons(HolonType.Moon, true, true, true, ProviderType.HoloOASIS); // Loads all moon (OAPPs) from Holochain.
+
+                ShowWorkingMessage("Saving Test Holon (Load Balanced Across All Providers)...");
                 STAR.OASISAPI.Data.SaveHolon(newHolon); // Load-balanced across all providers.
+
+                ShowWorkingMessage("Saving Test Holon Only For The EthereumOASIS Provider...");
                 STAR.OASISAPI.Data.SaveHolon(newHolon, true, true, true, ProviderType.EthereumOASIS); //  Only saves to Etherum.
 
-                STAR.OASISAPI.Data.LoadAllHolons(HolonType.All, true, true, true, ProviderType.Default); // Loads all parks from current default provider.
+                ShowWorkingMessage("Loading All Holons From The Current Default Provider (With Auto-FailOver)...");
+                STAR.OASISAPI.Data.LoadAllHolons(HolonType.All, true, true, true, ProviderType.Default); // Loads all holons from current default provider.
+
+                ShowWorkingMessage("Loading All Park Holons From All Providers (With Auto-Load-Balance & Auto-FailOver)...");
                 STAR.OASISAPI.Data.LoadAllHolons(HolonType.Park, true, true, true, ProviderType.All); // Loads all parks from all providers (load-balanced/fail over).
+
+                //ShowWorkingMessage("Loading All Park Holons From All Providers (With Auto-Load-Balance & Auto-FailOver)...");
                 STAR.OASISAPI.Data.LoadAllHolons(HolonType.Park); // shorthand for above.
+
+                ShowWorkingMessage("Loading All Quest Holons From All Providers (With Auto-Load-Balance & Auto-FailOver)...");
                 STAR.OASISAPI.Data.LoadAllHolons(HolonType.Quest); //  Loads all quests from all providers.
+
+                ShowWorkingMessage("Loading All Restaurant Holons From All Providers (With Auto-Load-Balance & Auto-FailOver)...");
                 STAR.OASISAPI.Data.LoadAllHolons(HolonType.Restaurant); //  Loads all resaurants from all providers.
 
                 // Holochain Support
                 //TODO: Sort this out soon! ;-)
+                ShowWorkingMessage("Loading All Restaurant Holons From All Providers (With Auto-Load-Balance & Auto-FailOver)...");
                 await STAR.OASISAPI.Providers.Holochain.HoloNETClient.CallZomeFunctionAsync(STAR.OASISAPI.Providers.Holochain.HoloNETClient.Config.AgentPubKey, "our_world_core", "load_holons", null);
 
                 // IPFS Support
@@ -343,10 +407,34 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
             }
         }
 
+        private static void EnableOrDisableAutoProviderList(Func<bool, List<ProviderType>, bool> funct, bool isEnabled, List<ProviderType> providerTypes, string workingMessage, string successMessage, string errorMessage)
+        {
+            ShowWorkingMessage(workingMessage);
+
+            if (funct(isEnabled, providerTypes))
+                ShowSuccessMessage(successMessage);
+            else
+                ShowErrorMessage(errorMessage);
+        }
+
+        private static void HandleEnableOrDisableAutoProviderListResponse(bool isSuccess, string successMessage, string errorMessage)
+        {
+            if (isSuccess)
+                ShowSuccessMessage(successMessage);
+            else
+                ShowErrorMessage(errorMessage);
+        }
+
+        private static void HandleOASISResponse<T>(OASISResult<T> result, string successMessage, string errorMessage)
+        {
+            if (!result.IsError && result.Result != null)
+                ShowSuccessMessage(successMessage);
+            else
+                ShowErrorMessage($"{errorMessage}Reason: {result.Message}");
+        }
+
         private static async Task<OASISResult<CoronalEjection>> GenerateCelestialBody(string name, ICelestialBody parentCelestialBody, GenesisType genesisType, string dnaFolder, string cSharpGeneisFolder, string rustGenesisFolder, string genesisNameSpace)
         {
-            //OASISResult<CoronalEjection> lightResult = null;
-
             // Create (OAPP) by generating dynamic template/scaffolding code.
             string message = $"Generating {Enum.GetName(typeof(GenesisType), genesisType)} '{name}' (OAPP)";
 
@@ -357,18 +445,6 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
 
             ShowWorkingMessage(message);
             OASISResult<CoronalEjection> lightResult = STAR.LightAsync(genesisType, name, parentCelestialBody, dnaFolder, cSharpGeneisFolder, rustGenesisFolder, genesisNameSpace).Result;
-
-            //switch (genesisType)
-            //{
-            //    case GenesisType.Moon:
-            //        lightResult = STAR.LightAsync(genesisType, name, parentCelestialBody, dnaFolder, cSharpGeneisFolder, rustGenesisFolder, genesisNameSpace).Result;
-            //        break;
-
-            //    case GenesisType.Planet:
-            //        lightResult = STAR.LightAsync(genesisType, name, dnaFolder, cSharpGeneisFolder, rustGenesisFolder, genesisNameSpace).Result;
-            //        break;
-            //}
-            
 
             if (lightResult.IsError)
                 ShowErrorMessage(string.Concat(" ERROR OCCURED. Error Message: ", lightResult.Message));
@@ -381,46 +457,35 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
                 Console.WriteLine(string.Concat(" CreatedByAvatarId: ", lightResult.Result.CelestialBody.CreatedByAvatarId));
                 Console.WriteLine(string.Concat(" CreatedDate: ", lightResult.Result.CelestialBody.CreatedDate)) ;
                 Console.WriteLine("");
-                Console.WriteLine(string.Concat($" {Enum.GetName(typeof(GenesisType), genesisType)} contains ", lightResult.Result.CelestialBody.CelestialBodyCore.Zomes.Count(), " Zomes: "));
-
-                foreach (Zome zome in lightResult.Result.CelestialBody.CelestialBodyCore.Zomes)
-                {
-                    Console.WriteLine(string.Concat("  Zome Name: ", zome.Name, " Zome Id: ", zome.Id, " containing ", zome.Holons.Count(), " holons:"));
-
-                    foreach (Holon holon in zome.Holons)
-                    {
-                        Console.WriteLine("");
-                        Console.WriteLine(string.Concat("   Holon Name: ", holon.Name, " Holon Id: ", holon.Id, " containing ", holon.Nodes.Count(), " nodes: "));
-
-                        foreach (Node node in holon.Nodes)
-                        {
-                            Console.WriteLine("");
-                            Console.WriteLine(string.Concat("    Node Name: ", node.NodeName, " Node Id: ", node.Id, " Node Type: ", Enum.GetName(node.NodeType)));
-                        }
-                    }
-                }
-
-                //lightResult.Result.CelestialBody.OnHolonLoaded += CelestialBody_OnHolonLoaded;
-                //lightResult.Result.CelestialBody.OnHolonSaved += CelestialBody_OnHolonSaved;
-                //lightResult.Result.CelestialBody.OnZomeError += CelestialBody_OnZomeError;
-
-                //ShowWorkingMessage("Loading Zomes & Holons...");
-                //await lightResult.Result.CelestialBody.LoadZomesAsync();
-                //_spinner.Stop();
-
-                //Holon newHolon = new Holon();
-                //newHolon.Name = "Test Data";
-                //newHolon.Description = "Test Desc";
-                //newHolon.HolonType = HolonType.Park;
-
-                //ShowWorkingMessage("Saving Holon...");
-
-                //// If you are using the generated code from Light above (highly recommended) you do not need to pass the HolonTypeName in, you only need to pass the holon in.
-                ////ourWorld.CelestialBodyCore.SaveHolonAsync("Test", newHolon);
-                //await lightResult.Result.CelestialBody.CelestialBodyCore.SaveHolonAsync(newHolon);
+                ShowZomesAndHolons(lightResult.Result.CelestialBody.CelestialBodyCore.Zomes, string.Concat($" {Enum.GetName(typeof(GenesisType), genesisType)} contains ", lightResult.Result.CelestialBody.CelestialBodyCore.Zomes.Count(), " Zome(s): "));
             }
 
             return lightResult;
+        }
+
+        private static void ShowZomesAndHolons(IEnumerable<IZome> zomes, string customHeader = null)
+        {
+            if (string.IsNullOrEmpty(customHeader))
+                Console.WriteLine($"{zomes.Count()} Zome(s) Found:");
+            else
+                Console.WriteLine(customHeader);
+
+            foreach (Zome zome in zomes)
+            {
+                Console.WriteLine(string.Concat("  Zome Name: ", zome.Name, " Zome Id: ", zome.Id, " containing ", zome.Holons.Count(), " holon(s):"));
+
+                foreach (Holon holon in zome.Holons)
+                {
+                    Console.WriteLine("");
+                    Console.WriteLine(string.Concat("   Holon Name: ", holon.Name, " Holon Id: ", holon.Id, " containing ", holon.Nodes.Count(), " node(s): "));
+
+                    foreach (Node node in holon.Nodes)
+                    {
+                        Console.WriteLine("");
+                        Console.WriteLine(string.Concat("    Node Name: ", node.NodeName, " Node Id: ", node.Id, " Node Type: ", Enum.GetName(node.NodeType)));
+                    }
+                }
+            }
         }
 
         private static void CelestialBody_OnZomeError(object sender, ZomeErrorEventArgs e)
