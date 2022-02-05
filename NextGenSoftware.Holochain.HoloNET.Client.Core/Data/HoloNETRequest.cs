@@ -3,17 +3,17 @@ using System;
 
 namespace NextGenSoftware.Holochain.HoloNET.Client.Core
 {
-    //[MessagePackObject]
-    [Serializable]
+    [MessagePackObject]
+    //[Serializable]
     public class HoloNETRequest
     {
-       // [Key(0)]
+        [Key(0)]
         public ulong id { get; set; }
 
-     //   [Key(1)]
+        [Key(1)]
         public string type { get; set; }
 
-       // [Key(2)]
+        [Key(2)]
         //public HoloNETData data { get; set; }
         public byte[] data { get; set; }
 
