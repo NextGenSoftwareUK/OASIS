@@ -127,15 +127,28 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
                 ShowWorkingMessage("Loading Zomes & Holons...");
                 OASISResult<IEnumerable<IZome>> zomesResult = await result.Result.CelestialBody.LoadZomesAsync();
 
+                bool finished = false;
                 if (zomesResult != null && !zomesResult.IsError && zomesResult.Result != null)
                 {
-                    ShowSuccessMessage("Zomes & Holons Loaded Successfully.");
-                    ShowZomesAndHolons(zomesResult.Result);
+                    if (zomesResult.Result.Count() > 0)
+                    {
+                        ShowSuccessMessage("Zomes & Holons Loaded Successfully.");
+                        ShowZomesAndHolons(zomesResult.Result);
+                    }
+                    else
+                        ShowSuccessMessage("No Zomes Found.");
+
+                    finished = true;
                 }
                 else
+                {
                     ShowErrorMessage($"An Error Occured Loading Zomes/Holons. Reason: {zomesResult.Message}");
+                    finished = true;
+                }
 
-                _spinner.Stop();
+                //_spinner.Stop();
+
+                while (!finished) { }
 
                 Holon newHolon = new Holon();
                 newHolon.Name = "Test Data";
@@ -149,216 +162,15 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
                 {
                     ShowSuccessMessage("Test Holon Saved Successfully.");
                     ShowSuccessMessage($"Id: {newHolon.Id}");
-                    ShowSuccessMessage($"Created By: {newHolon.CreatedByAvatarId}");
+                    ShowSuccessMessage($"Created By Avatar Id: {newHolon.CreatedByAvatarId}");
                     ShowSuccessMessage($"Created Date: {newHolon.CreatedDate}");
                 }
                 else
                     ShowErrorMessage($"Error Saving Test Holon. Reason: {holonResult.Message}");
 
-
-                // BEGIN OASIS API DEMO ***********************************************************************************
-                ShowMessage("BEGINNING OASIS API DEMO...");
-
-                //Set auto-replicate for all providers except IPFS and Neo4j.
-                //EnableOrDisableAutoProviderList(ProviderManager.SetAutoReplicateForAllProviders, true, null, "Enabling Auto-Replication For All Providers...", "Auto-Replication Successfully Enabled For All Providers.", "Error Occured Enabling Auto-Replication For All Providers.");
-                ShowWorkingMessage("Enabling Auto-Replication For All Providers...");
-                bool isSuccess = ProviderManager.SetAutoReplicateForAllProviders(true);
-                HandleEnableOrDisableAutoProviderListResponse(isSuccess, "Auto-Replication Successfully Enabled For All Providers.", "Error Occured Enabling Auto-Replication For All Providers.");
-
-                ShowWorkingMessage("Disabling Auto-Replication For IPFSOASIS & Neo4jOASIS Providers...");
-                isSuccess = ProviderManager.SetAutoReplicationForProviders(false, new List<ProviderType>() { ProviderType.IPFSOASIS, ProviderType.Neo4jOASIS });
-                //EnableOrDisableAutoProviderList(ProviderManager.SetAutoReplicationForProviders, false, new List<ProviderType>() { ProviderType.IPFSOASIS, ProviderType.Neo4jOASIS }, "Enabling Auto-Replication For All Providers...", "Auto-Replication Successfully Enabled For All Providers.", "Error Occured Enabling Auto-Replication For All Providers.");
-                HandleEnableOrDisableAutoProviderListResponse(isSuccess, "Auto-Replication Successfully Disabled For IPFSOASIS & Neo4jOASIS Providers.", "Error Occured Disabling Auto-Replication For IPFSOASIS & Neo4jOASIS Providers.");
-
-                //Set auto-failover for all providers except Holochain.
-                ShowWorkingMessage("Enabling Auto-FailOver For All Providers...");
-                isSuccess = ProviderManager.SetAutoFailOverForAllProviders(true);
-                HandleEnableOrDisableAutoProviderListResponse(isSuccess, "Auto-FailOver Successfully Enabled For All Providers.", "Error Occured Enabling Auto-FailOver For All Providers.");
-
-                ShowWorkingMessage("Disabling Auto-FailOver For HoloOASIS Provider...");
-                isSuccess = ProviderManager.SetAutoFailOverForProviders(false, new List<ProviderType>() { ProviderType.HoloOASIS });
-                HandleEnableOrDisableAutoProviderListResponse(isSuccess, "Auto-FailOver Successfully Disabled For HoloOASIS.", "Error Occured Disabling Auto-FailOver For HoloOASIS Provider.");
-
-                //Set auto-load balance for all providers except Ethereum.
-                ShowWorkingMessage("Enabling Auto-Load-Balancing For All Providers...");
-                isSuccess = ProviderManager.SetAutoLoadBalanceForAllProviders(true);
-                HandleEnableOrDisableAutoProviderListResponse(isSuccess, "Auto-FailOver Successfully Disabled For HoloOASIS.", "Error Occured Disabling Auto-FailOver For HoloOASIS Provider.");
-
-                ShowWorkingMessage("Disabling Auto-Load-Balancing For EthereumOASIS Provider...");
-                isSuccess = ProviderManager.SetAutoLoadBalanceForProviders(false, new List<ProviderType>() { ProviderType.EthereumOASIS });
-                HandleEnableOrDisableAutoProviderListResponse(isSuccess, "Auto-Load-Balancing Successfully Disabled For EthereumOASIS.", "Error Occured Disabling Auto-Load-Balancing For EthereumOASIS Provider.");
-
-                // Set the default provider to MongoDB.
-                // Set last param to false if you wish only the next call to use this provider.
-                ShowWorkingMessage("Setting Default Provider to MongoDBOASIS...");
-                HandleOASISResponse(ProviderManager.SetAndActivateCurrentStorageProvider(ProviderType.MongoDBOASIS, true), "Successfully Set Default Provider To MongoDBOASIS Provider.", "Error Occured Setting Default Provider To MongoDBOASIS."); 
- 
-                //  Give HoloOASIS Store permission for the Name field(the field will only be stored on Holochain).
-                ShowWorkingMessage("Granting HoloOASIS Provider Store Permission For The Name Field..");
-                STAR.OASISAPI.Avatar.Config.FieldToProviderMappings.Name.Add(new ProviderManagerConfig.FieldToProviderMappingAccess { Access = ProviderManagerConfig.ProviderAccess.Store, Provider = ProviderType.HoloOASIS });
-
-                // Give all providers read/write access to the Karma field (will allow them to read and write to the field but it will only be stored on Holochain).
-                // You could choose to store it on more than one provider if you wanted the extra redundancy (but not normally needed since Holochain has a lot of redundancy built in).
-                ShowWorkingMessage("Granting All Providers Read/Write Permission For The Karma Field..");
-                STAR.OASISAPI.Avatar.Config.FieldToProviderMappings.Karma.Add(new ProviderManagerConfig.FieldToProviderMappingAccess { Access = ProviderManagerConfig.ProviderAccess.ReadWrite, Provider = ProviderType.All });
-
-                //Give Ethereum read-only access to the DOB field.
-                ShowWorkingMessage("Granting EthereumOASIS Providers Read-Only Permission For The DOB Field..");
-                STAR.OASISAPI.Avatar.Config.FieldToProviderMappings.DOB.Add(new ProviderManagerConfig.FieldToProviderMappingAccess { Access = ProviderManagerConfig.ProviderAccess.ReadOnly, Provider = ProviderType.EthereumOASIS });
-
-
-                // All calls are load-balanced and have multiple redudancy/fail over for all supported OASIS Providers.
-                ShowWorkingMessage("Loading All Avatars Load Balanced Across All Providers...");
-                STAR.OASISAPI.Avatar.LoadAllAvatars(); // Load-balanced across all providers.
-
-                ShowWorkingMessage("Loading All Avatars Only For The MongoDBOASIS Provider...");
-                STAR.OASISAPI.Avatar.LoadAllAvatars(ProviderType.MongoDBOASIS); // Only loads from MongoDB.
-
-                ShowWorkingMessage("Loading Avatar Only For The HoloOASIS Provider...");
-                STAR.OASISAPI.Avatar.LoadAvatar(STAR.LoggedInAvatar.Id, ProviderType.HoloOASIS); // Only loads from Holochain.
-
-                ShowWorkingMessage("Creating & Drawing Route On Map Between 2 Test Holons (Load Balanced Across All Providers)...");
-                STAR.OASISAPI.Map.CreateAndDrawRouteOnMapBetweenHolons(newHolon, newHolon); // Load-balanced across all providers.
-
-                ShowWorkingMessage("Loading Test Holon (Load Balanced Across All Providers)...");
-                STAR.OASISAPI.Data.LoadHolon(newHolon.Id); // Load-balanced across all providers.
-
-                ShowWorkingMessage("Loading Test Holon Only For IPFSOASIS Provider...");
-                STAR.OASISAPI.Data.LoadHolon(newHolon.Id, true, true, true, ProviderType.IPFSOASIS); // Only loads from IPFS.
-
-                ShowWorkingMessage("Loading All Holons Of Type Moon Only For HoloOASIS Provider...");
-                STAR.OASISAPI.Data.LoadAllHolons(HolonType.Moon, true, true, true, ProviderType.HoloOASIS); // Loads all moon (OAPPs) from Holochain.
-
-                ShowWorkingMessage("Saving Test Holon (Load Balanced Across All Providers)...");
-                STAR.OASISAPI.Data.SaveHolon(newHolon); // Load-balanced across all providers.
-
-                ShowWorkingMessage("Saving Test Holon Only For The EthereumOASIS Provider...");
-                STAR.OASISAPI.Data.SaveHolon(newHolon, true, true, true, ProviderType.EthereumOASIS); //  Only saves to Etherum.
-
-                ShowWorkingMessage("Loading All Holons From The Current Default Provider (With Auto-FailOver)...");
-                STAR.OASISAPI.Data.LoadAllHolons(HolonType.All, true, true, true, ProviderType.Default); // Loads all holons from current default provider.
-
-                ShowWorkingMessage("Loading All Park Holons From All Providers (With Auto-Load-Balance & Auto-FailOver)...");
-                STAR.OASISAPI.Data.LoadAllHolons(HolonType.Park, true, true, true, ProviderType.All); // Loads all parks from all providers (load-balanced/fail over).
-
-                //ShowWorkingMessage("Loading All Park Holons From All Providers (With Auto-Load-Balance & Auto-FailOver)...");
-                STAR.OASISAPI.Data.LoadAllHolons(HolonType.Park); // shorthand for above.
-
-                ShowWorkingMessage("Loading All Quest Holons From All Providers (With Auto-Load-Balance & Auto-FailOver)...");
-                STAR.OASISAPI.Data.LoadAllHolons(HolonType.Quest); //  Loads all quests from all providers.
-
-                ShowWorkingMessage("Loading All Restaurant Holons From All Providers (With Auto-Load-Balance & Auto-FailOver)...");
-                STAR.OASISAPI.Data.LoadAllHolons(HolonType.Restaurant); //  Loads all resaurants from all providers.
-
-                // Holochain Support
-                //TODO: Sort this out soon! ;-)
-                ShowWorkingMessage("Loading All Restaurant Holons From All Providers (With Auto-Load-Balance & Auto-FailOver)...");
-                await STAR.OASISAPI.Providers.Holochain.HoloNETClient.CallZomeFunctionAsync(STAR.OASISAPI.Providers.Holochain.HoloNETClient.Config.AgentPubKey, "our_world_core", "load_holons", null);
-
-                // IPFS Support
-                await STAR.OASISAPI.Providers.IPFS.IPFSEngine.FileSystem.ReadFileAsync("");
-                await STAR.OASISAPI.Providers.IPFS.IPFSEngine.FileSystem.AddFileAsync("");
-                await STAR.OASISAPI.Providers.IPFS.IPFSEngine.Swarm.PeersAsync();
-                await STAR.OASISAPI.Providers.IPFS.IPFSEngine.KeyChainAsync();
-                await STAR.OASISAPI.Providers.IPFS.IPFSEngine.Dns.ResolveAsync("test");
-                await STAR.OASISAPI.Providers.IPFS.IPFSEngine.Dag.GetAsync(new Ipfs.Cid() { Hash = "" });
-                await STAR.OASISAPI.Providers.IPFS.IPFSEngine.Dag.PutAsync(new Ipfs.Cid() { Hash = "" });
-
-                // Ethereum Support
-                await STAR.OASISAPI.Providers.Ethereum.Web3.Client.SendRequestAsync(new Nethereum.JsonRpc.Client.RpcRequest("id", "test"));
-                await STAR.OASISAPI.Providers.Ethereum.Web3.Eth.Blocks.GetBlockNumber.SendRequestAsync("");
-                Contract contract = STAR.OASISAPI.Providers.Ethereum.Web3.Eth.GetContract("abi", "contractAddress");
-
-                // EOSIO Support
-                STAR.OASISAPI.Providers.EOSIO.ChainAPI.GetTableRows("accounts", "accounts", "users", "true", 0, 0, 1, 3);
-                STAR.OASISAPI.Providers.EOSIO.ChainAPI.GetBlock("block");
-                STAR.OASISAPI.Providers.EOSIO.ChainAPI.GetAccount("test.account");
-                STAR.OASISAPI.Providers.EOSIO.ChainAPI.GetCurrencyBalance("test.account", "", "");
-
-                // Graph DB Support
-                await STAR.OASISAPI.Providers.Neo4j.GraphClient.Cypher.Merge("(a:Avatar { Id: avatar.Id })").OnCreate().Set("a = avatar").ExecuteWithoutResultsAsync(); //Insert/Update Avatar.
-                Avatar newAvatar = STAR.OASISAPI.Providers.Neo4j.GraphClient.Cypher.Match("(p:Avatar {Username: {nameParam}})").WithParam("nameParam", "davidellams@hotmail.com").Return(p => p.As<Avatar>()).ResultsAsync.Result.Single(); //Load Avatar.
-
-                // Document/Object DB Support
-                STAR.OASISAPI.Providers.MongoDB.Database.MongoDB.ListCollectionNames();
-                STAR.OASISAPI.Providers.MongoDB.Database.MongoDB.GetCollection<Avatar>("testCollection");
-
-                // SEEDS Support
-                Console.WriteLine(" Getting Balance for account davidsellams...");
-                string balance = STAR.OASISAPI.Providers.SEEDS.GetBalanceForTelosAccount("davidsellams");
-                Console.WriteLine(string.Concat(" Balance: ", balance));
-
-                Console.WriteLine(" Getting Balance for account nextgenworld...");
-                balance = STAR.OASISAPI.Providers.SEEDS.GetBalanceForTelosAccount("nextgenworld");
-                Console.WriteLine(string.Concat(" Balance: ", balance));
-
-                Console.WriteLine(" Getting Account for account davidsellams...");
-                Account account = STAR.OASISAPI.Providers.SEEDS.TelosOASIS.GetTelosAccount("davidsellams");
-                Console.WriteLine(string.Concat(" Account.account_name: ", account.account_name));
-                Console.WriteLine(string.Concat(" Account.created: ", account.created_datetime.ToString()));
-
-                Console.WriteLine(" Getting Account for account nextgenworld...");
-                account = STAR.OASISAPI.Providers.SEEDS.TelosOASIS.GetTelosAccount("nextgenworld");
-                Console.WriteLine(string.Concat(" Account.account_name: ", account.account_name));
-                Console.WriteLine(string.Concat(" Account.created: ", account.created_datetime.ToString()));
-
-                // Check that the Telos account name is linked to the avatar and link it if it is not (PayWithSeeds will fail if it is not linked when it tries to add the karma points).
-                if (!STAR.LoggedInAvatar.ProviderKey.ContainsKey(ProviderType.TelosOASIS))
-                    STAR.OASISAPI.Avatar.LinkProviderKeyToAvatar(STAR.LoggedInAvatar.Id, ProviderType.TelosOASIS, "davidsellams");
-
-                Console.WriteLine(" Sending SEEDS from nextgenworld to davidsellams...");
-                OASISResult<string> payWithSeedsResult = STAR.OASISAPI.Providers.SEEDS.PayWithSeedsUsingTelosAccount("davidsellams", _privateKey, "nextgenworld", 1, KarmaSourceType.API, "test", "test", "test", "test memo");
-                Console.WriteLine(string.Concat(" Success: ", payWithSeedsResult.IsError ? "false" : "true"));
-
-                if (payWithSeedsResult.IsError)
-                    Console.WriteLine(string.Concat(" Error Message: ", payWithSeedsResult.Message));
-
-                Console.WriteLine(string.Concat(" Result: ", payWithSeedsResult.Result));
-
-                Console.WriteLine(" Getting Balance for account davidsellams...");
-                balance = STAR.OASISAPI.Providers.SEEDS.GetBalanceForTelosAccount("davidsellams");
-                Console.WriteLine(string.Concat(" Balance: ", balance));
-
-                Console.WriteLine(" Getting Balance for account nextgenworld...");
-                balance = STAR.OASISAPI.Providers.SEEDS.GetBalanceForTelosAccount("nextgenworld");
-                Console.WriteLine(string.Concat(" Balance: ", balance));
-
-                Console.WriteLine(" Getting Organsiations...");
-                string orgs = STAR.OASISAPI.Providers.SEEDS.GetAllOrganisationsAsJSON();
-                Console.WriteLine(string.Concat(" Organisations: ", orgs));
-
-                //Console.WriteLine("Getting nextgenworld organsiation...");
-                //string org = OASISAPI.Providers.SEEDS.GetOrganisation("nextgenworld");
-                //Console.WriteLine(string.Concat("nextgenworld org: ", org));
-
-                Console.WriteLine(" Generating QR Code for davidsellams...");
-                string qrCode = STAR.OASISAPI.Providers.SEEDS.GenerateSignInQRCode("davidsellams");
-                Console.WriteLine(string.Concat(" SEEDS Sign-In QRCode: ", qrCode));
-
-                Console.WriteLine(" Sending invite to davidsellams...");
-                OASISResult<SendInviteResult> sendInviteResult = STAR.OASISAPI.Providers.SEEDS.SendInviteToJoinSeedsUsingTelosAccount("davidsellams", _privateKey, "davidsellams", 1, 1, KarmaSourceType.API, "test", "test", "test");
-                Console.WriteLine(string.Concat(" Success: ", sendInviteResult.IsError ? "false" : "true"));
-
-                if (sendInviteResult.IsError)
-                    Console.WriteLine(string.Concat(" Error Message: ", sendInviteResult.Message));
-                else
-                {
-                    Console.WriteLine(string.Concat(" Invite Sent To Join SEEDS. Invite Secret: ", sendInviteResult.Result.InviteSecret, ". Transction ID: ", sendInviteResult.Result.TransactionId));
-
-                    Console.WriteLine(" Accepting invite to davidsellams...");
-                    OASISResult<string> acceptInviteResult = STAR.OASISAPI.Providers.SEEDS.AcceptInviteToJoinSeedsUsingTelosAccount("davidsellams", sendInviteResult.Result.InviteSecret, KarmaSourceType.API, "test", "test", "test");
-                    Console.WriteLine(string.Concat("Success: ", acceptInviteResult.IsError ? "false" : "true"));
-
-                    if (acceptInviteResult.IsError)
-                        Console.WriteLine(string.Concat(" Error Message: ", acceptInviteResult.Message));
-                    else
-                        Console.WriteLine(string.Concat(" Invite Accepted To Join SEEDS. Transction ID: ", acceptInviteResult.Result));
-                }
-                // ThreeFold, AcivityPub, SOLID, Cross/Off Chain, Smart Contract Interoperability & lots more coming soon! :)
-
-                // END OASIS API DEMO ***********************************************************************************
-
-
+                
+                await InitiateOASISAPTests(newHolon);
+                
 
                 // Build
                 CoronalEjection ejection = result.Result.CelestialBody.Flare();
@@ -407,6 +219,291 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
             }
         }
 
+        private static async Task InitiateOASISAPTests(IHolon newHolon)
+        {
+            // BEGIN OASIS API DEMO ***********************************************************************************
+            ShowMessage("BEGINNING OASIS API TEST'S...");
+
+            //Set auto-replicate for all providers except IPFS and Neo4j.
+            //EnableOrDisableAutoProviderList(ProviderManager.SetAutoReplicateForAllProviders, true, null, "Enabling Auto-Replication For All Providers...", "Auto-Replication Successfully Enabled For All Providers.", "Error Occured Enabling Auto-Replication For All Providers.");
+            ShowWorkingMessage("Enabling Auto-Replication For All Providers...");
+            bool isSuccess = ProviderManager.SetAutoReplicateForAllProviders(true);
+            HandleBooleansResponse(isSuccess, "Auto-Replication Successfully Enabled For All Providers.", "Error Occured Enabling Auto-Replication For All Providers.");
+
+            ShowWorkingMessage("Disabling Auto-Replication For IPFSOASIS & Neo4jOASIS Providers...");
+            isSuccess = ProviderManager.SetAutoReplicationForProviders(false, new List<ProviderType>() { ProviderType.IPFSOASIS, ProviderType.Neo4jOASIS });
+            //EnableOrDisableAutoProviderList(ProviderManager.SetAutoReplicationForProviders, false, new List<ProviderType>() { ProviderType.IPFSOASIS, ProviderType.Neo4jOASIS }, "Enabling Auto-Replication For All Providers...", "Auto-Replication Successfully Enabled For All Providers.", "Error Occured Enabling Auto-Replication For All Providers.");
+            HandleBooleansResponse(isSuccess, "Auto-Replication Successfully Disabled For IPFSOASIS & Neo4jOASIS Providers.", "Error Occured Disabling Auto-Replication For IPFSOASIS & Neo4jOASIS Providers.");
+
+            //Set auto-failover for all providers except Holochain.
+            ShowWorkingMessage("Enabling Auto-FailOver For All Providers...");
+            isSuccess = ProviderManager.SetAutoFailOverForAllProviders(true);
+            HandleBooleansResponse(isSuccess, "Auto-FailOver Successfully Enabled For All Providers.", "Error Occured Enabling Auto-FailOver For All Providers.");
+
+            ShowWorkingMessage("Disabling Auto-FailOver For HoloOASIS Provider...");
+            isSuccess = ProviderManager.SetAutoFailOverForProviders(false, new List<ProviderType>() { ProviderType.HoloOASIS });
+            HandleBooleansResponse(isSuccess, "Auto-FailOver Successfully Disabled For HoloOASIS.", "Error Occured Disabling Auto-FailOver For HoloOASIS Provider.");
+
+            //Set auto-load balance for all providers except Ethereum.
+            ShowWorkingMessage("Enabling Auto-Load-Balancing For All Providers...");
+            isSuccess = ProviderManager.SetAutoLoadBalanceForAllProviders(true);
+            HandleBooleansResponse(isSuccess, "Auto-FailOver Successfully Disabled For HoloOASIS.", "Error Occured Disabling Auto-FailOver For HoloOASIS Provider.");
+
+            ShowWorkingMessage("Disabling Auto-Load-Balancing For EthereumOASIS Provider...");
+            isSuccess = ProviderManager.SetAutoLoadBalanceForProviders(false, new List<ProviderType>() { ProviderType.EthereumOASIS });
+            HandleBooleansResponse(isSuccess, "Auto-Load-Balancing Successfully Disabled For EthereumOASIS.", "Error Occured Disabling Auto-Load-Balancing For EthereumOASIS Provider.");
+
+            // Set the default provider to MongoDB.
+            // Set last param to false if you wish only the next call to use this provider.
+            ShowWorkingMessage("Setting Default Provider to MongoDBOASIS...");
+            HandleOASISResponse(ProviderManager.SetAndActivateCurrentStorageProvider(ProviderType.MongoDBOASIS, true), "Successfully Set Default Provider To MongoDBOASIS Provider.", "Error Occured Setting Default Provider To MongoDBOASIS.");
+
+            //  Give HoloOASIS Store permission for the Name field(the field will only be stored on Holochain).
+            ShowWorkingMessage("Granting HoloOASIS Provider Store Permission For The Name Field...");
+            STAR.OASISAPI.Avatar.Config.FieldToProviderMappings.Name.Add(new ProviderManagerConfig.FieldToProviderMappingAccess { Access = ProviderManagerConfig.ProviderAccess.Store, Provider = ProviderType.HoloOASIS });
+            ShowSuccessMessage("Permission Granted.");
+
+            // Give all providers read/write access to the Karma field (will allow them to read and write to the field but it will only be stored on Holochain).
+            // You could choose to store it on more than one provider if you wanted the extra redundancy (but not normally needed since Holochain has a lot of redundancy built in).
+            ShowWorkingMessage("Granting All Providers Read/Write Permission For The Karma Field...");
+            STAR.OASISAPI.Avatar.Config.FieldToProviderMappings.Karma.Add(new ProviderManagerConfig.FieldToProviderMappingAccess { Access = ProviderManagerConfig.ProviderAccess.ReadWrite, Provider = ProviderType.All });
+            ShowSuccessMessage("Permission Granted.");
+
+            //Give Ethereum read-only access to the DOB field.
+            ShowWorkingMessage("Granting EthereumOASIS Providers Read-Only Permission For The DOB Field...");
+            STAR.OASISAPI.Avatar.Config.FieldToProviderMappings.DOB.Add(new ProviderManagerConfig.FieldToProviderMappingAccess { Access = ProviderManagerConfig.ProviderAccess.ReadOnly, Provider = ProviderType.EthereumOASIS });
+            ShowSuccessMessage("Permission Granted.");
+
+            // All calls are load-balanced and have multiple redudancy/fail over for all supported OASIS Providers.
+            ShowWorkingMessage("Loading All Avatars Load Balanced Across All Providers...");
+            IEnumerable<IAvatar> avatars = STAR.OASISAPI.Avatar.LoadAllAvatars(); // Load-balanced across all providers.
+            ShowSuccessMessage($"{avatars.Count()} Avatars Loaded.");
+
+            ShowWorkingMessage("Loading All Avatars Only For The MongoDBOASIS Provider...");
+            avatars = STAR.OASISAPI.Avatar.LoadAllAvatars(ProviderType.MongoDBOASIS); // Only loads from MongoDB.
+            ShowSuccessMessage($"{avatars.Count()} Avatars Loaded.");
+
+            ShowWorkingMessage("Loading Avatar Only For The HoloOASIS Provider...");
+            IAvatar avatar = STAR.OASISAPI.Avatar.LoadAvatar(STAR.LoggedInAvatar.Id, ProviderType.HoloOASIS); // Only loads from Holochain.
+
+            if (avatar != null)
+            {
+                ShowSuccessMessage("Avatar Loaded Successfully");
+                ShowSuccessMessage($"Avatar ID: {avatar.Id}");
+                ShowSuccessMessage($"Avatar Name: {avatar.FullName}");
+                ShowSuccessMessage($"Avatar Created Date: {avatar.CreatedDate}");
+                ShowSuccessMessage($"Avatar Last Beamed In Date: {avatar.LastBeamedIn}");
+            }
+            else
+                ShowErrorMessage("Error Loading Avatar.");
+
+            ShowWorkingMessage("Creating & Drawing Route On Map Between 2 Test Holons (Load Balanced Across All Providers)...");
+            HandleBooleansResponse(STAR.OASISAPI.Map.CreateAndDrawRouteOnMapBetweenHolons(newHolon, newHolon), "Route Created Successfully.", "Error Creating Route."); // Load-balanced across all providers.
+
+            ShowWorkingMessage("Loading Test Holon (Load Balanced Across All Providers)...");
+            OASISResult<IHolon> holonResult = STAR.OASISAPI.Data.LoadHolon(newHolon.Id); // Load-balanced across all providers.
+
+            if (holonResult != null && !holonResult.IsError && holonResult.Result != null)
+            {
+                ShowSuccessMessage("Holon Loaded Successfully.");
+                ShowSuccessMessage($"Id: {holonResult.Result.Id}");
+                ShowSuccessMessage($"Name: {holonResult.Result.Name}");
+                ShowSuccessMessage($"Description: {holonResult.Result.Description}");
+            }
+            else
+                ShowErrorMessage("Error Loading Holon");
+
+            ShowWorkingMessage("Loading Test Holon Only For IPFSOASIS Provider...");
+            holonResult = STAR.OASISAPI.Data.LoadHolon(newHolon.Id, true, true, true, ProviderType.IPFSOASIS); // Only loads from IPFS.
+
+            if (holonResult != null && !holonResult.IsError && holonResult.Result != null)
+            {
+                ShowSuccessMessage("Holon Loaded Successfully.");
+                ShowSuccessMessage($"Id: {holonResult.Result.Id}");
+                ShowSuccessMessage($"Name: {holonResult.Result.Name}");
+                ShowSuccessMessage($"Description: {holonResult.Result.Description}");
+            }
+            else
+                ShowErrorMessage("Error Loading Holon");
+
+            ShowWorkingMessage("Loading All Holons Of Type Moon Only For HoloOASIS Provider...");
+            HandleHolonsOASISResponse(STAR.OASISAPI.Data.LoadAllHolons(HolonType.Moon, true, true, true, ProviderType.HoloOASIS)); // Loads all moon (OAPPs) from Holochain.
+
+            ShowWorkingMessage("Saving Test Holon (Load Balanced Across All Providers)...");
+            HandleOASISResponse(STAR.OASISAPI.Data.SaveHolon(newHolon), "Holon Saved Successfully.", "Error Saving Holon."); // Load-balanced across all providers.
+
+            ShowWorkingMessage("Saving Test Holon Only For The EthereumOASIS Provider...");
+            HandleOASISResponse(STAR.OASISAPI.Data.SaveHolon(newHolon, true, true, true, ProviderType.EthereumOASIS), "Holon Saved Successfully.", "Error Saving Holon."); //  Only saves to Etherum.
+
+            ShowWorkingMessage("Loading All Holons From The Current Default Provider (With Auto-FailOver)...");
+            HandleHolonsOASISResponse(STAR.OASISAPI.Data.LoadAllHolons(HolonType.All, true, true, true, ProviderType.Default)); // Loads all holons from current default provider.
+
+            ShowWorkingMessage("Loading All Park Holons From All Providers (With Auto-Load-Balance & Auto-FailOver)...");
+            HandleHolonsOASISResponse(STAR.OASISAPI.Data.LoadAllHolons(HolonType.Park, true, true, true, ProviderType.All)); // Loads all parks from all providers (load-balanced/fail over).
+
+            //ShowWorkingMessage("Loading All Park Holons From All Providers (With Auto-Load-Balance & Auto-FailOver)...");
+            STAR.OASISAPI.Data.LoadAllHolons(HolonType.Park); // shorthand for above.
+
+            ShowWorkingMessage("Loading All Quest Holons From All Providers (With Auto-Load-Balance & Auto-FailOver)...");
+            HandleHolonsOASISResponse(STAR.OASISAPI.Data.LoadAllHolons(HolonType.Quest)); //  Loads all quests from all providers.
+
+            ShowWorkingMessage("Loading All Restaurant Holons From All Providers (With Auto-Load-Balance & Auto-FailOver)...");
+            HandleHolonsOASISResponse(STAR.OASISAPI.Data.LoadAllHolons(HolonType.Restaurant)); //  Loads all resaurants from all providers.
+
+            // Holochain Support
+            //TODO: Sort this out soon! ;-)
+            ShowWorkingMessage("Loading All Restaurant Holons From All Providers (With Auto-Load-Balance & Auto-FailOver)...");
+            await STAR.OASISAPI.Providers.Holochain.HoloNETClient.CallZomeFunctionAsync(STAR.OASISAPI.Providers.Holochain.HoloNETClient.Config.AgentPubKey, "our_world_core", "load_holons", null);
+
+            // IPFS Support
+            ShowWorkingMessage("Initiating IPFS Tests...");
+            await STAR.OASISAPI.Providers.IPFS.IPFSEngine.FileSystem.ReadFileAsync("");
+            await STAR.OASISAPI.Providers.IPFS.IPFSEngine.FileSystem.AddFileAsync("");
+            await STAR.OASISAPI.Providers.IPFS.IPFSEngine.Swarm.PeersAsync();
+            await STAR.OASISAPI.Providers.IPFS.IPFSEngine.KeyChainAsync();
+            await STAR.OASISAPI.Providers.IPFS.IPFSEngine.Dns.ResolveAsync("test");
+            await STAR.OASISAPI.Providers.IPFS.IPFSEngine.Dag.GetAsync(new Ipfs.Cid() { Hash = "" });
+            await STAR.OASISAPI.Providers.IPFS.IPFSEngine.Dag.PutAsync(new Ipfs.Cid() { Hash = "" });
+
+            // Ethereum Support
+            ShowWorkingMessage("Initiating Ethereum Tests...");
+            await STAR.OASISAPI.Providers.Ethereum.Web3.Client.SendRequestAsync(new Nethereum.JsonRpc.Client.RpcRequest("id", "test"));
+            await STAR.OASISAPI.Providers.Ethereum.Web3.Eth.Blocks.GetBlockNumber.SendRequestAsync("");
+            Contract contract = STAR.OASISAPI.Providers.Ethereum.Web3.Eth.GetContract("abi", "contractAddress");
+
+            // EOSIO Support
+            ShowWorkingMessage("Initiating EOSIO Tests...");
+            STAR.OASISAPI.Providers.EOSIO.ChainAPI.GetTableRows("accounts", "accounts", "users", "true", 0, 0, 1, 3);
+            STAR.OASISAPI.Providers.EOSIO.ChainAPI.GetBlock("block");
+            STAR.OASISAPI.Providers.EOSIO.ChainAPI.GetAccount("test.account");
+            STAR.OASISAPI.Providers.EOSIO.ChainAPI.GetCurrencyBalance("test.account", "", "");
+
+            // Graph DB Support
+            ShowWorkingMessage("Initiating Neo4j Tests...");
+            ShowWorkingMessage("Executing Graph Cypher Test...");
+            await STAR.OASISAPI.Providers.Neo4j.GraphClient.Cypher.Merge("(a:Avatar { Id: avatar.Id })").OnCreate().Set("a = avatar").ExecuteWithoutResultsAsync(); //Insert/Update Avatar.
+            Avatar newAvatar = STAR.OASISAPI.Providers.Neo4j.GraphClient.Cypher.Match("(p:Avatar {Username: {nameParam}})").WithParam("nameParam", "davidellams@hotmail.com").Return(p => p.As<Avatar>()).ResultsAsync.Result.Single(); //Load Avatar.
+
+            // Document/Object DB Support
+            ShowWorkingMessage("Initiating MongoDB Tests...");
+            STAR.OASISAPI.Providers.MongoDB.Database.MongoDB.ListCollectionNames();
+            STAR.OASISAPI.Providers.MongoDB.Database.MongoDB.GetCollection<Avatar>("Avatar");
+
+            // SEEDS Support
+            ShowWorkingMessage("Initiating SEEDS Tests...");
+            ShowWorkingMessage("Getting Balance for account davidsellams...");
+            string balance = STAR.OASISAPI.Providers.SEEDS.GetBalanceForTelosAccount("davidsellams");
+            ShowSuccessMessage(string.Concat("Balance: ", balance));
+
+            ShowWorkingMessage("Getting Balance for account nextgenworld...");
+            balance = STAR.OASISAPI.Providers.SEEDS.GetBalanceForTelosAccount("nextgenworld");
+            ShowSuccessMessage(string.Concat("Balance: ", balance));
+
+            ShowWorkingMessage("Getting Account for account davidsellams...");
+            Account account = STAR.OASISAPI.Providers.SEEDS.TelosOASIS.GetTelosAccount("davidsellams");
+            ShowSuccessMessage(string.Concat("Account.account_name: ", account.account_name));
+            ShowSuccessMessage(string.Concat("Account.created: ", account.created_datetime.ToString()));
+
+            ShowWorkingMessage("Getting Account for account nextgenworld...");
+            account = STAR.OASISAPI.Providers.SEEDS.TelosOASIS.GetTelosAccount("nextgenworld");
+            ShowSuccessMessage(string.Concat("Account.account_name: ", account.account_name));
+            ShowSuccessMessage(string.Concat("Account.created: ", account.created_datetime.ToString()));
+
+            // Check that the Telos account name is linked to the avatar and link it if it is not (PayWithSeeds will fail if it is not linked when it tries to add the karma points).
+            if (!STAR.LoggedInAvatar.ProviderKey.ContainsKey(ProviderType.TelosOASIS))
+            {
+                ShowWorkingMessage("Linking Telos Account to Avatar...");
+                IAvatarDetail avatarDetail = STAR.OASISAPI.Avatar.LinkProviderKeyToAvatar(STAR.LoggedInAvatar.Id, ProviderType.TelosOASIS, "davidsellams");
+
+                if (avatarDetail != null)
+                    ShowSuccessMessage("Telos Account Successfully Linked to Avatar.");
+                else
+                    ShowErrorMessage("Error occured Whilst Linking Telos Account To Avatar.");
+            }
+
+            ShowWorkingMessage("Sending SEEDS from nextgenworld to davidsellams...");
+            OASISResult<string> payWithSeedsResult = STAR.OASISAPI.Providers.SEEDS.PayWithSeedsUsingTelosAccount("davidsellams", _privateKey, "nextgenworld", 1, KarmaSourceType.API, "test", "test", "test", "test memo");
+            ShowSuccessMessage(string.Concat("Success: ", payWithSeedsResult.IsError ? "false" : "true"));
+
+            if (payWithSeedsResult.IsError)
+                ShowErrorMessage(string.Concat("Error Message: ", payWithSeedsResult.Message));
+
+            ShowSuccessMessage(string.Concat("Result: ", payWithSeedsResult.Result));
+
+            ShowWorkingMessage("Getting Balance for account davidsellams...");
+            balance = STAR.OASISAPI.Providers.SEEDS.GetBalanceForTelosAccount("davidsellams");
+            ShowSuccessMessage(string.Concat("Balance: ", balance));
+
+            ShowWorkingMessage("Getting Balance for account nextgenworld...");
+            balance = STAR.OASISAPI.Providers.SEEDS.GetBalanceForTelosAccount("nextgenworld");
+            ShowSuccessMessage(string.Concat("Balance: ", balance));
+
+            ShowWorkingMessage("Getting Organsiations...");
+            string orgs = STAR.OASISAPI.Providers.SEEDS.GetAllOrganisationsAsJSON();
+            ShowSuccessMessage(string.Concat("Organisations: ", orgs));
+
+            //ShowMessage("Getting nextgenworld organsiation...");
+            //string org = OASISAPI.Providers.SEEDS.GetOrganisation("nextgenworld");
+            //ShowMessage(string.Concat("nextgenworld org: ", org));
+
+            ShowWorkingMessage("Generating QR Code for davidsellams...");
+            string qrCode = STAR.OASISAPI.Providers.SEEDS.GenerateSignInQRCode("davidsellams");
+            ShowSuccessMessage(string.Concat("SEEDS Sign-In QRCode: ", qrCode));
+
+            ShowWorkingMessage("Sending invite to davidsellams...");
+            OASISResult<SendInviteResult> sendInviteResult = STAR.OASISAPI.Providers.SEEDS.SendInviteToJoinSeedsUsingTelosAccount("davidsellams", _privateKey, "davidsellams", 1, 1, KarmaSourceType.API, "test", "test", "test");
+            ShowSuccessMessage(string.Concat("Success: ", sendInviteResult.IsError ? "false" : "true"));
+
+            if (sendInviteResult.IsError)
+                ShowErrorMessage(string.Concat("Error Message: ", sendInviteResult.Message));
+            else
+            {
+                ShowSuccessMessage(string.Concat("Invite Sent To Join SEEDS. Invite Secret: ", sendInviteResult.Result.InviteSecret, ". Transction ID: ", sendInviteResult.Result.TransactionId));
+
+                ShowWorkingMessage("Accepting invite to davidsellams...");
+                OASISResult<string> acceptInviteResult = STAR.OASISAPI.Providers.SEEDS.AcceptInviteToJoinSeedsUsingTelosAccount("davidsellams", sendInviteResult.Result.InviteSecret, KarmaSourceType.API, "test", "test", "test");
+                ShowSuccessMessage(string.Concat("Success: ", acceptInviteResult.IsError ? "false" : "true"));
+
+                if (acceptInviteResult.IsError)
+                    ShowErrorMessage(string.Concat("Error Message: ", acceptInviteResult.Message));
+                else
+                    ShowSuccessMessage(string.Concat("Invite Accepted To Join SEEDS. Transction ID: ", acceptInviteResult.Result));
+            }
+            // ThreeFold, AcivityPub, SOLID, Cross/Off Chain, Smart Contract Interoperability & lots more coming soon! :)
+
+            ShowMessage("OASIS API TESTS COMPLETE.");
+            // END OASIS API DEMO ***********************************************************************************
+        }
+
+
+        private static void ShowAvatars(IEnumerable<IAvatar> avatars)
+        {
+            foreach (IAvatar avatar in avatars)
+                ShowAvatar(avatar);
+        }
+
+        private static void ShowAvatar(IAvatar avatar)
+        {
+            if (avatar != null)
+            {
+                ShowSuccessMessage("Avatar Loaded Successfully");
+                ShowSuccessMessage($"Avatar ID: {avatar.Id}");
+                ShowSuccessMessage($"Avatar Name: {avatar.FullName}");
+                ShowSuccessMessage($"Avatar Username: {avatar.Username}");
+                ShowSuccessMessage($"Avatar Type: {avatar.AvatarType.Name}");
+                ShowSuccessMessage($"Avatar Created Date: {avatar.CreatedDate}");
+                ShowSuccessMessage($"Avatar Modifed Date: {avatar.ModifiedDate}");
+                ShowSuccessMessage($"Avatar Last Beamed In Date: {avatar.LastBeamedIn}");
+                ShowSuccessMessage($"Avatar Last Beamed Out Date: {avatar.LastBeamedOut}");
+                ShowSuccessMessage(String.Concat("Avatar Is Active: ", avatar.IsActive ? "True" : "False"));
+                ShowSuccessMessage(String.Concat("Avatar Is Beamed In: ", avatar.IsBeamedIn ? "True" : "False"));
+                ShowSuccessMessage(String.Concat("Avatar Is Verified: ", avatar.IsVerified ? "True" : "False"));
+                ShowSuccessMessage($"Avatar Version: {avatar.Version}");
+            }
+            else
+                ShowErrorMessage("Error Loading Avatar.");
+        }
+
         private static void EnableOrDisableAutoProviderList(Func<bool, List<ProviderType>, bool> funct, bool isEnabled, List<ProviderType> providerTypes, string workingMessage, string successMessage, string errorMessage)
         {
             ShowWorkingMessage(workingMessage);
@@ -417,7 +514,7 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
                 ShowErrorMessage(errorMessage);
         }
 
-        private static void HandleEnableOrDisableAutoProviderListResponse(bool isSuccess, string successMessage, string errorMessage)
+        private static void HandleBooleansResponse(bool isSuccess, string successMessage, string errorMessage)
         {
             if (isSuccess)
                 ShowSuccessMessage(successMessage);
@@ -431,6 +528,17 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
                 ShowSuccessMessage(successMessage);
             else
                 ShowErrorMessage($"{errorMessage}Reason: {result.Message}");
+        }
+
+        private static void HandleHolonsOASISResponse(OASISResult<IEnumerable<IHolon>> result)
+        {
+            if (!result.IsError && result.Result != null)
+            {
+                ShowSuccessMessage($"{result.Result.Count()} Holon(s) Loaded:");
+                ShowHolons(result.Result, " ");
+            }
+            else
+                ShowErrorMessage($"Error Loading Holons. Reason: {result.Message}");
         }
 
         private static async Task<OASISResult<CoronalEjection>> GenerateCelestialBody(string name, ICelestialBody parentCelestialBody, GenesisType genesisType, string dnaFolder, string cSharpGeneisFolder, string rustGenesisFolder, string genesisNameSpace)
@@ -470,20 +578,29 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
             else
                 Console.WriteLine(customHeader);
 
-            foreach (Zome zome in zomes)
+            foreach (IZome zome in zomes)
             {
                 Console.WriteLine(string.Concat("  Zome Name: ", zome.Name, " Zome Id: ", zome.Id, " containing ", zome.Holons.Count(), " holon(s):"));
+                ShowHolons(zome.Holons, " ");
+            }
+        }
 
-                foreach (Holon holon in zome.Holons)
+        private static void ShowHolons(IEnumerable<IHolon> holons, string customHeader = null)
+        {
+            if (string.IsNullOrEmpty(customHeader))
+                Console.WriteLine($"{holons.Count()} Holons(s) Found:");
+            else
+                Console.WriteLine(customHeader);
+
+            foreach (IHolon holon in holons)
+            {
+                Console.WriteLine("");
+                Console.WriteLine(string.Concat("   Holon Name: ", holon.Name, " Holon Id: ", holon.Id, " containing ", holon.Nodes.Count(), " node(s): "));
+
+                foreach (INode node in holon.Nodes)
                 {
                     Console.WriteLine("");
-                    Console.WriteLine(string.Concat("   Holon Name: ", holon.Name, " Holon Id: ", holon.Id, " containing ", holon.Nodes.Count(), " node(s): "));
-
-                    foreach (Node node in holon.Nodes)
-                    {
-                        Console.WriteLine("");
-                        Console.WriteLine(string.Concat("    Node Name: ", node.NodeName, " Node Id: ", node.Id, " Node Type: ", Enum.GetName(node.NodeType)));
-                    }
+                    Console.WriteLine(string.Concat("    Node Name: ", node.NodeName, " Node Id: ", node.Id, " Node Type: ", Enum.GetName(node.NodeType)));
                 }
             }
         }
