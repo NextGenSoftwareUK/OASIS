@@ -320,12 +320,12 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return result;
         }
 
-        public OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(Guid id, HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, bool continueOnError = true, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(Guid id, HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0, ProviderType providerType = ProviderType.Default)
         {
             ProviderType currentProviderType = ProviderManager.CurrentStorageProviderType.Value;
             OASISResult<IEnumerable<IHolon>> result = new OASISResult<IEnumerable<IHolon>>();
 
-            result = LoadHolonsForParentForProviderType(id, holonType, providerType, result);
+            result = LoadHolonsForParentForProviderType(id, holonType, providerType, loadChildren, recursive, maxChildDepth, continueOnError, version, result);
 
             if (result.Result == null && ProviderManager.IsAutoFailOverEnabled)
             {
@@ -333,7 +333,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 {
                     if (type.Value != providerType && type.Value != ProviderManager.CurrentStorageProviderType.Value)
                     {
-                        result = LoadHolonsForParentForProviderType(id, holonType, type.Value, result);
+                        result = LoadHolonsForParentForProviderType(id, holonType, type.Value, loadChildren, recursive, maxChildDepth, continueOnError, version, result);
 
                         if (result.Result != null)
                             break;
@@ -358,12 +358,12 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return result;
         }
 
-        public OASISResult<IEnumerable<T>> LoadHolonsForParent<T>(Guid id, HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, bool continueOnError = true, ProviderType providerType = ProviderType.Default) where T : IHolon, new()
+        public OASISResult<IEnumerable<T>> LoadHolonsForParent<T>(Guid id, HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0, ProviderType providerType = ProviderType.Default) where T : IHolon, new()
         {
             ProviderType currentProviderType = ProviderManager.CurrentStorageProviderType.Value;
             OASISResult<IEnumerable<T>> result = new OASISResult<IEnumerable<T>>();
 
-            result = LoadHolonsForParentForProviderType(id, holonType, providerType, result);
+            result = LoadHolonsForParentForProviderType(id, holonType, providerType, loadChildren, recursive, maxChildDepth, continueOnError, version, result);
 
             if (result.Result == null && ProviderManager.IsAutoFailOverEnabled)
             {
@@ -398,13 +398,13 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return result;
         }
 
-        public async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(Guid id, HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, bool continueOnError = true, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(Guid id, HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, ProviderType providerType = ProviderType.Default)
         {
             //TODO: NEED TO ADD LOADCHILDREN PARAM ASAP.
             ProviderType currentProviderType = ProviderManager.CurrentStorageProviderType.Value;
             OASISResult<IEnumerable<IHolon>> result = new OASISResult<IEnumerable<IHolon>>();
 
-            result = await LoadHolonsForParentForProviderTypeAsync(id, holonType, providerType, result);
+            result = await LoadHolonsForParentForProviderTypeAsync(id, holonType, providerType, loadChildren, recursive, maxChildDepth, continueOnError, result);
 
             if (result.Result == null && ProviderManager.IsAutoFailOverEnabled)
             {
@@ -1876,7 +1876,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return result;
         }
 
-        private OASISResult<IEnumerable<IHolon>> LoadHolonsForParentForProviderType(Guid id, HolonType holonType, ProviderType providerType, OASISResult<IEnumerable<IHolon>> result = null)
+        private OASISResult<IEnumerable<IHolon>> LoadHolonsForParentForProviderType(Guid id, HolonType holonType, ProviderType providerType, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0, OASISResult < IEnumerable<IHolon>> result = null)
         {
             try
             {
@@ -1894,7 +1894,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 }
                 else if (result != null)
                 {
-                    result = providerResult.Result.LoadHolonsForParent(id, holonType);
+                    result = providerResult.Result.LoadHolonsForParent(id, holonType, loadChildren, recursive, maxChildDepth, 0, continueOnError, version);
                     result.IsSaved = true;
                 }
             }
@@ -1963,7 +1963,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return result;
         }
 
-        private async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentForProviderTypeAsync(Guid id, HolonType holonType, ProviderType providerType, OASISResult<IEnumerable<IHolon>> result = null)
+        private async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentForProviderTypeAsync(Guid id, HolonType holonType, ProviderType providerType, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, OASISResult < IEnumerable<IHolon>> result = null)
         {
             try
             {
@@ -1981,7 +1981,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 }
                 else if (result != null)
                 {
-                    result = await providerResult.Result.LoadHolonsForParentAsync(id, holonType);
+                    result = await providerResult.Result.LoadHolonsForParentAsync(id, holonType, loadChildren, recursive, maxChildDepth, 0, continueOnError);
                     result.IsSaved = true;
                 }
             }

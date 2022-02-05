@@ -196,10 +196,10 @@ namespace NextGenSoftware.OASIS.STAR.Zomes
             return result;
         }
 
-        public virtual async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(Guid id, HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, bool continueOnError = true)
+        public virtual async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(Guid id, HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
         {
             //TODO: NEED TO ADD LOADCHILDREN PARAM ASAP.
-            OASISResult<IEnumerable<IHolon>> result = await _holonManager.LoadHolonsForParentAsync(id, holonType, loadChildren, recursive, continueOnError);
+            OASISResult<IEnumerable<IHolon>> result = await _holonManager.LoadHolonsForParentAsync(id, holonType, loadChildren, recursive, maxChildDepth, continueOnError, version);
 
             if (result.IsError)
                 OnZomeError?.Invoke(this, new ZomeErrorEventArgs() { Reason = string.Concat("Error in LoadHolonsForParentAsync method with id ", id, " and holonType ", Enum.GetName(typeof(HolonType), holonType), ". Error Details: ", result.Message), Exception = result.Exception });
@@ -208,9 +208,9 @@ namespace NextGenSoftware.OASIS.STAR.Zomes
             return result;
         }
 
-        public virtual OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(Guid id, HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, bool continueOnError = true)
+        public virtual OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(Guid id, HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
         {
-            OASISResult<IEnumerable<IHolon>> result = _holonManager.LoadHolonsForParent(id, holonType, loadChildren, recursive, continueOnError);
+            OASISResult<IEnumerable<IHolon>> result = _holonManager.LoadHolonsForParent(id, holonType, loadChildren, recursive, maxChildDepth, continueOnError, version);
 
             if (result.IsError)
                 OnZomeError?.Invoke(this, new ZomeErrorEventArgs() { Reason = string.Concat("Error in LoadHolonsForParent method with id ", id, " and holonType ", Enum.GetName(typeof(HolonType), holonType), ". Error Details: ", result.Message), Exception = result.Exception });
@@ -356,24 +356,24 @@ namespace NextGenSoftware.OASIS.STAR.Zomes
                 zomeResult.Message = holonResult.Message;
             }
 
-            if (saveChildren && (!continueOnError && !zomeResult.IsError && holonResult.Result != null)
+            if (saveChildren && (!zomeResult.IsError && holonResult.Result != null)
                 || continueOnError && (zomeResult.IsError || holonResult.Result == null))
             {
                 if (holonResult.Result != null)
                 {
                     //TODO: Dont think we need this now? It should be updated automatically? Double check...
-                    this.Id = holonResult.Result.Id;
-                    this.ProviderKey = holonResult.Result.ProviderKey;
-                    this.CreatedByAvatar = holonResult.Result.CreatedByAvatar;
-                    this.CreatedByAvatarId = holonResult.Result.CreatedByAvatarId;
-                    this.CreatedDate = holonResult.Result.CreatedDate;
-                    this.ModifiedByAvatar = holonResult.Result.ModifiedByAvatar;
-                    this.ModifiedByAvatarId = holonResult.Result.ModifiedByAvatarId;
-                    this.ModifiedDate = holonResult.Result.ModifiedDate;
-                    this.Children = holonResult.Result.Children;
+                    //this.Id = holonResult.Result.Id;
+                    //this.ProviderKey = holonResult.Result.ProviderKey;
+                    //this.CreatedByAvatar = holonResult.Result.CreatedByAvatar;
+                    //this.CreatedByAvatarId = holonResult.Result.CreatedByAvatarId;
+                    //this.CreatedDate = holonResult.Result.CreatedDate;
+                    //this.ModifiedByAvatar = holonResult.Result.ModifiedByAvatar;
+                    //this.ModifiedByAvatarId = holonResult.Result.ModifiedByAvatarId;
+                    //this.ModifiedDate = holonResult.Result.ModifiedDate;
+                    //this.Children = holonResult.Result.Children;
                 }
 
-                ZomeHelper.SetParentIdsForZome(this.ParentGreatGrandSuperStar, this.ParentGrandSuperStar, this.ParentSuperStar, this.ParentStar, this.ParentPlanet, this.ParentMoon, (IZome)this);
+                //ZomeHelper.SetParentIdsForZome(this.ParentGreatGrandSuperStar, this.ParentGrandSuperStar, this.ParentSuperStar, this.ParentStar, this.ParentPlanet, this.ParentMoon, (IZome)this);
 
                 // Now save the zome child holons (each OASIS Provider will recursively save each child holon, could do the recursion here and just save each holon indivudally with SaveHolonAsync but this way each OASIS Provider can optimise the way it saves (batches, etc), which would be quicker than making multiple calls...)
                 //OASISResult<IEnumerable<IHolon>> holonsResult = await _holonManager.SaveHolonsAsync(this.Holons);
@@ -421,21 +421,21 @@ namespace NextGenSoftware.OASIS.STAR.Zomes
                 zomeResult.Message = holonResult.Message;
             }
 
-            if (saveChildren && (!continueOnError && !zomeResult.IsError && holonResult.Result != null) 
+            if (saveChildren && (!zomeResult.IsError && holonResult.Result != null)
                 || continueOnError && (zomeResult.IsError || holonResult.Result == null))
             {
                 if (holonResult.Result != null)
                 {
                     //TODO: Dont think we need this now? It should be updated automatically? Double check...
-                    this.Id = holonResult.Result.Id;
-                    this.ProviderKey = holonResult.Result.ProviderKey;
-                    this.CreatedByAvatar = holonResult.Result.CreatedByAvatar;
-                    this.CreatedByAvatarId = holonResult.Result.CreatedByAvatarId;
-                    this.CreatedDate = holonResult.Result.CreatedDate;
-                    this.ModifiedByAvatar = holonResult.Result.ModifiedByAvatar;
-                    this.ModifiedByAvatarId = holonResult.Result.ModifiedByAvatarId;
-                    this.ModifiedDate = holonResult.Result.ModifiedDate;
-                    this.Children = holonResult.Result.Children;
+                    //this.Id = holonResult.Result.Id;
+                    //this.ProviderKey = holonResult.Result.ProviderKey;
+                    //this.CreatedByAvatar = holonResult.Result.CreatedByAvatar;
+                    //this.CreatedByAvatarId = holonResult.Result.CreatedByAvatarId;
+                    //this.CreatedDate = holonResult.Result.CreatedDate;
+                    //this.ModifiedByAvatar = holonResult.Result.ModifiedByAvatar;
+                    //this.ModifiedByAvatarId = holonResult.Result.ModifiedByAvatarId;
+                    //this.ModifiedDate = holonResult.Result.ModifiedDate;
+                    //this.Children = holonResult.Result.Children;
                 }
 
                 ZomeHelper.SetParentIdsForZome(this.ParentGreatGrandSuperStar, this.ParentGrandSuperStar, this.ParentSuperStar, this.ParentStar, this.ParentPlanet, this.ParentMoon, (IZome)this);

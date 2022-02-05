@@ -1,5 +1,6 @@
 ﻿using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
+using System;
 
 namespace NextGenSoftware.OASIS.STAR.Zomes
 {
@@ -9,50 +10,73 @@ namespace NextGenSoftware.OASIS.STAR.Zomes
         {
             if (greatGrandSuperStar != null)
             {
-                holon.ParentGreatGrandSuperStar = greatGrandSuperStar;
-                holon.ParentGreatGrandSuperStarId = greatGrandSuperStar.Id;
+                if (holon.ParentGreatGrandSuperStar == null)
+                    holon.ParentGreatGrandSuperStar = greatGrandSuperStar;
+
+                if (holon.ParentGreatGrandSuperStarId == Guid.Empty)
+                    holon.ParentGreatGrandSuperStarId = greatGrandSuperStar.Id;
             }
 
             if (grandSuperStar != null)
             {
-                holon.ParentGrandSuperStar = grandSuperStar;
-                holon.ParentGrandSuperStarId = grandSuperStar.Id;
+                if (holon.ParentGrandSuperStar == null)
+                    holon.ParentGrandSuperStar = grandSuperStar;
+
+                if (holon.ParentGrandSuperStarId == Guid.Empty)
+                    holon.ParentGrandSuperStarId = grandSuperStar.Id;
             }
 
             if (superStar != null)
             {
-                holon.ParentSuperStar = superStar;
-                holon.ParentSuperStarId = superStar.Id;
+                if (holon.ParentSuperStar == null)
+                    holon.ParentSuperStar = superStar;
+
+                if (holon.ParentSuperStarId == Guid.Empty)
+                    holon.ParentSuperStarId = superStar.Id;
             }
 
             if (star != null)
             {
-                holon.ParentStar = star;
-                holon.ParentStarId = star.Id;
+                if (holon.ParentStar == null)
+                    holon.ParentStar = star;
+
+                if (holon.ParentStarId == Guid.Empty)
+                    holon.ParentStarId = star.Id;
             }
 
             if (planet != null)
             {
-                holon.ParentPlanet = planet;
+                if (holon.ParentStar == null)
+                    holon.ParentPlanet = planet;
+
                 holon.ParentPlanetId = planet.Id;
             }
 
             if (moon != null)
             {
-                holon.ParentMoon = moon;
-                holon.ParentMoonId = moon.Id;
+                if (holon.ParentMoon == null)
+                    holon.ParentMoon = moon;
+
+                if (holon.ParentMoonId == Guid.Empty)
+                    holon.ParentMoonId = moon.Id;
             }
 
             if (zome != null)
             {
-                holon.ParentZome = zome;
-                holon.ParentZomeId = zome.Id;
+                if (holon.ParentZome == null)
+                    holon.ParentZome = zome;
+
+                if (holon.ParentZomeId == Guid.Empty)
+                    holon.ParentZomeId = zome.Id;
             }
 
             if (holon != null)
             {
-                holon.ParentHolonId = holon.Id;
-                holon.ParentHolon = holon;
+                if (holon.ParentHolonId == Guid.Empty)
+                    holon.ParentHolonId = holon.Id;
+
+                if (holon.ParentHolon == null)
+                    holon.ParentHolon = holon;  
             }
         }
 
@@ -69,7 +93,9 @@ namespace NextGenSoftware.OASIS.STAR.Zomes
 
         public static void SetParentIdsForZome(IGreatGrandSuperStar greatGrandSuperStar, IGrandSuperStar grandSuperStar, ISuperStar superStar, IStar star, IPlanet planet, IMoon moon, IZome zome)
         {
-            SetParentIdsForHolon(greatGrandSuperStar, grandSuperStar, superStar, star, planet, moon, null, zome); //A zome is also a holon (everything is a holon).
+            //TODO: Not sure if we even need this?!
+            //SetParentIdsForHolon(greatGrandSuperStar, grandSuperStar, superStar, star, planet, moon, null, zome); //A zome is also a holon (everything is a holon).
+            //SetParentIdsForHolon(greatGrandSuperStar, grandSuperStar, superStar, star, planet, moon, zome, null); //A zome is also a holon (everything is a holon).
 
             if (zome.Holons != null)
             {
