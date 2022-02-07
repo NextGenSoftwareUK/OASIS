@@ -73,10 +73,10 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
         {
         }
 
-        public async Task<OASISResult<IEnumerable<IZome>>> LoadZomesAsync(bool loadChildren = true, bool resursive = true, bool continueOnError = true)
+        public async Task<OASISResult<IEnumerable<IZome>>> LoadZomesAsync(bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
         {
             OASISResult<IEnumerable<IZome>> result = new OASISResult<IEnumerable<IZome>>();
-            OASISResult<IEnumerable<IHolon>>  holonResult = await base.LoadHolonsForParentAsync(HolonType.Zome, loadChildren, resursive, continueOnError);
+            OASISResult<IEnumerable<IHolon>>  holonResult = await base.LoadHolonsForParentAsync(HolonType.Zome, loadChildren, recursive, maxChildDepth, continueOnError, version);
             OASISResultCollectionToCollectionHelper<IEnumerable<IHolon>, IEnumerable<IZome>>.CopyResult(holonResult, ref result);
 
             if (holonResult.Result != null && !holonResult.IsError)
@@ -91,10 +91,10 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
             return result;
         }
 
-        public OASISResult<IEnumerable<IZome>> LoadZomes(bool loadChildren = true, bool resursive = true, bool continueOnError = true)
+        public OASISResult<IEnumerable<IZome>> LoadZomes(bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
         {
             OASISResult<IEnumerable<IZome>> result = new OASISResult<IEnumerable<IZome>>();
-            OASISResult<IEnumerable<IHolon>> holonResult = base.LoadHolonsForParent(HolonType.Zome, loadChildren, resursive, continueOnError);
+            OASISResult<IEnumerable<IHolon>> holonResult = base.LoadHolonsForParent(HolonType.Zome, loadChildren, recursive, maxChildDepth, continueOnError, version);
             OASISResultCollectionToCollectionHelper<IEnumerable<IHolon>, IEnumerable<IZome>>.CopyResult(holonResult, ref result);
 
             if (holonResult.Result != null && !holonResult.IsError)
@@ -110,7 +110,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
         }
 
         //TODO: Do we need to use ICelestialBody or IZome here? It will call different Saves depending which we use...
-        public async Task<OASISResult<IEnumerable<IZome>>> SaveZomesAsync(bool saveChildren = true, bool recursive = true, bool continueOnError = true)
+        public async Task<OASISResult<IEnumerable<IZome>>> SaveZomesAsync(bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true)
         {
             OASISResult<IEnumerable<IZome>> result = new OASISResult<IEnumerable<IZome>>();
             OASISResult<IZome> zomeResult = new OASISResult<IZome>();
@@ -122,7 +122,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
                 {
                     if (zome.HasHolonChanged())
                     {
-                        zomeResult = await zome.SaveAsync(saveChildren, recursive, continueOnError);
+                        zomeResult = await zome.SaveAsync(saveChildren, recursive, maxChildDepth, continueOnError);
 
                         if (zomeResult != null && zomeResult.Result != null && !zomeResult.IsError)
                         {
@@ -164,7 +164,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
             return result;
         }
 
-        public OASISResult<IEnumerable<IZome>> SaveZomes(bool saveChildren = true, bool recursive = true, bool continueOnError = true)
+        public OASISResult<IEnumerable<IZome>> SaveZomes(bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true)
         {
             OASISResult<IEnumerable<IZome>> result = new OASISResult<IEnumerable<IZome>>();
             OASISResult<IZome> zomeResult = new OASISResult<IZome>();
@@ -176,7 +176,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
                 {
                     if (zome.HasHolonChanged())
                     {
-                        zomeResult = zome.Save(saveChildren, recursive, continueOnError);
+                        zomeResult = zome.Save(saveChildren, recursive, maxChildDepth, continueOnError);
 
                         if (zomeResult != null && zomeResult.Result != null && !zomeResult.IsError)
                         {
@@ -218,7 +218,9 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
             return result;
         }
 
-        public async Task<OASISResult<IZome>> AddZomeAsync(IZome zome, bool saveChildren = true, bool resursive = true, bool continueOnError = true)
+
+        //TODO: RE-WRITE THESE SO LIKE ZOMEBASE VERSIONS (MORE EFFICIENT!)
+        public async Task<OASISResult<IZome>> AddZomeAsync(IZome zome, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true)
         {
             OASISResult<IZome> result = new OASISResult<IZome>();
 
@@ -231,7 +233,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
                 this.Zomes.Add(zome);
                 
                 //TODO: This is used in quite a few places but not sure how efficient it is because it will always save the entire collection even if its not needed?
-                OASISResult<IEnumerable<IHolon>> holonsResult = await base.SaveHolonsAsync(this.Zomes, true, saveChildren, resursive, continueOnError);
+                OASISResult<IEnumerable<IHolon>> holonsResult = await base.SaveHolonsAsync(this.Zomes, true, saveChildren, recursive, maxChildDepth, continueOnError);
                 OASISResultCollectionToHolonHelper<IEnumerable<IHolon>, IZome>.CopyResult(holonsResult, ref result);
             }
 
@@ -239,7 +241,8 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
             return result;
         }
 
-        public OASISResult<IZome> AddZome(IZome zome, bool saveChildren = true, bool resursive = true, bool continueOnError = true)
+        //TODO: RE-WRITE THESE SO LIKE ZOMEBASE VERSIONS (MORE EFFICIENT!)
+        public OASISResult<IZome> AddZome(IZome zome, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true)
         {
             OASISResult<IZome> result = new OASISResult<IZome>();
 
@@ -252,7 +255,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
                 this.Zomes.Add(zome);
 
                 //TODO: This is used in quite a few places but not sure how efficient it is because it will always save the entire collection even if its not needed?
-                OASISResult<IEnumerable<IHolon>> holonsResult = base.SaveHolons(this.Zomes, true, saveChildren, resursive, continueOnError);
+                OASISResult<IEnumerable<IHolon>> holonsResult = base.SaveHolons(this.Zomes, true, saveChildren, recursive, maxChildDepth, continueOnError);
                 OASISResultCollectionToHolonHelper<IEnumerable<IHolon>, IZome>.CopyResult(holonsResult, ref result);
             }
 
@@ -260,13 +263,14 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
             return result;
         }
 
+        //TODO: RE-WRITE THESE SO LIKE ZOMEBASE VERSIONS (MORE EFFICIENT!)
         public async Task<OASISResult<IEnumerable<IZome>>> RemoveZomeAsync(IZome zome)
         {
             OASISResult<IEnumerable<IZome>> result = new OASISResult<IEnumerable<IZome>>();
             this.Zomes.Remove(zome);
 
             //Don't think we need to save children if we are just removing a holon?
-            OASISResult<IEnumerable<IHolon>> holonsResult = await base.SaveHolonsAsync(this.Zomes, true, false, false, false);
+            OASISResult<IEnumerable<IHolon>> holonsResult = await base.SaveHolonsAsync(this.Zomes, true, false, false, 0, false);
             OASISResultCollectionToCollectionHelper<IEnumerable<IHolon>, IEnumerable<IZome>>.CopyResult(holonsResult, ref result);
 
             if (!holonsResult.IsError && holonsResult.Result != null)
@@ -279,13 +283,14 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
             return result;
         }
 
+        //TODO: RE-WRITE THESE SO LIKE ZOMEBASE VERSIONS (MORE EFFICIENT!)
         public OASISResult<IEnumerable<IZome>> RemoveZome(IZome zome)
         {
             OASISResult<IEnumerable<IZome>> result = new OASISResult<IEnumerable<IZome>>();
             this.Zomes.Remove(zome);
 
             //Don't think we need to save children if we are just removing a zome?
-            OASISResult<IEnumerable<IHolon>> holonsResult = base.SaveHolons(this.Zomes, true, false, false, false);
+            OASISResult<IEnumerable<IHolon>> holonsResult = base.SaveHolons(this.Zomes, true, false, false, 0, false);
             OASISResultCollectionToCollectionHelper<IEnumerable<IHolon>, IEnumerable<IZome>>.CopyResult(holonsResult, ref result);
 
             if (!holonsResult.IsError && holonsResult.Result != null)
@@ -298,52 +303,52 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
             return result;
         }
 
-        public async Task<OASISResult<IHolon>> SaveCelestialBodyAsync(IHolon savingHolon, bool saveChildren = true, bool recursive = true, bool continueOnError = true)
+        public async Task<OASISResult<IHolon>> SaveCelestialBodyAsync(IHolon savingHolon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true)
         {
-            return await base.SaveHolonAsync(savingHolon, false, saveChildren, recursive, continueOnError);
+            return await base.SaveHolonAsync(savingHolon, false, saveChildren, recursive, maxChildDepth, continueOnError);
         }
 
-        public OASISResult<IHolon> SaveCelestialBody(IHolon savingHolon, bool saveChildren = true, bool recursive = true, bool continueOnError = true)
-        {
-            //TODO: Not sure if this is a good way of doing this?
-            return SaveCelestialBodyAsync(savingHolon, saveChildren, recursive, continueOnError).Result;
-        }
-
-        public async Task<OASISResult<T>> SaveCelestialBodyAsync<T>(IHolon savingHolon, bool saveChildren = true, bool recursive = true, bool continueOnError = true) where T : IHolon, new()
-        {
-            return await base.SaveHolonAsync<T>(savingHolon, false, saveChildren, recursive, continueOnError);
-        }
-
-        public OASISResult<T> SaveCelestialBody<T>(IHolon savingHolon, bool saveChildren = true, bool recursive = true, bool continueOnError = true) where T : IHolon, new()
+        public OASISResult<IHolon> SaveCelestialBody(IHolon savingHolon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true)
         {
             //TODO: Not sure if this is a good way of doing this?
-            return SaveCelestialBodyAsync<T>(savingHolon, saveChildren, recursive, continueOnError).Result;
+            return SaveCelestialBodyAsync(savingHolon, saveChildren, recursive, maxChildDepth, continueOnError).Result;
         }
 
-        public async Task<OASISResult<ICelestialBody>> LoadCelestialBodyAsync<T>(bool loadChildren = true, bool recursive = true, bool continueOnError = true) where T : ICelestialBody, new()
+        public async Task<OASISResult<T>> SaveCelestialBodyAsync<T>(IHolon savingHolon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true) where T : IHolon, new()
+        {
+            return await base.SaveHolonAsync<T>(savingHolon, false, saveChildren, recursive, maxChildDepth, continueOnError);
+        }
+
+        public OASISResult<T> SaveCelestialBody<T>(IHolon savingHolon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true) where T : IHolon, new()
+        {
+            //TODO: Not sure if this is a good way of doing this?
+            return SaveCelestialBodyAsync<T>(savingHolon, saveChildren, recursive, maxChildDepth, continueOnError).Result;
+        }
+
+        public async Task<OASISResult<ICelestialBody>> LoadCelestialBodyAsync<T>(bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0) where T : ICelestialBody, new()
         {
             OASISResult<ICelestialBody> result = new OASISResult<ICelestialBody>(new T());
-            OASISResult<IHolon> holonResult = await base.LoadHolonAsync(loadChildren, recursive, continueOnError);
+            OASISResult<IHolon> holonResult = await base.LoadHolonAsync(loadChildren, recursive, maxChildDepth, continueOnError, version);
             result.Result = Mapper<IHolon, T>.MapBaseHolonProperties(holonResult.Result, (T)result.Result);
             return result;
         }
 
-        public OASISResult<ICelestialBody> LoadCelestialBody<T>(bool loadChildren = true, bool recursive = true, bool continueOnError = true) where T : ICelestialBody, new()
+        public OASISResult<ICelestialBody> LoadCelestialBody<T>(bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0) where T : ICelestialBody, new()
         {
-            return LoadCelestialBodyAsync<T>(loadChildren, recursive, continueOnError).Result;
+            return LoadCelestialBodyAsync<T>(loadChildren, recursive, maxChildDepth, continueOnError, version).Result;
         }
 
-        public async Task<OASISResult<IHolon>> LoadCelestialBodyAsync(bool loadChildren = true, bool recursive = true, bool continueOnError = true)
+        public async Task<OASISResult<IHolon>> LoadCelestialBodyAsync(bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
         {
-            return await base.LoadHolonAsync(loadChildren, recursive, continueOnError);
+            return await base.LoadHolonAsync(loadChildren, recursive, maxChildDepth, continueOnError, version);
         }
 
-        public OASISResult<IHolon> LoadCelestialBody(bool loadChildren = true, bool recursive = true, bool continueOnError = true)
+        public OASISResult<IHolon> LoadCelestialBody(bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
         {
-            return base.LoadHolon(loadChildren, recursive, continueOnError);
+            return base.LoadHolon(loadChildren, recursive, maxChildDepth, continueOnError, version);
         }
 
-        protected virtual async Task<OASISResult<IHolon>> AddHolonToCollectionAsync(IHolon parentCelestialBody, IHolon holon, List<IHolon> holons, bool saveHolon = true)
+        protected virtual async Task<OASISResult<IHolon>> AddHolonToCollectionAsync(IHolon parentCelestialBody, IHolon holon, List<IHolon> holons, bool saveHolon = true, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true)
         {
             OASISResult<IHolon> result = new OASISResult<IHolon>();
 
@@ -529,7 +534,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
 
             if (saveHolon)
             {
-                result = await base.SaveHolonAsync(holon, false); //TODO: WE ONLY NEED TO SAVE THE NEW HOLON, NO NEED TO RE-SAVE THE WHOLE COLLECTION AGAIN! ;-)
+                result = await base.SaveHolonAsync(holon, false, true, recursive, maxChildDepth, continueOnError); //TODO: WE ONLY NEED TO SAVE THE NEW HOLON, NO NEED TO RE-SAVE THE WHOLE COLLECTION AGAIN! ;-)
                 result.IsSaved = true;
             }
             else
@@ -542,12 +547,12 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
             return result;
         }
 
-        protected virtual async Task<OASISResult<IEnumerable<IHolon>>> GetHolonsAsync(IEnumerable<IHolon> holons, HolonType holonType, bool refresh = true)
+        protected virtual async Task<OASISResult<IEnumerable<IHolon>>> GetHolonsAsync(IEnumerable<IHolon> holons, HolonType holonType, bool refresh = true, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
         {
             OASISResult<IEnumerable<IHolon>> result = new OASISResult<IEnumerable<IHolon>>();
 
             if (holons == null || refresh)
-                result = await base.LoadHolonsForParentAsync(holonType);
+                result = await base.LoadHolonsForParentAsync(holonType, loadChildren, recursive, maxChildDepth, continueOnError, version);
             else
             {
                 result.Message = "Refresh not required";
