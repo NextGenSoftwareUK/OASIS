@@ -77,7 +77,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
         }
 
         //TODO: Try to remove this method if possible and only use the new generic method.
-        public async Task<OASISResult<IHolon>> LoadAsync(bool loadChildren = true, bool recursive = true, bool continueOnError = true)
+        public async Task<OASISResult<IHolon>> LoadAsync(bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
         {
             OASISResult<ICelestialBody> celestialBodyResult = new OASISResult<ICelestialBody>();
             OASISResult<IHolon> result = await CelestialBodyCore.LoadCelestialBodyAsync(loadChildren, recursive, continueOnError);
