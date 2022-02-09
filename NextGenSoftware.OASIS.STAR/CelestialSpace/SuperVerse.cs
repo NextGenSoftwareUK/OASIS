@@ -40,6 +40,10 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
                 Mapper<IOmiverse, SuperVerse>.MapParentCelestialBodyProperties(omniverse, this);
                 this.ParentOmniverse = omniverse;
                 this.ParentOmniverseId = omniverse.Id;
+                ParentCelestialSpace = omniverse;
+                ParentCelestialSpaceId = omniverse.Id;
+                ParentHolon = omniverse;
+                ParentHolonId = omniverse.Id;
             }
 
             base.RegisterCelestialSpaces(Universes);

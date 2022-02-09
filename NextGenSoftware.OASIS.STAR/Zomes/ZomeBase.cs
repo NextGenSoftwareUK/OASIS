@@ -29,6 +29,8 @@ namespace NextGenSoftware.OASIS.STAR.Zomes
         private Dictionary<Guid, IStar> _parentStar = new Dictionary<Guid, IStar>();
         private Dictionary<Guid, IPlanet> _parentPlanet = new Dictionary<Guid, IPlanet>();
         private Dictionary<Guid, IMoon> _parentMoon = new Dictionary<Guid, IMoon>();
+        private Dictionary<Guid, ICelestialSpace> _parentCelestialSpace = new Dictionary<Guid, ICelestialSpace>();
+        private Dictionary<Guid, ICelestialBody> _parentCelestialBody = new Dictionary<Guid, ICelestialBody>();
         private Dictionary<Guid, IZome> _parentZome = new Dictionary<Guid, IZome>();
         private Dictionary<Guid, IHolon> _parentHolon = new Dictionary<Guid, IHolon>();
         private Dictionary<Guid, ICelestialBodyCore> _core = new Dictionary<Guid, ICelestialBodyCore>();
@@ -198,7 +200,6 @@ namespace NextGenSoftware.OASIS.STAR.Zomes
 
         public virtual async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(Guid id, HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
         {
-            //TODO: NEED TO ADD LOADCHILDREN PARAM ASAP.
             OASISResult<IEnumerable<IHolon>> result = await _holonManager.LoadHolonsForParentAsync(id, holonType, loadChildren, recursive, maxChildDepth, continueOnError, version);
 
             if (result.IsError)
@@ -221,7 +222,6 @@ namespace NextGenSoftware.OASIS.STAR.Zomes
 
         public virtual async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(Dictionary<ProviderType, string> providerKey, HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
         {
-            //TODO: NEED TO ADD LOADCHILDREN PARAM ASAP.
             OASISResult<IEnumerable<IHolon>> result = await _holonManager.LoadHolonsForParentAsync(GetCurrentProviderKey(providerKey), holonType, loadChildren, recursive, maxChildDepth, continueOnError, version);
 
             if (result.IsError)
@@ -245,8 +245,6 @@ namespace NextGenSoftware.OASIS.STAR.Zomes
         public virtual async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
         {
             OASISResult<IEnumerable<IHolon>> result = new OASISResult<IEnumerable<IHolon>>();
-
-            //TODO: NEED TO ADD LOADCHILDREN PARAM ASAP.
 
             if (this.Id != Guid.Empty)
                 result = await LoadHolonsForParentAsync(Id, holonType, loadChildren, recursive, maxChildDepth, continueOnError, version);
@@ -563,6 +561,8 @@ namespace NextGenSoftware.OASIS.STAR.Zomes
             _parentStar[holon.Id] = holon.ParentStar;
             _parentPlanet[holon.Id] = holon.ParentPlanet;
             _parentMoon[holon.Id] = holon.ParentMoon;
+            _parentCelestialSpace[holon.Id] = holon.ParentCelestialSpace;
+            _parentCelestialBody[holon.Id] = holon.ParentCelestialBody;
             _parentZome[holon.Id] = holon.ParentZome;
             _parentHolon[holon.Id] = holon.ParentHolon;
 
@@ -579,6 +579,8 @@ namespace NextGenSoftware.OASIS.STAR.Zomes
             holon.ParentStar = null;
             holon.ParentPlanet = null;
             holon.ParentMoon = null;
+            holon.ParentCelestialBody = null;
+            holon.ParentCelestialSpace = null;
             holon.ParentZome = null;
             holon.ParentHolon = null;
 
@@ -601,6 +603,8 @@ namespace NextGenSoftware.OASIS.STAR.Zomes
             originalHolon.ParentStar = _parentStar[originalHolon.Id];
             originalHolon.ParentPlanet = _parentPlanet[originalHolon.Id];
             originalHolon.ParentMoon = _parentMoon[originalHolon.Id];
+            originalHolon.ParentCelestialSpace = _parentCelestialSpace[originalHolon.Id];
+            originalHolon.ParentCelestialBody = _parentCelestialBody[originalHolon.Id];
             originalHolon.ParentZome = _parentZome[originalHolon.Id];
             originalHolon.ParentHolon = _parentHolon[originalHolon.Id];
 
@@ -617,6 +621,8 @@ namespace NextGenSoftware.OASIS.STAR.Zomes
             _parentStar.Remove(originalHolon.Id);
             _parentPlanet.Remove(originalHolon.Id);
             _parentMoon.Remove(originalHolon.Id);
+            _parentCelestialSpace.Remove(originalHolon.Id);
+            _parentCelestialBody.Remove(originalHolon.Id);
             _parentZome.Remove(originalHolon.Id);
             _parentHolon.Remove(originalHolon.Id);
 

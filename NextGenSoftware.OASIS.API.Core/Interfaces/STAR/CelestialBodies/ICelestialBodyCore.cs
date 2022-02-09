@@ -36,8 +36,8 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces.STAR
         OASISResult<IEnumerable<IZome>> SaveZomes(bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true);
         Task<OASISResult<IZome>> AddZomeAsync(IZome zome, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true);
         OASISResult<IZome> AddZome(IZome zome, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true);
-        Task<OASISResult<IEnumerable<IZome>>> RemoveZomeAsync(IZome zome);
-        OASISResult<IEnumerable<IZome>> RemoveZome(IZome zome);
+        Task<OASISResult<IZome>> RemoveZomeAsync(IZome zome);
+        OASISResult<IZome> RemoveZome(IZome zome);
         //protected Task<OASISResult<IHolon>> AddHolonToCollectionAsync(IHolon parentCelestialBody, IHolon holon, List<IHolon> holons, bool saveHolon = true, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true);
     }
 }

@@ -30,6 +30,8 @@ namespace NextGenSoftware.OASIS.API.Core.Helpers
                 targetHolon.ParentPlanetId = sourceHolon.ParentPlanetId;
                 targetHolon.ParentMoon = sourceHolon.ParentMoon;
                 targetHolon.ParentMoonId = sourceHolon.ParentMoonId;
+                targetHolon.ParentCelestialSpaceId = sourceHolon.ParentCelestialSpaceId;
+                targetHolon.ParentCelestialBodyId = sourceHolon.ParentCelestialBodyId;
                 targetHolon.ParentZome = sourceHolon.ParentZome;
                 targetHolon.ParentZomeId = sourceHolon.ParentZomeId;
                 targetHolon.ParentHolon = sourceHolon.ParentHolon;
@@ -146,6 +148,18 @@ namespace NextGenSoftware.OASIS.API.Core.Helpers
             if (targetCelestialBody.ParentMoonId == Guid.Empty || (targetCelestialBody.ParentMoonId != Guid.Empty && !onlyMapIfTargetIsNull))
                 targetCelestialBody.ParentMoonId = sourceCelestialBody.ParentMoonId;
 
+            if (targetCelestialBody.ParentCelestialSpace == null || (targetCelestialBody.ParentCelestialSpace != null && !onlyMapIfTargetIsNull))
+                targetCelestialBody.ParentCelestialSpace = sourceCelestialBody.ParentCelestialSpace;
+
+            if (targetCelestialBody.ParentCelestialSpaceId == Guid.Empty || (targetCelestialBody.ParentCelestialSpaceId != Guid.Empty && !onlyMapIfTargetIsNull))
+                targetCelestialBody.ParentCelestialSpaceId = sourceCelestialBody.ParentCelestialSpaceId;
+
+            if (targetCelestialBody.ParentCelestialBody == null || (targetCelestialBody.ParentCelestialBody != null && !onlyMapIfTargetIsNull))
+                targetCelestialBody.ParentCelestialBody = sourceCelestialBody.ParentCelestialBody;
+
+            if (targetCelestialBody.ParentCelestialBodyId == Guid.Empty || (targetCelestialBody.ParentCelestialBodyId != Guid.Empty && !onlyMapIfTargetIsNull))
+                targetCelestialBody.ParentCelestialBodyId = sourceCelestialBody.ParentCelestialBodyId;
+
             if (targetCelestialBody.ParentZome == null || (targetCelestialBody.ParentZome != null && !onlyMapIfTargetIsNull))
                 targetCelestialBody.ParentZome = sourceCelestialBody.ParentZome;
 
@@ -236,6 +250,8 @@ namespace NextGenSoftware.OASIS.API.Core.Helpers
                 targetHolon.ParentPlanetId = sourceHolon.ParentPlanetId;
                 targetHolon.ParentMoon = sourceHolon.ParentMoon;
                 targetHolon.ParentMoonId = sourceHolon.ParentMoonId;
+                targetHolon.ParentCelestialSpaceId = sourceHolon.ParentCelestialSpaceId;
+                targetHolon.ParentCelestialBodyId = sourceHolon.ParentCelestialBodyId;
                 targetHolon.ParentZome = sourceHolon.ParentZome;
                 targetHolon.ParentZomeId = sourceHolon.ParentZomeId;
                 targetHolon.ParentHolon = sourceHolon.ParentHolon;
@@ -351,6 +367,18 @@ namespace NextGenSoftware.OASIS.API.Core.Helpers
 
             if (targetCelestialBody.ParentMoonId == Guid.Empty || (targetCelestialBody.ParentMoonId != Guid.Empty && !onlyMapIfTargetIsNull))
                 targetCelestialBody.ParentMoonId = sourceCelestialBody.ParentMoonId;
+
+            if (targetCelestialBody.ParentCelestialSpace == null || (targetCelestialBody.ParentCelestialSpace != null && !onlyMapIfTargetIsNull))
+                targetCelestialBody.ParentCelestialSpace = sourceCelestialBody.ParentCelestialSpace;
+
+            if (targetCelestialBody.ParentCelestialSpaceId == Guid.Empty || (targetCelestialBody.ParentCelestialSpaceId != Guid.Empty && !onlyMapIfTargetIsNull))
+                targetCelestialBody.ParentCelestialSpaceId = sourceCelestialBody.ParentCelestialSpaceId;
+
+            if (targetCelestialBody.ParentCelestialBody == null || (targetCelestialBody.ParentCelestialBody != null && !onlyMapIfTargetIsNull))
+                targetCelestialBody.ParentCelestialBody = sourceCelestialBody.ParentCelestialBody;
+
+            if (targetCelestialBody.ParentCelestialBodyId == Guid.Empty || (targetCelestialBody.ParentCelestialBodyId != Guid.Empty && !onlyMapIfTargetIsNull))
+                targetCelestialBody.ParentCelestialBodyId = sourceCelestialBody.ParentCelestialBodyId;
 
             if (targetCelestialBody.ParentZome == null || (targetCelestialBody.ParentZome != null && !onlyMapIfTargetIsNull))
                 targetCelestialBody.ParentZome = sourceCelestialBody.ParentZome;

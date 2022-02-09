@@ -57,6 +57,10 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
                 CreatedOASISType = new EnumValue<OASISType>(OASISType.STARCLI),
                 ParentMultiverse = this,
                 ParentMultiverseId = this.Id,
+                ParentCelestialSpace = this,
+                ParentCelestialSpaceId = this.Id,
+                ParentHolon = this,
+                ParentHolonId = this.Id,
                 Name = "GrandSuperStar",
                 Description = "The GrandSuperStar at the centre of this Multiverse/Universe. Can create Universes within it's parent Multiverse.",
             };
@@ -66,6 +70,10 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
 
             ParentGrandSuperStar = GrandSuperStar;
             ParentGrandSuperStarId = GrandSuperStar.Id;
+            ParentCelestialBody = GrandSuperStar;
+            ParentCelestialBodyId = GrandSuperStar.Id;
+            ParentHolon = GrandSuperStar;
+            ParentHolonId = GrandSuperStar.Id;
 
             if (omniverse != null)
             {
