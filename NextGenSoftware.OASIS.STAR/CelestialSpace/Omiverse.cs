@@ -81,7 +81,11 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
                 Description = "GreatGrandSuperStar at the centre of the Omniverse (The OASIS). Can create Multiverses.",
                 //Description = "GreatGrandSuperStar at the centre of the Omniverse (The OASIS). Can create Multiverses, Universes, Galaxies, SolarSystems, Stars, Planets (Super OAPPS) and moons (OAPPS)",
                 ParentOmniverse = this,
-                ParentOmniverseId = this.Id
+                ParentOmniverseId = this.Id,
+                ParentCelestialSpace = this,
+                ParentCelestialSpaceId = this.Id,
+                ParentHolon = this,
+                ParentHolonId = this.Id
             };
 
             //GreatGrandSuperStar.OnCelestialBodySaved += GreatGrandSuperStar_OnCelestialBodySaved;
@@ -89,6 +93,10 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
 
             ParentGreatGrandSuperStar = GreatGrandSuperStar;
             ParentGreatGrandSuperStarId = GreatGrandSuperStar.Id;
+            ParentCelestialBody = GreatGrandSuperStar;
+            ParentCelestialBodyId = GreatGrandSuperStar.Id;
+            ParentHolon = GreatGrandSuperStar;
+            ParentHolonId = GreatGrandSuperStar.Id;
 
             Dimensions = new OmniverseDimensions(this);
 

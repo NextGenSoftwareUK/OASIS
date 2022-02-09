@@ -151,6 +151,10 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
                 Mapper<IDimension, Universe>.MapParentCelestialBodyProperties(dimension, this);
                 this.ParentDimension = dimension;
                 this.ParentDimensionId = dimension.Id;
+                ParentCelestialSpace = dimension;
+                ParentCelestialSpaceId = dimension.Id;
+                ParentHolon = dimension;
+                ParentHolonId = dimension.Id;
             }
         }
 

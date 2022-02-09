@@ -964,6 +964,10 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
             this.ParentPlanetId = holon.ParentPlanetId;
             this.ParentMoon = holon.ParentMoon;
             this.ParentMoonId = holon.ParentMoonId;
+            this.ParentCelestialSpace = holon.ParentCelestialSpace;
+            this.ParentCelestialSpaceId = holon.ParentCelestialSpaceId;
+            this.ParentCelestialBody = holon.ParentCelestialBody;
+            this.ParentCelestialBodyId = holon.ParentCelestialBodyId;
             this.ParentZome = holon.ParentZome;
             this.ParentZomeId = holon.ParentZomeId;
             this.ParentHolon = holon.ParentHolon;

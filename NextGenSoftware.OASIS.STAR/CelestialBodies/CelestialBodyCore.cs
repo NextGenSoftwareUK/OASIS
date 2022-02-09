@@ -219,87 +219,179 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
         }
 
 
-        //TODO: RE-WRITE THESE SO LIKE ZOMEBASE VERSIONS (MORE EFFICIENT!)
         public async Task<OASISResult<IZome>> AddZomeAsync(IZome zome, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true)
         {
             OASISResult<IZome> result = new OASISResult<IZome>();
 
-            //TODO: Dont think we need this because the SaveHolonsAsync method below automatically saves the entire collection?
-            //if (zome.Id == Guid.Empty)
-            //    result = await zome.SaveAsync();
- 
-            if (!result.IsError)
+            zome.ParentHolonId = this.Id;
+            zome.ParentCelestialBodyId = this.Id;
+
+            switch (this.HolonType)
             {
-                this.Zomes.Add(zome);
-                
-                //TODO: This is used in quite a few places but not sure how efficient it is because it will always save the entire collection even if its not needed?
-                OASISResult<IEnumerable<IHolon>> holonsResult = await base.SaveHolonsAsync(this.Zomes, true, saveChildren, recursive, maxChildDepth, continueOnError);
-                OASISResultCollectionToHolonHelper<IEnumerable<IHolon>, IZome>.CopyResult(holonsResult, ref result);
+                case HolonType.Moon:
+                    zome.ParentMoonId = this.Id;
+                    break;
+
+                case HolonType.Planet:
+                    zome.ParentPlanetId = this.Id;
+                    break;
+
+                case HolonType.Star:
+                    zome.ParentStarId = this.Id;
+                    break;
+
+                case HolonType.SuperStar:
+                    zome.ParentSuperStarId = this.Id;
+                    break;
+
+                case HolonType.GrandSuperStar:
+                    zome.ParentGrandSuperStarId = this.Id;
+                    break;
+
+                case HolonType.GreatGrandSuperStar:
+                    zome.ParentGrandSuperStarId = this.Id;
+                    break;
             }
+
+            this.Zomes.Add(zome);
+            result = await zome.SaveAsync();
+
+            if (result.IsError)
+                OnZomeError?.Invoke(this, new ZomeErrorEventArgs() { Reason = string.Concat("Error in AddZomeAsync method with ", LoggingHelper.GetHolonInfoForLogging(zome, "zome"), ". Error Details: ", result.Message), Exception = result.Exception });
 
             OnZomeAdded?.Invoke(this, new ZomeAddedEventArgs() { Result = result });
             return result;
         }
 
-        //TODO: RE-WRITE THESE SO LIKE ZOMEBASE VERSIONS (MORE EFFICIENT!)
         public OASISResult<IZome> AddZome(IZome zome, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true)
         {
             OASISResult<IZome> result = new OASISResult<IZome>();
 
-            //TODO: Dont think we need this because the SaveHolonsAsync method below automatically saves the entire collection?
-            //if (zome.Id == Guid.Empty)
-            //    result = await zome.SaveAsync();
+            zome.ParentHolonId = this.Id;
+            zome.ParentCelestialBodyId = this.Id;
 
-            if (!result.IsError)
+            switch (this.HolonType)
             {
-                this.Zomes.Add(zome);
+                case HolonType.Moon:
+                    zome.ParentMoonId = this.Id;
+                    break;
 
-                //TODO: This is used in quite a few places but not sure how efficient it is because it will always save the entire collection even if its not needed?
-                OASISResult<IEnumerable<IHolon>> holonsResult = base.SaveHolons(this.Zomes, true, saveChildren, recursive, maxChildDepth, continueOnError);
-                OASISResultCollectionToHolonHelper<IEnumerable<IHolon>, IZome>.CopyResult(holonsResult, ref result);
+                case HolonType.Planet:
+                    zome.ParentPlanetId = this.Id;
+                    break;
+
+                case HolonType.Star:
+                    zome.ParentStarId = this.Id;
+                    break;
+
+                case HolonType.SuperStar:
+                    zome.ParentSuperStarId = this.Id;
+                    break;
+
+                case HolonType.GrandSuperStar:
+                    zome.ParentGrandSuperStarId = this.Id;
+                    break;
+
+                case HolonType.GreatGrandSuperStar:
+                    zome.ParentGrandSuperStarId = this.Id;
+                    break;
             }
+
+            this.Zomes.Add(zome);
+            result = zome.Save();
+
+            if (result.IsError)
+                OnZomeError?.Invoke(this, new ZomeErrorEventArgs() { Reason = string.Concat("Error in AddZome method with ", LoggingHelper.GetHolonInfoForLogging(zome, "zome"), ". Error Details: ", result.Message), Exception = result.Exception });
 
             OnZomeAdded?.Invoke(this, new ZomeAddedEventArgs() { Result = result });
             return result;
         }
 
-        //TODO: RE-WRITE THESE SO LIKE ZOMEBASE VERSIONS (MORE EFFICIENT!)
-        public async Task<OASISResult<IEnumerable<IZome>>> RemoveZomeAsync(IZome zome)
+        public async Task<OASISResult<IZome>> RemoveZomeAsync(IZome zome)
         {
-            OASISResult<IEnumerable<IZome>> result = new OASISResult<IEnumerable<IZome>>();
+            OASISResult<IZome> result = new OASISResult<IZome>();
+
+            zome.ParentHolonId = Guid.Empty;
+            zome.ParentCelestialBodyId = Guid.Empty;
+
+            switch (this.HolonType)
+            {
+                case HolonType.Moon:
+                    zome.ParentMoonId = Guid.Empty;
+                    break;
+
+                case HolonType.Planet:
+                    zome.ParentPlanetId = Guid.Empty;
+                    break;
+
+                case HolonType.Star:
+                    zome.ParentStarId = Guid.Empty;
+                    break;
+
+                case HolonType.SuperStar:
+                    zome.ParentSuperStarId = Guid.Empty;
+                    break;
+
+                case HolonType.GrandSuperStar:
+                    zome.ParentGrandSuperStarId = Guid.Empty;
+                    break;
+
+                case HolonType.GreatGrandSuperStar:
+                    zome.ParentGrandSuperStarId = Guid.Empty;
+                    break;
+            }
+
             this.Zomes.Remove(zome);
+            result = await zome.SaveAsync();
 
-            //Don't think we need to save children if we are just removing a holon?
-            OASISResult<IEnumerable<IHolon>> holonsResult = await base.SaveHolonsAsync(this.Zomes, true, false, false, 0, false);
-            OASISResultCollectionToCollectionHelper<IEnumerable<IHolon>, IEnumerable<IZome>>.CopyResult(holonsResult, ref result);
+            if (result.IsError)
+                OnZomeError?.Invoke(this, new ZomeErrorEventArgs() { Reason = string.Concat("Error in RemoveZomeAsync method with ", LoggingHelper.GetHolonInfoForLogging(zome, "zome"), ". Error Details: ", result.Message), Exception = result.Exception });
 
-            if (!holonsResult.IsError && holonsResult.Result != null)
-                result.Result = Mapper<IHolon, Zome>.MapBaseHolonProperties(holonsResult.Result);
-
-            OASISResult<IZome> zomeRemoved = new OASISResult<IZome>(zome);
-            OASISResultCollectionToHolonHelper<IEnumerable<IZome>, IZome>.CopyResult(result, zomeRemoved);
-
-            OnZomeRemoved?.Invoke(this, new ZomeRemovedEventArgs() { Result = zomeRemoved });
+            OnZomeRemoved?.Invoke(this, new ZomeRemovedEventArgs() { Result = result });
             return result;
         }
 
-        //TODO: RE-WRITE THESE SO LIKE ZOMEBASE VERSIONS (MORE EFFICIENT!)
-        public OASISResult<IEnumerable<IZome>> RemoveZome(IZome zome)
+        public OASISResult<IZome> RemoveZome(IZome zome)
         {
-            OASISResult<IEnumerable<IZome>> result = new OASISResult<IEnumerable<IZome>>();
+            OASISResult<IZome> result = new OASISResult<IZome>();
+
+            zome.ParentHolonId = Guid.Empty;
+            zome.ParentCelestialBodyId = Guid.Empty;
+
+            switch (this.HolonType)
+            {
+                case HolonType.Moon:
+                    zome.ParentMoonId = Guid.Empty;
+                    break;
+
+                case HolonType.Planet:
+                    zome.ParentPlanetId = Guid.Empty;
+                    break;
+
+                case HolonType.Star:
+                    zome.ParentStarId = Guid.Empty;
+                    break;
+
+                case HolonType.SuperStar:
+                    zome.ParentSuperStarId = Guid.Empty;
+                    break;
+
+                case HolonType.GrandSuperStar:
+                    zome.ParentGrandSuperStarId = Guid.Empty;
+                    break;
+
+                case HolonType.GreatGrandSuperStar:
+                    zome.ParentGrandSuperStarId= Guid.Empty;
+                    break;
+            }
+
             this.Zomes.Remove(zome);
+            result = zome.Save();
 
-            //Don't think we need to save children if we are just removing a zome?
-            OASISResult<IEnumerable<IHolon>> holonsResult = base.SaveHolons(this.Zomes, true, false, false, 0, false);
-            OASISResultCollectionToCollectionHelper<IEnumerable<IHolon>, IEnumerable<IZome>>.CopyResult(holonsResult, ref result);
+            if (result.IsError)
+                OnZomeError?.Invoke(this, new ZomeErrorEventArgs() { Reason = string.Concat("Error in RemoveZome method with ", LoggingHelper.GetHolonInfoForLogging(zome, "zome"), ". Error Details: ", result.Message), Exception = result.Exception });
 
-            if (!holonsResult.IsError && holonsResult.Result != null)
-                result.Result = Mapper<IHolon, Zome>.MapBaseHolonProperties(holonsResult.Result);
-
-            OASISResult<IZome> zomeRemoved = new OASISResult<IZome>(zome);
-            OASISResultCollectionToHolonHelper<IEnumerable<IZome>, IZome>.CopyResult(result, zomeRemoved);
-
-            OnZomeRemoved?.Invoke(this, new ZomeRemovedEventArgs() { Result = zomeRemoved });
+            OnZomeRemoved?.Invoke(this, new ZomeRemovedEventArgs() { Result = result });
             return result;
         }
 
@@ -442,6 +534,18 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
                 holon.ParentMoon = parentCelestialBody.ParentMoon;
             }
 
+            if (holon.ParentCelestialSpaceId == Guid.Empty)
+            {
+                holon.ParentCelestialSpaceId = parentCelestialBody.ParentCelestialSpaceId;
+                holon.ParentCelestialSpace = parentCelestialBody.ParentCelestialSpace;
+            }
+
+            if (holon.ParentCelestialBodyId == Guid.Empty)
+            {
+                holon.ParentCelestialBodyId = parentCelestialBody.ParentCelestialBodyId;
+                holon.ParentCelestialBody = parentCelestialBody.ParentCelestialBody;
+            }
+
             if (holon.ParentZomeId == Guid.Empty)
             {
                 holon.ParentZomeId = parentCelestialBody.ParentZomeId;
@@ -459,66 +563,116 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
                 case HolonType.GreatGrandSuperStar:
                     holon.ParentGreatGrandSuperStarId = parentCelestialBody.Id;
                     holon.ParentGreatGrandSuperStar = (IGreatGrandSuperStar)parentCelestialBody;
+                    holon.ParentCelestialBodyId = parentCelestialBody.Id;
+                    holon.ParentCelestialBody = (ICelestialBody)parentCelestialBody;
+                    holon.ParentHolonId = parentCelestialBody.Id;
+                    holon.ParentHolon = ParentHolon;
                     break;
 
                 case HolonType.GrandSuperStar:
                     holon.ParentGrandSuperStarId = parentCelestialBody.Id;
                     holon.ParentGrandSuperStar = (IGrandSuperStar)parentCelestialBody;
+                    holon.ParentCelestialBodyId = parentCelestialBody.Id;
+                    holon.ParentCelestialBody = (ICelestialBody)parentCelestialBody;
+                    holon.ParentHolonId = parentCelestialBody.Id;
+                    holon.ParentHolon = ParentHolon;
                     break;
 
                 case HolonType.SuperStar:
                     holon.ParentSuperStarId = parentCelestialBody.Id;
                     holon.ParentSuperStar = (ISuperStar)parentCelestialBody;
+                    holon.ParentCelestialBodyId = parentCelestialBody.Id;
+                    holon.ParentCelestialBody = (ICelestialBody)parentCelestialBody;
+                    holon.ParentHolonId = parentCelestialBody.Id;
+                    holon.ParentHolon = ParentHolon;
                     break;
 
                 case HolonType.Multiverse:
                     holon.ParentMultiverseId = parentCelestialBody.Id;
                     holon.ParentMultiverse = (IMultiverse)parentCelestialBody;
+                    holon.ParentCelestialSpaceId = parentCelestialBody.Id;
+                    holon.ParentCelestialSpace = (ICelestialSpace)parentCelestialBody;
+                    holon.ParentHolonId = parentCelestialBody.Id;
+                    holon.ParentHolon = ParentHolon;
                     break;
 
                 case HolonType.Universe:
                     holon.ParentUniverseId = parentCelestialBody.Id;
                     holon.ParentUniverse = (IUniverse)parentCelestialBody;
+                    holon.ParentCelestialSpaceId = parentCelestialBody.Id;
+                    holon.ParentCelestialSpace = (ICelestialSpace)parentCelestialBody;
+                    holon.ParentHolonId = parentCelestialBody.Id;
+                    holon.ParentHolon = ParentHolon;
                     break;
 
                 case HolonType.Dimension:
                     holon.ParentDimensionId = parentCelestialBody.Id;
                     holon.ParentDimension = (IDimension)parentCelestialBody;
+                    holon.ParentCelestialSpaceId = parentCelestialBody.Id;
+                    holon.ParentCelestialSpace = (ICelestialSpace)parentCelestialBody;
+                    holon.ParentHolonId = parentCelestialBody.Id;
+                    holon.ParentHolon = ParentHolon;
                     break;
 
                 case HolonType.GalaxyCluster:
                     holon.ParentGalaxyClusterId = parentCelestialBody.Id;
                     holon.ParentGalaxyCluster = (IGalaxyCluster)parentCelestialBody;
+                    holon.ParentCelestialSpaceId = parentCelestialBody.Id;
+                    holon.ParentCelestialSpace = (ICelestialSpace)parentCelestialBody;
+                    holon.ParentHolonId = parentCelestialBody.Id;
+                    holon.ParentHolon = ParentHolon;
                     break;
 
                 case HolonType.Galaxy:
                     holon.ParentGalaxyId = parentCelestialBody.Id;
                     holon.ParentGalaxy = (IGalaxy)parentCelestialBody;
+                    holon.ParentCelestialSpaceId = parentCelestialBody.Id;
+                    holon.ParentCelestialSpace = (ICelestialSpace)parentCelestialBody;
+                    holon.ParentHolonId = parentCelestialBody.Id;
+                    holon.ParentHolon = ParentHolon;
                     break;
 
                 case HolonType.SolarSystem:
                     holon.ParentSolarSystemId = parentCelestialBody.Id;
                     holon.ParentSolarSystem = (ISolarSystem)parentCelestialBody;
+                    holon.ParentCelestialSpaceId = parentCelestialBody.Id;
+                    holon.ParentCelestialSpace = (ICelestialSpace)parentCelestialBody;
+                    holon.ParentHolonId = parentCelestialBody.Id;
+                    holon.ParentHolon = ParentHolon;
                     break;
 
                 case HolonType.Star:
                     holon.ParentStarId = parentCelestialBody.Id;
                     holon.ParentStar = (IStar)parentCelestialBody;
+                    holon.ParentCelestialBodyId = parentCelestialBody.Id;
+                    holon.ParentCelestialBody = (ICelestialBody)parentCelestialBody;
+                    holon.ParentHolonId = parentCelestialBody.Id;
+                    holon.ParentHolon = ParentHolon;
                     break;
 
                 case HolonType.Planet:
                     holon.ParentPlanetId = parentCelestialBody.Id;
                     holon.ParentPlanet = (IPlanet)parentCelestialBody;
+                    holon.ParentCelestialBodyId = parentCelestialBody.Id;
+                    holon.ParentCelestialBody = (ICelestialBody)parentCelestialBody;
+                    holon.ParentHolonId = parentCelestialBody.Id;
+                    holon.ParentHolon = ParentHolon;
                     break;
 
                 case HolonType.Moon:
                     holon.ParentMoonId = parentCelestialBody.Id;
                     holon.ParentMoon = (IMoon)parentCelestialBody;
+                    holon.ParentCelestialBodyId = parentCelestialBody.Id;
+                    holon.ParentCelestialBody = (ICelestialBody)parentCelestialBody;
+                    holon.ParentHolonId = parentCelestialBody.Id;
+                    holon.ParentHolon = ParentHolon;
                     break;
 
                 case HolonType.Zome:
                     holon.ParentZomeId = parentCelestialBody.Id;
                     holon.ParentZome = (IZome)parentCelestialBody;
+                    holon.ParentHolonId = parentCelestialBody.Id;
+                    holon.ParentHolon = ParentHolon;
                     break;
 
                 case HolonType.Holon:
