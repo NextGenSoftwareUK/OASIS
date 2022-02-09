@@ -43,12 +43,6 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
         public List<ICelestialSpace> CelestialSpaces = new List<ICelestialSpace>();
         public List<ICelestialBody> CelestialBodies = new List<ICelestialBody>();
 
-        //public enum LoadSaveCelestialBodiesEnum
-        //{
-        //    Load,
-        //    Save
-        //}
-
         public CelestialSpace(HolonType holonType) : base(holonType)
         {
             Initialize();
@@ -92,7 +86,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
             }
         }
 
-        public async Task<OASISResult<ICelestialSpace>> LoadAsync(bool loadChildren = true, bool recursive = true, bool continueOnError = true)
+        public async Task<OASISResult<ICelestialSpace>> LoadAsync(bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
         {
             OASISResult<ICelestialSpace> result = new OASISResult<ICelestialSpace>();
             IStar star = GetCelestialSpaceNearestStar();
@@ -104,7 +98,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
                 return result;
             }
 
-            OASISResult<IHolon> holonResult = await star.CelestialBodyCore.LoadHolonAsync(this.Id);
+            OASISResult<IHolon> holonResult = await star.CelestialBodyCore.LoadHolonAsync(this.Id, loadChildren, recursive, maxChildDepth, continueOnError, version);
 
             if ((holonResult != null && !holonResult.IsError && holonResult.Result != null)
                 || ((holonResult == null || holonResult.IsError || holonResult.Result == null) && continueOnError))
@@ -120,7 +114,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
 
                 if (loadChildren)
                 {
-                    OASISResult<IEnumerable<ICelestialBody>> celestialBodiesResult = await LoadCelestialBodiesAsync(loadChildren, recursive, continueOnError);
+                    OASISResult<IEnumerable<ICelestialBody>> celestialBodiesResult = await LoadCelestialBodiesAsync(loadChildren, recursive, maxChildDepth, continueOnError);
 
                     if (!(celestialBodiesResult != null && !celestialBodiesResult.IsError && celestialBodiesResult.Result != null))
                     {
@@ -138,7 +132,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
                         }
                     }
 
-                    OASISResult<IEnumerable<ICelestialSpace>> celestialSpacesResult = await LoadCelestialSpacesAsync(loadChildren, recursive, continueOnError);
+                    OASISResult<IEnumerable<ICelestialSpace>> celestialSpacesResult = await LoadCelestialSpacesAsync(loadChildren, recursive, maxChildDepth, continueOnError);
 
                     if (!(celestialSpacesResult != null && !celestialSpacesResult.IsError && celestialSpacesResult.Result != null))
                     {
@@ -156,12 +150,12 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
             return result;
         }
 
-        public OASISResult<ICelestialSpace> Load(bool loadChildren = true, bool recursive = true, bool continueOnError = true)
+        public OASISResult<ICelestialSpace> Load(bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
         {
-            return LoadAsync(loadChildren, recursive, continueOnError).Result;
+            return LoadAsync(loadChildren, recursive, maxChildDepth, continueOnError, version).Result;
         }
 
-        public async Task<OASISResult<IEnumerable<ICelestialBody>>> LoadCelestialBodiesAsync(bool loadChildren = true, bool recursive = true, bool continueOnError = true)
+        public async Task<OASISResult<IEnumerable<ICelestialBody>>> LoadCelestialBodiesAsync(bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
         {
             //OASISResult<ICelestialSpace> result = new OASISResult<ICelestialSpace>();
             OASISResult<IEnumerable<ICelestialBody>> result = new OASISResult<IEnumerable<ICelestialBody>>(this.CelestialBodies);
@@ -173,7 +167,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
             foreach (ICelestialBody celestialBody in CelestialBodies)
             {
                 //TODO: Find a way to use new generic version so can use ICelestialBody instead of IHolon.
-                celestialBodyResult = await celestialBody.LoadAsync(loadChildren, recursive, continueOnError);
+                celestialBodyResult = await celestialBody.LoadAsync(loadChildren, recursive, maxChildDepth, continueOnError, version);
 
                 if (celestialBodyResult != null && celestialBodyResult.Result != null && !celestialBodyResult.IsError)
                     result.LoadedCount++;
@@ -211,19 +205,19 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
             return result;
         }
 
-        public OASISResult<IEnumerable<ICelestialBody>> LoadCelestialBodies(bool loadChildren = true, bool recursive = true, bool continueOnError = true)
+        public OASISResult<IEnumerable<ICelestialBody>> LoadCelestialBodies(bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
         {
-            return LoadCelestialBodiesAsync(loadChildren, recursive, continueOnError).Result;
+            return LoadCelestialBodiesAsync(loadChildren, recursive, maxChildDepth, continueOnError, version).Result;
         }
 
-        public async Task<OASISResult<IEnumerable<ICelestialSpace>>> LoadCelestialSpacesAsync(bool loadChildren = true, bool recursive = true, bool continueOnError = true)
+        public async Task<OASISResult<IEnumerable<ICelestialSpace>>> LoadCelestialSpacesAsync(bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
         {
             OASISResult<IEnumerable<ICelestialSpace>> result = new OASISResult<IEnumerable<ICelestialSpace>>(this.CelestialSpaces);
             OASISResult<ICelestialSpace> celestialSpaceResult = null;
 
             foreach (ICelestialSpace celestialSpace in CelestialSpaces)
             {
-                celestialSpaceResult = await celestialSpace.LoadAsync(loadChildren, recursive, continueOnError);
+                celestialSpaceResult = await celestialSpace.LoadAsync(loadChildren, recursive, maxChildDepth, continueOnError, version);
 
                 if (celestialSpaceResult != null && celestialSpaceResult.Result != null && !celestialSpaceResult.IsError)
                     result.LoadedCount++;
@@ -261,12 +255,12 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
             return result;
         }
 
-        public OASISResult<IEnumerable<ICelestialSpace>> LoadCelestialSpaces(bool loadChildren = true, bool recursive = true, bool continueOnError = true)
+        public OASISResult<IEnumerable<ICelestialSpace>> LoadCelestialSpaces(bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
         {
-            return LoadCelestialSpacesAsync(loadChildren, recursive, continueOnError).Result;
+            return LoadCelestialSpacesAsync(loadChildren, recursive, maxChildDepth, continueOnError, version).Result;
         }
 
-        public async Task<OASISResult<ICelestialSpace>> SaveAsync(bool saveChildren = true, bool recursive = true, bool continueOnError = true)
+        public async Task<OASISResult<ICelestialSpace>> SaveAsync(bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true)
         {
             OASISResult<ICelestialSpace> result = new OASISResult<ICelestialSpace>();
             IsSaving = true;
@@ -284,7 +278,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
                 return result;
             }
 
-            OASISResult<IHolon> holonResult = await star.CelestialBodyCore.SaveHolonAsync(this, true, saveChildren, recursive, continueOnError);
+            OASISResult<IHolon> holonResult = await star.CelestialBodyCore.SaveHolonAsync(this, true, saveChildren, recursive, maxChildDepth, continueOnError);
 
             if ((holonResult != null && !holonResult.IsError && holonResult.Result != null)
                 || ((holonResult == null || holonResult.IsError || holonResult.Result == null) && continueOnError))
@@ -300,7 +294,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
 
                 if (saveChildren)
                 {
-                    OASISResult<IEnumerable<ICelestialBody>> celestialBodiesResult = await SaveCelestialBodiesAsync(saveChildren, recursive, continueOnError);
+                    OASISResult<IEnumerable<ICelestialBody>> celestialBodiesResult = await SaveCelestialBodiesAsync(saveChildren, recursive, maxChildDepth, continueOnError);
 
                     if (!(celestialBodiesResult != null && !celestialBodiesResult.IsError && celestialBodiesResult.Result != null))
                     {
@@ -319,7 +313,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
                         }
                     }
 
-                    OASISResult<IEnumerable<ICelestialSpace>> celestialSpacesResult = await SaveCelestialSpacesAsync(saveChildren, recursive, continueOnError);
+                    OASISResult<IEnumerable<ICelestialSpace>> celestialSpacesResult = await SaveCelestialSpacesAsync(saveChildren, recursive, maxChildDepth, continueOnError);
 
                     if (!(celestialSpacesResult != null && !celestialSpacesResult.IsError && celestialSpacesResult.Result != null))
                     {
@@ -358,12 +352,12 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
             return result;
         }
 
-        public OASISResult<ICelestialSpace> Save(bool saveChildren = true, bool recursive = true, bool continueOnError = true)
+        public OASISResult<ICelestialSpace> Save(bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true)
         {
-            return SaveAsync(saveChildren, recursive, continueOnError).Result;
+            return SaveAsync(saveChildren, recursive, maxChildDepth, continueOnError).Result;
         }
 
-        public async Task<OASISResult<IEnumerable<ICelestialBody>>> SaveCelestialBodiesAsync(bool saveChildren = true, bool recursive = true, bool continueOnError = true)
+        public async Task<OASISResult<IEnumerable<ICelestialBody>>> SaveCelestialBodiesAsync(bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true)
         {
             OASISResult<IEnumerable<ICelestialBody>> result = new OASISResult<IEnumerable<ICelestialBody>>(this.CelestialBodies);
             IsSaving = true;
@@ -374,7 +368,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
             {
                 if (!celestialBody.IsSaving)
                 {
-                    celestialBodyResult = await celestialBody.SaveAsync(saveChildren, recursive, continueOnError);
+                    celestialBodyResult = await celestialBody.SaveAsync(saveChildren, recursive, maxChildDepth, continueOnError);
 
                     if (celestialBodyResult != null && celestialBodyResult.Result != null && !celestialBodyResult.IsError)
                         result.SavedCount++;
@@ -418,12 +412,12 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
             return result;
         }
 
-        public OASISResult<IEnumerable<ICelestialBody>> SaveCelestialBodies(bool saveChildren = true, bool recursive = true, bool continueOnError = true)
+        public OASISResult<IEnumerable<ICelestialBody>> SaveCelestialBodies(bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true)
         {
-            return SaveCelestialBodiesAsync(saveChildren, recursive, continueOnError).Result;
+            return SaveCelestialBodiesAsync(saveChildren, recursive, maxChildDepth, continueOnError).Result;
         }
 
-        public async Task<OASISResult<IEnumerable<ICelestialSpace>>> SaveCelestialSpacesAsync(bool saveChildren = true, bool recursive = true, bool continueOnError = true)
+        public async Task<OASISResult<IEnumerable<ICelestialSpace>>> SaveCelestialSpacesAsync(bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true)
         {
             OASISResult<IEnumerable<ICelestialSpace>> result = new OASISResult<IEnumerable<ICelestialSpace>>(this.CelestialSpaces);
             OASISResult<ICelestialSpace> celestialSpaceResult = null;
@@ -434,7 +428,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
             {
                 if (!celestialSpace.IsSaving)
                 {
-                    celestialSpaceResult = await celestialSpace.SaveAsync(saveChildren, recursive, continueOnError);
+                    celestialSpaceResult = await celestialSpace.SaveAsync(saveChildren, recursive, maxChildDepth, continueOnError);
 
                     if (celestialSpaceResult != null && celestialSpaceResult.Result != null && !celestialSpaceResult.IsError)
                         result.SavedCount++;
@@ -477,9 +471,9 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
             return result;
         }
 
-        public OASISResult<IEnumerable<ICelestialSpace>> SaveCelestialSpaces(bool saveChildren = true, bool recursive = true, bool continueOnError = true)
+        public OASISResult<IEnumerable<ICelestialSpace>> SaveCelestialSpaces(bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true)
         {
-            return SaveCelestialSpacesAsync(saveChildren, recursive, continueOnError).Result;
+            return SaveCelestialSpacesAsync(saveChildren, recursive, maxChildDepth, continueOnError).Result;
         }
 
         protected void RegisterCelestialBodies(IEnumerable<ICelestialBody> celestialBodies, bool unregisterExistingBodiesFirst = true)

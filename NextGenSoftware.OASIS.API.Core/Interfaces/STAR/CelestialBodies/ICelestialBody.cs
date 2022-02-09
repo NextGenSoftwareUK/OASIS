@@ -39,16 +39,16 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces.STAR
         public int NunmerActiveAvatars { get; set; }
 
         ICelestialBodyCore CelestialBodyCore { get; set; }
-        Task<OASISResult<ICelestialBody>> SaveAsync(bool saveChildren = true, bool recursive = true, bool continueOnError = true);
-        OASISResult<ICelestialBody> Save(bool saveChildren = true, bool recursive = true, bool continueOnError = true);
-        Task<OASISResult<IHolon>> LoadAsync(bool loadChildren = true, bool recursive = true, bool continueOnError = true);
-        OASISResult<IHolon> Load(bool loadChildren = true, bool recursive = true, bool continueOnError = true);
-        Task<OASISResult<ICelestialBody>> LoadAsync<T>(bool loadChildren = true, bool recursive = true, bool continueOnError = true) where T : ICelestialBody, new();
-        OASISResult<ICelestialBody> Load<T>(bool loadChildren = true, bool recursive = true, bool continueOnError = true) where T : ICelestialBody, new();
-        Task<OASISResult<IEnumerable<IZome>>> LoadZomesAsync(bool loadChildren = true, bool recursive = true, bool continueOnError = true);
-        OASISResult<IEnumerable<IZome>> LoadZomes(bool loadChildren = true, bool recursive = true, bool continueOnError = true);
-        Task<OASISResult<IEnumerable<IZome>>> SaveZomesAsync(bool saveChildren = true, bool recursive = true, bool continueOnError = true);
-        OASISResult<IEnumerable<IZome>> SaveZomes(bool saveChildren = true, bool recursive = true, bool continueOnError = true);
+        Task<OASISResult<ICelestialBody>> SaveAsync(bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true);
+        OASISResult<ICelestialBody> Save(bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true);
+        Task<OASISResult<IHolon>> LoadAsync(bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0);
+        OASISResult<IHolon> Load(bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0);
+        Task<OASISResult<ICelestialBody>> LoadAsync<T>(bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0) where T : ICelestialBody, new();
+        OASISResult<ICelestialBody> Load<T>(bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0) where T : ICelestialBody, new();
+        Task<OASISResult<IEnumerable<IZome>>> LoadZomesAsync(bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0);
+        OASISResult<IEnumerable<IZome>> LoadZomes(bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0);
+        Task<OASISResult<IEnumerable<IZome>>> SaveZomesAsync(bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true);
+        OASISResult<IEnumerable<IZome>> SaveZomes(bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true);
 
         void Dim();
         void Emit();
