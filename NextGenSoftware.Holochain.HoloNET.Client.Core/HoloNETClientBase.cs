@@ -8,8 +8,6 @@ using System.Threading.Tasks;
 using System.IO;
 using System.Diagnostics;
 using MessagePack;
-//using MessagePack.
-using MessagePack.
 using NextGenSoftware.WebSocket;
 using NextGenSoftware.Holochain.HoloNET.Client.MessagePack;
 
@@ -425,10 +423,6 @@ namespace NextGenSoftware.Holochain.HoloNET.Client.Core
 
                         //await WebSocket.SendRawDataAsync(formatter.Serialize(request));
                         await WebSocket.SendRawDataAsync(MessagePackSerializer.Serialize(request));
-
-                        var serializer = MessagePackSerializer.Get<Foo>();
-                        serializer.Pack(stream, foo);
-                        stream.Position = 0;
                     }
                     break;
             }

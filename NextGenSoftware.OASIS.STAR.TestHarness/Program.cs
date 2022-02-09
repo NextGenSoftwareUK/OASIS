@@ -314,7 +314,7 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
                 ShowErrorMessage("Error Loading Holon");
 
             ShowWorkingMessage("Loading Test Holon Only For IPFSOASIS Provider...");
-            holonResult = STAR.OASISAPI.Data.LoadHolon(newHolon.Id, true, true, true, ProviderType.IPFSOASIS); // Only loads from IPFS.
+            holonResult = STAR.OASISAPI.Data.LoadHolon(newHolon.Id, true, true, 0, true, 0, ProviderType.IPFSOASIS); // Only loads from IPFS.
 
             if (holonResult != null && !holonResult.IsError && holonResult.Result != null)
             {
@@ -327,19 +327,19 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
                 ShowErrorMessage("Error Loading Holon");
 
             ShowWorkingMessage("Loading All Holons Of Type Moon Only For HoloOASIS Provider...");
-            HandleHolonsOASISResponse(STAR.OASISAPI.Data.LoadAllHolons(HolonType.Moon, true, true, true, ProviderType.HoloOASIS)); // Loads all moon (OAPPs) from Holochain.
+            HandleHolonsOASISResponse(STAR.OASISAPI.Data.LoadAllHolons(HolonType.Moon, true, true, 0, true, 0, ProviderType.HoloOASIS)); // Loads all moon (OAPPs) from Holochain.
 
             ShowWorkingMessage("Saving Test Holon (Load Balanced Across All Providers)...");
             HandleOASISResponse(STAR.OASISAPI.Data.SaveHolon(newHolon), "Holon Saved Successfully.", "Error Saving Holon."); // Load-balanced across all providers.
 
             ShowWorkingMessage("Saving Test Holon Only For The EthereumOASIS Provider...");
-            HandleOASISResponse(STAR.OASISAPI.Data.SaveHolon(newHolon, true, true, true, ProviderType.EthereumOASIS), "Holon Saved Successfully.", "Error Saving Holon."); //  Only saves to Etherum.
+            HandleOASISResponse(STAR.OASISAPI.Data.SaveHolon(newHolon, true, true, 0, true, ProviderType.EthereumOASIS), "Holon Saved Successfully.", "Error Saving Holon."); //  Only saves to Etherum.
 
             ShowWorkingMessage("Loading All Holons From The Current Default Provider (With Auto-FailOver)...");
-            HandleHolonsOASISResponse(STAR.OASISAPI.Data.LoadAllHolons(HolonType.All, true, true, true, ProviderType.Default)); // Loads all holons from current default provider.
+            HandleHolonsOASISResponse(STAR.OASISAPI.Data.LoadAllHolons(HolonType.All, true, true, 0, true, 0, ProviderType.Default)); // Loads all holons from current default provider.
 
             ShowWorkingMessage("Loading All Park Holons From All Providers (With Auto-Load-Balance & Auto-FailOver)...");
-            HandleHolonsOASISResponse(STAR.OASISAPI.Data.LoadAllHolons(HolonType.Park, true, true, true, ProviderType.All)); // Loads all parks from all providers (load-balanced/fail over).
+            HandleHolonsOASISResponse(STAR.OASISAPI.Data.LoadAllHolons(HolonType.Park, true, true, 0, true, 0, ProviderType.All)); // Loads all parks from all providers (load-balanced/fail over).
 
             //ShowWorkingMessage("Loading All Park Holons From All Providers (With Auto-Load-Balance & Auto-FailOver)...");
             STAR.OASISAPI.Data.LoadAllHolons(HolonType.Park); // shorthand for above.
