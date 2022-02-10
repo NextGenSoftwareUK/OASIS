@@ -820,7 +820,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
                 var response = new OASISResult<string>();
                 try
                 {
-                    var key = Encoding.ASCII.GetBytes(OASISBootLoader.OASISBootLoader.OASISDNA.OASIS.Security.Secret);
+                    var key = Encoding.ASCII.GetBytes(OASISBootLoader.OASISBootLoader.OASISDNA.OASIS.Security.SecretKey);
                     var tokenHandler = new JwtSecurityTokenHandler();
                     tokenHandler.ValidateToken(accountToken, new TokenValidationParameters
                     {
@@ -1285,7 +1285,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
         private string GenerateJwtToken(IAvatar account)
         {
             var tokenHandler = new JwtSecurityTokenHandler();
-            var key = Encoding.ASCII.GetBytes(_OASISDNA.OASIS.Security.Secret);
+            var key = Encoding.ASCII.GetBytes(_OASISDNA.OASIS.Security.SecretKey);
             var tokenDescriptor = new SecurityTokenDescriptor
             {
                 Subject = new ClaimsIdentity(new[] {new Claim("id", account.Id.ToString())}),
