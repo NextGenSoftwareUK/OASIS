@@ -24,7 +24,7 @@
       "HideRefreshTokens": "true",
       //"DoesAvatarNeedToBeVerifiedBeforeLogin": "true",
       "SendVerificationEmail": "true",
-      "SecretKey": ""
+      "SecretKey": "",
       "AvatarPassword": {
         "BCryptEncryptionEnabled": "true",
         "Rijndael256EncryptionEnabled": "true",

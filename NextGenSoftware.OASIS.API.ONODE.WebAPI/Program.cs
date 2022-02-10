@@ -51,7 +51,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
 
         private static void _avatarManager_OnOASISManagerError(object sender, OASISErrorEventArgs e)
         {
-            throw new Exception(string.Concat("ERROR: AvatarManager_OnOASISManagerError. Reason: ", e.Reason, ". Error Details: ", e.ErrorDetails));
+            throw new Exception(string.Concat("ERROR: AvatarManager_OnOASISManagerError. Reason: ", e.Reason, ". Error Details: ", e.Reason));
         }
 
         private static void AvatarManager_OnAvatarManagerError(object sender, AvatarManagerErrorEventArgs e)
