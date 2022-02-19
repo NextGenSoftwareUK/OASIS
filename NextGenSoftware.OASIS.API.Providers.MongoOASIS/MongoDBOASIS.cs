@@ -141,16 +141,16 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
 
         public override OASISResult<IAvatarDetail> SaveAvatarDetail(IAvatarDetail avatar)
         {
-            return new OASISResult<IAvatarDetail>(ConvertMongoEntityToOASISAvatarDetail(avatar.IsNewHolon ?
-               _avatarRepository.Add(ConvertOASISAvatarDetailToMongoEntity(avatar)) :
-               _avatarRepository.Update(ConvertOASISAvatarDetailToMongoEntity(avatar))));
+            return ConvertMongoEntityToOASISAvatarDetail(avatar.IsNewHolon ?
+               new OASISResult<AvatarDetail>(_avatarRepository.Add(ConvertOASISAvatarDetailToMongoEntity(avatar))) :
+               new OASISResult<AvatarDetail>(_avatarRepository.Update(ConvertOASISAvatarDetailToMongoEntity(avatar))));
         }
 
         public override async Task<OASISResult<IAvatarDetail>> SaveAvatarDetailAsync(IAvatarDetail avatar)
         {
-            return new OASISResult<IAvatarDetail>(ConvertMongoEntityToOASISAvatarDetail(avatar.IsNewHolon ?
-               await _avatarRepository.AddAsync(ConvertOASISAvatarDetailToMongoEntity(avatar)) :
-               await _avatarRepository.UpdateAsync(ConvertOASISAvatarDetailToMongoEntity(avatar))));
+            return ConvertMongoEntityToOASISAvatarDetail(avatar.IsNewHolon ?
+               new OASISResult<AvatarDetail>(await _avatarRepository.AddAsync(ConvertOASISAvatarDetailToMongoEntity(avatar))) :
+               new OASISResult<AvatarDetail>(await _avatarRepository.UpdateAsync(ConvertOASISAvatarDetailToMongoEntity(avatar))));
         }
 
         public override OASISResult<IAvatar> SaveAvatar(IAvatar avatar)
@@ -219,22 +219,22 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
 
         public override OASISResult<IAvatarDetail> LoadAvatarDetailByUsername(string avatarUsername, int version = 0)
         {
-            return new OASISResult<IAvatarDetail>(ConvertMongoEntityToOASISAvatarDetail(_avatarRepository.GetAvatarDetail(x => x.Username == avatarUsername)));
+            return ConvertMongoEntityToOASISAvatarDetail(_avatarRepository.GetAvatarDetail(x => x.Username == avatarUsername));
         }
 
         public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailAsync(Guid id, int version = 0)
         {
-            return new OASISResult<IAvatarDetail>(ConvertMongoEntityToOASISAvatarDetail(await _avatarRepository.GetAvatarDetailAsync(id)));
+            return ConvertMongoEntityToOASISAvatarDetail(await _avatarRepository.GetAvatarDetailAsync(id));
         }
 
         public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByUsernameAsync(string avatarUsername, int version = 0)
         {
-            return new OASISResult<IAvatarDetail>(ConvertMongoEntityToOASISAvatarDetail(await _avatarRepository.GetAvatarDetailAsync(x => x.Username == avatarUsername)));
+            return ConvertMongoEntityToOASISAvatarDetail(await _avatarRepository.GetAvatarDetailAsync(x => x.Username == avatarUsername));
         }
 
         public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByEmailAsync(string avatarEmail, int version = 0)
         {
-            return new OASISResult<IAvatarDetail>(ConvertMongoEntityToOASISAvatarDetail(await _avatarRepository.GetAvatarDetailAsync(x => x.Email == avatarEmail)));
+            return ConvertMongoEntityToOASISAvatarDetail(await _avatarRepository.GetAvatarDetailAsync(x => x.Email == avatarEmail));
         }
 
         public override async Task<OASISResult<IEnumerable<IAvatarDetail>>> LoadAllAvatarDetailsAsync(int version = 0)
@@ -242,30 +242,20 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             return new OASISResult<IEnumerable<IAvatarDetail>>(ConvertMongoEntitysToOASISAvatarDetails(await _avatarRepository.GetAvatarDetailsAsync()));
         }
 
-        //public override async Task<IAvatarThumbnail> LoadAvatarThumbnailAsync(Guid id)
-        //{
-        //    return await _avatarRepository.GetAvatarThumbnailByIdAsync(id);
-        //}
-
         public override OASISResult<IAvatarDetail> LoadAvatarDetail(Guid id, int version = 0)
         {
-            return new OASISResult<IAvatarDetail>(ConvertMongoEntityToOASISAvatarDetail(_avatarRepository.GetAvatarDetail(id)));
+            return ConvertMongoEntityToOASISAvatarDetail(_avatarRepository.GetAvatarDetail(id));
         }
 
         public override OASISResult<IAvatarDetail> LoadAvatarDetailByEmail(string avatarEmail, int version = 0)
         {
-            return new OASISResult<IAvatarDetail>(ConvertMongoEntityToOASISAvatarDetail(_avatarRepository.GetAvatarDetail(x => x.Email == avatarEmail)));
+            return ConvertMongoEntityToOASISAvatarDetail(_avatarRepository.GetAvatarDetail(x => x.Email == avatarEmail));
         }
 
         public override OASISResult<IEnumerable<IAvatarDetail>> LoadAllAvatarDetails(int version = 0)
         {
             return new OASISResult<IEnumerable<IAvatarDetail>>(ConvertMongoEntitysToOASISAvatarDetails(_avatarRepository.GetAvatarDetails()));
         }
-
-        //public override IAvatarThumbnail LoadAvatarThumbnail(Guid id)
-        //{
-        //    return _avatarRepository.GetAvatarThumbnailById(id);
-        //}
 
         public override async Task<OASISResult<IHolon>> LoadHolonAsync(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
         {
@@ -552,7 +542,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             List<IAvatarDetail> oasisAvatars = new List<IAvatarDetail>();
 
             foreach (AvatarDetail avatar in avatars)
-                oasisAvatars.Add(ConvertMongoEntityToOASISAvatarDetail(avatar));
+                oasisAvatars.Add(ConvertMongoEntityToOASISAvatarDetail(new OASISResult<AvatarDetail>(avatar)).Result);
 
             return oasisAvatars;
         }
@@ -579,6 +569,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
 
             Core.Holons.Avatar oasisAvatar = new Core.Holons.Avatar();
 
+            oasisAvatar.IsNewHolon = false;
             oasisAvatar.Id = avatar.HolonId;
             oasisAvatar.ProviderKey = avatar.ProviderKey;
             oasisAvatar.PreviousVersionId = avatar.PreviousVersionId;
@@ -626,106 +617,114 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             return oasisAvatar;
         }
 
-        private IAvatarDetail ConvertMongoEntityToOASISAvatarDetail(AvatarDetail avatar)
+        private OASISResult<IAvatarDetail> ConvertMongoEntityToOASISAvatarDetail(OASISResult<AvatarDetail> avatar)
         {
-            if (avatar == null)
-                return null;
+            OASISResult<IAvatarDetail> result = new OASISResult<IAvatarDetail>();
+
+            if (avatar == null || (avatar != null && avatar.Result == null))
+                return new OASISResult<IAvatarDetail>() { Message = avatar.Message, IsError = true, IsLoaded = false};
 
             Core.Holons.AvatarDetail oasisAvatar = new Core.Holons.AvatarDetail();
-            oasisAvatar.Id = avatar.HolonId;
-            oasisAvatar.ProviderKey = avatar.ProviderKey;
-            oasisAvatar.ProviderMetaData = avatar.ProviderMetaData;
-            oasisAvatar.PreviousVersionId = avatar.PreviousVersionId;
-            oasisAvatar.PreviousVersionProviderKey = avatar.PreviousVersionProviderKey;
-           // oasisAvatar.Title = avatar.Title;
-            oasisAvatar.Description = avatar.Description;
-            //oasisAvatar.FirstName = avatar.FirstName;
-            //oasisAvatar.LastName = avatar.LastName;
-            //oasisAvatar.Email = avatar.Email;
-            //oasisAvatar.Username = avatar.Username;
-            oasisAvatar.CreatedOASISType = avatar.CreatedOASISType;
-            oasisAvatar.CreatedProviderType = avatar.CreatedProviderType;
-           // oasisAvatar.AvatarType = avatar.AvatarType;
-            oasisAvatar.HolonType = avatar.HolonType;
-            oasisAvatar.IsChanged = avatar.IsChanged;
-            oasisAvatar.CreatedByAvatarId = Guid.Parse(avatar.CreatedByAvatarId);
-            oasisAvatar.CreatedDate = avatar.CreatedDate;
-            oasisAvatar.DeletedByAvatarId = Guid.Parse(avatar.DeletedByAvatarId);
-            oasisAvatar.DeletedDate = avatar.DeletedDate;
-            oasisAvatar.ModifiedByAvatarId = Guid.Parse(avatar.ModifiedByAvatarId);
-            oasisAvatar.ModifiedDate = avatar.ModifiedDate;
-            oasisAvatar.DeletedDate = avatar.DeletedDate;
-            oasisAvatar.Version = avatar.Version;
-            oasisAvatar.IsActive = avatar.IsActive;
-            oasisAvatar.Image2D = avatar.Image2D;
-            oasisAvatar.UmaJson = avatar.UmaJson;
-            oasisAvatar.ProviderPrivateKey = avatar.ProviderPrivateKey;
-            oasisAvatar.ProviderPublicKey = avatar.ProviderPublicKey;
-            oasisAvatar.ProviderUsername = avatar.ProviderUsername;
-            oasisAvatar.ProviderWalletAddress = avatar.ProviderWalletAddress;
-            oasisAvatar.XP = avatar.XP;
-            oasisAvatar.FavouriteColour = avatar.FavouriteColour;
-            oasisAvatar.STARCLIColour = avatar.STARCLIColour;
-            oasisAvatar.Skills = avatar.Skills;
-            oasisAvatar.Spells = avatar.Spells;
-            oasisAvatar.Stats = avatar.Stats;
-            oasisAvatar.SuperPowers = avatar.SuperPowers;
-            oasisAvatar.GeneKeys = avatar.GeneKeys;
-            oasisAvatar.HumanDesign = avatar.HumanDesign;
-            oasisAvatar.Gifts = avatar.Gifts;
-            oasisAvatar.Chakras = avatar.Chakras;
-            oasisAvatar.Aura = avatar.Aura;
-            oasisAvatar.Achievements = avatar.Achievements;
-            oasisAvatar.Inventory = avatar.Inventory;
-            oasisAvatar.Address = avatar.Address;
-           // oasisAvatar.AvatarType = avatar.AvatarType;
-            oasisAvatar.Country = avatar.Country;
-            oasisAvatar.County = avatar.County;
-            oasisAvatar.Address = avatar.Address;
-            oasisAvatar.Country = avatar.Country;
-            oasisAvatar.County = avatar.County;
-            oasisAvatar.DOB = avatar.DOB;
-            oasisAvatar.Landline = avatar.Landline;
-            oasisAvatar.Mobile = avatar.Mobile;
-            oasisAvatar.Postcode = avatar.Postcode;
-            oasisAvatar.Town = avatar.Town;
-            oasisAvatar.Karma = avatar.Karma;
-            oasisAvatar.KarmaAkashicRecords = avatar.KarmaAkashicRecords;
-            oasisAvatar.ParentHolonId = avatar.ParentHolonId;
-            oasisAvatar.ParentHolon = avatar.ParentHolon;
-            oasisAvatar.ParentZomeId = avatar.ParentZomeId;
-            oasisAvatar.ParentZome = avatar.ParentZome;
-            oasisAvatar.ParentOmniverse = avatar.ParentOmniverse;
-            oasisAvatar.ParentOmniverseId = avatar.ParentOmniverseId;
-            oasisAvatar.ParentDimension = avatar.ParentDimension;
-            oasisAvatar.ParentDimensionId = avatar.ParentDimensionId;
-            oasisAvatar.ParentMultiverse = avatar.ParentMultiverse;
-            oasisAvatar.ParentMultiverseId = avatar.ParentMultiverseId;
-            oasisAvatar.ParentUniverse = avatar.ParentUniverse;
-            oasisAvatar.ParentUniverseId = avatar.ParentUniverseId;
-            oasisAvatar.ParentGalaxyCluster = avatar.ParentGalaxyCluster;
-            oasisAvatar.ParentGalaxyClusterId = avatar.ParentGalaxyClusterId;
-            oasisAvatar.ParentGalaxy = avatar.ParentGalaxy;
-            oasisAvatar.ParentGalaxyId = avatar.ParentGalaxyId;
-            oasisAvatar.ParentSolarSystem = avatar.ParentSolarSystem;
-            oasisAvatar.ParentSolarSystemId = avatar.ParentSolarSystemId;
-            oasisAvatar.ParentGreatGrandSuperStar = avatar.ParentGreatGrandSuperStar;
-            oasisAvatar.ParentGreatGrandSuperStarId = avatar.ParentGreatGrandSuperStarId;
-            oasisAvatar.ParentGreatGrandSuperStar = avatar.ParentGreatGrandSuperStar;
-            oasisAvatar.ParentGrandSuperStarId = avatar.ParentGrandSuperStarId;
-            oasisAvatar.ParentGrandSuperStar = avatar.ParentGrandSuperStar;
-            oasisAvatar.ParentSuperStarId = avatar.ParentSuperStarId;
-            oasisAvatar.ParentSuperStar = avatar.ParentSuperStar;
-            oasisAvatar.ParentStarId = avatar.ParentStarId;
-            oasisAvatar.ParentStar = avatar.ParentStar;
-            oasisAvatar.ParentPlanetId = avatar.ParentPlanetId;
-            oasisAvatar.ParentPlanet = avatar.ParentPlanet;
-            oasisAvatar.ParentMoonId = avatar.ParentMoonId;
-            oasisAvatar.ParentMoon = avatar.ParentMoon;
-            oasisAvatar.Children = avatar.Children;
-            oasisAvatar.Nodes = avatar.Nodes;
+            oasisAvatar.IsNewHolon = false;
+            oasisAvatar.Id = avatar.Result.HolonId;
+            oasisAvatar.ProviderKey = avatar.Result.ProviderKey;
+            oasisAvatar.ProviderMetaData = avatar.Result.ProviderMetaData;
+            oasisAvatar.PreviousVersionId = avatar.Result.PreviousVersionId;
+            oasisAvatar.PreviousVersionProviderKey = avatar.Result.PreviousVersionProviderKey;
+           // oasisAvatar.Title = avatar.Result.Title;
+            oasisAvatar.Description = avatar.Result.Description;
+            //oasisAvatar.FirstName = avatar.Result.FirstName;
+            //oasisAvatar.LastName = avatar.Result.LastName;
+            //oasisAvatar.Email = avatar.Result.Email;
+            //oasisAvatar.Username = avatar.Result.Username;
+            oasisAvatar.CreatedOASISType = avatar.Result.CreatedOASISType;
+            oasisAvatar.CreatedProviderType = avatar.Result.CreatedProviderType;
+           // oasisAvatar.AvatarType = avatar.Result.AvatarType;
+            oasisAvatar.HolonType = avatar.Result.HolonType;
+            oasisAvatar.IsChanged = avatar.Result.IsChanged;
+            oasisAvatar.CreatedByAvatarId = Guid.Parse(avatar.Result.CreatedByAvatarId);
+            oasisAvatar.CreatedDate = avatar.Result.CreatedDate;
+            oasisAvatar.DeletedByAvatarId = Guid.Parse(avatar.Result.DeletedByAvatarId);
+            oasisAvatar.DeletedDate = avatar.Result.DeletedDate;
+            oasisAvatar.ModifiedByAvatarId = Guid.Parse(avatar.Result.ModifiedByAvatarId);
+            oasisAvatar.ModifiedDate = avatar.Result.ModifiedDate;
+            oasisAvatar.DeletedDate = avatar.Result.DeletedDate;
+            oasisAvatar.Version = avatar.Result.Version;
+            oasisAvatar.IsActive = avatar.Result.IsActive;
+            oasisAvatar.Image2D = avatar.Result.Image2D;
+            oasisAvatar.UmaJson = avatar.Result.UmaJson;
+            oasisAvatar.ProviderPrivateKey = avatar.Result.ProviderPrivateKey;
+            oasisAvatar.ProviderPublicKey = avatar.Result.ProviderPublicKey;
+            oasisAvatar.ProviderUsername = avatar.Result.ProviderUsername;
+            oasisAvatar.ProviderWalletAddress = avatar.Result.ProviderWalletAddress;
+            oasisAvatar.XP = avatar.Result.XP;
+            oasisAvatar.FavouriteColour = avatar.Result.FavouriteColour;
+            oasisAvatar.STARCLIColour = avatar.Result.STARCLIColour;
+            oasisAvatar.Skills = avatar.Result.Skills;
+            oasisAvatar.Spells = avatar.Result.Spells;
+            oasisAvatar.Stats = avatar.Result.Stats;
+            oasisAvatar.SuperPowers = avatar.Result.SuperPowers;
+            oasisAvatar.GeneKeys = avatar.Result.GeneKeys;
+            oasisAvatar.HumanDesign = avatar.Result.HumanDesign;
+            oasisAvatar.Gifts = avatar.Result.Gifts;
+            oasisAvatar.Chakras = avatar.Result.Chakras;
+            oasisAvatar.Aura = avatar.Result.Aura;
+            oasisAvatar.Achievements = avatar.Result.Achievements;
+            oasisAvatar.Inventory = avatar.Result.Inventory;
+            oasisAvatar.Address = avatar.Result.Address;
+           // oasisAvatar.AvatarType = avatar.Result.AvatarType;
+            oasisAvatar.Country = avatar.Result.Country;
+            oasisAvatar.County = avatar.Result.County;
+            oasisAvatar.Address = avatar.Result.Address;
+            oasisAvatar.Country = avatar.Result.Country;
+            oasisAvatar.County = avatar.Result.County;
+            oasisAvatar.DOB = avatar.Result.DOB;
+            oasisAvatar.Landline = avatar.Result.Landline;
+            oasisAvatar.Mobile = avatar.Result.Mobile;
+            oasisAvatar.Postcode = avatar.Result.Postcode;
+            oasisAvatar.Town = avatar.Result.Town;
+            oasisAvatar.Karma = avatar.Result.Karma;
+            oasisAvatar.KarmaAkashicRecords = avatar.Result.KarmaAkashicRecords;
+            oasisAvatar.ParentHolonId = avatar.Result.ParentHolonId;
+            oasisAvatar.ParentHolon = avatar.Result.ParentHolon;
+            oasisAvatar.ParentZomeId = avatar.Result.ParentZomeId;
+            oasisAvatar.ParentZome = avatar.Result.ParentZome;
+            oasisAvatar.ParentCelestialBody = avatar.Result.ParentCelestialBody;
+            oasisAvatar.ParentCelestialBodyId = avatar.Result.ParentCelestialBodyId;
+            oasisAvatar.ParentCelestialSpace = avatar.Result.ParentCelestialSpace;
+            oasisAvatar.ParentCelestialSpaceId = avatar.Result.ParentCelestialSpaceId;
+            oasisAvatar.ParentOmniverse = avatar.Result.ParentOmniverse;
+            oasisAvatar.ParentOmniverseId = avatar.Result.ParentOmniverseId;
+            oasisAvatar.ParentDimension = avatar.Result.ParentDimension;
+            oasisAvatar.ParentDimensionId = avatar.Result.ParentDimensionId;
+            oasisAvatar.ParentMultiverse = avatar.Result.ParentMultiverse;
+            oasisAvatar.ParentMultiverseId = avatar.Result.ParentMultiverseId;
+            oasisAvatar.ParentUniverse = avatar.Result.ParentUniverse;
+            oasisAvatar.ParentUniverseId = avatar.Result.ParentUniverseId;
+            oasisAvatar.ParentGalaxyCluster = avatar.Result.ParentGalaxyCluster;
+            oasisAvatar.ParentGalaxyClusterId = avatar.Result.ParentGalaxyClusterId;
+            oasisAvatar.ParentGalaxy = avatar.Result.ParentGalaxy;
+            oasisAvatar.ParentGalaxyId = avatar.Result.ParentGalaxyId;
+            oasisAvatar.ParentSolarSystem = avatar.Result.ParentSolarSystem;
+            oasisAvatar.ParentSolarSystemId = avatar.Result.ParentSolarSystemId;
+            oasisAvatar.ParentGreatGrandSuperStar = avatar.Result.ParentGreatGrandSuperStar;
+            oasisAvatar.ParentGreatGrandSuperStarId = avatar.Result.ParentGreatGrandSuperStarId;
+            oasisAvatar.ParentGreatGrandSuperStar = avatar.Result.ParentGreatGrandSuperStar;
+            oasisAvatar.ParentGrandSuperStarId = avatar.Result.ParentGrandSuperStarId;
+            oasisAvatar.ParentGrandSuperStar = avatar.Result.ParentGrandSuperStar;
+            oasisAvatar.ParentSuperStarId = avatar.Result.ParentSuperStarId;
+            oasisAvatar.ParentSuperStar = avatar.Result.ParentSuperStar;
+            oasisAvatar.ParentStarId = avatar.Result.ParentStarId;
+            oasisAvatar.ParentStar = avatar.Result.ParentStar;
+            oasisAvatar.ParentPlanetId = avatar.Result.ParentPlanetId;
+            oasisAvatar.ParentPlanet = avatar.Result.ParentPlanet;
+            oasisAvatar.ParentMoonId = avatar.Result.ParentMoonId;
+            oasisAvatar.ParentMoon = avatar.Result.ParentMoon;
+            oasisAvatar.Children = avatar.Result.Children;
+            oasisAvatar.Nodes = avatar.Result.Nodes;
 
-            return oasisAvatar;
+            result.Result = oasisAvatar;
+            return result;
         }
 
         private Avatar ConvertOASISAvatarToMongoEntity(IAvatar avatar)
@@ -923,6 +922,10 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             mongoAvatar.ParentHolon = avatar.ParentHolon;
             mongoAvatar.ParentZomeId = avatar.ParentZomeId;
             mongoAvatar.ParentZome = avatar.ParentZome;
+            mongoAvatar.ParentCelestialBody = avatar.ParentCelestialBody;
+            mongoAvatar.ParentCelestialBodyId = avatar.ParentCelestialBodyId;
+            mongoAvatar.ParentCelestialSpace = avatar.ParentCelestialSpace;
+            mongoAvatar.ParentCelestialSpaceId = avatar.ParentCelestialSpaceId;
             mongoAvatar.ParentOmniverse = avatar.ParentOmniverse;
             mongoAvatar.ParentOmniverseId = avatar.ParentOmniverseId;
             mongoAvatar.ParentDimension = avatar.ParentDimension;
@@ -967,6 +970,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
                 return result;
             }
 
+            result.Result.IsNewHolon = false; //TODO: Not sure if best to default all new Holons to have this set to true or not?
             result.Result.Id = holon.Result.HolonId;
             result.Result.ProviderKey = holon.Result.ProviderKey;
             result.Result.PreviousVersionId = holon.Result.PreviousVersionId;
@@ -986,6 +990,10 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             result.Result.ParentHolon = holon.Result.ParentHolon;
             result.Result.ParentZomeId = holon.Result.ParentZomeId;
             result.Result.ParentZome = holon.Result.ParentZome;
+            result.Result.ParentCelestialBody = holon.Result.ParentCelestialBody;
+            result.Result.ParentCelestialBodyId = holon.Result.ParentCelestialBodyId;
+            result.Result.ParentCelestialSpace = holon.Result.ParentCelestialSpace;
+            result.Result.ParentCelestialSpaceId = holon.Result.ParentCelestialSpaceId;
             result.Result.ParentOmniverse = holon.Result.ParentOmniverse;
             result.Result.ParentOmniverseId = holon.Result.ParentOmniverseId;
             result.Result.ParentDimension = holon.Result.ParentDimension;
@@ -1024,7 +1032,6 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             result.Result.DeletedDate = holon.Result.DeletedDate;
             result.Result.Version = holon.Result.Version;
             result.Result.IsActive = holon.Result.IsActive;
-
             return result;
         }
 
@@ -1057,6 +1064,10 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             mongoHolon.ParentHolon = holon.ParentHolon;
             mongoHolon.ParentZomeId = holon.ParentZomeId;
             mongoHolon.ParentZome = holon.ParentZome;
+            mongoHolon.ParentCelestialBody = holon.ParentCelestialBody;
+            mongoHolon.ParentCelestialBodyId = holon.ParentCelestialBodyId;
+            mongoHolon.ParentCelestialSpace = holon.ParentCelestialSpace;
+            mongoHolon.ParentCelestialSpaceId = holon.ParentCelestialSpaceId;
             mongoHolon.ParentOmniverse = holon.ParentOmniverse;
             mongoHolon.ParentOmniverseId = holon.ParentOmniverseId;
             mongoHolon.ParentDimension = holon.ParentDimension;

@@ -246,9 +246,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpGet("GetAvatarForTelosAccountName")]
-        public OASISResult<IAvatar> GetAvatarForTelosAccountName(string telosAccountName)
+        public OASISResult<IAvatarDetail> GetAvatarForTelosAccountName(string telosAccountName)
         {
-            return new(SEEDSOASIS.TelosOASIS.GetAvatarForTelosAccountName(telosAccountName));
+            return new (SEEDSOASIS.TelosOASIS.GetAvatarForTelosAccountName(telosAccountName));
         }
 
         /// <summary>

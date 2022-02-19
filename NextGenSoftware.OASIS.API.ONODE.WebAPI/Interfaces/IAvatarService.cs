@@ -13,6 +13,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Interfaces
 {
     public interface IAvatarService
     {
+        //TODO: Want to phase this out, now needed, moving more and more code into AvatarManager.
         Task<OASISResult<string>> GetTerms();
         Task<OASISResult<string>> ValidateAccountToken(string accountToken);
         Task<OASISResult<AuthenticateResponse>> Authenticate(AuthenticateRequest model, string ipAddress);
@@ -49,9 +50,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Interfaces
         Task<OASISResult<string>> GetAvatarUmaJsonByMail(string mail);
         Task<OASISResult<IAvatar>> GetAvatarByJwt();
         Task<OASISResult<ISearchResults>> Search(ISearchParams searchParams);
-        Task<OASISResult<IAvatarDetail>> LinkProviderKeyToAvatar(Guid avatarId, ProviderType telosOasis, string telosAccountName);
-        Task<OASISResult<string>> GetProviderKeyForAvatar(string avatarUsername, ProviderType providerType);
-        Task<OASISResult<string>> GetPrivateProviderKeyForAvatar(Guid avatarId, ProviderType providerType);
+        //Task<OASISResult<bool>> LinkProviderKeyToAvatar(Guid avatarId, ProviderType providerType, string key);
+        //Task<OASISResult<bool>> LinkPrivateProviderKeyToAvatar(Guid avatarId, ProviderType providerType, string key);
+        //Task<OASISResult<string>> GetProviderKeyForAvatar(string avatarUsername, ProviderType providerType);
+        //Task<OASISResult<string>> GetPrivateProviderKeyForAvatar(Guid avatarId, ProviderType providerType);
         Task<OASISResult<KarmaAkashicRecord>> AddKarmaToAvatar(Guid avatarId, AddRemoveKarmaToAvatarRequest addRemoveKarmaToAvatarRequest);
         Task<OASISResult<KarmaAkashicRecord>> RemoveKarmaFromAvatar(Guid avatarId, AddRemoveKarmaToAvatarRequest addKarmaToAvatarRequest);
     }

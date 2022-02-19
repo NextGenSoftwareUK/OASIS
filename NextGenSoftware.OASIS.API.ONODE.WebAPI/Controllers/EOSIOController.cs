@@ -105,9 +105,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpGet("GetAvatarForEOSIOAccountName")]
-        public OASISResult<IAvatar> GetAvatarForEOSIOAccountName(string eosioAccountName)
+        public OASISResult<IAvatarDetail> GetAvatarForEOSIOAccountName(string eosioAccountName)
         {
-            return new(EOSIOOASIS.GetAvatarForEOSIOAccountName(eosioAccountName));
+            return new (EOSIOOASIS.GetAvatarForEOSIOAccountName(eosioAccountName));
         }
 
         /// <summary>
@@ -146,9 +146,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpPost("{avatarId}/{eosioAccountName}")]
-        public OASISResult<IAvatarDetail> LinkEOSIOAccountToAvatar(Guid avatarId, string eosioAccountName)
+        public OASISResult<bool> LinkEOSIOAccountToAvatar(Guid avatarId, string eosioAccountName)
         {
-            return new(Program.AvatarManager.LinkProviderKeyToAvatar(avatarId, ProviderType.EOSIOOASIS, eosioAccountName));
+            return Program.AvatarManager.LinkPublicProviderKeyToAvatar(avatarId, ProviderType.EOSIOOASIS, eosioAccountName);
         }
     }
 }
