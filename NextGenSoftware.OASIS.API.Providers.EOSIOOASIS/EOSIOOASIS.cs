@@ -428,12 +428,14 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
 
         public string GetEOSIOAccountNameForAvatar(Guid avatarId)
         {
-            return AvatarManagerInstance.GetProviderKeyForAvatar(avatarId, Core.Enums.ProviderType.EOSIOOASIS);
+            //TODO: Handle OASISResult Properly.
+            return AvatarManagerInstance.GetPublicProviderKeyForAvatar(avatarId, Core.Enums.ProviderType.EOSIOOASIS).Result;
         }
 
         public string GetEOSIOAccountPrivateKeyForAvatar(Guid avatarId)
         {
-            return AvatarManagerInstance.GetPrivateProviderKeyForAvatar(avatarId, Core.Enums.ProviderType.EOSIOOASIS);
+            //TODO: Handle OASISResult Properly.
+            return AvatarManagerInstance.GetPrivateProviderKeyForAvatar(avatarId, Core.Enums.ProviderType.EOSIOOASIS).Result;
         }
 
         public Account GetEOSIOAccountForAvatar(Guid avatarId)
@@ -447,12 +449,14 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
 
         public Guid GetAvatarIdForEOSIOAccountName(string eosioAccountName)
         {
-            return AvatarManagerInstance.GetAvatarIdForProviderKey(eosioAccountName, Core.Enums.ProviderType.EOSIOOASIS);
+            //TODO: Handle OASISResult Properly.
+            return AvatarManagerInstance.GetAvatarIdForProviderPublicKey(eosioAccountName, Core.Enums.ProviderType.EOSIOOASIS).Result;
         }
 
-        public IAvatar GetAvatarForEOSIOAccountName(string eosioAccountName)
+        public IAvatarDetail GetAvatarForEOSIOAccountName(string eosioAccountName)
         {
-            return AvatarManagerInstance.GetAvatarForProviderKey(eosioAccountName, Core.Enums.ProviderType.EOSIOOASIS);
+            //TODO: Handle OASISResult Properly.
+            return AvatarManagerInstance.GetAvatarForProviderPublicKey(eosioAccountName, Core.Enums.ProviderType.EOSIOOASIS).Result;
         }
     }
 }

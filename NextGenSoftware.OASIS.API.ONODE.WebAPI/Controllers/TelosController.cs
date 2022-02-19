@@ -100,7 +100,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpGet("GetAvatarForTelosAccountName")]
-        public OASISResult<IAvatar> GetAvatarForTelosAccountName(string telosAccountName)
+        public OASISResult<IAvatarDetail> GetAvatarForTelosAccountName(string telosAccountName)
         {
             return new(TelosOASIS.GetAvatarForTelosAccountName(telosAccountName));
         }
@@ -141,9 +141,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpPost("{avatarId}/{telosAccountName}")]
-        public OASISResult<IAvatarDetail> LinkTelosAccountToAvatar(Guid avatarId, string telosAccountName)
+        public OASISResult<bool> LinkTelosAccountToAvatar(Guid avatarId, string telosAccountName)
         {
-            return new(Program.AvatarManager.LinkProviderKeyToAvatar(avatarId, ProviderType.TelosOASIS, telosAccountName));
+            return Program.AvatarManager.LinkPublicProviderKeyToAvatar(avatarId, ProviderType.TelosOASIS, telosAccountName);
         }
     }
 }

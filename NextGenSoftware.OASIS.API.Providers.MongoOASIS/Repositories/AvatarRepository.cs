@@ -157,20 +157,6 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
             return await findResult.FirstOrDefaultAsync();
         }
         
-        
-        public AvatarDetail GetAvatarDetail(Expression<Func<AvatarDetail, bool>> expression)
-        {
-            var filter = Builders<AvatarDetail>.Filter.Where(expression);
-            return _dbContext.AvatarDetail.Find(filter).FirstOrDefault();
-        }
-        
-        public async Task<AvatarDetail> GetAvatarDetailAsync(Expression<Func<AvatarDetail, bool>> expression)
-        {
-            var filter = Builders<AvatarDetail>.Filter.Where(expression);
-            var findResult = await _dbContext.AvatarDetail.FindAsync(filter);
-            return await findResult.FirstOrDefaultAsync();
-        }
-
         public async Task<Avatar> GetAvatarAsync(string username)
         {
             try
@@ -291,32 +277,77 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
             }
         }
 
-        public async Task<AvatarDetail> GetAvatarDetailAsync(Guid id)
+        public OASISResult<AvatarDetail> GetAvatarDetail(Expression<Func<AvatarDetail, bool>> expression)
         {
-            var filter = Builders<AvatarDetail>.Filter.Where(x => x.HolonId == id);
+            OASISResult<AvatarDetail> result = new OASISResult<AvatarDetail>();
+            var filter = Builders<AvatarDetail>.Filter.Where(expression);
+            result.Result = _dbContext.AvatarDetail.Find(filter).FirstOrDefault();
+
+            if (result.Result == null)
+                ErrorHandling.HandleError(ref result, "Avatar Not Found");
+
+            return result;
+        }
+
+        public async Task<OASISResult<AvatarDetail>> GetAvatarDetailAsync(Expression<Func<AvatarDetail, bool>> expression)
+        {
+            OASISResult<AvatarDetail> result = new OASISResult<AvatarDetail>();
+            var filter = Builders<AvatarDetail>.Filter.Where(expression);
             var findResult = await _dbContext.AvatarDetail.FindAsync(filter);
-            var detailEntity = await findResult.FirstOrDefaultAsync();
-            return detailEntity;
+            result.Result = await findResult.FirstOrDefaultAsync();
+
+            if (result.Result == null)
+                ErrorHandling.HandleError(ref result, "Avatar Not Found");
+
+            return result;
         }
 
-        public AvatarDetail GetAvatarDetail(Guid id)
+        public async Task<OASISResult<AvatarDetail>> GetAvatarDetailAsync(Guid id)
         {
+            OASISResult<AvatarDetail> result = new OASISResult<AvatarDetail>();
             var filter = Builders<AvatarDetail>.Filter.Where(x => x.HolonId == id);
-            return _dbContext.AvatarDetail.Find(filter).FirstOrDefault();
+            result.Result = await _dbContext.AvatarDetail.Find(filter).FirstOrDefaultAsync();
+
+            if (result.Result == null)
+                ErrorHandling.HandleError(ref result, "Avatar Not Found");
+
+            return result;
         }
 
-        public async Task<AvatarDetail> GetAvatarDetailAsync(string username)
+        public OASISResult<AvatarDetail> GetAvatarDetail(Guid id)
         {
-            var filter = Builders<AvatarDetail>.Filter.Where(x => x.Username == username);
-            var findResult = await _dbContext.AvatarDetail.FindAsync(filter);
-            var detailEntity = await findResult.FirstOrDefaultAsync();
-            return detailEntity;
+            OASISResult<AvatarDetail> result = new OASISResult<AvatarDetail>();
+            var filter = Builders<AvatarDetail>.Filter.Where(x => x.HolonId == id);
+            result.Result = _dbContext.AvatarDetail.Find(filter).FirstOrDefault();
+
+            if (result.Result == null)
+                ErrorHandling.HandleError(ref result, "Avatar Not Found");
+
+            return result;
         }
 
-        public AvatarDetail GetAvatarDetail(string username)
+        public async Task<OASISResult<AvatarDetail>> GetAvatarDetailAsync(string username)
         {
+            OASISResult<AvatarDetail> result = new OASISResult<AvatarDetail>();
             var filter = Builders<AvatarDetail>.Filter.Where(x => x.Username == username);
-            return _dbContext.AvatarDetail.Find(filter).FirstOrDefault();
+            result.Result = await _dbContext.AvatarDetail.Find(filter).FirstOrDefaultAsync();
+
+            if (result.Result == null)
+                ErrorHandling.HandleError(ref result, "Avatar Not Found");
+
+            return result;
+        }
+
+        public OASISResult<AvatarDetail> GetAvatarDetail(string username)
+        {
+            OASISResult<AvatarDetail> result = new OASISResult<AvatarDetail>();
+            var filter = Builders<AvatarDetail>.Filter.Where(x => x.Username == username);
+            result.Result = _dbContext.AvatarDetail.Find(filter).FirstOrDefault();
+
+            if (result.Result == null)
+                ErrorHandling.HandleError(ref result, "Avatar Not Found");
+
+            return result;
         }
 
         public async Task<IEnumerable<AvatarDetail>> GetAvatarDetailsAsync()

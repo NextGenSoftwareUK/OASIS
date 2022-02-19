@@ -24,6 +24,7 @@ using BC = BCrypt.Net.BCrypt;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
 {
+    //TODO: Want to phase this out, now needed, moving more and more code into AvatarManager.
     public class AvatarService : IAvatarService
     {
         private readonly IHttpContextAccessor _httpContextAccessor;
@@ -989,6 +990,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
             return response;
         }
 
+        //TODO: Check this works?!
         public async Task<OASISResult<IAvatar>> GetAvatarByJwt()
         {
             return await Task.Run(() =>
@@ -998,18 +1000,17 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
                 {
                     if (_httpContextAccessor.HttpContext == null)
                     {
-                        response.Message = "Do not found avatar";
                         response.Result = null;
-                        ErrorHandling.HandleError(ref response, response.Message);
+                        ErrorHandling.HandleError(ref response, "Avatar not found.");
                         return response;
                     }
 
                     var avatar = (IAvatar) _httpContextAccessor.HttpContext.Items["Avatar"];
+
                     if (avatar == null)
                     {
-                        response.Message = "Do not found avatar";
                         response.Result = null;
-                        ErrorHandling.HandleError(ref response, response.Message);
+                        ErrorHandling.HandleError(ref response, "Avatar not found");
                         return response;
                     }
 
@@ -1017,11 +1018,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
                 }
                 catch (Exception e)
                 {
-                    response.Exception = e;
-                    response.Message = e.Message;
                     response.Result = null;
-                    response.IsError = true;
-                    ErrorHandling.HandleError(ref response, e.Message);
+                    ErrorHandling.HandleError(ref response, $"An unknown error occured in GetAvatarByJwt. Reason: {e.Message}");
                 }
 
                 return response;
@@ -1053,43 +1051,58 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
             return response;
         }
 
-        public async Task<OASISResult<IAvatarDetail>> LinkProviderKeyToAvatar(Guid avatarId, ProviderType telosOasis, string telosAccountName)
-        {
-            return await Task.Run(() =>
-            {
-                var response = new OASISResult<IAvatarDetail>();
-                try
-                {
-                    response.Result =
-                        AvatarManager.LinkProviderKeyToAvatar(avatarId, ProviderType.TelosOASIS, telosAccountName);
-                }
-                catch (Exception e)
-                {
-                    response.Message = e.Message;
-                    response.IsError = true;
-                    response.IsSaved = false;
-                    ErrorHandling.HandleError(ref response, e.Message);
-                }
-                return response;
-            });
-        }
+        //public async Task<OASISResult<bool>> LinkProviderKeyToAvatar(Guid avatarId, ProviderType providerType, string key)
+        //{
+        //    return await Task.Run(() =>
+        //    {
+        //        var response = new OASISResult<bool>();
 
+        //        try
+        //        {
+        //            response = AvatarManager.LinkProviderKeyToAvatar(avatarId, providerType, key);
+        //        }
+        //        catch (Exception e)
+        //        {
+        //            ErrorHandling.HandleError(ref response, $"Unknown error occured in LinkProviderKeyToAvatar for avatar {avatarId} and providerType {Enum.GetName(typeof(ProviderType), providerType)} and key {key}: {e.Message}");
+        //        }
+        //        return response;
+        //    });
+        //}
+
+        //public async Task<OASISResult<bool>> LinkPrivateProviderKeyToAvatar(Guid avatarId, ProviderType providerType, string key)
+        //{
+        //    return await Task.Run(() =>
+        //    {
+        //        var response = new OASISResult<bool>();
+
+        //        try
+        //        {
+        //            response = AvatarManager.LinkPrivateProviderKeyToAvatar(avatarId, providerType, key);
+        //        }
+        //        catch (Exception e)
+        //        {
+        //            ErrorHandling.HandleError(ref response, $"Unknown error occured in LinkPrivateProviderKeyToAvatar for avatar {avatarId} and providerType {Enum.GetName(typeof(ProviderType), providerType)} and key {key}: {e.Message}");
+        //        }
+        //        return response;
+        //    });
+        //}
+
+        /*
         public async Task<OASISResult<string>> GetProviderKeyForAvatar(string avatarUsername, ProviderType providerType)
         {
             return await Task.Run(() =>
             {
                 var response = new OASISResult<string>();
+
                 try
                 {
                     response.Result = AvatarManager.GetProviderKeyForAvatar(avatarUsername, providerType);
                 }
                 catch (Exception e)
                 {
-                    response.Message = e.Message;
-                    response.IsError = true;
-                    response.IsSaved = false;
-                    ErrorHandling.HandleError(ref response, e.Message);
+                    ErrorHandling.HandleError(ref response, $"Unknown error occured in GetProviderKeyForAvatar for avatar {avatarUsername} and providerType {Enum.GetName(typeof(ProviderType), providerType)}: {e.Message}");
                 }
+
                 return response;
             });
         }
@@ -1099,20 +1112,20 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
             return await Task.Run(() =>
             {
                 var response = new OASISResult<string>();
+
                 try
                 {
                     response.Result = AvatarManager.GetPrivateProviderKeyForAvatar(avatarId, providerType);
                 }
                 catch (Exception e)
                 {
-                    response.Message = e.Message;
-                    response.IsError = true;
-                    response.IsSaved = false;
-                    ErrorHandling.HandleError(ref response, e.Message);
+                    ErrorHandling.HandleError(ref response, $"Unknown error occured in GetPrivateProviderKeyForAvatar for avatar {avatarId} and providerType {Enum.GetName(typeof(ProviderType), providerType)}: {e.Message}");
                 }
+
                 return response;
             });
         }
+        */
 
         public async Task<OASISResult<KarmaAkashicRecord>> AddKarmaToAvatar(Guid avatarId, AddRemoveKarmaToAvatarRequest addRemoveKarmaToAvatarRequest)
         {

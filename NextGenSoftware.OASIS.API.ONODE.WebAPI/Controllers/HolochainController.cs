@@ -24,7 +24,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpGet("GetHolochainAgentIdForAvatar")]
         public OASISResult<string> GetHolochainAgentIdForAvatar(Guid avatarId)
         {
-            return new(Program.AvatarManager.GetProviderKeyForAvatar(avatarId, ProviderType.HoloOASIS));
+            return Program.AvatarManager.GetPublicProviderKeyForAvatar(avatarId, ProviderType.HoloOASIS);
         }
 
         /// <summary>
@@ -36,7 +36,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpGet("GetHolochainAgentPrivateKeyForAvatar")]
         public OASISResult<string> GetHolochainAgentPrivateKeyForAvatar(Guid avatarId)
         {
-            return new(Program.AvatarManager.GetPrivateProviderKeyForAvatar(avatarId, ProviderType.HoloOASIS));
+            return Program.AvatarManager.GetPrivateProviderKeyForAvatar(avatarId, ProviderType.HoloOASIS);
         }
 
         /// <summary>
@@ -58,9 +58,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpGet("GetAvatarForHolochainAgentId")]
-        public OASISResult<IAvatar> GetAvatarForHolochainAgentId(string agentId)
+        public OASISResult<IAvatarDetail> GetAvatarForHolochainAgentId(string agentId)
         {
-            return new(Program.AvatarManager.GetAvatarForProviderKey(agentId, ProviderType.HoloOASIS));
+            return Program.AvatarManager.GetAvatarForProviderPublicKey(agentId, ProviderType.HoloOASIS);
         }
 
         /// <summary>
@@ -95,9 +95,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpPost("{avatarId}/{holochainAgentId}")]
-        public OASISResult<IAvatarDetail> LinkHolochainAgentIdToAvatar(Guid avatarId, string holochainAgentId)
+        public OASISResult<bool> LinkHolochainAgentIdToAvatar(Guid avatarId, string holochainAgentId)
         {
-            return new(Program.AvatarManager.LinkProviderKeyToAvatar(avatarId, ProviderType.HoloOASIS, holochainAgentId));
+            return Program.AvatarManager.LinkPublicProviderKeyToAvatar(avatarId, ProviderType.HoloOASIS, holochainAgentId);
         }
     }
 }

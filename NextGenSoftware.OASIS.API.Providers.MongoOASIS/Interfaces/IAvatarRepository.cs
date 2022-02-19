@@ -23,12 +23,10 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Interfaces
         Task<Avatar> GetAvatarAsync(Guid id);
         Task<Avatar> GetAvatarAsync(string username);
         Task<Avatar> GetAvatarAsync(string username, string password);
-        AvatarDetail GetAvatarDetail(Guid id);
-        AvatarDetail GetAvatarDetail(string username);
-        //AvatarDetail GetAvatarDetail(string username, string password);
-        Task<AvatarDetail> GetAvatarDetailAsync(Guid id);
-        Task<AvatarDetail> GetAvatarDetailAsync(string username);
-        //Task<AvatarDetail> GetAvatarDetailAsync(string username, string password);
+        OASISResult<AvatarDetail> GetAvatarDetail(Guid id);
+        OASISResult<AvatarDetail> GetAvatarDetail(string username);
+        Task<OASISResult<AvatarDetail>> GetAvatarDetailAsync(Guid id);
+        Task<OASISResult<AvatarDetail>> GetAvatarDetailAsync(string username);
         List<Avatar> GetAvatars();
         Task<List<Avatar>> GetAvatarsAsync();
         Task<IEnumerable<AvatarDetail>> GetAvatarDetailsAsync();
@@ -37,8 +35,5 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Interfaces
         Task<Avatar> UpdateAsync(Avatar avatar);
         AvatarDetail Update(AvatarDetail avatar);
         Task<AvatarDetail> UpdateAsync(AvatarDetail avatar);
-
-        //Task<AvatarThumbnail> GetAvatarThumbnailByIdAsync(Guid id);
-        //AvatarThumbnail GetAvatarThumbnailById(Guid id);
     }
 }
