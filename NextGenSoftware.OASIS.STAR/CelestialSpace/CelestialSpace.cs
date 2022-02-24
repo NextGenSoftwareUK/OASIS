@@ -63,7 +63,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
             RegisterCelestialBodies(this.CelestialBodies);
             RegisterCelestialSpaces(this.CelestialSpaces);
 
-            if (!IsNewHolon && (Id != Guid.Empty || (ProviderKey != null && ProviderKey.Keys.Count > 0)))
+            if (!IsNewHolon && (Id != Guid.Empty || (ProviderUniqueStorageKey != null && ProviderUniqueStorageKey.Keys.Count > 0)))
             {
                 OASISResult<ICelestialSpace> celestialSpaceResult = Load();
 
@@ -77,7 +77,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
             RegisterCelestialBodies(this.CelestialBodies);
             RegisterCelestialSpaces(this.CelestialSpaces);
 
-            if (!IsNewHolon && (Id != Guid.Empty || (ProviderKey != null && ProviderKey.Keys.Count > 0)))
+            if (!IsNewHolon && (Id != Guid.Empty || (ProviderUniqueStorageKey != null && ProviderUniqueStorageKey.Keys.Count > 0)))
             {
                 OASISResult<ICelestialSpace> celestialSpaceResult = await LoadAsync();
 

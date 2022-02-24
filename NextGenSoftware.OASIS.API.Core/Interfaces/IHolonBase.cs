@@ -13,13 +13,13 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces
         string Name { get; set; }
         string Description { get; set; }
         HolonType HolonType { get; set; }
-        Dictionary<ProviderType, string> ProviderKey { get; set; }
+        Dictionary<ProviderType, string> ProviderUniqueStorageKey { get; set; }
         Dictionary<ProviderType, Dictionary<string, string>> ProviderMetaData { get; set; }
         Dictionary<string, string> MetaData { get; set; }
         int Version { get; set; }
         Guid VersionId { get; set; }
         Guid PreviousVersionId { get; set; }
-        Dictionary<ProviderType, string> PreviousVersionProviderKey { get; set; } 
+        Dictionary<ProviderType, string> PreviousVersionProviderUniqueStorageKey { get; set; } 
         bool IsActive { get; set; }
         bool IsChanged { get; set; }
         bool IsNewHolon { get; set; }

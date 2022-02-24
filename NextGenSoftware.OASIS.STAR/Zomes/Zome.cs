@@ -21,7 +21,7 @@ namespace NextGenSoftware.OASIS.STAR.Zomes
 
         public Zome(string providerKey) : base()
         {
-            this.ProviderKey[ProviderManager.CurrentStorageProviderType.Value] = providerKey;
+            this.ProviderUniqueStorageKey[ProviderManager.CurrentStorageProviderType.Value] = providerKey;
         }
 
 
@@ -56,16 +56,16 @@ namespace NextGenSoftware.OASIS.STAR.Zomes
         public async Task<List<IHolon>> LoadHolons()
         {
             //TODO: Finish
-            if (string.IsNullOrEmpty(ProviderKey))
-                throw new ArgumentNullException("ProviderKey", "The ProviderKey must be set before this method can be called.");
+            if (string.IsNullOrEmpty(ProviderUniqueStorageKey))
+                throw new ArgumentNullException("ProviderUniqueStorageKey", "The ProviderUniqueStorageKey must be set before this method can be called.");
 
             //TODO: Check to see if the method awaits till the zomes(holons) are loaded before returning (if it doesn't need to refacoring to subscribe to events like LoadHolons does)
             List<IHolon> holons = new List<IHolon>();
             //  List<OASIS.API.Core.IHolon> coreHolons = new List<OASIS.API.Core.IHolon>();
 
             //TODO: Come back to this, must be better way of doing this?
-            //foreach (IHolon holon in base.LoadHolonsAsync(string.Concat(this.Name, HOLONS_LOAD_ALL), ProviderKey).Result)
-            foreach (IHolon holon in base.LoadHolonsAsync(ProviderKey).Result)
+            //foreach (IHolon holon in base.LoadHolonsAsync(string.Concat(this.Name, HOLONS_LOAD_ALL), ProviderUniqueStorageKey).Result)
+            foreach (IHolon holon in base.LoadHolonsAsync(ProviderUniqueStorageKey).Result)
             {
                 holons.Add((IZome)holon);
               //  coreHolons.Add((OASIS.API.Core.IZome)holon);

@@ -44,8 +44,8 @@ namespace NextGenSoftware.OASIS.API.Core.TestHarness
             {
                 Console.WriteLine("Avatar Saved.\n");
                 Console.WriteLine(string.Concat("Id: ", savedAvatar.Id));
-                Console.WriteLine(string.Concat("Provider Key: ", savedAvatar.ProviderKey));
-                // Console.WriteLine(string.Concat("HC Address Hash: ", savedAvatar.HcAddressHash)); //But we can still view the HC Hash if we wish by casting to the provider Avatar object as we have above. - UPDATE: We do not need this, the ProviderKey shows the same info (hash in this case).
+                Console.WriteLine(string.Concat("Provider Key: ", savedAvatar.ProviderUniqueStorageKey));
+                // Console.WriteLine(string.Concat("HC Address Hash: ", savedAvatar.HcAddressHash)); //But we can still view the HC Hash if we wish by casting to the provider Avatar object as we have above. - UPDATE: We do not need this, the ProviderUniqueStorageKey shows the same info (hash in this case).
                 Console.WriteLine(string.Concat("Name: ", savedAvatar.Title, " ", savedAvatar.FirstName, " ", savedAvatar.LastName));
                 Console.WriteLine(string.Concat("Username: ", savedAvatar.Username));
                 Console.WriteLine(string.Concat("Password: ", savedAvatar.Password));
@@ -64,7 +64,7 @@ namespace NextGenSoftware.OASIS.API.Core.TestHarness
             {
                 Console.WriteLine("Avatar Loaded.\n");
                 Console.WriteLine(string.Concat("Id: ", Avatar.Id));
-                Console.WriteLine(string.Concat("Provider Key: ", savedAvatar.ProviderKey));
+                Console.WriteLine(string.Concat("Provider Key: ", savedAvatar.ProviderUniqueStorageKey));
                 //Console.WriteLine(string.Concat("HC Address Hash: ", Avatar.HcAddressHash)); //AvatarManager is independent of provider implementation so it should not know about HC Hash.
                 Console.WriteLine(string.Concat("Name: ", Avatar.Title, " ", Avatar.FirstName, " ", Avatar.LastName));
                 Console.WriteLine(string.Concat("Username: ", Avatar.Username));

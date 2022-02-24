@@ -32,7 +32,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                 holon.CreatedProviderType = new EnumValue<ProviderType>(ProviderType.MongoDBOASIS);
 
                 await _dbContext.Holon.InsertOneAsync(holon);
-                holon.ProviderKey[ProviderType.MongoDBOASIS] = holon.Id;
+                holon.ProviderUniqueStorageKey[ProviderType.MongoDBOASIS] = holon.Id;
 
                 await UpdateAsync(holon);
                 result.Result = holon;
@@ -58,7 +58,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                 holon.CreatedProviderType = new EnumValue<ProviderType>(ProviderType.MongoDBOASIS);
 
                 _dbContext.Holon.InsertOne(holon);
-                holon.ProviderKey[ProviderType.MongoDBOASIS] = holon.Id;
+                holon.ProviderUniqueStorageKey[ProviderType.MongoDBOASIS] = holon.Id;
 
                 Update(holon);
                 result.Result = holon;
@@ -115,7 +115,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
         {
             try
             {
-                FilterDefinition<Holon> filter = Builders<Holon>.Filter.Where(x => x.ProviderKey[ProviderType.MongoDBOASIS] == providerKey);
+                FilterDefinition<Holon> filter = Builders<Holon>.Filter.Where(x => x.ProviderUniqueStorageKey[ProviderType.MongoDBOASIS] == providerKey);
                 return await _dbContext.Holon.FindAsync(filter).Result.FirstOrDefaultAsync();
             }
             catch
@@ -128,7 +128,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
         {
             try
             {
-                FilterDefinition<Holon> filter = Builders<Holon>.Filter.Where(x => x.ProviderKey[ProviderType.MongoDBOASIS] == providerKey);
+                FilterDefinition<Holon> filter = Builders<Holon>.Filter.Where(x => x.ProviderUniqueStorageKey[ProviderType.MongoDBOASIS] == providerKey);
                 return _dbContext.Holon.Find(filter).FirstOrDefault();
             }
             catch
@@ -395,7 +395,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                 }
                 else
                 {
-                    FilterDefinition<Holon> data = Builders<Holon>.Filter.Where(x => x.ProviderKey[ProviderType.MongoDBOASIS] == providerKey);
+                    FilterDefinition<Holon> data = Builders<Holon>.Filter.Where(x => x.ProviderUniqueStorageKey[ProviderType.MongoDBOASIS] == providerKey);
                     await _dbContext.Holon.DeleteOneAsync(data);
                     return true;
                 }
@@ -417,7 +417,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                 }
                 else
                 {
-                    FilterDefinition<Holon> data = Builders<Holon>.Filter.Where(x => x.ProviderKey[ProviderType.MongoDBOASIS] == providerKey);
+                    FilterDefinition<Holon> data = Builders<Holon>.Filter.Where(x => x.ProviderUniqueStorageKey[ProviderType.MongoDBOASIS] == providerKey);
                     _dbContext.Holon.DeleteOne(data);
                     return true;
                 }

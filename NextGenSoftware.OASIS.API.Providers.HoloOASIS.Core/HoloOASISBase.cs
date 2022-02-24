@@ -524,7 +524,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Core
         //        LastName = Avatar.LastName,
         //        Password = Avatar.Password,
         //        PlayerAddress = Avatar.PlayerAddress,
-        //        ProviderKey = Avatar.ProviderKey == null ? string.Empty : Avatar.ProviderKey,
+        //        ProviderUniqueStorageKey = Avatar.ProviderUniqueStorageKey == null ? string.Empty : Avatar.ProviderUniqueStorageKey,
         //        Title = Avatar.Title,
         //        Username = Avatar.Username
         //    };
@@ -541,7 +541,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Core
                 id = Avatar.Id,
                 last_name = Avatar.LastName,
                 password = Avatar.Password,
-                provider_key = Avatar.ProviderKey == null ? string.Empty : Avatar.ProviderKey[API.Core.Enums.ProviderType.HoloOASIS],
+                provider_key = Avatar.ProviderUniqueStorageKey == null ? string.Empty : Avatar.ProviderUniqueStorageKey[API.Core.Enums.ProviderType.HoloOASIS],
                 title = Avatar.Title,
                 username = Avatar.Username
             };
@@ -562,7 +562,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Core
             };
 
             //avatar.SetKarmaForDataObject(hcAvatar.karma);
-            avatar.ProviderKey[API.Core.Enums.ProviderType.HoloOASIS] = hcAvatar.provider_key;
+            avatar.ProviderUniqueStorageKey[API.Core.Enums.ProviderType.HoloOASIS] = hcAvatar.provider_key;
             return avatar;
 
             /*
@@ -577,7 +577,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Core
                 LastName = Avatar.last_name,
                 Password = Avatar.password,
                 Address = Avatar.address,
-                ProviderKey = Avatar.provider_key,
+                ProviderUniqueStorageKey = Avatar.provider_key,
                 Title = Avatar.title,
                 Username = Avatar.username
             };*/

@@ -62,7 +62,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Reposit
                     //So only in the Update method do we link to the previous version...
 
                     // We can of course always return the providerKey, which the caller can then store or do as they wish, it just will not be stored on the blockchain record.
-                    result.Result.ProviderKey[ProviderType.SolanaOASIS] = sendTransactionResult.Result;
+                    result.Result.ProviderUniqueStorageKey[ProviderType.SolanaOASIS] = sendTransactionResult.Result;
                     //OASISResult<T> updateResult = Update<T>(entity);
 
                     //if (updateResult != null && !updateResult.IsError && updateResult.Result != null)
@@ -114,7 +114,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Reposit
                     //So only in the Update method do we link to the previous version...
 
                     // We can of course always return the providerKey, which the caller can then store or do as they wish, it just will not be stored on the blockchain record.
-                    result.Result.ProviderKey[ProviderType.SolanaOASIS] = sendTransactionResult.Result;
+                    result.Result.ProviderUniqueStorageKey[ProviderType.SolanaOASIS] = sendTransactionResult.Result;
                     //OASISResult<T> updateResult = Update<T>(entity);
 
                     //if (updateResult != null && !updateResult.IsError && updateResult.Result != null)
@@ -256,7 +256,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Reposit
                     //So only in the Update method do we link to the previous version...
 
                     // We can of course always return the providerKey, which the caller can then store or do as they wish, it just will not be stored on the blockchain record.
-                    result.Result.ProviderKey[ProviderType.SolanaOASIS] = sendTransactionResult.Result;
+                    result.Result.ProviderUniqueStorageKey[ProviderType.SolanaOASIS] = sendTransactionResult.Result;
                     
                     //TODO: Actually we can save the providerKey in the next version of the record. Just not sure if we need or want to do this?
                     // Probably not a good idea because of the overhead writing to a Blockchain such as gas fees, time, etc.
@@ -321,7 +321,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Reposit
                     //So only in the Update method do we link to the previous version...
 
                     // We can of course always return the providerKey, which the caller can then store or do as they wish, it just will not be stored on the blockchain record.
-                    result.Result.ProviderKey[ProviderType.SolanaOASIS] = sendTransactionResult.Result;
+                    result.Result.ProviderUniqueStorageKey[ProviderType.SolanaOASIS] = sendTransactionResult.Result;
 
                     //TODO: Actually we can save the providerKey in the next version of the record. Just not sure if we need or want to do this?
                     // Probably not a good idea because of the overhead writing to a Blockchain such as gas fees, time, etc.

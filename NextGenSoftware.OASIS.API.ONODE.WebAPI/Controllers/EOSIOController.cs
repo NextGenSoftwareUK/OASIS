@@ -5,6 +5,7 @@ using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Helpers;
+using NextGenSoftware.OASIS.API.Core.Managers;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 {
@@ -105,7 +106,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpGet("GetAvatarForEOSIOAccountName")]
-        public OASISResult<IAvatarDetail> GetAvatarForEOSIOAccountName(string eosioAccountName)
+        public OASISResult<IAvatar> GetAvatarForEOSIOAccountName(string eosioAccountName)
         {
             return new (EOSIOOASIS.GetAvatarForEOSIOAccountName(eosioAccountName));
         }
@@ -148,7 +149,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpPost("{avatarId}/{eosioAccountName}")]
         public OASISResult<bool> LinkEOSIOAccountToAvatar(Guid avatarId, string eosioAccountName)
         {
-            return Program.AvatarManager.LinkPublicProviderKeyToAvatar(avatarId, ProviderType.EOSIOOASIS, eosioAccountName);
+            return KeyManager.LinkProviderPublicKeyToAvatar(avatarId, ProviderType.EOSIOOASIS, eosioAccountName);
         }
     }
 }

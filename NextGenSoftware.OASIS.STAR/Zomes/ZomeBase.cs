@@ -15,7 +15,7 @@ namespace NextGenSoftware.OASIS.STAR.Zomes
     public abstract class ZomeBase : Holon, IZomeBase
     {
         private HolonManager _holonManager = null;
-        private const string CONST_USERMESSAGE_ID_OR_PROVIDERKEY_NOTSET = "Both Id and ProviderKey are null, one of these need to be set before calling this method.";
+        private const string CONST_USERMESSAGE_ID_OR_PROVIDERKEY_NOTSET = "Both Id and ProviderUniqueStorageKey are null, one of these need to be set before calling this method.";
         private Dictionary<Guid, IOmiverse> _parentOmiverse = new Dictionary<Guid, IOmiverse>();
         private Dictionary<Guid, IDimension> _parentDimension = new Dictionary<Guid, IDimension>();
         private Dictionary<Guid, IMultiverse> _parentMultiverse = new Dictionary<Guid, IMultiverse>();
@@ -140,8 +140,8 @@ namespace NextGenSoftware.OASIS.STAR.Zomes
             else if (this.Id != Guid.Empty)
                 result = await LoadHolonAsync(Id);
 
-            else if (this.ProviderKey != null && this.ProviderKey.Count > 0)
-                result = await LoadHolonAsync(ProviderKey);
+            else if (this.ProviderUniqueStorageKey != null && this.ProviderUniqueStorageKey.Count > 0)
+                result = await LoadHolonAsync(ProviderUniqueStorageKey);
             else
             {
                 result.IsError = true;
@@ -161,8 +161,8 @@ namespace NextGenSoftware.OASIS.STAR.Zomes
             else if (this.Id != Guid.Empty)
                 result = LoadHolon(Id);
 
-            else if (this.ProviderKey != null && this.ProviderKey.Count > 0)
-                result = LoadHolon(ProviderKey);
+            else if (this.ProviderUniqueStorageKey != null && this.ProviderUniqueStorageKey.Count > 0)
+                result = LoadHolon(ProviderUniqueStorageKey);
             else
             {
                 result.IsError = true;
@@ -249,8 +249,8 @@ namespace NextGenSoftware.OASIS.STAR.Zomes
             if (this.Id != Guid.Empty)
                 result = await LoadHolonsForParentAsync(Id, holonType, loadChildren, recursive, maxChildDepth, continueOnError, version);
 
-            else if (this.ProviderKey != null)
-                result = await LoadHolonsForParentAsync(ProviderKey, holonType, loadChildren, recursive, maxChildDepth, continueOnError, version);
+            else if (this.ProviderUniqueStorageKey != null)
+                result = await LoadHolonsForParentAsync(ProviderUniqueStorageKey, holonType, loadChildren, recursive, maxChildDepth, continueOnError, version);
             else
             {
                 result.IsError = true;
@@ -267,8 +267,8 @@ namespace NextGenSoftware.OASIS.STAR.Zomes
             if (this.Id != Guid.Empty)
                 result = LoadHolonsForParent(Id, holonType, loadChildren, recursive, maxChildDepth, continueOnError, version);
 
-            else if (this.ProviderKey != null)
-                result = LoadHolonsForParent(ProviderKey, holonType, loadChildren, recursive, maxChildDepth, continueOnError, version);
+            else if (this.ProviderUniqueStorageKey != null)
+                result = LoadHolonsForParent(ProviderUniqueStorageKey, holonType, loadChildren, recursive, maxChildDepth, continueOnError, version);
             else
             {
                 result.IsError = true;
@@ -488,10 +488,10 @@ namespace NextGenSoftware.OASIS.STAR.Zomes
 
         private string GetCurrentProviderKey(Dictionary<ProviderType, string> providerKey)
         {
-            if (ProviderKey.ContainsKey(ProviderManager.CurrentStorageProviderType.Value) && !string.IsNullOrEmpty(ProviderKey[ProviderManager.CurrentStorageProviderType.Value]))
+            if (ProviderUniqueStorageKey.ContainsKey(ProviderManager.CurrentStorageProviderType.Value) && !string.IsNullOrEmpty(ProviderUniqueStorageKey[ProviderManager.CurrentStorageProviderType.Value]))
                 return providerKey[ProviderManager.CurrentStorageProviderType.Value];
             else
-                throw new Exception(string.Concat("ProviderKey not found for CurrentStorageProviderType ", ProviderManager.CurrentStorageProviderType.Name));
+                throw new Exception(string.Concat("ProviderUniqueStorageKey not found for CurrentStorageProviderType ", ProviderManager.CurrentStorageProviderType.Name));
 
             //TODO: Return OASISResult instead of throwing exceptions for ALL OASIS methods!
         }

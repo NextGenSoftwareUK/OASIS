@@ -69,13 +69,13 @@ namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS
         public string GetTelosAccountNameForAvatar(Guid avatarId)
         {
             //TODO: Handle OASISResult Properly.
-            return AvatarManagerInstance.GetPublicProviderKeyForAvatar(avatarId, Core.Enums.ProviderType.TelosOASIS).Result;
+            return KeyManager.GetProviderPublicKeyForAvatar(avatarId, Core.Enums.ProviderType.TelosOASIS).Result;
         }
 
         public string GetTelosAccountPrivateKeyForAvatar(Guid avatarId)
         {
             //TODO: Handle OASISResult Properly.
-            return AvatarManagerInstance.GetPrivateProviderKeyForAvatar(avatarId, Core.Enums.ProviderType.TelosOASIS).Result;
+            return KeyManager.GetProviderPrivateKeyForAvatar(avatarId, Core.Enums.ProviderType.TelosOASIS).Result;
         }
 
         public Account GetTelosAccountForAvatar(Guid avatarId)
@@ -90,13 +90,13 @@ namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS
         public Guid GetAvatarIdForTelosAccountName(string telosAccountName)
         {
             //TODO: Handle OASISResult Properly.
-            return AvatarManagerInstance.GetAvatarIdForProviderPublicKey(telosAccountName, Core.Enums.ProviderType.TelosOASIS).Result;
+            return KeyManager.GetAvatarIdForProviderPublicKey(telosAccountName, Core.Enums.ProviderType.TelosOASIS).Result;
         }
 
-        public IAvatarDetail GetAvatarForTelosAccountName(string telosAccountName)
+        public IAvatar GetAvatarForTelosAccountName(string telosAccountName)
         {
             //TODO: Handle OASISResult Properly.
-            return AvatarManagerInstance.GetAvatarForProviderPublicKey(telosAccountName, Core.Enums.ProviderType.TelosOASIS).Result;
+            return KeyManager.GetAvatarForProviderPublicKey(telosAccountName, Core.Enums.ProviderType.TelosOASIS).Result;
         }
 
         public override Task<OASISResult<IEnumerable<IAvatar>>> LoadAllAvatarsAsync(int version = 0)

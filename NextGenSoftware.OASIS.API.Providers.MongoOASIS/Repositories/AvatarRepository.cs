@@ -33,7 +33,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                 avatar.CreatedProviderType = new Core.Helpers.EnumValue<Core.Enums.ProviderType>(Core.Enums.ProviderType.MongoDBOASIS);
 
                 await _dbContext.Avatar.InsertOneAsync(avatar);
-                avatar.ProviderKey[Core.Enums.ProviderType.MongoDBOASIS] = avatar.Id;
+                avatar.ProviderUniqueStorageKey[Core.Enums.ProviderType.MongoDBOASIS] = avatar.Id;
                 
                 await UpdateAsync(avatar);
                 return avatar;
@@ -54,7 +54,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                 avatar.CreatedProviderType = new Core.Helpers.EnumValue<Core.Enums.ProviderType>(Core.Enums.ProviderType.MongoDBOASIS);
 
                 await _dbContext.AvatarDetail.InsertOneAsync(avatar);
-                avatar.ProviderKey[Core.Enums.ProviderType.MongoDBOASIS] = avatar.Id;
+                avatar.ProviderUniqueStorageKey[Core.Enums.ProviderType.MongoDBOASIS] = avatar.Id;
 
                 await UpdateAsync(avatar);
                 return avatar;
@@ -75,7 +75,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                 avatar.CreatedProviderType = new EnumValue<Core.Enums.ProviderType>(Core.Enums.ProviderType.MongoDBOASIS);
 
                 _dbContext.Avatar.InsertOne(avatar);
-                avatar.ProviderKey[Core.Enums.ProviderType.MongoDBOASIS] = avatar.Id;
+                avatar.ProviderUniqueStorageKey[Core.Enums.ProviderType.MongoDBOASIS] = avatar.Id;
 
                 Update(avatar);
                 return avatar;
@@ -96,7 +96,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                 avatar.CreatedProviderType = new Core.Helpers.EnumValue<Core.Enums.ProviderType>(Core.Enums.ProviderType.MongoDBOASIS);
 
                 _dbContext.AvatarDetail.InsertOne(avatar);
-                avatar.ProviderKey[Core.Enums.ProviderType.MongoDBOASIS] = avatar.Id;
+                avatar.ProviderUniqueStorageKey[Core.Enums.ProviderType.MongoDBOASIS] = avatar.Id;
 
                 Update(avatar);
                 return avatar;
@@ -592,7 +592,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                 }
                 else
                 {
-                    FilterDefinition<Avatar> data = Builders<Avatar>.Filter.Where(x => x.ProviderKey[Core.Enums.ProviderType.MongoDBOASIS] == providerKey);
+                    FilterDefinition<Avatar> data = Builders<Avatar>.Filter.Where(x => x.ProviderUniqueStorageKey[Core.Enums.ProviderType.MongoDBOASIS] == providerKey);
                     await _dbContext.Avatar.DeleteOneAsync(data);
                     result.Result = true;
                 }
@@ -632,7 +632,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                 }
                 else
                 {
-                    FilterDefinition<Avatar> data = Builders<Avatar>.Filter.Where(x => x.ProviderKey[Core.Enums.ProviderType.MongoDBOASIS] == providerKey);
+                    FilterDefinition<Avatar> data = Builders<Avatar>.Filter.Where(x => x.ProviderUniqueStorageKey[Core.Enums.ProviderType.MongoDBOASIS] == providerKey);
                     _dbContext.Avatar.DeleteOne(data);
                     result.Result = true;
                 }

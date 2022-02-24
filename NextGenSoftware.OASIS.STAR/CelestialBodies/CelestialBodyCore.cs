@@ -61,7 +61,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
 
         public CelestialBodyCore(Dictionary<ProviderType, string> providerKey) : base()
         {
-            this.ProviderKey = providerKey;
+            this.ProviderUniqueStorageKey = providerKey;
         }
 
         public CelestialBodyCore(Guid id) : base()

@@ -571,9 +571,13 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
 
             oasisAvatar.IsNewHolon = false;
             oasisAvatar.Id = avatar.HolonId;
-            oasisAvatar.ProviderKey = avatar.ProviderKey;
+            oasisAvatar.ProviderUniqueStorageKey = avatar.ProviderUniqueStorageKey;
+            oasisAvatar.ProviderPrivateKey = avatar.ProviderPrivateKey;
+            oasisAvatar.ProviderPublicKey = avatar.ProviderPublicKey;
+            oasisAvatar.ProviderUsername = avatar.ProviderUsername;
+            oasisAvatar.ProviderWalletAddress = avatar.ProviderWalletAddress;
             oasisAvatar.PreviousVersionId = avatar.PreviousVersionId;
-            oasisAvatar.PreviousVersionProviderKey = avatar.PreviousVersionProviderKey;
+            oasisAvatar.PreviousVersionProviderUniqueStorageKey = avatar.PreviousVersionProviderUniqueStorageKey;
             oasisAvatar.ProviderMetaData = avatar.ProviderMetaData;
             oasisAvatar.Description = avatar.Description;
             oasisAvatar.Title = avatar.Title;
@@ -627,10 +631,10 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             Core.Holons.AvatarDetail oasisAvatar = new Core.Holons.AvatarDetail();
             oasisAvatar.IsNewHolon = false;
             oasisAvatar.Id = avatar.Result.HolonId;
-            oasisAvatar.ProviderKey = avatar.Result.ProviderKey;
+            oasisAvatar.ProviderUniqueStorageKey = avatar.Result.ProviderUniqueStorageKey;
             oasisAvatar.ProviderMetaData = avatar.Result.ProviderMetaData;
             oasisAvatar.PreviousVersionId = avatar.Result.PreviousVersionId;
-            oasisAvatar.PreviousVersionProviderKey = avatar.Result.PreviousVersionProviderKey;
+            oasisAvatar.PreviousVersionProviderUniqueStorageKey = avatar.Result.PreviousVersionProviderUniqueStorageKey;
            // oasisAvatar.Title = avatar.Result.Title;
             oasisAvatar.Description = avatar.Result.Description;
             //oasisAvatar.FirstName = avatar.Result.FirstName;
@@ -653,10 +657,10 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             oasisAvatar.IsActive = avatar.Result.IsActive;
             oasisAvatar.Image2D = avatar.Result.Image2D;
             oasisAvatar.UmaJson = avatar.Result.UmaJson;
-            oasisAvatar.ProviderPrivateKey = avatar.Result.ProviderPrivateKey;
-            oasisAvatar.ProviderPublicKey = avatar.Result.ProviderPublicKey;
-            oasisAvatar.ProviderUsername = avatar.Result.ProviderUsername;
-            oasisAvatar.ProviderWalletAddress = avatar.Result.ProviderWalletAddress;
+            //oasisAvatar.ProviderPrivateKey = avatar.Result.ProviderPrivateKey;
+            //oasisAvatar.ProviderPublicKey = avatar.Result.ProviderPublicKey;
+            //oasisAvatar.ProviderUsername = avatar.Result.ProviderUsername;
+            //oasisAvatar.ProviderWalletAddress = avatar.Result.ProviderWalletAddress;
             oasisAvatar.XP = avatar.Result.XP;
             oasisAvatar.FavouriteColour = avatar.Result.FavouriteColour;
             oasisAvatar.STARCLIColour = avatar.Result.STARCLIColour;
@@ -734,18 +738,22 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
 
             Avatar mongoAvatar = new Avatar();
 
-            if (avatar.ProviderKey != null && avatar.ProviderKey.ContainsKey(Core.Enums.ProviderType.MongoDBOASIS))
-                mongoAvatar.Id = avatar.ProviderKey[Core.Enums.ProviderType.MongoDBOASIS];
+            if (avatar.ProviderUniqueStorageKey != null && avatar.ProviderUniqueStorageKey.ContainsKey(Core.Enums.ProviderType.MongoDBOASIS))
+                mongoAvatar.Id = avatar.ProviderUniqueStorageKey[Core.Enums.ProviderType.MongoDBOASIS];
 
             //if (avatar.CreatedProviderType != null)
             //    mongoAvatar.CreatedProviderType = avatar.CreatedProviderType.Value;
 
             mongoAvatar.HolonId = avatar.Id;
             // mongoAvatar.AvatarId = avatar.Id;
-            mongoAvatar.ProviderKey = avatar.ProviderKey;
+            mongoAvatar.ProviderUniqueStorageKey = avatar.ProviderUniqueStorageKey;
+            mongoAvatar.ProviderPrivateKey = avatar.ProviderPrivateKey;
+            mongoAvatar.ProviderPublicKey = avatar.ProviderPublicKey;
+            mongoAvatar.ProviderUsername = avatar.ProviderUsername;
+            mongoAvatar.ProviderWalletAddress = avatar.ProviderWalletAddress;
             mongoAvatar.ProviderMetaData = avatar.ProviderMetaData;
             mongoAvatar.PreviousVersionId = avatar.PreviousVersionId;
-            mongoAvatar.PreviousVersionProviderKey = avatar.PreviousVersionProviderKey;
+            mongoAvatar.PreviousVersionProviderUniqueStorageKey = avatar.PreviousVersionProviderUniqueStorageKey;
             mongoAvatar.Name = avatar.Name;
             mongoAvatar.Description = avatar.Description;
             mongoAvatar.FirstName = avatar.FirstName;
@@ -797,15 +805,15 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
 
             AvatarDetail mongoAvatar = new AvatarDetail();
 
-            if (avatarDetail.ProviderKey != null && avatarDetail.ProviderKey.ContainsKey(Core.Enums.ProviderType.MongoDBOASIS))
-                mongoAvatar.Id = avatarDetail.ProviderKey[Core.Enums.ProviderType.MongoDBOASIS];
+            if (avatarDetail.ProviderUniqueStorageKey != null && avatarDetail.ProviderUniqueStorageKey.ContainsKey(Core.Enums.ProviderType.MongoDBOASIS))
+                mongoAvatar.Id = avatarDetail.ProviderUniqueStorageKey[Core.Enums.ProviderType.MongoDBOASIS];
 
             //if (avatar.CreatedProviderType != null)
             //    mongoAvatar.CreatedProviderType = avatar.CreatedProviderType.Value;
 
             mongoAvatar.HolonId = avatarDetail.Id;
             // mongoAvatar.AvatarId = avatarDetail.Id;
-            mongoAvatar.ProviderKey = avatarDetail.ProviderKey;
+            mongoAvatar.ProviderUniqueStorageKey = avatarDetail.ProviderUniqueStorageKey;
             mongoAvatar.ProviderMetaData = avatarDetail.ProviderMetaData;
             mongoAvatar.PreviousVersionId = avatarDetail.PreviousVersionId;
             mongoAvatar.PreviousVersionProviderKey = avatarDetail.PreviousVersionProviderKey;
@@ -847,18 +855,18 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
 
             AvatarDetail mongoAvatar = new AvatarDetail();
 
-            if (avatar.ProviderKey != null && avatar.ProviderKey.ContainsKey(Core.Enums.ProviderType.MongoDBOASIS))
-                mongoAvatar.Id = avatar.ProviderKey[Core.Enums.ProviderType.MongoDBOASIS];
+            if (avatar.ProviderUniqueStorageKey != null && avatar.ProviderUniqueStorageKey.ContainsKey(Core.Enums.ProviderType.MongoDBOASIS))
+                mongoAvatar.Id = avatar.ProviderUniqueStorageKey[Core.Enums.ProviderType.MongoDBOASIS];
 
             // if (avatar.CreatedProviderType != null)
             //     mongoAvatar.CreatedProviderType = avatar.CreatedProviderType.Value;
 
             //Avatar Properties
             mongoAvatar.HolonId = avatar.Id;
-            mongoAvatar.ProviderKey = avatar.ProviderKey;
+            mongoAvatar.ProviderUniqueStorageKey = avatar.ProviderUniqueStorageKey;
             mongoAvatar.ProviderMetaData = avatar.ProviderMetaData;
             mongoAvatar.PreviousVersionId = avatar.PreviousVersionId;
-            mongoAvatar.PreviousVersionProviderKey = avatar.PreviousVersionProviderKey;
+            mongoAvatar.PreviousVersionProviderUniqueStorageKey = avatar.PreviousVersionProviderUniqueStorageKey;
             mongoAvatar.Name = avatar.Name;
             mongoAvatar.Description = avatar.Description;
             //mongoAvatar.FirstName = avatar.FirstName;
@@ -888,10 +896,10 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
 
             //AvatarDetail Properties
             mongoAvatar.UmaJson = avatar.UmaJson;
-            mongoAvatar.ProviderPrivateKey = avatar.ProviderPrivateKey;
-            mongoAvatar.ProviderPublicKey = avatar.ProviderPublicKey;
-            mongoAvatar.ProviderUsername = avatar.ProviderUsername;
-            mongoAvatar.ProviderWalletAddress = avatar.ProviderWalletAddress;
+            //mongoAvatar.ProviderPrivateKey = avatar.ProviderPrivateKey;
+            //mongoAvatar.ProviderPublicKey = avatar.ProviderPublicKey;
+            //mongoAvatar.ProviderUsername = avatar.ProviderUsername;
+            //mongoAvatar.ProviderWalletAddress = avatar.ProviderWalletAddress;
             mongoAvatar.FavouriteColour = avatar.FavouriteColour;
             mongoAvatar.STARCLIColour = avatar.STARCLIColour;
             mongoAvatar.Skills = avatar.Skills;
@@ -972,9 +980,9 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
 
             result.Result.IsNewHolon = false; //TODO: Not sure if best to default all new Holons to have this set to true or not?
             result.Result.Id = holon.Result.HolonId;
-            result.Result.ProviderKey = holon.Result.ProviderKey;
+            result.Result.ProviderUniqueStorageKey = holon.Result.ProviderUniqueStorageKey;
             result.Result.PreviousVersionId = holon.Result.PreviousVersionId;
-            result.Result.PreviousVersionProviderKey = holon.Result.PreviousVersionProviderKey;
+            result.Result.PreviousVersionProviderUniqueStorageKey = holon.Result.PreviousVersionProviderUniqueStorageKey;
             result.Result.MetaData = holon.Result.MetaData;
             result.Result.ProviderMetaData = holon.Result.ProviderMetaData;
             result.Result.Name = holon.Result.Name;
@@ -1045,13 +1053,13 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
            // if (holon.CreatedProviderType != null)
            //     mongoHolon.CreatedProviderType = holon.CreatedProviderType.Value;
 
-            if (holon.ProviderKey != null && holon.ProviderKey.ContainsKey(Core.Enums.ProviderType.MongoDBOASIS))
-                mongoHolon.Id = holon.ProviderKey[Core.Enums.ProviderType.MongoDBOASIS];
+            if (holon.ProviderUniqueStorageKey != null && holon.ProviderUniqueStorageKey.ContainsKey(Core.Enums.ProviderType.MongoDBOASIS))
+                mongoHolon.Id = holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.MongoDBOASIS];
 
             mongoHolon.HolonId = holon.Id;
-            mongoHolon.ProviderKey = holon.ProviderKey;
+            mongoHolon.ProviderUniqueStorageKey = holon.ProviderUniqueStorageKey;
             mongoHolon.PreviousVersionId = holon.PreviousVersionId;
-            mongoHolon.PreviousVersionProviderKey = holon.PreviousVersionProviderKey;
+            mongoHolon.PreviousVersionProviderUniqueStorageKey = holon.PreviousVersionProviderUniqueStorageKey;
             mongoHolon.ProviderMetaData = holon.ProviderMetaData;
             mongoHolon.MetaData = holon.MetaData;
             mongoHolon.CreatedOASISType = holon.CreatedOASISType;
