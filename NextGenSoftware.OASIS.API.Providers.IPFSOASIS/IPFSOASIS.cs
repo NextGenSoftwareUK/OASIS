@@ -147,19 +147,19 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
 
 
             if (_idLookup.Count(a => a.Value.Id == avatar.Id) > 0)
-                avatar.PreviousVersionProviderKey[Core.Enums.ProviderType.IPFSOASIS] =
+                avatar.PreviousVersionProviderUniqueStorageKey[Core.Enums.ProviderType.IPFSOASIS] =
                     _idLookup.FirstOrDefault(a => a.Value.Id == avatar.Id).Key;
 
             string json = JsonConvert.SerializeObject(avatar);
             var fsn = await IPFSClient.FileSystem.AddTextAsync(json);
-            avatar.ProviderKey[Core.Enums.ProviderType.IPFSOASIS] = fsn.Id;
+            avatar.ProviderUniqueStorageKey[Core.Enums.ProviderType.IPFSOASIS] = fsn.Id;
 
             // we store just values that we will use as a filter of search in other methods.
 
             dico.Id = avatar.Id;
             dico.login = avatar.Username;
             dico.password = avatar.Password;
-            dico.ProviderKey = avatar.ProviderKey;
+            dico.ProviderUniqueStorageKey = avatar.ProviderUniqueStorageKey;
             dico.email = avatar.Email;
             dico.HolonType = HolonType.Avatar;
 
@@ -185,16 +185,16 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
                 dico = new HolonResume();
 
             if (_idLookup.Count(a => a.Value.Id == holon.Id) > 0)
-                holon.PreviousVersionProviderKey[Core.Enums.ProviderType.IPFSOASIS] =
+                holon.PreviousVersionProviderUniqueStorageKey[Core.Enums.ProviderType.IPFSOASIS] =
                     _idLookup.FirstOrDefault(a => a.Value.Id == holon.Id).Key;
 
             string json = JsonConvert.SerializeObject(holon);
             var fsn = await IPFSClient.FileSystem.AddTextAsync(json);
-            holon.ProviderKey[Core.Enums.ProviderType.IPFSOASIS] = fsn.Id;
+            holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.IPFSOASIS] = fsn.Id;
 
             // we store just values that we will use as a filter of search in other methods.
             dico.Id = holon.Id;
-            dico.ProviderKey = holon.ProviderKey;
+            dico.ProviderUniqueStorageKey = holon.ProviderUniqueStorageKey;
             dico.ParentHolonId = holon.ParentHolonId;
             dico.HolonType = holon.HolonType;
 
@@ -219,18 +219,18 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
 
 
             if (_idLookup.Count(a => a.Value.Id == avatarDetail.Id) > 0)
-                avatarDetail.PreviousVersionProviderKey[Core.Enums.ProviderType.IPFSOASIS] =
+                avatarDetail.PreviousVersionProviderUniqueStorageKey[Core.Enums.ProviderType.IPFSOASIS] =
                     _idLookup.FirstOrDefault(a => a.Value.Id == avatarDetail.Id).Key;
 
             string json = JsonConvert.SerializeObject(avatarDetail);
             var fsn = await IPFSClient.FileSystem.AddTextAsync(json);
-            avatarDetail.ProviderKey[Core.Enums.ProviderType.IPFSOASIS] = fsn.Id;
+            avatarDetail.ProviderUniqueStorageKey[Core.Enums.ProviderType.IPFSOASIS] = fsn.Id;
 
             // we store just values that we will use as a filter of search in other methods.
 
             dico.Id = avatarDetail.Id;
             dico.login = avatarDetail.Username;           
-            dico.ProviderKey = avatarDetail.ProviderKey;
+            dico.ProviderUniqueStorageKey = avatarDetail.ProviderUniqueStorageKey;
             dico.email = avatarDetail.Email;
             dico.HolonType = HolonType.AvatarDetail;
 
@@ -324,7 +324,7 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
 
         public override async Task<OASISResult<IHolon>> LoadHolonAsync(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
         {
-            return await LoadHolonTemplateAsync(a => a.ProviderKey.Where(b => b.Value == providerKey).Any());
+            return await LoadHolonTemplateAsync(a => a.ProviderUniqueStorageKey.Where(b => b.Value == providerKey).Any());
         }
 
         /*** Templates****/
@@ -447,7 +447,7 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
             try
             {
                 OASISResult<IAvatar> avatar =
-                    await LoadAvatarTemplateAsync(a => a.ProviderKey.Where(b => b.Value == providerKey).Any());
+                    await LoadAvatarTemplateAsync(a => a.ProviderUniqueStorageKey.Where(b => b.Value == providerKey).Any());
 
                 avatar.Result.DeletedByAvatarId = AvatarManager.LoggedInAvatar.Id;
                 avatar.Result.DeletedDate = DateTime.Now;
@@ -504,7 +504,7 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
             try
             {
                 OASISResult<IHolon> holon =
-                    await LoadHolonTemplateAsync(a => a.ProviderKey.Where(b => b.Value == providerKey).Any());
+                    await LoadHolonTemplateAsync(a => a.ProviderUniqueStorageKey.Where(b => b.Value == providerKey).Any());
 
                 holon.Result.DeletedByAvatarId = AvatarManager.LoggedInAvatar.Id;
                 holon.Result.DeletedDate = DateTime.Now;
@@ -587,7 +587,7 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
 
         public override async Task<OASISResult<IAvatar>> LoadAvatarAsync(string providerKey, int version = 0)
         {
-            return await LoadAvatarTemplateAsync(a => a.ProviderKey.Where(b => b.Value == providerKey).Any());
+            return await LoadAvatarTemplateAsync(a => a.ProviderUniqueStorageKey.Where(b => b.Value == providerKey).Any());
         }
 
         public override async Task<OASISResult<IAvatar>> LoadAvatarAsync(Guid Id, int version = 0)
@@ -613,7 +613,7 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
             string json = "";
 
             result = await LoadHolonsForParentTemplateAsync(a =>
-                a.ProviderKey.Where(a => a.Value == providerKey).Any() && a.HolonType == type);
+                a.ProviderUniqueStorageKey.Where(a => a.Value == providerKey).Any() && a.HolonType == type);
 
             return result;
         }

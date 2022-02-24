@@ -21,26 +21,24 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 {
     public class AvatarManager : OASISManager
     {
-        private static Dictionary<string, string> _avatarIdToProviderKeyLookup = new Dictionary<string, string>();
-        private static Dictionary<string, string> _avatarIdToProviderPublicKeyLookup = new Dictionary<string, string>();
-        private static Dictionary<string, string> _avatarIdToProviderPrivateKeyLookup = new Dictionary<string, string>();
-        private static Dictionary<string, string> _avatarUsernameToProviderKeyLookup = new Dictionary<string, string>();
-        private static Dictionary<string, string> _avatarUsernameToProviderPublicKeyLookup = new Dictionary<string, string>();
-        private static Dictionary<string, string> _avatarUsernameToProviderPrivateKeyLookup = new Dictionary<string, string>();
-        private static Dictionary<string, string> _providerKeyToAvatarUsernameLookup = new Dictionary<string, string>();
-        private static Dictionary<string, string> _providerPublicKeyToAvatarUsernameLookup = new Dictionary<string, string>();
-        private static Dictionary<string, string> _providerPrivateKeyToAvatarUsernameLookup = new Dictionary<string, string>();
-        private static Dictionary<string, Guid> _providerKeyToAvatarIdLookup = new Dictionary<string, Guid>();
-        private static Dictionary<string, Guid> _providerPublicKeyToAvatarIdLookup = new Dictionary<string, Guid>();
-        private static Dictionary<string, Guid> _providerPrivateKeyToAvatarIdLookup = new Dictionary<string, Guid>();
-        private static Dictionary<string, IAvatar> _providerKeyToAvatarLookup = new Dictionary<string, IAvatar>();
-        private static Dictionary<string, IAvatarDetail> _providerPublicKeyToAvatarLookup = new Dictionary<string, IAvatarDetail>();
-        private static Dictionary<string, IAvatarDetail> _providerPrivateKeyToAvatarLookup = new Dictionary<string, IAvatarDetail>();
+        //private static Dictionary<string, string> _avatarIdToProviderUniqueStorageKeyLookup = new Dictionary<string, string>();
+        //private static Dictionary<string, string> _avatarIdToProviderPublicKeyLookup = new Dictionary<string, string>();
+        //private static Dictionary<string, string> _avatarIdToProviderPrivateKeyLookup = new Dictionary<string, string>();
+        //private static Dictionary<string, string> _avatarUsernameToProviderUniqueStorageKeyLookup = new Dictionary<string, string>();
+        //private static Dictionary<string, string> _avatarUsernameToProviderPublicKeyLookup = new Dictionary<string, string>();
+        //private static Dictionary<string, string> _avatarUsernameToProviderPrivateKeyLookup = new Dictionary<string, string>();
+        //private static Dictionary<string, string> _providerUniqueStorageKeyToAvatarUsernameLookup = new Dictionary<string, string>();
+        //private static Dictionary<string, string> _providerPublicKeyToAvatarUsernameLookup = new Dictionary<string, string>();
+        //private static Dictionary<string, string> _providerPrivateKeyToAvatarUsernameLookup = new Dictionary<string, string>();
+        //private static Dictionary<string, Guid> _providerUniqueStorageKeyToAvatarIdLookup = new Dictionary<string, Guid>();
+        //private static Dictionary<string, Guid> _providerPublicKeyToAvatarIdLookup = new Dictionary<string, Guid>();
+        //private static Dictionary<string, Guid> _providerPrivateKeyToAvatarIdLookup = new Dictionary<string, Guid>();
+        //private static Dictionary<string, IAvatar> _providerUniqueStorageKeyToAvatarLookup = new Dictionary<string, IAvatar>();
+        //private static Dictionary<string, IAvatar> _providerPublicKeyToAvatarLookup = new Dictionary<string, IAvatar>();
+        //private static Dictionary<string, IAvatar> _providerPrivateKeyToAvatarLookup = new Dictionary<string, IAvatar>();
         
         public static IAvatar LoggedInAvatar { get; set; }
         private ProviderManagerConfig _config;
-
-       // public OASISDNA OASISDNA { get; set; }
         
         public List<IOASISStorageProvider> OASISStorageProviders { get; set; }
         
@@ -54,6 +52,24 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 return _config;
             }
         }
+
+        //public KeyManager KeyManager
+        //{
+        //    get
+        //    {
+        //        if (_keyManager == null)
+        //        {
+        //            OASISResult<IOASISStorageProvider> result = OASISBootLoader.OASISBootLoader.GetAndActivateDefaultProvider();
+
+        //            if (result.IsError)
+        //                ErrorHandling.HandleError(ref result, string.Concat("Error calling OASISBootLoader.OASISBootLoader.GetAndActivateDefaultProvider(). Error details: ", result.Message), true, false, true);
+
+        //            _keyManager = new KeyManager(result.Result, Program.AvatarManager);
+        //        }
+
+        //        return _keyManager;
+        //    }
+        //}
 
         public delegate void StorageProviderError(object sender, AvatarManagerErrorEventArgs e);
 
@@ -77,7 +93,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         public OASISResult<IAvatar> Authenticate(string username, string password, string ipAddress)
         {
             OASISResult<IAvatar> result = new OASISResult<IAvatar>();
-            result.Result = LoadAvatar(username);
+            result = LoadAvatar(username);
 
             if (result.Result == null)
             {
@@ -452,12 +468,23 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return details.Result;
         }
 
-        public IAvatar LoadAvatar(Guid id, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IAvatar> LoadAvatar(Guid id, ProviderType providerType = ProviderType.Default)
         {
+            OASISResult<IAvatar> result = new OASISResult<IAvatar>();
+
             //TODO: Need to handle return of OASISResult properly...
-            IAvatar avatar = ProviderManager.SetAndActivateCurrentStorageProvider(providerType).Result.LoadAvatar(id).Result;
+            OASISResult<IOASISStorageProvider> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
+
+            if (!providerResult.IsError && providerResult.Result != null)
+                result = providerResult.Result.LoadAvatar(id);
+            else
+            {
+                result.IsError = true;
+                result.Message = providerResult.Message;
+            }
+
             //avatar.Password = null;
-            return avatar;
+            return result;
         }
 
         public async Task<IAvatar> LoadAvatarAsync(string username, string password, ProviderType providerType = ProviderType.Default)
@@ -471,24 +498,30 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         }
 
         //TODO: Replicate Auto-Fail over and Auto-Replication code for all Avatar, HolonManager methods etc...
-        public IAvatar LoadAvatar(string username, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IAvatar> LoadAvatar(string username, ProviderType providerType = ProviderType.Default)
         {
+            OASISResult<IAvatar> result = new OASISResult<IAvatar>();
             bool needToChangeBack = false;
             ProviderType currentProviderType = ProviderManager.CurrentStorageProviderType.Value;
-            IAvatar avatar = null;
 
             try
             {
-                //TODO: Need to handle return of OASISResult properly...
-                avatar = ProviderManager.SetAndActivateCurrentStorageProvider(providerType).Result.LoadAvatar(username).Result;
+                OASISResult<IOASISStorageProvider> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
+
+                if (!providerResult.IsError && providerResult.Result != null)
+                    result = providerResult.Result.LoadAvatar(username);
+                else
+                {
+                    result.IsError = true;
+                    result.Message = providerResult.Message;
+                }
             }
             catch (Exception ex)
             {
-                avatar = null;
-                LoggingManager.Log(string.Concat("Error loading avatar ", username, " for provider ", ProviderManager.CurrentStorageProviderType.Name, ". Error Message: ", ex.ToString()), LogType.Error);
+                ErrorHandling.HandleError(ref result, string.Concat("Error loading avatar ", username, " for provider ", ProviderManager.CurrentStorageProviderType.Name, ". Error Message: ", ex.ToString()), true, false, false, false, true, ex);
             }
 
-            if (avatar == null && ProviderManager.IsAutoFailOverEnabled)
+            if (result.Result == null && ProviderManager.IsAutoFailOverEnabled)
             {
                 foreach (EnumValue<ProviderType> type in ProviderManager.GetProviderAutoFailOverList())
                 {
@@ -496,23 +529,25 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                     {
                         try
                         {
-                            //TODO: Need to handle return of OASISResult properly...
-                            avatar = ProviderManager.SetAndActivateCurrentStorageProvider(type.Value).Result.LoadAvatar(username).Result;
-                            needToChangeBack = true;
+                            OASISResult<IOASISStorageProvider> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(type.Value);
 
-                            if (avatar != null)
-                                break;
+                            if (!providerResult.IsError && providerResult.Result != null)
+                                result = providerResult.Result.LoadAvatar(username);
+                            else
+                            {
+                                result.IsError = true;
+                                result.Message = providerResult.Message;
+                            }
                         }
                         catch (Exception ex)
                         {
-                            avatar = null;
-                            LoggingManager.Log(string.Concat("Error loading avatar ", username, " for provider ", ProviderManager.CurrentStorageProviderType.Name, ". Error Message: ", ex.ToString()), LogType.Error);
+                            ErrorHandling.HandleError(ref result, string.Concat("Error loading avatar ", username, " for provider ", ProviderManager.CurrentStorageProviderType.Name, ". Error Message: ", ex.ToString()));
                         }
                     }
                 }
             }
 
-            if (avatar == null)
+            if (result.Result == null)
             {
                 string errorMessage = string.Concat("All registered OASIS Providers in the AutoFailOverList failed to load avatar, ", username, ". Please view the logs for more information. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString());
                 LoggingManager.Log(errorMessage, LogType.Error);
@@ -522,7 +557,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             if (needToChangeBack)
                 ProviderManager.SetAndActivateCurrentStorageProvider(currentProviderType);
 
-            return avatar;
+            return result;
         }
         /*
         public async Task<IAvatar> SaveAvatarAsync(IAvatar avatar, ProviderType providerType = ProviderType.Default)
@@ -1294,463 +1329,460 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return result;
         }
 
-        // Could be used as the public key for private/public key pairs. Could also be a username/accountname/unique id/etc, etc.
-        public OASISResult<bool> LinkPublicProviderKeyToAvatar(Guid avatarId, ProviderType providerTypeToLinkTo, string providerKey, ProviderType providerToLoadAvatarFrom = ProviderType.Default)
-        {
-            OASISResult<bool> result = new OASISResult<bool>();
-
-            try
-            {
-                OASISResult<IAvatarDetail> avatarResult = ProviderManager.SetAndActivateCurrentStorageProvider(providerToLoadAvatarFrom).Result.LoadAvatarDetail(avatarId);
-
-                if (!avatarResult.IsError && avatarResult.Result != null)
-                {
-                    avatarResult.Result.ProviderPublicKey[providerTypeToLinkTo] = providerKey;
-                    result.Result = avatarResult.Result.Save() != null;
-                }
-                else
-                    result.Message = $"Error occured loading avatar for id {avatarId}. Reason: {avatarResult.Message}";
-            }
-            catch (Exception ex)
-            {
-                ErrorHandling.HandleError(ref result, $"Unknown error occured in LinkPublicProviderKeyToAvatar for avatar {avatarId} and providerType {Enum.GetName(typeof(ProviderType), providerToLoadAvatarFrom)} and key {providerKey}: {ex.Message}");
-            }
-
-            return result;
-        }
-
-        // Private key for a public/private keypair.
-        public OASISResult<bool> LinkPrivateProviderKeyToAvatar(Guid avatarId, ProviderType providerTypeToLinkTo, string providerPrivateKey, ProviderType providerToLoadAvatarFrom = ProviderType.Default)
-        {
-            OASISResult<bool> result = new OASISResult<bool>();
-
-            try
-            {
-                OASISResult<IAvatarDetail> avatarResult = ProviderManager.SetAndActivateCurrentStorageProvider(providerToLoadAvatarFrom).Result.LoadAvatarDetail(avatarId);
-
-                if (!avatarResult.IsError && avatarResult.Result != null)
-                {
-                    avatarResult.Result.ProviderPublicKey[providerTypeToLinkTo] = StringCipher.Encrypt(providerPrivateKey);
-                    result.Result = avatarResult.Result.Save() != null;
-                }
-                else
-                    result.Message = $"Error occured loading avatar for id {avatarId}. Reason: {avatarResult.Message}";
-            }
-            catch (Exception ex)
-            {
-                ErrorHandling.HandleError(ref result, $"Unknown error occured in LinkPrivateProviderKeyToAvatar for avatar {avatarId} and providerType {Enum.GetName(typeof(ProviderType), providerToLoadAvatarFrom)} and key {providerPrivateKey}: {ex.Message}");
-            }
-
-            return result;
-        }
-
-        public OASISResult<string> GetProviderKeyForAvatar(Guid avatarId, ProviderType providerType)
-        {
-            OASISResult<string> result = new OASISResult<string>();
-            string key = string.Concat(Enum.GetName(providerType), avatarId);
-
-            if (!_avatarIdToProviderKeyLookup.ContainsKey(key))
-            {
-                IAvatar avatar = LoadAvatar(avatarId, providerType);
-                GetProviderKeyForAvatar(avatar, providerType, key, _avatarIdToProviderKeyLookup);
-            }
-
-            result.Result = _avatarIdToProviderKeyLookup[key];
-            return result;
-        }
-
-        public OASISResult<string> GetProviderKeyForAvatar(string avatarUsername, ProviderType providerType)
-        {
-            OASISResult<string> result = new OASISResult<string>();
-
-            string key = string.Concat(Enum.GetName(providerType), avatarUsername);
-
-            if (!_avatarUsernameToProviderKeyLookup.ContainsKey(key))
-            {
-                IAvatar avatar = LoadAvatar(avatarUsername);
-                GetProviderKeyForAvatar(avatar, providerType, key, _avatarUsernameToProviderKeyLookup);
-            }
-
-            result.Result = _avatarUsernameToProviderKeyLookup[key];
-            return result;
-        }
-
-        private OASISResult<string> GetProviderKeyForAvatar(IAvatar avatar, ProviderType providerType, string key, Dictionary<string, string> dictionaryCache)
-        {
-            OASISResult<string> result = new OASISResult<string>();
-
-            if (avatar != null)
-            {
-                if (avatar.ProviderKey.ContainsKey(providerType))
-                    dictionaryCache[key] = avatar.ProviderKey[providerType];
-                else
-                    throw new InvalidOperationException(string.Concat("The avatar with id ", avatar.Id, " and username ", avatar.Username, " has not been linked to the ", Enum.GetName(providerType), " provider. Please use the LinkProviderKeyToAvatar method on the AvatarManager or avatar REST API."));
-            }
-            else
-                throw new InvalidOperationException(string.Concat("The avatar with id ", avatar.Id, " and username ", avatar.Username, " was not found."));
-
-            result.Result = dictionaryCache[key];
-            return result;
-        }
-
-        public OASISResult<string> GetPublicProviderKeyForAvatar(Guid avatarId, ProviderType providerType)
-        {
-            OASISResult<string> result = new OASISResult<string>();
-            string key = string.Concat(Enum.GetName(providerType), avatarId);
-
-            //TODO: I think it's fine to retreive the public key for another avatar because it is already public? :)
-            // if (LoggedInAvatar.Id != avatarId)
-            //    throw new InvalidOperationException("You cannot retreive the public key for another person's avatar. Please login to this account and try again.");
-
-            if (!_avatarIdToProviderPublicKeyLookup.ContainsKey(key))
-            {
-                IAvatarDetail avatar = LoadAvatarDetail(avatarId);
-
-                if (avatar != null)
-                {
-                    if (avatar.ProviderPublicKey.ContainsKey(providerType))
-                        _avatarIdToProviderPublicKeyLookup[key] = avatar.ProviderPublicKey[providerType];
-                    else
-                        throw new InvalidOperationException(string.Concat("The avatar with id ", avatarId, " has not been linked to the ", Enum.GetName(providerType), " provider. Please use the LinkProviderPublicKeyToAvatar method on the AvatarManager or avatar REST API."));
-                }
-                else
-                    throw new InvalidOperationException(string.Concat("The avatar with id ", avatarId, " was not found."));
-            }
-
-            result.Result = StringCipher.Decrypt(_avatarIdToProviderPublicKeyLookup[key]);
-            return result;
-        }
-
-        public OASISResult<string> GetPublicProviderKeyForAvatar(string avatarUsername, ProviderType providerType)
-        {
-            OASISResult<string> result = new OASISResult<string>();
-            string key = string.Concat(Enum.GetName(providerType), avatarUsername);
-
-            //TODO: I think it's fine to retreive the public key for another avatar because it is already public? :)
-            // if (LoggedInAvatar.Id != avatarId)
-            //    throw new InvalidOperationException("You cannot retreive the public key for another person's avatar. Please login to this account and try again.");
-
-            if (!_avatarUsernameToProviderPublicKeyLookup.ContainsKey(key))
-            {
-                IAvatarDetail avatar = LoadAvatarDetailByUsername(avatarUsername);
-
-                if (avatar != null)
-                {
-                    if (avatar.ProviderPublicKey.ContainsKey(providerType))
-                        _avatarUsernameToProviderPublicKeyLookup[key] = avatar.ProviderPublicKey[providerType];
-                    else
-                        throw new InvalidOperationException(string.Concat("The avatar with username ", avatarUsername, " has not been linked to the ", Enum.GetName(providerType), " provider. Please use the LinkProviderPublicKeyToAvatar method on the AvatarManager or avatar REST API."));
-                }
-                else
-                    throw new InvalidOperationException(string.Concat("The avatar with username ", avatarUsername, " was not found."));
-            }
-
-            result.Result = StringCipher.Decrypt(_avatarUsernameToProviderPublicKeyLookup[key]);
-            return result;
-        }
-
-        public OASISResult<string> GetPrivateProviderKeyForAvatar(Guid avatarId, ProviderType providerType)
-        {
-            OASISResult<string> result = new OASISResult<string>();
-            string key = string.Concat(Enum.GetName(providerType), avatarId);
-
-            if (LoggedInAvatar.Id != avatarId)
-                throw new InvalidOperationException("You cannot retreive the private key for another person's avatar. Please login to this account and try again.");
-
-            if (!_avatarIdToProviderPrivateKeyLookup.ContainsKey(key))
-            {
-                IAvatarDetail avatar = LoadAvatarDetail(avatarId);
-
-                if (avatar != null)
-                {
-                    if (avatar.ProviderPrivateKey.ContainsKey(providerType))
-                        _avatarIdToProviderPrivateKeyLookup[key] = avatar.ProviderPrivateKey[providerType];
-                    else
-                        throw new InvalidOperationException(string.Concat("The avatar with id ", avatarId, " has not been linked to the ", Enum.GetName(providerType), " provider. Please use the LinkProviderPrivateKeyToAvatar method on the AvatarManager or avatar REST API."));
-                }
-                else
-                    throw new InvalidOperationException(string.Concat("The avatar with id ", avatarId, " was not found."));
-            }
-
-            result.Result = StringCipher.Decrypt(_avatarIdToProviderPrivateKeyLookup[key]);
-            return result;
-        }
-
-        public OASISResult<string> GetPrivateProviderKeyForAvatar(string avatarUsername, ProviderType providerType)
-        {
-            OASISResult<string> result = new OASISResult<string>();
-            string key = string.Concat(Enum.GetName(providerType), avatarUsername);
-
-            if (LoggedInAvatar.Username != avatarUsername)
-                throw new InvalidOperationException("You cannot retreive the private key for another person's avatar. Please login to this account and try again.");
-
-            if (!_avatarUsernameToProviderPrivateKeyLookup.ContainsKey(key))
-            {
-                IAvatarDetail avatar = LoadAvatarDetailByUsername(avatarUsername);
-
-                if (avatar != null)
-                {
-                    if (avatar.ProviderPrivateKey.ContainsKey(providerType))
-                        _avatarUsernameToProviderPrivateKeyLookup[key] = avatar.ProviderPrivateKey[providerType];
-                    else
-                        throw new InvalidOperationException(string.Concat("The avatar with username ", avatarUsername, " has not been linked to the ", Enum.GetName(providerType), " provider. Please use the LinkProviderPrivateKeyToAvatar method on the AvatarManager or avatar REST API."));
-                }
-                else
-                    throw new InvalidOperationException(string.Concat("The avatar with username ", avatarUsername, " was not found."));
-            }
-
-            result.Result = StringCipher.Decrypt(_avatarUsernameToProviderPrivateKeyLookup[key]);
-            return result;
-        }
-
-        public OASISResult<Guid> GetAvatarIdForProviderKey(string providerKey, ProviderType providerType)
-        {
-            // TODO: Do we need to store both the id and whole avatar in the cache? Think only need one? Just storing the id would use less memory and be faster but there may be use cases for when we need the whole avatar?
-            // In future, if there is not a use case for the whole avatar we will just use the id cache and remove the other.
-            OASISResult<Guid> result = new OASISResult<Guid>();
-            string key = string.Concat(Enum.GetName(providerType), providerKey);
-
-            if (!_providerKeyToAvatarIdLookup.ContainsKey(key))
-                _providerKeyToAvatarIdLookup[key] = GetAvatarForProviderKey(providerKey, providerType).Result.Id;
-
-            result.Result = _providerKeyToAvatarIdLookup[key];
-            return result;
-        }
-
-        public OASISResult<string> GetAvatarUsernameForProviderKey(string providerKey, ProviderType providerType)
-        {
-            OASISResult<string> result = new OASISResult<string>();
-
-            // TODO: Do we need to store both the id and whole avatar in the cache? Think only need one? Just storing the id would use less memory and be faster but there may be use cases for when we need the whole avatar?
-            // In future, if there is not a use case for the whole avatar we will just use the id cache and remove the other.
-
-            string key = string.Concat(Enum.GetName(providerType), providerKey);
-
-            if (!_providerKeyToAvatarUsernameLookup.ContainsKey(key))
-                _providerKeyToAvatarUsernameLookup[key] = GetAvatarForProviderKey(providerKey, providerType).Result.Username;
-
-            result.Result = _providerKeyToAvatarUsernameLookup[key];
-            return result;
-        }
-
-        public OASISResult<IAvatar> GetAvatarForProviderKey(string providerKey, ProviderType providerType)
-        {
-            OASISResult<IAvatar> result = new OASISResult<IAvatar>();
-            string key = string.Concat(Enum.GetName(providerType), providerKey);
-
-            if (!_providerKeyToAvatarLookup.ContainsKey(key))
-            {
-                //TODO: Ideally need a new overload for LoadAvatar that takes the provider key.
-                //TODO: In the meantime should we cache the full list of Avatars? Could take up a LOT of memory so probably not good idea?
-                IAvatar avatar = LoadAllAvatars().FirstOrDefault(x => x.ProviderKey.ContainsKey(providerType) && x.ProviderKey[providerType] == providerKey);
-
-                if (avatar != null)
-                {
-                    _providerKeyToAvatarIdLookup[key] = avatar.Id;
-                    _providerKeyToAvatarUsernameLookup[key] = avatar.Username;
-                    _providerKeyToAvatarLookup[key] = avatar;
-                }
-                else
-                    throw new InvalidOperationException(string.Concat("The provider Key ", providerKey, " for the ", Enum.GetName(providerType), " providerType has not been linked to an avatar. Please use the LinkProviderKeyToAvatar method on the AvatarManager or avatar REST API."));
-            }
-
-            result.Result = _providerKeyToAvatarLookup[key];
-            return result;
-        }
-
-        public OASISResult<Guid> GetAvatarIdForProviderPublicKey(string providerKey, ProviderType providerType)
-        {
-            OASISResult<Guid> result = new OASISResult<Guid>();
-
-            // TODO: Do we need to store both the id and whole avatar in the cache? Think only need one? Just storing the id would use less memory and be faster but there may be use cases for when we need the whole avatar?
-            // In future, if there is not a use case for the whole avatar we will just use the id cache and remove the other.
-
-            string key = string.Concat(Enum.GetName(providerType), providerKey);
-
-            if (!_providerPublicKeyToAvatarIdLookup.ContainsKey(key))
-                _providerPublicKeyToAvatarIdLookup[key] = GetAvatarForProviderPublicKey(providerKey, providerType).Result.Id;
-
-            result.Result = _providerPublicKeyToAvatarIdLookup[key];
-            return result;
-        }
-
-        public OASISResult<string> GetAvatarUsernameForProviderPublicKey(string providerKey, ProviderType providerType)
-        {
-            OASISResult<string> result = new OASISResult<string>();
-            // TODO: Do we need to store both the id and whole avatar in the cache? Think only need one? Just storing the id would use less memory and be faster but there may be use cases for when we need the whole avatar?
-            // In future, if there is not a use case for the whole avatar we will just use the id cache and remove the other.
-
-            string key = string.Concat(Enum.GetName(providerType), providerKey);
-
-            if (!_providerPublicKeyToAvatarUsernameLookup.ContainsKey(key))
-                _providerPublicKeyToAvatarUsernameLookup[key] = GetAvatarForProviderPublicKey(providerKey, providerType).Result.Username;
-
-            result.Result = _providerPublicKeyToAvatarUsernameLookup[key];
-            return result;
-        }
-
-        public OASISResult<IAvatarDetail> GetAvatarForProviderPublicKey(string providerKey, ProviderType providerType)
-        {
-            OASISResult<IAvatarDetail> result = new OASISResult<IAvatarDetail>();
-            string key = string.Concat(Enum.GetName(providerType), providerKey);
-
-            if (!_providerPublicKeyToAvatarLookup.ContainsKey(key))
-            {
-                //TODO: Ideally need a new overload for LoadAvatarDetail that takes the public provider key.
-                //TODO: In the meantime should we cache the full list of AvatarDetails? Could take up a LOT of memory so probably not good idea?
-                IAvatarDetail avatar = LoadAllAvatarDetails().FirstOrDefault(x => x.ProviderPublicKey.ContainsKey(providerType) && x.ProviderPublicKey[providerType] == providerKey);
-
-                if (avatar != null)
-                {
-                    _providerPublicKeyToAvatarIdLookup[key] = avatar.Id;
-                    _providerPublicKeyToAvatarUsernameLookup[key] = avatar.Username;
-                    _providerPublicKeyToAvatarLookup[key] = avatar;
-                }
-                else
-                    throw new InvalidOperationException(string.Concat("The provider public Key ", providerKey, " for the ", Enum.GetName(providerType), " providerType has not been linked to an avatar. Please use the LinkProviderPublicKeyToAvatar method on the AvatarManager or avatar REST API."));
-            }
-
-            result.Result = _providerPublicKeyToAvatarLookup[key];
-            return result;
-        }
-
-        public OASISResult<Guid> GetAvatarIdForProviderPrivateKey(string providerKey, ProviderType providerType)
-        {
-            OASISResult<Guid> result = new OASISResult<Guid>();
-
-            // TODO: Do we need to store both the id and whole avatar in the cache? Think only need one? Just storing the id would use less memory and be faster but there may be use cases for when we need the whole avatar?
-            // In future, if there is not a use case for the whole avatar we will just use the id cache and remove the other.
-
-            string key = string.Concat(Enum.GetName(providerType), providerKey);
-
-            if (!_providerPrivateKeyToAvatarIdLookup.ContainsKey(key))
-                _providerPrivateKeyToAvatarIdLookup[key] = GetAvatarForProviderPrivateKey(providerKey, providerType).Result.Id;
-
-            result.Result = _providerPrivateKeyToAvatarIdLookup[key];
-            return result;
-        }
-
-        public OASISResult<string> GetAvatarUsernameForProviderPrivateKey(string providerKey, ProviderType providerType)
-        {
-            OASISResult<string> result = new OASISResult<string>();
-            // TODO: Do we need to store both the id and whole avatar in the cache? Think only need one? Just storing the id would use less memory and be faster but there may be use cases for when we need the whole avatar?
-            // In future, if there is not a use case for the whole avatar we will just use the id cache and remove the other.
-
-            string key = string.Concat(Enum.GetName(providerType), providerKey);
-
-            if (!_providerPrivateKeyToAvatarUsernameLookup.ContainsKey(key))
-                _providerPrivateKeyToAvatarUsernameLookup[key] = GetAvatarForProviderPrivateKey(providerKey, providerType).Result.Username;
+        //// Could be used as the public key for private/public key pairs. Could also be a username/accountname/unique id/etc, etc.
+        //public OASISResult<bool> LinkProviderPublicKeyToAvatar(Guid avatarId, ProviderType providerTypeToLinkTo, string providerKey, ProviderType providerToLoadAvatarFrom = ProviderType.Default)
+        //{
+        //    OASISResult<bool> result = new OASISResult<bool>();
+
+        //    try
+        //    {
+        //        OASISResult<IAvatar> avatarResult = ProviderManager.SetAndActivateCurrentStorageProvider(providerToLoadAvatarFrom).Result.LoadAvatar(avatarId);
+
+        //        if (!avatarResult.IsError && avatarResult.Result != null)
+        //        {
+        //            avatarResult.Result.ProviderPublicKey[providerTypeToLinkTo] = providerKey;
+        //            result.Result = avatarResult.Result.Save() != null;
+        //        }
+        //        else
+        //            result.Message = $"Error occured loading avatar for id {avatarId}. Reason: {avatarResult.Message}";
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        ErrorHandling.HandleError(ref result, $"Unknown error occured in LinkPublicProviderKeyToAvatar for avatar {avatarId} and providerType {Enum.GetName(typeof(ProviderType), providerToLoadAvatarFrom)} and key {providerKey}: {ex.Message}");
+        //    }
+
+        //    return result;
+        //}
+
+        //// Private key for a public/private keypair.
+        //public OASISResult<bool> LinkProviderPrivateKeyToAvatar(Guid avatarId, ProviderType providerTypeToLinkTo, string providerPrivateKey, ProviderType providerToLoadAvatarFrom = ProviderType.Default)
+        //{
+        //    OASISResult<bool> result = new OASISResult<bool>();
+
+        //    try
+        //    {
+        //        OASISResult<IAvatar> avatarResult = ProviderManager.SetAndActivateCurrentStorageProvider(providerToLoadAvatarFrom).Result.LoadAvatar(avatarId);
+
+        //        if (!avatarResult.IsError && avatarResult.Result != null)
+        //        {
+        //            avatarResult.Result.ProviderPublicKey[providerTypeToLinkTo] = StringCipher.Encrypt(providerPrivateKey);
+        //            result.Result = avatarResult.Result.Save() != null;
+        //        }
+        //        else
+        //            result.Message = $"Error occured loading avatar for id {avatarId}. Reason: {avatarResult.Message}";
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        ErrorHandling.HandleError(ref result, $"Unknown error occured in LinkPrivateProviderKeyToAvatar for avatar {avatarId} and providerType {Enum.GetName(typeof(ProviderType), providerToLoadAvatarFrom)} and key {providerPrivateKey}: {ex.Message}");
+        //    }
+
+        //    return result;
+        //}
+
+        //public OASISResult<string> GetProviderUniqueStorageKeyForAvatar(Guid avatarId, ProviderType providerType)
+        //{
+        //    OASISResult<string> result = new OASISResult<string>();
+        //    string key = string.Concat(Enum.GetName(providerType), avatarId);
+
+        //    if (!_avatarIdToProviderUniqueStorageKeyLookup.ContainsKey(key))
+        //    {
+        //        IAvatar avatar = LoadAvatar(avatarId, providerType);
+        //        GetProviderUniqueStorageKeyForAvatar(avatar, providerType, key, _avatarIdToProviderUniqueStorageKeyLookup);
+        //    }
+
+        //    result.Result = _avatarIdToProviderUniqueStorageKeyLookup[key];
+        //    return result;
+        //}
+
+        //public OASISResult<string> GetProviderUniqueStorageKeyForAvatar(string avatarUsername, ProviderType providerType)
+        //{
+        //    OASISResult<string> result = new OASISResult<string>();
+
+        //    string key = string.Concat(Enum.GetName(providerType), avatarUsername);
+
+        //    if (!_avatarUsernameToProviderUniqueStorageKeyLookup.ContainsKey(key))
+        //    {
+        //        IAvatar avatar = LoadAvatar(avatarUsername);
+        //        GetProviderUniqueStorageKeyForAvatar(avatar, providerType, key, _avatarUsernameToProviderUniqueStorageKeyLookup);
+        //    }
+
+        //    result.Result = _avatarUsernameToProviderUniqueStorageKeyLookup[key];
+        //    return result;
+        //}
+
+        //private OASISResult<string> GetProviderUniqueStorageKeyForAvatar(IAvatar avatar, ProviderType providerType, string key, Dictionary<string, string> dictionaryCache)
+        //{
+        //    OASISResult<string> result = new OASISResult<string>();
+
+        //    if (avatar != null)
+        //    {
+        //        if (avatar.ProviderUniqueStorageKey.ContainsKey(providerType))
+        //            dictionaryCache[key] = avatar.ProviderUniqueStorageKey[providerType];
+        //        else
+        //            throw new InvalidOperationException(string.Concat("The avatar with id ", avatar.Id, " and username ", avatar.Username, " has not been linked to the ", Enum.GetName(providerType), " provider. Please use the LinkProviderKeyToAvatar method on the AvatarManager or avatar REST API."));
+        //    }
+        //    else
+        //        throw new InvalidOperationException(string.Concat("The avatar with id ", avatar.Id, " and username ", avatar.Username, " was not found."));
+
+        //    result.Result = dictionaryCache[key];
+        //    return result;
+        //}
+
+        //public OASISResult<string> GetPublicProviderKeyForAvatar(Guid avatarId, ProviderType providerType)
+        //{
+        //    OASISResult<string> result = new OASISResult<string>();
+        //    string key = string.Concat(Enum.GetName(providerType), avatarId);
+
+        //    //TODO: I think it's fine to retreive the public key for another avatar because it is already public? :)
+        //    // if (LoggedInAvatar.Id != avatarId)
+        //    //    throw new InvalidOperationException("You cannot retreive the public key for another person's avatar. Please login to this account and try again.");
+
+        //    if (!_avatarIdToProviderPublicKeyLookup.ContainsKey(key))
+        //    {
+        //        IAvatar avatar = LoadAvatar(avatarId);
+
+        //        if (avatar != null)
+        //        {
+        //            if (avatar.ProviderPublicKey.ContainsKey(providerType))
+        //                _avatarIdToProviderPublicKeyLookup[key] = avatar.ProviderPublicKey[providerType];
+        //            else
+        //                throw new InvalidOperationException(string.Concat("The avatar with id ", avatarId, " has not been linked to the ", Enum.GetName(providerType), " provider. Please use the LinkProviderPublicKeyToAvatar method on the AvatarManager or avatar REST API."));
+        //        }
+        //        else
+        //            throw new InvalidOperationException(string.Concat("The avatar with id ", avatarId, " was not found."));
+        //    }
+
+        //    result.Result = StringCipher.Decrypt(_avatarIdToProviderPublicKeyLookup[key]);
+        //    return result;
+        //}
+
+        //public OASISResult<string> GetProviderPublicKeyForAvatar(string avatarUsername, ProviderType providerType)
+        //{
+        //    OASISResult<string> result = new OASISResult<string>();
+        //    string key = string.Concat(Enum.GetName(providerType), avatarUsername);
+
+        //    //TODO: I think it's fine to retreive the public key for another avatar because it is already public? :)
+        //    // if (LoggedInAvatar.Id != avatarId)
+        //    //    throw new InvalidOperationException("You cannot retreive the public key for another person's avatar. Please login to this account and try again.");
+
+        //    if (!_avatarUsernameToProviderPublicKeyLookup.ContainsKey(key))
+        //    {
+        //        IAvatar avatar = LoadAvatar(avatarUsername);
+
+        //        if (avatar != null)
+        //        {
+        //            if (avatar.ProviderPublicKey.ContainsKey(providerType))
+        //                _avatarUsernameToProviderPublicKeyLookup[key] = avatar.ProviderPublicKey[providerType];
+        //            else
+        //                throw new InvalidOperationException(string.Concat("The avatar with username ", avatarUsername, " has not been linked to the ", Enum.GetName(providerType), " provider. Please use the LinkProviderPublicKeyToAvatar method on the AvatarManager or avatar REST API."));
+        //        }
+        //        else
+        //            throw new InvalidOperationException(string.Concat("The avatar with username ", avatarUsername, " was not found."));
+        //    }
+
+        //    result.Result = StringCipher.Decrypt(_avatarUsernameToProviderPublicKeyLookup[key]);
+        //    return result;
+        //}
+
+        //public OASISResult<string> GetProviderPrivateKeyForAvatar(Guid avatarId, ProviderType providerType)
+        //{
+        //    OASISResult<string> result = new OASISResult<string>();
+        //    string key = string.Concat(Enum.GetName(providerType), avatarId);
+
+        //    if (LoggedInAvatar.Id != avatarId)
+        //        throw new InvalidOperationException("You cannot retreive the private key for another person's avatar. Please login to this account and try again.");
+
+        //    if (!_avatarIdToProviderPrivateKeyLookup.ContainsKey(key))
+        //    {
+        //        IAvatar avatar = LoadAvatar(avatarId);
+
+        //        if (avatar != null)
+        //        {
+        //            if (avatar.ProviderPrivateKey.ContainsKey(providerType))
+        //                _avatarIdToProviderPrivateKeyLookup[key] = avatar.ProviderPrivateKey[providerType];
+        //            else
+        //                throw new InvalidOperationException(string.Concat("The avatar with id ", avatarId, " has not been linked to the ", Enum.GetName(providerType), " provider. Please use the LinkProviderPrivateKeyToAvatar method on the AvatarManager or avatar REST API."));
+        //        }
+        //        else
+        //            throw new InvalidOperationException(string.Concat("The avatar with id ", avatarId, " was not found."));
+        //    }
+
+        //    result.Result = StringCipher.Decrypt(_avatarIdToProviderPrivateKeyLookup[key]);
+        //    return result;
+        //}
+
+        //public OASISResult<string> GetProviderPrivateKeyForAvatar(string avatarUsername, ProviderType providerType)
+        //{
+        //    OASISResult<string> result = new OASISResult<string>();
+        //    string key = string.Concat(Enum.GetName(providerType), avatarUsername);
+
+        //    if (LoggedInAvatar.Username != avatarUsername)
+        //        throw new InvalidOperationException("You cannot retreive the private key for another person's avatar. Please login to this account and try again.");
+
+        //    if (!_avatarUsernameToProviderPrivateKeyLookup.ContainsKey(key))
+        //    {
+        //        IAvatar avatar = LoadAvatar(avatarUsername);
+
+        //        if (avatar != null)
+        //        {
+        //            if (avatar.ProviderPrivateKey.ContainsKey(providerType))
+        //                _avatarUsernameToProviderPrivateKeyLookup[key] = avatar.ProviderPrivateKey[providerType];
+        //            else
+        //                throw new InvalidOperationException(string.Concat("The avatar with username ", avatarUsername, " has not been linked to the ", Enum.GetName(providerType), " provider. Please use the LinkProviderPrivateKeyToAvatar method on the AvatarManager or avatar REST API."));
+        //        }
+        //        else
+        //            throw new InvalidOperationException(string.Concat("The avatar with username ", avatarUsername, " was not found."));
+        //    }
+
+        //    result.Result = StringCipher.Decrypt(_avatarUsernameToProviderPrivateKeyLookup[key]);
+        //    return result;
+        //}
+
+        //public OASISResult<Guid> GetAvatarIdForProviderUniqueStorageKey(string providerKey, ProviderType providerType)
+        //{
+        //    // TODO: Do we need to store both the id and whole avatar in the cache? Think only need one? Just storing the id would use less memory and be faster but there may be use cases for when we need the whole avatar?
+        //    // In future, if there is not a use case for the whole avatar we will just use the id cache and remove the other.
+        //    OASISResult<Guid> result = new OASISResult<Guid>();
+        //    string key = string.Concat(Enum.GetName(providerType), providerKey);
+
+        //    if (!_providerUniqueStorageKeyToAvatarIdLookup.ContainsKey(key))
+        //        _providerUniqueStorageKeyToAvatarIdLookup[key] = GetAvatarForProviderUniqueStorageKey(providerKey, providerType).Result.Id;
+
+        //    result.Result = _providerUniqueStorageKeyToAvatarIdLookup[key];
+        //    return result;
+        //}
+
+        //public OASISResult<string> GetAvatarUsernameForProviderUniqueStorageKey(string providerKey, ProviderType providerType)
+        //{
+        //    OASISResult<string> result = new OASISResult<string>();
+
+        //    // TODO: Do we need to store both the id and whole avatar in the cache? Think only need one? Just storing the id would use less memory and be faster but there may be use cases for when we need the whole avatar?
+        //    // In future, if there is not a use case for the whole avatar we will just use the id cache and remove the other.
+
+        //    string key = string.Concat(Enum.GetName(providerType), providerKey);
+
+        //    if (!_providerUniqueStorageKeyToAvatarUsernameLookup.ContainsKey(key))
+        //        _providerUniqueStorageKeyToAvatarUsernameLookup[key] = GetAvatarForProviderUniqueStorageKey(providerKey, providerType).Result.Username;
+
+        //    result.Result = _providerUniqueStorageKeyToAvatarUsernameLookup[key];
+        //    return result;
+        //}
+
+        //public OASISResult<IAvatar> GetAvatarForProviderUniqueStorageKey(string providerKey, ProviderType providerType)
+        //{
+        //    OASISResult<IAvatar> result = new OASISResult<IAvatar>();
+        //    string key = string.Concat(Enum.GetName(providerType), providerKey);
+
+        //    if (!_providerUniqueStorageKeyToAvatarLookup.ContainsKey(key))
+        //    {
+        //        //TODO: Ideally need a new overload for LoadAvatar that takes the provider key.
+        //        //TODO: In the meantime should we cache the full list of Avatars? Could take up a LOT of memory so probably not good idea?
+        //        IAvatar avatar = LoadAllAvatars().FirstOrDefault(x => x.ProviderUniqueStorageKey.ContainsKey(providerType) && x.ProviderUniqueStorageKey[providerType] == providerKey);
+
+        //        if (avatar != null)
+        //        {
+        //            _providerUniqueStorageKeyToAvatarIdLookup[key] = avatar.Id;
+        //            _providerUniqueStorageKeyToAvatarUsernameLookup[key] = avatar.Username;
+        //            _providerUniqueStorageKeyToAvatarLookup[key] = avatar;
+        //        }
+        //        else
+        //            throw new InvalidOperationException(string.Concat("The provider Key ", providerKey, " for the ", Enum.GetName(providerType), " providerType has not been linked to an avatar. Please use the LinkProviderKeyToAvatar method on the AvatarManager or avatar REST API."));
+        //    }
+
+        //    result.Result = _providerUniqueStorageKeyToAvatarLookup[key];
+        //    return result;
+        //}
+
+        //public OASISResult<Guid> GetAvatarIdForProviderPublicKey(string providerKey, ProviderType providerType)
+        //{
+        //    OASISResult<Guid> result = new OASISResult<Guid>();
+
+        //    // TODO: Do we need to store both the id and whole avatar in the cache? Think only need one? Just storing the id would use less memory and be faster but there may be use cases for when we need the whole avatar?
+        //    // In future, if there is not a use case for the whole avatar we will just use the id cache and remove the other.
+
+        //    string key = string.Concat(Enum.GetName(providerType), providerKey);
+
+        //    if (!_providerPublicKeyToAvatarIdLookup.ContainsKey(key))
+        //        _providerPublicKeyToAvatarIdLookup[key] = GetAvatarForProviderPublicKey(providerKey, providerType).Result.Id;
+
+        //    result.Result = _providerPublicKeyToAvatarIdLookup[key];
+        //    return result;
+        //}
+
+        //public OASISResult<string> GetAvatarUsernameForProviderPublicKey(string providerKey, ProviderType providerType)
+        //{
+        //    OASISResult<string> result = new OASISResult<string>();
+        //    // TODO: Do we need to store both the id and whole avatar in the cache? Think only need one? Just storing the id would use less memory and be faster but there may be use cases for when we need the whole avatar?
+        //    // In future, if there is not a use case for the whole avatar we will just use the id cache and remove the other.
+
+        //    string key = string.Concat(Enum.GetName(providerType), providerKey);
+
+        //    if (!_providerPublicKeyToAvatarUsernameLookup.ContainsKey(key))
+        //        _providerPublicKeyToAvatarUsernameLookup[key] = GetAvatarForProviderPublicKey(providerKey, providerType).Result.Username;
+
+        //    result.Result = _providerPublicKeyToAvatarUsernameLookup[key];
+        //    return result;
+        //}
+
+        //public OASISResult<IAvatar> GetAvatarForProviderPublicKey(string providerKey, ProviderType providerType)
+        //{
+        //    OASISResult<IAvatar> result = new OASISResult<IAvatar>();
+        //    string key = string.Concat(Enum.GetName(providerType), providerKey);
+
+        //    if (!_providerPublicKeyToAvatarLookup.ContainsKey(key))
+        //    {
+        //        //TODO: Ideally need a new overload for LoadAvatarDetail that takes the public provider key.
+        //        //TODO: In the meantime should we cache the full list of AvatarDetails? Could take up a LOT of memory so probably not good idea?
+        //        IAvatar avatar = LoadAllAvatars().FirstOrDefault(x => x.ProviderPublicKey.ContainsKey(providerType) && x.ProviderPublicKey[providerType] == providerKey);
+
+        //        if (avatar != null)
+        //        {
+        //            _providerPublicKeyToAvatarIdLookup[key] = avatar.Id;
+        //            _providerPublicKeyToAvatarUsernameLookup[key] = avatar.Username;
+        //            _providerPublicKeyToAvatarLookup[key] = avatar;
+        //        }
+        //        else
+        //            throw new InvalidOperationException(string.Concat("The provider public Key ", providerKey, " for the ", Enum.GetName(providerType), " providerType has not been linked to an avatar. Please use the LinkProviderPublicKeyToAvatar method on the AvatarManager or avatar REST API."));
+        //    }
+
+        //    result.Result = _providerPublicKeyToAvatarLookup[key];
+        //    return result;
+        //}
+
+        //public OASISResult<Guid> GetAvatarIdForProviderPrivateKey(string providerKey, ProviderType providerType)
+        //{
+        //    OASISResult<Guid> result = new OASISResult<Guid>();
+
+        //    // TODO: Do we need to store both the id and whole avatar in the cache? Think only need one? Just storing the id would use less memory and be faster but there may be use cases for when we need the whole avatar?
+        //    // In future, if there is not a use case for the whole avatar we will just use the id cache and remove the other.
+
+        //    string key = string.Concat(Enum.GetName(providerType), providerKey);
+
+        //    if (!_providerPrivateKeyToAvatarIdLookup.ContainsKey(key))
+        //        _providerPrivateKeyToAvatarIdLookup[key] = GetAvatarForProviderPrivateKey(providerKey, providerType).Result.Id;
+
+        //    result.Result = _providerPrivateKeyToAvatarIdLookup[key];
+        //    return result;
+        //}
+
+        //public OASISResult<string> GetAvatarUsernameForProviderPrivateKey(string providerKey, ProviderType providerType)
+        //{
+        //    OASISResult<string> result = new OASISResult<string>();
+        //    // TODO: Do we need to store both the id and whole avatar in the cache? Think only need one? Just storing the id would use less memory and be faster but there may be use cases for when we need the whole avatar?
+        //    // In future, if there is not a use case for the whole avatar we will just use the id cache and remove the other.
+
+        //    string key = string.Concat(Enum.GetName(providerType), providerKey);
+
+        //    if (!_providerPrivateKeyToAvatarUsernameLookup.ContainsKey(key))
+        //        _providerPrivateKeyToAvatarUsernameLookup[key] = GetAvatarForProviderPrivateKey(providerKey, providerType).Result.Username;
             
-            result.Result = _providerPrivateKeyToAvatarUsernameLookup[key];
-            return result;
-        }
+        //    result.Result = _providerPrivateKeyToAvatarUsernameLookup[key];
+        //    return result;
+        //}
 
-        public OASISResult<IAvatarDetail> GetAvatarForProviderPrivateKey(string providerKey, ProviderType providerType)
-        {
-            OASISResult<IAvatarDetail> result = new OASISResult<IAvatarDetail>();
-            //TODO: Need to encrypt key first.
+        //public OASISResult<IAvatar> GetAvatarForProviderPrivateKey(string providerKey, ProviderType providerType)
+        //{
+        //    OASISResult<IAvatar> result = new OASISResult<IAvatar>();
+        //    string key = string.Concat(Enum.GetName(providerType), StringCipher.Encrypt(providerKey));
 
-            //TODO: Think will move public/private keys to main Avatar object so all keys in same place and then we don't need to cache the full AvatarDetail's, Avatar is much smaller! :)
-            string key = string.Concat(Enum.GetName(providerType), providerKey);
+        //    if (!_providerPrivateKeyToAvatarLookup.ContainsKey(key))
+        //    {
+        //        //TODO: Ideally need a new overload for LoadAvatarDetail that takes the public provider key.
+        //        //TODO: In the meantime should we cache the full list of AvatarDetails? Could take up a LOT of memory so probably not good idea?
+        //        IAvatar avatar = LoadAllAvatars().FirstOrDefault(x => x.ProviderPrivateKey.ContainsKey(providerType) && x.ProviderPrivateKey[providerType] == providerKey);
 
-            if (!_providerPrivateKeyToAvatarLookup.ContainsKey(key))
-            {
-                //TODO: Ideally need a new overload for LoadAvatarDetail that takes the public provider key.
-                //TODO: In the meantime should we cache the full list of AvatarDetails? Could take up a LOT of memory so probably not good idea?
-                IAvatarDetail avatar = LoadAllAvatarDetails().FirstOrDefault(x => x.ProviderPrivateKey.ContainsKey(providerType) && x.ProviderPrivateKey[providerType] == providerKey);
+        //        if (avatar != null)
+        //        {
+        //            _providerPrivateKeyToAvatarIdLookup[key] = avatar.Id;
+        //            _providerPrivateKeyToAvatarUsernameLookup[key] = avatar.Username;
+        //            _providerPrivateKeyToAvatarLookup[key] = avatar;
+        //        }
+        //        else
+        //            throw new InvalidOperationException(string.Concat("The provider private Key ", providerKey, " for the ", Enum.GetName(providerType), " providerType has not been linked to an avatar. Please use the LinkProviderPrivateKeyToAvatar method on the AvatarManager or avatar REST API."));
+        //    }
 
-                if (avatar != null)
-                {
-                    _providerPrivateKeyToAvatarIdLookup[key] = avatar.Id;
-                    _providerPrivateKeyToAvatarUsernameLookup[key] = avatar.Username;
-                    _providerPrivateKeyToAvatarLookup[key] = avatar;
-                }
-                else
-                    throw new InvalidOperationException(string.Concat("The provider private Key ", providerKey, " for the ", Enum.GetName(providerType), " providerType has not been linked to an avatar. Please use the LinkProviderPrivateKeyToAvatar method on the AvatarManager or avatar REST API."));
-            }
+        //    result.Result = _providerPrivateKeyToAvatarLookup[key];
+        //    return result;
+        //}
 
-            result.Result = _providerPrivateKeyToAvatarLookup[key];
-            return result;
-        }
+        //public OASISResult<Dictionary<ProviderType, string>> GetAllProviderUniqueStorageKeysForAvatar(Guid avatarId)
+        //{
+        //    OASISResult<Dictionary<ProviderType, string>> result = new OASISResult<Dictionary<ProviderType, string>>();
+        //    IAvatar avatar = LoadAvatar(avatarId);
 
-        public OASISResult<Dictionary<ProviderType, string>> GetAllProviderKeysForAvatar(Guid avatarId)
-        {
-            OASISResult<Dictionary<ProviderType, string>> result = new OASISResult<Dictionary<ProviderType, string>>();
-            IAvatar avatar = LoadAvatar(avatarId);
+        //    if (avatar != null)
+        //        result.Result = avatar.ProviderUniqueStorageKey;
+        //    else
+        //    {
+        //        result.IsError = true;
+        //        result.Message = string.Concat("No avatar was found for the id ", avatarId);
+        //    }
 
-            if (avatar != null)
-                result.Result = avatar.ProviderKey;
-            else
-            {
-                result.IsError = true;
-                result.Message = string.Concat("No avatar was found for the id ", avatarId);
-            }
+        //    return result;
+        //}
 
-            return result;
-        }
+        //public OASISResult<Dictionary<ProviderType, string>> GetAllProviderPublicKeysForAvatar(Guid avatarId)
+        //{
+        //    OASISResult<Dictionary<ProviderType, string>> result = new OASISResult<Dictionary<ProviderType, string>>();
 
-        public OASISResult<Dictionary<ProviderType, string>> GetAllPublicProviderKeysForAvatar(Guid avatarId)
-        {
-            OASISResult<Dictionary<ProviderType, string>> result = new OASISResult<Dictionary<ProviderType, string>>();
+        //    //TODO: Think it's ok for anyone to view anyones public keys since they are already public? :)
+        //    //if (LoggedInAvatar.Id != avatarId)
+        //    //{
+        //    //    result.IsError = true;
+        //    //    result.Message = "ERROR: You can only retreive your own public keys, not another persons avatar.";
+        //    //}
+        //    //else
+        //    //{
+        //        IAvatar avatar = LoadAvatar(avatarId);
 
-            //TODO: Think it's ok for anyone to view anyones public keys since they are already public? :)
-            //if (LoggedInAvatar.Id != avatarId)
-            //{
-            //    result.IsError = true;
-            //    result.Message = "ERROR: You can only retreive your own public keys, not another persons avatar.";
-            //}
-            //else
-            //{
-                IAvatarDetail avatar = LoadAvatarDetail(avatarId);
+        //        if (avatar != null)
+        //        {
+        //            result.Result = avatar.ProviderPublicKey;
 
-                if (avatar != null)
-                {
-                    result.Result = avatar.ProviderPublicKey;
+        //            // Decrypt the keys only for this return object (there are not stored in memory or storage unenrypted).
+        //            foreach (ProviderType providerType in result.Result.Keys)
+        //                result.Result[providerType] = StringCipher.Decrypt(result.Result[providerType]);
+        //        }
+        //        else
+        //        {
+        //            result.IsError = true;
+        //            result.Message = string.Concat("No avatar was found for the id ", avatarId);
+        //        }
+        //   // }
 
-                    // Decrypt the keys only for this return object (there are not stored in memory or storage unenrypted).
-                    foreach (ProviderType providerType in result.Result.Keys)
-                        result.Result[providerType] = StringCipher.Decrypt(result.Result[providerType]);
-                }
-                else
-                {
-                    result.IsError = true;
-                    result.Message = string.Concat("No avatar was found for the id ", avatarId);
-                }
-           // }
+        //    return result;
+        //}
 
-            return result;
-        }
+        //public OASISResult<Dictionary<ProviderType, string>> GetAllProviderPrivateKeysForAvatar(Guid avatarId)
+        //{
+        //    OASISResult<Dictionary<ProviderType, string>> result = new OASISResult<Dictionary<ProviderType, string>>();
 
-        public OASISResult<Dictionary<ProviderType, string>> GetAllPrivateProviderKeysForAvatar(Guid avatarId)
-        {
-            OASISResult<Dictionary<ProviderType, string>> result = new OASISResult<Dictionary<ProviderType, string>>();
+        //    if (LoggedInAvatar.Id != avatarId)
+        //    {
+        //        result.IsError = true;
+        //        result.Message = "ERROR: You can only retreive your own private keys, not another persons avatar.";
+        //    }
+        //    else
+        //    {
+        //        IAvatar avatar = LoadAvatar(avatarId);
 
-            if (LoggedInAvatar.Id != avatarId)
-            {
-                result.IsError = true;
-                result.Message = "ERROR: You can only retreive your own private keys, not another persons avatar.";
-            }
-            else
-            {
-                IAvatarDetail avatar = LoadAvatarDetail(avatarId);
+        //        if (avatar != null)
+        //        {
+        //            result.Result = avatar.ProviderPrivateKey;
 
-                if (avatar != null)
-                {
-                    result.Result = avatar.ProviderPrivateKey;
+        //            // Decrypt the keys only for this return object (there are not stored in memory or storage unenrypted).
+        //            foreach (ProviderType providerType in result.Result.Keys)
+        //                result.Result[providerType] = StringCipher.Decrypt(result.Result[providerType]);
+        //        }
+        //        else
+        //        {
+        //            result.IsError = true;
+        //            result.Message = string.Concat("No avatar was found for the id ", avatarId);
+        //        }
+        //    }
 
-                    // Decrypt the keys only for this return object (there are not stored in memory or storage unenrypted).
-                    foreach (ProviderType providerType in result.Result.Keys)
-                        result.Result[providerType] = StringCipher.Decrypt(result.Result[providerType]);
-                }
-                else
-                {
-                    result.IsError = true;
-                    result.Message = string.Concat("No avatar was found for the id ", avatarId);
-                }
-            }
-
-            return result;
-        }
+        //    return result;
+        //}
 
         public bool CheckIfEmailIsAlreadyInUse(string email)
         {

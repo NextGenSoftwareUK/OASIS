@@ -21,7 +21,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Entities
         public IHolon Original { get; set; }
         public bool IsNewHolon { get; set; }
         public bool IsChanged { get; set; }
-        public Dictionary<ProviderType, string> ProviderKey { get; set; }
+        public Dictionary<ProviderType, string> ProviderUniqueStorageKey { get; set; }
         public Dictionary<ProviderType, Dictionary<string, string>> ProviderMetaData { get; set; }
         public Dictionary<string, string> MetaData { get; set; }
         public HolonType HolonType { get; set; }

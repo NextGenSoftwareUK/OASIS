@@ -11,7 +11,6 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
 {
     public class Holon : HolonBase, IHolon, INotifyPropertyChanged
     {
-        private ISolarSystem _parentSolarSystem = null;
         public Holon() : base()
         {
             Init();

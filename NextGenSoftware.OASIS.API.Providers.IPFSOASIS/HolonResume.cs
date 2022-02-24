@@ -10,7 +10,7 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
         public string login { get; set; }
         public string password { get; set; }
         public string email { get; set; }
-        public Dictionary<ProviderType, string> ProviderKey { get; set; }
+        public Dictionary<ProviderType, string> ProviderUniqueStorageKey { get; set; }
         public Guid ParentHolonId { get; set; }
         public HolonType HolonType { get; set; }
     }

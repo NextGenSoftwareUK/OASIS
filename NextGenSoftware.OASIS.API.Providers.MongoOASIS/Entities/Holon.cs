@@ -26,7 +26,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities
         public Guid HolonId { get; set; } //Unique id within the OASIS.
         public string Name { get; set; }
         public string Description { get; set; }
-        //  public string ProviderKey { get; set; } //Unique key used by each provider (e.g. hashaddress in hc, etc).
+        //  public string ProviderUniqueStorageKey { get; set; } //Unique key used by each provider (e.g. hashaddress in hc, etc).
         public HolonType HolonType { get; set; }
         */
 
@@ -77,7 +77,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities
 
         /*
         [BsonDictionaryOptions(DictionaryRepresentation.ArrayOfArrays)]
-        public Dictionary<ProviderType, string> ProviderKey { get; set; } = new Dictionary<ProviderType, string>();
+        public Dictionary<ProviderType, string> ProviderUniqueStorageKey { get; set; } = new Dictionary<ProviderType, string>();
 
         [BsonRepresentation(BsonType.DateTime)]
         public DateTime CreatedDate { get; set; }

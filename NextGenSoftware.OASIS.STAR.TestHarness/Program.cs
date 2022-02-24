@@ -410,7 +410,7 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
             ShowSuccessMessage(string.Concat("Account.created: ", account.created_datetime.ToString()));
 
             // Check that the Telos account name is linked to the avatar and link it if it is not (PayWithSeeds will fail if it is not linked when it tries to add the karma points).
-            if (!STAR.LoggedInAvatar.ProviderKey.ContainsKey(ProviderType.TelosOASIS))
+            if (!STAR.LoggedInAvatar.ProviderUniqueStorageKey.ContainsKey(ProviderType.TelosOASIS))
             {
                 ShowWorkingMessage("Linking Telos Account to Avatar...");
                 IAvatarDetail avatarDetail = STAR.OASISAPI.Avatar.LinkProviderKeyToAvatar(STAR.LoggedInAvatar.Id, ProviderType.TelosOASIS, "davidsellams");
@@ -1475,13 +1475,13 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
         {
             Console.WriteLine(" Holon Loaded");
             Console.WriteLine(string.Concat(" Holon Id: ", e.Result.Result.Id));
-            Console.WriteLine(string.Concat(" Holon ProviderKey: ", e.Result.Result.ProviderKey));
+            Console.WriteLine(string.Concat(" Holon ProviderUniqueStorageKey: ", e.Result.Result.ProviderUniqueStorageKey));
             Console.WriteLine(string.Concat(" Holon Name: ", e.Result.Result.Name));
             Console.WriteLine(string.Concat(" Holon Type: ", e.Result.Result.HolonType));
             Console.WriteLine(string.Concat(" Holon Description: ", e.Result.Result.Description));
 
-            //Console.WriteLine(string.Concat("ourWorld.Zomes[0].Holons[0].ProviderKey: ", ourWorld.Zomes[0].Holons[0].ProviderKey));
-            Console.WriteLine(string.Concat(" ourWorld.Zomes[0].Holons[0].ProviderKey: ", _superWorld.CelestialBodyCore.Zomes[0].Holons[0].ProviderKey));
+            //Console.WriteLine(string.Concat("ourWorld.Zomes[0].Holons[0].ProviderUniqueStorageKey: ", ourWorld.Zomes[0].Holons[0].ProviderUniqueStorageKey));
+            Console.WriteLine(string.Concat(" ourWorld.Zomes[0].Holons[0].ProviderUniqueStorageKey: ", _superWorld.CelestialBodyCore.Zomes[0].Holons[0].ProviderUniqueStorageKey));
         }
 
         private static void OurWorld_OnHolonSaved(object sender, HolonSavedEventArgs e)
@@ -1492,13 +1492,13 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
             {
                 Console.WriteLine(" Holon Saved");
                 Console.WriteLine(string.Concat(" Holon Id: ", e.Result.Result.Id));
-                Console.WriteLine(string.Concat(" Holon ProviderKey: ", e.Result.Result.ProviderKey));
+                Console.WriteLine(string.Concat(" Holon ProviderUniqueStorageKey: ", e.Result.Result.ProviderUniqueStorageKey));
                 Console.WriteLine(string.Concat(" Holon Name: ", e.Result.Result.Name));
                 Console.WriteLine(string.Concat("Holon Type: ", e.Result.Result.HolonType));
                 Console.WriteLine(string.Concat(" Holon Description: ", e.Result.Result.Description));
 
                 Console.WriteLine(" Loading Holon...");
-                //ourWorld.CelestialBodyCore.LoadHolonAsync(e.Holon.Name, e.Holon.ProviderKey);
+                //ourWorld.CelestialBodyCore.LoadHolonAsync(e.Holon.Name, e.Holon.ProviderUniqueStorageKey);
                 _superWorld.CelestialBodyCore.LoadHolonAsync(e.Result.Result.Id);
             }
         }

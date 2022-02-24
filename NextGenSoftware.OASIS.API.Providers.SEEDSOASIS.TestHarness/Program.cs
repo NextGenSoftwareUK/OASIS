@@ -42,7 +42,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS.TestHarness
             IAvatar avatar = avatarManager.LoadAvatar("davidellams@hotmail.com");
 
             // Check that the Telos account name is linked to the avatar and link it if it is not (PayWithSeeds will fail if it is not linked when it tries to add the karma points).
-            if (!avatar.ProviderKey.ContainsKey(Core.Enums.ProviderType.TelosOASIS))
+            if (!avatar.ProviderUniqueStorageKey.ContainsKey(Core.Enums.ProviderType.TelosOASIS))
                 avatarManager.LinkProviderKeyToAvatar(avatar.Id, Core.Enums.ProviderType.TelosOASIS, "davidsellams");
 
             Console.WriteLine("Sending SEEDS from nextgenworld to davidsellams...");

@@ -11,7 +11,7 @@ namespace NextGenSoftware.OASIS.API.Core.Helpers
         public static IHolon MapBaseHolonProperties(IHolon sourceHolon, IHolon targetHolon, bool mapCelestialProperties = true)
         {
             targetHolon.Id = sourceHolon.Id;
-            targetHolon.ProviderKey = sourceHolon.ProviderKey;
+            targetHolon.ProviderUniqueStorageKey = sourceHolon.ProviderUniqueStorageKey;
             targetHolon.Name = sourceHolon.Name;
             targetHolon.Description = sourceHolon.Description;
             targetHolon.HolonType = sourceHolon.HolonType;
@@ -55,7 +55,7 @@ namespace NextGenSoftware.OASIS.API.Core.Helpers
             targetHolon.Children = sourceHolon.Children;
             targetHolon.Nodes = sourceHolon.Nodes;
             //targetHolon.CelestialBodyCore.Id = sourceHolon.Id; //TODO: Dont think need targetHolon now?
-            //targetHolon.CelestialBodyCore.ProviderKey = sourceHolon.ProviderKey; //TODO: Dont think need targetHolon now?
+            //targetHolon.CelestialBodyCore.ProviderUniqueStorageKey = sourceHolon.ProviderUniqueStorageKey; //TODO: Dont think need targetHolon now?
             targetHolon.CreatedByAvatar = sourceHolon.CreatedByAvatar;
             targetHolon.CreatedByAvatarId = sourceHolon.CreatedByAvatarId;
             targetHolon.CreatedDate = sourceHolon.CreatedDate;
@@ -231,7 +231,7 @@ namespace NextGenSoftware.OASIS.API.Core.Helpers
         public static T2 MapBaseHolonProperties(T1 sourceHolon, T2 targetHolon, bool mapCelestialProperties = true)
         {
             targetHolon.Id = sourceHolon.Id;
-            targetHolon.ProviderKey = sourceHolon.ProviderKey;
+            targetHolon.ProviderUniqueStorageKey = sourceHolon.ProviderUniqueStorageKey;
             targetHolon.Name = sourceHolon.Name;
             targetHolon.Description = sourceHolon.Description;
             targetHolon.HolonType = sourceHolon.HolonType;
@@ -275,7 +275,7 @@ namespace NextGenSoftware.OASIS.API.Core.Helpers
             targetHolon.Children = sourceHolon.Children;
             targetHolon.Nodes = sourceHolon.Nodes;
             //targetHolon.CelestialBodyCore.Id = sourceHolon.Id; //TODO: Dont think need targetHolon now?
-            //targetHolon.CelestialBodyCore.ProviderKey = sourceHolon.ProviderKey; //TODO: Dont think need targetHolon now?
+            //targetHolon.CelestialBodyCore.ProviderUniqueStorageKey = sourceHolon.ProviderUniqueStorageKey; //TODO: Dont think need targetHolon now?
             targetHolon.CreatedByAvatar = sourceHolon.CreatedByAvatar;
             targetHolon.CreatedByAvatarId = sourceHolon.CreatedByAvatarId;
             targetHolon.CreatedDate = sourceHolon.CreatedDate;
@@ -463,7 +463,7 @@ namespace NextGenSoftware.OASIS.API.Core.Helpers
             for (int i = 0; i < sourceHolons.Count(); i++)
             {
                 targetHolons[i].Id = sourceHolons[i].Id;
-                targetHolons[i].ProviderKey = sourceHolons[i].ProviderKey;
+                targetHolons[i].ProviderUniqueStorageKey = sourceHolons[i].ProviderUniqueStorageKey;
                 targetHolons[i].Name = sourceHolons[i].Name;
                 targetHolons[i].Description = sourceHolons[i].Description;
                 targetHolons[i].ParentGreatGrandSuperStar = sourceHolons[i].ParentGreatGrandSuperStar;
@@ -493,7 +493,7 @@ namespace NextGenSoftware.OASIS.API.Core.Helpers
                 targetHolons[i].Children = sourceHolons[i].Children;
                 targetHolons[i].Nodes = sourceHolons[i].Nodes;
                 //targetHolon.CelestialBodyCore.Id = sourceHolon.Id; //TODO: Dont think need targetHolon now?
-                //targetHolon.CelestialBodyCore.ProviderKey = sourceHolon.ProviderKey; //TODO: Dont think need targetHolon now?
+                //targetHolon.CelestialBodyCore.ProviderUniqueStorageKey = sourceHolon.ProviderUniqueStorageKey; //TODO: Dont think need targetHolon now?
                 targetHolons[i].CreatedByAvatar = sourceHolons[i].CreatedByAvatar;
                 targetHolons[i].CreatedByAvatarId = sourceHolons[i].CreatedByAvatarId;
                 targetHolons[i].CreatedDate = sourceHolons[i].CreatedDate;

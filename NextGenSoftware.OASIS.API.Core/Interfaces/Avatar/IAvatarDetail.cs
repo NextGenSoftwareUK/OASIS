@@ -56,10 +56,6 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces
         string Model3D { get; set; }
         IOmiverse Omniverse { get; set; }
         string Postcode { get; set; }
-        Dictionary<ProviderType, string> ProviderPrivateKey { get; set; }
-        Dictionary<ProviderType, string> ProviderPublicKey { get; set; }
-        Dictionary<ProviderType, string> ProviderUsername { get; set; }
-        Dictionary<ProviderType, string> ProviderWalletAddress { get; set; }
         AvatarSkills Skills { get; set; }
         List<Spell> Spells { get; set; }
         ConsoleColor STARCLIColour { get; set; }

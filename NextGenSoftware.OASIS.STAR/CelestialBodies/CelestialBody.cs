@@ -832,7 +832,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
             InitCelestialBodyCore();
             WireUpEvents();
 
-            if (!IsNewHolon && (Id != Guid.Empty || (ProviderKey != null && ProviderKey.Keys.Count > 0)))
+            if (!IsNewHolon && (Id != Guid.Empty || (ProviderUniqueStorageKey != null && ProviderUniqueStorageKey.Keys.Count > 0)))
             {
                 //OASISResult<ICelestialBody> celestialBodyResult = await LoadAsync();
                 OASISResult<IHolon> celestialBodyResult = await LoadAsync();
@@ -848,7 +848,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
             WireUpEvents();
 
             
-            if (!IsNewHolon && (Id != Guid.Empty || (ProviderKey != null && ProviderKey.Keys.Count > 0)))
+            if (!IsNewHolon && (Id != Guid.Empty || (ProviderUniqueStorageKey != null && ProviderUniqueStorageKey.Keys.Count > 0)))
             {
                 //OASISResult<ICelestialBody> celestialBodyResult = Load();
                 OASISResult<IHolon> celestialBodyResult = Load();
@@ -864,7 +864,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
             InitCelestialBodyCore();
             WireUpEvents();
 
-            if (!IsNewHolon && (Id != Guid.Empty || (ProviderKey != null && ProviderKey.Keys.Count > 0)))
+            if (!IsNewHolon && (Id != Guid.Empty || (ProviderUniqueStorageKey != null && ProviderUniqueStorageKey.Keys.Count > 0)))
             {
                 OASISResult<ICelestialBody> celestialBodyResult = await LoadAsync<T>();
 
@@ -879,7 +879,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
             WireUpEvents();
 
 
-            if (!IsNewHolon && (Id != Guid.Empty || (ProviderKey != null && ProviderKey.Keys.Count > 0)))
+            if (!IsNewHolon && (Id != Guid.Empty || (ProviderUniqueStorageKey != null && ProviderUniqueStorageKey.Keys.Count > 0)))
             {
                 OASISResult<ICelestialBody> celestialBodyResult = Load<T>();
 
@@ -890,7 +890,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
 
         private void InitCelestialBodyCore()
         {
-            // The Id/ProviderKey will be set from LoadCelestialBody/SetProperties.
+            // The Id/ProviderUniqueStorageKey will be set from LoadCelestialBody/SetProperties.
             switch (this.HolonType)
             {
                 case HolonType.Moon:
@@ -919,7 +919,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
             }
 
             CelestialBodyCore.Id = this.Id;
-            CelestialBodyCore.ProviderKey = this.ProviderKey;
+            CelestialBodyCore.ProviderUniqueStorageKey = this.ProviderUniqueStorageKey;
         }
 
         private void WireUpEvents()
@@ -946,9 +946,9 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
         private void SetProperties(IHolon holon)
         {
             this.Id = holon.Id;
-            this.ProviderKey = holon.ProviderKey;
+            this.ProviderUniqueStorageKey = holon.ProviderUniqueStorageKey;
             this.CelestialBodyCore.Id = holon.Id;
-            this.CelestialBodyCore.ProviderKey = holon.ProviderKey;
+            this.CelestialBodyCore.ProviderUniqueStorageKey = holon.ProviderUniqueStorageKey;
             this.Name = holon.Name;
             this.Description = holon.Description;
             this.HolonType = holon.HolonType;
@@ -1358,7 +1358,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
                 if (e.Result.Result.HolonType == HolonType.Planet)
                 {
                     // This is the hc Address of the planet (we can use this as the anchor/coreProviderKey to load all future zomes/holons belonging to this planet).
-                    this.ProviderKey = e.Result.Result.ProviderKey;
+                    this.ProviderUniqueStorageKey = e.Result.Result.ProviderUniqueStorageKey;
 
                     //Just in case the zomes/holons have been added since the planet was last saved.
                     foreach (Zome zome in CelestialBodyCore.Zomes)
@@ -1505,10 +1505,10 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
 
                     if (zome != null)
                     {
-                        //If the ProviderKey is empty then this is the first time the zome has been saved so we now need to save the zomes holons.
-                        //if (string.IsNullOrEmpty(zome.ProviderKey))
+                        //If the ProviderUniqueStorageKey is empty then this is the first time the zome has been saved so we now need to save the zomes holons.
+                        //if (string.IsNullOrEmpty(zome.ProviderUniqueStorageKey))
                         // {
-                        zome.ProviderKey = e.Result.Result.ProviderKey;
+                        zome.ProviderUniqueStorageKey = e.Result.Result.ProviderUniqueStorageKey;
                         zome.ParentHolon = e.Result.Result;
 
                         switch (HolonType)
@@ -1540,7 +1540,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialBodies
                     //TODO: Come back to this... Wouldn't parent already be set? Same for zomes? Need to check...
                     if (holon != null)
                     {
-                        holon.ProviderKey = e.Result.Result.ProviderKey;
+                        holon.ProviderUniqueStorageKey = e.Result.Result.ProviderUniqueStorageKey;
                         //holon.Parent = e.Holon;
                         //holon.ParentCelestialBody = this;
 

@@ -38,7 +38,7 @@ pub struct Avatar
 	Username: String,
 	Email: String,
 	HcAddressHash : String,
-	ProviderKey : String,
+	ProviderUniqueStorageKey : String,
 	Password: String,
     Title: String,
 	FirstName: String,
