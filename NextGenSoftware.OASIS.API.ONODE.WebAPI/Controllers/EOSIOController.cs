@@ -6,6 +6,7 @@ using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Managers;
+using System.Collections.Generic;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 {
@@ -46,9 +47,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpGet("GetEOSIOAccountNameForAvatar")]
-        public OASISResult<string> GetEOSIOAccountNameForAvatar(Guid avatarId)
+        public OASISResult<List<string>> GetEOSIOAccountNamesForAvatar(Guid avatarId)
         {
-            return new(EOSIOOASIS.GetEOSIOAccountNameForAvatar(avatarId));
+            return new(EOSIOOASIS.GetEOSIOAccountNamesForAvatar(avatarId));
         }
 
         /// <summary>

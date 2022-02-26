@@ -16,10 +16,10 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
     public class KeyManager : OASISManager
     {
         private static Dictionary<string, string> _avatarIdToProviderUniqueStorageKeyLookup = new Dictionary<string, string>();
-        private static Dictionary<string, string> _avatarIdToProviderPublicKeyLookup = new Dictionary<string, string>();
+        private static Dictionary<string, List<string>> _avatarIdToProviderPublicKeysLookup = new Dictionary<string, List<string>>();
         private static Dictionary<string, string> _avatarIdToProviderPrivateKeyLookup = new Dictionary<string, string>();
         private static Dictionary<string, string> _avatarUsernameToProviderUniqueStorageKeyLookup = new Dictionary<string, string>();
-        private static Dictionary<string, string> _avatarUsernameToProviderPublicKeyLookup = new Dictionary<string, string>();
+        private static Dictionary<string, List<string>> _avatarUsernameToProviderPublicKeysLookup = new Dictionary<string, List<string>>();
         private static Dictionary<string, string> _avatarUsernameToProviderPrivateKeyLookup = new Dictionary<string, string>();
         private static Dictionary<string, string> _providerUniqueStorageKeyToAvatarUsernameLookup = new Dictionary<string, string>();
         private static Dictionary<string, string> _providerPublicKeyToAvatarUsernameLookup = new Dictionary<string, string>();
@@ -58,10 +58,10 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         public static void ClearCache()
         {
             _avatarIdToProviderUniqueStorageKeyLookup.Clear();
-            _avatarIdToProviderPublicKeyLookup.Clear();
+            _avatarIdToProviderPublicKeysLookup.Clear();
             _avatarIdToProviderPrivateKeyLookup.Clear();
             _avatarUsernameToProviderUniqueStorageKeyLookup.Clear();
-            _avatarUsernameToProviderPublicKeyLookup.Clear();
+            _avatarUsernameToProviderPublicKeysLookup.Clear();
             _avatarUsernameToProviderPrivateKeyLookup.Clear();
             _providerUniqueStorageKeyToAvatarUsernameLookup.Clear();
             _providerPublicKeyToAvatarUsernameLookup.Clear();
@@ -84,14 +84,11 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 OASISResult<IAvatar> avatarResult = AvatarManager.LoadAvatar(avatarId, providerToLoadAvatarFrom);
 
                 if (!avatarResult.IsError && avatarResult.Result != null)
-                {
-                    avatarResult.Result.ProviderPublicKey[providerTypeToLinkTo] = providerKey;
-                    result.Result = avatarResult.Result.Save() != null;
-                }
+                    LinkProviderPublicKeyToAvatar(avatarResult.Result, providerTypeToLinkTo, providerKey, providerToLoadAvatarFrom);
                 else
                 {
                     result.IsError = true;
-                    result.Message = $"Error occured loading avatar for id {avatarId}. Reason: {avatarResult.Message}";
+                    result.Message = $"Error occured in LinkProviderPublicKeyToAvatar loading avatar for id {avatarId}. Reason: {avatarResult.Message}";
                 }
             }
             catch (Exception ex)
@@ -112,19 +109,42 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 OASISResult<IAvatar> avatarResult = AvatarManager.LoadAvatar(username, providerToLoadAvatarFrom);
 
                 if (!avatarResult.IsError && avatarResult.Result != null)
-                {
-                    avatarResult.Result.ProviderPublicKey[providerTypeToLinkTo] = providerKey;
-                    result.Result = avatarResult.Result.Save() != null;
-                }
+                    LinkProviderPublicKeyToAvatar(avatarResult.Result, providerTypeToLinkTo, providerKey, providerToLoadAvatarFrom);
                 else
                 {
                     result.IsError = true;
-                    result.Message = $"Error occured loading avatar for username {username}. Reason: {avatarResult.Message}";
+                    result.Message = $"Error occured in LinkProviderPublicKeyToAvatar loading avatar for username {username}. Reason: {avatarResult.Message}";
                 }
             }
             catch (Exception ex)
             {
                 ErrorHandling.HandleError(ref result, $"Unknown error occured in LinkProviderPublicKeyToAvatar for avatar {username} and providerType {Enum.GetName(typeof(ProviderType), providerToLoadAvatarFrom)} and key {providerKey}: {ex.Message}");
+            }
+
+            return result;
+        }
+
+        public static OASISResult<bool> LinkProviderPublicKeyToAvatar(IAvatar avatar, ProviderType providerTypeToLinkTo, string providerKey, ProviderType providerToLoadAvatarFrom = ProviderType.Default)
+        {
+            OASISResult<bool> result = new OASISResult<bool>();
+
+            try
+            {
+                if (!avatar.ProviderPublicKey[providerTypeToLinkTo].Contains(providerKey))
+                    avatar.ProviderPublicKey[providerTypeToLinkTo].Add(providerKey);
+                else
+                {
+                    result.IsError = true;
+                    result.Message = $"The ProviderKey {providerKey} is already linked to the avatar {avatar.Id} {avatar.Username}. The ProviderKey must be unique per provider.";
+                    return result;
+                }
+
+                //TODO: Upgrade Avatar.Save() methods to return OASISResult ASAP.
+                result.Result = avatar.Save() != null;
+            }
+            catch (Exception ex)
+            {
+                ErrorHandling.HandleError(ref result, $"Unknown error occured in LinkProviderPublicKeyToAvatar for avatar {avatar.Id} {avatar.Username} and providerType {Enum.GetName(typeof(ProviderType), providerToLoadAvatarFrom)} and key {providerKey}: {ex.Message}");
             }
 
             return result;
@@ -140,14 +160,11 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 OASISResult<IAvatar> avatarResult = AvatarManager.LoadAvatar(avatarId, providerToLoadAvatarFrom);
 
                 if (!avatarResult.IsError && avatarResult.Result != null)
-                {
-                    avatarResult.Result.ProviderPublicKey[providerTypeToLinkTo] = StringCipher.Encrypt(providerPrivateKey);
-                    result.Result = avatarResult.Result.Save() != null;
-                }
+                    LinkProviderPrivateKeyToAvatar(avatarResult.Result, providerTypeToLinkTo, providerPrivateKey, providerToLoadAvatarFrom);    
                 else
                 {
                     result.IsError = true;
-                    result.Message = $"Error occured loading avatar for id {avatarId}. Reason: {avatarResult.Message}";
+                    result.Message = $"Error occured in LinkProviderPrivateKeyToAvatar loading avatar for id {avatarId}. Reason: {avatarResult.Message}";
                 }
             }
             catch (Exception ex)
@@ -168,19 +185,33 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 OASISResult<IAvatar> avatarResult = AvatarManager.LoadAvatar(username, providerToLoadAvatarFrom);
 
                 if (!avatarResult.IsError && avatarResult.Result != null)
-                {
-                    avatarResult.Result.ProviderPublicKey[providerTypeToLinkTo] = StringCipher.Encrypt(providerPrivateKey);
-                    result.Result = avatarResult.Result.Save() != null;
-                }
+                    LinkProviderPrivateKeyToAvatar(avatarResult.Result, providerTypeToLinkTo, providerPrivateKey, providerToLoadAvatarFrom);
                 else
                 {
                     result.IsError = true;
-                    result.Message = $"Error occured loading avatar for username {username}. Reason: {avatarResult.Message}";
+                    result.Message = $"Error occured in LinkProviderPrivateKeyToAvatar loading avatar for username {username}. Reason: {avatarResult.Message}";
                 }
             }
             catch (Exception ex)
             {
                 ErrorHandling.HandleError(ref result, $"Unknown error occured in LinkPrivateProviderKeyToAvatar for avatar {username} and providerType {Enum.GetName(typeof(ProviderType), providerToLoadAvatarFrom)} and key {providerPrivateKey}: {ex.Message}");
+            }
+
+            return result;
+        }
+
+        public static OASISResult<bool> LinkProviderPrivateKeyToAvatar(IAvatar avatar, ProviderType providerTypeToLinkTo, string providerPrivateKey, ProviderType providerToLoadAvatarFrom = ProviderType.Default)
+        {
+            OASISResult<bool> result = new OASISResult<bool>();
+
+            try
+            {
+                avatar.ProviderPrivateKey[providerTypeToLinkTo] = StringCipher.Encrypt(providerPrivateKey);
+                result.Result = avatar.Save() != null;
+            }
+            catch (Exception ex)
+            {
+                ErrorHandling.HandleError(ref result, $"Unknown error occured in LinkPrivateProviderKeyToAvatar for avatar {avatar.Id} {avatar.Username} and providerType {Enum.GetName(typeof(ProviderType), providerToLoadAvatarFrom)} and key {providerPrivateKey}: {ex.Message}");
             }
 
             return result;
@@ -231,19 +262,19 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return result;
         }
 
-        public static OASISResult<string> GetProviderPublicKeyForAvatar(Guid avatarId, ProviderType providerType = ProviderType.Default)
+        public static OASISResult<List<string>> GetProviderPublicKeysForAvatar(Guid avatarId, ProviderType providerType = ProviderType.Default)
         {
-            OASISResult<string> result = new OASISResult<string>();
+            OASISResult<List<string>> result = new OASISResult<List<string>>();
             string key = string.Concat(Enum.GetName(providerType), avatarId);
 
-            if (!_avatarIdToProviderPublicKeyLookup.ContainsKey(key))
+            if (!_avatarIdToProviderPublicKeysLookup.ContainsKey(key))
             {
                 OASISResult<IAvatar> avatarResult = AvatarManager.LoadAvatar(avatarId, providerType);
 
                 if (!avatarResult.IsError && avatarResult.Result != null)
                 {
                     if (avatarResult.Result.ProviderPublicKey.ContainsKey(providerType))
-                        _avatarIdToProviderPublicKeyLookup[key] = avatarResult.Result.ProviderPublicKey[providerType];
+                        _avatarIdToProviderPublicKeysLookup[key] = avatarResult.Result.ProviderPublicKey[providerType];
                     else
                         ErrorHandling.HandleError(ref result, string.Concat("The avatar with id ", avatarId, " has not been linked to the ", Enum.GetName(providerType), " provider. Please use the LinkProviderPublicKeyToAvatar method on the AvatarManager or avatar REST API."));
                 }
@@ -254,16 +285,16 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 }
             }
 
-            result.Result = StringCipher.Decrypt(_avatarIdToProviderPublicKeyLookup[key]);
+            result.Result = _avatarIdToProviderPublicKeysLookup[key];
             return result;
         }
 
-        public static OASISResult<string> GetProviderPublicKeyForAvatar(string avatarUsername, ProviderType providerType = ProviderType.Default)
+        public static OASISResult<List<string>> GetProviderPublicKeysForAvatar(string avatarUsername, ProviderType providerType = ProviderType.Default)
         {
-            OASISResult<string> result = new OASISResult<string>();
+            OASISResult<List<string>> result = new OASISResult<List<string>>();
             string key = string.Concat(Enum.GetName(providerType), avatarUsername);
 
-            if (!_avatarUsernameToProviderPublicKeyLookup.ContainsKey(key))
+            if (!_avatarUsernameToProviderPublicKeysLookup.ContainsKey(key))
             {
                 OASISResult<IAvatar> avatarResult = AvatarManager.LoadAvatar(avatarUsername, providerType);
 
@@ -281,7 +312,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 }
             }
 
-            result.Result = StringCipher.Decrypt(_avatarUsernameToProviderPublicKeyLookup[key]);
+            result.Result = _avatarUsernameToProviderPublicKeysLookup[key];
             return result;
         }
 
@@ -486,7 +517,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             {
                 //TODO: Ideally need a new overload for LoadAvatarDetail that takes the public provider key.
                 //TODO: In the meantime should we cache the full list of AvatarDetails? Could take up a LOT of memory so probably not good idea?
-                IAvatar avatar = AvatarManager.LoadAllAvatars(providerType).FirstOrDefault(x => x.ProviderPublicKey.ContainsKey(providerType) && x.ProviderPublicKey[providerType] == providerKey);
+                IAvatar avatar = AvatarManager.LoadAllAvatars(providerType).FirstOrDefault(x => x.ProviderPublicKey.ContainsKey(providerType) && x.ProviderPublicKey[providerType].Contains(providerKey));
 
                 if (avatar != null)
                 {
@@ -600,9 +631,9 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return result;
         }
 
-        public static OASISResult<Dictionary<ProviderType, string>> GetAllProviderPublicKeysForAvatar(Guid avatarId, ProviderType providerType = ProviderType.Default)
+        public static OASISResult<Dictionary<ProviderType, List<string>>> GetAllProviderPublicKeysForAvatar(Guid avatarId, ProviderType providerType = ProviderType.Default)
         {
-            OASISResult<Dictionary<ProviderType, string>> result = new OASISResult<Dictionary<ProviderType, string>>();
+            OASISResult<Dictionary<ProviderType, List<string>>> result = new OASISResult<Dictionary<ProviderType, List<string>>>();
             OASISResult<IAvatar> avatarResult = AvatarManager.LoadAvatar(avatarId, providerType);
 
             if (!avatarResult.IsError && avatarResult.Result != null)

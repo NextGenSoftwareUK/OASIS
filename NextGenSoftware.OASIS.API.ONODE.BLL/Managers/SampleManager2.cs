@@ -7,11 +7,12 @@ using NextGenSoftware.OASIS.API.ONODE.BLL.Holons;
 
 namespace NextGenSoftware.OASIS.API.ONODE.BLL.Managers
 {
-    public class NFTManager
+    // EXAMPLE MANAGER ON HOW TO LOAD/SAVE DATA...
+    public class SampleManager2
     {
         private HolonManager _holonManager = null;
 
-        public NFTManager()
+        public SampleManager2()
         {
             OASISResult<IOASISStorageProvider> result = OASISBootLoader.OASISBootLoader.GetAndActivateDefaultProvider();
 
@@ -79,7 +80,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.BLL.Managers
 
         public OASISResult<PurchaseNFTHolon> LoadNFTPurchaseData3(Guid holonId)
         {
-            // Prefered way to lead holons that are strongly typed.
+            // Prefered way to load holons that are strongly typed.
             return _holonManager.LoadHolon<PurchaseNFTHolon>(holonId);
         }
     }

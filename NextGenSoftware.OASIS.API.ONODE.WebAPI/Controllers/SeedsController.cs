@@ -8,6 +8,7 @@ using NextGenSoftware.OASIS.API.ONODE.WebAPI.Models;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Providers.SEEDSOASIS.Membranes;
+using System.Collections.Generic;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 {
@@ -185,10 +186,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <param name="avatarId"></param>
         /// <returns></returns>
         [Authorize]
-        [HttpGet("GetTelosAccountNameForAvatar")]
-        public OASISResult<string> GetTelosAccountNameForAvatar(Guid avatarId)
+        [HttpGet("GetTelosAccountNamesForAvatar")]
+        public OASISResult<List<string>> GetTelosAccountNameForAvatar(Guid avatarId)
         {
-            return new(SEEDSOASIS.TelosOASIS.GetTelosAccountNameForAvatar(avatarId));
+            return new(SEEDSOASIS.TelosOASIS.GetTelosAccountNamesForAvatar(avatarId));
         }
 
         /// <summary>

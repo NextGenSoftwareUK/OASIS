@@ -141,7 +141,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS
 
         public OASISResult<string> PayWithSeedsUsingAvatar(Guid fromAvatarId, Guid toAvatarId, int quanitity, KarmaSourceType receivingKarmaFor, string appWebsiteServiceName, string appWebsiteServiceDesc, string appWebsiteServiceLink = null, string memo = null)
         {
-            return PayWithSeedsUsingTelosAccount(TelosOASIS.GetTelosAccountNameForAvatar(fromAvatarId), TelosOASIS.GetTelosAccountPrivateKeyForAvatar(toAvatarId), TelosOASIS.GetTelosAccountNameForAvatar(toAvatarId), quanitity, receivingKarmaFor, appWebsiteServiceName, appWebsiteServiceDesc, appWebsiteServiceLink, memo);
+            //TODO: Add support for multiple accounts later.
+            return PayWithSeedsUsingTelosAccount(TelosOASIS.GetTelosAccountNamesForAvatar(fromAvatarId)[0], TelosOASIS.GetTelosAccountPrivateKeyForAvatar(toAvatarId), TelosOASIS.GetTelosAccountNamesForAvatar(toAvatarId)[0], quanitity, receivingKarmaFor, appWebsiteServiceName, appWebsiteServiceDesc, appWebsiteServiceLink, memo);
         }
 
         public OASISResult<string> DonateWithSeedsUsingTelosAccount(string fromTelosAccountName, string fromTelosAccountPrivateKey, string toTelosAccountName, int quanitity, KarmaSourceType receivingKarmaFor, string appWebsiteServiceName, string appWebsiteServiceDesc, string appWebsiteServiceLink = null, string memo = null)
@@ -151,7 +152,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS
 
         public OASISResult<string> DonateWithSeedsUsingAvatar(Guid fromAvatarId, Guid toAvatarId, int quanitity, KarmaSourceType receivingKarmaFor, string appWebsiteServiceName, string appWebsiteServiceDesc, string appWebsiteServiceLink = null, string memo = null)
         {
-            return DonateWithSeedsUsingTelosAccount(TelosOASIS.GetTelosAccountNameForAvatar(fromAvatarId), TelosOASIS.GetTelosAccountPrivateKeyForAvatar(toAvatarId), TelosOASIS.GetTelosAccountNameForAvatar(toAvatarId), quanitity, receivingKarmaFor, appWebsiteServiceName, appWebsiteServiceDesc, appWebsiteServiceLink, memo);
+            //TODO: Add support for multiple accounts later.
+            return DonateWithSeedsUsingTelosAccount(TelosOASIS.GetTelosAccountNamesForAvatar(fromAvatarId)[0], TelosOASIS.GetTelosAccountPrivateKeyForAvatar(toAvatarId), TelosOASIS.GetTelosAccountNamesForAvatar(toAvatarId)[0], quanitity, receivingKarmaFor, appWebsiteServiceName, appWebsiteServiceDesc, appWebsiteServiceLink, memo);
         }
 
         public OASISResult<string> RewardWithSeedsUsingTelosAccount(string fromTelosAccountName, string fromTelosAccountPrivateKey, string toTelosAccountName, int quanitity, KarmaSourceType receivingKarmaFor, string appWebsiteServiceName, string appWebsiteServiceDesc, string appWebsiteServiceLink = null, string memo = null)
@@ -161,7 +163,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS
 
         public OASISResult<string> RewardWithSeedsUsingAvatar(Guid fromAvatarId, Guid toAvatarId, int quanitity, KarmaSourceType receivingKarmaFor, string appWebsiteServiceName, string appWebsiteServiceDesc, string appWebsiteServiceLink = null, string memo = null)
         {
-            return RewardWithSeedsUsingTelosAccount(TelosOASIS.GetTelosAccountNameForAvatar(fromAvatarId), TelosOASIS.GetTelosAccountPrivateKeyForAvatar(toAvatarId), TelosOASIS.GetTelosAccountNameForAvatar(toAvatarId), quanitity, receivingKarmaFor, appWebsiteServiceName, appWebsiteServiceDesc, appWebsiteServiceLink, memo);
+            //TODO: Add support for multiple accounts later.
+            return RewardWithSeedsUsingTelosAccount(TelosOASIS.GetTelosAccountNamesForAvatar(fromAvatarId)[0], TelosOASIS.GetTelosAccountPrivateKeyForAvatar(toAvatarId), TelosOASIS.GetTelosAccountNamesForAvatar(toAvatarId)[0], quanitity, receivingKarmaFor, appWebsiteServiceName, appWebsiteServiceDesc, appWebsiteServiceLink, memo);
         }
 
         public OASISResult<SendInviteResult> SendInviteToJoinSeedsUsingTelosAccount(string sponsorTelosAccountName, string sponsorTelosAccountNamePrivateKey, string referrerTelosAccountName, int transferQuantitiy, int sowQuantitiy, KarmaSourceType receivingKarmaFor, string appWebsiteServiceName, string appWebsiteServiceDesc, string appWebsiteServiceLink = null)
@@ -208,7 +211,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS
 
         public OASISResult<SendInviteResult> SendInviteToJoinSeedsUsingAvatar(Guid sponsorAvatarId, Guid referrerAvatarId, int transferQuantitiy, int sowQuantitiy, KarmaSourceType receivingKarmaFor, string appWebsiteServiceName, string appWebsiteServiceDesc, string appWebsiteServiceLink = null)
         {
-            return SendInviteToJoinSeedsUsingTelosAccount(TelosOASIS.GetTelosAccountNameForAvatar(sponsorAvatarId), TelosOASIS.GetTelosAccountPrivateKeyForAvatar(sponsorAvatarId), TelosOASIS.GetTelosAccountNameForAvatar(referrerAvatarId), transferQuantitiy, sowQuantitiy, receivingKarmaFor, appWebsiteServiceName, appWebsiteServiceDesc, appWebsiteServiceLink);
+            //TODO: Add support for multiple accounts later.
+            return SendInviteToJoinSeedsUsingTelosAccount(TelosOASIS.GetTelosAccountNamesForAvatar(sponsorAvatarId)[0], TelosOASIS.GetTelosAccountPrivateKeyForAvatar(sponsorAvatarId), TelosOASIS.GetTelosAccountNamesForAvatar(referrerAvatarId)[0], transferQuantitiy, sowQuantitiy, receivingKarmaFor, appWebsiteServiceName, appWebsiteServiceDesc, appWebsiteServiceLink);
         }
 
         public OASISResult<string> AcceptInviteToJoinSeedsUsingTelosAccount(string telosAccountName, string inviteSecret, KarmaSourceType receivingKarmaFor, string appWebsiteServiceName, string appWebsiteServiceDesc, string appWebsiteServiceLink = null)
@@ -255,7 +259,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS
 
         public OASISResult<string> AcceptInviteToJoinSeedsUsingAvatar(Guid avatarId, string inviteSecret, KarmaSourceType receivingKarmaFor, string appWebsiteServiceName, string appWebsiteServiceDesc, string appWebsiteServiceLink = null)
         {
-            return AcceptInviteToJoinSeedsUsingTelosAccount(TelosOASIS.GetTelosAccountNameForAvatar(avatarId), inviteSecret, receivingKarmaFor, appWebsiteServiceName, appWebsiteServiceDesc, appWebsiteServiceLink);
+            //TODO: Add support for multiple accounts later.
+            return AcceptInviteToJoinSeedsUsingTelosAccount(TelosOASIS.GetTelosAccountNamesForAvatar(avatarId)[0], inviteSecret, receivingKarmaFor, appWebsiteServiceName, appWebsiteServiceDesc, appWebsiteServiceLink);
         }
 
         public string GenerateSignInQRCode(string telosAccountName)
@@ -266,7 +271,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS
 
         public string GenerateSignInQRCodeForAvatar(Guid avatarId)
         {
-            return GenerateSignInQRCode(TelosOASIS.GetTelosAccountNameForAvatar(avatarId));
+            //TODO: Add support for multiple accounts later.
+            return GenerateSignInQRCode(TelosOASIS.GetTelosAccountNamesForAvatar(avatarId)[0]);
         }
 
         private OASISResult<string> PayWithSeeds(string fromTelosAccountName, string fromTelosAccountPrivateKey, string toTelosAccountName, int quanitity, KarmaTypePositive seedsKarmaType, KarmaTypePositive seedsKarmaHeroType, KarmaSourceType receivingKarmaFor, string appWebsiteServiceName, string appWebsiteServiceDesc, string appWebsiteServiceLink = null, string memo = null)
