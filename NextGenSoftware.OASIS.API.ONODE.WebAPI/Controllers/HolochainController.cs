@@ -4,6 +4,7 @@ using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Managers;
+using System.Collections.Generic;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 {
@@ -17,15 +18,15 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         }
 
         /// <summary>
-        /// Get's the Holochain Agent ID for the given Avatar.
+        /// Get's the Holochain Agent ID(s) for the given Avatar.
         /// </summary>
         /// <param name="avatarId"></param>
         /// <returns></returns>
         [Authorize]
-        [HttpGet("GetHolochainAgentIdForAvatar")]
-        public OASISResult<string> GetHolochainAgentIdForAvatar(Guid avatarId)
+        [HttpGet("GetHolochainAgentIdsForAvatar")]
+        public OASISResult<List<string>> GetHolochainAgentIdsForAvatar(Guid avatarId)
         {
-            return KeyManager.GetProviderPublicKeyForAvatar(avatarId, ProviderType.HoloOASIS);
+            return KeyManager.GetProviderPublicKeysForAvatar(avatarId, ProviderType.HoloOASIS);
         }
 
         /// <summary>

@@ -719,8 +719,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpPost("LinkProviderPublicKeyToAvatar")]
-        public OASISResult<bool> LinkProviderPublicKeyToAvatar(
-            LinkProviderKeyToAvatarParams linkProviderKeyToAvatarParams)
+        public OASISResult<bool> LinkProviderPublicKeyToAvatar(LinkProviderKeyToAvatarParams linkProviderKeyToAvatarParams)
         {
             bool isValid;
             ProviderType providerType;
@@ -736,6 +735,38 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 return result;
         }
 
+
+        /// <summary>
+        ///     Link's a given Avatar to a Providers Public Key (private/public key pairs or username, accountname, unique id, agentId, hash, etc).
+        /// </summary>
+        /// <param name="linkProviderKeyToAvatarParams">The params include AvatarId, ProviderTyper &amp; ProviderKey</param>
+        /// <returns></returns>
+        [Authorize]
+        [HttpPost("LinkProviderPublicKeyToAvatarByUsername")]
+        public OASISResult<bool> LinkProviderPublicKeyToAvatarByUsername(LinkProviderKeyToAvatarParams linkProviderKeyToAvatarParams)
+        {
+            bool isValid;
+            ProviderType providerType;
+            Guid avatarID;
+            OASISResult<bool> result;
+
+            (isValid, providerType, avatarID, result) = ValidateLinkProviderKeyToAvatarParams(linkProviderKeyToAvatarParams);
+
+            if (isValid)
+                return KeyManager.LinkProviderPublicKeyToAvatar(linkProviderKeyToAvatarParams.AvatarUsername,
+                   providerType, linkProviderKeyToAvatarParams.ProviderKey);
+            else
+                return result;
+
+            //object providerTypeObject;
+
+            //if (!Enum.TryParse(typeof(ProviderType), providerType, out providerTypeObject))
+            //    return (new OASISResult<bool> { IsError = true, Message = $"The given ProviderType {providerType} is invalid. Valid values include: {EnumHelper.GetEnumValues(typeof(ProviderType), EnumHelperListType.ItemsSeperatedByComma)}", Result = false });
+
+            //return KeyManager.LinkProviderPublicKeyToAvatar(avatarUsername, (ProviderType)providerTypeObject, providerKey);
+        }
+
+        
         /// <summary>
         ///     Link's a given Avatar to a Providers Public Key (private/public key pairs or username, accountname, unique id, agentId, hash, etc).
         /// </summary>
@@ -745,6 +776,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpPost("LinkProviderPublicKeyToAvatar")]
         public OASISResult<bool> LinkProviderPublicKeyToAvatar(string avatarUsername, string providerType, string providerKey)
         {
+            //TODO: Check if this works? :)
             object providerTypeObject;
 
             if (!Enum.TryParse(typeof(ProviderType), providerType, out providerTypeObject))
@@ -830,29 +862,29 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         }
 
         /// <summary>
-        ///     Get's a given avatar's public key for the given provider type.
+        ///     Get's a given avatar's public keys for the given provider type.
         /// </summary>
         /// <param name="avatarId">The Avatar's id.</param>
-        /// <param name="providerType">The provider type to retreive the public key for.</param>
+        /// <param name="providerType">The provider type to retreive the public keys for.</param>
         /// <returns></returns>
         [Authorize]
-        [HttpPost("GetProviderPublicKeyForAvatar")]
-        public OASISResult<string> GetProviderPublicKeyForAvatar(Guid avatarId, ProviderType providerType)
+        [HttpPost("GetProviderPublicKeysForAvatar")]
+        public OASISResult<List<string>> GetProviderPublicKeysForAvatar(Guid avatarId, ProviderType providerType)
         {
-            return KeyManager.GetProviderPublicKeyForAvatar(avatarId, providerType);
+            return KeyManager.GetProviderPublicKeysForAvatar(avatarId, providerType);
         }
 
         /// <summary>
-        ///     Get's a given avatar's public key for the given provider type.
+        ///     Get's a given avatar's public keys for the given provider type.
         /// </summary>
         /// <param name="username">The Avatar's username.</param>
-        /// <param name="providerType">The provider type to retreive the public key for.</param>
+        /// <param name="providerType">The provider type to retreive the public keys for.</param>
         /// <returns></returns>
         [Authorize]
-        [HttpPost("GetProviderPublicKeyForAvatar")]
-        public OASISResult<string> GetProviderPublicKeyForAvatar(string username, ProviderType providerType)
+        [HttpPost("GetProviderPublicKeysForAvatar")]
+        public OASISResult<List<string>> GetProviderPublicKeysForAvatar(string username, ProviderType providerType)
         {
-            return KeyManager.GetProviderPublicKeyForAvatar(username, providerType);
+            return KeyManager.GetProviderPublicKeysForAvatar(username, providerType);
         }
 
         /*

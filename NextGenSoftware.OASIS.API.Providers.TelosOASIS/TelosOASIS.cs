@@ -66,10 +66,10 @@ namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS
             return EOSIOOASIS.GetBalanceForAvatar(avatarId, code, symbol);
         }
 
-        public string GetTelosAccountNameForAvatar(Guid avatarId)
+        public List<string> GetTelosAccountNamesForAvatar(Guid avatarId)
         {
             //TODO: Handle OASISResult Properly.
-            return KeyManager.GetProviderPublicKeyForAvatar(avatarId, Core.Enums.ProviderType.TelosOASIS).Result;
+            return KeyManager.GetProviderPublicKeysForAvatar(avatarId, Core.Enums.ProviderType.TelosOASIS).Result;
         }
 
         public string GetTelosAccountPrivateKeyForAvatar(Guid avatarId)
@@ -82,8 +82,10 @@ namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS
         {
             //TODO: Do we need to cache this?
             if (!_avatarIdToTelosAccountLookup.ContainsKey(avatarId))
-                _avatarIdToTelosAccountLookup[avatarId] = GetTelosAccount(GetTelosAccountNameForAvatar(avatarId));
+                _avatarIdToTelosAccountLookup[avatarId] = GetTelosAccount(GetTelosAccountNamesForAvatar(avatarId)[0]);
 
+            //TODO: The OASIS can store multiple Public Keys (Telos Accounts) per Avatar but currently we will only retreive the first one.
+            // Need to add support to load multiple if needed?
             return _avatarIdToTelosAccountLookup[avatarId];
         }
 

@@ -423,13 +423,14 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
 
         public string GetBalanceForAvatar(Guid avatarId, string code, string symbol)
         {
-            return GetBalanceForEOSIOAccount(GetEOSIOAccountNameForAvatar(avatarId), code, symbol);
+            //TODO: Add support for multiple accounts later.
+            return GetBalanceForEOSIOAccount(GetEOSIOAccountNamesForAvatar(avatarId)[0], code, symbol);
         }
 
-        public string GetEOSIOAccountNameForAvatar(Guid avatarId)
+        public List<string> GetEOSIOAccountNamesForAvatar(Guid avatarId)
         {
             //TODO: Handle OASISResult Properly.
-            return KeyManager.GetProviderPublicKeyForAvatar(avatarId, Core.Enums.ProviderType.EOSIOOASIS).Result;
+            return KeyManager.GetProviderPublicKeysForAvatar(avatarId, Core.Enums.ProviderType.EOSIOOASIS).Result;
         }
 
         public string GetEOSIOAccountPrivateKeyForAvatar(Guid avatarId)
@@ -442,8 +443,9 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
         {
             //TODO: Do we need to cache this?
             if (!_avatarIdToEOSIOAccountLookup.ContainsKey(avatarId))
-                _avatarIdToEOSIOAccountLookup[avatarId] = GetEOSIOAccount(GetEOSIOAccountNameForAvatar(avatarId));
+                _avatarIdToEOSIOAccountLookup[avatarId] = GetEOSIOAccount(GetEOSIOAccountNamesForAvatar(avatarId)[0]);
 
+            //TODO: Add support for multiple accounts later.
             return _avatarIdToEOSIOAccountLookup[avatarId];
         }
 
