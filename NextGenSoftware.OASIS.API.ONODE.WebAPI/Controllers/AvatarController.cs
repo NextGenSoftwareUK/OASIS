@@ -887,6 +887,31 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             return KeyManager.GetProviderPublicKeysForAvatar(username, providerType);
         }
 
+        /// <summary>
+        ///     Get's a given avatar's public keys for the given provider type.
+        /// </summary>
+        /// <param name="username">The Avatar's username.</param>
+        /// <returns></returns>
+        [Authorize]
+        [HttpPost("GetAllProviderPublicKeysForAvatar")]
+        public OASISResult<Dictionary<ProviderType, List<string>>> GetAllProviderPublicKeysForAvatar(string username)
+        {
+            return KeyManager.GetAllProviderPublicKeysForAvatar(username);
+        }
+
+        /// <summary>
+        ///     Generate's a new unique private/public keypair.
+        /// </summary>
+        /// <returns></returns>
+        [Authorize]
+        [HttpPost("GenerateKeyPair")]
+        public OASISResult<KeyPair> GenerateKeyPair()
+        {
+            return KeyManager.GenerateKeyPair();
+        }
+
+
+
         /*
         /// <summary>
         ///     Link's a given telosAccount to the given avatar.
