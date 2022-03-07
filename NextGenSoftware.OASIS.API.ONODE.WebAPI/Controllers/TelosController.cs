@@ -14,7 +14,26 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
     [Route("api/telos")]
     public class TelosController : OASISControllerBase
     {
-        TelosOASIS _telosOASIS = null;
+        private TelosOASIS _telosOASIS = null;
+        private KeyManager _keyManager = null;
+
+        public KeyManager KeyManager
+        {
+            get
+            {
+                if (_keyManager == null)
+                {
+                    OASISResult<IOASISStorageProvider> result = OASISBootLoader.OASISBootLoader.GetAndActivateDefaultProvider();
+
+                    if (result.IsError)
+                        ErrorHandling.HandleError(ref result, string.Concat("Error calling OASISBootLoader.OASISBootLoader.GetAndActivateDefaultProvider(). Error details: ", result.Message), true, false, true);
+
+                    _keyManager = new KeyManager(result.Result, Program.AvatarManager);
+                }
+
+                return _keyManager;
+            }
+        }
 
         TelosOASIS TelosOASIS
         {

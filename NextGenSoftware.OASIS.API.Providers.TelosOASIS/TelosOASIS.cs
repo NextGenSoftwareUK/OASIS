@@ -14,6 +14,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS
     {
         private static Dictionary<Guid, Account> _avatarIdToTelosAccountLookup = new Dictionary<Guid, Account>();
         private AvatarManager _avatarManager = null;
+        private KeyManager _keyManager = null;
 
         public EOSIOOASIS.EOSIOOASIS EOSIOOASIS { get; set; }
 
@@ -27,15 +28,27 @@ namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS
             EOSIOOASIS = new EOSIOOASIS.EOSIOOASIS(host);
         }
 
-        private AvatarManager AvatarManagerInstance
+        private AvatarManager AvatarManager
         {
             get
             {
                 if (_avatarManager == null)
-                    _avatarManager = new AvatarManager(ProviderManager.GetStorageProvider(Core.Enums.ProviderType.MongoDBOASIS), AvatarManagerInstance.OASISDNA);
+                    _avatarManager = new AvatarManager(ProviderManager.GetStorageProvider(Core.Enums.ProviderType.MongoDBOASIS));
                     //_avatarManager = new AvatarManager(this); // TODO: URGENT: PUT THIS BACK IN ASAP! TEMP USING MONGO UNTIL EOSIO/Telos METHODS IMPLEMENTED...
 
                 return _avatarManager;
+            }
+        }
+
+        private KeyManager KeyManager
+        {
+            get
+            {
+                if (_keyManager == null)
+                    _keyManager = new KeyManager(ProviderManager.GetStorageProvider(Core.Enums.ProviderType.MongoDBOASIS), AvatarManager);
+                    //_keyManager = new KeyManager(this, AvatarManager); // TODO: URGENT: PUT THIS BACK IN ASAP! TEMP USING MONGO UNTIL EOSIO METHODS IMPLEMENTED...
+
+                return _keyManager;
             }
         }
 

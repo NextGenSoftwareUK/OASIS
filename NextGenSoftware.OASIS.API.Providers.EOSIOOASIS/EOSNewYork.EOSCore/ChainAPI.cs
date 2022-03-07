@@ -5,10 +5,10 @@ using Cryptography.ECDSA;
 using EOSNewYork.EOSCore.Params;
 using EOSNewYork.EOSCore.Response.API;
 using EOSNewYork.EOSCore.Serialization;
-using EOSNewYork.EOSCore.Utilities;
 using Action = EOSNewYork.EOSCore.Params.Action;
 using EOSNewYork.EOSCore.Lib;
 using NLog;
+using NextGenSoftware.OASIS.API.Core.Utilities;
 
 namespace EOSNewYork.EOSCore
 {

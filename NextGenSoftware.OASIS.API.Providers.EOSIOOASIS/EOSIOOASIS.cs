@@ -21,19 +21,32 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
         private static Dictionary<Guid, Account> _avatarIdToEOSIOAccountLookup = new Dictionary<Guid, Account>();
         private AvatarManager _avatarManager = null;
         private const string OASIS_EOSIO_ACCOUNT = "oasis";
+        private KeyManager _keyManager = null;
 
         public string HostURI { get; set; }
         public ChainAPI ChainAPI { get; set; }
 
-        private AvatarManager AvatarManagerInstance
+        private AvatarManager AvatarManager
         {
             get
             {
                 if (_avatarManager == null)
-                    _avatarManager = new AvatarManager(ProviderManager.GetStorageProvider(Core.Enums.ProviderType.MongoDBOASIS), AvatarManagerInstance.OASISDNA);
+                    _avatarManager = new AvatarManager(ProviderManager.GetStorageProvider(Core.Enums.ProviderType.MongoDBOASIS), AvatarManager.OASISDNA);
                     //_avatarManager = new AvatarManager(this); // TODO: URGENT: PUT THIS BACK IN ASAP! TEMP USING MONGO UNTIL EOSIO METHODS IMPLEMENTED...
 
                 return _avatarManager;
+            }
+        }
+
+        private KeyManager KeyManager
+        {
+            get
+            {
+                if (_keyManager == null)
+                    _keyManager = new KeyManager(ProviderManager.GetStorageProvider(Core.Enums.ProviderType.MongoDBOASIS), AvatarManager);
+                    //_keyManager = new KeyManager(this, AvatarManager); // TODO: URGENT: PUT THIS BACK IN ASAP! TEMP USING MONGO UNTIL EOSIO METHODS IMPLEMENTED...
+
+                return _keyManager;
             }
         }
 

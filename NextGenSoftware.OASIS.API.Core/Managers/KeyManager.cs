@@ -2,14 +2,15 @@
 using System.Collections.Generic;
 using System.Linq;
 //using BC = BCrypt.Net.BCrypt;
-//using Cryptography.ECDSA; //TODO: Use NuGet to add this when have internet connection next! :)
+using Cryptography.ECDSA;
+using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Events;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.Core.Security;
-using NextGenSoftware.OASIS.API.DNA;
+using NextGenSoftware.OASIS.API.Core.Utilities;
 
 namespace NextGenSoftware.OASIS.API.Core.Managers
 {
@@ -31,32 +32,59 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         private static Dictionary<string, IAvatar> _providerUniqueStorageKeyToAvatarLookup = new Dictionary<string, IAvatar>();
         private static Dictionary<string, IAvatar> _providerPublicKeyToAvatarLookup = new Dictionary<string, IAvatar>();
         private static Dictionary<string, IAvatar> _providerPrivateKeyToAvatarLookup = new Dictionary<string, IAvatar>();
+        private static KeyManager _instance = null;
 
-        private static AvatarManager AvatarManager { get; set; }
+        //public static KeyManager Instance 
+        //{
+        //    get
+        //    {
+        //        if (_instance == null)
+        //        {
+        //            _instance = new KeyManager()
+        //        }
+        //    }
+        //}
+
+        public WifUtility WifUtility { get; set; } = new WifUtility();
+
+        //public static AvatarManager AvatarManager { get; set; }
+        public AvatarManager AvatarManager { get; set; }
+
         public List<IOASISStorageProvider> OASISStorageProviders { get; set; }
 
         public delegate void StorageProviderError(object sender, AvatarManagerErrorEventArgs e);
 
         public KeyManager(IOASISStorageProvider OASISStorageProvider, AvatarManager avatarManager, OASISDNA OASISDNA = null) : base(OASISStorageProvider, OASISDNA)
         {
-            AvatarManager = avatarManager;            
+            AvatarManager = avatarManager;
         }
+
+        //public static void Init(IOASISStorageProvider OASISStorageProvider, AvatarManager avatarManager, OASISDNA OASISDNA = null) 
+        //{
+        //    AvatarManager = avatarManager;
+        //}
 
         //TODO: Implement later (Cache Disabled).
         //public bool IsCacheEnabled { get; set; } = true;
 
-        public static OASISResult<KeyPair> GenerateKeyPair()
+        public OASISResult<KeyPair> GenerateKeyPair(ProviderType provider)
+        {
+            return GenerateKeyPair(Enum.GetName(typeof(ProviderType), provider));
+        }
+
+        public OASISResult<KeyPair> GenerateKeyPair(string prefix)
         {
             OASISResult<KeyPair> result = new OASISResult<KeyPair>(new KeyPair());
-            //TODO: Add back in once added in Cryptography.ECDSA.
-            //byte[] privateKey = Secp256K1Manager.GenerateRandomKey();
-            //keyPair.PrivateKey = WifUtility.GetPrivateWif(privateKey);
-            //byte[] publicKey = Secp256K1Manager.GetPublicKey(privateKey, true);
-            //keyPair.PublicKey = WifUtility.GetPublicWif(publicKey, "EOS");
+
+            byte[] privateKey = Secp256K1Manager.GenerateRandomKey();
+            result.Result.PrivateKey = GetPrivateWif(privateKey);
+            byte[] publicKey = Secp256K1Manager.GetPublicKey(privateKey, true);
+            result.Result.PublicKey = GetPublicWif(publicKey, prefix);
+
             return result;
         }
 
-        public static void ClearCache()
+        public void ClearCache()
         {
             _avatarIdToProviderUniqueStorageKeyLookup.Clear();
             _avatarIdToProviderPublicKeysLookup.Clear();
@@ -76,7 +104,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         }
 
         // Could be used as the public key for private/public key pairs. Could also be a username/accountname/unique id/etc, etc.
-        public static OASISResult<bool> LinkProviderPublicKeyToAvatar(Guid avatarId, ProviderType providerTypeToLinkTo, string providerKey, ProviderType providerToLoadAvatarFrom = ProviderType.Default)
+        public OASISResult<bool> LinkProviderPublicKeyToAvatar(Guid avatarId, ProviderType providerTypeToLinkTo, string providerKey, ProviderType providerToLoadAvatarFrom = ProviderType.Default)
         {
             OASISResult<bool> result = new OASISResult<bool>();
 
@@ -98,7 +126,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         }
 
         // Could be used as the public key for private/public key pairs. Could also be a username/accountname/unique id/etc, etc.
-        public static OASISResult<bool> LinkProviderPublicKeyToAvatar(string username, ProviderType providerTypeToLinkTo, string providerKey, ProviderType providerToLoadAvatarFrom = ProviderType.Default)
+        public OASISResult<bool> LinkProviderPublicKeyToAvatar(string username, ProviderType providerTypeToLinkTo, string providerKey, ProviderType providerToLoadAvatarFrom = ProviderType.Default)
         {
             OASISResult<bool> result = new OASISResult<bool>();
 
@@ -119,7 +147,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return result;
         }
 
-        public static OASISResult<bool> LinkProviderPublicKeyToAvatar(IAvatar avatar, ProviderType providerTypeToLinkTo, string providerKey, ProviderType providerToLoadAvatarFrom = ProviderType.Default)
+        public OASISResult<bool> LinkProviderPublicKeyToAvatar(IAvatar avatar, ProviderType providerTypeToLinkTo, string providerKey, ProviderType providerToLoadAvatarFrom = ProviderType.Default)
         {
             OASISResult<bool> result = new OASISResult<bool>();
 
@@ -144,7 +172,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return result;
         }
 
-        public static OASISResult<KeyPair> GenerateKeyPairAndLinkProviderKeysToAvatar(Guid avatarId, ProviderType providerTypeToLinkTo, ProviderType providerToLoadAvatarFrom = ProviderType.Default)
+        public OASISResult<KeyPair> GenerateKeyPairAndLinkProviderKeysToAvatar(Guid avatarId, ProviderType providerTypeToLinkTo, ProviderType providerToLoadAvatarFrom = ProviderType.Default)
         {
             OASISResult<KeyPair> result = new OASISResult<KeyPair>();
 
@@ -166,7 +194,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         }
 
         // Could be used as the public key for private/public key pairs. Could also be a username/accountname/unique id/etc, etc.
-        public static OASISResult<KeyPair> GenerateKeyPairAndLinkProviderKeysToAvatar(string username, ProviderType providerTypeToLinkTo, ProviderType providerToLoadAvatarFrom = ProviderType.Default)
+        public OASISResult<KeyPair> GenerateKeyPairAndLinkProviderKeysToAvatar(string username, ProviderType providerTypeToLinkTo, ProviderType providerToLoadAvatarFrom = ProviderType.Default)
         {
             OASISResult<KeyPair> result = new OASISResult<KeyPair>();
 
@@ -187,7 +215,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return result;
         }
 
-        public static OASISResult<KeyPair> GenerateKeyPairAndLinkProviderKeysToAvatar(IAvatar avatar, ProviderType providerTypeToLinkTo, ProviderType providerToLoadAvatarFrom = ProviderType.Default)
+        public OASISResult<KeyPair> GenerateKeyPairAndLinkProviderKeysToAvatar(IAvatar avatar, ProviderType providerTypeToLinkTo, ProviderType providerToLoadAvatarFrom = ProviderType.Default)
         {
             OASISResult<KeyPair> result = new OASISResult<KeyPair>();
 
@@ -199,7 +227,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
             try
             {                
-                result = GenerateKeyPair();
+                result = GenerateKeyPair(providerTypeToLinkTo);
 
                 if (!result.IsError && result.Result != null)
                 {
@@ -225,7 +253,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         }
 
         // Private key for a public/private keypair.
-        public static OASISResult<bool> LinkProviderPrivateKeyToAvatar(Guid avatarId, ProviderType providerTypeToLinkTo, string providerPrivateKey, ProviderType providerToLoadAvatarFrom = ProviderType.Default)
+        public OASISResult<bool> LinkProviderPrivateKeyToAvatar(Guid avatarId, ProviderType providerTypeToLinkTo, string providerPrivateKey, ProviderType providerToLoadAvatarFrom = ProviderType.Default)
         {
             OASISResult<bool> result = new OASISResult<bool>();
 
@@ -247,7 +275,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         }
 
         // Private key for a public/private keypair.
-        public static OASISResult<bool> LinkProviderPrivateKeyToAvatar(string username, ProviderType providerTypeToLinkTo, string providerPrivateKey, ProviderType providerToLoadAvatarFrom = ProviderType.Default)
+        public OASISResult<bool> LinkProviderPrivateKeyToAvatar(string username, ProviderType providerTypeToLinkTo, string providerPrivateKey, ProviderType providerToLoadAvatarFrom = ProviderType.Default)
         {
             OASISResult<bool> result = new OASISResult<bool>();
 
@@ -268,7 +296,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return result;
         }
 
-        public static OASISResult<bool> LinkProviderPrivateKeyToAvatar(IAvatar avatar, ProviderType providerTypeToLinkTo, string providerPrivateKey, ProviderType providerToLoadAvatarFrom = ProviderType.Default)
+        public OASISResult<bool> LinkProviderPrivateKeyToAvatar(IAvatar avatar, ProviderType providerTypeToLinkTo, string providerPrivateKey, ProviderType providerToLoadAvatarFrom = ProviderType.Default)
         {
             OASISResult<bool> result = new OASISResult<bool>();
 
@@ -296,7 +324,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return result;
         }
 
-        public static OASISResult<string> GetProviderUniqueStorageKeyForAvatar(Guid avatarId, ProviderType providerType = ProviderType.Default)
+        public OASISResult<string> GetProviderUniqueStorageKeyForAvatar(Guid avatarId, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<string> result = new OASISResult<string>();
             string key = string.Concat(Enum.GetName(providerType), avatarId);
@@ -318,7 +346,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return result;
         }
 
-        public static OASISResult<string> GetProviderUniqueStorageKeyForAvatar(string avatarUsername, ProviderType providerType = ProviderType.Default)
+        public OASISResult<string> GetProviderUniqueStorageKeyForAvatar(string avatarUsername, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<string> result = new OASISResult<string>();
 
@@ -338,7 +366,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return result;
         }
 
-        public static OASISResult<List<string>> GetProviderPublicKeysForAvatar(Guid avatarId, ProviderType providerType = ProviderType.Default)
+        public OASISResult<List<string>> GetProviderPublicKeysForAvatar(Guid avatarId, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<List<string>> result = new OASISResult<List<string>>();
             string key = string.Concat(Enum.GetName(providerType), avatarId);
@@ -362,7 +390,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return result;
         }
 
-        public static OASISResult<List<string>> GetProviderPublicKeysForAvatar(string avatarUsername, ProviderType providerType = ProviderType.Default)
+        public OASISResult<List<string>> GetProviderPublicKeysForAvatar(string avatarUsername, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<List<string>> result = new OASISResult<List<string>>();
             string key = string.Concat(Enum.GetName(providerType), avatarUsername);
@@ -386,7 +414,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return result;
         }
 
-        public static OASISResult<string> GetProviderPrivateKeyForAvatar(Guid avatarId, ProviderType providerType = ProviderType.Default)
+        public OASISResult<string> GetProviderPrivateKeyForAvatar(Guid avatarId, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<string> result = new OASISResult<string>();
             string key = string.Concat(Enum.GetName(providerType), avatarId);
@@ -416,7 +444,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return result;
         }
 
-        public static OASISResult<string> GetProviderPrivateKeyForAvatar(string avatarUsername, ProviderType providerType = ProviderType.Default)
+        public OASISResult<string> GetProviderPrivateKeyForAvatar(string avatarUsername, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<string> result = new OASISResult<string>();
             string key = string.Concat(Enum.GetName(providerType), avatarUsername);
@@ -443,7 +471,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return result;
         }
 
-        public static OASISResult<Guid> GetAvatarIdForProviderUniqueStorageKey(string providerKey, ProviderType providerType = ProviderType.Default)
+        public OASISResult<Guid> GetAvatarIdForProviderUniqueStorageKey(string providerKey, ProviderType providerType = ProviderType.Default)
         {
             // TODO: Do we need to store both the id and whole avatar in the cache? Think only need one? Just storing the id would use less memory and be faster but there may be use cases for when we need the whole avatar?
             // In future, if there is not a use case for the whole avatar we will just use the id cache and remove the other.
@@ -464,7 +492,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return result;
         }
 
-        public static OASISResult<string> GetAvatarUsernameForProviderUniqueStorageKey(string providerKey, ProviderType providerType = ProviderType.Default)
+        public OASISResult<string> GetAvatarUsernameForProviderUniqueStorageKey(string providerKey, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<string> result = new OASISResult<string>();
 
@@ -487,7 +515,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return result;
         }
 
-        public static OASISResult<IAvatar> GetAvatarForProviderUniqueStorageKey(string providerKey, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IAvatar> GetAvatarForProviderUniqueStorageKey(string providerKey, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IAvatar> result = new OASISResult<IAvatar>();
             string key = string.Concat(Enum.GetName(providerType), providerKey);
@@ -512,7 +540,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return result;
         }
 
-        public static OASISResult<Guid> GetAvatarIdForProviderPublicKey(string providerKey, ProviderType providerType = ProviderType.Default)
+        public OASISResult<Guid> GetAvatarIdForProviderPublicKey(string providerKey, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<Guid> result = new OASISResult<Guid>();
 
@@ -535,7 +563,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return result;
         }
 
-        public static OASISResult<string> GetAvatarUsernameForProviderPublicKey(string providerKey, ProviderType providerType = ProviderType.Default)
+        public OASISResult<string> GetAvatarUsernameForProviderPublicKey(string providerKey, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<string> result = new OASISResult<string>();
             // TODO: Do we need to store both the id and whole avatar in the cache? Think only need one? Just storing the id would use less memory and be faster but there may be use cases for when we need the whole avatar?
@@ -557,7 +585,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return result;
         }
 
-        public static OASISResult<IAvatar> GetAvatarForProviderPublicKey(string providerKey, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IAvatar> GetAvatarForProviderPublicKey(string providerKey, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IAvatar> result = new OASISResult<IAvatar>();
             string key = string.Concat(Enum.GetName(providerType), providerKey);
@@ -582,7 +610,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return result;
         }
 
-        public static OASISResult<Guid> GetAvatarIdForProviderPrivateKey(string providerKey, ProviderType providerType = ProviderType.Default)
+        public OASISResult<Guid> GetAvatarIdForProviderPrivateKey(string providerKey, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<Guid> result = new OASISResult<Guid>();
 
@@ -605,7 +633,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return result;
         }
 
-        public static OASISResult<string> GetAvatarUsernameForProviderPrivateKey(string providerKey, ProviderType providerType = ProviderType.Default)
+        public OASISResult<string> GetAvatarUsernameForProviderPrivateKey(string providerKey, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<string> result = new OASISResult<string>();
             // TODO: Do we need to store both the id and whole avatar in the cache? Think only need one? Just storing the id would use less memory and be faster but there may be use cases for when we need the whole avatar?
@@ -627,7 +655,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return result;
         }
 
-        public static OASISResult<IAvatar> GetAvatarForProviderPrivateKey(string providerKey, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IAvatar> GetAvatarForProviderPrivateKey(string providerKey, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IAvatar> result = new OASISResult<IAvatar>();
             string key = string.Concat(Enum.GetName(providerType), StringCipher.Encrypt(providerKey));
@@ -652,7 +680,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return result;
         }
 
-        public static OASISResult<Dictionary<ProviderType, string>> GetAllProviderUniqueStorageKeysForAvatar(Guid avatarId, ProviderType providerType = ProviderType.Default)
+        public OASISResult<Dictionary<ProviderType, string>> GetAllProviderUniqueStorageKeysForAvatar(Guid avatarId, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<Dictionary<ProviderType, string>> result = new OASISResult<Dictionary<ProviderType, string>>();
             OASISResult<IAvatar> avatarResult = AvatarManager.LoadAvatar(avatarId, providerType);
@@ -665,7 +693,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return result;
         }
 
-        public static OASISResult<Dictionary<ProviderType, string>> GetAllProviderUniqueStorageKeysForAvatar(string username, ProviderType providerType = ProviderType.Default)
+        public OASISResult<Dictionary<ProviderType, string>> GetAllProviderUniqueStorageKeysForAvatar(string username, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<Dictionary<ProviderType, string>> result = new OASISResult<Dictionary<ProviderType, string>>();
             OASISResult<IAvatar> avatarResult = AvatarManager.LoadAvatar(username, providerType);
@@ -678,7 +706,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return result;
         }
 
-        public static OASISResult<Dictionary<ProviderType, List<string>>> GetAllProviderPublicKeysForAvatar(Guid avatarId, ProviderType providerType = ProviderType.Default)
+        public OASISResult<Dictionary<ProviderType, List<string>>> GetAllProviderPublicKeysForAvatar(Guid avatarId, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<Dictionary<ProviderType, List<string>>> result = new OASISResult<Dictionary<ProviderType, List<string>>>();
             OASISResult<IAvatar> avatarResult = AvatarManager.LoadAvatar(avatarId, providerType);
@@ -691,7 +719,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return result;
         }
 
-        public static OASISResult<Dictionary<ProviderType, List<string>>> GetAllProviderPublicKeysForAvatar(string username, ProviderType providerType = ProviderType.Default)
+        public OASISResult<Dictionary<ProviderType, List<string>>> GetAllProviderPublicKeysForAvatar(string username, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<Dictionary<ProviderType, List<string>>> result = new OASISResult<Dictionary<ProviderType, List<string>>>();
             OASISResult<IAvatar> avatarResult = AvatarManager.LoadAvatar(username, providerType);
@@ -704,7 +732,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return result;
         }
 
-        public static OASISResult<Dictionary<ProviderType, string>> GetAllProviderPrivateKeysForAvatar(Guid avatarId, ProviderType providerType = ProviderType.Default)
+        public OASISResult<Dictionary<ProviderType, string>> GetAllProviderPrivateKeysForAvatar(Guid avatarId, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<Dictionary<ProviderType, string>> result = new OASISResult<Dictionary<ProviderType, string>>();
 
@@ -729,7 +757,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return result;
         }
 
-        public static OASISResult<Dictionary<ProviderType, string>> GetAllProviderPrivateKeysForAvatar(string username, ProviderType providerType = ProviderType.Default)
+        public OASISResult<Dictionary<ProviderType, string>> GetAllProviderPrivateKeysForAvatar(string username, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<Dictionary<ProviderType, string>> result = new OASISResult<Dictionary<ProviderType, string>>();
 
@@ -754,7 +782,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return result;
         }
 
-        private static OASISResult<string> GetProviderUniqueStorageKeyForAvatar(IAvatar avatar, string key, Dictionary<string, string> dictionaryCache, ProviderType providerType = ProviderType.Default)
+        private OASISResult<string> GetProviderUniqueStorageKeyForAvatar(IAvatar avatar, string key, Dictionary<string, string> dictionaryCache, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<string> result = new OASISResult<string>();
 
@@ -770,6 +798,27 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
             result.Result = dictionaryCache[key];
             return result;
+        }
+
+        public string GetPrivateWif(byte[] source)
+        {
+            return WifUtility.GetPrivateWif(source);
+        }
+        public string GetPublicWif(byte[] publicKey, string prefix)
+        {
+            return GetPublicWif(publicKey, prefix);
+        }
+        public byte[] DecodePrivateWif(string data)
+        {
+            return WifUtility.DecodePrivateWif(data);
+        }
+        public byte[] Base58CheckDecode(string data)
+        {
+            return WifUtility.Base58CheckDecode(data);
+        }
+        public string EncodeSignature(byte[] source)
+        {
+            return WifUtility.EncodeSignature(source);
         }
     }
 }

@@ -157,6 +157,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
             return await findResult.FirstOrDefaultAsync();
         }
         
+        //TODO: Upgrade all methods to OASISResult ASAP.
         public async Task<Avatar> GetAvatarAsync(string username)
         {
             try
@@ -170,7 +171,11 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                 //Temp workaround till can find out how mongo sorts async collections!
                 avatars.Sort((x, y) => x.CreatedDate.CompareTo(y.CreatedDate));
                 avatars.Reverse();
-                return avatars[0];
+
+                if (avatars.Count > 0)
+                    return avatars[0];
+                else
+                    return null;
             }
             catch (Exception ex)
             {
