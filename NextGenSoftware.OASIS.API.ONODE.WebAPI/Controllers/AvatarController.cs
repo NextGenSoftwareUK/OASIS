@@ -22,27 +22,29 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         private readonly IAvatarService _avatarService;
         private KeyManager _keyManager = null;
 
-        //public KeyManager KeyManager
-        //{
-        //    get
-        //    {
-        //        if (_keyManager == null)
-        //        {
-        //            OASISResult<IOASISStorageProvider> result = OASISBootLoader.OASISBootLoader.GetAndActivateDefaultProvider();
+        public KeyManager KeyManager
+        {
+            get
+            {
+                if (_keyManager == null)
+                {
+                    OASISResult<IOASISStorageProvider> result = OASISBootLoader.OASISBootLoader.GetAndActivateDefaultProvider();
 
-        //            if (result.IsError)
-        //                ErrorHandling.HandleError(ref result, string.Concat("Error calling OASISBootLoader.OASISBootLoader.GetAndActivateDefaultProvider(). Error details: ", result.Message), true, false, true);
+                    if (result.IsError)
+                        ErrorHandling.HandleError(ref result, string.Concat("Error calling OASISBootLoader.OASISBootLoader.GetAndActivateDefaultProvider(). Error details: ", result.Message), true, false, true);
 
-        //            _keyManager = new KeyManager(result.Result, Program.AvatarManager);
-        //        }
+                    _keyManager = new KeyManager(result.Result, Program.AvatarManager);
+                }
 
-        //        return _keyManager;
-        //    }
-        //}
+                return _keyManager;
+            }
+        }
 
         public AvatarController(IAvatarService avatarService)
         {
             _avatarService = avatarService;
+            //KeyManager.Init()
+            //KeyManager keyManager = new KeyManager()
         }
 
         [HttpGet("GetTerms")]
@@ -718,21 +720,21 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <param name="linkProviderKeyToAvatarParams">The params include AvatarId, ProviderTyper &amp; ProviderKey</param>
         /// <returns></returns>
         [Authorize]
-        [HttpPost("LinkProviderPublicKeyToAvatar")]
-        public OASISResult<bool> LinkProviderPublicKeyToAvatar(LinkProviderKeyToAvatarParams linkProviderKeyToAvatarParams)
+        [HttpPost("LinkProviderPublicKeyToAvatarByAvatarId")]
+        public OASISResult<bool> LinkProviderPublicKeyToAvatarByAvatarId(LinkProviderKeyToAvatarParams linkProviderKeyToAvatarParams)
         {
             bool isValid;
-            ProviderType providerType;
+            string errorMessage = "";
+            ProviderType providerTypeToLinkTo;
+            ProviderType providerTypeToLoadAvatarFrom;
             Guid avatarID;
-            OASISResult<bool> result;
 
-            (isValid, providerType, avatarID, result) = ValidateLinkProviderKeyToAvatarParams(linkProviderKeyToAvatarParams);
+            (isValid, providerTypeToLinkTo, providerTypeToLoadAvatarFrom, avatarID, errorMessage) = ValidateLinkProviderKeyToAvatarParams(linkProviderKeyToAvatarParams);
 
             if (isValid)
-                return KeyManager.LinkProviderPublicKeyToAvatar(avatarID,
-                   providerType, linkProviderKeyToAvatarParams.ProviderKey);
+                return KeyManager.LinkProviderPrivateKeyToAvatar(avatarID, providerTypeToLinkTo, linkProviderKeyToAvatarParams.ProviderKey, providerTypeToLoadAvatarFrom);
             else
-                return result;
+                return new OASISResult<bool>(false) { IsError = true, Message = errorMessage };
         }
 
 
@@ -746,43 +748,17 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         public OASISResult<bool> LinkProviderPublicKeyToAvatarByUsername(LinkProviderKeyToAvatarParams linkProviderKeyToAvatarParams)
         {
             bool isValid;
-            ProviderType providerType;
+            string errorMessage = "";
+            ProviderType providerTypeToLinkTo;
+            ProviderType providerTypeToLoadAvatarFrom;
             Guid avatarID;
-            OASISResult<bool> result;
 
-            (isValid, providerType, avatarID, result) = ValidateLinkProviderKeyToAvatarParams(linkProviderKeyToAvatarParams);
+            (isValid, providerTypeToLinkTo, providerTypeToLoadAvatarFrom, avatarID, errorMessage) = ValidateLinkProviderKeyToAvatarParams(linkProviderKeyToAvatarParams);
 
             if (isValid)
-                return KeyManager.LinkProviderPublicKeyToAvatar(linkProviderKeyToAvatarParams.AvatarUsername,
-                   providerType, linkProviderKeyToAvatarParams.ProviderKey);
+                return KeyManager.LinkProviderPrivateKeyToAvatar(linkProviderKeyToAvatarParams.AvatarUsername, providerTypeToLinkTo, linkProviderKeyToAvatarParams.ProviderKey, providerTypeToLoadAvatarFrom);
             else
-                return result;
-
-            //object providerTypeObject;
-
-            //if (!Enum.TryParse(typeof(ProviderType), providerType, out providerTypeObject))
-            //    return (new OASISResult<bool> { IsError = true, Message = $"The given ProviderType {providerType} is invalid. Valid values include: {EnumHelper.GetEnumValues(typeof(ProviderType), EnumHelperListType.ItemsSeperatedByComma)}", Result = false });
-
-            //return KeyManager.LinkProviderPublicKeyToAvatar(avatarUsername, (ProviderType)providerTypeObject, providerKey);
-        }
-
-        
-        /// <summary>
-        ///     Link's a given Avatar to a Providers Public Key (private/public key pairs or username, accountname, unique id, agentId, hash, etc).
-        /// </summary>
-        /// <param name="linkProviderKeyToAvatarParams">The params include AvatarId, ProviderTyper &amp; ProviderKey</param>
-        /// <returns></returns>
-        [Authorize]
-        [HttpPost("LinkProviderPublicKeyToAvatar")]
-        public OASISResult<bool> LinkProviderPublicKeyToAvatar(string avatarUsername, string providerType, string providerKey)
-        {
-            //TODO: Check if this works? :)
-            object providerTypeObject;
-
-            if (!Enum.TryParse(typeof(ProviderType), providerType, out providerTypeObject))
-                return (new OASISResult<bool> { IsError = true, Message = $"The given ProviderType {providerType} is invalid. Valid values include: {EnumHelper.GetEnumValues(typeof(ProviderType), EnumHelperListType.ItemsSeperatedByComma)}", Result = false });
-
-            return KeyManager.LinkProviderPublicKeyToAvatar(avatarUsername, (ProviderType)providerTypeObject, providerKey);
+                return new OASISResult<bool>(false) { IsError = true, Message = errorMessage };
         }
 
         /// <summary>
@@ -791,22 +767,99 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <param name="linkProviderPrivateKeyToAvatarParams">The params include AvatarId, ProviderTyper &amp; ProviderKey</param>
         /// <returns></returns>
         [Authorize]
-        [HttpPost("LinkProviderPrivateKeyToAvatar")]
-        public OASISResult<bool> LinkProviderPrivateKeyToAvatar(
-            LinkProviderKeyToAvatarParams linkProviderPrivateKeyToAvatarParams)
+        [HttpPost("LinkProviderPrivateKeyToAvatarByAvatarId")]
+        public OASISResult<bool> LinkProviderPrivateKeyToAvatarByAvatarId(LinkProviderKeyToAvatarParams linkProviderPrivateKeyToAvatarParams)
         {
             bool isValid;
-            ProviderType providerType;
+            string errorMessage = "";
+            ProviderType providerTypeToLinkTo;
+            ProviderType providerTypeToLoadAvatarFrom;
             Guid avatarID;
-            OASISResult<bool> result;
 
-            (isValid, providerType, avatarID, result) = ValidateLinkProviderKeyToAvatarParams(linkProviderPrivateKeyToAvatarParams);
+            (isValid, providerTypeToLinkTo, providerTypeToLoadAvatarFrom, avatarID, errorMessage) = ValidateLinkProviderKeyToAvatarParams(linkProviderPrivateKeyToAvatarParams);
 
             if (isValid)
-                return KeyManager.LinkProviderPrivateKeyToAvatar(avatarID,
-                   providerType, linkProviderPrivateKeyToAvatarParams.ProviderKey);
+                return KeyManager.LinkProviderPrivateKeyToAvatar(avatarID, providerTypeToLinkTo, linkProviderPrivateKeyToAvatarParams.ProviderKey, providerTypeToLoadAvatarFrom);
             else
-                return result;
+                return new OASISResult<bool>(false) { IsError = true, Message = errorMessage };
+        }
+
+        /// <summary>
+        ///     Link's a given Avatar to a Providers Private Key (password, crypto private key, etc).
+        /// </summary>
+        /// <param name="linkProviderPrivateKeyToAvatarParams">The params include AvatarId, ProviderTyper &amp; ProviderKey</param>
+        /// <returns></returns>
+        [Authorize]
+        [HttpPost("LinkProviderPrivateKeyToAvatarByUsername")]
+        public OASISResult<bool> LinkProviderPrivateKeyToAvatarByUsername(LinkProviderKeyToAvatarParams linkProviderPrivateKeyToAvatarParams)
+        {
+            bool isValid;
+            string errorMessage = "";
+            ProviderType providerTypeToLinkTo;
+            ProviderType providerTypeToLoadAvatarFrom;
+            Guid avatarID;
+
+            (isValid, providerTypeToLinkTo, providerTypeToLoadAvatarFrom, avatarID, errorMessage) = ValidateLinkProviderKeyToAvatarParams(linkProviderPrivateKeyToAvatarParams);
+
+            if (isValid)
+                return KeyManager.LinkProviderPrivateKeyToAvatar(linkProviderPrivateKeyToAvatarParams.AvatarUsername, providerTypeToLinkTo, linkProviderPrivateKeyToAvatarParams.ProviderKey, providerTypeToLoadAvatarFrom);
+            else
+                return new OASISResult<bool>(false) { IsError = true, Message = errorMessage };
+        }
+
+        /*
+        /// <summary>
+        ///     Generate's a new unique private/public keypair &amp; then links to the given avatar for the given provider type.
+        /// </summary>
+        /// <returns></returns>
+        [Authorize]
+        [HttpPost("GenerateKeyPairAndLinkProviderKeysToAvatar")]
+        public OASISResult<KeyPair> GenerateKeyPairAndLinkProviderKeysToAvatar(Guid avatarId, string providerTypeToLinkTo, string providerTypeToloadAvatarFrom)
+        {
+            object providerTypeToLinkToObject = null;
+            object providerTypeToLoadAvatarFromObject = null;
+            ProviderType providerTypeToLinkToEnumValue = ProviderType.Default;
+            ProviderType providerTypeToloadAvatarFromEnumValue = ProviderType.Default;
+
+            if (string.IsNullOrEmpty(providerTypeToLinkTo))
+                return (new OASISResult<KeyPair> { IsError = true, Message = $"The providerTypeToLinkTo param cannot be null. Valid values include: {EnumHelper.GetEnumValues(typeof(ProviderType), EnumHelperListType.ItemsSeperatedByComma)}" });
+
+            if (!string.IsNullOrEmpty(providerTypeToLinkTo) && !Enum.TryParse(typeof(ProviderType), providerTypeToLinkTo, out providerTypeToLinkToObject))
+                return (new OASISResult<KeyPair> { IsError = true, Message = $"The given providerTypeToLinkTo {providerTypeToLinkTo} is invalid. Valid values include: {EnumHelper.GetEnumValues(typeof(ProviderType), EnumHelperListType.ItemsSeperatedByComma)}" });
+
+            if (!string.IsNullOrEmpty(providerTypeToloadAvatarFrom) && !Enum.TryParse(typeof(ProviderType), providerTypeToloadAvatarFrom, out providerTypeToLoadAvatarFromObject))
+                return (new OASISResult<KeyPair> { IsError = true, Message = $"The given providerTypeToloadAvatarFrom {providerTypeToloadAvatarFrom} is invalid. Valid values include: {EnumHelper.GetEnumValues(typeof(ProviderType), EnumHelperListType.ItemsSeperatedByComma)}" });
+
+            if (providerTypeToLinkToObject != null)
+                providerTypeToLinkToEnumValue = (ProviderType)providerTypeToLinkToObject;
+
+            if (providerTypeToLoadAvatarFromObject != null)
+                providerTypeToloadAvatarFromEnumValue = (ProviderType)providerTypeToLoadAvatarFromObject;
+
+            return KeyManager.GenerateKeyPairAndLinkProviderKeysToAvatar(avatarId, providerTypeToLinkToEnumValue, providerTypeToloadAvatarFromEnumValue);
+        }*/
+
+
+        /// <summary>
+        ///     Generate's a new unique private/public keypair &amp; then links to the given avatar for the given provider type.
+        /// </summary>
+        /// <returns></returns>
+        [Authorize]
+        [HttpPost("GenerateKeyPairAndLinkProviderKeysToAvatarByAvatarId")]
+        public OASISResult<KeyPair> GenerateKeyPairAndLinkProviderKeysToAvatarByAvatarId(LinkProviderKeyToAvatarParams generateKeyPairAndLinkProviderKeysToAvatarParams)
+        {
+            bool isValid;
+            string errorMessage = "";
+            ProviderType providerTypeToLinkTo;
+            ProviderType providerTypeToLoadAvatarFrom;
+            Guid avatarID;
+
+            (isValid, providerTypeToLinkTo, providerTypeToLoadAvatarFrom, avatarID, errorMessage) = ValidateLinkProviderKeyToAvatarParams(generateKeyPairAndLinkProviderKeysToAvatarParams);
+
+            if (isValid)
+                return KeyManager.GenerateKeyPairAndLinkProviderKeysToAvatar(avatarID, providerTypeToLinkTo, providerTypeToLoadAvatarFrom);
+            else
+                return new OASISResult<KeyPair>() { IsError = true, Message = errorMessage };
         }
 
         /// <summary>
@@ -900,15 +953,31 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         }
 
         /// <summary>
+        ///     Generate's a new unique private/public keypair for a given provider type.
+        /// </summary>
+        /// <returns></returns>
+        [Authorize]
+        [HttpPost("GenerateKeyPairForProvider")]
+        public OASISResult<KeyPair> GenerateKeyPairForProvider(ProviderType providerType)
+        {
+            return KeyManager.GenerateKeyPair(providerType);
+        }
+
+        /// <summary>
         ///     Generate's a new unique private/public keypair.
         /// </summary>
         /// <returns></returns>
         [Authorize]
         [HttpPost("GenerateKeyPair")]
-        public OASISResult<KeyPair> GenerateKeyPair()
+        public OASISResult<KeyPair> GenerateKeyPair(string keyPrefix)
         {
-            return KeyManager.GenerateKeyPair();
+            return KeyManager.GenerateKeyPair(keyPrefix);
         }
+
+
+
+
+
 
 
 
@@ -1031,18 +1100,50 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 : string.Empty;
         }
 
-        private (bool, ProviderType, Guid, OASISResult<bool>) ValidateLinkProviderKeyToAvatarParams(LinkProviderKeyToAvatarParams linkProviderKeyToAvatarParams)
+        //private (bool, ProviderType, ProviderType, Guid, OASISResult<bool>) ValidateLinkProviderKeyToAvatarParams(LinkProviderKeyToAvatarParams linkProviderKeyToAvatarParams)
+        //{
+        //    object providerTypeToLinkTo;
+        //    object providerTypeToAvatarFrom;
+        //    Guid avatarID;
+
+        //    if (!Enum.TryParse(typeof(ProviderType), linkProviderKeyToAvatarParams.ProviderTypeToLinkTo, out providerTypeToLinkTo))
+        //        return (false, ProviderType.None, ProviderType.None, Guid.Empty, new OASISResult<bool> { IsError = true, Message = $"The given ProviderTypeToLinkTo param {linkProviderKeyToAvatarParams.ProviderTypeToLinkTo} is invalid. Valid values include: {EnumHelper.GetEnumValues(typeof(ProviderType), EnumHelperListType.ItemsSeperatedByComma)}", Result = false });
+
+        //    if (!Enum.TryParse(typeof(ProviderType), linkProviderKeyToAvatarParams.ProviderTypeToLoadAvatarFrom, out providerTypeToAvatarFrom))
+        //        return (false, ProviderType.None, ProviderType.None, Guid.Empty, new OASISResult<bool> { IsError = true, Message = $"The given ProviderTypeToLoadAvatarFrom param {linkProviderKeyToAvatarParams.ProviderTypeToLoadAvatarFrom} is invalid. Valid values include: {EnumHelper.GetEnumValues(typeof(ProviderType), EnumHelperListType.ItemsSeperatedByComma)}", Result = false });
+
+        //    if (!Guid.TryParse(linkProviderKeyToAvatarParams.AvatarID, out avatarID))
+        //        return (false, ProviderType.None, ProviderType.None, Guid.Empty, new OASISResult<bool> { IsError = true, Message = $"The given AvatarID {linkProviderKeyToAvatarParams.AvatarID} is not a valid Guid.", Result = false });
+
+        //    return (true, (ProviderType)providerTypeToLinkTo, (ProviderType)providerTypeToAvatarFrom, avatarID, null);
+        //}
+
+        private (bool, ProviderType, ProviderType, Guid, string) ValidateLinkProviderKeyToAvatarParams(LinkProviderKeyToAvatarParams linkProviderKeyToAvatarParams)
         {
-            object providerType;
+            object providerTypeToLinkTo = null;
+            object providerTypeToAvatarFrom = null;
             Guid avatarID;
 
-            if (!Enum.TryParse(typeof(ProviderType), linkProviderKeyToAvatarParams.ProviderType, out providerType))
-                return (false, ProviderType.None, Guid.Empty, new OASISResult<bool> { IsError = true, Message = $"The given ProviderType {linkProviderKeyToAvatarParams.ProviderType} is invalid. Valid values include: {EnumHelper.GetEnumValues(typeof(ProviderType), EnumHelperListType.ItemsSeperatedByComma)}", Result = false });
+            if (string.IsNullOrEmpty(linkProviderKeyToAvatarParams.AvatarID) && string.IsNullOrEmpty(linkProviderKeyToAvatarParams.AvatarUsername))
+                return (false, ProviderType.None, ProviderType.None, Guid.Empty, $"You need to either pass in a valid AvatarID or Avatar Username.");
+
+            //if (string.IsNullOrEmpty(linkProviderKeyToAvatarParams.ProviderTypeToLinkTo))
+            //    return (new OASISResult<KeyPair> { IsError = true, Message = $"The providerTypeToLinkTo param cannot be null. Valid values include: {EnumHelper.GetEnumValues(typeof(ProviderType), EnumHelperListType.ItemsSeperatedByComma)}" });
+
+            if (!Enum.TryParse(typeof(ProviderType), linkProviderKeyToAvatarParams.ProviderTypeToLinkTo, out providerTypeToLinkTo))
+                return (false, ProviderType.None, ProviderType.None, Guid.Empty, $"The given ProviderTypeToLinkTo param {linkProviderKeyToAvatarParams.ProviderTypeToLinkTo} is invalid. Valid values include: {EnumHelper.GetEnumValues(typeof(ProviderType), EnumHelperListType.ItemsSeperatedByComma)}");
+
+            //Optional param.
+            if (!string.IsNullOrEmpty(linkProviderKeyToAvatarParams.ProviderTypeToLoadAvatarFrom) && !Enum.TryParse(typeof(ProviderType), linkProviderKeyToAvatarParams.ProviderTypeToLoadAvatarFrom, out providerTypeToAvatarFrom))
+                return (false, ProviderType.None, ProviderType.None, Guid.Empty, $"The given ProviderTypeToLoadAvatarFrom param {linkProviderKeyToAvatarParams.ProviderTypeToLoadAvatarFrom} is invalid. Valid values include: {EnumHelper.GetEnumValues(typeof(ProviderType), EnumHelperListType.ItemsSeperatedByComma)}");
 
             if (!Guid.TryParse(linkProviderKeyToAvatarParams.AvatarID, out avatarID))
-                return (false, ProviderType.None, Guid.Empty, new OASISResult<bool> { IsError = true, Message = $"The given AvatarID {linkProviderKeyToAvatarParams.AvatarID} is not a valid Guid.", Result = false });
+                return (false, ProviderType.None, ProviderType.None, Guid.Empty, $"The given AvatarID {linkProviderKeyToAvatarParams.AvatarID} is not a valid Guid.");
 
-            return (true, (ProviderType)providerType, avatarID, null);
+            if (string.IsNullOrEmpty(linkProviderKeyToAvatarParams.ProviderTypeToLoadAvatarFrom))
+                return (true, (ProviderType)providerTypeToLinkTo, ProviderType.Default, avatarID, null);
+            else
+                return (true, (ProviderType)providerTypeToLinkTo, (ProviderType)providerTypeToAvatarFrom, avatarID, null);
         }
     }
 }

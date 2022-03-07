@@ -17,7 +17,7 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura
         public string Host { get; set; }
         public string Username { get; set; }
         public string Password { get; set; }
-        public bool IsVersionControlEnabled { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        public bool IsVersionControlEnabled { get; set; } = false;
 
         public IDriver _driver;
 
@@ -31,7 +31,6 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura
             Host = host;
             Username = username;
             Password = password;
-
         }
 
         private async Task<bool> Connect()
@@ -57,29 +56,37 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura
         }
         public override OASISResult<bool> ActivateProvider()
         {
+            OASISResult<bool> result = new OASISResult<bool>();
+
             try
             {
                 Connect().Wait();
                 base.ActivateProvider();
-                return new OASISResult<bool>(true);
+                result.Result = true;
             }
             catch (Exception ex)
             {
-                return new OASISResult<bool>(false);
+                ErrorHandling.HandleError(ref result, $"Unknwon error occured whilst activating neo4j provider: {ex}");
             }
+
+            return result;
         }
         public override OASISResult<bool> DeActivateProvider()
         {
+            OASISResult<bool> result = new OASISResult<bool>();
+
             try
             {
                 Disconnect().Wait();
                 base.DeActivateProvider();
-                return new OASISResult<bool>(true);
+                result.Result = true;
             }
             catch (Exception ex)
             {
-                return new OASISResult<bool>(false);
+                ErrorHandling.HandleError(ref result, $"Unknwon error occured whilst activating neo4j provider: {ex}");
             }
+
+            return result;
         }
         private static void WithDatabase(SessionConfigBuilder sessionConfigBuilder)
         {

@@ -14,7 +14,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
     [Route("api/eosio")]
     public class EOSIOController : OASISControllerBase
     {
-        EOSIOOASIS _EOSIOOASIS = null;
+        private EOSIOOASIS _EOSIOOASIS = null;
+        private KeyManager _keyManager = null;
 
         EOSIOOASIS EOSIOOASIS
         {
@@ -32,6 +33,24 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 }
 
                 return _EOSIOOASIS;
+            }
+        }
+
+        public KeyManager KeyManager
+        {
+            get
+            {
+                if (_keyManager == null)
+                {
+                    OASISResult<IOASISStorageProvider> result = OASISBootLoader.OASISBootLoader.GetAndActivateDefaultProvider();
+
+                    if (result.IsError)
+                        ErrorHandling.HandleError(ref result, string.Concat("Error calling OASISBootLoader.OASISBootLoader.GetAndActivateDefaultProvider(). Error details: ", result.Message), true, false, true);
+
+                    _keyManager = new KeyManager(result.Result, Program.AvatarManager);
+                }
+
+                return _keyManager;
             }
         }
 

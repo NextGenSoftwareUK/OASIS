@@ -22,6 +22,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS
     {
         private static Random _random = new Random();
         private AvatarManager _avatarManager = null;
+        private KeyManager _keyManager = null;
 
         public const string ENDPOINT_TEST = "https://test.hypha.earth";
         public const string ENDPOINT_LIVE = "https://node.hypha.earth";
@@ -40,14 +41,14 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS
 
 
         //TODO: Not sure if this should share the EOSOASIS AvatarManagerInstance? May be better to have seperate?
-        private AvatarManager AvatarManagerInstance
+        private AvatarManager AvatarManager
         {
             get
             {
                 if (_avatarManager == null)
                 {
                     if (TelosOASIS != null)
-                        _avatarManager = new AvatarManager(ProviderManager.GetStorageProvider(Core.Enums.ProviderType.MongoDBOASIS), AvatarManagerInstance.OASISDNA);
+                        _avatarManager = new AvatarManager(ProviderManager.GetStorageProvider(Core.Enums.ProviderType.MongoDBOASIS));
                         //_avatarManager = new AvatarManager(TelosOASIS); // TODO: URGENT: PUT THIS BACK IN ASAP! TEMP USING MONGO UNTIL EOSIO METHODS IMPLEMENTED...
 
                     else
@@ -60,6 +61,18 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS
                 }
 
                 return _avatarManager;
+            }
+        }
+
+        private KeyManager KeyManager
+        {
+            get
+            {
+                if (_keyManager == null)
+                    _keyManager = new KeyManager(ProviderManager.GetStorageProvider(Core.Enums.ProviderType.MongoDBOASIS), AvatarManager);
+                    //_keyManager = new KeyManager(this, AvatarManager); // TODO: URGENT: PUT THIS BACK IN ASAP! TEMP USING MONGO UNTIL EOSIO METHODS IMPLEMENTED...
+
+                return _keyManager;
             }
         }
 
@@ -346,7 +359,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS
             //EOSNewYork.EOSCore.Params.Action action = new ActionUtility(ENDPOINT_TEST).GetActionObject("transfer", fromTelosAccountName, "active", "seed.seeds", args);
             EOSNewYork.EOSCore.Params.Action action = new ActionUtility(ENDPOINT_TEST).GetActionObject("transfer", fromTelosAccountName, "active", "token.seeds", args);
 
-            var keypair = KeyManager.GenerateKeyPair();
+            var keypair = KeyManager.GenerateKeyPair(Core.Enums.ProviderType.SEEDSOASIS).Result; //TODO: Handle OASISResult properly.
             //List<string> privateKeysInWIF = new List<string> { keypair.PrivateKey }; //TODO: Set Private Key
             List<string> privateKeysInWIF = new List<string> { fromTelosAccountPrivateKey }; 
 
@@ -376,7 +389,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS
 
             string randomHex = GetRandomHexNumber(64); //16
             string inviteHash = GetSHA256Hash(randomHex);
-            var keypair = KeyManager.GenerateKeyPair();
+            var keypair = KeyManager.GenerateKeyPair(Core.Enums.ProviderType.SEEDSOASIS).Result; //TODO: Handle OASISResult properly.
             //List<string> privateKeysInWIF = new List<string> { keypair.PrivateKey }; //TODO: Set Private Key
             List<string> privateKeysInWIF = new List<string> { sponsorTelosAccountNamePrivateKey }; 
 
@@ -391,7 +404,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS
             //https://joinseeds.github.io/seeds-smart-contracts/onboarding.html
             //inviteSecret = inviteHash
 
-            var keypair = KeyManager.GenerateKeyPair();
+            //TODO: Handle OASISResult properly.
+            var keypair = KeyManager.GenerateKeyPair(Core.Enums.ProviderType.SEEDSOASIS).Result; 
             List<string> privateKeysInWIF = new List<string> { keypair.PrivateKey };
 
             EOSNewYork.EOSCore.Params.Action action = new ActionUtility(ENDPOINT_TEST).GetActionObject("accept", telosAccountName, "active", "join.seeds", new Accept() { account = telosAccountName, invite_secret = inviteSecret, publicKey = keypair.PublicKey });
@@ -403,8 +417,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS
         private bool AddKarmaForSeeds(Guid avatarId, KarmaTypePositive seedsKarmaType, KarmaTypePositive seedsKarmaHeroType, KarmaSourceType receivingKarmaFor, string appWebsiteServiceName, string appWebsiteServiceDesc, string appWebsiteServiceLink = null)
         {
             //TODO: Add new karma methods OASIS.API.CORE that allow bulk/batch karma to be added in one call (maybe use params?)
-            bool karmaHeroResult = !AvatarManagerInstance.AddKarmaToAvatar(avatarId, seedsKarmaHeroType, receivingKarmaFor, appWebsiteServiceName, appWebsiteServiceDesc, appWebsiteServiceLink, Core.Enums.ProviderType.SEEDSOASIS).IsError;
-            bool karmaSeedsResult = AvatarManagerInstance.AddKarmaToAvatar(avatarId, seedsKarmaType, receivingKarmaFor, appWebsiteServiceName, appWebsiteServiceDesc, appWebsiteServiceLink, Core.Enums.ProviderType.SEEDSOASIS).IsError;
+            bool karmaHeroResult = !AvatarManager.AddKarmaToAvatar(avatarId, seedsKarmaHeroType, receivingKarmaFor, appWebsiteServiceName, appWebsiteServiceDesc, appWebsiteServiceLink, Core.Enums.ProviderType.SEEDSOASIS).IsError;
+            bool karmaSeedsResult = AvatarManager.AddKarmaToAvatar(avatarId, seedsKarmaType, receivingKarmaFor, appWebsiteServiceName, appWebsiteServiceDesc, appWebsiteServiceLink, Core.Enums.ProviderType.SEEDSOASIS).IsError;
             return karmaHeroResult && karmaSeedsResult;
         }
 
