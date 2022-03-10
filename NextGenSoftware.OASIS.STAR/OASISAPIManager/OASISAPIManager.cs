@@ -11,6 +11,7 @@ namespace NextGenSoftware.OASIS.STAR.OASISAPIManager
     {
         public bool IsOASISBooted { get; set; }
         public AvatarManager Avatar { get; set; }
+        public KeyManager Keys { get; set; }
         public HolonManager Data { get; set; }
         public MapManager Map { get; set; }
         public OASISProviders Providers { get; private set; }

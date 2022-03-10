@@ -476,7 +476,13 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             OASISResult<IOASISStorageProvider> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
 
             if (!providerResult.IsError && providerResult.Result != null)
+            {
                 result = providerResult.Result.LoadAvatar(id);
+
+                //Fallback generic error handling if the provider did not give a message for it being null.
+                if (result.Result == null && string.IsNullOrEmpty(result.Message))
+                    ErrorHandling.HandleError(ref result, "Error loading avatar, avatar not found.");
+            }
             else
             {
                 result.IsError = true;
