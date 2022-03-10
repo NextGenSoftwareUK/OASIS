@@ -112,8 +112,9 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             {
                 OASISResult<IAvatar> avatarResult = AvatarManager.LoadAvatar(avatarId, providerToLoadAvatarFrom);
 
+                //TODO Apply same fix in ALL other methods.
                 if (!avatarResult.IsError && avatarResult.Result != null)
-                    LinkProviderPublicKeyToAvatar(avatarResult.Result, providerTypeToLinkTo, providerKey, providerToLoadAvatarFrom);
+                    result = LinkProviderPublicKeyToAvatar(avatarResult.Result, providerTypeToLinkTo, providerKey, providerToLoadAvatarFrom);
                 else
                     ErrorHandling.HandleError(ref result, $"Error occured in LinkProviderPublicKeyToAvatar loading avatar for id {avatarId}. Reason: {avatarResult.Message}");
             }
@@ -153,16 +154,29 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
             try
             {
+                //TODO Apply same fix in ALL other methods.
+                if (!avatar.ProviderPublicKey.ContainsKey(providerTypeToLinkTo))
+                    avatar.ProviderPublicKey.Add(providerTypeToLinkTo, new List<string>());
+
                 if (!avatar.ProviderPublicKey[providerTypeToLinkTo].Contains(providerKey))
                     avatar.ProviderPublicKey[providerTypeToLinkTo].Add(providerKey);
                 else
                 {
-                    ErrorHandling.HandleError(ref result, $"The ProviderKey {providerKey} is already linked to the avatar {avatar.Id} {avatar.Username}. The ProviderKey must be unique per provider.");
+                    ErrorHandling.HandleError(ref result, $"The Public ProviderKey {providerKey} is already linked to the avatar {avatar.Id} {avatar.Username}. The ProviderKey must be unique per provider.");
                     return result;
                 }
 
                 //TODO: Upgrade Avatar.Save() methods to return OASISResult ASAP.
                 result.Result = avatar.Save() != null;
+
+                //TODO Apply same fix in ALL other methods.
+                if (result.Result)
+                {
+                    result.IsSaved = true;
+                    result.Message = $"Public key {providerKey} successfully linked to avatar {avatar.Id} - {avatar.Username} for provider {Enum.GetName(typeof(ProviderType), providerTypeToLinkTo)}";
+                }
+                else
+                    ErrorHandling.HandleError(ref result, $"Error occured in LinkProviderPublicKeyToAvatar saving avatar {avatar.Id} - {avatar.Username} for providerType {Enum.GetName(typeof(ProviderType), providerToLoadAvatarFrom)} and key {providerKey}");
             }
             catch (Exception ex)
             {

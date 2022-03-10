@@ -284,15 +284,15 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
             ShowSuccessMessage($"{avatars.Count()} Avatars Loaded.");
 
             ShowWorkingMessage("Loading Avatar Only For The HoloOASIS Provider...");
-            IAvatar avatar = STAR.OASISAPI.Avatar.LoadAvatar(STAR.LoggedInAvatar.Id, ProviderType.HoloOASIS); // Only loads from Holochain.
+            OASISResult<IAvatar> avatarResult = STAR.OASISAPI.Avatar.LoadAvatar(STAR.LoggedInAvatar.Id, ProviderType.HoloOASIS); // Only loads from Holochain.
 
-            if (avatar != null)
+            if (!avatarResult.IsError && avatarResult.Result != null) 
             {
                 ShowSuccessMessage("Avatar Loaded Successfully");
-                ShowSuccessMessage($"Avatar ID: {avatar.Id}");
-                ShowSuccessMessage($"Avatar Name: {avatar.FullName}");
-                ShowSuccessMessage($"Avatar Created Date: {avatar.CreatedDate}");
-                ShowSuccessMessage($"Avatar Last Beamed In Date: {avatar.LastBeamedIn}");
+                ShowSuccessMessage($"Avatar ID: {avatarResult.Result.Id}");
+                ShowSuccessMessage($"Avatar Name: {avatarResult.Result.FullName}");
+                ShowSuccessMessage($"Avatar Created Date: {avatarResult.Result.CreatedDate}");
+                ShowSuccessMessage($"Avatar Last Beamed In Date: {avatarResult.Result.LastBeamedIn}");
             }
             else
                 ShowErrorMessage("Error Loading Avatar.");
@@ -413,9 +413,9 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
             if (!STAR.LoggedInAvatar.ProviderUniqueStorageKey.ContainsKey(ProviderType.TelosOASIS))
             {
                 ShowWorkingMessage("Linking Telos Account to Avatar...");
-                IAvatarDetail avatarDetail = STAR.OASISAPI.Avatar.LinkProviderKeyToAvatar(STAR.LoggedInAvatar.Id, ProviderType.TelosOASIS, "davidsellams");
+                OASISResult<bool> result = STAR.OASISAPI.Keys.LinkProviderPublicKeyToAvatar(STAR.LoggedInAvatar.Id, ProviderType.TelosOASIS, "davidsellams");
 
-                if (avatarDetail != null)
+                if (!result.IsError && result.Result)
                     ShowSuccessMessage("Telos Account Successfully Linked to Avatar.");
                 else
                     ShowErrorMessage("Error occured Whilst Linking Telos Account To Avatar.");
