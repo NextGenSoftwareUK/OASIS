@@ -280,11 +280,11 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
             ShowSuccessMessage($"{avatars.Count()} Avatars Loaded.");
 
             ShowWorkingMessage("Loading All Avatars Only For The MongoDBOASIS Provider...");
-            avatars = STAR.OASISAPI.Avatar.LoadAllAvatars(ProviderType.MongoDBOASIS); // Only loads from MongoDB.
+            avatars = STAR.OASISAPI.Avatar.LoadAllAvatars(true, ProviderType.MongoDBOASIS); // Only loads from MongoDB.
             ShowSuccessMessage($"{avatars.Count()} Avatars Loaded.");
 
             ShowWorkingMessage("Loading Avatar Only For The HoloOASIS Provider...");
-            OASISResult<IAvatar> avatarResult = STAR.OASISAPI.Avatar.LoadAvatar(STAR.LoggedInAvatar.Id, ProviderType.HoloOASIS); // Only loads from Holochain.
+            OASISResult<IAvatar> avatarResult = STAR.OASISAPI.Avatar.LoadAvatar(STAR.LoggedInAvatar.Id, true, ProviderType.HoloOASIS); // Only loads from Holochain.
 
             if (!avatarResult.IsError && avatarResult.Result != null) 
             {

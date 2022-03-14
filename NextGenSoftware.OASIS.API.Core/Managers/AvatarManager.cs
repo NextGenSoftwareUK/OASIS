@@ -21,22 +21,6 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 {
     public class AvatarManager : OASISManager
     {
-        //private static Dictionary<string, string> _avatarIdToProviderUniqueStorageKeyLookup = new Dictionary<string, string>();
-        //private static Dictionary<string, string> _avatarIdToProviderPublicKeyLookup = new Dictionary<string, string>();
-        //private static Dictionary<string, string> _avatarIdToProviderPrivateKeyLookup = new Dictionary<string, string>();
-        //private static Dictionary<string, string> _avatarUsernameToProviderUniqueStorageKeyLookup = new Dictionary<string, string>();
-        //private static Dictionary<string, string> _avatarUsernameToProviderPublicKeyLookup = new Dictionary<string, string>();
-        //private static Dictionary<string, string> _avatarUsernameToProviderPrivateKeyLookup = new Dictionary<string, string>();
-        //private static Dictionary<string, string> _providerUniqueStorageKeyToAvatarUsernameLookup = new Dictionary<string, string>();
-        //private static Dictionary<string, string> _providerPublicKeyToAvatarUsernameLookup = new Dictionary<string, string>();
-        //private static Dictionary<string, string> _providerPrivateKeyToAvatarUsernameLookup = new Dictionary<string, string>();
-        //private static Dictionary<string, Guid> _providerUniqueStorageKeyToAvatarIdLookup = new Dictionary<string, Guid>();
-        //private static Dictionary<string, Guid> _providerPublicKeyToAvatarIdLookup = new Dictionary<string, Guid>();
-        //private static Dictionary<string, Guid> _providerPrivateKeyToAvatarIdLookup = new Dictionary<string, Guid>();
-        //private static Dictionary<string, IAvatar> _providerUniqueStorageKeyToAvatarLookup = new Dictionary<string, IAvatar>();
-        //private static Dictionary<string, IAvatar> _providerPublicKeyToAvatarLookup = new Dictionary<string, IAvatar>();
-        //private static Dictionary<string, IAvatar> _providerPrivateKeyToAvatarLookup = new Dictionary<string, IAvatar>();
-        
         public static IAvatar LoggedInAvatar { get; set; }
         private ProviderManagerConfig _config;
         
@@ -53,24 +37,6 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             }
         }
 
-        //public KeyManager KeyManager
-        //{
-        //    get
-        //    {
-        //        if (_keyManager == null)
-        //        {
-        //            OASISResult<IOASISStorageProvider> result = OASISBootLoader.OASISBootLoader.GetAndActivateDefaultProvider();
-
-        //            if (result.IsError)
-        //                ErrorHandling.HandleError(ref result, string.Concat("Error calling OASISBootLoader.OASISBootLoader.GetAndActivateDefaultProvider(). Error details: ", result.Message), true, false, true);
-
-        //            _keyManager = new KeyManager(result.Result, Program.AvatarManager);
-        //        }
-
-        //        return _keyManager;
-        //    }
-        //}
-
         public delegate void StorageProviderError(object sender, AvatarManagerErrorEventArgs e);
 
        //TODO: Not sure we want to pass the OASISDNA here?
@@ -78,12 +44,6 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         {
             
         }
-
-        //TODO: In future more than one storage provider can be active at a time where each call can specify which provider to use.
-        //public AvatarManager(IOASISStorageProvider OASISStorageProvider) : base(OASISStorageProvider)
-        //{
-            
-        //}
 
         // TODO: Not sure if we want to move methods from the AvatarService in WebAPI here?
         // For integration with STAR and others like Unity can just call the REST API service?
@@ -164,8 +124,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
         public async Task<OASISResult<IAvatar>> AuthenticateAsync(string username, string password, string ipAddress)
         {
-            OASISResult<IAvatar> result = new OASISResult<IAvatar>();
-            result.Result = await LoadAvatarAsync(username);
+            OASISResult<IAvatar> result = await LoadAvatarAsync(username);
 
             if (result.Result == null)
             {
@@ -355,13 +314,13 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return avatars;
         }
 
-        public IEnumerable<IAvatar> LoadAllAvatars(ProviderType provider = ProviderType.Default)
+        public IEnumerable<IAvatar> LoadAllAvatars(bool removeAuthDetails = true, ProviderType provider = ProviderType.Default)
         {
             //TODO: Need to handle return of OASISResult properly...
             IEnumerable<IAvatar> avatars = ProviderManager.SetAndActivateCurrentStorageProvider(provider).Result.LoadAllAvatars().Result;
 
-            foreach (IAvatar avatar in avatars)
-                avatar.Password = null;
+            if (removeAuthDetails)
+                avatars = RemoveAuthDetails(avatars);
 
             return avatars;
         }
@@ -372,51 +331,585 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             IEnumerable<IAvatar> avatars = ProviderManager.SetAndActivateCurrentStorageProvider(provider).Result.LoadAllAvatarsAsync().Result.Result;
 
             if (removeAuthDetails)
-            {
-                foreach (IAvatar avatar in avatars)
-                    RemoveAuthDetails(avatar);
-            }
-                //avatar = RemoveAuthDetails(avatar);
-                //avatar.Password = null;
+                avatars = RemoveAuthDetails(avatars);
 
             return avatars;
         }
 
-        public async Task<IAvatar> LoadAvatarAsync(string username, ProviderType provider = ProviderType.Default)
+        public OASISResult<IAvatar> LoadAvatar(Guid id, bool removeAuthDetails = true, ProviderType providerType = ProviderType.Default, int version = 0)
         {
-            //TODO: Need to handle return of OASISResult properly...
-            OASISResult<IAvatar> avatar = await ProviderManager.SetAndActivateCurrentStorageProvider(provider).Result.LoadAvatarAsync(username);
-            // avatar.Password = null;
-            return avatar.Result;
-        }
-        
-        public async Task<IAvatar> LoadAvatarByUsernameAsync(string username, ProviderType provider = ProviderType.Default)
-        {
-            //TODO: Need to handle return of OASISResult properly...
-            var avatar = await ProviderManager.SetAndActivateCurrentStorageProvider(provider).Result.LoadAvatarByUsernameAsync(username);
-            return avatar.Result;
+            OASISResult<IAvatar> result = new OASISResult<IAvatar>();
+            bool needToChangeBack = false;
+            ProviderType currentProviderType = ProviderManager.CurrentStorageProviderType.Value;
+
+            try
+            {
+                OASISResult<IOASISStorageProvider> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
+
+                if (!providerResult.IsError && providerResult.Result != null)
+                    result = providerResult.Result.LoadAvatar(id, version);
+                else
+                {
+                    result.IsError = true;
+                    result.Message = providerResult.Message;
+                }
+            }
+            catch (Exception ex)
+            {
+                ErrorHandling.HandleWarning(ref result, string.Concat("Error loading avatar ", id, " for provider ", ProviderManager.CurrentStorageProviderType.Name, ". Error Message: ", ex.ToString()), true, false, false, false, true, ex);
+            }
+
+            if (result.Result == null && ProviderManager.IsAutoFailOverEnabled)
+            {
+                foreach (EnumValue<ProviderType> type in ProviderManager.GetProviderAutoFailOverList())
+                {
+                    if (type.Value != providerType && type.Value != ProviderManager.CurrentStorageProviderType.Value)
+                    {
+                        try
+                        {
+                            OASISResult<IOASISStorageProvider> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(type.Value);
+
+                            if (!providerResult.IsError && providerResult.Result != null)
+                                result = providerResult.Result.LoadAvatar(id, version);
+                            else
+                            {
+                                result.IsError = true;
+                                result.Message = providerResult.Message;
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            ErrorHandling.HandleWarning(ref result, string.Concat("Error loading avatar ", id, " for provider ", ProviderManager.CurrentStorageProviderType.Name, ". Error Message: ", ex.ToString()));
+                        }
+                    }
+
+                    if (result.Result != null && !result.IsError)
+                        break;
+                }
+            }
+
+            if (result.Result == null)
+                ErrorHandling.HandleError(ref result, string.Concat("All registered OASIS Providers in the AutoFailOverList failed to load avatar, ", id, ". Please view the logs for more information. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString(), ".\n\nError Details:\n", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)));
+
+            else if (removeAuthDetails)
+                result.Result = RemoveAuthDetails(result.Result);
+
+            // Set the current provider back to the original provider.
+            if (needToChangeBack)
+                ProviderManager.SetAndActivateCurrentStorageProvider(currentProviderType);
+
+            return result;
         }
 
-        public async Task<IAvatar> LoadAvatarByEmailAsync(string email, ProviderType provider = ProviderType.Default)
+        public async Task<OASISResult<IAvatar>> LoadAvatarAsync(Guid id, bool removeAuthDetails = true, ProviderType providerType = ProviderType.Default, int version = 0)
         {
-            //TODO: Need to handle return of OASISResult properly...
-            var avatar = await ProviderManager.SetAndActivateCurrentStorageProvider(provider).Result.LoadAvatarByEmailAsync(email);
-            return avatar.Result;
+            OASISResult<IAvatar> result = new OASISResult<IAvatar>();
+            bool needToChangeBack = false;
+            ProviderType currentProviderType = ProviderManager.CurrentStorageProviderType.Value;
+
+            try
+            {
+                OASISResult<IOASISStorageProvider> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
+
+                if (!providerResult.IsError && providerResult.Result != null)
+                    result = await providerResult.Result.LoadAvatarAsync(id, version);
+                else
+                {
+                    result.IsError = true;
+                    result.Message = providerResult.Message;
+                }
+            }
+            catch (Exception ex)
+            {
+                ErrorHandling.HandleError(ref result, string.Concat("Error loading avatar ", id, " for provider ", ProviderManager.CurrentStorageProviderType.Name, ". Error Message: ", ex.ToString()), true, false, false, false, true, ex);
+            }
+
+            if (result.Result == null && ProviderManager.IsAutoFailOverEnabled)
+            {
+                foreach (EnumValue<ProviderType> type in ProviderManager.GetProviderAutoFailOverList())
+                {
+                    if (type.Value != providerType && type.Value != ProviderManager.CurrentStorageProviderType.Value)
+                    {
+                        try
+                        {
+                            OASISResult<IOASISStorageProvider> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(type.Value);
+
+                            if (!providerResult.IsError && providerResult.Result != null)
+                                result = await providerResult.Result.LoadAvatarAsync(id, version);
+                            else
+                            {
+                                result.IsError = true;
+                                result.Message = providerResult.Message;
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            ErrorHandling.HandleError(ref result, string.Concat("Error loading avatar ", id, " for provider ", ProviderManager.CurrentStorageProviderType.Name, ". Error Message: ", ex.ToString()));
+                        }
+                    }
+                }
+            }
+
+            if (result.Result == null)
+            {
+                string errorMessage = string.Concat("All registered OASIS Providers in the AutoFailOverList failed to load avatar, ", id, ". Please view the logs for more information. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString());
+                LoggingManager.Log(errorMessage, LogType.Error);
+            }
+            else if (removeAuthDetails)
+                result.Result = RemoveAuthDetails(result.Result);
+
+            // Set the current provider back to the original provider.
+            if (needToChangeBack)
+                ProviderManager.SetAndActivateCurrentStorageProvider(currentProviderType);
+
+            return result;
         }
 
-        public async Task<IAvatar> LoadAvatarAsync(Guid id, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IAvatar> LoadAvatar(string username, string password, bool removeAuthDetails = true, ProviderType providerType = ProviderType.Default, int version = 0)
         {
-            //TODO: Need to handle return of OASISResult properly...
-            IAvatar avatar = ProviderManager.SetAndActivateCurrentStorageProvider(providerType).Result.LoadAvatarAsync(id).Result.Result;
-            // avatar.Password = null;
-            return avatar;
+            OASISResult<IAvatar> result = new OASISResult<IAvatar>();
+            bool needToChangeBack = false;
+            ProviderType currentProviderType = ProviderManager.CurrentStorageProviderType.Value;
+
+            try
+            {
+                OASISResult<IOASISStorageProvider> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
+
+                if (!providerResult.IsError && providerResult.Result != null)
+                    result = providerResult.Result.LoadAvatar(username, password, version);
+                else
+                {
+                    result.IsError = true;
+                    result.Message = providerResult.Message;
+                }
+            }
+            catch (Exception ex)
+            {
+                ErrorHandling.HandleError(ref result, string.Concat("Error loading avatar ", username, " for provider ", ProviderManager.CurrentStorageProviderType.Name, ". Error Message: ", ex.ToString()), true, false, false, false, true, ex);
+            }
+
+            if (result.Result == null && ProviderManager.IsAutoFailOverEnabled)
+            {
+                foreach (EnumValue<ProviderType> type in ProviderManager.GetProviderAutoFailOverList())
+                {
+                    if (type.Value != providerType && type.Value != ProviderManager.CurrentStorageProviderType.Value)
+                    {
+                        try
+                        {
+                            OASISResult<IOASISStorageProvider> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(type.Value);
+
+                            if (!providerResult.IsError && providerResult.Result != null)
+                                result = providerResult.Result.LoadAvatar(username, password, version);
+                            else
+                            {
+                                result.IsError = true;
+                                result.Message = providerResult.Message;
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            ErrorHandling.HandleError(ref result, string.Concat("Error loading avatar ", username, " for provider ", ProviderManager.CurrentStorageProviderType.Name, ". Error Message: ", ex.ToString()));
+                        }
+                    }
+                }
+            }
+
+            if (result.Result == null)
+            {
+                string errorMessage = string.Concat("All registered OASIS Providers in the AutoFailOverList failed to load avatar, ", username, ". Please view the logs for more information. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString());
+                LoggingManager.Log(errorMessage, LogType.Error);
+            }
+            else if (removeAuthDetails)
+                result.Result = RemoveAuthDetails(result.Result);
+
+            // Set the current provider back to the original provider.
+            if (needToChangeBack)
+                ProviderManager.SetAndActivateCurrentStorageProvider(currentProviderType);
+
+            return result;
         }
 
-        public IAvatarDetail LoadAvatarDetail(Guid id)
+        public async Task<OASISResult<IAvatar>> LoadAvatarAsync(string username, string password, bool removeAuthDetails = true, ProviderType providerType = ProviderType.Default, int version = 0)
         {
-            //TODO: Need to handle return of OASISResult properly...
-            var detail = ProviderManager.SetAndActivateCurrentStorageProvider(ProviderType.Default).Result.LoadAvatarDetail(id);
-            return detail.Result;
+            OASISResult<IAvatar> result = new OASISResult<IAvatar>();
+            bool needToChangeBack = false;
+            ProviderType currentProviderType = ProviderManager.CurrentStorageProviderType.Value;
+
+            try
+            {
+                OASISResult<IOASISStorageProvider> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
+
+                if (!providerResult.IsError && providerResult.Result != null)
+                    result = await providerResult.Result.LoadAvatarAsync(username, password, version);
+                else
+                {
+                    result.IsError = true;
+                    result.Message = providerResult.Message;
+                }
+            }
+            catch (Exception ex)
+            {
+                ErrorHandling.HandleError(ref result, string.Concat("Error loading avatar ", username, " for provider ", ProviderManager.CurrentStorageProviderType.Name, ". Error Message: ", ex.ToString()), true, false, false, false, true, ex);
+            }
+
+            if (result.Result == null && ProviderManager.IsAutoFailOverEnabled)
+            {
+                foreach (EnumValue<ProviderType> type in ProviderManager.GetProviderAutoFailOverList())
+                {
+                    if (type.Value != providerType && type.Value != ProviderManager.CurrentStorageProviderType.Value)
+                    {
+                        try
+                        {
+                            OASISResult<IOASISStorageProvider> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(type.Value);
+
+                            if (!providerResult.IsError && providerResult.Result != null)
+                                result = await providerResult.Result.LoadAvatarAsync(username, password, version);
+                            else
+                            {
+                                result.IsError = true;
+                                result.Message = providerResult.Message;
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            ErrorHandling.HandleError(ref result, string.Concat("Error loading avatar ", username, " for provider ", ProviderManager.CurrentStorageProviderType.Name, ". Error Message: ", ex.ToString()));
+                        }
+                    }
+                }
+            }
+
+            if (result.Result == null)
+            {
+                string errorMessage = string.Concat("All registered OASIS Providers in the AutoFailOverList failed to load avatar, ", username, ". Please view the logs for more information. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString());
+                LoggingManager.Log(errorMessage, LogType.Error);
+            }
+            else if (removeAuthDetails)
+                result.Result = RemoveAuthDetails(result.Result);
+
+            // Set the current provider back to the original provider.
+            if (needToChangeBack)
+                ProviderManager.SetAndActivateCurrentStorageProvider(currentProviderType);
+
+            return result;
+        }
+
+        //TODO: Replicate Auto-Fail over and Auto-Replication code for all Avatar, HolonManager methods etc...
+        public OASISResult<IAvatar> LoadAvatar(string username, bool removeAuthDetails = true, ProviderType providerType = ProviderType.Default, int version = 0)
+        {
+            OASISResult<IAvatar> result = new OASISResult<IAvatar>();
+            bool needToChangeBack = false;
+            ProviderType currentProviderType = ProviderManager.CurrentStorageProviderType.Value;
+
+            try
+            {
+                OASISResult<IOASISStorageProvider> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
+
+                if (!providerResult.IsError && providerResult.Result != null)
+                    result = providerResult.Result.LoadAvatar(username, version);
+                else
+                {
+                    result.IsError = true;
+                    result.Message = providerResult.Message;
+                }
+            }
+            catch (Exception ex)
+            {
+                ErrorHandling.HandleError(ref result, string.Concat("Error loading avatar ", username, " for provider ", ProviderManager.CurrentStorageProviderType.Name, ". Error Message: ", ex.ToString()), true, false, false, false, true, ex);
+            }
+
+            if (result.Result == null && ProviderManager.IsAutoFailOverEnabled)
+            {
+                foreach (EnumValue<ProviderType> type in ProviderManager.GetProviderAutoFailOverList())
+                {
+                    if (type.Value != providerType && type.Value != ProviderManager.CurrentStorageProviderType.Value)
+                    {
+                        try
+                        {
+                            OASISResult<IOASISStorageProvider> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(type.Value);
+
+                            if (!providerResult.IsError && providerResult.Result != null)
+                                result = providerResult.Result.LoadAvatar(username, version);
+                            else
+                            {
+                                result.IsError = true;
+                                result.Message = providerResult.Message;
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            ErrorHandling.HandleError(ref result, string.Concat("Error loading avatar ", username, " for provider ", ProviderManager.CurrentStorageProviderType.Name, ". Error Message: ", ex.ToString()));
+                        }
+                    }
+                }
+            }
+
+            if (result.Result == null)
+            {
+                string errorMessage = string.Concat("All registered OASIS Providers in the AutoFailOverList failed to load avatar, ", username, ". Please view the logs for more information. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString());
+                LoggingManager.Log(errorMessage, LogType.Error);
+            }
+            else if (removeAuthDetails)
+                result.Result = RemoveAuthDetails(result.Result);
+
+            // Set the current provider back to the original provider.
+            if (needToChangeBack)
+                ProviderManager.SetAndActivateCurrentStorageProvider(currentProviderType);
+
+            return result;
+        }
+
+        public async Task<OASISResult<IAvatar>> LoadAvatarAsync(string username, bool removeAuthDetails = true, ProviderType providerType = ProviderType.Default, int version = 0)
+        {
+            OASISResult<IAvatar> result = new OASISResult<IAvatar>();
+            bool needToChangeBack = false;
+            ProviderType currentProviderType = ProviderManager.CurrentStorageProviderType.Value;
+
+            try
+            {
+                OASISResult<IOASISStorageProvider> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
+
+                if (!providerResult.IsError && providerResult.Result != null)
+                    result = await providerResult.Result.LoadAvatarAsync(username, version);
+                else
+                {
+                    result.IsError = true;
+                    result.Message = providerResult.Message;
+                }
+            }
+            catch (Exception ex)
+            {
+                ErrorHandling.HandleError(ref result, string.Concat("Error loading avatar ", username, " for provider ", ProviderManager.CurrentStorageProviderType.Name, ". Error Message: ", ex.ToString()), true, false, false, false, true, ex);
+            }
+
+            if (result.Result == null && ProviderManager.IsAutoFailOverEnabled)
+            {
+                foreach (EnumValue<ProviderType> type in ProviderManager.GetProviderAutoFailOverList())
+                {
+                    if (type.Value != providerType && type.Value != ProviderManager.CurrentStorageProviderType.Value)
+                    {
+                        try
+                        {
+                            OASISResult<IOASISStorageProvider> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(type.Value);
+
+                            if (!providerResult.IsError && providerResult.Result != null)
+                                result = await providerResult.Result.LoadAvatarAsync(username, version);
+                            else
+                            {
+                                result.IsError = true;
+                                result.Message = providerResult.Message;
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            ErrorHandling.HandleError(ref result, string.Concat("Error loading avatar ", username, " for provider ", ProviderManager.CurrentStorageProviderType.Name, ". Error Message: ", ex.ToString()));
+                        }
+                    }
+                }
+            }
+
+            if (result.Result == null)
+            {
+                string errorMessage = string.Concat("All registered OASIS Providers in the AutoFailOverList failed to load avatar, ", username, ". Please view the logs for more information. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString());
+                LoggingManager.Log(errorMessage, LogType.Error);
+            }
+            else if (removeAuthDetails)
+                result.Result = RemoveAuthDetails(result.Result);
+
+            // Set the current provider back to the original provider.
+            if (needToChangeBack)
+                ProviderManager.SetAndActivateCurrentStorageProvider(currentProviderType);
+
+            return result;
+        }
+
+        public OASISResult<IAvatar> LoadAvatarByEmail(string email, bool removeAuthDetails = true, ProviderType providerType = ProviderType.Default, int version = 0)
+        {
+            OASISResult<IAvatar> result = new OASISResult<IAvatar>();
+            bool needToChangeBack = false;
+            ProviderType currentProviderType = ProviderManager.CurrentStorageProviderType.Value;
+
+            try
+            {
+                OASISResult<IOASISStorageProvider> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
+
+                if (!providerResult.IsError && providerResult.Result != null)
+                    result = providerResult.Result.LoadAvatarByEmail(email, version);
+                else
+                {
+                    result.IsError = true;
+                    result.Message = providerResult.Message;
+                }
+            }
+            catch (Exception ex)
+            {
+                ErrorHandling.HandleError(ref result, string.Concat("Error loading avatar ", email, " for provider ", ProviderManager.CurrentStorageProviderType.Name, ". Error Message: ", ex.ToString()), true, false, false, false, true, ex);
+            }
+
+            if (result.Result == null && ProviderManager.IsAutoFailOverEnabled)
+            {
+                foreach (EnumValue<ProviderType> type in ProviderManager.GetProviderAutoFailOverList())
+                {
+                    if (type.Value != providerType && type.Value != ProviderManager.CurrentStorageProviderType.Value)
+                    {
+                        try
+                        {
+                            OASISResult<IOASISStorageProvider> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(type.Value);
+
+                            if (!providerResult.IsError && providerResult.Result != null)
+                                result = providerResult.Result.LoadAvatarByEmail(email, version);
+                            else
+                            {
+                                result.IsError = true;
+                                result.Message = providerResult.Message;
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            ErrorHandling.HandleError(ref result, string.Concat("Error loading avatar ", email, " for provider ", ProviderManager.CurrentStorageProviderType.Name, ". Error Message: ", ex.ToString()));
+                        }
+                    }
+                }
+            }
+
+            if (result.Result == null)
+            {
+                string errorMessage = string.Concat("All registered OASIS Providers in the AutoFailOverList failed to load avatar, ", email, ". Please view the logs for more information. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString());
+                LoggingManager.Log(errorMessage, LogType.Error);
+            }
+            else if (removeAuthDetails)
+                result.Result = RemoveAuthDetails(result.Result);
+
+            // Set the current provider back to the original provider.
+            if (needToChangeBack)
+                ProviderManager.SetAndActivateCurrentStorageProvider(currentProviderType);
+
+            return result;
+        }
+
+        public async Task<OASISResult<IAvatar>> LoadAvatarByEmailAsync(string email, bool removeAuthDetails = true, ProviderType providerType = ProviderType.Default, int version = 0)
+        {
+            OASISResult<IAvatar> result = new OASISResult<IAvatar>();
+            bool needToChangeBack = false;
+            ProviderType currentProviderType = ProviderManager.CurrentStorageProviderType.Value;
+
+            try
+            {
+                OASISResult<IOASISStorageProvider> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
+
+                if (!providerResult.IsError && providerResult.Result != null)
+                    result = await providerResult.Result.LoadAvatarByEmailAsync(email, version);
+                else
+                {
+                    result.IsError = true;
+                    result.Message = providerResult.Message;
+                }
+            }
+            catch (Exception ex)
+            {
+                ErrorHandling.HandleError(ref result, string.Concat("Error loading avatar ", email, " for provider ", ProviderManager.CurrentStorageProviderType.Name, ". Error Message: ", ex.ToString()), true, false, false, false, true, ex);
+            }
+
+            if (result.Result == null && ProviderManager.IsAutoFailOverEnabled)
+            {
+                foreach (EnumValue<ProviderType> type in ProviderManager.GetProviderAutoFailOverList())
+                {
+                    if (type.Value != providerType && type.Value != ProviderManager.CurrentStorageProviderType.Value)
+                    {
+                        try
+                        {
+                            OASISResult<IOASISStorageProvider> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(type.Value);
+
+                            if (!providerResult.IsError && providerResult.Result != null)
+                                result = await providerResult.Result.LoadAvatarByEmailAsync(email, version);
+                            else
+                            {
+                                result.IsError = true;
+                                result.Message = providerResult.Message;
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            ErrorHandling.HandleError(ref result, string.Concat("Error loading avatar ", email, " for provider ", ProviderManager.CurrentStorageProviderType.Name, ". Error Message: ", ex.ToString()));
+                        }
+                    }
+                }
+            }
+
+            if (result.Result == null)
+            {
+                string errorMessage = string.Concat("All registered OASIS Providers in the AutoFailOverList failed to load avatar, ", email, ". Please view the logs for more information. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString());
+                LoggingManager.Log(errorMessage, LogType.Error);
+            }
+            else if (removeAuthDetails)
+                result.Result = RemoveAuthDetails(result.Result);
+
+            // Set the current provider back to the original provider.
+            if (needToChangeBack)
+                ProviderManager.SetAndActivateCurrentStorageProvider(currentProviderType);
+
+            return result;
+        }
+
+        public OASISResult<IAvatarDetail> LoadAvatarDetail(Guid id, ProviderType providerType = ProviderType.Default, int version = 0)
+        {
+            OASISResult<IAvatarDetail> result = new OASISResult<IAvatarDetail>();
+            bool needToChangeBack = false;
+            ProviderType currentProviderType = ProviderManager.CurrentStorageProviderType.Value;
+
+            try
+            {
+                OASISResult<IOASISStorageProvider> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
+
+                if (!providerResult.IsError && providerResult.Result != null)
+                    result = providerResult.Result.LoadAvatarDetail(id, version);
+                else
+                {
+                    result.IsError = true;
+                    result.Message = providerResult.Message;
+                }
+            }
+            catch (Exception ex)
+            {
+                ErrorHandling.HandleError(ref result, string.Concat("Error loading avatar detail ", id, " for provider ", ProviderManager.CurrentStorageProviderType.Name, ". Error Message: ", ex.ToString()), true, false, false, false, true, ex);
+            }
+
+            if (result.Result == null && ProviderManager.IsAutoFailOverEnabled)
+            {
+                foreach (EnumValue<ProviderType> type in ProviderManager.GetProviderAutoFailOverList())
+                {
+                    if (type.Value != providerType && type.Value != ProviderManager.CurrentStorageProviderType.Value)
+                    {
+                        try
+                        {
+                            OASISResult<IOASISStorageProvider> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(type.Value);
+
+                            if (!providerResult.IsError && providerResult.Result != null)
+                                result = providerResult.Result.LoadAvatarDetail(id, version);
+                            else
+                            {
+                                result.IsError = true;
+                                result.Message = providerResult.Message;
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            ErrorHandling.HandleError(ref result, string.Concat("Error loading avatar detail ", id, " for provider ", ProviderManager.CurrentStorageProviderType.Name, ". Error Message: ", ex.ToString()));
+                        }
+                    }
+                }
+            }
+
+            if (result.Result == null)
+            {
+                string errorMessage = string.Concat("All registered OASIS Providers in the AutoFailOverList failed to load avatar detail ", id, ". Please view the logs for more information. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString());
+                LoggingManager.Log(errorMessage, LogType.Error);
+            }
+
+            // Set the current provider back to the original provider.
+            if (needToChangeBack)
+                ProviderManager.SetAndActivateCurrentStorageProvider(currentProviderType);
+
+            return result;
         }
 
         public async Task<IAvatarDetail> LoadAvatarDetailAsync(Guid id)
@@ -468,103 +961,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return details.Result;
         }
 
-        public OASISResult<IAvatar> LoadAvatar(Guid id, ProviderType providerType = ProviderType.Default)
-        {
-            OASISResult<IAvatar> result = new OASISResult<IAvatar>();
-
-            //TODO: Need to handle return of OASISResult properly...
-            OASISResult<IOASISStorageProvider> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
-
-            if (!providerResult.IsError && providerResult.Result != null)
-            {
-                result = providerResult.Result.LoadAvatar(id);
-
-                //Fallback generic error handling if the provider did not give a message for it being null.
-                if (result.Result == null && string.IsNullOrEmpty(result.Message))
-                    ErrorHandling.HandleError(ref result, "Error loading avatar, avatar not found.");
-            }
-            else
-            {
-                result.IsError = true;
-                result.Message = providerResult.Message;
-            }
-
-            //avatar.Password = null;
-            return result;
-        }
-
-        public async Task<IAvatar> LoadAvatarAsync(string username, string password, ProviderType providerType = ProviderType.Default)
-        {
-            return ProviderManager.SetAndActivateCurrentStorageProvider(providerType).Result.LoadAvatarAsync(username, password).Result.Result;
-        }
-
-        public IAvatar LoadAvatar(string username, string password, ProviderType providerType = ProviderType.Default)
-        {
-            return ProviderManager.SetAndActivateCurrentStorageProvider(providerType).Result.LoadAvatar(username, password).Result;
-        }
-
-        //TODO: Replicate Auto-Fail over and Auto-Replication code for all Avatar, HolonManager methods etc...
-        public OASISResult<IAvatar> LoadAvatar(string username, ProviderType providerType = ProviderType.Default)
-        {
-            OASISResult<IAvatar> result = new OASISResult<IAvatar>();
-            bool needToChangeBack = false;
-            ProviderType currentProviderType = ProviderManager.CurrentStorageProviderType.Value;
-
-            try
-            {
-                OASISResult<IOASISStorageProvider> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
-
-                if (!providerResult.IsError && providerResult.Result != null)
-                    result = providerResult.Result.LoadAvatar(username);
-                else
-                {
-                    result.IsError = true;
-                    result.Message = providerResult.Message;
-                }
-            }
-            catch (Exception ex)
-            {
-                ErrorHandling.HandleError(ref result, string.Concat("Error loading avatar ", username, " for provider ", ProviderManager.CurrentStorageProviderType.Name, ". Error Message: ", ex.ToString()), true, false, false, false, true, ex);
-            }
-
-            if (result.Result == null && ProviderManager.IsAutoFailOverEnabled)
-            {
-                foreach (EnumValue<ProviderType> type in ProviderManager.GetProviderAutoFailOverList())
-                {
-                    if (type.Value != providerType && type.Value != ProviderManager.CurrentStorageProviderType.Value)
-                    {
-                        try
-                        {
-                            OASISResult<IOASISStorageProvider> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(type.Value);
-
-                            if (!providerResult.IsError && providerResult.Result != null)
-                                result = providerResult.Result.LoadAvatar(username);
-                            else
-                            {
-                                result.IsError = true;
-                                result.Message = providerResult.Message;
-                            }
-                        }
-                        catch (Exception ex)
-                        {
-                            ErrorHandling.HandleError(ref result, string.Concat("Error loading avatar ", username, " for provider ", ProviderManager.CurrentStorageProviderType.Name, ". Error Message: ", ex.ToString()));
-                        }
-                    }
-                }
-            }
-
-            if (result.Result == null)
-            {
-                string errorMessage = string.Concat("All registered OASIS Providers in the AutoFailOverList failed to load avatar, ", username, ". Please view the logs for more information. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString());
-                LoggingManager.Log(errorMessage, LogType.Error);
-            }
-
-            // Set the current provider back to the original provider.
-            if (needToChangeBack)
-                ProviderManager.SetAndActivateCurrentStorageProvider(currentProviderType);
-
-            return result;
-        }
+        
         /*
         public async Task<IAvatar> SaveAvatarAsync(IAvatar avatar, ProviderType providerType = ProviderType.Default)
         {
@@ -1335,461 +1732,6 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return result;
         }
 
-        //// Could be used as the public key for private/public key pairs. Could also be a username/accountname/unique id/etc, etc.
-        //public OASISResult<bool> LinkProviderPublicKeyToAvatar(Guid avatarId, ProviderType providerTypeToLinkTo, string providerKey, ProviderType providerToLoadAvatarFrom = ProviderType.Default)
-        //{
-        //    OASISResult<bool> result = new OASISResult<bool>();
-
-        //    try
-        //    {
-        //        OASISResult<IAvatar> avatarResult = ProviderManager.SetAndActivateCurrentStorageProvider(providerToLoadAvatarFrom).Result.LoadAvatar(avatarId);
-
-        //        if (!avatarResult.IsError && avatarResult.Result != null)
-        //        {
-        //            avatarResult.Result.ProviderPublicKey[providerTypeToLinkTo] = providerKey;
-        //            result.Result = avatarResult.Result.Save() != null;
-        //        }
-        //        else
-        //            result.Message = $"Error occured loading avatar for id {avatarId}. Reason: {avatarResult.Message}";
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        ErrorHandling.HandleError(ref result, $"Unknown error occured in LinkPublicProviderKeyToAvatar for avatar {avatarId} and providerType {Enum.GetName(typeof(ProviderType), providerToLoadAvatarFrom)} and key {providerKey}: {ex.Message}");
-        //    }
-
-        //    return result;
-        //}
-
-        //// Private key for a public/private keypair.
-        //public OASISResult<bool> LinkProviderPrivateKeyToAvatar(Guid avatarId, ProviderType providerTypeToLinkTo, string providerPrivateKey, ProviderType providerToLoadAvatarFrom = ProviderType.Default)
-        //{
-        //    OASISResult<bool> result = new OASISResult<bool>();
-
-        //    try
-        //    {
-        //        OASISResult<IAvatar> avatarResult = ProviderManager.SetAndActivateCurrentStorageProvider(providerToLoadAvatarFrom).Result.LoadAvatar(avatarId);
-
-        //        if (!avatarResult.IsError && avatarResult.Result != null)
-        //        {
-        //            avatarResult.Result.ProviderPublicKey[providerTypeToLinkTo] = StringCipher.Encrypt(providerPrivateKey);
-        //            result.Result = avatarResult.Result.Save() != null;
-        //        }
-        //        else
-        //            result.Message = $"Error occured loading avatar for id {avatarId}. Reason: {avatarResult.Message}";
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        ErrorHandling.HandleError(ref result, $"Unknown error occured in LinkPrivateProviderKeyToAvatar for avatar {avatarId} and providerType {Enum.GetName(typeof(ProviderType), providerToLoadAvatarFrom)} and key {providerPrivateKey}: {ex.Message}");
-        //    }
-
-        //    return result;
-        //}
-
-        //public OASISResult<string> GetProviderUniqueStorageKeyForAvatar(Guid avatarId, ProviderType providerType)
-        //{
-        //    OASISResult<string> result = new OASISResult<string>();
-        //    string key = string.Concat(Enum.GetName(providerType), avatarId);
-
-        //    if (!_avatarIdToProviderUniqueStorageKeyLookup.ContainsKey(key))
-        //    {
-        //        IAvatar avatar = LoadAvatar(avatarId, providerType);
-        //        GetProviderUniqueStorageKeyForAvatar(avatar, providerType, key, _avatarIdToProviderUniqueStorageKeyLookup);
-        //    }
-
-        //    result.Result = _avatarIdToProviderUniqueStorageKeyLookup[key];
-        //    return result;
-        //}
-
-        //public OASISResult<string> GetProviderUniqueStorageKeyForAvatar(string avatarUsername, ProviderType providerType)
-        //{
-        //    OASISResult<string> result = new OASISResult<string>();
-
-        //    string key = string.Concat(Enum.GetName(providerType), avatarUsername);
-
-        //    if (!_avatarUsernameToProviderUniqueStorageKeyLookup.ContainsKey(key))
-        //    {
-        //        IAvatar avatar = LoadAvatar(avatarUsername);
-        //        GetProviderUniqueStorageKeyForAvatar(avatar, providerType, key, _avatarUsernameToProviderUniqueStorageKeyLookup);
-        //    }
-
-        //    result.Result = _avatarUsernameToProviderUniqueStorageKeyLookup[key];
-        //    return result;
-        //}
-
-        //private OASISResult<string> GetProviderUniqueStorageKeyForAvatar(IAvatar avatar, ProviderType providerType, string key, Dictionary<string, string> dictionaryCache)
-        //{
-        //    OASISResult<string> result = new OASISResult<string>();
-
-        //    if (avatar != null)
-        //    {
-        //        if (avatar.ProviderUniqueStorageKey.ContainsKey(providerType))
-        //            dictionaryCache[key] = avatar.ProviderUniqueStorageKey[providerType];
-        //        else
-        //            throw new InvalidOperationException(string.Concat("The avatar with id ", avatar.Id, " and username ", avatar.Username, " has not been linked to the ", Enum.GetName(providerType), " provider. Please use the LinkProviderKeyToAvatar method on the AvatarManager or avatar REST API."));
-        //    }
-        //    else
-        //        throw new InvalidOperationException(string.Concat("The avatar with id ", avatar.Id, " and username ", avatar.Username, " was not found."));
-
-        //    result.Result = dictionaryCache[key];
-        //    return result;
-        //}
-
-        //public OASISResult<string> GetPublicProviderKeyForAvatar(Guid avatarId, ProviderType providerType)
-        //{
-        //    OASISResult<string> result = new OASISResult<string>();
-        //    string key = string.Concat(Enum.GetName(providerType), avatarId);
-
-        //    //TODO: I think it's fine to retreive the public key for another avatar because it is already public? :)
-        //    // if (LoggedInAvatar.Id != avatarId)
-        //    //    throw new InvalidOperationException("You cannot retreive the public key for another person's avatar. Please login to this account and try again.");
-
-        //    if (!_avatarIdToProviderPublicKeyLookup.ContainsKey(key))
-        //    {
-        //        IAvatar avatar = LoadAvatar(avatarId);
-
-        //        if (avatar != null)
-        //        {
-        //            if (avatar.ProviderPublicKey.ContainsKey(providerType))
-        //                _avatarIdToProviderPublicKeyLookup[key] = avatar.ProviderPublicKey[providerType];
-        //            else
-        //                throw new InvalidOperationException(string.Concat("The avatar with id ", avatarId, " has not been linked to the ", Enum.GetName(providerType), " provider. Please use the LinkProviderPublicKeyToAvatar method on the AvatarManager or avatar REST API."));
-        //        }
-        //        else
-        //            throw new InvalidOperationException(string.Concat("The avatar with id ", avatarId, " was not found."));
-        //    }
-
-        //    result.Result = StringCipher.Decrypt(_avatarIdToProviderPublicKeyLookup[key]);
-        //    return result;
-        //}
-
-        //public OASISResult<string> GetProviderPublicKeyForAvatar(string avatarUsername, ProviderType providerType)
-        //{
-        //    OASISResult<string> result = new OASISResult<string>();
-        //    string key = string.Concat(Enum.GetName(providerType), avatarUsername);
-
-        //    //TODO: I think it's fine to retreive the public key for another avatar because it is already public? :)
-        //    // if (LoggedInAvatar.Id != avatarId)
-        //    //    throw new InvalidOperationException("You cannot retreive the public key for another person's avatar. Please login to this account and try again.");
-
-        //    if (!_avatarUsernameToProviderPublicKeyLookup.ContainsKey(key))
-        //    {
-        //        IAvatar avatar = LoadAvatar(avatarUsername);
-
-        //        if (avatar != null)
-        //        {
-        //            if (avatar.ProviderPublicKey.ContainsKey(providerType))
-        //                _avatarUsernameToProviderPublicKeyLookup[key] = avatar.ProviderPublicKey[providerType];
-        //            else
-        //                throw new InvalidOperationException(string.Concat("The avatar with username ", avatarUsername, " has not been linked to the ", Enum.GetName(providerType), " provider. Please use the LinkProviderPublicKeyToAvatar method on the AvatarManager or avatar REST API."));
-        //        }
-        //        else
-        //            throw new InvalidOperationException(string.Concat("The avatar with username ", avatarUsername, " was not found."));
-        //    }
-
-        //    result.Result = StringCipher.Decrypt(_avatarUsernameToProviderPublicKeyLookup[key]);
-        //    return result;
-        //}
-
-        //public OASISResult<string> GetProviderPrivateKeyForAvatar(Guid avatarId, ProviderType providerType)
-        //{
-        //    OASISResult<string> result = new OASISResult<string>();
-        //    string key = string.Concat(Enum.GetName(providerType), avatarId);
-
-        //    if (LoggedInAvatar.Id != avatarId)
-        //        throw new InvalidOperationException("You cannot retreive the private key for another person's avatar. Please login to this account and try again.");
-
-        //    if (!_avatarIdToProviderPrivateKeyLookup.ContainsKey(key))
-        //    {
-        //        IAvatar avatar = LoadAvatar(avatarId);
-
-        //        if (avatar != null)
-        //        {
-        //            if (avatar.ProviderPrivateKey.ContainsKey(providerType))
-        //                _avatarIdToProviderPrivateKeyLookup[key] = avatar.ProviderPrivateKey[providerType];
-        //            else
-        //                throw new InvalidOperationException(string.Concat("The avatar with id ", avatarId, " has not been linked to the ", Enum.GetName(providerType), " provider. Please use the LinkProviderPrivateKeyToAvatar method on the AvatarManager or avatar REST API."));
-        //        }
-        //        else
-        //            throw new InvalidOperationException(string.Concat("The avatar with id ", avatarId, " was not found."));
-        //    }
-
-        //    result.Result = StringCipher.Decrypt(_avatarIdToProviderPrivateKeyLookup[key]);
-        //    return result;
-        //}
-
-        //public OASISResult<string> GetProviderPrivateKeyForAvatar(string avatarUsername, ProviderType providerType)
-        //{
-        //    OASISResult<string> result = new OASISResult<string>();
-        //    string key = string.Concat(Enum.GetName(providerType), avatarUsername);
-
-        //    if (LoggedInAvatar.Username != avatarUsername)
-        //        throw new InvalidOperationException("You cannot retreive the private key for another person's avatar. Please login to this account and try again.");
-
-        //    if (!_avatarUsernameToProviderPrivateKeyLookup.ContainsKey(key))
-        //    {
-        //        IAvatar avatar = LoadAvatar(avatarUsername);
-
-        //        if (avatar != null)
-        //        {
-        //            if (avatar.ProviderPrivateKey.ContainsKey(providerType))
-        //                _avatarUsernameToProviderPrivateKeyLookup[key] = avatar.ProviderPrivateKey[providerType];
-        //            else
-        //                throw new InvalidOperationException(string.Concat("The avatar with username ", avatarUsername, " has not been linked to the ", Enum.GetName(providerType), " provider. Please use the LinkProviderPrivateKeyToAvatar method on the AvatarManager or avatar REST API."));
-        //        }
-        //        else
-        //            throw new InvalidOperationException(string.Concat("The avatar with username ", avatarUsername, " was not found."));
-        //    }
-
-        //    result.Result = StringCipher.Decrypt(_avatarUsernameToProviderPrivateKeyLookup[key]);
-        //    return result;
-        //}
-
-        //public OASISResult<Guid> GetAvatarIdForProviderUniqueStorageKey(string providerKey, ProviderType providerType)
-        //{
-        //    // TODO: Do we need to store both the id and whole avatar in the cache? Think only need one? Just storing the id would use less memory and be faster but there may be use cases for when we need the whole avatar?
-        //    // In future, if there is not a use case for the whole avatar we will just use the id cache and remove the other.
-        //    OASISResult<Guid> result = new OASISResult<Guid>();
-        //    string key = string.Concat(Enum.GetName(providerType), providerKey);
-
-        //    if (!_providerUniqueStorageKeyToAvatarIdLookup.ContainsKey(key))
-        //        _providerUniqueStorageKeyToAvatarIdLookup[key] = GetAvatarForProviderUniqueStorageKey(providerKey, providerType).Result.Id;
-
-        //    result.Result = _providerUniqueStorageKeyToAvatarIdLookup[key];
-        //    return result;
-        //}
-
-        //public OASISResult<string> GetAvatarUsernameForProviderUniqueStorageKey(string providerKey, ProviderType providerType)
-        //{
-        //    OASISResult<string> result = new OASISResult<string>();
-
-        //    // TODO: Do we need to store both the id and whole avatar in the cache? Think only need one? Just storing the id would use less memory and be faster but there may be use cases for when we need the whole avatar?
-        //    // In future, if there is not a use case for the whole avatar we will just use the id cache and remove the other.
-
-        //    string key = string.Concat(Enum.GetName(providerType), providerKey);
-
-        //    if (!_providerUniqueStorageKeyToAvatarUsernameLookup.ContainsKey(key))
-        //        _providerUniqueStorageKeyToAvatarUsernameLookup[key] = GetAvatarForProviderUniqueStorageKey(providerKey, providerType).Result.Username;
-
-        //    result.Result = _providerUniqueStorageKeyToAvatarUsernameLookup[key];
-        //    return result;
-        //}
-
-        //public OASISResult<IAvatar> GetAvatarForProviderUniqueStorageKey(string providerKey, ProviderType providerType)
-        //{
-        //    OASISResult<IAvatar> result = new OASISResult<IAvatar>();
-        //    string key = string.Concat(Enum.GetName(providerType), providerKey);
-
-        //    if (!_providerUniqueStorageKeyToAvatarLookup.ContainsKey(key))
-        //    {
-        //        //TODO: Ideally need a new overload for LoadAvatar that takes the provider key.
-        //        //TODO: In the meantime should we cache the full list of Avatars? Could take up a LOT of memory so probably not good idea?
-        //        IAvatar avatar = LoadAllAvatars().FirstOrDefault(x => x.ProviderUniqueStorageKey.ContainsKey(providerType) && x.ProviderUniqueStorageKey[providerType] == providerKey);
-
-        //        if (avatar != null)
-        //        {
-        //            _providerUniqueStorageKeyToAvatarIdLookup[key] = avatar.Id;
-        //            _providerUniqueStorageKeyToAvatarUsernameLookup[key] = avatar.Username;
-        //            _providerUniqueStorageKeyToAvatarLookup[key] = avatar;
-        //        }
-        //        else
-        //            throw new InvalidOperationException(string.Concat("The provider Key ", providerKey, " for the ", Enum.GetName(providerType), " providerType has not been linked to an avatar. Please use the LinkProviderKeyToAvatar method on the AvatarManager or avatar REST API."));
-        //    }
-
-        //    result.Result = _providerUniqueStorageKeyToAvatarLookup[key];
-        //    return result;
-        //}
-
-        //public OASISResult<Guid> GetAvatarIdForProviderPublicKey(string providerKey, ProviderType providerType)
-        //{
-        //    OASISResult<Guid> result = new OASISResult<Guid>();
-
-        //    // TODO: Do we need to store both the id and whole avatar in the cache? Think only need one? Just storing the id would use less memory and be faster but there may be use cases for when we need the whole avatar?
-        //    // In future, if there is not a use case for the whole avatar we will just use the id cache and remove the other.
-
-        //    string key = string.Concat(Enum.GetName(providerType), providerKey);
-
-        //    if (!_providerPublicKeyToAvatarIdLookup.ContainsKey(key))
-        //        _providerPublicKeyToAvatarIdLookup[key] = GetAvatarForProviderPublicKey(providerKey, providerType).Result.Id;
-
-        //    result.Result = _providerPublicKeyToAvatarIdLookup[key];
-        //    return result;
-        //}
-
-        //public OASISResult<string> GetAvatarUsernameForProviderPublicKey(string providerKey, ProviderType providerType)
-        //{
-        //    OASISResult<string> result = new OASISResult<string>();
-        //    // TODO: Do we need to store both the id and whole avatar in the cache? Think only need one? Just storing the id would use less memory and be faster but there may be use cases for when we need the whole avatar?
-        //    // In future, if there is not a use case for the whole avatar we will just use the id cache and remove the other.
-
-        //    string key = string.Concat(Enum.GetName(providerType), providerKey);
-
-        //    if (!_providerPublicKeyToAvatarUsernameLookup.ContainsKey(key))
-        //        _providerPublicKeyToAvatarUsernameLookup[key] = GetAvatarForProviderPublicKey(providerKey, providerType).Result.Username;
-
-        //    result.Result = _providerPublicKeyToAvatarUsernameLookup[key];
-        //    return result;
-        //}
-
-        //public OASISResult<IAvatar> GetAvatarForProviderPublicKey(string providerKey, ProviderType providerType)
-        //{
-        //    OASISResult<IAvatar> result = new OASISResult<IAvatar>();
-        //    string key = string.Concat(Enum.GetName(providerType), providerKey);
-
-        //    if (!_providerPublicKeyToAvatarLookup.ContainsKey(key))
-        //    {
-        //        //TODO: Ideally need a new overload for LoadAvatarDetail that takes the public provider key.
-        //        //TODO: In the meantime should we cache the full list of AvatarDetails? Could take up a LOT of memory so probably not good idea?
-        //        IAvatar avatar = LoadAllAvatars().FirstOrDefault(x => x.ProviderPublicKey.ContainsKey(providerType) && x.ProviderPublicKey[providerType] == providerKey);
-
-        //        if (avatar != null)
-        //        {
-        //            _providerPublicKeyToAvatarIdLookup[key] = avatar.Id;
-        //            _providerPublicKeyToAvatarUsernameLookup[key] = avatar.Username;
-        //            _providerPublicKeyToAvatarLookup[key] = avatar;
-        //        }
-        //        else
-        //            throw new InvalidOperationException(string.Concat("The provider public Key ", providerKey, " for the ", Enum.GetName(providerType), " providerType has not been linked to an avatar. Please use the LinkProviderPublicKeyToAvatar method on the AvatarManager or avatar REST API."));
-        //    }
-
-        //    result.Result = _providerPublicKeyToAvatarLookup[key];
-        //    return result;
-        //}
-
-        //public OASISResult<Guid> GetAvatarIdForProviderPrivateKey(string providerKey, ProviderType providerType)
-        //{
-        //    OASISResult<Guid> result = new OASISResult<Guid>();
-
-        //    // TODO: Do we need to store both the id and whole avatar in the cache? Think only need one? Just storing the id would use less memory and be faster but there may be use cases for when we need the whole avatar?
-        //    // In future, if there is not a use case for the whole avatar we will just use the id cache and remove the other.
-
-        //    string key = string.Concat(Enum.GetName(providerType), providerKey);
-
-        //    if (!_providerPrivateKeyToAvatarIdLookup.ContainsKey(key))
-        //        _providerPrivateKeyToAvatarIdLookup[key] = GetAvatarForProviderPrivateKey(providerKey, providerType).Result.Id;
-
-        //    result.Result = _providerPrivateKeyToAvatarIdLookup[key];
-        //    return result;
-        //}
-
-        //public OASISResult<string> GetAvatarUsernameForProviderPrivateKey(string providerKey, ProviderType providerType)
-        //{
-        //    OASISResult<string> result = new OASISResult<string>();
-        //    // TODO: Do we need to store both the id and whole avatar in the cache? Think only need one? Just storing the id would use less memory and be faster but there may be use cases for when we need the whole avatar?
-        //    // In future, if there is not a use case for the whole avatar we will just use the id cache and remove the other.
-
-        //    string key = string.Concat(Enum.GetName(providerType), providerKey);
-
-        //    if (!_providerPrivateKeyToAvatarUsernameLookup.ContainsKey(key))
-        //        _providerPrivateKeyToAvatarUsernameLookup[key] = GetAvatarForProviderPrivateKey(providerKey, providerType).Result.Username;
-            
-        //    result.Result = _providerPrivateKeyToAvatarUsernameLookup[key];
-        //    return result;
-        //}
-
-        //public OASISResult<IAvatar> GetAvatarForProviderPrivateKey(string providerKey, ProviderType providerType)
-        //{
-        //    OASISResult<IAvatar> result = new OASISResult<IAvatar>();
-        //    string key = string.Concat(Enum.GetName(providerType), StringCipher.Encrypt(providerKey));
-
-        //    if (!_providerPrivateKeyToAvatarLookup.ContainsKey(key))
-        //    {
-        //        //TODO: Ideally need a new overload for LoadAvatarDetail that takes the public provider key.
-        //        //TODO: In the meantime should we cache the full list of AvatarDetails? Could take up a LOT of memory so probably not good idea?
-        //        IAvatar avatar = LoadAllAvatars().FirstOrDefault(x => x.ProviderPrivateKey.ContainsKey(providerType) && x.ProviderPrivateKey[providerType] == providerKey);
-
-        //        if (avatar != null)
-        //        {
-        //            _providerPrivateKeyToAvatarIdLookup[key] = avatar.Id;
-        //            _providerPrivateKeyToAvatarUsernameLookup[key] = avatar.Username;
-        //            _providerPrivateKeyToAvatarLookup[key] = avatar;
-        //        }
-        //        else
-        //            throw new InvalidOperationException(string.Concat("The provider private Key ", providerKey, " for the ", Enum.GetName(providerType), " providerType has not been linked to an avatar. Please use the LinkProviderPrivateKeyToAvatar method on the AvatarManager or avatar REST API."));
-        //    }
-
-        //    result.Result = _providerPrivateKeyToAvatarLookup[key];
-        //    return result;
-        //}
-
-        //public OASISResult<Dictionary<ProviderType, string>> GetAllProviderUniqueStorageKeysForAvatar(Guid avatarId)
-        //{
-        //    OASISResult<Dictionary<ProviderType, string>> result = new OASISResult<Dictionary<ProviderType, string>>();
-        //    IAvatar avatar = LoadAvatar(avatarId);
-
-        //    if (avatar != null)
-        //        result.Result = avatar.ProviderUniqueStorageKey;
-        //    else
-        //    {
-        //        result.IsError = true;
-        //        result.Message = string.Concat("No avatar was found for the id ", avatarId);
-        //    }
-
-        //    return result;
-        //}
-
-        //public OASISResult<Dictionary<ProviderType, string>> GetAllProviderPublicKeysForAvatar(Guid avatarId)
-        //{
-        //    OASISResult<Dictionary<ProviderType, string>> result = new OASISResult<Dictionary<ProviderType, string>>();
-
-        //    //TODO: Think it's ok for anyone to view anyones public keys since they are already public? :)
-        //    //if (LoggedInAvatar.Id != avatarId)
-        //    //{
-        //    //    result.IsError = true;
-        //    //    result.Message = "ERROR: You can only retreive your own public keys, not another persons avatar.";
-        //    //}
-        //    //else
-        //    //{
-        //        IAvatar avatar = LoadAvatar(avatarId);
-
-        //        if (avatar != null)
-        //        {
-        //            result.Result = avatar.ProviderPublicKey;
-
-        //            // Decrypt the keys only for this return object (there are not stored in memory or storage unenrypted).
-        //            foreach (ProviderType providerType in result.Result.Keys)
-        //                result.Result[providerType] = StringCipher.Decrypt(result.Result[providerType]);
-        //        }
-        //        else
-        //        {
-        //            result.IsError = true;
-        //            result.Message = string.Concat("No avatar was found for the id ", avatarId);
-        //        }
-        //   // }
-
-        //    return result;
-        //}
-
-        //public OASISResult<Dictionary<ProviderType, string>> GetAllProviderPrivateKeysForAvatar(Guid avatarId)
-        //{
-        //    OASISResult<Dictionary<ProviderType, string>> result = new OASISResult<Dictionary<ProviderType, string>>();
-
-        //    if (LoggedInAvatar.Id != avatarId)
-        //    {
-        //        result.IsError = true;
-        //        result.Message = "ERROR: You can only retreive your own private keys, not another persons avatar.";
-        //    }
-        //    else
-        //    {
-        //        IAvatar avatar = LoadAvatar(avatarId);
-
-        //        if (avatar != null)
-        //        {
-        //            result.Result = avatar.ProviderPrivateKey;
-
-        //            // Decrypt the keys only for this return object (there are not stored in memory or storage unenrypted).
-        //            foreach (ProviderType providerType in result.Result.Keys)
-        //                result.Result[providerType] = StringCipher.Decrypt(result.Result[providerType]);
-        //        }
-        //        else
-        //        {
-        //            result.IsError = true;
-        //            result.Message = string.Concat("No avatar was found for the id ", avatarId);
-        //        }
-        //    }
-
-        //    return result;
-        //}
-
         public bool CheckIfEmailIsAlreadyInUse(string email)
         {
             //return LoadAllAvatars().Any(x => x.Email == email);
@@ -1917,14 +1859,22 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
               avatar.VerificationToken = null; 
 
             avatar.Password = null;
+            avatar.ProviderPrivateKey = null;
 
             if (OASISDNA.OASIS.Security.HideRefreshTokens)
-            {
-                //avatar.RefreshToken = null;
                 avatar.RefreshTokens = null;
-            }
 
             return avatar;
+        }
+
+        public IEnumerable<IAvatar> RemoveAuthDetails(IEnumerable<IAvatar> avatars)
+        {
+            List<IAvatar> tempList = avatars.ToList();
+
+            for (int i = 0; i < tempList.Count; i++)
+                tempList[i] = RemoveAuthDetails(tempList[i]);
+
+            return tempList;
         }
 
         private void sendAlreadyRegisteredEmail(string email, string origin)
@@ -2098,6 +2048,71 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             result.Result = RemoveAuthDetails(result.Result);
             result.IsSaved = true;
             result.Message = "Avatar Created Successfully. Please check your email for the verification email. You will not be able to log in till you have verified your email. Thank you.";
+
+            return result;
+        }
+
+        //TODO: Want to try and get all methods above to route through some generic function like this ASAP...
+        private OASISResult<IAvatar> LoadAvatar(Func<string, int, OASISResult<IAvatar>> avatarLoadFunc, string param1, bool removeAuthDetails = true, ProviderType providerType = ProviderType.Default, int version = 0)
+        {
+            OASISResult<IAvatar> result = new OASISResult<IAvatar>();
+            bool needToChangeBack = false;
+            ProviderType currentProviderType = ProviderManager.CurrentStorageProviderType.Value;
+
+            try
+            {
+                OASISResult<IOASISStorageProvider> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
+
+                if (!providerResult.IsError && providerResult.Result != null)
+                    result = avatarLoadFunc(param1, version);
+                else
+                {
+                    result.IsError = true;
+                    result.Message = providerResult.Message;
+                }
+            }
+            catch (Exception ex)
+            {
+                ErrorHandling.HandleError(ref result, string.Concat("Error loading avatar ", param1, " for provider ", ProviderManager.CurrentStorageProviderType.Name, ". Error Message: ", ex.ToString()), true, false, false, false, true, ex);
+            }
+
+            if (result.Result == null && ProviderManager.IsAutoFailOverEnabled)
+            {
+                foreach (EnumValue<ProviderType> type in ProviderManager.GetProviderAutoFailOverList())
+                {
+                    if (type.Value != providerType && type.Value != ProviderManager.CurrentStorageProviderType.Value)
+                    {
+                        try
+                        {
+                            OASISResult<IOASISStorageProvider> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(type.Value);
+
+                            if (!providerResult.IsError && providerResult.Result != null)
+                                result = avatarLoadFunc(param1, version);
+                            else
+                            {
+                                result.IsError = true;
+                                result.Message = providerResult.Message;
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            ErrorHandling.HandleError(ref result, string.Concat("Error loading avatar ", param1, " for provider ", ProviderManager.CurrentStorageProviderType.Name, ". Error Message: ", ex.ToString()));
+                        }
+                    }
+                }
+            }
+
+            if (result.Result == null)
+            {
+                string errorMessage = string.Concat("All registered OASIS Providers in the AutoFailOverList failed to load avatar, ", param1, ". Please view the logs for more information. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString());
+                LoggingManager.Log(errorMessage, LogType.Error);
+            }
+            else if (removeAuthDetails)
+                result.Result = RemoveAuthDetails(result.Result);
+
+            // Set the current provider back to the original provider.
+            if (needToChangeBack)
+                ProviderManager.SetAndActivateCurrentStorageProvider(currentProviderType);
 
             return result;
         }

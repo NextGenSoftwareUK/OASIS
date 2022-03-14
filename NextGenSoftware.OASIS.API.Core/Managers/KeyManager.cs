@@ -110,7 +110,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
             try
             {
-                OASISResult<IAvatar> avatarResult = AvatarManager.LoadAvatar(avatarId, providerToLoadAvatarFrom);
+                OASISResult<IAvatar> avatarResult = AvatarManager.LoadAvatar(avatarId, true, providerToLoadAvatarFrom);
 
                 //TODO Apply same fix in ALL other methods.
                 if (!avatarResult.IsError && avatarResult.Result != null)
@@ -133,7 +133,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
             try
             {
-                OASISResult<IAvatar> avatarResult = AvatarManager.LoadAvatar(username, providerToLoadAvatarFrom);
+                OASISResult<IAvatar> avatarResult = AvatarManager.LoadAvatar(username, true, providerToLoadAvatarFrom);
 
                 if (!avatarResult.IsError && avatarResult.Result != null)
                     LinkProviderPublicKeyToAvatar(avatarResult.Result, providerTypeToLinkTo, providerKey, providerToLoadAvatarFrom);
@@ -192,7 +192,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
             try
             {                
-                OASISResult<IAvatar> avatarResult = AvatarManager.LoadAvatar(avatarId, providerToLoadAvatarFrom);
+                OASISResult<IAvatar> avatarResult = AvatarManager.LoadAvatar(avatarId, false, providerToLoadAvatarFrom);
 
                 if (!avatarResult.IsError && avatarResult.Result != null)
                     result = GenerateKeyPairAndLinkProviderKeysToAvatar(avatarResult.Result, providerTypeToLinkTo, providerToLoadAvatarFrom);
@@ -214,7 +214,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
             try
             {
-                OASISResult<IAvatar> avatarResult = AvatarManager.LoadAvatar(username, providerToLoadAvatarFrom);
+                OASISResult<IAvatar> avatarResult = AvatarManager.LoadAvatar(username, false, providerToLoadAvatarFrom);
 
                 if (!avatarResult.IsError && avatarResult.Result != null)
                     result = GenerateKeyPairAndLinkProviderKeysToAvatar(avatarResult.Result, providerTypeToLinkTo, providerToLoadAvatarFrom);
@@ -273,7 +273,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
             try
             {
-                OASISResult<IAvatar> avatarResult = AvatarManager.LoadAvatar(avatarId, providerToLoadAvatarFrom);
+                OASISResult<IAvatar> avatarResult = AvatarManager.LoadAvatar(avatarId, false, providerToLoadAvatarFrom);
 
                 if (!avatarResult.IsError && avatarResult.Result != null)
                     LinkProviderPrivateKeyToAvatar(avatarResult.Result, providerTypeToLinkTo, providerPrivateKey, providerToLoadAvatarFrom);    
@@ -295,7 +295,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
             try
             {
-                OASISResult<IAvatar> avatarResult = AvatarManager.LoadAvatar(username, providerToLoadAvatarFrom);
+                OASISResult<IAvatar> avatarResult = AvatarManager.LoadAvatar(username, false, providerToLoadAvatarFrom);
 
                 if (!avatarResult.IsError && avatarResult.Result != null)
                     LinkProviderPrivateKeyToAvatar(avatarResult.Result, providerTypeToLinkTo, providerPrivateKey, providerToLoadAvatarFrom);
@@ -345,7 +345,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
             if (!_avatarIdToProviderUniqueStorageKeyLookup.ContainsKey(key))
             {
-                OASISResult<IAvatar> avatarResult = AvatarManager.LoadAvatar(avatarId, providerType);
+                OASISResult<IAvatar> avatarResult = AvatarManager.LoadAvatar(avatarId, true, providerType);
 
                 if (!avatarResult.IsError && avatarResult.Result != null)
                     GetProviderUniqueStorageKeyForAvatar(avatarResult.Result, key, _avatarIdToProviderUniqueStorageKeyLookup, providerType);
@@ -368,7 +368,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
             if (!_avatarUsernameToProviderUniqueStorageKeyLookup.ContainsKey(key))
             {
-                OASISResult<IAvatar> avatarResult = AvatarManager.LoadAvatar(avatarUsername, providerType);
+                OASISResult<IAvatar> avatarResult = AvatarManager.LoadAvatar(avatarUsername, true, providerType);
 
                 if (!avatarResult.IsError && avatarResult.Result != null) 
                     GetProviderUniqueStorageKeyForAvatar(avatarResult.Result, key, _avatarUsernameToProviderUniqueStorageKeyLookup, providerType);
@@ -387,7 +387,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
             if (!_avatarIdToProviderPublicKeysLookup.ContainsKey(key))
             {
-                OASISResult<IAvatar> avatarResult = AvatarManager.LoadAvatar(avatarId, providerType);
+                OASISResult<IAvatar> avatarResult = AvatarManager.LoadAvatar(avatarId, true, providerType);
 
                 if (!avatarResult.IsError && avatarResult.Result != null)
                 {
@@ -411,7 +411,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
             if (!_avatarUsernameToProviderPublicKeysLookup.ContainsKey(key))
             {
-                OASISResult<IAvatar> avatarResult = AvatarManager.LoadAvatar(avatarUsername, providerType);
+                OASISResult<IAvatar> avatarResult = AvatarManager.LoadAvatar(avatarUsername, true, providerType);
 
                 if (!avatarResult.IsError && avatarResult.Result != null)
                 {
@@ -441,7 +441,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
             if (!_avatarIdToProviderPrivateKeyLookup.ContainsKey(key))
             {
-                OASISResult<IAvatar> avatarResult = AvatarManager.LoadAvatar(avatarId, providerType);
+                OASISResult<IAvatar> avatarResult = AvatarManager.LoadAvatar(avatarId, false, providerType);
 
                 if (!avatarResult.IsError && avatarResult.Result != null)
                 {
@@ -468,7 +468,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
             if (!_avatarUsernameToProviderPrivateKeyLookup.ContainsKey(key))
             {
-                OASISResult<IAvatar> avatarResult = AvatarManager.LoadAvatar(avatarUsername, providerType);
+                OASISResult<IAvatar> avatarResult = AvatarManager.LoadAvatar(avatarUsername, false, providerType);
 
                 if (!avatarResult.IsError && avatarResult.Result != null)
                 {
@@ -538,7 +538,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             {
                 //TODO: Ideally need a new overload for LoadAvatar that takes the provider key.
                 //TODO: In the meantime should we cache the full list of Avatars? Could take up a LOT of memory so probably not good idea?
-                IAvatar avatar = AvatarManager.LoadAllAvatars(providerType).FirstOrDefault(x => x.ProviderUniqueStorageKey.ContainsKey(providerType) && x.ProviderUniqueStorageKey[providerType] == providerKey);
+                IAvatar avatar = AvatarManager.LoadAllAvatars(true, providerType).FirstOrDefault(x => x.ProviderUniqueStorageKey.ContainsKey(providerType) && x.ProviderUniqueStorageKey[providerType] == providerKey);
 
                 if (avatar != null)
                 {
@@ -608,7 +608,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             {
                 //TODO: Ideally need a new overload for LoadAvatarDetail that takes the public provider key.
                 //TODO: In the meantime should we cache the full list of AvatarDetails? Could take up a LOT of memory so probably not good idea?
-                IAvatar avatar = AvatarManager.LoadAllAvatars(providerType).FirstOrDefault(x => x.ProviderPublicKey.ContainsKey(providerType) && x.ProviderPublicKey[providerType].Contains(providerKey));
+                IAvatar avatar = AvatarManager.LoadAllAvatars(true, providerType).FirstOrDefault(x => x.ProviderPublicKey.ContainsKey(providerType) && x.ProviderPublicKey[providerType].Contains(providerKey));
 
                 if (avatar != null)
                 {
@@ -678,7 +678,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             {
                 //TODO: Ideally need a new overload for LoadAvatarDetail that takes the public provider key.
                 //TODO: In the meantime should we cache the full list of AvatarDetails? Could take up a LOT of memory so probably not good idea?
-                IAvatar avatar = AvatarManager.LoadAllAvatars(providerType).FirstOrDefault(x => x.ProviderPrivateKey.ContainsKey(providerType) && x.ProviderPrivateKey[providerType] == providerKey);
+                IAvatar avatar = AvatarManager.LoadAllAvatars(true, providerType).FirstOrDefault(x => x.ProviderPrivateKey.ContainsKey(providerType) && x.ProviderPrivateKey[providerType] == providerKey);
 
                 if (avatar != null)
                 {
@@ -697,7 +697,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         public OASISResult<Dictionary<ProviderType, string>> GetAllProviderUniqueStorageKeysForAvatar(Guid avatarId, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<Dictionary<ProviderType, string>> result = new OASISResult<Dictionary<ProviderType, string>>();
-            OASISResult<IAvatar> avatarResult = AvatarManager.LoadAvatar(avatarId, providerType);
+            OASISResult<IAvatar> avatarResult = AvatarManager.LoadAvatar(avatarId, true, providerType);
 
             if (!avatarResult.IsError && avatarResult.Result != null)
                 result.Result = avatarResult.Result.ProviderUniqueStorageKey;
@@ -710,7 +710,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         public OASISResult<Dictionary<ProviderType, string>> GetAllProviderUniqueStorageKeysForAvatar(string username, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<Dictionary<ProviderType, string>> result = new OASISResult<Dictionary<ProviderType, string>>();
-            OASISResult<IAvatar> avatarResult = AvatarManager.LoadAvatar(username, providerType);
+            OASISResult<IAvatar> avatarResult = AvatarManager.LoadAvatar(username, true, providerType);
 
             if (!avatarResult.IsError && avatarResult.Result != null)
                 result.Result = avatarResult.Result.ProviderUniqueStorageKey;
@@ -723,7 +723,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         public OASISResult<Dictionary<ProviderType, List<string>>> GetAllProviderPublicKeysForAvatar(Guid avatarId, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<Dictionary<ProviderType, List<string>>> result = new OASISResult<Dictionary<ProviderType, List<string>>>();
-            OASISResult<IAvatar> avatarResult = AvatarManager.LoadAvatar(avatarId, providerType);
+            OASISResult<IAvatar> avatarResult = AvatarManager.LoadAvatar(avatarId, true, providerType);
 
             if (!avatarResult.IsError && avatarResult.Result != null)
                 result.Result = avatarResult.Result.ProviderPublicKey;
@@ -736,7 +736,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         public OASISResult<Dictionary<ProviderType, List<string>>> GetAllProviderPublicKeysForAvatar(string username, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<Dictionary<ProviderType, List<string>>> result = new OASISResult<Dictionary<ProviderType, List<string>>>();
-            OASISResult<IAvatar> avatarResult = AvatarManager.LoadAvatar(username, providerType);
+            OASISResult<IAvatar> avatarResult = AvatarManager.LoadAvatar(username, true, providerType);
 
             if (!avatarResult.IsError && avatarResult.Result != null)
                 result.Result = avatarResult.Result.ProviderPublicKey;
@@ -754,7 +754,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 ErrorHandling.HandleError(ref result, "An error occured in GetAllProviderPrivateKeysForAvatar. You can only retreive your own private keys, not another persons avatar.");
             else
             {
-                OASISResult<IAvatar> avatarResult = AvatarManager.LoadAvatar(avatarId, providerType);
+                OASISResult<IAvatar> avatarResult = AvatarManager.LoadAvatar(avatarId, false, providerType);
 
                 if (!avatarResult.IsError && avatarResult.Result != null)
                 {
@@ -779,7 +779,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 ErrorHandling.HandleError(ref result, "Error occured in GetAllProviderPrivateKeysForAvatar, you can only retreive your own private keys, not another persons avatar.");
             else
             {
-                OASISResult<IAvatar> avatarResult = AvatarManager.LoadAvatar(username, providerType);
+                OASISResult<IAvatar> avatarResult = AvatarManager.LoadAvatar(username, false, providerType);
 
                 if (!avatarResult.IsError && avatarResult.Result != null)
                 {
