@@ -146,7 +146,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
 
                         if (saveAvatarResult != null && !saveAvatarResult.IsError && saveAvatarResult.Result != null)
                         {
-                            avatar = AvatarManager.RemoveAuthDetails(saveAvatarResult.Result);
+                            avatar = AvatarManager.HideAuthDetails(saveAvatarResult.Result);
                             response.Result = avatar;
                         }
                         else
@@ -265,7 +265,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
 
             try
             {
-                OASISResult<IAvatar> avatarResult = await AvatarManager.LoadAvatarByEmailAsync(model.Email);
+                OASISResult<IAvatar> avatarResult = await AvatarManager.LoadAvatarByEmailAsync(model.Email, false);
 
                 // always return ok response to prevent email enumeration
                 if (avatarResult.IsError || avatarResult.Result == null)
@@ -606,7 +606,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
                 return saveResult;
             }
 
-            result.Result = AvatarManager.RemoveAuthDetails(avatar);
+            result.Result = AvatarManager.HideAuthDetails(avatar);
             return result;
         }
 
@@ -652,7 +652,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
                     return response;
                 }
 
-                response.Result = AvatarManager.RemoveAuthDetails(saveResult.Result);
+                response.Result = AvatarManager.HideAuthDetails(saveResult.Result);
             }
             catch (Exception e)
             {
@@ -697,7 +697,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
                 return response;
             }
 
-            response.Result = AvatarManager.RemoveAuthDetails(saveResult.Result);
+            response.Result = AvatarManager.HideAuthDetails(saveResult.Result);
             return response;
         }
 
@@ -741,7 +741,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
                 return response;
             }
 
-            response.Result = AvatarManager.RemoveAuthDetails(saveAvatar.Result);
+            response.Result = AvatarManager.HideAuthDetails(saveAvatar.Result);
             return response;
         }
 

@@ -303,10 +303,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Repositories
                 if (loadSignedByUser)
                 {
                     //TODO: Fix BUG in MongoDBOASIS with being able to return async methods ASAP!
-                    IAvatar avatar = await AvatarManager.LoadAvatarAsync(Guid.Parse(delivery.SignedByUserId));
+                    OASISResult<IAvatar> avatarResult = await AvatarManager.LoadAvatarAsync(Guid.Parse(delivery.SignedByUserId));
 
-                    if (avatar != null)
-                        delivery.SignedByUserFullName = avatar.FullName;
+                    if (!avatarResult.IsError && avatarResult.Result != null)
+                        delivery.SignedByUserFullName = avatarResult.Result.FullName;
                 }
 
                 if (loadSentToPhase)

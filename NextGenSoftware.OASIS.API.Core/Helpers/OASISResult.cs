@@ -36,8 +36,11 @@ namespace NextGenSoftware.OASIS.API.Core.Helpers
             {
                 _isError = value;
 
-                if (ErrorHandling.ThrowExceptionsOnErrors && !string.IsNullOrEmpty(Message))
-                    throw new Exception(Message);
+                if (value && ErrorCount == 0)
+                    ErrorCount = 1;
+
+                //if (ErrorHandling.ThrowExceptionsOnErrors && !string.IsNullOrEmpty(Message))
+                //    throw new Exception(Message);
             }
         }
 
