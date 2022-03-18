@@ -160,7 +160,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             // users can get their own account and admins can get any account
             if (id != Avatar.Id && Avatar.AvatarType.Value != AvatarType.Wizard)
                 return new OASISResult<IAvatar> {Result = null, Message = "Unauthorized", IsError = true};
-            return await _avatarService.GetById(id);
+
+            return await Program.AvatarManager.LoadAvatarAsync(id);
         }
 
         [Authorize]

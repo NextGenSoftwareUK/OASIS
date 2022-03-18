@@ -77,8 +77,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpGet("GetKarmaForAvatar/{avatarId}")]
         public OASISResult<int> GetKarmaForAvatar(Guid avatarId)
         {
-            var avatar = Program.AvatarManager.LoadAvatarDetail(avatarId);
-            return avatar != null ? new(avatar.Karma) : new() { Message = "ERROR: Avatar Not Found!", IsError = true };
+            OASISResult<IAvatarDetail> avatarDetailResult = Program.AvatarManager.LoadAvatarDetail(avatarId);
+
+            if (!avatarDetailResult.IsError && avatarDetailResult.Result != null)
+                return new OASISResult<int>(avatarDetailResult.Result.Karma);
+            else
+                return new OASISResult<int>() { IsError = true, Message = $"Error loading avatar detail. Reason:{avatarDetailResult.Message}" };
         }
 
         /// <summary>
@@ -103,8 +107,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpGet("GetKarmaAkashicRecordsForAvatar/{avatarId}")]
         public OASISResult<IEnumerable<KarmaAkashicRecord>> GetKarmaAkashicRecordsForAvatar(Guid avatarId)
         {
-            IAvatarDetail avatar = Program.AvatarManager.LoadAvatarDetail(avatarId);
-            return avatar != null ? new(avatar.KarmaAkashicRecords) : new() { Message = "ERROR: Avatar Not Found!", IsError = true };
+            OASISResult<IAvatarDetail> avatarResult = Program.AvatarManager.LoadAvatarDetail(avatarId);
+
+            if (!avatarResult.IsError && avatarResult.Result != null)
+                return new OASISResult<IEnumerable<KarmaAkashicRecord>>(avatarResult.Result.KarmaAkashicRecords);
+            else
+                return new OASISResult<IEnumerable<KarmaAkashicRecord>>() { IsError = true, Message = $"Error loading avatar detail. Reason: {avatarResult.Message}" };
         }
 
         /// <summary>

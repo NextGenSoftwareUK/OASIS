@@ -50,8 +50,13 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Middleware
                 var jwtToken = (JwtSecurityToken)validatedToken;
                 var id = Guid.Parse(jwtToken.Claims.First(x => x.Type == "id").Value);
 
-                context.Items["Avatar"] = await Program.AvatarManager.LoadAvatarAsync(id);
-                AvatarManager.LoggedInAvatar = (IAvatar)context.Items["Avatar"];
+                OASISResult<IAvatar> avatarResult = await Program.AvatarManager.LoadAvatarAsync(id);
+
+                if (!avatarResult.IsError && avatarResult.Result != null)
+                {
+                    context.Items["Avatar"] = avatarResult.Result;
+                    AvatarManager.LoggedInAvatar = avatarResult.Result;
+                }
             }
             catch (Exception ex)
             {
