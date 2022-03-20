@@ -23,9 +23,9 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
     {
         public static IAvatar LoggedInAvatar { get; set; }
         private ProviderManagerConfig _config;
-        
+
         public List<IOASISStorageProvider> OASISStorageProviders { get; set; }
-        
+
         public ProviderManagerConfig Config
         {
             get
@@ -39,10 +39,10 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
         public delegate void StorageProviderError(object sender, AvatarManagerErrorEventArgs e);
 
-       //TODO: Not sure we want to pass the OASISDNA here?
+        //TODO: Not sure we want to pass the OASISDNA here?
         public AvatarManager(IOASISStorageProvider OASISStorageProvider, OASISDNA OASISDNA = null) : base(OASISStorageProvider, OASISDNA)
         {
-            
+
         }
 
         // TODO: Not sure if we want to move methods from the AvatarService in WebAPI here?
@@ -273,7 +273,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         public OASISResult<bool> VerifyEmail(string token)
         {
             OASISResult<bool> result = new OASISResult<bool>();
-            
+
             //TODO: PERFORMANCE} Implement in Providers so more efficient and do not need to return whole list!
             IAvatar avatar = LoadAllAvatarsWithPasswords().FirstOrDefault(x => x.VerificationToken == token);
 
@@ -418,6 +418,14 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                     result.IsError = true;
                     result.Message = providerResult.Message;
                 }
+
+                if (result.IsError || result.Result == null)
+                {
+                    if (string.IsNullOrEmpty(result.Message))
+                        result.Message = "Avatar Not Found.";
+
+                    ErrorHandling.HandleWarning(ref result, string.Concat("Error loading avatar ", id, " for provider ", ProviderManager.CurrentStorageProviderType.Name, ". Reason: ", result.Message));
+                }
             }
             catch (Exception ex)
             {
@@ -441,6 +449,9 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                                 result.IsError = true;
                                 result.Message = providerResult.Message;
                             }
+
+                            if (result.IsError || result.Result == null)
+                                ErrorHandling.HandleWarning(ref result, string.Concat("Error loading avatar ", id, " for provider ", ProviderManager.CurrentStorageProviderType.Name, ". Reason: ", result.Message));
                         }
                         catch (Exception ex)
                         {
@@ -451,10 +462,15 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             }
 
             if (result.Result == null)
-                ErrorHandling.HandleError(ref result, String.Concat("All registered OASIS Providers in the AutoFailOverList failed to load avatar, ", id, ". Please view the logs for more information. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString()));
-            
-            else if (hideAuthDetails)
-                result.Result = HideAuthDetails(result.Result);
+                ErrorHandling.HandleError(ref result, String.Concat("All registered OASIS Providers in the AutoFailOverList failed to load avatar, ", id, ". Please view the logs for more information. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString(), ".\n\nError Details:\n", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)));
+            else
+            {
+                if (result.WarningCount > 0)
+                    result.Message = string.Concat("The avatar with id ", id, " loaded successfully for the provider ", ProviderManager.CurrentStorageProviderType.Value, " but failed to load for some of the other providers in the AutoFailOverList. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString(), "\n\n.Error Details:\n", OASISResultHelper.BuildInnerMessageError(result.InnerMessages));
+
+                if (hideAuthDetails)
+                    result.Result = HideAuthDetails(result.Result);
+            }
 
             // Set the current provider back to the original provider.
             if (needToChangeBack)
@@ -513,7 +529,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             }
 
             if (result.Result == null)
-                ErrorHandling.HandleError(ref result, String.Concat("All registered OASIS Providers in the AutoFailOverList failed to load avatar, ", id, ". Please view the logs for more information. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString()));
+                ErrorHandling.HandleError(ref result, String.Concat("All registered OASIS Providers in the AutoFailOverList failed to load avatar, ", username, ". Please view the logs for more information. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString()));
 
             else if (hideAuthDetails)
                 result.Result = HideAuthDetails(result.Result);
@@ -575,7 +591,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             }
 
             if (result.Result == null)
-                ErrorHandling.HandleError(ref result, String.Concat("All registered OASIS Providers in the AutoFailOverList failed to load avatar, ", id, ". Please view the logs for more information. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString()));
+                ErrorHandling.HandleError(ref result, String.Concat("All registered OASIS Providers in the AutoFailOverList failed to load avatar, ", username, ". Please view the logs for more information. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString()));
 
             else if (hideAuthDetails)
                 result.Result = HideAuthDetails(result.Result);
@@ -638,7 +654,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             }
 
             if (result.Result == null)
-                ErrorHandling.HandleError(ref result, String.Concat("All registered OASIS Providers in the AutoFailOverList failed to load avatar, ", id, ". Please view the logs for more information. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString()));
+                ErrorHandling.HandleError(ref result, String.Concat("All registered OASIS Providers in the AutoFailOverList failed to load avatar, ", username, ". Please view the logs for more information. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString()));
 
             else if (hideAuthDetails)
                 result.Result = HideAuthDetails(result.Result);
@@ -700,7 +716,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             }
 
             if (result.Result == null)
-                ErrorHandling.HandleError(ref result, String.Concat("All registered OASIS Providers in the AutoFailOverList failed to load avatar, ", id, ". Please view the logs for more information. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString()));
+                ErrorHandling.HandleError(ref result, String.Concat("All registered OASIS Providers in the AutoFailOverList failed to load avatar, ", username, ". Please view the logs for more information. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString()));
 
             else if (hideAuthDetails)
                 result.Result = HideAuthDetails(result.Result);
@@ -762,7 +778,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             }
 
             if (result.Result == null)
-                ErrorHandling.HandleError(ref result, String.Concat("All registered OASIS Providers in the AutoFailOverList failed to load avatar, ", id, ". Please view the logs for more information. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString()));
+                ErrorHandling.HandleError(ref result, String.Concat("All registered OASIS Providers in the AutoFailOverList failed to load avatar, ", email, ". Please view the logs for more information. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString()));
 
             else if (hideAuthDetails)
                 result.Result = HideAuthDetails(result.Result);
@@ -824,7 +840,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             }
 
             if (result.Result == null)
-                ErrorHandling.HandleError(ref result, String.Concat("All registered OASIS Providers in the AutoFailOverList failed to load avatar, ", id, ". Please view the logs for more information. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString()));
+                ErrorHandling.HandleError(ref result, String.Concat("All registered OASIS Providers in the AutoFailOverList failed to load avatar, ", email, ". Please view the logs for more information. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString()));
 
             else if (hideAuthDetails)
                 result.Result = HideAuthDetails(result.Result);
@@ -915,7 +931,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             var detail = ProviderManager.SetAndActivateCurrentStorageProvider(ProviderType.Default).Result.LoadAvatarDetailByEmail(email);
             return detail.Result;
         }
-        
+
         public async Task<IAvatarDetail> LoadAvatarDetailByUsernameAsync(string username)
         {
             //TODO: Need to handle return of OASISResult properly...
@@ -944,7 +960,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return details.Result;
         }
 
-        
+
         /*
         public async Task<IAvatar> SaveAvatarAsync(IAvatar avatar, ProviderType providerType = ProviderType.Default)
         {
@@ -1027,7 +1043,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 if (providerResult != null && providerResult.Result != null && !providerResult.IsError)
                 {
                     result = await providerResult.Result.SaveAvatarAsync(PrepareAvatarForSaving(avatar));
-                    
+
                     if (result != null && !result.IsError && result.Result != null)
                         result.IsSaved = true;
                     else
@@ -1051,7 +1067,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                         try
                         {
                             OASISResult<IOASISStorageProvider> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(type.Value);
-                            
+
                             if (providerResult != null && providerResult.Result != null && !providerResult.IsError)
                             {
                                 result = await providerResult.Result.SaveAvatarAsync(avatar);
@@ -1072,7 +1088,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             }
 
             if (result.Result == null)
-                ErrorHandling.HandleError(ref result, String.Concat("All registered OASIS Providers in the AutoFailOverList failed to load avatar, ", id, ". Please view the logs for more information. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString()));
+                ErrorHandling.HandleError(ref result, String.Concat("All registered OASIS Providers in the AutoFailOverList failed to load avatar, ", avatar.Name, " with id ", avatar.Id, ". Please view the logs for more information. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString()));
 
             if (ProviderManager.IsAutoReplicationEnabled)
             {
@@ -1161,7 +1177,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             }
 
             if (result.Result == null)
-                ErrorHandling.HandleError(ref result, String.Concat("All registered OASIS Providers in the AutoFailOverList failed to load avatar, ", id, ". Please view the logs for more information. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString()));
+                ErrorHandling.HandleError(ref result, String.Concat("All registered OASIS Providers in the AutoFailOverList failed to load avatar, ", avatar.Name, " with id ", avatar.Id, ". Please view the logs for more information. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString()));
 
             if (ProviderManager.IsAutoReplicationEnabled)
             {
@@ -1246,7 +1262,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             }
 
             if (result.Result == null)
-                ErrorHandling.HandleError(ref result, String.Concat("All registered OASIS Providers in the AutoFailOverList failed to load avatar, ", id, ". Please view the logs for more information. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString()));
+                ErrorHandling.HandleError(ref result, String.Concat("All registered OASIS Providers in the AutoFailOverList failed to load avatar, ", avatar.Name, " with id ", avatar.Id, ". Please view the logs for more information. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString()));
 
             if (ProviderManager.IsAutoReplicationEnabled)
             {
@@ -1331,7 +1347,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             }
 
             if (result.Result == null)
-                ErrorHandling.HandleError(ref result, String.Concat("All registered OASIS Providers in the AutoFailOverList failed to load avatar, ", id, ". Please view the logs for more information. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString()));
+                ErrorHandling.HandleError(ref result, String.Concat("All registered OASIS Providers in the AutoFailOverList failed to load avatar detail, ", avatar.Name, " with id ", avatar.Id, ". Please view the logs for more information. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString()));
 
             if (ProviderManager.IsAutoReplicationEnabled)
             {
@@ -1399,7 +1415,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             //TODO: Need to implement Delete like HolonManager does to include error handling, auto replication, auto failed over, logging, etc...
             //return await ProviderManager.SetAndActivateCurrentStorageProvider(providerType).Result.DeleteAvatarAsync(id, softDelete).Result;
         }
-        
+
         public async Task<OASISResult<bool>> DeleteAvatarByUsernameAsync(string userName, bool softDelete = true, ProviderType providerType = ProviderType.Default)
         {
             string errorMessage = "Error in DeleteAvatarByUsernameAsync method in AvatarManager.";
@@ -1427,7 +1443,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             //TODO: Need to implement Delete like HolonManager does to include error handling, auto replication, auto failed over, logging, etc...
             //return await ProviderManager.SetAndActivateCurrentStorageProvider(providerType).Result.DeleteAvatarByUsernameAsync(userName, softDelete);
         }
-        
+
         public async Task<OASISResult<bool>> DeleteAvatarByEmailAsync(string email, bool softDelete = true, ProviderType providerType = ProviderType.Default)
         {
             string errorMessage = "Error in DeleteAvatarByEmailAsync method in AvatarManager.";
@@ -1493,7 +1509,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             {
                 OASISResult<IAvatarDetail> avatarResult = await providerResult.Result.LoadAvatarDetailAsync(avatarId);
 
-                if(avatarResult != null && !avatarResult.IsError && avatarResult.Result != null)
+                if (avatarResult != null && !avatarResult.IsError && avatarResult.Result != null)
                 {
                     result = await providerResult.Result.AddKarmaToAvatarAsync(avatarResult.Result, karmaType, karmaSourceType, karamSourceTitle, karmaSourceDesc, karmaSourceWebLink);
 
@@ -1705,7 +1721,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
         public bool CheckIfEmailIsAlreadyInUse(string email)
         {
-           // OASISResult<IAvatar> avatarResult = await LoadAvatarByEmailAsync(email);
+            // OASISResult<IAvatar> avatarResult = await LoadAvatarByEmailAsync(email);
 
 
             //return LoadAllAvatars().Any(x => x.Email == email);
@@ -1794,7 +1810,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             //TODO: Replace exception with OASISResult ASAP.
             if (string.IsNullOrEmpty(OASISDNA.OASIS.Security.SecretKey))
                 throw new ArgumentNullException("OASISDNA.OASIS.Security.SecretKey", "OASISDNA.OASIS.Security.SecretKey is missing, please generate a unique secret key from two GUID's.");
-            
+
             var tokenHandler = new JwtSecurityTokenHandler();
             var key = Encoding.ASCII.GetBytes(OASISDNA.OASIS.Security.SecretKey);
             var tokenDescriptor = new SecurityTokenDescriptor
@@ -1830,7 +1846,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         public IAvatar HideAuthDetails(IAvatar avatar, bool hidePassword = true, bool hidePrivateKeys = true, bool hideVerificationToken = true, bool hideRefreshTokens = true)
         {
             if (OASISDNA.OASIS.Security.HideVerificationToken || hideVerificationToken)
-              avatar.VerificationToken = null; 
+                avatar.VerificationToken = null;
 
             if (hidePassword)
                 avatar.Password = null;
