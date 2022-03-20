@@ -58,7 +58,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             if (result.Result == null)
             {
                 result.IsError = true;
-                result.Message = "This avatar does not exist. Please contact support or create a new avatar.";
+                result.Message = $"This avatar does not exist. Please contact support or create a new avatar. Error Details: {result.Message}";
             }
             else
             {
@@ -129,7 +129,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             if (result.Result == null)
             {
                 result.IsError = true;
-                result.Message = "This avatar does not exist. Please contact support or create a new avatar.";
+                result.Message = $"This avatar does not exist. Please contact support or create a new avatar. Error Details: {result.Message}";
             }
             else
             {
@@ -677,7 +677,25 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 OASISResult<IOASISStorageProvider> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
 
                 if (!providerResult.IsError && providerResult.Result != null)
-                    result = await providerResult.Result.LoadAvatarAsync(username, version);
+                {
+                    //result = await providerResult.Result.LoadAvatarAsync(username, version);
+
+                    int timeout = 10000;
+                    var task = providerResult.Result.LoadAvatarAsync(username, version);
+
+                    if (await Task.WhenAny(task, Task.Delay(timeout)) == task)
+                    {
+                        if (result.IsError || result.Result == null)
+                        {
+                            if (string.IsNullOrEmpty(result.Message))
+                                result.Message = "Avatar Not Found.";
+
+                            ErrorHandling.HandleWarning(ref result, string.Concat("Error loading avatar ", username, " for provider ", ProviderManager.CurrentStorageProviderType.Name, ". Reason: ", result.Message));
+                        }
+                    }
+                    else
+                        ErrorHandling.HandleWarning(ref result, string.Concat("Error loading avatar ", username, " for provider ", ProviderManager.CurrentStorageProviderType.Name, ". Reason: timeout occured."));
+                }
                 else
                 {
                     result.IsError = true;
@@ -700,7 +718,23 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                             OASISResult<IOASISStorageProvider> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(type.Value);
 
                             if (!providerResult.IsError && providerResult.Result != null)
-                                result = await providerResult.Result.LoadAvatarAsync(username, version);
+                            {
+                                int timeout = 10000;
+                                var task = providerResult.Result.LoadAvatarAsync(username, version);
+
+                                if (await Task.WhenAny(task, Task.Delay(timeout)) == task)
+                                {
+                                    if (result.IsError || result.Result == null)
+                                    {
+                                        if (string.IsNullOrEmpty(result.Message))
+                                            result.Message = "Avatar Not Found.";
+
+                                        ErrorHandling.HandleWarning(ref result, string.Concat("Error loading avatar ", username, " for provider ", ProviderManager.CurrentStorageProviderType.Name, ". Reason: ", result.Message));
+                                    }
+                                }
+                                else
+                                    ErrorHandling.HandleWarning(ref result, string.Concat("Error loading avatar ", username, " for provider ", ProviderManager.CurrentStorageProviderType.Name, ". Reason: timeout occured."));
+                            }
                             else
                             {
                                 result.IsError = true;
@@ -716,10 +750,15 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             }
 
             if (result.Result == null)
-                ErrorHandling.HandleError(ref result, String.Concat("All registered OASIS Providers in the AutoFailOverList failed to load avatar, ", username, ". Please view the logs for more information. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString()));
+                ErrorHandling.HandleError(ref result, String.Concat("All registered OASIS Providers in the AutoFailOverList failed to load avatar, ", username, ". Please view the logs for more information. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString(), ".\n\nError Details:\n", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)));
+            else
+            {
+                if (result.WarningCount > 0)
+                    result.Message = string.Concat("The avatar ", username, " loaded successfully for the provider ", ProviderManager.CurrentStorageProviderType.Value, " but failed to load for some of the other providers in the AutoFailOverList. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString(), "\n\n.Error Details:\n", OASISResultHelper.BuildInnerMessageError(result.InnerMessages));
 
-            else if (hideAuthDetails)
-                result.Result = HideAuthDetails(result.Result);
+                if (hideAuthDetails)
+                    result.Result = HideAuthDetails(result.Result);
+            }
 
             // Set the current provider back to the original provider.
             if (needToChangeBack)

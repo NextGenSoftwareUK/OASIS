@@ -4,14 +4,25 @@ namespace NextGenSoftware.OASIS.API.Core.Helpers
 {
     public class EnumValue<T>
     {
+        private string _name = "";
+        private T _value;
+
         public EnumValue(T value)
         {
             Value = value;
         }
 
-        private string _name = "";
-        public T Value { get; set; }
-      //  public Type Type { get; set; }
+        
+        public T Value
+        {
+            get { return _value; }
+            set
+            {
+                _value = value;
+                _name = null;
+            }
+        }
+
         public string Name
         {
             get
