@@ -157,11 +157,19 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpGet("GetById/{id}")]
         public async Task<OASISResult<IAvatar>> GetById(Guid id)
         {
+            OASISResult<IAvatar> result = new OASISResult<IAvatar>();
+
             // users can get their own account and admins can get any account
             if (id != Avatar.Id && Avatar.AvatarType.Value != AvatarType.Wizard)
                 return new OASISResult<IAvatar> {Result = null, Message = "Unauthorized", IsError = true};
 
-            return await Program.AvatarManager.LoadAvatarAsync(id);
+            result = await Program.AvatarManager.LoadAvatarAsync(id);
+
+            if (!string.IsNullOrEmpty(result.Message))
+                result.Message = result.Message.Replace("\n", " ").Trim();
+                //result.Message = result.Message.Replace("\n", "<br>");
+
+            return result;
         }
 
         [Authorize]

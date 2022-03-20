@@ -24,7 +24,7 @@
       "HideRefreshTokens": "true",
       //"DoesAvatarNeedToBeVerifiedBeforeLogin": "true",
       "SendVerificationEmail": "true",
-      "SecretKey": "",
+      "SecretKey": "E1896BA7-40F6-4CCA-B0E3-0B4AFA549099DEFB4079-531D-4DBB-B883-F1E156A10CD8",
       "AvatarPassword": {
         "BCryptEncryptionEnabled": "true",
         "Rijndael256EncryptionEnabled": "true",
@@ -37,17 +37,17 @@
       }
     },
     "Email": {
-      "EmailFrom": "",
-      "SmtpHost": "",
+      "EmailFrom": "anorak@theoasisplatform.world",
+      "SmtpHost": "mailuk2.promailserver.com",
       // "SmtpPort": 587,
       "SmtpPort": 25,
-      "SmtpUser": "",
-      "SmtpPass": ""
+      "SmtpUser": "anorak@oasisplatform.world",
+      "SmtpPass": "kaduxf`zgewl7+bphs2ocnqtryivjm"
     },
     "StorageProviders": {
       "AutoReplicationEnabled": "false",
-      "AutoFailOverEnabled": "true",
-      "AutoLoadBalanceEnabled": "true",
+      "AutoFailOverEnabled": "false",
+      "AutoLoadBalanceEnabled": "false",
       "AutoLoadBalanceReadPollIntervalMins": "10",
       "AutoLoadBalanceWritePollIntervalMins": "10",
       "AutoReplicationProviders": "MongoDBOASIS, SQLLiteDBOASIS, Neo4jOASIS, IPFSOASIS, HoloOASIS, TelosOASIS, EOSIOOASIS, EthereumOASIS, ThreeFoldOASIS",
@@ -66,6 +66,11 @@
       },
       "MongoDBOASIS": {
         "ConnectionString": "mongodb://localhost:27017",
+        //"ConnectionString": "mongodb+srv://dbadmin:ZokbKQtNFAimOhx9@oasisapi-oipck.mongodb.net/OASISAPI?retryWrites=true&w=majority",
+        //"ConnectionString": "mongodb+srv://oasisadmin:4ABeZIUHwTVbiFWn@oasisapi-oipck.mongodb.net/OASISAPI?retryWrites=true&w=majority",
+        //"ConnectionString": "mongodb+srv://dbadmin:ZDVxEMHJJTfdtJ0S@oasisapi-oipck.mongodb.net/OASISAPI?retryWrites=true&w=majority",
+        // "ConnectionString": "mongodb+srv://oasisuser:EHPpjGAmW74lg8qS@oasisapi-oipck.mongodb.net/OASISAPI?retryWrites=true&w=majority",
+
         "DBName": "OASISAPI_DEV"
         //"DBName": "OASISAPI_TEST"
         //"DBName": "OASISAPI_LIVE"
@@ -90,12 +95,22 @@
       },
       "Neo4JOASIS": {
         "ConnectionString": "http://localhost:7474",
-        "Username": "",
-        "Password": ""
+        "Username": "neo4j",
+        "Password": "letthereb@light!"
       },
       "IPFSOASIS": {
         "ConnectionString": "http://localhost:5001",
         "LookUpIPFSAddress": ""
+      },
+      "SolanaOASIS": {
+        "WalletMnemonicWords": "bullet nothing diamond universe detail east dinner code plunge charge poem ball cable clog spray purpose renew above clay brand control shallow turtle similar",
+        "ConnectionString": "https://api.mainnet-beta.solana.com"
+      },
+      "CargoOASIS": {
+        "ConnectionString": "",
+        "SingingMessage": "",
+        "PrivateKey": "",
+        "HostUrl": ""
       }
     }
   }
