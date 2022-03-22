@@ -1,0 +1,21 @@
+{
+  "name": "oasis-api",
+  "version": "0.0.1",
+  "description": "A JavaScript proxy for the Oasis API. To be used only in the browser.",
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/derek-dv/oasis-api.git"
+  },
+  "homepage": "https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK#readme",
+  "author": "Oasis team",
+  "license": "MIT",
+  "keywords": [
+    "oasis",
+    "API",
+    "Karma"
+  ],
+  "dependencies": {
+    "axios": "^0.26.1"
+  }
+}
