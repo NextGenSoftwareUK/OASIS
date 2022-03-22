@@ -85,12 +85,13 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 
         [Authorize]
         [HttpPost("Upload2DAvatarImage")]
-        public async Task<OASISResult<string>> Upload2DAvatarImage(AvatarImage avatarImage)
+        public async Task<OASISResult<bool>> Upload2DAvatarImage(AvatarImage avatarImage)
         {
             // users can get their own account and admins can get any account
             if (avatarImage.AvatarId != Avatar.Id && Avatar.AvatarType.Value != AvatarType.Wizard)
-                return new OASISResult<string>()
-                { Result = "Image not uploaded", Message = "Unauthorized", IsError = true };
+                return new OASISResult<bool>()
+                { Result = false, Message = "Image not uploaded. Unauthorized", IsError = true };
+
             return await _avatarService.Upload2DAvatarImage(avatarImage);
         }
 
@@ -98,28 +99,28 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpGet("GetAvatarDetail/{id:guid}")]
         public async Task<OASISResult<IAvatarDetail>> GetAvatarDetail(Guid id)
         {
-            return await _avatarService.GetAvatarDetail(id);
+            return await Program.AvatarManager.LoadAvatarDetailAsync(id);
         }
 
         [Authorize(AvatarType.Wizard)]
         [HttpGet("GetAvatarDetailByEmail/{email}")]
         public async Task<OASISResult<IAvatarDetail>> GetAvatarDetailByEmail(string email)
         {
-            return await _avatarService.GetAvatarDetailByEmail(email);
+            return await Program.AvatarManager.LoadAvatarDetailByEmailAsync(email);
         }
 
         [Authorize(AvatarType.Wizard)]
         [HttpGet("GetAvatarDetailByUsername/{username}")]
         public async Task<OASISResult<IAvatarDetail>> GetAvatarDetailByUsername(string username)
         {
-            return await _avatarService.GetAvatarDetailByUsername(username);
+            return await Program.AvatarManager.LoadAvatarDetailByUsernameAsync(username);
         }
 
         [Authorize(AvatarType.Wizard)]
         [HttpGet("GetAllAvatarDetails")]
         public async Task<OASISResult<IEnumerable<IAvatarDetail>>> GetAllAvatarDetails()
         {
-            return await _avatarService.GetAllAvatarDetails();
+            return await Program.AvatarManager.LoadAllAvatarDetailsAsync();
         }
 
         /// <summary>
@@ -179,7 +180,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             // users can get their own account and admins can get any account
             if (username != Avatar.Username && Avatar.AvatarType.Value != AvatarType.Wizard)
                 return new OASISResult<IAvatar> { Message = "Unauthorized", IsError = true };
-            return await _avatarService.GetByUsername(username);
+
+            //return await _avatarService.GetByUsername(username);
+            return await Program.AvatarManager.LoadAvatarAsync(username);
         }
 
         [Authorize]
@@ -189,7 +192,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             // users can get their own account and admins can get any account
             if (email != Avatar.Email && Avatar.AvatarType.Value != AvatarType.Wizard)
                 return new OASISResult<IAvatar> { Message = "Unauthorized", IsError = true };
-            return await _avatarService.GetByEmail(email);
+
+            //return await _avatarService.GetByEmail(email);
+            return await Program.AvatarManager.LoadAvatarByEmailAsync(email);
         }
 
         /// <summary>
@@ -1078,10 +1083,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         }
 
         [Authorize]
-        [HttpGet("GetUMAJsonByMail/{mail}")]
-        public async Task<OASISResult<string>> GetUmaJsonMail(string mail)
+        [HttpGet("GetUmaJsonByEmail/{email}")]
+        public async Task<OASISResult<string>> GetUmaJsonByEmail(string email)
         {
-            return await _avatarService.GetAvatarUmaJsonByMail(mail);
+            return await _avatarService.GetAvatarUmaJsonByEmail(email);
         }
 
         [Authorize]
