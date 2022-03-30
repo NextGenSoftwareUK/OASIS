@@ -304,24 +304,23 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
             try
             {
                 //TODO: PERFORMANCE} Implement in Providers so more efficient and do not need to return whole list!
-                var avatar = (await AvatarManager.LoadAllAvatarsAsync()).FirstOrDefault(x =>
-                    x.ResetToken == model.Token &&
-                    x.ResetTokenExpires > DateTime.UtcNow);
+                OASISResult<IEnumerable<IAvatar>> avatarsResult = await AvatarManager.LoadAllAvatarsAsync();
 
-                if (avatar == null)
+                if (!avatarsResult.IsError && avatarsResult.Result != null)
                 {
-                    result.Message = "Invalid token";
-                    result.IsError = true;
-                    ErrorHandling.HandleError(ref result, result.Message);
-                    return result;
+                    var avatar = avatarsResult.Result.FirstOrDefault(x =>
+                        x.ResetToken == model.Token &&
+                        x.ResetTokenExpires > DateTime.UtcNow);
+
+                    if (avatar == null)
+                        ErrorHandling.HandleError(ref result, "Invalid token");
                 }
+                else
+                    ErrorHandling.HandleError(ref result, $"Error occured in ValidateResetToken loading all avatars. Reason: {avatarsResult.Message}");
             }
             catch (Exception e)
             {
-                result.Exception = e;
-                result.Message = e.Message;
-                result.IsError = true;
-                ErrorHandling.HandleError(ref result, result.Message);
+                ErrorHandling.HandleError(ref result, $"An unknown error occured in ValidateResetToken. Reason: {e}", true, false, false, false, true, e);
             }
 
             return result;
@@ -330,39 +329,42 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
         public async Task<OASISResult<string>> ResetPassword(ResetPasswordRequest model)
         {
             var response = new OASISResult<string>();
+
             try
             {
-                //TODO: PERFORMANCE} Implement in Providers so more efficient and do not need to return whole list!
-                var avatar = (await AvatarManager.LoadAllAvatarsAsync(false)).FirstOrDefault(x =>
-                    x.ResetToken == model.Token &&
-                    x.ResetTokenExpires > DateTime.UtcNow);
+                OASISResult<IEnumerable<IAvatar>> avatarsResult = await AvatarManager.LoadAllAvatarsAsync(false);
 
-                if (avatar == null)
+                if (!avatarsResult.IsError && avatarsResult.Result != null)
                 {
-                    response.IsError = true;
-                    response.IsSaved = false;
-                    response.Message = "Avatar Not Found";
-                    ErrorHandling.HandleError(ref response, response.Message);
-                    return response;
+                    //TODO: PERFORMANCE} Implement in Providers so more efficient and do not need to return whole list!
+                    var avatar = avatarsResult.Result.FirstOrDefault(x =>
+                        x.ResetToken == model.Token &&
+                        x.ResetTokenExpires > DateTime.UtcNow);
+
+                    if (avatar == null)
+                    {
+                        ErrorHandling.HandleError(ref response, "Avatar Not Found");
+                        return response;
+                    }
+
+                    // update password and remove reset token
+                    avatar.Password = BC.HashPassword(model.Password);
+                    avatar.PasswordReset = DateTime.UtcNow;
+                    avatar.ResetToken = null;
+                    avatar.ResetTokenExpires = null;
+
+                    var saveAvatarResult = AvatarManager.SaveAvatar(avatar);
+
+                    if (saveAvatarResult.IsError)
+                    {
+                        ErrorHandling.HandleError(ref saveAvatarResult, $"Error occured in ResetPassword saving the avatar. Reason: {saveAvatarResult.Message}");
+                        return response;
+                    }
+
+                    response.Result = "Password reset successful, you can now login";
                 }
-
-                // update password and remove reset token
-                avatar.Password = BC.HashPassword(model.Password);
-                avatar.PasswordReset = DateTime.UtcNow;
-                avatar.ResetToken = null;
-                avatar.ResetTokenExpires = null;
-
-                var saveAvatar = AvatarManager.SaveAvatar(avatar);
-                if (saveAvatar.IsError)
-                {
-                    response.IsError = true;
-                    response.IsSaved = false;
-                    response.Message = saveAvatar.Message;
-                    ErrorHandling.HandleError(ref saveAvatar, saveAvatar.Message);
-                    return response;
-                }
-
-                response.Result = "Password reset successful, you can now login";
+                else
+                    ErrorHandling.HandleError(ref response, $"Error occured in ResetPassword loading all avatars. Reason: {avatarsResult.Message}");
             }
             catch (Exception e)
             {
@@ -376,27 +378,28 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
             return response;
         }
 
-        public async Task<OASISResult<IEnumerable<IAvatar>>> GetAll()
-        {
-            var response = new OASISResult<IEnumerable<IAvatar>>();
-            try
-            {
-                response.Result = await AvatarManager.LoadAllAvatarsAsync();
-                //OASISResult<IEnumerable<IAvatar await AvatarManager.LoadAllAvatarsAsync();
+        //public async Task<OASISResult<IEnumerable<IAvatar>>> GetAll()
+        //{
+        //    var response = new OASISResult<IEnumerable<IAvatar>>();
 
-                //foreach (IAvatar avatar in response.Result)
-                //    AvatarManager.RemoveAuthDetails()
-            }
-            catch (Exception e)
-            {
-                response.Exception = e;
-                response.Message = e.Message;
-                response.IsError = true;
-                ErrorHandling.HandleError(ref response, e.Message);
-            }
+        //    try
+        //    {
+        //        response = await AvatarManager.LoadAllAvatarsAsync();
+        //        //OASISResult<IEnumerable<IAvatar await AvatarManager.LoadAllAvatarsAsync();
 
-            return response;
-        }
+        //        //foreach (IAvatar avatar in response.Result)
+        //        //    AvatarManager.RemoveAuthDetails()
+        //    }
+        //    catch (Exception e)
+        //    {
+        //        response.Exception = e;
+        //        response.Message = e.Message;
+        //        response.IsError = true;
+        //        ErrorHandling.HandleError(ref response, e.Message);
+        //    }
+
+        //    return response;
+        //}
 
         public async Task<OASISResult<AvatarImage>> GetAvatarImageById(Guid id)
         {
@@ -589,33 +592,36 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
         {
             var result = new OASISResult<IAvatar>();
             //TODO: PERFORMANCE} Implement in Providers so more efficient and do not need to return whole list!
-            if ((await AvatarManager.LoadAllAvatarsAsync()).Any(x => x.Email == model.Email))
+
+            OASISResult<IEnumerable<IAvatar>> avatarsResult = await AvatarManager.LoadAllAvatarsAsync();
+
+            if (!avatarsResult.IsError && avatarsResult.Result != null)
             {
-                result.Message = $"Email '{model.Email}' is already registered";
-                result.IsError = true;
-                result.IsSaved = false;
-                ErrorHandling.HandleError(ref result, result.Message);
-                return result;
+                if (avatarsResult.Result.Any(x => x.Email == model.Email))
+                    ErrorHandling.HandleError(ref result, $"Email '{model.Email}' is already registered");
+                else
+                {
+                    // map model to new account object
+                    var avatar = _mapper.Map<IAvatar>(model);
+                    avatar.CreatedDate = DateTime.UtcNow;
+                    avatar.Verified = DateTime.UtcNow;
+
+                    // hash password
+                    avatar.Password = BC.HashPassword(model.Password);
+                    var saveAvatarResult = await AvatarManager.SaveAvatarAsync(avatar);
+
+                    if (saveAvatarResult.IsError || saveAvatarResult.Result == null)
+                        ErrorHandling.HandleError(ref result, $"Error occured in Create method on AvatarService saving the avatar. Reason: {saveAvatarResult.Message} ");
+                    else
+                    {
+                        result.Result = AvatarManager.HideAuthDetails(avatar);
+                        result.Message = "Avatar Created Successfully";
+                    }
+                }
             }
+            else
+                ErrorHandling.HandleError(ref result, $"Error occured in Create method on AvatarService loading all avatars. Reason: {avatarsResult.Message}");
 
-            // map model to new account object
-            var avatar = _mapper.Map<IAvatar>(model);
-            avatar.CreatedDate = DateTime.UtcNow;
-            avatar.Verified = DateTime.UtcNow;
-
-            // hash password
-            avatar.Password = BC.HashPassword(model.Password);
-            var saveResult = AvatarManager.SaveAvatar(avatar);
-            if (saveResult.IsError)
-            {
-                result.Message = saveResult.Message;
-                result.IsError = true;
-                result.IsSaved = false;
-                ErrorHandling.HandleError(ref result, result.Message);
-                return saveResult;
-            }
-
-            result.Result = AvatarManager.HideAuthDetails(avatar);
             return result;
         }
 
@@ -629,7 +635,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
                     avatar.AvatarType = null;
 
                 //var oasisResult = await GetAvatar(id, true);
-                var oasisResult = await AvatarManager.LoadAvatarAsync(id, true);
+                var oasisResult = await AvatarManager.LoadAvatarAsync(id, false);
 
                 if (oasisResult.IsError)
                 {
@@ -1258,26 +1264,35 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
         {
             OASISResult<RefreshToken> result = new OASISResult<RefreshToken>();
 
-            //TODO: PERFORMANCE} Implement in Providers so more efficient and do not need to return whole list!
-            var avatar = AvatarManager.LoadAllAvatarsWithPasswords()
-                .FirstOrDefault(x => x.RefreshTokens.Any(t => t.Token == token));
+            //TODO: PERFORMANCE} Implement in Providers so more efficient and do not need to return whole list
+            OASISResult<IEnumerable<IAvatar>> avatarsResult = AvatarManager.LoadAllAvatars();
 
-            if (avatar == null)
+            if (!avatarsResult.IsError && avatarsResult.Result != null)
             {
-                result.Message = "Invalid Token";
+                IAvatar avatar = avatarsResult.Result.FirstOrDefault(x => x.RefreshTokens.Any(t => t.Token == token));
+
+                if (avatar == null)
+                {
+                    result.Message = "Invalid Token";
+                    return (result, avatar);
+                }
+
+                var refreshToken = avatar.RefreshTokens.Single(x => x.Token == token);
+
+                if (!refreshToken.IsActive)
+                {
+                    result.Message = "Invalid Token";
+                    return (result, avatar);
+                }
+
+
+                result.Result = refreshToken;
                 return (result, avatar);
             }
+            else
+                ErrorHandling.HandleError(ref result, $"Error in GetRefreshToken loading all avatars. Reason: {avatarsResult.Message}");
 
-            var refreshToken = avatar.RefreshTokens.Single(x => x.Token == token);
-
-            if (!refreshToken.IsActive)
-            {
-                result.Message = "Invalid Token";
-                return (result, avatar);
-            }
-
-            result.Result = refreshToken;
-            return (result, avatar);
+            return (result, null);
         }
 
         //TODO: Finish moving everything into AvatarManager.
