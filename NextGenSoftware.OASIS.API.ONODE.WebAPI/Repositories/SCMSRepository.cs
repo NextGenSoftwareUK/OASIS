@@ -239,39 +239,41 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Repositories
             // TODO: Be good if can find global way of caching the AvatarManager because expensive to start up the providers each time.
             // Just want one persisted/cached but more tricky in web so may need to put it into a cache...
             
-            IEnumerable<IAvatar> avatars = AvatarManager.LoadAllAvatars();
+            OASISResult<IEnumerable<IAvatar>> avatars = AvatarManager.LoadAllAvatars();
 
             //TODO: Need to change Contact fields in Mongo to match new ones (like Created/Modified/Deleted, etc since User/Profile renamed to Avatar.
-            foreach (Contact contact in contacts)
+            if (!avatars.IsError && avatars.Result != null)
             {
-                foreach (IAvatar avatar in avatars)
+                foreach (Contact contact in contacts)
                 {
-
-                    if (contact.AvatarId == avatar.Id.ToString())
+                    foreach (IAvatar avatar in avatars.Result)
                     {
-                        contact.FirstName = avatar.FirstName;
-                        contact.LastName = avatar.LastName;
-                        contact.CreatedDate = avatar.CreatedDate;
-                        contact.DeletedDate = avatar.DeletedDate;
-                        contact.Email = avatar.Email;
-                        contact.Landline = avatar.LastName;
-                        contact.Password = avatar.Password;
-                        contact.Title = avatar.Title;
-                        contact.CreatedDate = avatar.CreatedDate;
-                        contact.DeletedDate = avatar.DeletedDate;
-                        contact.Email = avatar.Email;
-                        contact.Landline = avatar.LastName;
-                        contact.Password = avatar.Password;
-                        contact.Title = avatar.Title;
-                        contact.Username = avatar.Username;
-                        contact.AvatarType = avatar.AvatarType;
-                        contact.Version = avatar.Version;
-                        //TODO: Change to use Avatar EVERYWHERE ASAP...
-                        contact.CreatedByUserId = avatar.CreatedByAvatarId.ToString();
-                        contact.DeletedByUserId = avatar.DeletedByAvatarId.ToString();
-                        contact.ModifiedByUserId = avatar.ModifiedByAvatarId.ToString();
-                        contact.ModifiedDate = avatar.ModifiedDate;
-                        break;
+
+                        if (contact.AvatarId == avatar.Id.ToString())
+                        {
+                            contact.FirstName = avatar.FirstName;
+                            contact.LastName = avatar.LastName;
+                            contact.CreatedDate = avatar.CreatedDate;
+                            contact.DeletedDate = avatar.DeletedDate;
+                            contact.Email = avatar.Email;
+                            contact.Landline = avatar.LastName;
+                            contact.Password = avatar.Password;
+                            contact.Title = avatar.Title;
+                            contact.CreatedDate = avatar.CreatedDate;
+                            contact.DeletedDate = avatar.DeletedDate;
+                            contact.Email = avatar.Email;
+                            contact.Landline = avatar.LastName;
+                            contact.Password = avatar.Password;
+                            contact.Title = avatar.Title;
+                            contact.Username = avatar.Username;
+                            contact.AvatarType = avatar.AvatarType;
+                            contact.Version = avatar.Version;
+                            contact.CreatedByUserId = avatar.CreatedByAvatarId.ToString();
+                            contact.DeletedByUserId = avatar.DeletedByAvatarId.ToString();
+                            contact.ModifiedByUserId = avatar.ModifiedByAvatarId.ToString();
+                            contact.ModifiedDate = avatar.ModifiedDate;
+                            break;
+                        }
                     }
                 }
             }

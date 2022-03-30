@@ -26,7 +26,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Interfaces
         Task<OASISResult<string>> ForgotPassword(ForgotPasswordRequest model, string origin);
         Task<OASISResult<string>> ValidateResetToken(ValidateResetTokenRequest model);
         Task<OASISResult<string>> ResetPassword(ResetPasswordRequest model);
-        Task<OASISResult<IEnumerable<IAvatar>>> GetAll();
+        //Task<OASISResult<IEnumerable<IAvatar>>> GetAll();
         Task<OASISResult<AvatarImage>> GetAvatarImageById(Guid id);
         Task<OASISResult<AvatarImage>> GetAvatarImageByUsername(string userName);
         Task<OASISResult<AvatarImage>> GetAvatarImageByEmail(string email);
