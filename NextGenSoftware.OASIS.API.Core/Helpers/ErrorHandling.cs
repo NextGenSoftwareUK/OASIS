@@ -41,6 +41,11 @@ namespace NextGenSoftware.OASIS.API.Core.Helpers
                 throw new Exception(errorMessage, ex);
         }
 
+        public static void HandleError<T>(ref OASISResult<T> result, string errorMessage, Exception ex)
+        {
+            HandleError(ref result, errorMessage, true, false, false, false, true, ex);
+        }
+
         public static void HandleWarning<T>(ref OASISResult<T> result, string message, bool log = true, bool includeStackTrace = false, bool throwException = false, bool addToInnerMessages = true, bool incrementWarningCount = true, Exception ex = null)
         {
             //NOTE: If you are throwing an exception then you do not need to show an additional stack trace here because the exception has it already! ;-)
@@ -64,6 +69,11 @@ namespace NextGenSoftware.OASIS.API.Core.Helpers
 
             if (throwException || ThrowExceptionsOnWarnings)
                 throw new Exception(message, ex);
+        }
+
+        public static void HandleWarning<T>(ref OASISResult<T> result, string message, Exception ex)
+        {
+            HandleWarning(ref result, message, true, false, false, true, true, ex);
         }
     }
 }
