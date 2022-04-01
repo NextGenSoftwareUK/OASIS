@@ -276,12 +276,20 @@ namespace NextGenSoftware.OASIS.STAR.TestHarness
 
             // All calls are load-balanced and have multiple redudancy/fail over for all supported OASIS Providers.
             ShowWorkingMessage("Loading All Avatars Load Balanced Across All Providers...");
-            IEnumerable<IAvatar> avatars = STAR.OASISAPI.Avatar.LoadAllAvatars(); // Load-balanced across all providers.
-            ShowSuccessMessage($"{avatars.Count()} Avatars Loaded.");
+            OASISResult<IEnumerable<IAvatar>> avatarsResult = STAR.OASISAPI.Avatar.LoadAllAvatars(); // Load-balanced across all providers.
+
+            if (!avatarsResult.IsError && avatarsResult.Result != null)
+                ShowSuccessMessage($"{avatarsResult.Result.Count()} Avatars Loaded.");
+            else
+                ShowErrorMessage($"Error occured loading avatars. Reason: {avatarsResult.Message}");
 
             ShowWorkingMessage("Loading All Avatars Only For The MongoDBOASIS Provider...");
-            avatars = STAR.OASISAPI.Avatar.LoadAllAvatars(true, ProviderType.MongoDBOASIS); // Only loads from MongoDB.
-            ShowSuccessMessage($"{avatars.Count()} Avatars Loaded.");
+            avatarsResult = STAR.OASISAPI.Avatar.LoadAllAvatars(true, ProviderType.MongoDBOASIS); // Only loads from MongoDB.
+
+            if (!avatarsResult.IsError && avatarsResult.Result != null)
+                ShowSuccessMessage($"{avatarsResult.Result.Count()} Avatars Loaded.");
+            else
+                ShowErrorMessage($"Error occured loading avatars. Reason: {avatarsResult.Message}");
 
             ShowWorkingMessage("Loading Avatar Only For The HoloOASIS Provider...");
             OASISResult<IAvatar> avatarResult = STAR.OASISAPI.Avatar.LoadAvatar(STAR.LoggedInAvatar.Id, true, ProviderType.HoloOASIS); // Only loads from Holochain.
