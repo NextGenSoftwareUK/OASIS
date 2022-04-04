@@ -112,13 +112,10 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                     {
                         result.Result = HideAuthDetails(saveAvatarResult.Result);
                         result.IsSaved = true;
+                        result.Message = "Avatar Successfully Authenticated.";
                     }
                     else
-                    {
-                        result.Message = saveAvatarResult.Message;
-                        result.IsError = saveAvatarResult.IsError;
-                        result.IsSaved = saveAvatarResult.IsSaved;
-                    }
+                        ErrorHandling.HandleError(ref result, $"Error occured in Authenticate method in AvatarManager whilst saving the avatar. Reason: {saveAvatarResult.Message}");
                 }
             }
             catch (Exception ex)
@@ -190,14 +187,13 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                     {
                         result.Result = HideAuthDetails(saveAvatarResult.Result);
                         result.IsSaved = true;
+                        result.Message = "Avatar Successfully Authenticated.";
                     }
                     else
-                    {
-                        result.Message = saveAvatarResult.Message;
-                        result.IsError = saveAvatarResult.IsError;
-                        result.IsSaved = saveAvatarResult.IsSaved;
-                    }
+                        ErrorHandling.HandleError(ref result, $"Error occured in AuthenticateAsync method in AvatarManager whilst saving the avatar. Reason: {saveAvatarResult.Message}");
                 }
+                else
+                    result.Result = null;
             }
             catch (Exception ex)
             {
@@ -314,7 +310,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             try
             {
                 //TODO: PERFORMANCE} Implement in Providers so more efficient and do not need to return whole list!
-                OASISResult<IEnumerable<IAvatar>> avatarsResult = LoadAllAvatars();
+                OASISResult<IEnumerable<IAvatar>> avatarsResult = LoadAllAvatars(false);
 
                 if (!avatarsResult.IsError && avatarsResult.Result != null)
                 {
@@ -331,7 +327,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                         result.Result = true;
                         avatar.Verified = DateTime.UtcNow;
                         avatar.VerificationToken = null;
-                        //avatar.IsNewHolon = false;
+                        avatar.IsActive = true;
                         OASISResult<IAvatar> saveAvatarResult = SaveAvatar(avatar);
 
                         result.IsError = saveAvatarResult.IsError;
@@ -634,7 +630,8 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 }
 
                 if (result.Result == null)
-                    ErrorHandling.HandleError(ref result, String.Concat("All registered OASIS Providers in the AutoFailOverList failed to load avatar, ", username, ". Please view the logs for more information. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString(), ".\n\nError Details:\n", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)));
+                    ErrorHandling.HandleError(ref result, String.Concat("All registered OASIS Providers in the AutoFailOverList failed to load avatar, ", username, ". Please view the logs for more information. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString()), string.Concat(".\n\nError Details:\n", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)));
+                    //ErrorHandling.HandleError(ref result, String.Concat("All registered OASIS Providers in the AutoFailOverList failed to load avatar, ", username, ". Please view the logs for more information. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString(), ".\n\nError Details:\n", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)));
                 else
                 {
                     result.IsLoaded = true;
@@ -1254,6 +1251,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         {
             OASISResult<IAvatar> result = new OASISResult<IAvatar>();
             ProviderType currentProviderType = ProviderManager.CurrentStorageProviderType.Value;
+            ProviderType previousProviderType = ProviderType.Default;
 
             try
             {
@@ -1264,14 +1262,19 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
                 if (result.Result == null && ProviderManager.IsAutoFailOverEnabled)
                 {
+                    previousProviderType = ProviderManager.CurrentStorageProviderType.Value;
+
                     foreach (EnumValue<ProviderType> type in ProviderManager.GetProviderAutoFailOverList())
                     {
-                        if (type.Value != providerType && type.Value != ProviderManager.CurrentStorageProviderType.Value)
+                        if (type.Value != previousProviderType && type.Value != ProviderManager.CurrentStorageProviderType.Value)
                         {
                             result = await SaveAvatarForProviderAsync(avatar, type.Value);
 
                             if (!result.IsError && result.Result != null)
+                            {
+                                previousProviderType = ProviderManager.CurrentStorageProviderType.Value;
                                 break;
+                            }
                         }
                     }
                 }
@@ -1289,11 +1292,13 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 }
 
                 //TODO: Need to move into background thread ASAP!
+                //TODO: Even if all providers failed above, we should still attempt again in a background thread for a fixed number of attempts (default 3) every X seconds (default 5) configured in OASISDNA.json.
+                //TODO: Auto-Failover should also re-try in a background thread after reporting the intial error above and then report after the retries either failed or succeeded later...
                 if (ProviderManager.IsAutoReplicationEnabled)
                 {
                     foreach (EnumValue<ProviderType> type in ProviderManager.GetProvidersThatAreAutoReplicating())
                     {
-                        if (type.Value != providerType && type.Value != ProviderManager.CurrentStorageProviderType.Value)
+                        if (type.Value != previousProviderType && type.Value != ProviderManager.CurrentStorageProviderType.Value)
                             result = await SaveAvatarForProviderAsync(avatar, type.Value);
                     }
                 }
@@ -2232,6 +2237,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             }
 
             result.Result = new Avatar() { Id = Guid.NewGuid(), IsNewHolon = true, FirstName = firstName, LastName = lastName, Password = password, Title = avatarTitle, Email = email, AvatarType = new EnumValue<AvatarType>(avatarType), CreatedOASISType = new EnumValue<OASISType>(createdOASISType) };
+            result.Result.Username = result.Result.Email; //Default the username to their email (they can change this later in Avatar Profile screen).
 
             //result.Result.CreatedDate = DateTime.UtcNow;
             result.Result.VerificationToken = randomTokenString();
@@ -2420,7 +2426,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         private async Task<OASISResult<IAvatar>> LoadAvatarForProviderAsync(Guid id, ProviderType providerType = ProviderType.Default, int version = 0)
         {
             OASISResult<IAvatar> result = new OASISResult<IAvatar>();
-            string errorMessage = $"Error in LoadAvatarForProviderAsync method in AvatarManager loading avatar with id {id} for provider {ProviderManager.CurrentStorageProviderType.Name}. Reason: ";
+            string errorMessage = $"Error in LoadAvatarForProviderAsync method in AvatarManager loading avatar with id {id} for provider {providerType}. Reason: ";
 
             try
             {
@@ -2430,7 +2436,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 {
                     var task = providerResult.Result.LoadAvatarAsync(id, version);
 
-                    if (await Task.WhenAny(task, Task.Delay(OASISDNA.OASIS.StorageProviders.ProviderMethodCallTimeOutSeconds)) == task)
+                    if (await Task.WhenAny(task, Task.Delay(OASISDNA.OASIS.StorageProviders.ProviderMethodCallTimeOutSeconds * 1000)) == task)
                     {
                         result = task.Result;
 
@@ -2465,7 +2471,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         private async Task<OASISResult<IAvatar>> LoadAvatarForProviderAsync(string username, ProviderType providerType = ProviderType.Default, int version = 0)
         {
             OASISResult<IAvatar> result = new OASISResult<IAvatar>();
-            string errorMessage = $"Error in LoadAvatarForProviderAsync method in AvatarManager loading avatar with username {username} for provider {ProviderManager.CurrentStorageProviderType.Name}. Reason: ";
+            string errorMessage = $"Error in LoadAvatarForProviderAsync method in AvatarManager loading avatar with username {username} for provider {providerType}. Reason: ";
 
             try
             {
@@ -2475,7 +2481,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 {
                     var task = providerResult.Result.LoadAvatarAsync(username, version);
 
-                    if (await Task.WhenAny(task, Task.Delay(OASISDNA.OASIS.StorageProviders.ProviderMethodCallTimeOutSeconds)) == task)
+                    if (await Task.WhenAny(task, Task.Delay(OASISDNA.OASIS.StorageProviders.ProviderMethodCallTimeOutSeconds * 1000)) == task)
                     {
                         result = task.Result;
 
@@ -2509,7 +2515,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         private async Task<OASISResult<IAvatar>> LoadAvatarForProviderAsync(string username, string password, ProviderType providerType = ProviderType.Default, int version = 0)
         {
             OASISResult<IAvatar> result = new OASISResult<IAvatar>();
-            string errorMessage = $"Error in LoadAvatarForProviderAsync method in AvatarManager loading avatar with username {username} for provider {ProviderManager.CurrentStorageProviderType.Name}. Reason: ";
+            string errorMessage = $"Error in LoadAvatarForProviderAsync method in AvatarManager loading avatar with username {username} for provider {providerType}. Reason: ";
 
             try
             {
@@ -2519,7 +2525,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 {
                     var task = providerResult.Result.LoadAvatarAsync(username, password, version);
 
-                    if (await Task.WhenAny(task, Task.Delay(OASISDNA.OASIS.StorageProviders.ProviderMethodCallTimeOutSeconds)) == task)
+                    if (await Task.WhenAny(task, Task.Delay(OASISDNA.OASIS.StorageProviders.ProviderMethodCallTimeOutSeconds * 1000)) == task)
                     {
                         result = task.Result;
 
@@ -2553,7 +2559,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         private async Task<OASISResult<IAvatar>> LoadAvatarByEmailForProviderAsync(string email, ProviderType providerType = ProviderType.Default, int version = 0)
         {
             OASISResult<IAvatar> result = new OASISResult<IAvatar>();
-            string errorMessage = $"Error in LoadAvatarByEmailForProviderAsync method in AvatarManager loading avatar with email {email} for provider {ProviderManager.CurrentStorageProviderType.Name}. Reason: ";
+            string errorMessage = $"Error in LoadAvatarByEmailForProviderAsync method in AvatarManager loading avatar with email {email} for provider {providerType}. Reason: ";
 
             try
             {
@@ -2563,7 +2569,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 {
                     var task = providerResult.Result.LoadAvatarByEmailAsync(email, version);
 
-                    if (await Task.WhenAny(task, Task.Delay(OASISDNA.OASIS.StorageProviders.ProviderMethodCallTimeOutSeconds)) == task)
+                    if (await Task.WhenAny(task, Task.Delay(OASISDNA.OASIS.StorageProviders.ProviderMethodCallTimeOutSeconds * 1000)) == task)
                     {
                         result = task.Result;
 
@@ -2597,7 +2603,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         private async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailForProviderAsync(Guid id, ProviderType providerType = ProviderType.Default, int version = 0)
         {
             OASISResult<IAvatarDetail> result = new OASISResult<IAvatarDetail>();
-            string errorMessage = $"Error in LoadAvatarDetailForProviderAsync method in AvatarManager loading avatar detail with id {id} for provider {ProviderManager.CurrentStorageProviderType.Name}. Reason: ";
+            string errorMessage = $"Error in LoadAvatarDetailForProviderAsync method in AvatarManager loading avatar detail with id {id} for provider {providerType}. Reason: ";
 
             try
             {
@@ -2607,7 +2613,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 {
                     var task = providerResult.Result.LoadAvatarDetailAsync(id, version);
 
-                    if (await Task.WhenAny(task, Task.Delay(OASISDNA.OASIS.StorageProviders.ProviderMethodCallTimeOutSeconds)) == task)
+                    if (await Task.WhenAny(task, Task.Delay(OASISDNA.OASIS.StorageProviders.ProviderMethodCallTimeOutSeconds * 1000)) == task)
                     {
                         result = task.Result;
 
@@ -2641,7 +2647,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         private async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByEmailForProviderAsync(string email, ProviderType providerType = ProviderType.Default, int version = 0)
         {
             OASISResult<IAvatarDetail> result = new OASISResult<IAvatarDetail>();
-            string errorMessage = $"Error in LoadAvatarDetailByUsernameForProviderAsync method in AvatarManager loading avatar detail with email {email} for provider {ProviderManager.CurrentStorageProviderType.Name}. Reason: ";
+            string errorMessage = $"Error in LoadAvatarDetailByUsernameForProviderAsync method in AvatarManager loading avatar detail with email {email} for provider {providerType}. Reason: ";
 
             try
             {
@@ -2651,7 +2657,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 {
                     var task = providerResult.Result.LoadAvatarDetailByEmailAsync(email, version);
 
-                    if (await Task.WhenAny(task, Task.Delay(OASISDNA.OASIS.StorageProviders.ProviderMethodCallTimeOutSeconds)) == task)
+                    if (await Task.WhenAny(task, Task.Delay(OASISDNA.OASIS.StorageProviders.ProviderMethodCallTimeOutSeconds * 1000)) == task)
                     {
                         result = task.Result;
 
@@ -2685,7 +2691,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         private async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByUsernameForProviderAsync(string username, ProviderType providerType = ProviderType.Default, int version = 0)
         {
             OASISResult<IAvatarDetail> result = new OASISResult<IAvatarDetail>();
-            string errorMessage = $"Error in LoadAvatarDetailByUsernameForProviderAsync method in AvatarManager loading avatar detail with username {username} for provider {ProviderManager.CurrentStorageProviderType.Name}. Reason: ";
+            string errorMessage = $"Error in LoadAvatarDetailByUsernameForProviderAsync method in AvatarManager loading avatar detail with username {username} for provider {providerType}. Reason: ";
 
             try
             {
@@ -2695,7 +2701,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 {
                     var task = providerResult.Result.LoadAvatarDetailByUsernameAsync(username, version);
 
-                    if (await Task.WhenAny(task, Task.Delay(OASISDNA.OASIS.StorageProviders.ProviderMethodCallTimeOutSeconds)) == task)
+                    if (await Task.WhenAny(task, Task.Delay(OASISDNA.OASIS.StorageProviders.ProviderMethodCallTimeOutSeconds * 1000)) == task)
                     {
                         result = task.Result;
 
@@ -2731,7 +2737,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         private async Task<OASISResult<IEnumerable<IAvatar>>> LoadAllAvatarsForProviderAsync(ProviderType providerType = ProviderType.Default, int version = 0)
         {
             OASISResult<IEnumerable<IAvatar>> result = new OASISResult<IEnumerable<IAvatar>>();
-            string errorMessage = $"Error in LoadAllAvatarsForProviderAsync method in AvatarManager loading all avatars for provider {ProviderManager.CurrentStorageProviderType.Name}. Reason: ";
+            string errorMessage = $"Error in LoadAllAvatarsForProviderAsync method in AvatarManager loading all avatars for provider {providerType}. Reason: ";
 
             try
             {
@@ -2741,7 +2747,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 {
                     var task = providerResult.Result.LoadAllAvatarsAsync(version);
 
-                    if (await Task.WhenAny(task, Task.Delay(OASISDNA.OASIS.StorageProviders.ProviderMethodCallTimeOutSeconds)) == task)
+                    if (await Task.WhenAny(task, Task.Delay(OASISDNA.OASIS.StorageProviders.ProviderMethodCallTimeOutSeconds * 1000)) == task)
                     {
                         result = task.Result;
 
@@ -2775,7 +2781,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         private async Task<OASISResult<IEnumerable<IAvatarDetail>>> LoadAllAvatarDetailsForProviderAsync(ProviderType providerType = ProviderType.Default, int version = 0)
         {
             OASISResult<IEnumerable<IAvatarDetail>> result = new OASISResult<IEnumerable<IAvatarDetail>>();
-            string errorMessage = $"Error in LoadAllAvatarDetailsForProviderAsync method in AvatarManager loading all avatar details for provider {ProviderManager.CurrentStorageProviderType.Name}. Reason: ";
+            string errorMessage = $"Error in LoadAllAvatarDetailsForProviderAsync method in AvatarManager loading all avatar details for provider {providerType}. Reason: ";
 
             try
             {
@@ -2785,7 +2791,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 {
                     var task = providerResult.Result.LoadAllAvatarDetailsAsync(version);
 
-                    if (await Task.WhenAny(task, Task.Delay(OASISDNA.OASIS.StorageProviders.ProviderMethodCallTimeOutSeconds)) == task)
+                    if (await Task.WhenAny(task, Task.Delay(OASISDNA.OASIS.StorageProviders.ProviderMethodCallTimeOutSeconds * 1000)) == task)
                     {
                         result = task.Result;
 
@@ -2815,7 +2821,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         {
             OASISResult<IAvatar> result = new OASISResult<IAvatar>();
             ProviderType currentProviderType = ProviderManager.CurrentStorageProviderType.Value;
-            string errorMessage = $"Error in SaveAvatarDetailForProviderAsync method in AvatarManager saving avatar detail with name {avatar.Name}, username {avatar.Username} and id {avatar.Id} for provider {ProviderManager.CurrentStorageProviderType.Name}. Reason: ";
+            string errorMessage = $"Error in SaveAvatarDetailForProviderAsync method in AvatarManager saving avatar with name {avatar.Name}, username {avatar.Username} and id {avatar.Id} for provider {providerType}. Reason: ";
 
             try
             {
@@ -2825,7 +2831,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 {
                     var task = providerResult.Result.SaveAvatarAsync(avatar);
 
-                    if (await Task.WhenAny(task, Task.Delay(OASISDNA.OASIS.StorageProviders.ProviderMethodCallTimeOutSeconds)) == task)
+                    if (await Task.WhenAny(task, Task.Delay(OASISDNA.OASIS.StorageProviders.ProviderMethodCallTimeOutSeconds * 1000)) == task)
                     {
                         result = task.Result;
 
@@ -2855,70 +2861,51 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
         public OASISResult<IAvatar> SaveAvatarForProvider(IAvatar avatar, ProviderType providerType = ProviderType.Default)
         {
-            return SaveAvatarForProviderAsync(avatar, providerType).Result;
+            OASISResult<IAvatar> result = new OASISResult<IAvatar>();
+            ProviderType currentProviderType = ProviderManager.CurrentStorageProviderType.Value;
+            string errorMessage = $"Error in SaveAvatarForProvider method in AvatarManager saving avatar with name {avatar.Name}, username {avatar.Username} and id {avatar.Id} for provider {providerType}. Reason: ";
 
+            try
+            {
+                OASISResult<IOASISStorageProvider> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
 
-            //OASISResult<IAvatar> result = new OASISResult<IAvatar>();
-            //ProviderType currentProviderType = ProviderManager.CurrentStorageProviderType.Value;
+                if (!providerResult.IsError && providerResult.Result != null)
+                {
+                    var task = Task.Run(() => providerResult.Result.SaveAvatar(avatar));
 
-            //try
-            //{
-            //    OASISResult<IOASISStorageProvider> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
+                    if (task.Wait(TimeSpan.FromSeconds(OASISDNA.OASIS.StorageProviders.ProviderMethodCallTimeOutSeconds)))
+                    {
+                        result = task.Result;
 
-            //    if (!providerResult.IsError && providerResult.Result != null)
-            //    {
+                        if (result.IsError || result.Result == null)
+                        {
+                            if (string.IsNullOrEmpty(result.Message))
+                                result.Message = "Unknown.";
 
+                            ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, result.Message));
+                        }
+                        else
+                            result.IsSaved = true;
+                    }
+                    else
+                        ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, "timeout occured."));
+                }
+                else
+                    ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, providerResult.Message));
+            }
+            catch (Exception ex)
+            {
+                ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, ex.ToString()), ex);
+            }
 
-
-            //        ////Func<IAvatar, OASISResult<IAvatar>> longMethod = providerResult.Result.SaveAvatar(avatar);
-            //        //Action<OASISResult<IAvatar>> longMethod = providerResult.Result.SaveAvatar(avatar);
-            //        //var task = providerResult.Result.SaveAvatar(avatar);
-            //        //object monitorSync = new object();
-            //        //bool timedOut;
-
-            //        //lock (monitorSync)
-            //        //{
-            //        //    task.BeginInvoke(monitorSync, null, null);
-            //        //    timedOut = !Monitor.Wait(monitorSync, TimeSpan.FromSeconds(30)); // waiting 30 secs
-            //        //}
-            //        //if (timedOut)
-            //        //{
-            //        //    // it timed out.
-            //        //}
-
-            //            //var task = providerResult.Result.SaveAvatar(avatar);
-
-            //            //if (await Task.WhenAny(task, Task.Delay(OASISDNA.OASIS.StorageProviders.ProviderMethodCallTimeOutSeconds)) == task)
-            //            //{
-            //            //    result = task.Result;
-
-            //            //    if (result.IsError || result.Result == null)
-            //            //    {
-            //            //        if (string.IsNullOrEmpty(result.Message))
-            //            //            result.Message = "Unknown.";
-
-            //            //        ErrorHandling.HandleWarning(ref result, string.Concat("Error saving avatar for provider ", ProviderManager.CurrentStorageProviderType.Name, ". Reason: ", result.Message));
-            //            //    }
-            //            //}
-            //            //else
-            //            //    ErrorHandling.HandleWarning(ref result, string.Concat("Error saving avatar for provider ", ProviderManager.CurrentStorageProviderType.Name, ". Reason: timeout occured."));
-            //        }
-            //        else
-            //        ErrorHandling.HandleWarning(ref result, string.Concat("Error saving avatar for provider ", ProviderManager.CurrentStorageProviderType.Name, ". There was an error setting the provider. Reason:", providerResult.Message));
-            //}
-            //catch (Exception ex)
-            //{
-            //    ErrorHandling.HandleWarning(ref result, string.Concat("Unknown error occured saving avatar for provider ", ProviderManager.CurrentStorageProviderType.Name, ". Error Message: ", ex.ToString()));
-            //}
-
-            //return result;
+            return result;
         }
 
         public async Task<OASISResult<IAvatarDetail>> SaveAvatarDetailForProviderAsync(IAvatarDetail avatar, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IAvatarDetail> result = new OASISResult<IAvatarDetail>();
             ProviderType currentProviderType = ProviderManager.CurrentStorageProviderType.Value;
-            string errorMessage = $"Error in SaveAvatarDetailForProviderAsync method in AvatarManager saving avatar detail with name {avatar.Name}, username {avatar.Username} and id {avatar.Id} for provider {ProviderManager.CurrentStorageProviderType.Name}. Reason: ";
+            string errorMessage = $"Error in SaveAvatarDetailForProviderAsync method in AvatarManager saving avatar detail with name {avatar.Name}, username {avatar.Username} and id {avatar.Id} for provider {providerType}. Reason: ";
 
             try
             {
@@ -2928,7 +2915,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 {
                     var task = providerResult.Result.SaveAvatarDetailAsync(avatar);
 
-                    if (await Task.WhenAny(task, Task.Delay(OASISDNA.OASIS.StorageProviders.ProviderMethodCallTimeOutSeconds)) == task)
+                    if (await Task.WhenAny(task, Task.Delay(OASISDNA.OASIS.StorageProviders.ProviderMethodCallTimeOutSeconds * 1000)) == task)
                     {
                         result = task.Result;
 
@@ -2972,7 +2959,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             ProviderType currentProviderType = ProviderManager.CurrentStorageProviderType.Value;
 
             //TODO: Make ALL OASIS Methods follow this pattern.
-            string errorMessage = $"Error in DeleteAvatarForProviderAsync method in AvatarManager deleting avatar with id {id} for provider {ProviderManager.CurrentStorageProviderType.Name}. Reason: ";
+            string errorMessage = $"Error in DeleteAvatarForProviderAsync method in AvatarManager deleting avatar with id {id} for provider {providerType}. Reason: ";
 
             try
             {
@@ -2982,7 +2969,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 {
                     var task = providerResult.Result.DeleteAvatarAsync(id, softDelete);
 
-                    if (await Task.WhenAny(task, Task.Delay(OASISDNA.OASIS.StorageProviders.ProviderMethodCallTimeOutSeconds)) == task)
+                    if (await Task.WhenAny(task, Task.Delay(OASISDNA.OASIS.StorageProviders.ProviderMethodCallTimeOutSeconds * 1000)) == task)
                     {
                         result = task.Result;
 
@@ -3021,7 +3008,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             ProviderType currentProviderType = ProviderManager.CurrentStorageProviderType.Value;
 
             //TODO: Make ALL OASIS Methods follow this pattern.
-            string errorMessage = $"Error in DeleteAvatarByEmailForProviderAsync method in AvatarManager deleting avatar with email {email} for provider {ProviderManager.CurrentStorageProviderType.Name}. Reason: ";
+            string errorMessage = $"Error in DeleteAvatarByEmailForProviderAsync method in AvatarManager deleting avatar with email {email} for provider {providerType}. Reason: ";
 
             try
             {
@@ -3031,7 +3018,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 {
                     var task = providerResult.Result.DeleteAvatarAsync(email, softDelete);
 
-                    if (await Task.WhenAny(task, Task.Delay(OASISDNA.OASIS.StorageProviders.ProviderMethodCallTimeOutSeconds)) == task)
+                    if (await Task.WhenAny(task, Task.Delay(OASISDNA.OASIS.StorageProviders.ProviderMethodCallTimeOutSeconds * 1000)) == task)
                     {
                         result = task.Result;
 
@@ -3070,7 +3057,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             ProviderType currentProviderType = ProviderManager.CurrentStorageProviderType.Value;
 
             //TODO: Make ALL OASIS Methods follow this pattern.
-            string errorMessage = $"Error in DeleteAvatarByUsernameForProviderAsync method in AvatarManager deleting avatar with username {username} for provider {ProviderManager.CurrentStorageProviderType.Name}. Reason: ";
+            string errorMessage = $"Error in DeleteAvatarByUsernameForProviderAsync method in AvatarManager deleting avatar with username {username} for provider {providerType}. Reason: ";
 
             try
             {
@@ -3080,7 +3067,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 {
                     var task = providerResult.Result.DeleteAvatarAsync(username, softDelete);
 
-                    if (await Task.WhenAny(task, Task.Delay(OASISDNA.OASIS.StorageProviders.ProviderMethodCallTimeOutSeconds)) == task)
+                    if (await Task.WhenAny(task, Task.Delay(OASISDNA.OASIS.StorageProviders.ProviderMethodCallTimeOutSeconds * 1000)) == task)
                     {
                         result = task.Result;
 

@@ -60,7 +60,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             // users can get their own account and admins can get any account
             if (id != Avatar.Id && Avatar.AvatarType.Value != AvatarType.Wizard)
                 return new OASISResult<AvatarImage>() { Result = null, IsError = true, Message = "Unauthorized" };
-            return await _avatarService.GetAvatarImageById(id);
+
+            return FormatResponse(await _avatarService.GetAvatarImageById(id));
         }
 
         [Authorize]
@@ -70,7 +71,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             // users can get their own account and admins can get any account
             if (username != Avatar.Username && Avatar.AvatarType.Value != AvatarType.Wizard)
                 return new OASISResult<AvatarImage> { IsError = true, Message = "Unauthorized" };
-            return await _avatarService.GetAvatarImageByUsername(username);
+
+            return FormatResponse(await _avatarService.GetAvatarImageByUsername(username));
         }
 
         [Authorize]
@@ -80,7 +82,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             // users can get their own account and admins can get any account
             if (email != Avatar.Email && Avatar.AvatarType.Value != AvatarType.Wizard)
                 return new OASISResult<AvatarImage> { IsError = true, Message = "Unauthorized" };
-            return await _avatarService.GetAvatarImageByEmail(email);
+
+            return FormatResponse(await _avatarService.GetAvatarImageByEmail(email));
         }
 
         [Authorize]
@@ -92,35 +95,35 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 return new OASISResult<bool>()
                 { Result = false, Message = "Image not uploaded. Unauthorized", IsError = true };
 
-            return await _avatarService.Upload2DAvatarImage(avatarImage);
+            return FormatResponse(await _avatarService.Upload2DAvatarImage(avatarImage));
         }
 
         [Authorize(AvatarType.Wizard)]
         [HttpGet("GetAvatarDetail/{id:guid}")]
         public async Task<OASISResult<IAvatarDetail>> GetAvatarDetail(Guid id)
         {
-            return await Program.AvatarManager.LoadAvatarDetailAsync(id);
+            return FormatResponse(await Program.AvatarManager.LoadAvatarDetailAsync(id));
         }
 
         [Authorize(AvatarType.Wizard)]
         [HttpGet("GetAvatarDetailByEmail/{email}")]
         public async Task<OASISResult<IAvatarDetail>> GetAvatarDetailByEmail(string email)
         {
-            return await Program.AvatarManager.LoadAvatarDetailByEmailAsync(email);
+            return FormatResponse(await Program.AvatarManager.LoadAvatarDetailByEmailAsync(email));
         }
 
         [Authorize(AvatarType.Wizard)]
         [HttpGet("GetAvatarDetailByUsername/{username}")]
         public async Task<OASISResult<IAvatarDetail>> GetAvatarDetailByUsername(string username)
         {
-            return await Program.AvatarManager.LoadAvatarDetailByUsernameAsync(username);
+            return FormatResponse(await Program.AvatarManager.LoadAvatarDetailByUsernameAsync(username));
         }
 
         [Authorize(AvatarType.Wizard)]
         [HttpGet("GetAllAvatarDetails")]
         public async Task<OASISResult<IEnumerable<IAvatarDetail>>> GetAllAvatarDetails()
         {
-            return await Program.AvatarManager.LoadAllAvatarDetailsAsync();
+            return FormatResponse(await Program.AvatarManager.LoadAllAvatarDetailsAsync());
         }
 
         /// <summary>
@@ -132,7 +135,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         public async Task<OASISResult<IEnumerable<IAvatar>>> GetAll()
         {
             //return await _avatarService.GetAll();
-            return await Program.AvatarManager.LoadAllAvatarsAsync();
+            return FormatResponse(await Program.AvatarManager.LoadAllAvatarsAsync());
         }
 
         /// <summary>
@@ -171,7 +174,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 result.Message = result.Message.Replace("\n", " ").Trim();
             //result.Message = result.Message.Replace("\n", "<br>");
 
-            return result;
+            return FormatResponse(result);
         }
 
         [Authorize]
@@ -183,7 +186,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 return new OASISResult<IAvatar> { Message = "Unauthorized", IsError = true };
 
             //return await _avatarService.GetByUsername(username);
-            return await Program.AvatarManager.LoadAvatarAsync(username);
+            return FormatResponse(await Program.AvatarManager.LoadAvatarAsync(username));
         }
 
         [Authorize]
@@ -195,7 +198,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 return new OASISResult<IAvatar> { Message = "Unauthorized", IsError = true };
 
             //return await _avatarService.GetByEmail(email);
-            return await Program.AvatarManager.LoadAvatarByEmailAsync(email);
+            return FormatResponse(await Program.AvatarManager.LoadAvatarByEmailAsync(email));
         }
 
         /// <summary>
@@ -254,8 +257,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <param name="setGlobally"></param>
         /// <returns></returns>
         [HttpPost("authenticate/{providerType}/{setGlobally}")]
-        public async Task<OASISResult<AuthenticateResponse>> Authenticate(AuthenticateRequest model,
-        //public async Task<OASISResult<IAvatar>> Authenticate(AuthenticateRequest model,
+        //public async Task<OASISResult<AuthenticateResponse>> Authenticate(AuthenticateRequest model,
+        public async Task<OASISResult<IAvatar>> Authenticate(AuthenticateRequest model,
             ProviderType providerType = ProviderType.Default, bool setGlobally = false)
         {
             GetAndActivateProvider(providerType, setGlobally);
@@ -269,18 +272,15 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <param name="model"></param>
         /// <returns></returns>
         [HttpPost("authenticate")]
-        public async Task<OASISResult<AuthenticateResponse>> Authenticate(AuthenticateRequest model)
-        //public async Task<OASISResult<IAvatar>> Authenticate(AuthenticateRequest model)
+        //public async Task<OASISResult<AuthenticateResponse>> Authenticate(AuthenticateRequest model)
+        public async Task<OASISResult<IAvatar>> Authenticate(AuthenticateRequest model)
         {
-            var response = await _avatarService.Authenticate(model, ipAddress());
+            var response = await Program.AvatarManager.AuthenticateAsync(model.Email, model.Password, ipAddress());
 
-            if (!response.IsError && response.Result.Avatar != null)
-                setTokenCookie(response.Result.Avatar.RefreshToken);
+            if (!response.IsError && response.Result != null)
+                setTokenCookie(response.Result.RefreshToken);
 
-            //if (!response.IsError && response.Result != null)
-            //    setTokenCookie(response.Result.RefreshToken);
-
-            return response;
+            return FormatResponse(response);
         }
 
         [HttpPost("AuthenticateToken/{token}")]
@@ -1160,6 +1160,14 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 return (true, (ProviderType)providerTypeToLinkTo, ProviderType.Default, avatarID, null);
             else
                 return (true, (ProviderType)providerTypeToLinkTo, (ProviderType)providerTypeToAvatarFrom, avatarID, null);
+        }
+
+        private OASISResult<T> FormatResponse<T>(OASISResult<T> response)
+        {
+            if (response.IsError && response.Message.IndexOf("\n\nError Details:\n") > 0)
+                response.Message = response.Message.Substring(0, response.Message.IndexOf("\n\nError Details:\n"));
+
+            return response;
         }
     }
 }
