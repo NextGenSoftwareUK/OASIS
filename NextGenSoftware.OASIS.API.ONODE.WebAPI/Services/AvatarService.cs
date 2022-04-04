@@ -62,6 +62,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
             });
         }
 
+        /*
         public async Task<OASISResult<AuthenticateResponse>> Authenticate(AuthenticateRequest model, string ipAddress)
         {
             var response = new OASISResult<AuthenticateResponse>();
@@ -86,7 +87,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
             }
 
             return response;
-        }
+        }*/
 
         //public async Task<OASISResult<IAvatar>> Authenticate(AuthenticateRequest model, string ipAddress)
         //{

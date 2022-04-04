@@ -77,6 +77,9 @@ namespace NextGenSoftware.OASIS.API.Core.Helpers
                     throw new Exception(Message);
             }
         }
+
+        public string DetailedMessage { get; set; }
+
         public T Result { get; set; }
 
         public OASISResult()
