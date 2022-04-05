@@ -88,6 +88,7 @@ class App extends React.Component {
         this.setState({
             showLogin: false,
             showSignup: false,
+            showForgetPassword: false
         });
     };
 
@@ -104,9 +105,11 @@ class App extends React.Component {
     };
 
     showLogin = () => {
+        console.log('going to call login')
         this.setState({
             showLogin: true,
             showSignup: false,
+            showForgetPassword: false
         });
     };
 
@@ -114,6 +117,7 @@ class App extends React.Component {
         this.setState({
             showSignup: true,
             showLogin: false,
+            showForgetPassword: false
         });
     };
 

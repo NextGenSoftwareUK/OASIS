@@ -245,23 +245,24 @@ option {
                 border-color: #dc3545 !important;
             }
         }
-        button.submit-button {
-            margin: 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.25rem;
-            color: #fff;
-            background-color: #1885c9;
-            padding: 0.5rem 1rem;
-            border-radius: 5rem;
-            cursor: pointer;
-            width: 60%;
-            transition: all 200ms ease-in;
-            margin: 0 auto;
-            @media screen and (min-width:320px) and (max-width:767px) {
-                width: 100%;
-            }
+    }
+    button.submit-button {
+        grid-gap: 10px;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.25rem;
+        color: #fff;
+        background-color: #1885c9;
+        padding: 0.5rem 1rem;
+        border-radius: 5rem;
+        cursor: pointer;
+        width: 60%;
+        transition: all 200ms ease-in;
+        margin: 0 auto;
+        @media screen and (min-width:320px) and (max-width:767px) {
+            width: 100%;
         }
     }
 }
@@ -319,4 +320,8 @@ h1.single-heading {
         margin-bottom: 22px;
         text-align: left;
         font-weight: 500;
+}
+
+.cursor-pointer {
+    cursor: pointer;
 }

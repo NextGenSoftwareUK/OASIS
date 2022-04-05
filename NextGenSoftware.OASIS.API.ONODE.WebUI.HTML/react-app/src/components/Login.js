@@ -3,6 +3,8 @@ import React from 'react';
 import ShowIcon from '../assets/images/visible-icon.svg';
 import HideIcon from '../assets/images/hidden-icon.svg';
 
+import ForgetPassword from "./ForgetPassword";
+
 import { ToastContainer, toast } from "react-toastify";
 
 import { Modal } from 'react-bootstrap';
@@ -21,6 +23,7 @@ export default class Login extends React.Component {
             email: '',
             password: '',
             showPassword: false,
+            showForgetPassword: false,
             loading: false,
             user: null
         }
@@ -53,6 +56,7 @@ export default class Login extends React.Component {
 
         axios.post('https://api.oasisplatform.world/api/avatar/authenticate', data, { headers })
             .then(response => {
+                this.setState({loading: false})
                 if (response.data.isError) {
                     toast.error(" Your email or password is invalid!");
                     return
@@ -60,7 +64,6 @@ export default class Login extends React.Component {
                 localStorage.setItem('user', JSON.stringify(response.data.avatar))
                 localStorage.setItem('credentials', JSON.stringify(data))
                 
-                this.setState({loading: false})
                 toast.success(" Successfully Updated!");
                 this.setState({user: response.data.avatar})
 
@@ -72,6 +75,19 @@ export default class Login extends React.Component {
                 this.setState({ loading: false })
             })
     }
+
+    showForgetPassword = (hideLogin) => {
+        this.setState({
+            showForgetPassword: true
+        });
+        hideLogin();
+    };
+
+    hideForgetPassword = () => {
+        this.setState({
+            showForgetPassword: false
+        });
+    };
 
     render() {
         const { showPassword, loading } = this.state;
@@ -158,7 +174,7 @@ export default class Login extends React.Component {
                                         </div>
 
                                         <div className="forgot-password">
-                                            <label className="text-link">Forgot Password?</label>
+                                            <label className="text-link" onClick={() => this.showForgetPassword(hide)}>Forgot Password?</label>
                                         </div>
 
                                         <div className="remember-me">
@@ -177,6 +193,13 @@ export default class Login extends React.Component {
                         </Modal>
                     )}
                 </Formik>
+
+                <ForgetPassword
+                    className="custom-form"
+                    show={this.state.showForgetPassword}
+                    hide={this.hideForgetPassword}
+                    change={this.showForgetPassword}
+                />
             </>
         )
     }
