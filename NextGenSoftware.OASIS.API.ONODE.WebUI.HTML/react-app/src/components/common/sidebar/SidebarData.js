@@ -132,11 +132,11 @@ const SidebarData = [
                 name: "Send Invite To Join SEEDS",
                 popupName: "sendInvite"
             },
-            {
-                id: 5,
-                name: "Accept Invite to Join Seeds",
-                popupName: "acceptInvite"
-            },
+            // {
+            //     id: 5,
+            //     name: "Accept Invite to Join Seeds",
+            //     popupName: "acceptInvite"
+            // },
             // {
 
             //     name: "data",
