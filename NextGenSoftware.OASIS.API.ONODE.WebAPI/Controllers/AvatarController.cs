@@ -299,8 +299,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         {
             var refreshToken = Request.Cookies["refreshToken"];
             var response = await _avatarService.RefreshToken(refreshToken, ipAddress());
-            setTokenCookie(response.Result.RefreshToken);
-            return response;
+
+            if (!response.IsError && response.Result != null)
+                setTokenCookie(response.Result.RefreshToken);
+
+            return FormatResponse(response);
         }
 
         /// <summary>
@@ -1164,8 +1167,16 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 
         private OASISResult<T> FormatResponse<T>(OASISResult<T> response)
         {
+            //Make sure no Error Details are in the Message.
             if (response.IsError && response.Message.IndexOf("\n\nError Details:\n") > 0)
                 response.Message = response.Message.Substring(0, response.Message.IndexOf("\n\nError Details:\n"));
+
+            //Replace unsupported chars.
+            if (!string.IsNullOrEmpty(response.Message))
+                response.Message.Replace("\n", " ");
+
+            if (!string.IsNullOrEmpty(response.DetailedMessage))
+                response.DetailedMessage.Replace("\n", " ");
 
             return response;
         }
