@@ -22,7 +22,7 @@ export default class Signup extends React.Component {
             loading: false,
             user_data: {
                 firstName: '',
-                las_name: '',
+                lastName: '',
                 email: '',
                 password: '',
                 confirmPassword: '',
@@ -41,7 +41,7 @@ export default class Signup extends React.Component {
         email: '',
         password: '',
         confirmPassword: '',
-        acceptTerms: true
+        acceptTerms: false
     }
 
     validationSchema = Yup.object().shape({
@@ -60,7 +60,7 @@ export default class Signup extends React.Component {
             .min(8, "Password is too short - should be 8 characters minimum.")
             .oneOf([Yup.ref('password'), null], "Password did not match"),
         acceptTerms: Yup.boolean()
-            .required("acceptTerms is required to be checked")    
+            .required("acceptTerms is required to be checked")
     })
 
     handleSignup = () => {
@@ -76,6 +76,11 @@ export default class Signup extends React.Component {
                 avatarType: 'User'
             }
 
+            if(!acceptTerms){
+              toast.error("Accept terms!")
+              return
+            }
+
             const headers = {
                 'Content-Type': 'application/json'
             };
@@ -83,17 +88,17 @@ export default class Signup extends React.Component {
             this.setState({ loading: true })
             axios.post('https://api.oasisplatform.world/api/avatar/register', data, { headers })
                 .then(response => {
-                    this.setState({ loading: false })
                     if(response.data.isError) {
                         toast.error(response.data.message)
                     } else {
+                        this.props.hide()
                         toast.success("Avatar is created successfully");
                     }
                 }).catch(error => {
-                    console.log(JSON.parse(error))
-                    console.log(error)
-                    this.setState({ loading: false })
-                    toast.error(error.errors);
+                    let err = error.response.data
+                    toast.error(err.message);
+                }).finally(()=>{
+                  this.setState({loading: false})
                 });
         } else {
             toast.error("password did not match")
@@ -106,13 +111,6 @@ export default class Signup extends React.Component {
 
         return (
             <>
-                <Loader
-                    type="Puff"
-                    color="#00BFFF"
-                    height={100}
-                    width={100}
-                    timeout={3000} //3 secs
-                />
                 <ToastContainer
                     position="top-center"
                     autoClose={5000}
@@ -159,7 +157,7 @@ export default class Signup extends React.Component {
                                         <h2>Sign Up</h2>
 
                                         <p>
-                                            Already have an account? 
+                                            Already have an account?
                                             <span className="text-link" onClick={change}> Log In!</span>
                                         </p>
                                     </div>
@@ -170,10 +168,11 @@ export default class Signup extends React.Component {
                                             <input
                                                 type="text"
                                                 name="firstName"
+                                                disabled={loading}
                                                 value={values.firstName}
                                                 onChange={handleChange}
                                                 onBlur={handleBlur}
-                                                placeholder="Jhone Doe"
+                                                placeholder="John Doe"
                                             />
                                             <span className="text-danger">{errors.firstName && touched.firstName && errors.firstName}</span>
                                         </div>
@@ -183,10 +182,11 @@ export default class Signup extends React.Component {
                                             <input
                                                 type="text"
                                                 name="lastName"
+                                                disabled={loading}
                                                 value={values.lastName}
                                                 onChange={handleChange}
                                                 onBlur={handleBlur}
-                                                placeholder="Jhone Doe"
+                                                placeholder="John Doe"
                                             />
                                             <span className="text-danger">{errors.lastName && touched.lastName && errors.lastName}</span>
                                         </div>
@@ -196,6 +196,7 @@ export default class Signup extends React.Component {
                                             <input
                                                 type="email"
                                                 name="email"
+                                                disabled={loading}
                                                 value={values.email}
                                                 onChange={handleChange}
                                                 onBlur={handleBlur}
@@ -212,6 +213,7 @@ export default class Signup extends React.Component {
                                                     name="password"
                                                     value={values.password}
                                                     onChange={handleChange}
+                                                    disabled={loading}
                                                     onBlur={handleBlur}
                                                     placeholder="password"
                                                 />
@@ -224,7 +226,7 @@ export default class Signup extends React.Component {
                                             </div>
                                             <span className="text-danger">{errors.password && touched.password && errors.password}</span>
                                         </div>
-                                        
+
                                         <div className={this.handleFormFieldClass(errors.confirmPassword, touched.confirmPassword)} >
                                             <label>Confirm Password</label>
                                             <div className="have-icon">
@@ -234,6 +236,7 @@ export default class Signup extends React.Component {
                                                     value={values.confirmPassword}
                                                     onChange={handleChange}
                                                     onBlur={handleBlur}
+                                                    disabled={loading}
                                                     placeholder="confirm password"
                                                 />
                                                 <img
@@ -244,24 +247,50 @@ export default class Signup extends React.Component {
                                                 />
                                             </div>
                                             <span className="text-danger">{errors.confirmPassword && touched.confirmPassword && errors.confirmPassword}</span>
-                                        </div> 
+                                        </div>
                                         <div className="remember-me">
                                                 <label>
-                                                    <input 
+                                                    <input
                                                         type="checkbox"
-                                                        name="acceptTerms" 
+                                                        name="acceptTerms"
                                                         value={values.acceptTerms}
                                                         onChange={handleChange}
-                                                        id="acceptTerms" 
+                                                        disabled={loading}
+                                                        id="acceptTerms"
                                                     />
                                                     Accept Terms
                                                 </label>
                                         </div>
-                                        <span className="text-danger">{errors.acceptTerms && touched.acceptTerms && errors.acceptTerms}</span>                                   
+                                        <span className="text-danger">{errors.acceptTerms && touched.acceptTerms && errors.acceptTerms}</span>
 
-                                        <button type="submit" className="submit-button grid-btn" disabled={isSubmitting}>
-                                            {loading ? 'Creating Account ' : 'Submit '} {loading ? <Loader type="Oval" height={15} width={15} color="#fff" /> : null}
-                                        </button>
+                                        {loading ? (
+                                          <button
+                                            type="submit"
+                                            className="submit-button"
+                                            disabled={true}
+                                            style={{
+                                              display: "flex",
+                                              justifyContent: "space-around",
+                                              cursor: "progress",
+                                              width: '10rem'
+                                            }}
+                                          >
+                                            Submitting
+                                            <Loader
+                                              type="Oval"
+                                              height={15}
+                                              width={15}
+                                              color="#fff"
+                                            />
+                                          </button>
+                                        ) : (
+                                          <button
+                                            type="submit"
+                                            className="submit-button"
+                                            disabled={false}
+                                            style={{width: '10rem'}}
+                                          >Submit</button>
+                                        )}
                                     </div>
                                 </form>
                             </Modal.Body>
