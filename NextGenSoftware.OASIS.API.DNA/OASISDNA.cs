@@ -22,8 +22,6 @@ namespace NextGenSoftware.OASIS.API.DNA
     {
         public bool HideVerificationToken { get; set; }  
         public bool HideRefreshTokens { get; set; }
-        public bool SendVerificationEmail { get; set; }
-        //public bool DoesAvatarNeedToBeVerifiedBeforeLogin { get; set; }
         public string SecretKey { get; set; }
         public int RemoveOldRefreshTokensAfterXDays{ set; get;}
         public EncryptionSettings AvatarPassword { get; set; }
@@ -84,6 +82,8 @@ namespace NextGenSoftware.OASIS.API.DNA
         public int SmtpPort { get; set; }
         public string SmtpUser { get; set; }
         public string SmtpPass { get; set; }
+        public bool DisableAllEmails { get; set; } //This overrides the SendVerificationEmail setting below. MAKE SURE THIS IS FALSE FOR LIVE!
+        public bool SendVerificationEmail { get; set; }
     }
 
     public class ProviderSettingsBase
