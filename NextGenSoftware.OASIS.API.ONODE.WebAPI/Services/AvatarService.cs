@@ -150,10 +150,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
                             response.Result = avatar;
                         }
                         else
-                            ErrorHandling.HandleError(ref response, $"Error occured in RefreshToken method in AvatarService saving avatar. Reason: {saveAvatarResult.Result}");
+                            ErrorHandling.HandleError(ref response, $"Error occured in RefreshToken method in AvatarService saving avatar. Reason: {saveAvatarResult.Message}");
                     }
                     else
-                        ErrorHandling.HandleError(ref response, $"Error occured in RefreshToken method in AvatarService getting refresh token. Reason: {refreshTokenResult.Result}");
+                        ErrorHandling.HandleError(ref response, $"Error occured in RefreshToken method in AvatarService getting refresh token. Reason: {refreshTokenResult.Message}");
                 }
                 catch (Exception ex)
                 {
@@ -179,20 +179,26 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
                 }
 
                 // revoke token and save
-                refreshTokenResult.Result.Revoked = DateTime.UtcNow;
-                refreshTokenResult.Result.RevokedByIp = ipAddress;
-                avatar.IsBeamedIn = false;
-                avatar.LastBeamedOut = DateTime.Now;
-
-                var saveAvatar = AvatarManager.SaveAvatar(avatar);
-
-                if (saveAvatar != null && !saveAvatar.IsError && saveAvatar.Result != null)
+                if (!refreshTokenResult.IsError && refreshTokenResult.Result != null)
                 {
-                    response.Message = "Token Revoked.";
-                    return response;
-                }
+                    refreshTokenResult.Result.Revoked = DateTime.UtcNow;
+                    refreshTokenResult.Result.RevokedByIp = ipAddress;
+                    avatar.IsBeamedIn = false;
+                    avatar.LastBeamedOut = DateTime.Now;
 
-                ErrorHandling.HandleError(ref response, $"An error in Revoke Token method in AvatarService saving the avatar. Reason: {saveAvatar.Message}");
+                    var saveAvatar = AvatarManager.SaveAvatar(avatar);
+
+                    if (saveAvatar != null && !saveAvatar.IsError && saveAvatar.Result != null)
+                    {
+                        response.Message = "Token Revoked.";
+                        response.IsSaved = true;
+                    }
+                    else
+                        ErrorHandling.HandleError(ref response, $"An error in RevokeToken method in AvatarService saving the avatar. Reason: {saveAvatar.Message}");
+                }
+                else
+                    ErrorHandling.HandleError(ref response, $"An error occured in RevokeToken method in AvatarService. Reason: {refreshTokenResult.Message}");
+
                 return response;
             });
         }
@@ -629,6 +635,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
         public async Task<OASISResult<IAvatar>> Update(Guid id, UpdateRequest avatar)
         {
             var response = new OASISResult<IAvatar>();
+            string errorMessage = "Error in Update method in Avatar Service. Reason: ";
+
             try
             {
                 // only admins can update role
@@ -636,15 +644,15 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
                     avatar.AvatarType = null;
 
                 //var oasisResult = await GetAvatar(id, true);
-                var oasisResult = await AvatarManager.LoadAvatarAsync(id, false);
+                var loadAvtarResult = await AvatarManager.LoadAvatarAsync(id, false);
 
-                if (oasisResult.IsError)
+                if (loadAvtarResult.IsError || loadAvtarResult.Result == null)
                 {
-                    ErrorHandling.HandleError(ref response, "Avatar not found");
+                    ErrorHandling.HandleError(ref response, $"{errorMessage}{loadAvtarResult.Message}", loadAvtarResult.DetailedMessage);
                     return response;
                 }
 
-                var origAvatar = oasisResult.Result;
+                var origAvatar = loadAvtarResult.Result;
 
                 if (!string.IsNullOrEmpty(avatar.Email) && avatar.Email != origAvatar.Email &&
                     await AvatarManager.LoadAvatarByEmailAsync(avatar.Email) != null)
@@ -661,19 +669,18 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
                 _mapper.Map(avatar, origAvatar);
                 origAvatar.ModifiedDate = DateTime.UtcNow;
 
-                var saveResult = AvatarManager.SaveAvatar(origAvatar);
-                if (saveResult.IsError)
+                var saveAvatarResult = AvatarManager.SaveAvatar(origAvatar);
+                if (saveAvatarResult.IsError || saveAvatarResult.Result == null)
                 {
-                    ErrorHandling.HandleError(ref response, saveResult.Message);
+                    ErrorHandling.HandleError(ref response, $"{errorMessage}{saveAvatarResult.Message}", saveAvatarResult.DetailedMessage);
                     return response;
                 }
 
-                response.Result = AvatarManager.HideAuthDetails(saveResult.Result);
+                response.Result = AvatarManager.HideAuthDetails(saveAvatarResult.Result);
             }
-            catch (Exception e)
+            catch (Exception ex)
             {
-                response.Exception = e;
-                ErrorHandling.HandleError(ref response, e.Message);
+                ErrorHandling.HandleError(ref response, $"{errorMessage}Unknown Error Occured. See DetailedMessage for more info.", ex.Message, ex);
             }
 
             return response;
@@ -1266,7 +1273,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
             OASISResult<RefreshToken> result = new OASISResult<RefreshToken>();
 
             //TODO: PERFORMANCE} Implement in Providers so more efficient and do not need to return whole list
-            OASISResult<IEnumerable<IAvatar>> avatarsResult = AvatarManager.LoadAllAvatars();
+            OASISResult<IEnumerable<IAvatar>> avatarsResult = AvatarManager.LoadAllAvatars(false);
 
             if (!avatarsResult.IsError && avatarsResult.Result != null)
             {
