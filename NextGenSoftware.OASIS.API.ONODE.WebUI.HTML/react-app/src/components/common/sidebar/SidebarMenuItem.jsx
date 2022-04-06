@@ -14,6 +14,7 @@ class SidebarMenuItem extends React.Component {
 
     render() {
         const { item } = this.props;
+        console.log(item)
         return (
             <>
                 <li>
@@ -22,8 +23,15 @@ class SidebarMenuItem extends React.Component {
                     <ul className={`sidebar-inner-menu ${this.state.show ? 'show' : ''}`} id={item.id}>
                         {
                             item.subMenu.map((subItem, index) =>
-                                <li key={index} onClick={() => this.props.toggleScreenPopup(item.name, subItem.popupName)}>
-                                    <a>{subItem.name}</a>
+                                <li key={index}>
+                                    {/* <a className={subItem.disabled ? 'disbale' : ''}>{subItem.name}</a> */}
+                                    {
+                                        subItem.disabled 
+                                        ? 
+                                            <a className='disabled'>{subItem.name}</a>
+                                        :
+                                            <a onClick={() => this.props.toggleScreenPopup(item.name, subItem.popupName)}>{subItem.name}</a>
+                                    }
                                 </li>
                             )
                         }
