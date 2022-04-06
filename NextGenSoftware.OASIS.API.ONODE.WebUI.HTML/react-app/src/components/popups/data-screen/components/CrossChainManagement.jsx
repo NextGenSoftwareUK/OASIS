@@ -24,7 +24,7 @@ class CrossChainManagement extends React.Component {
                                 <h1 className="single-heading">Cross Chain Management</h1>
 
                                 <div className="form-container">
-                                    <form>
+                                    <form className="custom-form" style={{padding: 0}}>
                                         <p className="single-form-row">
                                             <label>Provider: </label>
                                             <span className="have-selectbox">
@@ -49,12 +49,9 @@ class CrossChainManagement extends React.Component {
                                             <input type="file" />
                                         </p>
 
-                                        <p className="single-form-row">
-                                            <button 
-                                                className="submit-button sm-button" 
-                                                type="submit"
-                                            >Save</button>
-                                        </p>
+                                        <button type="submit" className="submit-button">
+                                            Save
+                                        </button>
                                     </form>
                                 </div>
                             </div>

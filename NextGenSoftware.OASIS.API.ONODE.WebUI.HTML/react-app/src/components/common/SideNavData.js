@@ -102,10 +102,10 @@ const SideNavData = [
         title: "Send Invite To Join SEEDS",
         path: "/send-invite",
       },
-      {
-        title: "Accept Invite to join seeds",
-        path: "/accept-invite-to-join-seeds",
-      },
+      // {
+      //   title: "Accept Invite to join seeds",
+      //   path: "/accept-invite-to-join-seeds",
+      // },
       {
         title: "View SEEDS",
         path: "",
