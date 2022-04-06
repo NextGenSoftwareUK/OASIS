@@ -210,6 +210,11 @@
                             padding: 0 40px;
                             text-transform: capitalize;
                         }
+                        a.disabled {
+                            color: gray;
+                            background: none;
+                            cursor: not-allowed;
+                        }
                     }
                 }
                 ul.sidebar-inner-menu.show {
