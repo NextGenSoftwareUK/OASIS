@@ -13,10 +13,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Interfaces
 {
     public interface IAvatarService
     {
-        //TODO: Want to phase this out, now needed, moving more and more code into AvatarManager.
+        //TODO: Want to phase this out, not needed, moving more and more code into AvatarManager.
         Task<OASISResult<string>> GetTerms();
         Task<OASISResult<string>> ValidateAccountToken(string accountToken);
-        Task<OASISResult<AuthenticateResponse>> Authenticate(AuthenticateRequest model, string ipAddress);
+        //Task<OASISResult<AuthenticateResponse>> Authenticate(AuthenticateRequest model, string ipAddress);
         //Task<OASISResult<IAvatar>> Authenticate(AuthenticateRequest model, string ipAddress);
         Task<OASISResult<IAvatar>> RefreshToken(string token, string ipAddress);
         Task<OASISResult<string>> RevokeToken(string token, string ipAddress);
@@ -26,14 +26,14 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Interfaces
         Task<OASISResult<string>> ForgotPassword(ForgotPasswordRequest model, string origin);
         Task<OASISResult<string>> ValidateResetToken(ValidateResetTokenRequest model);
         Task<OASISResult<string>> ResetPassword(ResetPasswordRequest model);
-        Task<OASISResult<IEnumerable<IAvatar>>> GetAll();
+        //Task<OASISResult<IEnumerable<IAvatar>>> GetAll();
         Task<OASISResult<AvatarImage>> GetAvatarImageById(Guid id);
         Task<OASISResult<AvatarImage>> GetAvatarImageByUsername(string userName);
         Task<OASISResult<AvatarImage>> GetAvatarImageByEmail(string email);
-        Task<OASISResult<string>> Upload2DAvatarImage(AvatarImage avatarImage);
+        Task<OASISResult<bool>> Upload2DAvatarImage(AvatarImage avatarImage);
         //Task<OASISResult<IAvatar>> GetById(Guid id);
-        Task<OASISResult<IAvatar>> GetByUsername(string userName);
-        Task<OASISResult<IAvatar>> GetByEmail(string email);
+        //Task<OASISResult<IAvatar>> GetByUsername(string userName);
+        //Task<OASISResult<IAvatar>> GetByEmail(string email);
         Task<OASISResult<IAvatar>> Create(CreateRequest model);
         Task<OASISResult<IAvatar>> Update(Guid id, UpdateRequest avatar);
         Task<OASISResult<IAvatar>> UpdateByEmail(string email, UpdateRequest avatar);
@@ -41,13 +41,13 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Interfaces
         Task<OASISResult<bool>> Delete(Guid id);
         Task<OASISResult<bool>> DeleteByUsername(string username);
         Task<OASISResult<bool>> DeleteByEmail(string email);
-        Task<OASISResult<IAvatarDetail>> GetAvatarDetail(Guid id);
-        Task<OASISResult<IAvatarDetail>> GetAvatarDetailByUsername(string username);
-        Task<OASISResult<IAvatarDetail>> GetAvatarDetailByEmail(string email);
-        Task<OASISResult<IEnumerable<IAvatarDetail>>> GetAllAvatarDetails();
+        //Task<OASISResult<IAvatarDetail>> GetAvatarDetail(Guid id);
+        //Task<OASISResult<IAvatarDetail>> GetAvatarDetailByUsername(string username);
+        //Task<OASISResult<IAvatarDetail>> GetAvatarDetailByEmail(string email);
+        //Task<OASISResult<IEnumerable<IAvatarDetail>>> GetAllAvatarDetails();
         Task<OASISResult<string>> GetAvatarUmaJsonById(Guid id);
         Task<OASISResult<string>> GetAvatarUmaJsonByUsername(string username);
-        Task<OASISResult<string>> GetAvatarUmaJsonByMail(string mail);
+        Task<OASISResult<string>> GetAvatarUmaJsonByEmail(string mail);
         Task<OASISResult<IAvatar>> GetAvatarByJwt();
         Task<OASISResult<ISearchResults>> Search(ISearchParams searchParams);
         //Task<OASISResult<bool>> LinkProviderKeyToAvatar(Guid avatarId, ProviderType providerType, string key);
