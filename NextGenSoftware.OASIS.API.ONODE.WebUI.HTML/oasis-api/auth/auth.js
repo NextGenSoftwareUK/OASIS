@@ -42,6 +42,9 @@ class Auth {
 
     return axios(config)
       .then((res) => {
+        if (res.data.isError) {
+          return { error: true, data: res.data };
+        }
         return { error: false, data: res.data };
       })
       .catch((err) => {
@@ -67,6 +70,9 @@ class Auth {
 
     return axios(config)
       .then((res) => {
+        if (res.data.isError) {
+          return { error: true, data: res.data };
+        }
         const sto = JSON.stringify(res.data.result.avatar);
         localStorage.setItem("user", sto);
         localStorage.setItem("login", data);
@@ -127,6 +133,9 @@ class Auth {
 
     return axios(config)
       .then((response) => {
+        if (res.data.isError) {
+          return { error: true, data: res.data };
+        }
         return { error: false, data: response.data };
       })
       .catch((error) => {
