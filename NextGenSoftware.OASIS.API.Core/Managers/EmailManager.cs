@@ -28,6 +28,9 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
         public static void Send(string to, string subject, string html, string from = null)
         {
+            if (_OASISDNA.OASIS.Email.DisableAllEmails)
+                return;
+
             // For some unknown reason the emails sent from the code below (using mailkit) never arrive, the standard .net code after works! lol ;-)
             
             /*

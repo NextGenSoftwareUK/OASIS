@@ -5,7 +5,7 @@ using System.Text.Json.Serialization;
 namespace NextGenSoftware.OASIS.API.Core.Helpers
 {
     public class OASISResult<T>
-       // where T : IHolon
+    // where T : IHolon
     {
         private bool _isError = false;
         private bool _isWarning = false;
@@ -25,19 +25,19 @@ namespace NextGenSoftware.OASIS.API.Core.Helpers
 
         public Dictionary<string, string> MetaData = new Dictionary<string, string>();
 
-        public bool IsError 
-        { 
+        public bool IsError
+        {
             get
             {
                 return _isError;
             }
-            
+
             set
             {
                 _isError = value;
 
-                if (value && ErrorCount == 0)
-                    ErrorCount = 1;
+                //if (value && ErrorCount == 0)
+                //    ErrorCount = 1;
 
                 //if (ErrorHandling.ThrowExceptionsOnErrors && !string.IsNullOrEmpty(Message))
                 //    throw new Exception(Message);
@@ -77,6 +77,9 @@ namespace NextGenSoftware.OASIS.API.Core.Helpers
                     throw new Exception(Message);
             }
         }
+
+        public string DetailedMessage { get; set; }
+
         public T Result { get; set; }
 
         public OASISResult()

@@ -5,6 +5,13 @@ import loginIcon from "../../assets/images/loggedin.png";
 
 class Navbar extends React.Component {
 
+    handleLogoClicked = (showLogin) => {
+        let user = localStorage.getItem('user');
+        if(!user) {
+            showLogin();
+        }
+    }
+
     render() {
         const { user, showLogin, showSignup, handleLogout, showSidebar, toggleSidebar } = this.props;
 
@@ -18,7 +25,9 @@ class Navbar extends React.Component {
                         <div className="nav-menu-btn-burger"></div>
                     </div>
 
-                    <a href="/"><img className="nav-logo" src={logo} alt="logo" /></a>
+                    <a className="cursor-pointer" onClick={() => this.handleLogoClicked(showLogin)}>
+                        <img className="nav-logo" src={logo} alt="logo" />
+                    </a>
                 </div>
 
                 <div className="nav-right">

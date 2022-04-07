@@ -15,7 +15,6 @@ using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.DNA;
-using NextGenSoftware.OASIS.API.ONODE.WebAPI.Helpers;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Interfaces;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Models;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Avatar;
@@ -63,6 +62,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
             });
         }
 
+        /*
         public async Task<OASISResult<AuthenticateResponse>> Authenticate(AuthenticateRequest model, string ipAddress)
         {
             var response = new OASISResult<AuthenticateResponse>();
@@ -87,7 +87,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
             }
 
             return response;
-        }
+        }*/
 
         //public async Task<OASISResult<IAvatar>> Authenticate(AuthenticateRequest model, string ipAddress)
         //{
@@ -150,10 +150,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
                             response.Result = avatar;
                         }
                         else
-                            ErrorHandling.HandleError(ref response, $"Error occured in RefreshToken method in AvatarService saving avatar. Reason: {saveAvatarResult.Result}");
+                            ErrorHandling.HandleError(ref response, $"Error occured in RefreshToken method in AvatarService saving avatar. Reason: {saveAvatarResult.Message}");
                     }
                     else
-                        ErrorHandling.HandleError(ref response, $"Error occured in RefreshToken method in AvatarService getting refresh token. Reason: {refreshTokenResult.Result}");
+                        ErrorHandling.HandleError(ref response, $"Error occured in RefreshToken method in AvatarService getting refresh token. Reason: {refreshTokenResult.Message}");
                 }
                 catch (Exception ex)
                 {
@@ -179,20 +179,26 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
                 }
 
                 // revoke token and save
-                refreshTokenResult.Result.Revoked = DateTime.UtcNow;
-                refreshTokenResult.Result.RevokedByIp = ipAddress;
-                avatar.IsBeamedIn = false;
-                avatar.LastBeamedOut = DateTime.Now;
-
-                var saveAvatar = AvatarManager.SaveAvatar(avatar);
-
-                if (saveAvatar != null && !saveAvatar.IsError && saveAvatar.Result != null)
+                if (!refreshTokenResult.IsError && refreshTokenResult.Result != null)
                 {
-                    response.Message = "Token Revoked.";
-                    return response;
-                }
+                    refreshTokenResult.Result.Revoked = DateTime.UtcNow;
+                    refreshTokenResult.Result.RevokedByIp = ipAddress;
+                    avatar.IsBeamedIn = false;
+                    avatar.LastBeamedOut = DateTime.Now;
 
-                ErrorHandling.HandleError(ref response, $"An error in Revoke Token method in AvatarService saving the avatar. Reason: {saveAvatar.Message}");
+                    var saveAvatar = AvatarManager.SaveAvatar(avatar);
+
+                    if (saveAvatar != null && !saveAvatar.IsError && saveAvatar.Result != null)
+                    {
+                        response.Message = "Token Revoked.";
+                        response.IsSaved = true;
+                    }
+                    else
+                        ErrorHandling.HandleError(ref response, $"An error in RevokeToken method in AvatarService saving the avatar. Reason: {saveAvatar.Message}");
+                }
+                else
+                    ErrorHandling.HandleError(ref response, $"An error occured in RevokeToken method in AvatarService. Reason: {refreshTokenResult.Message}");
+
                 return response;
             });
         }
@@ -305,24 +311,23 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
             try
             {
                 //TODO: PERFORMANCE} Implement in Providers so more efficient and do not need to return whole list!
-                var avatar = (await AvatarManager.LoadAllAvatarsAsync()).FirstOrDefault(x =>
-                    x.ResetToken == model.Token &&
-                    x.ResetTokenExpires > DateTime.UtcNow);
+                OASISResult<IEnumerable<IAvatar>> avatarsResult = await AvatarManager.LoadAllAvatarsAsync();
 
-                if (avatar == null)
+                if (!avatarsResult.IsError && avatarsResult.Result != null)
                 {
-                    result.Message = "Invalid token";
-                    result.IsError = true;
-                    ErrorHandling.HandleError(ref result, result.Message);
-                    return result;
+                    var avatar = avatarsResult.Result.FirstOrDefault(x =>
+                        x.ResetToken == model.Token &&
+                        x.ResetTokenExpires > DateTime.UtcNow);
+
+                    if (avatar == null)
+                        ErrorHandling.HandleError(ref result, "Invalid token");
                 }
+                else
+                    ErrorHandling.HandleError(ref result, $"Error occured in ValidateResetToken loading all avatars. Reason: {avatarsResult.Message}");
             }
             catch (Exception e)
             {
-                result.Exception = e;
-                result.Message = e.Message;
-                result.IsError = true;
-                ErrorHandling.HandleError(ref result, result.Message);
+                ErrorHandling.HandleError(ref result, $"An unknown error occured in ValidateResetToken. Reason: {e}", true, false, false, false, true, e);
             }
 
             return result;
@@ -331,39 +336,42 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
         public async Task<OASISResult<string>> ResetPassword(ResetPasswordRequest model)
         {
             var response = new OASISResult<string>();
+
             try
             {
-                //TODO: PERFORMANCE} Implement in Providers so more efficient and do not need to return whole list!
-                var avatar = (await AvatarManager.LoadAllAvatarsAsync(false)).FirstOrDefault(x =>
-                    x.ResetToken == model.Token &&
-                    x.ResetTokenExpires > DateTime.UtcNow);
+                OASISResult<IEnumerable<IAvatar>> avatarsResult = await AvatarManager.LoadAllAvatarsAsync(false);
 
-                if (avatar == null)
+                if (!avatarsResult.IsError && avatarsResult.Result != null)
                 {
-                    response.IsError = true;
-                    response.IsSaved = false;
-                    response.Message = "Avatar Not Found";
-                    ErrorHandling.HandleError(ref response, response.Message);
-                    return response;
+                    //TODO: PERFORMANCE} Implement in Providers so more efficient and do not need to return whole list!
+                    var avatar = avatarsResult.Result.FirstOrDefault(x =>
+                        x.ResetToken == model.Token &&
+                        x.ResetTokenExpires > DateTime.UtcNow);
+
+                    if (avatar == null)
+                    {
+                        ErrorHandling.HandleError(ref response, "Avatar Not Found");
+                        return response;
+                    }
+
+                    // update password and remove reset token
+                    avatar.Password = BC.HashPassword(model.Password);
+                    avatar.PasswordReset = DateTime.UtcNow;
+                    avatar.ResetToken = null;
+                    avatar.ResetTokenExpires = null;
+
+                    var saveAvatarResult = AvatarManager.SaveAvatar(avatar);
+
+                    if (saveAvatarResult.IsError)
+                    {
+                        ErrorHandling.HandleError(ref saveAvatarResult, $"Error occured in ResetPassword saving the avatar. Reason: {saveAvatarResult.Message}");
+                        return response;
+                    }
+
+                    response.Result = "Password reset successful, you can now login";
                 }
-
-                // update password and remove reset token
-                avatar.Password = BC.HashPassword(model.Password);
-                avatar.PasswordReset = DateTime.UtcNow;
-                avatar.ResetToken = null;
-                avatar.ResetTokenExpires = null;
-
-                var saveAvatar = AvatarManager.SaveAvatar(avatar);
-                if (saveAvatar.IsError)
-                {
-                    response.IsError = true;
-                    response.IsSaved = false;
-                    response.Message = saveAvatar.Message;
-                    ErrorHandling.HandleError(ref saveAvatar, saveAvatar.Message);
-                    return response;
-                }
-
-                response.Result = "Password reset successful, you can now login";
+                else
+                    ErrorHandling.HandleError(ref response, $"Error occured in ResetPassword loading all avatars. Reason: {avatarsResult.Message}");
             }
             catch (Exception e)
             {
@@ -377,125 +385,125 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
             return response;
         }
 
-        public async Task<OASISResult<IEnumerable<IAvatar>>> GetAll()
-        {
-            var response = new OASISResult<IEnumerable<IAvatar>>();
-            try
-            {
-                response.Result = await AvatarManager.LoadAllAvatarsAsync();
-                //OASISResult<IEnumerable<IAvatar await AvatarManager.LoadAllAvatarsAsync();
+        //public async Task<OASISResult<IEnumerable<IAvatar>>> GetAll()
+        //{
+        //    var response = new OASISResult<IEnumerable<IAvatar>>();
 
-                //foreach (IAvatar avatar in response.Result)
-                //    AvatarManager.RemoveAuthDetails()
-            }
-            catch (Exception e)
-            {
-                response.Exception = e;
-                response.Message = e.Message;
-                response.IsError = true;
-                ErrorHandling.HandleError(ref response, e.Message);
-            }
+        //    try
+        //    {
+        //        response = await AvatarManager.LoadAllAvatarsAsync();
+        //        //OASISResult<IEnumerable<IAvatar await AvatarManager.LoadAllAvatarsAsync();
 
-            return response;
-        }
+        //        //foreach (IAvatar avatar in response.Result)
+        //        //    AvatarManager.RemoveAuthDetails()
+        //    }
+        //    catch (Exception e)
+        //    {
+        //        response.Exception = e;
+        //        response.Message = e.Message;
+        //        response.IsError = true;
+        //        ErrorHandling.HandleError(ref response, e.Message);
+        //    }
+
+        //    return response;
+        //}
 
         public async Task<OASISResult<AvatarImage>> GetAvatarImageById(Guid id)
         {
-            var result = new OASISResult<AvatarImage>();
+            OASISResult<AvatarImage> result = new OASISResult<AvatarImage>();
+
             if (id == Guid.Empty)
             {
-                result.Message = "Guid is empty, please speceify a valid Guid.";
-                result.IsError = true;
-                ErrorHandling.HandleError(ref result, result.Message);
+                ErrorHandling.HandleError(ref result, "Error occured in GetAvatarImageById. Guid is empty, please speceify a valid Guid.");
                 return result;
             }
 
-            var avatarResult = await GetAvatarDetail(id);
+            OASISResult<IAvatarDetail> avatarResult = await AvatarManager.LoadAvatarDetailAsync(id);
 
-            if (!avatarResult.IsError)
+            if (!avatarResult.IsError && avatarResult.Result != null)
             {
-                result.Result = new AvatarImage
+                if (avatarResult.Result.Image2D == null)
+                    ErrorHandling.HandleError(ref result, "Error occured in GetAvatarImageById. No image has been uploaded for this avatar. Please upload an image first.");
+                else
                 {
-                    AvatarId = avatarResult.Result.Id,
-                    ImageBase64 = avatarResult.Result.Image2D
-                };
+                    result.Result = new AvatarImage
+                    {
+                        AvatarId = avatarResult.Result.Id,
+                        ImageBase64 = avatarResult.Result.Image2D
+                    };
+                }
             }
             else
-            {
-                result.IsError = true;
-                result.Message = avatarResult.Message;
-                ErrorHandling.HandleError(ref result, avatarResult.Message);
-                return result;
-            }
+                ErrorHandling.HandleError(ref result, $"Error occured in GetAvatarImageById loading the avatar detail. Reason: {avatarResult.Message}");
 
             return result;
         }
 
-        public async Task<OASISResult<AvatarImage>> GetAvatarImageByUsername(string userName)
+        public async Task<OASISResult<AvatarImage>> GetAvatarImageByUsername(string username)
         {
-            var response = new OASISResult<AvatarImage>();
-            try
+            OASISResult<AvatarImage> result = new OASISResult<AvatarImage>();
+
+            if (string.IsNullOrEmpty(username))
             {
-                if (string.IsNullOrEmpty(userName))
+                ErrorHandling.HandleError(ref result, "Error occured in GetAvatarImageByUsername. username is empty, please speceify a valid username.");
+                return result;
+            }
+
+            OASISResult<IAvatarDetail> avatarResult = await AvatarManager.LoadAvatarDetailByUsernameAsync(username);
+
+            if (!avatarResult.IsError && avatarResult.Result != null)
+            {
+                if (avatarResult.Result.Image2D == null)
+                    ErrorHandling.HandleError(ref result, "Error occured in GetAvatarImageByUsername. No image has been uploaded for this avatar. Please upload an image first.");
+                else
                 {
-                    response.Message = "Username is empty, please speceify a valid username.";
-                    response.IsError = true;
-                    ErrorHandling.HandleError(ref response, response.Message);
-                    return response;
+                    result.Result = new AvatarImage
+                    {
+                        AvatarId = avatarResult.Result.Id,
+                        ImageBase64 = avatarResult.Result.Image2D
+                    };
                 }
-
-                var avatarResult = await AvatarManager.LoadAvatarDetailByUsernameAsync(userName);
-                response.Result = new AvatarImage
-                {
-                    AvatarId = avatarResult.Id,
-                    ImageBase64 = avatarResult.Image2D
-                };
             }
-            catch (Exception e)
-            {
-                response.IsError = false;
-                response.Exception = e;
-                response.Message = e.Message;
-                ErrorHandling.HandleError(ref response, response.Message);
-            }
+            else
+                ErrorHandling.HandleError(ref result, $"Error occured in GetAvatarImageByUsername loading the avatar detail. Reason: {avatarResult.Message}");
 
-            return response;
+            return result;
         }
 
         public async Task<OASISResult<AvatarImage>> GetAvatarImageByEmail(string email)
         {
-            var response = new OASISResult<AvatarImage>();
-            try
+            OASISResult<AvatarImage> result = new OASISResult<AvatarImage>();
+
+            if (string.IsNullOrEmpty(email))
             {
-                if (string.IsNullOrEmpty(email))
+                ErrorHandling.HandleError(ref result, "Error occured in GetAvatarImageByEmail. Email is empty, please speceify a valid username.");
+                return result;
+            }
+
+            OASISResult<IAvatarDetail> avatarResult = await AvatarManager.LoadAvatarDetailByUsernameAsync(email);
+
+            if (!avatarResult.IsError && avatarResult.Result != null)
+            {
+                if (avatarResult.Result.Image2D == null)
+                    ErrorHandling.HandleError(ref result, "Error occured in GetAvatarImageByEmail. No image has been uploaded for this avatar. Please upload an image first.");
+                else
                 {
-                    response.Message = "Email is empty, please speceify a valid email.";
-                    response.IsError = true;
-                    ErrorHandling.HandleError(ref response, response.Message);
-                    return response;
+                    result.Result = new AvatarImage
+                    {
+                        AvatarId = avatarResult.Result.Id,
+                        ImageBase64 = avatarResult.Result.Image2D
+                    };
                 }
-
-                var avatarResult = await AvatarManager.LoadAvatarDetailByEmailAsync(email);
-                response.Result = new AvatarImage
-                {
-                    AvatarId = avatarResult.Id,
-                    ImageBase64 = avatarResult.Image2D
-                };
             }
-            catch (Exception e)
-            {
-                response.IsError = false;
-                response.Exception = e;
-                response.Message = e.Message;
-                ErrorHandling.HandleError(ref response, e.Message);
-            }
+            else
+                ErrorHandling.HandleError(ref result, $"Error occured in email loading the avatar detail. Reason: {avatarResult.Message}");
 
-            return response;
+            return result;
         }
 
-        public async Task<OASISResult<string>> Upload2DAvatarImage(AvatarImage image)
+        public async Task<OASISResult<bool>> Upload2DAvatarImage(AvatarImage image)
         {
-            var response = new OASISResult<string>();
+            var response = new OASISResult<bool>();
 
             try
             {
@@ -505,17 +513,28 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
                     return response;
                 }
 
-                var avatar = await GetAvatarDetail(image.AvatarId);
-                avatar.Result.Image2D = image.ImageBase64;
-                var saveAvatar = AvatarManager.SaveAvatarDetail(avatar.Result);
+                OASISResult<IAvatarDetail> avatarResult = await AvatarManager.LoadAvatarDetailAsync(image.AvatarId);
 
-                if (saveAvatar.IsError)
+                if (!avatarResult.IsError && avatarResult.Result != null)
                 {
-                    ErrorHandling.HandleError(ref response, $"Error occured in Upload2DAvatarImage saving avatar detail. Reason: {saveAvatar.Message}");
-                    return response;
-                }
+                    avatarResult.Result.Image2D = image.ImageBase64;
+                    var saveAvatar = AvatarManager.SaveAvatarDetail(avatarResult.Result);
 
-                response.Result = "Image Uploaded";
+                    if (saveAvatar.IsError)
+                    {
+                        ErrorHandling.HandleError(ref response, $"Error occured in Upload2DAvatarImage saving avatar detail. Reason: {saveAvatar.Message}");
+                        return response;
+                    }
+
+                    response.Message = "Image Uploaded";
+                    response.Result = true;
+                }
+                else
+                {
+                    response.Result = false;
+                    ErrorHandling.HandleError(ref response, $"Error uploading image. Avatar failed to load, reason: {avatarResult.Message}");
+                }
+               
             }
             catch (Exception e)
             {
@@ -530,89 +549,94 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
         //    return await GetAvatar(id);
         //}
 
-        public async Task<OASISResult<IAvatar>> GetByUsername(string userName)
-        {
-            var response = new OASISResult<IAvatar>();
+        //public async Task<OASISResult<IAvatar>> GetByUsername(string userName)
+        //{
+        //    var response = new OASISResult<IAvatar>();
 
-            try
-            {
-                if (string.IsNullOrEmpty(userName))
-                {
-                    ErrorHandling.HandleError(ref response, "Error in GetByUsername, UserName property is empty");
-                    return response;
-                }
+        //    try
+        //    {
+        //        if (string.IsNullOrEmpty(userName))
+        //        {
+        //            ErrorHandling.HandleError(ref response, "Error in GetByUsername, UserName property is empty");
+        //            return response;
+        //        }
 
-                response = await AvatarManager.LoadAvatarAsync(userName);
-            }
-            catch (Exception e)
-            {
-                ErrorHandling.HandleError(ref response, e.Message, true, false, false, false, true, e);
-            }
+        //        response = await AvatarManager.LoadAvatarAsync(userName);
+        //    }
+        //    catch (Exception e)
+        //    {
+        //        ErrorHandling.HandleError(ref response, e.Message, true, false, false, false, true, e);
+        //    }
 
-            return response;
-        }
+        //    return response;
+        //}
 
-        public async Task<OASISResult<IAvatar>> GetByEmail(string email)
-        {
-            var response = new OASISResult<IAvatar>();
-            try
-            {
-                if (string.IsNullOrEmpty(email))
-                {
-                    ErrorHandling.HandleError(ref response, "Error in GetByEmail, Email property is empty");
-                    return response;
-                }
+        //public async Task<OASISResult<IAvatar>> GetByEmail(string email)
+        //{
+        //    var response = new OASISResult<IAvatar>();
+        //    try
+        //    {
+        //        if (string.IsNullOrEmpty(email))
+        //        {
+        //            ErrorHandling.HandleError(ref response, "Error in GetByEmail, Email property is empty");
+        //            return response;
+        //        }
 
-                response = await AvatarManager.LoadAvatarByEmailAsync(email);
-            }
-            catch (Exception e)
-            {
-                response.Exception = e;
-                response.Message = e.Message;
-                response.IsError = true;
-                ErrorHandling.HandleError(ref response, response.Message);
-            }
+        //        response = await AvatarManager.LoadAvatarByEmailAsync(email);
+        //    }
+        //    catch (Exception e)
+        //    {
+        //        response.Exception = e;
+        //        response.Message = e.Message;
+        //        response.IsError = true;
+        //        ErrorHandling.HandleError(ref response, response.Message);
+        //    }
 
-            return response;
-        }
+        //    return response;
+        //}
 
         public async Task<OASISResult<IAvatar>> Create(CreateRequest model)
         {
             var result = new OASISResult<IAvatar>();
             //TODO: PERFORMANCE} Implement in Providers so more efficient and do not need to return whole list!
-            if ((await AvatarManager.LoadAllAvatarsAsync()).Any(x => x.Email == model.Email))
+
+            OASISResult<IEnumerable<IAvatar>> avatarsResult = await AvatarManager.LoadAllAvatarsAsync();
+
+            if (!avatarsResult.IsError && avatarsResult.Result != null)
             {
-                result.Message = $"Email '{model.Email}' is already registered";
-                result.IsError = true;
-                result.IsSaved = false;
-                ErrorHandling.HandleError(ref result, result.Message);
-                return result;
+                if (avatarsResult.Result.Any(x => x.Email == model.Email))
+                    ErrorHandling.HandleError(ref result, $"Email '{model.Email}' is already registered");
+                else
+                {
+                    // map model to new account object
+                    var avatar = _mapper.Map<IAvatar>(model);
+                    avatar.CreatedDate = DateTime.UtcNow;
+                    avatar.Verified = DateTime.UtcNow;
+
+                    // hash password
+                    avatar.Password = BC.HashPassword(model.Password);
+                    var saveAvatarResult = await AvatarManager.SaveAvatarAsync(avatar);
+
+                    if (saveAvatarResult.IsError || saveAvatarResult.Result == null)
+                        ErrorHandling.HandleError(ref result, $"Error occured in Create method on AvatarService saving the avatar. Reason: {saveAvatarResult.Message} ");
+                    else
+                    {
+                        result.Result = AvatarManager.HideAuthDetails(avatar);
+                        result.Message = "Avatar Created Successfully";
+                    }
+                }
             }
+            else
+                ErrorHandling.HandleError(ref result, $"Error occured in Create method on AvatarService loading all avatars. Reason: {avatarsResult.Message}");
 
-            // map model to new account object
-            var avatar = _mapper.Map<IAvatar>(model);
-            avatar.CreatedDate = DateTime.UtcNow;
-            avatar.Verified = DateTime.UtcNow;
-
-            // hash password
-            avatar.Password = BC.HashPassword(model.Password);
-            var saveResult = AvatarManager.SaveAvatar(avatar);
-            if (saveResult.IsError)
-            {
-                result.Message = saveResult.Message;
-                result.IsError = true;
-                result.IsSaved = false;
-                ErrorHandling.HandleError(ref result, result.Message);
-                return saveResult;
-            }
-
-            result.Result = AvatarManager.HideAuthDetails(avatar);
             return result;
         }
 
         public async Task<OASISResult<IAvatar>> Update(Guid id, UpdateRequest avatar)
         {
             var response = new OASISResult<IAvatar>();
+            string errorMessage = "Error in Update method in Avatar Service. Reason: ";
+
             try
             {
                 // only admins can update role
@@ -620,15 +644,15 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
                     avatar.AvatarType = null;
 
                 //var oasisResult = await GetAvatar(id, true);
-                var oasisResult = await AvatarManager.LoadAvatarAsync(id, true);
+                var loadAvtarResult = await AvatarManager.LoadAvatarAsync(id, false);
 
-                if (oasisResult.IsError)
+                if (loadAvtarResult.IsError || loadAvtarResult.Result == null)
                 {
-                    ErrorHandling.HandleError(ref response, "Avatar not found");
+                    ErrorHandling.HandleError(ref response, $"{errorMessage}{loadAvtarResult.Message}", loadAvtarResult.DetailedMessage);
                     return response;
                 }
 
-                var origAvatar = oasisResult.Result;
+                var origAvatar = loadAvtarResult.Result;
 
                 if (!string.IsNullOrEmpty(avatar.Email) && avatar.Email != origAvatar.Email &&
                     await AvatarManager.LoadAvatarByEmailAsync(avatar.Email) != null)
@@ -645,19 +669,18 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
                 _mapper.Map(avatar, origAvatar);
                 origAvatar.ModifiedDate = DateTime.UtcNow;
 
-                var saveResult = AvatarManager.SaveAvatar(origAvatar);
-                if (saveResult.IsError)
+                var saveAvatarResult = AvatarManager.SaveAvatar(origAvatar);
+                if (saveAvatarResult.IsError || saveAvatarResult.Result == null)
                 {
-                    ErrorHandling.HandleError(ref response, saveResult.Message);
+                    ErrorHandling.HandleError(ref response, $"{errorMessage}{saveAvatarResult.Message}", saveAvatarResult.DetailedMessage);
                     return response;
                 }
 
-                response.Result = AvatarManager.HideAuthDetails(saveResult.Result);
+                response.Result = AvatarManager.HideAuthDetails(saveAvatarResult.Result);
             }
-            catch (Exception e)
+            catch (Exception ex)
             {
-                response.Exception = e;
-                ErrorHandling.HandleError(ref response, e.Message);
+                ErrorHandling.HandleError(ref response, $"{errorMessage}Unknown Error Occured. See DetailedMessage for more info.", ex.Message, ex);
             }
 
             return response;
@@ -835,62 +858,64 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
             });
         }
 
-        public async Task<OASISResult<IAvatarDetail>> GetAvatarDetail(Guid id)
-        {
-            var result = new OASISResult<IAvatarDetail>();
-            var avatar = await AvatarManager.LoadAvatarDetailAsync(id);
+        //public async Task<OASISResult<IAvatarDetail>> GetAvatarDetail(Guid id)
+        //{
+        //    var result = new OASISResult<IAvatarDetail>();
+        //    var avatar = await AvatarManager.LoadAvatarDetailAsync(id);
 
-            if (avatar != null) return result;
-            result.Message = "AvatarDetail not found";
-            result.IsError = true;
-            ErrorHandling.HandleError(ref result, result.Message);
-            return result;
-        }
+        //    if (avatar != null) return result;
+        //    result.Message = "AvatarDetail not found";
+        //    result.IsError = true;
+        //    ErrorHandling.HandleError(ref result, result.Message);
+        //    return result;
+        //}
 
-        public async Task<OASISResult<IAvatarDetail>> GetAvatarDetailByUsername(string username)
-        {
-            var response = new OASISResult<IAvatarDetail>();
-            try
-            {
-                var entity = await AvatarManager.LoadAvatarDetailByUsernameAsync(username);
-                response.Result = entity;
-            }
-            catch (Exception e)
-            {
-                response.IsError = true;
-                response.Exception = e;
-                response.Message = e.Message;
-                ErrorHandling.HandleError(ref response, response.Message);
-            }
+        //public async Task<OASISResult<IAvatarDetail>> GetAvatarDetailByUsername(string username)
+        //{
+        //    var response = new OASISResult<IAvatarDetail>();
+        //    try
+        //    {
+        //        var entity = await AvatarManager.LoadAvatarDetailByUsernameAsync(username);
+        //        response.Result = entity;
+        //    }
+        //    catch (Exception e)
+        //    {
+        //        response.IsError = true;
+        //        response.Exception = e;
+        //        response.Message = e.Message;
+        //        ErrorHandling.HandleError(ref response, response.Message);
+        //    }
 
-            return response;
-        }
+        //    return response;
+        //}
 
-        public async Task<OASISResult<IAvatarDetail>> GetAvatarDetailByEmail(string email)
-        {
-            var response = new OASISResult<IAvatarDetail>();
-            try
-            {
-                var entity = await AvatarManager.LoadAvatarDetailByEmailAsync(email);
-                response.Result = entity;
-            }
-            catch (Exception e)
-            {
-                response.IsError = true;
-                response.Exception = e;
-                response.Message = e.Message;
-                ErrorHandling.HandleError(ref response, e.Message);
-            }
+        //public async Task<OASISResult<IAvatarDetail>> GetAvatarDetailByEmail(string email)
+        //{
+        //    var response = new OASISResult<IAvatarDetail>();
+        //    try
+        //    {
+        //        var entity = await AvatarManager.LoadAvatarDetailByEmailAsync(email);
+        //        response.Result = entity;
+        //    }
+        //    catch (Exception e)
+        //    {
+        //        response.IsError = true;
+        //        response.Exception = e;
+        //        response.Message = e.Message;
+        //        ErrorHandling.HandleError(ref response, e.Message);
+        //    }
 
-            return response;
-        }
+        //    return response;
+        //}
 
+        /*
         public async Task<OASISResult<IEnumerable<IAvatarDetail>>> GetAllAvatarDetails()
         {
             var response = new OASISResult<IEnumerable<IAvatarDetail>>();
+
             try
             {
-                response.Result = await AvatarManager.LoadAllAvatarDetailsAsync();
+                response = await AvatarManager.LoadAllAvatarDetailsAsync();
             }
             catch (Exception e)
             {
@@ -901,81 +926,78 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
             }
 
             return response;
-        }
+        }*/
 
         public async Task<OASISResult<string>> GetAvatarUmaJsonById(Guid id)
         {
-            var response = new OASISResult<string>();
+            OASISResult<string> result = new OASISResult<string>();
+
             try
             {
                 if (id == Guid.Empty)
-                {
-                    response.Message = "AvatarId is empty";
-                    response.IsError = true;
-                    ErrorHandling.HandleError(ref response, response.Message);
-                }
+                    ErrorHandling.HandleError(ref result, "Error occured in GetAvatarUmaJsonById. AvatarId is empty");
 
-                var avatarDetail = await AvatarManager.LoadAvatarDetailAsync(id);
-                response.Result = avatarDetail.UmaJson;
+                OASISResult<IAvatarDetail> avatarDetailResult = await AvatarManager.LoadAvatarDetailAsync(id);
+
+                if (!avatarDetailResult.IsError && avatarDetailResult.Result != null)
+                    result.Result = avatarDetailResult.Result.UmaJson;
+                else
+                    ErrorHandling.HandleError(ref result, $"Error occured in GetAvatarUmaJsonById loading avatar detail. Reason:{avatarDetailResult.Message}");
             }
             catch (Exception e)
             {
-                response.Exception = e;
-                response.Message = e.Message;
-                response.Result = null;
-                response.IsError = true;
-                ErrorHandling.HandleError(ref response, e.Message);
+                ErrorHandling.HandleError(ref result, $"Unknown error occured in GetAvatarUmaJsonById. Details: {e}", true, false, false, false, true, e);
             }
 
-            return response;
+            return result;
         }
 
         public async Task<OASISResult<string>> GetAvatarUmaJsonByUsername(string username)
         {
-            var response = new OASISResult<string>();
+            OASISResult<string> result = new OASISResult<string>();
+
             try
             {
-                var avatarDetail = await AvatarManager.LoadAvatarDetailByUsernameAsync(username);
-                response.Result = avatarDetail.UmaJson;
+                if (string.IsNullOrEmpty(username))
+                    ErrorHandling.HandleError(ref result, "Error occured in GetAvatarUmaJsonByUsername. username is empty");
+
+                OASISResult<IAvatarDetail> avatarDetailResult = await AvatarManager.LoadAvatarDetailByUsernameAsync(username);
+
+                if (!avatarDetailResult.IsError && avatarDetailResult.Result != null)
+                    result.Result = avatarDetailResult.Result.UmaJson;
+                else
+                    ErrorHandling.HandleError(ref result, $"Error occured in GetAvatarUmaJsonByUsername loading avatar detail. Reason:{avatarDetailResult.Message}");
             }
             catch (Exception e)
             {
-                response.Exception = e;
-                response.Message = e.Message;
-                response.Result = null;
-                response.IsError = true;
-                ErrorHandling.HandleError(ref response, e.Message);
+                ErrorHandling.HandleError(ref result, $"Unknown error occured in GetAvatarUmaJsonByUsername. Details: {e}", true, false, false, false, true, e);
             }
 
-            return response;
+            return result;
         }
 
-        public async Task<OASISResult<string>> GetAvatarUmaJsonByMail(string mail)
+        public async Task<OASISResult<string>> GetAvatarUmaJsonByEmail(string email)
         {
-            var response = new OASISResult<string>();
+            OASISResult<string> result = new OASISResult<string>();
+
             try
             {
-                if (string.IsNullOrEmpty(mail))
-                {
-                    response.Message = "Mail property is empty";
-                    response.IsError = true;
-                    ErrorHandling.HandleError(ref response, response.Message);
-                    return response;
-                }
+                if (string.IsNullOrEmpty(email))
+                    ErrorHandling.HandleError(ref result, "Error occured in GetAvatarUmaJsonByEmail. email is empty");
 
-                var avatarDetail = await AvatarManager.LoadAvatarDetailByEmailAsync(mail);
-                response.Result = avatarDetail.UmaJson;
+                OASISResult<IAvatarDetail> avatarDetailResult = await AvatarManager.LoadAvatarDetailByUsernameAsync(email);
+
+                if (!avatarDetailResult.IsError && avatarDetailResult.Result != null)
+                    result.Result = avatarDetailResult.Result.UmaJson;
+                else
+                    ErrorHandling.HandleError(ref result, $"Error occured in GetAvatarUmaJsonByEmail loading avatar detail. Reason:{avatarDetailResult.Message}");
             }
             catch (Exception e)
             {
-                response.Exception = e;
-                response.Message = e.Message;
-                response.Result = null;
-                response.IsError = true;
-                ErrorHandling.HandleError(ref response, e.Message);
+                ErrorHandling.HandleError(ref result, $"Unknown error occured in GetAvatarUmaJsonByEmail. Details: {e}", true, false, false, false, true, e);
             }
 
-            return response;
+            return result;
         }
 
         //TODO: Check this works?!
@@ -1250,26 +1272,35 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
         {
             OASISResult<RefreshToken> result = new OASISResult<RefreshToken>();
 
-            //TODO: PERFORMANCE} Implement in Providers so more efficient and do not need to return whole list!
-            var avatar = AvatarManager.LoadAllAvatarsWithPasswords()
-                .FirstOrDefault(x => x.RefreshTokens.Any(t => t.Token == token));
+            //TODO: PERFORMANCE} Implement in Providers so more efficient and do not need to return whole list
+            OASISResult<IEnumerable<IAvatar>> avatarsResult = AvatarManager.LoadAllAvatars(false);
 
-            if (avatar == null)
+            if (!avatarsResult.IsError && avatarsResult.Result != null)
             {
-                result.Message = "Invalid Token";
+                IAvatar avatar = avatarsResult.Result.FirstOrDefault(x => x.RefreshTokens.Any(t => t.Token == token));
+
+                if (avatar == null)
+                {
+                    result.Message = "Invalid Token";
+                    return (result, avatar);
+                }
+
+                var refreshToken = avatar.RefreshTokens.Single(x => x.Token == token);
+
+                if (!refreshToken.IsActive)
+                {
+                    result.Message = "Invalid Token";
+                    return (result, avatar);
+                }
+
+
+                result.Result = refreshToken;
                 return (result, avatar);
             }
+            else
+                ErrorHandling.HandleError(ref result, $"Error in GetRefreshToken loading all avatars. Reason: {avatarsResult.Message}");
 
-            var refreshToken = avatar.RefreshTokens.Single(x => x.Token == token);
-
-            if (!refreshToken.IsActive)
-            {
-                result.Message = "Invalid Token";
-                return (result, avatar);
-            }
-
-            result.Result = refreshToken;
-            return (result, avatar);
+            return (result, null);
         }
 
         //TODO: Finish moving everything into AvatarManager.

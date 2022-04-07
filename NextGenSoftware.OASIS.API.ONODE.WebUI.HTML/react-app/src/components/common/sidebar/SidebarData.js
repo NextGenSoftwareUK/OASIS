@@ -7,14 +7,17 @@ const SidebarData = [
             {
                 id: 1,
                 name: "about",
+                disabled: false
             },
             {
                 id: 2,
                 name: "documentation",
+                disabled: false
             },
             {
                 id: 3,
                 name: "our world",
+                disabled: false
             },
         ],
     },
@@ -26,27 +29,26 @@ const SidebarData = [
             {
                 id: 1,
                 name: "View Avatar",
-                popupName: "viewAvatar"
+                popupName: "viewAvatar",
+                disabled: true
             },
             {
                 id: 2,
                 name: "Edit Avatar",
+                disabled: true
             },
             {
                 id: 3,
                 name: "Search Avatars",
-                popupName: "searchAvatar"
+                popupName: "searchAvatar",
+                disabled: false
             },
             {
                 id: 4,
                 name: "Avatar Wallet",
-                popupName: "avatarWallet"
-            },
-            // {
-            //     id: 5,
-            //     name: "Avatar Detail",
-            //     popupName:"avatarDetail"
-            // },
+                popupName: "avatarWallet",
+                disabled: false
+            }
         ],
     },
     {
@@ -56,19 +58,23 @@ const SidebarData = [
             {
                 id: 1,
                 name: "View Curent Karma Weightings",
-                popupName: "viewKarma"
+                popupName: "viewKarma",
+                disabled: false
             },
             {
                 id: 2,
                 name: "Vote For Karma Weightings",
+                disabled: false
             },
             {
                 id: 3,
                 name: "View Avatar Karma",
+                disabled: false
             },
             {
                 id: 4,
                 name: "View/Search Karma Akashic Records",
+                disabled: false
             },
         ],
     },
@@ -81,30 +87,36 @@ const SidebarData = [
 
                 name: "Load Data",
                 popupName: "loadData",
+                disabled: false
             },
             {
                 id: 2,
                 name: "Send Data",
                 popupName: "sendData",
+                disabled: false
             },
             {
                 id: 3,
                 name: "Manage Data",
                 popupName: "manageData",
+                disabled: false
             },
             {
                 id: 4,
                 name: "Cross-Chain Management",
-                popupName: 'crossChainManagement'
+                popupName: 'crossChainManagement',
+                disabled: false
             },
             {
                 id: 5,
                 name: "Off-Chain Management",
-                popupName: 'offChainManagement'
+                popupName: 'offChainManagement',
+                disabled: false
             },
             {
                 id: 6,
                 name: "Search Data",
+                disabled: false
             },
         ],
     },
@@ -125,76 +137,35 @@ const SidebarData = [
             {
                 id: 3,
                 name: "Reward SEEDS",
-                popupName: "rewardSeeds"
+                popupName: "rewardSeeds",
+                disabled: false
             },
             {
                 id: 4,
                 name: "Send Invite To Join SEEDS",
-                popupName: "sendInvite"
+                popupName: "sendInvite",
+                disabled: false
             },
             {
                 id: 5,
-                name: "Accept Invite to Join Seeds",
-                popupName: "acceptInvite"
+                name: "View SEEDS",
+                popupName: "viewseeds",
+                disabled: false
             },
-            // {
-
-            //     name: "data",
-            //     subMenu: [
-            //         {
-            //             id: 1,
-            //             name: "Load Data",
-            //             popupName: 'loadData'
-            //         },
-            //         {
-            //             id: 2,
-            //             name: "Send Data",
-            //             popupName: 'sendData'
-            //         },
-            //         {
-            //             id: 3,
-            //             name: "Manage Data",
-            //             popupName: 'manageData'
-            //         },
-            //         {
-            //             id: 4,
-            //             name: "Cross-Chain Management",
-            //             popupName: 'crossChainManagement'
-            //         },
-            //         {
-            //             id: 5,
-            //             name: "Off-Chain Management",
-            //             popupName: 'offChainManagement'
-            //         },
-            //         {
-            //             id: 6,
-            //             name: "Search Data",
-            //         },
-
-            //     ]
-            // },
-            // {
-
-            //     id: 5,
-            //     name: "Accept Invite to join seeds",
-            // },
             {
                 id: 6,
-                name: "View SEEDS",
-                popupName: "viewseeds"
+                name: "View Organisations",
+                disabled: false
             },
             {
                 id: 7,
-                name: "View Organisations",
+                name: "Manage SEEDS",
+                disabled: false
             },
             {
                 id: 8,
-                name: "Manage SEEDS",
-            },
-            {
-                id: 9,
                 name: "Search Seeds",
-                // popupName: "searchseeds"
+                disabled: false
             },
         ],
     },
@@ -202,86 +173,96 @@ const SidebarData = [
         id: 6,
         name: "provider",
         subMenu: [
-            // {
-            //     id: 0,
-            //     name: <Link to="/provider/key-management"> key Managment</Link>,
-            // },
-            // {
-            //     id: 1,
-            //     name: <Link to="/provider/provider"> View Providers</Link>,
-            // },
             {
                 id: 2,
                 name: "Manage Providers",
+                disabled: false
             },
 
             {
                 id: 3,
                 name: "Manage Auto-Replication",
+                disabled: false
             },
             {
                 id: 4,
                 name: "Manage Auto-Fail-Over",
+                disabled: false
             },
             {
                 id: 5,
                 name: "Manage Load Balancing",
+                disabled: false
             },
             {
                 id: 6,
                 name: "View Provider Stats",
+                disabled: false
             },
             {
                 id: 7,
                 name: "Compare Provider Speeds",
+                disabled: false
             },
             {
                 id: 8,
                 name: "Search Providers",
+                disabled: false
             },
             {
                 id: 9,
                 name: "Holochain",
+                disabled: false
             },
             {
                 id: 10,
                 name: "SEEDS",
+                disabled: false
             },
             {
                 id: 11,
                 name: "EOSIO",
+                disabled: false
             },
             {
                 id: 12,
                 name: "Ethereum",
+                disabled: false
             },
             {
                 id: 13,
                 name: "IPFS",
+                disabled: false
             },
             {
                 id: 14,
                 name: "ThreeFold",
+                disabled: false
             },
             {
                 id: 15,
                 name: "SOLID",
+                disabled: false
             },
             {
                 id: 16,
                 name: "Activity Pub",
+                disabled: false
             },
             {
                 id: 17,
                 name: "Mongo DB",
+                disabled: false
             },
             {
                 id: 18,
                 name: "SQLLite",
+                disabled: false
             },
             {
                 id: 19,
                 name: "Neo4j",
+                disabled: false
             },
         ],
     },
@@ -292,12 +273,14 @@ const SidebarData = [
             {
                 id: 1,
                 name: "Solana",
-                popupName: 'solana'
+                popupName: 'solana',
+                disabled: false
             },
             {
                 id: 2,
                 name: "Contact Popup",
-                popupName: 'contactPopup'
+                popupName: 'contactPopup',
+                disabled: false
             }
         ],
     },

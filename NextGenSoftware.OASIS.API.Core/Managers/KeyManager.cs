@@ -538,16 +538,24 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             {
                 //TODO: Ideally need a new overload for LoadAvatar that takes the provider key.
                 //TODO: In the meantime should we cache the full list of Avatars? Could take up a LOT of memory so probably not good idea?
-                IAvatar avatar = AvatarManager.LoadAllAvatars(true, providerType).FirstOrDefault(x => x.ProviderUniqueStorageKey.ContainsKey(providerType) && x.ProviderUniqueStorageKey[providerType] == providerKey);
+                OASISResult<IEnumerable<IAvatar>> avatarsResult = AvatarManager.LoadAllAvatars(true, providerType);
 
-                if (avatar != null)
+                if (!avatarsResult.IsError && avatarsResult.Result != null)
                 {
-                    _providerUniqueStorageKeyToAvatarIdLookup[key] = avatar.Id;
-                    _providerUniqueStorageKeyToAvatarUsernameLookup[key] = avatar.Username;
-                    _providerUniqueStorageKeyToAvatarLookup[key] = avatar;
+                    IAvatar avatar = avatarsResult.Result.FirstOrDefault(x => x.ProviderUniqueStorageKey.ContainsKey(providerType) && x.ProviderUniqueStorageKey[providerType] == providerKey);
+
+                    if (avatar != null)
+                    {
+                        _providerUniqueStorageKeyToAvatarIdLookup[key] = avatar.Id;
+                        _providerUniqueStorageKeyToAvatarUsernameLookup[key] = avatar.Username;
+                        _providerUniqueStorageKeyToAvatarLookup[key] = avatar;
+                    }
+                    else
+                        ErrorHandling.HandleError(ref result, string.Concat("The provider Key ", providerKey, " for the ", Enum.GetName(providerType), " providerType has not been linked to an avatar. Please use the LinkProviderKeyToAvatar method on the AvatarManager or avatar REST API."));
+
                 }
                 else
-                    ErrorHandling.HandleError(ref result, string.Concat("The provider Key ", providerKey, " for the ", Enum.GetName(providerType), " providerType has not been linked to an avatar. Please use the LinkProviderKeyToAvatar method on the AvatarManager or avatar REST API."));
+                    ErrorHandling.HandleError(ref result, $"Error in GetAvatarForProviderUniqueStorageKey loading all avatars. Reason: {avatarsResult.Message}");
             }
 
             result.Result = _providerUniqueStorageKeyToAvatarLookup[key];
@@ -608,16 +616,23 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             {
                 //TODO: Ideally need a new overload for LoadAvatarDetail that takes the public provider key.
                 //TODO: In the meantime should we cache the full list of AvatarDetails? Could take up a LOT of memory so probably not good idea?
-                IAvatar avatar = AvatarManager.LoadAllAvatars(true, providerType).FirstOrDefault(x => x.ProviderPublicKey.ContainsKey(providerType) && x.ProviderPublicKey[providerType].Contains(providerKey));
+                OASISResult<IEnumerable<IAvatar>> avatarsResult = AvatarManager.LoadAllAvatars(true, providerType);
 
-                if (avatar != null)
+                if (!avatarsResult.IsError && avatarsResult.Result != null)
                 {
-                    _providerPublicKeyToAvatarIdLookup[key] = avatar.Id;
-                    _providerPublicKeyToAvatarUsernameLookup[key] = avatar.Username;
-                    _providerPublicKeyToAvatarLookup[key] = avatar;
+                    IAvatar avatar = avatarsResult.Result.FirstOrDefault(x => x.ProviderPublicKey.ContainsKey(providerType) && x.ProviderPublicKey[providerType].Contains(providerKey));
+
+                    if (avatar != null)
+                    {
+                        _providerPublicKeyToAvatarIdLookup[key] = avatar.Id;
+                        _providerPublicKeyToAvatarUsernameLookup[key] = avatar.Username;
+                        _providerPublicKeyToAvatarLookup[key] = avatar;
+                    }
+                    else
+                        ErrorHandling.HandleError(ref result, string.Concat("The provider public Key ", providerKey, " for the ", Enum.GetName(providerType), " providerType has not been linked to an avatar. Please use the LinkProviderPublicKeyToAvatar method on the AvatarManager or avatar REST API."));
                 }
                 else
-                    ErrorHandling.HandleError(ref result, string.Concat("The provider public Key ", providerKey, " for the ", Enum.GetName(providerType), " providerType has not been linked to an avatar. Please use the LinkProviderPublicKeyToAvatar method on the AvatarManager or avatar REST API."));
+                    ErrorHandling.HandleError(ref result, string.Concat("Error in GetAvatarForProviderPublicKey for the provider public Key ", providerKey, " for the ", Enum.GetName(providerType), " providerType. There was an error loading all avatars. Reason: ",  avatarsResult.Message));
             }
 
             result.Result = _providerPublicKeyToAvatarLookup[key];
@@ -678,16 +693,23 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             {
                 //TODO: Ideally need a new overload for LoadAvatarDetail that takes the public provider key.
                 //TODO: In the meantime should we cache the full list of AvatarDetails? Could take up a LOT of memory so probably not good idea?
-                IAvatar avatar = AvatarManager.LoadAllAvatars(true, providerType).FirstOrDefault(x => x.ProviderPrivateKey.ContainsKey(providerType) && x.ProviderPrivateKey[providerType] == providerKey);
+                OASISResult<IEnumerable<IAvatar>> avatarsResult = AvatarManager.LoadAllAvatars(true, providerType);
 
-                if (avatar != null)
+                if (!avatarsResult.IsError && avatarsResult.Result != null)
                 {
-                    _providerPrivateKeyToAvatarIdLookup[key] = avatar.Id;
-                    _providerPrivateKeyToAvatarUsernameLookup[key] = avatar.Username;
-                    _providerPrivateKeyToAvatarLookup[key] = avatar;
+                    IAvatar avatar = avatarsResult.Result.FirstOrDefault(x => x.ProviderPrivateKey.ContainsKey(providerType) && x.ProviderPrivateKey[providerType] == providerKey);
+
+                    if (avatar != null)
+                    {
+                        _providerPublicKeyToAvatarIdLookup[key] = avatar.Id;
+                        _providerPublicKeyToAvatarUsernameLookup[key] = avatar.Username;
+                        _providerPublicKeyToAvatarLookup[key] = avatar;
+                    }
+                    else
+                        ErrorHandling.HandleError(ref result, string.Concat("The provider private Key ", providerKey, " for the ", Enum.GetName(providerType), " providerType has not been linked to an avatar. Please use the LinkProviderPrivateKeyToAvatar method on the AvatarManager or avatar REST API."));
                 }
                 else
-                    ErrorHandling.HandleError(ref result, string.Concat("Error occured in GetAvatarForProviderPrivateKey for the ", Enum.GetName(providerType), " providerType has not been linked to an avatar.Please use the LinkProviderPrivateKeyToAvatar method on the AvatarManager or avatar REST API."));
+                    ErrorHandling.HandleError(ref result, string.Concat("Error in GetAvatarForProviderPrivateKey for the provider private Key ", providerKey, " for the ", Enum.GetName(providerType), " providerType. There was an error loading all avatars. Reason: ", avatarsResult.Message));
             }
 
             result.Result = _providerPrivateKeyToAvatarLookup[key];

@@ -26,7 +26,7 @@ export default class Signup extends React.Component {
                 email: '',
                 password: '',
                 confirmPassword: '',
-                acceptTerms: true,
+                acceptTerms: false,
                 avatarType: 'User'
 
             },
@@ -60,12 +60,13 @@ export default class Signup extends React.Component {
             .min(8, "Password is too short - should be 8 characters minimum.")
             .oneOf([Yup.ref('password'), null], "Password did not match"),
         acceptTerms: Yup.boolean()
-            .required("acceptTerms is required to be checked")
+            .required("Accept terms is required to be checked")    
     })
 
     handleSignup = () => {
         if (this.state.user_data.password === this.state.user_data.confirmPassword) {
             const { firstName, lastName, email, password, confirmPassword, acceptTerms } = this.state.user_data;
+            if(!acceptTerms) return;
             let data = {
                 firstName: firstName,
                 lastName: lastName,
@@ -111,6 +112,13 @@ export default class Signup extends React.Component {
 
         return (
             <>
+                {/* <Loader
+                    type="Puff"
+                    color="#00BFFF"
+                    height={100}
+                    width={100}
+                    timeout={3000} //3 secs
+                /> */}
                 <ToastContainer
                     position="top-center"
                     autoClose={5000}
