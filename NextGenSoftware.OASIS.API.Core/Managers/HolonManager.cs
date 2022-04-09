@@ -796,7 +796,6 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             ProviderType currentProviderType = ProviderManager.CurrentStorageProviderType.Value;
             OASISResult<IHolon> result = new OASISResult<IHolon>();
 
-            //
             result = SaveHolonForProviderType(PrepareHolonForSaving(holon, false), providerType, result, saveChildren, recursive, maxChildDepth, continueOnError);
 
             if ((result.IsError || result.Result == null) && ProviderManager.IsAutoFailOverEnabled)
