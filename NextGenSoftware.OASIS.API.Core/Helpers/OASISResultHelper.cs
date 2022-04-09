@@ -36,25 +36,36 @@ namespace NextGenSoftware.OASIS.API.Core.Helpers
     //}
 
     public static class OASISResultHolonToHolonHelper<T1, T2> 
-        where T1 : IHolonBase
-        where T2 : IHolonBase //, new()
+        //where T1 : IHolonBase //TODO: Ideally would like this code back in but this way it is more generic so can be used anywhere...
+        //where T2 : IHolonBase //, new()
     {
-        public static OASISResult<T2> CopyResult(OASISResult<T1> fromResult, ref OASISResult<T2> toResult)
+        public static OASISResult<T2> CopyResult(OASISResult<T1> fromResult, ref OASISResult<T2> toResult, bool copyMessage = true)
         {
             toResult.Exception = fromResult.Exception;
             toResult.IsError = fromResult.IsError;
             toResult.IsSaved = fromResult.IsSaved;
             toResult.IsWarning = fromResult.IsWarning;
-            toResult.Message = fromResult.Message;
+            
+            //TODO: Implement for all other properties ASAP.
+            if (copyMessage)
+                toResult.Message = fromResult.Message;
+
+            toResult.DetailedMessage = fromResult.DetailedMessage;
+            toResult.WarningCount = fromResult.WarningCount;
+            toResult.ErrorCount = fromResult.ErrorCount;
+            toResult.HasAnyHolonsChanged = fromResult.HasAnyHolonsChanged;
+            toResult.InnerMessages = fromResult.InnerMessages;
+            toResult.LoadedCount = fromResult.LoadedCount;
+            toResult.SavedCount = fromResult.SavedCount;
             toResult.MetaData = fromResult.MetaData;
            // toResult.Result = fromResult.Result;
 
             return toResult;
         }
 
-        public static OASISResult<T2> CopyResult(OASISResult<T1> fromResult, OASISResult<T2> toResult)
+        public static OASISResult<T2> CopyResult(OASISResult<T1> fromResult, OASISResult<T2> toResult, bool copyMessage = true)
         {
-            return CopyResult(fromResult, ref toResult);
+            return CopyResult(fromResult, ref toResult, copyMessage);
         }
     }
 
@@ -62,13 +73,24 @@ namespace NextGenSoftware.OASIS.API.Core.Helpers
        where T1 : IEnumerable<IHolonBase>
        where T2 : IEnumerable<IHolonBase> 
     {
-        public static OASISResult<T2> CopyResult(OASISResult<T1> fromResult, ref OASISResult<T2> toResult)
+        public static OASISResult<T2> CopyResult(OASISResult<T1> fromResult, ref OASISResult<T2> toResult, bool copyMessage = true)
         {
             toResult.Exception = fromResult.Exception;
             toResult.IsError = fromResult.IsError;
             toResult.IsSaved = fromResult.IsSaved;
-            toResult.IsSaved = fromResult.IsWarning;
-            toResult.Message = fromResult.Message;
+            toResult.IsWarning = fromResult.IsWarning;
+
+            //TODO: Implement for all other properties ASAP.
+            if (copyMessage)
+                toResult.Message = fromResult.Message;
+
+            toResult.DetailedMessage = fromResult.DetailedMessage;
+            toResult.WarningCount = fromResult.WarningCount;
+            toResult.ErrorCount = fromResult.ErrorCount;
+            toResult.HasAnyHolonsChanged = fromResult.HasAnyHolonsChanged;
+            toResult.InnerMessages = fromResult.InnerMessages;
+            toResult.LoadedCount = fromResult.LoadedCount;
+            toResult.SavedCount = fromResult.SavedCount;
             toResult.MetaData = fromResult.MetaData;
 
             return toResult;
@@ -84,13 +106,24 @@ namespace NextGenSoftware.OASIS.API.Core.Helpers
        where T1 : IEnumerable<IHolonBase>
        where T2 : IHolonBase
     {
-        public static OASISResult<T2> CopyResult(OASISResult<T1> fromResult, ref OASISResult<T2> toResult)
+        public static OASISResult<T2> CopyResult(OASISResult<T1> fromResult, ref OASISResult<T2> toResult, bool copyMessage = true)
         {
             toResult.Exception = fromResult.Exception;
             toResult.IsError = fromResult.IsError;
             toResult.IsSaved = fromResult.IsSaved;
-            toResult.IsSaved = fromResult.IsWarning;
-            toResult.Message = fromResult.Message;
+            toResult.IsWarning = fromResult.IsWarning;
+
+            //TODO: Implement for all other properties ASAP.
+            if (copyMessage)
+                toResult.Message = fromResult.Message;
+
+            toResult.DetailedMessage = fromResult.DetailedMessage;
+            toResult.WarningCount = fromResult.WarningCount;
+            toResult.ErrorCount = fromResult.ErrorCount;
+            toResult.HasAnyHolonsChanged = fromResult.HasAnyHolonsChanged;
+            toResult.InnerMessages = fromResult.InnerMessages;
+            toResult.LoadedCount = fromResult.LoadedCount;
+            toResult.SavedCount = fromResult.SavedCount;
             toResult.MetaData = fromResult.MetaData;
 
             return toResult;
@@ -106,13 +139,24 @@ namespace NextGenSoftware.OASIS.API.Core.Helpers
        where T1 : IHolonBase
        where T2 : IEnumerable<IHolonBase> 
     {
-        public static OASISResult<T2> CopyResult(OASISResult<T1> fromResult, ref OASISResult<T2> toResult)
+        public static OASISResult<T2> CopyResult(OASISResult<T1> fromResult, ref OASISResult<T2> toResult, bool copyMessage = true)
         {
             toResult.Exception = fromResult.Exception;
             toResult.IsError = fromResult.IsError;
             toResult.IsSaved = fromResult.IsSaved;
-            toResult.IsSaved = fromResult.IsWarning;
-            toResult.Message = fromResult.Message;
+            toResult.IsWarning = fromResult.IsWarning;
+
+            //TODO: Implement for all other properties ASAP.
+            if (copyMessage)
+                toResult.Message = fromResult.Message;
+
+            toResult.DetailedMessage = fromResult.DetailedMessage;
+            toResult.WarningCount = fromResult.WarningCount;
+            toResult.ErrorCount = fromResult.ErrorCount;
+            toResult.HasAnyHolonsChanged = fromResult.HasAnyHolonsChanged;
+            toResult.InnerMessages = fromResult.InnerMessages;
+            toResult.LoadedCount = fromResult.LoadedCount;
+            toResult.SavedCount = fromResult.SavedCount;
             toResult.MetaData = fromResult.MetaData;
 
             return toResult;
