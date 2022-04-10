@@ -29,7 +29,13 @@ class SidebarMenuItem extends React.Component {
                                         ? 
                                             <a className='disabled'>{subItem.name}</a>
                                         :
-                                            <a href={subItem.path} onClick={() => this.props.toggleScreenPopup(item.name, subItem.popupName)}>{subItem.name}</a>
+                                            <a 
+                                                target={subItem.externalLink ? '_blank': ''}
+                                                href={subItem.path} 
+                                                onClick={
+                                                    () => this.props.toggleScreenPopup(item.name, subItem.popupName)
+                                                }
+                                            >{subItem.name}</a>
                                     }
                                 </li>
                             )
