@@ -8,6 +8,7 @@ import Loader from "react-loader-spinner";
 import { Modal } from 'react-bootstrap';
 import axios from "axios";
 import { Formik } from "formik";
+import oasisApi from "oasis-api";
 import * as Yup from "yup";
 
 import "../../src/assets/scss/signup.scss";
@@ -67,9 +68,9 @@ export default class Signup extends React.Component {
             this.setState({ loading: true })
             if(!this.state.form.acceptTerms) return;
             let data = {...this.state.form}
-
-            const headers = { 'Content-Type': 'application/json' }
-            axios.post('https://api.oasisplatform.world/api/avatar/register', data, { headers })
+            
+            const auth = new oasisApi.Auth();
+            auth.signup(data)
                 .then(response => {
                     this.setState({ loading: false })
                     if(response.data.isError) {
@@ -81,10 +82,10 @@ export default class Signup extends React.Component {
                     console.log(JSON.parse(error))
                     console.log(error)
                     this.setState({ loading: false })
-                    toast.error(error.errors);
+                    toast.error(err.data.message);
                 });
         } else {
-            toast.error("password did not match")
+            toast.error("Password did not match")
         }
     }
 
@@ -146,6 +147,7 @@ export default class Signup extends React.Component {
                                                 value={values.firstName}
                                                 onChange={handleChange}
                                                 onBlur={handleBlur}
+                                                disabled={loading}
                                                 placeholder="Jhone Doe"
                                             />
                                             <span className="text-danger">{errors.firstName && touched.firstName && errors.firstName}</span>
@@ -159,6 +161,7 @@ export default class Signup extends React.Component {
                                                 value={values.lastName}
                                                 onChange={handleChange}
                                                 onBlur={handleBlur}
+                                                disabled={loading}
                                                 placeholder="Jhone Doe"
                                             />
                                             <span className="text-danger">{errors.lastName && touched.lastName && errors.lastName}</span>
@@ -172,6 +175,7 @@ export default class Signup extends React.Component {
                                                 value={values.email}
                                                 onChange={handleChange}
                                                 onBlur={handleBlur}
+                                                disabled={loading}
                                                 placeholder="name@example.com"
                                             />
                                             <span className="text-danger">{errors.email && touched.email && errors.email}</span>
@@ -186,6 +190,7 @@ export default class Signup extends React.Component {
                                                     value={values.password}
                                                     onChange={handleChange}
                                                     onBlur={handleBlur}
+                                                    disabled={loading}
                                                     placeholder="password"
                                                 />
                                                 <img
@@ -207,6 +212,7 @@ export default class Signup extends React.Component {
                                                     value={values.confirmPassword}
                                                     onChange={handleChange}
                                                     onBlur={handleBlur}
+                                                    disabled={loading}
                                                     placeholder="confirm password"
                                                 />
                                                 <img

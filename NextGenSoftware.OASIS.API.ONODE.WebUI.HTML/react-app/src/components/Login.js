@@ -148,6 +148,7 @@ export default class Login extends React.Component {
                                                 value={values.email}
                                                 onChange={handleChange}
                                                 onBlur={handleBlur}
+                                                disabled={loading}
                                                 placeholder="name@example.com" />
                                             <span className="text-danger">{errors.email && touched.email && errors.email}</span>
                                         </div>
@@ -161,6 +162,7 @@ export default class Login extends React.Component {
                                                     value={values.password}
                                                     onChange={handleChange}
                                                     onBlur={handleBlur}
+                                                    disabled={loading}
                                                     placeholder="password" />
                                                 <img
                                                     className="field-icon"
