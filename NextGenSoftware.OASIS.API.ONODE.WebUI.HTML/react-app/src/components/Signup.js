@@ -82,7 +82,7 @@ export default class Signup extends React.Component {
                     console.log(JSON.parse(error))
                     console.log(error)
                     this.setState({ loading: false })
-                    toast.error(err.data.message);
+                    toast.error(error.data.message);
                 });
         } else {
             toast.error("Password did not match")
