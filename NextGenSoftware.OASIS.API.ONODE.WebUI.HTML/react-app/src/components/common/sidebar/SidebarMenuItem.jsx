@@ -29,7 +29,7 @@ class SidebarMenuItem extends React.Component {
                                         ? 
                                             <a className='disabled'>{subItem.name}</a>
                                         :
-                                            <a onClick={() => this.props.toggleScreenPopup(item.name, subItem.popupName)}>{subItem.name}</a>
+                                            <a href={subItem.path} onClick={() => this.props.toggleScreenPopup(item.name, subItem.popupName)}>{subItem.name}</a>
                                     }
                                 </li>
                             )
