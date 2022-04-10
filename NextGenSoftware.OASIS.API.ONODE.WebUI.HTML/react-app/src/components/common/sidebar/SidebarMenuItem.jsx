@@ -24,7 +24,6 @@ class SidebarMenuItem extends React.Component {
                         {
                             item.subMenu.map((subItem, index) =>
                                 <li key={index}>
-                                    {/* <a className={subItem.disabled ? 'disbale' : ''}>{subItem.name}</a> */}
                                     {
                                         subItem.disabled 
                                         ? 
