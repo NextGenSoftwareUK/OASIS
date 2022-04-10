@@ -2,38 +2,22 @@ import React from 'react';
 import { Modal } from 'react-bootstrap';
 import Loader from "react-loader-spinner";
 import { AgGridColumn, AgGridReact } from 'ag-grid-react';
+import oasis from "oasis-api";
+
 class ViewKarma extends React.Component {
+
     constructor(props) {
         super(props);
         this.state = {
             columnDefs: [
-                {
-                    field: 'Date',
-                    // filterParams: filterParams,
-                },
-                {
-                    field: 'Avatar',
-
-                },
-                {
-                    field: 'Positive/Negative'
-                },
-                {
-                    field: 'Type',
-                },
-                {
-                    field: 'Karma'
-                },
-
-                {
-                    field: 'Source'
-                },
-                {
-                    field: 'Description'
-                },
-                {
-                    field: 'Weblink'
-                },
+                { field: 'Date' },
+                { field: 'Avatar' },
+                { field: 'Positive/Negative' },
+                { field: 'Type' },
+                { field: 'Karma' },
+                { field: 'Source' },
+                { field: 'Description' },
+                { field: 'Weblink' },
             ],
             defaultColDef: {
                 flex: 1,
@@ -42,12 +26,20 @@ class ViewKarma extends React.Component {
                 sortable: true,
                 floatingFilter: true,
                 resizable: true,
-                // overflow:true
             },
             rowData: null,
             // loading: true,
             // loggedIn: true,
         };
+    }
+
+    componentDidMount() {
+        const karma = new oasis.Karma();
+        karma.getKarmaAkashicRecordsForAvatar("").then((res) => {
+            console.log(res);
+        }).catch((err) => {
+            console.log(err);
+        });
     }
 
     //run this after component mounts
