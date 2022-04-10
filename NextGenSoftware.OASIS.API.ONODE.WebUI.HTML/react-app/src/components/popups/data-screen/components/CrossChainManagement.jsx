@@ -1,6 +1,7 @@
 import React from 'react';
 
 import { Modal } from 'react-bootstrap';
+import ProviderDropdown from '../../../common/ProviderDropdown';
 
 class CrossChainManagement extends React.Component {
     render() { 
@@ -25,19 +26,8 @@ class CrossChainManagement extends React.Component {
 
                                 <div className="form-container">
                                     <form className="custom-form" style={{padding: 0}}>
-                                        <p className="single-form-row">
-                                            <label>Provider: </label>
-                                            <span className="have-selectbox">
-                                                <select className="custom-selectbox">
-                                                    <option>EOSIS</option>
-                                                    <option>EOSIS - 1</option>
-                                                    <option>EOSIS - 2</option>
-                                                </select>
-                                                <i className="fa fa-angle-down"></i>
-                                            </span>
-
-                                            <span className="have-icon"></span>
-                                        </p>
+                                        
+                                        <ProviderDropdown />
 
                                         <p className="single-form-row">
                                             <label>Json: </label>
