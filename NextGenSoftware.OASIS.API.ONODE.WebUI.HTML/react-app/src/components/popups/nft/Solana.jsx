@@ -3,6 +3,7 @@ import React from 'react';
 import { Modal } from 'react-bootstrap';
 
 import '../../../assets/scss/nft.scss';
+import ProviderDropdown from '../../common/ProviderDropdown';
 
 class Solana extends React.Component {
     render() { 
@@ -32,18 +33,8 @@ class Solana extends React.Component {
                                              <input type="text" />
                                         </p>
 
-                                        <p className="single-form-row">
-                                            <label>Provider : </label>
-                                            <span className="have-selectbox">
-                                                    <select className="custom-selectbox">
-                                                        <option>EOSIS</option>
-                                                        <option>EOSIS - 1</option>
-                                                        <option>EOSIS - 2</option>
-                                                    </select>
-                                                    <i className="fa fa-angle-down"></i>
-                                            </span>
+                                        <ProviderDropdown />
 
-                                        </p>
                                         <p className="single-form-row">
                                             <label>To Avatar :</label>
                                             <input type="text" />

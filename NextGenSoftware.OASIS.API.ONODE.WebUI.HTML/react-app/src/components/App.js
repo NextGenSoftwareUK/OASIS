@@ -1,6 +1,5 @@
 import React from "react";
 
-import SideNav from "./common/SideNav";
 import Navbar from "./common/Navbar";
 import Sidebar from "./common/sidebar/Sidebar";
 import Login from "./Login";
@@ -72,177 +71,154 @@ class App extends React.Component {
     if (localStorage.getItem("user")) {
       this.setState({ user: JSON.parse(localStorage.getItem("user")) });
     }
-  }
 
-  setUserData = (data) => {
-    this.setState({
-      user: data,
-    });
-  };
+    setUserData = (data) => {
+        this.setState({
+            user: data,
+        });
+    };
 
-  toggleSidebar = () => {
-    this.setState({
-      showSidebar: !this.state.showSidebar,
-    });
-  };
+    toggleSidebar = () => {
+        this.setState({
+            showSidebar: !this.state.showSidebar,
+        });
+    };
 
-  hidePopups = () => {
-    this.setState({
-      showLogin: false,
-      showSignup: false,
-      showForgetPassword: false,
-    });
-  };
+    hidePopups = () => {
+        this.setState({
+            showLogin: false,
+            showSignup: false,
+            showForgetPassword: false
+        });
+    };
 
-  hideLogin = () => {
-    this.setState({
-      showLogin: false,
-    });
-  };
+    hideLogin = () => {
+        this.setState({
+            showLogin: false,
+        });
+    };
 
-  hideForgetPassword = () => {
-    this.setState({ showForgetPassword: false });
-  };
+    hideSignup = () => {
+        this.setState({
+            showSignup: false,
+        });
+    };
 
-  hideSignup = () => {
-    this.setState({
-      showSignup: false,
-    });
-  };
+    showLogin = () => {
+        console.log('going to call login')
+        this.setState({
+            showLogin: true,
+            showSignup: false,
+            showForgetPassword: false
+        });
+    };
 
-  showLogin = () => {
-    this.setState({
-      showLogin: true,
-      showForgetPassword: false,
-      showSignup: false,
-    });
-  };
+    showSignup = () => {
+        this.setState({
+            showSignup: true,
+            showLogin: false,
+            showForgetPassword: false
+        });
+    };
 
-  showForgetPassword = () => {
-    this.setState({
-      showForgetPassword: true,
-      showSignup: false,
-      showLogin: false,
-    });
-  };
+    handleLogout = () => {
+        axios
+            .post("https://api.oasisplatform.world/api/avatar/revoke-token", {
+                token: this.state.user.jwtToken,
+            })
+            .then((res) => {
+                this.setState({ user: null });
+                localStorage.removeItem("user");
+                localStorage.removeItem("credentials");
+            })
+            .catch((err) => {
+                this.setState({ user: null });
+                localStorage.removeItem("user");
+                localStorage.removeItem("credentials");
+            });
+    };
 
-  showSignup = () => {
-    this.setState({
-      showSignup: true,
-      showLogin: false,
-      showForgetPassword: false,
-    });
-  };
+    toggleScreenPopup = (menuOption, menuName) => {
+        console.log(menuOption);
+        console.log(menuName)
+        let sidebarMenuOption = [...this.state.sidebarMenuOption];
 
-  handleLogout = () => {
-    axios
-      .post("https://api.oasisplatform.world/api/avatar/revoke-token", {
-        token: this.state.user.jwtToken,
-      })
-      .then((res) => {
-        this.setState({ user: null });
-        localStorage.removeItem("user");
-        localStorage.removeItem("credentials");
-      })
-      .catch((err) => {
-        this.setState({ user: null });
-        localStorage.removeItem("user");
-        localStorage.removeItem("credentials");
-      });
-  };
+        sidebarMenuOption.map((item) => {
+            if (item[menuOption]) {
+                item[menuOption][menuName] = !item[menuOption][menuName];
+            }
+        })
 
-  toggleScreenPopup = (menuOption, menuName) => {
-    console.log(menuOption);
-    console.log(menuName);
-    let sidebarMenuOption = [...this.state.sidebarMenuOption];
+        this.setState({
+            sidebarMenuOption
+        })
+    };
 
-    sidebarMenuOption.map((item) => {
-      if (item[menuOption]) {
-        item[menuOption][menuName] = !item[menuOption][menuName];
-      }
-    });
-
-    this.setState({
-      sidebarMenuOption,
-    });
-  };
-
-  render() {
-    return (
-      <div className="main-container">
-        <header>
-          <Navbar
-            showSidebar={this.state.showSidebar}
-            toggleSidebar={this.toggleSidebar}
-            showLogin={this.showLogin}
-            showForget={this.showForgetPassword}
-            showSignup={this.showSignup}
-            handleLogout={this.handleLogout}
-            user={this.state.user}
-          />
-          {/* <SideNav
+    render() {
+        return (
+            <div className="main-container">
+                <header>
+                    <Navbar
                         showSidebar={this.state.showSidebar}
                         toggleSidebar={this.toggleSidebar}
-                    /> */}
-          <Sidebar
-            showSidebar={this.state.showSidebar}
-            toggleSidebar={this.toggleSidebar}
-            toggleScreenPopup={this.toggleScreenPopup}
-          />
-        </header>
+                        showLogin={this.showLogin}
+                        showSignup={this.showSignup}
+                        handleLogout={this.handleLogout}
+                        user={this.state.user}
+                    />
+                    
+                    <Sidebar
+                        showSidebar={this.state.showSidebar}
+                        toggleSidebar={this.toggleSidebar}
+                        toggleScreenPopup={this.toggleScreenPopup}
+                    />
+                </header>
 
-        <Login
-          className="custom-form"
-          show={this.state.showLogin}
-          hide={this.hideLogin}
-          change={this.showSignup}
-          changeForget={this.showForgetPassword}
-          setUserStateData={this.setUserData}
-        />
+                <Login
+                    className="custom-form"
+                    show={this.state.showLogin}
+                    hide={this.hideLogin}
+                    change={this.showSignup}
+                    setUserStateData={this.setUserData}
+                />
 
-        <Signup
-          className="custom-form"
-          show={this.state.showSignup}
-          hide={this.hideSignup}
-          change={this.showLogin}
-        />
+                <Signup
+                    className="custom-form"
+                    show={this.state.showSignup}
+                    hide={this.hideSignup}
+                    change={this.showLogin}
+                />
 
-        <ForgotPassword
-          className="custom-form"
-          show={this.state.showForgetPassword}
-          hide={this.hideForgetPassword}
-        />
+                <DataScreen
+                    data={this.state.sidebarMenuOption[0].data}
+                    toggleScreenPopup={this.toggleScreenPopup}
+                />
 
-        <DataScreen
-          data={this.state.sidebarMenuOption[0].data}
-          toggleScreenPopup={this.toggleScreenPopup}
-        />
+                <Solana
+                    show={this.state.sidebarMenuOption[1].nft.solana}
+                    hide={this.toggleScreenPopup}
+                />
 
-        <Solana
-          show={this.state.sidebarMenuOption[1].nft.solana}
-          hide={this.toggleScreenPopup}
-        />
+                <ContactPopup
+                    show={this.state.sidebarMenuOption[1].nft.contactPopup}
+                    hide={this.toggleScreenPopup}
+                />
+                <Seeds
+                    seeds={this.state.sidebarMenuOption[2].seeds}
+                    toggleScreenPopup={this.toggleScreenPopup}
+                />
+                <Avatar
+                    avatar={this.state.sidebarMenuOption[3].avatar}
+                    toggleScreenPopup={this.toggleScreenPopup}
+                />
 
-        <ContactPopup
-          show={this.state.sidebarMenuOption[1].nft.contactPopup}
-          hide={this.toggleScreenPopup}
-        />
-        <Seeds
-          seeds={this.state.sidebarMenuOption[2].seeds}
-          toggleScreenPopup={this.toggleScreenPopup}
-        />
-        <Avatar
-          avatar={this.state.sidebarMenuOption[3].avatar}
-          toggleScreenPopup={this.toggleScreenPopup}
-        />
-
-        <Karma
-          karma={this.state.sidebarMenuOption[4].karma}
-          toggleScreenPopup={this.toggleScreenPopup}
-        />
-      </div>
-    );
-  }
+                <Karma 
+                    karma={this.state.sidebarMenuOption[4].karma}
+                    toggleScreenPopup={this.toggleScreenPopup}
+                />
+            </div>
+        );
+    }
 }
 
 export default App;
