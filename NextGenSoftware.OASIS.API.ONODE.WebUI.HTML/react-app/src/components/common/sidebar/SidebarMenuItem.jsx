@@ -24,13 +24,18 @@ class SidebarMenuItem extends React.Component {
                         {
                             item.subMenu.map((subItem, index) =>
                                 <li key={index}>
-                                    {/* <a className={subItem.disabled ? 'disbale' : ''}>{subItem.name}</a> */}
                                     {
                                         subItem.disabled 
                                         ? 
                                             <a className='disabled'>{subItem.name}</a>
                                         :
-                                            <a onClick={() => this.props.toggleScreenPopup(item.name, subItem.popupName)}>{subItem.name}</a>
+                                            <a 
+                                                target={subItem.externalLink ? '_blank': ''}
+                                                href={subItem.path} 
+                                                onClick={
+                                                    () => this.props.toggleScreenPopup(item.name, subItem.popupName)
+                                                }
+                                            >{subItem.name}</a>
                                     }
                                 </li>
                             )
