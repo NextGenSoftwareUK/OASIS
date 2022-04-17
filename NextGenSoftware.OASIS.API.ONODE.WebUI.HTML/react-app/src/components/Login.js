@@ -10,8 +10,8 @@ import { ToastContainer, toast } from "react-toastify";
 import { Modal } from 'react-bootstrap';
 import Loader from 'react-loader-spinner';
 import { Formik } from "formik";
+import oasisApi from "oasis-api";
 import * as Yup from "yup";
-const axios = require('axios');
 
 
 export default class Login extends React.Component {
@@ -20,10 +20,12 @@ export default class Login extends React.Component {
         super(props);
 
         this.state = {
-            email: '',
-            password: '',
+            form: {
+                email: '',
+                password: '',
+            },
             showPassword: false,
-            showForgetPassword: false,
+            showForgetPasswordPopup: false,
             loading: false,
             user: null
         }
@@ -43,23 +45,18 @@ export default class Login extends React.Component {
     })
 
     handleLogin = () => {
-        let data = {
-            email: this.state.email,
-            password: this.state.password
-        }
-
-        const headers = {
-            'Content-Type': 'application/json'
-        };
-
         this.setState({ loading: true })
+        let data = {...this.state.form}
 
-        axios.post('https://api.oasisplatform.world/api/avatar/authenticate', data, { headers })
+        const headers = { 'Content-Type': 'application/json' }
+
+        const auth = new oasisApi.Auth();
+        auth.login(data)
             .then(response => {
                 this.setState({loading: false})
                 if (response.data.isError) {
-                    toast.error(" Your email or password is invalid!");
-                    return
+                    toast.error(response.data.message);
+                    return;
                 }
                 localStorage.setItem('user', JSON.stringify(response.data.avatar))
                 localStorage.setItem('credentials', JSON.stringify(data))
@@ -70,22 +67,24 @@ export default class Login extends React.Component {
                 this.props.setUserStateData(response.data.avatar);
 
                 this.props.hide();
-            }).catch(error => {
-                console.error('There was an error!', error);
-                this.setState({ loading: false })
+            })
+            .catch((err) => {
+                console.error("There was an error!");
+                this.setState({ loading: false });
+                toast.error(err.data.message);
             })
     }
 
-    showForgetPassword = (hideLogin) => {
+    showForgetPasswordPopup = (hideLogin) => {
         this.setState({
-            showForgetPassword: true
+            showForgetPasswordPopup: true
         });
         hideLogin();
     };
 
-    hideForgetPassword = () => {
+    hideForgetPasswordPopup = () => {
         this.setState({
-            showForgetPassword: false
+            showForgetPasswordPopup: false
         });
     };
 
@@ -111,10 +110,9 @@ export default class Login extends React.Component {
                     validationSchema={this.validationSchema}
                     onSubmit={(values, { setSubmitting, resetForm }) => {
                         setTimeout(() => {
-                            this.setState({
-                                email: values.email,
-                                password: values.password
-                            });
+                            console.log(values);
+                            let form = values;
+                            this.setState({form});
                             this.handleLogin();
 
                             setSubmitting(true);
@@ -150,6 +148,7 @@ export default class Login extends React.Component {
                                                 value={values.email}
                                                 onChange={handleChange}
                                                 onBlur={handleBlur}
+                                                disabled={loading}
                                                 placeholder="name@example.com" />
                                             <span className="text-danger">{errors.email && touched.email && errors.email}</span>
                                         </div>
@@ -163,6 +162,7 @@ export default class Login extends React.Component {
                                                     value={values.password}
                                                     onChange={handleChange}
                                                     onBlur={handleBlur}
+                                                    disabled={loading}
                                                     placeholder="password" />
                                                 <img
                                                     className="field-icon"
@@ -174,7 +174,7 @@ export default class Login extends React.Component {
                                         </div>
 
                                         <div className="forgot-password">
-                                            <label className="text-link" onClick={() => this.showForgetPassword(hide)}>Forgot Password?</label>
+                                            <label className="text-link" onClick={() => this.showForgetPasswordPopup(hide)}>Forgot Password?</label>
                                         </div>
 
                                         <div className="remember-me">
@@ -196,9 +196,9 @@ export default class Login extends React.Component {
 
                 <ForgetPassword
                     className="custom-form"
-                    show={this.state.showForgetPassword}
-                    hide={this.hideForgetPassword}
-                    change={this.showForgetPassword}
+                    show={this.state.showForgetPasswordPopup}
+                    hide={this.hideForgetPasswordPopup}
+                    change={this.showForgetPasswordPopup}
                 />
             </>
         )

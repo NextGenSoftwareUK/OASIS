@@ -1,15 +1,12 @@
 import React from 'react';
 
-import ShowIcon from '../assets/images/visible-icon.svg';
-import HideIcon from '../assets/images/hidden-icon.svg';
-
 import { ToastContainer, toast } from "react-toastify";
 
 import { Modal } from 'react-bootstrap';
 import Loader from 'react-loader-spinner';
 import { Formik } from "formik";
 import * as Yup from "yup";
-const axios = require('axios');
+import oasisApi from "oasis-api";
 
 
 export default class ForgetPassword extends React.Component {
@@ -33,42 +30,32 @@ export default class ForgetPassword extends React.Component {
             .required("Email is required")
     })
 
-    handleLogin = () => {
+    handleForgetPassword = () => {
         let data = {
             email: this.state.email
         }
-
-        const headers = {
-            'Content-Type': 'application/json'
-        };
-
         this.setState({ loading: true })
 
-        axios.post('https://api.oasisplatform.world/api/avatar/authenticate', data, { headers })
+        const auth = new oasisApi.Auth();
+        auth.forgotPassword(data)
             .then(response => {
                 if (response.data.isError) {
-                    toast.error(" Your email or password is invalid!");
+                    toast.error(response.data.message);
                     return
                 }
-                // localStorage.setItem('user', JSON.stringify(response.data.avatar))
-                // localStorage.setItem('credentials', JSON.stringify(data))
-                
-                // this.setState({loading: false})
-                // toast.success(" Successfully Updated!");
-                // this.setState({user: response.data.avatar})
 
-                // this.props.setUserStateData(response.data.avatar);
-
+                toast.success(response.data.message);
                 this.props.hide();
-            }).catch(error => {
-                console.error('There was an error!', error);
+            })
+            .catch(error => {
+                toast.error(error.data.message);
                 this.setState({ loading: false })
             })
     }
 
     render() {
-        const { showPassword, loading } = this.state;
-        const { show, hide, change } = this.props;
+        const { loading } = this.state;
+        const { show, hide } = this.props;
 
         return (
             <>
@@ -91,7 +78,7 @@ export default class ForgetPassword extends React.Component {
                             this.setState({
                                 email: values.email
                             });
-                            this.handleLogin();
+                            this.handleForgetPassword();
 
                             setSubmitting(true);
                             // resetForm();
@@ -121,6 +108,7 @@ export default class ForgetPassword extends React.Component {
                                                 value={values.email}
                                                 onChange={handleChange}
                                                 onBlur={handleBlur}
+                                                disabled={loading}
                                                 placeholder="name@example.com" />
                                             <span className="text-danger">{errors.email && touched.email && errors.email}</span>
                                         </div>

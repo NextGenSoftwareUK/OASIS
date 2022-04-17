@@ -8,6 +8,7 @@ import Loader from "react-loader-spinner";
 import { Modal } from 'react-bootstrap';
 import axios from "axios";
 import { Formik } from "formik";
+import oasisApi from "oasis-api";
 import * as Yup from "yup";
 
 import "../../src/assets/scss/signup.scss";
@@ -20,7 +21,7 @@ export default class Signup extends React.Component {
 
         this.state = {
             loading: false,
-            user_data: {
+            form: {
                 firstName: '',
                 las_name: '',
                 email: '',
@@ -28,7 +29,6 @@ export default class Signup extends React.Component {
                 confirmPassword: '',
                 acceptTerms: false,
                 avatarType: 'User'
-
             },
             showPassword: false,
             showconfirmPassword: false,
@@ -64,25 +64,13 @@ export default class Signup extends React.Component {
     })
 
     handleSignup = () => {
-        if (this.state.user_data.password === this.state.user_data.confirmPassword) {
-            const { firstName, lastName, email, password, confirmPassword, acceptTerms } = this.state.user_data;
-            if(!acceptTerms) return;
-            let data = {
-                firstName: firstName,
-                lastName: lastName,
-                email: email,
-                password: password,
-                confirmPassword: confirmPassword,
-                acceptTerms: acceptTerms,
-                avatarType: 'User'
-            }
-
-            const headers = {
-                'Content-Type': 'application/json'
-            };
-
+        if (this.state.form.password === this.state.form.confirmPassword) {
             this.setState({ loading: true })
-            axios.post('https://api.oasisplatform.world/api/avatar/register', data, { headers })
+            if(!this.state.form.acceptTerms) return;
+            let data = {...this.state.form}
+            
+            const auth = new oasisApi.Auth();
+            auth.signup(data)
                 .then(response => {
                     this.setState({ loading: false })
                     if(response.data.isError) {
@@ -94,10 +82,10 @@ export default class Signup extends React.Component {
                     console.log(JSON.parse(error))
                     console.log(error)
                     this.setState({ loading: false })
-                    toast.error(error.errors);
+                    toast.error(error.data.message);
                 });
         } else {
-            toast.error("password did not match")
+            toast.error("Password did not match")
         }
     }
 
@@ -107,13 +95,6 @@ export default class Signup extends React.Component {
 
         return (
             <>
-                {/* <Loader
-                    type="Puff"
-                    color="#00BFFF"
-                    height={100}
-                    width={100}
-                    timeout={3000} //3 secs
-                /> */}
                 <ToastContainer
                     position="top-center"
                     autoClose={5000}
@@ -130,16 +111,8 @@ export default class Signup extends React.Component {
                     validationSchema={this.validationSchema}
                     onSubmit={(values, { setSubmitting, resetForm }) => {
                         setTimeout(() => {
-                            const { firstName, lastName, email, password, confirmPassword, acceptTerms } = values;
-                            let user_data = {
-                                firstName: firstName,
-                                lastName: lastName,
-                                email: email,
-                                password: password,
-                                confirmPassword: confirmPassword,
-                                acceptTerms: acceptTerms
-                            }
-                            this.setState({ user_data })
+                            let form = values;
+                            this.setState({ form })
                             this.handleSignup();
 
                             setSubmitting(true);
@@ -174,6 +147,7 @@ export default class Signup extends React.Component {
                                                 value={values.firstName}
                                                 onChange={handleChange}
                                                 onBlur={handleBlur}
+                                                disabled={loading}
                                                 placeholder="Jhone Doe"
                                             />
                                             <span className="text-danger">{errors.firstName && touched.firstName && errors.firstName}</span>
@@ -187,6 +161,7 @@ export default class Signup extends React.Component {
                                                 value={values.lastName}
                                                 onChange={handleChange}
                                                 onBlur={handleBlur}
+                                                disabled={loading}
                                                 placeholder="Jhone Doe"
                                             />
                                             <span className="text-danger">{errors.lastName && touched.lastName && errors.lastName}</span>
@@ -200,6 +175,7 @@ export default class Signup extends React.Component {
                                                 value={values.email}
                                                 onChange={handleChange}
                                                 onBlur={handleBlur}
+                                                disabled={loading}
                                                 placeholder="name@example.com"
                                             />
                                             <span className="text-danger">{errors.email && touched.email && errors.email}</span>
@@ -214,6 +190,7 @@ export default class Signup extends React.Component {
                                                     value={values.password}
                                                     onChange={handleChange}
                                                     onBlur={handleBlur}
+                                                    disabled={loading}
                                                     placeholder="password"
                                                 />
                                                 <img
@@ -235,6 +212,7 @@ export default class Signup extends React.Component {
                                                     value={values.confirmPassword}
                                                     onChange={handleChange}
                                                     onBlur={handleBlur}
+                                                    disabled={loading}
                                                     placeholder="confirm password"
                                                 />
                                                 <img
