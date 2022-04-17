@@ -639,44 +639,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
 
             try
             {
-                // only admins can update role
-                if (avatar.AvatarType != "Wizard")
-                    avatar.AvatarType = null;
+                response = await AvatarManager.LoadAvatarAsync(id, false);
 
-                //var oasisResult = await GetAvatar(id, true);
-                var loadAvtarResult = await AvatarManager.LoadAvatarAsync(id, false);
-
-                if (loadAvtarResult.IsError || loadAvtarResult.Result == null)
-                {
-                    ErrorHandling.HandleError(ref response, $"{errorMessage}{loadAvtarResult.Message}", loadAvtarResult.DetailedMessage);
-                    return response;
-                }
-
-                var origAvatar = loadAvtarResult.Result;
-
-                if (!string.IsNullOrEmpty(avatar.Email) && avatar.Email != origAvatar.Email &&
-                    await AvatarManager.LoadAvatarByEmailAsync(avatar.Email) != null)
-                {
-                    ErrorHandling.HandleError(ref response, $"Email '{avatar.Email}' is already taken");
-                    return response;
-                }
-
-                // hash password if it was entered
-                if (!string.IsNullOrEmpty(avatar.Password))
-                    avatar.Password = BC.HashPassword(avatar.Password);
-
-                //TODO: Fix this.
-                _mapper.Map(avatar, origAvatar);
-                origAvatar.ModifiedDate = DateTime.UtcNow;
-
-                var saveAvatarResult = AvatarManager.SaveAvatar(origAvatar);
-                if (saveAvatarResult.IsError || saveAvatarResult.Result == null)
-                {
-                    ErrorHandling.HandleError(ref response, $"{errorMessage}{saveAvatarResult.Message}", saveAvatarResult.DetailedMessage);
-                    return response;
-                }
-
-                response.Result = AvatarManager.HideAuthDetails(saveAvatarResult.Result);
+                if (response.IsError || response.Result == null)
+                    ErrorHandling.HandleError(ref response, $"{errorMessage}{response.Message}", response.DetailedMessage);
+                else
+                    response = await Update(response.Result, avatar);
             }
             catch (Exception ex)
             {
@@ -689,85 +657,48 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
         public async Task<OASISResult<IAvatar>> UpdateByEmail(string email, UpdateRequest avatar)
         {
             var response = new OASISResult<IAvatar>();
-            
-            // only admins can update role
-            if (avatar.AvatarType != "Wizard")
-                avatar.AvatarType = null;
-            
-            OASISResult<IAvatar> originalAvatarResult = await AvatarManager.LoadAvatarByEmailAsync(email);
+            string errorMessage = "Error in UpdateByEmail method in Avatar Service. Reason: ";
 
-            if (!originalAvatarResult.IsError && originalAvatarResult.Result != null)
+            try
             {
-                if (!string.IsNullOrEmpty(avatar.Email) && avatar.Email != originalAvatarResult.Result.Email)
-                {
-                    ErrorHandling.HandleError(ref response, $"Email '{avatar.Email}' is already taken");
-                    return response;
-                }
+                response = await AvatarManager.LoadAvatarByEmailAsync(email, false);
+
+                if (response.IsError || response.Result == null)
+                    ErrorHandling.HandleError(ref response, $"{errorMessage}{response.Message}", response.DetailedMessage);
+                else
+                    response = await Update(response.Result, avatar);
+            }
+            catch (Exception ex)
+            {
+                ErrorHandling.HandleError(ref response, $"{errorMessage}Unknown Error Occured. See DetailedMessage for more info.", ex.Message, ex);
             }
 
-            // hash password if it was entered
-            if (!string.IsNullOrEmpty(avatar.Password))
-                avatar.Password = BC.HashPassword(avatar.Password);
-
-            //TODO: Fix this.
-            _mapper.Map(avatar, originalAvatarResult.Result);
-            originalAvatarResult.Result.ModifiedDate = DateTime.UtcNow;
-            var saveResult = AvatarManager.SaveAvatar(originalAvatarResult.Result);
-
-            if (saveResult.IsError)
-            {
-                ErrorHandling.HandleError(ref response, $"Error in UpdateByEmail saving avatar. Reason: {saveResult.Message}");
-                return response;
-            }
-
-            response.Result = AvatarManager.HideAuthDetails(saveResult.Result);
             return response;
         }
 
         public async Task<OASISResult<IAvatar>> UpdateByUsername(string username, UpdateRequest avatar)
         {
             var response = new OASISResult<IAvatar>();
+            string errorMessage = "Error in UpdateByUsername method in Avatar Service. Reason: ";
 
-            // only admins can update role
-            if (avatar.AvatarType != "Wizard")
-                avatar.AvatarType = null;
-            
-            OASISResult<IAvatar> originalAvatarResult = await AvatarManager.LoadAvatarAsync(username);
-
-            if (!originalAvatarResult.IsError && originalAvatarResult.Result != null)
+            try
             {
-                if (!string.IsNullOrEmpty(avatar.Email) && avatar.Email != originalAvatarResult.Result.Email &&
-                    await AvatarManager.LoadAvatarByEmailAsync(avatar.Email) != null)
-                {
-                    ErrorHandling.HandleError(ref response, $"Email '{avatar.Email}' is already taken");
-                    return response;
-                }
+                response = await AvatarManager.LoadAvatarAsync(username, false);
+
+                if (response.IsError || response.Result == null)
+                    ErrorHandling.HandleError(ref response, $"{errorMessage}{response.Message}", response.DetailedMessage);
+                else
+                    response = await Update(response.Result, avatar);
             }
-            else
+            catch (Exception ex)
             {
-                ErrorHandling.HandleError(ref response, $"Error loading avatar in UpdateByUsername method. Reason: {originalAvatarResult.Message}");
-                return response;
+                ErrorHandling.HandleError(ref response, $"{errorMessage}Unknown Error Occured. See DetailedMessage for more info.", ex.Message, ex);
             }
 
-            // hash password if it was entered
-            if (!string.IsNullOrEmpty(avatar.Password))
-                avatar.Password = BC.HashPassword(avatar.Password);
-
-            //TODO: Fix this.
-            _mapper.Map(avatar, originalAvatarResult.Result);
-            originalAvatarResult.Result.ModifiedDate = DateTime.UtcNow;
-
-            var saveAvatar = AvatarManager.SaveAvatar(originalAvatarResult.Result);
-            if (saveAvatar.IsError)
-            {
-                ErrorHandling.HandleError(ref response, $"Error in UpdateByUsername saving avatar. Reason: {saveAvatar.Message}");
-                return response;
-            }
-
-            response.Result = AvatarManager.HideAuthDetails(saveAvatar.Result);
-            return response;
+            return response;  
         }
 
+        /*
         public async Task<OASISResult<bool>> Delete(Guid id)
         {
             var response = new OASISResult<bool>();
@@ -823,7 +754,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
             }
 
             return response;
-        }
+        }*/
 
         public async Task<OASISResult<string>> ValidateAccountToken(string accountToken)
         {
@@ -1267,6 +1198,52 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
 
         //    return (refreshToken, avatar);
         //}
+
+        private async Task<OASISResult<IAvatar>> Update(IAvatar originalAvatar, UpdateRequest avatar)
+        {
+            var response = new OASISResult<IAvatar>();
+            string errorMessage = "Error in Update method in Avatar Service. Reason: ";
+
+            try
+            {
+                // only admins can update role
+                if (avatar.AvatarType != "Wizard")
+                    avatar.AvatarType = null;
+
+                if (!string.IsNullOrEmpty(avatar.Email) && avatar.Email != originalAvatar.Email &&
+                    (await AvatarManager.LoadAvatarByEmailAsync(avatar.Email)).Result != null)
+                {
+                    ErrorHandling.HandleError(ref response, $"Email '{avatar.Email}' is already taken");
+                    return response;
+                }
+
+                // hash password if it was entered
+                if (!string.IsNullOrEmpty(avatar.Password))
+                    avatar.Password = BC.HashPassword(avatar.Password);
+
+                //TODO: Fix this.
+                _mapper.Map(avatar, originalAvatar);
+                originalAvatar.ModifiedDate = DateTime.UtcNow;
+
+                var saveAvatarResult = AvatarManager.SaveAvatar(originalAvatar);
+                if (saveAvatarResult.IsError || saveAvatarResult.Result == null)
+                {
+                    ErrorHandling.HandleError(ref response, $"{errorMessage}{saveAvatarResult.Message}", saveAvatarResult.DetailedMessage);
+                    return response;
+                }
+
+                response.IsSaved = true;
+                response.SavedCount = 1;
+                response.Message = "Avatar Successfully Updated";
+                response.Result = AvatarManager.HideAuthDetails(saveAvatarResult.Result);
+            }
+            catch (Exception ex)
+            {
+                ErrorHandling.HandleError(ref response, $"{errorMessage}Unknown Error Occured. See DetailedMessage for more info.", ex.Message, ex);
+            }
+
+            return response;
+        }
 
         private (OASISResult<RefreshToken>, IAvatar) GetRefreshToken(string token)
         {

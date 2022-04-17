@@ -271,7 +271,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         //public async Task<OASISResult<AuthenticateResponse>> Authenticate(AuthenticateRequest model)
         public async Task<OASISResult<IAvatar>> Authenticate(AuthenticateRequest model)
         {
-            var response = await Program.AvatarManager.AuthenticateAsync(model.Email, model.Password, ipAddress());
+            var response = await Program.AvatarManager.AuthenticateAsync(model.Username, model.Password, ipAddress());
 
             if (!response.IsError && response.Result != null)
                 setTokenCookie(response.Result.RefreshToken);
@@ -669,7 +669,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         }
 
         [Authorize]
-        [HttpPost("UpdateByUsername/{email}")]
+        [HttpPost("UpdateByUsername/{username}")]
         public async Task<OASISResult<IAvatar>> UpdateByUsername(UpdateRequest avatar, string username)
         {
             // users can update their own account and admins can update any account
@@ -692,7 +692,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             if (id != Avatar.Id && Avatar.AvatarType.Value != AvatarType.Wizard)
                 return new OASISResult<bool> { Result = false, IsError = true };
 
-            return FormatResponse(await _avatarService.Delete(id));
+            return FormatResponse(await Program.AvatarManager.DeleteAvatarAsync(id));
         }
 
         [Authorize]
@@ -703,7 +703,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             if (username != Avatar.Username && Avatar.AvatarType.Value != AvatarType.Wizard)
                 return new OASISResult<bool> { IsError = true, Message = "Unauthorized", Result = false };
 
-            return FormatResponse(await _avatarService.DeleteByUsername(username));
+            return FormatResponse(await Program.AvatarManager.DeleteAvatarByUsernameAsync(username));
         }
 
         [Authorize]
@@ -713,8 +713,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             // users can delete their own account and admins can delete any account
             if (email != Avatar.Email && Avatar.AvatarType.Value != AvatarType.Wizard)
                 return new OASISResult<bool> { IsError = true, Message = "Unauthorized", Result = false };
-            
-            return FormatResponse(await _avatarService.DeleteByEmail(email));
+
+            return FormatResponse(await Program.AvatarManager.DeleteAvatarByEmailAsync(email));
         }
 
         /// <summary>
