@@ -1,6 +1,5 @@
 import React from "react";
 
-import SideNav from "./common/SideNav";
 import Navbar from "./common/Navbar";
 import Sidebar from "./common/sidebar/Sidebar";
 import Login from "./Login";
@@ -166,10 +165,7 @@ class App extends React.Component {
                         handleLogout={this.handleLogout}
                         user={this.state.user}
                     />
-                    {/* <SideNav
-                        showSidebar={this.state.showSidebar}
-                        toggleSidebar={this.toggleSidebar}
-                    /> */}
+                    
                     <Sidebar
                         showSidebar={this.state.showSidebar}
                         toggleSidebar={this.toggleSidebar}
