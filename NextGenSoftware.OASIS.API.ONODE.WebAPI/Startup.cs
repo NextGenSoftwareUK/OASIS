@@ -19,7 +19,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
 {
     public class Startup
     {
-        private const string VERSION = "OASIS API v0.19.1 ALPHA";
+        private const string VERSION = "WEB 4 OASIS API v2.0.1 PREVIEW";
         readonly string MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
 
         public Startup(IConfiguration configuration)

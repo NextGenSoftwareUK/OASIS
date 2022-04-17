@@ -63,13 +63,13 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Middleware
                 var exceptionResponse = new OASISResult<string>()
                 {
                     Message = $"Authorization Failed: JWT Token Is Invalid. Make sure it is set in the Authorization Header for your request or alternatively please re-login and try again.",
-                    IsError = true,
                 };
+
+                ErrorHandling.HandleError(ref exceptionResponse, exceptionResponse.Message, ex.Message);
                 context.Response.StatusCode = 401;
                 context.Response.ContentType = "application/json";
                 await context.Response.Body.WriteAsync(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(exceptionResponse)));
                 context.Response.ContentLength = context.Response.Body.Length;
-                ErrorHandling.HandleError(ref exceptionResponse, ex.Message);
             }
         }
     }
