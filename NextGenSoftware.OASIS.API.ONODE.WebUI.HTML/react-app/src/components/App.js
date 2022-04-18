@@ -71,6 +71,7 @@ class App extends React.Component {
     if (localStorage.getItem("user")) {
       this.setState({ user: JSON.parse(localStorage.getItem("user")) });
     }
+}
 
     setUserData = (data) => {
         this.setState({
@@ -219,6 +220,7 @@ class App extends React.Component {
             </div>
         );
     }
+
 }
 
 export default App;
