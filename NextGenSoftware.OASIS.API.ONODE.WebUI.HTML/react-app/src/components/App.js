@@ -12,63 +12,64 @@ import "../assets/scss/general.scss";
 import "../assets/scss/style.scss";
 
 import axios from "axios";
-import 'react-toastify/dist/ReactToastify.css';
+import "react-toastify/dist/ReactToastify.css";
 import Avatar from "./popups/avatar";
 import DataScreen from "./popups/data-screen";
 import Seeds from "./popups/seeds";
+import ForgotPassword from "./forgotPassword";
 
 class App extends React.Component {
-    state = {
-        showSidebar: false,
-        showLogin: false,
-        showSignup: false,
-        user: null,
+  state = {
+    showSidebar: false,
+    showLogin: false,
+    showSignup: false,
+    showForgetPassword: false,
+    user: null,
 
-        sidebarMenuOption: [
-            {
-                data: {
-                    loadData: false,
-                    sendData: false,
-                    manageData: false,
-                    offChainManagement: false,
-                    crossChainManagement: false
-                }
-            },
-            {
-                nft: {
-                    solana: false,
-                    contactPopup: false
-                }
-            },
-            {
-                seeds: {
-                    acceptInvite: false,
-                    payWithSeeds: false,
-                    donateSeeds: false,
-                    sendInvite: false,
-                    rewardSeeds: false
-                }
-            },
-            {
-                avatar: {
-                    avatarWallet: false,
-                    viewAvatar: false
-                },
-            },
-            {
-                karma: {
-                    viewKarma: false
-                },
-            },
-        ],
-    };
+    sidebarMenuOption: [
+      {
+        data: {
+          loadData: false,
+          sendData: false,
+          manageData: false,
+          offChainManagement: false,
+          crossChainManagement: false,
+        },
+      },
+      {
+        nft: {
+          solana: false,
+          contactPopup: false,
+        },
+      },
+      {
+        seeds: {
+          acceptInvite: false,
+          payWithSeeds: false,
+          donateSeeds: false,
+          sendInvite: false,
+          rewardSeeds: false,
+        },
+      },
+      {
+        avatar: {
+          avatarWallet: false,
+          viewAvatar: false,
+        },
+      },
+      {
+        karma: {
+          viewKarma: false,
+        },
+      },
+    ],
+  };
 
-    componentDidMount() {
-        localStorage.getItem("user");
+  componentDidMount() {
+    localStorage.getItem("user");
 
-        if (localStorage.getItem("user")) {
-            this.setState({ user: JSON.parse(localStorage.getItem("user")) });
-        }
+    if (localStorage.getItem("user")) {
+      this.setState({ user: JSON.parse(localStorage.getItem("user")) });
     }
 
     setUserData = (data) => {
