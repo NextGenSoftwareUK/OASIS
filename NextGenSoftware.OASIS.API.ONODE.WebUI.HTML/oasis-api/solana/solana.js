@@ -6,7 +6,7 @@ class Solana {
     this.avatar = new Avatar();
   }
 
-  async Mint(data) {
+  async mint(data) {
     data = JSON.stringify(data);
     this.token = await this.avatar.callLogin();
     if (this.token === -1)
