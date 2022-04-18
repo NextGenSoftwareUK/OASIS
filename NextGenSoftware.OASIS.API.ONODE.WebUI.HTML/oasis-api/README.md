@@ -76,7 +76,7 @@ import { Auth } from "oasis-api";
 const oasisAuth = new Auth();
 
 oasisAuth.login({
-  email: "email@test.com",
+  username: "email@test.com",
   password: "testpass",
 }).then((res)=>{
   if(res.error){

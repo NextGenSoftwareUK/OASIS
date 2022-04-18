@@ -54,7 +54,7 @@ class Auth {
 
   login(
     data = {
-      email,
+      username,
       password,
     }
   ) {
