@@ -58,23 +58,40 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         // For now just easier to call the REST API service from STAR... can come back to this later... :)
         public OASISResult<IAvatar> Authenticate(string username, string password, string ipAddress)
         {
-            OASISResult<IAvatar> result = new OASISResult<IAvatar>();
+            //They can log in with either username, email or a public key linked to the avatar.
+            OASISResult<IAvatar> result = null;
 
             try
             {
+                //First try by username...
                 result = LoadAvatar(username, false);
 
                 if (result.Result == null)
                 {
-                    result.IsError = true;
-                    result.Message = $"This avatar does not exist. Please contact support or create a new avatar. Error Details: {result.Message}";
+                    //Now try by email...
+                    result = LoadAvatarByEmail(username, false);
+
+                    if (result.Result == null)
+                    {
+                        //Finally by Public Key...
+                        OASISResult<IEnumerable<IAvatar>> avatarsResult = LoadAllAvatars();
+
+                        if (!avatarsResult.IsError && avatarsResult.Result != null)
+                        {
+                            result.Result = avatarsResult.Result.FirstOrDefault(x => x.ProviderPublicKey[ProviderManager.CurrentStorageProviderType.Value].Contains(username));
+
+                            if (result.Result == null)
+                                result.Message = $"This avatar does not exist. Please contact support or create a new avatar. Error Details: {result.Message}";
+                        }
+                    }
                 }
-                else
+
+                if (result.Result != null)
                 {
                     if (result.Result.DeletedDate != DateTime.MinValue)
                     {
                         result.IsError = true;
-                        result.Message = "This avatar has been deleted. Please contact support or create a new avatar.";
+                        result.Message = $"This avatar was deleted on {result.Result.DeletedDate} by avatar with id {result.Result.DeletedByAvatarId}, please contact support or create a new avatar with a new email address.";
                     }
 
                     // TODO: Implement Activate/Deactivate methods in AvatarManager & Providers...
@@ -136,24 +153,42 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
         public async Task<OASISResult<IAvatar>> AuthenticateAsync(string username, string password, string ipAddress)
         {
-            OASISResult<IAvatar> result = await LoadAvatarAsync(username, false);
+            //They can log in with either username, email or a public key linked to the avatar.
+            OASISResult<IAvatar> result = null;
 
             try
             {
+                //First try by username...
+                result = await LoadAvatarAsync(username, false);
+
                 if (result.Result == null)
                 {
-                    result.IsError = true;
-                    result.Message = $"This avatar does not exist. Please contact support or create a new avatar. Error Details: {result.Message}";
+                    //Now try by email...
+                    result = await LoadAvatarByEmailAsync(username, false);
+
+                    if (result.Result == null)
+                    {
+                        //Finally by Public Key...
+                        OASISResult<IEnumerable<IAvatar>> avatarsResult = await LoadAllAvatarsAsync();
+                        
+                        if (!avatarsResult.IsError && avatarsResult.Result != null)
+                        {
+                            result.Result = avatarsResult.Result.FirstOrDefault(x => x.ProviderPublicKey[ProviderManager.CurrentStorageProviderType.Value].Contains(username));
+
+                            if (result.Result == null)
+                                result.Message = $"This avatar does not exist. Please contact support or create a new avatar. Error Details: {result.Message}";
+                        }
+                    }
                 }
-                else
+                
+                if (result.Result != null)
                 {
                     if (result.Result.DeletedDate != DateTime.MinValue)
                     {
                         result.IsError = true;
-                        result.Message = "This avatar has been deleted. Please contact support or create a new avatar.";
+                        result.Message = $"This avatar was deleted on {result.Result.DeletedDate} by avatar with id {result.Result.DeletedByAvatarId}, please contact support or create a new avatar with a new email address.";
                     }
 
-                    // TODO: Implement Activate/Deactivate methods in AvatarManager & Providers...
                     if (!result.Result.IsActive)
                     {
                         result.IsError = true;
@@ -361,6 +396,76 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
             return result;
         }
+
+        //TODO: Finish moving Update methods and ALL AvatarService methods here ASAP!
+        //Update also needs to be able to update ANY avatar property, currently it is only email, name, etc.
+
+        /*
+        public async Task<OASISResult<IAvatar>> Update(Guid id, UpdateRequest avatar)
+        {
+            var response = new OASISResult<IAvatar>();
+            string errorMessage = "Error in Update method in Avatar Service. Reason: ";
+
+            try
+            {
+                response = await AvatarManager.LoadAvatarAsync(id, false);
+
+                if (response.IsError || response.Result == null)
+                    ErrorHandling.HandleError(ref response, $"{errorMessage}{response.Message}", response.DetailedMessage);
+                else
+                    response = await Update(response.Result, avatar);
+            }
+            catch (Exception ex)
+            {
+                ErrorHandling.HandleError(ref response, $"{errorMessage}Unknown Error Occured. See DetailedMessage for more info.", ex.Message, ex);
+            }
+
+            return response;
+        }
+
+        public async Task<OASISResult<IAvatar>> UpdateByEmail(string email, UpdateRequest avatar)
+        {
+            var response = new OASISResult<IAvatar>();
+            string errorMessage = "Error in UpdateByEmail method in Avatar Service. Reason: ";
+
+            try
+            {
+                response = await AvatarManager.LoadAvatarByEmailAsync(email);
+
+                if (response.IsError || response.Result == null)
+                    ErrorHandling.HandleError(ref response, $"{errorMessage}{response.Message}", response.DetailedMessage);
+                else
+                    response = await Update(response.Result, avatar);
+            }
+            catch (Exception ex)
+            {
+                ErrorHandling.HandleError(ref response, $"{errorMessage}Unknown Error Occured. See DetailedMessage for more info.", ex.Message, ex);
+            }
+
+            return response;
+        }
+
+        public async Task<OASISResult<IAvatar>> UpdateByUsername(string username, UpdateRequest avatar)
+        {
+            var response = new OASISResult<IAvatar>();
+            string errorMessage = "Error in UpdateByUsername method in Avatar Service. Reason: ";
+
+            try
+            {
+                response = await AvatarManager.LoadAvatarAsync(username);
+
+                if (response.IsError || response.Result == null)
+                    ErrorHandling.HandleError(ref response, $"{errorMessage}{response.Message}", response.DetailedMessage);
+                else
+                    response = await Update(response.Result, avatar);
+            }
+            catch (Exception ex)
+            {
+                ErrorHandling.HandleError(ref response, $"{errorMessage}Unknown Error Occured. See DetailedMessage for more info.", ex.Message, ex);
+            }
+
+            return response;
+        }*/
 
         public OASISResult<IAvatar> LoadAvatar(Guid id, bool hideAuthDetails = true, ProviderType providerType = ProviderType.Default, int version = 0)
         {
@@ -2127,14 +2232,21 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return result;
         }
 
-        public bool CheckIfEmailIsAlreadyInUse(string email)
-        {
-            // OASISResult<IAvatar> avatarResult = await LoadAvatarByEmailAsync(email);
+        //public bool CheckIfEmailIsAlreadyInUse(string email)
+        //{
+        //    OASISResult<IAvatar> result = LoadAvatarByEmail(email);
 
-
-            //return LoadAllAvatars().Any(x => x.Email == email);
-            return LoadAvatarByEmail(email).Result != null;
-        }
+        //    if (!result.IsError && result.Result != null)
+        //    {
+        //        //If the avatar has previously been deleted (soft deleted) then allow them to create a new avatar with the same email address.
+        //       // if (result.Result.DeletedDate == DateTime.MinValue)
+        //            return true;
+        //      //  else
+        //     //       return false;
+        //    }
+        //    else
+        //        return false;
+        //}
 
         private IAvatar PrepareAvatarForSaving(IAvatar avatar)
         {
@@ -2341,15 +2453,34 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 return result;
             }
 
-            //TODO: {PERFORMANCE} Add this method to the providers so more efficient.
-            if (CheckIfEmailIsAlreadyInUse(email))
+            OASISResult<IAvatar> existingAvatarResult = LoadAvatarByEmail(email);
+
+            if (!existingAvatarResult.IsError && existingAvatarResult.Result != null)
             {
-                // send already registered error in email to prevent account enumeration
-                sendAlreadyRegisteredEmail(email, origin);
-                result.IsError = true;
-                result.Message = "Avatar Already Registered.";
-                return result;
+                //If the avatar has previously been deleted (soft deleted) then allow them to create a new avatar with the same email address.
+                if (existingAvatarResult.Result.DeletedDate != DateTime.MinValue)
+                {
+                    sendAlreadyRegisteredEmail(email, origin);
+                    ErrorHandling.HandleError(ref result, $"This avatar was deleted on {existingAvatarResult.Result.DeletedDate} by avatar with id {existingAvatarResult.Result.DeletedByAvatarId}, please contact support or create a new avatar with a new email address.");
+                    return result;
+                }
+                else
+                {
+                    sendAlreadyRegisteredEmail(email, origin);
+                    ErrorHandling.HandleError(ref result, "Avatar Already Registered.");
+                    return result;
+                }
             }
+
+            //TODO: {PERFORMANCE} Add this method to the providers so more efficient.
+            //if (CheckIfEmailIsAlreadyInUse(email))
+            //{
+            //    // send already registered error in email to prevent account enumeration
+            //    sendAlreadyRegisteredEmail(email, origin);
+            //    result.IsError = true;
+            //    result.Message = "Avatar Already Registered.";
+            //    return result;
+            //}
 
             result.Result = new Avatar() { Id = Guid.NewGuid(), IsNewHolon = true, FirstName = firstName, LastName = lastName, Password = password, Title = avatarTitle, Email = email, AvatarType = new EnumValue<AvatarType>(avatarType), CreatedOASISType = new EnumValue<OASISType>(createdOASISType) };
             result.Result.Username = result.Result.Email; //Default the username to their email (they can change this later in Avatar Profile screen).
@@ -2588,7 +2719,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         private async Task<OASISResult<IAvatar>> LoadAvatarForProviderAsync(string username, OASISResult<IAvatar> result, ProviderType providerType = ProviderType.Default, int version = 0)
         {
             //string errorMessage = $"Error in LoadAvatarForProviderAsync method in AvatarManager loading avatar with username {username} for provider {providerType}. Reason: ";
-            string errorMessageTemplate = $"Error in LoadAvatarForProviderAsync method in AvatarManager loading avatar with username {0} for provider {1}. Reason: ";
+            string errorMessageTemplate = "Error in LoadAvatarForProviderAsync method in AvatarManager loading avatar with username {0} for provider {1}. Reason: ";
             string errorMessage = string.Format(errorMessageTemplate, username, providerType);
 
             try
@@ -2634,7 +2765,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         private async Task<OASISResult<IAvatar>> LoadAvatarForProviderAsync(string username, string password, OASISResult<IAvatar> result, ProviderType providerType = ProviderType.Default, int version = 0)
         {
             //string errorMessage = $"Error in LoadAvatarForProviderAsync method in AvatarManager loading avatar with username {username} for provider {providerType}. Reason: ";
-            string errorMessageTemplate = $"Error in LoadAvatarForProviderAsync method in AvatarManager loading avatar with username {0} for provider {1}. Reason: ";
+            string errorMessageTemplate = "Error in LoadAvatarForProviderAsync method in AvatarManager loading avatar with username {0} for provider {1}. Reason: ";
             string errorMessage = string.Format(errorMessageTemplate, username, providerType);
 
             try
@@ -2680,7 +2811,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         private async Task<OASISResult<IAvatar>> LoadAvatarByEmailForProviderAsync(string email, OASISResult<IAvatar> result, ProviderType providerType = ProviderType.Default, int version = 0)
         {
             //string errorMessage = $"Error in LoadAvatarByEmailForProviderAsync method in AvatarManager loading avatar with email {email} for provider {providerType}. Reason: ";
-            string errorMessageTemplate = $"Error in LoadAvatarByEmailForProviderAsync method in AvatarManager loading avatar with email {0} for provider {1}. Reason: ";
+            string errorMessageTemplate = "Error in LoadAvatarByEmailForProviderAsync method in AvatarManager loading avatar with email {0} for provider {1}. Reason: ";
             string errorMessage = string.Format(errorMessageTemplate, email, providerType);
 
             try
@@ -2725,7 +2856,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
         private async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailForProviderAsync(Guid id, OASISResult<IAvatarDetail> result, ProviderType providerType = ProviderType.Default, int version = 0)
         {
-            string errorMessageTemplate = $"Error in LoadAvatarDetailForProviderAsync method in AvatarManager loading avatar detail with id {0} for provider {1}. Reason: ";
+            string errorMessageTemplate = "Error in LoadAvatarDetailForProviderAsync method in AvatarManager loading avatar detail with id {0} for provider {1}. Reason: ";
             string errorMessage = string.Format(errorMessageTemplate, id, providerType);
             //string errorMessage = $"Error in LoadAvatarDetailForProviderAsync method in AvatarManager loading avatar detail with id {id} for provider {providerType}. Reason: ";
 
@@ -2772,7 +2903,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         private async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByEmailForProviderAsync(string email, OASISResult<IAvatarDetail> result, ProviderType providerType = ProviderType.Default, int version = 0)
         {
             //string errorMessage = $"Error in LoadAvatarDetailByUsernameForProviderAsync method in AvatarManager loading avatar detail with email {email} for provider {providerType}. Reason: ";
-            string errorMessageTemplate = $"Error in LoadAvatarDetailByEmailForProviderAsync method in AvatarManager loading avatar detail with email {0} for provider {1}. Reason: ";
+            string errorMessageTemplate = "Error in LoadAvatarDetailByEmailForProviderAsync method in AvatarManager loading avatar detail with email {0} for provider {1}. Reason: ";
             string errorMessage = string.Format(errorMessageTemplate, email, providerType);
 
             try
@@ -2818,7 +2949,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         private async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByUsernameForProviderAsync(string username, OASISResult<IAvatarDetail> result, ProviderType providerType = ProviderType.Default, int version = 0)
         {
             //string errorMessage = $"Error in LoadAvatarDetailByUsernameForProviderAsync method in AvatarManager loading avatar detail with username {username} for provider {providerType}. Reason: ";
-            string errorMessageTemplate = $"Error in LoadAvatarDetailByUsernameForProviderAsync method in AvatarManager loading avatar detail with username {0} for provider {1}. Reason: ";
+            string errorMessageTemplate = "Error in LoadAvatarDetailByUsernameForProviderAsync method in AvatarManager loading avatar detail with username {0} for provider {1}. Reason: ";
             string errorMessage = string.Format(errorMessageTemplate, username, providerType);
 
             try
@@ -2864,7 +2995,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         private async Task<OASISResult<IEnumerable<IAvatar>>> LoadAllAvatarsForProviderAsync(OASISResult<IEnumerable<IAvatar>> result, ProviderType providerType = ProviderType.Default, int version = 0)
         {
             //string errorMessage = $"Error in LoadAllAvatarsForProviderAsync method in AvatarManager loading all avatars for provider {providerType}. Reason: ";
-            string errorMessageTemplate = $"Error in LoadAllAvatarsForProviderAsync method in AvatarManager loading all avatar details for provider {0}. Reason: ";
+            string errorMessageTemplate = "Error in LoadAllAvatarsForProviderAsync method in AvatarManager loading all avatar details for provider {0}. Reason: ";
             string errorMessage = string.Format(errorMessageTemplate, providerType);
 
             try
@@ -2910,7 +3041,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         private async Task<OASISResult<IEnumerable<IAvatarDetail>>> LoadAllAvatarDetailsForProviderAsync(OASISResult<IEnumerable<IAvatarDetail>> result, ProviderType providerType = ProviderType.Default, int version = 0)
         {
             //string errorMessage = $"Error in LoadAllAvatarDetailsForProviderAsync method in AvatarManager loading all avatar details for provider {providerType}. Reason: ";
-            string errorMessageTemplate = $"Error in LoadAllAvatarDetailsForProviderAsync method in AvatarManager loading all avatar details for provider {0}. Reason: ";
+            string errorMessageTemplate = "Error in LoadAllAvatarDetailsForProviderAsync method in AvatarManager loading all avatar details for provider {0}. Reason: ";
             string errorMessage = string.Format(errorMessageTemplate, providerType);
 
             try
@@ -2952,7 +3083,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         {
             //ProviderType currentProviderType = ProviderManager.CurrentStorageProviderType.Value;
             //string errorMessage = $"Error in SaveAvatarDetailForProviderAsync method in AvatarManager saving avatar with name {avatar.Name}, username {avatar.Username} and id {avatar.Id} for provider {providerType}. Reason: ";
-            string errorMessageTemplate = $"Error in SaveAvatarDetailForProviderAsync method in AvatarManager saving avatar with name {0}, username {1} and id {2} for provider {3} for {4}. Reason: ";
+            string errorMessageTemplate = "Error in SaveAvatarDetailForProviderAsync method in AvatarManager saving avatar with name {0}, username {1} and id {2} for provider {3} for {4}. Reason: ";
             string errorMessage = string.Format(errorMessageTemplate, avatar.Name, avatar.Username, avatar.Id, providerType, Enum.GetName(typeof(SaveMode), saveMode));
 
             try
@@ -2999,7 +3130,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         {
             //ProviderType currentProviderType = ProviderManager.CurrentStorageProviderType.Value;
             //string errorMessage = $"Error in SaveAvatarForProvider method in AvatarManager saving avatar with name {avatar.Name}, username {avatar.Username} and id {avatar.Id} for provider {providerType} for {Enum.GetName(typeof(SaveMode), saveMode)}. Reason: ";
-            string errorMessageTemplate = $"Error in SaveAvatarForProvider method in AvatarManager saving avatar detail with name {0}, username {1} and id {2} for provider {3} for {4}. Reason: ";
+            string errorMessageTemplate = "Error in SaveAvatarForProvider method in AvatarManager saving avatar detail with name {0}, username {1} and id {2} for provider {3} for {4}. Reason: ";
             string errorMessage = string.Format(errorMessageTemplate, avatar.Name, avatar.Username, avatar.Id, providerType, Enum.GetName(typeof(SaveMode), saveMode));
 
             try
@@ -3045,7 +3176,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         public async Task<OASISResult<IAvatarDetail>> SaveAvatarDetailForProviderAsync(IAvatarDetail avatar, OASISResult<IAvatarDetail> result, SaveMode saveMode, ProviderType providerType = ProviderType.Default)
         {
             //ProviderType currentProviderType = ProviderManager.CurrentStorageProviderType.Value;
-            string errorMessageTemplate = $"Error in SaveAvatarDetailForProviderAsync method in AvatarManager saving avatar detail with name {0}, username {1} and id {2} for provider {3} for {4}. Reason: ";
+            string errorMessageTemplate = "Error in SaveAvatarDetailForProviderAsync method in AvatarManager saving avatar detail with name {0}, username {1} and id {2} for provider {3} for {4}. Reason: ";
             string errorMessage = string.Format(errorMessageTemplate, avatar.Name, avatar.Username, avatar.Id, providerType, Enum.GetName(typeof(SaveMode), saveMode));
             //string errorMessage = $"Error in SaveAvatarDetailForProviderAsync method in AvatarManager saving avatar detail with name {avatar.Name}, username {avatar.Username} and id {avatar.Id} for provider {providerType} for {Enum.GetName(typeof(SaveMode), saveMode)}. Reason: ";
 
@@ -3101,7 +3232,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
         public async Task<OASISResult<bool>> DeleteAvatarForProviderAsync(Guid id, OASISResult<bool> result, SaveMode saveMode, bool softDelete = true, ProviderType providerType = ProviderType.Default)
         {
-            string errorMessageTemplate = $"Error in DeleteAvatarForProviderAsync method in AvatarManager deleting avatar with email {0} for provider {1} for {2}. Reason: ";
+            string errorMessageTemplate = "Error in DeleteAvatarForProviderAsync method in AvatarManager deleting avatar with email {0} for provider {1} for {2}. Reason: ";
             string errorMessage = string.Format(errorMessageTemplate, id, providerType, Enum.GetName(typeof(SaveMode), saveMode));
             //string errorMessage = $"Error in DeleteAvatarForProviderAsync method in AvatarManager deleting avatar with id {id} for provider {providerType} for {Enum.GetName(typeof(SaveMode), saveMode)}. Reason: ";
 
@@ -3154,7 +3285,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         {
             //ProviderType currentProviderType = ProviderManager.CurrentStorageProviderType.Value;
             //string errorMessage = $"Error in DeleteAvatarByEmailForProviderAsync method in AvatarManager deleting avatar with email {email} for provider {providerType} for {Enum.GetName(typeof(SaveMode), saveMode)}. Reason: ";
-            string errorMessageTemplate = $"Error in DeleteAvatarByEmailForProviderAsync method in AvatarManager deleting avatar with email {0} for provider {1} for {2}. Reason: ";
+            string errorMessageTemplate = "Error in DeleteAvatarByEmailForProviderAsync method in AvatarManager deleting avatar with email {0} for provider {1} for {2}. Reason: ";
             string errorMessage = string.Format(errorMessageTemplate, email, providerType, Enum.GetName(typeof(SaveMode), saveMode));
 
             try

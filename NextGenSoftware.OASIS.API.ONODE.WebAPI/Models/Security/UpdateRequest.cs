@@ -15,6 +15,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Security
         public string Title { get; set; }
         public string FirstName { get; set; }
         public string LastName { get; set; }
+        public string Username { get; set; }
 
         [EnumDataType(typeof(AvatarType))]
         public string AvatarType
