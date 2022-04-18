@@ -38,9 +38,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Interfaces
         Task<OASISResult<IAvatar>> Update(Guid id, UpdateRequest avatar);
         Task<OASISResult<IAvatar>> UpdateByEmail(string email, UpdateRequest avatar);
         Task<OASISResult<IAvatar>> UpdateByUsername(string username, UpdateRequest avatar);
-        Task<OASISResult<bool>> Delete(Guid id);
-        Task<OASISResult<bool>> DeleteByUsername(string username);
-        Task<OASISResult<bool>> DeleteByEmail(string email);
+        //Task<OASISResult<bool>> Delete(Guid id);
+        //Task<OASISResult<bool>> DeleteByUsername(string username);
+        //Task<OASISResult<bool>> DeleteByEmail(string email);
         //Task<OASISResult<IAvatarDetail>> GetAvatarDetail(Guid id);
         //Task<OASISResult<IAvatarDetail>> GetAvatarDetailByUsername(string username);
         //Task<OASISResult<IAvatarDetail>> GetAvatarDetailByEmail(string email);
