@@ -1,18 +1,17 @@
-import React from 'react';
-
-import ShowIcon from '../assets/images/visible-icon.svg';
-import HideIcon from '../assets/images/hidden-icon.svg';
+import React from "react";
+import axios from "axios";
+import ShowIcon from "../assets/images/visible-icon.svg";
+import HideIcon from "../assets/images/hidden-icon.svg";
 
 import ForgetPassword from "./ForgetPassword";
 
 import { ToastContainer, toast } from "react-toastify";
 
-import { Modal } from 'react-bootstrap';
-import Loader from 'react-loader-spinner';
+import { Modal } from "react-bootstrap";
+import Loader from "react-loader-spinner";
 import { Formik } from "formik";
 import oasisApi from "oasis-api";
 import * as Yup from "yup";
-
 
 export default class Login extends React.Component {
 
