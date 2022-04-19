@@ -20,7 +20,7 @@ export default class Login extends React.Component {
 
         this.state = {
             form: {
-                email: '',
+                username: '',
                 password: '',
             },
             showPassword: false,
@@ -31,13 +31,12 @@ export default class Login extends React.Component {
     }
 
     initialValues = {
-        email: '',
+        username: '',
         password: ''
     }
     validationSchema = Yup.object().shape({
-        email: Yup.string()
-            .email('Email is invalid')
-            .required("Email is required"),
+        username: Yup.string()
+            .required("Username is required"),
         password: Yup.string()
             .required("No password provided.")
             .min(8, "Password is too short - should be 8 characters minimum.")
@@ -52,18 +51,17 @@ export default class Login extends React.Component {
         const auth = new oasisApi.Auth();
         auth.login(data)
             .then(response => {
+                console.log(response)
                 this.setState({loading: false})
                 if (response.data.isError) {
                     toast.error(response.data.message);
                     return;
                 }
-                localStorage.setItem('user', JSON.stringify(response.data.avatar))
-                localStorage.setItem('credentials', JSON.stringify(data))
-                
-                toast.success(" Successfully Updated!");
-                this.setState({user: response.data.avatar})
+             
+                toast.success(response.data.message);
+                this.setState({user: response.data.result})
 
-                this.props.setUserStateData(response.data.avatar);
+                this.props.setUserStateData(response.data.result);
 
                 this.props.hide();
             })
@@ -139,17 +137,17 @@ export default class Login extends React.Component {
                                     </div>
 
                                     <div className="form-inputs">
-                                        <div className={this.handleFormFieldClass(errors.email, touched.email)}>
-                                            <label>EMAIL</label>
+                                        <div className={this.handleFormFieldClass(errors.username, touched.username)}>
+                                            <label>USERNAME</label>
                                             <input
                                                 type="email"
-                                                name="email"
-                                                value={values.email}
+                                                name="username"
+                                                value={values.username}
                                                 onChange={handleChange}
                                                 onBlur={handleBlur}
                                                 disabled={loading}
                                                 placeholder="name@example.com" />
-                                            <span className="text-danger">{errors.email && touched.email && errors.email}</span>
+                                            <span className="text-danger">{errors.username && touched.username && errors.username}</span>
                                         </div>
 
                                         <div className={this.handleFormFieldClass(errors.password, touched.password)}>
