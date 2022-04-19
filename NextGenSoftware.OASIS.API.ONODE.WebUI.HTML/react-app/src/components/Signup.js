@@ -65,16 +65,21 @@ export default class Signup extends React.Component {
 
     handleSignup = () => {
         if (this.state.form.password === this.state.form.confirmPassword) {
-            this.setState({ loading: true })
-            if(!this.state.form.acceptTerms) return;
+            if(!this.state.form.acceptTerms){
+                toast.info('Please accept terms')
+                return
+            }
             let data = {...this.state.form}
-            
+
+            this.setState({ loading: true })
             const auth = new oasisApi.Auth();
             auth.signup(data)
                 .then(response => {
-                    if(response.data.isError) {
+                    console.log(response)
+                    if(response.error) {
                         toast.error(response.data.message)
-                    } else {
+                        return
+                    } else if(!response.error) {
                         this.props.hide()
                         toast.success("Avatar is created successfully");
                     }
@@ -83,6 +88,8 @@ export default class Signup extends React.Component {
                     console.log(error)
                     this.setState({ loading: false })
                     toast.error(error.data.message);
+                }).finally(()=>{
+                    this.setState({loading: false})
                 });
         } else {
             toast.error("Password did not match")
@@ -111,7 +118,7 @@ export default class Signup extends React.Component {
                     validationSchema={this.validationSchema}
                     onSubmit={(values, { setSubmitting, resetForm }) => {
                         setTimeout(() => {
-                            let form = values;
+                            let form = {...values, avatarType: 'User'};
                             this.setState({ form })
                             this.handleSignup();
 
@@ -148,7 +155,6 @@ export default class Signup extends React.Component {
                                                 value={values.firstName}
                                                 onChange={handleChange}
                                                 onBlur={handleBlur}
-                                                disabled={loading}
                                                 placeholder="Jhone Doe"
                                             />
                                             <span className="text-danger">{errors.firstName && touched.firstName && errors.firstName}</span>
@@ -163,7 +169,6 @@ export default class Signup extends React.Component {
                                                 value={values.lastName}
                                                 onChange={handleChange}
                                                 onBlur={handleBlur}
-                                                disabled={loading}
                                                 placeholder="Jhone Doe"
                                             />
                                             <span className="text-danger">{errors.lastName && touched.lastName && errors.lastName}</span>
@@ -178,7 +183,6 @@ export default class Signup extends React.Component {
                                                 value={values.email}
                                                 onChange={handleChange}
                                                 onBlur={handleBlur}
-                                                disabled={loading}
                                                 placeholder="name@example.com"
                                             />
                                             <span className="text-danger">{errors.email && touched.email && errors.email}</span>
@@ -194,7 +198,6 @@ export default class Signup extends React.Component {
                                                     onChange={handleChange}
                                                     disabled={loading}
                                                     onBlur={handleBlur}
-                                                    disabled={loading}
                                                     placeholder="password"
                                                 />
                                                 <img
