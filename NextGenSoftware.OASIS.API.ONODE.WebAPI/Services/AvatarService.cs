@@ -429,12 +429,14 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
                     result.Result = new AvatarImage
                     {
                         AvatarId = avatarResult.Result.Id,
+                        Email = avatarResult.Result.Email,
+                        Username = avatarResult.Result.Username,
                         ImageBase64 = avatarResult.Result.Image2D
                     };
                 }
             }
             else
-                ErrorHandling.HandleError(ref result, $"Error occured in GetAvatarImageById loading the avatar detail. Reason: {avatarResult.Message}");
+                ErrorHandling.HandleError(ref result, $"Error occured in GetAvatarImageById loading the avatar detail. Reason: {avatarResult.Message}", avatarResult.DetailedMessage);
 
             return result;
         }
@@ -460,12 +462,14 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
                     result.Result = new AvatarImage
                     {
                         AvatarId = avatarResult.Result.Id,
+                        Email = avatarResult.Result.Email,
+                        Username = avatarResult.Result.Username,
                         ImageBase64 = avatarResult.Result.Image2D
                     };
                 }
             }
             else
-                ErrorHandling.HandleError(ref result, $"Error occured in GetAvatarImageByUsername loading the avatar detail. Reason: {avatarResult.Message}");
+                ErrorHandling.HandleError(ref result, $"Error occured in GetAvatarImageByUsername loading the avatar detail. Reason: {avatarResult.Message}", avatarResult.DetailedMessage);
 
             return result;
         }
@@ -480,23 +484,25 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
                 return result;
             }
 
-            OASISResult<IAvatarDetail> avatarResult = await AvatarManager.LoadAvatarDetailByUsernameAsync(email);
+            OASISResult<IAvatarDetail> avatarResult = await AvatarManager.LoadAvatarDetailByEmailAsync(email);
 
             if (!avatarResult.IsError && avatarResult.Result != null)
             {
                 if (avatarResult.Result.Image2D == null)
-                    ErrorHandling.HandleError(ref result, "Error occured in GetAvatarImageByEmail. No image has been uploaded for this avatar. Please upload an image first.");
+                    ErrorHandling.HandleError(ref result, "Error occured in GetAvatarImageByEmail. No image has been uploaded for this avatar. Please upload an image first.", avatarResult.DetailedMessage);
                 else
                 {
                     result.Result = new AvatarImage
                     {
                         AvatarId = avatarResult.Result.Id,
+                        Email = avatarResult.Result.Email,
+                        Username = avatarResult.Result.Username,
                         ImageBase64 = avatarResult.Result.Image2D
                     };
                 }
             }
             else
-                ErrorHandling.HandleError(ref result, $"Error occured in email loading the avatar detail. Reason: {avatarResult.Message}");
+                ErrorHandling.HandleError(ref result, $"Error occured in email loading the avatar detail. Reason: {avatarResult.Message}", avatarResult.DetailedMessage);
 
             return result;
         }
@@ -504,16 +510,24 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
         public async Task<OASISResult<bool>> Upload2DAvatarImage(AvatarImage image)
         {
             var response = new OASISResult<bool>();
+            OASISResult<IAvatarDetail> avatarResult = null;
 
             try
             {
-                if (image.AvatarId == Guid.Empty)
+                if (image.AvatarId == Guid.Empty && string.IsNullOrEmpty(image.Username) && string.IsNullOrEmpty(image.Email))
                 {
-                    ErrorHandling.HandleError(ref response, "Error occured in Upload2DAvatarImage, AvatarId property not specified");
+                    ErrorHandling.HandleError(ref response, "Error occured in Upload2DAvatarImage, you need to specify either the AvatarId, Username or Email of the avatar you wish to upload an image for.");
                     return response;
                 }
 
-                OASISResult<IAvatarDetail> avatarResult = await AvatarManager.LoadAvatarDetailAsync(image.AvatarId);
+                if (image.AvatarId != Guid.Empty)
+                    avatarResult = await AvatarManager.LoadAvatarDetailAsync(image.AvatarId);
+
+                else if (!string.IsNullOrEmpty(image.Username))
+                    avatarResult = await AvatarManager.LoadAvatarDetailByUsernameAsync(image.Username);
+
+                else if (!string.IsNullOrEmpty(image.Email))
+                    avatarResult = await AvatarManager.LoadAvatarDetailByEmailAsync(image.Email);
 
                 if (!avatarResult.IsError && avatarResult.Result != null)
                 {
@@ -522,7 +536,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
 
                     if (saveAvatar.IsError)
                     {
-                        ErrorHandling.HandleError(ref response, $"Error occured in Upload2DAvatarImage saving avatar detail. Reason: {saveAvatar.Message}");
+                        ErrorHandling.HandleError(ref response, $"Error occured in Upload2DAvatarImage saving avatar detail. Reason: {saveAvatar.Message}", saveAvatar.DetailedMessage);
                         return response;
                     }
 
@@ -532,13 +546,13 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
                 else
                 {
                     response.Result = false;
-                    ErrorHandling.HandleError(ref response, $"Error uploading image. Avatar failed to load, reason: {avatarResult.Message}");
+                    ErrorHandling.HandleError(ref response, $"Error uploading image. Avatar failed to load, reason: {avatarResult.Message}", avatarResult.DetailedMessage);
                 }
                
             }
             catch (Exception e)
             {
-                ErrorHandling.HandleError(ref response, e.Message, true, false, false, false, true, e);
+                ErrorHandling.HandleError(ref response, e.Message, e);
             }
 
             return response;
@@ -873,11 +887,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
                 if (!avatarDetailResult.IsError && avatarDetailResult.Result != null)
                     result.Result = avatarDetailResult.Result.UmaJson;
                 else
-                    ErrorHandling.HandleError(ref result, $"Error occured in GetAvatarUmaJsonById loading avatar detail. Reason:{avatarDetailResult.Message}");
+                    ErrorHandling.HandleError(ref result, $"Error occured in GetAvatarUmaJsonById loading avatar detail. Reason:{avatarDetailResult.Message}", avatarDetailResult.DetailedMessage);
             }
             catch (Exception e)
             {
-                ErrorHandling.HandleError(ref result, $"Unknown error occured in GetAvatarUmaJsonById. Details: {e}", true, false, false, false, true, e);
+                ErrorHandling.HandleError(ref result, $"Unknown error occured in GetAvatarUmaJsonById. Details: {e}", e);
             }
 
             return result;
@@ -897,11 +911,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
                 if (!avatarDetailResult.IsError && avatarDetailResult.Result != null)
                     result.Result = avatarDetailResult.Result.UmaJson;
                 else
-                    ErrorHandling.HandleError(ref result, $"Error occured in GetAvatarUmaJsonByUsername loading avatar detail. Reason:{avatarDetailResult.Message}");
+                    ErrorHandling.HandleError(ref result, $"Error occured in GetAvatarUmaJsonByUsername loading avatar detail. Reason:{avatarDetailResult.Message}", avatarDetailResult.DetailedMessage);
             }
             catch (Exception e)
             {
-                ErrorHandling.HandleError(ref result, $"Unknown error occured in GetAvatarUmaJsonByUsername. Details: {e}", true, false, false, false, true, e);
+                ErrorHandling.HandleError(ref result, $"Unknown error occured in GetAvatarUmaJsonByUsername. Details: {e}", e);
             }
 
             return result;
@@ -916,16 +930,16 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
                 if (string.IsNullOrEmpty(email))
                     ErrorHandling.HandleError(ref result, "Error occured in GetAvatarUmaJsonByEmail. email is empty");
 
-                OASISResult<IAvatarDetail> avatarDetailResult = await AvatarManager.LoadAvatarDetailByUsernameAsync(email);
+                OASISResult<IAvatarDetail> avatarDetailResult = await AvatarManager.LoadAvatarDetailByEmailAsync(email);
 
                 if (!avatarDetailResult.IsError && avatarDetailResult.Result != null)
                     result.Result = avatarDetailResult.Result.UmaJson;
                 else
-                    ErrorHandling.HandleError(ref result, $"Error occured in GetAvatarUmaJsonByEmail loading avatar detail. Reason:{avatarDetailResult.Message}");
+                    ErrorHandling.HandleError(ref result, $"Error occured in GetAvatarUmaJsonByEmail loading avatar detail. Reason:{avatarDetailResult.Message}", avatarDetailResult.DetailedMessage);
             }
             catch (Exception e)
             {
-                ErrorHandling.HandleError(ref result, $"Unknown error occured in GetAvatarUmaJsonByEmail. Details: {e}", true, false, false, false, true, e);
+                ErrorHandling.HandleError(ref result, $"Unknown error occured in GetAvatarUmaJsonByEmail. Details: {e}", e);
             }
 
             return result;
@@ -1221,21 +1235,38 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
                 if (!string.IsNullOrEmpty(avatar.Password))
                     avatar.Password = BC.HashPassword(avatar.Password);
 
-                //TODO: Fix this.
+                //TODO: Fix this. Can't remember what needs fixing? But we need to be able to update ANY avatar property....
                 _mapper.Map(avatar, originalAvatar);
                 originalAvatar.ModifiedDate = DateTime.UtcNow;
 
                 var saveAvatarResult = AvatarManager.SaveAvatar(originalAvatar);
-                if (saveAvatarResult.IsError || saveAvatarResult.Result == null)
-                {
-                    ErrorHandling.HandleError(ref response, $"{errorMessage}{saveAvatarResult.Message}", saveAvatarResult.DetailedMessage);
-                    return response;
-                }
 
-                response.IsSaved = true;
-                response.SavedCount = 1;
-                response.Message = "Avatar Successfully Updated";
-                response.Result = AvatarManager.HideAuthDetails(saveAvatarResult.Result);
+                if (!saveAvatarResult.IsError && saveAvatarResult.Result != null)
+                {
+                    OASISResult<IAvatarDetail> avatarDetailResult = await AvatarManager.LoadAvatarDetailAsync(originalAvatar.Id);
+
+                    if (!avatarDetailResult.IsError && avatarDetailResult.Result != null)
+                    {
+                        avatarDetailResult.Result.Username = originalAvatar.Username;
+                        avatarDetailResult.Result.Email = originalAvatar.Email;
+
+                        OASISResult<IAvatarDetail> saveAvatarDetailResult = await avatarDetailResult.Result.SaveAsync();
+
+                        if (!saveAvatarDetailResult.IsError && saveAvatarDetailResult.Result != null)
+                        {
+                            response.IsSaved = true;
+                            response.SavedCount = 1;
+                            response.Message = "Avatar Successfully Updated";
+                            response.Result = AvatarManager.HideAuthDetails(saveAvatarResult.Result);
+                        }
+                        else
+                            ErrorHandling.HandleError(ref response, $"{errorMessage}{saveAvatarDetailResult.Message}", saveAvatarDetailResult.DetailedMessage);
+                    }
+                    else
+                        ErrorHandling.HandleError(ref response, $"{errorMessage}{avatarDetailResult.Message}", avatarDetailResult.DetailedMessage);
+                }
+                else
+                    ErrorHandling.HandleError(ref response, $"{errorMessage}{saveAvatarResult.Message}", saveAvatarResult.DetailedMessage);
             }
             catch (Exception ex)
             {

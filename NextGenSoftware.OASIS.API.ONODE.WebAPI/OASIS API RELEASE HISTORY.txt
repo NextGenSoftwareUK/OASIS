@@ -7,6 +7,18 @@ This needs to be updated wheneber we do anywork that will effect the OASIS API (
 Then when we do a release, this file will be linked to the Swagger documentation. We also then need to copy it to the WIKI and GitHub Documentation.
 
 ----------------------------------------------------------------------------------------------------------------------------
+0.0.1 ALPHA (10/10/2020)
+
+Initial release of the WEB4 OASIS API.
+https://www.ourworldthegame.com/single-post/oasis-api-v0-0-1-altha-live
+
+----------------------------------------------------------------------------------------------------------------------------
+0.0.2 ALTHA - 0.0.16 ALTHA
+
+Miscellaneous releases made before this change log was created (need to go back through old GitHub commits to fill this out...)
+TODO: Also need to go back through to find the dates of all releases below and update the dates...
+
+----------------------------------------------------------------------------------------------------------------------------
 0.17 ALPHA
 
 - Changed controller methods to return OASISResult (more efficient error handling system used throughout The OASIS with minimal overhead)
@@ -34,7 +46,7 @@ Then when we do a release, this file will be linked to the Swagger documentation
 - Fixed bug in SQLLiteOASIS Provider (null checkes for collections).
 
 ----------------------------------------------------------------------------------------------------------------------------
-0.18 ALPHA
+0.18 ALPHA (09/10/21)
 
 - All routes in all controllers returns OASISResult
 - Added exception filter
@@ -46,7 +58,7 @@ Then when we do a release, this file will be linked to the Swagger documentation
 - Added Release History link to this doc on main Swagger text at the top of the OASIS API.
 
 ----------------------------------------------------------------------------------------------------------------------------
-0.19 ALPHA
+0.19 ALPHA (25/10/21)
 
 - ErrorHandling on all routes
 - Solana Provider Integrated
@@ -59,10 +71,27 @@ Then when we do a release, this file will be linked to the Swagger documentation
 - IFPS Provider Integrated
 
 ----------------------------------------------------------------------------------------------------------------------------
-0.19.1 ALPHA
+0.19.1 ALPHA (04/11/21)
 
 - Fixed Authorization Error
 - Fixed Email Validation
 
 ----------------------------------------------------------------------------------------------------------------------------
+2.0.0 PREVIEW (14/04/22)
 
+LOTS of improvements in all areas including performance, security, features, improved error handling/reporting as well as being upgraded to the latest .NET (v6), which itself comes with many performance/security improvements & new features.
+This is built on top of a whole new massively improved OASIS Architecture with improved error handling/reporting, auto-fail over, auto-replication, auto-load balancing and so much more! ;-) 
+Everything the OASIS API was intended to do is now implemented... 
+This is the real deal and is the commerical production ready OASIS, and why is no longer a ALTHA prototype as the previous versions were, and is also why the version number jumps from 0 to 2. 1 included many internal builds and why the date between 0 and 2 is large.
+
+TODO: Will attempt to list here more detail of what is in this release (a very long list! ;-) ).
+
+----------------------------------------------------------------------------------------------------------------------------
+2.0.1 PREVIEW (17/04/22)
+
+
+----------------------------------------------------------------------------------------------------------------------------
+2.0.2 PREVIEW (18/04/22)
+
+
+----------------------------------------------------------------------------------------------------------------------------

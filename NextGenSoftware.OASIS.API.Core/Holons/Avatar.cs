@@ -124,14 +124,14 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
             return this.RefreshTokens?.Find(x => x.Token == token) != null;
         }
 
-        public async Task<IAvatar> SaveAsync()
+        public async Task<OASISResult<IAvatar>> SaveAsync()
         {
             OASISResult<IAvatar> result = await (ProviderManager.CurrentStorageProvider).SaveAvatarAsync(this);
-            return result.Result;
+            return result;
         }
-        public IAvatar Save()
+        public OASISResult<IAvatar> Save()
         {
-            return (ProviderManager.CurrentStorageProvider).SaveAvatar(this).Result;
+            return (ProviderManager.CurrentStorageProvider).SaveAvatar(this);
         }
 
         /*
