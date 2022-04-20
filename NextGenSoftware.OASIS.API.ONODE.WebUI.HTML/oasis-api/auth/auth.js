@@ -42,16 +42,19 @@ class Auth {
 
     return axios(config)
       .then((res) => {
+        if (res.data.isError > 0) {
+          return { error: true, data: res.data };
+        }
         return { error: false, data: res.data };
       })
       .catch((err) => {
-        return { error: true, data: err };
+        return { error: true, data: { error: err.response.data, message: err.response.data.title } };
       });
   }
 
   login(
     data = {
-      email,
+      username,
       password,
     }
   ) {
@@ -67,14 +70,15 @@ class Auth {
 
     return axios(config)
       .then((res) => {
-        const sto = JSON.stringify(res.data.result.avatar);
+        if (res.data.isError) {
+          return { error: true, data: res.data };
+        }
+        console.log(res.data)
+        const sto = JSON.stringify(res.data.result);
         localStorage.setItem("user", sto);
         localStorage.setItem("login", data);
         console.log(sto);
-        this.token = {
-          jwtToken: res.data.result.avatar.jwtToken,
-          refreshToken: res.data.result.avatar.refreshToken,
-        };
+     
         return { error: false, data: res.data };
       })
       .catch((err) => {
@@ -127,6 +131,9 @@ class Auth {
 
     return axios(config)
       .then((response) => {
+        if (res.data.isError) {
+          return { error: true, data: res.data };
+        }
         return { error: false, data: response.data };
       })
       .catch((error) => {
