@@ -384,14 +384,13 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
             }
         }
 
-        public new async Task<IAvatarDetail> SaveAsync()
+        public new async Task<OASISResult<IAvatarDetail>> SaveAsync()
         {
-            OASISResult<IAvatarDetail> result = await (ProviderManager.CurrentStorageProvider).SaveAvatarDetailAsync(this);
-            return result.Result;
+            return await (ProviderManager.CurrentStorageProvider).SaveAvatarDetailAsync(this);
         }
-        public new IAvatarDetail Save()
+        public new OASISResult<IAvatarDetail> Save()
         {
-            return (ProviderManager.CurrentStorageProvider).SaveAvatarDetail(this).Result;
+            return (ProviderManager.CurrentStorageProvider).SaveAvatarDetail(this);
         }
     }
 }

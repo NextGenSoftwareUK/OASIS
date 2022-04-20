@@ -1655,6 +1655,61 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return result;
         }
 
+        public async Task<OASISResult<IAvatarDetail>> UpdateAvatarDetailAsync(Guid id, IAvatarDetail avatarDetail)
+        {
+            OASISResult<IAvatarDetail> result = new OASISResult<IAvatarDetail>();
+            string errorMessage = "Error in UpdateAvatarDetailAsync method in AvatarManager. Reason: ";
+
+            OASISResult<IAvatarDetail> avatarDetailOriginalResult = await LoadAvatarDetailAsync(id);
+
+            if (!avatarDetailOriginalResult.IsError && avatarDetailOriginalResult.Result != null)
+            {
+                if (avatarDetailOriginalResult.Result.Address != avatarDetail.Address)
+                    avatarDetailOriginalResult.Result.Address = avatarDetail.Address;
+
+                //TODO: Apply to all other properties. Use AutoMapper here instead! ;-)
+
+                result = await SaveAvatarDetailAsync(avatarDetailOriginalResult.Result);
+
+                if (!result.IsError && result.Result != null)
+                {
+                    OASISResult<IAvatar> avatarResult = await LoadAvatarAsync(avatarDetail.Id);
+
+                    if (!avatarResult.IsError && avatarResult.Result != null)
+                    {
+                        if (avatarResult.Result.Username != avatarDetail.Username || avatarResult.Result.Email != avatarDetail.Email)
+                        {
+                            avatarResult.Result.Username = avatarDetail.Username;
+                            avatarResult.Result.Email = avatarDetail.Email;
+
+                            OASISResult<IAvatar> saveAvatarResult = await avatarResult.Result.SaveAsync();
+
+                            if (!saveAvatarResult.IsError && saveAvatarResult.Result != null)
+                            {
+                                result.Message = "Avatar Detail Updated Successfully";
+                                result.IsSaved = true;
+                            }
+                            else
+                                ErrorHandling.HandleError(ref result, $"{errorMessage}{saveAvatarResult.Message}", saveAvatarResult.DetailedMessage);
+                        }
+                        else
+                        {
+                            result.Message = "Avatar Detail Updated Successfully";
+                            result.IsSaved = true;
+                        }
+                    }
+                    else
+                        ErrorHandling.HandleError(ref result, $"{errorMessage}{avatarResult.Message}", avatarResult.DetailedMessage);
+                }
+                else
+                    ErrorHandling.HandleError(ref result, $"{errorMessage}{result.Message}", result.DetailedMessage);
+            }
+            else
+                ErrorHandling.HandleError(ref result, $"{errorMessage}{avatarDetailOriginalResult.Message}", avatarDetailOriginalResult.DetailedMessage);
+
+            return result;
+        }
+
         public OASISResult<bool> DeleteAvatar(Guid id, bool softDelete = true, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<bool> result = new OASISResult<bool>();

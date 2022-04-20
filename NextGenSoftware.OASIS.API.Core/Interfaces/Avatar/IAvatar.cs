@@ -42,7 +42,7 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces
         //int Level { get; }
         //int XP { get; set; }
         bool OwnsToken(string token);
-        IAvatar Save();
-        Task<IAvatar> SaveAsync();
+        OASISResult<IAvatar> Save();
+        Task<OASISResult<IAvatar>> SaveAsync();
     }
 }

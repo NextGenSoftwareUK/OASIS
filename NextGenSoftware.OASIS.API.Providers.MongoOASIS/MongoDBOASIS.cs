@@ -639,8 +639,8 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             oasisAvatar.Description = avatar.Result.Description;
             //oasisAvatar.FirstName = avatar.Result.FirstName;
             //oasisAvatar.LastName = avatar.Result.LastName;
-            //oasisAvatar.Email = avatar.Result.Email;
-            //oasisAvatar.Username = avatar.Result.Username;
+            oasisAvatar.Email = avatar.Result.Email;
+            oasisAvatar.Username = avatar.Result.Username;
             oasisAvatar.CreatedOASISType = avatar.Result.CreatedOASISType;
             oasisAvatar.CreatedProviderType = avatar.Result.CreatedProviderType;
            // oasisAvatar.AvatarType = avatar.Result.AvatarType;
@@ -871,9 +871,9 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             mongoAvatar.Description = avatar.Description;
             //mongoAvatar.FirstName = avatar.FirstName;
             //mongoAvatar.LastName = avatar.LastName;
-            //mongoAvatar.Email = avatar.Email;
+            mongoAvatar.Email = avatar.Email;
             //mongoAvatar.Title = avatar.Title;
-           // mongoAvatar.Username = avatar.Username;
+            mongoAvatar.Username = avatar.Username;
             mongoAvatar.HolonType = avatar.HolonType;
            // mongoAvatar.AvatarType = avatar.AvatarType;
             mongoAvatar.CreatedProviderType = avatar.CreatedProviderType;

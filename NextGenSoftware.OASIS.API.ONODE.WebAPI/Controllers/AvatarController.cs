@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
+using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Objects;
@@ -97,6 +98,31 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 
             return FormatResponse(await _avatarService.Upload2DAvatarImage(avatarImage));
         }
+
+        /*
+        [Authorize]
+        [HttpPost("Upload2DAvatarImageByEmail")]
+        public async Task<OASISResult<bool>> Upload2DAvatarImageByEmail(AvatarImage avatarImage)
+        {
+            // users can get their own account and admins can get any account
+            if (avatarImage.AvatarId != Avatar.Id && Avatar.AvatarType.Value != AvatarType.Wizard)
+                return new OASISResult<bool>()
+                { Result = false, Message = "Image not uploaded. Unauthorized", IsError = true };
+
+            return FormatResponse(await _avatarService.Upload2DAvatarImage(avatarImage));
+        }
+
+        [Authorize]
+        [HttpPost("Upload2DAvatarImageByUsername")]
+        public async Task<OASISResult<bool>> Upload2DAvatarImageByUsername(AvatarImage avatarImage)
+        {
+            // users can get their own account and admins can get any account
+            if (avatarImage.AvatarId != Avatar.Id && Avatar.AvatarType.Value != AvatarType.Wizard)
+                return new OASISResult<bool>()
+                { Result = false, Message = "Image not uploaded. Unauthorized", IsError = true };
+
+            return FormatResponse(await _avatarService.Upload2DAvatarImage(avatarImage));
+        }*/
 
         [Authorize(AvatarType.Wizard)]
         [HttpGet("GetAvatarDetail/{id:guid}")]
@@ -678,6 +704,66 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 
             return FormatResponse(await _avatarService.UpdateByUsername(username, avatar));
         }
+
+        /// <summary>
+        ///     Update the given avatar detail. They must be logged in &amp; authenticated for this method to work.
+        /// </summary>
+        /// <param name="avatarDetail"></param>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        [Authorize]
+        [HttpPost("UpdateAvatarDetail/{id}")]
+        public async Task<OASISResult<IAvatarDetail>> UpdateAvatarDetail(AvatarDetail avatarDetail, Guid id)
+        {
+            // users can update their own account and admins can update any account
+            if (id != Avatar.Id && Avatar.AvatarType.Value != AvatarType.Wizard)
+                return new OASISResult<IAvatarDetail>() { Result = null, IsError = true, Message = "Unauthorized" };
+
+            return FormatResponse(await Program.AvatarManager.UpdateAvatarDetailAsync(id, avatarDetail));
+        }
+
+        /// <summary>
+        ///     Update the given avatar detail. They must be logged in &amp; authenticated for this method to work. Pass in the provider
+        ///     you wish to use. Set the setglobally flag to false for this provider to be used only for this request or true for
+        ///     it to be used for all future requests too.
+        /// </summary>
+        /// <param name="id">The id of the avatar.</param>
+        /// <param name="avatarDetail">The avatar detail to update.</param>
+        /// <param name="providerType"></param>
+        /// <param name="setGlobally"></param>
+        /// <returns></returns>
+        [Authorize]
+        [HttpPost("UpdateAvatarDetail/{id}/{providerType}/{setGlobally}")]
+        //public ActionResult<IAvatar> Update(Guid id, Core.Avatar avatar, ProviderType providerType, bool setGlobally = false)
+        public async Task<OASISResult<IAvatarDetail>> UpdateAvatarDetail(Guid id, AvatarDetail avatarDetail, ProviderType providerType,
+            bool setGlobally = false)
+        {
+            GetAndActivateProvider(providerType, setGlobally);
+            return await UpdateAvatarDetail(avatarDetail, id);
+        }
+
+
+        //[Authorize]
+        //[HttpPost("UpdateAvatarDetailByEmail/{email}")]
+        //public async Task<OASISResult<IAvatar>> UpdateAvatarDetailByEmail(UpdateRequest avatar, string email)
+        //{
+        //    // users can update their own account and admins can update any account
+        //    if (email != Avatar.Email && Avatar.AvatarType.Value != AvatarType.Wizard)
+        //        return new OASISResult<IAvatar>() { Result = null, IsError = true, Message = "Unauthorized" };
+
+        //    return FormatResponse(await _avatarService.UpdateByEmail(email, avatar));
+        //}
+
+        //[Authorize]
+        //[HttpPost("UpdateByUsername/{username}")]
+        //public async Task<OASISResult<IAvatar>> UpdateAvatarDetailByEmail(UpdateRequest avatar, string username)
+        //{
+        //    // users can update their own account and admins can update any account
+        //    if (username != Avatar.Username && Avatar.AvatarType.Value != AvatarType.Wizard)
+        //        return new OASISResult<IAvatar>() { Result = null, IsError = true, Message = "Unauthorized" };
+
+        //    return FormatResponse(await _avatarService.UpdateByUsername(username, avatar));
+        //}
 
         /// <summary>
         ///     Delete the given avatar. They must be logged in &amp; authenticated for this method to work.
