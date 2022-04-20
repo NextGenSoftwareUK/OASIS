@@ -133,7 +133,11 @@ namespace NextGenSoftware.OASIS.API.DNA
 
     public class EthereumOASISProviderSettings : ProviderSettingsBase
     {
-
+        public string Abi { get; set; }
+        public string AbiByteCode { get; set; }
+        public string ProjectId { get; set; }
+        public string Password { get; set; }
+        public string SenderAddress { get; set; }
     }
 
     public class SQLLiteDBOASISSettings : ProviderSettingsBase

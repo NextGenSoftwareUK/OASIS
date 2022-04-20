@@ -23,7 +23,7 @@ export default class Signup extends React.Component {
             loading: false,
             form: {
                 firstName: '',
-                las_name: '',
+                lastName: '',
                 email: '',
                 password: '',
                 confirmPassword: '',
@@ -65,17 +65,22 @@ export default class Signup extends React.Component {
 
     handleSignup = () => {
         if (this.state.form.password === this.state.form.confirmPassword) {
-            this.setState({ loading: true })
-            if(!this.state.form.acceptTerms) return;
+            if(!this.state.form.acceptTerms){
+                toast.info('Please accept terms')
+                return
+            }
             let data = {...this.state.form}
-            
+
+            this.setState({ loading: true })
             const auth = new oasisApi.Auth();
             auth.signup(data)
                 .then(response => {
-                    this.setState({ loading: false })
-                    if(response.data.isError) {
+                    console.log(response)
+                    if(response.error) {
                         toast.error(response.data.message)
-                    } else {
+                        return
+                    } else if(!response.error) {
+                        this.props.hide()
                         toast.success("Avatar is created successfully");
                     }
                 }).catch(error => {
@@ -83,6 +88,8 @@ export default class Signup extends React.Component {
                     console.log(error)
                     this.setState({ loading: false })
                     toast.error(error.data.message);
+                }).finally(()=>{
+                    this.setState({loading: false})
                 });
         } else {
             toast.error("Password did not match")
@@ -111,7 +118,7 @@ export default class Signup extends React.Component {
                     validationSchema={this.validationSchema}
                     onSubmit={(values, { setSubmitting, resetForm }) => {
                         setTimeout(() => {
-                            let form = values;
+                            let form = {...values, avatarType: 'User'};
                             this.setState({ form })
                             this.handleSignup();
 
@@ -133,7 +140,7 @@ export default class Signup extends React.Component {
                                         <h2>Sign Up</h2>
 
                                         <p>
-                                            Already have an account? 
+                                            Already have an account?
                                             <span className="text-link" onClick={change}> Log In!</span>
                                         </p>
                                     </div>
@@ -144,10 +151,10 @@ export default class Signup extends React.Component {
                                             <input
                                                 type="text"
                                                 name="firstName"
+                                                disabled={loading}
                                                 value={values.firstName}
                                                 onChange={handleChange}
                                                 onBlur={handleBlur}
-                                                disabled={loading}
                                                 placeholder="Jhone Doe"
                                             />
                                             <span className="text-danger">{errors.firstName && touched.firstName && errors.firstName}</span>
@@ -158,10 +165,10 @@ export default class Signup extends React.Component {
                                             <input
                                                 type="text"
                                                 name="lastName"
+                                                disabled={loading}
                                                 value={values.lastName}
                                                 onChange={handleChange}
                                                 onBlur={handleBlur}
-                                                disabled={loading}
                                                 placeholder="Jhone Doe"
                                             />
                                             <span className="text-danger">{errors.lastName && touched.lastName && errors.lastName}</span>
@@ -172,10 +179,10 @@ export default class Signup extends React.Component {
                                             <input
                                                 type="email"
                                                 name="email"
+                                                disabled={loading}
                                                 value={values.email}
                                                 onChange={handleChange}
                                                 onBlur={handleBlur}
-                                                disabled={loading}
                                                 placeholder="name@example.com"
                                             />
                                             <span className="text-danger">{errors.email && touched.email && errors.email}</span>
@@ -189,8 +196,8 @@ export default class Signup extends React.Component {
                                                     name="password"
                                                     value={values.password}
                                                     onChange={handleChange}
-                                                    onBlur={handleBlur}
                                                     disabled={loading}
+                                                    onBlur={handleBlur}
                                                     placeholder="password"
                                                 />
                                                 <img
@@ -202,7 +209,7 @@ export default class Signup extends React.Component {
                                             </div>
                                             <span className="text-danger">{errors.password && touched.password && errors.password}</span>
                                         </div>
-                                        
+
                                         <div className={this.handleFormFieldClass(errors.confirmPassword, touched.confirmPassword)} >
                                             <label>Confirm Password</label>
                                             <div className="have-icon">
@@ -223,24 +230,50 @@ export default class Signup extends React.Component {
                                                 />
                                             </div>
                                             <span className="text-danger">{errors.confirmPassword && touched.confirmPassword && errors.confirmPassword}</span>
-                                        </div> 
+                                        </div>
                                         <div className="remember-me">
                                                 <label>
-                                                    <input 
+                                                    <input
                                                         type="checkbox"
-                                                        name="acceptTerms" 
+                                                        name="acceptTerms"
                                                         value={values.acceptTerms}
                                                         onChange={handleChange}
-                                                        id="acceptTerms" 
+                                                        disabled={loading}
+                                                        id="acceptTerms"
                                                     />
                                                     Accept Terms
                                                 </label>
                                         </div>
-                                        <span className="text-danger">{errors.acceptTerms && touched.acceptTerms && errors.acceptTerms}</span>                                   
+                                        <span className="text-danger">{errors.acceptTerms && touched.acceptTerms && errors.acceptTerms}</span>
 
-                                        <button type="submit" className="submit-button grid-btn" disabled={isSubmitting}>
-                                            {loading ? 'Creating Account ' : 'Submit '} {loading ? <Loader type="Oval" height={15} width={15} color="#fff" /> : null}
-                                        </button>
+                                        {loading ? (
+                                          <button
+                                            type="submit"
+                                            className="submit-button"
+                                            disabled={true}
+                                            style={{
+                                              display: "flex",
+                                              justifyContent: "space-around",
+                                              cursor: "progress",
+                                              width: '10rem'
+                                            }}
+                                          >
+                                            Submitting
+                                            <Loader
+                                              type="Oval"
+                                              height={15}
+                                              width={15}
+                                              color="#fff"
+                                            />
+                                          </button>
+                                        ) : (
+                                          <button
+                                            type="submit"
+                                            className="submit-button"
+                                            disabled={false}
+                                            style={{width: '10rem'}}
+                                          >Submit</button>
+                                        )}
                                     </div>
                                 </form>
                             </Modal.Body>

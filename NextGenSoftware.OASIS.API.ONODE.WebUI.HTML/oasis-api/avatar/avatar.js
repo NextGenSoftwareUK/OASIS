@@ -1,4 +1,3 @@
-//ts-check
 import axios from "axios";
 import Auth from "../auth/auth.js";
 
@@ -11,18 +10,23 @@ class Avatar {
     this.callLogin();
   }
   async callLogin(obj = this) {
-    const credentials = JSON.parse(localStorage.getItem("login"));
-    const auth = new Auth();
-    await auth.login(credentials);
-    let user = JSON.parse(localStorage.getItem("user"));
-    obj.token = { jwtToken: user.jwtToken, refresh: user.refreshToken };
-    console.log(obj);
-    return obj.token;
+    if (JSON.parse(localStorage.getItem("login"))) {
+      const credentials = JSON.parse(localStorage.getItem("login"));
+      const auth = new Auth();
+      const ret = await auth.login(credentials);
+      if (ret.error) return -1;
+      let user = JSON.parse(localStorage.getItem("user"));
+      obj.token = { jwtToken: user.jwtToken, refresh: user.refreshToken };
+      console.log(obj);
+      return obj.token;
+    } else return -1;
   }
 
   async getAll(token = {}) {
-    await this.callLogin();
-    if (this.token) {
+    const temp = await this.callLogin();
+    if (temp === -1) {
+      return { error: true, data: { message: "You are not logged in!" } };
+    } else if (this.token) {
       token = this.token;
     }
 
@@ -37,6 +41,9 @@ class Avatar {
 
     return axios(config)
       .then(function (response) {
+        if (res.data.isError) {
+          return { error: true, data: res.data };
+        }
         return { error: false, data: response.data };
       })
 
@@ -47,8 +54,11 @@ class Avatar {
   }
 
   async get(id) {
-    await this.callLogin();
-    let token = this.token;
+    const temp = await this.callLogin();
+    let token;
+    if (temp === -1)
+      return { error: true, data: { message: "You are not logged in!" } };
+    else token = temp;
 
     const config = {
       method: "get",
@@ -62,6 +72,9 @@ class Avatar {
 
     return axios(config)
       .then(function (response) {
+        if (res.data.isError) {
+          return { error: true, data: res.data };
+        }
         return { error: false, data: response.data };
       })
       .catch(function (error) {
@@ -70,7 +83,10 @@ class Avatar {
   }
 
   async update(id, data) {
-    await this.callLogin();
+    let temp = await this.callLogin();
+    if (temp === -1)
+      return { error: true, data: { message: "You are not logged in!" } };
+    else token = temp;
 
     data = JSON.stringify(data);
 
@@ -78,7 +94,7 @@ class Avatar {
       method: "post",
       url: `https://api.oasisplatform.world/api/avatar/Update/${id}`,
       headers: {
-        Authorization: `Bearer ${this.token.jwtToken}`,
+        Authorization: `Bearer ${token.jwtToken}`,
         Cookie: `refreshToken=${token.refresh}`,
         "Content-Type": "application/json",
       },
@@ -87,6 +103,9 @@ class Avatar {
 
     return axios(config)
       .then(function (response) {
+        if (res.data.isError) {
+          return { error: true, data: res.data };
+        }
         return { error: false, data: response.data };
       })
 
@@ -97,18 +116,24 @@ class Avatar {
   }
 
   async delete(id) {
-    await this.callLogin();
+    let temp = await this.callLogin();
+    if (temp === -1)
+      return { error: true, data: { message: "You are not logged in!" } };
+    else token = temp;
     const config = {
       method: "delete",
       url: `https://api.oasisplatform.world/api/avatar/${id}`,
       headers: {
-        Authorization: `Bearer ${this.token.jwtToken}`,
+        Authorization: `Bearer ${token.jwtToken}`,
         "Content-Type": "application/json",
       },
     };
 
     return axios(config)
       .then(function (response) {
+        if (res.data.isError) {
+          return { error: true, data: res.data };
+        }
         return { error: false, data: response.data };
       })
 
@@ -127,19 +152,25 @@ class Avatar {
       karmaSourceDesc,
     }
   ) {
-    await this.callLogin();
+    let temp = await this.callLogin();
+    if (temp === -1)
+      return { error: true, data: { message: "You are not logged in!" } };
+    else token = temp;
 
     const config = {
       method: "post",
       url: `https://api.oasisplatform.world/api/avatar/AddKarmaToAvatar/${id}`,
       headers: {
-        Authorization: `Bearer ${this.token.jwtToken}`,
+        Authorization: `Bearer ${token.jwtToken}`,
         "Content-Type": "application/json",
       },
       data,
     };
     return axios(config)
       .then(function (response) {
+        if (res.data.isError) {
+          return { error: true, data: res.data };
+        }
         return { error: false, data: response.data };
       })
 
@@ -158,7 +189,10 @@ class Avatar {
       karmaSourceDesc,
     }
   ) {
-    await this.callLogin();
+    let temp = await this.callLogin();
+    if (temp === -1)
+      return { error: true, data: { message: "You are not logged in!" } };
+    else token = temp;
     data = JSON.stringify(data);
 
     const config = {
@@ -172,6 +206,9 @@ class Avatar {
     };
     return axios(config)
       .then(function (response) {
+        if (res.data.isError) {
+          return { error: true, data: res.data };
+        }
         return { error: false, data: response.data };
       })
 
