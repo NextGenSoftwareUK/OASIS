@@ -150,10 +150,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
                             response.Result = avatar;
                         }
                         else
-                            ErrorHandling.HandleError(ref response, $"Error occured in RefreshToken method in AvatarService saving avatar. Reason: {saveAvatarResult.Message}");
+                            ErrorHandling.HandleError(ref response, $"Error occured in RefreshToken method in AvatarService saving avatar. Reason: {saveAvatarResult.Message}", saveAvatarResult.DetailedMessage);
                     }
                     else
-                        ErrorHandling.HandleError(ref response, $"Error occured in RefreshToken method in AvatarService getting refresh token. Reason: {refreshTokenResult.Message}");
+                        ErrorHandling.HandleError(ref response, $"Error occured in RefreshToken method in AvatarService getting refresh token. Reason: {refreshTokenResult.Message}", refreshTokenResult.DetailedMessage);
                 }
                 catch (Exception ex)
                 {
@@ -194,10 +194,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
                         response.IsSaved = true;
                     }
                     else
-                        ErrorHandling.HandleError(ref response, $"An error in RevokeToken method in AvatarService saving the avatar. Reason: {saveAvatar.Message}");
+                        ErrorHandling.HandleError(ref response, $"An error in RevokeToken method in AvatarService saving the avatar. Reason: {saveAvatar.Message}", saveAvatar.DetailedMessage);
                 }
                 else
-                    ErrorHandling.HandleError(ref response, $"An error occured in RevokeToken method in AvatarService. Reason: {refreshTokenResult.Message}");
+                    ErrorHandling.HandleError(ref response, $"An error occured in RevokeToken method in AvatarService. Reason: {refreshTokenResult.Message}", refreshTokenResult.DetailedMessage);
 
                 return response;
             });
@@ -276,7 +276,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
                 // always return ok response to prevent email enumeration
                 if (avatarResult.IsError || avatarResult.Result == null)
                 {
-                    ErrorHandling.HandleError(ref response, $"Error occured loading avatar in ForgotPassword, avatar not found. Reason: {avatarResult.Message}");
+                    ErrorHandling.HandleError(ref response, $"Error occured loading avatar in ForgotPassword, avatar not found. Reason: {avatarResult.Message}", avatarResult.DetailedMessage);
                     return response;
                 }
 
@@ -288,7 +288,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
 
                 if (saveAvatar.IsError)
                 {
-                    ErrorHandling.HandleError(ref response, $"An error occured saving the avatar in ForgotPassword method in AvatarService. Reason: {saveAvatar.Message}");
+                    ErrorHandling.HandleError(ref response, $"An error occured saving the avatar in ForgotPassword method in AvatarService. Reason: {saveAvatar.Message}", saveAvatar.DetailedMessage);
                     return response;
                 }
 
@@ -323,7 +323,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
                         ErrorHandling.HandleError(ref result, "Invalid token");
                 }
                 else
-                    ErrorHandling.HandleError(ref result, $"Error occured in ValidateResetToken loading all avatars. Reason: {avatarsResult.Message}");
+                    ErrorHandling.HandleError(ref result, $"Error occured in ValidateResetToken loading all avatars. Reason: {avatarsResult.Message}", avatarsResult.DetailedMessage);
             }
             catch (Exception e)
             {
@@ -364,14 +364,14 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
 
                     if (saveAvatarResult.IsError)
                     {
-                        ErrorHandling.HandleError(ref saveAvatarResult, $"Error occured in ResetPassword saving the avatar. Reason: {saveAvatarResult.Message}");
+                        ErrorHandling.HandleError(ref saveAvatarResult, $"Error occured in ResetPassword saving the avatar. Reason: {saveAvatarResult.Message}", saveAvatarResult.DetailedMessage);
                         return response;
                     }
 
                     response.Result = "Password reset successful, you can now login";
                 }
                 else
-                    ErrorHandling.HandleError(ref response, $"Error occured in ResetPassword loading all avatars. Reason: {avatarsResult.Message}");
+                    ErrorHandling.HandleError(ref response, $"Error occured in ResetPassword loading all avatars. Reason: {avatarsResult.Message}", avatarsResult.DetailedMessage);
             }
             catch (Exception e)
             {
@@ -632,7 +632,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
                     var saveAvatarResult = await AvatarManager.SaveAvatarAsync(avatar);
 
                     if (saveAvatarResult.IsError || saveAvatarResult.Result == null)
-                        ErrorHandling.HandleError(ref result, $"Error occured in Create method on AvatarService saving the avatar. Reason: {saveAvatarResult.Message} ");
+                        ErrorHandling.HandleError(ref result, $"Error occured in Create method on AvatarService saving the avatar. Reason: {saveAvatarResult.Message}", saveAvatarResult.DetailedMessage);
                     else
                     {
                         result.Result = AvatarManager.HideAuthDetails(avatar);
@@ -641,7 +641,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
                 }
             }
             else
-                ErrorHandling.HandleError(ref result, $"Error occured in Create method on AvatarService loading all avatars. Reason: {avatarsResult.Message}");
+                ErrorHandling.HandleError(ref result, $"Error occured in Create method on AvatarService loading all avatars. Reason: {avatarsResult.Message}", avatarsResult.DetailedMessage);
 
             return result;
         }
@@ -1306,7 +1306,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
                 return (result, avatar);
             }
             else
-                ErrorHandling.HandleError(ref result, $"Error in GetRefreshToken loading all avatars. Reason: {avatarsResult.Message}");
+                ErrorHandling.HandleError(ref result, $"Error in GetRefreshToken loading all avatars. Reason: {avatarsResult.Message}", avatarsResult.DetailedMessage);
 
             return (result, null);
         }

@@ -89,9 +89,45 @@ TODO: Will attempt to list here more detail of what is in this release (a very l
 ----------------------------------------------------------------------------------------------------------------------------
 2.0.1 PREVIEW (17/04/22)
 
+Fixed a bug with the Authentication/Signup process where it previously allowed more than one avatar to be created with the same email address.
+
+This was not really a bug but by deseign because when someone deletes a avatar it is soft deleted so it can be recovered later if needed. Then
+ they can create a new avatar with the same email address, but in the end the logic and additional work was deemed not worth it at this stage,
+ we may re-visit this later on. For now if an avatar is deleted it is still soft deleted, then the user has 3 options:
+ 
+ (1) - They can create a new avatar with a new email address.
+ (2) - They can contact support to get the avatar un-deleted and active again.
+ (3) - They can contact support to get the avatar permaneltey deleted and then they can create a new avatar with their old email address.
+
+ As part of this hotfix, the messages that are returned were improved to now who deleted the avatar and when. The next release will have the 3 options above added also to the message returned.
+
+ This hotfix is what officially made the new OASIS 2.0 LIVE and usable and is no coincidence it was on EASTER SUNDAY! ;-) We did not plan to release
+ on this day, but is interesting it was on Easter just like when our founder started reading Ready Player One book on Easter Sunday when he had no idea
+ what the book was about (gunters hunting the golden egg, etc).
+
+ This release also included miscellaneous fixes/improvements:
+
+ https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/commit/0246c4f619111f425774edcc05e2dfaf459d5f06
+  - Users can now login with their username, email or one of the public keys linked to their account.
+  - Improved error handling/reporting in Auth/Signup.
+  - Fixed a bug in AvatarManager where error messages were not properly formatted.
+  - Improved error handling/reporting in JWTMiddleware for when a JWT Token expires/is invalid.
+  - Changed Email to Username in AuthenticateRequest so need to use username instead of email for auth endpoint.
+  - Added Username property to UpdateRequest so a avatars username can now also be updated/changed.
+  - Refactored & improved Update, UpdateByEmail & UpdateByUsername methods in AvatarService so is now more efficient and generic calling into new private Update method.
 
 ----------------------------------------------------------------------------------------------------------------------------
 2.0.2 PREVIEW (18/04/22)
+
+Miscellaneous fixes/improvements including:
+
+https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/commit/21f2f98650cb4262125dd83af039495e5de51af3
+ - Can now upload & retreive an avatar image using their username & email as well as their id.
+ - When an avatar image is retrived it now also shows the avatars username & email address in addition to their id.
+ - Updated GetAvatarUmaJsonById, GetAvatarUmaJsonByUsername & GetAvatarUmaJsonByEmail methods so more detailed error messages are now returned.
+ - When you now update an avatar it also syncs and updates AvatarDetail with the new username/email if they were changed in Avatar.
+ - Updated Swagger index page to now include correct link to Postman JSON file as well as adding links to the DEV, STAGING & LIVE Enviroment JSON files.
+ - Fixed a bug in MongoDBOASIS Provider where the email and username were not being mapped in ConvertMongoEntityToOASISAvatarDetail & ConvertOASISAvatarDetailToMongoEntity methods.
 
 
 ----------------------------------------------------------------------------------------------------------------------------

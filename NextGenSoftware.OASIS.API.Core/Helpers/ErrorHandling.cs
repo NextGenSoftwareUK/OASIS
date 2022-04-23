@@ -98,7 +98,8 @@ namespace NextGenSoftware.OASIS.API.Core.Helpers
             if (addToInnerMessages)
             {
                 if (!string.IsNullOrEmpty(detailedMessage))
-                    result.InnerMessages.Add($"{message}\n\nDetails:\n{detailedMessage}");
+                    result.StackTraces.Add(detailedMessage); 
+                    //result.InnerMessages.Add($"{message}\n\nDetails:\n{detailedMessage}");
                 else
                     result.InnerMessages.Add(message);
             }

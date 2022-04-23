@@ -19,6 +19,7 @@ namespace NextGenSoftware.OASIS.API.Core.Helpers
         public bool HasAnyHolonsChanged { get; set; }
 
         public List<string> InnerMessages = new List<string>();
+        public List<string> StackTraces = new List<string>();
 
         [JsonIgnore]
         public Exception Exception { get; set; }
