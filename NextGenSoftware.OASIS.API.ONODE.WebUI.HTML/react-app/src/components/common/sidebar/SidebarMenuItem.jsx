@@ -1,6 +1,16 @@
 import React, { Component } from 'react';
+import oasisApi from "oasis-api"
 
 class SidebarMenuItem extends React.Component {
+
+    async componentDidMount(){
+      const auth = new oasisApi.Auth()
+      const user = await auth.getUser()
+      if(!user.error){
+        this.setState({user: user.data})
+        console.log(user);
+      }
+    }
 
     state = {
         show: false
@@ -25,13 +35,14 @@ class SidebarMenuItem extends React.Component {
                             item.subMenu.map((subItem, index) =>
                                 <li key={index}>
                                     {
-                                        subItem.disabled 
-                                        ? 
+                                        subItem.disabled || (subItem.loginRequired && !this.state.user)
+                                        ?
                                             <a className='disabled'>{subItem.name}</a>
+
                                         :
-                                            <a 
+                                            <a
                                                 target={subItem.externalLink ? '_blank': ''}
-                                                href={subItem.path} 
+                                                href={subItem.path}
                                                 onClick={
                                                     () => this.props.toggleScreenPopup(item.name, subItem.popupName)
                                                 }
