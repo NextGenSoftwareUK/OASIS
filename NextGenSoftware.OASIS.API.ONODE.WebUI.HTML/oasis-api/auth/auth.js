@@ -73,11 +73,9 @@ class Auth {
         if (res.data.isError) {
           return { error: true, data: res.data };
         }
-        console.log(res.data)
         const sto = JSON.stringify(res.data.result);
         localStorage.setItem("user", sto);
         localStorage.setItem("login", data);
-        console.log(sto);
      
         return { error: false, data: res.data };
       })
