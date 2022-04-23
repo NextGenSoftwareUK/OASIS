@@ -25,10 +25,10 @@
     <Compile Remove="Helpers\OASISSettings.cs" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="AutoMapper" Version="10.0.0" />
-    <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="8.0.1" />
     <!--<PackageReference Include="BCrypt.Net-Next" Version="4.0.0" />-->
     <!--<PackageReference Include="MailKit" Version="2.9.0" />-->
+	  <PackageReference Include="AutoMapper" Version="11.0.1" />
+	  <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="11.0.0" />
 	  <PackageReference Include="MailKit" Version="2.11.1" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="3.1.8" />
     <PackageReference Include="Microsoft.AspNetCore.Cors" Version="2.2.0" />

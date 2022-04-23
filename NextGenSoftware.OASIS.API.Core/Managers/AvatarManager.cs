@@ -15,6 +15,7 @@ using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.API.Core.Holons;
+using AutoMapper;
 
 namespace NextGenSoftware.OASIS.API.Core.Managers
 {
@@ -78,68 +79,46 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
                         if (!avatarsResult.IsError && avatarsResult.Result != null)
                         {
-                            result.Result = avatarsResult.Result.FirstOrDefault(x => x.ProviderPublicKey[ProviderManager.CurrentStorageProviderType.Value].Contains(username));
-
-                            if (result.Result == null)
-                                result.Message = $"This avatar does not exist. Please contact support or create a new avatar. Error Details: {result.Message}";
+                            if (avatarsResult.Result.Any(x => x.ProviderPublicKey.ContainsKey(ProviderManager.CurrentStorageProviderType.Value)))
+                                result.Result = avatarsResult.Result.FirstOrDefault(x => x.ProviderPublicKey[ProviderManager.CurrentStorageProviderType.Value].Contains(username));
                         }
                     }
                 }
 
-                if (result.Result != null)
+                if (result.Result == null)
+                    result.Message = $"This avatar does not exist. Please contact support or create a new avatar.";
+                else
                 {
-                    if (result.Result.DeletedDate != DateTime.MinValue)
+                    result = ProcessAvatarLogin(result, password);
+
+                    //TODO: Come back to this.
+                    //if (OASISDNA.OASIS.Security.AvatarPassword.)
+
+                    if (result.Result != null & !result.IsError)
                     {
-                        result.IsError = true;
-                        result.Message = $"This avatar was deleted on {result.Result.DeletedDate} by avatar with id {result.Result.DeletedByAvatarId}, please contact support or create a new avatar with a new email address.";
-                    }
+                        var jwtToken = GenerateJWTToken(result.Result);
+                        var refreshToken = generateRefreshToken(ipAddress);
 
-                    // TODO: Implement Activate/Deactivate methods in AvatarManager & Providers...
-                    if (!result.Result.IsActive)
-                    {
-                        result.IsError = true;
-                        result.Message = "This avatar is no longer active. Please contact support or create a new avatar.";
-                    }
+                        result.Result.RefreshTokens.Add(refreshToken);
+                        result.Result.JwtToken = jwtToken;
+                        result.Result.RefreshToken = refreshToken.Token;
+                        result.Result.LastBeamedIn = DateTime.Now;
+                        result.Result.IsBeamedIn = true;
 
-                    //if (!result.Result.IsVerified && OASISDNA.OASIS.Security.DoesAvatarNeedToBeVerifiedBeforeLogin)
-                    if (!result.Result.IsVerified && OASISDNA.OASIS.Email.SendVerificationEmail)
-                    {
-                        result.IsError = true;
-                        result.Message = "Avatar has not been verified. Please check your email.";
-                    }
+                        LoggedInAvatar = result.Result;
+                        OASISResult<IAvatar> saveAvatarResult = SaveAvatar(result.Result);
 
-                    if (!BC.Verify(password, result.Result.Password))
-                    {
-                        result.IsError = true;
-                        result.Message = "Email or password is incorrect";
-                    }
-                }
-
-                //TODO: Come back to this.
-                //if (OASISDNA.OASIS.Security.AvatarPassword.)
-
-                if (result.Result != null & !result.IsError)
-                {
-                    var jwtToken = GenerateJWTToken(result.Result);
-                    var refreshToken = generateRefreshToken(ipAddress);
-
-                    result.Result.RefreshTokens.Add(refreshToken);
-                    result.Result.JwtToken = jwtToken;
-                    result.Result.RefreshToken = refreshToken.Token;
-                    result.Result.LastBeamedIn = DateTime.Now;
-                    result.Result.IsBeamedIn = true;
-
-                    LoggedInAvatar = result.Result;
-                    OASISResult<IAvatar> saveAvatarResult = SaveAvatar(result.Result);
-
-                    if (!saveAvatarResult.IsError && saveAvatarResult.IsSaved)
-                    {
-                        result.Result = HideAuthDetails(saveAvatarResult.Result);
-                        result.IsSaved = true;
-                        result.Message = "Avatar Successfully Authenticated.";
+                        if (!saveAvatarResult.IsError && saveAvatarResult.IsSaved)
+                        {
+                            result.Result = HideAuthDetails(saveAvatarResult.Result);
+                            result.IsSaved = true;
+                            result.Message = "Avatar Successfully Authenticated.";
+                        }
+                        else
+                            ErrorHandling.HandleError(ref result, $"Error occured in Authenticate method in AvatarManager whilst saving the avatar. Reason: {saveAvatarResult.Message}", saveAvatarResult.DetailedMessage);
                     }
                     else
-                        ErrorHandling.HandleError(ref result, $"Error occured in Authenticate method in AvatarManager whilst saving the avatar. Reason: {saveAvatarResult.Message}");
+                        result.Result = null;
                 }
             }
             catch (Exception ex)
@@ -150,6 +129,8 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
             return result;
         }
+
+        public delegate OASISResult<IAvatar> SaveAvatarFunction(IAvatar avatar);
 
         public async Task<OASISResult<IAvatar>> AuthenticateAsync(string username, string password, string ipAddress)
         {
@@ -170,72 +151,52 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                     {
                         //Finally by Public Key...
                         OASISResult<IEnumerable<IAvatar>> avatarsResult = await LoadAllAvatarsAsync();
-                        
+
                         if (!avatarsResult.IsError && avatarsResult.Result != null)
                         {
-                            result.Result = avatarsResult.Result.FirstOrDefault(x => x.ProviderPublicKey[ProviderManager.CurrentStorageProviderType.Value].Contains(username));
-
-                            if (result.Result == null)
-                                result.Message = $"This avatar does not exist. Please contact support or create a new avatar. Error Details: {result.Message}";
+                            if (avatarsResult.Result.Any(x => x.ProviderPublicKey.ContainsKey(ProviderManager.CurrentStorageProviderType.Value)))
+                                result.Result = avatarsResult.Result.FirstOrDefault(x => x.ProviderPublicKey[ProviderManager.CurrentStorageProviderType.Value].Contains(username));
                         }
                     }
                 }
-                
-                if (result.Result != null)
+
+                if (result.Result == null)
+                    result.Message = $"This avatar does not exist. Please contact support or create a new avatar.";
+                else
                 {
-                    if (result.Result.DeletedDate != DateTime.MinValue)
+                    //ProcessAvatarLogin(result, username, password, ipAddress, (result.Result) => { SaveAvatar(result.Result); }) ;
+                    // ProcessAvatarLogin(result, username, password, ipAddress, SaveAvatar);
+                    result = ProcessAvatarLogin(result, password);
+
+                    //TODO: Come back to this.
+                    //if (OASISDNA.OASIS.Security.AvatarPassword.)
+
+                    if (result.Result != null & !result.IsError)
                     {
-                        result.IsError = true;
-                        result.Message = $"This avatar was deleted on {result.Result.DeletedDate} by avatar with id {result.Result.DeletedByAvatarId}, please contact support or create a new avatar with a new email address.";
-                    }
+                        var jwtToken = GenerateJWTToken(result.Result);
+                        var refreshToken = generateRefreshToken(ipAddress);
 
-                    if (!result.Result.IsActive)
-                    {
-                        result.IsError = true;
-                        result.Message = "This avatar is no longer active. Please contact support or create a new avatar.";
-                    }
+                        result.Result.RefreshTokens.Add(refreshToken);
+                        result.Result.JwtToken = jwtToken;
+                        result.Result.RefreshToken = refreshToken.Token;
+                        result.Result.LastBeamedIn = DateTime.Now;
+                        result.Result.IsBeamedIn = true;
 
-                    if (!result.Result.IsVerified)
-                    {
-                        result.IsError = true;
-                        result.Message = "Avatar has not been verified. Please check your email.";
-                    }
+                        LoggedInAvatar = result.Result;
+                        OASISResult<IAvatar> saveAvatarResult = SaveAvatar(result.Result);
 
-                    if (!BC.Verify(password, result.Result.Password))
-                    {
-                        result.IsError = true;
-                        result.Message = "Email or password is incorrect";
-                    }
-                }
-
-                //TODO: Come back to this.
-                //if (OASISDNA.OASIS.Security.AvatarPassword.)
-
-                if (result.Result != null & !result.IsError)
-                {
-                    var jwtToken = GenerateJWTToken(result.Result);
-                    var refreshToken = generateRefreshToken(ipAddress);
-
-                    result.Result.RefreshTokens.Add(refreshToken);
-                    result.Result.JwtToken = jwtToken;
-                    result.Result.RefreshToken = refreshToken.Token;
-                    result.Result.LastBeamedIn = DateTime.Now;
-                    result.Result.IsBeamedIn = true;
-
-                    LoggedInAvatar = result.Result;
-                    OASISResult<IAvatar> saveAvatarResult = SaveAvatar(result.Result);
-
-                    if (!saveAvatarResult.IsError && saveAvatarResult.IsSaved)
-                    {
-                        result.Result = HideAuthDetails(saveAvatarResult.Result);
-                        result.IsSaved = true;
-                        result.Message = "Avatar Successfully Authenticated.";
+                        if (!saveAvatarResult.IsError && saveAvatarResult.IsSaved)
+                        {
+                            result.Result = HideAuthDetails(saveAvatarResult.Result);
+                            result.IsSaved = true;
+                            result.Message = "Avatar Successfully Authenticated.";
+                        }
+                        else
+                            ErrorHandling.HandleError(ref result, $"Error occured in AuthenticateAsync method in AvatarManager whilst saving the avatar. Reason: {saveAvatarResult.Message}", saveAvatarResult.DetailedMessage);
                     }
                     else
-                        ErrorHandling.HandleError(ref result, $"Error occured in AuthenticateAsync method in AvatarManager whilst saving the avatar. Reason: {saveAvatarResult.Message}");
+                        result.Result = null;
                 }
-                else
-                    result.Result = null;
             }
             catch (Exception ex)
             {
@@ -378,7 +339,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                     }
                 }
                 else
-                    ErrorHandling.HandleError(ref result, $"Error in VerifyEmail loading all avatars. Reason: {avatarsResult.Message}");
+                    ErrorHandling.HandleError(ref result, $"Error in VerifyEmail loading all avatars. Reason: {avatarsResult.Message}", avatarsResult.DetailedMessage);
 
                 if (!result.IsError && result.IsSaved)
                 {
@@ -1664,8 +1625,20 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
             if (!avatarDetailOriginalResult.IsError && avatarDetailOriginalResult.Result != null)
             {
-                if (avatarDetailOriginalResult.Result.Address != avatarDetail.Address)
-                    avatarDetailOriginalResult.Result.Address = avatarDetail.Address;
+                //Initialize the mapper
+                var config = new MapperConfiguration(cfg =>
+                        cfg.CreateMap<AvatarDetail, AvatarDetail>() );
+
+                var mapper = new AutoMapper.Mapper(config);
+                avatarDetailOriginalResult.Result = mapper.Map<AvatarDetail>(avatarDetail);
+
+                //_mapper.Map(avatarDetail, avatarDetailOriginalResult.Result);
+
+                //if (avatarDetailOriginalResult.Result.Address != avatarDetail.Address)
+                //    avatarDetailOriginalResult.Result.Address = avatarDetail.Address;
+
+                //if (avatarDetailOriginalResult.Result.Country != avatarDetail.Country)
+                //    avatarDetailOriginalResult.Result.Country = avatarDetail.Country;
 
                 //TODO: Apply to all other properties. Use AutoMapper here instead! ;-)
 
@@ -2056,10 +2029,10 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                     result.IsSaved = true;
                 }
                 else
-                    ErrorHandling.HandleError(ref result, $"{errorMessage} Reason: {result.Message}");
+                    ErrorHandling.HandleError(ref result, $"{errorMessage} Reason: {result.Message}", result.DetailedMessage);
             }
             else
-                ErrorHandling.HandleError(ref result, $"{errorMessage} Reason: {providerResult.Message}");
+                ErrorHandling.HandleError(ref result, $"{errorMessage} Reason: {providerResult.Message}", providerResult.DetailedMessage);
 
             return result.Result;
 
@@ -2087,13 +2060,13 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                         result.IsSaved = true;
                     }
                     else
-                        ErrorHandling.HandleError(ref result, $"{errorMessage} Reason: {result.Message}");
+                        ErrorHandling.HandleError(ref result, $"{errorMessage} Reason: {result.Message}", result.DetailedMessage);
                 }
                 else
-                    ErrorHandling.HandleError(ref result, $"{errorMessage} Reason: Avatar Not Found. Error Details: {avatarResult.Message}");
+                    ErrorHandling.HandleError(ref result, $"{errorMessage} Reason: Avatar Not Found. Error Details: {avatarResult.Message}", avatarResult.DetailedMessage);
             }
             else
-                ErrorHandling.HandleError(ref result, $"{errorMessage} Reason: {providerResult.Message}");
+                ErrorHandling.HandleError(ref result, $"{errorMessage} Reason: {providerResult.Message}", providerResult.DetailedMessage);
 
             return result.Result;
 
@@ -2129,13 +2102,13 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                         result.IsSaved = true;
                     }
                     else
-                        ErrorHandling.HandleError(ref result, $"{errorMessage} Reason: {result.Message}");
+                        ErrorHandling.HandleError(ref result, $"{errorMessage} Reason: {result.Message}", result.DetailedMessage);
                 }
                 else
-                    ErrorHandling.HandleError(ref result, $"{errorMessage} Reason: Avatar Not Found. Error Details: {avatarResult.Message}");
+                    ErrorHandling.HandleError(ref result, $"{errorMessage} Reason: Avatar Not Found. Error Details: {avatarResult.Message}", avatarResult.DetailedMessage);
             }
             else
-                ErrorHandling.HandleError(ref result, $"{errorMessage} Reason: {providerResult.Message}");
+                ErrorHandling.HandleError(ref result, $"{errorMessage} Reason: {providerResult.Message}", providerResult.DetailedMessage);
 
             return result;
 
@@ -2184,10 +2157,10 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                     result.IsSaved = true;
                 }
                 else
-                    ErrorHandling.HandleError(ref result, $"{errorMessage} Reason: {result.Message}");
+                    ErrorHandling.HandleError(ref result, $"{errorMessage} Reason: {result.Message}", result.DetailedMessage);
             }
             else
-                ErrorHandling.HandleError(ref result, $"{errorMessage} Reason: {providerResult.Message}");
+                ErrorHandling.HandleError(ref result, $"{errorMessage} Reason: {providerResult.Message}", providerResult.DetailedMessage);
 
             return result.Result;
         }
@@ -2215,10 +2188,10 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                         ErrorHandling.HandleError(ref result, $"{errorMessage} Reason: {result.Message}");
                 }
                 else
-                    ErrorHandling.HandleError(ref result, $"{errorMessage} Reason: Avatar Not Found. Error Details: {avatarResult.Message}");
+                    ErrorHandling.HandleError(ref result, $"{errorMessage} Reason: Avatar Not Found. Error Details: {avatarResult.Message}", avatarResult.DetailedMessage);
             }
             else
-                ErrorHandling.HandleError(ref result, $"{errorMessage} Reason: {providerResult.Message}");
+                ErrorHandling.HandleError(ref result, $"{errorMessage} Reason: {providerResult.Message}", providerResult.DetailedMessage);
 
             return result.Result;
 
@@ -2248,10 +2221,10 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                     result.IsSaved = true;
                 }
                 else
-                    ErrorHandling.HandleError(ref result, $"{errorMessage} Reason: {result.Message}");
+                    ErrorHandling.HandleError(ref result, $"{errorMessage} Reason: {result.Message}", result.DetailedMessage);
             }
             else
-                ErrorHandling.HandleError(ref result, $"{errorMessage} Reason: {providerResult.Message}");
+                ErrorHandling.HandleError(ref result, $"{errorMessage} Reason: {providerResult.Message}", providerResult.DetailedMessage);
 
             return result.Result;
         }
@@ -2276,13 +2249,13 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                         result.IsSaved = true;
                     }
                     else
-                        ErrorHandling.HandleError(ref result, $"{errorMessage} Reason: {result.Message}");
+                        ErrorHandling.HandleError(ref result, $"{errorMessage} Reason: {result.Message}", result.DetailedMessage);
                 }
                 else
-                    ErrorHandling.HandleError(ref result, $"{errorMessage} Reason: Avatar Not Found. Error Details: {avatarResult.Message}");
+                    ErrorHandling.HandleError(ref result, $"{errorMessage} Reason: Avatar Not Found. Error Details: {avatarResult.Message}", avatarResult.DetailedMessage);
             }
             else
-                ErrorHandling.HandleError(ref result, $"{errorMessage} Reason: {providerResult.Message}");
+                ErrorHandling.HandleError(ref result, $"{errorMessage} Reason: {providerResult.Message}", providerResult.DetailedMessage);
 
             return result;
         }
@@ -2516,7 +2489,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 if (existingAvatarResult.Result.DeletedDate != DateTime.MinValue)
                 {
                     sendAlreadyRegisteredEmail(email, origin);
-                    ErrorHandling.HandleError(ref result, $"This avatar was deleted on {existingAvatarResult.Result.DeletedDate} by avatar with id {existingAvatarResult.Result.DeletedByAvatarId}, please contact support or create a new avatar with a new email address.");
+                    ErrorHandling.HandleError(ref result, $"This avatar was deleted on {existingAvatarResult.Result.DeletedDate} by avatar with id {existingAvatarResult.Result.DeletedByAvatarId}, please contact support (to either restore your old avatar or permanently delete your old avatar so you can then re-use your old email address to create a new avatar) or create a new avatar with a new email address.");
                     return result;
                 }
                 else
@@ -2741,21 +2714,21 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
                     if (await Task.WhenAny(task, Task.Delay(OASISDNA.OASIS.StorageProviders.ProviderMethodCallTimeOutSeconds * 1000)) == task)
                     {
-                        result = task.Result;
+                        //result = task.Result;
 
-                        if (result.IsError || result.Result == null)
+                        if (task.Result.IsError || task.Result.Result == null)
                         {
-                            if (string.IsNullOrEmpty(result.Message))
-                                result.Message = "Avatar Not Found.";
+                            if (string.IsNullOrEmpty(task.Result.Message))
+                                task.Result.Message = "Avatar Not Found.";
 
-                            ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, result.Message));
+                            ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, task.Result.Message), task.Result.DetailedMessage);
                         }
                     }
                     else
                         ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, "timeout occured."));
                 }
                 else
-                    ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, providerResult.Message));
+                    ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, providerResult.Message), providerResult.DetailedMessage);
             }
             catch (Exception ex)
             {
@@ -2790,19 +2763,19 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                     {
                         result = task.Result;
 
-                        if (result.IsError || result.Result == null)
+                        if (task.Result.IsError || task.Result.Result == null)
                         {
-                            if (string.IsNullOrEmpty(result.Message))
-                                result.Message = "Avatar Not Found.";
+                            if (string.IsNullOrEmpty(task.Result.Message))
+                                task.Result.Message = "Avatar Not Found.";
 
-                            ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, result.Message));
+                            ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, task.Result.Message), task.Result.DetailedMessage);
                         }
                     }
                     else
                         ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, "timeout occured."));
                 }
                 else
-                    ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, providerResult.Message));
+                    ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, providerResult.Message), providerResult.DetailedMessage);
             }
             catch (Exception ex)
             {
@@ -2836,19 +2809,24 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                     {
                         result = task.Result;
 
-                        if (result.IsError || result.Result == null)
+                        if (task.Result.IsError || task.Result.Result == null)
                         {
-                            if (string.IsNullOrEmpty(result.Message))
-                                result.Message = "Avatar Not Found.";
+                            if (string.IsNullOrEmpty(task.Result.Message))
+                                task.Result.Message = "Avatar Not Found.";
 
-                            ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, result.Message));
+                            ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, task.Result.Message), task.Result.DetailedMessage);
+                        }
+                        else
+                        {
+                            result.IsLoaded = true;
+                            result.Result = task.Result.Result;
                         }
                     }
                     else
                         ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, "timeout occured."));
                 }
                 else
-                    ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, providerResult.Message));
+                    ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, providerResult.Message), providerResult.DetailedMessage);
             }
             catch (Exception ex)
             {
@@ -2880,21 +2858,26 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
                     if (await Task.WhenAny(task, Task.Delay(OASISDNA.OASIS.StorageProviders.ProviderMethodCallTimeOutSeconds * 1000)) == task)
                     {
-                        result = task.Result;
+                       // result = task.Result;
 
-                        if (result.IsError || result.Result == null)
+                        if (task.Result.IsError || task.Result.Result == null)
                         {
-                            if (string.IsNullOrEmpty(result.Message))
-                                result.Message = "Avatar Not Found.";
+                            if (string.IsNullOrEmpty(task.Result.Message))
+                                task.Result.Message = "Avatar Not Found.";
 
-                            ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, result.Message));
+                            ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, task.Result.Message), task.Result.DetailedMessage);
+                        }
+                        else
+                        {
+                            result.IsLoaded = true;
+                            result.Result = task.Result.Result;
                         }
                     }
                     else
                         ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, "timeout occured."));
                 }
                 else
-                    ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, providerResult.Message));
+                    ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, providerResult.Message), providerResult.DetailedMessage);
             }
             catch (Exception ex)
             {
@@ -2926,21 +2909,26 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
                     if (await Task.WhenAny(task, Task.Delay(OASISDNA.OASIS.StorageProviders.ProviderMethodCallTimeOutSeconds * 1000)) == task)
                     {
-                        result = task.Result;
+                        //result = task.Result;
 
-                        if (result.IsError || result.Result == null)
+                        if (task.Result.IsError || task.Result.Result == null)
                         {
-                            if (string.IsNullOrEmpty(result.Message))
-                                result.Message = "Avatar Detail Not Found.";
+                            if (string.IsNullOrEmpty(task.Result.Message))
+                                task.Result.Message = "Avatar Detail Not Found.";
 
-                            ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, result.Message));
+                            ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, task.Result.Message), task.Result.DetailedMessage);
+                        }
+                        else
+                        {
+                            result.IsLoaded = true;
+                            result.Result = task.Result.Result;
                         }
                     }
                     else
                         ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, "timeout occured."));
                 }
                 else
-                    ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, providerResult.Message));
+                    ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, providerResult.Message), providerResult.DetailedMessage);
             }
             catch (Exception ex)
             {
@@ -2972,21 +2960,26 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
                     if (await Task.WhenAny(task, Task.Delay(OASISDNA.OASIS.StorageProviders.ProviderMethodCallTimeOutSeconds * 1000)) == task)
                     {
-                        result = task.Result;
+                        //result = task.Result;
 
-                        if (result.IsError || result.Result == null)
+                        if (task.Result.IsError || task.Result.Result == null)
                         {
                             if (string.IsNullOrEmpty(result.Message))
-                                result.Message = "Avatar Detail Not Found.";
+                                task.Result.Message = "Avatar Detail Not Found.";
 
-                            ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, result.Message));
+                            ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, task.Result.Message), task.Result.DetailedMessage);
+                        }
+                        else
+                        {
+                            result.IsLoaded = true;
+                            result.Result = task.Result.Result;
                         }
                     }
                     else
                         ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, "timeout occured."));
                 }
                 else
-                    ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, providerResult.Message));
+                    ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, providerResult.Message), providerResult.DetailedMessage);
             }
             catch (Exception ex)
             {
@@ -3018,21 +3011,26 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
                     if (await Task.WhenAny(task, Task.Delay(OASISDNA.OASIS.StorageProviders.ProviderMethodCallTimeOutSeconds * 1000)) == task)
                     {
-                        result = task.Result;
+                        //result = task.Result;
 
-                        if (result.IsError || result.Result == null)
+                        if (task.Result.IsError || task.Result.Result == null)
                         {
-                            if (string.IsNullOrEmpty(result.Message))
-                                result.Message = "Avatar Detail Not Found.";
+                            if (string.IsNullOrEmpty(task.Result.Message))
+                                task.Result.Message = "Avatar Detail Not Found.";
 
-                            ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, result.Message));
+                            ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, task.Result.Message), task.Result.DetailedMessage);
+                        }
+                        else
+                        {
+                            result.IsLoaded = true;
+                            result.Result = task.Result.Result;
                         }
                     }
                     else
                         ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, "timeout occured."));
                 }
                 else
-                    ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, providerResult.Message));
+                    ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, providerResult.Message), providerResult.DetailedMessage);
             }
             catch (Exception ex)
             {
@@ -3064,21 +3062,26 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
                     if (await Task.WhenAny(task, Task.Delay(OASISDNA.OASIS.StorageProviders.ProviderMethodCallTimeOutSeconds * 1000)) == task)
                     {
-                        result = task.Result;
+                        //result = task.Result;
 
-                        if (result.IsError || result.Result == null)
+                        if (task.Result.IsError || task.Result.Result == null)
                         {
-                            if (string.IsNullOrEmpty(result.Message))
-                                result.Message = "No Avatars Were Found.";
+                            if (string.IsNullOrEmpty(task.Result.Message))
+                                task.Result.Message = "No Avatars Were Found.";
 
-                            ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, result.Message));
+                            ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, task.Result.Message), task.Result.DetailedMessage);
+                        }
+                        else
+                        {
+                            result.IsLoaded = true;
+                            result.Result = task.Result.Result;
                         }
                     }
                     else
-                        ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, "timeout occured."));
+                        ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, "timeout occured."), task.Result.DetailedMessage);
                 }
                 else
-                    ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, providerResult.Message));
+                    ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, providerResult.Message), providerResult.DetailedMessage);
             }
             catch (Exception ex)
             {
@@ -3110,21 +3113,26 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
                     if (await Task.WhenAny(task, Task.Delay(OASISDNA.OASIS.StorageProviders.ProviderMethodCallTimeOutSeconds * 1000)) == task)
                     {
-                        result = task.Result;
+                        //result = task.Result;
 
-                        if (result.IsError || result.Result == null)
+                        if (task.Result.IsError || task.Result.Result == null)
                         {
-                            if (string.IsNullOrEmpty(result.Message))
-                                result.Message = "No Avatar Details Were Found.";
+                            if (string.IsNullOrEmpty(task.Result.Message))
+                                task.Result.Message = "No Avatar Details Were Found.";
 
-                            ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, result.Message));
+                            ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, task.Result.Message), task.Result.DetailedMessage);
+                        }
+                        else
+                        {
+                            result.IsLoaded = true;
+                            result.Result = task.Result.Result;
                         }
                     }
                     else
                         ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, "timeout occured."));
                 }
                 else
-                    ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, providerResult.Message));
+                    ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, providerResult.Message), providerResult.DetailedMessage);
             }
             catch (Exception ex)
             {
@@ -3152,26 +3160,29 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
                     if (await Task.WhenAny(task, Task.Delay(OASISDNA.OASIS.StorageProviders.ProviderMethodCallTimeOutSeconds * 1000)) == task)
                     {
-                        if (saveMode != SaveMode.AutoReplication)
-                            result = task.Result;
-                        else
-                            OASISResultHolonToHolonHelper<IAvatar, IAvatar>.CopyResult(task.Result, result, false);
+                        //if (saveMode != SaveMode.AutoReplication)
+                        //    result = task.Result;
+                        //else
+                        //    OASISResultHolonToHolonHelper<IAvatar, IAvatar>.CopyResult(task.Result, result, false);
 
-                        if (result.IsError || result.Result == null)
+                        if (task.Result.IsError || task.Result.Result == null)
                         {
-                            if (string.IsNullOrEmpty(result.Message) && saveMode != SaveMode.AutoReplication)
-                                result.Message = "Unknown.";
+                            if (string.IsNullOrEmpty(task.Result.Message) && saveMode != SaveMode.AutoReplication)
+                                task.Result.Message = "Unknown.";
 
-                            ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, result.Message), saveMode == SaveMode.AutoReplication);
+                            ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, task.Result.Message), task.Result.DetailedMessage, saveMode == SaveMode.AutoReplication);
                         }
                         else
+                        {
                             result.IsSaved = true;
+                            result.Result = task.Result.Result;
+                        }
                     }
                     else
                         ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, "timeout occured."), saveMode == SaveMode.AutoReplication);
                 }
                 else
-                    ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, providerResult.Message), saveMode == SaveMode.AutoReplication);
+                    ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, providerResult.Message), providerResult.DetailedMessage, saveMode == SaveMode.AutoReplication);
             }
             catch (Exception ex)
             {
@@ -3199,26 +3210,37 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
                     if (task.Wait(TimeSpan.FromSeconds(OASISDNA.OASIS.StorageProviders.ProviderMethodCallTimeOutSeconds)))
                     {
-                        if (saveMode != SaveMode.AutoReplication)
-                            result = task.Result;
-                        else
-                            OASISResultHolonToHolonHelper<IAvatar, IAvatar>.CopyResult(task.Result, result, false);
+                        //if (saveMode != SaveMode.AutoReplication)
+                        //    result = task.Result;
+                        //else
+                        //    OASISResultHolonToHolonHelper<IAvatar, IAvatar>.CopyResult(task.Result, result, false);
 
-                        if (result.IsError || result.Result == null)
+                        //if (result.IsError || result.Result == null)
+                        if (task.Result.IsError || task.Result.Result == null)
                         {
-                            if (string.IsNullOrEmpty(result.Message) && saveMode != SaveMode.AutoReplication)
-                                result.Message = "Unknown.";
+                            if (string.IsNullOrEmpty(task.Result.Message) && saveMode != SaveMode.AutoReplication)
+                                task.Result.Message = "Unknown.";
 
-                            ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, result.Message), saveMode == SaveMode.AutoReplication);
+                            ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, task.Result.Message), task.Result.DetailedMessage, saveMode == SaveMode.AutoReplication);
+
+                            //If we are auto-replicating then this is not an error, only a warning.
+                            //if (saveMode == SaveMode.AutoReplication)
+                            //{
+                            //    result.IsError = false;
+                            //    result.IsSaved = true;
+                            //}
                         }
                         else
+                        {
                             result.IsSaved = true;
+                            result.Result = task.Result.Result;
+                        }
                     }
                     else
                         ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, "timeout occured."), saveMode == SaveMode.AutoReplication);
                 }
                 else
-                    ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, providerResult.Message), saveMode == SaveMode.AutoReplication);
+                    ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, providerResult.Message), providerResult.DetailedMessage, saveMode == SaveMode.AutoReplication);
             }
             catch (Exception ex)
             {
@@ -3246,26 +3268,29 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
                     if (await Task.WhenAny(task, Task.Delay(OASISDNA.OASIS.StorageProviders.ProviderMethodCallTimeOutSeconds * 1000)) == task)
                     {
-                        if (saveMode != SaveMode.AutoReplication)
-                            result = task.Result;
-                        else
-                            OASISResultHolonToHolonHelper<IAvatarDetail, IAvatarDetail>.CopyResult(task.Result, result, false);
+                    //    if (saveMode != SaveMode.AutoReplication)
+                    //        result = task.Result;
+                    //    else
+                    //        OASISResultHolonToHolonHelper<IAvatarDetail, IAvatarDetail>.CopyResult(task.Result, result, false);
 
-                        if (result.IsError || result.Result == null)
+                        if (task.Result.IsError || task.Result.Result == null)
                         {
-                            if (string.IsNullOrEmpty(result.Message) && saveMode != SaveMode.AutoReplication)
-                                result.Message = "Unknown.";
+                            if (string.IsNullOrEmpty(task.Result.Message) && saveMode != SaveMode.AutoReplication)
+                                task.Result.Message = "Unknown.";
 
-                            ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, result.Message), saveMode == SaveMode.AutoReplication);
+                            ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, task.Result.Message), task.Result.DetailedMessage, saveMode == SaveMode.AutoReplication);
                         }
                         else
+                        {
                             result.IsSaved = true;
+                            result.Result = task.Result.Result;
+                        }
                     }
                     else
                         ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, "timeout occured."), saveMode == SaveMode.AutoReplication);
                 }
                 else
-                    ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, providerResult.Message), saveMode == SaveMode.AutoReplication);
+                    ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, providerResult.Message), providerResult.DetailedMessage, saveMode == SaveMode.AutoReplication);
             }
             catch (Exception ex)
             {
@@ -3302,26 +3327,29 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
                     if (await Task.WhenAny(task, Task.Delay(OASISDNA.OASIS.StorageProviders.ProviderMethodCallTimeOutSeconds * 1000)) == task)
                     {
-                        if (saveMode != SaveMode.AutoReplication)
-                            result = task.Result;
-                        else
-                            OASISResultHolonToHolonHelper<bool, bool>.CopyResult(task.Result, result, false);
+                        //if (saveMode != SaveMode.AutoReplication)
+                        //    result = task.Result;
+                        //else
+                        //    OASISResultHolonToHolonHelper<bool, bool>.CopyResult(task.Result, result, false);
 
-                        if (result.IsError || !result.Result)
+                        if (task.Result.IsError || !task.Result.Result)
                         {
-                            if (string.IsNullOrEmpty(result.Message) && saveMode != SaveMode.AutoReplication)
+                            if (string.IsNullOrEmpty(task.Result.Message) && saveMode != SaveMode.AutoReplication)
                                 result.Message = "Unknown.";
 
-                            ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, result.Message), saveMode == SaveMode.AutoReplication);
+                            ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, task.Result.Message), task.Result.DetailedMessage, saveMode == SaveMode.AutoReplication);
                         }
                         else
+                        {
                             result.IsSaved = true;
+                            result.Result = task.Result.Result;
+                        }
                     }
                     else
                         ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, "timeout occured."), saveMode == SaveMode.AutoReplication);
                 }
                 else
-                    ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, providerResult.Message), saveMode == SaveMode.AutoReplication);
+                    ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, providerResult.Message), providerResult.DetailedMessage, saveMode == SaveMode.AutoReplication);
             }
             catch (Exception ex)
             {
@@ -3354,26 +3382,29 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
                     if (await Task.WhenAny(task, Task.Delay(OASISDNA.OASIS.StorageProviders.ProviderMethodCallTimeOutSeconds * 1000)) == task)
                     {
-                        if (saveMode != SaveMode.AutoReplication)
-                            result = task.Result;
-                        else
-                            OASISResultHolonToHolonHelper<bool, bool>.CopyResult(task.Result, result, false);
+                        //if (saveMode != SaveMode.AutoReplication)
+                        //    result = task.Result;
+                        //else
+                        //    OASISResultHolonToHolonHelper<bool, bool>.CopyResult(task.Result, result, false);
 
-                        if (result.IsError || !result.Result)
+                        if (task.Result.IsError || !task.Result.Result)
                         {
-                            if (string.IsNullOrEmpty(result.Message) && saveMode != SaveMode.AutoReplication)
+                            if (string.IsNullOrEmpty(task.Result.Message) && saveMode != SaveMode.AutoReplication)
                                 result.Message = "Unknown.";
 
-                            ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, result.Message), saveMode == SaveMode.AutoReplication);
+                            ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, task.Result.Message), task.Result.DetailedMessage, saveMode == SaveMode.AutoReplication);
                         }
                         else
+                        {
                             result.IsSaved = true;
+                            result.Result = task.Result.Result;
+                        }
                     }
                     else
                         ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, "timeout occured."), saveMode == SaveMode.AutoReplication);
                 }
                 else
-                    ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, providerResult.Message), saveMode == SaveMode.AutoReplication);
+                    ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, providerResult.Message), providerResult.DetailedMessage, saveMode == SaveMode.AutoReplication);
             }
             catch (Exception ex)
             {
@@ -3406,26 +3437,29 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
                     if (await Task.WhenAny(task, Task.Delay(OASISDNA.OASIS.StorageProviders.ProviderMethodCallTimeOutSeconds * 1000)) == task)
                     {
-                        if (saveMode != SaveMode.AutoReplication)
-                            result = task.Result;
-                        else
-                            OASISResultHolonToHolonHelper<bool, bool>.CopyResult(task.Result, result, false);
+                        //if (saveMode != SaveMode.AutoReplication)
+                        //    result = task.Result;
+                        //else
+                        //    OASISResultHolonToHolonHelper<bool, bool>.CopyResult(task.Result, result, false);
 
-                        if (result.IsError || !result.Result)
+                        if (task.Result.IsError || !task.Result.Result)
                         {
-                            if (string.IsNullOrEmpty(result.Message) && saveMode != SaveMode.AutoReplication)
-                                result.Message = "Unknown.";
+                            if (string.IsNullOrEmpty(task.Result.Message) && saveMode != SaveMode.AutoReplication)
+                                task.Result.Message = "Unknown.";
 
-                            ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, result.Message), saveMode == SaveMode.AutoReplication);
+                            ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, task.Result.Message), task.Result.DetailedMessage, saveMode == SaveMode.AutoReplication);
                         }
                         else
+                        {
                             result.IsSaved = true;
+                            result.Result = task.Result.Result;
+                        }
                     }
                     else
                         ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, "timeout occured."), saveMode == SaveMode.AutoReplication);
                 }
                 else
-                    ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, providerResult.Message), saveMode == SaveMode.AutoReplication);
+                    ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, providerResult.Message), providerResult.DetailedMessage, saveMode == SaveMode.AutoReplication);
             }
             catch (Exception ex)
             {
@@ -3434,6 +3468,106 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
             return result;
         }
+
+        private OASISResult<IAvatar> ProcessAvatarLogin(OASISResult<IAvatar> result, string password)
+        {
+            if (result.Result != null)
+            {
+                if (result.Result.DeletedDate != DateTime.MinValue)
+                {
+                    result.IsError = true;
+                    result.Message = $"This avatar was deleted on {result.Result.DeletedDate} by avatar with id {result.Result.DeletedByAvatarId}, please contact support (to either restore your old avatar or permanently delete your old avatar so you can then re-use your old email address to create a new avatar) or create a new avatar with a new email address.";
+                }
+
+                if (!result.Result.IsActive)
+                {
+                    result.IsError = true;
+                    result.Message = "This avatar is no longer active. Please contact support or create a new avatar.";
+                }
+
+                if (!result.Result.IsVerified)
+                {
+                    result.IsError = true;
+                    result.Message = "Avatar has not been verified. Please check your email.";
+                }
+
+                if (!BC.Verify(password, result.Result.Password))
+                {
+                    result.IsError = true;
+                    result.Message = "Email or password is incorrect";
+                }
+            }
+
+            return result;
+        }
+
+
+        //private OASISResult<IAvatar> ProcessAvatarLogin(OASISResult<IAvatar> result, string username, string password, string ipAddress, Func<IAvatar, OASISResult<IAvatar>> saveFunc)
+        //
+        //private OASISResult<IAvatar> ProcessAvatarLogin(OASISResult<IAvatar> result, string username, string password, string ipAddress, Func<IAvatar, OASISResult<IAvatar>> saveFunc)
+        //private OASISResult<IAvatar> ProcessAvatarLogin(OASISResult<IAvatar> result, string username, string password, string ipAddress, SaveAvatarFunction saveAvatarFunction)
+        //{
+        //    if (result.Result != null)
+        //    {
+        //        if (result.Result.DeletedDate != DateTime.MinValue)
+        //        {
+        //            result.IsError = true;
+        //            result.Message = $"This avatar was deleted on {result.Result.DeletedDate} by avatar with id {result.Result.DeletedByAvatarId}, please contact support or create a new avatar with a new email address.";
+        //        }
+
+        //        if (!result.Result.IsActive)
+        //        {
+        //            result.IsError = true;
+        //            result.Message = "This avatar is no longer active. Please contact support or create a new avatar.";
+        //        }
+
+        //        if (!result.Result.IsVerified)
+        //        {
+        //            result.IsError = true;
+        //            result.Message = "Avatar has not been verified. Please check your email.";
+        //        }
+
+        //        if (!BC.Verify(password, result.Result.Password))
+        //        {
+        //            result.IsError = true;
+        //            result.Message = "Email or password is incorrect";
+        //        }
+        //    }
+
+        //    //TODO: Come back to this.
+        //    //if (OASISDNA.OASIS.Security.AvatarPassword.)
+
+        //    if (result.Result != null & !result.IsError)
+        //    {
+        //        var jwtToken = GenerateJWTToken(result.Result);
+        //        var refreshToken = generateRefreshToken(ipAddress);
+
+        //        result.Result.RefreshTokens.Add(refreshToken);
+        //        result.Result.JwtToken = jwtToken;
+        //        result.Result.RefreshToken = refreshToken.Token;
+        //        result.Result.LastBeamedIn = DateTime.Now;
+        //        result.Result.IsBeamedIn = true;
+
+        //        LoggedInAvatar = result.Result;
+        //        //OASISResult<IAvatar> saveAvatarResult = SaveAvatar(result.Result);
+        //        //OASISResult<IAvatar> saveAvatarResult = saveFunc(result.Result);
+        //        OASISResult<IAvatar> saveAvatarResult = saveAvatarFunction(result.Result);
+
+        //        if (!saveAvatarResult.IsError && saveAvatarResult.IsSaved)
+        //        {
+        //            result.Result = HideAuthDetails(saveAvatarResult.Result);
+        //            result.IsSaved = true;
+        //            result.Message = "Avatar Successfully Authenticated.";
+        //        }
+        //        else
+        //            ErrorHandling.HandleError(ref result, $"Error occured in AuthenticateAsync method in AvatarManager whilst saving the avatar. Reason: {saveAvatarResult.Message}");
+        //    }
+        //    else
+        //        result.Result = null;
+
+        //    return result;
+        //}
+
 
         //TODO: Wish there was a way we could make a generic way to pass a Func in with DIFFERENT params AND return types?! :) Would save a LOT of code above! ;-) lol
         /*
