@@ -69,7 +69,7 @@ class Karma {
 
     const config = {
       method: "get",
-      url: `https://api.oasisplatform.world/api/karma/getKarmaAkashicRecordsForAvatar/${id}`,
+      url: `https://api.oasisplatform.world/api/karma/GetKarmaAkashicRecordsForAvatar/${id}`,
       headers: {
         Authorization: `Bearer ${this.token.jwtToken}`,
       },

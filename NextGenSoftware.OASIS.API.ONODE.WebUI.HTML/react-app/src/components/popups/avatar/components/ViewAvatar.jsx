@@ -6,34 +6,35 @@ import { login, getUserById } from "../../../../functions";
 // import ReactGrid from "../../../ReactGrid";
 import { AgGridColumn, AgGridReact } from 'ag-grid-react'
 import '../../../../assets/scss/avatar-popup.scss';
+import oasisApi from "oasis-api";
 
 class ViewAvatar extends React.Component {
     state = {
         columnDefs: [
             { 
-                field: 'Avatar',
+                field: 'avatar',
                 // filterParams: filterParams,
             },
             {
-                field: 'Level',
+                field: 'level',
 
             },
             { 
-                field: 'Karma'
+                field: 'karma'
             },
             {
-                field: 'Sex',
+                field: 'sex',
             },
             {
-                field: 'Created' 
-            },
-            
-            {
-                field: 'Last Beamed In' 
+                field: 'created' 
             },
             
             {
-                field: 'Online' 
+                field: 'last' 
+            },
+            
+            {
+                field: 'online' 
             },
         ],
         defaultColDef: {
@@ -49,74 +50,35 @@ class ViewAvatar extends React.Component {
 		loggedIn: true,
     };
 
-    onGridReady = (params) => {
+    onGridReady = async (params) => {
         this.gridApi = params.api;
         this.gridColumnApi = params.columnApi;
-    
-        const updateData = (data) => {
-          this.setState({ rowData: data });
-        };
-        fetch('https://www.ag-grid.com/example-assets/olympic-winners.json')
-          .then((resp) => resp.json())
-          .then((data) => updateData(data));
-    }
-    async componentDidMount() {
-        var token, refresh, credentials;
 
-        //If user object exists in localstorage, get the refresh token
-        //and the jwtToken
-        if (localStorage.getItem("user")) {
-            credentials = JSON.parse(localStorage.getItem("credentials"));
-            let avatar = await login(credentials);
-            if (avatar !== -1) {
-                token = avatar.jwtToken;
-                refresh = avatar.refreshToken;
-            }
-        }
+        const avatar = new oasisApi.Avatar()
+        const karma = new oasisApi.Karma()
 
-        //else (for now) show an alert and redirect to home
-        else {
-            this.setState({ loggedIn: false });
-        }
-        let config = {
-            method: "get",
-            url: "https://api.oasisplatform.world/api/avatar/GetAll",
-            headers: {
-                Authorization: `Bearer ${token}`,
-                Cookie: `refreshToken=${refresh}`,
-            },
-        };
-        this.setState({ loading: true });
-        axios(config)
-            .then(async (response) => {
-                let avatars = []
-                for (let i = 0; i <= response.data.length - 1; i++) {
-                    const data = response.data[i]
-                    const id = data.id;
-                    let tkn = { jwt: token }
-                    const user = await getUserById(id, tkn)
-                    console.log(user)
-                    const avatar = {
-                        avatar: data.username,
-                        level: data.level,
-                        karma: data.karma,
-                        sex: 'Male',
-                        created: user.createdDate,
-                        modified: user.modifiedDate,
-                        online: data.isBeamedIn ? 'Yes' : 'No'
-                    }
-                    avatars.push(avatar)
+        const res = await avatar.getAll()
+        if(!res.error){
+            let avatars=[]
+            const users = res.data.result
+            for(let i=0; i<=users.length-1; i++){
+                let user = users[i]
+                console.log('user')
+                const karmaRes = await karma.getKarmaForAvatar(user.avatarId)
+                console.log(karmaRes)
+                let temp = {
+                    avatar: user.username,
+                    level: 1,
+                    karma: karmaRes.data.result,
+                    sex: user.title === 'Mr' ? 'Male':'Female',
+                    created: 'Now',
+                    last: 'Now',
+                    online: user.isBeamedIn
                 }
-
-                this.setState({ rows: avatars });
-                // console.log(avatars);
-                this.setState({ loading: false });
-                this.setState({ loggedIn: true });
-            })
-            .catch((error) => {
-                this.setState({ loading: true });
-                // console.log(error.response);
-            });
+                avatars.push(temp)
+            }
+            this.setState({rowData: avatars})
+        }
     }
 
     render() { 
