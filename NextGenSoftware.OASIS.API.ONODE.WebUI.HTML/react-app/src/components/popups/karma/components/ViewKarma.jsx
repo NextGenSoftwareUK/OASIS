@@ -2,7 +2,7 @@ import React from 'react';
 import { Modal } from 'react-bootstrap';
 import Loader from "react-loader-spinner";
 import { AgGridColumn, AgGridReact } from 'ag-grid-react';
-import oasis from "oasis-api";
+import oasisApi from "oasis-api";
 
 class ViewKarma extends React.Component {
 
@@ -10,14 +10,14 @@ class ViewKarma extends React.Component {
         super(props);
         this.state = {
             columnDefs: [
-                { field: 'Date' },
-                { field: 'Avatar' },
-                { field: 'Positive/Negative' },
-                { field: 'Type' },
-                { field: 'Karma' },
-                { field: 'Source' },
-                { field: 'Description' },
-                { field: 'Weblink' },
+                { field: 'date' },
+                { field: 'avatar' },
+                { field: 'positive/negative' },
+                { field: 'type' },
+                { field: 'karma' },
+                { field: 'source' },
+                { field: 'description' },
+                { field: 'weblink' },
             ],
             defaultColDef: {
                 flex: 1,
@@ -33,22 +33,53 @@ class ViewKarma extends React.Component {
         };
     }
 
-    componentDidMount() {
-        const karma = new oasis.Karma();
-        karma.getKarmaAkashicRecordsForAvatar("").then((res) => {
-            console.log(res);
-        }).catch((err) => {
-            console.log(err);
-        });
-    }
+    onGridReady = async (params) => {
+        this.gridApi = params.api;
+        this.gridColumnApi = params.columnApi;
+        let karmaRecords = []
 
+        const avatarApi = new oasisApi.Avatar()
+        const karmaApi = new oasisApi.Karma()
+
+        const avatarRes = await avatarApi.getAll()
+        if(!avatarRes.error){
+          const avatars = avatarRes.data.result
+          for(let i=0; i<=avatars.length-1; i++){
+            const avatar = avatars[i]
+            const karmaRes = await karmaApi.getKarmaAkashicRecordsForAvatar(avatar.avatarId)
+            if(!karmaRes.error){
+              if(karmaRes.data.result){
+                const karmas = karmaRes.data.result
+                for(let j=0; j<=karmas.length-1; j++){
+                  const karma = karmas[j]
+                  console.log(karma)
+                  const karmaRecord = {
+                    date: karma.date,
+                    avatar: avatar.username,
+                    'positive/negative': karma.karmaTypePositive.value,
+                    type: karma.karmaTypePositive.name,
+                    source: karma.karmaSource.name,
+                    description: karma.karmaSourceDesc,
+                    weblink: 'oasisplatform.world',
+                    karma: karma.karma
+                  }
+                  karmaRecords.push(karmaRecord)
+                  console.log(karmaRecord)
+                };
+              }
+            }
+          };
+        }
+        console.log(karmaRecords);
+        this.setState({rowData: karmaRecords})
+    }
     //run this after component mounts
     render() {
         const { show, hide } = this.props;
         return (
             <>
                 <Modal
-                    centered
+                  centered
                     className="custom-modal custom-popup-component"
                     show={show}
                     dialogClassName="modal-90w"
@@ -59,7 +90,7 @@ class ViewKarma extends React.Component {
                             <i className="fa fa-times"></i>
                         </span>
                         <h1 className="single-heading">View Current Karma</h1>
-                        
+
                                <div className="ag-theme-alpine custom-ag-parent">
                                <AgGridReact
                                    columnDefs={this.state.columnDefs}
