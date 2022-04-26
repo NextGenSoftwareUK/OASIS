@@ -22,8 +22,8 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces
         Task<OASISResult<IAvatar>> LoadAvatarByUsernameAsync(string avatarUsername, int version = 0);
         OASISResult<IAvatar> LoadAvatar(string username, int version = 0);
         Task<OASISResult<IAvatar>> LoadAvatarAsync(string username, int version = 0);
-        OASISResult<IAvatar> LoadAvatar(string username, string password, int version = 0);
-        Task<OASISResult<IAvatar>> LoadAvatarAsync(string username, string password, int version = 0);
+        //OASISResult<IAvatar> LoadAvatar(string username, string password, int version = 0);
+        //Task<OASISResult<IAvatar>> LoadAvatarAsync(string username, string password, int version = 0);
         OASISResult<IEnumerable<IAvatar>> LoadAllAvatars(int version = 0);
         Task<OASISResult<IEnumerable<IAvatar>>> LoadAllAvatarsAsync(int version = 0);
         OASISResult<IAvatarDetail> LoadAvatarDetail(Guid id, int version = 0);
@@ -46,7 +46,7 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces
         Task<OASISResult<bool>> DeleteAvatarAsync(Guid id, bool softDelete = true);
         Task<OASISResult<bool>> DeleteAvatarByEmailAsync(string avatarEmail, bool softDelete = true);
         Task<OASISResult<bool>> DeleteAvatarByUsernameAsync(string avatarUsername, bool softDelete = true);
-        OASISResult<bool> DeleteAvatar(string providerKey, bool softDelete = true);
+        OASISResult<bool> DeleteAvatar(string providerKey, bool softDelete = true); //TODO: Currently not used - may remove later? Is it needed?
         Task<OASISResult<bool>> DeleteAvatarAsync(string providerKey, bool softDelete = true);
         OASISResult<KarmaAkashicRecord> AddKarmaToAvatar(IAvatarDetail Avatar, KarmaTypePositive karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc, string karmaSourceWebLink = null);
         Task<OASISResult<KarmaAkashicRecord>> AddKarmaToAvatarAsync(IAvatarDetail Avatar, KarmaTypePositive karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc, string karmaSourceWebLink = null);

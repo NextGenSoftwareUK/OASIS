@@ -105,29 +105,29 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
             throw new NotImplementedException();
         }
 
-        public override OASISResult<IAvatar> LoadAvatar(string username, string password, int version = 0)
-        {
-            try
-            {
-                //var people = _graphClient.Cypher
-                //  .Match("(p:Person)")
-                //  .Return(p => p.As<Person>())
-                //  .Results;
+        //public override OASISResult<IAvatar> LoadAvatar(string username, string password, int version = 0)
+        //{
+        //    try
+        //    {
+        //        //var people = _graphClient.Cypher
+        //        //  .Match("(p:Person)")
+        //        //  .Return(p => p.As<Person>())
+        //        //  .Results;
 
 
-                Avatar avatar =
-                    GraphClient.Cypher.Match("(p:Avatar {Username: {nameParam}})") //TODO: Need to add password to match query...
-                   .WithParam("nameParam", username)
-                  .Return(p => p.As<Avatar>())
-                    .ResultsAsync.Result.Single();
+        //        Avatar avatar =
+        //            GraphClient.Cypher.Match("(p:Avatar {Username: {nameParam}})") //TODO: Need to add password to match query...
+        //           .WithParam("nameParam", username)
+        //          .Return(p => p.As<Avatar>())
+        //            .ResultsAsync.Result.Single();
 
-                return new OASISResult<IAvatar>(avatar);
-            }
-            catch (InvalidOperationException) //thrown when nothing found
-            {
-                return null;
-            }
-        }
+        //        return new OASISResult<IAvatar>(avatar);
+        //    }
+        //    catch (InvalidOperationException) //thrown when nothing found
+        //    {
+        //        return null;
+        //    }
+        //}
 
         public override OASISResult<IAvatar> LoadAvatar(string username, int version = 0)
         {
@@ -140,31 +140,31 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
             return new OASISResult<IAvatar>(avatar);
         }
 
-        public override Task<OASISResult<IAvatar>> LoadAvatarAsync(string username, string password, int version = 0)
-        {
-            throw new NotImplementedException();
+        //public override Task<OASISResult<IAvatar>> LoadAvatarAsync(string username, string password, int version = 0)
+        //{
+        //    throw new NotImplementedException();
 
-            //try
-            //{
-            //    //var people = _graphClient.Cypher
-            //    //  .Match("(p:Person)")
-            //    //  .Return(p => p.As<Person>())
-            //    //  .Results;
+        //    //try
+        //    //{
+        //    //    //var people = _graphClient.Cypher
+        //    //    //  .Match("(p:Person)")
+        //    //    //  .Return(p => p.As<Person>())
+        //    //    //  .Results;
 
 
-            //    Avatar avatar =
-            //        _graphClient.Cypher.Match("(p:Avatar {Username: {nameParam}})")
-            //       .WithParam("nameParam", username)
-            //      .Return(p => p.As<Avatar>())
-            //        .ResultsAsync.Result.Single();
+        //    //    Avatar avatar =
+        //    //        _graphClient.Cypher.Match("(p:Avatar {Username: {nameParam}})")
+        //    //       .WithParam("nameParam", username)
+        //    //      .Return(p => p.As<Avatar>())
+        //    //        .ResultsAsync.Result.Single();
 
-            //    return Task<avatar>;
-            //}
-            //catch (InvalidOperationException) //thrown when nothing found
-            //{
-            //    return null;
-            //}
-        }
+        //    //    return Task<avatar>;
+        //    //}
+        //    //catch (InvalidOperationException) //thrown when nothing found
+        //    //{
+        //    //    return null;
+        //    //}
+        //}
 
         public override OASISResult<IAvatar> SaveAvatar(IAvatar avatar)
         {
