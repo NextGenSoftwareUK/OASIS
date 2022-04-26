@@ -7,17 +7,20 @@ const SidebarData = [
             {
                 id: 1,
                 name: "about",
-                disabled: false
+                path: 'https://drive.google.com/file/d/1nnhGpXcprr6kota1Y85HDDKsBfJHN6sn/view?usp=sharing',
+                externalLink: true
             },
             {
                 id: 2,
                 name: "documentation",
-                disabled: false
+                path: 'https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK',
+                externalLink: true
             },
             {
                 id: 3,
                 name: "our world",
-                disabled: false
+                path: 'http://www.ourworldthegame.com/',
+                externalLink: true
             },
         ],
     },
@@ -30,24 +33,24 @@ const SidebarData = [
                 id: 1,
                 name: "View Avatar",
                 popupName: "viewAvatar",
-                disabled: true
+                loginRequired: true
             },
             {
                 id: 2,
                 name: "Edit Avatar",
-                disabled: true
+                loginRequired: true
             },
             {
                 id: 3,
                 name: "Search Avatars",
                 popupName: "searchAvatar",
-                disabled: false
+                loginRequired: true
             },
             {
                 id: 4,
                 name: "Avatar Wallet",
                 popupName: "avatarWallet",
-                disabled: false
+                loginRequired: true
             }
         ],
     },
@@ -59,22 +62,22 @@ const SidebarData = [
                 id: 1,
                 name: "View Curent Karma Weightings",
                 popupName: "viewKarma",
-                disabled: false
+                loginRequired: true
             },
             {
                 id: 2,
                 name: "Vote For Karma Weightings",
-                disabled: false
+                loginRequired: true
             },
             {
                 id: 3,
                 name: "View Avatar Karma",
-                disabled: false
+                loginRequired: true
             },
             {
                 id: 4,
                 name: "View/Search Karma Akashic Records",
-                disabled: false
+                loginRequired: true
             },
         ],
     },
@@ -87,36 +90,36 @@ const SidebarData = [
 
                 name: "Load Data",
                 popupName: "loadData",
-                disabled: false
+                loginRequired: true
             },
             {
                 id: 2,
                 name: "Send Data",
                 popupName: "sendData",
-                disabled: false
+                loginRequired: true
             },
             {
                 id: 3,
                 name: "Manage Data",
                 popupName: "manageData",
-                disabled: false
+                loginRequired: true
             },
             {
                 id: 4,
                 name: "Cross-Chain Management",
                 popupName: 'crossChainManagement',
-                disabled: false
+                loginRequired: true
             },
             {
                 id: 5,
                 name: "Off-Chain Management",
                 popupName: 'offChainManagement',
-                disabled: false
+                loginRequired: true
             },
             {
                 id: 6,
                 name: "Search Data",
-                disabled: false
+                loginRequired: true
             },
         ],
     },
@@ -127,12 +130,14 @@ const SidebarData = [
             {
                 id: 1,
                 name: "Pay With SEEDS",
-                popupName: "payWithSeeds"
+                popupName: "payWithSeeds",
+                loginRequired: true
             },
             {
                 id: 2,
                 name: "Donate SEEDS",
-                popupName: "donateSeeds"
+                popupName: "donateSeeds",
+                loginRequired: true
             },
             {
                 id: 3,

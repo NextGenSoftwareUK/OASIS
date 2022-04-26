@@ -17,7 +17,6 @@ class Avatar {
       if (ret.error) return -1;
       let user = JSON.parse(localStorage.getItem("user"));
       obj.token = { jwtToken: user.jwtToken, refresh: user.refreshToken };
-      console.log(obj);
       return obj.token;
     } else return -1;
   }
@@ -41,8 +40,8 @@ class Avatar {
 
     return axios(config)
       .then(function (response) {
-        if (res.data.isError) {
-          return { error: true, data: res.data };
+        if (response.data.isError) {
+          return { error: true, data: response.data };
         }
         return { error: false, data: response.data };
       })
@@ -72,7 +71,7 @@ class Avatar {
 
     return axios(config)
       .then(function (response) {
-        if (res.data.isError) {
+        if (response.data.isError) {
           return { error: true, data: res.data };
         }
         return { error: false, data: response.data };
