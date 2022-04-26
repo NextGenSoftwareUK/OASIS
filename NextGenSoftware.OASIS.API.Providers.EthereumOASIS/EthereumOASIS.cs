@@ -608,10 +608,10 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             throw new NotImplementedException();
         }
 
-        public override async Task<OASISResult<IAvatar>> LoadAvatarAsync(string username, string password, int version = 0)
-        {
-            throw new NotImplementedException();
-        }
+        //public override async Task<OASISResult<IAvatar>> LoadAvatarAsync(string username, string password, int version = 0)
+        //{
+        //    throw new NotImplementedException();
+        //}
 
         public override async Task<OASISResult<IAvatar>> LoadAvatarAsync(string username, int version = 0)
         {
@@ -628,10 +628,10 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             throw new NotImplementedException();
         }
 
-        public override OASISResult<IAvatar> LoadAvatar(string username, string password, int version = 0)
-        {
-            throw new NotImplementedException();
-        }
+        //public override OASISResult<IAvatar> LoadAvatar(string username, string password, int version = 0)
+        //{
+        //    throw new NotImplementedException();
+        //}
 
         public override OASISResult<IAvatar> LoadAvatar(string username, int version = 0)
         {

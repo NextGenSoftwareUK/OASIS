@@ -245,10 +245,10 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
             return avatarDetail;
         }
 
-        public override async Task<OASISResult<IAvatar>> LoadAvatarAsync(string username, string password, int version = 0)
-        {
-            return await LoadAvatarTemplateAsync(a => a.login == username && a.password == password);
-        }
+        //public override async Task<OASISResult<IAvatar>> LoadAvatarAsync(string username, string password, int version = 0)
+        //{
+        //    return await LoadAvatarTemplateAsync(a => a.login == username && a.password == password);
+        //}
         /************************************************************/
 
         public async Task<string> SaveTextToFile(string text)
@@ -258,10 +258,10 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
         }
 
 
-        public override OASISResult<IAvatar> LoadAvatar(string username, string password, int version = 0)
-        {
-            return LoadAvatarAsync(username, password).Result;
-        }
+        //public override OASISResult<IAvatar> LoadAvatar(string username, string password, int version = 0)
+        //{
+        //    return LoadAvatarAsync(username, password).Result;
+        //}
 
         public override OASISResult<IAvatar> SaveAvatar(IAvatar Avatar)
         {

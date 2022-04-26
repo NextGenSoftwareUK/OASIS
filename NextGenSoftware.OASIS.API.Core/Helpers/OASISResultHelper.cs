@@ -70,8 +70,8 @@ namespace NextGenSoftware.OASIS.API.Core.Helpers
     }
 
     public static class OASISResultCollectionToCollectionHelper<T1, T2>
-       where T1 : IEnumerable<IHolonBase>
-       where T2 : IEnumerable<IHolonBase> 
+       //where T1 : IEnumerable<IHolonBase>
+       //where T2 : IEnumerable<IHolonBase> 
     {
         public static OASISResult<T2> CopyResult(OASISResult<T1> fromResult, ref OASISResult<T2> toResult, bool copyMessage = true)
         {

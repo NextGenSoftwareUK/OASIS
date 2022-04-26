@@ -150,7 +150,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                     if (result.Result == null)
                     {
                         //Finally by Public Key...
-                        OASISResult<IEnumerable<IAvatar>> avatarsResult = await LoadAllAvatarsAsync();
+                        OASISResult<IEnumerable<IAvatar>> avatarsResult = await LoadAllAvatarsAsync(false);
 
                         if (!avatarsResult.IsError && avatarsResult.Result != null)
                         {
@@ -532,6 +532,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return result;
         }
 
+        /*
         public OASISResult<IAvatar> LoadAvatar(string username, string password, bool hideAuthDetails = true, ProviderType providerType = ProviderType.Default, int version = 0)
         {
             OASISResult<IAvatar> result = new OASISResult<IAvatar>();
@@ -634,7 +635,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             }
 
             return result;
-        }
+        }*/
 
         //TODO: Replicate Auto-Fail over and Auto-Replication code for all Avatar, HolonManager methods etc...
         public OASISResult<IAvatar> LoadAvatar(string username, bool hideAuthDetails = true, ProviderType providerType = ProviderType.Default, int version = 0)
@@ -1619,64 +1620,42 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         public async Task<OASISResult<IAvatarDetail>> UpdateAvatarDetailAsync(Guid id, IAvatarDetail avatarDetail)
         {
             OASISResult<IAvatarDetail> result = new OASISResult<IAvatarDetail>();
-            string errorMessage = "Error in UpdateAvatarDetailAsync method in AvatarManager. Reason: ";
+            string errorMessage = $"Error in UpdateAvatarDetailAsync method in AvatarManager for id {id}. Reason: ";
 
             OASISResult<IAvatarDetail> avatarDetailOriginalResult = await LoadAvatarDetailAsync(id);
 
             if (!avatarDetailOriginalResult.IsError && avatarDetailOriginalResult.Result != null)
-            {
-                //Initialize the mapper
-                var config = new MapperConfiguration(cfg =>
-                        cfg.CreateMap<AvatarDetail, AvatarDetail>() );
+                result = await UpdateAvatarDetailAsync(avatarDetailOriginalResult.Result, avatarDetail, errorMessage);
+            else
+                ErrorHandling.HandleError(ref result, $"{errorMessage}{avatarDetailOriginalResult.Message}", avatarDetailOriginalResult.DetailedMessage);
 
-                var mapper = new AutoMapper.Mapper(config);
-                avatarDetailOriginalResult.Result = mapper.Map<AvatarDetail>(avatarDetail);
+            return result;
+        }
 
-                //_mapper.Map(avatarDetail, avatarDetailOriginalResult.Result);
+        public async Task<OASISResult<IAvatarDetail>> UpdateAvatarDetailByEmailAsync(string email, IAvatarDetail avatarDetail)
+        {
+            OASISResult<IAvatarDetail> result = new OASISResult<IAvatarDetail>();
+            string errorMessage = $"Error in UpdateAvatarDetailByEmailAsync method in AvatarManager updating for email {email}. Reason: ";
 
-                //if (avatarDetailOriginalResult.Result.Address != avatarDetail.Address)
-                //    avatarDetailOriginalResult.Result.Address = avatarDetail.Address;
+            OASISResult<IAvatarDetail> avatarDetailOriginalResult = await LoadAvatarDetailByEmailAsync(email);
 
-                //if (avatarDetailOriginalResult.Result.Country != avatarDetail.Country)
-                //    avatarDetailOriginalResult.Result.Country = avatarDetail.Country;
+            if (!avatarDetailOriginalResult.IsError && avatarDetailOriginalResult.Result != null)
+                result = await UpdateAvatarDetailAsync(avatarDetailOriginalResult.Result, avatarDetail, errorMessage);
+            else
+                ErrorHandling.HandleError(ref result, $"{errorMessage}{avatarDetailOriginalResult.Message}", avatarDetailOriginalResult.DetailedMessage);
 
-                //TODO: Apply to all other properties. Use AutoMapper here instead! ;-)
+            return result;
+        }
 
-                result = await SaveAvatarDetailAsync(avatarDetailOriginalResult.Result);
+        public async Task<OASISResult<IAvatarDetail>> UpdateAvatarDetailByUsernameAsync(string username, IAvatarDetail avatarDetail)
+        {
+            OASISResult<IAvatarDetail> result = new OASISResult<IAvatarDetail>();
+            string errorMessage = $"Error in UpdateAvatarDetailByUsernameAsync method in AvatarManager updating for username {username}. Reason: ";
 
-                if (!result.IsError && result.Result != null)
-                {
-                    OASISResult<IAvatar> avatarResult = await LoadAvatarAsync(avatarDetail.Id);
+            OASISResult<IAvatarDetail> avatarDetailOriginalResult = await LoadAvatarDetailByUsernameAsync(username);
 
-                    if (!avatarResult.IsError && avatarResult.Result != null)
-                    {
-                        if (avatarResult.Result.Username != avatarDetail.Username || avatarResult.Result.Email != avatarDetail.Email)
-                        {
-                            avatarResult.Result.Username = avatarDetail.Username;
-                            avatarResult.Result.Email = avatarDetail.Email;
-
-                            OASISResult<IAvatar> saveAvatarResult = await avatarResult.Result.SaveAsync();
-
-                            if (!saveAvatarResult.IsError && saveAvatarResult.Result != null)
-                            {
-                                result.Message = "Avatar Detail Updated Successfully";
-                                result.IsSaved = true;
-                            }
-                            else
-                                ErrorHandling.HandleError(ref result, $"{errorMessage}{saveAvatarResult.Message}", saveAvatarResult.DetailedMessage);
-                        }
-                        else
-                        {
-                            result.Message = "Avatar Detail Updated Successfully";
-                            result.IsSaved = true;
-                        }
-                    }
-                    else
-                        ErrorHandling.HandleError(ref result, $"{errorMessage}{avatarResult.Message}", avatarResult.DetailedMessage);
-                }
-                else
-                    ErrorHandling.HandleError(ref result, $"{errorMessage}{result.Message}", result.DetailedMessage);
-            }
+            if (!avatarDetailOriginalResult.IsError && avatarDetailOriginalResult.Result != null)
+                result = await UpdateAvatarDetailAsync(avatarDetailOriginalResult.Result, avatarDetail, errorMessage);
             else
                 ErrorHandling.HandleError(ref result, $"{errorMessage}{avatarDetailOriginalResult.Message}", avatarDetailOriginalResult.DetailedMessage);
 
@@ -1691,54 +1670,66 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
             try
             {
-                result = DeleteAvatarForProvider(id, result, SaveMode.FirstSaveAttempt, softDelete, providerType);
-                previousProviderType = ProviderManager.CurrentStorageProviderType.Value;
+                OASISResult<IAvatar> avatarResult = LoadAvatar(id, true, providerType);
 
-                if ((!result.Result || result.IsError) && ProviderManager.IsAutoFailOverEnabled)
+                if (!avatarResult.IsError && avatarResult.Result != null)
                 {
-                    foreach (EnumValue<ProviderType> type in ProviderManager.GetProviderAutoFailOverList())
+                    if (avatarResult.Result.DeletedDate == DateTime.MinValue)
                     {
-                        if (type.Value != previousProviderType && type.Value != ProviderManager.CurrentStorageProviderType.Value)
-                        {
-                            result = DeleteAvatarForProvider(id, result, SaveMode.AutoFailOver, softDelete, type.Value);
+                        result = DeleteAvatarForProvider(id, result, SaveMode.FirstSaveAttempt, softDelete, providerType);
+                        previousProviderType = ProviderManager.CurrentStorageProviderType.Value;
 
-                            if (!result.IsError && result.Result)
+                        if ((!result.Result || result.IsError) && ProviderManager.IsAutoFailOverEnabled)
+                        {
+                            foreach (EnumValue<ProviderType> type in ProviderManager.GetProviderAutoFailOverList())
                             {
-                                previousProviderType = ProviderManager.CurrentStorageProviderType.Value;
-                                break;
+                                if (type.Value != previousProviderType && type.Value != ProviderManager.CurrentStorageProviderType.Value)
+                                {
+                                    result = DeleteAvatarForProvider(id, result, SaveMode.AutoFailOver, softDelete, type.Value);
+
+                                    if (!result.IsError && result.Result)
+                                    {
+                                        previousProviderType = ProviderManager.CurrentStorageProviderType.Value;
+                                        break;
+                                    }
+                                }
                             }
                         }
-                    }
-                }
 
-                if (result.IsError || !result.Result)
-                    ErrorHandling.HandleError(ref result, String.Concat("All registered OASIS Providers in the AutoFailOverList failed to delete the avatar with id ", id, ". Please view the logs or DetailedMessage property for more information. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString()), string.Concat("Error Message: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)));
-                else
-                {
-                    result.IsSaved = true;
-
-                    if (result.WarningCount > 0)
-                        ErrorHandling.HandleWarning(ref result, string.Concat("The avatar with id ", id, " was successfully deleted for the provider ", ProviderManager.CurrentStorageProviderType.Value, " but failed to delete for some of the other providers in the AutoFailOverList. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString()), string.Concat("Error Message: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)));
-                    else
-                        result.Message = "Avatar Successfully Deleted.";
-
-                    //TODO: Need to move into background thread ASAP!
-                    if (ProviderManager.IsAutoReplicationEnabled)
-                    {
-                        foreach (EnumValue<ProviderType> type in ProviderManager.GetProvidersThatAreAutoReplicating())
+                        if (result.IsError || !result.Result)
+                            ErrorHandling.HandleError(ref result, String.Concat("All registered OASIS Providers in the AutoFailOverList failed to delete the avatar with id ", id, ". Please view the logs or DetailedMessage property for more information. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString()), string.Concat("Error Message: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)));
+                        else
                         {
-                            if (type.Value != previousProviderType && type.Value != ProviderManager.CurrentStorageProviderType.Value)
-                                result = DeleteAvatarForProvider(id, result, SaveMode.AutoReplication, softDelete, type.Value);
+                            result.IsSaved = true;
+
+                            if (result.WarningCount > 0)
+                                ErrorHandling.HandleWarning(ref result, string.Concat("The avatar with id ", id, " was successfully deleted for the provider ", ProviderManager.CurrentStorageProviderType.Value, " but failed to delete for some of the other providers in the AutoFailOverList. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString()), string.Concat("Error Message: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)));
+                            else
+                                result.Message = "Avatar Successfully Deleted.";
+
+                            //TODO: Need to move into background thread ASAP!
+                            if (ProviderManager.IsAutoReplicationEnabled)
+                            {
+                                foreach (EnumValue<ProviderType> type in ProviderManager.GetProvidersThatAreAutoReplicating())
+                                {
+                                    if (type.Value != previousProviderType && type.Value != ProviderManager.CurrentStorageProviderType.Value)
+                                        result = DeleteAvatarForProvider(id, result, SaveMode.AutoReplication, softDelete, type.Value);
+                                }
+
+                                if (result.WarningCount > 0)
+                                    ErrorHandling.HandleWarning(ref result, string.Concat("The avatar with id ", id, " was successfully deleted for the provider ", previousProviderType, " but failed to auto-replicate for some of the other providers in the Auto-Replicate List. Providers in the list are: ", ProviderManager.GetProvidersThatAreAutoReplicatingAsString()), string.Concat("Error Message: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)), true);
+                                else
+                                    LoggingManager.Log("Avatar Successfully Deleted/Replicated", LogType.Info, ref result, true, false);
+                            }
                         }
 
-                        if (result.WarningCount > 0)
-                            ErrorHandling.HandleWarning(ref result, string.Concat("The avatar with id ", id, " was successfully deleted for the provider ", previousProviderType, " but failed to auto-replicate for some of the other providers in the Auto-Replicate List. Providers in the list are: ", ProviderManager.GetProvidersThatAreAutoReplicatingAsString()), string.Concat("Error Message: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)), true);
-                        else
-                            LoggingManager.Log("Avatar Successfully Deleted/Replicated", LogType.Info, ref result, true, false);
+                        ProviderManager.SetAndActivateCurrentStorageProvider(currentProviderType);
                     }
+                    else
+                        ErrorHandling.HandleError(ref result, $"The avatar with username {avatarResult.Result.Username} and email {avatarResult.Result.Email} and id {avatarResult.Result.Id} was already soft deleted on {avatarResult.Result.DeletedDate.ToString()} by avatar with id {avatarResult.Result.DeletedByAvatarId}. It cannot be deleted again. Please contact support if you wish this avatar to be restored or permanently deleted (cannot be reversed).");
                 }
-
-                ProviderManager.SetAndActivateCurrentStorageProvider(currentProviderType);
+                else
+                    ErrorHandling.HandleError(ref result, $"The avatar with id {id} failed to load in DeleteAvatar method in AvatarManagaer. Reason: {avatarResult.Message}.", avatarResult.DetailedMessage);
             }
             catch (Exception ex)
             {
@@ -1757,54 +1748,66 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
             try
             {
-                result = await DeleteAvatarForProviderAsync(id, result, SaveMode.FirstSaveAttempt, softDelete, providerType);
-                previousProviderType = ProviderManager.CurrentStorageProviderType.Value;
+                OASISResult<IAvatar> avatarResult = await LoadAvatarAsync(id, true, providerType);
 
-                if ((!result.Result || result.IsError) && ProviderManager.IsAutoFailOverEnabled)
+                if (!avatarResult.IsError && avatarResult.Result != null)
                 {
-                    foreach (EnumValue<ProviderType> type in ProviderManager.GetProviderAutoFailOverList())
+                    if (avatarResult.Result.DeletedDate == DateTime.MinValue)
                     {
-                        if (type.Value != previousProviderType && type.Value != ProviderManager.CurrentStorageProviderType.Value)
-                        {
-                            result = await DeleteAvatarForProviderAsync(id, result, SaveMode.AutoFailOver, softDelete, type.Value);
+                        result = await DeleteAvatarForProviderAsync(id, result, SaveMode.FirstSaveAttempt, softDelete, providerType);
+                        previousProviderType = ProviderManager.CurrentStorageProviderType.Value;
 
-                            if (!result.IsError && result.Result)
+                        if ((!result.Result || result.IsError) && ProviderManager.IsAutoFailOverEnabled)
+                        {
+                            foreach (EnumValue<ProviderType> type in ProviderManager.GetProviderAutoFailOverList())
                             {
-                                previousProviderType = ProviderManager.CurrentStorageProviderType.Value;
-                                break;
+                                if (type.Value != previousProviderType && type.Value != ProviderManager.CurrentStorageProviderType.Value)
+                                {
+                                    result = await DeleteAvatarForProviderAsync(id, result, SaveMode.AutoFailOver, softDelete, type.Value);
+
+                                    if (!result.IsError && result.Result)
+                                    {
+                                        previousProviderType = ProviderManager.CurrentStorageProviderType.Value;
+                                        break;
+                                    }
+                                }
                             }
                         }
-                    }
-                }
 
-                if (result.IsError || !result.Result)
-                    ErrorHandling.HandleError(ref result, String.Concat("All registered OASIS Providers in the AutoFailOverList failed to delete the avatar with id ", id, ". Please view the logs or DetailedMessage property for more information. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString()), string.Concat("Error Message: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)));
-                else
-                {
-                    result.IsSaved = true;
-
-                    if (result.WarningCount > 0)
-                        ErrorHandling.HandleWarning(ref result, string.Concat("The avatar with id ", id, " was successfully deleted for the provider ", ProviderManager.CurrentStorageProviderType.Value, " but failed to delete for some of the other providers in the AutoFailOverList. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString()), string.Concat("Error Message: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)));
-                    else
-                        result.Message = "Avatar Successfully Deleted.";
-
-                    //TODO: Need to move into background thread ASAP!
-                    if (ProviderManager.IsAutoReplicationEnabled)
-                    {
-                        foreach (EnumValue<ProviderType> type in ProviderManager.GetProvidersThatAreAutoReplicating())
+                        if (result.IsError || !result.Result)
+                            ErrorHandling.HandleError(ref result, String.Concat("All registered OASIS Providers in the AutoFailOverList failed to delete the avatar with id ", id, ". Please view the logs or DetailedMessage property for more information. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString()), string.Concat("Error Message: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)));
+                        else
                         {
-                            if (type.Value != previousProviderType && type.Value != ProviderManager.CurrentStorageProviderType.Value)
-                                result = await DeleteAvatarForProviderAsync(id, result, SaveMode.AutoReplication, softDelete, type.Value);
+                            result.IsSaved = true;
+
+                            if (result.WarningCount > 0)
+                                ErrorHandling.HandleWarning(ref result, string.Concat("The avatar with id ", id, " was successfully deleted for the provider ", ProviderManager.CurrentStorageProviderType.Value, " but failed to delete for some of the other providers in the AutoFailOverList. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString()), string.Concat("Error Message: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)));
+                            else
+                                result.Message = "Avatar Successfully Deleted.";
+
+                            //TODO: Need to move into background thread ASAP!
+                            if (ProviderManager.IsAutoReplicationEnabled)
+                            {
+                                foreach (EnumValue<ProviderType> type in ProviderManager.GetProvidersThatAreAutoReplicating())
+                                {
+                                    if (type.Value != previousProviderType && type.Value != ProviderManager.CurrentStorageProviderType.Value)
+                                        result = await DeleteAvatarForProviderAsync(id, result, SaveMode.AutoReplication, softDelete, type.Value);
+                                }
+
+                                if (result.WarningCount > 0)
+                                    ErrorHandling.HandleWarning(ref result, string.Concat("The avatar with id ", id, " was successfully deleted for the provider ", previousProviderType, " but failed to auto-replicate for some of the other providers in the Auto-Replicate List. Providers in the list are: ", ProviderManager.GetProvidersThatAreAutoReplicatingAsString()), string.Concat("Error Message: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)), true);
+                                else
+                                    LoggingManager.Log("Avatar Successfully Deleted/Replicated", LogType.Info, ref result, true, false);
+                            }
                         }
 
-                        if (result.WarningCount > 0)
-                            ErrorHandling.HandleWarning(ref result, string.Concat("The avatar with id ", id, " was successfully deleted for the provider ", previousProviderType, " but failed to auto-replicate for some of the other providers in the Auto-Replicate List. Providers in the list are: ", ProviderManager.GetProvidersThatAreAutoReplicatingAsString()), string.Concat("Error Message: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)), true);
-                        else
-                            LoggingManager.Log("Avatar Successfully Deleted/Replicated", LogType.Info, ref result, true, false);
+                        ProviderManager.SetAndActivateCurrentStorageProvider(currentProviderType);
                     }
+                    else
+                        ErrorHandling.HandleError(ref result, $"The avatar with username {avatarResult.Result.Username} and email {avatarResult.Result.Email} and id {avatarResult.Result.Id} was already soft deleted on {avatarResult.Result.DeletedDate.ToString()} by avatar with id {avatarResult.Result.DeletedByAvatarId}. It cannot be deleted again. Please contact support if you wish this avatar to be restored or permanently deleted (cannot be reversed).");
                 }
-
-                ProviderManager.SetAndActivateCurrentStorageProvider(currentProviderType);
+                else
+                    ErrorHandling.HandleError(ref result, $"The avatar with id {id} failed to load in DeleteAvatarAsync method in AvatarManagaer. Reason: {avatarResult.Message}.", avatarResult.DetailedMessage);
             }
             catch (Exception ex)
             {
@@ -1823,54 +1826,144 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
             try
             {
-                result = await DeleteAvatarByUsernameForProviderAsync(userName, result, SaveMode.FirstSaveAttempt, softDelete, providerType);
-                previousProviderType = ProviderManager.CurrentStorageProviderType.Value;
+                OASISResult<IAvatar> avatarResult = await LoadAvatarAsync(userName, true, providerType);
 
-                if ((!result.Result || result.IsError) && ProviderManager.IsAutoFailOverEnabled)
+                if (!avatarResult.IsError && avatarResult.Result != null)
                 {
-                    foreach (EnumValue<ProviderType> type in ProviderManager.GetProviderAutoFailOverList())
+                    if (avatarResult.Result.DeletedDate == DateTime.MinValue)
                     {
-                        if (type.Value != previousProviderType && type.Value != ProviderManager.CurrentStorageProviderType.Value)
-                        {
-                            result = await DeleteAvatarByUsernameForProviderAsync(userName, result, SaveMode.AutoReplication, softDelete, type.Value);
+                        result = await DeleteAvatarByUsernameForProviderAsync(userName, result, SaveMode.FirstSaveAttempt, softDelete, providerType);
+                        previousProviderType = ProviderManager.CurrentStorageProviderType.Value;
 
-                            if (!result.IsError && result.Result)
+                        if ((!result.Result || result.IsError) && ProviderManager.IsAutoFailOverEnabled)
+                        {
+                            foreach (EnumValue<ProviderType> type in ProviderManager.GetProviderAutoFailOverList())
                             {
-                                previousProviderType = ProviderManager.CurrentStorageProviderType.Value;
-                                break;
+                                if (type.Value != previousProviderType && type.Value != ProviderManager.CurrentStorageProviderType.Value)
+                                {
+                                    result = await DeleteAvatarByUsernameForProviderAsync(userName, result, SaveMode.AutoReplication, softDelete, type.Value);
+
+                                    if (!result.IsError && result.Result)
+                                    {
+                                        previousProviderType = ProviderManager.CurrentStorageProviderType.Value;
+                                        break;
+                                    }
+                                }
                             }
                         }
-                    }
-                }
 
-                if (result.IsError || !result.Result)
-                    ErrorHandling.HandleError(ref result, String.Concat("All registered OASIS Providers in the AutoFailOverList failed to delete the avatar with username ", userName, ". Please view the logs or DetailedMessage property for more information. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString()), string.Concat("Error Message: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)));
-                else
-                {
-                    result.IsSaved = true;
-
-                    if (result.WarningCount > 0)
-                        ErrorHandling.HandleWarning(ref result, string.Concat("The avatar with username ", userName, " was successfully deleted for the provider ", ProviderManager.CurrentStorageProviderType.Value, " but failed to delete for some of the other providers in the AutoFailOverList. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString()), string.Concat("Error Message: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)));
-                    else
-                        result.Message = "Avatar Successfully Deleted.";
-
-                    //TODO: Need to move into background thread ASAP!
-                    if (ProviderManager.IsAutoReplicationEnabled)
-                    {
-                        foreach (EnumValue<ProviderType> type in ProviderManager.GetProvidersThatAreAutoReplicating())
+                        if (result.IsError || !result.Result)
+                            ErrorHandling.HandleError(ref result, String.Concat("All registered OASIS Providers in the AutoFailOverList failed to delete the avatar with username ", userName, ". Please view the logs or DetailedMessage property for more information. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString()), string.Concat("Error Message: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)));
+                        else
                         {
-                            if (type.Value != previousProviderType && type.Value != ProviderManager.CurrentStorageProviderType.Value)
-                                result = await DeleteAvatarByUsernameForProviderAsync(userName, result, SaveMode.AutoReplication, softDelete, type.Value);
+                            result.IsSaved = true;
+
+                            if (result.WarningCount > 0)
+                                ErrorHandling.HandleWarning(ref result, string.Concat("The avatar with username ", userName, " was successfully deleted for the provider ", ProviderManager.CurrentStorageProviderType.Value, " but failed to delete for some of the other providers in the AutoFailOverList. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString()), string.Concat("Error Message: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)));
+                            else
+                                result.Message = "Avatar Successfully Deleted.";
+
+                            //TODO: Need to move into background thread ASAP!
+                            if (ProviderManager.IsAutoReplicationEnabled)
+                            {
+                                foreach (EnumValue<ProviderType> type in ProviderManager.GetProvidersThatAreAutoReplicating())
+                                {
+                                    if (type.Value != previousProviderType && type.Value != ProviderManager.CurrentStorageProviderType.Value)
+                                        result = await DeleteAvatarByUsernameForProviderAsync(userName, result, SaveMode.AutoReplication, softDelete, type.Value);
+                                }
+
+                                if (result.WarningCount > 0)
+                                    ErrorHandling.HandleWarning(ref result, string.Concat("The avatar with username ", userName, " was successfully deleted for the provider ", previousProviderType, " but failed to auto-replicate for some of the other providers in the Auto-Replicate List. Providers in the list are: ", ProviderManager.GetProvidersThatAreAutoReplicatingAsString()), string.Concat("Error Message: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)), true);
+                                else
+                                    LoggingManager.Log("Avatar Successfully Deleted/Replicated", LogType.Info, ref result, true, false);
+                            }
                         }
 
-                        if (result.WarningCount > 0)
-                            ErrorHandling.HandleWarning(ref result, string.Concat("The avatar with username ", userName, " was successfully deleted for the provider ", previousProviderType, " but failed to auto-replicate for some of the other providers in the Auto-Replicate List. Providers in the list are: ", ProviderManager.GetProvidersThatAreAutoReplicatingAsString()), string.Concat("Error Message: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)), true);
-                        else
-                            LoggingManager.Log("Avatar Successfully Deleted/Replicated", LogType.Info, ref result, true, false);
+                        ProviderManager.SetAndActivateCurrentStorageProvider(currentProviderType);
                     }
+                    else
+                        ErrorHandling.HandleError(ref result, $"The avatar with username {avatarResult.Result.Username} and email {avatarResult.Result.Email} and id {avatarResult.Result.Id} was already soft deleted on {avatarResult.Result.DeletedDate.ToString()} by avatar with id {avatarResult.Result.DeletedByAvatarId}. It cannot be deleted again. Please contact support if you wish this avatar to be restored or permanently deleted (cannot be reversed).");
                 }
+                else
+                    ErrorHandling.HandleError(ref result, $"The avatar with username {userName} failed to load in DeleteAvatarByUsernameAsync method in AvatarManagaer. Reason: {avatarResult.Message}.", avatarResult.DetailedMessage);
+            }
+            catch (Exception ex)
+            {
+                ErrorHandling.HandleError(ref result, string.Concat("Unknown error occured deleting the avatar with userName ", userName, " for provider ", ProviderManager.CurrentStorageProviderType.Name), string.Concat("Error Message: ", ex.Message), ex);
+                result.Result = false;
+            }
 
-                ProviderManager.SetAndActivateCurrentStorageProvider(currentProviderType);
+            return result;
+        }
+
+        public OASISResult<bool> DeleteAvatarByUsername(string userName, bool softDelete = true, ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<bool> result = new OASISResult<bool>();
+            ProviderType currentProviderType = ProviderManager.CurrentStorageProviderType.Value;
+            ProviderType previousProviderType = ProviderType.Default;
+
+            try
+            {
+                OASISResult<IAvatar> avatarResult = LoadAvatar(userName, true, providerType);
+
+                if (!avatarResult.IsError && avatarResult.Result != null)
+                {
+                    if (avatarResult.Result.DeletedDate == DateTime.MinValue)
+                    {
+                        result = DeleteAvatarByUsernameForProvider(userName, result, SaveMode.FirstSaveAttempt, softDelete, providerType);
+                        previousProviderType = ProviderManager.CurrentStorageProviderType.Value;
+
+                        if ((!result.Result || result.IsError) && ProviderManager.IsAutoFailOverEnabled)
+                        {
+                            foreach (EnumValue<ProviderType> type in ProviderManager.GetProviderAutoFailOverList())
+                            {
+                                if (type.Value != previousProviderType && type.Value != ProviderManager.CurrentStorageProviderType.Value)
+                                {
+                                    result = DeleteAvatarByUsernameForProvider(userName, result, SaveMode.AutoReplication, softDelete, type.Value);
+
+                                    if (!result.IsError && result.Result)
+                                    {
+                                        previousProviderType = ProviderManager.CurrentStorageProviderType.Value;
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+
+                        if (result.IsError || !result.Result)
+                            ErrorHandling.HandleError(ref result, String.Concat("All registered OASIS Providers in the AutoFailOverList failed to delete the avatar with username ", userName, ". Please view the logs or DetailedMessage property for more information. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString()), string.Concat("Error Message: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)));
+                        else
+                        {
+                            result.IsSaved = true;
+
+                            if (result.WarningCount > 0)
+                                ErrorHandling.HandleWarning(ref result, string.Concat("The avatar with username ", userName, " was successfully deleted for the provider ", ProviderManager.CurrentStorageProviderType.Value, " but failed to delete for some of the other providers in the AutoFailOverList. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString()), string.Concat("Error Message: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)));
+                            else
+                                result.Message = "Avatar Successfully Deleted.";
+
+                            //TODO: Need to move into background thread ASAP!
+                            if (ProviderManager.IsAutoReplicationEnabled)
+                            {
+                                foreach (EnumValue<ProviderType> type in ProviderManager.GetProvidersThatAreAutoReplicating())
+                                {
+                                    if (type.Value != previousProviderType && type.Value != ProviderManager.CurrentStorageProviderType.Value)
+                                        result = DeleteAvatarByUsernameForProvider(userName, result, SaveMode.AutoReplication, softDelete, type.Value);
+                                }
+
+                                if (result.WarningCount > 0)
+                                    ErrorHandling.HandleWarning(ref result, string.Concat("The avatar with username ", userName, " was successfully deleted for the provider ", previousProviderType, " but failed to auto-replicate for some of the other providers in the Auto-Replicate List. Providers in the list are: ", ProviderManager.GetProvidersThatAreAutoReplicatingAsString()), string.Concat("Error Message: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)), true);
+                                else
+                                    LoggingManager.Log("Avatar Successfully Deleted/Replicated", LogType.Info, ref result, true, false);
+                            }
+                        }
+
+                        ProviderManager.SetAndActivateCurrentStorageProvider(currentProviderType);
+                    }
+                    else
+                        ErrorHandling.HandleError(ref result, $"The avatar with username {avatarResult.Result.Username} and email {avatarResult.Result.Email} and id {avatarResult.Result.Id} was already soft deleted on {avatarResult.Result.DeletedDate.ToString()} by avatar with id {avatarResult.Result.DeletedByAvatarId}. It cannot be deleted again. Please contact support if you wish this avatar to be restored or permanently deleted (cannot be reversed).");
+                }
+                else
+                    ErrorHandling.HandleError(ref result, $"The avatar with username {userName} failed to load in DeleteAvatarByUsername method in AvatarManagaer. Reason: {avatarResult.Message}.", avatarResult.DetailedMessage);
             }
             catch (Exception ex)
             {
@@ -1889,54 +1982,66 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
             try
             {
-                result = await DeleteAvatarByEmailForProviderAsync(email, result, SaveMode.FirstSaveAttempt, softDelete, providerType);
-                previousProviderType = ProviderManager.CurrentStorageProviderType.Value;
+                OASISResult<IAvatar> avatarResult = await LoadAvatarByEmailAsync(email, true, providerType);
 
-                if ((!result.Result || result.IsError) && ProviderManager.IsAutoFailOverEnabled)
+                if (!avatarResult.IsError && avatarResult.Result != null)
                 {
-                    foreach (EnumValue<ProviderType> type in ProviderManager.GetProviderAutoFailOverList())
+                    if (avatarResult.Result.DeletedDate == DateTime.MinValue)
                     {
-                        if (type.Value != previousProviderType && type.Value != ProviderManager.CurrentStorageProviderType.Value)
-                        {
-                            result = await DeleteAvatarByEmailForProviderAsync(email, result, SaveMode.AutoFailOver, softDelete, type.Value);
+                        result = await DeleteAvatarByEmailForProviderAsync(email, result, SaveMode.FirstSaveAttempt, softDelete, providerType);
+                        previousProviderType = ProviderManager.CurrentStorageProviderType.Value;
 
-                            if (!result.IsError && result.Result)
+                        if ((!result.Result || result.IsError) && ProviderManager.IsAutoFailOverEnabled)
+                        {
+                            foreach (EnumValue<ProviderType> type in ProviderManager.GetProviderAutoFailOverList())
                             {
-                                previousProviderType = ProviderManager.CurrentStorageProviderType.Value;
-                                break;
+                                if (type.Value != previousProviderType && type.Value != ProviderManager.CurrentStorageProviderType.Value)
+                                {
+                                    result = await DeleteAvatarByEmailForProviderAsync(email, result, SaveMode.AutoFailOver, softDelete, type.Value);
+
+                                    if (!result.IsError && result.Result)
+                                    {
+                                        previousProviderType = ProviderManager.CurrentStorageProviderType.Value;
+                                        break;
+                                    }
+                                }
                             }
                         }
-                    }
-                }
 
-                if (result.IsError || !result.Result)
-                    ErrorHandling.HandleError(ref result, String.Concat("All registered OASIS Providers in the AutoFailOverList failed to delete the avatar with email ", email, ". Please view the logs or DetailedMessage property for more information. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString()), string.Concat("Error Message: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)));
-                else
-                {
-                    result.IsSaved = true;
-
-                    if (result.WarningCount > 0)
-                        ErrorHandling.HandleWarning(ref result, string.Concat("The avatar with email ", email, " was successfully deleted for the provider ", ProviderManager.CurrentStorageProviderType.Value, " but failed to delete for some of the other providers in the AutoFailOverList. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString()), string.Concat("Error Message: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)));
-                    else
-                        result.Message = "Avatar Successfully Deleted.";
-
-                    //TODO: Need to move into background thread ASAP!
-                    if (ProviderManager.IsAutoReplicationEnabled)
-                    {
-                        foreach (EnumValue<ProviderType> type in ProviderManager.GetProvidersThatAreAutoReplicating())
+                        if (result.IsError || !result.Result)
+                            ErrorHandling.HandleError(ref result, String.Concat("All registered OASIS Providers in the AutoFailOverList failed to delete the avatar with email ", email, ". Please view the logs or DetailedMessage property for more information. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString()), string.Concat("Error Message: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)));
+                        else
                         {
-                            if (type.Value != previousProviderType && type.Value != ProviderManager.CurrentStorageProviderType.Value)
-                                result = await DeleteAvatarByEmailForProviderAsync(email, result, SaveMode.AutoReplication, softDelete, type.Value);
+                            result.IsSaved = true;
+
+                            if (result.WarningCount > 0)
+                                ErrorHandling.HandleWarning(ref result, string.Concat("The avatar with email ", email, " was successfully deleted for the provider ", ProviderManager.CurrentStorageProviderType.Value, " but failed to delete for some of the other providers in the AutoFailOverList. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString()), string.Concat("Error Message: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)));
+                            else
+                                result.Message = "Avatar Successfully Deleted.";
+
+                            //TODO: Need to move into background thread ASAP!
+                            if (ProviderManager.IsAutoReplicationEnabled)
+                            {
+                                foreach (EnumValue<ProviderType> type in ProviderManager.GetProvidersThatAreAutoReplicating())
+                                {
+                                    if (type.Value != previousProviderType && type.Value != ProviderManager.CurrentStorageProviderType.Value)
+                                        result = await DeleteAvatarByEmailForProviderAsync(email, result, SaveMode.AutoReplication, softDelete, type.Value);
+                                }
+
+                                if (result.WarningCount > 0)
+                                    ErrorHandling.HandleWarning(ref result, string.Concat("The avatar with email ", email, " was successfully deleted for the provider ", previousProviderType, " but failed to auto-replicate for some of the other providers in the Auto-Replicate List. Providers in the list are: ", ProviderManager.GetProvidersThatAreAutoReplicatingAsString()), string.Concat("Error Message: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)), true);
+                                else
+                                    LoggingManager.Log("Avatar Successfully Deleted/Replicated", LogType.Info, ref result, true, false);
+                            }
                         }
 
-                        if (result.WarningCount > 0)
-                            ErrorHandling.HandleWarning(ref result, string.Concat("The avatar with email ", email, " was successfully deleted for the provider ", previousProviderType, " but failed to auto-replicate for some of the other providers in the Auto-Replicate List. Providers in the list are: ", ProviderManager.GetProvidersThatAreAutoReplicatingAsString()), string.Concat("Error Message: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)), true);
-                        else
-                            LoggingManager.Log("Avatar Successfully Deleted/Replicated", LogType.Info, ref result, true, false);
+                        ProviderManager.SetAndActivateCurrentStorageProvider(currentProviderType);
                     }
+                    else
+                        ErrorHandling.HandleError(ref result, $"The avatar with username {avatarResult.Result.Username} and email {avatarResult.Result.Email} and id {avatarResult.Result.Id} was already soft deleted on {avatarResult.Result.DeletedDate.ToString()} by avatar with id {avatarResult.Result.DeletedByAvatarId}. It cannot be deleted again. Please contact support if you wish this avatar to be restored or permanently deleted (cannot be reversed).");
                 }
-
-                ProviderManager.SetAndActivateCurrentStorageProvider(currentProviderType);
+                else
+                    ErrorHandling.HandleError(ref result, $"The avatar with email {email} failed to load in DeleteAvatarByEmailAsync method in AvatarManagaer. Reason: {avatarResult.Message}.", avatarResult.DetailedMessage);
             }
             catch (Exception ex)
             {
@@ -1955,7 +2060,86 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
             try
             {
-                result = DeleteAvatarByEmailForProvider(email, result, SaveMode.FirstSaveAttempt, softDelete, providerType);
+                OASISResult<IAvatar> avatarResult = LoadAvatarByEmail(email, true, providerType);
+
+                if (!avatarResult.IsError && avatarResult.Result != null)
+                {
+                    if (avatarResult.Result.DeletedDate == DateTime.MinValue)
+                    {
+                        result = DeleteAvatarByEmailForProvider(email, result, SaveMode.FirstSaveAttempt, softDelete, providerType);
+                        previousProviderType = ProviderManager.CurrentStorageProviderType.Value;
+
+                        if ((!result.Result || result.IsError) && ProviderManager.IsAutoFailOverEnabled)
+                        {
+                            foreach (EnumValue<ProviderType> type in ProviderManager.GetProviderAutoFailOverList())
+                            {
+                                if (type.Value != previousProviderType && type.Value != ProviderManager.CurrentStorageProviderType.Value)
+                                {
+                                    result = DeleteAvatarByEmailForProvider(email, result, SaveMode.AutoFailOver, softDelete, type.Value);
+
+                                    if (!result.IsError && result.Result)
+                                    {
+                                        previousProviderType = ProviderManager.CurrentStorageProviderType.Value;
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+
+                        if (result.IsError || !result.Result)
+                            ErrorHandling.HandleError(ref result, String.Concat("All registered OASIS Providers in the AutoFailOverList failed to delete the avatar with email ", email, ". Please view the logs or DetailedMessage property for more information. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString()), string.Concat("Error Message: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)));
+                        else
+                        {
+                            result.IsSaved = true;
+
+                            if (result.WarningCount > 0)
+                                ErrorHandling.HandleWarning(ref result, string.Concat("The avatar with email ", email, " was successfully deleted for the provider ", ProviderManager.CurrentStorageProviderType.Value, " but failed to delete for some of the other providers in the AutoFailOverList. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString()), string.Concat("Error Message: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)));
+                            else
+                                result.Message = "Avatar Successfully Deleted.";
+
+                            //TODO: Need to move into background thread ASAP!
+                            if (ProviderManager.IsAutoReplicationEnabled)
+                            {
+                                foreach (EnumValue<ProviderType> type in ProviderManager.GetProvidersThatAreAutoReplicating())
+                                {
+                                    if (type.Value != previousProviderType && type.Value != ProviderManager.CurrentStorageProviderType.Value)
+                                        result = DeleteAvatarByEmailForProvider(email, result, SaveMode.AutoReplication, softDelete, type.Value);
+                                }
+
+                                if (result.WarningCount > 0)
+                                    ErrorHandling.HandleWarning(ref result, string.Concat("The avatar with email ", email, " was successfully deleted for the provider ", previousProviderType, " but failed to auto-replicate for some of the other providers in the Auto-Replicate List. Providers in the list are: ", ProviderManager.GetProvidersThatAreAutoReplicatingAsString()), string.Concat("Error Message: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)), true);
+                                else
+                                    LoggingManager.Log("Avatar Successfully Deleted/Replicated", LogType.Info, ref result, true, false);
+                            }
+                        }
+
+                        ProviderManager.SetAndActivateCurrentStorageProvider(currentProviderType);
+                    }
+                    else
+                        ErrorHandling.HandleError(ref result, $"The avatar with username {avatarResult.Result.Username} and email {avatarResult.Result.Email} and id {avatarResult.Result.Id} was already soft deleted on {avatarResult.Result.DeletedDate.ToString()} by avatar with id {avatarResult.Result.DeletedByAvatarId}. It cannot be deleted again. Please contact support if you wish this avatar to be restored or permanently deleted (cannot be reversed).");
+                }
+                else
+                    ErrorHandling.HandleError(ref result, $"The avatar with email {email} failed to load in DeleteAvatarByEmail method in AvatarManagaer. Reason: {avatarResult.Message}.", avatarResult.DetailedMessage);
+            }
+            catch (Exception ex)
+            {
+                ErrorHandling.HandleError(ref result, string.Concat("Unknown error occured deleting the avatar with email ", email, " for provider ", ProviderManager.CurrentStorageProviderType.Name), string.Concat("Error Message: ", ex.Message), ex);
+                result.Result = false;
+            }
+
+            return result;
+        }
+
+        /*
+        public async Task<OASISResult<bool>> DeleteAvatarDetailAsync(Guid id, bool softDelete = true, ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<bool> result = new OASISResult<bool>();
+            ProviderType currentProviderType = ProviderManager.CurrentStorageProviderType.Value;
+            ProviderType previousProviderType = ProviderType.Default;
+
+            try
+            {
+                result = await DeleteAvatarDetailForProviderAsync(id, result, SaveMode.FirstSaveAttempt, softDelete, providerType);
                 previousProviderType = ProviderManager.CurrentStorageProviderType.Value;
 
                 if ((!result.Result || result.IsError) && ProviderManager.IsAutoFailOverEnabled)
@@ -1964,7 +2148,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                     {
                         if (type.Value != previousProviderType && type.Value != ProviderManager.CurrentStorageProviderType.Value)
                         {
-                            result = DeleteAvatarByEmailForProvider(email, result, SaveMode.AutoFailOver, softDelete, type.Value);
+                            result = await DeleteAvatarDetailForProviderAsync(id, result, SaveMode.AutoFailOver, softDelete, type.Value);
 
                             if (!result.IsError && result.Result)
                             {
@@ -1976,15 +2160,15 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 }
 
                 if (result.IsError || !result.Result)
-                    ErrorHandling.HandleError(ref result, String.Concat("All registered OASIS Providers in the AutoFailOverList failed to delete the avatar with email ", email, ". Please view the logs or DetailedMessage property for more information. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString()), string.Concat("Error Message: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)));
+                    ErrorHandling.HandleError(ref result, String.Concat("All registered OASIS Providers in the AutoFailOverList failed to delete the avatar detail with id ", id, ". Please view the logs or DetailedMessage property for more information. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString()), string.Concat("Error Message: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)));
                 else
                 {
                     result.IsSaved = true;
 
                     if (result.WarningCount > 0)
-                        ErrorHandling.HandleWarning(ref result, string.Concat("The avatar with email ", email, " was successfully deleted for the provider ", ProviderManager.CurrentStorageProviderType.Value, " but failed to delete for some of the other providers in the AutoFailOverList. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString()), string.Concat("Error Message: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)));
+                        ErrorHandling.HandleWarning(ref result, string.Concat("The avatar detail with id ", id, " was successfully deleted for the provider ", ProviderManager.CurrentStorageProviderType.Value, " but failed to delete for some of the other providers in the AutoFailOverList. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString()), string.Concat("Error Message: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)));
                     else
-                        result.Message = "Avatar Successfully Deleted.";
+                        result.Message = "Avatar Detail Successfully Deleted.";
 
                     //TODO: Need to move into background thread ASAP!
                     if (ProviderManager.IsAutoReplicationEnabled)
@@ -1992,13 +2176,13 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                         foreach (EnumValue<ProviderType> type in ProviderManager.GetProvidersThatAreAutoReplicating())
                         {
                             if (type.Value != previousProviderType && type.Value != ProviderManager.CurrentStorageProviderType.Value)
-                                result = DeleteAvatarByEmailForProvider(email, result, SaveMode.AutoReplication, softDelete, type.Value);
+                                result = await DeleteAvatarDetailForProviderAsync(id, result, SaveMode.AutoReplication, softDelete, type.Value);
                         }
 
                         if (result.WarningCount > 0)
-                            ErrorHandling.HandleWarning(ref result, string.Concat("The avatar with email ", email, " was successfully deleted for the provider ", previousProviderType, " but failed to auto-replicate for some of the other providers in the Auto-Replicate List. Providers in the list are: ", ProviderManager.GetProvidersThatAreAutoReplicatingAsString()), string.Concat("Error Message: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)), true);
+                            ErrorHandling.HandleWarning(ref result, string.Concat("The avatar detail with id ", id, " was successfully deleted for the provider ", previousProviderType, " but failed to auto-replicate for some of the other providers in the Auto-Replicate List. Providers in the list are: ", ProviderManager.GetProvidersThatAreAutoReplicatingAsString()), string.Concat("Error Message: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)), true);
                         else
-                            LoggingManager.Log("Avatar Successfully Deleted/Replicated", LogType.Info, ref result, true, false);
+                            LoggingManager.Log("Avatar Detail Successfully Deleted/Replicated", LogType.Info, ref result, true, false);
                     }
                 }
 
@@ -2006,12 +2190,210 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             }
             catch (Exception ex)
             {
-                ErrorHandling.HandleError(ref result, string.Concat("Unknown error occured deleting the avatar with email ", email, " for provider ", ProviderManager.CurrentStorageProviderType.Name), string.Concat("Error Message: ", ex.Message), ex);
+                ErrorHandling.HandleError(ref result, string.Concat("Unknown error occured deleting the avatar detail with id ", id, " for provider ", ProviderManager.CurrentStorageProviderType.Name), string.Concat("Error Message: ", ex.Message), ex);
                 result.Result = false;
             }
 
             return result;
         }
+
+        public async Task<OASISResult<bool>> DeleteAvatarDetailByUsernameAsync(string userName, bool softDelete = true, ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<bool> result = new OASISResult<bool>();
+            ProviderType currentProviderType = ProviderManager.CurrentStorageProviderType.Value;
+            ProviderType previousProviderType = ProviderType.Default;
+
+            try
+            {
+                result = await DeleteAvatarDetailByUsernameForProviderAsync(userName, result, SaveMode.FirstSaveAttempt, softDelete, providerType);
+                previousProviderType = ProviderManager.CurrentStorageProviderType.Value;
+
+                if ((!result.Result || result.IsError) && ProviderManager.IsAutoFailOverEnabled)
+                {
+                    foreach (EnumValue<ProviderType> type in ProviderManager.GetProviderAutoFailOverList())
+                    {
+                        if (type.Value != previousProviderType && type.Value != ProviderManager.CurrentStorageProviderType.Value)
+                        {
+                            result = await DeleteAvatarDetailByUsernameForProviderAsync(userName, result, SaveMode.AutoReplication, softDelete, type.Value);
+
+                            if (!result.IsError && result.Result)
+                            {
+                                previousProviderType = ProviderManager.CurrentStorageProviderType.Value;
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                if (result.IsError || !result.Result)
+                    ErrorHandling.HandleError(ref result, String.Concat("All registered OASIS Providers in the AutoFailOverList failed to delete the avatar detail with username ", userName, ". Please view the logs or DetailedMessage property for more information. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString()), string.Concat("Error Message: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)));
+                else
+                {
+                    result.IsSaved = true;
+
+                    if (result.WarningCount > 0)
+                        ErrorHandling.HandleWarning(ref result, string.Concat("The avatar detail with username ", userName, " was successfully deleted for the provider ", ProviderManager.CurrentStorageProviderType.Value, " but failed to delete for some of the other providers in the AutoFailOverList. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString()), string.Concat("Error Message: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)));
+                    else
+                        result.Message = "Avatar Detail Successfully Deleted.";
+
+                    //TODO: Need to move into background thread ASAP!
+                    if (ProviderManager.IsAutoReplicationEnabled)
+                    {
+                        foreach (EnumValue<ProviderType> type in ProviderManager.GetProvidersThatAreAutoReplicating())
+                        {
+                            if (type.Value != previousProviderType && type.Value != ProviderManager.CurrentStorageProviderType.Value)
+                                result = await DeleteAvatarDetailByUsernameForProviderAsync(userName, result, SaveMode.AutoReplication, softDelete, type.Value);
+                        }
+
+                        if (result.WarningCount > 0)
+                            ErrorHandling.HandleWarning(ref result, string.Concat("The avatar detail with username ", userName, " was successfully deleted for the provider ", previousProviderType, " but failed to auto-replicate for some of the other providers in the Auto-Replicate List. Providers in the list are: ", ProviderManager.GetProvidersThatAreAutoReplicatingAsString()), string.Concat("Error Message: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)), true);
+                        else
+                            LoggingManager.Log("Avatar Detail Successfully Deleted/Replicated", LogType.Info, ref result, true, false);
+                    }
+                }
+
+                ProviderManager.SetAndActivateCurrentStorageProvider(currentProviderType);
+            }
+            catch (Exception ex)
+            {
+                ErrorHandling.HandleError(ref result, string.Concat("Unknown error occured deleting the avatar detail with userName ", userName, " for provider ", ProviderManager.CurrentStorageProviderType.Name), string.Concat("Error Message: ", ex.Message), ex);
+                result.Result = false;
+            }
+
+            return result;
+        }
+
+        public async Task<OASISResult<bool>> DeleteAvatarDetailByEmailAsync(string email, bool softDelete = true, ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<bool> result = new OASISResult<bool>();
+            ProviderType currentProviderType = ProviderManager.CurrentStorageProviderType.Value;
+            ProviderType previousProviderType = ProviderType.Default;
+
+            try
+            {
+                result = await DeleteAvatarDetailByEmailForProviderAsync(email, result, SaveMode.FirstSaveAttempt, softDelete, providerType);
+                previousProviderType = ProviderManager.CurrentStorageProviderType.Value;
+
+                if ((!result.Result || result.IsError) && ProviderManager.IsAutoFailOverEnabled)
+                {
+                    foreach (EnumValue<ProviderType> type in ProviderManager.GetProviderAutoFailOverList())
+                    {
+                        if (type.Value != previousProviderType && type.Value != ProviderManager.CurrentStorageProviderType.Value)
+                        {
+                            result = await DeleteAvatarDetailByEmailForProviderAsync(email, result, SaveMode.AutoFailOver, softDelete, type.Value);
+
+                            if (!result.IsError && result.Result)
+                            {
+                                previousProviderType = ProviderManager.CurrentStorageProviderType.Value;
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                if (result.IsError || !result.Result)
+                    ErrorHandling.HandleError(ref result, String.Concat("All registered OASIS Providers in the AutoFailOverList failed to delete the avatar detail with email ", email, ". Please view the logs or DetailedMessage property for more information. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString()), string.Concat("Error Message: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)));
+                else
+                {
+                    result.IsSaved = true;
+
+                    if (result.WarningCount > 0)
+                        ErrorHandling.HandleWarning(ref result, string.Concat("The avatar detail with email ", email, " was successfully deleted for the provider ", ProviderManager.CurrentStorageProviderType.Value, " but failed to delete for some of the other providers in the AutoFailOverList. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString()), string.Concat("Error Message: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)));
+                    else
+                        result.Message = "Avatar Detail Successfully Deleted.";
+
+                    //TODO: Need to move into background thread ASAP!
+                    if (ProviderManager.IsAutoReplicationEnabled)
+                    {
+                        foreach (EnumValue<ProviderType> type in ProviderManager.GetProvidersThatAreAutoReplicating())
+                        {
+                            if (type.Value != previousProviderType && type.Value != ProviderManager.CurrentStorageProviderType.Value)
+                                result = await DeleteAvatarDetailByEmailForProviderAsync(email, result, SaveMode.AutoReplication, softDelete, type.Value);
+                        }
+
+                        if (result.WarningCount > 0)
+                            ErrorHandling.HandleWarning(ref result, string.Concat("The avatar detail with email ", email, " was successfully deleted for the provider ", previousProviderType, " but failed to auto-replicate for some of the other providers in the Auto-Replicate List. Providers in the list are: ", ProviderManager.GetProvidersThatAreAutoReplicatingAsString()), string.Concat("Error Message: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)), true);
+                        else
+                            LoggingManager.Log("Avatar Detail Successfully Deleted/Replicated", LogType.Info, ref result, true, false);
+                    }
+                }
+
+                ProviderManager.SetAndActivateCurrentStorageProvider(currentProviderType);
+            }
+            catch (Exception ex)
+            {
+                ErrorHandling.HandleError(ref result, string.Concat("Unknown error occured deleting the avatar detail with email ", email, " for provider ", ProviderManager.CurrentStorageProviderType.Name), string.Concat("Error Message: ", ex.Message), ex);
+                result.Result = false;
+            }
+
+            return result;
+        }
+
+        public OASISResult<bool> DeleteAvatarDetailByEmail(string email, bool softDelete = true, ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<bool> result = new OASISResult<bool>();
+            ProviderType currentProviderType = ProviderManager.CurrentStorageProviderType.Value;
+            ProviderType previousProviderType = ProviderType.Default;
+
+            try
+            {
+                result = DeleteAvatarDetailByEmailForProvider(email, result, SaveMode.FirstSaveAttempt, softDelete, providerType);
+                previousProviderType = ProviderManager.CurrentStorageProviderType.Value;
+
+                if ((!result.Result || result.IsError) && ProviderManager.IsAutoFailOverEnabled)
+                {
+                    foreach (EnumValue<ProviderType> type in ProviderManager.GetProviderAutoFailOverList())
+                    {
+                        if (type.Value != previousProviderType && type.Value != ProviderManager.CurrentStorageProviderType.Value)
+                        {
+                            result = DeleteAvatarDetailByEmailForProvider(email, result, SaveMode.AutoFailOver, softDelete, type.Value);
+
+                            if (!result.IsError && result.Result)
+                            {
+                                previousProviderType = ProviderManager.CurrentStorageProviderType.Value;
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                if (result.IsError || !result.Result)
+                    ErrorHandling.HandleError(ref result, String.Concat("All registered OASIS Providers in the AutoFailOverList failed to delete the avatar detail with email ", email, ". Please view the logs or DetailedMessage property for more information. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString()), string.Concat("Error Message: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)));
+                else
+                {
+                    result.IsSaved = true;
+
+                    if (result.WarningCount > 0)
+                        ErrorHandling.HandleWarning(ref result, string.Concat("The avatar detail with email ", email, " was successfully deleted for the provider ", ProviderManager.CurrentStorageProviderType.Value, " but failed to delete for some of the other providers in the AutoFailOverList. Providers in the list are: ", ProviderManager.GetProviderAutoFailOverListAsString()), string.Concat("Error Message: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)));
+                    else
+                        result.Message = "Avatar Detail Successfully Deleted.";
+
+                    //TODO: Need to move into background thread ASAP!
+                    if (ProviderManager.IsAutoReplicationEnabled)
+                    {
+                        foreach (EnumValue<ProviderType> type in ProviderManager.GetProvidersThatAreAutoReplicating())
+                        {
+                            if (type.Value != previousProviderType && type.Value != ProviderManager.CurrentStorageProviderType.Value)
+                                result = DeleteAvatarDetailByEmailForProvider(email, result, SaveMode.AutoReplication, softDelete, type.Value);
+                        }
+
+                        if (result.WarningCount > 0)
+                            ErrorHandling.HandleWarning(ref result, string.Concat("The avatar detail with email ", email, " was successfully deleted for the provider ", previousProviderType, " but failed to auto-replicate for some of the other providers in the Auto-Replicate List. Providers in the list are: ", ProviderManager.GetProvidersThatAreAutoReplicatingAsString()), string.Concat("Error Message: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)), true);
+                        else
+                            LoggingManager.Log("Avatar Detail Successfully Deleted/Replicated", LogType.Info, ref result, true, false);
+                    }
+                }
+
+                ProviderManager.SetAndActivateCurrentStorageProvider(currentProviderType);
+            }
+            catch (Exception ex)
+            {
+                ErrorHandling.HandleError(ref result, string.Concat("Unknown error occured deleting the avatar detail with email ", email, " for provider ", ProviderManager.CurrentStorageProviderType.Name), string.Concat("Error Message: ", ex.Message), ex);
+                result.Result = false;
+            }
+
+            return result;
+        }*/
 
         public async Task<KarmaAkashicRecord> AddKarmaToAvatarAsync(IAvatarDetail avatar, KarmaTypePositive karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc, string karmaSourceWebLink = null, ProviderType providerType = ProviderType.Default)
         {
@@ -2699,7 +3081,6 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
         private async Task<OASISResult<IAvatar>> LoadAvatarForProviderAsync(Guid id, OASISResult<IAvatar> result, ProviderType providerType = ProviderType.Default, int version = 0)
         {
-            //string errorMessageTemplate = "Error in LoadAvatarForProviderAsync method in AvatarManager loading avatar with id {id} for provider {providerType}. Reason: ";
             string errorMessageTemplate = "Error in LoadAvatarForProviderAsync method in AvatarManager loading avatar with id {0} for provider {1}. Reason: ";
             string errorMessage = String.Format(errorMessageTemplate, id, providerType);
 
@@ -2714,14 +3095,17 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
                     if (await Task.WhenAny(task, Task.Delay(OASISDNA.OASIS.StorageProviders.ProviderMethodCallTimeOutSeconds * 1000)) == task)
                     {
-                        //result = task.Result;
-
                         if (task.Result.IsError || task.Result.Result == null)
                         {
                             if (string.IsNullOrEmpty(task.Result.Message))
                                 task.Result.Message = "Avatar Not Found.";
 
                             ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, task.Result.Message), task.Result.DetailedMessage);
+                        }
+                        else
+                        {
+                            result.Result = task.Result.Result;
+                            result.IsLoaded = true;
                         }
                     }
                     else
@@ -2746,7 +3130,6 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
         private async Task<OASISResult<IAvatar>> LoadAvatarForProviderAsync(string username, OASISResult<IAvatar> result, ProviderType providerType = ProviderType.Default, int version = 0)
         {
-            //string errorMessage = $"Error in LoadAvatarForProviderAsync method in AvatarManager loading avatar with username {username} for provider {providerType}. Reason: ";
             string errorMessageTemplate = "Error in LoadAvatarForProviderAsync method in AvatarManager loading avatar with username {0} for provider {1}. Reason: ";
             string errorMessage = string.Format(errorMessageTemplate, username, providerType);
 
@@ -2770,6 +3153,11 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
                             ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, task.Result.Message), task.Result.DetailedMessage);
                         }
+                        else
+                        {
+                            result.Result = task.Result.Result;
+                            result.IsLoaded = true;
+                        }
                     }
                     else
                         ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, "timeout occured."));
@@ -2785,6 +3173,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return result;
         }
 
+        /*
         private OASISResult<IAvatar> LoadAvatarForProvider(string username, string password, OASISResult<IAvatar> result, ProviderType providerType = ProviderType.Default, int version = 0)
         {
             return LoadAvatarForProviderAsync(username, password, result).Result;
@@ -2834,7 +3223,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             }
 
             return result;
-        }
+        }*/
 
         private OASISResult<IAvatar> LoadAvatarByEmailForProvider(string email, OASISResult<IAvatar> result, ProviderType providerType = ProviderType.Default, int version = 0)
         {
@@ -2843,7 +3232,6 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
         private async Task<OASISResult<IAvatar>> LoadAvatarByEmailForProviderAsync(string email, OASISResult<IAvatar> result, ProviderType providerType = ProviderType.Default, int version = 0)
         {
-            //string errorMessage = $"Error in LoadAvatarByEmailForProviderAsync method in AvatarManager loading avatar with email {email} for provider {providerType}. Reason: ";
             string errorMessageTemplate = "Error in LoadAvatarByEmailForProviderAsync method in AvatarManager loading avatar with email {0} for provider {1}. Reason: ";
             string errorMessage = string.Format(errorMessageTemplate, email, providerType);
 
@@ -2858,8 +3246,6 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
                     if (await Task.WhenAny(task, Task.Delay(OASISDNA.OASIS.StorageProviders.ProviderMethodCallTimeOutSeconds * 1000)) == task)
                     {
-                       // result = task.Result;
-
                         if (task.Result.IsError || task.Result.Result == null)
                         {
                             if (string.IsNullOrEmpty(task.Result.Message))
@@ -2896,12 +3282,11 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         {
             string errorMessageTemplate = "Error in LoadAvatarDetailForProviderAsync method in AvatarManager loading avatar detail with id {0} for provider {1}. Reason: ";
             string errorMessage = string.Format(errorMessageTemplate, id, providerType);
-            //string errorMessage = $"Error in LoadAvatarDetailForProviderAsync method in AvatarManager loading avatar detail with id {id} for provider {providerType}. Reason: ";
 
             try
             {
                 OASISResult<IOASISStorageProvider> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
-                errorMessage = string.Format(errorMessageTemplate, id, providerType);
+                errorMessage = string.Format(errorMessageTemplate, id, ProviderManager.CurrentStorageProviderType.Name);
 
                 if (!providerResult.IsError && providerResult.Result != null)
                 {
@@ -2909,8 +3294,6 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
                     if (await Task.WhenAny(task, Task.Delay(OASISDNA.OASIS.StorageProviders.ProviderMethodCallTimeOutSeconds * 1000)) == task)
                     {
-                        //result = task.Result;
-
                         if (task.Result.IsError || task.Result.Result == null)
                         {
                             if (string.IsNullOrEmpty(task.Result.Message))
@@ -2945,7 +3328,6 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
         private async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByEmailForProviderAsync(string email, OASISResult<IAvatarDetail> result, ProviderType providerType = ProviderType.Default, int version = 0)
         {
-            //string errorMessage = $"Error in LoadAvatarDetailByUsernameForProviderAsync method in AvatarManager loading avatar detail with email {email} for provider {providerType}. Reason: ";
             string errorMessageTemplate = "Error in LoadAvatarDetailByEmailForProviderAsync method in AvatarManager loading avatar detail with email {0} for provider {1}. Reason: ";
             string errorMessage = string.Format(errorMessageTemplate, email, providerType);
 
@@ -2960,8 +3342,6 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
                     if (await Task.WhenAny(task, Task.Delay(OASISDNA.OASIS.StorageProviders.ProviderMethodCallTimeOutSeconds * 1000)) == task)
                     {
-                        //result = task.Result;
-
                         if (task.Result.IsError || task.Result.Result == null)
                         {
                             if (string.IsNullOrEmpty(result.Message))
@@ -2996,7 +3376,6 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
         private async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByUsernameForProviderAsync(string username, OASISResult<IAvatarDetail> result, ProviderType providerType = ProviderType.Default, int version = 0)
         {
-            //string errorMessage = $"Error in LoadAvatarDetailByUsernameForProviderAsync method in AvatarManager loading avatar detail with username {username} for provider {providerType}. Reason: ";
             string errorMessageTemplate = "Error in LoadAvatarDetailByUsernameForProviderAsync method in AvatarManager loading avatar detail with username {0} for provider {1}. Reason: ";
             string errorMessage = string.Format(errorMessageTemplate, username, providerType);
 
@@ -3011,8 +3390,6 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
                     if (await Task.WhenAny(task, Task.Delay(OASISDNA.OASIS.StorageProviders.ProviderMethodCallTimeOutSeconds * 1000)) == task)
                     {
-                        //result = task.Result;
-
                         if (task.Result.IsError || task.Result.Result == null)
                         {
                             if (string.IsNullOrEmpty(task.Result.Message))
@@ -3047,7 +3424,6 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
         private async Task<OASISResult<IEnumerable<IAvatar>>> LoadAllAvatarsForProviderAsync(OASISResult<IEnumerable<IAvatar>> result, ProviderType providerType = ProviderType.Default, int version = 0)
         {
-            //string errorMessage = $"Error in LoadAllAvatarsForProviderAsync method in AvatarManager loading all avatars for provider {providerType}. Reason: ";
             string errorMessageTemplate = "Error in LoadAllAvatarsForProviderAsync method in AvatarManager loading all avatar details for provider {0}. Reason: ";
             string errorMessage = string.Format(errorMessageTemplate, providerType);
 
@@ -3062,8 +3438,6 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
                     if (await Task.WhenAny(task, Task.Delay(OASISDNA.OASIS.StorageProviders.ProviderMethodCallTimeOutSeconds * 1000)) == task)
                     {
-                        //result = task.Result;
-
                         if (task.Result.IsError || task.Result.Result == null)
                         {
                             if (string.IsNullOrEmpty(task.Result.Message))
@@ -3098,7 +3472,6 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
         private async Task<OASISResult<IEnumerable<IAvatarDetail>>> LoadAllAvatarDetailsForProviderAsync(OASISResult<IEnumerable<IAvatarDetail>> result, ProviderType providerType = ProviderType.Default, int version = 0)
         {
-            //string errorMessage = $"Error in LoadAllAvatarDetailsForProviderAsync method in AvatarManager loading all avatar details for provider {providerType}. Reason: ";
             string errorMessageTemplate = "Error in LoadAllAvatarDetailsForProviderAsync method in AvatarManager loading all avatar details for provider {0}. Reason: ";
             string errorMessage = string.Format(errorMessageTemplate, providerType);
 
@@ -3113,8 +3486,6 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
                     if (await Task.WhenAny(task, Task.Delay(OASISDNA.OASIS.StorageProviders.ProviderMethodCallTimeOutSeconds * 1000)) == task)
                     {
-                        //result = task.Result;
-
                         if (task.Result.IsError || task.Result.Result == null)
                         {
                             if (string.IsNullOrEmpty(task.Result.Message))
@@ -3144,8 +3515,6 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
         public async Task<OASISResult<IAvatar>> SaveAvatarForProviderAsync(IAvatar avatar, OASISResult<IAvatar> result, SaveMode saveMode, ProviderType providerType = ProviderType.Default)
         {
-            //ProviderType currentProviderType = ProviderManager.CurrentStorageProviderType.Value;
-            //string errorMessage = $"Error in SaveAvatarDetailForProviderAsync method in AvatarManager saving avatar with name {avatar.Name}, username {avatar.Username} and id {avatar.Id} for provider {providerType}. Reason: ";
             string errorMessageTemplate = "Error in SaveAvatarDetailForProviderAsync method in AvatarManager saving avatar with name {0}, username {1} and id {2} for provider {3} for {4}. Reason: ";
             string errorMessage = string.Format(errorMessageTemplate, avatar.Name, avatar.Username, avatar.Id, providerType, Enum.GetName(typeof(SaveMode), saveMode));
 
@@ -3160,11 +3529,6 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
                     if (await Task.WhenAny(task, Task.Delay(OASISDNA.OASIS.StorageProviders.ProviderMethodCallTimeOutSeconds * 1000)) == task)
                     {
-                        //if (saveMode != SaveMode.AutoReplication)
-                        //    result = task.Result;
-                        //else
-                        //    OASISResultHolonToHolonHelper<IAvatar, IAvatar>.CopyResult(task.Result, result, false);
-
                         if (task.Result.IsError || task.Result.Result == null)
                         {
                             if (string.IsNullOrEmpty(task.Result.Message) && saveMode != SaveMode.AutoReplication)
@@ -3194,8 +3558,6 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
         public OASISResult<IAvatar> SaveAvatarForProvider(IAvatar avatar, OASISResult<IAvatar> result, SaveMode saveMode, ProviderType providerType = ProviderType.Default)
         {
-            //ProviderType currentProviderType = ProviderManager.CurrentStorageProviderType.Value;
-            //string errorMessage = $"Error in SaveAvatarForProvider method in AvatarManager saving avatar with name {avatar.Name}, username {avatar.Username} and id {avatar.Id} for provider {providerType} for {Enum.GetName(typeof(SaveMode), saveMode)}. Reason: ";
             string errorMessageTemplate = "Error in SaveAvatarForProvider method in AvatarManager saving avatar detail with name {0}, username {1} and id {2} for provider {3} for {4}. Reason: ";
             string errorMessage = string.Format(errorMessageTemplate, avatar.Name, avatar.Username, avatar.Id, providerType, Enum.GetName(typeof(SaveMode), saveMode));
 
@@ -3210,25 +3572,12 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
                     if (task.Wait(TimeSpan.FromSeconds(OASISDNA.OASIS.StorageProviders.ProviderMethodCallTimeOutSeconds)))
                     {
-                        //if (saveMode != SaveMode.AutoReplication)
-                        //    result = task.Result;
-                        //else
-                        //    OASISResultHolonToHolonHelper<IAvatar, IAvatar>.CopyResult(task.Result, result, false);
-
-                        //if (result.IsError || result.Result == null)
                         if (task.Result.IsError || task.Result.Result == null)
                         {
                             if (string.IsNullOrEmpty(task.Result.Message) && saveMode != SaveMode.AutoReplication)
                                 task.Result.Message = "Unknown.";
 
                             ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, task.Result.Message), task.Result.DetailedMessage, saveMode == SaveMode.AutoReplication);
-
-                            //If we are auto-replicating then this is not an error, only a warning.
-                            //if (saveMode == SaveMode.AutoReplication)
-                            //{
-                            //    result.IsError = false;
-                            //    result.IsSaved = true;
-                            //}
                         }
                         else
                         {
@@ -3252,10 +3601,8 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
         public async Task<OASISResult<IAvatarDetail>> SaveAvatarDetailForProviderAsync(IAvatarDetail avatar, OASISResult<IAvatarDetail> result, SaveMode saveMode, ProviderType providerType = ProviderType.Default)
         {
-            //ProviderType currentProviderType = ProviderManager.CurrentStorageProviderType.Value;
             string errorMessageTemplate = "Error in SaveAvatarDetailForProviderAsync method in AvatarManager saving avatar detail with name {0}, username {1} and id {2} for provider {3} for {4}. Reason: ";
             string errorMessage = string.Format(errorMessageTemplate, avatar.Name, avatar.Username, avatar.Id, providerType, Enum.GetName(typeof(SaveMode), saveMode));
-            //string errorMessage = $"Error in SaveAvatarDetailForProviderAsync method in AvatarManager saving avatar detail with name {avatar.Name}, username {avatar.Username} and id {avatar.Id} for provider {providerType} for {Enum.GetName(typeof(SaveMode), saveMode)}. Reason: ";
 
             try
             {
@@ -3268,11 +3615,6 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
                     if (await Task.WhenAny(task, Task.Delay(OASISDNA.OASIS.StorageProviders.ProviderMethodCallTimeOutSeconds * 1000)) == task)
                     {
-                    //    if (saveMode != SaveMode.AutoReplication)
-                    //        result = task.Result;
-                    //    else
-                    //        OASISResultHolonToHolonHelper<IAvatarDetail, IAvatarDetail>.CopyResult(task.Result, result, false);
-
                         if (task.Result.IsError || task.Result.Result == null)
                         {
                             if (string.IsNullOrEmpty(task.Result.Message) && saveMode != SaveMode.AutoReplication)
@@ -3314,7 +3656,6 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         {
             string errorMessageTemplate = "Error in DeleteAvatarForProviderAsync method in AvatarManager deleting avatar with email {0} for provider {1} for {2}. Reason: ";
             string errorMessage = string.Format(errorMessageTemplate, id, providerType, Enum.GetName(typeof(SaveMode), saveMode));
-            //string errorMessage = $"Error in DeleteAvatarForProviderAsync method in AvatarManager deleting avatar with id {id} for provider {providerType} for {Enum.GetName(typeof(SaveMode), saveMode)}. Reason: ";
 
             try
             {
@@ -3327,11 +3668,6 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
                     if (await Task.WhenAny(task, Task.Delay(OASISDNA.OASIS.StorageProviders.ProviderMethodCallTimeOutSeconds * 1000)) == task)
                     {
-                        //if (saveMode != SaveMode.AutoReplication)
-                        //    result = task.Result;
-                        //else
-                        //    OASISResultHolonToHolonHelper<bool, bool>.CopyResult(task.Result, result, false);
-
                         if (task.Result.IsError || !task.Result.Result)
                         {
                             if (string.IsNullOrEmpty(task.Result.Message) && saveMode != SaveMode.AutoReplication)
@@ -3366,8 +3702,6 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
         public async Task<OASISResult<bool>> DeleteAvatarByEmailForProviderAsync(string email, OASISResult<bool> result, SaveMode saveMode, bool softDelete = true, ProviderType providerType = ProviderType.Default)
         {
-            //ProviderType currentProviderType = ProviderManager.CurrentStorageProviderType.Value;
-            //string errorMessage = $"Error in DeleteAvatarByEmailForProviderAsync method in AvatarManager deleting avatar with email {email} for provider {providerType} for {Enum.GetName(typeof(SaveMode), saveMode)}. Reason: ";
             string errorMessageTemplate = "Error in DeleteAvatarByEmailForProviderAsync method in AvatarManager deleting avatar with email {0} for provider {1} for {2}. Reason: ";
             string errorMessage = string.Format(errorMessageTemplate, email, providerType, Enum.GetName(typeof(SaveMode), saveMode));
 
@@ -3378,15 +3712,10 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
                 if (!providerResult.IsError && providerResult.Result != null)
                 {
-                    var task = providerResult.Result.DeleteAvatarAsync(email, softDelete);
+                    var task = providerResult.Result.DeleteAvatarByEmailAsync(email, softDelete);
 
                     if (await Task.WhenAny(task, Task.Delay(OASISDNA.OASIS.StorageProviders.ProviderMethodCallTimeOutSeconds * 1000)) == task)
                     {
-                        //if (saveMode != SaveMode.AutoReplication)
-                        //    result = task.Result;
-                        //else
-                        //    OASISResultHolonToHolonHelper<bool, bool>.CopyResult(task.Result, result, false);
-
                         if (task.Result.IsError || !task.Result.Result)
                         {
                             if (string.IsNullOrEmpty(task.Result.Message) && saveMode != SaveMode.AutoReplication)
@@ -3421,8 +3750,6 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
         public async Task<OASISResult<bool>> DeleteAvatarByUsernameForProviderAsync(string username, OASISResult<bool> result, SaveMode saveMode, bool softDelete = true, ProviderType providerType = ProviderType.Default)
         {
-            //ProviderType currentProviderType = ProviderManager.CurrentStorageProviderType.Value;
-            //string errorMessage = $"Error in DeleteAvatarByUsernameForProviderAsync method in AvatarManager deleting avatar with username {username} for provider {providerType} for {Enum.GetName(typeof(SaveMode), saveMode)}. Reason: ";
             string errorMessageTemplate = "Error in DeleteAvatarByUsernameForProviderAsync method in AvatarManager deleting avatar with username {0} for provider {1} for {2}. Reason: ";
             string errorMessage = String.Format(errorMessageTemplate, username, providerType, Enum.GetName(typeof(SaveMode), saveMode));
 
@@ -3432,16 +3759,11 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
                 if (!providerResult.IsError && providerResult.Result != null)
                 {
-                    var task = providerResult.Result.DeleteAvatarAsync(username, softDelete);
+                    var task = providerResult.Result.DeleteAvatarByUsernameAsync(username, softDelete);
                     errorMessage = String.Format(errorMessageTemplate, username, ProviderManager.CurrentStorageProviderType.Name, Enum.GetName(typeof(SaveMode), saveMode));
 
                     if (await Task.WhenAny(task, Task.Delay(OASISDNA.OASIS.StorageProviders.ProviderMethodCallTimeOutSeconds * 1000)) == task)
                     {
-                        //if (saveMode != SaveMode.AutoReplication)
-                        //    result = task.Result;
-                        //else
-                        //    OASISResultHolonToHolonHelper<bool, bool>.CopyResult(task.Result, result, false);
-
                         if (task.Result.IsError || !task.Result.Result)
                         {
                             if (string.IsNullOrEmpty(task.Result.Message) && saveMode != SaveMode.AutoReplication)
@@ -3468,6 +3790,176 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
             return result;
         }
+
+        /*
+       public OASISResult<bool> DeleteAvatarDetailForProvider(Guid id, OASISResult<bool> result, SaveMode saveMode, bool softDelete = true, ProviderType providerType = ProviderType.Default)
+       {
+           return DeleteAvatarDetailForProviderAsync(id, result, saveMode, softDelete, providerType).Result;
+       }
+
+       public async Task<OASISResult<bool>> DeleteAvatarDetailForProviderAsync(Guid id, OASISResult<bool> result, SaveMode saveMode, bool softDelete = true, ProviderType providerType = ProviderType.Default)
+       {
+           string errorMessageTemplate = "Error in DeleteAvatarDetailForProviderAsync method in AvatarManager deleting avatar detail with email {0} for provider {1} for {2}. Reason: ";
+           string errorMessage = string.Format(errorMessageTemplate, id, providerType, Enum.GetName(typeof(SaveMode), saveMode));
+
+           try
+           {
+               OASISResult<IOASISStorageProvider> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
+               errorMessage = string.Format(errorMessageTemplate, id, ProviderManager.CurrentStorageProviderType.Name, Enum.GetName(typeof(SaveMode), saveMode));
+
+               if (!providerResult.IsError && providerResult.Result != null)
+               {
+                   var task = providerResult.Result.DeleteAvatarDetailAsync(id, softDelete);
+
+                   if (await Task.WhenAny(task, Task.Delay(OASISDNA.OASIS.StorageProviders.ProviderMethodCallTimeOutSeconds * 1000)) == task)
+                   {
+                       if (task.Result.IsError || !task.Result.Result)
+                       {
+                           if (string.IsNullOrEmpty(task.Result.Message) && saveMode != SaveMode.AutoReplication)
+                               result.Message = "Unknown.";
+
+                           ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, task.Result.Message), task.Result.DetailedMessage, saveMode == SaveMode.AutoReplication);
+                       }
+                       else
+                       {
+                           result.IsSaved = true;
+                           result.Result = task.Result.Result;
+                       }
+                   }
+                   else
+                       ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, "timeout occured."), saveMode == SaveMode.AutoReplication);
+               }
+               else
+                   ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, providerResult.Message), providerResult.DetailedMessage, saveMode == SaveMode.AutoReplication);
+           }
+           catch (Exception ex)
+           {
+               ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, ex.Message), ex, saveMode == SaveMode.AutoReplication);
+           }
+
+           return result;
+       }
+
+       public OASISResult<bool> DeleteAvatarDetailByEmailForProvider(string email, OASISResult<bool> result, SaveMode saveMode, bool softDelete = true, ProviderType providerType = ProviderType.Default)
+       {
+           return DeleteAvatarDetailByEmailForProviderAsync(email, result, saveMode, softDelete, providerType).Result;
+       }
+
+       public async Task<OASISResult<bool>> DeleteAvatarDetailByEmailForProviderAsync(string email, OASISResult<bool> result, SaveMode saveMode, bool softDelete = true, ProviderType providerType = ProviderType.Default)
+       {
+           string errorMessageTemplate = "Error in DeleteAvatarDetailByEmailForProviderAsync method in AvatarManager deleting avatar with email {0} for provider {1} for {2}. Reason: ";
+           string errorMessage = string.Format(errorMessageTemplate, email, providerType, Enum.GetName(typeof(SaveMode), saveMode));
+
+           try
+           {
+               OASISResult<IOASISStorageProvider> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
+               errorMessage = string.Format(errorMessageTemplate, email, ProviderManager.CurrentStorageProviderType.Name, Enum.GetName(typeof(SaveMode), saveMode));
+
+               if (!providerResult.IsError && providerResult.Result != null)
+               {
+                   var task = providerResult.Result.DeleteAvatarDetailByEmailAsync(email, softDelete);
+
+                   if (await Task.WhenAny(task, Task.Delay(OASISDNA.OASIS.StorageProviders.ProviderMethodCallTimeOutSeconds * 1000)) == task)
+                   {
+                       if (task.Result.IsError || !task.Result.Result)
+                       {
+                           if (string.IsNullOrEmpty(task.Result.Message) && saveMode != SaveMode.AutoReplication)
+                               result.Message = "Unknown.";
+
+                           ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, task.Result.Message), task.Result.DetailedMessage, saveMode == SaveMode.AutoReplication);
+                       }
+                       else
+                       {
+                           result.IsSaved = true;
+                           result.Result = task.Result.Result;
+                       }
+                   }
+                   else
+                       ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, "timeout occured."), saveMode == SaveMode.AutoReplication);
+               }
+               else
+                   ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, providerResult.Message), providerResult.DetailedMessage, saveMode == SaveMode.AutoReplication);
+           }
+           catch (Exception ex)
+           {
+               ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, ex.Message), ex, saveMode == SaveMode.AutoReplication);
+           }
+
+           return result;
+       }
+
+       public OASISResult<bool> DeleteAvatarDetailByUsernameForProvider(string username, OASISResult<bool> result, SaveMode saveMode, bool softDelete = true, ProviderType providerType = ProviderType.Default)
+       {
+           return DeleteAvatarDetailByUsernameForProviderAsync(username, result, saveMode, softDelete, providerType).Result;
+       }
+
+       public async Task<OASISResult<bool>> DeleteAvatarDetailByUsernameForProviderAsync(string username, OASISResult<bool> result, SaveMode saveMode, bool softDelete = true, ProviderType providerType = ProviderType.Default)
+       {
+           string errorMessageTemplate = "Error in DeleteAvatarDetailByUsernameForProviderAsync method in AvatarManager deleting avatar detail with username {0} for provider {1} for {2}. Reason: ";
+           string errorMessage = String.Format(errorMessageTemplate, username, providerType, Enum.GetName(typeof(SaveMode), saveMode));
+
+           try
+           {
+               OASISResult<IOASISStorageProvider> providerResult = ProviderManager.SetAndActivateCurrentStorageProvider(providerType);
+
+               if (!providerResult.IsError && providerResult.Result != null)
+               {
+                   var task = providerResult.Result.DeleteAvatarDetailByUsernameAsync(username, softDelete);
+                   errorMessage = String.Format(errorMessageTemplate, username, ProviderManager.CurrentStorageProviderType.Name, Enum.GetName(typeof(SaveMode), saveMode));
+
+                   if (await Task.WhenAny(task, Task.Delay(OASISDNA.OASIS.StorageProviders.ProviderMethodCallTimeOutSeconds * 1000)) == task)
+                   {
+                       if (task.Result.IsError || !task.Result.Result)
+                       {
+                           if (string.IsNullOrEmpty(task.Result.Message) && saveMode != SaveMode.AutoReplication)
+                               task.Result.Message = "Unknown.";
+
+                           ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, task.Result.Message), task.Result.DetailedMessage, saveMode == SaveMode.AutoReplication);
+                       }
+                       else
+                       {
+                           result.IsSaved = true;
+                           result.Result = task.Result.Result;
+                       }
+                   }
+                   else
+                       ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, "timeout occured."), saveMode == SaveMode.AutoReplication);
+               }
+               else
+                   ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, providerResult.Message), providerResult.DetailedMessage, saveMode == SaveMode.AutoReplication);
+           }
+           catch (Exception ex)
+           {
+               ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, ex.Message), ex, saveMode == SaveMode.AutoReplication);
+           }
+
+           return result;
+       }*/
+
+
+        //TODO: Get this working later to make methods above more generic like HolonManager is! :)
+        //private async Task<T> CallAvatarMethod<T>(OASISResult<T> result, Task task)
+        //{
+        //    if (await Task.WhenAny(task, Task.Delay(OASISDNA.OASIS.StorageProviders.ProviderMethodCallTimeOutSeconds * 1000)) == task)
+        //    {
+        //        if (task.Result.IsError || !task.Result.Result)
+        //        {
+        //            if (string.IsNullOrEmpty(task.Result.Message) && saveMode != SaveMode.AutoReplication)
+        //                task.Result.Message = "Unknown.";
+
+        //            ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, task.Result.Message), task.Result.DetailedMessage, saveMode == SaveMode.AutoReplication);
+        //        }
+        //        else
+        //        {
+        //            result.IsSaved = true;
+        //            result.Result = task.Result.Result;
+        //        }
+        //    }
+        //    else
+        //        ErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, "timeout occured."), saveMode == SaveMode.AutoReplication);
+
+        //    return result;
+        //}
 
         private OASISResult<IAvatar> ProcessAvatarLogin(OASISResult<IAvatar> result, string password)
         {
@@ -3497,6 +3989,121 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                     result.Message = "Email or password is incorrect";
                 }
             }
+
+            return result;
+        }
+
+        private async Task<OASISResult<IAvatarDetail>> UpdateAvatarDetailAsync(IAvatarDetail avatarDetailOriginal, IAvatarDetail avatarDetailToUpdate, string errorMessage)
+        {
+            OASISResult<IAvatarDetail> result = new OASISResult<IAvatarDetail>();
+
+            //Initialize the mapper
+            //var config = new MapperConfiguration(cfg =>
+            //        cfg.CreateMap<AvatarDetail, AvatarDetail>() );
+
+            //var mapper = new AutoMapper.Mapper(config);
+            //avatarDetailOriginal = mapper.Map<AvatarDetail>(avatarDetail);
+
+            //Unfortunatley AutoMapper didn't seem to work correctly and override existing values with null ones, etc.
+            //TODO: Need to look into it later...
+            //TODO: Need to also map the child complex objects/structs such as Gifts, Spells, Achievements, etc, etc...
+
+            if (avatarDetailOriginal.Address != avatarDetailToUpdate.Address && !string.IsNullOrEmpty(avatarDetailToUpdate.Address))
+                avatarDetailOriginal.Address = avatarDetailToUpdate.Address;
+
+            if (avatarDetailOriginal.Town != avatarDetailToUpdate.Town && !string.IsNullOrEmpty(avatarDetailToUpdate.Town))
+                avatarDetailOriginal.Town = avatarDetailToUpdate.Town;
+
+            if (avatarDetailOriginal.County != avatarDetailToUpdate.County && !string.IsNullOrEmpty(avatarDetailToUpdate.County))
+                avatarDetailOriginal.County = avatarDetailToUpdate.County;
+
+            if (avatarDetailOriginal.Country != avatarDetailToUpdate.Country && !string.IsNullOrEmpty(avatarDetailToUpdate.Country))
+                avatarDetailOriginal.Country = avatarDetailToUpdate.Country;
+
+            if (avatarDetailOriginal.Postcode != avatarDetailToUpdate.Postcode && !string.IsNullOrEmpty(avatarDetailToUpdate.Postcode))
+                avatarDetailOriginal.Postcode = avatarDetailToUpdate.Postcode;
+
+            if (avatarDetailOriginal.Mobile != avatarDetailToUpdate.Mobile && !string.IsNullOrEmpty(avatarDetailToUpdate.Mobile))
+                avatarDetailOriginal.Mobile = avatarDetailToUpdate.Mobile;
+
+            if (avatarDetailOriginal.Landline != avatarDetailToUpdate.Landline && !string.IsNullOrEmpty(avatarDetailToUpdate.Landline))
+                avatarDetailOriginal.Landline = avatarDetailToUpdate.Landline;
+
+            if (avatarDetailOriginal.Email != avatarDetailToUpdate.Email && !string.IsNullOrEmpty(avatarDetailToUpdate.Email))
+                avatarDetailOriginal.Email = avatarDetailToUpdate.Email;
+
+            if (avatarDetailOriginal.Username != avatarDetailToUpdate.Username && !string.IsNullOrEmpty(avatarDetailToUpdate.Username))
+                avatarDetailOriginal.Username = avatarDetailToUpdate.Username;
+
+            if (avatarDetailOriginal.DOB != avatarDetailToUpdate.DOB && avatarDetailToUpdate.DOB != DateTime.MinValue)
+                avatarDetailOriginal.DOB = avatarDetailToUpdate.DOB;
+
+            if (avatarDetailOriginal.Karma != avatarDetailToUpdate.Karma && avatarDetailToUpdate.Karma > 0)
+                avatarDetailOriginal.Karma = avatarDetailToUpdate.Karma;
+
+            if (avatarDetailOriginal.XP != avatarDetailToUpdate.XP && avatarDetailToUpdate.XP > 0)
+                avatarDetailOriginal.XP = avatarDetailToUpdate.XP;
+
+            if (avatarDetailOriginal.STARCLIColour != avatarDetailToUpdate.STARCLIColour && avatarDetailToUpdate.STARCLIColour != ConsoleColor.Black)
+                avatarDetailOriginal.STARCLIColour = avatarDetailToUpdate.STARCLIColour;
+
+            if (avatarDetailOriginal.FavouriteColour != avatarDetailToUpdate.FavouriteColour && avatarDetailToUpdate.FavouriteColour != ConsoleColor.Black)
+                avatarDetailOriginal.FavouriteColour = avatarDetailToUpdate.FavouriteColour;
+
+            if (avatarDetailOriginal.Image2D != avatarDetailToUpdate.Image2D && !string.IsNullOrEmpty(avatarDetailToUpdate.Image2D))
+                avatarDetailOriginal.Image2D = avatarDetailToUpdate.Image2D;
+
+            if (avatarDetailOriginal.Model3D != avatarDetailToUpdate.Model3D && !string.IsNullOrEmpty(avatarDetailToUpdate.Model3D))
+                avatarDetailOriginal.Model3D = avatarDetailToUpdate.Model3D;
+
+            if (avatarDetailOriginal.UmaJson != avatarDetailToUpdate.UmaJson && !string.IsNullOrEmpty(avatarDetailToUpdate.UmaJson))
+                avatarDetailOriginal.UmaJson = avatarDetailToUpdate.UmaJson;
+
+            if (avatarDetailOriginal.Description != avatarDetailToUpdate.Description && !string.IsNullOrEmpty(avatarDetailToUpdate.Description))
+                avatarDetailOriginal.Description = avatarDetailToUpdate.Description;
+
+            if (avatarDetailOriginal.DimensionLevel != avatarDetailToUpdate.DimensionLevel)
+                avatarDetailOriginal.DimensionLevel = avatarDetailToUpdate.DimensionLevel;
+
+            //TODO: Apply to all other properties. Use AutoMapper here instead! ;-)
+
+            result = await SaveAvatarDetailAsync(avatarDetailOriginal);
+
+            if (!result.IsError && result.Result != null)
+            {
+                OASISResult<IAvatar> avatarResult = await LoadAvatarAsync(result.Result.Id, false);
+
+                if (!avatarResult.IsError && avatarResult.Result != null)
+                {
+                    if ((!string.IsNullOrEmpty(avatarDetailToUpdate.Username) && avatarResult.Result.Username != avatarDetailToUpdate.Username) || (!string.IsNullOrEmpty(avatarDetailToUpdate.Email) && avatarResult.Result.Email != avatarDetailToUpdate.Email))
+                    {
+                        if (!string.IsNullOrEmpty(avatarDetailToUpdate.Username))
+                            avatarResult.Result.Username = avatarDetailToUpdate.Username;
+
+                        if (!string.IsNullOrEmpty(avatarDetailToUpdate.Email))
+                            avatarResult.Result.Email = avatarDetailToUpdate.Email;
+
+                        OASISResult<IAvatar> saveAvatarResult = await avatarResult.Result.SaveAsync();
+
+                        if (!saveAvatarResult.IsError && saveAvatarResult.Result != null)
+                        {
+                            result.Message = "Avatar Detail & Avatar Updated Successfully";
+                            result.IsSaved = true;
+                        }
+                        else
+                            ErrorHandling.HandleError(ref result, $"{errorMessage}{saveAvatarResult.Message}", saveAvatarResult.DetailedMessage);
+                    }
+                    else
+                    {
+                        result.Message = "Avatar Detail Updated Successfully";
+                        result.IsSaved = true;
+                    }
+                }
+                else
+                    ErrorHandling.HandleError(ref result, $"{errorMessage}{avatarResult.Message}", avatarResult.DetailedMessage);
+            }
+            else
+                ErrorHandling.HandleError(ref result, $"{errorMessage}{result.Message}", result.DetailedMessage);
 
             return result;
         }

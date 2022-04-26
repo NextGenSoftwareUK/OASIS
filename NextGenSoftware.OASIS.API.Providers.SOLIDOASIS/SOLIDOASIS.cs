@@ -125,10 +125,10 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLIDOASIS
             throw new NotImplementedException();
         }
 
-        public override OASISResult<IAvatar> LoadAvatar(string username, string password, int version = 0)
-        {
-            throw new NotImplementedException();
-        }
+        //public override OASISResult<IAvatar> LoadAvatar(string username, string password, int version = 0)
+        //{
+        //    throw new NotImplementedException();
+        //}
 
         public override OASISResult<IAvatar> LoadAvatar(string username, int version = 0)
         {
@@ -140,10 +140,10 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLIDOASIS
             throw new NotImplementedException();
         }
 
-        public override Task<OASISResult<IAvatar>> LoadAvatarAsync(string username, string password, int version = 0)
-        {
-            throw new NotImplementedException();
-        }
+        //public override Task<OASISResult<IAvatar>> LoadAvatarAsync(string username, string password, int version = 0)
+        //{
+        //    throw new NotImplementedException();
+        //}
 
         public override Task<OASISResult<IAvatar>> LoadAvatarAsync(string username, int version = 0)
         {
