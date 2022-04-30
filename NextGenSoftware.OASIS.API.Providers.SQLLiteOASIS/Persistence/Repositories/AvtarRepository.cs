@@ -9,6 +9,7 @@ using System.Text;
 using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Providers.SQLLiteOASIS.Entities;
+using NextGenSoftware.OASIS.API.Core.Helpers;
 
 namespace NextGenSoftware.OASIS.API.Providers.SQLLiteOASIS.Persistence.Repositories
 {
@@ -21,90 +22,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteOASIS.Persistence.Repositor
             this.eFContext = eFContext;
         }
 
-        //public async Task<List<AvatarEntity>> GetAvtars()
-        //{
-        //    try
-        //    {
-        //        return await this.eFContext.AvatarEntities.ToListAsync();
-        //    }
-        //    catch (Exception)
-        //    {
-        //        throw;
-        //    }
-        //}
-
-        //public async Task<AvatarEntity> GetAvtarById(Guid avtarId)
-        //{
-        //    try
-        //    {
-        //        var avtars = await this.eFContext.AvatarEntities.Where(e => e.Id.Equals(avtarId.ToString())).FirstOrDefaultAsync();
-        //        if (avtars != null)
-        //        {
-        //            return avtars;
-        //        }
-        //    }
-        //    catch (Exception)
-        //    {
-        //        throw;
-        //    }
-        //    throw new NotFoundException();
-        //}
-
-        //public async Task<AvatarEntity> CreateAvtar(AvatarEntity request)
-        //{
-        //    try
-        //    {
-        //        var avtar = request;
-        //        this.eFContext.AvatarEntities.Add(avtar);
-        //        await this.eFContext.SaveChangesAsync();
-        //        return avtar;
-        //    }
-        //    catch (Exception)
-        //    {
-        //        throw;
-        //    }
-        //}
-
-        //public async Task<AvatarEntity> UpdateAvtar(AvatarEntity request)
-        //{
-        //    try
-        //    {
-        //        var avtar = this.eFContext.AvatarEntities.Find(request.Id);
-        //        if (avtar != null)
-        //        {
-        //            //avtar.Name = request.Name;
-        //            this.eFContext.AvatarEntities.Update(avtar);
-        //            await this.eFContext.SaveChangesAsync();
-        //            return avtar;
-        //        }
-        //        throw new NotFoundException();
-        //    }
-        //    catch (Exception)
-        //    {
-        //        throw;
-        //    }
-        //}
-
-        //public async Task<bool> DeleteAvtrarById(Guid avtarId)
-        //{
-        //    try
-        //    {
-        //        var avatar = await this.eFContext.AvatarEntities.Where(p => p.Id == avtarId).FirstOrDefaultAsync();
-        //        if (avatar != null)
-        //        {
-        //            this.eFContext.AvatarEntities.Remove(avatar);
-        //            await this.eFContext.SaveChangesAsync();
-        //            return true;
-        //        }
-        //        else { return false; }
-        //    }
-        //    catch (Exception)
-        //    {
-        //        throw;
-        //    }
-        //}
-
-        public bool DeleteAvatar(Guid id, bool softDelete = true)
+        public OASISResult<bool> DeleteAvatar(Guid id, bool softDelete = true)
         {
             try
             {
@@ -121,17 +39,36 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteOASIS.Persistence.Repositor
                         this.eFContext.AvatarEntities.Remove(avatar);
                     }
                     this.eFContext.SaveChangesAsync();
-                    return true;
+                    return new OASISResult<bool>
+                    {
+                        IsError = false,
+                        Message = "Avatar Deleted Successfully",
+                        Result = true
+                    };
                 }
-                else { return false; }
+                else
+                {
+                    return new OASISResult<bool>
+                    {
+                        IsError = true,
+                        Message = "Something went wrong! please try again later",
+                        Result = false
+                    };
+                }
+
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                throw;
+                return new OASISResult<bool>
+                {
+                    IsError = true,
+                    Message = ex.ToString(),
+                    Result = false
+                };
             }
         }
 
-        public bool DeleteAvatarByEmail(string avatarEmail, bool softDelete = true)
+        public OASISResult<bool> DeleteAvatarByEmail(string avatarEmail, bool softDelete = true)
         {
             try
             {
@@ -148,17 +85,36 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteOASIS.Persistence.Repositor
                         this.eFContext.AvatarEntities.Remove(avatar);
                     }
                     this.eFContext.SaveChangesAsync();
-                    return true;
+                    return new OASISResult<bool>
+                    {
+                        IsError = false,
+                        Message = "Avatar Deleted Successfully",
+                        Result = true
+                    };
                 }
-                else { return false; }
+                else
+                {
+                    return new OASISResult<bool>
+                    {
+                        IsError = true,
+                        Message = "Something went wrong! please try again later",
+                        Result = false
+                    };
+                }
+
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                throw;
+                return new OASISResult<bool>
+                {
+                    IsError = true,
+                    Message = ex.ToString(),
+                    Result = false
+                };
             }
         }
 
-        public bool DeleteAvatarByUsername(string avatarUsername, bool softDelete = true)
+        public OASISResult<bool> DeleteAvatarByUsername(string avatarUsername, bool softDelete = true)
         {
             try
             {
@@ -175,17 +131,34 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteOASIS.Persistence.Repositor
                         this.eFContext.AvatarEntities.Remove(avatar);
                     }
                     this.eFContext.SaveChangesAsync();
-                    return true;
+                    return new OASISResult<bool>
+                    {
+                        IsError = false,
+                        Message = "Avatar Deleted Successfully",
+                        Result = true
+                    };
                 }
-                else { return false; }
+                else
+                {
+                    return new OASISResult<bool>
+                    {
+                        IsError = true,
+                        Message = "Something went wrong! please try again later",
+                        Result = false
+                    };
+                }
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                throw;
+                return new OASISResult<bool>
+                {
+                    IsError = true,
+                    Message = ex.ToString(),
+                    Result = false
+                };
             }
         }
-
-        public async Task<bool> DeleteAvatarByUsernameAsync(string avatarUsername, bool softDelete = true)
+        public async Task<OASISResult<bool>> DeleteAvatarByUsernameAsync(string avatarUsername, bool softDelete = true)
         {
             try
             {
@@ -202,17 +175,36 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteOASIS.Persistence.Repositor
                         this.eFContext.AvatarEntities.Remove(avatar);
                     }
                     await this.eFContext.SaveChangesAsync();
-                    return true;
+                    return new OASISResult<bool>
+                    {
+                        IsError = false,
+                        Message = "Avatar Deleted Successfully",
+                        Result = true
+                    };
                 }
-                else { return false; }
+                else
+                {
+                    return new OASISResult<bool>
+                    {
+                        IsError = true,
+                        Message = "Something went wrong! please try again later",
+                        Result = false
+                    };
+                }
+
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                throw;
+                return new OASISResult<bool>
+                {
+                    IsError = true,
+                    Message = ex.ToString(),
+                    Result = false
+                };
             }
         }
 
-        public bool DeleteAvatar(string providerKey, bool softDelete = true)
+        public OASISResult<bool> DeleteAvatar(string providerKey, bool softDelete = true)
         {
             //try
             //{
@@ -240,7 +232,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteOASIS.Persistence.Repositor
             throw new NotImplementedException();
         }
 
-        public async Task<bool> DeleteAvatarAsync(Guid id, bool softDelete = true)
+        public async Task<OASISResult<bool>> DeleteAvatarAsync(Guid id, bool softDelete = true)
         {
             try
             {
@@ -257,17 +249,36 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteOASIS.Persistence.Repositor
                         this.eFContext.AvatarEntities.Remove(avatar);
                     }
                     await this.eFContext.SaveChangesAsync();
-                    return true;
+                    return new OASISResult<bool>
+                    {
+                        IsError = false,
+                        Message = "Avatar Deleted Successfully",
+                        Result = true
+                    };
                 }
-                else { return false; }
+                else
+                {
+                    return new OASISResult<bool>
+                    {
+                        IsError = true,
+                        Message = "Something went wrong! please try again later",
+                        Result = false
+                    };
+                }
+
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                throw;
+                return new OASISResult<bool>
+                {
+                    IsError = true,
+                    Message = ex.ToString(),
+                    Result = false
+                };
             }
         }
 
-        public async Task<bool> DeleteAvatarByEmailAsync(string avatarEmail, bool softDelete = true)
+        public async Task<OASISResult<bool>> DeleteAvatarByEmailAsync(string avatarEmail, bool softDelete = true)
         {
             try
             {
@@ -284,17 +295,36 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteOASIS.Persistence.Repositor
                         this.eFContext.AvatarEntities.Remove(avatar);
                     }
                     await this.eFContext.SaveChangesAsync();
-                    return true;
+                    return new OASISResult<bool>
+                    {
+                        IsError = false,
+                        Message = "Avatar Deleted Successfully",
+                        Result = true
+                    };
                 }
-                else { return false; }
+                else
+                {
+                    return new OASISResult<bool>
+                    {
+                        IsError = true,
+                        Message = "Something went wrong! please try again later",
+                        Result = false
+                    };
+                }
+
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                throw;
+                return new OASISResult<bool>
+                {
+                    IsError = true,
+                    Message = ex.ToString(),
+                    Result = false
+                };
             }
         }
 
-        public async Task<bool> DeleteAvatarAsync(string providerKey, bool softDelete = true)
+        public async Task<OASISResult<bool>> DeleteAvatarAsync(string providerKey, bool softDelete = true)
         {
             //try
             //{
@@ -322,151 +352,395 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteOASIS.Persistence.Repositor
             throw new NotImplementedException();
         }
 
-        public List<AvatarEntity> LoadAvatar(string username, string password, int version = 0)
+        public OASISResult<IAvatar> LoadAvatar(string username, string password, int version = 0)
         {
             try
             {
-                return this.eFContext.AvatarEntities.Where(p => p.Username == username && p.Password == password && p.Version == version).ToList();
+                var obj = this.eFContext.AvatarEntities.Where(p => p.Username == username && p.Password == password && p.Version == version).ToList();
+                return new OASISResult<IAvatar>
+                {
+                    IsLoaded = true,
+                    IsError = false,
+                    Message = "Avatar Loaded Successfully",
+                    Result = (IAvatar)obj
+                };
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                throw;
+                return new OASISResult<IAvatar>
+                {
+                    IsLoaded = false,
+                    IsError = true,
+                    Message = ex.ToString(),
+                };
             }
         }
 
-        public List<AvatarEntity> LoadAvatar(string username, int version = 0)
+        public OASISResult<IAvatar> LoadAvatar(string username, int version = 0)
         {
             try
             {
-                return this.eFContext.AvatarEntities.Where(p => p.Username == username && p.Version == version).ToList();
+                var obj = this.eFContext.AvatarEntities.Where(p => p.Username == username && p.Version == version).ToList();
+                return new OASISResult<IAvatar>
+                {
+                    IsLoaded = true,
+                    IsError = false,
+                    Message = "Avatar Loaded Successfully",
+                    Result = (IAvatar)obj
+                };
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                throw;
+                return new OASISResult<IAvatar>
+                {
+                    IsLoaded = false,
+                    IsError = true,
+                    Message = ex.ToString(),
+                };
             }
         }
 
-        public async Task<List<AvatarEntity>> LoadAvatarAsync(string username, string password, int version = 0)
+        public async Task<OASISResult<IAvatar>> LoadAvatarAsync(string username, string password, int version = 0)
         {
             try
             {
-                return await this.eFContext.AvatarEntities.Where(p => p.Username == username && p.Version == version).ToListAsync();
+                var obj = await this.eFContext.AvatarEntities.Where(p => p.Username == username && p.Version == version).FirstOrDefaultAsync();
+                if(obj == null)
+                {
+
+                    return new OASISResult<IAvatar>
+                    {
+                        IsLoaded = false,
+                        IsError = false,
+                        Message = "No Avatar Found",
+                    };
+                }
+                else
+                {
+
+                    return new OASISResult<IAvatar>
+                    {
+                        IsLoaded = true,
+                        IsError = false,
+                        Message = "Avatar Loaded Successfully",
+                        Result = (IAvatar)obj
+                    };
+                }
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                throw;
+                return new OASISResult<IAvatar>
+                {
+                    IsLoaded = false,
+                    IsError = true,
+                    Message = ex.ToString(),
+                };
             }
         }
 
-        public async Task<List<AvatarEntity>> LoadAllAvatarsAsync(int version = 0)
+        public async Task<OASISResult<IEnumerable<IAvatar>>> LoadAllAvatarsAsync(int version = 0)
         {
             try
             {
-                return await this.eFContext.AvatarEntities.Where(p => p.Version == version).ToListAsync();
+                var obj= await this.eFContext.AvatarEntities.Where(p => p.Version == version).ToListAsync();
+                return new OASISResult<IEnumerable<IAvatar>>
+                {
+                    IsLoaded = true,
+                    IsError = false,
+                    Message = "Avatar Loaded Successfully",
+                    Result = (IEnumerable<IAvatar>)obj
+                };
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                throw;
+                return new OASISResult<IEnumerable<IAvatar>>
+                {
+                    IsLoaded = false,
+                    IsError = true,
+                    Message = ex.ToString(),
+                };
             }
         }
 
-        public List<AvatarEntity> LoadAllAvatars(int version = 0)
+        public OASISResult<IEnumerable<IAvatar>> LoadAllAvatars(int version = 0)
         {
             try
             {
-                return this.eFContext.AvatarEntities.Where(p => p.Version == version).ToList();
+                var obj= this.eFContext.AvatarEntities.Where(p => p.Version == version).ToList();
+                return new OASISResult<IEnumerable<IAvatar>>
+                {
+                    IsLoaded = true,
+                    IsError = false,
+                    Message = "Avatar Loaded Successfully",
+                    Result = (IEnumerable<IAvatar>)obj
+                };
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                throw;
+                return new OASISResult<IEnumerable<IAvatar>>
+                {
+                    IsLoaded = false,
+                    IsError = true,
+                    Message = ex.ToString(),
+                };
             }
         }
 
-        public AvatarEntity LoadAvatarByUsername(string avatarUsername, int version = 0)
+        public OASISResult<IAvatar> LoadAvatarByUsername(string avatarUsername, int version = 0)
         {
             try
             {
-                return this.eFContext.AvatarEntities.Where(p => p.Username == avatarUsername).FirstOrDefault();
+                var obj= this.eFContext.AvatarEntities.Where(p => p.Username == avatarUsername).FirstOrDefault();
+                if (obj == null)
+                {
+                    return new OASISResult<IAvatar>
+                    {
+                        IsLoaded = false,
+                        IsError = false,
+                        Message = "No Avatar found",
+                    };
+                }
+                else
+                {
+                    return new OASISResult<IAvatar>
+                    {
+                        IsLoaded = true,
+                        IsError = false,
+                        Message = "Avatar Loaded Successfully",
+                        Result = (IAvatar)obj
+                    };
+                }
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                throw;
+                return new OASISResult<IAvatar>
+                {
+                    IsLoaded = false,
+                    IsError = true,
+                    Message = ex.ToString(),
+                };
             }
         }
 
-        public async Task<List<AvatarEntity>> LoadAvatarAsync(Guid Id, int version = 0)
+        public async Task<OASISResult<IAvatar>> LoadAvatarAsync(Guid Id, int version = 0)
         {
             try
             {
-                return await this.eFContext.AvatarEntities.Where(p => p.Id == Id && p.Version == version).ToListAsync();
+                var obj = await this.eFContext.AvatarEntities.Where(p => p.Id == Id && p.Version == version).ToListAsync();
+                if (obj == null)
+                {
+
+                    return new OASISResult<IAvatar>
+                    {
+                        IsLoaded = true,
+                        IsError = false,
+                        Message = "No Avatar Found",
+                    };
+                }
+                else
+                {
+
+                    return new OASISResult<IAvatar>
+                    {
+                        IsLoaded = true,
+                        IsError = false,
+                        Message = "Avatar Loaded Successfully",
+                        Result = (IAvatar)obj
+                    };
+                }
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                throw;
+                return new OASISResult<IAvatar>
+                {
+                    IsLoaded = false,
+                    IsError = true,
+                    Message = ex.ToString(),
+                };
             }
         }
 
-        public async Task<List<AvatarEntity>> LoadAvatarByEmailAsync(string avatarEmail, int version = 0)
+        public async Task<OASISResult<IAvatar>> LoadAvatarByEmailAsync(string avatarEmail, int version = 0)
         {
             try
             {
-                return await this.eFContext.AvatarEntities.Where(p => p.Email == avatarEmail && p.Version == version).ToListAsync();
+                var obj = await this.eFContext.AvatarEntities.Where(p => p.Email == avatarEmail && p.Version == version).FirstOrDefaultAsync();
+                if (obj == null)
+                {
+                    return new OASISResult<IAvatar>
+                    {
+                        IsLoaded = false,
+                        IsError = false,
+                        Message = "No Avatar found",
+                    };
+                }
+                else
+                {
+                    return new OASISResult<IAvatar>
+                    {
+                        IsLoaded = true,
+                        IsError = false,
+                        Message = "Avatar Loaded Successfully",
+                        Result = (IAvatar)obj
+                    };
+                }
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                throw;
+                return new OASISResult<IAvatar>
+                {
+                    IsLoaded = false,
+                    IsError = true,
+                    Message = ex.ToString(),
+                };
             }
         }
 
-        public async Task<List<AvatarEntity>> LoadAvatarByUsernameAsync(string avatarUsername, int version = 0)
+        public async Task<OASISResult<IAvatar>> LoadAvatarByUsernameAsync(string avatarUsername, int version = 0)
         {
             try
             {
-                return await this.eFContext.AvatarEntities.Where(p => p.Username == avatarUsername && p.Version == version).ToListAsync();
+                var obj= await this.eFContext.AvatarEntities.Where(p => p.Username == avatarUsername && p.Version == version).FirstOrDefaultAsync();
+                if (obj == null)
+                {
+                    return new OASISResult<IAvatar>
+                    {
+                        IsLoaded = false,
+                        IsError = false,
+                        Message = "No Avatar found",
+                    };
+                }
+                else
+                {
+                    return new OASISResult<IAvatar>
+                    {
+                        IsLoaded = true,
+                        IsError = false,
+                        Message = "Avatar Loaded Successfully",
+                        Result = (IAvatar)obj
+                    };
+                }
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                throw;
+                return new OASISResult<IAvatar>
+                {
+                    IsLoaded = false,
+                    IsError = true,
+                    Message = ex.ToString(),
+                };
             }
         }
 
-        public List<AvatarEntity> LoadAvatar(Guid Id, int version = 0)
+        public OASISResult<IAvatar> LoadAvatar(Guid Id, int version = 0)
         {
             try
             {
-                return this.eFContext.AvatarEntities.Where(p => p.Id == Id && p.Version == version).ToList();
+                var obj= this.eFContext.AvatarEntities.Where(p => p.Id == Id && p.Version == version).FirstOrDefault();
+                if (obj == null)
+                {
+                    return new OASISResult<IAvatar>
+                    {
+                        IsLoaded = false,
+                        IsError = false,
+                        Message = "No Avatar found",
+                    };
+                }
+                else
+                {
+                    return new OASISResult<IAvatar>
+                    {
+                        IsLoaded = true,
+                        IsError = false,
+                        Message = "Avatar Loaded Successfully",
+                        Result = (IAvatar)obj
+                    };
+                }
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                throw;
+                return new OASISResult<IAvatar>
+                {
+                    IsLoaded = false,
+                    IsError = true,
+                    Message = ex.ToString(),
+                };
             }
         }
 
-        public List<AvatarEntity> LoadAvatarByEmail(string avatarEmail, int version = 0)
+        public OASISResult<IAvatar> LoadAvatarByEmail(string avatarEmail, int version = 0)
         {
             try
             {
-                return this.eFContext.AvatarEntities.Where(p => p.Email == avatarEmail && p.Version == version).ToList();
+                var obj = this.eFContext.AvatarEntities.Where(p => p.Email == avatarEmail && p.Version == version).FirstOrDefault();
+                if (obj == null)
+                {
+                    return new OASISResult<IAvatar>
+                    {
+                        IsLoaded = false,
+                        IsError = false,
+                        Message = "No Avatar found",
+                    };
+                }
+                else
+                {
+                    return new OASISResult<IAvatar>
+                    {
+                        IsLoaded = true,
+                        IsError = false,
+                        Message = "Avatar Loaded Successfully",
+                        Result = (IAvatar)obj
+                    };
+                }
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                throw;
+                return new OASISResult<IAvatar>
+                {
+                    IsLoaded = false,
+                    IsError = true,
+                    Message = ex.ToString(),
+                };
             }
         }
 
-        public async Task<List<AvatarEntity>> LoadAvatarAsync(string username, int version = 0)
+        public async Task<OASISResult<IAvatar>> LoadAvatarAsync(string username, int version = 0)
         {
             try
             {
-                return await this.eFContext.AvatarEntities.Where(p => p.Username == username && p.Version == version).ToListAsync();
+                var obj = await this.eFContext.AvatarEntities.Where(p => p.Username == username && p.Version == version).FirstOrDefaultAsync();
+                if (obj == null)
+                {
+                    return new OASISResult<IAvatar>
+                    {
+                        IsLoaded = false,
+                        IsError = false,
+                        Message = "No Avatar found",
+                    };
+                }
+                else
+                {
+                    return new OASISResult<IAvatar>
+                    {
+                        IsLoaded = true,
+                        IsError = false,
+                        Message = "Avatar Loaded Successfully",
+                        Result = (IAvatar)obj
+                    };
+                }
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                throw;
+                return new OASISResult<IAvatar>
+                {
+                    IsLoaded = false,
+                    IsError = true,
+                    Message = ex.ToString(),
+                };
             }
         }
 
-        public async Task<List<AvatarEntity>> LoadAvatarForProviderKeyAsync(string providerKey, int version = 0)
+        public async Task<OASISResult<IAvatar>> LoadAvatarForProviderKeyAsync(string providerKey, int version = 0)
         {
             //try
             //{
@@ -479,7 +753,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteOASIS.Persistence.Repositor
             throw new NotImplementedException();
         }
 
-        public List<AvatarEntity> LoadAvatarForProviderKey(string providerKey, int version = 0)
+        public OASISResult<IAvatar> LoadAvatarForProviderKey(string providerKey, int version = 0)
         {
             //try
             //{
@@ -492,70 +766,92 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteOASIS.Persistence.Repositor
             throw new NotImplementedException();
         }
 
-        public AvatarEntity SaveAvatar(AvatarEntity avatar)
+        public OASISResult<IAvatar> SaveAvatar(IAvatar avatar)
         {
             try
             {
                 AvatarEntity avatarEntity = CreateAvatarModel(avatar);
                 this.eFContext.AvatarEntities.Add(avatarEntity);
                 this.eFContext.SaveChangesAsync();
-                return avatarEntity;
+                return new OASISResult<IAvatar>
+                {
+                    IsSaved = true,
+                    IsError = false,
+                    Message = avatarEntity.FirstName + " Record saved successfully",
+                };
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                throw;
+                return new OASISResult<IAvatar>
+                {
+                    IsSaved = false,
+                    IsError = true,
+                    Message = ex.ToString(),
+                };
             }
         }
 
-        public async Task<AvatarEntity> SaveAvatarAsync(AvatarEntity Avatar)
+        public async Task<OASISResult<IAvatar>> SaveAvatarAsync(IAvatar Avatar)
         {
             try
             {
                 AvatarEntity avatarEntity = CreateAvatarModel(Avatar);
-                this.eFContext.AvatarEntities.Add(Avatar);
+                this.eFContext.AvatarEntities.Add(avatarEntity);
                 await this.eFContext.SaveChangesAsync();
-                return Avatar;
+                //return Avatar;
+                return new OASISResult<IAvatar>
+                {
+                    IsSaved = true,
+                    IsError = false,
+                    Message = Avatar.FirstName + " Record saved successfully",
+                    Result = Avatar
+                };
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                throw;
+                return new OASISResult<IAvatar>
+                {
+                    IsSaved = false,
+                    IsError = true,
+                    Message = ex.ToString(),
+                };
             }
         }
 
-        public AvatarEntity CreateAvatarModel(AvatarEntity Avatar)
+        public AvatarEntity CreateAvatarModel(IAvatar Avatar)
         {
             AvatarEntity avatar = new AvatarEntity();
             avatar.AcceptTerms = Avatar.AcceptTerms;
-            avatar.CreatedByAvatarId = Convert.ToString(Avatar.CreatedByAvatarId);
+            //avatar.CreatedByAvatarId = Convert.ToString(Avatar.CreatedByAvatarId);
             avatar.CreatedDate = Avatar.CreatedDate;
-            avatar.DeletedByAvatarId = Convert.ToString(Avatar.DeletedByAvatarId);
+            //avatar.DeletedByAvatarId = Convert.ToString(Avatar.DeletedByAvatarId);
             avatar.DeletedDate = Avatar.DeletedDate;
-            avatar.Description = Avatar.Description;
-            avatar.Email = Avatar.Email;
-            avatar.FirstName = Avatar.FirstName;
+            avatar.Description = Avatar.Description == null ? "" : Avatar.Description;
+            avatar.Email = Avatar.Email == null ? "" : Avatar.Email;
+            avatar.FirstName = Avatar.FirstName == null ? "" : Avatar.FirstName;
             //avatar.FullName = Avatar.FullName;
-            avatar.HolonId = Avatar.HolonId;
+            //avatar.HolonId = Avatar.HolonId;
             avatar.Id = Avatar.Id;
             avatar.IsActive = Avatar.IsActive;
             avatar.IsBeamedIn = Avatar.IsBeamedIn;
             avatar.IsChanged = Avatar.IsChanged;
             //avatar.IsVerified = Avatar.IsVerified;
-            avatar.JwtToken = Avatar.JwtToken;
+            avatar.JwtToken = Avatar.JwtToken == null ? "": Avatar.JwtToken;
             avatar.LastBeamedIn = Avatar.LastBeamedIn;
             avatar.LastBeamedOut = Avatar.LastBeamedOut;
             avatar.LastName = Avatar.LastName;
-            avatar.ModifiedByAvatarId = Convert.ToString(Avatar.ModifiedByAvatarId);
-            avatar.ModifiedDate = Avatar.ModifiedDate;
-            avatar.Name = Avatar.Name;
-            avatar.Password = Avatar.Password;
+            //avatar.ModifiedByAvatarId = Convert.ToString(Avatar.ModifiedByAvatarId);
+            //avatar.ModifiedDate = Avatar.ModifiedDate;
+            avatar.Name = Avatar.FullName;
+            avatar.Password = Avatar.Password == null ? "" : Avatar.Password;
             avatar.PasswordReset = Avatar.PasswordReset;
-            avatar.PreviousVersionId = Avatar.PreviousVersionId;
-            avatar.RefreshToken = Avatar.RefreshToken;
-            avatar.ResetToken = Avatar.ResetToken;
+            avatar.PreviousVersionId = Avatar.PreviousVersionId == Guid.Empty ? Guid.NewGuid() : Avatar.PreviousVersionId;
+            avatar.RefreshToken = Avatar.RefreshToken == null ? "" : Avatar.RefreshToken;
+            avatar.ResetToken = Avatar.ResetToken == null ? "" : Avatar.ResetToken;
             avatar.ResetTokenExpires = Avatar.ResetTokenExpires;
-            avatar.Title = Avatar.Title;
-            avatar.Username = Avatar.Username;
-            avatar.VerificationToken = Avatar.VerificationToken;
+            avatar.Title = Avatar.Title == null ? "": Avatar.Title;
+            avatar.Username = Avatar.Username == null ? "" : Avatar.Username;
+            avatar.VerificationToken = Avatar.VerificationToken == null ? "": Avatar.VerificationToken;
             avatar.Verified = Avatar.Verified;
             avatar.Version = Avatar.Version;
             return avatar;
