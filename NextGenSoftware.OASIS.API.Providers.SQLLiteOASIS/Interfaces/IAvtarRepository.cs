@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Providers.SQLLiteOASIS.Entities;
 
@@ -10,55 +11,50 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteOASIS.Interfaces
 {
     public interface IAvtarRepository
     {
-        //Task<List<AvatarEntity>> GetAvtars();
-        //Task<AvatarEntity> GetAvtarById(Guid avtarId);
-        //Task<AvatarEntity> CreateAvtar(AvatarEntity request);
-        //Task<AvatarEntity> UpdateAvtar(AvatarEntity request);
-        //Task<bool> DeleteAvtrarById(Guid avtarId);
+        OASISResult<bool> DeleteAvatar(Guid id, bool softDelete = true);
+        OASISResult<bool> DeleteAvatarByEmail(string avatarEmail, bool softDelete = true);
 
-        bool DeleteAvatar(Guid id, bool softDelete = true);
-        bool DeleteAvatarByEmail(string avatarEmail, bool softDelete = true);
+        OASISResult<bool> DeleteAvatarByUsername(string avatarUsername, bool softDelete = true);
 
-        bool DeleteAvatarByUsername(string avatarUsername, bool softDelete = true);
+        Task<OASISResult<bool>> DeleteAvatarByUsernameAsync(string avatarUsername, bool softDelete = true);
 
-        Task<bool> DeleteAvatarByUsernameAsync(string avatarUsername, bool softDelete = true);
+        OASISResult<bool> DeleteAvatar(string providerKey, bool softDelete = true);
 
-        bool DeleteAvatar(string providerKey, bool softDelete = true);
+        Task<OASISResult<bool>> DeleteAvatarAsync(Guid id, bool softDelete = true);
 
-        Task<bool> DeleteAvatarAsync(Guid id, bool softDelete = true);
+        Task<OASISResult<bool>> DeleteAvatarByEmailAsync(string avatarEmail, bool softDelete = true);
 
-        Task<bool> DeleteAvatarByEmailAsync(string avatarEmail, bool softDelete = true);
+        Task<OASISResult<bool>> DeleteAvatarAsync(string providerKey, bool softDelete = true);
 
-        Task<bool> DeleteAvatarAsync(string providerKey, bool softDelete = true);
+        OASISResult<IAvatar> LoadAvatar(string username, string password, int version = 0);
 
-        List<AvatarEntity> LoadAvatar(string username, string password, int version = 0);
+        OASISResult<IAvatar> LoadAvatar(string username, int version = 0);
 
-        List<AvatarEntity> LoadAvatar(string username, int version = 0);
+        Task<OASISResult<IAvatar>> LoadAvatarAsync(string username, string password, int version = 0);
 
-        Task<List<AvatarEntity>> LoadAvatarAsync(string username, string password, int version = 0);
+        Task<OASISResult<IEnumerable<IAvatar>>> LoadAllAvatarsAsync(int version = 0);
 
-        Task<List<AvatarEntity>> LoadAllAvatarsAsync(int version = 0);
+        OASISResult<IEnumerable<IAvatar>> LoadAllAvatars(int version = 0);
 
-        List<AvatarEntity> LoadAllAvatars(int version = 0);
+        OASISResult<IAvatar> LoadAvatarByUsername(string avatarUsername, int version = 0);
 
-        AvatarEntity LoadAvatarByUsername(string avatarUsername, int version = 0);
+        Task<OASISResult<IAvatar>> LoadAvatarAsync(Guid Id, int version = 0);
 
-        Task<List<AvatarEntity>> LoadAvatarAsync(Guid Id, int version = 0);
+        Task<OASISResult<IAvatar>> LoadAvatarByEmailAsync(string avatarEmail, int version = 0);
 
-        Task<List<AvatarEntity>> LoadAvatarByEmailAsync(string avatarEmail, int version = 0);
+        Task<OASISResult<IAvatar>> LoadAvatarByUsernameAsync(string avatarUsername, int version = 0);
 
-        Task<List<AvatarEntity>> LoadAvatarByUsernameAsync(string avatarUsername, int version = 0);
+        OASISResult<IAvatar> LoadAvatar(Guid Id, int version = 0);
 
-        List<AvatarEntity> LoadAvatar(Guid Id, int version = 0);
+        OASISResult<IAvatar> LoadAvatarByEmail(string avatarEmail, int version = 0);
 
-        List<AvatarEntity> LoadAvatarByEmail(string avatarEmail, int version = 0);
+        Task<OASISResult<IAvatar>> LoadAvatarAsync(string username, int version = 0);
 
-        Task<List<AvatarEntity>> LoadAvatarAsync(string username, int version = 0);
+        Task<OASISResult<IAvatar>> LoadAvatarForProviderKeyAsync(string providerKey, int version = 0);
 
-        Task<List<AvatarEntity>> LoadAvatarForProviderKeyAsync(string providerKey, int version = 0);
-
-        List<AvatarEntity> LoadAvatarForProviderKey(string providerKey, int version = 0);
-        AvatarEntity SaveAvatar(AvatarEntity avatar);
-        Task<AvatarEntity> SaveAvatarAsync(AvatarEntity Avatar);
+        OASISResult<IAvatar> LoadAvatarForProviderKey(string providerKey, int version = 0);
+        OASISResult<IAvatar> SaveAvatar(IAvatar avatar);
+        Task<OASISResult<IAvatar>> SaveAvatarAsync(IAvatar Avatar);
+        AvatarEntity CreateAvatarModel(IAvatar Avatar);
     }
 }
