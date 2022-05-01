@@ -11,31 +11,24 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteOASIS.Interfaces
 {
     public interface IAvtarDetailRepository
     {
-        //Task<List<AvatarDetailEntity>> GetAvtarDetails();
-        //Task<AvatarDetailEntity> GetAvtarDetailById(Guid avtarDetailId);
-        //Task<AvatarDetailEntity> CreateAvtarDetail(AvatarDetailEntity request);
-        //Task<AvatarDetailEntity> UpdateAvtarDetail(AvatarDetailEntity request);
-        //Task<bool> DeleteAvtarDetailById(Guid avtarDetailId);
+        OASISResult<IAvatarDetail> LoadAvatarDetail(Guid id, int version = 0);
 
+        OASISResult<IAvatarDetail> LoadAvatarDetailByEmail(string avatarEmail, int version = 0);
 
-        List<AvatarDetailEntity> LoadAvatarDetail(Guid id, int version = 0);
+        OASISResult<IAvatarDetail> LoadAvatarDetailByUsername(string avatarUsername, int version = 0);
 
-        List<AvatarDetailEntity> LoadAvatarDetailByEmail(string avatarEmail, int version = 0);
+        Task<OASISResult<IAvatarDetail>> LoadAvatarDetailAsync(Guid id, int version = 0);
 
-        List<AvatarDetailEntity> LoadAvatarDetailByUsername(string avatarUsername, int version = 0);
+        Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByUsernameAsync(string avatarUsername, int version = 0);
 
-        Task<List<AvatarDetailEntity>> LoadAvatarDetailAsync(Guid id, int version = 0);
+        Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByEmailAsync(string avatarEmail, int version = 0);
 
-        Task<List<AvatarDetailEntity>> LoadAvatarDetailByUsernameAsync(string avatarUsername, int version = 0);
+        OASISResult<IEnumerable<IAvatarDetail>> LoadAllAvatarDetails(int version = 0);
 
-        Task<List<AvatarDetailEntity>> LoadAvatarDetailByEmailAsync(string avatarEmail, int version = 0);
+        Task<OASISResult<IEnumerable<IAvatarDetail>>> LoadAllAvatarDetailsAsync(int version = 0);
 
-        List<AvatarDetailEntity> LoadAllAvatarDetails(int version = 0);
+        OASISResult<IAvatarDetail> SaveAvatarDetail(IAvatarDetail AvatarDetailEntity);
 
-        Task<List<AvatarDetailEntity>> LoadAllAvatarDetailsAsync(int version = 0);
-
-        AvatarDetailEntity SaveAvatarDetail(AvatarDetailEntity AvatarDetailEntity);
-
-        Task<AvatarDetailEntity> SaveAvatarDetailAsync(AvatarDetailEntity AvatarDetailEntity);
+        Task<OASISResult<IAvatarDetail>> SaveAvatarDetailAsync(IAvatarDetail AvatarDetailEntity);
     }
 }
