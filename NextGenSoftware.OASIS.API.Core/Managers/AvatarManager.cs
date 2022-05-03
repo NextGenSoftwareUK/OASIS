@@ -4050,8 +4050,8 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             if (avatarDetailOriginal.FavouriteColour != avatarDetailToUpdate.FavouriteColour && avatarDetailToUpdate.FavouriteColour != ConsoleColor.Black)
                 avatarDetailOriginal.FavouriteColour = avatarDetailToUpdate.FavouriteColour;
 
-            if (avatarDetailOriginal.Image2D != avatarDetailToUpdate.Image2D && !string.IsNullOrEmpty(avatarDetailToUpdate.Image2D))
-                avatarDetailOriginal.Image2D = avatarDetailToUpdate.Image2D;
+            if (avatarDetailOriginal.Portrait != avatarDetailToUpdate.Portrait && !string.IsNullOrEmpty(avatarDetailToUpdate.Portrait))
+                avatarDetailOriginal.Portrait = avatarDetailToUpdate.Portrait;
 
             if (avatarDetailOriginal.Model3D != avatarDetailToUpdate.Model3D && !string.IsNullOrEmpty(avatarDetailToUpdate.Model3D))
                 avatarDetailOriginal.Model3D = avatarDetailToUpdate.Model3D;

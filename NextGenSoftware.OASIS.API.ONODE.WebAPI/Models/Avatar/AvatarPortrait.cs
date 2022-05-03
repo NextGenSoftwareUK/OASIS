@@ -2,7 +2,7 @@
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Avatar
 {
-    public class AvatarImage
+    public class AvatarPortrait
     {
         public Guid AvatarId { get; set; }
         public string Username { get; set; }

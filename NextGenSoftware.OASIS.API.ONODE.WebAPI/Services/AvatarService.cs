@@ -385,36 +385,13 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
             return response;
         }
 
-        //public async Task<OASISResult<IEnumerable<IAvatar>>> GetAll()
-        //{
-        //    var response = new OASISResult<IEnumerable<IAvatar>>();
-
-        //    try
-        //    {
-        //        response = await AvatarManager.LoadAllAvatarsAsync();
-        //        //OASISResult<IEnumerable<IAvatar await AvatarManager.LoadAllAvatarsAsync();
-
-        //        //foreach (IAvatar avatar in response.Result)
-        //        //    AvatarManager.RemoveAuthDetails()
-        //    }
-        //    catch (Exception e)
-        //    {
-        //        response.Exception = e;
-        //        response.Message = e.Message;
-        //        response.IsError = true;
-        //        ErrorHandling.HandleError(ref response, e.Message);
-        //    }
-
-        //    return response;
-        //}
-
-        public async Task<OASISResult<AvatarImage>> GetAvatarImageById(Guid id)
+        public async Task<OASISResult<AvatarPortrait>> GetAvatarPortraitById(Guid id)
         {
-            OASISResult<AvatarImage> result = new OASISResult<AvatarImage>();
+            OASISResult<AvatarPortrait> result = new OASISResult<AvatarPortrait>();
 
             if (id == Guid.Empty)
             {
-                ErrorHandling.HandleError(ref result, "Error occured in GetAvatarImageById. Guid is empty, please speceify a valid Guid.");
+                ErrorHandling.HandleError(ref result, "Error occured in GetAvatarPortraitById. Guid is empty, please speceify a valid Guid.");
                 return result;
             }
 
@@ -422,32 +399,32 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
 
             if (!avatarResult.IsError && avatarResult.Result != null)
             {
-                if (avatarResult.Result.Image2D == null)
-                    ErrorHandling.HandleError(ref result, "Error occured in GetAvatarImageById. No image has been uploaded for this avatar. Please upload an image first.");
+                if (avatarResult.Result.Portrait == null)
+                    ErrorHandling.HandleError(ref result, "Error occured in GetAvatarPortraitById. No image has been uploaded for this avatar. Please upload an image first.");
                 else
                 {
-                    result.Result = new AvatarImage
+                    result.Result = new AvatarPortrait
                     {
                         AvatarId = avatarResult.Result.Id,
                         Email = avatarResult.Result.Email,
                         Username = avatarResult.Result.Username,
-                        ImageBase64 = avatarResult.Result.Image2D
+                        ImageBase64 = avatarResult.Result.Portrait
                     };
                 }
             }
             else
-                ErrorHandling.HandleError(ref result, $"Error occured in GetAvatarImageById loading the avatar detail. Reason: {avatarResult.Message}", avatarResult.DetailedMessage);
+                ErrorHandling.HandleError(ref result, $"Error occured in GetAvatarPortraitById loading the avatar detail. Reason: {avatarResult.Message}", avatarResult.DetailedMessage);
 
             return result;
         }
 
-        public async Task<OASISResult<AvatarImage>> GetAvatarImageByUsername(string username)
+        public async Task<OASISResult<AvatarPortrait>> GetAvatarPortraitByUsername(string username)
         {
-            OASISResult<AvatarImage> result = new OASISResult<AvatarImage>();
+            OASISResult<AvatarPortrait> result = new OASISResult<AvatarPortrait>();
 
             if (string.IsNullOrEmpty(username))
             {
-                ErrorHandling.HandleError(ref result, "Error occured in GetAvatarImageByUsername. username is empty, please speceify a valid username.");
+                ErrorHandling.HandleError(ref result, "Error occured in GetAvatarPortraitByUsername. username is empty, please speceify a valid username.");
                 return result;
             }
 
@@ -455,32 +432,32 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
 
             if (!avatarResult.IsError && avatarResult.Result != null)
             {
-                if (avatarResult.Result.Image2D == null)
-                    ErrorHandling.HandleError(ref result, "Error occured in GetAvatarImageByUsername. No image has been uploaded for this avatar. Please upload an image first.");
+                if (avatarResult.Result.Portrait == null)
+                    ErrorHandling.HandleError(ref result, "Error occured in GetAvatarPortraitByUsername. No image has been uploaded for this avatar. Please upload an image first.");
                 else
                 {
-                    result.Result = new AvatarImage
+                    result.Result = new AvatarPortrait
                     {
                         AvatarId = avatarResult.Result.Id,
                         Email = avatarResult.Result.Email,
                         Username = avatarResult.Result.Username,
-                        ImageBase64 = avatarResult.Result.Image2D
+                        ImageBase64 = avatarResult.Result.Portrait
                     };
                 }
             }
             else
-                ErrorHandling.HandleError(ref result, $"Error occured in GetAvatarImageByUsername loading the avatar detail. Reason: {avatarResult.Message}", avatarResult.DetailedMessage);
+                ErrorHandling.HandleError(ref result, $"Error occured in GetAvatarPortraitByUsername loading the avatar detail. Reason: {avatarResult.Message}", avatarResult.DetailedMessage);
 
             return result;
         }
 
-        public async Task<OASISResult<AvatarImage>> GetAvatarImageByEmail(string email)
+        public async Task<OASISResult<AvatarPortrait>> GetAvatarPortraitByEmail(string email)
         {
-            OASISResult<AvatarImage> result = new OASISResult<AvatarImage>();
+            OASISResult<AvatarPortrait> result = new OASISResult<AvatarPortrait>();
 
             if (string.IsNullOrEmpty(email))
             {
-                ErrorHandling.HandleError(ref result, "Error occured in GetAvatarImageByEmail. Email is empty, please speceify a valid username.");
+                ErrorHandling.HandleError(ref result, "Error occured in GetAvatarPortraitByEmail. Email is empty, please speceify a valid username.");
                 return result;
             }
 
@@ -488,16 +465,16 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
 
             if (!avatarResult.IsError && avatarResult.Result != null)
             {
-                if (avatarResult.Result.Image2D == null)
-                    ErrorHandling.HandleError(ref result, "Error occured in GetAvatarImageByEmail. No image has been uploaded for this avatar. Please upload an image first.", avatarResult.DetailedMessage);
+                if (avatarResult.Result.Portrait == null)
+                    ErrorHandling.HandleError(ref result, "Error occured in GetAvatarPortraitByEmail. No image has been uploaded for this avatar. Please upload an image first.", avatarResult.DetailedMessage);
                 else
                 {
-                    result.Result = new AvatarImage
+                    result.Result = new AvatarPortrait
                     {
                         AvatarId = avatarResult.Result.Id,
                         Email = avatarResult.Result.Email,
                         Username = avatarResult.Result.Username,
-                        ImageBase64 = avatarResult.Result.Image2D
+                        ImageBase64 = avatarResult.Result.Portrait
                     };
                 }
             }
@@ -507,7 +484,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
             return result;
         }
 
-        public async Task<OASISResult<bool>> Upload2DAvatarImage(AvatarImage image)
+        public async Task<OASISResult<bool>> UploadAvatarPortrait(AvatarPortrait image)
         {
             var response = new OASISResult<bool>();
             OASISResult<IAvatarDetail> avatarResult = null;
@@ -516,7 +493,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
             {
                 if (image.AvatarId == Guid.Empty && string.IsNullOrEmpty(image.Username) && string.IsNullOrEmpty(image.Email))
                 {
-                    ErrorHandling.HandleError(ref response, "Error occured in Upload2DAvatarImage, you need to specify either the AvatarId, Username or Email of the avatar you wish to upload an image for.");
+                    ErrorHandling.HandleError(ref response, "Error occured in UploadAvatarPortrait, you need to specify either the AvatarId, Username or Email of the avatar you wish to upload an image for.");
                     return response;
                 }
 
@@ -531,12 +508,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
 
                 if (!avatarResult.IsError && avatarResult.Result != null)
                 {
-                    avatarResult.Result.Image2D = image.ImageBase64;
+                    avatarResult.Result.Portrait = image.ImageBase64;
                     var saveAvatar = AvatarManager.SaveAvatarDetail(avatarResult.Result);
 
                     if (saveAvatar.IsError)
                     {
-                        ErrorHandling.HandleError(ref response, $"Error occured in Upload2DAvatarImage saving avatar detail. Reason: {saveAvatar.Message}", saveAvatar.DetailedMessage);
+                        ErrorHandling.HandleError(ref response, $"Error occured in UploadAvatarPortrait saving avatar detail. Reason: {saveAvatar.Message}", saveAvatar.DetailedMessage);
                         return response;
                     }
 
@@ -546,7 +523,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
                 else
                 {
                     response.Result = false;
-                    ErrorHandling.HandleError(ref response, $"Error uploading image. Avatar failed to load, reason: {avatarResult.Message}", avatarResult.DetailedMessage);
+                    ErrorHandling.HandleError(ref response, $"Error occured in UploadAvatarPortrait uploading image. Avatar failed to load, reason: {avatarResult.Message}", avatarResult.DetailedMessage);
                 }
                
             }
