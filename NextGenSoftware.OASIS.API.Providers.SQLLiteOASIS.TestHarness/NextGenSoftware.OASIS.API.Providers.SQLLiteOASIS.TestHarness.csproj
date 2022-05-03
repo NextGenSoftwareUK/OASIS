@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
@@ -14,6 +14,12 @@
 
   <ItemGroup>
     <ProjectReference Include="..\NextGenSoftware.OASIS.API.Providers.SQLLiteOASIS\NextGenSoftware.OASIS.API.Providers.SQLLiteOASIS.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="Database\SQLLiteOASIS.db">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 </Project>
