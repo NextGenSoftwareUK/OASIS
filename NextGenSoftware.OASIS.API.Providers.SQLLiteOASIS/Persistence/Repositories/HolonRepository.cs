@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Providers.SQLLiteOASIS.Entities;
+using NextGenSoftware.OASIS.API.Core.Helpers;
 
 namespace NextGenSoftware.OASIS.API.Providers.SQLLiteOASIS.Persistence.Repositories
 {
@@ -22,205 +23,314 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteOASIS.Persistence.Repositor
             this.eFContext = eFContext;
         }
 
-        //public async Task<List<HolonEntity>> GetHolons()
-        //{
-        //    return await this.eFContext.HolonEntities.ToListAsync();
-        //}
-
-        //public async Task<HolonEntity> GetHolonById(Guid holonId)
-        //{
-        //    var holons = await this.eFContext.HolonEntities.Where(e => e.Id.Equals(holonId)).FirstOrDefaultAsync();
-        //    if (holons != null)
-        //    {
-        //        return holons;
-        //    }
-        //    throw new NotFoundException();
-        //}
-
-        //public async Task<HolonEntity> CreateHolon(HolonEntity request)
-        //{
-        //    var holon = request;
-        //    this.eFContext.HolonEntities.Add(holon);
-        //    await this.eFContext.SaveChangesAsync();
-        //    return holon;
-        //}
-
-        //public async Task<HolonEntity> UpdateHolon(HolonEntity request)
-        //{
-        //    var holon = this.eFContext.HolonEntities.Find(request.Id);
-        //    if (holon != null)
-        //    {
-        //        holon.Name = request.Name;
-        //        this.eFContext.HolonEntities.Update(holon);
-        //        await this.eFContext.SaveChangesAsync();
-        //        return holon;
-        //    }
-        //    throw new NotFoundException();
-        //}
-
-        //public async Task<bool> DeleteHolonById(Guid holonId)
-        //{
-        //    var holon = await this.eFContext.HolonEntities.Where(p => p.Id == holonId).FirstOrDefaultAsync();
-        //    if (holon != null)
-        //    {
-        //        this.eFContext.HolonEntities.Remove(holon);
-        //        this.eFContext.SaveChanges();
-        //        return true;
-        //    }
-        //    else { return false; }
-        //}
-
-        public List<HolonEntity> LoadHolon(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
+        public OASISResult<IHolon> LoadHolon(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
         {
             try
             {
-                return this.eFContext.HolonEntities.Where(p => p.Id == id && p.Version == version).ToList();
+                var obj = this.eFContext.HolonEntities.Where(p => p.Id == id && p.Version == version).FirstOrDefault();
+                if (obj == null)
+                {
+                    return new OASISResult<IHolon>
+                    {
+                        IsLoaded = false,
+                        IsError = false,
+                        Message = "No Holon Found",
+                    };
+                }
+                else
+                {
+                    return new OASISResult<IHolon>
+                    {
+                        IsLoaded = true,
+                        IsError = false,
+                        Message = "Holon Loaded successfully",
+                        Result = (IHolon)obj,
+                    };
+                }
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                throw;
+                return new OASISResult<IHolon>
+                {
+                    IsLoaded = false,
+                    IsError = true,
+                    Message = ex.ToString(),
+                };
             }
         }
 
-        public async Task<List<HolonEntity>> LoadHolonAsync(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
+        public async Task<OASISResult<IHolon>> LoadHolonAsync(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
         {
             try
             {
-                return await this.eFContext.HolonEntities.Where(p => p.Id == id && p.Version == version).ToListAsync();
+                var obj = await this.eFContext.HolonEntities.Where(p => p.Id == id && p.Version == version).FirstOrDefaultAsync();
+                if (obj == null)
+                {
+                    return new OASISResult<IHolon>
+                    {
+                        IsLoaded = false,
+                        IsError = false,
+                        Message = "No Holon Found",
+                    };
+                }
+                else
+                {
+                    return new OASISResult<IHolon>
+                    {
+                        IsLoaded = true,
+                        IsError = false,
+                        Message = "Holon Loaded successfully",
+                        Result = (IHolon)obj,
+                    };
+                }
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                throw;
+                return new OASISResult<IHolon>
+                {
+                    IsLoaded = true,
+                    IsError = false,
+                    Message = ex.ToString(),
+                };
             }
         }
 
-        public List<HolonEntity> LoadHolon(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
+        public OASISResult<IHolon> LoadHolon(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
         {
             try
             {
-                return this.eFContext.HolonEntities.Where(p => p.Version == version).ToList();
+                var obj = this.eFContext.HolonEntities.Where(p => p.Version == version).ToList();
+                return new OASISResult<IHolon>
+                {
+                    IsLoaded = true,
+                    IsError = false,
+                    Message = "Holon Loaded successfully",
+                    Result = (IHolon)obj,
+                };
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                throw;
+                return new OASISResult<IHolon>
+                {
+                    IsLoaded = true,
+                    IsError = false,
+                    Message = ex.ToString(),
+                };
             }
         }
 
-        public async Task<List<HolonEntity>> LoadHolonAsync(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
+        public async Task<OASISResult<IHolon>> LoadHolonAsync(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
         {
             try
             {
-                return await this.eFContext.HolonEntities.Where(p => p.Version == version).ToListAsync();
+                var obj = await this.eFContext.HolonEntities.Where(p => p.Version == version).ToListAsync();
+                return new OASISResult<IHolon>
+                {
+                    IsLoaded = true,
+                    IsError = false,
+                    Message = "Holon Loaded successfully",
+                    Result = (IHolon)obj,
+                };
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                throw;
+                return new OASISResult<IHolon>
+                {
+                    IsLoaded = true,
+                    IsError = false,
+                    Message = ex.ToString(),
+                };
             }
         }
 
-        public List<HolonEntity> LoadHolonsForParent(Guid id, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, int version = 0)
+        public OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(Guid id, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, int version = 0)
         {
             try
             {
-                return this.eFContext.HolonEntities.Where(p => p.Id == id && p.Version == version).ToList();
+                List<HolonEntity> obj = this.eFContext.HolonEntities.Where(p => p.Id == id && p.Version == version).ToList();
+                return new OASISResult<IEnumerable<IHolon>>
+                {
+                    IsLoaded = true,
+                    IsError = false,
+                    Message = "Holon Loaded successfully",
+                    Result = (IEnumerable<IHolon>)obj,
+                };
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                throw;
+                return new OASISResult<IEnumerable<IHolon>>
+                {
+                    IsLoaded = true,
+                    IsError = false,
+                    Message = ex.ToString(),
+                };
             }
         }
 
-        public async Task<List<HolonEntity>> LoadHolonsForParentAsync(Guid id, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, int version = 0)
+        public async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(Guid id, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, int version = 0)
         {
             try
             {
-                return await this.eFContext.HolonEntities.Where(p => p.Id == id && p.Version == version).ToListAsync();
+                var obj = await this.eFContext.HolonEntities.Where(p => p.Id == id && p.Version == version).ToListAsync();
+                return new OASISResult<IEnumerable<IHolon>>
+                {
+                    IsLoaded = true,
+                    IsError = false,
+                    Message = "Holon Loaded successfully",
+                    Result = (IEnumerable<IHolon>)obj,
+                };
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                throw;
+                return new OASISResult<IEnumerable<IHolon>>
+                {
+                    IsLoaded = true,
+                    IsError = false,
+                    Message = ex.ToString(),
+                };
             }
         }
 
-        public List<HolonEntity> LoadHolonsForParent(string providerKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, int version = 0)
+        public OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(string providerKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, int version = 0)
         {
             try
             {
-                return this.eFContext.HolonEntities.Where(p => p.Version == version).ToList();
+                var obj = this.eFContext.HolonEntities.Where(p => p.Version == version).ToList();
+                return new OASISResult<IEnumerable<IHolon>>
+                {
+                    IsLoaded = true,
+                    IsError = false,
+                    Message = "Holon Loaded successfully",
+                    Result = (IEnumerable<IHolon>)obj,
+                };
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                throw;
+                return new OASISResult<IEnumerable<IHolon>>
+                {
+                    IsLoaded = true,
+                    IsError = false,
+                    Message = ex.ToString(),
+                };
             }
         }
 
-        public async Task<List<HolonEntity>> LoadHolonsForParentAsync(string providerKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, int version = 0)
+        public async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(string providerKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, int version = 0)
         {
             try
             {
-                return await this.eFContext.HolonEntities.Where(p=>p.Version == version).ToListAsync();
+                var obj = await this.eFContext.HolonEntities.Where(p => p.Version == version).ToListAsync();
+                return new OASISResult<IEnumerable<IHolon>>
+                {
+                    IsLoaded = true,
+                    IsError = false,
+                    Message = "Holon Loaded successfully",
+                    Result = (IEnumerable<IHolon>)obj,
+                };
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                throw;
+                return new OASISResult<IEnumerable<IHolon>>
+                {
+                    IsLoaded = true,
+                    IsError = false,
+                    Message = ex.ToString(),
+                };
             }
         }
 
-        public List<HolonEntity> LoadAllHolons(HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, int version = 0)
+        public OASISResult<IEnumerable<IHolon>> LoadAllHolons(HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, int version = 0)
         {
             try
             {
-                return this.eFContext.HolonEntities.Where(p=> p.Version == version).ToList();
+                var obj = this.eFContext.HolonEntities.Where(p => p.Version == version).ToList();
+                return new OASISResult<IEnumerable<IHolon>>
+                {
+                    IsLoaded = true,
+                    IsError = false,
+                    Message = "Holon Loaded successfully",
+                    Result = (IEnumerable<IHolon>)obj,
+                };
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                throw;
+                return new OASISResult<IEnumerable<IHolon>>
+                {
+                    IsLoaded = true,
+                    IsError = false,
+                    Message = ex.ToString(),
+                };
             }
         }
 
-        public async Task<List<HolonEntity>> LoadAllHolonsAsync(HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, int version = 0)
+        public async Task<OASISResult<IEnumerable<IHolon>>> LoadAllHolonsAsync(HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, int version = 0)
         {
             try
             {
-                return await this.eFContext.HolonEntities.Where(p => p.Version == version).ToListAsync();
+                var obj = await this.eFContext.HolonEntities.Where(p => p.Version == version).ToListAsync();
+                return new OASISResult<IEnumerable<IHolon>>
+                {
+                    IsLoaded = true,
+                    IsError = false,
+                    Message = "Holon Loaded successfully",
+                    Result = (IEnumerable<IHolon>)obj,
+                };
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                throw;
+                return new OASISResult<IEnumerable<IHolon>>
+                {
+                    IsLoaded = true,
+                    IsError = false,
+                    Message = ex.ToString(),
+                };
             }
         }
 
-        public HolonEntity SaveHolon(HolonEntity holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true)
+        public OASISResult<IHolon> SaveHolon(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true)
         {
             try
             {
                 HolonEntity holonEntity = CreateHolonModel(holon);
                 this.eFContext.HolonEntities.Add(holonEntity);
                 this.eFContext.SaveChangesAsync();
-                return holonEntity;
+                //return holonEntity;
+                return new OASISResult<IHolon>
+                { IsError = false, Result = holonEntity, IsSaved = true };
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                throw;
+                return new OASISResult<IHolon>
+                {
+                    IsError = true,
+                    IsSaved = false,
+                    Message = ex.ToString()
+                };
             }
         }
 
-        public async Task<HolonEntity> SaveHolonAsync(HolonEntity holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true)
+        public async Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true)
         {
             try
             {
                 HolonEntity holonEntity = CreateHolonModel(holon);
                 this.eFContext.HolonEntities.Add(holonEntity);
                 await this.eFContext.SaveChangesAsync();
-                return holonEntity;
+                return new OASISResult<IHolon>
+                { IsError = false, Result = holonEntity, IsSaved = true };
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                throw;
+                return new OASISResult<IHolon>
+                {
+                    IsError = true,
+                    IsSaved = false,
+                    Message = ex.ToString()
+                };
             }
         }
 
-        public HolonEntity SaveHolons(IEnumerable<HolonEntity> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true)
+        public OASISResult<IEnumerable<IHolon>> SaveHolons(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true)
         {
             try
             {
@@ -231,15 +341,21 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteOASIS.Persistence.Repositor
                     this.eFContext.HolonEntities.Add(holonEntity);
                     this.eFContext.SaveChangesAsync();
                 }
-                return holonEntity;
+                return new OASISResult<IEnumerable<IHolon>>
+                { IsError = false, Result = (IEnumerable<IHolon>)holonEntity, IsSaved = true };
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                throw;
+                return new OASISResult<IEnumerable<IHolon>>
+                {
+                    IsError = true,
+                    IsSaved = false,
+                    Message = ex.ToString()
+                };
             }
         }
 
-        public async Task<HolonEntity> SaveHolonsAsync(IEnumerable<HolonEntity> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true)
+        public async Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true)
         {
             try
             {
@@ -250,15 +366,21 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteOASIS.Persistence.Repositor
                     this.eFContext.HolonEntities.Add(holonEntity);
                     await this.eFContext.SaveChangesAsync();
                 }
-                return holonEntity;
+                return new OASISResult<IEnumerable<IHolon>>
+                { IsError = false, Result = (IEnumerable<IHolon>)holonEntity, IsSaved = true };
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                throw;
+                return new OASISResult<IEnumerable<IHolon>>
+                {
+                    IsError = true,
+                    IsSaved = false,
+                    Message = ex.ToString()
+                };
             }
         }
 
-        public bool DeleteHolon(Guid id, bool softDelete = true)
+        public OASISResult<bool> DeleteHolon(Guid id, bool softDelete = true)
         {
             try
             {
@@ -275,17 +397,35 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteOASIS.Persistence.Repositor
                         this.eFContext.HolonEntities.Remove(holon);
                     }
                     this.eFContext.SaveChangesAsync();
-                    return true;
+                    return new OASISResult<bool>
+                    {
+                        IsError = false,
+                        Message = "Holon Deleted Successfully",
+                        Result = true
+                    };
                 }
-                else { return false; }
+                else
+                {
+                    return new OASISResult<bool>
+                    {
+                        IsError = true,
+                        Message = "Something went wrong! please try again later",
+                        Result = false
+                    };
+                }
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                throw;
+                return new OASISResult<bool>
+                {
+                    IsError = true,
+                    Message = ex.ToString(),
+                    Result = false
+                };
             }
         }
 
-        public async Task<bool> DeleteHolonAsync(Guid id, bool softDelete = true)
+        public async Task<OASISResult<bool>> DeleteHolonAsync(Guid id, bool softDelete = true)
         {
             try
             {
@@ -302,17 +442,36 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteOASIS.Persistence.Repositor
                         this.eFContext.HolonEntities.Remove(holon);
                     }
                     await this.eFContext.SaveChangesAsync();
-                    return true;
+                    return new OASISResult<bool>
+                    {
+                        IsError = false,
+                        Message = "Holon Deleted Successfully",
+                        Result = true
+                    };
                 }
-                else { return false; }
+                else
+                {
+                    return new OASISResult<bool>
+                    {
+                        IsError = true,
+                        Message = "Something went wrong! please try again later",
+                        Result = false
+                    };
+                }
+
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                throw;
+                return new OASISResult<bool>
+                {
+                    IsError = true,
+                    Message = ex.ToString(),
+                    Result = false
+                };
             }
         }
 
-        public bool DeleteHolon(string providerKey, bool softDelete = true)
+        public OASISResult<bool> DeleteHolon(string providerKey, bool softDelete = true)
         {
             //try
             //{
@@ -340,7 +499,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteOASIS.Persistence.Repositor
             throw new NotImplementedException();
         }
 
-        public async Task<bool> DeleteHolonAsync(string providerKey, bool softDelete = true)
+        public async Task<OASISResult<bool>> DeleteHolonAsync(string providerKey, bool softDelete = true)
         {
             //try
             //{
@@ -368,7 +527,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteOASIS.Persistence.Repositor
             throw new NotImplementedException();
         }
 
-        public List<HolonEntity> GetHolonsNearMe(HolonType Type)
+        public OASISResult<IEnumerable<IHolon>> GetHolonsNearMe(HolonType Type)
         {
             //try
             //{
@@ -381,19 +540,20 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteOASIS.Persistence.Repositor
             throw new NotImplementedException();
         }
 
-        public HolonEntity CreateHolonModel(HolonEntity Holon)
+        public HolonEntity CreateHolonModel(IHolon Holon)
         {
             HolonEntity holon = new HolonEntity();
-            holon.CreatedByAvatarId = Convert.ToString(Holon.CreatedByAvatarId);
+            //holon.CreatedByAvatarId = Holon.CreatedByAvatarId;
             holon.CreatedDate = Holon.CreatedDate;
-            holon.DeletedByAvatarId = Convert.ToString(Holon.DeletedByAvatarId);
+            //holon.DeletedByAvatarId = Holon.DeletedByAvatarId;
             holon.DeletedDate = Holon.DeletedDate;
             holon.Description = Holon.Description;
-            holon.HolonId = Holon.Id;
+            holon.ParentHolonId = Holon.ParentHolonId;
             holon.Id = Holon.Id;
+            holon.HolonId = Guid.NewGuid();
             holon.IsActive = Holon.IsActive;
             holon.IsChanged = Holon.IsChanged;
-            holon.ModifiedByAvatarId = Convert.ToString(Holon.ModifiedByAvatarId);
+            //holon.ModifiedByAvatarId = Holon.ModifiedByAvatarId;
             holon.ModifiedDate = Holon.ModifiedDate;
             holon.Name = Holon.Name;
             holon.ParentCelestialBodyId = Holon.ParentCelestialBodyId;
