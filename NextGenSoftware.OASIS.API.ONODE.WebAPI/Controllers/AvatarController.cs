@@ -48,253 +48,79 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             //KeyManager keyManager = new KeyManager()
         }
 
-        [HttpGet("GetTerms")]
-        public async Task<OASISResult<string>> GetTerms()
+        /// <summary>
+        ///     Register a new avatar.
+        /// </summary>
+        /// <param name="model"></param>
+        /// <returns></returns>
+        [HttpPost("register")]
+        public async Task<OASISResult<IAvatar>> Register(RegisterRequest model)
         {
-            return FormatResponse(await _avatarService.GetTerms());
-        }
-
-        [Authorize]
-        [HttpGet("GetAvatarImage/{id}")]
-        public async Task<OASISResult<AvatarImage>> GetAvatarImageById(Guid id)
-        {
-            // users can get their own account and admins can get any account
-            if (id != Avatar.Id && Avatar.AvatarType.Value != AvatarType.Wizard)
-                return new OASISResult<AvatarImage>() { Result = null, IsError = true, Message = "Unauthorized" };
-
-            return FormatResponse(await _avatarService.GetAvatarImageById(id));
-        }
-
-        [Authorize]
-        [HttpGet("GetAvatarImageByUsername/{username}")]
-        public async Task<OASISResult<AvatarImage>> GetAvatarImageByUsername(string username)
-        {
-            // users can get their own account and admins can get any account
-            if (username != Avatar.Username && Avatar.AvatarType.Value != AvatarType.Wizard)
-                return new OASISResult<AvatarImage> { IsError = true, Message = "Unauthorized" };
-
-            return FormatResponse(await _avatarService.GetAvatarImageByUsername(username));
-        }
-
-        [Authorize]
-        [HttpGet("GetAvatarImageByEmail/{email}")]
-        public async Task<OASISResult<AvatarImage>> GetAvatarImageByEmail(string email)
-        {
-            // users can get their own account and admins can get any account
-            if (email != Avatar.Email && Avatar.AvatarType.Value != AvatarType.Wizard)
-                return new OASISResult<AvatarImage> { IsError = true, Message = "Unauthorized" };
-
-            return FormatResponse(await _avatarService.GetAvatarImageByEmail(email));
-        }
-
-        [Authorize]
-        [HttpPost("Upload2DAvatarImage")]
-        public async Task<OASISResult<bool>> Upload2DAvatarImage(AvatarImage avatarImage)
-        {
-            // users can get their own account and admins can get any account
-            if (avatarImage.AvatarId != Avatar.Id && Avatar.AvatarType.Value != AvatarType.Wizard)
-                return new OASISResult<bool>()
-                { Result = false, Message = "Image not uploaded. Unauthorized", IsError = true };
-
-            return FormatResponse(await _avatarService.Upload2DAvatarImage(avatarImage));
-        }
-
-        /*
-        [Authorize]
-        [HttpPost("Upload2DAvatarImageByEmail")]
-        public async Task<OASISResult<bool>> Upload2DAvatarImageByEmail(AvatarImage avatarImage)
-        {
-            // users can get their own account and admins can get any account
-            if (avatarImage.AvatarId != Avatar.Id && Avatar.AvatarType.Value != AvatarType.Wizard)
-                return new OASISResult<bool>()
-                { Result = false, Message = "Image not uploaded. Unauthorized", IsError = true };
-
-            return FormatResponse(await _avatarService.Upload2DAvatarImage(avatarImage));
-        }
-
-        [Authorize]
-        [HttpPost("Upload2DAvatarImageByUsername")]
-        public async Task<OASISResult<bool>> Upload2DAvatarImageByUsername(AvatarImage avatarImage)
-        {
-            // users can get their own account and admins can get any account
-            if (avatarImage.AvatarId != Avatar.Id && Avatar.AvatarType.Value != AvatarType.Wizard)
-                return new OASISResult<bool>()
-                { Result = false, Message = "Image not uploaded. Unauthorized", IsError = true };
-
-            return FormatResponse(await _avatarService.Upload2DAvatarImage(avatarImage));
-        }*/
-
-        [Authorize(AvatarType.Wizard)]
-        [HttpGet("GetAvatarDetail/{id:guid}")]
-        public async Task<OASISResult<IAvatarDetail>> GetAvatarDetail(Guid id)
-        {
-            return FormatResponse(await Program.AvatarManager.LoadAvatarDetailAsync(id));
-        }
-
-        [Authorize(AvatarType.Wizard)]
-        [HttpGet("GetAvatarDetailByEmail/{email}")]
-        public async Task<OASISResult<IAvatarDetail>> GetAvatarDetailByEmail(string email)
-        {
-            return FormatResponse(await Program.AvatarManager.LoadAvatarDetailByEmailAsync(email));
-        }
-
-        [Authorize(AvatarType.Wizard)]
-        [HttpGet("GetAvatarDetailByUsername/{username}")]
-        public async Task<OASISResult<IAvatarDetail>> GetAvatarDetailByUsername(string username)
-        {
-            return FormatResponse(await Program.AvatarManager.LoadAvatarDetailByUsernameAsync(username));
-        }
-
-        [Authorize(AvatarType.Wizard)]
-        [HttpGet("GetAllAvatarDetails")]
-        public async Task<OASISResult<IEnumerable<IAvatarDetail>>> GetAllAvatarDetails()
-        {
-            return FormatResponse(await Program.AvatarManager.LoadAllAvatarDetailsAsync());
+            return FormatResponse(await _avatarService.RegisterAsync(model, Request.Headers["origin"]));
         }
 
         /// <summary>
-        ///     Get's all avatars (only works for logged in &amp; authenticated Wizards (Admins)).
+        ///     Register a new avatar. Pass in the provider you wish to use. Set the setglobally flag to false for this provider to
+        ///     be used only for this request or true for it to be used for all future requests too.
         /// </summary>
+        /// <param name="model"></param>
         /// <returns></returns>
-        [Authorize(AvatarType.Wizard)]
-        [HttpGet("GetAll")]
-        public async Task<OASISResult<IEnumerable<IAvatar>>> GetAll()
-        {
-            //return await _avatarService.GetAll();
-            return FormatResponse(await Program.AvatarManager.LoadAllAvatarsAsync());
-        }
-
-        /// <summary>
-        ///     Get's all avatars (only works for logged in &amp; authenticated Wizards (Admins)) for a given provider. Pass in the
-        ///     provider you wish to use. Set the setglobally flag to false for this provider to be used only for this request or
-        ///     true for it to be used for all future requests too.
-        /// </summary>
-        /// <param name="providerType" description="test desc"></param>
-        /// <returns></returns>
-        [Authorize(AvatarType.Wizard)]
-        [HttpGet("GetAll/{providerType}")]
-        public async Task<OASISResult<IEnumerable<IAvatar>>> GetAll(ProviderType providerType, bool setGlobally = false)
-        {
-            GetAndActivateProvider(providerType, setGlobally);
-            return await GetAll();
-        }
-
-        /// <summary>
-        ///     Get's the avatar for the given id. You must be logged in &amp; authenticated for this to work.
-        /// </summary>
-        /// <param name="id"></param>
-        /// <returns></returns>
-        [Authorize]
-        [HttpGet("GetById/{id}")]
-        public async Task<OASISResult<IAvatar>> GetById(Guid id)
-        {
-            OASISResult<IAvatar> result = new OASISResult<IAvatar>();
-
-            // users can get their own account and admins can get any account
-            if (id != Avatar.Id && Avatar.AvatarType.Value != AvatarType.Wizard)
-                return new OASISResult<IAvatar> { Result = null, Message = "Unauthorized", IsError = true };
-
-            result = await Program.AvatarManager.LoadAvatarAsync(id);
-
-            return FormatResponse(result);
-        }
-
-        [Authorize]
-        [HttpGet("GetByUsername/{username}")]
-        public async Task<OASISResult<IAvatar>> GetByUsername(string username)
-        {
-            // users can get their own account and admins can get any account
-            if (username != Avatar.Username && Avatar.AvatarType.Value != AvatarType.Wizard)
-                return new OASISResult<IAvatar> { Message = "Unauthorized", IsError = true };
-
-            //return await _avatarService.GetByUsername(username);
-            return FormatResponse(await Program.AvatarManager.LoadAvatarAsync(username));
-        }
-
-        [Authorize]
-        [HttpGet("GetByEmail/{email}")]
-        public async Task<OASISResult<IAvatar>> GetByEmail(string email)
-        {
-            // users can get their own account and admins can get any account
-            if (email != Avatar.Email && Avatar.AvatarType.Value != AvatarType.Wizard)
-                return new OASISResult<IAvatar> { Message = "Unauthorized", IsError = true };
-
-            //return await _avatarService.GetByEmail(email);
-            return FormatResponse(await Program.AvatarManager.LoadAvatarByEmailAsync(email));
-        }
-
-        /// <summary>
-        ///     Get's the avatar for the given id. You must be logged in &amp; authenticated for this to work. Pass in the provider
-        ///     you wish to use. Set the setglobally flag to false for this provider to be used only for this request or true for
-        ///     it to be used for all future requests too.
-        /// </summary>
-        /// <param name="id"></param>
-        /// <param name="providerType"></param>
-        /// <param name="setGlobally"></param>
-        /// <returns></returns>
-        [Authorize]
-        [HttpGet("GetById/{id}/{providerType}/{setGlobally}")]
-        public async Task<OASISResult<IAvatar>> GetById(Guid id, ProviderType providerType, bool setGlobally = false)
-        {
-            GetAndActivateProvider(providerType, setGlobally);
-            return await GetById(id);
-        }
-
-        /// <summary>
-        ///     Search avatars for the given search term. Coming soon...
-        /// </summary>
-        /// <param name="searchParams"></param>
-        /// <returns></returns>
-        [HttpGet("Search/{searchParams}")]
-        public async Task<OASISResult<ISearchResults>> Search(ISearchParams searchParams)
-        {
-            return FormatResponse(await _avatarService.Search(searchParams));
-        }
-
-        /// <summary>
-        ///     Search avatars for the given search term. Coming soon... Pass in the provider you wish to use. Set the setglobally
-        ///     flag to false for this provider to be used only for this request or true for it to be used for all future requests
-        ///     too.
-        /// </summary>
-        /// <param name="searchParams"></param>
-        /// <param name="providerType"></param>
-        /// <param name="setGlobally"></param>
-        /// <returns></returns>
-        [HttpGet("Search/{searchParams}/{providerType}/{setGlobally}")]
-        public async Task<OASISResult<ISearchResults>> Search(ISearchParams searchParams, ProviderType providerType,
+        [HttpPost("register/{providerType}/{setGlobally}")]
+        public async Task<OASISResult<IAvatar>> Register(RegisterRequest model, ProviderType providerType,
             bool setGlobally = false)
         {
             GetAndActivateProvider(providerType, setGlobally);
-            return await _avatarService.Search(searchParams);
+            return await Register(model);
         }
 
 
         /// <summary>
-        ///     Authenticate and log in using the given avatar credentials. Pass in the provider you wish to use. Set the
-        ///     setglobally flag to false for this provider to be used only for this request or true for it to be used for all
-        ///     future requests too.
+        ///     Verify a newly created avatar by passing in the validation token sent in the verify email. This method is used by
+        ///     the link in the email.
+        /// </summary>
+        /// <param name="model"></param>
+        /// <returns></returns>
+        [HttpGet("verify-email")]
+        public async Task<OASISResult<bool>> VerifyEmail(string token)
+        {
+            return FormatResponse(await _avatarService.VerifyEmail(token));
+        }
+
+        /// <summary>
+        ///     Verify a newly created avatar by passing in the validation token sent in the verify email. This method is used by
+        ///     the REST API or other methods that need to POST the data rather than GET.
+        /// </summary>
+        /// <param name="model"></param>
+        /// <returns></returns>
+        [HttpPost("verify-email")]
+        public async Task<OASISResult<bool>> VerifyEmail(VerifyEmailRequest model)
+        {
+            return FormatResponse(await VerifyEmail(model.Token));
+        }
+
+        /// <summary>
+        ///     Verify a newly created avatar by passing in the validation token sent in the verify email. Pass in the provider you
+        ///     wish to use. Set the setglobally flag to false for this provider to be used only for this request or true for it to
+        ///     be used for all future requests too.
         /// </summary>
         /// <param name="model"></param>
         /// <param name="providerType"></param>
         /// <param name="setGlobally"></param>
         /// <returns></returns>
-        [HttpPost("authenticate/{providerType}/{setGlobally}")]
-        //public async Task<OASISResult<AuthenticateResponse>> Authenticate(AuthenticateRequest model,
-        public async Task<OASISResult<IAvatar>> Authenticate(AuthenticateRequest model,
-            ProviderType providerType = ProviderType.Default, bool setGlobally = false)
+        [HttpPost("verify-email/{providerType}/{setGlobally}")]
+        public async Task<OASISResult<bool>> VerifyEmail(VerifyEmailRequest model, ProviderType providerType,
+            bool setGlobally = false)
         {
             GetAndActivateProvider(providerType, setGlobally);
-            return await Authenticate(model);
+            return await VerifyEmail(model);
         }
 
-
         /// <summary>
-        ///     Authenticate and log in using the given avatar credentials.
+        /// Authenticate and log in using the given avatar credentials.
         /// </summary>
         /// <param name="model"></param>
         /// <returns></returns>
         [HttpPost("authenticate")]
-        //public async Task<OASISResult<AuthenticateResponse>> Authenticate(AuthenticateRequest model)
         public async Task<OASISResult<IAvatar>> Authenticate(AuthenticateRequest model)
         {
             var response = await Program.AvatarManager.AuthenticateAsync(model.Username, model.Password, ipAddress());
@@ -305,10 +131,46 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             return FormatResponse(response);
         }
 
-        [HttpPost("AuthenticateToken/{token}")]
-        public async Task<OASISResult<string>> Authenticate(string token)
+
+        /// <summary>
+        /// Authenticate and log in using the given avatar credentials. 
+        /// Pass in the provider you wish to use. Set the setglobally flag to false for this provider to be used only for this request or true for it to be used for all future requests too.
+        /// </summary>
+        /// <param name="model"></param>
+        /// <param name="providerType"></param>
+        /// <param name="setGlobally"></param>
+        /// <returns></returns>
+        [HttpPost("authenticate/{providerType}/{setGlobally}")]
+        public async Task<OASISResult<IAvatar>> Authenticate(AuthenticateRequest model, ProviderType providerType = ProviderType.Default, bool setGlobally = false)
         {
-            return FormatResponse(await _avatarService.ValidateAccountToken(token));
+            GetAndActivateProvider(providerType, setGlobally);
+            return await Authenticate(model);
+        }
+
+        /// <summary>
+        /// Authenticate and log in using the given JWT Token.
+        /// </summary>
+        /// <param name="JWTToken"></param>
+        /// <returns></returns>
+        [HttpPost("AuthenticateToken/{JWTToken}")]
+        public async Task<OASISResult<string>> Authenticate(string JWTToken)
+        {
+            return FormatResponse(await _avatarService.ValidateAccountToken(JWTToken));
+        }
+
+        /// <summary>
+        /// Authenticate and log in using the given JWT Token.
+        /// Pass in the provider you wish to use. Set the setglobally flag to false for this provider to be used only for this request or true for it to be used for all future requests too.
+        /// </summary>
+        /// <param name="JWTToken"></param>
+        /// <param name="providerType"></param>
+        /// <param name="setGlobally"></param>
+        /// <returns></returns>
+        [HttpPost("AuthenticateToken/{JWTToken}/{providerType}/{setGlobally}")]
+        public async Task<OASISResult<string>> Authenticate(string JWTToken, ProviderType providerType = ProviderType.Default, bool setGlobally = false)
+        {
+            GetAndActivateProvider(providerType, setGlobally);
+            return await Authenticate(JWTToken);
         }
 
         /// <summary>
@@ -383,73 +245,6 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         {
             GetAndActivateProvider(providerType, setGlobally);
             return await RevokeToken(model);
-        }
-
-        /// <summary>
-        ///     Register a new avatar.
-        /// </summary>
-        /// <param name="model"></param>
-        /// <returns></returns>
-        [HttpPost("register")]
-        public async Task<OASISResult<IAvatar>> Register(RegisterRequest model)
-        {
-            return FormatResponse(await _avatarService.RegisterAsync(model, Request.Headers["origin"]));
-        }
-
-        /// <summary>
-        ///     Register a new avatar. Pass in the provider you wish to use. Set the setglobally flag to false for this provider to
-        ///     be used only for this request or true for it to be used for all future requests too.
-        /// </summary>
-        /// <param name="model"></param>
-        /// <returns></returns>
-        [HttpPost("register/{providerType}/{setGlobally}")]
-        public async Task<OASISResult<IAvatar>> Register(RegisterRequest model, ProviderType providerType,
-            bool setGlobally = false)
-        {
-            GetAndActivateProvider(providerType, setGlobally);
-            return await Register(model);
-        }
-
-
-        /// <summary>
-        ///     Verify a newly created avatar by passing in the validation token sent in the verify email. This method is used by
-        ///     the link in the email.
-        /// </summary>
-        /// <param name="model"></param>
-        /// <returns></returns>
-        [HttpGet("verify-email")]
-        public async Task<OASISResult<bool>> VerifyEmail(string token)
-        {
-            return FormatResponse(await _avatarService.VerifyEmail(token));
-        }
-
-        /// <summary>
-        ///     Verify a newly created avatar by passing in the validation token sent in the verify email. This method is used by
-        ///     the REST API or other methods that need to POST the data rather than GET.
-        /// </summary>
-        /// <param name="model"></param>
-        /// <returns></returns>
-        [HttpPost("verify-email")]
-        public async Task<OASISResult<bool>> VerifyEmail(VerifyEmailRequest model)
-        {
-            return FormatResponse(await VerifyEmail(model.Token));
-        }
-
-        /// <summary>
-        ///     Verify a newly created avatar by passing in the validation token sent in the verify email. Pass in the provider you
-        ///     wish to use. Set the setglobally flag to false for this provider to be used only for this request or true for it to
-        ///     be used for all future requests too.
-        /// </summary>
-        /// <param name="model"></param>
-        /// <param name="providerType"></param>
-        /// <param name="setGlobally"></param>
-        /// <returns></returns>
-        [HttpPost("verify-email/{providerType}/{setGlobally}")]
-        public async Task<OASISResult<bool>> VerifyEmail(VerifyEmailRequest model, ProviderType providerType,
-            bool setGlobally = false)
-        {
-            GetAndActivateProvider(providerType, setGlobally);
-            return await VerifyEmail(model);
         }
 
         /// <summary>
@@ -551,6 +346,433 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         {
             GetAndActivateProvider(providerType, setGlobally);
             return await _avatarService.Create(model);
+        }
+
+        /// <summary>
+        /// Get's the terms &amp; services agreement for creating an avatar and joining the OASIS.
+        /// </summary>
+        /// <returns></returns>
+        [HttpGet("GetTerms")]
+        public async Task<OASISResult<string>> GetTerms()
+        {
+            return FormatResponse(await _avatarService.GetTerms());
+        }
+
+        /// <summary>
+        /// Get's the avatar's portrait (2D Image) using their id. Pass in the provider you wish to use.
+        /// Only works for logged in users. Use Authenticate endpoint first to obtain a JWT Token.
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        [Authorize]
+        [HttpGet("GetAvatarPortrait/{id}")]
+        public async Task<OASISResult<AvatarPortrait>> GetAvatarPortraitById(Guid id)
+        {
+            // users can get their own account and admins can get any account
+            if (id != Avatar.Id && Avatar.AvatarType.Value != AvatarType.Wizard)
+                return new OASISResult<AvatarPortrait>() { Result = null, IsError = true, Message = "Unauthorized" };
+
+            return FormatResponse(await _avatarService.GetAvatarPortraitById(id));
+        }
+
+        /// <summary>
+        /// Get's the avatar's portrait (2D Image) using their id. 
+        /// Only works for logged in users. Use Authenticate endpoint first to obtain JWT Token.
+        /// Pass in the provider you wish to use. Set the setglobally flag to false for this provider to be used only for this request or true for it to be used for all future requests too.
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="providerType"></param>
+        /// <param name="setGlobally"></param>
+        /// <returns></returns>
+        [Authorize]
+        [HttpGet("GetAvatarPortrait/{id}/{providerType}/{setGlobally}")]
+        public async Task<OASISResult<AvatarPortrait>> GetAvatarPortraitById(Guid id, ProviderType providerType, bool setGlobally = false)
+        {
+            GetAndActivateProvider(providerType, setGlobally);
+            return await GetAvatarPortraitById(id);
+        }
+
+        /// <summary>
+        /// Get's the avatar's portrait (2D Image) using their username.
+        /// Only works for logged in users. Use Authenticate endpoint first to obtain JWT Token.
+        /// </summary>
+        /// <param name="username"></param>
+        /// <returns></returns>
+        [Authorize]
+        [HttpGet("GetAvatarPortraitByUsername/{username}")]
+        public async Task<OASISResult<AvatarPortrait>> GetAvatarPortraitByUsername(string username)
+        {
+            // users can get their own account and admins can get any account
+            if (username != Avatar.Username && Avatar.AvatarType.Value != AvatarType.Wizard)
+                return new OASISResult<AvatarPortrait> { IsError = true, Message = "Unauthorized" };
+
+            return FormatResponse(await _avatarService.GetAvatarPortraitByUsername(username));
+        }
+
+        /// <summary>
+        /// Get's the avatar's portrait (2D Image) using their username. Pass in the provider you wish to us.
+        /// Only works for logged in users. Use Authenticate endpoint first to obtain JWT Token.
+        /// Pass in the provider you wish to use. Set the setglobally flag to false for this provider to be used only for this request or true for it to be used for all future requests too.
+        /// </summary>
+        /// <param name="username"></param>
+        /// <param name="providerType"></param>
+        /// <param name="setGlobally"></param>
+        /// <returns></returns>
+        [Authorize]
+        [HttpGet("GetAvatarPortraitByUsername/{username}/{providerType}/{setGlobally}")]
+        public async Task<OASISResult<AvatarPortrait>> GetAvatarPortraitByUsername(string username, ProviderType providerType, bool setGlobally = false)
+        {
+            GetAndActivateProvider(providerType, setGlobally);
+            return await GetAvatarPortraitByUsername(username);
+        }
+
+        /// <summary>
+        /// Get's the avatar's portrait (2D Image) using their email.
+        /// </summary>
+        /// <param name="email"></param>
+        /// <returns></returns>
+        [Authorize]
+        [HttpGet("GetAvatarPortraitByEmail/{email}")]
+        public async Task<OASISResult<AvatarPortrait>> GetAvatarPortraitByEmail(string email)
+        {
+            // users can get their own account and admins can get any account
+            if (email != Avatar.Email && Avatar.AvatarType.Value != AvatarType.Wizard)
+                return new OASISResult<AvatarPortrait> { IsError = true, Message = "Unauthorized" };
+
+            return FormatResponse(await _avatarService.GetAvatarPortraitByEmail(email));
+        }
+
+        /// <summary>
+        /// Get's the avatar's portrait (2D Image) using their email. Pass in the provider you wish to use.
+        /// Only works for logged in users. Use Authenticate endpoint first to obtain a JWT Token.
+        /// Pass in the provider you wish to use.Set the setglobally flag to false for this provider to be used only for this request or true for it to be used for all future requests too.
+        /// </summary>
+        /// <param name="email"></param>
+        /// <param name="providerType"></param>
+        /// <param name="setGlobally"></param>
+        /// <returns></returns>
+        [Authorize]
+        [HttpGet("GetAvatarPortraitByEmail/{email}/{providerType}/{setGlobally}")]
+        public async Task<OASISResult<AvatarPortrait>> GetAvatarPortraitByEmail(string email, ProviderType providerType, bool setGlobally = false)
+        {
+            GetAndActivateProvider(providerType, setGlobally);
+            return await GetAvatarPortraitByEmail(email);
+        }
+
+        /// <summary>
+        /// Upload's the avatar's portrait (2D Image), which is displayed on the web portal or on web OAPP's.
+        /// Only works for logged in users. Use Authenticate endpoint first to obtain a JWT Token.
+        /// </summary>
+        /// <param name="avatarPortrait"></param>
+        /// <returns></returns>
+        [Authorize]
+        [HttpPost("UploadAvatarPortrait")]
+        public async Task<OASISResult<bool>> UploadAvatarPortrait(AvatarPortrait avatarPortrait)
+        {
+            // users can get their own account and admins can get any account
+            if (avatarPortrait.AvatarId != Avatar.Id && Avatar.AvatarType.Value != AvatarType.Wizard)
+                return new OASISResult<bool>()
+                { Result = false, Message = "Image not uploaded. Unauthorized", IsError = true };
+
+            return FormatResponse(await _avatarService.UploadAvatarPortrait(avatarPortrait));
+        }
+
+        /// <summary>
+        /// Upload's an avatar's portrait (2D Image), which is displayed on the web portal or on web OAPP's.
+        /// Only works for logged in users. Use Authenticate endpoint first to obtain a JWT Token.
+        /// Pass in the provider you wish to use. Set the setglobally flag to false for this provider to be used only for this request or true for it to be used for all future requests too.
+        /// </summary>
+        /// <param name="avatarPortrait"></param>
+        /// <param name="providerType"></param>
+        /// <param name="setGlobally"></param>
+        /// <returns></returns>
+        [Authorize]
+        [HttpPost("UploadAvatarPortrait/{providerType}/{setGlobally}")]
+        public async Task<OASISResult<bool>> UploadAvatarPortrait(AvatarPortrait avatarPortrait, ProviderType providerType, bool setGlobally = false)
+        {
+            GetAndActivateProvider(providerType, setGlobally);
+            return await UploadAvatarPortrait(avatarPortrait);
+        }
+
+        /// <summary>
+        /// Get's the avatar's details for a given id. Contains their address, DOB, Karma, XP, Level, Portrait (2D Image), 3DModel, HeartRateData, Chakras, Aurua, Gifts, Stats (HP, Mana, Energy &amp; Staminia), GeneKeys, HumanDesign, Skills, Attributes (Strength, Speed, Dexterity, Toughness, Wisdom, Intelligence, Magic, Vitality &amp; Endurance), SuperPowers, Spells, Achievements &amp; Inventory. They can also access the full Omniverse from inside their avatar. More to come soon... ;-)
+        /// Only works for logged in &amp; authenticated Wizards (Admins) or your own avatar. Use Authenticate endpoint first to obtain a JWT Token.
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        [Authorize(AvatarType.Wizard)]
+        [HttpGet("GetAvatarDetail/{id:guid}")]
+        public async Task<OASISResult<IAvatarDetail>> GetAvatarDetail(Guid id)
+        {
+            return FormatResponse(await Program.AvatarManager.LoadAvatarDetailAsync(id));
+        }
+
+        /// <summary>
+        /// Get's the avatar's details for a given id. Contains their address, DOB, Karma, XP, Level, Portrait (2D Image), 3DModel, HeartRateData, Chakras, Aurua, Gifts, Stats (HP, Mana, Energy &amp; Staminia), GeneKeys, HumanDesign, Skills, Attributes (Strength, Speed, Dexterity, Toughness, Wisdom, Intelligence, Magic, Vitality &amp; Endurance), SuperPowers, Spells, Achievements &amp; Inventory. They can also access the full Omniverse from inside their avatar. More to come soon... ;-)
+        /// Only works for logged in &amp; authenticated Wizards (Admins) or your own avatar. Use Authenticate endpoint first to obtain a JWT Token.
+        /// Pass in the provider you wish to use. Set the setglobally flag to false for this provider to be used only for this request or true for it to be used for all future requests too.
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="providerType"></param>
+        /// <param name="setGlobally"></param>
+        /// <returns></returns>
+        [Authorize(AvatarType.Wizard)]
+        [HttpGet("GetAvatarDetail/{id:guid}/{providerType}/{setGlobally}")]
+        public async Task<OASISResult<IAvatarDetail>> GetAvatarDetail(Guid id, ProviderType providerType, bool setGlobally = false)
+        {
+            GetAndActivateProvider(providerType, setGlobally);
+            return await GetAvatarDetail(id);
+        }
+
+        /// <summary>
+        /// Get's the avatar's details for a given email. Contains their address, DOB, Karma, XP, Level, Portrait (2D Image), 3DModel, HeartRateData, Chakras, Aurua, Gifts, Stats (HP, Mana, Energy &amp; Staminia), GeneKeys, HumanDesign, Skills, Attributes (Strength, Speed, Dexterity, Toughness, Wisdom, Intelligence, Magic, Vitality &amp; Endurance), SuperPowers, Spells, Achievements &amp; Inventory. They can also access the full Omniverse from inside their avatar. More to come soon... ;-)
+        /// Only works for logged in &amp; authenticated Wizards (Admins) or your own avatar. Use Authenticate endpoint first to obtain a JWT Token.
+        /// </summary>
+        /// <param name="email"></param>
+        /// <returns></returns>
+        [Authorize(AvatarType.Wizard)]
+        [HttpGet("GetAvatarDetailByEmail/{email}")]
+        public async Task<OASISResult<IAvatarDetail>> GetAvatarDetailByEmail(string email)
+        {
+            return FormatResponse(await Program.AvatarManager.LoadAvatarDetailByEmailAsync(email));
+        }
+
+        /// <summary>
+        /// Get's the avatar's details for a given email. Contains their address, DOB, Karma, XP, Level, Portrait (2D Image), 3DModel, HeartRateData, Chakras, Aurua, Gifts, Stats (HP, Mana, Energy &amp; Staminia), GeneKeys, HumanDesign, Skills, Attributes (Strength, Speed, Dexterity, Toughness, Wisdom, Intelligence, Magic, Vitality &amp; Endurance), SuperPowers, Spells, Achievements &amp; Inventory. They can also access the full Omniverse from inside their avatar. More to come soon... ;-)
+        /// Only works for logged in &amp; authenticated Wizards (Admins) or your own avatar. Use Authenticate endpoint first to obtain a JWT Token.
+        /// Pass in the provider you wish to use. Set the setglobally flag to false for this provider to be used only for this request or true for it to be used for all future requests too.
+        /// </summary>
+        /// <param name="email"></param>
+        /// <param name="providerType"></param>
+        /// <param name="setGlobally"></param>
+        /// <returns></returns>
+        [Authorize(AvatarType.Wizard)]
+        [HttpGet("GetAvatarDetailByEmail/{email}/{providerType}/{setGlobally}")]
+        public async Task<OASISResult<IAvatarDetail>> GetAvatarDetailByEmail(string email, ProviderType providerType, bool setGlobally = false)
+        {
+            GetAndActivateProvider(providerType, setGlobally);
+            return await GetAvatarDetailByEmail(email);
+        }
+
+        /// <summary>
+        /// Get's the avatar's details for a given username. Contains their address, DOB, Karma, XP, Level, Portrait (2D Image), 3DModel, HeartRateData, Chakras, Aurua, Gifts, Stats (HP, Mana, Energy &amp; Staminia), GeneKeys, HumanDesign, Skills, Attributes (Strength, Speed, Dexterity, Toughness, Wisdom, Intelligence, Magic, Vitality &amp; Endurance), SuperPowers, Spells, Achievements &amp; Inventory. They can also access the full Omniverse from inside their avatar. More to come soon... ;-)
+        /// Only works for logged in &amp; authenticated Wizards (Admins). Use Authenticate endpoint first to obtain JWT Token.
+        /// </summary>
+        /// <param name="username"></param>
+        /// <returns></returns>
+        [Authorize(AvatarType.Wizard)]
+        [HttpGet("GetAvatarDetailByUsername/{username}")]
+        public async Task<OASISResult<IAvatarDetail>> GetAvatarDetailByUsername(string username)
+        {
+            return FormatResponse(await Program.AvatarManager.LoadAvatarDetailByUsernameAsync(username));
+        }
+
+        /// <summary>
+        /// Get's the avatar's details for a given username. Contains their address, DOB, Karma, XP, Level, Portrait (2D Image), 3DModel, HeartRateData, Chakras, Aurua, Gifts, Stats (HP, Mana, Energy &amp; Staminia), GeneKeys, HumanDesign, Skills, Attributes (Strength, Speed, Dexterity, Toughness, Wisdom, Intelligence, Magic, Vitality &amp; Endurance), SuperPowers, Spells, Achievements &amp; Inventory. They can also access the full Omniverse from inside their avatar. More to come soon... ;-)
+        /// Only works for logged in &amp; authenticated Wizards (Admins) or your own avatar. Use Authenticate endpoint first to obtain a JWT Token.
+        /// Pass in the provider you wish to use. Set the setglobally flag to false for this provider to be used only for this request or true for it to be used for all future requests too.
+        /// </summary>
+        /// <param name="username"></param>
+        /// <param name="providerType"></param>
+        /// <param name="setGlobally"></param>
+        /// <returns></returns>
+        [Authorize(AvatarType.Wizard)]
+        [HttpGet("GetAvatarDetailByUsername/{username}/{providerType}/{setGlobally}")]
+        public async Task<OASISResult<IAvatarDetail>> GetAvatarDetailByUsername(string username, ProviderType providerType, bool setGlobally = false)
+        {
+            GetAndActivateProvider(providerType, setGlobally);
+            return await GetAvatarDetailByUsername(username);
+        }
+
+        /// <summary>
+        /// Get's all the avatar details within The OASIS.
+        /// Only works for logged in &amp; authenticated Wizards (Admins). Use Authenticate endpoint first to obtain a JWT Token.
+        /// </summary>
+        /// <returns></returns>
+        [Authorize(AvatarType.Wizard)]
+        [HttpGet("GetAllAvatarDetails")]
+        public async Task<OASISResult<IEnumerable<IAvatarDetail>>> GetAllAvatarDetails()
+        {
+            return FormatResponse(await Program.AvatarManager.LoadAllAvatarDetailsAsync());
+        }
+
+        /// <summary>
+        /// Get's all the avatar details within The OASIS.
+        /// Only works for logged in &amp; authenticated Wizards (Admins). Use Authenticate endpoint first to obtain a JWT Token.
+        /// Pass in the provider you wish to use. Set the setglobally flag to false for this provider to be used only for this request or true for it to be used for all future requests too.
+        /// </summary>
+        /// <param name="providerType"></param>
+        /// <param name="setGlobally"></param>
+        /// <returns></returns>
+        [Authorize(AvatarType.Wizard)]
+        [HttpGet("GetAllAvatarDetails/{providerType}/{setGlobally}")]
+        public async Task<OASISResult<IEnumerable<IAvatarDetail>>> GetAllAvatarDetails(ProviderType providerType, bool setGlobally = false)
+        {
+            GetAndActivateProvider(providerType, setGlobally);
+            return await GetAllAvatarDetails();
+        }
+
+        /// <summary>
+        /// Get's all avatars within The OASIS.
+        /// Only works for logged in &amp; authenticated Wizards (Admins). Use Authenticate endpoint first to obtain a JWT Token.
+        /// </summary>
+        /// <returns></returns>
+        [Authorize(AvatarType.Wizard)]
+        [HttpGet("GetAll")]
+        public async Task<OASISResult<IEnumerable<IAvatar>>> GetAll()
+        {
+            return FormatResponse(await Program.AvatarManager.LoadAllAvatarsAsync());
+        }
+
+        /// <summary>
+        /// Get's all avatars within The OASIS. 
+        /// Only works for logged in &amp; authenticated Wizards (Admins). Use Authenticate endpoint first to obtain a JWT Token.
+        /// Pass in the provider you wish to use. Set the setglobally flag to false for this provider to be used only for this request or true for it to be used for all future requests too.
+        /// </summary>
+        /// <param name="providerType"></param>
+        /// <param name="setGlobally"></param>
+        /// <returns></returns>
+        [Authorize(AvatarType.Wizard)]
+        [HttpGet("GetAll/{providerType}/{setGlobally}")]
+        public async Task<OASISResult<IEnumerable<IAvatar>>> GetAll(ProviderType providerType, bool setGlobally = false)
+        {
+            GetAndActivateProvider(providerType, setGlobally);
+            return await GetAll();
+        }
+
+        /// <summary>
+        /// Get's the avatar for the given id.
+        /// Only works for logged in users. Use Authenticate endpoint first to obtain a JWT Token.
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        [Authorize]
+        [HttpGet("GetById/{id}")]
+        public async Task<OASISResult<IAvatar>> GetById(Guid id)
+        {
+            OASISResult<IAvatar> result = new OASISResult<IAvatar>();
+
+            // users can get their own account and admins can get any account
+            if (id != Avatar.Id && Avatar.AvatarType.Value != AvatarType.Wizard)
+                return new OASISResult<IAvatar> { Result = null, Message = "Unauthorized", IsError = true };
+
+            result = await Program.AvatarManager.LoadAvatarAsync(id);
+
+            return FormatResponse(result);
+        }
+
+        /// <summary>
+        /// Get's the avatar for the given id.
+        /// Only works for logged in users. Use Authenticate endpoint first to obtain a JWT Token.
+        /// Pass in the provider you wish to use. Set the setglobally flag to false for this provider to be used only for this request or true for it to be used for all future requests too.
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="providerType"></param>
+        /// <param name="setGlobally"></param>
+        /// <returns></returns>
+        [Authorize]
+        [HttpGet("GetById/{id}/{providerType}/{setGlobally}")]
+        public async Task<OASISResult<IAvatar>> GetById(Guid id, ProviderType providerType, bool setGlobally = false)
+        {
+            GetAndActivateProvider(providerType, setGlobally);
+            return await GetById(id);
+        }
+
+        /// <summary>
+        /// Get's the avatar for the given username.
+        /// Only works for logged in users. Use Authenticate endpoint first to obtain a JWT Token.
+        /// </summary>
+        /// <param name="username"></param>
+        /// <returns></returns>
+        [Authorize]
+        [HttpGet("GetByUsername/{username}")]
+        public async Task<OASISResult<IAvatar>> GetByUsername(string username)
+        {
+            // users can get their own account and admins can get any account
+            if (username != Avatar.Username && Avatar.AvatarType.Value != AvatarType.Wizard)
+                return new OASISResult<IAvatar> { Message = "Unauthorized", IsError = true };
+
+            //return await _avatarService.GetByUsername(username);
+            return FormatResponse(await Program.AvatarManager.LoadAvatarAsync(username));
+        }
+
+        /// <summary>
+        /// Get's the avatar for the given username.
+        /// Only works for logged in users. Use Authenticate endpoint first to obtain a JWT Token.
+        /// Pass in the provider you wish to use.Set the setglobally flag to false for this provider to be used only for this request or true for it to be used for all future requests too.
+        /// </summary>
+        /// <param name="username"></param>
+        /// <param name="providerType"></param>
+        /// <param name="setGlobally"></param>
+        /// <returns></returns>
+        [Authorize]
+        [HttpGet("GetByUsername/{username}/{providerType}/{setGlobally}")]
+        public async Task<OASISResult<IAvatar>> GetByUsername(string username, ProviderType providerType, bool setGlobally = false)
+        {
+            GetAndActivateProvider(providerType, setGlobally);
+            return await GetByUsername(username);
+        }
+
+        /// <summary>
+        /// Get's the avatar for the given email.
+        /// Only works for logged in users. Use Authenticate endpoint first to obtain a JWT Token.
+        /// </summary>
+        /// <param name="email"></param>
+        /// <returns></returns>
+        [Authorize]
+        [HttpGet("GetByEmail/{email}")]
+        public async Task<OASISResult<IAvatar>> GetByEmail(string email)
+        {
+            // users can get their own account and admins can get any account
+            if (email != Avatar.Email && Avatar.AvatarType.Value != AvatarType.Wizard)
+                return new OASISResult<IAvatar> { Message = "Unauthorized", IsError = true };
+
+            //return await _avatarService.GetByEmail(email);
+            return FormatResponse(await Program.AvatarManager.LoadAvatarByEmailAsync(email));
+        }
+
+        /// <summary>
+        /// Get's the avatar for the given email.
+        /// Only works for logged in users. Use Authenticate endpoint first to obtain a JWT Token.
+        /// Pass in the provider you wish to use.Set the setglobally flag to false for this provider to be used only for this request or true for it to be used for all future requests too.
+        /// </summary>
+        /// <param name="email"></param>
+        /// <param name="providerType"></param>
+        /// <param name="setGlobally"></param>
+        /// <returns></returns>
+        [Authorize]
+        [HttpGet("GetByEmail/{email}")]
+        public async Task<OASISResult<IAvatar>> GetByEmail(string email, ProviderType providerType, bool setGlobally = false)
+        {
+            GetAndActivateProvider(providerType, setGlobally);
+            return await GetByUsername(email);
+        }
+
+        /// <summary>
+        /// Search avatars for the given search term. Coming soon...
+        /// </summary>
+        /// <param name="searchParams"></param>
+        /// <returns></returns>
+        [HttpGet("Search/{searchParams}")]
+        public async Task<OASISResult<ISearchResults>> Search(ISearchParams searchParams)
+        {
+            return FormatResponse(await _avatarService.Search(searchParams));
+        }
+
+        /// <summary>
+        /// Search avatars for the given search term. Coming soon... 
+        /// Pass in the provider you wish to use. Set the setglobally flag to false for this provider to be used only for this request or true for it to be used for all future requests too.
+        /// </summary>
+        /// <param name="searchParams"></param>
+        /// <param name="providerType"></param>
+        /// <param name="setGlobally"></param>
+        /// <returns></returns>
+        [HttpGet("Search/{searchParams}/{providerType}/{setGlobally}")]
+        public async Task<OASISResult<ISearchResults>> Search(ISearchParams searchParams, ProviderType providerType,
+            bool setGlobally = false)
+        {
+            GetAndActivateProvider(providerType, setGlobally);
+            return await _avatarService.Search(searchParams);
         }
 
         /// <summary>

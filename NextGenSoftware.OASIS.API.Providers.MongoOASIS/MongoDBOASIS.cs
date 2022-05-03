@@ -662,7 +662,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             oasisAvatar.DeletedDate = avatar.Result.DeletedDate;
             oasisAvatar.Version = avatar.Result.Version;
             oasisAvatar.IsActive = avatar.Result.IsActive;
-            oasisAvatar.Image2D = avatar.Result.Image2D;
+            oasisAvatar.Portrait = avatar.Result.Portrait;
             oasisAvatar.UmaJson = avatar.Result.UmaJson;
             //oasisAvatar.ProviderPrivateKey = avatar.Result.ProviderPrivateKey;
             //oasisAvatar.ProviderPublicKey = avatar.Result.ProviderPublicKey;
@@ -886,10 +886,9 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             mongoAvatar.CreatedProviderType = avatar.CreatedProviderType;
             mongoAvatar.CreatedOASISType = avatar.CreatedOASISType;
             mongoAvatar.MetaData = avatar.MetaData;
-            mongoAvatar.Image2D = avatar.Image2D;
             mongoAvatar.Karma = avatar.Karma;
             mongoAvatar.XP = avatar.XP;
-            mongoAvatar.Image2D = avatar.Image2D;
+            mongoAvatar.Portrait = avatar.Portrait;
             mongoAvatar.IsChanged = avatar.IsChanged;
             mongoAvatar.CreatedByAvatarId = avatar.CreatedByAvatarId.ToString();
             mongoAvatar.CreatedDate = avatar.CreatedDate;
