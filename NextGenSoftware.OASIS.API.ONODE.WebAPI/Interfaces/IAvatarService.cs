@@ -46,7 +46,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Interfaces
         Task<OASISResult<string>> GetAvatarUmaJsonById(Guid id);
         Task<OASISResult<string>> GetAvatarUmaJsonByUsername(string username);
         Task<OASISResult<string>> GetAvatarUmaJsonByEmail(string mail);
-        Task<OASISResult<IAvatar>> GetAvatarByJwt();
+        Task<OASISResult<IAvatar>> GetLoggedInAvatar();
         Task<OASISResult<ISearchResults>> Search(ISearchParams searchParams);
         //Task<OASISResult<bool>> LinkProviderKeyToAvatar(Guid avatarId, ProviderType providerType, string key);
         //Task<OASISResult<bool>> LinkPrivateProviderKeyToAvatar(Guid avatarId, ProviderType providerType, string key);

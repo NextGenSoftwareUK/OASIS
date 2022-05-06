@@ -346,7 +346,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteOASIS.Persistence.Repositor
             //avatarDetail.FavouriteColour = AvatarDetail.FavouriteColour;
             //avatarDetail.HolonId = AvatarDetail.HolonId;
             avatarDetail.Id = AvatarDetail.Id;
-            avatarDetail.Image2D = AvatarDetail.Image2D == null ?"": AvatarDetail.Image2D;
+            avatarDetail.Portrait = AvatarDetail.Portrait == null ?"": AvatarDetail.Portrait;
             //avatarDetail.IsActive = AvatarDetail.IsActive;
             //avatarDetail.IsChanged = AvatarDetail.IsChanged;
             avatarDetail.Karma = AvatarDetail.Karma;

@@ -53,7 +53,6 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces
         OASISResult<KarmaAkashicRecord> RemoveKarmaFromAvatar(IAvatarDetail Avatar, KarmaTypeNegative karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc, string karmaSourceWebLink = null);
         Task<OASISResult<KarmaAkashicRecord>> RemoveKarmaFromAvatarAsync(IAvatarDetail Avatar, KarmaTypeNegative karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc, string karmaSourceWebLink = null);
 
-        //TODO: We need to migrate ALL OASIS methods to use the OASISResult Pattern ASAP! Thankyou! :)
         OASISResult<IHolon> SaveHolon(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true);
         Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true);
         OASISResult<IEnumerable<IHolon>> SaveHolons(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true);
@@ -74,6 +73,13 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces
         Task<OASISResult<bool>> DeleteHolonAsync(Guid id, bool softDelete = true);
         OASISResult<bool> DeleteHolon(string providerKey, bool softDelete = true);
         Task<OASISResult<bool>> DeleteHolonAsync(string providerKey, bool softDelete = true);
+
+        //TODO: Implement these methods ASAP - this is how we can share data across silos, then merge, aggregate, sense-make, perform actions on the full internet data, etc...
+        //Task<OASISResult<bool>> Import(IEnumerable<IHolon> holons); //Imports all data into the OASIS from a given provider (will then be auto-replicated to all providers). NOTE: The Provider will need to convert the providers raw data into a list of holons (holonize the data).
+        //Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarById(Guid avatarId, int version = 0); //Exports all data for a given avatar and provider. Version = 0 - Latest version. Version = -1 All versions.
+        //Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByUsername(string avatarUsername, int version = 0); //Exports all data for a given avatar and provider. Version = 0 - Latest version. Version = -1 All versions.
+        //Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByEmail(string avatarEmailAddress, int version = 0); //Exports all data for a given avatar and provider. Version = 0 - Latest version. Version = -1 All versions.
+        //Task<OASISResult<IEnumerable<IHolon>>> ExportAll(int version = 0); //Exports all data for a given provider. Version = 0 - Latest version. Version = -1 All versions.
 
         Task<OASISResult<ISearchResults>> SearchAsync(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0);
 

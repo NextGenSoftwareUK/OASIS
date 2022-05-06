@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Threading.Tasks;
+using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Events;
+using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.DNA;
 
@@ -9,11 +11,6 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
     public abstract class OASISManager
     {
         public OASISDNA OASISDNA { get; set; }
-
-        public Task<ISearchResults> SearchAsync(ISearchParams searchParams)
-        {
-            throw new NotImplementedException();
-        }
 
         //Events
         public delegate void OASISManagerError(object sender, OASISErrorEventArgs e);

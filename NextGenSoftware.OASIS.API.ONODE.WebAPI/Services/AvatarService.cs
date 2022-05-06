@@ -40,6 +40,25 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
         }
 
         private AvatarManager AvatarManager => Program.AvatarManager;
+        private SearchManager _searchManager = null;
+
+        public SearchManager SearchManager
+        {
+            get
+            {
+                if (_searchManager == null)
+                {
+                    OASISResult<IOASISStorageProvider> result = OASISBootLoader.OASISBootLoader.GetAndActivateDefaultProvider();
+
+                    if (result.IsError)
+                        ErrorHandling.HandleError(ref result, string.Concat("Error calling OASISBootLoader.OASISBootLoader.GetAndActivateDefaultProvider(). Error details: ", result.Message), true, false, true);
+
+                    _searchManager = new SearchManager(result.Result);
+                }
+
+                return _searchManager;
+            }
+        }
 
         public async Task<OASISResult<string>> GetTerms()
         {
@@ -772,7 +791,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
                     response.IsError = true;
                     response.Exception = e;
                     response.Message = e.Message;
-                    response.Result = "Token Validating Failed!";
+                    response.Result = "Token Validating Failed: Invalid Token";
                     ErrorHandling.HandleError(ref response, e.Message);
                 }
 
@@ -923,7 +942,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
         }
 
         //TODO: Check this works?!
-        public async Task<OASISResult<IAvatar>> GetAvatarByJwt()
+        public async Task<OASISResult<IAvatar>> GetLoggedInAvatar()
         {
             return await Task.Run(() =>
             {
@@ -961,23 +980,19 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
         public async Task<OASISResult<ISearchResults>> Search(ISearchParams searchParams)
         {
             var response = new OASISResult<ISearchResults>();
+
             try
             {
-                if (string.IsNullOrEmpty(searchParams.SearchQuery))
-                {
-                    response.Message = "SearchQuery field is empty";
-                    response.IsError = true;
-                    ErrorHandling.HandleError(ref response, response.Message);
-                }
+                searchParams.SearchAvatarsOnly = true;
 
-                response.Result = await AvatarManager.SearchAsync(searchParams);
+                if (string.IsNullOrEmpty(searchParams.SearchQuery))
+                    ErrorHandling.HandleError(ref response, "SearchQuery field is empty");
+                else
+                    response = await SearchManager.SearchAsync(searchParams);
             }
             catch (Exception e)
             {
-                response.Exception = e;
-                response.Message = e.Message;
-                response.IsError = true;
-                ErrorHandling.HandleError(ref response, e.Message);
+                ErrorHandling.HandleError(ref response, $"Unknown error occured in Search method in AvatarService. Reason: {e}", e);
             }
 
             return response;

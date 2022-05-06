@@ -3144,8 +3144,6 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
                     if (await Task.WhenAny(task, Task.Delay(OASISDNA.OASIS.StorageProviders.ProviderMethodCallTimeOutSeconds * 1000)) == task)
                     {
-                        result = task.Result;
-
                         if (task.Result.IsError || task.Result.Result == null)
                         {
                             if (string.IsNullOrEmpty(task.Result.Message))

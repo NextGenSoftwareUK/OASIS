@@ -50,6 +50,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
                 Database = new MongoDbContext(ConnectionString, DBName);
                 _avatarRepository = new AvatarRepository(Database);
                 _holonRepository = new HolonRepository(Database);
+                _searchRepository = new SearchRepository(Database);
             }
 
             return base.ActivateProvider();

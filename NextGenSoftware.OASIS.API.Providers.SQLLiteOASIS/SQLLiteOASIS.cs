@@ -7,11 +7,6 @@ using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using NextGenSoftware.OASIS.API.Providers.SQLLiteOASIS.Interfaces;
 using NextGenSoftware.OASIS.API.Providers.SQLLiteOASIS.Persistence.Context;
 using NextGenSoftware.OASIS.API.Providers.SQLLiteOASIS.Persistence.Repositories;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace NextGenSoftware.OASIS.API.Providers.SQLLiteOASIS
 {
@@ -20,7 +15,9 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteOASIS
         public IAvtarDetailRepository? avatarDetailRepository;
         public IAvtarRepository? avatarRepository;
         public IHolonRepository? holonRepository;
-        public SQLLiteOASIS()
+
+        //TODO: Set ConnectionString in DBContext
+        public SQLLiteOASIS(string connectionString)
         {
             this.ProviderName = "SQLLiteOASIS";
             this.ProviderDescription = "SQLLiteOASIS Provider";
@@ -38,7 +35,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteOASIS
             avatarRepository = serviceProvider.GetService<IAvtarRepository>();
             holonRepository = serviceProvider.GetService<IHolonRepository>();
         }
-        public bool IsVersionControlEnabled { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        public bool IsVersionControlEnabled { get; set; } = false;
 
         public override OASISResult<bool> DeleteAvatar(Guid id, bool softDelete = true)
         {
