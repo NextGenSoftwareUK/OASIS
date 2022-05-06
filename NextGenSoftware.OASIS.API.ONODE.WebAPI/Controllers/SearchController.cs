@@ -9,7 +9,8 @@
 
 //namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 //{
-//  //  [Route("api/[search]")]
+//    //  [Route("api/[search]")]
+//    [Route("api/[controller]")]
 //    [ApiController]
 
 //    //[EnableCors(origins: "http://mywebclient.azurewebsites.net", headers: "*", methods: "*")]
@@ -17,11 +18,6 @@
 //    public class SearchController : OASISControllerBase
 //    {
 //        private SearchManager _SearchManager;
-
-//        //public SearchController(IOptions<OASISSettings> OASISSettings) : base(OASISSettings)
-//        //{
-
-//        //}
 
 //        public SearchController()
 //        {
@@ -33,20 +29,27 @@
 //            get
 //            {
 //                if (_SearchManager == null)
-//                    _SearchManager = new SearchManager(GetAndActivateDefaultProvider());
+//                {
+//                    OASISResult<IOASISStorageProvider> result = OASISBootLoader.OASISBootLoader.GetAndActivateDefaultProvider();
+
+//                    if (result.IsError)
+//                        ErrorHandling.HandleError(ref result, string.Concat("Error calling OASISBootLoader.OASISBootLoader.GetAndActivateDefaultProvider(). Error details: ", result.Message), true, false, true);
+
+//                    _SearchManager = new SearchManager(result.Result);
+//                }
 
 //                return _SearchManager;
 //            }
 //        }
 
 //        [HttpGet("{searchParams}")]
-//        public async Task<OASISResult<ISearchResults>> Get(string searchParams)
+//        public async Task<OASISResult<ISearchResults>> Get(SearchParams searchParams)
 //        {
-//            return new(await SearchManager.SearchAsync(new SearchParams() { SearchQuery = searchParams }));
+//            return await SearchManager.SearchAsync(searchParams);
 //        }
 
 //        [HttpGet("{searchParams}/{providerType}/{setGlobally}")]
-//        public async Task<OASISResult<ISearchResults>> Get(string searchParams, ProviderType providerType, bool setGlobally = false)
+//        public async Task<OASISResult<ISearchResults>> Get(SearchParams searchParams, ProviderType providerType, bool setGlobally = false)
 //        {
 //            GetAndActivateProvider(providerType, setGlobally);
 //            return await Get(searchParams);
