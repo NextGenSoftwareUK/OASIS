@@ -136,7 +136,58 @@ https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.
 First official version of the production ready to use OASIS API! :)
 
 Many improvements:
+https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/commit/42a43cc3c788cd6333bd937a997d443da3b195ed
+- Added a new StackTraces property to the OASISResult wrapper.
+- Detailed messages are now added to the new StackTraces property of OASISResult rather than being appended to the InnerMessages property in HandleWarning method in ErrorHandling helper,
+- Fixed a bug in Authtenticate/AuthenticateAsync methods for logging in with a public key linked to an avatar in AvataManager.
+- Also improved Authtenticate/AuthenticateAsync methods by making more generic and efficient using the new ProcessAvatarLogin method in AvataManager.
+- Created a new ProcessAvatarLogin method in AvataManager.
+- All methods in AvatarManager upgraded to now also pass in their detailedMessages into HandleError/HandleWarning methods.
+- Fixed a bug in all methods in AvatarManager where the response from load/save methods on an OASIS Provider were not being handled properly.
+- Added AutoMapper to OASIS.API.Core to be used in UpdateAvatarDetailAsync method.
+- Added Automapper config to UpdateAvatarDetailAsync method.
+- Upgraded AutoMapper to v11 in OASIS.API.ONODE.WebAPI project so matches the version added to OASIS.API.Core.
 
-Coming soon...
+https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/commit/cf1cf1b0ab282acabf7af64d2d50df530962c492
+- Removed where clause restriction on OASISResultCollectionToCollection helper so can be used for mapping any objects and not just holons.
+- Improved Security: Removed LoadAvatar/LoadAvatarAsync method overloads that take a username and password as params (only the overloads that take username are currently used because the password is decrypted in AvatarManager and checked there so is more secure) from IOASISStorageProvider interface.
+- Related to above removed LoadAvatar/LoadAvatarAsync method overloads that take a username and password as params from AvatarManager.
+- Releated to above removed LoadAvatar/LoadAvatarAsync method overloads that take a username and password as params from OASISStorageProviderBase.
+- Releated to above removed LoadAvatar/LoadAvatarAsync method overloads that take a username and password as params from ActivityPubOASIS, BlockStackOASIS, ChainLinkOASIS, CosmosBlockChainOASIS, ElrondOASISOASIS, EOSIOOASIS, EthereumOASIS, HashgraphOASIS, HoloOASISBase, IPFSOASIS, MongoDBOASIS, Neo4jOASIS, PLANOASIS, ScuttlebuttOASIS, SolanaOASIS, SOLIDOASIS, TelosOASIS, ThreeFoldOASIS & TRONOASIS providers.
+- UpdateAvatarDetail method in AvatarController now only ta
+- Finished implementing UpdateAvatarDetailAsync methods in AvatarManager. It curretly only allows users to update the base properties, not the nested child objects (this functionality will be added soon...). It also syncs and updates the releated Avatar object if the username or email is changed because these are shared between the objects.
+- Related to above finished implementing UpdateAvatarDetailByUsernameAsync & UpdateAvatarDetailByEmailAsync methods in AvatarManager.
+- Upgraded DeleteAvatarAsync/DeleteAvatarByUsernameAsync/DeleteAvatarByUsername/DeleteAvatarByEmailAsync/DeleteAvatarByEmail methods in AvatarManager so that it now checks if the avatar has already been deleted and if it has it will inform the user that it has already been deleted and the date and by which avatar id.
+- Implemented DeleteAvatar method in AvatarManager.
+- Fixed bugs in LoadAvatarForProvider & LoadAvatarForProviderAsync methods in AvatarManager where the result was not being set correctly.
+- Added UpdateAvatarDetailByEmail method to AvatarController.
+- Added UpdateAvatarDetailByEmail & UpdateAvatarDetailByUsername methods to AvatarController.
+- Updated the rest of the AvatarRepository methods to now return OASISResult as per the standard OASIS standards so better reporting/error handling info can be passed back to AvatarManager, etc. Now just need to do the same for HolonRepository and then MongoDBOASIS provider is finally finished and will be an example and best practice of how to implement a OASIS Provider so this is important work to finish before more devs get involved and build more...
+- Also upgraded the Delete/DeleteAsync method overloads in AvatarRepository in MongoDBOASIS so they now use a transaction for deleting the avatar and then also delete the corresponding avatarDetail, if either fail it will roll back the transaction so they are done as a ATOMIC operation, so they will always match each other, one cannot exist without the other one. Also improved error handling, etc.
+
+https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/commit/52f37e959440d17e8bf25e8b4e74258db77f23ff
+- Renamed Image2D to Portrait on AvatarDetail/IAvatarDetail.
+- Changed Image2D to Portrait in UpdateAvatarDetailsAsync method in AvatarManager.
+- Renamed GetAvatarImageById, GetAvatarImageByUsername, GetAvatarImageByEmail & Upload2DAvatarImage to GetAvatarPortraitById, GetAvatarPortraitByUsername, GetAvatarPortraitByEmail & UploadAvatarPortrait in AvatarService/IAvatarService.
+- Renamed AvatarImage to AvatarPortrait.
+-  LOTS done in AvatarController adding additional commenting/documentation to endpoints, add additional method overloads allowing the providerType to be set for each call, etc.
+
+https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/commit/f87be6cb820ae9c59fcafa723b2ddee0fd3336f8
+- Added Import, ExportAllDataForAvatarById, ExportAllDataForAvatarByUsername, ExportAllDataForAvatarByEmail & ExportAll methods to IOASISStorageProvider interface to allow data to be imported and exported from the OASIS and between OASIS Providers.
+- Added SearchAllProviders & SearchAvatarsOnly properties to ISearchParams interface & SearchParams.
+- Fixed a bug in LoadAvatarForProviderAsync method in AvatarManager around the error handling mechanism.
+- Started implementing SendHolon<T> method in HolonManager allowing a provider to send a holon (data packet) from one provider to another.
+- Moved SearchAsync from OASISManager to SearchManager.
+- Created new SearchManager to allow searching across any OASIS Provider or the full OASIS.
+- LOTS done in AvatarController, added additional documentation, changed all REST endpoints to follow REST best practice naming conventions, fixed multiple bugs, renamed methods, added new methods, too many to list here (91 changes!)
+- Renamed GetAvatarByJwt to GetLoggedInAvatar in IAvatarService/AvatarService.
+- Re-factored Search methodin AvatarService.
+- Bumped OASIS API version to "WEB 4 OASIS API v2.1". First version that is no longer a altha or preview! ;-)
+- Updated Postman JSON file (lots of changes in here to reflect all the work done above, etc).
+- Added init code for SearchRepository in ActivateProvider method in MongoDBOASIS Provider.
+- Renamed Image2D to Portrait in AvatarDetailEntity in SQLLiteOASIS Provider.
+- Renamed Image2D to Portrait in AvtarDetailRepository in SQLLiteOASIS Provider.
+- Added connectionString to constructor for SQLLiteOASIS provider. Need to pass this through to DBContext ASAP...
+- Temp renamed SQLLiteDBOASIS to SQLLiteOASIS in OASISBootLoader.
 
 ----------------------------------------------------------------------------------------------------------------------------
