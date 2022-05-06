@@ -131,3 +131,12 @@ https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.
 
 
 ----------------------------------------------------------------------------------------------------------------------------
+2.1 (05/05/22)
+
+First official version of the production ready to use OASIS API! :)
+
+Many improvements:
+
+Coming soon...
+
+----------------------------------------------------------------------------------------------------------------------------
