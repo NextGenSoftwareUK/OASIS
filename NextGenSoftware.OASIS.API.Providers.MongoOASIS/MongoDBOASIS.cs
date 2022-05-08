@@ -422,7 +422,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             result.Result = savedHolons.ToList();
 
             if (result.IsError)
-                result.Message = "One or more errors occured saving the holons in the SQLLiteOASIS Provider. Please check the InnerMessages property for more infomration.";
+                result.Message = "One or more errors occured saving the holons in the MongoDBOASIS Provider. Please check the InnerMessages property for more infomration.";
 
             return result;
         }
@@ -480,7 +480,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             result.Result = savedHolons.ToList();
 
             if (result.IsError)
-                result.Message = "One or more errors occured saving the holons in the SQLLiteOASIS Provider. Please check the InnerMessages property for more infomration.";
+                result.Message = "One or more errors occured saving the holons in the SQLLiteDBOASIS Provider. Please check the InnerMessages property for more infomration.";
 
             return result;
         }
