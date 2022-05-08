@@ -11,7 +11,7 @@ using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS;
 using NextGenSoftware.OASIS.API.Providers.HoloOASIS.Desktop;
 using NextGenSoftware.OASIS.API.Providers.MongoDBOASIS;
-using NextGenSoftware.OASIS.API.Providers.SQLLiteOASIS;
+using NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS;
 using NextGenSoftware.OASIS.API.Providers.IPFSOASIS;
 using NextGenSoftware.OASIS.API.Providers.Neo4jOASIS;
 using NextGenSoftware.OASIS.API.Providers.TelosOASIS;
@@ -256,7 +256,7 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                     {
                             //TODO: need to fix or re-write SQLLiteDBOASIS Provider ASAP!
 
-                            SQLLiteOASIS SQLLiteDBOASIS = new SQLLiteOASIS(overrideConnectionString == null
+                            SQLLiteDBOASIS SQLLiteDBOASIS = new SQLLiteDBOASIS(overrideConnectionString == null
                                 ? OASISDNA.OASIS.StorageProviders.SQLLiteDBOASIS.ConnectionString
                                 : overrideConnectionString);
                             SQLLiteDBOASIS.StorageProviderError += SQLLiteDBOASIS_StorageProviderError;
