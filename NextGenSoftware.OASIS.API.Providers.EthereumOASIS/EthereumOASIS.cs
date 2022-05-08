@@ -42,40 +42,6 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             var result = new OASISResult<IAvatar>();
             try
             {
-                var web3 = new Web3();
-                await web3.Personal.UnlockAccount.SendRequestAsync(_senderAddress, _password, 120);
-
-                var transactionHash = await web3.Eth.DeployContract.SendRequestAsync(_abi, _abiByteCode, _senderAddress);
-
-                var receipt = await web3.Eth.Transactions.GetTransactionReceipt.SendRequestAsync(transactionHash);
-                while (receipt == null)
-                {
-                    await Task.Delay(5000);
-                    receipt = await web3.Eth.Transactions.GetTransactionReceipt.SendRequestAsync(transactionHash);
-                }
-
-                var contractAddress = receipt.ContractAddress;
-                var contract = web3.Eth.GetContract(_abi, contractAddress);
-                var mFunc = contract.GetFunction("CreateAvatar");
-                
-                
-                // CreateAvatar(uint entityId, string avatarId, string info)
-
-                var entityId = new Random().Next(-90000, 90000);
-                var avatarId = avatar.AvatarId.ToString();
-                var avatarInfo = JsonConvert.SerializeObject(avatar); 
-
-                object[] avatarObjects =
-                {
-                    entityId,
-                    avatarId,
-                    avatarInfo
-                };
-                await mFunc.CallAsync<object>(avatarObjects);
-
-                result.Result = avatar;
-                result.IsError = false;
-                result.IsSaved = true;
             }
             catch (Exception ex)
             {
@@ -95,44 +61,6 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             var result = new OASISResult<IAvatarDetail>();
             try
             {
-                var web3 = new Web3();
-                web3.Personal.UnlockAccount.SendRequestAsync(_senderAddress, _password, 120)
-                    .ConfigureAwait(false).GetAwaiter().GetResult();
-
-                var transactionHash = web3.Eth.DeployContract.SendRequestAsync(_abi, _abiByteCode, _senderAddress)
-                    .ConfigureAwait(false).GetAwaiter().GetResult();
-
-                var receipt = web3.Eth.Transactions.GetTransactionReceipt.SendRequestAsync(transactionHash)
-                    .ConfigureAwait(false).GetAwaiter().GetResult();
-                while (receipt == null)
-                {
-                    Task.Delay(5000);
-                    receipt = web3.Eth.Transactions.GetTransactionReceipt.SendRequestAsync(transactionHash)
-                        .ConfigureAwait(false).GetAwaiter().GetResult();
-                }
-
-                var contractAddress = receipt.ContractAddress;
-                var contract = web3.Eth.GetContract(_abi, contractAddress);
-                var mFunc = contract.GetFunction("CreateAvatarDetail");
-
-                // CreateAvatarDetail(uint entityId, string avatarId, string info)
-
-                var entityId = new Random().Next(-90000, 90000);
-                var avatarId = avatar.Id.ToString();
-                var avatarInfo = JsonConvert.SerializeObject(avatar); 
-                
-                object[] avatarObjects =
-                {
-                    entityId,
-                    avatarId,
-                    avatarInfo
-                };
-                mFunc.CallAsync<int>(avatarObjects)
-                    .ConfigureAwait(false).GetAwaiter().GetResult();
-
-                result.Result = avatar;
-                result.IsError = false;
-                result.IsSaved = true;
             }
             catch (Exception ex)
             {
@@ -153,40 +81,6 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             var result = new OASISResult<IAvatarDetail>();
             try
             {
-                var web3 = new Web3();
-                await web3.Personal.UnlockAccount.SendRequestAsync(_senderAddress, _password, 120);
-
-                var transactionHash = await web3.Eth.DeployContract.SendRequestAsync(_abi, _abiByteCode, _senderAddress);
-
-                var receipt = await web3.Eth.Transactions.GetTransactionReceipt.SendRequestAsync(transactionHash);
-                while (receipt == null)
-                {
-                    await Task.Delay(5000);
-                    receipt = await web3.Eth.Transactions.GetTransactionReceipt.SendRequestAsync(transactionHash);
-                }
-
-                var contractAddress = receipt.ContractAddress;
-                var contract = web3.Eth.GetContract(_abi, contractAddress);
-                var mFunc = contract.GetFunction("CreateAvatarDetail");
-
-                // CreateAvatarDetail(uint entityId, string avatarId, string info)
-
-                var entityId = new Random().Next(-90000, 90000);
-                var avatarId = avatar.Id.ToString();
-                var avatarInfo = JsonConvert.SerializeObject(avatar); 
-                
-                object[] avatarObjects =
-                {
-                    entityId,
-                    avatarId,
-                    avatarInfo
-                };
-                
-                await mFunc.CallAsync<int>(avatarObjects);
-
-                result.Result = avatar;
-                result.IsError = false;
-                result.IsSaved = true;
             }
             catch (Exception ex)
             {
@@ -265,42 +159,6 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
         
             try
             {
-                var web3 = new Web3();
-                await web3.Personal.UnlockAccount.SendRequestAsync(_senderAddress, _password, 120);
-
-                var transactionHash = await web3.Eth.DeployContract.SendRequestAsync(_abi, _abiByteCode, _senderAddress);
-
-                var receipt = await web3.Eth.Transactions.GetTransactionReceipt.SendRequestAsync(transactionHash);
-                while (receipt == null)
-                {
-                    await Task.Delay(5000);
-                    receipt = await web3.Eth.Transactions.GetTransactionReceipt.SendRequestAsync(transactionHash);
-                }
-
-                var contractAddress = receipt.ContractAddress;
-                var contract = web3.Eth.GetContract(_abi, contractAddress);
-                var mFunc = contract.GetFunction("CreateAvatarDetail");
-                
-                foreach (var holon in holons)
-                {
-                    // CreateHolon(uint entityId, string holonId, string info)
-
-                    var entityId = new Random().Next(-90000, 90000);
-                    var holonId = holon.Id.ToString();
-                    var holonInfo = JsonConvert.SerializeObject(holon); 
-                    
-                    object[] holonObjects =
-                    {
-                        entityId,
-                        holonId,
-                        holonInfo
-                    };
-                    await mFunc.CallAsync<int>(holonObjects);
-                }
-                
-                result.Result = holons;
-                result.IsError = false;
-                result.IsSaved = true;
             }
             catch (Exception ex)
             {
@@ -400,41 +258,6 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             var result = new OASISResult<IHolon>();
             try
             {
-                var web3 = new Web3();
-                web3.Personal.UnlockAccount.SendRequestAsync(_senderAddress, _password, 120)
-                    .ConfigureAwait(false).GetAwaiter().GetResult();
-
-                var transactionHash = web3.Eth.DeployContract.SendRequestAsync(_abi, _abiByteCode, _senderAddress)
-                    .ConfigureAwait(false).GetAwaiter().GetResult();
-
-                var receipt = web3.Eth.Transactions.GetTransactionReceipt.SendRequestAsync(transactionHash)
-                    .ConfigureAwait(false).GetAwaiter().GetResult();
-                while (receipt == null)
-                    receipt = web3.Eth.Transactions.GetTransactionReceipt.SendRequestAsync(transactionHash)
-                        .ConfigureAwait(false).GetAwaiter().GetResult();
-
-                var contractAddress = receipt.ContractAddress;
-                var contract = web3.Eth.GetContract(_abi, contractAddress);
-                var mFunc = contract.GetFunction("CreateAvatarDetail");
-
-                // CreateHolon(uint entityId, string holonId, string info)
-            
-                var entityId = new Random().Next(-90000, 90000);
-                var holonId = holon.Id.ToString();
-                var holonInfo = JsonConvert.SerializeObject(holon); 
-
-                object[] holonObjects =
-                {
-                    entityId,
-                    holonId,
-                    holonInfo
-                };
-                mFunc.CallAsync<int>(holonObjects)
-                    .ConfigureAwait(false).GetAwaiter().GetResult();
-
-                result.Result = holon;
-                result.IsSaved = true;
-                result.IsError = false;
             }
             catch (Exception ex)
             {
@@ -455,40 +278,6 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             var result = new OASISResult<IHolon>();
             try
             {
-                var web3 = new Web3();
-                await web3.Personal.UnlockAccount.SendRequestAsync(_senderAddress, _password, 120);
-
-                var transactionHash = await web3.Eth.DeployContract.SendRequestAsync(_abi, _abiByteCode, _senderAddress);
-
-                var receipt = await web3.Eth.Transactions.GetTransactionReceipt.SendRequestAsync(transactionHash);
-                while (receipt == null)
-                {
-                    await Task.Delay(5000);
-                    receipt = await web3.Eth.Transactions.GetTransactionReceipt.SendRequestAsync(transactionHash);
-                }
-
-                var contractAddress = receipt.ContractAddress;
-                var contract = web3.Eth.GetContract(_abi, contractAddress);
-                var mFunc = contract.GetFunction("CreateAvatarDetail");
-                
-                // CreateHolon(uint entityId, string holonId, string info)
-                
-                var entityId = new Random().Next(-90000, 90000);
-                var holonId = holon.Id.ToString();
-                var holonInfo = JsonConvert.SerializeObject(holon); 
-                
-                object[] holonObjects =
-                {
-                    entityId,
-                    holonId,
-                    holonInfo
-                };
-                
-                await mFunc.CallAsync<int>(holonObjects);
-
-                result.Result = holon;
-                result.IsSaved = true;
-                result.IsError = false;
             }
             catch (Exception ex)
             {
@@ -511,43 +300,6 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
 
             try
             {
-                var web3 = new Web3();
-                web3.Personal.UnlockAccount.SendRequestAsync(_senderAddress, _password, 120)
-                    .ConfigureAwait(false).GetAwaiter().GetResult();
-
-                var transactionHash = web3.Eth.DeployContract.SendRequestAsync(_abi, _abiByteCode, _senderAddress)
-                    .ConfigureAwait(false).GetAwaiter().GetResult();
-
-                var receipt = web3.Eth.Transactions.GetTransactionReceipt.SendRequestAsync(transactionHash)
-                    .ConfigureAwait(false).GetAwaiter().GetResult();
-                while (receipt == null)
-                    receipt = web3.Eth.Transactions.GetTransactionReceipt.SendRequestAsync(transactionHash)
-                        .ConfigureAwait(false).GetAwaiter().GetResult();
-
-                var contractAddress = receipt.ContractAddress;
-                var contract = web3.Eth.GetContract(_abi, contractAddress);
-                var mFunc = contract.GetFunction("CreateAvatarDetail");
-                foreach (var holon in holons)
-                {
-                    // CreateHolon(uint entityId, string holonId, string info)
-
-                    var entityId = new Random().Next(-90000, 90000);
-                    var holonId = holon.Id.ToString();
-                    var holonInfo = JsonConvert.SerializeObject(holon);
-
-                    object[] holonObjects =
-                    {
-                        entityId,
-                        holonId,
-                        holonInfo
-                    };
-                    mFunc.CallAsync<int>(holonObjects)
-                        .ConfigureAwait(false).GetAwaiter().GetResult();
-                }
-
-                result.Result = holons;
-                result.IsError = false;
-                result.IsSaved = true;
             }
             catch (Exception ex)
             {
@@ -678,41 +430,6 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             var result = new OASISResult<IAvatar>();
             try
             {
-                var web3 = new Web3();
-                web3.Personal.UnlockAccount.SendRequestAsync(_senderAddress, _password, 120)
-                    .ConfigureAwait(false).GetAwaiter().GetResult();
-
-                var transactionHash = web3.Eth.DeployContract.SendRequestAsync(_abi, _abiByteCode, _senderAddress)
-                    .ConfigureAwait(false).GetAwaiter().GetResult();
-
-                var receipt = web3.Eth.Transactions.GetTransactionReceipt.SendRequestAsync(transactionHash)
-                    .ConfigureAwait(false).GetAwaiter().GetResult();
-                while (receipt == null)
-                    receipt = web3.Eth.Transactions.GetTransactionReceipt.SendRequestAsync(transactionHash)
-                        .ConfigureAwait(false).GetAwaiter().GetResult();
-
-                var contractAddress = receipt.ContractAddress;
-                var contract = web3.Eth.GetContract(_abi, contractAddress);
-                var mFunc = contract.GetFunction("CreateAvatar");
-                
-                // CreateAvatar(uint entityId, string avatarId, string info)
-
-                var entityId = new Random().Next(-90000, 90000);
-                var avatarId = avatar.AvatarId.ToString();
-                var avatarInfo = JsonConvert.SerializeObject(avatar); 
-                
-                object[] avatarObjects =
-                {
-                    entityId,
-                    avatarId,
-                    avatarInfo
-                };
-                mFunc.CallAsync<int>(avatarObjects)
-                    .ConfigureAwait(false).GetAwaiter().GetResult();
-
-                result.Result = avatar;
-                result.IsSaved = true;
-                result.IsError = false;
             }
             catch (Exception ex)
             {
