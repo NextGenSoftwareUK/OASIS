@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Numerics;
 using System.Threading.Tasks;
 using Nethereum.Web3;
 using Newtonsoft.Json;
@@ -8,21 +9,20 @@ using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
+using NextGenSoftware.OASIS.API.Core.Utilities;
 using Org.BouncyCastle.Ocsp;
 
 namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
 {
     public class EthereumOASIS : OASISStorageProviderBase, IOASISDBStorageProvider, IOASISNETProvider, IOASISSuperStar
     {
-        private readonly string _abi;
-        private readonly string _abiByteCode;
         private readonly string _hostUri;
-        private readonly string _password;
-        private readonly string _projectId;
-        private readonly string _senderAddress;
+        private readonly string _contractAddress;
 
-        public EthereumOASIS(string hostUri, string projectId, string abi, string abiByteCode, string password,
-            string senderAddress)
+        private readonly Web3 _web3;
+        private readonly NextGenSoftwareOASISService _nextGenSoftwareOasisService;
+
+        public EthereumOASIS(string hostUri, string contractAddress)
         {
             this.ProviderName = "EthereumOASIS";
             this.ProviderDescription = "Ethereum Provider";
@@ -30,11 +30,11 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             this.ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Storage);
 
             _hostUri = hostUri;
-            _projectId = projectId;
-            _abi = abi;
-            _abiByteCode = abiByteCode;
-            _password = password;
-            _senderAddress = senderAddress;
+            _contractAddress = contractAddress;
+
+            _web3 = new Web3(_hostUri);
+            _nextGenSoftwareOasisService = new NextGenSoftwareOASISService(_web3, _contractAddress);
+
         }
 
         public override async Task<OASISResult<IAvatar>> SaveAvatarAsync(IAvatar avatar)
@@ -42,6 +42,16 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             var result = new OASISResult<IAvatar>();
             try
             {
+                var avatarInfo = JsonConvert.SerializeObject(avatar);
+                var avatarEntityId = HashUtility.GetNumericHash(avatar.Id.ToString());
+                var avatarId = avatar.AvatarId.ToString();
+
+                await _nextGenSoftwareOasisService
+                    .CreateAvatarRequestAsync(avatarEntityId, avatarId, avatarInfo);
+
+                result.Result = avatar;
+                result.IsError = false;
+                result.IsSaved = true;
             }
             catch (Exception ex)
             {

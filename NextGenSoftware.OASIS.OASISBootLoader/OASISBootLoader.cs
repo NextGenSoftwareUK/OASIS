@@ -350,10 +350,7 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                     {
                         EthereumOASIS EthereumOASIS = new EthereumOASIS(overrideConnectionString == null
                             ? OASISDNA.OASIS.StorageProviders.EthereumOASIS.ConnectionString
-                            : overrideConnectionString, OASISDNA.OASIS.StorageProviders.EthereumOASIS.ProjectId,
-                            OASISDNA.OASIS.StorageProviders.EthereumOASIS.Abi,
-                            OASISDNA.OASIS.StorageProviders.EthereumOASIS.AbiByteCode,
-                            OASISDNA.OASIS.StorageProviders.EthereumOASIS.Password,
+                            : overrideConnectionString,
                             OASISDNA.OASIS.StorageProviders.EthereumOASIS.SenderAddress);
                         EthereumOASIS.StorageProviderError += EthereumOASIS_StorageProviderError;
                         registeredProvider = EthereumOASIS;
