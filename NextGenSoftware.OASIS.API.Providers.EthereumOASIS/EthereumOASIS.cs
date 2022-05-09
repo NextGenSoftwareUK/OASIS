@@ -1,8 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Numerics;
 using System.Threading.Tasks;
-using Nethereum.Web3;
+using Nethereum.JsonRpc.Client;
 using Newtonsoft.Json;
 using NextGenSoftware.OASIS.API.Core;
 using NextGenSoftware.OASIS.API.Core.Enums;
@@ -10,30 +9,26 @@ using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using NextGenSoftware.OASIS.API.Core.Utilities;
-using Org.BouncyCastle.Ocsp;
+using Nethereum.Web3;
+using Nethereum.Web3.Accounts;
 
 namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
 {
     public class EthereumOASIS : OASISStorageProviderBase, IOASISDBStorageProvider, IOASISNETProvider, IOASISSuperStar
     {
-        private readonly string _hostUri;
-        private readonly string _contractAddress;
-
-        private readonly Web3 _web3;
         private readonly NextGenSoftwareOASISService _nextGenSoftwareOasisService;
 
-        public EthereumOASIS(string hostUri, string contractAddress)
+        public EthereumOASIS(string hostUri, string chainPrivateKey, int chainId, string contractAddress)
         {
             this.ProviderName = "EthereumOASIS";
             this.ProviderDescription = "Ethereum Provider";
             this.ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.EthereumOASIS);
             this.ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Storage);
 
-            _hostUri = hostUri;
-            _contractAddress = contractAddress;
-
-            _web3 = new Web3(_hostUri);
-            _nextGenSoftwareOasisService = new NextGenSoftwareOASISService(_web3, _contractAddress);
+            var account = new Account(chainPrivateKey, chainId);
+            var web3 = new Web3(account, hostUri);
+            
+            _nextGenSoftwareOasisService = new NextGenSoftwareOASISService(web3, contractAddress);
 
         }
 
@@ -46,12 +41,31 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
                 var avatarEntityId = HashUtility.GetNumericHash(avatar.Id.ToString());
                 var avatarId = avatar.AvatarId.ToString();
 
-                await _nextGenSoftwareOasisService
-                    .CreateAvatarRequestAsync(avatarEntityId, avatarId, avatarInfo);
+                var requestTransaction = await _nextGenSoftwareOasisService
+                    .CreateAvatarRequestAndWaitForReceiptAsync(avatarEntityId, avatarId, avatarInfo);
 
+                if (requestTransaction.HasErrors() is true)
+                {
+                    result.Message = $"Creating of Avatar (Id): {avatar.AvatarId}, failed! Transaction performing is failure!";
+                    result.IsError = true;
+                    result.IsSaved = false;
+                    result.Result = avatar;
+                    return result;
+                }
+                
                 result.Result = avatar;
                 result.IsError = false;
                 result.IsSaved = true;
+            }
+            catch (RpcResponseException ex)
+            {
+                result.Exception = ex;
+                result.Message = "Smart contract side thrown an exception, while executing the request.";
+                result.IsError = true;
+                result.IsSaved = false;
+                result.Result = null;
+                
+                ErrorHandling.HandleError(ref result, ex.Message);
             }
             catch (Exception ex)
             {
@@ -71,6 +85,35 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             var result = new OASISResult<IAvatarDetail>();
             try
             {
+                var avatarDetailInfo = JsonConvert.SerializeObject(avatar);
+                var avatarDetailEntityId = HashUtility.GetNumericHash(avatar.Id.ToString());
+                var avatarDetailId = avatar.Id.ToString();
+
+                var requestTransaction = _nextGenSoftwareOasisService
+                    .CreateAvatarDetailRequestAndWaitForReceiptAsync(avatarDetailEntityId, avatarDetailId, avatarDetailInfo).Result;
+
+                if (requestTransaction.HasErrors() is true)
+                {
+                    result.Message = $"Creating of Avatar Detail (Id): {avatarDetailId}, failed! Transaction performing is failure!";
+                    result.IsError = true;
+                    result.IsSaved = false;
+                    result.Result = avatar;
+                    return result;
+                }
+                
+                result.Result = avatar;
+                result.IsError = false;
+                result.IsSaved = true;
+            }
+            catch (RpcResponseException ex)
+            {
+                result.Exception = ex;
+                result.Message = "Smart contract side thrown an exception, while executing the request.";
+                result.IsError = true;
+                result.IsSaved = false;
+                result.Result = null;
+                
+                ErrorHandling.HandleError(ref result, ex.Message);
             }
             catch (Exception ex)
             {
@@ -91,6 +134,35 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             var result = new OASISResult<IAvatarDetail>();
             try
             {
+                var avatarDetailInfo = JsonConvert.SerializeObject(avatar);
+                var avatarDetailEntityId = HashUtility.GetNumericHash(avatar.Id.ToString());
+                var avatarDetailId = avatar.Id.ToString();
+
+                var requestTransaction = await _nextGenSoftwareOasisService
+                    .CreateAvatarDetailRequestAndWaitForReceiptAsync(avatarDetailEntityId, avatarDetailId, avatarDetailInfo);
+
+                if (requestTransaction.HasErrors() is true)
+                {
+                    result.Message = $"Creating of Avatar Detail (Id): {avatarDetailId}, failed! Transaction performing is failure!";
+                    result.IsError = true;
+                    result.IsSaved = false;
+                    result.Result = avatar;
+                    return result;
+                }
+                
+                result.Result = avatar;
+                result.IsError = false;
+                result.IsSaved = true;
+            }
+            catch (RpcResponseException ex)
+            {
+                result.Exception = ex;
+                result.Message = "Smart contract side thrown an exception, while executing the request.";
+                result.IsError = true;
+                result.IsSaved = false;
+                result.Result = null;
+                
+                ErrorHandling.HandleError(ref result, ex.Message);
             }
             catch (Exception ex)
             {
@@ -108,7 +180,47 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
 
         public override OASISResult<bool> DeleteAvatar(Guid id, bool softDelete = true)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<bool>();
+            try
+            {
+                var avatarEntityId = HashUtility.GetNumericHash(id.ToString());
+                var requestTransaction = _nextGenSoftwareOasisService
+                    .DeleteAvatarRequestAndWaitForReceiptAsync(avatarEntityId).Result;
+
+                if (requestTransaction.HasErrors() is true)
+                {
+                    result.Message = $"Deleting of Avatar (Id): {id}, failed! Transaction performing is failure!";
+                    result.IsError = true;
+                    result.IsSaved = false;
+                    result.Result = false;
+                    return result;
+                }
+                
+                result.Result = true;
+                result.IsError = false;
+                result.IsSaved = true;
+            }
+            catch (RpcResponseException ex)
+            {
+                result.Exception = ex;
+                result.Message = $"Smart contract side thrown an exception, while executing the request. Maybe specified avatar (with Id: {id}) not found!";
+                result.IsError = true;
+                result.IsSaved = false;
+                result.Result = false;
+                
+                ErrorHandling.HandleError(ref result, ex.Message);
+            }
+            catch (Exception ex)
+            {
+                result.Exception = ex;
+                result.Message = ex.Message;
+                result.IsError = true;
+                result.IsSaved = false;
+                result.Result = false;
+                
+                ErrorHandling.HandleError(ref result, ex.Message);
+            }
+            return result;
         }
 
         public override OASISResult<bool> DeleteAvatarByEmail(string avatarEmail, bool softDelete = true)
@@ -123,7 +235,47 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
 
         public override async Task<OASISResult<bool>> DeleteAvatarAsync(Guid id, bool softDelete = true)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<bool>();
+            try
+            {
+                var avatarEntityId = HashUtility.GetNumericHash(id.ToString());
+                var requestTransaction = await _nextGenSoftwareOasisService
+                    .DeleteAvatarRequestAndWaitForReceiptAsync(avatarEntityId);
+
+                if (requestTransaction.HasErrors() is true)
+                {
+                    result.Message = $"Deleting of Avatar (Id): {id}, failed! Transaction performing is failure!";
+                    result.IsError = true;
+                    result.IsSaved = false;
+                    result.Result = false;
+                    return result;
+                }
+                
+                result.Result = true;
+                result.IsError = false;
+                result.IsSaved = true;
+            }
+            catch (RpcResponseException ex)
+            {
+                result.Exception = ex;
+                result.Message = $"Smart contract side thrown an exception, while executing the request. Maybe specified avatar (with Id: {id}) not found!";
+                result.IsError = true;
+                result.IsSaved = false;
+                result.Result = false;
+                
+                ErrorHandling.HandleError(ref result, ex.Message);
+            }
+            catch (Exception ex)
+            {
+                result.Exception = ex;
+                result.Message = ex.Message;
+                result.IsError = true;
+                result.IsSaved = false;
+                result.Result = false;
+                
+                ErrorHandling.HandleError(ref result, ex.Message);
+            }
+            return result;
         }
 
         public override async Task<OASISResult<bool>> DeleteAvatarByEmailAsync(string avatarEmail, bool softDelete = true)
@@ -169,6 +321,29 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
         
             try
             {
+                foreach (var holon in holons)
+                {
+                    var holonEntityId = HashUtility.GetNumericHash(holon.Id.ToString());
+                    var holonId = holon.Id.ToString();
+                    var holonEntityInfo = JsonConvert.SerializeObject(holon);
+                    
+                    await _nextGenSoftwareOasisService
+                        .CreateHolonRequestAndWaitForReceiptAsync(holonEntityId, holonId, holonEntityInfo);
+                }
+
+                result.Result = holons;
+                result.IsError = false;
+                result.IsSaved = true;
+            }
+            catch (RpcResponseException ex)
+            {
+                result.Exception = ex;
+                result.Message = "Smart contract side thrown an exception, while executing the request.";
+                result.IsError = true;
+                result.IsSaved = false;
+                result.Result = null;
+                
+                ErrorHandling.HandleError(ref result, ex.Message);
             }
             catch (Exception ex)
             {
@@ -186,12 +361,92 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
 
         public override OASISResult<bool> DeleteHolon(Guid id, bool softDelete = true)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<bool>();
+            try
+            {
+                var holonEntityId = HashUtility.GetNumericHash(id.ToString());
+                var requestTransaction = _nextGenSoftwareOasisService.DeleteHolonRequestAndWaitForReceiptAsync(holonEntityId).Result;
+
+                if (requestTransaction.HasErrors() is true)
+                {
+                    result.Message = $"Deleting of holon (Id): {id}, failed! Transaction performing is failure!";
+                    result.IsError = true;
+                    result.IsSaved = false;
+                    result.Result = false;
+                    return result;
+                }
+                
+                result.Result = true;
+                result.IsError = false;
+                result.IsSaved = true;
+            }
+            catch (RpcResponseException ex)
+            {
+                result.Exception = ex;
+                result.Message = "Smart contract side thrown an exception, while executing the request.";
+                result.IsError = true;
+                result.IsSaved = false;
+                result.Result = false;
+                
+                ErrorHandling.HandleError(ref result, ex.Message);
+            }
+            catch (Exception ex)
+            {
+                result.Exception = ex;
+                result.Message = ex.Message;
+                result.IsError = true;
+                result.IsSaved = false;
+                result.Result = false;
+                
+                ErrorHandling.HandleError(ref result, ex.Message);
+            }
+
+            return result;
         }
 
         public override async Task<OASISResult<bool>> DeleteHolonAsync(Guid id, bool softDelete = true)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<bool>();
+            try
+            {
+                var holonEntityId = HashUtility.GetNumericHash(id.ToString());
+                var requestTransaction = await _nextGenSoftwareOasisService.DeleteHolonRequestAndWaitForReceiptAsync(holonEntityId);
+
+                if (requestTransaction.HasErrors() is true)
+                {
+                    result.Message = $"Deleting of holon (Id): {id}, failed! Transaction performing is failure!";
+                    result.IsError = true;
+                    result.IsSaved = false;
+                    result.Result = false;
+                    return result;
+                }
+                
+                result.Result = true;
+                result.IsError = false;
+                result.IsSaved = true;
+            }
+            catch (RpcResponseException ex)
+            {
+                result.Exception = ex;
+                result.Message = "Smart contract side thrown an exception, while executing the request.";
+                result.IsError = true;
+                result.IsSaved = false;
+                result.Result = false;
+                
+                ErrorHandling.HandleError(ref result, ex.Message);
+            }
+            catch (Exception ex)
+            {
+                result.Exception = ex;
+                result.Message = ex.Message;
+                result.IsError = true;
+                result.IsSaved = false;
+                result.Result = false;
+                
+                ErrorHandling.HandleError(ref result, ex.Message);
+            }
+
+            return result;
         }
 
         public override OASISResult<bool> DeleteHolon(string providerKey, bool softDelete = true)
@@ -202,13 +457,95 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
         public override OASISResult<IHolon> LoadHolon(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0,
             bool continueOnError = true, int version = 0)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<IHolon>();
+            try
+            {
+                var holonEntityId = HashUtility.GetNumericHash(id.ToString());
+                var holonDto = _nextGenSoftwareOasisService.GetHolonByIdQueryAsync(holonEntityId).Result;
+
+                if (holonDto == null)
+                {
+                    result.Message = $"Holon (with id {id}) not found!";
+                    result.IsError = true;
+                    result.IsLoaded = false;
+                    result.Result = null;
+                    return result;
+                }
+
+                var holonEntityResult = JsonConvert.DeserializeObject<IHolon>(holonDto.ReturnValue1.Info);
+                result.IsError = false;
+                result.IsLoaded = true;
+                result.Result = holonEntityResult;
+            }
+            catch (RpcResponseException ex)
+            {
+                result.Exception = ex;
+                result.Message = $"Smart contract side thrown an exception, while executing the request. Maybe Holon (with id {id}) not found!";
+                result.IsError = true;
+                result.IsSaved = false;
+                result.Result = null;
+                
+                ErrorHandling.HandleError(ref result, ex.Message);
+            }
+            catch (Exception ex)
+            {
+                result.Exception = ex;
+                result.Message = ex.Message;
+                result.IsError = true;
+                result.IsSaved = false;
+                result.Result = null;
+                
+                ErrorHandling.HandleError(ref result, ex.Message);
+            }
+
+            return result;
         }
 
         public override async Task<OASISResult<IHolon>> LoadHolonAsync(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0,
             bool continueOnError = true, int version = 0)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<IHolon>();
+            try
+            {
+                var holonEntityId = HashUtility.GetNumericHash(id.ToString());
+                var holonDto = await _nextGenSoftwareOasisService.GetHolonByIdQueryAsync(holonEntityId);
+
+                if (holonDto == null)
+                {
+                    result.Message = $"Holon (with id {id}) not found!";
+                    result.IsError = true;
+                    result.IsLoaded = false;
+                    result.Result = null;
+                    return result;
+                }
+
+                var holonEntityResult = JsonConvert.DeserializeObject<IHolon>(holonDto.ReturnValue1.Info);
+                result.IsError = false;
+                result.IsLoaded = true;
+                result.Result = holonEntityResult;
+            }
+            catch (RpcResponseException ex)
+            {
+                result.Exception = ex;
+                result.Message = $"Smart contract side thrown an exception, while executing the request. Maybe Holon (with id {id}) not found!";
+                result.IsError = true;
+                result.IsSaved = false;
+                result.Result = null;
+                
+                ErrorHandling.HandleError(ref result, ex.Message);
+            }
+            catch (Exception ex)
+            {
+                result.Exception = ex;
+                result.Message = ex.Message;
+                result.IsError = true;
+                result.IsSaved = false;
+                result.Result = null;
+                
+                ErrorHandling.HandleError(ref result, ex.Message);
+            }
+
+            return result;
         }
 
         public override OASISResult<IHolon> LoadHolon(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0,
@@ -268,6 +605,35 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             var result = new OASISResult<IHolon>();
             try
             {
+                var holonInfo = JsonConvert.SerializeObject(holon);
+                var holonEntityId = HashUtility.GetNumericHash(holon.Id.ToString());
+                var holonId = holon.Id.ToString();
+
+                var requestTransaction = _nextGenSoftwareOasisService
+                    .CreateHolonRequestAndWaitForReceiptAsync(holonEntityId, holonId, holonInfo).Result;
+
+                if (requestTransaction.HasErrors() is true)
+                {
+                    result.Message = $"Creating of Holon (Id): {holon.Id}, failed! Transaction performing is failure!";
+                    result.IsError = true;
+                    result.IsSaved = false;
+                    result.Result = holon;
+                    return result;
+                }
+                
+                result.Result = holon;
+                result.IsError = false;
+                result.IsSaved = true;
+            }
+            catch (RpcResponseException ex)
+            {
+                result.Exception = ex;
+                result.Message = "Smart contract side thrown an exception, while executing the request.";
+                result.IsError = true;
+                result.IsSaved = false;
+                result.Result = null;
+                
+                ErrorHandling.HandleError(ref result, ex.Message);
             }
             catch (Exception ex)
             {
@@ -288,6 +654,35 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             var result = new OASISResult<IHolon>();
             try
             {
+                var holonInfo = JsonConvert.SerializeObject(holon);
+                var holonEntityId = HashUtility.GetNumericHash(holon.Id.ToString());
+                var holonId = holon.Id.ToString();
+
+                var requestTransaction = await _nextGenSoftwareOasisService
+                    .CreateHolonRequestAndWaitForReceiptAsync(holonEntityId, holonId, holonInfo);
+
+                if (requestTransaction.HasErrors() is true)
+                {
+                    result.Message = $"Creating of Holon (Id): {holon.Id}, failed! Transaction performing is failure!";
+                    result.IsError = true;
+                    result.IsSaved = false;
+                    result.Result = holon;
+                    return result;
+                }
+                
+                result.Result = holon;
+                result.IsError = false;
+                result.IsSaved = true;
+            }
+            catch (RpcResponseException ex)
+            {
+                result.Exception = ex;
+                result.Message = "Smart contract side thrown an exception, while executing the request.";
+                result.IsError = true;
+                result.IsSaved = false;
+                result.Result = null;
+                
+                ErrorHandling.HandleError(ref result, ex.Message);
             }
             catch (Exception ex)
             {
@@ -310,6 +705,29 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
 
             try
             {
+                foreach (var holon in holons)
+                {
+                    var holonEntityId = HashUtility.GetNumericHash(holon.Id.ToString());
+                    var holonId = holon.Id.ToString();
+                    var holonEntityInfo = JsonConvert.SerializeObject(holon);
+                    
+                    _nextGenSoftwareOasisService
+                        .CreateHolonRequestAndWaitForReceiptAsync(holonEntityId, holonId, holonEntityInfo).Wait();
+                }
+
+                result.Result = holons;
+                result.IsError = false;
+                result.IsSaved = true;
+            }
+            catch (RpcResponseException ex)
+            {
+                result.Exception = ex;
+                result.Message = "Smart contract side thrown an exception, while executing the request.";
+                result.IsError = true;
+                result.IsSaved = false;
+                result.Result = null;
+                
+                ErrorHandling.HandleError(ref result, ex.Message);
             }
             catch (Exception ex)
             {
@@ -332,7 +750,48 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
 
         public override OASISResult<IAvatarDetail> LoadAvatarDetail(Guid id, int version = 0)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<IAvatarDetail>();
+            try
+            {
+                var avatarDetailEntityId = HashUtility.GetNumericHash(id.ToString());
+                var avatarDetailDto = _nextGenSoftwareOasisService.GetAvatarDetailByIdQueryAsync(avatarDetailEntityId).Result;
+
+                if (avatarDetailDto == null)
+                {
+                    result.Message = $"Avatar details (with id {id}) not found!";
+                    result.IsError = true;
+                    result.IsLoaded = false;
+                    result.Result = null;
+                    return result;
+                }
+
+                var avatarDetailEntityResult = JsonConvert.DeserializeObject<IAvatarDetail>(avatarDetailDto.ReturnValue1.Info);
+                result.IsError = false;
+                result.IsLoaded = true;
+                result.Result = avatarDetailEntityResult;
+            }
+            catch (RpcResponseException ex)
+            {
+                result.Exception = ex;
+                result.Message = "Smart contract side thrown an exception, while executing the request.";
+                result.IsError = true;
+                result.IsSaved = false;
+                result.Result = null;
+                
+                ErrorHandling.HandleError(ref result, ex.Message);
+            }
+            catch (Exception ex)
+            {
+                result.Exception = ex;
+                result.Message = ex.Message;
+                result.IsError = true;
+                result.IsSaved = false;
+                result.Result = null;
+                
+                ErrorHandling.HandleError(ref result, ex.Message);
+            }
+
+            return result;
         }
 
         public override OASISResult<IAvatarDetail> LoadAvatarDetailByEmail(string avatarEmail, int version = 0)
@@ -347,7 +806,48 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
 
         public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailAsync(Guid id, int version = 0)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<IAvatarDetail>();
+            try
+            {
+                var avatarDetailEntityId = HashUtility.GetNumericHash(id.ToString());
+                var avatarDetailDto = await _nextGenSoftwareOasisService.GetAvatarDetailByIdQueryAsync(avatarDetailEntityId);
+
+                if (avatarDetailDto == null)
+                {
+                    result.Message = $"Avatar details (with id {id}) not found!";
+                    result.IsError = true;
+                    result.IsLoaded = false;
+                    result.Result = null;
+                    return result;
+                }
+
+                var avatarDetailEntityResult = JsonConvert.DeserializeObject<IAvatarDetail>(avatarDetailDto.ReturnValue1.Info);
+                result.IsError = false;
+                result.IsLoaded = true;
+                result.Result = avatarDetailEntityResult;
+            }
+            catch (RpcResponseException ex)
+            {
+                result.Exception = ex;
+                result.Message = "Smart contract side thrown an exception, while executing the request.";
+                result.IsError = true;
+                result.IsSaved = false;
+                result.Result = null;
+                
+                ErrorHandling.HandleError(ref result, ex.Message);
+            }
+            catch (Exception ex)
+            {
+                result.Exception = ex;
+                result.Message = ex.Message;
+                result.IsError = true;
+                result.IsSaved = false;
+                result.Result = null;
+                
+                ErrorHandling.HandleError(ref result, ex.Message);
+            }
+
+            return result;
         }
 
         public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByUsernameAsync(string avatarUsername, int version = 0)
@@ -417,7 +917,48 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
 
         public override async Task<OASISResult<IAvatar>> LoadAvatarAsync(Guid Id, int version = 0)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<IAvatar>();
+            try
+            {
+                var avatarEntityId = HashUtility.GetNumericHash(Id.ToString());
+                var avatarDto = await _nextGenSoftwareOasisService.GetAvatarByIdQueryAsync(avatarEntityId);
+
+                if (avatarDto == null)
+                {
+                    result.Message = $"Avatar (with id {Id}) not found!";
+                    result.IsError = true;
+                    result.IsLoaded = false;
+                    result.Result = null;
+                    return result;
+                }
+
+                var avatarEntityResult = JsonConvert.DeserializeObject<IAvatar>(avatarDto.ReturnValue1.Info);
+                result.IsError = false;
+                result.IsLoaded = true;
+                result.Result = avatarEntityResult;
+            }
+            catch (RpcResponseException ex)
+            {
+                result.Exception = ex;
+                result.Message = "Smart contract side thrown an exception, while executing the request.";
+                result.IsError = true;
+                result.IsSaved = false;
+                result.Result = null;
+                
+                ErrorHandling.HandleError(ref result, ex.Message);
+            }
+            catch (Exception ex)
+            {
+                result.Exception = ex;
+                result.Message = ex.Message;
+                result.IsError = true;
+                result.IsSaved = false;
+                result.Result = null;
+                
+                ErrorHandling.HandleError(ref result, ex.Message);
+            }
+
+            return result;
         }
 
         public override async Task<OASISResult<IAvatar>> LoadAvatarByEmailAsync(string avatarEmail, int version = 0)
@@ -432,7 +973,48 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
 
         public override OASISResult<IAvatar> LoadAvatar(Guid Id, int version = 0)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<IAvatar>();
+            try
+            {
+                var avatarEntityId = HashUtility.GetNumericHash(Id.ToString());
+                var avatarDto = _nextGenSoftwareOasisService.GetAvatarByIdQueryAsync(avatarEntityId).Result;
+
+                if (avatarDto == null)
+                {
+                    result.Message = $"Avatar (with id {Id}) not found!";
+                    result.IsError = true;
+                    result.IsLoaded = false;
+                    result.Result = null;
+                    return result;
+                }
+
+                var avatarEntityResult = JsonConvert.DeserializeObject<IAvatar>(avatarDto.ReturnValue1.Info);
+                result.IsError = false;
+                result.IsLoaded = true;
+                result.Result = avatarEntityResult;
+            }
+            catch (RpcResponseException ex)
+            {
+                result.Exception = ex;
+                result.Message = "Smart contract side thrown an exception, while executing the request.";
+                result.IsError = true;
+                result.IsSaved = false;
+                result.Result = null;
+                
+                ErrorHandling.HandleError(ref result, ex.Message);
+            }
+            catch (Exception ex)
+            {
+                result.Exception = ex;
+                result.Message = ex.Message;
+                result.IsError = true;
+                result.IsSaved = false;
+                result.Result = null;
+                
+                ErrorHandling.HandleError(ref result, ex.Message);
+            }
+
+            return result;
         }
 
         public override OASISResult<IAvatar> SaveAvatar(IAvatar avatar)
@@ -440,6 +1022,35 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             var result = new OASISResult<IAvatar>();
             try
             {
+                var avatarInfo = JsonConvert.SerializeObject(avatar);
+                var avatarEntityId = HashUtility.GetNumericHash(avatar.Id.ToString());
+                var avatarId = avatar.AvatarId.ToString();
+
+                var requestTransaction = _nextGenSoftwareOasisService
+                    .CreateAvatarRequestAndWaitForReceiptAsync(avatarEntityId, avatarId, avatarInfo).Result;
+
+                if (requestTransaction.HasErrors() is true)
+                {
+                    result.Message = $"Creating of Avatar (Id): {avatar.AvatarId}, failed! Transaction performing is failure!";
+                    result.IsError = true;
+                    result.IsSaved = false;
+                    result.Result = avatar;
+                    return result;
+                }
+                
+                result.Result = avatar;
+                result.IsError = false;
+                result.IsSaved = true;
+            }
+            catch (RpcResponseException ex)
+            {
+                result.Exception = ex;
+                result.Message = "Smart contract side thrown an exception, while executing the request.";
+                result.IsError = true;
+                result.IsSaved = false;
+                result.Result = null;
+                
+                ErrorHandling.HandleError(ref result, ex.Message);
             }
             catch (Exception ex)
             {
