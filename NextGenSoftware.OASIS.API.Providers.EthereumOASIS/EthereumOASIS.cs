@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Numerics;
 using System.Threading.Tasks;
 using Nethereum.JsonRpc.Client;
 using Newtonsoft.Json;
@@ -11,6 +12,7 @@ using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using NextGenSoftware.OASIS.API.Core.Utilities;
 using Nethereum.Web3;
 using Nethereum.Web3.Accounts;
+using NextGenSoftware.OASIS.API.Core.Holons;
 
 namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
 {
@@ -18,7 +20,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
     {
         private readonly NextGenSoftwareOASISService _nextGenSoftwareOasisService;
 
-        public EthereumOASIS(string hostUri, string chainPrivateKey, int chainId, string contractAddress)
+        public EthereumOASIS(string hostUri, string chainPrivateKey, BigInteger chainId, string contractAddress)
         {
             this.ProviderName = "EthereumOASIS";
             this.ProviderDescription = "Ethereum Provider";
@@ -472,7 +474,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
                     return result;
                 }
 
-                var holonEntityResult = JsonConvert.DeserializeObject<IHolon>(holonDto.ReturnValue1.Info);
+                var holonEntityResult = JsonConvert.DeserializeObject<Holon>(holonDto.ReturnValue1.Info);
                 result.IsError = false;
                 result.IsLoaded = true;
                 result.Result = holonEntityResult;
@@ -519,7 +521,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
                     return result;
                 }
 
-                var holonEntityResult = JsonConvert.DeserializeObject<IHolon>(holonDto.ReturnValue1.Info);
+                var holonEntityResult = JsonConvert.DeserializeObject<Holon>(holonDto.ReturnValue1.Info);
                 result.IsError = false;
                 result.IsLoaded = true;
                 result.Result = holonEntityResult;
@@ -765,7 +767,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
                     return result;
                 }
 
-                var avatarDetailEntityResult = JsonConvert.DeserializeObject<IAvatarDetail>(avatarDetailDto.ReturnValue1.Info);
+                var avatarDetailEntityResult = JsonConvert.DeserializeObject<AvatarDetail>(avatarDetailDto.ReturnValue1.Info);
                 result.IsError = false;
                 result.IsLoaded = true;
                 result.Result = avatarDetailEntityResult;
@@ -821,7 +823,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
                     return result;
                 }
 
-                var avatarDetailEntityResult = JsonConvert.DeserializeObject<IAvatarDetail>(avatarDetailDto.ReturnValue1.Info);
+                var avatarDetailEntityResult = JsonConvert.DeserializeObject<AvatarDetail>(avatarDetailDto.ReturnValue1.Info);
                 result.IsError = false;
                 result.IsLoaded = true;
                 result.Result = avatarDetailEntityResult;
@@ -932,7 +934,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
                     return result;
                 }
 
-                var avatarEntityResult = JsonConvert.DeserializeObject<IAvatar>(avatarDto.ReturnValue1.Info);
+                var avatarEntityResult = JsonConvert.DeserializeObject<Avatar>(avatarDto.ReturnValue1.Info);
                 result.IsError = false;
                 result.IsLoaded = true;
                 result.Result = avatarEntityResult;
@@ -942,7 +944,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
                 result.Exception = ex;
                 result.Message = "Smart contract side thrown an exception, while executing the request.";
                 result.IsError = true;
-                result.IsSaved = false;
+                result.IsLoaded = false;
                 result.Result = null;
                 
                 ErrorHandling.HandleError(ref result, ex.Message);
@@ -952,7 +954,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
                 result.Exception = ex;
                 result.Message = ex.Message;
                 result.IsError = true;
-                result.IsSaved = false;
+                result.IsLoaded = false;
                 result.Result = null;
                 
                 ErrorHandling.HandleError(ref result, ex.Message);
@@ -988,7 +990,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
                     return result;
                 }
 
-                var avatarEntityResult = JsonConvert.DeserializeObject<IAvatar>(avatarDto.ReturnValue1.Info);
+                var avatarEntityResult = JsonConvert.DeserializeObject<Avatar>(avatarDto.ReturnValue1.Info);
                 result.IsError = false;
                 result.IsLoaded = true;
                 result.Result = avatarEntityResult;
