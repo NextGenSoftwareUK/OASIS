@@ -19,7 +19,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS.TestHarness
         private static readonly string _chainUrl = "http://testchain.nethereum.com:8545";
         private static readonly string _chainPrivateKey = "0x7580e7fb49df1c861f0050fae31c2224c6aba908e116b8da44ee8cd927b990b0";
         private static readonly BigInteger _chainId = 444444444500;
-        
+
         /// <summary>
         /// Execute that example to see, how does Avatar Entity CRUD works via ethereum smart contract
         /// </summary>

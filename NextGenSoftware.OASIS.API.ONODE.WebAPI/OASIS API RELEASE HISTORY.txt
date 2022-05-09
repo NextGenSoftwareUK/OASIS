@@ -137,6 +137,6 @@ First official version of the production ready to use OASIS API! :)
 
 Many improvements:
 
-Coming soon...
+ - Implemented Ethereum Provider
 
 ----------------------------------------------------------------------------------------------------------------------------
