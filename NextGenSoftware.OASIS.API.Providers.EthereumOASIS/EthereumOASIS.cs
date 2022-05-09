@@ -36,6 +36,9 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
 
         public override async Task<OASISResult<IAvatar>> SaveAvatarAsync(IAvatar avatar)
         {
+            if (avatar == null)
+                throw new ArgumentNullException(nameof(avatar));
+            
             var result = new OASISResult<IAvatar>();
             try
             {
@@ -84,6 +87,9 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
 
         public override OASISResult<IAvatarDetail> SaveAvatarDetail(IAvatarDetail avatar)
         {
+            if (avatar == null)
+                throw new ArgumentNullException(nameof(avatar));
+            
             var result = new OASISResult<IAvatarDetail>();
             try
             {
@@ -133,6 +139,9 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
 
         public override async Task<OASISResult<IAvatarDetail>> SaveAvatarDetailAsync(IAvatarDetail avatar)
         {
+            if (avatar == null)
+                throw new ArgumentNullException(nameof(avatar));
+            
             var result = new OASISResult<IAvatarDetail>();
             try
             {
@@ -319,6 +328,9 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
         public override async Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0,
             int curentChildDepth = 0, bool continueOnError = true)
         {
+            if (holons == null)
+                throw new ArgumentNullException(nameof(holons));
+            
             var result = new OASISResult<IEnumerable<IHolon>>();
         
             try
@@ -653,6 +665,9 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
         public override async Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0,
             bool continueOnError = true)
         {
+            if (holon == null)
+                throw new ArgumentNullException(nameof(holon));
+            
             var result = new OASISResult<IHolon>();
             try
             {
@@ -703,6 +718,9 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
         public override OASISResult<IEnumerable<IHolon>> SaveHolons(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0,
             int curentChildDepth = 0, bool continueOnError = true)
         {
+            if (holons == null)
+                throw new ArgumentNullException(nameof(holons));
+            
             var result = new OASISResult<IEnumerable<IHolon>>();
 
             try
@@ -1021,6 +1039,9 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
 
         public override OASISResult<IAvatar> SaveAvatar(IAvatar avatar)
         {
+            if (avatar == null)
+                throw new ArgumentNullException(nameof(avatar));
+            
             var result = new OASISResult<IAvatar>();
             try
             {
