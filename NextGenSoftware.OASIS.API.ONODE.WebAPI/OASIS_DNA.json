@@ -87,7 +87,10 @@
         "ConnectionString": ""
       },
       "EthereumOASIS": {
-        "ConnectionString": "http://localhost:7545"
+        "ConnectionString": "http://testchain.nethereum.com:8545",
+        "ChainPrivateKey": "0x7580e7fb49df1c861f0050fae31c2224c6aba908e116b8da44ee8cd927b990b0",
+        "ChainId": 444444444500,
+        "ContractAddress": "0x06a2dabf7fec27d27f9283cb2de1cd328685510c"
       },
       "Neo4JOASIS": {
         "ConnectionString": "http://localhost:7474",
