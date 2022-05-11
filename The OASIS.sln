@@ -205,6 +205,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.P
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.TestHarness", "NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.TestHarness\NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.TestHarness.csproj", "{BF70AEBD-22A3-4A31-8680-6580BEF8AD60}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.Providers.EthereumOASIS.TestHarness", "NextGenSoftware.OASIS.API.Providers.EthereumOASIS.TestHarness\NextGenSoftware.OASIS.API.Providers.EthereumOASIS.TestHarness.csproj", "{5F56C3D3-EE6C-4864-A346-600E99C1519D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -1655,6 +1657,24 @@ Global
 		{BF70AEBD-22A3-4A31-8680-6580BEF8AD60}.Release|x64.Build.0 = Release|Any CPU
 		{BF70AEBD-22A3-4A31-8680-6580BEF8AD60}.Release|x86.ActiveCfg = Release|Any CPU
 		{BF70AEBD-22A3-4A31-8680-6580BEF8AD60}.Release|x86.Build.0 = Release|Any CPU
+		{5F56C3D3-EE6C-4864-A346-600E99C1519D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5F56C3D3-EE6C-4864-A346-600E99C1519D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5F56C3D3-EE6C-4864-A346-600E99C1519D}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{5F56C3D3-EE6C-4864-A346-600E99C1519D}.Debug|x64.Build.0 = Debug|Any CPU
+		{5F56C3D3-EE6C-4864-A346-600E99C1519D}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{5F56C3D3-EE6C-4864-A346-600E99C1519D}.Debug|x86.Build.0 = Debug|Any CPU
+		{5F56C3D3-EE6C-4864-A346-600E99C1519D}.Linux|Any CPU.ActiveCfg = Debug|Any CPU
+		{5F56C3D3-EE6C-4864-A346-600E99C1519D}.Linux|Any CPU.Build.0 = Debug|Any CPU
+		{5F56C3D3-EE6C-4864-A346-600E99C1519D}.Linux|x64.ActiveCfg = Debug|Any CPU
+		{5F56C3D3-EE6C-4864-A346-600E99C1519D}.Linux|x64.Build.0 = Debug|Any CPU
+		{5F56C3D3-EE6C-4864-A346-600E99C1519D}.Linux|x86.ActiveCfg = Debug|Any CPU
+		{5F56C3D3-EE6C-4864-A346-600E99C1519D}.Linux|x86.Build.0 = Debug|Any CPU
+		{5F56C3D3-EE6C-4864-A346-600E99C1519D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5F56C3D3-EE6C-4864-A346-600E99C1519D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5F56C3D3-EE6C-4864-A346-600E99C1519D}.Release|x64.ActiveCfg = Release|Any CPU
+		{5F56C3D3-EE6C-4864-A346-600E99C1519D}.Release|x64.Build.0 = Release|Any CPU
+		{5F56C3D3-EE6C-4864-A346-600E99C1519D}.Release|x86.ActiveCfg = Release|Any CPU
+		{5F56C3D3-EE6C-4864-A346-600E99C1519D}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
