@@ -5,8 +5,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Common.Logging.Core" Version="3.4.1" />
-    <PackageReference Include="Nethereum.Portable" Version="3.7.0" />
+    <PackageReference Include="Nethereum.RPC" Version="4.4.1" />
+    <PackageReference Include="Nethereum.Web3" Version="4.4.1" />
   </ItemGroup>
 
   <ItemGroup>
