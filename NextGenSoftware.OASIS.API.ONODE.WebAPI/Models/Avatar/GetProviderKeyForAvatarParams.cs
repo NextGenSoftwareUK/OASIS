@@ -1,7 +1,7 @@
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Avatar
 {
-    public class GetProviderKeyForAvatarParams
+    public class ProviderKeyForAvatarParams
     {
         public string AvatarID { get; set; }
         public string AvatarUsername { get; set; }
