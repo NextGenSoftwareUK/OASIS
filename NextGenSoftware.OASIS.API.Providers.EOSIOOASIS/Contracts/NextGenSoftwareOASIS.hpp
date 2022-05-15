@@ -1,35 +1,48 @@
 #include <eosio/eosio.hpp>
-#include <eosio/singleton.hpp>
-#include <eosio/asset.hpp>
 
 using namespace std;
 using namespace eosio;
 
 namespace NextGenSoftwareOASIS
 {
-    class OASISRepository : public contract
+    class [[eosio::contract("OASISRepository")]] OASISRepository : public contract
     {
         public:
-            ACTION CreateAvatar(long entityId, string avatarId, string info);
-            ACTION ReadAvatar(long entityId);
-            ACTION ReadAllAvatars();
-            ACTION UpdateAvatar(long entityId, string info);
-            ACTION HardDeleteAvatar(long entityId);
-            ACTION SoftDeleteAvatar(long entityId);
+            [[eosio::action]]
+            void CreateAvatar(long entityId, string avatarId, string info);
+            [[eosio::action]]
+            void ReadAvatar(long entityId);
+            [[eosio::action]]
+            void ReadAllAvatars();
+            [[eosio::action]]
+            void UpdateAvatar(long entityId, string info);
+            [[eosio::action]]
+            void HardDeleteAvatar(long entityId);
+            [[eosio::action]]
+            void SoftDeleteAvatar(long entityId);
 
-            ACTION CreateAvatarDetail(long entityId, string avatarId, string info);
-            ACTION ReadAvatarDetail(long entityId);
-            ACTION ReadAllAvatarDetails();
+            [[eosio::action]]
+            void CreateAvatarDetail(long entityId, string avatarId, string info);
+            [[eosio::action]]
+            void ReadAvatarDetail(long entityId);
+            [[eosio::action]]
+            void ReadAllAvatarDetails();
 
-            ACTION CreateHolon(long entityId, string holonId, string info);
-            ACTION ReadHolon(long entityId);
-            ACTION ReadAllHolon();
-            ACTION UpdateHolon(long entityId, string info);
-            ACTION HardDeleteHolon(long entityId);
-            ACTION SoftDeleteHolon(long entityId);
+            [[eosio::action]]
+            void CreateHolon(long entityId, string holonId, string info);
+            [[eosio::action]]
+            void ReadHolon(long entityId);
+            [[eosio::action]]
+            void ReadAllHolon();
+            [[eosio::action]]
+            void UpdateHolon(long entityId, string info);
+            [[eosio::action]]
+            void HardDeleteHolon(long entityId);
+            [[eosio::action]]
+            void SoftDeleteHolon(long entityId);
 
         private:
-            struct Avatar
+            struct [[eosio::table]] Avatar
             {
                 long EntityId;
                 string AvatarId;
@@ -45,11 +58,9 @@ namespace NextGenSoftwareOASIS
                 {
                     return AvatarId;
                 }
-
-                EOSLIB_SERIALIZE(Avatar, (EntityId)(AvatarId)(Info)(IsDeleted));
             };
 
-            struct AvatarDetail
+            struct [[eosio::table]] AvatarDetail
             {
                 long EntityId;
                 string AvatarId;
@@ -64,11 +75,9 @@ namespace NextGenSoftwareOASIS
                 {
                     return AvatarId;
                 }
-
-                EOSLIB_SERIALIZE(AvatarDetail, (EntityId), (AvatarId), (Info));
             };
 
-            struct Holon
+            struct [[eosio::table]] Holon
             {
                 long EntityId;
                 string HolonId;
@@ -84,17 +93,10 @@ namespace NextGenSoftwareOASIS
                 {
                     return HolonId;
                 }
-
-                EOSLIB_SERIALIZE(Holon, (EntityId), (HolonId), (Info), (IsDeleted));
             };
 
-            typedef multi_index<N(Avatars), Avatar> Avatars;
-            typedef multi_index<N(AvatarDetails), AvatarDetail> AvatarDetails;
-            typedef multi_index<N(Holons), Holon> Holons;
+            using Avatars = multi_index<"Avatars"_n, Avatar>;
+            using AvatarDetails = multi_index<"AvatarDetails"_n, AvatarDetail>;
+            using Holons = multi_index<"Holons"_n, Holon>;
     };
-
-    EOSIO_ABI(OASISRepository, 
-        (CreateAvatar)(ReadAvatar)(ReadAllAvatars)(UpdateAvatar)(HardDeleteAvatar)(SoftDeleteAvatar)
-        (CreateAvatarDetail)(ReadAvatarDetail)(ReadAllAvatarDetails)
-        (CreateHolon)(ReadHolon)(ReadAllHolon)(UpdateHolon)(HardDeleteHolon)(SoftDeleteHolon))
 }
