@@ -1,102 +1,72 @@
 #include <eosio/eosio.hpp>
+#include <vector>
+#include <string>
 
 using namespace std;
 using namespace eosio;
 
-namespace NextGenSoftwareOASIS
+class [[eosio::contract]] NextGenSoftwareOASIS : public contract
 {
-    class [[eosio::contract("OASISRepository")]] OASISRepository : public contract
-    {
-        public:
-            [[eosio::action]]
-            void CreateAvatar(long entityId, string avatarId, string info);
-            [[eosio::action]]
-            void ReadAvatar(long entityId);
-            [[eosio::action]]
-            void ReadAllAvatars();
-            [[eosio::action]]
-            void UpdateAvatar(long entityId, string info);
-            [[eosio::action]]
-            void HardDeleteAvatar(long entityId);
-            [[eosio::action]]
-            void SoftDeleteAvatar(long entityId);
+    public:
+        using contract::contract;
 
-            [[eosio::action]]
-            void CreateAvatarDetail(long entityId, string avatarId, string info);
-            [[eosio::action]]
-            void ReadAvatarDetail(long entityId);
-            [[eosio::action]]
-            void ReadAllAvatarDetails();
+        struct avatar
+        {
+            long entityId;
+            string avatarId;
+            string info;
+            bool isDeleted;
+        };
 
-            [[eosio::action]]
-            void CreateHolon(long entityId, string holonId, string info);
-            [[eosio::action]]
-            void ReadHolon(long entityId);
-            [[eosio::action]]
-            void ReadAllHolon();
-            [[eosio::action]]
-            void UpdateHolon(long entityId, string info);
-            [[eosio::action]]
-            void HardDeleteHolon(long entityId);
-            [[eosio::action]]
-            void SoftDeleteHolon(long entityId);
+        struct avatardetail
+        {
+            long entityId;
+            string avatarId;
+            string info;
+        };
 
-        private:
-            struct [[eosio::table]] Avatar
-            {
-                long EntityId;
-                string AvatarId;
-                string Info;
-                bool IsDeleted;
+        struct holon
+        {
+            long entityId;
+            string holonId;
+            string info;
+            bool isDeleted;
+        };
 
-                long primary_key() const
-                {
-                    return EntityId;
-                }
+        vector<avatar> avatarTable;
+        vector<avatardetail> detailsTable;
+        vector<holon> holonsTable;
 
-                string secondary_key() const
-                {
-                    return AvatarId;
-                }
-            };
+        [[eosio::action]]
+        void addavatar(long entityId, string avatarId, string info);
+        [[eosio::action]]
+        avatar getavatar(long entityId);
+        [[eosio::action]]
+        avatar* getavatars();
+        [[eosio::action]]
+        void setavatar(long entityId, string info);
+        [[eosio::action]]
+        void hardavatar(long entityId);
+        [[eosio::action]]
+        void softavatar(long entityId);
 
-            struct [[eosio::table]] AvatarDetail
-            {
-                long EntityId;
-                string AvatarId;
-                string Info;
+        [[eosio::action]]
+        void adddetail(long entityId, string avatarId, string info);
+        [[eosio::action]]
+        avatardetail getdetail(long entityId);
+        [[eosio::action]]
+        avatardetail* getdetails();
 
-                long primary_key() const
-                {
-                    return EntityId;
-                }
-
-                string secondary_key() const
-                {
-                    return AvatarId;
-                }
-            };
-
-            struct [[eosio::table]] Holon
-            {
-                long EntityId;
-                string HolonId;
-                string Info;
-                bool IsDeleted;
-
-                long primary_key() const
-                {
-                    return EntityId;
-                }
-
-                string secondary_key() const
-                {
-                    return HolonId;
-                }
-            };
-
-            using Avatars = multi_index<"Avatars"_n, Avatar>;
-            using AvatarDetails = multi_index<"AvatarDetails"_n, AvatarDetail>;
-            using Holons = multi_index<"Holons"_n, Holon>;
-    };
-}
+        [[eosio::action]]
+        void addholon(long entityId, string holonId, string info);
+        [[eosio::action]]
+        holon getholon(long entityId);
+        [[eosio::action]]
+        holon* getholons();
+        [[eosio::action]]
+        void setholon(long entityId, string info);
+        [[eosio::action]]
+        void hardholon(long entityId);
+        [[eosio::action]]
+        void softholon(long entityId);
+};
