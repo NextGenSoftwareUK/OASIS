@@ -8,7 +8,7 @@ using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Entities;
 
 namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.EOSClient
 {
-    public class EosClient : IEosClient, IDisposable
+    public class EosClient : IEosClient
     {
         private readonly Uri _eosHostNodeUri;
         private readonly HttpClient _httpClient;

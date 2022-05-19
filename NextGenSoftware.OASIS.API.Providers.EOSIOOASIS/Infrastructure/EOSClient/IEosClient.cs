@@ -1,9 +1,10 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Entities;
 
 namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.EOSClient
 {
-    public interface IEosClient
+    public interface IEosClient : IDisposable
     {
         public Task<GetNodeInfoResponseDto> GetNodeInfo();
         public Task<GetTableRowsResponseDto> GetTableRows(GetTableRowsRequestDto getTableRowsRequest);
