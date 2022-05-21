@@ -11,14 +11,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Entities
         public string HolonId { get; set; }
         public string Info { get; set; }
         public bool IsDeleted { get; set; }
-
-        public int GetEntityId()
-        {
-            if (string.IsNullOrEmpty(HolonId))
-                throw new ArgumentNullException(nameof(HolonId));
-            return HashUtility.GetNumericHash(HolonId);
-        }
-
+        
         public IHolon GetBaseHolon()
         {
             if (string.IsNullOrEmpty(Info))

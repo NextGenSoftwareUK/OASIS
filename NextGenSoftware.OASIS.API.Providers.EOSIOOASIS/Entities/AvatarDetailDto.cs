@@ -11,13 +11,6 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Entities
         public string AvatarId { get; set; }
         public string Info { get; set; }
 
-        public int GetEntityId()
-        {
-            if (string.IsNullOrEmpty(AvatarId))
-                throw new ArgumentNullException(nameof(AvatarId));
-            return HashUtility.GetNumericHash(AvatarId);
-        }
-
         public IAvatarDetail GetBaseAvatarDetail()
         {
             if (string.IsNullOrEmpty(Info))

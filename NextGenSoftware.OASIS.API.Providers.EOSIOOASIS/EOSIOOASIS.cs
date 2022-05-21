@@ -104,7 +104,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
 
                 result.Result = 
                     allAvatarsDTOs
-                        .Select(avatarDto => JsonConvert.DeserializeObject<Avatar>(avatarDto.Info))
+                        .Select(avatarDto => avatarDto.GetBaseAvatar())
                         .ToList();
                 result.IsLoaded = true;
                 result.IsError = false;
@@ -134,7 +134,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
 
                 result.Result = 
                     allAvatarsDTOs
-                        .Select(avatarDto => JsonConvert.DeserializeObject<Avatar>(avatarDto.Info))
+                        .Select(avatarDto => avatarDto.GetBaseAvatar())
                         .ToList();
                 result.IsLoaded = true;
                 result.IsError = false;
@@ -167,7 +167,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             try
             {
                 var avatarDto = await _avatarRepository.Read(Id);
-                var avatarEntity = JsonConvert.DeserializeObject<Avatar>(avatarDto.Info);
+                var avatarEntity = avatarDto.GetBaseAvatar();
                 if (avatarEntity == null)
                 {
                     result.IsLoaded = false;
@@ -290,7 +290,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             try
             {
                 var avatarDetailDto = _avatarDetailRepository.Read(id).Result;
-                var avatarDetailEntity = JsonConvert.DeserializeObject<AvatarDetail>(avatarDetailDto.Info);
+                var avatarDetailEntity = avatarDetailDto.GetBaseAvatarDetail();
                 if (avatarDetailEntity == null)
                 {
                     result.IsLoaded = false;
@@ -336,7 +336,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             try
             {
                 var avatarDetailDto = await _avatarDetailRepository.Read(id);
-                var avatarDetailEntity = JsonConvert.DeserializeObject<AvatarDetail>(avatarDetailDto.Info);
+                var avatarDetailEntity = avatarDetailDto.GetBaseAvatarDetail();
                 if (avatarDetailEntity == null)
                 {
                     result.IsLoaded = false;
@@ -384,7 +384,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
 
                 result.Result = 
                     allAvatarDetailsDTOs
-                        .Select(avatarDetailDto => JsonConvert.DeserializeObject<AvatarDetail>(avatarDetailDto.Info))
+                        .Select(avatarDetailDto => avatarDetailDto.GetBaseAvatarDetail())
                         .ToList();
                 result.IsLoaded = true;
                 result.IsError = false;
@@ -414,7 +414,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
 
                 result.Result = 
                     allAvatarDetailsDTOs
-                        .Select(avatarDetailDto => JsonConvert.DeserializeObject<AvatarDetail>(avatarDetailDto.Info))
+                        .Select(avatarDetailDto => avatarDetailDto.GetBaseAvatarDetail())
                         .ToList();
                 result.IsLoaded = true;
                 result.IsError = false;
@@ -441,16 +441,29 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             var result = new OASISResult<IAvatar>();
             try
             {
-                var avatarEntityId = HashUtility.GetNumericHash(Avatar.Id);
                 var avatarInfo = JsonConvert.SerializeObject(Avatar);
-
-                _avatarRepository.Create(new AvatarDto()
+                
+                // Check if avatar with such Id exists, if yes - perform updating, otherwise perform creating
+                var existAvatar = _avatarRepository.Read(Avatar.Id).Result;
+                if (existAvatar != null)
                 {
-                    Info = avatarInfo,
-                    AvatarId = Avatar.Id.ToString(),
-                    IsDeleted = false,
-                    EntityId = avatarEntityId
-                }).Wait();
+                    _avatarRepository.Update(new AvatarDto()
+                    {
+                        Info = avatarInfo
+                    }, Avatar.Id).Wait();
+                }
+                else
+                {
+                    var avatarEntityId = HashUtility.GetNumericHash(Avatar.Id);
+
+                    _avatarRepository.Create(new AvatarDto()
+                    {
+                        Info = avatarInfo,
+                        AvatarId = Avatar.Id.ToString(),
+                        IsDeleted = false,
+                        EntityId = avatarEntityId
+                    }).Wait();   
+                }
 
                 result.Result = Avatar;
                 result.IsSaved = true;
@@ -478,16 +491,28 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             var result = new OASISResult<IAvatar>();
             try
             {
-                var avatarEntityId = HashUtility.GetNumericHash(Avatar.Id);
                 var avatarInfo = JsonConvert.SerializeObject(Avatar);
 
-                await _avatarRepository.Create(new AvatarDto()
+                // Check if avatar with such Id exists, if yes - perform updating, otherwise perform creating
+                var existAvatar = await _avatarRepository.Read(Avatar.Id);
+                if (existAvatar != null)
                 {
-                    Info = avatarInfo,
-                    AvatarId = Avatar.Id.ToString(),
-                    IsDeleted = false,
-                    EntityId = avatarEntityId
-                });
+                    await _avatarRepository.Update(new AvatarDto()
+                    {
+                        Info = avatarInfo
+                    }, Avatar.Id);
+                }
+                else
+                {
+                    var avatarEntityId = HashUtility.GetNumericHash(Avatar.Id);
+                    await _avatarRepository.Create(new AvatarDto()
+                    {
+                        Info = avatarInfo,
+                        AvatarId = Avatar.Id.ToString(),
+                        IsDeleted = false,
+                        EntityId = avatarEntityId
+                    });   
+                }
 
                 result.Result = Avatar;
                 result.IsSaved = true;
@@ -515,15 +540,27 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             var result = new OASISResult<IAvatarDetail>();
             try
             {
-                var avatarDetailEntityId = HashUtility.GetNumericHash(Avatar.Id);
                 var avatarDetailInfo = JsonConvert.SerializeObject(Avatar);
 
-                _avatarDetailRepository.Create(new AvatarDetailDto()
+                // Check if avatar with such Id exists, if yes - perform updating, otherwise perform creating
+                var existAvatarDetail = _avatarDetailRepository.Read(Avatar.Id).Result;
+                if (existAvatarDetail != null)
                 {
-                    Info = avatarDetailInfo,
-                    AvatarId = Avatar.Id.ToString(),
-                    EntityId = avatarDetailEntityId
-                }).Wait();
+                    _avatarRepository.Update(new AvatarDto()
+                    {
+                        Info = avatarDetailInfo
+                    }, Avatar.Id).Wait();
+                }
+                else
+                {
+                    var avatarDetailEntityId = HashUtility.GetNumericHash(Avatar.Id);
+                    _avatarDetailRepository.Create(new AvatarDetailDto()
+                    {
+                        Info = avatarDetailInfo,
+                        AvatarId = Avatar.Id.ToString(),
+                        EntityId = avatarDetailEntityId
+                    }).Wait();
+                }
 
                 result.Result = Avatar;
                 result.IsSaved = true;
@@ -551,15 +588,27 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             var result = new OASISResult<IAvatarDetail>();
             try
             {
-                var avatarDetailEntityId = HashUtility.GetNumericHash(Avatar.Id);
                 var avatarDetailInfo = JsonConvert.SerializeObject(Avatar);
 
-                await _avatarDetailRepository.Create(new AvatarDetailDto()
+                // Check if avatar with such Id exists, if yes - perform updating, otherwise perform creating
+                var existAvatarDetail = await _avatarDetailRepository.Read(Avatar.Id);
+                if (existAvatarDetail != null)
                 {
-                    Info = avatarDetailInfo,
-                    AvatarId = Avatar.Id.ToString(),
-                    EntityId = avatarDetailEntityId
-                });
+                    await _avatarRepository.Update(new AvatarDto()
+                    {
+                        Info = avatarDetailInfo
+                    }, Avatar.Id);
+                }
+                else
+                {
+                    var avatarDetailEntityId = HashUtility.GetNumericHash(Avatar.Id);
+                    await _avatarDetailRepository.Create(new AvatarDetailDto()
+                    {
+                        Info = avatarDetailInfo,
+                        AvatarId = Avatar.Id.ToString(),
+                        EntityId = avatarDetailEntityId
+                    });
+                }
 
                 result.Result = Avatar;
                 result.IsSaved = true;
@@ -685,7 +734,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             try
             {
                 var holonDto = _holonRepository.Read(id).Result;
-                var holonEntity = JsonConvert.DeserializeObject<Holon>(holonDto.Info);
+                var holonEntity = holonDto.GetBaseHolon();
                 if (holonEntity == null)
                 {
                     result.IsLoaded = false;
@@ -721,7 +770,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             try
             {
                 var holonDto = await _holonRepository.Read(id);
-                var holonEntity = JsonConvert.DeserializeObject<Holon>(holonDto.Info);
+                var holonEntity = holonDto.GetBaseHolon();
                 if (holonEntity == null)
                 {
                     result.IsLoaded = false;
@@ -789,7 +838,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
 
                 result.Result = 
                     allHolonDTOs
-                        .Select(holonDto => JsonConvert.DeserializeObject<Holon>(holonDto.Info))
+                        .Select(holonDto => holonDto.GetBaseHolon())
                         .ToList();
                 result.IsLoaded = true;
                 result.IsError = false;
@@ -819,7 +868,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
 
                 result.Result = 
                     allHolonDTOs
-                        .Select(holonDto => JsonConvert.DeserializeObject<Holon>(holonDto.Info))
+                        .Select(holonDto => holonDto.GetBaseHolon())
                         .ToList();
                 result.IsLoaded = true;
                 result.IsError = false;
@@ -846,16 +895,29 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             var result = new OASISResult<IHolon>();
             try
             {
-                var holonEntityId = HashUtility.GetNumericHash(holon.Id);
                 var holonInfo = JsonConvert.SerializeObject(holon);
 
-                _holonRepository.Create(new HolonDto()
+                // Check if avatar with such Id exists, if yes - perform updating, otherwise perform creating
+                var existAvatar = _holonRepository.Read(holon.Id).Result;
+                if (existAvatar != null)
                 {
-                    Info = holonInfo,
-                    HolonId = holon.Id.ToString(),
-                    EntityId = holonEntityId,
-                    IsDeleted = false
-                }).Wait();
+                    _holonRepository.Update(new HolonDto()
+                    {
+                        Info = holonInfo
+                    }, holon.Id).Wait();
+                }
+                else
+                {
+                    var holonEntityId = HashUtility.GetNumericHash(holon.Id);
+
+                    _holonRepository.Create(new HolonDto()
+                    {
+                        Info = holonInfo,
+                        HolonId = holon.Id.ToString(),
+                        EntityId = holonEntityId,
+                        IsDeleted = false
+                    }).Wait();   
+                }
 
                 result.Result = holon;
                 result.IsSaved = true;
@@ -883,16 +945,28 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             var result = new OASISResult<IHolon>();
             try
             {
-                var holonEntityId = HashUtility.GetNumericHash(holon.Id);
                 var holonInfo = JsonConvert.SerializeObject(holon);
 
-                await _holonRepository.Create(new HolonDto()
+                // Check if avatar with such Id exists, if yes - perform updating, otherwise perform creating
+                var existAvatar = await _holonRepository.Read(holon.Id);
+                if (existAvatar != null)
                 {
-                    Info = holonInfo,
-                    HolonId = holon.Id.ToString(),
-                    EntityId = holonEntityId,
-                    IsDeleted = false
-                });
+                    await _holonRepository.Update(new HolonDto()
+                    {
+                        Info = holonInfo
+                    }, holon.Id);
+                }
+                else
+                {
+                    var holonEntityId = HashUtility.GetNumericHash(holon.Id);
+                    await _holonRepository.Create(new HolonDto()
+                    {
+                        Info = holonInfo,
+                        HolonId = holon.Id.ToString(),
+                        EntityId = holonEntityId,
+                        IsDeleted = false
+                    });   
+                }
 
                 result.Result = holon;
                 result.IsSaved = true;
@@ -922,16 +996,29 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             {
                 foreach (var holon in holons)
                 {
-                    var holonEntityId = HashUtility.GetNumericHash(holon.Id);
                     var holonInfo = JsonConvert.SerializeObject(holon);
 
-                    _holonRepository.Create(new HolonDto()
+                    // Check if avatar with such Id exists, if yes - perform updating, otherwise perform creating
+                    var existAvatar = _holonRepository.Read(holon.Id).Result;
+                    if (existAvatar != null)
                     {
-                        Info = holonInfo,
-                        HolonId = holon.Id.ToString(),
-                        EntityId = holonEntityId,
-                        IsDeleted = false
-                    }).Wait();   
+                        _holonRepository.Update(new HolonDto()
+                        {
+                            Info = holonInfo
+                        }, holon.Id).Wait();
+                    }
+                    else
+                    {
+                        var holonEntityId = HashUtility.GetNumericHash(holon.Id);
+
+                        _holonRepository.Create(new HolonDto()
+                        {
+                            Info = holonInfo,
+                            HolonId = holon.Id.ToString(),
+                            EntityId = holonEntityId,
+                            IsDeleted = false
+                        }).Wait();   
+                    }
                 }
 
                 result.Result = holons;
@@ -962,16 +1049,29 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             {
                 foreach (var holon in holons)
                 {
-                    var holonEntityId = HashUtility.GetNumericHash(holon.Id);
                     var holonInfo = JsonConvert.SerializeObject(holon);
 
-                    await _holonRepository.Create(new HolonDto()
+                    // Check if avatar with such Id exists, if yes - perform updating, otherwise perform creating
+                    var existAvatar = _holonRepository.Read(holon.Id).Result;
+                    if (existAvatar != null)
                     {
-                        Info = holonInfo,
-                        HolonId = holon.Id.ToString(),
-                        EntityId = holonEntityId,
-                        IsDeleted = false
-                    });   
+                        await _holonRepository.Update(new HolonDto()
+                        {
+                            Info = holonInfo
+                        }, holon.Id);
+                    }
+                    else
+                    {
+                        var holonEntityId = HashUtility.GetNumericHash(holon.Id);
+
+                        await _holonRepository.Create(new HolonDto()
+                        {
+                            Info = holonInfo,
+                            HolonId = holon.Id.ToString(),
+                            EntityId = holonEntityId,
+                            IsDeleted = false
+                        });   
+                    }   
                 }
 
                 result.Result = holons;
