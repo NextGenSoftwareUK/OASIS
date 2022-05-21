@@ -30,7 +30,12 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.Persiste
             var abiJsonToBinResponseDto = await _eosClient.AbiJsonToBin(new AbiJsonToBinRequestDto()
             {
                 Action = "addholon",
-                Args = entity,
+                Args = new
+                {
+                    entityId = entity.EntityId,
+                    holonId = entity.HolonId,
+                    info = entity.Info
+                },
                 Code = _eosOasisAccountCode
             });
             
@@ -44,11 +49,16 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.Persiste
         {
             if (entity == null)
                 throw new ArgumentNullException(nameof(entity));
-            
+
+            var holonEntityId = HashUtility.GetNumericHash(id);
             var abiJsonToBinResponseDto = await _eosClient.AbiJsonToBin(new AbiJsonToBinRequestDto()
             {
                 Action = "setholon",
-                Args = entity,
+                Args = new
+                {
+                    entityId = holonEntityId,
+                    info = entity.Info
+                },
                 Code = _eosOasisAccountCode
             });
             
@@ -87,11 +97,15 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.Persiste
         {
             if (id == null)
                 throw new ArgumentNullException(nameof(id));
-            
+
+            var holonEntityId = HashUtility.GetNumericHash(id);
             var abiJsonToBinResponseDto = await _eosClient.AbiJsonToBin(new AbiJsonToBinRequestDto()
             {
                 Action = "softholon",
-                Args = id,
+                Args = new
+                {
+                    entityId = holonEntityId
+                },
                 Code = _eosOasisAccountCode
             });
             
@@ -106,10 +120,14 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.Persiste
             if (id == null)
                 throw new ArgumentNullException(nameof(id));
             
+            var holonEntityId = HashUtility.GetNumericHash(id);
             var abiJsonToBinResponseDto = await _eosClient.AbiJsonToBin(new AbiJsonToBinRequestDto()
             {
                 Action = "hardholon",
-                Args = id,
+                Args = new
+                {
+                    entityId = holonEntityId
+                },
                 Code = _eosOasisAccountCode
             });
             

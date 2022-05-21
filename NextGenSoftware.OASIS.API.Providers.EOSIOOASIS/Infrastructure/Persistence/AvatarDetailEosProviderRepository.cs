@@ -33,7 +33,12 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.Persiste
             var abiJsonToBinResponseDto = await _eosClient.AbiJsonToBin(new AbiJsonToBinRequestDto()
             {
                 Action = "adddetail",
-                Args = entity,
+                Args = new
+                {
+                    entityId = entity.EntityId,
+                    avatarId = entity.AvatarId,
+                    info = entity.Info
+                },
                 Code = _eosOasisAccountCode
             });
             
