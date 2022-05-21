@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Newtonsoft.Json;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Managers;
+using NextGenSoftware.OASIS.API.Core.Utilities;
 using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Entities;
 using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.EOSClient;
 using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.Repository;
@@ -41,7 +42,20 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.Persiste
 
         public async Task Update(AvatarDto entity, Guid id)
         {
-            throw new NotImplementedException();
+            if (entity == null)
+                throw new ArgumentNullException(nameof(entity));
+            
+            var abiJsonToBinResponseDto = await _eosClient.AbiJsonToBin(new AbiJsonToBinRequestDto()
+            {
+                Action = "setavatar",
+                Args = entity,
+                Code = _eosOasisAccountCode
+            });
+            
+            LoggingManager.Log(
+                "Avatar updating request was sent. " +
+                $"Received BinArgs response: {abiJsonToBinResponseDto.BinArgs}. " +
+                $"Request sent: {JsonConvert.SerializeObject(entity)}", LogType.Info);
         }
 
         public async Task<AvatarDto> Read(Guid id)
@@ -52,31 +66,57 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.Persiste
             var avatarDetailId = HashUtility.GetNumericHash(id).ToString();
             var abiJsonToBinResponseDto = await _eosClient.AbiBinToJson(new AbiBinToJsonRequestDto()
             {
-                Action = "getdetail",
+                Action = "getavatar",
                 BinArgs = avatarDetailId,
                 Code = _eosOasisAccountCode
             });
-            return JsonConvert.DeserializeObject<AvatarDetailDto>(abiJsonToBinResponseDto);        
+            return JsonConvert.DeserializeObject<AvatarDto>(abiJsonToBinResponseDto);        
         }
 
         public async Task<ImmutableArray<AvatarDto>> ReadAll()
         {
             var abiJsonToBinResponseDto = await _eosClient.AbiBinToJson(new AbiBinToJsonRequestDto()
             {
-                Action = "getdetails",
+                Action = "getavatars",
                 Code = _eosOasisAccountCode
             });
-            return JsonConvert.DeserializeObject<ImmutableArray<AvatarDetailDto>>(abiJsonToBinResponseDto);
+            return JsonConvert.DeserializeObject<ImmutableArray<AvatarDto>>(abiJsonToBinResponseDto);
         }
 
         public async Task DeleteSoft(Guid id)
         {
-            throw new NotImplementedException();
+            if (id == null)
+                throw new ArgumentNullException(nameof(id));
+            
+            var abiJsonToBinResponseDto = await _eosClient.AbiJsonToBin(new AbiJsonToBinRequestDto()
+            {
+                Action = "softavatar",
+                Args = id,
+                Code = _eosOasisAccountCode
+            });
+            
+            LoggingManager.Log(
+                "Avatar soft-deleting request was sent. " +
+                $"Received BinArgs response: {abiJsonToBinResponseDto.BinArgs}. " +
+                $"Request sent: {id}", LogType.Info);
         }
 
         public async Task DeleteHard(Guid id)
         {
-            throw new NotImplementedException();
+            if (id == null)
+                throw new ArgumentNullException(nameof(id));
+            
+            var abiJsonToBinResponseDto = await _eosClient.AbiJsonToBin(new AbiJsonToBinRequestDto()
+            {
+                Action = "hardavatar",
+                Args = id,
+                Code = _eosOasisAccountCode
+            });
+            
+            LoggingManager.Log(
+                "Avatar hard-deleting request was sent. " +
+                $"Received BinArgs response: {abiJsonToBinResponseDto.BinArgs}. " +
+                $"Request sent: {id}", LogType.Info);
         }
 
         private void ReleaseUnmanagedResources()
