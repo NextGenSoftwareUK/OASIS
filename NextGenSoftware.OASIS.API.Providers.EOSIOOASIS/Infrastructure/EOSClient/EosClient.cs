@@ -33,25 +33,25 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.EOSClien
         public async Task<GetNodeInfoResponseDto> GetNodeInfo()
         {
             return await SendRequest<GetNodeInfoResponseDto, object>(null, HttpMethod.Get,
-                new Uri(_eosHostNodeUri.Host + ""));
+                new Uri(_eosHostNodeUri.Host + "/get_info"));
         }
 
         public async Task<GetTableRowsResponseDto> GetTableRows(GetTableRowsRequestDto getTableRowsRequest)
         {
             return await SendRequest<GetTableRowsResponseDto, GetTableRowsRequestDto>(getTableRowsRequest,
-                HttpMethod.Post, new Uri(_eosHostNodeUri.Host + ""));
+                HttpMethod.Post, new Uri(_eosHostNodeUri.Host + "/get_table_rows"));
         }
 
         public async Task<AbiJsonToBinResponseDto> AbiJsonToBin(AbiJsonToBinRequestDto abiJsonToBinRequestDto)
         {
             return await SendRequest<AbiJsonToBinResponseDto, AbiJsonToBinRequestDto>(abiJsonToBinRequestDto,
-                HttpMethod.Post, new Uri(_eosHostNodeUri.Host + ""));
+                HttpMethod.Post, new Uri(_eosHostNodeUri.Host + "/abi_json_to_bin"));
         }
 
         public async Task<string> AbiBinToJson(AbiBinToJsonRequestDto abiJsonToBinRequestDto)
         {
             return await SendRequest<string, AbiBinToJsonRequestDto>(abiJsonToBinRequestDto, HttpMethod.Post,
-                new Uri(_eosHostNodeUri.Host + ""));
+                new Uri(_eosHostNodeUri.Host + "/abi_bin_to_json"));
         }
 
         /// <summary>
