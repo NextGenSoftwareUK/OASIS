@@ -30,7 +30,12 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.Persiste
             var abiJsonToBinResponseDto = await _eosClient.AbiJsonToBin(new AbiJsonToBinRequestDto()
             {
                 Action = "addavatar",
-                Args = entity,
+                Args = new
+                {
+                    entityId = entity.EntityId,
+                    avatarId = entity.AvatarId,
+                    info = entity.Info
+                },
                 Code = _eosOasisAccountCode
             });
             
@@ -45,10 +50,15 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.Persiste
             if (entity == null)
                 throw new ArgumentNullException(nameof(entity));
             
+            var avatarId = HashUtility.GetNumericHash(id);
             var abiJsonToBinResponseDto = await _eosClient.AbiJsonToBin(new AbiJsonToBinRequestDto()
             {
                 Action = "setavatar",
-                Args = entity,
+                Args = new
+                {
+                    entityId = avatarId,
+                    info = entity.Info
+                },
                 Code = _eosOasisAccountCode
             });
             
@@ -63,11 +73,11 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.Persiste
             if (id == null)
                 throw new ArgumentNullException(nameof(id));
             
-            var avatarDetailId = HashUtility.GetNumericHash(id).ToString();
+            var avatarId = HashUtility.GetNumericHash(id).ToString();
             var abiJsonToBinResponseDto = await _eosClient.AbiBinToJson(new AbiBinToJsonRequestDto()
             {
                 Action = "getavatar",
-                BinArgs = avatarDetailId,
+                BinArgs = avatarId,
                 Code = _eosOasisAccountCode
             });
             return JsonConvert.DeserializeObject<AvatarDto>(abiJsonToBinResponseDto);        
@@ -88,10 +98,14 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.Persiste
             if (id == null)
                 throw new ArgumentNullException(nameof(id));
             
+            var avatarId = HashUtility.GetNumericHash(id);
             var abiJsonToBinResponseDto = await _eosClient.AbiJsonToBin(new AbiJsonToBinRequestDto()
             {
                 Action = "softavatar",
-                Args = id,
+                Args = new
+                {
+                    entityId = avatarId
+                },
                 Code = _eosOasisAccountCode
             });
             
@@ -106,10 +120,14 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.Persiste
             if (id == null)
                 throw new ArgumentNullException(nameof(id));
             
+            var avatarId = HashUtility.GetNumericHash(id);
             var abiJsonToBinResponseDto = await _eosClient.AbiJsonToBin(new AbiJsonToBinRequestDto()
             {
                 Action = "hardavatar",
-                Args = id,
+                Args = new
+                {
+                    entityId = avatarId
+                },
                 Code = _eosOasisAccountCode
             });
             
