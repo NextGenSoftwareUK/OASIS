@@ -330,17 +330,17 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             return KeyManager.GetProviderPrivateKeyForAvatarByUsername(providerKeyForAvatarParams.AvatarUsername);
         }
 
-        /// <summary>
-        ///     Get's a given avatar's private key for the given provider type using the avatar's email.
-        /// </summary>
-        /// <param name="providerKeyForAvatarParams"></param>
-        /// <returns></returns>
-        [Authorize]
-        [HttpGet("get_provider_private_key_for_avatar_by_email")]
-        public OASISResult<string> GetProviderPrivateKeyForAvatarByEmail(ProviderKeyForAvatarParams providerKeyForAvatarParams)
-        {
-            return KeyManager.GetProviderPrivateKeyForAvatarByEmail(providerKeyForAvatarParams.AvatarUsername);
-        }
+        ///// <summary>
+        /////     Get's a given avatar's private key for the given provider type using the avatar's email.
+        ///// </summary>
+        ///// <param name="providerKeyForAvatarParams"></param>
+        ///// <returns></returns>
+        //[Authorize]
+        //[HttpGet("get_provider_private_key_for_avatar_by_email")]
+        //public OASISResult<string> GetProviderPrivateKeyForAvatarByEmail(ProviderKeyForAvatarParams providerKeyForAvatarParams)
+        //{
+        //    return KeyManager.GetProviderPrivateKeyForAvatarByEmail(providerKeyForAvatarParams.AvatarUsername);
+        //}
 
         /// <summary>
         ///     Get's a given avatar's public keys for the given provider type using the avatar's id.
@@ -448,17 +448,17 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             return KeyManager.GetAllProviderPrivateKeysForAvatarByUsername(username);
         }
 
-        /// <summary>
-        ///     Get's a given avatar's private keys for the given avatar with their email.
-        /// </summary>
-        /// <param name="email">The Avatar's username.</param>
-        /// <returns></returns>
-        [Authorize]
-        [HttpGet("get_all_provider_private_keys_for_avatar_by_email/{email}")]
-        public OASISResult<Dictionary<ProviderType, string>> GetAllProviderPrivateKeysForAvatarByEmail(string email)
-        {
-            return KeyManager.GetAllProviderPrivateKeysForAvatarByEmail(email);
-        }
+        ///// <summary>
+        /////     Get's a given avatar's private keys for the given avatar with their email.
+        ///// </summary>
+        ///// <param name="email">The Avatar's username.</param>
+        ///// <returns></returns>
+        //[Authorize]
+        //[HttpGet("get_all_provider_private_keys_for_avatar_by_email/{email}")]
+        //public OASISResult<Dictionary<ProviderType, string>> GetAllProviderPrivateKeysForAvatarByEmail(string email)
+        //{
+        //    return KeyManager.GetAllProviderPrivateKeysForAvatarByEmail(email);
+        //}
 
         /// <summary>
         ///     Get's a given avatar's unique storage keys for the given avatar with their id.
@@ -620,17 +620,17 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             return KeyManager.GetAvatarUsernameForProviderPrivateKey(providerKey);
         }
 
-        /// <summary>
-        ///     Get's the avatar email for a given private key.
-        /// </summary>
-        /// <param name="providerKey"></param>
-        /// <returns></returns>
-        [Authorize]
-        [HttpGet("get_avatar_email_for_provider_private_key/{providerKey}")]
-        public OASISResult<string> GetAvatarEmailForProviderPrivateKey(string providerKey)
-        {
-            return KeyManager.GetAvatarEmailForProviderPrivateKey(providerKey);
-        }
+        ///// <summary>
+        /////     Get's the avatar email for a given private key.
+        ///// </summary>
+        ///// <param name="providerKey"></param>
+        ///// <returns></returns>
+        //[Authorize]
+        //[HttpGet("get_avatar_email_for_provider_private_key/{providerKey}")]
+        //public OASISResult<string> GetAvatarEmailForProviderPrivateKey(string providerKey)
+        //{
+        //    return KeyManager.GetAvatarEmailForProviderPrivateKey(providerKey);
+        //}
 
         /// <summary>
         ///     Get's the avatar for a given private key.
@@ -666,6 +666,77 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         public OASISResult<KeyPair> GenerateKeyPair(string keyPrefix)
         {
             return KeyManager.GenerateKeyPair(keyPrefix);
+        }
+
+        /// <summary>
+        ///     Get's the private WIF.
+        /// </summary>
+        /// <param name="source"></param>
+        /// <returns></returns>
+        [Authorize]
+        [HttpPost("get_private_wifi/{source}")]
+        public OASISResult<string> GetPrivateWif(byte[] source)
+        {
+            //TODO: May need to change source to a string if byte array does not work...
+            //If need to pass a string in instead then the caller would use this:
+            //byte[] bytes = File.ReadAllBytes("path");
+            //string file = Convert.ToBase64String(bytes);
+            // You have base64 Data in "file" variable
+
+            //Then code below would convert back to byte[]:
+            //byte[] bytes = Convert.FromBase64String(b64Str);
+            //File.WriteAllBytes(path, bytes);
+
+
+            return KeyManager.GetPrivateWif(source);
+        }
+
+        /// <summary>
+        ///     Get's the public WIF.
+        /// </summary>
+        /// <param name="wifParams"></param>
+        /// <returns></returns>
+        [Authorize]
+        [HttpPost("get_public_wifi")]
+        public OASISResult<string> GetPublicWif(WifParams wifParams)
+        {
+            return KeyManager.GetPublicWif(wifParams.PublicKey, wifParams.Prefix);
+        }
+
+        /// <summary>
+        ///     Decode's the private WIF.
+        /// </summary>
+        /// <param name="data"></param>
+        /// <returns></returns>
+        [Authorize]
+        [HttpPost("decode_private_wif/{data}")]
+        public OASISResult<byte[]> DecodePrivateWif(string data)
+        {
+            return KeyManager.DecodePrivateWif(data);
+        }
+
+        /// <summary>
+        ///     Decodes.
+        /// </summary>
+        /// <param name="data"></param>
+        /// <returns></returns>
+        [Authorize]
+        [HttpPost("base58_check_decode/{data}")]
+        public OASISResult<byte[]> Base58CheckDecode(string data)
+        {
+            return KeyManager.Base58CheckDecode(data);
+        }
+
+        /// <summary>
+        ///     Encode's the signature.
+        /// </summary>
+        /// <param name="source"></param>
+        /// <returns></returns>
+        [Authorize]
+        [HttpPost("encode_signature/{source}")]
+        public OASISResult<string> EncodeSignature(byte[] source)
+        {
+            return KeyManager.EncodeSignature(source);
         }
 
         /*
@@ -744,10 +815,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         {
             object providerTypeToLinkTo = null;
             //object providerTypeToAvatarFrom = null;
-            Guid avatarID;
+            Guid avatarID = Guid.Empty;
 
-            if (string.IsNullOrEmpty(linkProviderKeyToAvatarParams.AvatarID) && string.IsNullOrEmpty(linkProviderKeyToAvatarParams.AvatarUsername))
-                return (false, ProviderType.None, Guid.Empty, $"You need to either pass in a valid AvatarID or Avatar Username.");
+            if (string.IsNullOrEmpty(linkProviderKeyToAvatarParams.AvatarID) && string.IsNullOrEmpty(linkProviderKeyToAvatarParams.AvatarUsername) && string.IsNullOrEmpty(linkProviderKeyToAvatarParams.AvatarEmail))
+                return (false, ProviderType.None, Guid.Empty, $"You need to either pass in a valid Avatar ID, Avatar Username or Avatar Email.");
 
             //if (string.IsNullOrEmpty(linkProviderKeyToAvatarParams.ProviderTypeToLinkTo))
             //    return (new OASISResult<KeyPair> { IsError = true, Message = $"The providerTypeToLinkTo param cannot be null. Valid values include: {EnumHelper.GetEnumValues(typeof(ProviderType), EnumHelperListType.ItemsSeperatedByComma)}" });
@@ -759,7 +830,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             //if (!string.IsNullOrEmpty(linkProviderKeyToAvatarParams.ProviderTypeToLoadAvatarFrom) && !Enum.TryParse(typeof(ProviderType), linkProviderKeyToAvatarParams.ProviderTypeToLoadAvatarFrom, out providerTypeToAvatarFrom))
             //    return (false, ProviderType.None, ProviderType.None, Guid.Empty, $"The given ProviderTypeToLoadAvatarFrom param {linkProviderKeyToAvatarParams.ProviderTypeToLoadAvatarFrom} is invalid. Valid values include: {EnumHelper.GetEnumValues(typeof(ProviderType), EnumHelperListType.ItemsSeperatedByComma)}");
 
-            if (!Guid.TryParse(linkProviderKeyToAvatarParams.AvatarID, out avatarID))
+            if (!string.IsNullOrEmpty(linkProviderKeyToAvatarParams.AvatarID) && !Guid.TryParse(linkProviderKeyToAvatarParams.AvatarID, out avatarID))
                 return (false, ProviderType.None, Guid.Empty, $"The given AvatarID {linkProviderKeyToAvatarParams.AvatarID} is not a valid Guid.");
 
             return (true, (ProviderType)providerTypeToLinkTo, avatarID, null);

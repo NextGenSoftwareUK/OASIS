@@ -46,6 +46,7 @@ namespace NextGenSoftware.OASIS.API.DNA
     {
         public bool BCryptEncryptionEnabled { get; set; }
         public bool Rijndael256EncryptionEnabled { get; set; }
+        public string Rijndael256Key { get; set; }
         public bool QuantumEncryptionEnabled { get; set; }
     }
 

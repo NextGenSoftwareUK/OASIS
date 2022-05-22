@@ -93,6 +93,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities
         public bool IsBeamedIn { get; set; }
         public Guid HolonId { get; set; }
         public List<RefreshToken> RefreshTokens { get; set; } = new List<RefreshToken>();
+        public Dictionary<ProviderType, List<IProviderWallet>> ProviderWallets { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+
         // public string Image2D { get; set; }
 
         /*
