@@ -46,7 +46,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpGet("GetHolochainAgentIdsForAvatar")]
         public OASISResult<List<string>> GetHolochainAgentIdsForAvatar(Guid avatarId)
         {
-            return KeyManager.GetProviderPublicKeysForAvatar(avatarId, ProviderType.HoloOASIS);
+            return KeyManager.GetProviderPublicKeysForAvatarById(avatarId, ProviderType.HoloOASIS);
         }
 
         /// <summary>
@@ -58,7 +58,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpGet("GetHolochainAgentPrivateKeyForAvatar")]
         public OASISResult<string> GetHolochainAgentPrivateKeyForAvatar(Guid avatarId)
         {
-            return KeyManager.GetProviderPrivateKeyForAvatar(avatarId, ProviderType.HoloOASIS);
+            return KeyManager.GetProviderPrivateKeyForAvatarById(avatarId, ProviderType.HoloOASIS);
         }
 
         /// <summary>
@@ -120,7 +120,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpPost("{avatarId}/{holochainAgentId}")]
         public OASISResult<bool> LinkHolochainAgentIdToAvatar(Guid avatarId, string holochainAgentId, ProviderType providerToLoadSaveAvatarTo = ProviderType.Default)
         {
-            return KeyManager.LinkProviderPublicKeyToAvatar(avatarId, ProviderType.HoloOASIS, holochainAgentId, providerToLoadSaveAvatarTo);
+            return KeyManager.LinkProviderPublicKeyToAvatarById(avatarId, ProviderType.HoloOASIS, holochainAgentId, providerToLoadSaveAvatarTo);
             //return Program.AvatarManager.LinkPublicProviderKeyToAvatar(avatarId, ProviderType.HoloOASIS, holochainAgentId);
         }
     }

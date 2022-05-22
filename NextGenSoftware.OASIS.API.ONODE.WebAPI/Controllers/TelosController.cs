@@ -164,7 +164,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpPost("{avatarId}/{telosAccountName}")]
         public OASISResult<bool> LinkTelosAccountToAvatar(Guid avatarId, string telosAccountName)
         {
-            return KeyManager.LinkProviderPublicKeyToAvatar(avatarId, ProviderType.TelosOASIS, telosAccountName);
+            return KeyManager.LinkProviderPublicKeyToAvatarById(avatarId, ProviderType.TelosOASIS, telosAccountName);
         }
     }
 }

@@ -15,7 +15,6 @@ using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.API.Core.Holons;
-using AutoMapper;
 
 namespace NextGenSoftware.OASIS.API.Core.Managers
 {

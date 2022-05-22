@@ -82,13 +82,13 @@ namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS
         public List<string> GetTelosAccountNamesForAvatar(Guid avatarId)
         {
             //TODO: Handle OASISResult Properly.
-            return KeyManager.GetProviderPublicKeysForAvatar(avatarId, Core.Enums.ProviderType.TelosOASIS).Result;
+            return KeyManager.GetProviderPublicKeysForAvatarById(avatarId, Core.Enums.ProviderType.TelosOASIS).Result;
         }
 
         public string GetTelosAccountPrivateKeyForAvatar(Guid avatarId)
         {
             //TODO: Handle OASISResult Properly.
-            return KeyManager.GetProviderPrivateKeyForAvatar(avatarId, Core.Enums.ProviderType.TelosOASIS).Result;
+            return KeyManager.GetProviderPrivateKeyForAvatarById(avatarId, Core.Enums.ProviderType.TelosOASIS).Result;
         }
 
         public Account GetTelosAccountForAvatar(Guid avatarId)

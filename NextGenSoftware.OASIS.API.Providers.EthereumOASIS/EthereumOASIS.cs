@@ -27,11 +27,13 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             this.ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.EthereumOASIS);
             this.ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Storage);
 
-            var account = new Account(chainPrivateKey, chainId);
-            var web3 = new Web3(account, hostUri);
-            
-            _nextGenSoftwareOasisService = new NextGenSoftwareOASISService(web3, contractAddress);
+            if (!string.IsNullOrEmpty(hostUri) && !string.IsNullOrEmpty(chainPrivateKey) && chainId > 0)
+            {
+                var account = new Account(chainPrivateKey, chainId);
+                var web3 = new Web3(account, hostUri);
 
+                _nextGenSoftwareOasisService = new NextGenSoftwareOASISService(web3, contractAddress);
+            }
         }
 
         public override async Task<OASISResult<IAvatar>> SaveAvatarAsync(IAvatar avatar)

@@ -169,7 +169,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpPost("{avatarId}/{eosioAccountName}")]
         public OASISResult<bool> LinkEOSIOAccountToAvatar(Guid avatarId, string eosioAccountName)
         {
-            return KeyManager.LinkProviderPublicKeyToAvatar(avatarId, ProviderType.EOSIOOASIS, eosioAccountName);
+            return KeyManager.LinkProviderPublicKeyToAvatarById(avatarId, ProviderType.EOSIOOASIS, eosioAccountName);
         }
     }
 }

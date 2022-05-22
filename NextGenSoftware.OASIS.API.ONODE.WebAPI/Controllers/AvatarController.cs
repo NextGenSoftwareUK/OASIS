@@ -1697,52 +1697,6 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 : string.Empty;
         }
 
-        //private (bool, ProviderType, ProviderType, Guid, OASISResult<bool>) ValidateLinkProviderKeyToAvatarParams(LinkProviderKeyToAvatarParams linkProviderKeyToAvatarParams)
-        //{
-        //    object providerTypeToLinkTo;
-        //    object providerTypeToAvatarFrom;
-        //    Guid avatarID;
-
-        //    if (!Enum.TryParse(typeof(ProviderType), linkProviderKeyToAvatarParams.ProviderTypeToLinkTo, out providerTypeToLinkTo))
-        //        return (false, ProviderType.None, ProviderType.None, Guid.Empty, new OASISResult<bool> { IsError = true, Message = $"The given ProviderTypeToLinkTo param {linkProviderKeyToAvatarParams.ProviderTypeToLinkTo} is invalid. Valid values include: {EnumHelper.GetEnumValues(typeof(ProviderType), EnumHelperListType.ItemsSeperatedByComma)}", Result = false });
-
-        //    if (!Enum.TryParse(typeof(ProviderType), linkProviderKeyToAvatarParams.ProviderTypeToLoadAvatarFrom, out providerTypeToAvatarFrom))
-        //        return (false, ProviderType.None, ProviderType.None, Guid.Empty, new OASISResult<bool> { IsError = true, Message = $"The given ProviderTypeToLoadAvatarFrom param {linkProviderKeyToAvatarParams.ProviderTypeToLoadAvatarFrom} is invalid. Valid values include: {EnumHelper.GetEnumValues(typeof(ProviderType), EnumHelperListType.ItemsSeperatedByComma)}", Result = false });
-
-        //    if (!Guid.TryParse(linkProviderKeyToAvatarParams.AvatarID, out avatarID))
-        //        return (false, ProviderType.None, ProviderType.None, Guid.Empty, new OASISResult<bool> { IsError = true, Message = $"The given AvatarID {linkProviderKeyToAvatarParams.AvatarID} is not a valid Guid.", Result = false });
-
-        //    return (true, (ProviderType)providerTypeToLinkTo, (ProviderType)providerTypeToAvatarFrom, avatarID, null);
-        //}
-
-        private (bool, ProviderType, ProviderType, Guid, string) ValidateLinkProviderKeyToAvatarParams(LinkProviderKeyToAvatarParams linkProviderKeyToAvatarParams)
-        {
-            object providerTypeToLinkTo = null;
-            object providerTypeToAvatarFrom = null;
-            Guid avatarID;
-
-            if (string.IsNullOrEmpty(linkProviderKeyToAvatarParams.AvatarID) && string.IsNullOrEmpty(linkProviderKeyToAvatarParams.AvatarUsername))
-                return (false, ProviderType.None, ProviderType.None, Guid.Empty, $"You need to either pass in a valid AvatarID or Avatar Username.");
-
-            //if (string.IsNullOrEmpty(linkProviderKeyToAvatarParams.ProviderTypeToLinkTo))
-            //    return (new OASISResult<KeyPair> { IsError = true, Message = $"The providerTypeToLinkTo param cannot be null. Valid values include: {EnumHelper.GetEnumValues(typeof(ProviderType), EnumHelperListType.ItemsSeperatedByComma)}" });
-
-            if (!Enum.TryParse(typeof(ProviderType), linkProviderKeyToAvatarParams.ProviderTypeToLinkTo, out providerTypeToLinkTo))
-                return (false, ProviderType.None, ProviderType.None, Guid.Empty, $"The given ProviderTypeToLinkTo param {linkProviderKeyToAvatarParams.ProviderTypeToLinkTo} is invalid. Valid values include: {EnumHelper.GetEnumValues(typeof(ProviderType), EnumHelperListType.ItemsSeperatedByComma)}");
-
-            //Optional param.
-            if (!string.IsNullOrEmpty(linkProviderKeyToAvatarParams.ProviderTypeToLoadAvatarFrom) && !Enum.TryParse(typeof(ProviderType), linkProviderKeyToAvatarParams.ProviderTypeToLoadAvatarFrom, out providerTypeToAvatarFrom))
-                return (false, ProviderType.None, ProviderType.None, Guid.Empty, $"The given ProviderTypeToLoadAvatarFrom param {linkProviderKeyToAvatarParams.ProviderTypeToLoadAvatarFrom} is invalid. Valid values include: {EnumHelper.GetEnumValues(typeof(ProviderType), EnumHelperListType.ItemsSeperatedByComma)}");
-
-            if (!Guid.TryParse(linkProviderKeyToAvatarParams.AvatarID, out avatarID))
-                return (false, ProviderType.None, ProviderType.None, Guid.Empty, $"The given AvatarID {linkProviderKeyToAvatarParams.AvatarID} is not a valid Guid.");
-
-            if (string.IsNullOrEmpty(linkProviderKeyToAvatarParams.ProviderTypeToLoadAvatarFrom))
-                return (true, (ProviderType)providerTypeToLinkTo, ProviderType.Default, avatarID, null);
-            else
-                return (true, (ProviderType)providerTypeToLinkTo, (ProviderType)providerTypeToAvatarFrom, avatarID, null);
-        }
-
         private OASISResult<T> FormatResponse<T>(OASISResult<T> response)
         {
             //Make sure no Error Details are in the Message.
