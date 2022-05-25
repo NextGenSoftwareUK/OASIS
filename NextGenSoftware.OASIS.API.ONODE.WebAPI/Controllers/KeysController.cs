@@ -201,7 +201,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             (isValid, providerTypeToLinkTo, avatarID, errorMessage) = ValidateParams(generateKeyPairAndLinkProviderKeysToAvatarParams);
 
             if (isValid)
-                return KeyManager.GenerateKeyPairAndLinkProviderKeysToAvatarById(avatarID, providerTypeToLinkTo);
+                return KeyManager.GenerateKeyPairAndLinkProviderKeysToAvatarById(avatarID, providerTypeToLinkTo, generateKeyPairAndLinkProviderKeysToAvatarParams.ShowPublicKey, generateKeyPairAndLinkProviderKeysToAvatarParams.ShowPrivateKey);
             else
                 return new OASISResult<KeyPair>() { IsError = true, Message = errorMessage };
         }
@@ -223,7 +223,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             (isValid, providerTypeToLinkTo, avatarID, errorMessage) = ValidateParams(generateKeyPairAndLinkProviderKeysToAvatarParams);
 
             if (isValid)
-                return KeyManager.GenerateKeyPairAndLinkProviderKeysToAvatarByUsername(generateKeyPairAndLinkProviderKeysToAvatarParams.AvatarUsername, providerTypeToLinkTo);
+                return KeyManager.GenerateKeyPairAndLinkProviderKeysToAvatarByUsername(generateKeyPairAndLinkProviderKeysToAvatarParams.AvatarUsername, providerTypeToLinkTo, generateKeyPairAndLinkProviderKeysToAvatarParams.ShowPublicKey, generateKeyPairAndLinkProviderKeysToAvatarParams.ShowPrivateKey);
             else
                 return new OASISResult<KeyPair>() { IsError = true, Message = errorMessage };
         }
@@ -245,7 +245,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             (isValid, providerTypeToLinkTo, avatarID, errorMessage) = ValidateParams(generateKeyPairAndLinkProviderKeysToAvatarParams);
 
             if (isValid)
-                return KeyManager.GenerateKeyPairAndLinkProviderKeysToAvatarByEmail(generateKeyPairAndLinkProviderKeysToAvatarParams.AvatarEmail, providerTypeToLinkTo);
+                return KeyManager.GenerateKeyPairAndLinkProviderKeysToAvatarByEmail(generateKeyPairAndLinkProviderKeysToAvatarParams.AvatarEmail, providerTypeToLinkTo, generateKeyPairAndLinkProviderKeysToAvatarParams.ShowPublicKey, generateKeyPairAndLinkProviderKeysToAvatarParams.ShowPrivateKey);
             else
                 return new OASISResult<KeyPair>() { IsError = true, Message = errorMessage };
         }
@@ -267,7 +267,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             (isValid, providerType, avatarID, errorMessage) = ValidateParams(providerKeyForAvatarParams);
 
             if (isValid)
-                return KeyManager.GetProviderUniqueStorageKeyForAvatarById(avatarID);
+                return KeyManager.GetProviderUniqueStorageKeyForAvatarById(avatarID, providerType);
             else
                 return new OASISResult<string>() { IsError = true, Message = errorMessage };
         }
@@ -281,7 +281,17 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpGet("get_provider_unique_storage_key_for_avatar_by_username")]
         public OASISResult<string> GetProviderUniqueStorageKeyForAvatarByUsername(ProviderKeyForAvatarParams providerKeyForAvatarParams)
         {
-            return KeyManager.GetProviderUniqueStorageKeyForAvatarByUsername(providerKeyForAvatarParams.AvatarUsername);
+            bool isValid;
+            string errorMessage = "";
+            ProviderType providerType;
+            Guid avatarID;
+
+            (isValid, providerType, avatarID, errorMessage) = ValidateParams(providerKeyForAvatarParams);
+
+            if (isValid)
+                return KeyManager.GetProviderUniqueStorageKeyForAvatarByUsername(providerKeyForAvatarParams.AvatarUsername, providerType);
+            else
+                return new OASISResult<string>() { IsError = true, Message = errorMessage };
         }
 
         /// <summary>
@@ -293,7 +303,17 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpGet("get_provider_unique_storage_key_for_avatar_by_email")]
         public OASISResult<string> GetProviderUniqueStorageKeyForAvatarByEmail(ProviderKeyForAvatarParams providerKeyForAvatarParams)
         {
-            return KeyManager.GetProviderUniqueStorageKeyForAvatarByEmail(providerKeyForAvatarParams.AvatarEmail);
+            bool isValid;
+            string errorMessage = "";
+            ProviderType providerType;
+            Guid avatarID;
+
+            (isValid, providerType, avatarID, errorMessage) = ValidateParams(providerKeyForAvatarParams);
+
+            if (isValid)
+                return KeyManager.GetProviderUniqueStorageKeyForAvatarByEmail(providerKeyForAvatarParams.AvatarEmail, providerType);
+            else
+                return new OASISResult<string>() { IsError = true, Message = errorMessage };
         }
 
         /// <summary>
@@ -313,7 +333,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             (isValid, providerType, avatarID, errorMessage) = ValidateParams(providerKeyForAvatarParams);
 
             if (isValid)
-                return KeyManager.GetProviderUniqueStorageKeyForAvatarById(avatarID);
+                return KeyManager.GetProviderPrivateKeyForAvatarById(avatarID, providerType);
             else
                 return new OASISResult<string>() { IsError = true, Message = errorMessage };
         }
@@ -327,7 +347,17 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpGet("get_provider_private_key_for_avatar_by_username")]
         public OASISResult<string> GetProviderPrivateKeyForAvatarByUsername(ProviderKeyForAvatarParams providerKeyForAvatarParams)
         {
-            return KeyManager.GetProviderPrivateKeyForAvatarByUsername(providerKeyForAvatarParams.AvatarUsername);
+            bool isValid;
+            string errorMessage = "";
+            ProviderType providerType;
+            Guid avatarID;
+
+            (isValid, providerType, avatarID, errorMessage) = ValidateParams(providerKeyForAvatarParams);
+
+            if (isValid)
+                return KeyManager.GetProviderPrivateKeyForAvatarByUsername(providerKeyForAvatarParams.AvatarUsername, providerType);
+            else
+                return new OASISResult<string>() { IsError = true, Message = errorMessage };
         }
 
         ///// <summary>
@@ -359,7 +389,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             (isValid, providerType, avatarID, errorMessage) = ValidateParams(providerKeyForAvatarParams);
 
             if (isValid)
-                return KeyManager.GetProviderPublicKeysForAvatarById(avatarID);
+                return KeyManager.GetProviderPublicKeysForAvatarById(avatarID, providerType);
             else
                 return new OASISResult<List<string>>() { IsError = true, Message = errorMessage };
         }
@@ -373,7 +403,17 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpGet("get_provider_public_keys_for_avatar_by_username")]
         public OASISResult<List<string>> GetProviderPublicKeysForAvatarByUsername(ProviderKeyForAvatarParams providerKeyForAvatarParams)
         {
-            return KeyManager.GetProviderPublicKeysForAvatarByUsername(providerKeyForAvatarParams.AvatarUsername);
+            bool isValid;
+            string errorMessage = "";
+            ProviderType providerType;
+            Guid avatarID;
+
+            (isValid, providerType, avatarID, errorMessage) = ValidateParams(providerKeyForAvatarParams);
+
+            if (isValid)
+                return KeyManager.GetProviderPublicKeysForAvatarByUsername(providerKeyForAvatarParams.AvatarUsername, providerType);
+            else
+                return new OASISResult<List<string>>() { IsError = true, Message = errorMessage };
         }
 
         /// <summary>
@@ -385,7 +425,17 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpGet("get_provider_public_keys_for_avatar_by_email")]
         public OASISResult<List<string>> GetProviderPublicKeysForAvatarByEmail(ProviderKeyForAvatarParams providerKeyForAvatarParams)
         {
-            return KeyManager.GetProviderPublicKeysForAvatarByEmail(providerKeyForAvatarParams.AvatarUsername);
+            bool isValid;
+            string errorMessage = "";
+            ProviderType providerType;
+            Guid avatarID;
+
+            (isValid, providerType, avatarID, errorMessage) = ValidateParams(providerKeyForAvatarParams);
+
+            if (isValid)
+                return KeyManager.GetProviderPublicKeysForAvatarByEmail(providerKeyForAvatarParams.AvatarEmail, providerType);
+            else
+                return new OASISResult<List<string>>() { IsError = true, Message = errorMessage };
         }
 
         /// <summary>
