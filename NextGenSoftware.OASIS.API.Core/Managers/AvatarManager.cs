@@ -78,8 +78,8 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
                         if (!avatarsResult.IsError && avatarsResult.Result != null)
                         {
-                            if (avatarsResult.Result.Any(x => x.ProviderPublicKey.ContainsKey(ProviderManager.CurrentStorageProviderType.Value)))
-                                result.Result = avatarsResult.Result.FirstOrDefault(x => x.ProviderPublicKey[ProviderManager.CurrentStorageProviderType.Value].Contains(username));
+                            if (avatarsResult.Result.Any(x => x.ProviderWallets.ContainsKey(ProviderManager.CurrentStorageProviderType.Value)))
+                                result.Result = avatarsResult.Result.FirstOrDefault(x => x.ProviderWallets[ProviderManager.CurrentStorageProviderType.Value].Any( x=> x.PublicKey == username));
                         }
                     }
                 }
@@ -153,8 +153,8 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
                         if (!avatarsResult.IsError && avatarsResult.Result != null)
                         {
-                            if (avatarsResult.Result.Any(x => x.ProviderPublicKey.ContainsKey(ProviderManager.CurrentStorageProviderType.Value)))
-                                result.Result = avatarsResult.Result.FirstOrDefault(x => x.ProviderPublicKey[ProviderManager.CurrentStorageProviderType.Value].Contains(username));
+                            if (avatarsResult.Result.Any(x => x.ProviderWallets.ContainsKey(ProviderManager.CurrentStorageProviderType.Value)))
+                                result.Result = avatarsResult.Result.FirstOrDefault(x => x.ProviderWallets[ProviderManager.CurrentStorageProviderType.Value].Any(x => x.PublicKey == username));
                         }
                     }
                 }
@@ -2781,7 +2781,13 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 avatar.Password = null;
 
             if (hidePrivateKeys)
-                avatar.ProviderPrivateKey = null;
+            {
+                foreach (ProviderType providerType in avatar.ProviderWallets.Keys)
+                {
+                    foreach (ProviderWallet wallet in avatar.ProviderWallets[providerType])
+                        wallet.PrivateKey = null;
+                }
+            }
 
             if (OASISDNA.OASIS.Security.HideRefreshTokens || hideRefreshTokens)
                 avatar.RefreshTokens = null;

@@ -449,7 +449,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
         public string GetEOSIOAccountPrivateKeyForAvatar(Guid avatarId)
         {
             //TODO: Handle OASISResult Properly.
-            return KeyManager.GetProviderPrivateKeyForAvatarById(avatarId, Core.Enums.ProviderType.EOSIOOASIS).Result;
+            return KeyManager.GetProviderPrivateKeysForAvatarById(avatarId, Core.Enums.ProviderType.EOSIOOASIS).Result[0];
         }
 
         public Account GetEOSIOAccountForAvatar(Guid avatarId)
