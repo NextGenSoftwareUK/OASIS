@@ -528,13 +528,16 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
         {
             OASISResult<IEnumerable<IAvatar>> result = new OASISResult<IEnumerable<IAvatar>>();
             List<IAvatar> oasisAvatars = new List<IAvatar>();
-
             OASISResultCollectionToCollectionHelper<IEnumerable<Avatar>, IEnumerable<IAvatar>>.CopyResult(avatars, result);
 
-            foreach (Avatar avatar in avatars.Result)
-                oasisAvatars.Add(ConvertMongoEntityToOASISAvatar(new OASISResult<Avatar>(avatar)).Result);
+            if (!avatars.IsError && avatars.Result != null)
+            {
+                foreach (Avatar avatar in avatars.Result)
+                    oasisAvatars.Add(ConvertMongoEntityToOASISAvatar(new OASISResult<Avatar>(avatar)).Result);
 
-            result.Result = oasisAvatars;
+                result.Result = oasisAvatars;
+            }
+
             return result;
         }
 
@@ -542,13 +545,16 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
         {
             OASISResult<IEnumerable<IAvatarDetail>> result = new OASISResult<IEnumerable<IAvatarDetail>>();
             List<IAvatarDetail> oasisAvatars = new List<IAvatarDetail>();
-
             OASISResultCollectionToCollectionHelper<IEnumerable<AvatarDetail>, IEnumerable<IAvatarDetail>>.CopyResult(avatars, result);
 
-            foreach (AvatarDetail avatar in avatars.Result)
-                oasisAvatars.Add(ConvertMongoEntityToOASISAvatarDetail(new OASISResult<AvatarDetail>(avatar)).Result);
+            if (!avatars.IsError && avatars.Result != null)
+            {
+                foreach (AvatarDetail avatar in avatars.Result)
+                    oasisAvatars.Add(ConvertMongoEntityToOASISAvatarDetail(new OASISResult<AvatarDetail>(avatar)).Result);
 
-            result.Result = oasisAvatars;
+                result.Result = oasisAvatars;
+            }
+
             return result;
         }
 
@@ -570,20 +576,21 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
         private OASISResult<IAvatar> ConvertMongoEntityToOASISAvatar(OASISResult<Avatar> avatarResult)
         {
             OASISResult<IAvatar> result = new OASISResult<IAvatar>();
+            OASISResultHolonToHolonHelper<Avatar, IAvatar>.CopyResult(avatarResult, result);
 
             if (avatarResult.IsError || avatarResult.Result == null)
                 return result;
 
-            OASISResultHolonToHolonHelper<Avatar, IAvatar>.CopyResult(avatarResult, result);
             result.Result = new Core.Holons.Avatar();
 
             result.Result.IsNewHolon = false;
             result.Result.Id = avatarResult.Result.HolonId;
             result.Result.ProviderUniqueStorageKey = avatarResult.Result.ProviderUniqueStorageKey;
-            result.Result.ProviderPrivateKey = avatarResult.Result.ProviderPrivateKey;
-            result.Result.ProviderPublicKey = avatarResult.Result.ProviderPublicKey;
+            result.Result.ProviderWallets = avatarResult.Result.ProviderWallets;
+           // result.Result.ProviderPrivateKey = avatarResult.Result.ProviderPrivateKey;
+           // result.Result.ProviderPublicKey = avatarResult.Result.ProviderPublicKey;
             result.Result.ProviderUsername = avatarResult.Result.ProviderUsername;
-            result.Result.ProviderWalletAddress = avatarResult.Result.ProviderWalletAddress;
+           // result.Result.ProviderWalletAddress = avatarResult.Result.ProviderWalletAddress;
             result.Result.PreviousVersionId = avatarResult.Result.PreviousVersionId;
             result.Result.PreviousVersionProviderUniqueStorageKey = avatarResult.Result.PreviousVersionProviderUniqueStorageKey;
             result.Result.ProviderMetaData = avatarResult.Result.ProviderMetaData;
@@ -632,9 +639,10 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
         private OASISResult<IAvatarDetail> ConvertMongoEntityToOASISAvatarDetail(OASISResult<AvatarDetail> avatar)
         {
             OASISResult<IAvatarDetail> result = new OASISResult<IAvatarDetail>();
+            OASISResultHolonToHolonHelper<AvatarDetail, IAvatarDetail>.CopyResult(avatar, result);
 
-            if (avatar == null || (avatar != null && avatar.Result == null))
-                return new OASISResult<IAvatarDetail>() { Message = avatar.Message, IsError = true, IsLoaded = false};
+            if (avatar.IsError || avatar.Result == null)
+                return result;
 
             Core.Holons.AvatarDetail oasisAvatar = new Core.Holons.AvatarDetail();
             oasisAvatar.IsNewHolon = false;
@@ -755,10 +763,11 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             mongoAvatar.HolonId = avatar.Id;
             // mongoAvatar.AvatarId = avatar.Id;
             mongoAvatar.ProviderUniqueStorageKey = avatar.ProviderUniqueStorageKey;
-            mongoAvatar.ProviderPrivateKey = avatar.ProviderPrivateKey;
-            mongoAvatar.ProviderPublicKey = avatar.ProviderPublicKey;
+            mongoAvatar.ProviderWallets = avatar.ProviderWallets;
+            // mongoAvatar.ProviderPrivateKey = avatar.ProviderPrivateKey;
+            //mongoAvatar.ProviderPublicKey = avatar.ProviderPublicKey;
             mongoAvatar.ProviderUsername = avatar.ProviderUsername;
-            mongoAvatar.ProviderWalletAddress = avatar.ProviderWalletAddress;
+            //mongoAvatar.ProviderWalletAddress = avatar.ProviderWalletAddress;
             mongoAvatar.ProviderMetaData = avatar.ProviderMetaData;
             mongoAvatar.PreviousVersionId = avatar.PreviousVersionId;
             mongoAvatar.PreviousVersionProviderUniqueStorageKey = avatar.PreviousVersionProviderUniqueStorageKey;
@@ -977,13 +986,10 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
         private OASISResult<IHolon> ConvertMongoEntityToOASISHolon(OASISResult<Holon> holon)
         {
             OASISResult<IHolon> result = new OASISResult<IHolon>(new Core.Holons.Holon());
+            OASISResultHolonToHolonHelper<Holon, IHolon>.CopyResult(holon, result);
 
-            if (holon.Result == null || holon.IsError)
-            {
-                result.IsError = true;
-                result.Message = holon.Message;
+            if (holon.IsError || holon.Result == null)
                 return result;
-            }
 
             result.Result.IsNewHolon = false; //TODO: Not sure if best to default all new Holons to have this set to true or not?
             result.Result.Id = holon.Result.HolonId;
