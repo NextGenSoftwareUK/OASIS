@@ -4,8 +4,7 @@
  * 
  * NextGenSoftware Copyright (c) 2022
  * 
- */
-
+ * /
 
 #include "NextGenSoftwareOASIS.hpp"
 
@@ -17,7 +16,7 @@ void NextGenSoftwareOASIS::addavatar(long entityId, std::string avatarId, std::s
 
     // Insert new avatar
     _avtrs.emplace(get_self(), [&](auto& a) {
-        a.key = _dtls.available_primary_key();
+        a.key = _avtrs.available_primary_key();
         a.entityId = entityId;
         a.avatarId = avatarId;
         a.info = info;
@@ -36,7 +35,7 @@ void NextGenSoftwareOASIS::setavatar(long entityId, std::string info)
 
     std::vector<uint64_t> keysForModify;
     for(auto& item : _avtrs) {
-        if (item.entityId == entityId) {
+        if (item.entityId == entityId && item.isDeleted == false) {
             keysForModify.push_back(item.key);   
         }
     }
@@ -61,7 +60,7 @@ void NextGenSoftwareOASIS::hardavatar(long entityId)
     std::vector<uint64_t> keysForDeletion;
 
     for(auto& item : _avtrs) {
-        if (item.entityId == entityId) {
+        if (item.entityId == entityId && item.isDeleted == false) {
             keysForDeletion.push_back(item.key);   
         }
     }
@@ -83,7 +82,7 @@ void NextGenSoftwareOASIS::softavatar(long entityId)
 {
     std::vector<uint64_t> keysForModify;
     for(auto& item : _avtrs) {
-        if (item.entityId == entityId) {
+        if (item.entityId == entityId && item.isDeleted == false) {
             keysForModify.push_back(item.key);   
         }
     }
@@ -140,13 +139,13 @@ void NextGenSoftwareOASIS::addholon(long entityId, std::string holonId, std::str
 
 // Updates holon info field by specified holon id
 [[eosio::action]]
-void NextGenSoftwareOASIS::setholon(long entityId, string info) 
+void NextGenSoftwareOASIS::setholon(long entityId, std::string info) 
 {
     eosio::print("Holon updating started...");
 
     std::vector<uint64_t> keysForModify;
     for(auto& item : _hlns) {
-        if (item.entityId == entityId) {
+        if (item.entityId == entityId && item.isDeleted == false) {
             keysForModify.push_back(item.key);   
         }
     }
@@ -171,7 +170,7 @@ void NextGenSoftwareOASIS::hardholon(long entityId)
     std::vector<uint64_t> keysForDeletion;
 
     for(auto& item : _hlns) {
-        if (item.entityId == entityId) {
+        if (item.entityId == entityId && item.isDeleted == false) {
             keysForDeletion.push_back(item.key);   
         }
     }
@@ -184,7 +183,7 @@ void NextGenSoftwareOASIS::hardholon(long entityId)
     }
 
     // Print hard-deleting result
-    print("Holon hard-deleted, ID: ", entityId);
+    eosio::print("Holon hard-deleted, ID: ", entityId);
 }
 
 // Sets holon IsDeleted field value to true specified by its id
@@ -193,7 +192,7 @@ void NextGenSoftwareOASIS::softholon(long entityId)
 {
     std::vector<uint64_t> keysForModify;
     for(auto& item : _hlns) {
-        if (item.entityId == entityId) {
+        if (item.entityId == entityId && item.isDeleted == false) {
             keysForModify.push_back(item.key);   
         }
     }
@@ -208,7 +207,7 @@ void NextGenSoftwareOASIS::softholon(long entityId)
     }
 
     // Print soft-deleting result
-    print("Holon soft-deleted, ID: ", entityId);
+    eosio::print("Holon soft-deleted, ID: ", entityId);
 }
 
 EOSIO_DISPATCH( NextGenSoftwareOASIS, (softholon)(hardholon)(setholon)(addholon)(adddetail)(softavatar)(hardavatar)(setavatar)(addavatar))

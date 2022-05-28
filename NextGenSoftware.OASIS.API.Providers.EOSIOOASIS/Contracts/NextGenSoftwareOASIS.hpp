@@ -5,7 +5,7 @@
 class [[eosio::contract]] NextGenSoftwareOASIS : public eosio::contract
 {
     public:
-        NextGenSoftwareOASIS( eosio::name receiver, eosio::name code, eosio::datastream<const char*> ds ): eosio::contract(receiver, code, ds),  _avtrs(receiver, code.value), hlnstable(receiver, code.value), dtlstable(receiver, code.value)
+        NextGenSoftwareOASIS( eosio::name receiver, eosio::name code, eosio::datastream<const char*> ds ): eosio::contract(receiver, code, ds),  _avtrs(receiver, code.value), _hlns(receiver, code.value), _dtls(receiver, code.value)
         {}
         
         [[eosio::action]]
