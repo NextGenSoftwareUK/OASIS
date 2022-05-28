@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using NextGenSoftware.OASIS.API.Core.Enums;
@@ -15,6 +16,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.Persiste
     {
         private readonly IEosClient _eosClient;
         private readonly string _eosOasisAccountCode;
+        private static string _holonTable = "holon";
 
         public HolonEosProviderRepository(IEosClient eosClient, string eosOasisAccountCode)
         {
@@ -22,6 +24,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.Persiste
             _eosOasisAccountCode = eosOasisAccountCode;
         }
 
+        // TODO: Implement Send/Push transaction within AbiJsonToBin
         public async Task Create(HolonDto entity)
         {
             if (entity == null)
@@ -45,6 +48,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.Persiste
                 $"Request sent: {JsonConvert.SerializeObject(entity)}", LogType.Info);
         }
 
+        // TODO: Implement Send/Push transaction within AbiJsonToBin
         public async Task Update(HolonDto entity, Guid id)
         {
             if (entity == null)
@@ -73,26 +77,28 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.Persiste
             if (id == null)
                 throw new ArgumentNullException(nameof(id));
             
-            var avatarDetailId = HashUtility.GetNumericHash(id).ToString();
-            var abiJsonToBinResponseDto = await _eosClient.AbiBinToJson(new AbiBinToJsonRequestDto()
+            var holonId = HashUtility.GetNumericHash(id);
+            var holonTableRows = await _eosClient.GetTableRows<HolonDto>(new GetTableRowsRequestDto()
             {
-                Action = "getholon",
-                BinArgs = avatarDetailId,
-                Code = _eosOasisAccountCode
+                Code = _eosOasisAccountCode,
+                Scope = _eosOasisAccountCode,
+                Table = _holonTable
             });
-            return JsonConvert.DeserializeObject<HolonDto>(abiJsonToBinResponseDto);         
+            return holonTableRows.Rows.FirstOrDefault(avatarDetailDto => avatarDetailDto.EntityId == holonId);         
         }
 
         public async Task<ImmutableArray<HolonDto>> ReadAll()
         {
-            var abiJsonToBinResponseDto = await _eosClient.AbiBinToJson(new AbiBinToJsonRequestDto()
+            var holonTableRows = await _eosClient.GetTableRows<HolonDto>(new GetTableRowsRequestDto()
             {
-                Action = "getholons",
-                Code = _eosOasisAccountCode
+                Code = _eosOasisAccountCode,
+                Scope = _eosOasisAccountCode,
+                Table = _holonTable
             });
-            return JsonConvert.DeserializeObject<ImmutableArray<HolonDto>>(abiJsonToBinResponseDto);
+            return holonTableRows.Rows.ToImmutableArray();
         }
 
+        // TODO: Implement Send/Push transaction within AbiJsonToBin
         public async Task DeleteSoft(Guid id)
         {
             if (id == null)
@@ -115,6 +121,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.Persiste
                 $"Request sent: {id}", LogType.Info);
         }
 
+        // TODO: Implement Send/Push transaction within AbiJsonToBin
         public async Task DeleteHard(Guid id)
         {
             if (id == null)
