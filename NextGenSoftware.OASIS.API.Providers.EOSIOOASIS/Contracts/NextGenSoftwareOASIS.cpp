@@ -1,11 +1,3 @@
-/*
- * NextGenSoftwareOASIS.cpp - implements NextGenSoftwareOASIS.hpp CRUD methods for Avatar, AvatarDetail, Holon
- * Date: 2022-05-14
- * 
- * NextGenSoftware Copyright (c) 2022
- * 
- * /
-
 #include "NextGenSoftwareOASIS.hpp"
 
 // Inserts an avatar entity into avatars list
