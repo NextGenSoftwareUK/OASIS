@@ -210,3 +210,5 @@ void NextGenSoftwareOASIS::softholon(long entityId)
     // Print soft-deleting result
     print("Holon soft-deleted, ID: ", entityId);
 }
+
+EOSIO_DISPATCH( NextGenSoftwareOASIS, (softholon)(hardholon)(setholon)(addholon)(adddetail)(softavatar)(hardavatar)(setavatar)(addavatar))
