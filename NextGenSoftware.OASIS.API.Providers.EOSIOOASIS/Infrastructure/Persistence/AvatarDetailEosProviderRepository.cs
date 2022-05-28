@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using NextGenSoftware.OASIS.API.Core.Enums;
@@ -18,6 +19,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.Persiste
     {
         private readonly IEosClient _eosClient;
         private readonly string _eosOasisAccountCode;
+        private static string _avatarDetailTable = "avatardetail";
 
         public AvatarDetailEosProviderRepository(IEosClient eosClient, string eosOasisAccountCode)
         {
@@ -25,6 +27,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.Persiste
             _eosOasisAccountCode = eosOasisAccountCode;
         }
         
+        // TODO: Implement Send/Push transaction within AbiJsonToBin
         public async Task Create(AvatarDetailDto entity)
         {
             if (entity == null)
@@ -53,24 +56,25 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.Persiste
             if (id == null)
                 throw new ArgumentNullException(nameof(id));
             
-            var avatarDetailId = HashUtility.GetNumericHash(id).ToString();
-            var abiJsonToBinResponseDto = await _eosClient.AbiBinToJson(new AbiBinToJsonRequestDto()
+            var avatarDetailId = HashUtility.GetNumericHash(id);
+            var avatarDetailTableRows = await _eosClient.GetTableRows<AvatarDetailDto>(new GetTableRowsRequestDto()
             {
-                Action = "getdetail",
-                BinArgs = avatarDetailId,
-                Code = _eosOasisAccountCode
+                Code = _eosOasisAccountCode,
+                Scope = _eosOasisAccountCode,
+                Table = _avatarDetailTable
             });
-            return JsonConvert.DeserializeObject<AvatarDetailDto>(abiJsonToBinResponseDto);
+            return avatarDetailTableRows.Rows.FirstOrDefault(avatarDetailDto => avatarDetailDto.EntityId == avatarDetailId);
         }
 
         public async Task<ImmutableArray<AvatarDetailDto>> ReadAll()
         {
-            var abiJsonToBinResponseDto = await _eosClient.AbiBinToJson(new AbiBinToJsonRequestDto()
+            var avatarDetailTableRows = await _eosClient.GetTableRows<AvatarDetailDto>(new GetTableRowsRequestDto()
             {
-                Action = "getdetails",
-                Code = _eosOasisAccountCode
+                Code = _eosOasisAccountCode,
+                Scope = _eosOasisAccountCode,
+                Table = _avatarDetailTable
             });
-            return JsonConvert.DeserializeObject<ImmutableArray<AvatarDetailDto>>(abiJsonToBinResponseDto);
+            return avatarDetailTableRows.Rows.ToImmutableArray();
         }
         
         // Update method not supported for avatar detail entity

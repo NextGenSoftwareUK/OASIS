@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using NextGenSoftware.OASIS.API.Core.Enums;
@@ -15,6 +16,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.Persiste
     {
         private readonly IEosClient _eosClient;
         private readonly string _eosOasisAccountCode;
+        private static string _avatarTable = "avatar";
 
         public AvatarEosProviderRepository(IEosClient eosClient, string eosOasisAccountCode)
         {
@@ -22,6 +24,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.Persiste
             _eosOasisAccountCode = eosOasisAccountCode;
         }
 
+        // TODO: Implement Send/Push transaction within AbiJsonToBin
         public async Task Create(AvatarDto entity)
         {
             if (entity == null)
@@ -45,6 +48,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.Persiste
                 $"Request sent: {JsonConvert.SerializeObject(entity)}", LogType.Info);
         }
 
+        // TODO: Implement Send/Push transaction within AbiJsonToBin
         public async Task Update(AvatarDto entity, Guid id)
         {
             if (entity == null)
@@ -73,26 +77,28 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.Persiste
             if (id == null)
                 throw new ArgumentNullException(nameof(id));
             
-            var avatarId = HashUtility.GetNumericHash(id).ToString();
-            var abiJsonToBinResponseDto = await _eosClient.AbiBinToJson(new AbiBinToJsonRequestDto()
+            var avatarId = HashUtility.GetNumericHash(id);
+            var avatarTableRows = await _eosClient.GetTableRows<AvatarDto>(new GetTableRowsRequestDto()
             {
-                Action = "getavatar",
-                BinArgs = avatarId,
-                Code = _eosOasisAccountCode
+                Code = _eosOasisAccountCode,
+                Scope = _eosOasisAccountCode,
+                Table = _avatarTable
             });
-            return JsonConvert.DeserializeObject<AvatarDto>(abiJsonToBinResponseDto);        
+            return avatarTableRows.Rows.FirstOrDefault(avatarDetailDto => avatarDetailDto.EntityId == avatarId);     
         }
 
         public async Task<ImmutableArray<AvatarDto>> ReadAll()
         {
-            var abiJsonToBinResponseDto = await _eosClient.AbiBinToJson(new AbiBinToJsonRequestDto()
+            var avatarTableRows = await _eosClient.GetTableRows<AvatarDto>(new GetTableRowsRequestDto()
             {
-                Action = "getavatars",
-                Code = _eosOasisAccountCode
+                Code = _eosOasisAccountCode,
+                Scope = _eosOasisAccountCode,
+                Table = _avatarTable
             });
-            return JsonConvert.DeserializeObject<ImmutableArray<AvatarDto>>(abiJsonToBinResponseDto);
+            return avatarTableRows.Rows.ToImmutableArray();
         }
 
+        // TODO: Implement Send/Push transaction within AbiJsonToBin
         public async Task DeleteSoft(Guid id)
         {
             if (id == null)
@@ -115,6 +121,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.Persiste
                 $"Request sent: {id}", LogType.Info);
         }
 
+        // TODO: Implement Send/Push transaction within AbiJsonToBin
         public async Task DeleteHard(Guid id)
         {
             if (id == null)
