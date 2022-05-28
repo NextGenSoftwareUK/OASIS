@@ -13,28 +13,31 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Entities
         [JsonProperty("scope")]
         public string Scope { get; set; }
 
-        [JsonProperty("index_position")]
-        public string IndexPosition { get; set; }
+        [JsonProperty("json")]
+        public bool Json { get; set; } = true;
 
-        [JsonProperty("key_type")]
-        public string KeyType { get; set; }
+        [JsonProperty("index_position", NullValueHandling=NullValueHandling.Ignore)]
+        public string? IndexPosition { get; set; }
 
-        [JsonProperty("encode_type")]
-        public string EncodeType { get; set; }
+        [JsonProperty("key_type", NullValueHandling=NullValueHandling.Ignore)]
+        public string? KeyType { get; set; }
 
-        [JsonProperty("lower_bound")]
-        public string LowerBound { get; set; }
+        [JsonProperty("encode_type", NullValueHandling=NullValueHandling.Ignore)]
+        public string? EncodeType { get; set; }
 
-        [JsonProperty("upper_bound")]
-        public string UpperBound { get; set; }
+        [JsonProperty("lower_bound", NullValueHandling=NullValueHandling.Ignore)]
+        public string? LowerBound { get; set; }
 
-        [JsonProperty("limit")]
-        public int Limit { get; set; }
+        [JsonProperty("upper_bound, NullValueHandling=NullValueHandling.Ignore")]
+        public string? UpperBound { get; set; }
 
-        [JsonProperty("reverse")]
-        public bool Reverse { get; set; }
+        [JsonProperty("limit", NullValueHandling=NullValueHandling.Ignore)]
+        public int? Limit { get; set; }
 
-        [JsonProperty("show_payer")]
-        public bool ShowPayer { get; set; }
+        [JsonProperty("reverse", NullValueHandling=NullValueHandling.Ignore)]
+        public bool? Reverse { get; set; }
+
+        [JsonProperty("show_payer", NullValueHandling=NullValueHandling.Ignore)]
+        public bool? ShowPayer { get; set; }
     }
 }

@@ -3,9 +3,9 @@ using Newtonsoft.Json;
 
 namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Entities
 {
-    public class GetTableRowsResponseDto
+    public class GetTableRowsResponseDto<T>
     {
         [JsonProperty("rows")]
-        public List<object> Rows { get; set; }
+        public List<T> Rows { get; set; }
     }
 }

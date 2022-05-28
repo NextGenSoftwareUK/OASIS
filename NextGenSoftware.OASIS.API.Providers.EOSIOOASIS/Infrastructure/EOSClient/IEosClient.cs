@@ -7,8 +7,10 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.EOSClien
     public interface IEosClient : IDisposable
     {
         public Task<GetNodeInfoResponseDto> GetNodeInfo();
-        public Task<GetTableRowsResponseDto> GetTableRows(GetTableRowsRequestDto getTableRowsRequest);
+        public Task<GetTableRowsResponseDto<T>> GetTableRows<T>(GetTableRowsRequestDto getTableRowsRequest);
         public Task<AbiJsonToBinResponseDto> AbiJsonToBin(AbiJsonToBinRequestDto abiJsonToBinRequestDto);
         public Task<string> AbiBinToJson(AbiBinToJsonRequestDto abiJsonToBinRequestDto);
+        public Task<string> SendTransaction(PerformTransactionRequestDto performTransactionRequestDto);
+        public Task<string> PushTransaction(PerformTransactionRequestDto performTransactionRequestDto);
     }
 }

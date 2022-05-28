@@ -33,25 +33,37 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.EOSClien
         public async Task<GetNodeInfoResponseDto> GetNodeInfo()
         {
             return await SendRequest<GetNodeInfoResponseDto, object>(null, HttpMethod.Get,
-                new Uri(_eosHostNodeUri.Host + "/get_info"));
+                new Uri(_eosHostNodeUri + "v1/chain/get_info"));
         }
 
-        public async Task<GetTableRowsResponseDto> GetTableRows(GetTableRowsRequestDto getTableRowsRequest)
+        public async Task<GetTableRowsResponseDto<T>> GetTableRows<T>(GetTableRowsRequestDto getTableRowsRequest)
         {
-            return await SendRequest<GetTableRowsResponseDto, GetTableRowsRequestDto>(getTableRowsRequest,
-                HttpMethod.Post, new Uri(_eosHostNodeUri.Host + "/get_table_rows"));
+            return await SendRequest<GetTableRowsResponseDto<T>, GetTableRowsRequestDto>(getTableRowsRequest,
+                HttpMethod.Post, new Uri(_eosHostNodeUri + "v1/chain/get_table_rows"));
         }
 
         public async Task<AbiJsonToBinResponseDto> AbiJsonToBin(AbiJsonToBinRequestDto abiJsonToBinRequestDto)
         {
             return await SendRequest<AbiJsonToBinResponseDto, AbiJsonToBinRequestDto>(abiJsonToBinRequestDto,
-                HttpMethod.Post, new Uri(_eosHostNodeUri.Host + "/abi_json_to_bin"));
+                HttpMethod.Post, new Uri(_eosHostNodeUri + "v1/chain/abi_json_to_bin"));
         }
 
         public async Task<string> AbiBinToJson(AbiBinToJsonRequestDto abiJsonToBinRequestDto)
         {
             return await SendRequest<string, AbiBinToJsonRequestDto>(abiJsonToBinRequestDto, HttpMethod.Post,
-                new Uri(_eosHostNodeUri.Host + "/abi_bin_to_json"));
+                new Uri(_eosHostNodeUri + "v1/chain/abi_bin_to_json"));
+        }
+
+        public async Task<string> SendTransaction(PerformTransactionRequestDto performTransactionRequestDto)
+        {
+            return await SendRequest<string, PerformTransactionRequestDto>(performTransactionRequestDto, HttpMethod.Post,
+                new Uri(_eosHostNodeUri + "v1/chain/send_transaction"));
+        }
+
+        public async Task<string> PushTransaction(PerformTransactionRequestDto performTransactionRequestDto)
+        {
+            return await SendRequest<string, PerformTransactionRequestDto>(performTransactionRequestDto, HttpMethod.Post,
+                new Uri(_eosHostNodeUri + "v1/chain/push_transactions"));
         }
 
         /// <summary>
@@ -78,12 +90,14 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.EOSClien
                 {
                     Method = httpMethod,
                     RequestUri = uri,
-                    Headers = {{"Content-Type", "application/json"}}
                 };
 
                 if (request != null)
+                {
+                    _httpClient.DefaultRequestHeaders.TryAddWithoutValidation("Content-Type", "application/json");
                     httpRequestMessage.Content = new StringContent(JsonConvert.SerializeObject(request));
-
+                }
+                
                 // Send request into EOS-node endpoint
                 var httpResponseMessage = await _httpClient.SendAsync(httpRequestMessage);
                 if (!httpResponseMessage.IsSuccessStatusCode)
