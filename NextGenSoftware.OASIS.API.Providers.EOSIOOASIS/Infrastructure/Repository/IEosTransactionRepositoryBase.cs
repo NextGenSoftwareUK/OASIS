@@ -1,20 +1,115 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Reflection.Metadata.Ecma335;
+using System.Reflection;
 using System.Runtime.Serialization.Formatters.Binary;
+using System.Security.Cryptography;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Entities;
+using Cryptography.ECDSA;
 using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Entities.DTOs.GetBlock;
 using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Entities.DTOs.GetInfo;
+using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Entities.DTOs.GetRawAbi;
 using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Entities.DTOs.GetRequiredKeys;
 using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.EOSClient;
 
 namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.Repository
 {
+    /// <summary>
+    /// Data Attribute to map how the field is represented in the abi
+    /// </summary>
+    public class AbiFieldTypeAttribute : Attribute
+    {
+        public string AbiType { get; set; }
+
+        public AbiFieldTypeAttribute(string abiType)
+        {
+            AbiType = abiType;
+        }
+    }
+    
+    public class EosAbiType
+    {
+        public string NewTypeName;
+        public string Type;
+    }
+    
+    public class EosAbiField
+    {
+        public string Name;
+        public string Type;
+    }
+    [Serializable]
+    public class EosAbiStruct
+    {
+        public string Name;
+        public string Base;
+        public List<EosAbiField> Fields;
+    }
+    public class EosAbiAction
+    {
+        [AbiFieldType("name")]
+        public string Name;
+        public string Type;
+        public string RicardianContract;
+    }
+    public class EosAbiTable
+    {
+        [AbiFieldType("name")]
+        public string Name;
+        public string IndexType;
+        public List<string> KeyNames;
+        public List<string> KeyTypes;
+        public string Type;
+    }
+    
+    public class EosAbiRicardianClause
+    {
+        public string Id;
+        public string Body;
+    }
+    public class EosExtendedAsset
+    {
+        public string Quantity;
+        public string Contract;
+    }
+    public class EosSymbol
+    {
+        public string Name;
+        public byte Precision;
+    }
+
+    public class EosVariant
+    {
+        public string Name;
+        public List<string> Types;
+    }
+    
+    public class EosAbi
+    {
+        public string Version;
+		
+        public List<EosAbiType> Types;
+		
+        public List<EosAbiStruct> Structs;
+		
+        public List<EosAbiAction> Actions;
+		
+        public List<EosAbiTable> Tables;
+		
+        public List<EosAbiRicardianClause> RicardianClauses;
+		
+        public List<string> ErrorMessages;
+		
+        public List<EosExtension> AbiExtensions;
+		
+        public List<EosVariant> Variants;
+    }
+    
     public class SignedEosTransaction
     {
         public IEnumerable<string> Signatures { get; set; }
@@ -101,7 +196,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.Reposito
         /// <summary>
         /// How many blocks behind to use for TAPoS reference block
         /// </summary>
-        public UInt32 blocksBehind { get; set; } = 3;
+        public UInt32 BlocksBehind { get; set; } = 3;
         /// <summary>
         /// signature implementation to handle available keys and signing transactions. Use the DefaultSignProvider with a privateKey to sign transactions inside the lib.
         /// </summary>
@@ -494,23 +589,23 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.Reposito
     {
         private enum KeyType
         {
-            k1 = 0,
-            r1 = 1,
+            K1 = 0,
+            R1 = 1,
         };
 
         private delegate object ReaderDelegate(byte[] data, ref int readIndex);
 
-        private EosApi Api { get; set; }
+        private IEosClient _eosClient { get; set; }
         private Dictionary<string, Action<MemoryStream, object>> TypeWriters { get; set; }
         private Dictionary<string, ReaderDelegate> TypeReaders { get; set; }
 
         /// <summary>
         /// Construct abi serialization provided using EOS api
         /// </summary>
-        /// <param name="api"></param>
-        public AbiSerializationProvider(EosApi api)
+        /// <param name="eosClient"></param>
+        public AbiSerializationProvider(IEosClient eosClient)
         {
-            this.Api = api;
+            this._eosClient = eosClient;
 
             TypeWriters = new Dictionary<string, Action<MemoryStream, object>>()
             {     
@@ -590,37 +685,37 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.Reposito
         /// </summary>
         /// <param name="trx">transaction to pack</param>
         /// <returns></returns>
-        public async Task<byte[]> SerializePackedTransaction(Transaction trx)
+        public async Task<byte[]> SerializePackedTransaction(EosTransaction eosTransaction)
         {
             int actionIndex = 0;
-            var abiResponses = await GetTransactionAbis(trx);
+            var abiResponses = await GetTransactionAbis(eosTransaction);
 
             using (MemoryStream ms = new MemoryStream())
             {
                 //trx headers
-                WriteUint32(ms, SerializationHelper.DateToTimePointSec(trx.expiration));
-                WriteUint16(ms, trx.ref_block_num);
-                WriteUint32(ms, trx.ref_block_prefix);
+                WriteUint32(ms, SerializationHelper.DateToTimePointSec(eosTransaction.Expiration));
+                WriteUint16(ms, eosTransaction.RefBlockNum);
+                WriteUint32(ms, eosTransaction.RefBlockPrefix);
 
                 //trx info
-                WriteVarUint32(ms, trx.max_net_usage_words);
-                WriteByte(ms, trx.max_cpu_usage_ms);
-                WriteVarUint32(ms, trx.delay_sec);
+                WriteVarUint32(ms, eosTransaction.MaxNetUsageWords);
+                WriteByte(ms, eosTransaction.MaxCpuUsageMs);
+                WriteVarUint32(ms, eosTransaction.DelaySec);
 
-                WriteVarUint32(ms, (UInt32)trx.context_free_actions.Count);
-                foreach (var action in trx.context_free_actions)
+                WriteVarUint32(ms, (UInt32)eosTransaction.ContextFreeActions.Count);
+                foreach (var action in eosTransaction.ContextFreeActions)
                 {
                     WriteAction(ms, action, abiResponses[actionIndex++]);
                 }
 
-                WriteVarUint32(ms, (UInt32)trx.actions.Count);
-                foreach (var action in trx.actions)
+                WriteVarUint32(ms, (UInt32)eosTransaction.Actions.Count);
+                foreach (var action in eosTransaction.Actions)
                 {
                     WriteAction(ms, action, abiResponses[actionIndex++]);
                 }
 
-                WriteVarUint32(ms, (UInt32)trx.transaction_extensions.Count);
-                foreach (var extension in trx.transaction_extensions)
+                WriteVarUint32(ms, (UInt32)eosTransaction.TransactionExtensions.Count);
+                foreach (var extension in eosTransaction.TransactionExtensions)
                 {
                     WriteExtension(ms, extension);
                 }
@@ -634,41 +729,41 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.Reposito
         /// </summary>
         /// <param name="packtrx">hex encoded strinh with packed transaction</param>
         /// <returns></returns>
-        public async Task<Transaction> DeserializePackedTransaction(string packtrx)
+        public async Task<EosTransaction> DeserializePackedTransaction(string packtrx)
         {
             var data = SerializationHelper.HexStringToByteArray(packtrx);
             int readIndex = 0;
 
-            var trx = new Transaction()
+            var trx = new EosTransaction()
             {
-                expiration = (DateTime)ReadTimePointSec(data, ref readIndex),
-                ref_block_num = (UInt16)ReadUint16(data, ref readIndex),
-                ref_block_prefix = (UInt32)ReadUint32(data, ref readIndex),
-                max_net_usage_words = (UInt32)ReadVarUint32(data, ref readIndex),
-                max_cpu_usage_ms = (byte)ReadByte(data, ref readIndex),
-                delay_sec = (UInt32)ReadVarUint32(data, ref readIndex),
+                Expiration = (DateTime)ReadTimePointSec(data, ref readIndex),
+                RefBlockNum = (UInt16)ReadUint16(data, ref readIndex),
+                RefBlockPrefix = (UInt32)ReadUint32(data, ref readIndex),
+                MaxNetUsageWords = (UInt32)ReadVarUint32(data, ref readIndex),
+                MaxCpuUsageMs = (byte)ReadByte(data, ref readIndex),
+                DelaySec = (UInt32)ReadVarUint32(data, ref readIndex),
             };
 
             var contextFreeActionsSize = Convert.ToInt32(ReadVarUint32(data, ref readIndex));
-            trx.context_free_actions = new List<Core.Api.v1.Action>(contextFreeActionsSize);
+            trx.ContextFreeActions = new List<EosAction>(contextFreeActionsSize);
 
             for (int i = 0; i < contextFreeActionsSize; i++)
             {
-                var action = (Core.Api.v1.Action)ReadActionHeader(data, ref readIndex);
-                Abi abi = await GetAbi(action.account);
+                var action = (EosAction)ReadActionHeader(data, ref readIndex);
+                EosAbi eosAbi = await GetAbi(action.Account);
 
-                trx.context_free_actions.Add((Core.Api.v1.Action)ReadAction(data, action, abi, ref readIndex));
+                trx.ContextFreeActions.Add((EosAction)ReadAction(data, action, eosAbi, ref readIndex));
             }
 
             var actionsSize = Convert.ToInt32(ReadVarUint32(data, ref readIndex));
-            trx.actions = new List<Core.Api.v1.Action>(actionsSize);
+            trx.Actions = new List<EosAction>(actionsSize);
 
             for (int i = 0; i < actionsSize; i++)
             {
-                var action = (Core.Api.v1.Action)ReadActionHeader(data, ref readIndex);
-                Abi abi = await GetAbi(action.account);
+                var action = (EosAction)ReadActionHeader(data, ref readIndex);
+                EosAbi eosAbi = await GetAbi(action.Account);
 
-                trx.actions.Add((Core.Api.v1.Action)ReadAction(data, action, abi, ref readIndex));
+                trx.Actions.Add((EosAction)ReadAction(data, action, eosAbi, ref readIndex));
             }
 
             return trx;
@@ -679,22 +774,22 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.Reposito
         /// </summary>
         /// <param name="packabi">string encoded abi</param>
         /// <returns></returns>
-        public Abi DeserializePackedAbi(string packabi)
+        public EosAbi DeserializePackedAbi(string packabi)
         {
             var data = SerializationHelper.Base64FcStringToByteArray(packabi);
             int readIndex = 0;
 
-            return new Abi()
+            return new EosAbi()
             {
-                version = (string)ReadString(data, ref readIndex),
-                types = ReadType<List<AbiType>>(data, ref readIndex),
-                structs = ReadType<List<AbiStruct>>(data, ref readIndex),
-                actions = ReadAbiActionList(data, ref readIndex),
-                tables = ReadAbiTableList(data, ref readIndex),
-                ricardian_clauses = ReadType<List<AbiRicardianClause>>(data, ref readIndex),
-                error_messages = ReadType<List<string>>(data, ref readIndex),
-                abi_extensions = ReadType<List<Extension>>(data, ref readIndex),
-                variants = ReadType<List<Variant>>(data, ref readIndex)
+                Version = (string)ReadString(data, ref readIndex),
+                Types = ReadType<List<EosAbiType>>(data, ref readIndex),
+                Structs = ReadType<List<EosAbiStruct>>(data, ref readIndex),
+                Actions = ReadAbiActionList(data, ref readIndex),
+                Tables = ReadAbiTableList(data, ref readIndex),
+                RicardianClauses = ReadType<List<EosAbiRicardianClause>>(data, ref readIndex),
+                ErrorMessages = ReadType<List<string>>(data, ref readIndex),
+                AbiExtensions = ReadType<List<EosExtension>>(data, ref readIndex),
+                Variants = ReadType<List<EosVariant>>(data, ref readIndex)
             };
         }
 
@@ -702,23 +797,23 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.Reposito
         /// Serialize action to packed action data
         /// </summary>
         /// <param name="action">action to pack</param>
-        /// <param name="abi">abi schema to look action structure</param>
+        /// <param name="eosAbi">abi schema to look action structure</param>
         /// <returns></returns>
-        public byte[] SerializeActionData(Core.Api.v1.Action action, Abi abi)
+        public byte[] SerializeActionData(EosAction action, EosAbi eosAbi)
         {
-            var abiAction = abi.actions.FirstOrDefault(aa => aa.name == action.name);
+            var abiAction = eosAbi.Actions.FirstOrDefault(aa => aa.Name == action.Name);
             
             if (abiAction == null)
-                throw new ArgumentException(string.Format("action name {0} not found on abi.", action.name));
+                throw new ArgumentException(string.Format("action name {0} not found on abi.", action.Name));
 
-            var abiStruct = abi.structs.FirstOrDefault(s => s.name == abiAction.type);
+            var abiStruct = eosAbi.Structs.FirstOrDefault(s => s.Name == abiAction.Type);
 
             if (abiStruct == null)
-                throw new ArgumentException(string.Format("struct type {0} not found on abi.", abiAction.type));
+                throw new ArgumentException(string.Format("struct type {0} not found on abi.", abiAction.Type));
 
             using (MemoryStream ms = new MemoryStream())
             {
-                WriteAbiStruct(ms, action.data, abiStruct, abi);
+                WriteAbiStruct(ms, action.Data, abiStruct, eosAbi);
                 return ms.ToArray();
             }
         }
@@ -728,11 +823,11 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.Reposito
         /// </summary>
         /// <param name="structType">struct type in abi</param>
         /// <param name="dataHex">data to deserialize</param>
-        /// <param name="abi">abi schema to look for struct type</param>
+        /// <param name="eosAbi">abi schema to look for struct type</param>
         /// <returns></returns>
-        public Dictionary<string, object> DeserializeStructData(string structType, string dataHex, Abi abi)
+        public Dictionary<string, object> DeserializeStructData(string structType, string dataHex, EosAbi eosAbi)
         {
-            return DeserializeStructData<Dictionary<string, object>>(structType, dataHex, abi);
+            return DeserializeStructData<Dictionary<string, object>>(structType, dataHex, eosAbi);
         }
 
         /// <summary>
@@ -741,33 +836,33 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.Reposito
         /// <typeparam name="TStructData">deserialization struct data type</typeparam>
         /// <param name="structType">struct type in abi</param>
         /// <param name="dataHex">data to deserialize</param>
-        /// <param name="abi">abi schema to look for struct type</param>
+        /// <param name="eosAbi">abi schema to look for struct type</param>
         /// <returns></returns>
-        public TStructData DeserializeStructData<TStructData>(string structType, string dataHex, Abi abi)
+        public TStructData DeserializeStructData<TStructData>(string structType, string dataHex, EosAbi eosAbi)
         {
             var data = SerializationHelper.HexStringToByteArray(dataHex);
-            var abiStruct = abi.structs.First(s => s.name == structType);
+            var abiStruct = eosAbi.Structs.First(s => s.Name == structType);
             int readIndex = 0;
-            return ReadAbiStruct<TStructData>(data, abiStruct, abi, ref readIndex);
+            return ReadAbiStruct<TStructData>(data, abiStruct, eosAbi, ref readIndex);
         }
 
         /// <summary>
         /// Get abi schemas used in transaction
         /// </summary>
-        /// <param name="trx"></param>
+        /// <param name="eosTransaction"></param>
         /// <returns></returns>
-        public Task<Abi[]> GetTransactionAbis(Transaction trx)
+        public Task<EosAbi[]> GetTransactionAbis(EosTransaction eosTransaction)
         {
-            var abiTasks = new List<Task<Abi>>();
+            var abiTasks = new List<Task<EosAbi>>();
 
-            foreach (var action in trx.context_free_actions)
+            foreach (var action in eosTransaction.ContextFreeActions)
             {
-                abiTasks.Add(GetAbi(action.account));
+                abiTasks.Add(GetAbi(action.Account));
             }
 
-            foreach (var action in trx.actions)
+            foreach (var action in eosTransaction.Actions)
             {
-                abiTasks.Add(GetAbi(action.account));
+                abiTasks.Add(GetAbi(action.Account));
             }
 
             return Task.WhenAll(abiTasks);
@@ -778,14 +873,14 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.Reposito
         /// </summary>
         /// <param name="accountName">account name</param>
         /// <returns></returns>
-        public async Task<Abi> GetAbi(string accountName)
+        public async Task<EosAbi> GetAbi(string accountName)
         {
-            var result = await Api.GetRawAbi(new GetRawAbiRequest()
+            var result = await _eosClient.GetRawAbi(new GetRawAbiRequestDto()
             {
-                account_name = accountName
+                 AccountName = accountName
             });
 
-            return DeserializePackedAbi(result.abi);
+            return DeserializePackedAbi(result.Abi);
         }
 
         /// <summary>
@@ -965,7 +1060,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.Reposito
 
             var decimalBytes = SerializationHelper.SignedDecimalToBinary(8, amount);
             ms.Write(decimalBytes, 0, decimalBytes.Length);
-            WriteSymbol(ms, new Symbol() { name = name, precision = precision });
+            WriteSymbol(ms, new EosSymbol() { Name = name, Precision = precision });
         }
 
         private static void WriteTimePoint(MemoryStream ms, object value)
@@ -993,7 +1088,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.Reposito
             if (!m.Success)
                 throw new Exception("Invalid symbol.");
 
-            WriteSymbol(ms, new Symbol() { name = m.Groups[2].ToString(), precision = byte.Parse(m.Groups[1].ToString()) });
+            WriteSymbol(ms, new EosSymbol() { Name = m.Groups[2].ToString(), Precision = byte.Parse(m.Groups[1].ToString()) });
         }
 
         private static void WriteSymbolCode(MemoryStream ms, object value)
@@ -1051,7 +1146,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.Reposito
             var s = (string)value;
             var keyBytes = CryptoHelper.PubKeyStringToBytes(s);
 
-            WriteByte(ms, s.StartsWith("PUB_R1_") ? KeyType.r1 : KeyType.k1);
+            WriteByte(ms, s.StartsWith("PUB_R1_") ? KeyType.R1 : KeyType.K1);
             ms.Write(keyBytes, 0, CryptoHelper.PUB_KEY_DATA_SIZE);
         }
 
@@ -1059,7 +1154,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.Reposito
         {
             var s = (string)value;
             var keyBytes = CryptoHelper.PrivKeyStringToBytes(s);
-            WriteByte(ms, KeyType.r1);
+            WriteByte(ms, KeyType.R1);
             ms.Write(keyBytes, 0, CryptoHelper.PRIV_KEY_DATA_SIZE);
         }
 
@@ -1069,35 +1164,35 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.Reposito
             var signBytes = CryptoHelper.SignStringToBytes(s);
             
             if (s.StartsWith("SIG_K1_"))
-                WriteByte(ms, KeyType.k1);
+                WriteByte(ms, KeyType.K1);
             else if (s.StartsWith("SIG_R1_"))
-                WriteByte(ms, KeyType.r1);
+                WriteByte(ms, KeyType.R1);
 
             ms.Write(signBytes, 0, CryptoHelper.SIGN_KEY_DATA_SIZE);
         }
 
         private static void WriteExtendedAsset(MemoryStream ms, object value)
         {
-            var extAsset = (ExtendedAsset)value;
-            WriteAsset(ms, extAsset.quantity);
-            WriteName(ms, extAsset.contract);
+            var extAsset = (EosExtendedAsset)value;
+            WriteAsset(ms, extAsset.Quantity);
+            WriteName(ms, extAsset.Contract);
         }
 
         private static void WriteSymbol(MemoryStream ms, object value)
         {
-            var symbol = (Symbol)value;
+            var symbol = (EosSymbol)value;
 
-            WriteByte(ms, symbol.precision);
+            WriteByte(ms, symbol.Precision);
 
-            if (symbol.name.Length > 7)
-                ms.Write(Encoding.UTF8.GetBytes(symbol.name.Substring(0, 7)), 0, 7);
+            if (symbol.Name.Length > 7)
+                ms.Write(Encoding.UTF8.GetBytes(symbol.Name.Substring(0, 7)), 0, 7);
             else
             {
-                ms.Write(Encoding.UTF8.GetBytes(symbol.name), 0, symbol.name.Length);
+                ms.Write(Encoding.UTF8.GetBytes(symbol.Name), 0, symbol.Name.Length);
 
-                if (symbol.name.Length < 7)
+                if (symbol.Name.Length < 7)
                 {
-                    var fill = new byte[7 - symbol.name.Length];
+                    var fill = new byte[7 - symbol.Name.Length];
                     for (int i = 0; i < fill.Length; i++)
                         fill[i] = 0;
                     ms.Write(fill, 0, fill.Length);
@@ -1105,44 +1200,44 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.Reposito
             }
         }
 
-        private static void WriteExtension(MemoryStream ms, Core.Api.v1.Extension extension)
+        private static void WriteExtension(MemoryStream ms, EosExtension extension)
         {
-            if (extension.data == null)
+            if (extension.Data == null)
                 return;
 
-            WriteUint16(ms, extension.type);
-            WriteBytes(ms, extension.data);
+            WriteUint16(ms, extension.Type);
+            WriteBytes(ms, extension.Data);
         }
 
-        private static void WritePermissionLevel(MemoryStream ms, PermissionLevel perm)
+        private static void WritePermissionLevel(MemoryStream ms, EosPermissionLevel perm)
         {
-            WriteName(ms, perm.actor);
-            WriteName(ms, perm.permission);
+            WriteName(ms, perm.Actor);
+            WriteName(ms, perm.Permission);
         }
 
-        private void WriteAction(MemoryStream ms, Core.Api.v1.Action action, Abi abi)
+        private void WriteAction(MemoryStream ms, EosAction action, EosAbi eosAbi)
         {
-            WriteName(ms, action.account);
-            WriteName(ms, action.name);
+            WriteName(ms, action.Account);
+            WriteName(ms, action.Name);
 
-            WriteVarUint32(ms, (UInt32)action.authorization.Count);
-            foreach (var perm in action.authorization)
+            WriteVarUint32(ms, (UInt32)action.Authorization.Count);
+            foreach (var perm in action.Authorization)
             {
                 WritePermissionLevel(ms, perm);
             }
 
-            WriteBytes(ms, SerializeActionData(action, abi));
+            WriteBytes(ms, SerializeActionData(action, eosAbi));
         }
 
-        private void WriteAbiType(MemoryStream ms, object value, string type, Abi abi, bool isBinaryExtensionAllowed)
+        private void WriteAbiType(MemoryStream ms, object value, string type, EosAbi eosAbi, bool isBinaryExtensionAllowed)
         {
-            var uwtype = UnwrapTypeDef(abi, type);
+            var uwtype = UnwrapTypeDef(eosAbi, type);
 
             // binary extension type
             if(uwtype.EndsWith("$"))
             {
                 if (!isBinaryExtensionAllowed) throw new Exception("Binary Extension type not allowed.");
-                WriteAbiType(ms, value, uwtype.Substring(0, uwtype.Length - 1), abi, isBinaryExtensionAllowed);
+                WriteAbiType(ms, value, uwtype.Substring(0, uwtype.Length - 1), eosAbi, isBinaryExtensionAllowed);
 
                 return;
             }
@@ -1170,29 +1265,29 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.Reposito
 
                 WriteVarUint32(ms, items.Count);
                 foreach (var item in items)
-                    WriteAbiType(ms, item, arrayType, abi, false);
+                    WriteAbiType(ms, item, arrayType, eosAbi, false);
 
                 return;
             }
 
-            var writer = GetTypeSerializerAndCache(type, TypeWriters, abi);
+            var writer = GetTypeSerializerAndCache(type, TypeWriters, eosAbi);
             if (writer != null)
             {
                 writer(ms, value);
                 return;
             }
 
-            var abiStruct = abi.structs.FirstOrDefault(s => s.name == uwtype);
+            var abiStruct = eosAbi.Structs.FirstOrDefault(s => s.Name == uwtype);
             if (abiStruct != null)
             {
-                WriteAbiStruct(ms, value, abiStruct, abi);
+                WriteAbiStruct(ms, value, abiStruct, eosAbi);
                 return;
             }
 
-            var abiVariant = abi.variants.FirstOrDefault(v => v.name == uwtype);
+            var abiVariant = eosAbi.Variants.FirstOrDefault(v => v.Name == uwtype);
             if (abiVariant != null)
             {
-                WriteAbiVariant(ms, value, abiVariant, abi, isBinaryExtensionAllowed);
+                WriteAbiVariant(ms, value, abiVariant, eosAbi, isBinaryExtensionAllowed);
             }
             else
             {
@@ -1200,89 +1295,89 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.Reposito
             }
         }
 
-        private void WriteAbiStruct(MemoryStream ms, object value, AbiStruct abiStruct, Abi abi)
+        private void WriteAbiStruct(MemoryStream ms, object value, EosAbiStruct eosAbiStruct, EosAbi eosAbi)
         {
             if (value == null)
                 return;
 
-            if(!string.IsNullOrWhiteSpace(abiStruct.@base))
+            if(!string.IsNullOrWhiteSpace(eosAbiStruct.Base))
             {
-                WriteAbiType(ms, value, abiStruct.@base, abi, true);
+                WriteAbiType(ms, value, eosAbiStruct.Base, eosAbi, true);
             }
 
             if(value is System.Collections.IDictionary)
             {
                 var skippedBinaryExtension = false;
                 var valueDict = value as System.Collections.IDictionary;
-                foreach (var field in abiStruct.fields)
+                foreach (var field in eosAbiStruct.Fields)
                 {
-                    var fieldName = FindObjectFieldName(field.name, valueDict);
+                    var fieldName = FindObjectFieldName(field.Name, valueDict);
 
                     if (string.IsNullOrWhiteSpace(fieldName))
                     {
-                        if (field.type.EndsWith("$"))
+                        if (field.Type.EndsWith("$"))
                         {
                             skippedBinaryExtension = true;
                             continue;
                         }
 
-                        throw new Exception("Missing " + abiStruct.name + "." + field.name + " (type=" + field.type + ")");
+                        throw new Exception("Missing " + eosAbiStruct.Name + "." + field.Name + " (type=" + field.Type + ")");
                     }
                     else if (skippedBinaryExtension)
                     {
-                        throw new Exception("Unexpected " + abiStruct.name + "." + field.name + " (type=" + field.type + ")");
+                        throw new Exception("Unexpected " + eosAbiStruct.Name + "." + field.Name + " (type=" + field.Type + ")");
                     }
 
-                    WriteAbiType(ms, valueDict[fieldName], field.type, abi, true);
+                    WriteAbiType(ms, valueDict[fieldName], field.Type, eosAbi, true);
                 }
             }
             else
             {
                 var valueType = value.GetType();
-                foreach (var field in abiStruct.fields)
+                foreach (var field in eosAbiStruct.Fields)
                 {
-                    var fieldInfo = valueType.GetField(field.name);
+                    var fieldInfo = valueType.GetField(field.Name);
 
                     if(fieldInfo != null)
-                        WriteAbiType(ms, fieldInfo.GetValue(value), field.type, abi, true);
+                        WriteAbiType(ms, fieldInfo.GetValue(value), field.Type, eosAbi, true);
                     else
                     {
-                        var propInfo = valueType.GetProperty(field.name);
+                        var propInfo = valueType.GetProperty(field.Name);
 
                         if(propInfo != null)
-                            WriteAbiType(ms, propInfo.GetValue(value), field.type, abi, true);
+                            WriteAbiType(ms, propInfo.GetValue(value), field.Type, eosAbi, true);
                         else
-                            throw new Exception("Missing " + abiStruct.name + "." + field.name + " (type=" + field.type + ")");
+                            throw new Exception("Missing " + eosAbiStruct.Name + "." + field.Name + " (type=" + field.Type + ")");
 
                     }
                 }
             }
         }
 
-        private void WriteAbiVariant(MemoryStream ms, object value, Variant abiVariant, Abi abi, bool isBinaryExtensionAllowed)
+        private void WriteAbiVariant(MemoryStream ms, object value, EosVariant abiEosVariant, EosAbi eosAbi, bool isBinaryExtensionAllowed)
         {
             var variantValue = (KeyValuePair<string, object>)value;
-            var i = abiVariant.types.IndexOf(variantValue.Key);
+            var i = abiEosVariant.Types.IndexOf(variantValue.Key);
             if (i < 0)
             {
                 throw new Exception("type " + variantValue.Key + " is not valid for variant");
             }
             WriteVarUint32(ms, i);
-            WriteAbiType(ms, variantValue.Value, variantValue.Key, abi, isBinaryExtensionAllowed);
+            WriteAbiType(ms, variantValue.Value, variantValue.Key, eosAbi, isBinaryExtensionAllowed);
         }
 
-        private string UnwrapTypeDef(Abi abi, string type)
+        private string UnwrapTypeDef(EosAbi eosAbi, string type)
         {
-            var wtype = abi.types.FirstOrDefault(t => t.new_type_name == type);
-            if(wtype != null && wtype.type != type)
+            var wtype = eosAbi.Types.FirstOrDefault(t => t.NewTypeName == type);
+            if(wtype != null && wtype.Type != type)
             {
-                return UnwrapTypeDef(abi, wtype.type);
+                return UnwrapTypeDef(eosAbi, wtype.Type);
             }
 
             return type;
         }
 
-        private TSerializer GetTypeSerializerAndCache<TSerializer>(string type, Dictionary<string, TSerializer> typeSerializers, Abi abi)
+        private TSerializer GetTypeSerializerAndCache<TSerializer>(string type, Dictionary<string, TSerializer> typeSerializers, EosAbi eosAbi)
         {
             TSerializer nativeSerializer;
             if (typeSerializers.TryGetValue(type, out nativeSerializer))
@@ -1290,11 +1385,11 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.Reposito
                 return nativeSerializer;
             }
 
-            var abiTypeDef = abi.types.FirstOrDefault(t => t.new_type_name == type);
+            var abiTypeDef = eosAbi.Types.FirstOrDefault(t => t.NewTypeName == type);
 
             if(abiTypeDef != null)
             {
-                var serializer = GetTypeSerializerAndCache(abiTypeDef.type, typeSerializers, abi);
+                var serializer = GetTypeSerializerAndCache(abiTypeDef.Type, typeSerializers, eosAbi);
 
                 if(serializer != null)
                 {
@@ -1468,13 +1563,13 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.Reposito
 
             readIndex += 8;
 
-            var symbol = (Symbol)ReadSymbol(data, ref readIndex);
-            string s = SerializationHelper.SignedBinaryToDecimal(amount, symbol.precision + 1);
+            var symbol = (EosSymbol)ReadSymbol(data, ref readIndex);
+            string s = SerializationHelper.SignedBinaryToDecimal(amount, symbol.Precision + 1);
 
-            if (symbol.precision > 0)
-                s = s.Substring(0, s.Length - symbol.precision) + '.' + s.Substring(s.Length - symbol.precision);
+            if (symbol.Precision > 0)
+                s = s.Substring(0, s.Length - symbol.Precision) + '.' + s.Substring(s.Length - symbol.Precision);
 
-            return s + ' ' + symbol.name;
+            return s + ' ' + symbol.Name;
         }
 
         private object ReadTimePoint(byte[] data, ref int readIndex)
@@ -1498,8 +1593,8 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.Reposito
 
         private object ReadSymbolString(byte[] data, ref int readIndex)
         {
-            var value = (Symbol)ReadSymbol(data, ref readIndex);
-            return value.precision + ',' + value.name;
+            var value = (EosSymbol)ReadSymbol(data, ref readIndex);
+            return value.Precision + ',' + value.Name;
         }
 
         private object ReadSymbolCode(byte[] data, ref int readIndex)
@@ -1547,11 +1642,11 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.Reposito
 
             readIndex += CryptoHelper.PUB_KEY_DATA_SIZE;
 
-            if(type == (int)KeyType.k1)
+            if(type == (int)KeyType.K1)
             {
                 return CryptoHelper.PubKeyBytesToString(keyBytes, "K1");
             }
-            if (type == (int)KeyType.r1)
+            if (type == (int)KeyType.R1)
             {
                 return CryptoHelper.PubKeyBytesToString(keyBytes, "R1", "PUB_R1_");
             }
@@ -1568,7 +1663,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.Reposito
 
             readIndex += CryptoHelper.PRIV_KEY_DATA_SIZE;
 
-            if (type == (int)KeyType.r1)
+            if (type == (int)KeyType.R1)
             {
                 return CryptoHelper.PrivKeyBytesToString(keyBytes, "R1", "PVT_R1_");
             }
@@ -1585,11 +1680,11 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.Reposito
 
             readIndex += CryptoHelper.SIGN_KEY_DATA_SIZE;
 
-            if (type == (int)KeyType.r1)
+            if (type == (int)KeyType.R1)
             {
                 return CryptoHelper.SignBytesToString(signBytes, "R1", "SIG_R1_");
             }
-            else if (type == (int)KeyType.k1)
+            else if (type == (int)KeyType.K1)
             {
                 return CryptoHelper.SignBytesToString(signBytes, "K1", "SIG_K1_");
             }
@@ -1601,18 +1696,18 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.Reposito
 
         private object ReadExtendedAsset(byte[] data, ref int readIndex)
         {
-            return new ExtendedAsset()
+            return new EosExtendedAsset()
             {
-                quantity = (string)ReadAsset(data, ref readIndex),
-                contract = (string)ReadName(data, ref readIndex)
+                Quantity = (string)ReadAsset(data, ref readIndex),
+                Contract = (string)ReadName(data, ref readIndex)
             };
         }
 
         private object ReadSymbol(byte[] data, ref int readIndex)
         {
-            var value = new Symbol
+            var value = new EosSymbol
             {
-                precision = (byte)ReadByte(data, ref readIndex)
+                Precision = (byte)ReadByte(data, ref readIndex)
             };
 
             byte[] a = data.Skip(readIndex).Take(7).ToArray();
@@ -1624,99 +1719,99 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.Reposito
                 if (a[len] == 0)
                     break;
 
-            value.name = string.Join("", a.Take(len).Select(b => (char)b));
+            value.Name = string.Join("", a.Take(len).Select(b => (char)b));
 
             return value;
         }
 
         private object ReadPermissionLevel(byte[] data, ref int readIndex)
         {
-            var value = new PermissionLevel()
+            var value = new EosPermissionLevel()
             {
-                actor = (string)ReadName(data, ref readIndex),
-                permission = (string)ReadName(data, ref readIndex),
+                Actor = (string)ReadName(data, ref readIndex),
+                Permission = (string)ReadName(data, ref readIndex),
             };
             return value;
         }
 
         private object ReadActionHeader(byte[] data, ref int readIndex)
         {
-            return new Core.Api.v1.Action()
+            return new EosAction()
             {
-                account = (string)ReadName(data, ref readIndex),
-                name = (string)ReadName(data, ref readIndex)
+                Account = (string)ReadName(data, ref readIndex),
+                Name = (string)ReadName(data, ref readIndex)
             };
         }
 
-        private object ReadAction(byte[] data, Core.Api.v1.Action action, Abi abi, ref int readIndex)
+        private object ReadAction(byte[] data, EosAction action, EosAbi eosAbi, ref int readIndex)
         {
             if (action == null)
                 throw new ArgumentNullException("action");
 
             var size = Convert.ToInt32(ReadVarUint32(data, ref readIndex));
 
-            action.authorization = new List<PermissionLevel>(size);
+            action.Authorization = new List<EosPermissionLevel>(size);
             for (var i = 0; i < size ; i++)
             {
-                action.authorization.Add((PermissionLevel)ReadPermissionLevel(data, ref readIndex));
+                action.Authorization.Add((EosPermissionLevel)ReadPermissionLevel(data, ref readIndex));
             }
 
-            var abiAction = abi.actions.First(aa => aa.name == action.name);
-            var abiStruct = abi.structs.First(s => s.name == abiAction.type);
+            var abiAction = eosAbi.Actions.First(aa => aa.Name == action.Name);
+            var abiStruct = eosAbi.Structs.First(s => s.Name == abiAction.Type);
 
             var dataSize = Convert.ToInt32(ReadVarUint32(data, ref readIndex));
 
-            action.data = ReadAbiStruct(data, abiStruct, abi, ref readIndex);
+            action.Data = ReadAbiStruct(data, abiStruct, eosAbi, ref readIndex);
 
             return action;
         }
 
-        private List<AbiAction> ReadAbiActionList(byte[] data, ref int readIndex)
+        private List<EosAbiAction> ReadAbiActionList(byte[] data, ref int readIndex)
         {
             var size = Convert.ToInt32(ReadVarUint32(data, ref readIndex));
-            List<AbiAction> items = new List<AbiAction>();
+            List<EosAbiAction> items = new List<EosAbiAction>();
 
             for (int i = 0; i < size; i++)
             {
-                items.Add(new AbiAction() {
-                    name = (string)TypeReaders["name"](data, ref readIndex),
-                    type = (string)TypeReaders["string"](data, ref readIndex),
-                    ricardian_contract = (string)TypeReaders["string"](data, ref readIndex)
+                items.Add(new EosAbiAction() {
+                    Name = (string)TypeReaders["name"](data, ref readIndex),
+                    Type = (string)TypeReaders["string"](data, ref readIndex),
+                    RicardianContract = (string)TypeReaders["string"](data, ref readIndex)
                 });
             }
 
             return items;
         }
 
-        private List<AbiTable> ReadAbiTableList(byte[] data, ref int readIndex)
+        private List<EosAbiTable> ReadAbiTableList(byte[] data, ref int readIndex)
         {
             var size = Convert.ToInt32(ReadVarUint32(data, ref readIndex));
-            List<AbiTable> items = new List<AbiTable>();
+            List<EosAbiTable> items = new List<EosAbiTable>();
 
             for (int i = 0; i < size; i++)
             {
-                items.Add(new AbiTable()
+                items.Add(new EosAbiTable()
                 {
-                    name = (string)TypeReaders["name"](data, ref readIndex),
-                    index_type = (string)TypeReaders["string"](data, ref readIndex),
-                    key_names = ReadType<List<string>>(data, ref readIndex),
-                    key_types = ReadType<List<string>>(data, ref readIndex),
-                    type = (string)TypeReaders["string"](data, ref readIndex)
+                    Name = (string)TypeReaders["name"](data, ref readIndex),
+                    IndexType = (string)TypeReaders["string"](data, ref readIndex),
+                    KeyNames = ReadType<List<string>>(data, ref readIndex),
+                    KeyTypes = ReadType<List<string>>(data, ref readIndex),
+                    Type = (string)TypeReaders["string"](data, ref readIndex)
                 });
             }
 
             return items;
         }
 
-        private object ReadAbiType(byte[] data, string type, Abi abi, ref int readIndex, bool isBinaryExtensionAllowed)
+        private object ReadAbiType(byte[] data, string type, EosAbi eosAbi, ref int readIndex, bool isBinaryExtensionAllowed)
         {
-            var uwtype = UnwrapTypeDef(abi, type);
+            var uwtype = UnwrapTypeDef(eosAbi, type);
 
             // binary extension type
             if(uwtype.EndsWith("$"))
             {
                 if (!isBinaryExtensionAllowed) throw new Exception("Binary Extension type not allowed.");
-                return ReadAbiType(data, uwtype.Substring(0, uwtype.Length - 1), abi, ref readIndex, isBinaryExtensionAllowed);
+                return ReadAbiType(data, uwtype.Substring(0, uwtype.Length - 1), eosAbi, ref readIndex, isBinaryExtensionAllowed);
             }
 
             //optional type
@@ -1739,28 +1834,28 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.Reposito
 
                 for (int i = 0; i < size; i++)
                 {
-                    items.Add(ReadAbiType(data, arrayType, abi, ref readIndex, false));
+                    items.Add(ReadAbiType(data, arrayType, eosAbi, ref readIndex, false));
                 }
 
                 return items;
             }
 
-            var reader = GetTypeSerializerAndCache(type, TypeReaders, abi);
+            var reader = GetTypeSerializerAndCache(type, TypeReaders, eosAbi);
             if (reader != null)
             {
                 return reader(data, ref readIndex);
             }
 
-            var abiStruct = abi.structs.FirstOrDefault(s => s.name == uwtype);
+            var abiStruct = eosAbi.Structs.FirstOrDefault(s => s.Name == uwtype);
             if (abiStruct != null)
             {
-                return ReadAbiStruct(data, abiStruct, abi, ref readIndex);
+                return ReadAbiStruct(data, abiStruct, eosAbi, ref readIndex);
             }
 
-            var abiVariant = abi.variants.FirstOrDefault(v => v.name == uwtype);
+            var abiVariant = eosAbi.Variants.FirstOrDefault(v => v.Name == uwtype);
             if(abiVariant != null)
             {
-                return ReadAbiVariant(data, abiVariant, abi, ref readIndex, isBinaryExtensionAllowed);
+                return ReadAbiVariant(data, abiVariant, eosAbi, ref readIndex, isBinaryExtensionAllowed);
             }
             else
             {
@@ -1768,18 +1863,18 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.Reposito
             }
         }
 
-        private object ReadAbiStruct(byte[] data, AbiStruct abiStruct, Abi abi, ref int readIndex)
+        private object ReadAbiStruct(byte[] data, EosAbiStruct eosAbiStruct, EosAbi eosAbi, ref int readIndex)
         {
-            return ReadAbiStruct<Dictionary<string, object>>(data, abiStruct, abi, ref readIndex);
+            return ReadAbiStruct<Dictionary<string, object>>(data, eosAbiStruct, eosAbi, ref readIndex);
         }
 
-        private T ReadAbiStruct<T>(byte[] data, AbiStruct abiStruct, Abi abi, ref int readIndex)
+        private T ReadAbiStruct<T>(byte[] data, EosAbiStruct eosAbiStruct, EosAbi eosAbi, ref int readIndex)
         {
             object value = default(T);
 
-            if (!string.IsNullOrWhiteSpace(abiStruct.@base))
+            if (!string.IsNullOrWhiteSpace(eosAbiStruct.Base))
             {
-                value = (T)ReadAbiType(data, abiStruct.@base, abi, ref readIndex, true);
+                value = (T)ReadAbiType(data, eosAbiStruct.Base, eosAbi, ref readIndex, true);
             }
             else
             {
@@ -1789,21 +1884,21 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.Reposito
             if (value is IDictionary<string, object>)
             {
                 var valueDict = value as IDictionary<string, object>;
-                foreach (var field in abiStruct.fields)
+                foreach (var field in eosAbiStruct.Fields)
                 {
-                    var abiValue = ReadAbiType(data, field.type, abi, ref readIndex, true);
-                    if (field.type.EndsWith("$") && abiValue == null) break;
-                    valueDict.Add(field.name, abiValue);
+                    var abiValue = ReadAbiType(data, field.Type, eosAbi, ref readIndex, true);
+                    if (field.Type.EndsWith("$") && abiValue == null) break;
+                    valueDict.Add(field.Name, abiValue);
                 }
             }
             else
             {
                 var valueType = value.GetType();
-                foreach (var field in abiStruct.fields)
+                foreach (var field in eosAbiStruct.Fields)
                 {
-                    var abiValue = ReadAbiType(data, field.type, abi, ref readIndex, true);
-                    if (field.type.EndsWith("$") && abiValue == null) break;
-                    var fieldName = FindObjectFieldName(field.name, value.GetType());
+                    var abiValue = ReadAbiType(data, field.Type, eosAbi, ref readIndex, true);
+                    if (field.Type.EndsWith("$") && abiValue == null) break;
+                    var fieldName = FindObjectFieldName(field.Name, value.GetType());
                     valueType.GetField(fieldName).SetValue(value, abiValue);
                 }
             }
@@ -1811,15 +1906,15 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.Reposito
             return (T)value;
         }
 
-        private object ReadAbiVariant(byte[] data, Variant abiVariant, Abi abi, ref int readIndex, bool isBinaryExtensionAllowed)
+        private object ReadAbiVariant(byte[] data, EosVariant abiEosVariant, EosAbi eosAbi, ref int readIndex, bool isBinaryExtensionAllowed)
         {
             var i = (Int32)ReadVarUint32(data, ref readIndex);
-            if (i >= abiVariant.types.Count)
+            if (i >= abiEosVariant.Types.Count)
             {
                 throw new Exception("type index " + i + " is not valid for variant");
             }
-            var type = abiVariant.types[i];
-            return new KeyValuePair<string, object>(abiVariant.name, ReadAbiType(data, type, abi, ref readIndex, isBinaryExtensionAllowed));
+            var type = abiEosVariant.Types[i];
+            return new KeyValuePair<string, object>(abiEosVariant.Name, ReadAbiType(data, type, eosAbi, ref readIndex, isBinaryExtensionAllowed));
         }
 
         private T ReadType<T>(byte[] data, ref int readIndex)
@@ -1975,6 +2070,496 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.Reposito
         #endregion
     }
     
+    /// <summary>
+    /// Signature provider that combine multiple signature providers to complete all the signatures for a transaction
+    /// </summary>
+    public class CombinedSignersProvider : ISignProvider
+    {
+        private List<ISignProvider> Signers { get; set; }
+        
+        /// <summary>
+        /// Creates the provider with a list of signature providers
+        /// </summary>
+        /// <param name="signers"></param>
+        public CombinedSignersProvider(List<ISignProvider> signers)
+        {
+            if (signers == null || signers.Count == 0)
+                throw new ArgumentNullException("Required atleast one signer.");
+
+            Signers = signers;
+        }
+
+        /// <summary>
+        /// Get available public keys from the list of signature providers
+        /// </summary>
+        /// <returns>List of public keys</returns>
+        public async Task<IEnumerable<string>> GetAvailableKeys()
+        {
+            var availableKeysListTasks = Signers.Select(s => s.GetAvailableKeys());
+            var availableKeysList = await Task.WhenAll(availableKeysListTasks);
+            return availableKeysList.SelectMany(k => k).Distinct();
+        }
+
+        /// <summary>
+        /// Sign bytes using the list of signature providers
+        /// </summary>
+        /// <param name="chainId">EOSIO Chain id</param>
+        /// <param name="requiredKeys">required public keys for signing this bytes</param>
+        /// <param name="signBytes">signature bytes</param>
+        /// <param name="abiNames">abi contract names to get abi information from</param>
+        /// <returns>List of signatures per required keys</returns>
+        public async Task<IEnumerable<string>> Sign(string chainId, IEnumerable<string> requiredKeys, byte[] signBytes, IEnumerable<string> abiNames = null)
+        {
+            var signatureTasks = Signers.Select(s => s.Sign(chainId, requiredKeys, signBytes, abiNames));
+            var signatures = await Task.WhenAll(signatureTasks);
+            return signatures.SelectMany(k => k).Distinct();
+        }
+    }
+    
+    /// <summary>
+    /// Helper class with crypto functions
+    /// </summary>
+    public class CryptoHelper
+    {
+        public static readonly int PUB_KEY_DATA_SIZE = 33;
+        public static readonly int PRIV_KEY_DATA_SIZE = 32;
+        public static readonly int SIGN_KEY_DATA_SIZE = 64;
+
+        /// <summary>
+        /// KeyPair with a private and public key
+        /// </summary>
+        public class KeyPair
+        {
+            public string PrivateKey { get; set; }
+            public string PublicKey { get; set; }
+        }
+
+        /// <summary>
+        /// Generate a new key pair based on a key type
+        /// </summary>
+        /// <param name="keyType">Optional key type. (sha256x2, R1)</param>
+        /// <returns>key pair</returns>
+        public static KeyPair GenerateKeyPair(string keyType = "sha256x2")
+        {
+            var key = Secp256K1Manager.GenerateRandomKey();
+            var pubKey = Secp256K1Manager.GetPublicKey(key, true);
+
+            if (keyType != "sha256x2" && keyType != "R1")
+                throw new Exception("invalid key type.");
+
+            return new KeyPair()
+            {
+                PrivateKey = KeyToString(key, keyType, keyType == "R1" ? "PVT_R1_" : null),
+                PublicKey = KeyToString(pubKey, keyType != "sha256x2" ? keyType : null, keyType == "R1" ? "PUB_R1_" : "EOS")
+            };
+        }
+
+        /// <summary>
+        /// Get private key bytes without is checksum
+        /// </summary>
+        /// <param name="privateKey">private key</param>
+        /// <returns>byte array</returns>
+        public static byte[] GetPrivateKeyBytesWithoutCheckSum(string privateKey)
+        {
+            if (privateKey.StartsWith("PVT_R1_"))
+                return PrivKeyStringToBytes(privateKey).Take(PRIV_KEY_DATA_SIZE).ToArray();
+            else
+                return PrivKeyStringToBytes(privateKey).Skip(1).Take(PRIV_KEY_DATA_SIZE).ToArray();
+        }
+
+        /// <summary>
+        /// Convert byte array to encoded public key string
+        /// </summary>
+        /// <param name="keyBytes">public key bytes</param>
+        /// <param name="keyType">Optional key type. (sha256x2, R1, K1)</param>
+        /// <param name="prefix">Optional prefix to public key</param>
+        /// <returns>encoded public key</returns>
+        public static string PubKeyBytesToString(byte[] keyBytes, string keyType = null, string prefix = "EOS")
+        {
+            return KeyToString(keyBytes, keyType, prefix);
+        }
+
+        /// <summary>
+        /// Convert byte array to encoded private key string
+        /// </summary>
+        /// <param name="keyBytes">public key bytes</param>
+        /// <param name="keyType">Optional key type. (sha256x2, R1, K1)</param>
+        /// <param name="prefix">Optional prefix to public key</param>
+        /// <returns>encoded private key</returns>
+        public static string PrivKeyBytesToString(byte[] keyBytes, string keyType = "R1", string prefix = "PVT_R1_")
+        {
+            return KeyToString(keyBytes, keyType, prefix);
+        }
+
+        /// <summary>
+        /// Convert byte array to encoded signature string
+        /// </summary>
+        /// <param name="signBytes">signature bytes</param>
+        /// <param name="keyType">Optional key type. (sha256x2, R1, K1)</param>
+        /// <param name="prefix">Optional prefix to public key</param>
+        /// <returns>encoded signature</returns>
+        public static string SignBytesToString(byte[] signBytes, string keyType = "K1", string prefix = "SIG_K1_")
+        {
+            return KeyToString(signBytes, keyType, prefix);
+        }
+
+        /// <summary>
+        /// Convert encoded public key to byte array
+        /// </summary>
+        /// <param name="key">encoded public key</param>
+        /// <param name="prefix">Optional prefix on key</param>
+        /// <returns>public key bytes</returns>
+        public static byte[] PubKeyStringToBytes(string key, string prefix = "EOS")
+        {
+            if(key.StartsWith("PUB_R1_"))
+            {
+                return StringToKey(key.Substring(7), PUB_KEY_DATA_SIZE, "R1");
+            }
+            else if(key.StartsWith(prefix))
+            {
+                return StringToKey(key.Substring(prefix.Length), PUB_KEY_DATA_SIZE);
+            }
+            else
+            {
+                throw new Exception("unrecognized public key format.");
+            }
+        }
+
+        /// <summary>
+        /// Convert encoded public key to byte array
+        /// </summary>
+        /// <param name="key">encoded public key</param>
+        /// <param name="prefix">Optional prefix on key</param>
+        /// <returns>public key bytes</returns>
+        public static byte[] PrivKeyStringToBytes(string key)
+        {
+            if (key.StartsWith("PVT_R1_"))
+                return StringToKey(key.Substring(7), PRIV_KEY_DATA_SIZE, "R1");
+            else
+                return StringToKey(key, PRIV_KEY_DATA_SIZE, "sha256x2");
+        }
+
+        /// <summary>
+        /// Convert encoded signature to byte array
+        /// </summary>
+        /// <param name="sign">encoded signature</param>
+        /// <returns>signature bytes</returns>
+        public static byte[] SignStringToBytes(string sign)
+        {
+            if (sign.StartsWith("SIG_K1_"))
+                return StringToKey(sign.Substring(7), SIGN_KEY_DATA_SIZE, "K1");
+            if (sign.StartsWith("SIG_R1_"))
+                return StringToKey(sign.Substring(7), SIGN_KEY_DATA_SIZE, "R1");
+            else
+                throw new Exception("unrecognized signature format.");
+        }
+
+        /// <summary>
+        /// Convert Pub/Priv key or signature to byte array
+        /// </summary>
+        /// <param name="key">generic key</param>
+        /// <param name="size">Key size</param>
+        /// <param name="keyType">Optional key type. (sha256x2, R1, K1)</param>
+        /// <returns>key bytes</returns>
+        public static byte[] StringToKey(string key, int size, string keyType = null) 
+        {
+            var keyBytes = Base58.Decode(key);
+            byte[] digest = null;
+            int skipSize = 0;
+
+            if(keyType == "sha256x2")
+            {
+                // skip version
+                skipSize = 1;
+                digest = Sha256Manager.GetHash(Sha256Manager.GetHash(keyBytes.Take(size + skipSize).ToArray()));
+            }
+            else if(!string.IsNullOrWhiteSpace(keyType))
+            {
+                // skip K1 recovery param
+                if(keyType == "K1")
+                    skipSize = 1;
+
+                digest = Ripemd160Manager.GetHash(SerializationHelper.Combine(new List<byte[]>() {
+                    keyBytes.Take(size + skipSize).ToArray(),
+                    Encoding.UTF8.GetBytes(keyType)
+                }));
+            }
+            else
+            {
+                digest = Ripemd160Manager.GetHash(keyBytes.Take(size).ToArray());
+            }
+
+            if (!keyBytes.Skip(size + skipSize).SequenceEqual(digest.Take(4)))
+            {
+                throw new Exception("checksum doesn't match.");
+            }
+            return keyBytes;
+        }
+
+        /// <summary>
+        /// Convert key byte array to encoded generic key
+        /// </summary>
+        /// <param name="key">key byte array</param>
+        /// <param name="keyType">Key type. (sha256x2, R1, K1)</param>
+        /// <param name="prefix">Optional prefix</param>
+        /// <returns></returns>
+        public static string KeyToString(byte[] key, string keyType, string prefix = null)
+        {
+            byte[] digest = null;
+
+            if (keyType == "sha256x2")
+            {
+                digest = Sha256Manager.GetHash(Sha256Manager.GetHash(SerializationHelper.Combine(new List<byte[]>() {
+                    new byte[] { 128 },
+                    key
+                })));
+            }
+            else if (!string.IsNullOrWhiteSpace(keyType))
+            {
+                digest = Ripemd160Manager.GetHash(SerializationHelper.Combine(new List<byte[]>() {
+                    key,
+                    Encoding.UTF8.GetBytes(keyType)
+                }));
+            }
+            else
+            {
+                digest = Ripemd160Manager.GetHash(key);
+            }
+
+            if(keyType == "sha256x2")
+            {
+                return (prefix ?? "") + Base58.Encode(SerializationHelper.Combine(new List<byte[]>() {
+                    new byte[] { 128 },
+                    key,
+                    digest.Take(4).ToArray()
+                }));
+            }
+            else
+            {
+                return (prefix ?? "") + Base58.Encode(SerializationHelper.Combine(new List<byte[]>() {
+                    key,
+                    digest.Take(4).ToArray()
+                }));
+            }
+        }
+
+
+        public static byte[] AesEncrypt(byte[] keyBytes, string plainText)
+        {
+            using (Aes aes = Aes.Create())
+            {
+                aes.IV = keyBytes.Skip(32).Take(16).ToArray();
+                aes.Key = keyBytes.Take(32).ToArray();
+                return EncryptStringToBytes_Aes(plainText, aes.Key, aes.IV);
+            }
+        }
+
+        public static string AesDecrypt(byte[] keyBytes, byte[] cipherText)
+        {
+            using (Aes aes = Aes.Create())
+            {
+                aes.IV = keyBytes.Skip(32).Take(16).ToArray();
+                aes.Key = keyBytes.Take(32).ToArray();
+
+                // Decrypt the bytes to a string.
+                return DecryptStringFromBytes_Aes(cipherText, aes.Key, aes.IV);
+            }
+        }
+
+        public static byte[] EncryptStringToBytes_Aes(string plainText, byte[] Key, byte[] IV)
+        {
+            // Check arguments.
+            if (plainText == null || plainText.Length <= 0)
+                throw new ArgumentNullException("plainText");
+            if (Key == null || Key.Length <= 0)
+                throw new ArgumentNullException("Key");
+            if (IV == null || IV.Length <= 0)
+                throw new ArgumentNullException("IV");
+            byte[] encrypted;
+
+            // Create an Aes object
+            // with the specified key and IV.
+            using (Aes aesAlg = Aes.Create())
+            {
+                aesAlg.Key = Key;
+                aesAlg.IV = IV;
+
+                // Create an encryptor to perform the stream transform.
+                ICryptoTransform encryptor = aesAlg.CreateEncryptor(aesAlg.Key, aesAlg.IV);
+
+                // Create the streams used for encryption.
+                using (MemoryStream msEncrypt = new MemoryStream())
+                {
+                    using (CryptoStream csEncrypt = new CryptoStream(msEncrypt, encryptor, CryptoStreamMode.Write))
+                    {
+                        using (StreamWriter swEncrypt = new StreamWriter(csEncrypt))
+                        {
+                            //Write all data to the stream.
+                            swEncrypt.Write(plainText);
+                        }
+                        encrypted = msEncrypt.ToArray();
+                    }
+                }
+            }
+
+            // Return the encrypted bytes from the memory stream.
+            return encrypted;
+        }
+
+        public static string DecryptStringFromBytes_Aes(byte[] cipherText, byte[] Key, byte[] IV)
+        {
+            // Check arguments.
+            if (cipherText == null || cipherText.Length <= 0)
+                throw new ArgumentNullException("cipherText");
+            if (Key == null || Key.Length <= 0)
+                throw new ArgumentNullException("Key");
+            if (IV == null || IV.Length <= 0)
+                throw new ArgumentNullException("IV");
+
+            // Declare the string used to hold
+            // the decrypted text.
+            string plaintext = null;
+
+            // Create an Aes object
+            // with the specified key and IV.
+            using (Aes aesAlg = Aes.Create())
+            {
+                aesAlg.Key = Key;
+                aesAlg.IV = IV;
+
+                // Create a decryptor to perform the stream transform.
+                ICryptoTransform decryptor = aesAlg.CreateDecryptor(aesAlg.Key, aesAlg.IV);
+
+                // Create the streams used for decryption.
+                using (MemoryStream msDecrypt = new MemoryStream(cipherText))
+                {
+                    using (CryptoStream csDecrypt = new CryptoStream(msDecrypt, decryptor, CryptoStreamMode.Read))
+                    {
+                        using (StreamReader srDecrypt = new StreamReader(csDecrypt))
+                        {
+
+                            // Read the decrypted bytes from the decrypting stream
+                            // and place them in a string.
+                            plaintext = srDecrypt.ReadToEnd();
+                        }
+                    }
+                }
+
+            }
+
+            return plaintext;
+        }
+    }
+    
+    /// <summary>
+    /// Signature provider default implementation that stores private keys in memory
+    /// </summary>
+    public class DefaultSignProvider : ISignProvider
+    {
+        private readonly byte[] KeyTypeBytes = Encoding.UTF8.GetBytes("K1");
+        private readonly Dictionary<string, byte[]> Keys = new Dictionary<string, byte[]>();
+
+        /// <summary>
+        /// Create provider with single private key
+        /// </summary>
+        /// <param name="privateKey"></param>
+        public DefaultSignProvider(string privateKey)
+        {
+            var privKeyBytes = CryptoHelper.GetPrivateKeyBytesWithoutCheckSum(privateKey);
+            var pubKey = CryptoHelper.PubKeyBytesToString(Secp256K1Manager.GetPublicKey(privKeyBytes, true));
+            Keys.Add(pubKey, privKeyBytes);
+        }
+
+        /// <summary>
+        /// Create provider with list of private keys
+        /// </summary>
+        /// <param name="privateKeys"></param>
+        public DefaultSignProvider(List<string> privateKeys)
+        {
+            if (privateKeys == null || privateKeys.Count == 0)
+                throw new ArgumentNullException("privateKeys");
+
+            foreach(var key in privateKeys)
+            {
+                var privKeyBytes = CryptoHelper.GetPrivateKeyBytesWithoutCheckSum(key);
+                var pubKey = CryptoHelper.PubKeyBytesToString(Secp256K1Manager.GetPublicKey(privKeyBytes, true));
+                Keys.Add(pubKey, privKeyBytes);
+            }
+        }
+
+        /// <summary>
+        /// Create provider with dictionary of encoded key pairs
+        /// </summary>
+        /// <param name="encodedKeys"></param>
+        public DefaultSignProvider(Dictionary<string, string> encodedKeys)
+        {
+            if (encodedKeys == null || encodedKeys.Count == 0)
+                throw new ArgumentNullException("encodedKeys");
+
+            foreach (var keyPair in encodedKeys)
+            {
+                var privKeyBytes = CryptoHelper.GetPrivateKeyBytesWithoutCheckSum(keyPair.Value);
+                Keys.Add(keyPair.Key, privKeyBytes);
+            }
+        }
+
+        /// <summary>
+        /// Create provider with dictionary of  key pair with private key as byte array
+        /// </summary>
+        /// <param name="keys"></param>
+        public DefaultSignProvider(Dictionary<string, byte[]> keys)
+        {
+            if (keys == null || keys.Count == 0)
+                throw new ArgumentNullException("encodedKeys");
+
+            Keys = keys;
+        }
+
+        /// <summary>
+        /// Get available public keys from signature provider
+        /// </summary>
+        /// <returns>List of public keys</returns>
+        public Task<IEnumerable<string>> GetAvailableKeys()
+        {
+            return Task.FromResult(Keys.Keys.AsEnumerable());
+        }
+
+        /// <summary>
+        /// Sign bytes using the signature provider
+        /// </summary>
+        /// <param name="chainId">EOSIO Chain id</param>
+        /// <param name="requiredKeys">required public keys for signing this bytes</param>
+        /// <param name="signBytes">signature bytes</param>
+        /// <param name="abiNames">abi contract names to get abi information from</param>
+        /// <returns>List of signatures per required keys</returns>
+        public Task<IEnumerable<string>> Sign(string chainId, IEnumerable<string> requiredKeys, byte[] signBytes, IEnumerable<string> abiNames = null)
+        {
+            if (requiredKeys == null)
+                return Task.FromResult(new List<string>().AsEnumerable());
+
+            var availableAndReqKeys = requiredKeys.Intersect(Keys.Keys);
+
+            var data = new List<byte[]>()
+            {
+                Hex.HexToBytes(chainId),
+                signBytes,
+                new byte[32]
+            };
+
+            var hash = Sha256Manager.GetHash(SerializationHelper.Combine(data));
+
+            return Task.FromResult(availableAndReqKeys.Select(key =>
+            {
+                var sign = Secp256K1Manager.SignCompressedCompact(hash, Keys[key]);
+                var check = new List<byte[]>() { sign, KeyTypeBytes };
+                var checksum = Ripemd160Manager.GetHash(SerializationHelper.Combine(check)).Take(4).ToArray();
+                var signAndChecksum = new List<byte[]>() { sign, checksum };
+
+                return "SIG_K1_" + Base58.Encode(SerializationHelper.Combine(signAndChecksum));
+            }));
+        }
+    }
+    
     public class EosTransactionRepositoryBase : IEosTransactionRepositoryBase
     {
         private readonly IEosClient _eosClient;
@@ -1985,35 +2570,35 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.Reposito
         {
             _eosClient = new EosClient(new Uri("http://localhost:8888"));
             _eosConfigurator = new EosConfigurator();
-            _serializationProvider = new AbiSerializationProvider();
+            _serializationProvider = new AbiSerializationProvider(_eosClient);
         }
         
         /// <summary>
         /// Calculate required keys to sign the given transaction
         /// </summary>
         /// <param name="availableKeys">available public keys list</param>
-        /// <param name="trx">transaction requiring signatures</param>
+        /// <param name="eosTransaction">transaction requiring signatures</param>
         /// <returns>required public keys</returns>
-        public async Task<List<string>> GetRequiredKeys(List<string> availableKeys, Transaction trx)
+        public async Task<List<string>> GetRequiredKeys(List<string> availableKeys, EosTransaction eosTransaction)
         {
             int actionIndex = 0;
-            var abiSerializer = new AbiSerializationProvider(Api);
-            var abiResponses = await abiSerializer.GetTransactionAbis(trx);
+            var abiSerializer = new AbiSerializationProvider(_eosClient);
+            var abiResponses = await abiSerializer.GetTransactionAbis(eosTransaction);
 
-            foreach (var action in trx.context_free_actions)
+            foreach (var action in eosTransaction.ContextFreeActions)
             {
-                action.data = SerializationHelper.ByteArrayToHexString(abiSerializer.SerializeActionData(action, abiResponses[actionIndex++]));
+                action.Data = SerializationHelper.ByteArrayToHexString(abiSerializer.SerializeActionData(action, abiResponses[actionIndex++]));
             }
 
-            foreach (var action in trx.actions)
+            foreach (var action in eosTransaction.Actions)
             {
-                action.data = SerializationHelper.ByteArrayToHexString(abiSerializer.SerializeActionData(action, abiResponses[actionIndex++]));
+                action.Data = SerializationHelper.ByteArrayToHexString(abiSerializer.SerializeActionData(action, abiResponses[actionIndex++]));
             }
 
             return (await _eosClient.GetRequiredKeys(new GetRequiredKeysRequestDto()
             {
                 AvailableKeys = availableKeys,
-                Transaction = trx
+                Transaction = eosTransaction
             }));
         }
         
@@ -2041,7 +2626,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.Reposito
                 if (getInfoResult == null)
                     getInfoResult = await _eosClient.GetNodeInfo();
 
-                var taposBlockNum = getInfoResult.HeadBlockNum - (int)_eosConfigurator.blocksBehind;
+                var taposBlockNum = getInfoResult.HeadBlockNum - (int)_eosConfigurator.BlocksBehind;
 
                 if ((taposBlockNum - getInfoResult.LastIrreversibleBlockNum) < 2)
                 {
