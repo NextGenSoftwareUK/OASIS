@@ -1,7 +1,7 @@
 ﻿using System.Linq;
 using Newtonsoft.Json;
 
-namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Entities
+namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Entities.DTOs.GetInfo
 {
     public class GetNodeInfoResponseDto
     {

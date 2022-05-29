@@ -1,6 +1,14 @@
 ﻿using System;
 using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Entities;
+using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Entities.DTOs.AbiBinToJson;
+using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Entities.DTOs.AbiJsonToBin;
+using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Entities.DTOs.GetBlock;
+using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Entities.DTOs.GetInfo;
+using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Entities.DTOs.GetRawAbi;
+using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Entities.DTOs.GetRequiredKeys;
+using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Entities.DTOs.GetTableRows;
+using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Entities.DTOs.Transaction;
 
 namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.EOSClient
 {
@@ -12,5 +20,9 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.EOSClien
         public Task<string> AbiBinToJson(AbiBinToJsonRequestDto abiJsonToBinRequestDto);
         public Task<string> SendTransaction(PerformTransactionRequestDto performTransactionRequestDto);
         public Task<string> PushTransaction(PerformTransactionRequestDto performTransactionRequestDto);
+        public Task<GetRawAbiResponseDto> GetRawAbi(GetRawAbiRequestDto getRawAbiRequestDto);
+        public Task<GetBlockResponseDto> GetBlock(GetBlockRequestDto getBlockRequestDto);
+        public Task<GetBlockHeaderStateResponseDto> GetBlockHeaderState(GetBlockRequestDto getBlockRequestDto);
+        public Task<string> GetRequiredKeys(GetRequiredKeysRequestDto getRequiredKeysRequestDto);
     }
 }
