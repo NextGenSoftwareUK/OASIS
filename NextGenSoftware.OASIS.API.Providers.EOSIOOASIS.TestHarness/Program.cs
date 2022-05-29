@@ -2,6 +2,8 @@
 using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Entities;
+using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Entities.DTOs.GetTableRows;
+using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Entities.Models;
 using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.EOSClient;
 
 namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.TestHarness

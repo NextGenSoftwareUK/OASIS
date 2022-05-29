@@ -1,6 +1,6 @@
 ﻿using Newtonsoft.Json;
 
-namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Entities
+namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Entities.DTOs.AbiJsonToBin
 {
     public class AbiJsonToBinRequestDto
     {

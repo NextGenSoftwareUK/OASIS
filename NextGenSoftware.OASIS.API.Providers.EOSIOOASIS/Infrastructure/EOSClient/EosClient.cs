@@ -5,6 +5,14 @@ using Newtonsoft.Json;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Entities;
+using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Entities.DTOs.AbiBinToJson;
+using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Entities.DTOs.AbiJsonToBin;
+using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Entities.DTOs.GetBlock;
+using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Entities.DTOs.GetInfo;
+using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Entities.DTOs.GetRawAbi;
+using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Entities.DTOs.GetRequiredKeys;
+using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Entities.DTOs.GetTableRows;
+using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Entities.DTOs.Transaction;
 
 namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.EOSClient
 {
@@ -64,6 +72,30 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.EOSClien
         {
             return await SendRequest<string, PerformTransactionRequestDto>(performTransactionRequestDto, HttpMethod.Post,
                 new Uri(_eosHostNodeUri + "v1/chain/push_transactions"));
+        }
+
+        public async Task<GetRawAbiResponseDto> GetRawAbi(GetRawAbiRequestDto getRawAbiRequestDto)
+        {
+            return await SendRequest<GetRawAbiResponseDto, GetRawAbiRequestDto>(getRawAbiRequestDto, HttpMethod.Post,
+                new Uri(_eosHostNodeUri + "v1/chain/get_raw_abi"));
+        }
+
+        public async Task<GetBlockResponseDto> GetBlock(GetBlockRequestDto getBlockRequestDto)
+        {
+            return await SendRequest<GetBlockResponseDto, GetBlockRequestDto>(getBlockRequestDto, HttpMethod.Post,
+                new Uri(_eosHostNodeUri + "v1/chain/get_block"));
+        }
+
+        public async Task<GetBlockHeaderStateResponseDto> GetBlockHeaderState(GetBlockRequestDto getBlockRequestDto)
+        {
+            return await SendRequest<GetBlockHeaderStateResponseDto, GetBlockRequestDto>(getBlockRequestDto, HttpMethod.Post,
+                new Uri(_eosHostNodeUri + "v1/chain/get_block_header_state"));
+        }
+
+        public async Task<string> GetRequiredKeys(GetRequiredKeysRequestDto getRequiredKeysRequestDto)
+        {
+            return await SendRequest<string, GetRequiredKeysRequestDto>(getRequiredKeysRequestDto, HttpMethod.Post,
+                new Uri(_eosHostNodeUri + "v1/chain/get_required_keys"));
         }
 
         /// <summary>

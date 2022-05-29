@@ -1,21 +1,21 @@
 ﻿using System;
 using Newtonsoft.Json;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
-using NextGenSoftware.OASIS.API.Core.Utilities;
 
-namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Entities
+namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Entities.Models
 {
-    public class AvatarDetailDto
+    public sealed class AvatarDto
     {
-        public int EntityId { get; set; }
         public string AvatarId { get; set; }
+        public int EntityId { get; set; }
         public string Info { get; set; }
+        public bool IsDeleted { get; set; } = false;
 
-        public IAvatarDetail GetBaseAvatarDetail()
+        public IAvatar GetBaseAvatar()
         {
             if (string.IsNullOrEmpty(Info))
                 throw new ArgumentNullException(nameof(Info));
-            return JsonConvert.DeserializeObject<IAvatarDetail>(Info);
+            return JsonConvert.DeserializeObject<IAvatar>(Info);
         }
     }
 }

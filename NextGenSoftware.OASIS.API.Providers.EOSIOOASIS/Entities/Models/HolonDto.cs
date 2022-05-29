@@ -2,20 +2,20 @@
 using Newtonsoft.Json;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 
-namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Entities
+namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Entities.Models
 {
-    public sealed class AvatarDto
+    public class HolonDto
     {
-        public string AvatarId { get; set; }
         public int EntityId { get; set; }
+        public string HolonId { get; set; }
         public string Info { get; set; }
-        public bool IsDeleted { get; set; } = false;
-
-        public IAvatar GetBaseAvatar()
+        public bool IsDeleted { get; set; }
+        
+        public IHolon GetBaseHolon()
         {
             if (string.IsNullOrEmpty(Info))
                 throw new ArgumentNullException(nameof(Info));
-            return JsonConvert.DeserializeObject<IAvatar>(Info);
+            return JsonConvert.DeserializeObject<IHolon>(Info);
         }
     }
 }

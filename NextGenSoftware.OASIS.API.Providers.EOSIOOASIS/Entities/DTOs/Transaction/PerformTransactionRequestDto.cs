@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using Newtonsoft.Json;
 
-namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Entities
+namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Entities.DTOs.Transaction
 {
     public class PerformTransactionRequestDto
     {
