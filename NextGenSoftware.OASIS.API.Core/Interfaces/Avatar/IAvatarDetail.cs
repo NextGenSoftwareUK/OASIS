@@ -46,7 +46,7 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces
         List<AvatarGift> Gifts { get; set; }
         List<HeartRateEntry> HeartRateData { get; set; }
         HumanDesign HumanDesign { get; set; }
-        string Image2D { get; set; }
+        string Portrait { get; set; }
         List<InventoryItem> Inventory { get; set; }
         int Karma { get; set; }
         List<KarmaAkashicRecord> KarmaAkashicRecords { get; set; }

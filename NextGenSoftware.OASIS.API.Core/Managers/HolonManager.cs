@@ -23,6 +23,26 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
         }
 
+        /// <summary>
+        /// Send's a given holon from one provider to another. 
+        /// This method is only really needed if auto-replication is disabled or there is a use case for sending from one provider to another.
+        /// By default this will NOT auto-replicate to any other provider (set autoReplicate to true if you wish it to). This param overrides the global auto-replication setting.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="id"></param>
+        /// <param name="sourceProviderType"></param>
+        /// <param name="destinationProviderType"></param>
+        /// <param name="autoReplicate"></param>
+        /// <returns></returns>
+        public OASISResult<T> SendHolon<T>(Guid id, ProviderType sourceProviderType, ProviderType destinationProviderType, bool autoReplicate = false) where T : IHolon, new()
+        {
+            // TODO: Finish Implementing ASAP...
+            // Needs to load the holon from the source provider and then save to the destination provider.
+
+
+            return new OASISResult<T>();
+        }
+
         public OASISResult<T> LoadHolon<T>(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0, ProviderType providerType = ProviderType.Default) where T : IHolon, new()
         {
             ProviderType currentProviderType = ProviderManager.CurrentStorageProviderType.Value;

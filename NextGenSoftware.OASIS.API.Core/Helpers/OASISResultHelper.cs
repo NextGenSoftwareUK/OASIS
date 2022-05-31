@@ -13,6 +13,30 @@ namespace NextGenSoftware.OASIS.API.Core.Helpers
 
             return result;
         }
+
+        //public static T UnWrapOASISResult(OASISResult<T> result)
+        //{
+
+        //}
+    }
+
+    public static class OASISResultHelper<T1, T2>
+    {
+        public static (OASISResult<T1>, T2) UnWrapOASISResult(ref OASISResult<T1> parentResult, OASISResult<T2> result, string errorMessage)
+        {
+            if (!result.IsError && result.Result != null)
+                return (parentResult, result.Result);
+            else
+            {
+                ErrorHandling.HandleError(ref parentResult, string.Format(errorMessage, result.Message));
+                return (parentResult, default(T2));
+            }
+        }
+
+        public static (OASISResult<T1>, T2) UnWrapOASISResultWithDefaultErrorMessage(ref OASISResult<T1> parentResult, OASISResult<T2> result, string methodName)
+        {
+            return UnWrapOASISResult(ref parentResult, result, $"Error occured in {methodName}. Reason:{0}");
+        }
     }
 
     //public static class OASISResultHelper<T>
@@ -70,8 +94,8 @@ namespace NextGenSoftware.OASIS.API.Core.Helpers
     }
 
     public static class OASISResultCollectionToCollectionHelper<T1, T2>
-       where T1 : IEnumerable<IHolonBase>
-       where T2 : IEnumerable<IHolonBase> 
+       //where T1 : IEnumerable<IHolonBase>
+       //where T2 : IEnumerable<IHolonBase> 
     {
         public static OASISResult<T2> CopyResult(OASISResult<T1> fromResult, ref OASISResult<T2> toResult, bool copyMessage = true)
         {

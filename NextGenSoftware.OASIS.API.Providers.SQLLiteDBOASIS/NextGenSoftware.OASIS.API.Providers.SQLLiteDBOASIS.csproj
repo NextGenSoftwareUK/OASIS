@@ -1,36 +1,35 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <OutputType>Library</OutputType>
     <TargetFramework>net6.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="DataBaseModels\**" />
-    <Compile Remove="Prototypes\**" />
-    <Compile Remove="Repositories\**" />
-    <EmbeddedResource Remove="DataBaseModels\**" />
-    <EmbeddedResource Remove="Prototypes\**" />
-    <EmbeddedResource Remove="Repositories\**" />
-    <None Remove="DataBaseModels\**" />
-    <None Remove="Prototypes\**" />
-    <None Remove="Repositories\**" />
+    <Compile Remove="SQLLiteDBOASIS.cs\**" />
+    <EmbeddedResource Remove="SQLLiteDBOASIS.cs\**" />
+    <None Remove="SQLLiteDBOASIS.cs\**" />
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Remove="DataContext.cs" />
+    <None Remove="Database\SQLLiteDBOASIS.db" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="3.1.8">
+    <EmbeddedResource Include="Database\SQLLiteDBOASIS.db">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="6.0.3" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="6.0.3">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="3.1.8" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="3.1.8">
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-      <PrivateAssets>all</PrivateAssets>
-    </PackageReference>
+    <PackageReference Include="Microsoft.Extensions.Configuration" Version="6.0.1" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="6.0.1" />
   </ItemGroup>
 
   <ItemGroup>

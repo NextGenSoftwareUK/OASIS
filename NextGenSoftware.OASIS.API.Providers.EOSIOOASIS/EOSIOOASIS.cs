@@ -123,24 +123,24 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             throw new NotImplementedException();
         }
 
-        public override async Task<OASISResult<IAvatar>> LoadAvatarAsync(string username, string password, int version = 0)
-        {
-            var rows = await ChainAPI.GetTableRowsAsync(OASIS_EOSIO_ACCOUNT, OASIS_EOSIO_ACCOUNT, "accounts", "true", username, username, 1, 2);
+        //public override async Task<OASISResult<IAvatar>> LoadAvatarAsync(string username, string password, int version = 0)
+        //{
+        //    var rows = await ChainAPI.GetTableRowsAsync(OASIS_EOSIO_ACCOUNT, OASIS_EOSIO_ACCOUNT, "accounts", "true", username, username, 1, 2);
 
-            if (rows.rows.Count == 0)
-                return null;
+        //    if (rows.rows.Count == 0)
+        //        return null;
 
-            var AvatarRow = (EOSIOAccountTableRow)rows.rows[0];
-            var Avatar = AvatarRow.ToAvatar();
+        //    var AvatarRow = (EOSIOAccountTableRow)rows.rows[0];
+        //    var Avatar = AvatarRow.ToAvatar();
 
-            Avatar.Password = StringCipher.Decrypt(Avatar.Password);
-            return new OASISResult<IAvatar>(Avatar);
-        }
+        //    Avatar.Password = StringCipher.Decrypt(Avatar.Password);
+        //    return new OASISResult<IAvatar>(Avatar);
+        //}
 
-        public override OASISResult<IAvatar> LoadAvatar(string username, string password, int version = 0)
-        {
-            throw new NotImplementedException();
-        }
+        //public override OASISResult<IAvatar> LoadAvatar(string username, string password, int version = 0)
+        //{
+        //    throw new NotImplementedException();
+        //}
 
         public override OASISResult<IAvatar> LoadAvatar(string username, int version = 0)
         {
@@ -443,13 +443,13 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
         public List<string> GetEOSIOAccountNamesForAvatar(Guid avatarId)
         {
             //TODO: Handle OASISResult Properly.
-            return KeyManager.GetProviderPublicKeysForAvatar(avatarId, Core.Enums.ProviderType.EOSIOOASIS).Result;
+            return KeyManager.GetProviderPublicKeysForAvatarById(avatarId, Core.Enums.ProviderType.EOSIOOASIS).Result;
         }
 
         public string GetEOSIOAccountPrivateKeyForAvatar(Guid avatarId)
         {
             //TODO: Handle OASISResult Properly.
-            return KeyManager.GetProviderPrivateKeyForAvatar(avatarId, Core.Enums.ProviderType.EOSIOOASIS).Result;
+            return KeyManager.GetProviderPrivateKeysForAvatarById(avatarId, Core.Enums.ProviderType.EOSIOOASIS).Result[0];
         }
 
         public Account GetEOSIOAccountForAvatar(Guid avatarId)

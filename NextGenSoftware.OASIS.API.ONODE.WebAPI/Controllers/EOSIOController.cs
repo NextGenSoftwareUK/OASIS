@@ -162,14 +162,15 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <summary>
         /// Link's a given eosioAccountName to the given avatar.
         /// </summary>
+        /// <param name="walletId">The id of the wallet (if any).</param>
         /// <param name="avatarId">The id of the avatar.</param>
         /// <param name="eosioAccountName"></param>
         /// <returns></returns>
         [Authorize]
         [HttpPost("{avatarId}/{eosioAccountName}")]
-        public OASISResult<bool> LinkEOSIOAccountToAvatar(Guid avatarId, string eosioAccountName)
+        public OASISResult<Guid> LinkEOSIOAccountToAvatar(Guid walletId, Guid avatarId, string eosioAccountName)
         {
-            return KeyManager.LinkProviderPublicKeyToAvatar(avatarId, ProviderType.EOSIOOASIS, eosioAccountName);
+            return KeyManager.LinkProviderPublicKeyToAvatarById(walletId, avatarId, ProviderType.EOSIOOASIS, eosioAccountName);
         }
     }
 }

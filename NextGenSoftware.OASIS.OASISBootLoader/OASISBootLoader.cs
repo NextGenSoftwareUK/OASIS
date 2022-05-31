@@ -348,13 +348,11 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
 
                     case ProviderType.EthereumOASIS:
                     {
-                        EthereumOASIS EthereumOASIS = new EthereumOASIS(overrideConnectionString == null
-                            ? OASISDNA.OASIS.StorageProviders.EthereumOASIS.ConnectionString
-                            : overrideConnectionString, OASISDNA.OASIS.StorageProviders.EthereumOASIS.ProjectId,
-                            OASISDNA.OASIS.StorageProviders.EthereumOASIS.Abi,
-                            OASISDNA.OASIS.StorageProviders.EthereumOASIS.AbiByteCode,
-                            OASISDNA.OASIS.StorageProviders.EthereumOASIS.Password,
-                            OASISDNA.OASIS.StorageProviders.EthereumOASIS.SenderAddress);
+                        EthereumOASIS EthereumOASIS = new EthereumOASIS(
+                            OASISDNA.OASIS.StorageProviders.EthereumOASIS.ConnectionString,
+                            OASISDNA.OASIS.StorageProviders.EthereumOASIS.ChainPrivateKey,
+                            OASISDNA.OASIS.StorageProviders.EthereumOASIS.ChainId,
+                            OASISDNA.OASIS.StorageProviders.EthereumOASIS.ContractAddress);
                         EthereumOASIS.StorageProviderError += EthereumOASIS_StorageProviderError;
                         registeredProvider = EthereumOASIS;
                     }

@@ -82,13 +82,13 @@ namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS
         public List<string> GetTelosAccountNamesForAvatar(Guid avatarId)
         {
             //TODO: Handle OASISResult Properly.
-            return KeyManager.GetProviderPublicKeysForAvatar(avatarId, Core.Enums.ProviderType.TelosOASIS).Result;
+            return KeyManager.GetProviderPublicKeysForAvatarById(avatarId, Core.Enums.ProviderType.TelosOASIS).Result;
         }
 
         public string GetTelosAccountPrivateKeyForAvatar(Guid avatarId)
         {
             //TODO: Handle OASISResult Properly.
-            return KeyManager.GetProviderPrivateKeyForAvatar(avatarId, Core.Enums.ProviderType.TelosOASIS).Result;
+            return KeyManager.GetProviderPrivateKeysForAvatarById(avatarId, Core.Enums.ProviderType.TelosOASIS).Result[0];
         }
 
         public Account GetTelosAccountForAvatar(Guid avatarId)
@@ -154,15 +154,15 @@ namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS
             throw new NotImplementedException();
         }
 
-        public override Task<OASISResult<IAvatar>> LoadAvatarAsync(string username, string password, int version = 0)
-        {
-            throw new NotImplementedException();
-        }
+        //public override Task<OASISResult<IAvatar>> LoadAvatarAsync(string username, string password, int version = 0)
+        //{
+        //    throw new NotImplementedException();
+        //}
 
-        public override OASISResult<IAvatar> LoadAvatar(string username, string password, int version = 0)
-        {
-            throw new NotImplementedException();
-        }
+        //public override OASISResult<IAvatar> LoadAvatar(string username, string password, int version = 0)
+        //{
+        //    throw new NotImplementedException();
+        //}
 
         public override OASISResult<IAvatar> LoadAvatar(string username, int version = 0)
         {
