@@ -17,6 +17,7 @@ import Avatar from "./popups/avatar";
 import DataScreen from "./popups/data-screen";
 import Seeds from "./popups/seeds";
 import ForgotPassword from "./forgotPassword";
+import ComingSoon from "./popups/comingsoon/ComingSoon";
 
 class App extends React.Component {
   state = {
@@ -62,6 +63,9 @@ class App extends React.Component {
           viewKarma: false,
         },
       },
+      {
+        comingSoon: false,
+      }
     ],
   };
 
@@ -143,12 +147,15 @@ class App extends React.Component {
         console.log(menuOption);
         console.log(menuName)
         let sidebarMenuOption = [...this.state.sidebarMenuOption];
-
-        sidebarMenuOption.map((item) => {
-            if (item[menuOption]) {
-                item[menuOption][menuName] = !item[menuOption][menuName];
-            }
-        })
+        if (!menuName) {
+            sidebarMenuOption[5].comingSoon = !sidebarMenuOption[5].comingSoon
+        } else {
+            sidebarMenuOption.map((item) => {
+                if (item[menuOption]) {
+                    item[menuOption][menuName] = !item[menuOption][menuName];
+                }
+            })
+        }
 
         this.setState({
             sidebarMenuOption
@@ -215,6 +222,11 @@ class App extends React.Component {
 
                 <Karma 
                     karma={this.state.sidebarMenuOption[4].karma}
+                    toggleScreenPopup={this.toggleScreenPopup}
+                />
+
+                <ComingSoon
+                    show={this.state.sidebarMenuOption[5].comingSoon}
                     toggleScreenPopup={this.toggleScreenPopup}
                 />
             </div>
